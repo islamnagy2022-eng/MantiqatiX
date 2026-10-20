@@ -140,3 +140,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Action performed:** added `docs/UI_MODULE_INVENTORY.md` and appended this source-based inventory/gap register to the Master TODO. All runtime journeys remain NOT VERIFIED.
 - **Not performed:** no app code changes, database or production mutation, Auth setting change, deployment, merge, payment, or external ad-network action.
 - **Next:** safely fix the blueprint false-success action and test it; then address global-search partial failures and implement module UI gaps against verified backend contracts only. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — SESSION-UI-IMPLEMENTATION-001 — First UI behavior fixes
+
+- **Action performed:** on `feat/ui-first-module-completion-20261020`, added Pages CI validation for the module blueprint action contract and global-search failure-state contract. The existing blueprint action is confirmed to disclose that no standalone workflow is wired and no mutation occurred instead of claiming success. Updated `web/app.js` so global search tracks source failures and distinguishes partial/unavailable sources from genuinely empty results while preserving role-based source filtering.
+- **Tests added:** `scripts/validate-module-blueprint-actions.mjs`; `scripts/validate-global-search-failure-state.mjs`; both are called by `.github/workflows/pages.yml`.
+- **Verified vs pending:** source edits and workflow wiring are committed to the branch. Exact-head CI and browser/E2E behavior are **PENDING**; source-contract tests do not prove deployed behavior or data/RLS correctness.
+- **Not performed:** no database migration, production mutation, Auth setting change, payment, ad spend, merge, or deployment.
+- **Next:** observe exact-head CI after opening the draft PR, then proceed module-by-module to real route/action flows and role-scoped activity/job-function controls. Subscription package/account expansion and expanded accounting UI remain deferred. Release remains **BLOCKED / NOT CERTIFIED**.
