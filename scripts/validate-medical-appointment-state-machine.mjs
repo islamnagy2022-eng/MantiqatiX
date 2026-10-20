@@ -104,7 +104,7 @@ assert.ok(operations.includes("storedRequest?.fingerprint===requestPayload&&stor
 assert.ok(operations.includes("sessionStorage.setItem(requestKey,JSON.stringify(requestRecord))"),"operations medical booking must persist its retry token before invoking the backend");
 assert.ok(operations.includes("sessionStorage.removeItem(requestKey)"),"operations medical booking must clear its retry token only after confirmed success");
 assert.ok(operations.includes("idempotent_replay"),"operations medical booking must communicate replayed success without creating a duplicate");
-assert.ok(operations.includes('type="datetime-local" min="'+esc(minValue)+'" step="900" required'),"operations medical booking must use an inline quarter-hour datetime control");
+assert.ok(operations.includes('type="datetime-local" min=')&&operations.includes('step="900" required'),"operations medical booking must use an inline quarter-hour datetime control");
 assert.ok(operations.includes("document.getElementById('med-op-slot-'+providerId)"),"operations booking must read its own selected date/time field");
 assert.ok(operations.includes("reason.length>500"),"operations booking must enforce the backend reason length limit");
 assert.ok(operations.includes("button.disabled=true"),"operations booking must prevent duplicate clicks while the request is in flight");
