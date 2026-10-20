@@ -44,7 +44,11 @@ assert.match(ui, /function supports\(name\)\{const route=String\(name\|\|''\);if
 assert.match(ui, /if\(state\.code!==s\.code\)state\.tab='overview'/, 'switching sectors must not carry a stale tab from another sector');
 assert.match(ui, /function screenPreviewHtml\(s,key\)/);
 assert.match(ui, /class="mxiw-preview-table"/);
-assert.match(ui, /disabled title="سيُفعّل بعد اعتماد الربط الخلفي"/);
+assert.match(ui, /data-mxiw-action-check=/, 'actions must remain interactive and expose the incomplete-workflow state');
+assert.match(ui, /حالة الإجراء: غير مكتمل/, 'non-wired operations must expose an explicit incomplete status');
+assert.match(ui, /الموديول ظاهر · التشغيل غير مكتمل/, 'visibility must not be conflated with operational readiness');
+assert.match(ui, /الظهور والتسويق منفصلان عن جاهزية الشراء أو تنفيذ الخدمة/);
+assert.doesNotMatch(ui, /\sdisabled(?:\s|=|>)/i, 'sector UI must not globally disable its forms and action controls');
 assert.match(ui, /class="mxiw-preview-fields"/);
 assert.match(ui, /data-mxiw-search/);
 assert.match(ui, /data-mxiw-group/);
