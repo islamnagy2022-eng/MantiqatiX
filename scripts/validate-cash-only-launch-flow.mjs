@@ -280,7 +280,7 @@ assert.match(app,/chooseERPRecord\(\x27catalog_items\x27,\x27الصنف النش
 assert.match(app,/chooseERPRecord\(\x27warehouses\x27,\x27المخزن المصدر\x27/);
 assert.match(app,/window\.MNTYOperationsERPData\?\.\[table\]/,"ERP record chooser must use the operations module's scoped reference data");
 assert.match(app,/m\.key==='ACCOUNTING'&&m\.tables\.includes\('journal_entry_lines'\)/,"accounting lines must be loaded only through visible journal entries");
-assert.match(app,/\.in\('journal_entry_id',entryIds\)/,"accounting lines must be constrained to the tenant-scoped parent entries");
+assert.match(app,/rows\.journal_entry_lines=result\.lines\|\|\[\]/,"accounting lines must be loaded from the scoped accounting API");
 assert.doesNotMatch(app,/\.select\('\*'\)\.in\('journal_entry_id'/,"accounting lines must not use unrestricted wildcard reads");
 assert.match(app,/matrimony_contact_unlocks'\)\.select\('id,request_id,unlocked_at'\)\.in\('request_id',requestIds\)/,"matrimony contact unlocks must be limited to requests visible to the current user");
 assert.match(app,/table==='matrimony_profiles'\)q=sb\.from\(table\)\.select\('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at'\)/,"public matrimony workspace must not read direct contact fields");
