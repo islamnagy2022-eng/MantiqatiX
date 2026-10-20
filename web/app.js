@@ -46,7 +46,7 @@ const modules=[
 const domainModules=[
 {key:'FASHION',name:'التجارة والأزياء',icon:'🛍️',desc:'المنتجات والطلبات والخياطة والمخزون.',tables:['fashion_products','fashion_orders','fashion_tailor_services']},
 {key:'GROCERY',name:'البقالة والسوبر ماركت',icon:'🛒',desc:'كتالوج الأصناف والأسعار والمخزون والطلبات.',tables:['catalog_items','catalog_item_prices','inventory_transactions','orders']},
-{key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries','journal_entry_lines']},
+{key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries','journal_entry_lines','general_ledger']},
 {key:'COMPANIES',name:'المزايدات — الشركات',icon:'🏢',desc:'طلبات الشركات ومقدمو الخدمة والعروض.',tables:['indrive_requests','indrive_bids','businesses']},
 {key:'MARKETING',name:'المزايدات — التسويق',icon:'📣',desc:'طلبات التسويق ومقدمو الخدمة والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
 {key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والمخازن والأرصدة وحركة المخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances','catalog_items']},
@@ -859,7 +859,7 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&table==='journal_entry_lines'));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&['journal_entry_lines','general_ledger'].includes(table)));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
@@ -881,11 +881,16 @@ async function loadEnterpriseDomainData(m){
   try{
    const entryIds=(rows.journal_entries||[]).map(entry=>String(entry.id)).filter(Boolean);
    if(entryIds.length){
-    const lineResult=await sb.from('journal_entry_lines').select('id,journal_entry_id,account_id,debit,credit,description').in('journal_entry_id',entryIds).limit(500);
+    const [lineResult,ledgerResult]=await Promise.all([
+     sb.from('journal_entry_lines').select('id,journal_entry_id,account_id,debit,credit,description').in('journal_entry_id',entryIds).limit(500),
+     sb.from('general_ledger').select('id,journal_entry_id,account_id,debit,credit,running_balance,entry_date,posted_at').in('journal_entry_id',entryIds).limit(1000).order('posted_at',{ascending:false})
+    ]);
     if(lineResult.error)throw lineResult.error;
     rows.journal_entry_lines=lineResult.data||[];
-   }else rows.journal_entry_lines=[];
-  }catch(error){rows.journal_entry_lines=[];errors.journal_entry_lines='READ_FAILED';}
+    if(ledgerResult.error)throw ledgerResult.error;
+    rows.general_ledger=ledgerResult.data||[];
+   }else{rows.journal_entry_lines=[];rows.general_ledger=[];}
+  }catch(error){rows.journal_entry_lines=[];rows.general_ledger=[];errors.journal_entry_lines='READ_FAILED';errors.general_ledger='READ_FAILED';}
  }
  if(m.key==='MATRIMONY'){
   try{
@@ -1179,6 +1184,7 @@ function enterpriseRowsTable(m,rows){
    +recordsTable('العروض والتفاوض',rows.indrive_bids||[],[['مقدم العرض',r=>r.provider_name],['القيمة',r=>r.offered_price],['ملاحظة',r=>r.note],['الحالة',r=>r.status]])
    +recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['المدين',r=>erpJournalTotals(rows,r.id,'debit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['الدائن',r=>erpJournalTotals(rows,r.id,'credit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['التوازن',r=>Math.abs(erpJournalTotals(rows,r.id,'debit')-erpJournalTotals(rows,r.id,'credit'))<0.005?'متوازن':(rows.journal_entry_lines||[]).some(line=>String(line.journal_entry_id)===String(r.id))?'غير متوازن':'بدون تفاصيل'],['الحالة',r=>r.status]])
    +recordsTable('تفاصيل القيود',rows.journal_entry_lines||[],[['القيد',r=>r.journal_entry_id],['الحساب',r=>erpAccountLabel(rows,r.account_id)],['مدين',r=>r.debit],['دائن',r=>r.credit],['الوصف',r=>r.description]])
+   +recordsTable('دفتر الأستاذ العام',rows.general_ledger||[],[['القيد',r=>r.journal_entry_id],['الحساب',r=>erpAccountLabel(rows,r.account_id)],['مدين',r=>r.debit],['دائن',r=>r.credit],['الرصيد الجاري',r=>r.running_balance],['تاريخ القيد',r=>r.entry_date],['الترحيل',r=>r.posted_at]])
    +sources();
  }
  if(['ERP','BUSINESS_ERP'].includes(m.key)){
