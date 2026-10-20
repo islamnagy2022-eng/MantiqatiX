@@ -833,7 +833,49 @@ function accountStatusPanel(){
 function providerProfileWorkspace(){const p=live.myProviderProfile;if(!p)return workspaceHead('PROFILE','ملف نشاطي','لا يوجد ملف نشاط مرتبط بالحساب الحالي.','NOT FOUND')+'<div class="empty-state">سجل نشاطك كمقدم خدمة أولًا ليظهر هنا.</div>';const image=providerImageUrl(p.profile_image_path,p.updated_at);const activityLogoPath=p?.settings?.branding?.logo_path||'';const activityLogo=activityLogoPath?providerImageUrl(activityLogoPath,p.updated_at):'';const services=live.records.providerServices||[];let areas=[];try{areas=Array.isArray(p.service_areas)?p.service_areas:typeof p.service_areas==='string'?JSON.parse(p.service_areas||'[]'):[]}catch(_){areas=[]}const areaNames=areas.map(a=>a.center_name_ar||a.governorate_name_ar||a.name_ar).filter(Boolean);const activeServices=services.filter(s=>String(s.status||'ACTIVE').toUpperCase()==='ACTIVE');const serviceCards=services.length?services.slice(0,12).map(s=>'<article class="card mnty-provider-service-card"><div class="row"><strong>'+esc(s.service_description||'خدمة مقدمة')+'</strong><span class="mnty-badge">'+esc(String(s.status||'ACTIVE'))+'</span></div><p class="muted">'+(s.pricing_from!=null?'من '+esc(s.pricing_from)+' '+esc(s.currency||'EGP'):'السعر حسب الاتفاق')+(s.pricing_to!=null?' · حتى '+esc(s.pricing_to)+' '+esc(s.currency||'EGP'):'')+'</p></article>').join(''):'<div class="empty-state">لا توجد خدمات مسجلة في ملف النشاط حتى الآن.</div>';return workspaceHead('MY ACTIVITY','ملف نشاطي','لوحة إدارة واجهة النشاط والبيانات الظاهرة في الكتالوج العام. البيانات هنا من ملف النشاط الفعلي فقط.','OWNER')+'<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(p.name_ar||p.name_en||'نشاطي')+'</h2><p>'+esc(p.provider_kind||'مقدم خدمة')+' · '+esc(p.status||'—')+'</p></div><span class="mnty-badge '+(p.is_verified?'mnty-badge--live':'')+'">'+esc(p.is_verified?'موثق':'قيد التحقق')+'</span></div><div class="mnty-stat-strip"><div><b>'+services.length+'</b><span>خدمات مسجلة</span></div><div><b>'+activeServices.length+'</b><span>خدمات نشطة</span></div><div><b>'+areaNames.length+'</b><span>مناطق خدمة</span></div><div><b>'+esc(p.is_featured?'نعم':'—')+'</b><span>ظهور مميز</span></div></div><div class="mnty-screen-note">'+esc(p.description||'لا يوجد وصف نشاط مسجل حاليًا.')+'</div></section><section class="card provider-profile-editor"><div class="row"><div><h3>الصورة العامة</h3><p class="muted">تظهر في الكتالوج العام بعد تحديث الملف.</p></div>'+(image?'<img class="provider-profile-preview" src="'+esc(image)+'" alt="صورة النشاط">':'<div class="provider-profile-preview provider-profile-preview--empty">صورة افتراضية</div>')+'</div><div class="field"><label>صورة النشاط</label><input id="provider-image-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB · يتم تجهيزها كـWebP قبل الحفظ.</small><div id="provider-image-preview" class="provider-image-preview-note" aria-live="polite">اختر صورة لمعاينتها قبل الحفظ.</div></div><div class="action-bar"><button class="btn btn-primary" id="provider-image-save" style="width:auto">حفظ صورة النشاط</button></div></section><section class="card provider-profile-editor mnty-provider-logo-editor"><div class="row"><div><h3>لوجو النشاط</h3><p class="muted">اللوجو مستقل عن صورة النشاط والأيقونة الأصلية. تغييره لا يستبدل الأصل ويمكن الرجوع إليه في أي وقت.</p></div>'+(activityLogo?'<img class="provider-profile-preview" src="'+esc(activityLogo)+'" alt="لوجو النشاط الحالي">':'<div class="provider-profile-preview provider-profile-preview--empty">الهوية الأصلية</div>')+'</div><div class="field"><label>لوجو جديد للنشاط</label><input id="provider-logo-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB.</small></div><div class="action-bar"><button class="btn btn-primary" id="provider-logo-save" style="width:auto">حفظ لوجو النشاط</button><button class="btn btn-outline" id="provider-logo-reset" style="width:auto">الرجوع للأصل</button></div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICES</span><h3>الخدمات الفعلية</h3><p class="muted">يتم عرض الخدمات الموجودة في قاعدة البيانات فقط.</p></div></div><div class="grid3">'+serviceCards+'</div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICE AREAS</span><h3>مناطق تقديم الخدمة</h3></div></div><div class="request-list">'+(areaNames.length?areaNames.map(a=>'<div class="request-row"><span>'+esc(a)+'</span><b>محددة</b></div>').join(''):'<div class="empty-state">لا توجد مناطق خدمة مسجلة حاليًا.</div>')+'</div></section>'}
 
 
-async function loadEnterpriseDomainData(m){if(!user||!m.tables?.length)return;const cache=live.moduleData[m.key]||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData[m.key]=cache;const rows={};for(const table of m.tables){let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);if(table==='mantigo_rides')q=q.eq('customer_id',user.id);if(table==='mantigo_bids')q=q.limit(100);if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);const r=await q;rows[table]=r.error?[]:(r.data||[])}cache.rows=rows;cache.rowsReady=true;cache.loading=false;renderApp()}
+async function loadEnterpriseDomainData(m){
+ if(!user||!m.tables?.length)return;
+ const cache=live.moduleData[m.key]||{};
+ if(cache.rowsReady||cache.loading)return;
+ cache.loading=true;cache.errors={};live.moduleData[m.key]=cache;
+ const rows={},errors={};
+ if(m.key==='ERP'){
+  try{
+   if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
+   const result=await invokeMntyFunction('erp-runtime',{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null});
+   if(!result?.success)throw new Error(result?.error||'ERP_DATA_LOAD_FAILED');
+   rows.erp_purchase_orders=result.orders||[];
+   rows.erp_purchase_receipts=result.receipts||[];
+   rows.erp_stock_transfers=result.transfers||[];
+   rows.warehouses=result.warehouses||[];
+  }catch(e){
+   for(const table of ['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses'])rows[table]=[];
+   errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
+  }
+ }
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(m.key==='ERP'&&table==='warehouses'));
+ const results=await Promise.all(directTables.map(async table=>{
+  try{
+   let q=sb.from(table).select('*').limit(100);
+   if(['chart_of_accounts','journal_entries','journal_entry_lines','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
+   if(table==='mantigo_bids')q=q.limit(100);
+   if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);
+   if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
+   const result=await q;
+   return {table,data:result.error?[]:(result.data||[]),error:result.error};
+  }catch(error){return {table,data:[],error};}
+ }));
+ for(const result of results){rows[result.table]=result.data;if(result.error)errors[result.table]='READ_FAILED';}
+ cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;syncModuleRuntime(m.name);renderApp();
+}
+window.retryEnterpriseDomainData=async function(key){
+ const m=domainModules.find(x=>x.key===String(key||''));
+ if(!m)return;
+ const cache=live.moduleData[m.key];
+ if(cache){cache.rowsReady=false;cache.loading=false;cache.errors={};}
+ await loadEnterpriseDomainData(m);
+};
 async function loadRestaurantWorkspace(){
  if(!user?.id)return;const cache=live.moduleData.RESTAURANTS||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData.RESTAURANTS=cache;
  const scope={tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId};
@@ -931,8 +973,10 @@ function domainModuleWorkspace(){
 }
 if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
+  const errorPanel=Object.keys(d.errors||{}).length?'<div class="notice" role="alert">تعذر تحميل بعض مصادر البيانات ('+Object.keys(d.errors).length+'). لم يتم اعتبارها بيانات فارغة. <button class="btn btn-outline" type="button" style="width:auto" onclick="retryEnterpriseDomainData(\''+esc(m.key)+'\')">إعادة المحاولة</button></div>':'';
   return workspaceHead(m.key,m.name,m.desc,'MODULE')
-   +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق RLS']))
+   +errorPanel
+   +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق نطاق المؤسسة والصلاحيات']))
    +enterpriseRowsTable(m,d.rows||{})
    +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
    +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
@@ -1121,7 +1165,32 @@ async function mntRpc(fn,args){if(!user?.id)return authView();const {data,error}
 async function createMntRide(){const pickup=window.prompt('نقطة الانطلاق');const destination=window.prompt('الوجهة');const price=Number(window.prompt('السعر المقترح','0'));if(!pickup?.trim()||!destination?.trim()||!Number.isFinite(price)||price<=0)return showToast('بيانات الرحلة غير صحيحة','error');return mntRpc('create_mantigo_ride_backend',{p_user_id:user.id,p_customer_name:user.email||'Customer',p_customer_phone:'',p_vehicle_category:window.prompt('فئة المركبة','STANDARD')||'STANDARD',p_ride_type:window.prompt('نوع الرحلة','ONE_WAY')||'ONE_WAY',p_pickup_location:pickup.trim(),p_destination_location:destination.trim(),p_proposed_price:price,p_note:window.prompt('ملاحظة','')||null})}
 async function createMntBid(rideId){const price=Number(window.prompt('قيمة العرض','0'));if(!rideId||!Number.isFinite(price)||price<=0)return showToast('قيمة العرض غير صحيحة','error');return mntRpc('create_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:rideId,p_captain_name:user.email||'Captain',p_captain_phone:'',p_captain_rating:null,p_vehicle_category:window.prompt('فئة المركبة','STANDARD')||'STANDARD',p_vehicle_model:window.prompt('موديل المركبة','')||null,p_vehicle_plate:window.prompt('رقم اللوحة','')||null,p_offered_price:price,p_eta_minutes:Number(window.prompt('ETA بالدقائق','15'))||15,p_captain_message:window.prompt('رسالة','')||null})}
 async function acceptMntBid(rideId,bidId){if(!rideId||!bidId)return;return mntRpc('accept_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:rideId,p_bid_id:bidId})}
-async function erpRpc(fn,args){if(!user?.id)return authView();if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');const {data,error}=await sb.rpc(fn,args);if(error){showToast('تعذر تنفيذ العملية: '+error.message,'error');return null}showToast('تم تنفيذ العملية بنجاح','success');live.moduleData={};await loadDomainModule(current);renderApp();return data}
+async function erpRpc(fn,args){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');
+ const operations={
+  create_purchase_order_backend:'create_purchase_order',
+  update_purchase_order_status_backend:'update_purchase_order_status',
+  receive_purchase_stock_backend:'receive_purchase_stock',
+  create_stock_transfer_backend:'create_stock_transfer',
+  update_stock_transfer_status_backend:'update_stock_transfer_status',
+  receive_stock_transfer_backend:'receive_stock_transfer'
+ };
+ const action=operations[fn];
+ if(!action)return showToast('عملية ERP غير معروفة أو غير مسموح بها','error');
+ try{
+  const response=await invokeMntyFunction('erp-runtime',{operation:'mutate',action,arguments:args});
+  if(!response?.success)throw new Error(response?.error||'ERP_OPERATION_FAILED');
+  showToast('تم تنفيذ العملية بنجاح','success');
+  live.moduleData={};
+  await renderApp();
+  return response.result;
+ }catch(error){
+  const code=String(error?.message||'ERP_OPERATION_FAILED');
+  showToast(code==='ERP_OPERATION_FORBIDDEN'?'ليست لديك صلاحية تنفيذ هذه العملية':code==='ERP_DATA_LOAD_FAILED'?'تعذر تحميل بيانات ERP من الخادم':'تعذر تنفيذ عملية ERP. تحقق من الصلاحيات والاتصال ثم أعد المحاولة.','error');
+  return null;
+ }
+}
 async function createPurchaseOrder(){const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;const supplierId=window.prompt('معرف المورد');if(!supplierId?.trim())return;const total=Number(window.prompt('الإجمالي','0'));if(!Number.isFinite(total)||total<0)return showToast('قيمة إجمالي غير صحيحة','error');const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');return erpRpc('create_purchase_order_backend',{p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_total_amount:total,p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null})}
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
 async function receivePurchaseStock(){const purchaseOrderId=window.prompt('معرف أمر الشراء');if(!purchaseOrderId?.trim())return;const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;const warehouseId=window.prompt('معرف المخزن');if(!warehouseId?.trim())return;const productId=window.prompt('معرف المنتج');if(!productId?.trim())return;const qty=Number(window.prompt('الكمية المستلمة','1'));const unitCost=Number(window.prompt('تكلفة الوحدة','0'));if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('بيانات الاستلام غير صحيحة','error');return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId.trim(),p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId.trim(),p_product_id:productId.trim(),p_received_quantity:qty,p_unit_cost:unitCost})}
