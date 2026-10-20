@@ -75,7 +75,7 @@ begin
     if not found then
       raise exception 'ERP_PURCHASE_ORDER_SCOPE_INVALID';
     end if;
-    if v_purchase_order_status not in ('SUBMITTED','APPROVED','PARTIALLY_RECEIVED') then
+    if coalesce(v_purchase_order_status,'') not in ('SUBMITTED','APPROVED','PARTIALLY_RECEIVED') then
       raise exception 'ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT';
     end if;
   end if;
