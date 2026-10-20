@@ -34,9 +34,10 @@ const required = [
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
   "20261019190000_rc457_medical_appointment_state_machine.sql",
-  "20261020100000_rc458_mantigo_cash_confirmation_fail_closed.sql"
+  "20261020100000_rc458_mantigo_cash_confirmation_fail_closed.sql",
+  "20261020110000_rc459_seed_cash_payment_method_for_active_tenants.sql"
 ];
-assert.equal(required.length, 30, "release gate must track the complete 30-file migration source set");
+assert.equal(required.length, 31, "release gate must track the complete 31-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
@@ -53,6 +54,7 @@ assert.match(source, /reconciliation\.required_release_migrations_applied===true
 assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
 assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
 assert.match(source, /reconciliation\.cash_payment_finance_e2e==="PASS"/, "cash payment and finance E2E must pass before launch");
+assert.match(source, /reconciliation\.cash_method_configuration==="PASS"/, "cash payment method must be enabled for active business tenants");
 assert.match(source, /reconciliation\.electronic_payments_disabled==="PASS"/, "electronic checkout must be proven disabled for cash-first launch");
 assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
