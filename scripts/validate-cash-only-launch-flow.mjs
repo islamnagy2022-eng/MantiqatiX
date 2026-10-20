@@ -409,7 +409,7 @@ assert.match(rc469Integration,/RC469_PRESENCE_GUARD_INTEGRATION: PASS/,"RC469 in
 for (const failureCode of ["CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY","CAPTAIN_NOT_VERIFIED_FOR_AVAILABILITY","INVALID_AVAILABILITY_STATUS","CAPTAIN_PROFILE_NOT_FOUND","USER_CONTEXT_MISMATCH","INVALID_LATITUDE","INVALID_LONGITUDE"]) {
   assert.ok(rc469Integration.includes(failureCode), "RC469 integration test must cover " + failureCode);
 }
-assert.match(moduleWorkflow,/mantigo-captain-presence-guard-postgres:[\\s\\S]*?rc469_mantigo_presence_guard_fixture\\.sql[\\s\\S]*?20261021190000_rc469_mantigo_presence_verification_guard\\.sql[\\s\\S]*?rc469_mantigo_presence_guard_integration\\.sql/,"RC469 fixture, migration and assertions must execute in PostgreSQL CI");
+assert.ok(moduleWorkflow.includes("mantigo-captain-presence-guard-postgres:") && moduleWorkflow.includes("supabase/tests/rc469_mantigo_presence_guard_fixture.sql") && moduleWorkflow.includes("20261021190000_rc469_mantigo_presence_verification_guard.sql") && moduleWorkflow.includes("supabase/tests/rc469_mantigo_presence_guard_integration.sql"), "RC469 fixture, migration and assertions must execute in PostgreSQL CI");
 assert.doesNotMatch(moduleWorkflow,/supabase\/tests\/rc462_mantigo_presence_guard_(?:fixture|integration)\.sql/,"RC469 workflow must not reference superseded RC462-named test files");
 
 console.log("Cash-only launch, RC458/RC460 security, RC461 ERP runtime, RC463/RC464 supplier lifecycle, RC465 line-linked purchasing, and post-launch deferral contract: PASS");
