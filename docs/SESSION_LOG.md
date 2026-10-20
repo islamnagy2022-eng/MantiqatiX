@@ -210,3 +210,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** switched the sector workspace to `sb.rpc('create_education_request_backend', ...)`, added subject-length validation, and avoided a success message when no row is returned. Commit: `2052a02f219746b0f9acd53763e2412c54bf99ef`.
 - **Regression guard:** added validator checks for backend RPC use, absence of direct INSERT, and subject-length validation. Commit: `abcb297b6e09e8516c1baf457959e47207e6e237`.
 - **Verification boundary:** implementation committed; exact-head CI and browser E2E remain pending. No production data/schema mutation, deployment, or merge occurred.
+
+
+- **Education input follow-up:** added client-side student-name length validation (2–200 characters) matching the server contract, plus a regression assertion. Commits: `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5` and `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`. CI/E2E remain pending.
