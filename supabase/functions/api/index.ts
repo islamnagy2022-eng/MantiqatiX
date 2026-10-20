@@ -137,15 +137,15 @@ serve(async (req) => {
 
     if (operation !== "mutate") return json({ error: "INVALID_OPERATION" }, 400)
     const action = String(body.action ?? "")
-    const allowedOperations = new Set(["create_supplier","update_supplier","create_purchase_order","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
+    const allowedOperations = new Set(["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
     if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
     const args = body.arguments
     if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
     const scopeMismatch = () => json({ error: "ERP_SCOPE_MISMATCH" }, 403)
-    if (["create_supplier","update_supplier","create_purchase_order","receive_purchase_stock","create_stock_transfer"].includes(action)) {
+    if (["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","receive_purchase_stock","create_stock_transfer"].includes(action)) {
       if (String(args.p_tenant_id ?? "") !== tenantId || String(args.p_business_id ?? "") !== businessId) return scopeMismatch()
     }
-    if (["create_supplier","create_purchase_order"].includes(action) && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
+    if (["create_supplier","create_purchase_order","create_purchase_order_with_lines"].includes(action) && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
     if (["update_purchase_order_status","receive_purchase_stock"].includes(action)) {
       const orderId = action === "update_purchase_order_status" ? args.p_order_id : args.p_purchase_order_id
       const { data: order, error: orderError } = await supabaseAdmin.from("erp_purchase_orders")
@@ -224,6 +224,45 @@ serve(async (req) => {
       }
       return json({ success: true, result: supplierResult })
     }
+    if (action === "create_purchase_order_with_lines" || action === "receive_purchase_stock") {
+      const rpcName = action === "create_purchase_order_with_lines"
+        ? "erp_purchase_order_create_with_lines_backend"
+        : "erp_purchase_stock_receive_with_lines_backend"
+      const { data: result, error: rpcError } = await supabaseAdmin.rpc(rpcName, {
+        p_actor_user_id: user.id, p_arguments: args
+      })
+      if (rpcError) {
+        const message = String(rpcError.message ?? "")
+        const publicErrors: Record<string, number> = {
+          UNAUTHENTICATED: 401,
+          ERP_MEMBERSHIP_REQUIRED: 403,
+          PURCHASE_ORDER_ROLE_REQUIRED: 403,
+          PURCHASE_RECEIVING_ROLE_REQUIRED: 403,
+          ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SUPPLIER_SCOPE_INVALID: 403,
+          ERP_PRODUCT_SCOPE_INVALID: 403,
+          ERP_PURCHASE_ORDER_LINE_NOT_FOUND: 409,
+          ERP_PURCHASE_ORDER_RECEIVE_LIMIT_EXCEEDED: 409,
+          ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT: 409,
+          ERP_PURCHASE_ORDER_IDEMPOTENCY_CONFLICT: 409,
+          ERP_RECEIPT_IDEMPOTENCY_CONFLICT: 409,
+          ERP_PURCHASE_ORDER_DUPLICATE_PRODUCT: 400,
+          ERP_PURCHASE_ORDER_LINES_REQUIRED: 400,
+          ERP_PURCHASE_ORDER_LINE_INVALID: 400,
+          ERP_PURCHASE_ORDER_AMOUNT_INVALID: 400,
+          ERP_PURCHASE_ORDER_REQUIRED_FIELDS: 400,
+          ERP_PURCHASE_ORDER_SCOPE_INVALID: 403,
+          ERP_WAREHOUSE_INVALID: 400,
+          ERP_SCOPE_REQUIRED: 400,
+          INVALID_ARGUMENTS: 400
+        }
+        const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
+        console.error("[erp-runtime] line mutation rejected", { action, code: rpcError.code, publicCode: publicCode ?? null })
+        return json({ error: publicCode ?? "ERP_OPERATION_FAILED" }, publicCode ? publicErrors[publicCode] : 400)
+      }
+      return json({ success: true, result })
+    }
+
     const { data, error } = await supabaseAdmin.rpc("erp_runtime_execute", {
       p_actor_user_id: user.id, p_operation: action, p_arguments: args
     })
