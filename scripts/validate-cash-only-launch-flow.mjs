@@ -179,6 +179,8 @@ assert.match(rc461Integration,/RC461_MANAGER_APPROVAL_WAS_ALLOWED/);
 assert.match(rc461Integration,/RC461_UNKNOWN_OPERATION_WAS_ALLOWED/);
 assert.match(rc461Integration,/RC461_CROSS_BRANCH_ORDER_WAS_ALLOWED/);
 assert.match(rc461Integration,/RC461_CROSS_BRANCH_TRANSFER_WAS_ALLOWED/);
+assert.match(rc461Integration,/RC461_CROSS_BRANCH_PRODUCT_WAS_ALLOWED/);
+assert.match(rc461,/catalog_items ci/);
 assert.match(rc461,/ERP_BRANCH_SCOPE_REQUIRED/);
 assert.match(rc461Fixture,/create or replace function auth\.uid\(\)/);
 assert.match(apiERP,/path === "\/api\/v1\/erp\/runtime"/);
