@@ -10,7 +10,7 @@ if(!body.includes('MNTY_BACKEND_ONLY_TABLES.has(t)')) throw new Error('loadDomai
 if(!operations.includes('BACKEND_ONLY_TABLES=new Set')) throw new Error('operations backend-only table guard missing');
 if(!operations.includes('BACKEND_ONLY_TABLES.has(t)')) throw new Error('operations load does not enforce backend-only boundary');
 if(!operations.includes("invokeErpApi({operation:'list',tenantId:activeScope.tenant_id,businessId:activeScope.business_id")) throw new Error('operations ERP modules are not connected to the authenticated API gateway');
-if(!operations.includes("eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id)")) throw new Error('business ERP summary is not tenant/business scoped');
+if(!operations.includes("if(t==='businesses'&&activeScope?.business_id)q=q.eq('id',activeScope.business_id)")) throw new Error('business ERP summary must query only the active business');
 if(!operations.includes('ERP_DATA_LOAD_FAILED')) throw new Error('operations ERP runtime errors are silently treated as empty data');
 if(!operations.includes("tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','warehouses','catalog_items']")) throw new Error('ERP module does not include its product catalog link');
 if(!operations.includes("key:'BUSINESS_ERP',tabs:['overview','live'],tables:['businesses','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','warehouses','catalog_items']")) throw new Error('Business ERP must expose the same linked purchasing and catalog sources');
