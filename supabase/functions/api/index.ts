@@ -121,6 +121,60 @@ serve(async (req) => {
     if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
     const args = body.arguments
     if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
+    const scopeMismatch = () => json({ error: "ERP_SCOPE_MISMATCH" }, 403)
+    if (["create_purchase_order","receive_purchase_stock","create_stock_transfer"].includes(action)) {
+      if (String(args.p_tenant_id ?? "") !== tenantId || String(args.p_business_id ?? "") !== businessId) return scopeMismatch()
+    }
+    if (action === "create_purchase_order" && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
+    if (["update_purchase_order_status","receive_purchase_stock"].includes(action)) {
+      const orderId = action === "update_purchase_order_status" ? args.p_order_id : args.p_purchase_order_id
+      const { data: order, error: orderError } = await supabaseAdmin.from("erp_purchase_orders")
+        .select("id,tenant_id,business_id,branch_id").eq("id", String(orderId ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).maybeSingle()
+      if (orderError) return json({ error: "ERP_RECORD_LOOKUP_FAILED" }, 500)
+      if (!order) return json({ error: "ERP_RECORD_NOT_FOUND" }, 404)
+      if (branchId && String(order.branch_id ?? "") !== branchId) return scopeMismatch()
+    }
+    if (action === "receive_purchase_stock") {
+      const { data: warehouse, error: warehouseError } = await supabaseAdmin.from("warehouses")
+        .select("id,branch_id,status").eq("id", String(args.p_warehouse_id ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (warehouseError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
+      if (!warehouse || (branchId && String(warehouse.branch_id ?? "") !== branchId)) return scopeMismatch()
+      const { data: product, error: productError } = await supabaseAdmin.from("catalog_items")
+        .select("id,branch_id,status").eq("id", String(args.p_product_id ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500)
+      if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch()
+    }
+    if (action === "create_stock_transfer") {
+      const warehouseIds = [String(args.p_from_warehouse_id ?? ""), String(args.p_to_warehouse_id ?? "")]
+      if (!warehouseIds[0] || !warehouseIds[1] || warehouseIds[0] === warehouseIds[1]) return json({ error: "ERP_WAREHOUSE_SELECTION_INVALID" }, 400)
+      const { data: warehouses, error: warehousesError } = await supabaseAdmin.from("warehouses")
+        .select("id,branch_id,status").eq("tenant_id", tenantId).eq("business_id", businessId).in("id", warehouseIds).eq("status", "ACTIVE")
+      if (warehousesError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
+      if ((warehouses ?? []).length !== 2 || (branchId && warehouses.some((row) => String(row.branch_id ?? "") !== branchId))) return scopeMismatch()
+      const { data: product, error: productError } = await supabaseAdmin.from("catalog_items")
+        .select("id,branch_id,status").eq("id", String(args.p_product_id ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500)
+      if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch()
+    }
+    if (["update_stock_transfer_status","receive_stock_transfer"].includes(action)) {
+      const transferId = args.p_transfer_id ?? args.p_id
+      const { data: transfer, error: transferError } = await supabaseAdmin.from("erp_stock_transfers")
+        .select("id,tenant_id,business_id,from_warehouse_id,to_warehouse_id")
+        .eq("id", String(transferId ?? "")).eq("tenant_id", tenantId).eq("business_id", businessId).maybeSingle()
+      if (transferError) return json({ error: "ERP_RECORD_LOOKUP_FAILED" }, 500)
+      if (!transfer) return json({ error: "ERP_RECORD_NOT_FOUND" }, 404)
+      if (branchId) {
+        const { data: warehouses, error: warehousesError } = await supabaseAdmin.from("warehouses")
+          .select("id,branch_id,status").eq("tenant_id", tenantId).eq("business_id", businessId)
+          .in("id", [String(transfer.from_warehouse_id), String(transfer.to_warehouse_id)]).eq("status", "ACTIVE")
+        if (warehousesError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
+        if ((warehouses ?? []).length !== 2 || warehouses.some((row) => String(row.branch_id ?? "") !== branchId)) return scopeMismatch()
+      }
+    }
     const { data, error } = await supabaseAdmin.rpc("erp_runtime_execute", {
       p_actor_user_id: user.id, p_operation: action, p_arguments: args
     })
