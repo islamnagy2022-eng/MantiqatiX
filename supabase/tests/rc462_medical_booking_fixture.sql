@@ -17,3 +17,9 @@ insert into public.user_memberships(user_id,tenant_id,business_id,role,status) v
  ('44444444-4444-4444-8444-444444444444','tenant-a','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','SERVICE_PROVIDER','ACTIVE');
 update public.medical_appointments set doctor_id='dddddddd-dddd-4ddd-8ddd-dddddddddddd' where doctor_id='provider-1';
 update public.medical_appointments set doctor_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1' where doctor_id='provider-2';
+
+alter table public.medical_appointments enable row level security;
+drop policy if exists medical_appointments_customer_select on public.medical_appointments;
+create policy medical_appointments_customer_select on public.medical_appointments
+for select to authenticated using ((select auth.uid()) = patient_id);
+grant select on public.medical_appointments, public.marketing_provider_profiles, public.businesses to authenticated;
