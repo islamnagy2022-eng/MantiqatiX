@@ -11,8 +11,32 @@ create table public.user_memberships(
   user_id uuid not null, tenant_id varchar not null, business_id uuid not null,
   role varchar not null, status varchar not null, branch_id varchar
 );
+create table public.businesses(
+  id uuid primary key, tenant_id varchar not null, name text, status varchar not null default 'ACTIVE'
+);
 create table public.erp_purchase_orders(
-  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar, status varchar default 'SUBMITTED'
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar,
+  order_number varchar, supplier_id varchar, total_amount numeric, tax_amount numeric default 0,
+  discount_amount numeric default 0, status varchar default 'SUBMITTED', reason text, created_by uuid,
+  created_at timestamptz default now(), updated_at timestamptz default now()
+);
+create table public.erp_purchase_receipts(
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null, purchase_order_id varchar not null,
+  receipt_number varchar not null, warehouse_id varchar not null, product_id uuid not null,
+  received_quantity numeric not null, unit_cost numeric not null, status varchar not null, created_by uuid,
+  created_at timestamptz default now(), unique(business_id,receipt_number)
+);
+create table public.stock_balances(
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar,
+  warehouse_id varchar not null, product_id uuid not null, quantity_on_hand numeric not null,
+  quantity_reserved numeric not null default 0, updated_at timestamptz default now(),
+  unique(tenant_id,business_id,warehouse_id,product_id)
+);
+create table public.inventory_transactions(
+  id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar,
+  warehouse_id varchar not null, product_id uuid not null, transaction_type varchar not null,
+  quantity numeric not null, unit_cost numeric not null, reference_id varchar, created_by uuid,
+  created_at timestamptz default now()
 );
 create table public.erp_suppliers(
   id varchar primary key, tenant_id varchar not null, business_id uuid not null, branch_id varchar,
@@ -37,8 +61,13 @@ create table public.catalog_items(
 create or replace function public.create_purchase_order_backend(
   p_id varchar,p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_order_number varchar,
   p_supplier_id varchar,p_total_amount numeric,p_tax_amount numeric,p_discount_amount numeric,p_reason text
-) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
-begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','create_purchase_order'); end $$;
+) returns jsonb language plpgsql security definer set search_path=public,pg_temp as $
+begin
+  insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,order_number,supplier_id,total_amount,tax_amount,discount_amount,status,reason,created_by)
+  values(p_id,p_tenant_id,p_business_id,p_branch_id,p_order_number,p_supplier_id,p_total_amount,p_tax_amount,p_discount_amount,'DRAFT',p_reason,auth.uid())
+  on conflict(id) do nothing;
+  return jsonb_build_object('success',true,'actor',auth.uid(),'operation','create_purchase_order');
+end $;
 create or replace function public.update_purchase_order_status_backend(p_order_id varchar,p_target_status varchar)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','update_purchase_order_status'); end $$;
