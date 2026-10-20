@@ -1591,21 +1591,6 @@ async function createPurchaseOrder(){
  });
 }
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
-async function initializeOpeningStock(){
- if(!user?.id)return authView();
- if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');
- const warehouseId=chooseERPRecord('warehouses','المخزن النشط',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE');
- if(!warehouseId)return;
- const productId=chooseERPRecord('catalog_items','الصنف النشط',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE');
- if(!productId)return;
- const quantity=Number(window.prompt('كمية الرصيد الافتتاحي','1'));
- const unitCost=Number(window.prompt('تكلفة الوحدة بالجنيه','0'));
- if(!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('أدخل كمية موجبة وتكلفة غير سالبة','error');
- const referenceId=window.prompt('مرجع جرد/محضر الرصيد الافتتاحي','OPEN-'+new Date().toISOString().slice(0,10)+'-'+crypto.randomUUID().slice(0,8));
- if(!referenceId?.trim())return;
- if(!window.confirm('إضافة '+quantity+' وحدة إلى الرصيد الافتتاحي بتكلفة '+unitCost+' ج.م للوحدة؟ سيتم تسجيل حركة مخزون مرجعية.'))return;
- return erpRpc('initialize_opening_stock_backend',{p_id:'opening-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_warehouse_id:warehouseId,p_product_id:productId,p_quantity:quantity,p_unit_cost:unitCost,p_reference_id:referenceId.trim()});
-}
 async function receivePurchaseStock(preselectedOrderId){
  const purchaseOrderId=preselectedOrderId||chooseERPRecord('erp_purchase_orders','أمر الشراء الجاهز للاستلام',r=>r.order_number+' — '+r.status,null,r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase()));
  if(!purchaseOrderId)return;
