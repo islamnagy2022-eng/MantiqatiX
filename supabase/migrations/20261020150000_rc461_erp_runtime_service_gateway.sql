@@ -14,6 +14,10 @@ declare
   v_tenant_id text;
   v_business_id uuid;
   v_role text;
+  v_member_branch_id text;
+  v_record_branch_id text;
+  v_from_warehouse_id text;
+  v_to_warehouse_id text;
   v_result jsonb;
   v_target_status text;
   v_row_exists boolean := false;
@@ -41,12 +45,12 @@ begin
     v_tenant_id := nullif(p_arguments->>'p_tenant_id','');
     v_business_id := nullif(p_arguments->>'p_business_id','')::uuid;
   elsif p_operation = 'update_purchase_order_status' then
-    select tenant_id::text, business_id into v_tenant_id, v_business_id
+    select tenant_id::text, business_id, branch_id::text into v_tenant_id, v_business_id, v_record_branch_id
       from public.erp_purchase_orders
       where id = p_arguments->>'p_order_id';
     v_row_exists := found;
   else
-    select tenant_id::text, business_id into v_tenant_id, v_business_id
+    select tenant_id::text, business_id, from_warehouse_id::text, to_warehouse_id::text into v_tenant_id, v_business_id, v_from_warehouse_id, v_to_warehouse_id
       from public.erp_stock_transfers
       where id = coalesce(p_arguments->>'p_transfer_id', p_arguments->>'p_id');
     v_row_exists := found;
@@ -60,7 +64,7 @@ begin
     raise exception 'ERP_SCOPE_REQUIRED';
   end if;
 
-  select upper(m.role) into v_role
+  select upper(m.role), m.branch_id::text into v_role, v_member_branch_id
   from public.user_memberships m
   where m.user_id = p_actor_user_id
     and m.tenant_id::text = v_tenant_id
@@ -70,6 +74,7 @@ begin
     when 'OWNER' then 1 when 'BUSINESS_OWNER' then 2 when 'ADMIN' then 3
     when 'MANAGER' then 4 when 'FINANCE_MANAGER' then 5 when 'ACCOUNTANT' then 6
     when 'FINANCE' then 7 when 'EMPLOYEE' then 8 when 'STAFF' then 9 else 99 end
+  order by case upper(m.role) when 'OWNER' then 1 when 'BUSINESS_OWNER' then 2 when 'ADMIN' then 3 when 'MANAGER' then 4 else 5 end, case when m.branch_id is null then 0 else 1 end
   limit 1;
 
   if v_role is null then
@@ -88,6 +93,50 @@ begin
      and v_target_status = 'APPROVED'
      and v_role not in ('OWNER','BUSINESS_OWNER','ADMIN') then
     raise exception 'ERP_PURCHASE_APPROVAL_ROLE_REQUIRED';
+  end if;
+
+  -- Branch-scoped memberships cannot operate on another branch's ERP records.
+  if v_member_branch_id is not null then
+    if p_operation = 'create_purchase_order'
+       and nullif(p_arguments->>'p_branch_id','') is distinct from v_member_branch_id then
+      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+    elsif p_operation = 'update_purchase_order_status'
+       and v_record_branch_id is distinct from v_member_branch_id then
+      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+    elsif p_operation = 'receive_purchase_stock'
+       and not exists (
+         select 1 from public.warehouses w
+         where w.id = p_arguments->>'p_warehouse_id'
+           and w.tenant_id::text = v_tenant_id and w.business_id = v_business_id
+           and w.branch_id::text = v_member_branch_id and w.status = 'ACTIVE'
+       ) then
+      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+    elsif p_operation = 'create_stock_transfer'
+       and not exists (
+         select 1 from public.warehouses source_w
+         join public.warehouses target_w
+           on target_w.id = p_arguments->>'p_to_warehouse_id'
+          and target_w.tenant_id::text = v_tenant_id and target_w.business_id = v_business_id
+         where source_w.id = p_arguments->>'p_from_warehouse_id'
+           and source_w.tenant_id::text = v_tenant_id and source_w.business_id = v_business_id
+           and source_w.branch_id::text = v_member_branch_id
+           and target_w.branch_id::text = v_member_branch_id
+           and source_w.status = 'ACTIVE' and target_w.status = 'ACTIVE'
+       ) then
+      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+    elsif p_operation in ('update_stock_transfer_status','receive_stock_transfer')
+       and not exists (
+         select 1 from public.warehouses source_w
+         join public.warehouses target_w on target_w.id = v_to_warehouse_id
+           and target_w.tenant_id::text = v_tenant_id and target_w.business_id = v_business_id
+         where source_w.id = v_from_warehouse_id
+           and source_w.tenant_id::text = v_tenant_id and source_w.business_id = v_business_id
+           and source_w.branch_id::text = v_member_branch_id
+           and target_w.branch_id::text = v_member_branch_id
+           and source_w.status = 'ACTIVE' and target_w.status = 'ACTIVE'
+       ) then
+      raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
+    end if;
   end if;
 
   -- auth.uid() in the existing RPCs reads this transaction-local claim.
