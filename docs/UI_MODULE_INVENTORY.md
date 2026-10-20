@@ -96,11 +96,12 @@ Use this table as the durable checklist; add one row per real route/page or subv
 | Expanded accounting UI | legacy accounting module/data references | Defer new finance UI; preserve mandatory cash/order integrity | DEFERRED |
 | SMM paid execution/electronic payments | source exists, launch gate is cash-only | Keep server-side gates closed; no real execution pre-launch | DEFERRED |
 
-## Immediate next execution batch
+## Latest implementation checkpoint
 
-1. Implement the first safe UI contract fix: generic blueprint controls must never report success when no real navigation occurred; replace them with real navigation or an honest unavailable state.
-2. Add contract tests for that fix and for global-search partial failures without changing authorization.
-3. Map each module route and action to the current backend contract before adding write controls.
-4. Continue updating this matrix and the Master TODO after every implementation batch.
+- [x] Generic blueprint controls disclose when a section is only a blueprint and not connected to a standalone workflow; no fake success is shown.
+- [x] Global search distinguishes true zero-results from partial/all-source query failures while preserving role-based source filtering.
+- [x] Source-contract validators for both behaviors are wired into Pages CI.
+- [ ] Exact-head CI and browser E2E remain pending; this is not production/runtime verification.
+- [ ] Next: map every module route/action to verified backend contracts, implement real module pages, and then build scoped activity and job-function/role management.
 
 **Release:** BLOCKED / NOT CERTIFIED. This inventory is not a release approval.
