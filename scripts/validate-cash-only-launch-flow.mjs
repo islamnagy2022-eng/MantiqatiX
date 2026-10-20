@@ -186,6 +186,8 @@ assert.ok(rc461.includes("ERP_TRANSFER_STATUS_TRANSITION_INVALID"),"RC461 must p
 assert.ok(rc461.includes("v_to_warehouse_id") && rc461.includes("v_member_branch_id"),"RC461 must scope transfer receiving to branch membership");
 assert.ok(rc461.includes("v_from_warehouse_id") && rc461.includes("ERP_BRANCH_SCOPE_REQUIRED"),"RC461 must scope transfer progression to branch membership");
 assert.ok(rc461Integration.includes("RC461_CROSS_BRANCH_TRANSFER_CREATE_FAILED"));
+assert.ok(rc461Fixture.includes("create table public.erp_suppliers"),"RC461 fixture must include the supplier reference table");
+assert.ok(rc461Fixture.includes("public.erp_suppliers, public.erp_stock_transfers"),"RC461 fixture must grant gateway table access");
 assert.ok(rc461Integration.includes("RC461_TRANSFER_DIRECT_COMPLETION_WAS_ALLOWED"));
 assert.ok(rc461Integration.includes("RC461_DESTINATION_BRANCH_CHANGED_SOURCE_STATUS"));
 assert.ok(rc461Integration.includes("RC461_SOURCE_BRANCH_TRANSIT_FAILED"));
