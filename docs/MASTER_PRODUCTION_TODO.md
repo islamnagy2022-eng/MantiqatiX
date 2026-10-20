@@ -1888,3 +1888,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Read-only production SQL inspection confirmed `create_education_request_backend`, `submit_job_application_backend`, and `create_job_backend` exist with `SECURITY DEFINER`, execute granted to `authenticated`, and execute denied to both `anon` and `PUBLIC`. Source definitions include identity/target or active-membership checks.
 - [x] Live `jobs.id` and `job_applications.job_id` are both UUID, matching the application RPC's `p_job_id uuid` contract.
 - No production SQL was changed. Browser E2E and end-to-end user journey verification remain open.
+
+
+## RC — production/repository migration drift blocks privilege repair — 2026-10-20
+- [x] Read-only Supabase migration inventory: production has 150 recorded migrations and its latest record is `20261008222845`; the current branch tracks 140 migration files and includes later files through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`.
+- [x] Therefore the used-item privilege gap must not be repaired by an ad hoc live GRANT or by assuming the branch's later migration set is already deployed. Reconcile migration history first and test a narrow column-level read grant with the existing RLS contract.
+- [ ] No migration was applied to production. Migration reconciliation, safe used-item read privilege restoration, exact-head CI, and authenticated browser E2E remain open.
