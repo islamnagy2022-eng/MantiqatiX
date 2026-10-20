@@ -148,7 +148,7 @@ assert.match(rc460Integration,/RC460_AUTHORIZED_IDEMPOTENT_RETRY_FAILED/);
 assert.ok(cashConfirm.indexOf("IF NOT v_is_authorized") < cashConfirm.indexOf("IF v_intent.status='SUCCEEDED'"), "cash confirmation must authorize before returning an idempotent success payload");
 assert.match(chain,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
 assert.match(chain,/20261020140000_rc460_cash_confirmation_business_membership\.sql/);
-assert.match(chain,/required\\.length, 39/);
+assert.match(chain,/required\.length, 39/);
 assert.match(verifier,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
 assert.match(verifier,/20261020140000_rc460_cash_confirmation_business_membership\.sql/);
 assert.match(replay,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
