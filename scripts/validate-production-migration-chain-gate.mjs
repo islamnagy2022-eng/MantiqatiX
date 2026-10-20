@@ -37,9 +37,10 @@ const required = [
   "20261020120000_rc458_cash_order_service_actor_contract.sql",
   "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql",
   "20261020140000_rc460_cash_confirmation_business_membership.sql",
-  "20261020150000_rc461_erp_runtime_service_gateway.sql"
+  "20261020150000_rc461_erp_runtime_service_gateway.sql",
+  "20261020160000_rc463_erp_supplier_master.sql"
 ];
-assert.equal(required.length, 33, "release gate must track the complete 33-file migration source set");
+assert.equal(required.length, 34, "release gate must track the complete 34-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
