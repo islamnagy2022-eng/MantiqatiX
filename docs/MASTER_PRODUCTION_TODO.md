@@ -1979,6 +1979,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - RC459 disposable PostgreSQL regression asserts direct authenticated RPC calls are denied before insert and ACLs remain unchanged. Exact-head CI and full ordered forward replay remain required; no production migration, payment, merge, or deployment occurred.
 
 ### RC460 cash confirmation amount-source correction — 2026-10-20
+
+- **Additional source correction:** the API cash-confirmation guard now accepts both permission arrays and JSONB permission objects. Previously the API accepted arrays only, while the SQL RPC checked JSONB key presence, causing custom permission-based staff to be rejected before reaching the RPC.
+- Added a source-contract assertion for both permission representations. This assertion and the updated API have not yet been proven by a completed exact-head CI run.
 - **DONE (source correction):** cash confirmation now binds payment amount to `orders.total_amount`, the authoritative total used by cash-intent creation, rather than the legacy `orders.total` field.
 - **Regression fixture updated:** RC460 fixture intentionally sets `total_amount=100` and legacy `total=99`; the valid cash-confirmation integration must succeed only when the function uses `total_amount`.
 - **NOT VERIFIED:** exact-head CI/PostgreSQL execution for this correction is pending. Static source assertions were added to `scripts/validate-cash-only-launch-flow.mjs`; this is not a substitute for the PostgreSQL test.
