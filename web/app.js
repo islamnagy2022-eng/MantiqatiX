@@ -1339,7 +1339,6 @@ function chooseERPRecord(table,label,format,excludeId,filterFn){
 async function createERPSupplier(){
  const name=window.prompt('اسم المورد بالعربية');if(!name?.trim())return;
  const code=window.prompt('كود المورد (اختياري)','')||'';
- const phone=window.prompt('رقم الهاتف (اختياري)','')||'';
  const nameEn=window.prompt('اسم المورد بالإنجليزية (اختياري)','')||'';
  const contact=window.prompt('اسم مسؤول التواصل (اختياري)','')||'';
  const phone=window.prompt('رقم الهاتف (اختياري)','')||'';
