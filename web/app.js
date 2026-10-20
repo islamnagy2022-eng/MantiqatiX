@@ -851,6 +851,7 @@ async function loadEnterpriseDomainData(m){
    if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
    const shared=window.MNTYOperationsERPData;
    const sharedMatches=!!shared&&Date.now()-Number(shared.loaded_at||0)<30000
+    &&String(shared.user_id||'')===String(user.id)
     &&String(shared.tenant_id||'')===String(live.tenantId)
     &&String(shared.business_id||'')===String(live.businessId)
     &&String(shared.branch_id||'')===String(live.branchId||'');
@@ -873,7 +874,7 @@ async function loadEnterpriseDomainData(m){
    rows.stock_balances=result.stock_balances||[];
    rows.inventory_transactions=result.inventory_transactions||[];
    window.MNTYOperationsERPData={
-    loaded_at:Date.now(),tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
+    loaded_at:Date.now(),user_id:user.id,tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
     businesses:rows.businesses,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,
     erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,
     warehouses:rows.warehouses,branches:rows.branches,catalog_items:rows.catalog_items,
