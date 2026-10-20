@@ -14,7 +14,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": null,
   "checked_at": "2026-10-11",
-  "reason": "Cash-first launch scope approved on 2026-10-20. Online payment and SMM E2E are deferred post-launch; pre-launch release requires verified cash payment/finance E2E, proof electronic checkout is disabled, proof SMM remains unavailable, full ordered migration replay, tenant isolation, backup/restore, Edge Function contracts and Auth security settings. Live evidence is still missing; do not certify.",
+  "reason": "Cash-first launch scope approved on 2026-10-20. Read-only production inspection found zero CASH_ON_DELIVERY rows in tenant_payment_methods, so RC459 must be applied through the ordered release chain before cash checkout can succeed. Online payment and SMM E2E are deferred post-launch; pre-launch release requires verified cash method configuration, cash payment/finance E2E, proof electronic checkout is disabled, proof SMM remains unavailable, full ordered migration replay, tenant isolation, backup/restore, Edge Function contracts and Auth security settings. Live evidence is still missing; do not certify.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -33,5 +33,6 @@
   "rc424_reconciliation_evidence_checked_at": "2026-10-11",
   "cash_payment_finance_e2e": "NOT VERIFIED",
   "electronic_payments_disabled": "NOT VERIFIED",
-  "smm_launch_gate": "NOT VERIFIED"
+  "smm_launch_gate": "NOT VERIFIED",
+  "cash_method_configuration": "NOT VERIFIED"
 }
