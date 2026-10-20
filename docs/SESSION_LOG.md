@@ -131,3 +131,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Current verification:** branch head is `0baeb4e36c7a430afe7863aa5251e71d4bef01a5`; exact-head checks were queued/in progress when checked. Browser E2E and production deployment are not verified.
 - **Not performed:** no merge, production deployment, production DB/Auth mutation, migration, payment, or external ad call.
 - **Next:** check exact-head CI; if green, continue route/action mapping and real UI workflows. If failed, inspect job logs and fix root cause before advancing. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — UI inventory source pass
+
+- **Verified:** inspected main source at `149a85c7e5c44b61421edc8391cbb82885902fae`, including `web/app.js`, `web/home.js`, `web/rbac.js`, `web/module-blueprints.js`, `web/operations-modules.js`, `web/sector-registry.js`, `web/module-blueprints.js`, and the web file tree.
+- **Findings:** 24 top-level workspace entries are declared in `app.js`; domain registry includes 16 module definitions. The auth view in this baseline offers Google OAuth. Global search has 10 configured source groups and converts per-source query errors into empty result arrays. Generic module blueprint buttons currently show a “section opened” toast but do not navigate to a real subview. RBAC defaults and a membership switcher exist, but a full scoped role/job-function assignment UI is not proven by those alone. Public add-activity request flow is not a full activity lifecycle.
+- **Action performed:** added `docs/UI_MODULE_INVENTORY.md` and appended this source-based inventory/gap register to the Master TODO. All runtime journeys remain NOT VERIFIED.
+- **Not performed:** no app code changes, database or production mutation, Auth setting change, deployment, merge, payment, or external ad-network action.
+- **Next:** safely fix the blueprint false-success action and test it; then address global-search partial failures and implement module UI gaps against verified backend contracts only. Release remains **BLOCKED / NOT CERTIFIED**.
