@@ -11,6 +11,7 @@ The browser keeps a stable appointment request ID when the server response is am
 - Authenticated caller identity must match `p_user_id`.
 - Requests with the same stable ID are serialized before checking the existing booking.
 - A retry returns the existing appointment only when patient, business, doctor, timestamp, and normalized reason match exactly.
+- A committed booking can still be replayed if the provider is later deactivated, because replay is resolved before current provider availability is checked. The same authenticated patient and exact immutable payload are still required.
 - Reusing an ID with a different payload or actor fails closed with `APPOINTMENT_ID_ALREADY_EXISTS` or the identity guard.
 - The insert uses `ON CONFLICT (id) DO NOTHING` and validates the conflicting row, protecting against races that reach the insert path concurrently.
 - The RPC returns `idempotent_replay: true` for a replay and `false` for a newly created appointment.
@@ -18,7 +19,7 @@ The browser keeps a stable appointment request ID when the server response is am
 
 ## Verification added
 
-`supabase/tests/rc468_medical_booking_idempotency_integration.sql` checks exact-payload replay, unchanged appointment count, conflicting-payload rejection, and actor binding. The Doctor Module Release Contract workflow applies RC457, RC467, then RC468 to an isolated PostgreSQL 16 fixture. The ordered disposable migration replay and production source verifier also track RC468.
+`supabase/tests/rc468_medical_booking_idempotency_integration.sql` checks exact-payload replay after provider deactivation, unchanged appointment count, conflicting-payload rejection, and actor binding. The Doctor Module Release Contract workflow applies RC457, RC467, then RC468 to an isolated PostgreSQL 16 fixture. The ordered disposable migration replay and production source verifier also track RC468.
 
 These tests are candidate-source evidence only. They do not prove production application, live authenticated browser E2E, or release readiness.
 
