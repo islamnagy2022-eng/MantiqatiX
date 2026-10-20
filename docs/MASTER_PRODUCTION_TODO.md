@@ -2177,3 +2177,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify deployed Supabase migration state and recovery evidence before any production release.
 - **Candidate commit:** `9f49df84a74848ed213f9440d855d501f6615762` (asset/cache sync; the candidate branch contains the full stage).
 - **Release status:** BLOCKED / NOT CERTIFIED. This checklist records source changes only; it does not assert live database or E2E success.
+
+
+## RC460 — MantiGO duplicate-transition guard and cash-only regression coverage — 2026-10-21
+
+- [x] Added per-action disabled-state guards and `finally` restoration for captain presence updates and trip-status transitions to prevent duplicate submissions and stuck buttons.
+- [x] Extended both `scripts/validate-medical-appointment-state-machine.mjs` and `scripts/validate-cash-only-launch-flow.mjs` with source contracts for duplicate-click protection, error recovery, cash-only payment behavior, and aligned asset versions.
+- [x] Confirmed source files currently agree on `operations-modules.js?v=mnty140` and `mnty-web-v181`.
+- [ ] Run actual Node validators and SQL integration suites; source review is not a substitute for executing tests.
+- [ ] Confirm CI checks, authenticated customer/captain journeys, role isolation, payment idempotency, and recovery behavior.
+- **Latest candidate commit:** `efb7aec8e772d0ad07e9625acff4b161e16ce888`.
+- **Release status:** BLOCKED / NOT CERTIFIED; no production deployment or database mutation performed.
