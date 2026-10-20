@@ -81,13 +81,13 @@ async function load(d){loading=true;error=null;render();await init();if(!user){e
   rows.branches=data.branches||[];
   rows.stock_balances=data.stock_balances||[];
   rows.inventory_transactions=data.inventory_transactions||[];
-  window.MNTYOperationsERPData={loaded_at:Date.now(),tenant_id:activeScope.tenant_id,business_id:activeScope.business_id,branch_id:activeScope.branch_id||null,businesses:rows.businesses,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,warehouses:rows.warehouses,catalog_items:rows.catalog_items,branches:rows.branches,stock_balances:rows.stock_balances,inventory_transactions:rows.inventory_transactions};
+  window.MNTYOperationsERPData={loaded_at:Date.now(),user_id:user.id,tenant_id:activeScope.tenant_id,business_id:activeScope.business_id,branch_id:activeScope.branch_id||null,businesses:rows.businesses,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,warehouses:rows.warehouses,catalog_items:rows.catalog_items,branches:rows.branches,stock_balances:rows.stock_balances,inventory_transactions:rows.inventory_transactions};
  }catch(e){error='تعذر تحميل بيانات ERP الفعلية من الخادم. لم يتم عرضها كبيانات فارغة؛ أعد المحاولة بعد التحقق من الاتصال والصلاحيات.';loading=false;return render()}
  loading=false;return render()}for(const t of d.tables){
  if(BACKEND_ONLY_TABLES.has(t)){rows[t]=[];continue}
  const activeScope=scope();
  const sharedERP=window.MNTYOperationsERPData;
- const sharedScopeMatches=!!sharedERP&&Date.now()-Number(sharedERP.loaded_at||0)<30000&&String(sharedERP.tenant_id||'')===String(activeScope?.tenant_id||'')&&String(sharedERP.business_id||'')===String(activeScope?.business_id||'')&&String(sharedERP.branch_id||'')===String(activeScope?.branch_id||'');
+ const sharedScopeMatches=!!sharedERP&&Date.now()-Number(sharedERP.loaded_at||0)<30000&&String(sharedERP.user_id||'')===String(user?.id||'')&&String(sharedERP.tenant_id||'')===String(activeScope?.tenant_id||'')&&String(sharedERP.business_id||'')===String(activeScope?.business_id||'')&&String(sharedERP.branch_id||'')===String(activeScope?.branch_id||'');
  if(sharedScopeMatches&&Object.prototype.hasOwnProperty.call(sharedERP,t)){
   rows[t]=Array.isArray(sharedERP[t])?sharedERP[t]:[];
   continue;
