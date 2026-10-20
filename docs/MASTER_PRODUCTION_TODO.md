@@ -1873,3 +1873,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added a regression assertion that guards the explicit projection and verifies the sensitive phone column is absent from the sector source.
 - Source commit: `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator commits: `0ea0564050305059324ea3d0daa97dbcdd182fcf`, `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
 - [ ] This does not restore missing database SELECT privileges; the module must continue to fail closed until a reviewed migration establishes the intended narrow read contract. Exact-head CI pending.
+
+
+- [x] Tightened the used-item projection further to only fields required for current rendering, query filters, and ordering; unused `description`, `image_url`, and `fee_paid` are excluded too. Source commit `66fefa4ce874c1eb62962c8f476a3015378fa42e`; validator commit `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
