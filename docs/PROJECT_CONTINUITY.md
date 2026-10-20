@@ -810,3 +810,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Source inventory found an existing API route for authorized cash confirmation calling `confirm_cash_payment`; this is source evidence only, not proof that the end-user cash checkout flow is fully E2E verified. Next work: audit launch UI/order path, tenant cash-method configuration, role restrictions, amount authority, idempotency, audit/accounting, and prove electronic methods/SMM cannot be activated from the launch path.
 - See `docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md` and the latest section in `docs/MASTER_PRODUCTION_TODO.md`.
 - No production database mutation, migration, grant/RLS change, financial transaction, merge, or deployment was performed for this scope update. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Continuation checkpoint — 2026-10-20 — cash-first checkout and RC458
+- Owner-directed scope remains: cash only before launch; electronic payments and SMM execution after launch. Marketing/agency, CRM and planning are distinct from SMM fulfilment.
+- Stacked branch `feat/cash-only-launch-flow-rc458-20261020` is based on the RC457 medical-state-machine branch to preserve migration order. It wires marketplace cart checkout to a cash-only authenticated API, checks tenant cash configuration before order creation, derives payment-intent amount from `orders.total_amount`, and makes intent retries non-destructive/idempotent.
+- Read-only production inspection confirmed `create_order_backend` is SECURITY DEFINER and EXECUTE is service_role-only, while the function also required `auth.uid()=p_customer_id`. A service-role Edge Function call has no end-user JWT context; RC458 aligns this trusted backend call path while retaining active membership, tenant/business, provider, branch, catalog and server-pricing checks. RC458 preserves existing ACLs and is not applied to production.
+- Digital-page paid checkout is disabled before electronic payment-intent invocation because there is no verified cash contract for that product. SMM workspace shows a deferred notice; the gateway remains default-deny.
+- CI adds static cash-scope validation and disposable PostgreSQL RC458 tests for service-role actor handling, pricing, idempotency, membership denial and client-role ACL boundaries. Authenticated browser E2E and actual cash confirmation remain NOT VERIFIED.
+- No production mutation, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
