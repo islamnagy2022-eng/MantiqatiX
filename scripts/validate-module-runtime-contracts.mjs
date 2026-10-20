@@ -7,6 +7,7 @@ const files={
  restaurant:read("web/restaurant-module.js"),
  reverse:read("web/reverse-bidding-module.js")
 };
+const api=read("supabase/functions/api/index.ts");
 const modules=[
  ["RESTAURANTS","restaurant",["restaurant_menu_items","restaurant_orders","restaurant_tables"]],
  ["CAFES","restaurant",["restaurant_menu_items","restaurant_tables","restaurant_orders"]],
@@ -18,7 +19,7 @@ const modules=[
  ["SCHOOLS","operations",["school_profiles","teacher_profiles","education_requests"]],
  ["MAINTENANCE","reverse",["indrive_requests","indrive_bids","support_tickets"]],
  ["MARKETING","operations",["marketing_leads","marketing_provider_profiles","marketing_services","marketing_projects","marketing_plans","marketing_provider_subscriptions","marketing_project_participants","marketing_commission_rules"]],
- ["BUSINESS_ERP","operations",["businesses","erp_purchase_orders","erp_purchase_receipts","erp_stock_transfers","warehouses"]],
+ ["BUSINESS_ERP","operations",["businesses","erp_suppliers","erp_purchase_orders","erp_purchase_order_lines","erp_purchase_receipts","erp_stock_transfers","warehouses","branches","catalog_items","stock_balances","inventory_transactions"]],
  ["ACCOUNTING","operations",["chart_of_accounts","journal_entries","general_ledger"]],
  ["LEGAL","operations",["legal_documents","legal_requirements","agreements"]],
  ["PARTNERS","app",["success_partners","referred_businesses"]],
@@ -38,6 +39,21 @@ const modules=[
  ["SOFTWARE_ERP","reverse",["indrive_requests","indrive_bids"]]
 ];
 const failures=[];
+for(const [file,source] of Object.entries(files)){
+ const declared=[...source.matchAll(/(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(match=>match[1]);
+ const duplicates=[...new Set(declared.filter((name,index)=>declared.indexOf(name)!==index))];
+ if(duplicates.length)failures.push("DUPLICATE_FUNCTIONS_"+file.toUpperCase()+":"+duplicates.join(","));
+}
+const erpRouteStart=api.indexOf('path === "/api/v1/erp/runtime"');
+const erpRouteEnd=api.indexOf("\n  if (",erpRouteStart+20);
+const erpRoute=api.slice(erpRouteStart,erpRouteEnd>erpRouteStart?erpRouteEnd:undefined);
+for(const required of [
+ 'erp_suppliers','erp_purchase_order_lines','stock_balances','inventory_transactions',
+ 'branches','initialize_opening_stock','create_purchase_order_with_lines',
+ 'erp_supplier_create_backend','erp_supplier_update_backend','erp_opening_stock_backend'
+])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
+if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
+if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
 const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
 const duplicateOperationDefinitions=[...new Set(operationDefinitions.filter((name,i)=>operationDefinitions.indexOf(name)!==i))];
 if(duplicateOperationDefinitions.length) failures.push("DUPLICATE_MODULE_DEFINITIONS:"+duplicateOperationDefinitions.join(","));
