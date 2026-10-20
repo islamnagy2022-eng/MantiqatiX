@@ -164,4 +164,18 @@ const doctorPullRequestPaths=releaseWorkflow.split('  pull_request:')[1]?.split(
 assert.match(doctorPullRequestPaths,/20261020210000_rc468_medical_booking_idempotency\.sql/,"PR path filters must run doctor idempotency tests when RC468 changes");
 assert.match(doctorPullRequestPaths,/rc468_medical_booking_idempotency_integration\.sql/,"PR path filters must include the RC468 behavioral test");
 
-console.log('RC457 state machine + RC467/RC468 doctor module release source contract: PASS');
+const bidStart=operations.indexOf('async function mgSubmitBid()');
+const bidEnd=operations.indexOf('async function mgAccept(',bidStart);
+const bidSource=operations.slice(bidStart,bidEnd);
+assert.ok(bidStart>=0&&bidEnd>bidStart,"MantiGO bid submission handler must be present");
+assert.ok(bidSource.includes("if(btn?.disabled)return"),"MantiGO bid submission must prevent duplicate clicks while in flight");
+assert.ok(bidSource.includes("if(!r.data||!r.data.id)"),"MantiGO bid submission must require a confirmed bid ID");
+assert.ok(bidSource.includes("catch(_){alert('تعذر تأكيد إرسال العرض"),"MantiGO bid submission must handle rejected/network RPC calls");
+assert.ok(bidSource.includes("finally{if(btn)"),"MantiGO bid button must be restored on every exit path");
+const bidMigration=fs.readFileSync('supabase/migrations/20261006143000_mantigo_captain_boundary_v1.sql','utf8');
+const bidFunctionStart=bidMigration.indexOf('create or replace function public.create_mantigo_bid_backend');
+const bidFunctionEnd=bidMigration.indexOf('revoke all on function public.create_mantigo_bid_backend',bidFunctionStart);
+const bidFunction=bidMigration.slice(bidFunctionStart,bidFunctionEnd);
+assert.ok(bidFunction.includes('on conflict (ride_id,captain_id) do update'),"MantiGO bid retry safety must retain the server-side unique ride/captain upsert");
+assert.ok(bidFunction.includes("return jsonb_build_object('id',v_id,'status','OFFERED')"),"MantiGO bid handler must return the persisted bid ID");
+console.log('RC457 state machine + RC467/RC468 doctor module + MantiGO ride/bid retry contracts: PASS');
