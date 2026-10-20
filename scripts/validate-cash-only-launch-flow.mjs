@@ -200,7 +200,7 @@ assert.ok(rc461Integration.includes("RC461_SOURCE_BRANCH_TRANSIT_FAILED"));
 assert.ok(rc461Integration.includes("RC461_SOURCE_BRANCH_RECEIVED_TRANSFER"));
 assert.ok(rc461Integration.includes("RC461_DESTINATION_BRANCH_RECEIVE_FAILED"));
 assert.match(rc461Integration,/RC461_CROSS_BRANCH_ORDER_WAS_ALLOWED/);
-assert.match(rc461Integration,/RC461_CROSS_BRANCH_TRANSFER_WAS_ALLOWED/);
+assert.match(rc461Integration,/RC461_NON_SOURCE_BRANCH_TRANSFER_WAS_ALLOWED/);
 assert.match(rc461Integration,/RC461_CROSS_BRANCH_PRODUCT_WAS_ALLOWED/);
 assert.match(rc461,/ERP_SUPPLIER_SCOPE_INVALID/);
 assert.match(rc461,/ERP_SUPPLIER_BRANCH_SCOPE_INVALID/);
