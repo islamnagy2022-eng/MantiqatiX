@@ -1650,3 +1650,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Review `fashion_products_select` against the intended public/private product visibility contract. The inspected policy allows any non-anonymous authenticated user to SELECT, and a separate permissive tenant/business/branch policy does not narrow that broader policy. Do not treat as a confirmed incident until product visibility intent is established; resolve before connecting private inventory/draft views.
 - [ ] Review medical appointment SECURITY DEFINER functions, migration provenance, exact role/business scope, and patient/provider cross-tenant E2E before connecting medical screens. Direct authenticated SELECT on the table was not granted in the inspected privilege surface.
 - [ ] Inventory the schema/RPC/function contracts for each remaining sector separately; no inferred table mappings or browser direct writes.
+
+## RC457-linked medical no-show UI — 2026-10-20
+- [x] Added a provider/owner/admin/manager-only `لم يحضر` action for CONFIRMED appointments only after the scheduled Unix-millisecond appointment time.
+- [x] Added source-contract assertions for the timing guard, NO_SHOW status, and Arabic action label.
+- [x] Exact tested code head `4ded759615e25d5bb9776751ccb32dbc1189e6be`: Industry Workspaces UI Contract, Marketing Workspace Contract, Pages validation, Module Professionalization Validation, Backend-only Module Boundary (including approval-audit and RC450 financial-journal PostgreSQL jobs), and MantiGO privacy all PASS. Pages deployment job was skipped as expected for a PR.
+- [ ] Keep this UI change paired with PR #301's server-side RC457 guard; both PRs remain open/draft/unmerged. No production deployment occurred.
