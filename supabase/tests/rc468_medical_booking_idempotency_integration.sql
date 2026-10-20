@@ -16,6 +16,11 @@ begin
 
   select count(*) into before_count from public.medical_appointments where id = appointment_id;
 
+  -- Simulate a lost client response that is retried after the appointment time has passed.
+  -- Keep the stored request payload identical; only the existing row's time is moved into the past.
+  existing.date_time := (pg_catalog.floor(extract(epoch from pg_catalog.clock_timestamp()) * 1000 / 900000)::bigint - 1) * 900000;
+  update public.medical_appointments set date_time = existing.date_time where id = appointment_id;
+
   -- A successful booking must remain replayable if the provider is disabled
   -- before the client receives the original success response.
   update public.marketing_provider_profiles set status = 'INACTIVE'
