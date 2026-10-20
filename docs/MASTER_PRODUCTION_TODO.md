@@ -1804,3 +1804,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Exact-head workflow runs were not returned by the PR-run lookup; this is not proof that no workflow ran, only that this lookup did not provide evidence.
 - [ ] No browser E2E or live RLS test has been confirmed in this session.
 - [ ] Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Sector workspace data-error integrity
+
+- [x] Updated `web/sector-modules.js`: failed table reads are no longer silently converted to empty arrays; the UI now reports which sources failed, shows an accessible alert, and offers an explicit retry.
+- [x] Removed a duplicate `applyToJob(jobId)` declaration that was shadowed by the later overload in the same source file.
+- [x] Extended the existing `scripts/validate-sector-rendering.mjs` contract to guard query-error/empty-state distinction, accessible retry, and exactly one job-application handler. The Pages workflow already invokes this validator.
+- [ ] Validator execution, Node syntax check, exact-head CI, and authenticated browser E2E have not been confirmed in this session. Keep release **BLOCKED / NOT CERTIFIED**.
