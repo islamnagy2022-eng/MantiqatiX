@@ -12,7 +12,8 @@
 - [🟡] Database constraints/indexes/integrity: 111/111 لها Primary Key و224 Foreign Keys؛ توجد 155 أعمدة FK بلا index أحادي مطابق وتحتاج مراجعة أداء حسب الاستخدام.
 - [ ] API/Edge Functions/integrations. **NOT VERIFIED — external runtime test pending.**
 - [ ] Website/Admin/Owner/Manager/Employee/Customer E2E. **NOT VERIFIED — requires real test accounts and external browser.**
-- [🟡] Finance backend controls inspected (payment/refund/settlement/order pricing/idempotency); actual provider/payment E2E remains NOT VERIFIED.
+- [🟡] Cash-first launch payment: the API accepts only CASH_ON_DELIVERY and requires tenant enablement; customer/restaurant order UI now requests a cash intent. **Cash collection/settlement E2E NOT VERIFIED**.
+- [ ] Paymob/card, provider webhooks and electronic refunds: **POST-LAUNCH DEFERRED**, not part of launch-one payment UX; keep their security hardening for the post-launch gate.
 - [ ] CRM + Marketing E2E.
 - [ ] Regression كامل.
 - [ ] Backup/Restore/DR test. **NOT VERIFIED — restore evidence not yet produced.**
@@ -88,8 +89,12 @@
 - [ ] module-specific operations.
 - [ ] task lifecycle TODO/IN PROGRESS/WAIT/BLOCKED/DONE/VERIFIED.
 
-## P1 — Finance
-- [ ] payment intents/events/provider events.
+## P1 — Finance (launch-one scope: cash only)
+- [ ] cash payment intents and staff-only collection confirmation E2E.
+- [ ] cash reconciliation / commissions / settlement / ledger validation.
+- [ ] tenant cash-method configuration and safe failure when disabled.
+- [ ] payment intent idempotency and duplicate/conflict detection.
+- [ ] POST-LAUNCH: electronic payment intents/events/provider events and Paymob webhooks.
 - [ ] commissions.
 - [ ] subscriptions/packages.
 - [ ] refunds/payouts/settlements.
@@ -188,8 +193,9 @@
 - [ ] build/sign/release.
 - [ ] App regression مقابل Website/API.
 
-## P2 — SMM
-- [ ] providers/services/orders/wallets review.
+## P2 — SMM (POST-LAUNCH DEFERRED)
+- [x] Initial-launch feature gate remains default-deny; do not expose operational SMM before separate approval.
+- [ ] POST-LAUNCH: providers/services/orders/wallets review.
 - [ ] platform RBAC integration.
 - [ ] provider credentials isolation.
 - [ ] order events/idempotency.
@@ -421,3 +427,15 @@
 - [🟢] Public footer dead-end links fixed: About, Terms and Privacy now open real in-app information dialogs instead of `href="#"` no-op anchors.
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
+
+
+## قرار نطاق الإطلاق — 2026-10-20
+- [x] إطلاق أول بنظام Cash-first فقط للطلبات المؤهلة.
+- [x] تأجيل Paymob/البطاقات وأي Checkout إلكتروني لما بعد الإطلاق.
+- [x] تأجيل SMM المستقل بعد الإطلاق؛ التسويق والإعلان الداخلي ليس هو نفسه متجر SMM.
+- [x] تأجيل شراء صفحات Portfolio/Menu المدفوعة لأنها تعتمد على الدفع الإلكتروني ولا يوجد مسار نقدي مثبت لها.
+- [ ] CASH E2E: عميل → طلب → نية نقدية ثابتة/idempotent → موظف مخول يؤكد التحصيل → سجل مالي/تسوية.
+- [ ] تحقق tenant_payment_methods لكل نشاط، واختبار منع التكرار/تغيير المبلغ/العملة/الطلب.
+- [ ] تحقق أن جميع مسارات Checkout المعروضة قبل الإطلاق لا تبدأ دفعًا إلكترونيًا.
+- [ ] POST-LAUNCH: استكمال Paymob/Webhooks/Refunds وSMM بعد اختبار أمني وتشغيلي منفصل.
+- الحالة العامة: **BLOCKED / NOT CERTIFIED** حتى اكتمال اختبارات النقد والأمن والاستعادة وباقي بوابات الإطلاق.
