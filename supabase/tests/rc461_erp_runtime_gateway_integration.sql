@@ -3,7 +3,7 @@ insert into public.user_memberships(user_id,tenant_id,business_id,role,status) v
  ('11111111-1111-4111-8111-111111111111','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE');
 insert into public.user_memberships(user_id,tenant_id,business_id,role,status,branch_id) values
  ('44444444-4444-4444-8444-444444444444','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE','branch-a');
-insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id) values
+insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id,status) values
  ('po-existing','tenant-a','22222222-2222-4222-8222-222222222222',null,'PENDING_APPROVAL'),
  ('po-other-branch','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','SUBMITTED'),
  ('po-draft','tenant-a','22222222-2222-4222-8222-222222222222',null,'DRAFT'),
