@@ -597,3 +597,9 @@ This status is intentional and must remain until the open gates above are indepe
 - [ ] The live policy catalog shows a broad authenticated non-anonymous SELECT policy on `fashion_products` alongside a separate tenant/business/branch boundary policy. Because permissive PostgreSQL policies combine with OR semantics, resolve whether the global visibility is intentional before connecting this table to private inventory/draft views. This is a policy-contract review item, not a declared incident.
 - [ ] Medical appointment data has no direct authenticated table SELECT grant in the inspected privilege surface; only use the existing backend contract after migration provenance, EXECUTE ACL, role scope, and patient/provider negative E2E are verified.
 - [ ] Continue schema/function inventory per sector; do not map pharmacies, labs, radiology, dental, hospitals, or veterinary flows to generic medical/order tables without evidence.
+
+## Latest continuation — medical no-show UI — 2026-10-20
+- PR #300 latest tested code head: `4ded759615e25d5bb9776751ccb32dbc1189e6be`; all six PR workflows passed, including the dedicated sector UI/runtime contract and backend-only integrations. The Pages deploy job was skipped because this is a PR.
+- Added a provider-only `لم يحضر` action for confirmed medical appointments after their scheduled time, with validator assertions.
+- Ship this UI together with PR #301's RC457 backend guard; neither PR is merged and no production deployment occurred.
+- Global production gate remains **BLOCKED / NOT CERTIFIED**.
