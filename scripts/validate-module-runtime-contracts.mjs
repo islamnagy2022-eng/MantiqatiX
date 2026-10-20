@@ -54,6 +54,9 @@ for(const required of [
 ])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
 if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
 if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
+if(!erpRoute.includes("businesses: [{ id: business.id"))failures.push("ERP_BUSINESS_REFERENCE_NOT_RETURNED_BY_SCOPED_API");
+if(!files.app.includes("rows.businesses=result.businesses||[]"))failures.push("ERP_BUSINESS_REFERENCE_NOT_CONSUMED");
+if(!files.app.includes("['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table)"))failures.push("ERP_BUSINESS_REFERENCE_DIRECT_READ_NOT_BLOCKED");
 if(!files.app.includes("data-erp-supplier-edit=")||!files.app.includes("editERPSupplier(this.dataset.erpSupplierEdit)"))failures.push("ERP_SUPPLIER_EDIT_ACTION_NOT_WIRED");
 if(!files.app.includes("String(r.status||'').toUpperCase()==='DRAFT'")||!files.app.includes("String(r.status||'').toUpperCase()==='PENDING_APPROVAL'"))failures.push("ERP_ORDER_STATUS_ACTIONS_NOT_NORMALIZED");
 const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
