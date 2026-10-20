@@ -10,7 +10,7 @@ language plpgsql
 security definer
 set search_path=public
 as $function$
-declare v_category text; v_status text; v_verification text;
+declare v_category text; v_status text; v_verification text; v_saved_lat double precision; v_saved_lon double precision;
 begin
   if p_user_id is null or p_user_id <> auth.uid() then raise exception 'USER_CONTEXT_MISMATCH'; end if;
   if p_availability_status is null or p_availability_status not in ('OFFLINE','AVAILABLE','BUSY') then raise exception 'INVALID_AVAILABILITY_STATUS'; end if;
@@ -34,7 +34,7 @@ begin
          last_seen_at=now(),
          updated_at=now()
    where captain_id=p_user_id
-   returning vehicle_category,status,verification_status into v_category,v_status,v_verification;
+   returning vehicle_category,status,verification_status,current_lat,current_lon into v_category,v_status,v_verification,v_saved_lat,v_saved_lon;
 
 
 
@@ -43,7 +43,7 @@ begin
     'AUD-MG-'||replace(gen_random_uuid()::text,'-',''),
     'MNTY-PLATFORM',p_user_id,'MANTIGO_CAPTAIN_PRESENCE_UPDATED','MANTIGO_CAPTAIN',
     p_user_id::text,'{}'::jsonb,
-    jsonb_build_object('availability_status',p_availability_status,'has_coordinates',p_current_lat is not null and p_current_lon is not null),
+    jsonb_build_object('availability_status',p_availability_status,'has_coordinates',v_saved_lat is not null and v_saved_lon is not null),
     'SUCCESS'
   );
   return jsonb_build_object('captain_id',p_user_id,'availability_status',p_availability_status,'vehicle_category',v_category,'status',v_status,'verification_status',v_verification);
