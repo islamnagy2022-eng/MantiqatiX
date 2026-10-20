@@ -102,3 +102,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added `scripts/production/test-smm-launch-scope.mjs` with positive and negative cases and wired it into `.github/workflows/pages.yml`.
 - Local Node execution passed all 10 assertions. Exact-head GitHub CI is still required after the commits.
 - This is source-side CI work only. It does not change production environment variables or deploy an Edge Function. Issue #212 remains open until the live gateway denial is explicitly deployed and verified; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-20 — SMM deferral-aware gate exact-head CI result
+
+- Exact code head `7eca9efe3954af598f2e5a0e084a53eea45efa2f` passed all four triggered PR workflows: Pages validation `39361043273` (deploy skipped), Module Professionalization `39361043089`, Backend-only Module Boundary `39361043079`, and MantiGO Open Ride Privacy Boundary `39361043224`.
+- Pages validation passed the production verification engine, 10-case SMM scope regression, syntax checks, static migration-chain gate contract, and required web files. The earlier failure was a stale assertion requiring unconditional `smm_gateway_parity=PASS`; the updated assertions now validate active-SMM gates and deferred-SMM evidence.
+- This is code/CI verification only. Live SMM gateway denial has not been deployed or verified; no production mutation occurred. Global release remains BLOCKED / NOT CERTIFIED.
