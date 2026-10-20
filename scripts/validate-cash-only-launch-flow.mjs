@@ -224,7 +224,8 @@ assert.match(app,/m\.key==='ACCOUNTING'&&m\.tables\.includes\('journal_entry_lin
 assert.match(app,/\.in\('journal_entry_id',entryIds\)/,"accounting lines must be constrained to the tenant-scoped parent entries");
 assert.doesNotMatch(app,/\.select\('\*'\)\.in\('journal_entry_id'/,"accounting lines must not use unrestricted wildcard reads");
 assert.match(app,/matrimony_contact_unlocks'\)\.select\('id,request_id,unlocked_at'\)\.in\('request_id',requestIds\)/,"matrimony contact unlocks must be limited to requests visible to the current user");
-assert.match(app,/matrimony_profiles'\)\.select\('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at'\)/,"public matrimony workspace must not read direct contact fields");
+assert.match(app,/table==='matrimony_profiles'\)q=sb\.from\(table\)\.select\('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at'\)/,"public matrimony workspace must not read direct contact fields");
+assert.doesNotMatch(app,/matrimony_profiles[^\n]{0,180}(?:phone|email|contact_phone|contact_email)/i,"public matrimony list must not select direct contact fields");
 
 assert.match(replay,/20261020150000_rc461_erp_runtime_service_gateway\.sql/);
 assert.match(verifier,/20261020150000_rc461_erp_runtime_service_gateway\.sql/);
