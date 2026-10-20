@@ -33,13 +33,15 @@ if(d.key==='JOBS'){if(state.tab==='jobs'){rows=state.rows.jobs||[];return shell(
 if(d.key==='USED_ITEMS'){rows=state.rows.used_item_ads||[];return shell(d,tabs(d)+'<div class="action-bar">'+rows.map(r=>'<button class="btn '+(r.is_sold?'btn-outline':'btn-primary')+'" style="width:auto" onclick="toggleUsedSold(\''+esc(r.id)+'\','+(r.is_sold?'false':'true')+')">'+(r.is_sold?'إعادة إتاحة':'تسجيل كمباع')+'</button>').join('')+'</div>'+table([['الإعلان','title'],['الفئة','category'],['السعر',r=>money(r.price)],['الموقع','location'],['البائع','seller_name'],['الحالة',r=>r.is_sold?'مباع':'متاح']],rows))}
 return overview(d)}
 async function createEducationRequest(targetId,targetType,subjectOrGrade){
- if(!state.user?.id||!targetId)return;
+ if(!state.user?.id)return alert('يجب تسجيل الدخول بحساب موثق لإرسال الطلب.');
+ if(!targetId)return alert('بيانات الجهة التعليمية غير مكتملة.');
  const student=window.prompt('اسم الطالب',state.user.email||'')?.trim();
  if(!student)return;
- const subject=subjectOrGrade||window.prompt(targetType==='TEACHER'?'المادة':'الصف الدراسي','')?.trim();
- if(!subject)return;
- const r=await sb.from('education_requests').insert({id:crypto.randomUUID(),requester_user_id:state.user.id,target_id:targetId,target_type:targetType,student_name:student,subject_or_grade:subject,status:'PENDING'});
- if(r.error)return alert('تعذر إرسال الطلب: '+r.error.message);
+ const subject=(subjectOrGrade||window.prompt(targetType==='TEACHER'?'المادة':'الصف الدراسي','')||'').trim();
+ if(subject.length>500)return alert('المادة أو الصف الدراسي يجب ألا يتجاوز 500 حرف.');
+ const {data,error}=await sb.rpc('create_education_request_backend',{p_target_id:targetId,p_target_type:targetType,p_student_name:student,p_subject_or_grade:subject});
+ if(error)return alert('تعذر إرسال الطلب التعليمي: '+error.message);
+ if(!data)return alert('لم يؤكد الخادم إنشاء الطلب. تحقق من الطلبات قبل إعادة المحاولة.');
  alert('تم إرسال الطلب التعليمي بنجاح.');
  await load(defs[current]);
 }
