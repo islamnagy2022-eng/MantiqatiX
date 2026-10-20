@@ -710,3 +710,9 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - A broad regression guard was added to `scripts/validate-sector-rendering.mjs`; commits `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64` and regex correction `2731342b75ab0b889b54d679ee520bd12f589940`.
 - On prior source head `5098c0617477fbf494c454233dd56c7bf27ca6d7`, relevant GitHub Actions validation and integration jobs passed; the web deploy job was skipped. Do not describe this as a deployment or exact-head verification of subsequent commits.
 - Next: verify the new guard against the latest branch head, then address the verified privilege gap for `used_item_ads` only through a reviewed, narrow migration/backend contract. No ad hoc broad grants. Browser E2E remains open; release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 continuation — used-item directory privacy
+
+- The loader now explicitly selects non-phone directory fields for `used_item_ads`; `seller_phone` is excluded from the client query. Source commit `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator commits `0ea0564050305059324ea3d0daa97dbcdd182fcf` and `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
+- Read-only live DB evidence still shows no authenticated SELECT privilege on `used_item_ads`. Do not add a broad table grant; the future migration must grant only approved columns and be paired with the verified RLS contract. No production DB mutation was performed.
