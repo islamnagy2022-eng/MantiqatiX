@@ -39,6 +39,18 @@ begin
   select count(*) into after_count from public.medical_appointments where id = appointment_id;
   if after_count <> before_count then raise exception 'RC468_REPLAY_CREATED_DUPLICATE'; end if;
 
+  -- The same past timestamp must still be rejected for a genuinely new request.
+  begin
+    perform public.create_medical_appointment_backend(
+      patient, 'MED-RC468-PAST-NEW-0001', existing.business_id,
+      existing.doctor_id, existing.date_time, 'new request must be rejected'
+    );
+    raise exception 'RC468_NEW_PAST_BOOKING_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm = 'RC468_NEW_PAST_BOOKING_WAS_ALLOWED'
+       or position('APPOINTMENT_TIME_MUST_BE_FUTURE' in sqlerrm) = 0 then raise; end if;
+  end;
+
   begin
     perform public.create_medical_appointment_backend(
       patient, appointment_id, existing.business_id, existing.doctor_id,
