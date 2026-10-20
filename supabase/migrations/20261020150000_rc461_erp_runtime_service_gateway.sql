@@ -73,8 +73,8 @@ begin
   order by case upper(m.role)
     when 'OWNER' then 1 when 'BUSINESS_OWNER' then 2 when 'ADMIN' then 3
     when 'MANAGER' then 4 when 'FINANCE_MANAGER' then 5 when 'ACCOUNTANT' then 6
-    when 'FINANCE' then 7 when 'EMPLOYEE' then 8 when 'STAFF' then 9 else 99 end
-  order by case upper(m.role) when 'OWNER' then 1 when 'BUSINESS_OWNER' then 2 when 'ADMIN' then 3 when 'MANAGER' then 4 else 5 end, case when m.branch_id is null then 0 else 1 end
+    when 'FINANCE' then 7 when 'EMPLOYEE' then 8 when 'STAFF' then 9 else 99 end,
+    case when m.branch_id is null then 0 else 1 end
   limit 1;
 
   if v_role is null then
