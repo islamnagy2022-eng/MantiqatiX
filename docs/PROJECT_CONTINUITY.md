@@ -695,3 +695,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 ## 2026-10-20 continuation — fashion branch scope
 
 - Fashion product creation now passes `null` rather than an empty string when no branch is selected; a regression assertion protects the fallback. Source commit `680d433e682881d0f233a4ac4e46d95b23ebee4a`; validator commit `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`. Exact-head CI remains pending.
+
+
+## 2026-10-20 continuation — live privilege gap for fashion and used items
+
+- Read-only production privilege inspection found `authenticated` has SELECT but no write privileges on `fashion_products`, and no SELECT/INSERT/UPDATE/DELETE privileges on `used_item_ads`. RLS policies exist but do not replace table grants.
+- The UI no longer attempts direct writes to either table and shows truthful unavailable states; no production grant/schema changes were made. Source commit `3b695a8b5eb8197b531a40bad60df9b5544c668f`; regression guard `e3b3ac2a6e1f7918922cf41f56f72cf15a91ad6b`.
+- Open: establish intended used-item read policy/privilege and reviewed backend mutation contracts before restoring the controls. Exact-head CI/browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
