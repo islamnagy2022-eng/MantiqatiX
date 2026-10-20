@@ -6,9 +6,9 @@ begin
  perform set_config('request.jwt.claim.sub',p_user_id::text,false);
  begin
   perform public.create_medical_appointment_backend(p_user_id,p_appointment_id,p_business_id,p_doctor_id,p_date_time,p_reason);
-  raise exception 'RC462_EXPECTED_REJECTION_MISSING';
+  raise exception 'RC467_EXPECTED_REJECTION_MISSING';
  exception when others then
-  if sqlerrm='RC462_EXPECTED_REJECTION_MISSING' or position(p_expected in sqlerrm)=0 then raise; end if;
+  if sqlerrm='RC467_EXPECTED_REJECTION_MISSING' or position(p_expected in sqlerrm)=0 then raise; end if;
  end;
 end $$;
 
@@ -21,22 +21,22 @@ declare
  result jsonb;
 begin
  perform set_config('request.jwt.claim.sub',patient::text,false);
- result := public.create_medical_appointment_backend(patient,'MED-RC462-VALID-0001',business,doctor,slot,'استشارة عامة');
- if result->>'status' <> 'BOOKED' or result->>'doctor_id' <> doctor then raise exception 'RC462_VALID_BOOKING_FAILED'; end if;
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-PHARMACY-01',business,'ffffffff-ffff-4fff-8fff-ffffffffffff',slot+900000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-UNVERIFIED-01',business,'cccccccc-cccc-4ccc-8ccc-cccccccccccc',slot+1800000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-PAST-00001',business,doctor,1,'test','APPOINTMENT_TIME_MUST_BE_FUTURE');
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-ALIGNMENT',business,doctor,slot+60000,'test','APPOINTMENT_SLOT_ALIGNMENT_REQUIRED');
- perform public.assert_medical_booking_rejected('33333333-3333-4333-8333-333333333333','MED-RC462-CROSS-TENANT',business,doctor,slot+2700000,'test','ACTIVE_TENANT_MEMBERSHIP_REQUIRED');
- perform public.assert_medical_booking_rejected(patient,'MED-RC462-SLOT-RETRY',business,doctor,slot,'test','DOCTOR_SLOT_UNAVAILABLE');
+ result := public.create_medical_appointment_backend(patient,'MED-RC467-VALID-0001',business,doctor,slot,'استشارة عامة');
+ if result->>'status' <> 'BOOKED' or result->>'doctor_id' <> doctor then raise exception 'RC467_VALID_BOOKING_FAILED'; end if;
+ perform public.assert_medical_booking_rejected(patient,'MED-RC467-PHARMACY-01',business,'ffffffff-ffff-4fff-8fff-ffffffffffff',slot+900000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC467-UNVERIFIED-01',business,'cccccccc-cccc-4ccc-8ccc-cccccccccccc',slot+1800000,'test','ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC467-PAST-00001',business,doctor,1,'test','APPOINTMENT_TIME_MUST_BE_FUTURE');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC467-ALIGNMENT',business,doctor,slot+60000,'test','APPOINTMENT_SLOT_ALIGNMENT_REQUIRED');
+ perform public.assert_medical_booking_rejected('33333333-3333-4333-8333-333333333333','MED-RC467-CROSS-TENANT',business,doctor,slot+2700000,'test','ACTIVE_TENANT_MEMBERSHIP_REQUIRED');
+ perform public.assert_medical_booking_rejected(patient,'MED-RC467-SLOT-RETRY',business,doctor,slot,'test','DOCTOR_SLOT_UNAVAILABLE');
 
  perform set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
  begin
-  perform public.update_medical_appointment_status_backend('44444444-4444-4444-8444-444444444444','MED-RC462-VALID-0001','CONFIRMED');
-  raise exception 'RC462_OTHER_DOCTOR_MUTATION_WAS_ALLOWED';
+  perform public.update_medical_appointment_status_backend('44444444-4444-4444-8444-444444444444','MED-RC467-VALID-0001','CONFIRMED');
+  raise exception 'RC467_OTHER_DOCTOR_MUTATION_WAS_ALLOWED';
  exception when others then
-  if sqlerrm='RC462_OTHER_DOCTOR_MUTATION_WAS_ALLOWED' or position('DOCTOR_PROFILE_OWNERSHIP_REQUIRED' in sqlerrm)=0 then raise; end if;
+  if sqlerrm='RC467_OTHER_DOCTOR_MUTATION_WAS_ALLOWED' or position('DOCTOR_PROFILE_OWNERSHIP_REQUIRED' in sqlerrm)=0 then raise; end if;
  end;
 end $$;
 
-select 'RC462_MEDICAL_BOOKING_RELEASE_CONTRACT_PASS' as result;
+select 'RC467_MEDICAL_BOOKING_RELEASE_CONTRACT_PASS' as result;
