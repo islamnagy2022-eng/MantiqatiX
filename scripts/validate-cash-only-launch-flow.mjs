@@ -160,7 +160,7 @@ assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
 assert.match(index,/app\.js\?v=mnty-modules-v19-20261020/);
 assert.match(index,/sw\.js\?v=mnty-modules-v21-20261020/);
 assert.match(sw,/const CACHE='mnty-web-v154'/);
-assert.match(sw,/app\.js\?v=mnty-modules-v18-20261020/);
+assert.match(sw,/app\.js\?v=mnty-modules-v19-20261020/);
 assert.match(chain,/20261020120000_rc458_cash_order_service_actor_contract\.sql/);
 assert.match(verifier,/20261020120000_rc458_cash_order_service_actor_contract\.sql/);
 assert.match(moduleWorkflow,/rc460-cash-confirmation-business-scope-integration/);
@@ -221,7 +221,7 @@ assert.match(app,/live\.moduleData\?\.BUSINESS_ERP\?\.rows\?\.\[table\]/,"Busine
 assert.match(app,/invokeMntyApi\('\/api\/v1\/erp\/runtime',\{method:'POST',body:\{operation:'mutate'/);
 assert.match(app,/invokeMntyApi\('\/api\/v1\/erp\/runtime',\{method:'POST',body:\{operation:'list'/);
 assert.match(app,/MNTY_BACKEND_ONLY_TABLES\.has\(table\)/);
-assert.match(app,/function chooseERPRecord\\(table,label,format,excludeId,filterFn\\)/);
+assert.match(app,/function chooseERPRecord\(table,label,format,excludeId,filterFn\)/);
 assert.match(app,/function erpJournalTotals\(rows,entryId,field\)/);
 assert.match(app,/recordsTable\('تفاصيل القيود',rows\.journal_entry_lines/);
 assert.match(app,/recordsTable\('الأرصدة',rows\.stock_balances\|\|\[\],\[\['المنتج',r=>erpProductLabel/);
