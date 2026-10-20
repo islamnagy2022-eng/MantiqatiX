@@ -859,6 +859,8 @@ async function loadEnterpriseDomainData(m){
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
+   if(table==='businesses'&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(table==='businesses'&&live.businessId)q=q.eq('id',live.businessId);
    if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items','branches'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
    if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
    if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
