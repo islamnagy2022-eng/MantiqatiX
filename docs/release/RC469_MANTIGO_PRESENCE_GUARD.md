@@ -10,8 +10,8 @@ Date: 2026-10-21
 - Execute grants remain limited to authenticated callers.
 
 ## Regression coverage added
-- `supabase/tests/rc462_mantigo_presence_guard_fixture.sql`
-- `supabase/tests/rc462_mantigo_presence_guard_integration.sql`
+- `supabase/tests/rc469_mantigo_presence_guard_fixture.sql`
+- `supabase/tests/rc469_mantigo_presence_guard_integration.sql`
 - Dedicated PostgreSQL 16 job in `.github/workflows/module-professionalization.yml`
 - Release validator and production migration verifier now include the uniquely numbered RC469 migration.
 
