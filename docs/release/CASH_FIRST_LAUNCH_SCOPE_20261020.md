@@ -9,6 +9,7 @@ The internal **Marketing & Advertising** workspace is distinct from the SMM stor
 ## Source changes in this candidate branch
 
 - `supabase/functions/api/index.ts`: preserve cash payment intent ID/status on retries; reject reuse of the same tenant-scoped idempotency key for a different order, amount, currency, provider, or method; handle concurrent inserts by re-reading the winning row.
+- `payment-intent`, `digital-page-payment-intent`, `subscription-payment-intent`, and `mantigo-payment-intent` Edge Functions now have an explicit server-side default-deny launch flag returning `ELECTRONIC_PAYMENTS_DEFERRED`; provider webhooks remain present for safe event processing and are not a customer checkout entrypoint.
 - `web/app.js`: after successful customer catalog order creation, request a cash payment intent using a stable key derived from the order ID. If tenant cash configuration is missing, state explicitly that the order exists but cash setup failed and collection is not confirmed.
 - `web/restaurant-module.js`: request the same cash intent after restaurant order creation and do not describe the order as paid.
 - `web/app.js`: disable the paid Digital Pages Portfolio/Menu checkout path for launch one because it currently depends on Paymob and no cash contract is verified for these products.
