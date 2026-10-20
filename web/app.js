@@ -1014,7 +1014,7 @@ function enterpriseRowsTable(m,rows){
    +recordsTable('تفاصيل القيود',rows.journal_entry_lines||[],[['القيد',r=>r.journal_entry_id],['الحساب',r=>erpAccountLabel(rows,r.account_id)],['مدين',r=>r.debit],['دائن',r=>r.credit],['الوصف',r=>r.description]])
    +sources();
  }
- if(m.key==='ERP'){
+ if(['ERP','BUSINESS_ERP'].includes(m.key)){
   return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
    +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(live.role)?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='PENDING_APPROVAL'?'بانتظار اعتماد المالك أو المشرف':'—']])
    +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>erpPurchaseOrderLabel(rows,r.purchase_order_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
@@ -1298,7 +1298,7 @@ async function erpRpc(fn,args){
  }
 }
 function chooseERPRecord(table,label,format,excludeId){
- const rows=(live.moduleData?.ERP?.rows?.[table]||window.MNTYOperationsERPData?.[table]||[]).filter(row=>!excludeId||String(row.id)!==String(excludeId));
+ const rows=(live.moduleData?.ERP?.rows?.[table]||live.moduleData?.BUSINESS_ERP?.rows?.[table]||window.MNTYOperationsERPData?.[table]||[]).filter(row=>!excludeId||String(row.id)!==String(excludeId));
  if(!rows.length){showToast('لا توجد سجلات متاحة في '+label+' ضمن المؤسسة والفرع الحاليين','error');return null;}
  const menu=rows.map((row,i)=>String(i+1)+') '+format(row)+' ['+row.id+']').join('\n');
  const answer=window.prompt('اختر '+label+' بكتابة الرقم من القائمة أو لصق المعرف:\n'+menu);
