@@ -587,3 +587,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Paid Digital Pages Portfolio/Menu purchase is temporarily blocked because its current checkout path requires Paymob and no cash fulfillment contract is verified. This is not a claim that those products have a cash workflow.
 - Verification pending: exact-head CI; cash E2E with customer and authorized cashier/staff; tenant-level `tenant_payment_methods` configuration; duplicate/replay/cross-order idempotency tests; full checkout surface review; all unrelated P0 security/backup/browser/device gates.
 - No production database, Supabase Auth, Edge Function deployment, payment, wallet or settlement was mutated. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Cash-first implementation delta — 2026-10-20
+
+- Added default-deny `ELECTRONIC_PAYMENTS_LAUNCH_DEFERRED=true` gates to the four Paymob intent creation Edge Functions: `payment-intent`, `digital-page-payment-intent`, `subscription-payment-intent`, and `mantigo-payment-intent`. Each rejects with `ELECTRONIC_PAYMENTS_DEFERRED` until a separate post-launch release is reviewed.
+- Advanced PWA cache to `mnty-web-v130` and versioned the updated app/restaurant scripts.
+- Added `scripts/validate-cash-first-launch.mjs` to Pages CI to enforce cash-only UI/API policy and the SMM server-side gate.
+- Still NOT VERIFIED: cash intent creation/collection E2E, staff confirmation UI, tenant cash configuration, CI on the final PR head, all other production gates. No production deployment occurred.
