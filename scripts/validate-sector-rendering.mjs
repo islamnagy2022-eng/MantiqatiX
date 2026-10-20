@@ -48,6 +48,8 @@ const checks = [
   ['job application validates required backend fields', sectorModules.includes("if(!phone||!qualifications||!cv)")],
   ['job application handles idempotent duplicate response', sectorModules.includes("status==='ALREADY_APPLIED'")],
   ['used-items query keeps seller-owned sold ads available for reactivation', sectorModules.includes("q.or('is_sold.eq.false,owner_user_id.eq.'+state.user.id)")],
+  ['used-items status controls are limited to seller-owned ads', sectorModules.includes("rows.filter(r=>r.owner_user_id===state.user?.id).map(r=>'<button class=\"btn \"") || sectorModules.includes("rows.filter(r=>r.owner_user_id===state.user?.id).map(r=>'<button class=\"btn '+(r.is_sold")],
+  ['used-items status update detects zero-row ownership failures', sectorModules.includes(".select('id').maybeSingle()") && sectorModules.includes("if(!r.data)return alert('لم يتم تحديث الإعلان")],
   ['education requests use the authorized backend RPC', sectorModules.includes("sb.rpc('create_education_request_backend'") && !/sb\.from\('education_requests'\)\.insert/.test(sectorModules)],
   ['education request validates subject length before RPC', sectorModules.includes("subject.length>500")],
   ['education request validates student name length before RPC', sectorModules.includes("student.length<2||student.length>200")],
