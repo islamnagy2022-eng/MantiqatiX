@@ -47,6 +47,7 @@ const checks = [
   ['job application writes use the authorized backend RPC', sectorModules.includes("sb.rpc('submit_job_application_backend'") && !/sb\.from\('job_applications'\)\.insert/.test(sectorModules)],
   ['job application validates required backend fields', sectorModules.includes("if(!phone||!qualifications||!cv)")],
   ['job application handles idempotent duplicate response', sectorModules.includes("status==='ALREADY_APPLIED'")],
+  ['used-items query keeps seller-owned sold ads available for reactivation', sectorModules.includes("q.or('is_sold.eq.false,owner_user_id.eq.'+state.user.id)")],
 
 ];
 
