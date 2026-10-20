@@ -15,6 +15,11 @@ begin
   where id = appointment_id and patient_id = patient;
 
   select count(*) into before_count from public.medical_appointments where id = appointment_id;
+
+  -- A successful booking must remain replayable if the provider is disabled
+  -- before the client receives the original success response.
+  update public.marketing_provider_profiles set status = 'INACTIVE'
+  where id::text = existing.doctor_id;
   replay := public.create_medical_appointment_backend(
     patient, appointment_id, existing.business_id, existing.doctor_id,
     existing.date_time, existing.reason
@@ -24,6 +29,8 @@ begin
      or replay->>'status' <> existing.status then
     raise exception 'RC468_EXACT_REPLAY_RESULT_MISMATCH';
   end if;
+  update public.marketing_provider_profiles set status = 'ACTIVE'
+  where id::text = existing.doctor_id;
   select count(*) into after_count from public.medical_appointments where id = appointment_id;
   if after_count <> before_count then raise exception 'RC468_REPLAY_CREATED_DUPLICATE'; end if;
 
