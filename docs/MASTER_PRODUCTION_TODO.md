@@ -1916,3 +1916,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - The final migration supersedes the earlier column-grant draft: `20261020231500_used_item_ads_minimal_directory_read.sql` now exposes a narrow `SECURITY DEFINER` read RPC, `list_used_item_ads_backend(varchar, uuid)`, checks for an authenticated non-anonymous session, returns only public listing fields, and revokes direct table DML from `anon`/ `authenticated`.
 - The sector loader calls that RPC instead of querying `used_item_ads` directly. `seller_phone` is not returned.
 - This is still branch-only; the live database has not been changed. Apply only after exact-head validation and review of the security-definer function.
+
+
+- **Migration history safety follow-up:** preserved `20261020231500_used_item_ads_minimal_directory_read.sql` unchanged and moved the RPC/privilege revocation into the new follow-up migration `20261020232000_used_item_ads_directory_backend_v1.sql`. The follow-up explicitly revokes both table-level and prior column-level SELECT grants before granting only RPC EXECUTE. Validator points at the follow-up migration. Commits: `861d2eb6410aa18026325f1efa8b7ccf13288e20`, `c6aaa104f2d36318f498a82b1421666e671b51e4`, `89753cf6e26be56f31ec69fb4a82797846c954dc`.
