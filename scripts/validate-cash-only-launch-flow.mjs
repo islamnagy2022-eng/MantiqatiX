@@ -18,6 +18,7 @@ assert.match(app,/openCashCheckout\(items\)/,"cart must enter cash checkout");
 assert.match(app,/paymentMethod:'CASH_ON_DELIVERY'/,"checkout must request cash only");
 assert.match(app,/provider:'CASH_ON_DELIVERY'/,"cash intent must use cash provider");
 assert.match(app,/invokeMntyApi\('\/api\/v1\/orders'/,"order must go through authenticated API");
+assert.match(app,/headers:\{'Content-Type':'application\/json','Accept':'application\/json','apikey':cfg\.supabaseKey/,'API helper must send project API key and user token');
 assert.match(app,/invokeMntyApi\('\/api\/v1\/payments\/intents'/,"cash intent must go through API");
 assert.match(app,/MNTY_CASH_CHECKOUT_ATTEMPT/,"idempotency keys must survive retry in the same browser session");
 assert.match(app,/function smmModulePage\(\)[\s\S]{0,700}مؤجلة لما بعد الإطلاق/,"SMM workspace must show deferred state");
