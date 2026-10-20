@@ -1,11 +1,19 @@
 begin;
 insert into public.user_memberships(user_id,tenant_id,business_id,role,status) values
  ('11111111-1111-4111-8111-111111111111','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE');
-insert into public.erp_purchase_orders(id,tenant_id,business_id) values ('po-existing','tenant-a','22222222-2222-4222-8222-222222222222');
-insert into public.erp_stock_transfers(id,tenant_id,business_id) values ('tr-existing','tenant-a','22222222-2222-4222-8222-222222222222');
+insert into public.user_memberships(user_id,tenant_id,business_id,role,status,branch_id) values
+ ('44444444-4444-4444-8444-444444444444','tenant-a','22222222-2222-4222-8222-222222222222','MANAGER','ACTIVE','branch-a');
+insert into public.erp_purchase_orders(id,tenant_id,business_id,branch_id) values
+ ('po-existing','tenant-a','22222222-2222-4222-8222-222222222222',null),
+ ('po-other-branch','tenant-a','22222222-2222-4222-8222-222222222222','branch-b');
+insert into public.warehouses(id,tenant_id,business_id,branch_id,status) values
+ ('warehouse-a','tenant-a','22222222-2222-4222-8222-222222222222','branch-a','ACTIVE'),
+ ('warehouse-b','tenant-a','22222222-2222-4222-8222-222222222222','branch-b','ACTIVE');
+insert into public.erp_stock_transfers(id,tenant_id,business_id,from_warehouse_id,to_warehouse_id) values
+ ('tr-existing','tenant-a','22222222-2222-4222-8222-222222222222','warehouse-a','warehouse-b');
 set local role service_role;
 do $$
-declare result jsonb; actor uuid := '11111111-1111-4111-8111-111111111111'; biz uuid := '22222222-2222-4222-8222-222222222222';
+declare result jsonb; actor uuid := '11111111-1111-4111-8111-111111111111'; branch_actor uuid := '44444444-4444-4444-8444-444444444444'; biz uuid := '22222222-2222-4222-8222-222222222222';
 begin
   if has_function_privilege('authenticated','public.erp_runtime_execute(uuid,text,jsonb)','EXECUTE')
      or has_function_privilege('anon','public.erp_runtime_execute(uuid,text,jsonb)','EXECUTE') then
@@ -23,6 +31,20 @@ begin
   if result->>'actor' <> actor::text or result->>'operation' <> 'create_purchase_order' then
     raise exception 'RC461_ACTOR_CONTEXT_NOT_PROPAGATED';
   end if;
+  begin
+    perform public.erp_runtime_execute(branch_actor,'update_purchase_order_status',
+      jsonb_build_object('p_order_id','po-other-branch','p_target_status','SUBMITTED'));
+    raise exception 'RC461_CROSS_BRANCH_ORDER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
+  begin
+    perform public.erp_runtime_execute(branch_actor,'create_stock_transfer',
+      jsonb_build_object('p_id','tr-cross-branch','p_tenant_id','tenant-a','p_business_id',biz,'p_transfer_number','TR-1','p_from_warehouse_id','warehouse-b','p_to_warehouse_id','warehouse-b','p_product_id','55555555-5555-4555-8555-555555555555','p_quantity',1));
+    raise exception 'RC461_CROSS_BRANCH_TRANSFER_WAS_ALLOWED';
+  exception when others then
+    if sqlerrm not like '%ERP_BRANCH_SCOPE_REQUIRED%' then raise; end if;
+  end;
   begin
     perform public.erp_runtime_execute(actor,'update_purchase_order_status',
       jsonb_build_object('p_order_id','po-existing','p_target_status','APPROVED'));
