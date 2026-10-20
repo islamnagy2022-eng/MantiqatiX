@@ -1678,7 +1678,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Updated the sector workspace UI to remove disabled preview/action controls and show explicit “الموديول ظاهر · التشغيل غير مكتمل” status; action-review buttons explain missing backend/security/E2E prerequisites without claiming a transaction occurred.
 - [x] Updated the industry UI contract validator to reject globally disabled sector controls and require the incomplete-state wording.
 - [x] Updated `docs/INDUSTRY_WORKSPACE_UI.md` with this product rule.
-- [ ] The updated UI change is not yet validated by exact-head GitHub Actions.
+- [x] Exact-head CI **PASS** for UI/status implementation commit `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`: Industry Workspaces UI Contract [39361656812], Marketing Workspace Contract [39361656822], Module Professionalization Validation [39361656750], Backend-only Module Boundary [39361656799] (including approval-audit and RC450 financial-journal PostgreSQL jobs), MantiGO Open Ride Privacy Boundary [39361656727], and Pages validation [39361656795]. Pages deploy was skipped as expected for a PR; this is not production deployment evidence.
 - [ ] This PR’s internal sector directory is not proof that public business listings are already exposed; inventory and implement the public discovery/marketing surfaces separately.
 - [ ] Existing restaurant operational screens have their own legacy mutation/security concerns; do not infer readiness or enable unsafe writes from this visibility principle.
 - [ ] Global release remains **BLOCKED / NOT CERTIFIED**.
