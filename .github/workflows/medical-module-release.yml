@@ -6,8 +6,10 @@ on:
       - "web/app.js"
       - "web/index.html"
       - "supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql"
+      - "supabase/migrations/20261020210000_rc468_medical_booking_idempotency.sql"
       - "supabase/tests/rc457_medical_appointment_state_machine_*.sql"
       - "supabase/tests/rc462_medical_booking_*.sql"
+      - "supabase/tests/rc468_medical_booking_idempotency_integration.sql"
       - "scripts/validate-medical-appointment-state-machine.mjs"
       - ".github/workflows/medical-module-release.yml"
   pull_request:
@@ -66,5 +68,14 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_test.sql
+      - name: Apply and test retry-safe medical booking
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          docker cp supabase/migrations/20261020210000_rc468_medical_booking_idempotency.sql "$pg_container:/tmp/rc468_migration.sql"
+          docker cp supabase/tests/rc468_medical_booking_idempotency_integration.sql "$pg_container:/tmp/rc468_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc468_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc468_test.sql
       - name: Validate doctor module wiring
         run: node scripts/validate-medical-appointment-state-machine.mjs
