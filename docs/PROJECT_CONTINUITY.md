@@ -660,3 +660,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Sector workspace source now distinguishes query failures from genuine empty datasets, reports failed sources, and offers an accessible retry action. A duplicate job application handler was removed.
 - The existing sector-rendering validator now checks these contracts and duplicate handler count; it is already called from the Pages workflow. Changes: `8e5e84f1`, `faba79d2`, `eff9d6fa`.
 - Verification still required: run the validator and syntax checks, confirm exact-head CI, then exercise authenticated sector flows and tenant/role isolation in browser E2E. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 continuation — job application write boundary
+
+- Branch `feat/ui-first-module-completion-20261020` now routes job application submission through the existing `submit_job_application_backend` RPC rather than direct client INSERT. It validates the fields required by the SQL function and handles the backend's `ALREADY_APPLIED` response. Source commit: `9a6526456dcc78446a208440b0a24f55bacb598b`.
+- Added source-contract assertions to `scripts/validate-sector-rendering.mjs` in commit `32b848989f0b5a80749e0604814037c28c30b31f`.
+- Verification status: implementation committed; exact-head CI and browser E2E remain pending. No production deployment, schema change, or merge occurred. Do not treat this as release certification.
