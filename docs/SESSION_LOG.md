@@ -213,3 +213,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - **Education input follow-up:** added client-side student-name length validation (2–200 characters) matching the server contract, plus a regression assertion. Commits: `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5` and `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`. CI/E2E remain pending.
+
+
+## 2026-10-20 — used-items ownership-safe status actions
+
+- **Finding:** after expanding the query to include seller-owned sold listings, the action renderer still showed status buttons for all visible ads, while the UPDATE was owner-filtered and ignored zero affected rows. This could show a false affordance for another seller's public listing.
+- **Fix:** status buttons now render only for rows whose `owner_user_id` matches the signed-in user. The UPDATE selects the affected row and displays an explicit no-match message when ownership/RLS prevents a change. Commit: `edeee30e5546956020f7ccbc999c934dea2a66a3`.
+- **Regression guards:** added assertions for owner-only controls and zero-row handling. Commit: `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
+- CI, browser E2E, and production RLS behavior remain unverified.
