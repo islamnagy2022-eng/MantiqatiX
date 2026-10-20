@@ -1876,3 +1876,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 
 - [x] Tightened the used-item projection further to only fields required for current rendering, query filters, and ordering; unused `description`, `image_url`, and `fee_paid` are excluded too. Source commit `66fefa4ce874c1eb62962c8f476a3015378fa42e`; validator commit `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
+
+
+## RC — sector authentication error UX — 2026-10-20
+- [x] The sector workspace now displays a human-readable Arabic sign-in requirement instead of the raw `AUTH_REQUIRED` token and does not show a retry button that cannot fix a missing session.
+- [x] Added a source-contract assertion for the authentication error message and retry suppression. Source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`; validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`.
+- [ ] Exact-head CI pending; browser E2E remains open.
