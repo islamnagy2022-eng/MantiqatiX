@@ -64,7 +64,7 @@ assert.match(ui, /find\(x=>x\.dataset\.mxiwGroup===state\.group\)\?\.focus\(\)/,
 assert.match(ui, /prefers-reduced-motion:reduce/);
 assert.match(ui, /button:focus-visible/ , 'keyboard focus indicators must be visible on interactive controls');
 assert.match(ui, /window\.MNTYIndustryWorkspace=Object\.freeze/);
-assert.match(ui, /واجهة فقط · Backend غير موصول/);
+assert.match(ui, /الموديول ظاهر · التشغيل غير مكتمل/, 'sector workspace must show visibility separately from operational readiness');
 assert.match(ui, /لا يوجد اتصال بجداول القطاع أو حفظ أو دفع أو حجز حقيقي/);
 assert.match(ui, /قيود صرف الأدوية حسب القوانين والسياسات/);
 assert.match(ui, /سلسلة الحيازة/);
