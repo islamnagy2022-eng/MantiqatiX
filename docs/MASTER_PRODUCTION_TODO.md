@@ -1955,8 +1955,18 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Scope decision execution record — 2026-10-20
 - [x] Product-owner decision recorded: cash-only before launch; electronic payment processing and SMM live workflows deferred until after launch.
 - [x] Reclassified Paymob production E2E as POST-LAUNCH, not a pre-launch gate.
-- [ ] Cash-only UI/API path audit and authenticated E2E remain OPEN; this decision is not proof of implementation readiness.
+- [x] Source-level cash-only checkout/API gates added on the stacked cash-first branch; the change is not merged or deployed.
+- [ ] Static CI and disposable RC458 PostgreSQL integration must pass; authenticated browser E2E remains NOT VERIFIED.
 - [ ] Verify cash tenant configuration, authorized confirmation, server-derived amount, idempotency, audit trail, and required cash accounting.
 - [ ] Verify electronic methods are not exposed through the launch workflow; keep their backend security boundaries intact.
 - [ ] Keep SMM credentials/tables fail-closed and verify no SMM spend/fulfilment can be triggered in the launch scope.
 - [ ] Global release remains BLOCKED / NOT CERTIFIED until cash E2E and other mandatory non-deferred gates pass.
+
+
+## Cash-only launch implementation — 2026-10-20
+- Source implementation is now present in stacked branch `feat/cash-only-launch-flow-rc458-20261020`: marketplace cart opens a cash-only checkout form, verifies the current catalog and single business/branch, submits only item IDs/quantities, and preserves idempotency keys across retries in the browser session.
+- API now rejects non-cash order methods, checks tenant cash configuration before order creation, allows a null branch for businesses without branches, and derives the cash intent amount from `orders.total_amount`.
+- Cash intent retries use read-before-insert idempotency checks and reject keys bound to another order instead of overwriting an existing intent.
+- RC458 adjusts the existing service-role-only `create_order_backend` actor check: a trusted service-role call can proceed only after passing the existing customer membership, tenant/business, provider, branch, catalog and server-pricing checks. The migration does not alter function grants. Disposable PostgreSQL integration covers no-sub service-role calls, authoritative pricing, idempotency and membership rejection.
+- Digital-page paid checkout is blocked before its electronic-payment intent because no verified cash contract exists for that product. SMM UI remains deferred and gateway remains default-deny.
+- Static/CI and disposable PostgreSQL checks must pass; authenticated browser E2E remains NOT VERIFIED. No production migration, payment, merge or deployment is implied.
