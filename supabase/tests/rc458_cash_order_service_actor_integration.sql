@@ -1,4 +1,4 @@
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 select set_config('request.jwt.claim.role','service_role',false);
 select set_config('request.jwt.claim.sub','',false);
 set role service_role;
