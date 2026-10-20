@@ -24,7 +24,7 @@ begin
   if p_arguments is null or jsonb_typeof(p_arguments) <> 'object' then
     raise exception 'INVALID_ARGUMENTS';
   end if;
-  if p_operation not in (
+  if coalesce(p_operation,'') not in (
     'create_purchase_order',
     'update_purchase_order_status',
     'receive_purchase_stock',
