@@ -756,4 +756,5 @@ This status is intentional and must remain until the open gates above are indepe
 ## Replay CLI version refinement — 2026-10-20
 
 - Superseded the initial CLI pin `2.39.2` with stable Supabase CLI `2.113.0` in workflow commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`; the release page records `2.113.0` as a stable release dated 2026-08-08. The intent remains deterministic installation without a rate-limited `latest` lookup.
-- Do not count runs using `2.39.2` as replay evidence. Verify the exact-head `2.113.0` run through baseline restore, all ordered candidate migrations, and two-tenant isolation.
+- Replay run `39362446830` on code head `ae20b393c320b44ebe8bd97d9f4d8c27b063b6f9` completed successfully with CLI `2.39.2`: 31 candidate migrations replayed from the pinned RC424 schema-only baseline, and two-tenant isolation passed both directions. This is valid evidence for that tested head, not a blank historical replay.
+- Workflow was subsequently refined to stable CLI `2.113.0` in commit `b36bb2abf2fab09c086a1781f2e64569a31e9017`; exact-head verification for the current pin remains pending.
