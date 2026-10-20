@@ -2,6 +2,10 @@ import fs from "node:fs";
 
 const migration = fs.readFileSync("supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_integration.sql", "utf8");
+const globalAd = fs.readFileSync("supabase/migrations/20261002123500_rc258_use_central_rbac_admin_ad.sql", "utf8");
+const digitalPagePublish = fs.readFileSync("supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql", "utf8");
+const captainOnboarding = fs.readFileSync("supabase/migrations/20261006144500_mantigo_captain_onboarding_v1.sql", "utf8");
+const financialConfig = fs.readFileSync("supabase/migrations/20261006152000_mantigo_financial_ledger_v1.sql", "utf8");
 const checks = [];
 function check(name, ok) {
   checks.push({ name, ok: Boolean(ok) });
@@ -14,6 +18,10 @@ check("global dashboard checks the platform-admin guard", migration.includes("ge
 check("global financial report checks the platform-admin guard", migration.includes("get_mantigo_admin_financial_report_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
 check("global settlement checks the platform-admin guard", migration.includes("settle_mantigo_captain_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
 check("global stale-ride expiration checks the platform-admin guard", migration.includes("expire_stale_mantigo_rides_backend") && migration.includes("PLATFORM_ADMIN_REQUIRED"));
+check("global ad creation retains the platform-admin guard", globalAd.includes("create or replace function public.admin_create_global_ad") && globalAd.includes("if not public.mnty_can_platform_admin() then") && globalAd.includes("ADMIN_REQUIRED"));
+check("digital-page publishing retains the platform-admin guard", digitalPagePublish.includes("fulfill_digital_page_publish") && digitalPagePublish.includes("if not public.mnty_can_platform_admin() then") && digitalPagePublish.includes("PLATFORM_ADMIN_REQUIRED"));
+check("captain onboarding review retains the platform-admin guard", captainOnboarding.includes("review_mantigo_captain_application") && captainOnboarding.includes("if not public.mnty_can_platform_admin() then") && captainOnboarding.includes("PLATFORM_ADMIN_REQUIRED"));
+check("financial configuration retains the platform-admin guard", financialConfig.includes("set_mantigo_financial_config_backend") && financialConfig.includes("if not public.mnty_can_platform_admin() then") && financialConfig.includes("PLATFORM_ADMIN_REQUIRED"));
 check("integration rejects tenant OWNER, ADMIN, and OPERATIONS_MANAGER", integration.includes("tenant OWNER must not be treated") && integration.includes("tenant ADMIN with admin permission") && integration.includes("tenant OPERATIONS_MANAGER"));
 check("integration exercises global dashboard, report, settlement, and expiration", integration.includes("tenant OWNER read platform-wide dashboard") && integration.includes("tenant OWNER read platform-wide financial report") && integration.includes("global settlement mutation") && integration.includes("global ride expiration mutation"));
 check("integration allows explicit platform SUPER_ADMIN and checks grants", integration.includes("explicit platform SUPER_ADMIN") && integration.includes("has_function_privilege('anon'"));
