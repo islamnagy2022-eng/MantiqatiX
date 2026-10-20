@@ -24,7 +24,7 @@ if(!app.includes("tables:['indrive_requests','indrive_bids','inventory_transacti
 if(!app.includes("recordsTable('حركة المخزون'")) missing.push('factory workspace must render real inventory movement records');
 if(!app.includes("recordsTable('طلبات الخدمات المحاسبية'")) missing.push('accounting workspace must render service requests');
 if(!app.includes("recordsTable('العروض والتفاوض'")) missing.push('accounting workspace must render live bids');
-if(!app.includes("to_profile_id.in.("+ "ownedProfiles.join(',')" +")")) missing.push('matrimony requests must include inbound requests to owned profiles');
+if(!app.includes("clauses.push('to_profile_id.in.('+ownedProfiles.join(',')+')')")) missing.push('matrimony requests must include inbound requests to owned profiles');
 if(!app.includes("select('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at')")) missing.push('public matrimony list must not fetch direct/wali contact columns');
 if(!app.includes("invokeMntyFunction('erp-runtime',{operation:'list'")) missing.push('ERP reads must use the authenticated server gateway');
 if(!app.includes("invokeMntyFunction('erp-runtime',{operation:'mutate'")) missing.push('ERP mutations must use the authenticated server gateway');
