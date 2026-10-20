@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const read=p=>fs.readFileSync(p,"utf8");
 const app=read("web/app.js"),api=read("supabase/functions/api/index.ts");
+const operations=read("web/operations-modules.js");
 const migration=read("supabase/migrations/20261020120000_rc458_cash_order_service_actor_contract.sql");
 const fixture=read("supabase/tests/rc458_cash_order_service_actor_fixture.sql");
 const integration=read("supabase/tests/rc458_cash_order_service_actor_integration.sql");
