@@ -1241,9 +1241,32 @@ async function erpRpc(fn,args){
  };
  const action=operations[fn];
  if(!action)return showToast('عملية ERP غير معروفة أو غير مسموح بها','error');
+ const createPrefixes={create_purchase_order:'po-',receive_purchase_stock:'rcv-',create_stock_transfer:'tr-'};
+ const requestArgs={...args};
+ let idempotencyKey=null;
+ let fingerprint=null;
+ if(createPrefixes[action]){
+  idempotencyKey=['MNTY_ERP_IDEMPOTENCY',user.id,live.tenantId,live.businessId,action].join(':');
+  const comparable={...requestArgs};delete comparable.p_id;
+  fingerprint=JSON.stringify(comparable);
+  let stored=null;
+  try{stored=JSON.parse(sessionStorage.getItem(idempotencyKey)||'null')}catch(_){}
+  stored=stored||live.erpIdempotency?.[idempotencyKey]||null;
+  if(stored?.fingerprint===fingerprint&&stored?.id)requestArgs.p_id=stored.id;
+  else{
+   requestArgs.p_id=String(requestArgs.p_id||createPrefixes[action]+crypto.randomUUID());
+   const entry={fingerprint,id:requestArgs.p_id};
+   live.erpIdempotency=live.erpIdempotency||{};live.erpIdempotency[idempotencyKey]=entry;
+   try{sessionStorage.setItem(idempotencyKey,JSON.stringify(entry))}catch(_){}
+  }
+ }
  try{
-  const response=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null,action,arguments:args}});
+  const response=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null,action,arguments:requestArgs}});
   if(!response?.success)throw new Error(response?.error||'ERP_OPERATION_FAILED');
+  if(idempotencyKey){
+   if(live.erpIdempotency)delete live.erpIdempotency[idempotencyKey];
+   try{sessionStorage.removeItem(idempotencyKey)}catch(_){}
+  }
   showToast('تم تنفيذ العملية بنجاح','success');
   live.moduleData={};
   await renderApp();
