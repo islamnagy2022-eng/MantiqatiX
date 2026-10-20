@@ -137,6 +137,13 @@ begin
     ) then raise exception 'ERP_BRANCH_SCOPE_REQUIRED'; end if;
   end if;
 
+  -- Never allow direct COMPLETED/CANCELLED writes through the status RPC; stock movement
+  -- must be performed only by receive_stock_transfer_backend after IN_TRANSIT.
+  if p_operation = 'update_stock_transfer_status'
+     and v_target_status not in ('APPROVED','IN_TRANSIT') then
+    raise exception 'ERP_TRANSFER_STATUS_TRANSITION_INVALID';
+  end if;
+
   -- Branch-scoped memberships cannot operate on another branch's ERP records.
   if v_member_branch_id is not null then
     if p_operation = 'create_purchase_order'
@@ -169,9 +176,6 @@ begin
            and source_w.id <> target_w.id
        ) then
       raise exception 'ERP_BRANCH_SCOPE_REQUIRED';
-    elsif p_operation = 'update_stock_transfer_status'
-       and v_target_status not in ('APPROVED','IN_TRANSIT') then
-      raise exception 'ERP_TRANSFER_STATUS_TRANSITION_INVALID';
     elsif p_operation = 'update_stock_transfer_status'
        and not exists (
          select 1 from public.warehouses source_w
