@@ -8,7 +8,7 @@ on:
       - "supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql"
       - "supabase/tests/rc457_medical_appointment_state_machine_*.sql"
       - "supabase/tests/rc462_medical_booking_*.sql"
-      - "scripts/validate-medical-module-release.mjs"
+      - "scripts/validate-medical-appointment-state-machine.mjs"
       - ".github/workflows/medical-module-release.yml"
   pull_request:
     branches: [main, "fix/medical-appointment-state-machine-20261019"]
@@ -18,7 +18,7 @@ on:
       - "supabase/migrations/20261020200000_rc467_medical_booking_release_contract.sql"
       - "supabase/tests/rc457_medical_appointment_state_machine_*.sql"
       - "supabase/tests/rc462_medical_booking_*.sql"
-      - "scripts/validate-medical-module-release.mjs"
+      - "scripts/validate-medical-appointment-state-machine.mjs"
       - ".github/workflows/medical-module-release.yml"
 permissions:
   contents: read
@@ -67,4 +67,4 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_doctor_module_test -v ON_ERROR_STOP=1 -f /tmp/rc467_test.sql
       - name: Validate doctor module wiring
-        run: node scripts/validate-medical-module-release.mjs
+        run: node scripts/validate-medical-appointment-state-machine.mjs
