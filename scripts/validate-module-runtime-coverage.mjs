@@ -38,7 +38,7 @@ if(!accountingRoute.includes('.in("journal_entry_id", entryIds)')) missing.push(
 if(!app.includes("invokeMntyApi('/api/v1/accounting/ledger'")) missing.push('accounting workspace must load protected ledger through its authenticated API');
 if(app.includes("sb.from('general_ledger')")) missing.push('browser must not query protected general ledger directly');
 const membershipSwitch=app.slice(app.indexOf('async function switchMembership('),app.indexOf('async function openPrivilegedWorkspace('));
-if(!membershipSwitch.includes('resetMembershipScopedCaches()')||!membershipSwitch.includes('live.moduleData={}')) missing.push('membership switching must clear tenant-scoped module caches before rendering the new scope');
+if(!membershipSwitch.includes('resetMembershipScopedCaches()')||!membershipSwitch.includes('live.moduleData={}')||!cacheReset.includes('window.MNTYOperationsERPData=null')) missing.push('membership switching must clear tenant-scoped module caches before rendering the new scope');
 if(!app.includes('providerServices:[]')) missing.push('membership cache reset must clear provider service records');
 if(missing.length){console.error(missing.join('\n'));process.exit(1);}
 console.log(`Module runtime coverage PASS: ${expected.length}/${expected.length} catalog modules have routed live workspaces.`);
