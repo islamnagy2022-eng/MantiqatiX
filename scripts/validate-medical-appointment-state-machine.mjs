@@ -70,6 +70,8 @@ assert.match(bookingIntegration,/RC467_OTHER_DOCTOR_MUTATION_WAS_ALLOWED/);
 assert.match(app,/key:'MEDICAL',name:'الأطباء والعيادات'/);
 assert.match(app,/const medicalKinds=new Set\(\['HEALTH','DENTAL','MEDICAL','VETERINARY'\]\)/,"medical directory must consistently include supported veterinary providers");
 assert.match(app,/\.in\('provider_kind',\['HEALTH','DENTAL','MEDICAL','VETERINARY'\]\)/,"medical directory query must fetch veterinary providers supported by the backend");
+assert.match(app,/timestamp%900000!==0/,"booking UI must reject timestamps that violate the backend's 15-minute slot alignment");
+assert.match(app,/APPOINTMENT_SLOT_ALIGNMENT_REQUIRED:'اختر موعدا على ربع ساعة/,"slot-alignment errors must be translated into a user-actionable message");
 assert.match(app,/if\(m\.key==='MEDICAL'\)[\s\S]{0,300}loadMedicalWorkspace\(\)/);
 assert.match(app,/async function loadMedicalWorkspace\(\)/);
 assert.match(app,/function ensureMedicalRealtime\(\)/,"doctor appointments must have a live refresh channel");
