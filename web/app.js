@@ -1253,6 +1253,7 @@ async function erpRpc(fn,args){
   update_purchase_order_status_backend:'update_purchase_order_status',
   receive_purchase_stock_backend:'receive_purchase_stock',
   create_stock_transfer_backend:'create_stock_transfer',
+  initialize_opening_stock_backend:'initialize_opening_stock',
   update_stock_transfer_status_backend:'update_stock_transfer_status',
   receive_stock_transfer_backend:'receive_stock_transfer'
  };
@@ -1325,7 +1326,13 @@ async function erpRpc(fn,args){
    ERP_DATA_LOAD_FAILED:'تعذر تحميل بيانات ERP من الخادم',
    ERP_WAREHOUSE_SELECTION_INVALID:'اختر مخزنين مختلفين ونشطين',
    ERP_WAREHOUSE_LOOKUP_FAILED:'تعذر التحقق من المخزن المحدد',
-   ERP_PRODUCT_LOOKUP_FAILED:'تعذر التحقق من المنتج المحدد'
+   ERP_PRODUCT_LOOKUP_FAILED:'تعذر التحقق من المنتج المحدد',
+   ERP_OPENING_STOCK_FAILED:'تعذر إضافة الرصيد الافتتاحي',
+   OPENING_STOCK_ROLE_REQUIRED:'لا تملك صلاحية إضافة رصيد افتتاحي',
+   INVALID_OPENING_STOCK:'الكمية يجب أن تكون موجبة والتكلفة غير سالبة',
+   INVALID_OPENING_STOCK_REFERENCE:'أدخل مرجعًا صحيحًا للجرد الافتتاحي',
+   WAREHOUSE_INVALID:'المخزن غير نشط أو خارج نطاق المؤسسة',
+   PRODUCT_INVALID:'الصنف غير نشط أو خارج نطاق المؤسسة والفرع'
   };
   showToast(messages[code]||'تعذر تنفيذ عملية ERP. تحقق من الصلاحيات والاتصال ثم أعد المحاولة.','error');
   return null;
@@ -1409,6 +1416,21 @@ async function createPurchaseOrder(){
  });
 }
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
+async function initializeOpeningStock(){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');
+ const warehouseId=chooseERPRecord('warehouses','المخزن النشط',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE');
+ if(!warehouseId)return;
+ const productId=chooseERPRecord('catalog_items','الصنف النشط',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE');
+ if(!productId)return;
+ const quantity=Number(window.prompt('كمية الرصيد الافتتاحي','1'));
+ const unitCost=Number(window.prompt('تكلفة الوحدة بالجنيه','0'));
+ if(!Number.isFinite(quantity)||quantity<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('أدخل كمية موجبة وتكلفة غير سالبة','error');
+ const referenceId=window.prompt('مرجع جرد/محضر الرصيد الافتتاحي','OPEN-'+new Date().toISOString().slice(0,10)+'-'+crypto.randomUUID().slice(0,8));
+ if(!referenceId?.trim())return;
+ if(!window.confirm('إضافة '+quantity+' وحدة إلى الرصيد الافتتاحي بتكلفة '+unitCost+' ج.م للوحدة؟ سيتم تسجيل حركة مخزون مرجعية.'))return;
+ return erpRpc('initialize_opening_stock_backend',{p_id:'opening-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_warehouse_id:warehouseId,p_product_id:productId,p_quantity:quantity,p_unit_cost:unitCost,p_reference_id:referenceId.trim()});
+}
 async function receivePurchaseStock(preselectedOrderId){
  const purchaseOrderId=preselectedOrderId||chooseERPRecord('erp_purchase_orders','أمر الشراء الجاهز للاستلام',r=>r.order_number+' — '+r.status,null,r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase()));
  if(!purchaseOrderId)return;
