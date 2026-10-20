@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const app=fs.readFileSync('web/app.js','utf8');
 const operations=fs.readFileSync('web/operations-modules.js','utf8');
-const blocked=['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','smm_admins','smm_provider_credentials','smm_providers'];
+const blocked=['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','smm_admins','smm_provider_credentials','smm_providers'];
 if(!app.includes('MNTY_BACKEND_ONLY_TABLES=new Set')) throw new Error('backend-only table guard missing');
 for(const t of blocked){ if(!app.includes(t)) throw new Error('missing backend-only table '+t); }
 const marker=app.indexOf('async function loadDomainModule');
@@ -12,7 +12,7 @@ if(!operations.includes('BACKEND_ONLY_TABLES.has(t)')) throw new Error('operatio
 if(!operations.includes("invokeErpApi({operation:'list',tenantId:activeScope.tenant_id,businessId:activeScope.business_id")) throw new Error('operations ERP modules are not connected to the authenticated API gateway');
 if(!operations.includes("eq('id',activeScope.business_id).eq('tenant_id',activeScope.tenant_id)")) throw new Error('business ERP summary is not tenant/business scoped');
 if(!operations.includes('ERP_DATA_LOAD_FAILED')) throw new Error('operations ERP runtime errors are silently treated as empty data');
-if(!operations.includes("tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items']")) throw new Error('ERP module does not include its product catalog link');
+if(!operations.includes("tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','warehouses','catalog_items']")) throw new Error('ERP module does not include its product catalog link');
 if(!operations.includes("if(businessScoped.includes(t)&&activeScope?.business_id)q=q.eq('business_id',activeScope.business_id)")) throw new Error('operations product catalog reads are not business-scoped');
 if(!app.includes("function erpWarehouseLabel(rows,id)")) throw new Error('enterprise ERP warehouse references are not linked to warehouse names');
 if(!app.includes("function erpProductLabel(rows,id)")) throw new Error('enterprise ERP product references are not linked to catalog names');
