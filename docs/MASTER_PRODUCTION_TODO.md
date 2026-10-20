@@ -1694,3 +1694,32 @@ This checkpoint does not close the production release gate because runtime E2E e
 - **Still OPEN / WAIT:** PR #301 and PR #300 remain open/draft/unmerged; production is documented at RC424; leaked-password protection remains disabled and requires owner action in Supabase Auth; full historical migration provenance, per-function security review, authenticated two-tenant E2E, real Paymob/finance/refund E2E, backup/restore and rollback rehearsal, browser/device smoke, and signed Android evidence remain release gates.
 - **Production impact:** no production migration, data mutation, grant/RLS/Auth setting change, merge, or deployment was performed. Global release remains **BLOCKED / NOT CERTIFIED**.
 - **Next executable action:** retain the passing RC457 evidence, finish the medical `NO_SHOW` product-contract review, then continue the next safe P0 gate. Do not apply RC457 alone or out of order.
+
+
+## RC457 / RC300 continuation status — 2026-10-20
+
+### Exact-head verification
+- [x] PR #300 industry workspaces: exact current head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818`; all 6 PR-triggered workflows returned SUCCESS: Marketing Workspace Contract, Industry Workspaces UI Contract, Backend-only Module Boundary, Deploy MantiqaTiX Web workflow validation, MantiGO Open Ride Privacy Boundary, and Module Professionalization Validation. The Pages deploy job is skipped on PR context; this is not proof of a production deployment.
+- [x] PR #301 medical appointment state machine: exact current head `22fe004a2c7f8c162d2a1d84cf411df59b226752`; all 9 PR-triggered workflows returned SUCCESS, including RC457 PostgreSQL integration and disposable forward migration replay from the pinned RC424 schema-only baseline.
+- [x] Forward replay applied 31 pending candidate migrations in timestamp order and passed the two-tenant isolation checks in both directions.
+- [ ] Full blank-database replay of all 283 historical migrations remains BLOCKED because authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` has not been located.
+- [ ] Product contract for `CONFIRMED → NO_SHOW` needs explicit review before production rollout; code/CI success does not decide business semantics.
+
+### Current release blockers — unchanged
+- [ ] Supabase Auth leaked-password protection: owner/configuration action required; not enabled or verified.
+- [ ] Full per-function SECURITY DEFINER and RLS/tenant-isolation adversarial review.
+- [ ] Authenticated two-user/two-tenant E2E across customer/provider/order/payment and notification paths.
+- [ ] Real authorized Paymob/payment, finance/settlement/refund E2E.
+- [ ] Backup/restore rehearsal with measured RPO/RTO and rollback rehearsal.
+- [ ] Interactive browser smoke/accessibility/PWA and real-device push/network regression.
+- [ ] Signed Android release artifact and physical-device evidence.
+- [ ] Main-branch Pages deployment verification and final release evidence package.
+
+### Mandatory continuation/reporting protocol
+- At the start of every continuation, read `docs/PROJECT_CONTINUITY.md`, this TODO, and the latest `docs/SESSION_LOG.md`; inspect current PR heads and exact-head CI rather than trusting an old summary.
+- Continue from the first open gate in the existing priority order; do not ask the user to repeat context or treat “continue” as a request for a status-only answer.
+- In every user-facing result, show main headings and sub-items with explicit states: DONE + VERIFIED, IMPLEMENTED NOT VERIFIED, PARTIAL, BLOCKED/WAIT, or TODO. Include evidence/commit/PR/test references, production impact, and the next executable action.
+- Update this TODO, Project Continuity, and Session Log after material work. Never mark a box complete merely because source exists or a PR workflow passed.
+- No merge, production migration, production configuration change, financial transaction, or deployment without the appropriate explicit authorization and release gates.
+
+**Current global release status: BLOCKED / NOT CERTIFIED.** No production mutation, merge, or deployment was performed in this continuation.
