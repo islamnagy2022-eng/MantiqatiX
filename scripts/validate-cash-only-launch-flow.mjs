@@ -21,6 +21,8 @@ const rc460Integration=read("supabase/tests/rc460_cash_confirmation_business_int
 const rc461=read("supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql");
 const rc461Fixture=read("supabase/tests/rc461_erp_runtime_gateway_fixture.sql");
 const rc461Integration=read("supabase/tests/rc461_erp_runtime_gateway_integration.sql");
+const rc463=read("supabase/migrations/20261020160000_rc463_erp_supplier_master.sql");
+const rc463Integration=read("supabase/tests/rc463_erp_supplier_master_integration.sql");
 const apiERP=read("supabase/functions/api/index.ts");
 const erpWorkflow=read(".github/workflows/erp-runtime-gateway.yml");
 const todo=read("docs/MASTER_PRODUCTION_TODO.md"),scope=read("docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md");
@@ -142,7 +144,7 @@ assert.match(rc460Integration,/RC460_AUTHORIZED_IDEMPOTENT_RETRY_FAILED/);
 assert.ok(cashConfirm.indexOf("IF NOT v_is_authorized") < cashConfirm.indexOf("IF v_intent.status='SUCCEEDED'"), "cash confirmation must authorize before returning an idempotent success payload");
 assert.match(chain,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
 assert.match(chain,/20261020140000_rc460_cash_confirmation_business_membership\.sql/);
-assert.match(chain,/required\.length, 33/);
+assert.match(chain,/required\.length, 34/);
 assert.match(verifier,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
 assert.match(verifier,/20261020140000_rc460_cash_confirmation_business_membership\.sql/);
 assert.match(replay,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
@@ -253,4 +255,18 @@ assert.match(replay,/20261020150000_rc461_erp_runtime_service_gateway\.sql/);
 assert.match(verifier,/20261020150000_rc461_erp_runtime_service_gateway\.sql/);
 assert.match(erpWorkflow,/rc461_erp_runtime_gateway_integration\.sql/);
 
-console.log("Cash-only launch, RC458/RC460 security, RC461 ERP runtime gateway, and post-launch deferral contract: PASS");
+assert.match(rc463,/create table if not exists public\.erp_suppliers/);
+assert.match(rc463,/alter table public\.erp_suppliers force row level security/);
+assert.match(rc463,/revoke all on table public\.erp_suppliers from public, anon, authenticated/);
+assert.match(rc463,/create or replace function public\.erp_supplier_create_backend/);
+assert.match(rc463,/ERP_SUPPLIER_IDEMPOTENCY_CONFLICT/);
+assert.match(rc463,/ERP_SUPPLIER_CODE_ALREADY_EXISTS/);
+assert.match(rc463Integration,/RC463_SUPPLIER_RPC_MUST_REMAIN_SERVICE_ROLE_ONLY/);
+assert.match(rc463Integration,/RC463_CROSS_BRANCH_SUPPLIER_WAS_ALLOWED/);
+assert.match(rc463Integration,/RC463_IDEMPOTENT_RETRY_FAILED/);
+assert.match(verifier,/20261020160000_rc463_erp_supplier_master\.sql/);
+assert.match(replay,/20261020160000_rc463_erp_supplier_master\.sql/);
+assert.match(erpWorkflow,/rc463_erp_supplier_master_integration\.sql/);
+
+
+console.log("Cash-only launch, RC458/RC460 security, RC461 ERP runtime, RC463 supplier master, and post-launch deferral contract: PASS");
