@@ -674,3 +674,14 @@ This status is intentional and must remain until the open gates above are indepe
 - PR #301 head e1e57ca3d9cdd4bdfe02d184fe7adbb662ce8137 passed all nine PR-triggered workflows, including RC457 PostgreSQL integration and disposable ordered replay from the pinned RC424 schema-only baseline. PR #300 current head d133503c5773590917d13d7d4d57de3bde54f330 has five non-deploy workflows passing; its newest Pages workflow was cancelled as superseded, so exact-head web validation must be refreshed.
 - Remaining: owner enables Supabase Auth leaked-password protection; complete adversarial SECURITY DEFINER/RLS review and two-tenant E2E; run authorized Paymob/finance/refund E2E; rehearse backup/restore and rollback; verify browser/device/Android release; recover historical creation provenance for counter_offer_indrive_bid(uuid,uuid,numeric) before claiming blank-database migration replay.
 - Production remains RC424. No production DDL/DML, grant/RLS/Auth change, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+### 2026-10-20 — RC457 continuation checkpoint
+
+- Continued PR #301 from the existing release gate; did not restart the project audit.
+- Hardened the RC457 SECURITY DEFINER function with `search_path = ''` and added a validator assertion for that invariant.
+- Added a same-tenant cross-business negative case to the disposable PostgreSQL fixture/integration test and guarded its presence in the source validator.
+- Updated the RC457 release note and Master Production TODO. These changes are on the PR branch only.
+- Exact-head CI must be rerun on the latest branch head after these changes; previous passes do not cover them.
+- Production migration ledger remains last verified at RC424. The full blank-database historical replay still lacks authoritative creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`.
+- No production mutation, merge, or deployment occurred. Release remains **BLOCKED / NOT CERTIFIED**.
