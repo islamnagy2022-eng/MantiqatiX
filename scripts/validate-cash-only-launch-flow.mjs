@@ -300,6 +300,8 @@ assert.match(apiERP,/update_supplier/);
 assert.match(app,/update_erp_supplier_backend:'update_supplier'/);
 assert.match(app,/async function editERPSupplier\(id\)/);
 assert.match(app,/p_contact_name:contact\.trim\(\)\|\|null/);
+assert.match(app,/p_name_en:nameEn\.trim\(\)\|\|null/);
+assert.match(app,/async function createERPSupplier\(\)/);
 assert.match(app,/p_tax_number:taxNumber\.trim\(\)\|\|null/);
 assert.match(app,/p_payment_terms:terms\.trim\(\)\|\|null/);
 assert.match(app,/p_notes:notes\.trim\(\)\|\|null/);
