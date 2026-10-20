@@ -611,3 +611,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Remaining release gates: Auth leaked-password protection owner action, full SECURITY DEFINER/RLS review, real authenticated two-tenant E2E, Paymob/finance/refund E2E, backup/restore and rollback, browser/device smoke, signed Android evidence, final regression.
 - **Release status: BLOCKED / NOT CERTIFIED.** No production mutation, merge, or deployment occurred.
 - Every next session must read this file, the Master Production TODO, and Session Log; inspect the latest PR head/CI; then continue from the first open gate without asking the user to repeat context.
+
+
+## 2026-10-20 — mandatory continuation and status reporting protocol
+
+- Read this file, `docs/MASTER_PRODUCTION_TODO.md`, and the latest `docs/SESSION_LOG.md` before continuing work.
+- Inspect live repository/PR heads and exact-head workflow results. Continue from the first open gate in the existing priority order; do not restart completed work or ask the user to repeat the project context.
+- Every continuation response must show the main TODO headings and relevant sub-items with explicit states: **DONE + VERIFIED**, **IMPLEMENTED — NOT VERIFIED**, **PARTIAL**, **BLOCKED/WAIT**, or **TODO**. Include evidence and exact refs, production impact, unresolved blockers, and the next executable action.
+- After each material change, append the outcome to the Master TODO and Session Log, and update this continuity file if the baseline/priority changes.
+- Latest PR checks: PR #300 head `d8a9d399f100e4cc5dcdc829b3aad7a2368b8818` has six successful PR workflows; PR #301 head `22fe004a2c7f8c162d2a1d84cf411df59b226752` has nine successful PR workflows including RC457 integration and forward replay. PRs remain open/draft/unmerged; PR deploy jobs are skipped in PR context.
+- The RC457 forward replay starts from the pinned RC424 schema-only baseline and is not a full blank-database replay. Historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains unresolved. Medical `NO_SHOW` business/reporting semantics still need explicit review.
+- Production release remains **BLOCKED / NOT CERTIFIED**. No production mutation, merge, or deployment occurred.
