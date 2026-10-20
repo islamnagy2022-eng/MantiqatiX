@@ -105,3 +105,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **PASS on exact code head** `693b38f7cd107199977f5f1d45f1cbe018064f28`: Industry Workspaces UI Contract [39344809015], Pages validation [39344808844] (deploy skipped for PR), Marketing Workspace Contract [39344808898], Backend-only Module Boundary [39344808911], MantiGO Open Ride Privacy Boundary [39344808982], and Module Professionalization Validation [39344808995], including targeted-ad search-path and matrimony privacy PostgreSQL jobs.
 - **Production impact:** No production SQL, DDL, grants/RLS/Auth changes, merge, or deployment. PR #300 remains draft/open/unmerged. The 27 sector workspaces remain frontend-only and are not 27 operational backend modules.
 - **Next:** keep PR #300 draft until review; connect no sensitive sector workflow before its backend contract, RLS/grants, negative two-tenant tests, and exact-head CI are evidenced. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-20 — medical NO_SHOW UI timing guard
+- Updated `web/app.js` in PR #300 to expose `NO_SHOW` only for CONFIRMED appointments, provider/owner/admin/manager roles, and appointments whose scheduled Unix-millisecond time has arrived.
+- Extended `scripts/validate-industry-workspaces.mjs` to assert the timing guard, status marker, and Arabic label.
+- Exact tested code head: `4ded759615e25d5bb9776751ccb32dbc1189e6be`. PASS: all six PR workflows (Industry Workspaces UI Contract, Marketing Workspace Contract, Pages validation, Module Professionalization Validation, Backend-only Module Boundary, MantiGO privacy). Pages deployment skipped as expected for PR.
+- This UI action depends on the paired RC457 server-side transition guard in PR #301. No production migration, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
