@@ -1,5 +1,7 @@
 const {createClient}=window.supabase;
 const cfg=window.MANTIQATIX_CONFIG;
+// Launch-one checkout policy: cash only. Change only in a reviewed post-launch release.
+const MNTY_LAUNCH_PAYMENT_MODE='CASH_ONLY';
 const sb=window.MNTY_SB || createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 window.MNTY_SB=sb;
 
@@ -1812,7 +1814,7 @@ async function walletView(){
 window.walletView=walletView;
 
 async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
- showToast('طلبات الصفحات الرقمية المدفوعة مؤجلة لما بعد الإطلاق؛ الدفع الإلكتروني غير متاح في مرحلة الإطلاق النقدي.','info'); return;
+ if(MNTY_LAUNCH_PAYMENT_MODE==='CASH_ONLY'){showToast('طلبات الصفحات الرقمية المدفوعة مؤجلة لما بعد الإطلاق؛ الدفع الإلكتروني غير متاح في مرحلة الإطلاق النقدي.','info');return;}
  const type=String(pageType||'PORTFOLIO').toUpperCase();
  if(!['PORTFOLIO','MENU'].includes(type))return;
  const {data:products,error}=await sb.from('digital_page_products').select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features').eq('page_type',type).eq('active',true).order('price',{ascending:true});
