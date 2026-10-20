@@ -25,6 +25,8 @@ assert.match(migration,/upper\(v_old\) = 'BOOKED' and v_target = 'CONFIRMED'/);
 assert.match(migration,/upper\(v_old\) = 'CONFIRMED' and v_target in \('COMPLETED','NO_SHOW'\)/);
 assert.doesNotMatch(migration,/grant execute|revoke execute/i,'this migration must not alter function grants');
 assert.match(fixture,/create function public\.update_medical_appointment_status_backend/);
+assert.ok(fixture.includes('appt-cross-business'),'fixture must include same-tenant cross-business appointment');
+assert.ok(integration.includes('appt-cross-business'),'integration must assert same-tenant cross-business denial');
 assert.match(integration,/RC457_EXPECTED_REJECTION_MISSING/);
 for(const marker of [
   'MEDICAL_APPOINTMENT_NOT_CANCELLABLE',
