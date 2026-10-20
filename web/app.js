@@ -1340,10 +1340,14 @@ async function createERPSupplier(){
  const name=window.prompt('اسم المورد بالعربية');if(!name?.trim())return;
  const code=window.prompt('كود المورد (اختياري)','')||'';
  const phone=window.prompt('رقم الهاتف (اختياري)','')||'';
- const email=window.prompt('البريد الإلكتروني (اختياري)','')||'';
+ const nameEn=window.prompt('اسم المورد بالإنجليزية (اختياري)','')||'';
  const contact=window.prompt('اسم مسؤول التواصل (اختياري)','')||'';
+ const phone=window.prompt('رقم الهاتف (اختياري)','')||'';
+ const email=window.prompt('البريد الإلكتروني (اختياري)','')||'';
+ const taxNumber=window.prompt('الرقم الضريبي (اختياري)','')||'';
  const terms=window.prompt('شروط السداد (اختياري)','')||'';
- return erpRpc('create_erp_supplier_backend',{p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_supplier_code:code.trim()||null,p_name_ar:name.trim(),p_phone:phone.trim()||null,p_email:email.trim()||null,p_contact_name:contact.trim()||null,p_payment_terms:terms.trim()||null});
+ const notes=window.prompt('ملاحظات المورد (اختياري)','')||'';
+ return erpRpc('create_erp_supplier_backend',{p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_supplier_code:code.trim()||null,p_name_ar:name.trim(),p_name_en:nameEn.trim()||null,p_phone:phone.trim()||null,p_email:email.trim()||null,p_contact_name:contact.trim()||null,p_tax_number:taxNumber.trim()||null,p_payment_terms:terms.trim()||null,p_notes:notes.trim()||null});
 }
 async function editERPSupplier(id){
  const rows=live.moduleData?.ERP?.rows?.erp_suppliers||live.moduleData?.BUSINESS_ERP?.rows?.erp_suppliers||window.MNTYOperationsERPData?.erp_suppliers||[];
