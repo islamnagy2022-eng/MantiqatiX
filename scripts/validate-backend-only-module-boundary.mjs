@@ -21,6 +21,7 @@ if(!operations.includes('onclick="createPurchaseOrder()"') || !operations.includ
 if(!operations.includes("x[2]===true")) throw new Error('ERP action cells must use the explicit safe-action renderer');
 if(!operations.includes('function factoryOperationsWorkspace(d)') || !operations.includes('rows.inventory_transactions')) throw new Error('factory workspace must link inventory balances and movement history');
 if(!operations.includes('data-op-retry>إعادة المحاولة')) throw new Error('module load failure state must provide a retry action');
+if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty121') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty121')) throw new Error('operations module asset cache versions must match');
 
 
 const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
