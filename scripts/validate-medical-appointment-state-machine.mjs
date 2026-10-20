@@ -110,9 +110,9 @@ assert.ok(rideCreateSource.includes("finally{if(btn)"),"MantiGO create button mu
 assert.ok(rideCreateSource.includes("catch(_){alert('تعذر تأكيد نشر الرحلة"),"MantiGO network failures must be handled without discarding the idempotency key");
 assert.ok(rideCreateSource.indexOf("if(!r.data||!r.data.id)") < rideCreateSource.indexOf("sessionStorage.removeItem(requestKey)"),"MantiGO must verify a ride ID before clearing retry state");
 assert.match(operations,/current==='المنظومة الطبية'&&!loading/,"realtime refresh must be limited to the active medical module");
-assert.match(index,/operations-modules\\.js\\?v=mnty135/,"index must request the current operations module version");
-assert.match(sw,/operations-modules\\.js\\?v=mnty135/,"service worker must precache the same operations module version as index");
-assert.match(sw,/const CACHE='mnty-web-v176'/,"service worker cache version must be incremented when shell assets change");
+assert.match(index,/operations-modules\\.js\\?v=mnty136/,"index must request the current operations module version");
+assert.match(sw,/operations-modules\\.js\\?v=mnty136/,"service worker must precache the same operations module version as index");
+assert.match(sw,/const CACHE='mnty-web-v177'/,"service worker cache version must be incremented when shell assets change");
 assert.ok(operations.includes("MNTY_MEDICAL_BOOKING:"),"operations medical booking must retain a stable request key across ambiguous failures");
 assert.ok(operations.includes("storedRequest?.fingerprint===requestPayload&&storedRequest?.id"),"operations medical booking retries must reuse the exact request ID for the same payload");
 assert.ok(operations.includes("sessionStorage.setItem(requestKey,JSON.stringify(requestRecord))"),"operations medical booking must persist its retry token before invoking the backend");
@@ -180,6 +180,12 @@ const bidFunctionEnd=bidMigration.indexOf('revoke all on function public.create_
 const bidFunction=bidMigration.slice(bidFunctionStart,bidFunctionEnd);
 assert.ok(bidFunction.includes('on conflict (ride_id,captain_id) do update'),"MantiGO bid retry safety must retain the server-side unique ride/captain upsert");
 assert.ok(bidFunction.includes("return jsonb_build_object('id',v_id,'status','OFFERED')"),"MantiGO bid handler must return the persisted bid ID");
+const customerRidesStart=operations.indexOf('function mantigoMyRidesView()');
+const customerRidesEnd=operations.indexOf('function mantigoBidsView()',customerRidesStart);
+const customerRidesSource=operations.slice(customerRidesStart,customerRidesEnd);
+assert.ok(customerRidesSource.includes("fin.payment_status==='REQUIRED'"),"cash-only launch must only offer cash confirmation when payment is REQUIRED");
+assert.ok(!customerRidesSource.includes("data-mg-card-pay"),"electronic payment action must remain hidden during cash-only launch");
+assert.ok(!customerRidesSource.includes("['REQUIRED','PENDING'].includes(fin.payment_status)"),"cash confirmation must not be offered for PENDING state rejected by backend");
 const acceptStart=operations.indexOf('async function mgAccept(');
 const acceptEnd=operations.indexOf('async function mgApplyCaptain(',acceptStart);
 const acceptSource=operations.slice(acceptStart,acceptEnd);
