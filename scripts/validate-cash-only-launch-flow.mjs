@@ -7,6 +7,14 @@ const migration=read("supabase/migrations/20261020120000_rc458_cash_order_servic
 const fixture=read("supabase/tests/rc458_cash_order_service_actor_fixture.sql");
 const integration=read("supabase/tests/rc458_cash_order_service_actor_integration.sql");
 const smm=read("web/smm.html"),smmGateway=read("supabase/functions/smm-gateway/index.ts");
+const paymentIntent=read("supabase/functions/payment-intent/index.ts");
+const digitalOrderCreate=read("supabase/functions/digital-page-order-create/index.ts");
+const digitalPaymentIntent=read("supabase/functions/digital-page-payment-intent/index.ts");
+const subscriptionPaymentIntent=read("supabase/functions/subscription-payment-intent/index.ts");
+const mantigoPaymentIntent=read("supabase/functions/mantigo-payment-intent/index.ts");
+const rc459=read("supabase/migrations/20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql");
+const rc459Fixture=read("supabase/tests/rc459_electronic_payment_rpc_fixture.sql");
+const rc459Integration=read("supabase/tests/rc459_electronic_payment_rpc_integration.sql");
 const todo=read("docs/MASTER_PRODUCTION_TODO.md"),scope=read("docs/release/LAUNCH_SCOPE_CASH_FIRST_20261020.md");
 const index=read("web/index.html"),sw=read("web/sw.js");
 const chain=read("scripts/validate-production-migration-chain-gate.mjs");
@@ -59,6 +67,31 @@ assert.match(integration,/RC458_EXPECTED_MEMBERSHIP_REJECTION_MISSING/);
 assert.match(integration,/RC458_ANON_EXECUTE_MUST_BE_DENIED/);
 assert.match(integration,/RC458_AUTHENTICATED_EXECUTE_MUST_BE_DENIED/);
 assert.match(integration,/RC458_SERVER_PRICE_CALCULATION_FAILED/);
+for (const [name,source,sideEffect] of [
+ ["order Paymob",paymentIntent,"create_payment_intent_backend"],
+ ["digital-page order creation",digitalOrderCreate,'from("digital_page_orders").insert'],
+ ["digital-page payment",digitalPaymentIntent,"claim_digital_page_payment_intent_backend"],
+ ["subscription payment",subscriptionPaymentIntent,"create_subscription_payment_intent_backend"],
+ ["MantiGO ride payment",mantigoPaymentIntent,'https://accept.paymob.com/v1/intention/']
+]) {
+ assert.match(source,/ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED\s*=\s*true/,"missing hard post-launch gate: "+name);
+ assert.match(source,/ELECTRONIC_PAYMENTS_POST_LAUNCH/,"missing disabled response: "+name);
+ assert.match(source,/MNTY_ELECTRONIC_PAYMENTS_ENABLED/,"missing fail-closed environment guard: "+name);
+ const gate=source.indexOf("ELECTRONIC_PAYMENTS_POST_LAUNCH"),effect=source.indexOf(sideEffect);
+ assert.ok(gate>=0&&effect>gate,"electronic payment gate must precede side effects: "+name);
+}
+assert.match(rc459,/v_electronic_payments_enabled boolean := false/);
+assert.match(rc459,/ELECTRONIC_PAYMENTS_POST_LAUNCH/);
+assert.doesNotMatch(rc459,/^\s*(grant|revoke)\b/im,"RC459 must preserve existing authenticated/service_role ACL");
+assert.match(rc459Fixture,/create role authenticated/);
+assert.match(rc459Integration,/RC459_ELECTRONIC_INTENT_ROW_MUST_NOT_BE_CREATED/);
+assert.match(rc459Integration,/RC459_ANON_EXECUTE_MUST_BE_DENIED/);
+assert.match(chain,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
+assert.match(chain,/required\.length, 31/);
+assert.match(verifier,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
+assert.match(replay,/20261020130000_rc459_disable_electronic_payment_intent_prelaunch\.sql/);
+assert.match(moduleWorkflow,/rc459-electronic-payment-rpc-gate-integration/);
+
 assert.match(smm,/قيد التطوير — خارج نطاق الإطلاق الأول/);
 assert.match(smmGateway,/const SMM_INITIAL_LAUNCH_DEFERRED=true/);
 assert.match(smmGateway,/SMM_DEFERRED/);
