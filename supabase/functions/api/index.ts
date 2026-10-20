@@ -147,12 +147,12 @@ serve(async (req) => {
 
     if (operation !== "mutate") return json({ error: "INVALID_OPERATION" }, 400)
     const action = String(body.action ?? "")
-    const allowedOperations = new Set(["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
+    const allowedOperations = new Set(["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer","initialize_opening_stock"])
     if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
     const args = body.arguments
     if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
     const scopeMismatch = () => json({ error: "ERP_SCOPE_MISMATCH" }, 403)
-    if (["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","receive_purchase_stock","create_stock_transfer"].includes(action)) {
+    if (["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","receive_purchase_stock","create_stock_transfer","initialize_opening_stock"].includes(action)) {
       if (String(args.p_tenant_id ?? "") !== tenantId || String(args.p_business_id ?? "") !== businessId) return scopeMismatch()
     }
     if (["create_supplier","create_purchase_order","create_purchase_order_with_lines"].includes(action) && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
@@ -176,6 +176,21 @@ serve(async (req) => {
         .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
       if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500)
       if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch()
+    }
+    if (action === "initialize_opening_stock") {
+      const warehouseId = String(args.p_warehouse_id ?? "");
+      const productId = String(args.p_product_id ?? "");
+      if (!warehouseId || !productId) return json({ error: "ERP_SCOPE_REQUIRED" }, 400);
+      const { data: warehouse, error: warehouseError } = await supabaseAdmin.from("warehouses")
+        .select("id,branch_id,status").eq("id", warehouseId).eq("tenant_id", tenantId)
+        .eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+      if (warehouseError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500);
+      if (!warehouse || (branchId && String(warehouse.branch_id ?? "") !== branchId)) return scopeMismatch();
+      const { data: product, error: productError } = await supabaseAdmin.from("catalog_items")
+        .select("id,branch_id,status").eq("id", productId).eq("tenant_id", tenantId)
+        .eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+      if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500);
+      if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch();
     }
     if (action === "create_stock_transfer") {
       const warehouseIds = [String(args.p_from_warehouse_id ?? ""), String(args.p_to_warehouse_id ?? "")]
@@ -204,6 +219,29 @@ serve(async (req) => {
         if (warehousesError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
         if ((warehouses ?? []).length !== 2 || warehouses.some((row) => String(row.branch_id ?? "") !== branchId)) return scopeMismatch()
       }
+    }
+    if (action === "initialize_opening_stock") {
+      const { data: openingStockResult, error: openingStockError } = await supabaseAdmin.rpc("erp_opening_stock_backend", {
+        p_actor_user_id: user.id, p_arguments: args
+      });
+      if (openingStockError) {
+        const message = String(openingStockError.message ?? "");
+        const publicErrors: Record<string, number> = {
+          UNAUTHENTICATED: 401,
+          OPENING_STOCK_ROLE_REQUIRED: 403,
+          ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SCOPE_REQUIRED: 400,
+          INVALID_ARGUMENTS: 400,
+          INVALID_OPENING_STOCK: 400,
+          INVALID_OPENING_STOCK_REFERENCE: 400,
+          WAREHOUSE_INVALID: 400,
+          PRODUCT_INVALID: 400
+        };
+        const publicCode = Object.keys(publicErrors).find(code => message.includes(code));
+        console.error("[erp-runtime] opening stock rejected", { code: openingStockError.code, publicCode: publicCode ?? null });
+        return json({ error: publicCode ?? "ERP_OPENING_STOCK_FAILED" }, publicCode ? publicErrors[publicCode] : 400);
+      }
+      return json({ success: true, result: openingStockResult });
     }
     if (["create_supplier","update_supplier"].includes(action)) {
       const rpcName = action === "create_supplier" ? "erp_supplier_create_backend" : "erp_supplier_update_backend"
