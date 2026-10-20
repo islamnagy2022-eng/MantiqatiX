@@ -24,7 +24,7 @@ BEGIN
  IF v_intent.tenant_id::text<>v_order.tenant_id::text THEN RAISE EXCEPTION 'TENANT_MISMATCH'; END IF;
  IF v_intent.pricing_hash IS NULL OR v_order.pricing_hash IS NULL OR v_intent.pricing_hash<>v_order.pricing_hash
     OR v_intent.pricing_version IS DISTINCT FROM v_order.pricing_version THEN RAISE EXCEPTION 'PRICING_BINDING_MISMATCH'; END IF;
- IF v_intent.amount<>v_order.total OR v_intent.currency<>v_order.currency THEN RAISE EXCEPTION 'FINANCIAL_MISMATCH'; END IF;
+ IF v_intent.amount<>v_order.total_amount OR v_intent.currency<>v_order.currency THEN RAISE EXCEPTION 'FINANCIAL_MISMATCH'; END IF;
  IF NOT EXISTS (SELECT 1 FROM public.tenant_payment_methods tpm WHERE tpm.tenant_id=v_intent.tenant_id::text AND tpm.payment_method='CASH_ON_DELIVERY' AND tpm.provider=v_intent.provider AND tpm.is_enabled=true)
  THEN RAISE EXCEPTION 'INVALID_PROVIDER'; END IF;
  SELECT role,permissions,status INTO v_membership
