@@ -76,10 +76,10 @@ const cashOrderPaymentEnd=api.indexOf('const paymentIntentMatch',cashOrderPaymen
 const cashOrderPaymentRoute=api.slice(cashOrderPaymentStart,cashOrderPaymentEnd);
 assert.match(cashOrderPaymentRoute,/Array\.isArray\(permissions\)[\s\S]*permissions\.includes\("PAYMENT_READ_ALL"\)/,"cash-payment reads must preserve array permissions");
 assert.match(cashOrderPaymentRoute,/permissions\.PAYMENT_READ_ALL\s*===\s*true/,"cash-payment reads must accept only explicit true-valued JSONB permission flags");
-assert.match(cashOrderPaymentRoute,/const isCustomer = String\\(order\\.customer_id\\) === String\\(user\\.id\\)/,"cash-payment reads must restrict customers to their own order");
-assert.match(cashOrderPaymentRoute,/if \\(membershipError\\) return json\\(\\{ error: "Payment access check failed" \\}, 500\\)/,"cash-payment membership lookup failures must fail closed");
-assert.match(cashOrderPaymentRoute,/const businessScoped = !m\\.business_id \\|\\| String\\(m\\.business_id\\) === String\\(order\\.business_id\\)/,"operational cash-payment reads must be scoped to the order business or tenant-wide membership");
-assert.match(cashOrderPaymentRoute,/\\.eq\\("tenant_id", order\\.tenant_id\\)\\.eq\\("order_id", order\\.id\\)/,"cash-payment lookup must bind the intent to the same tenant and order");
+assert.ok(cashOrderPaymentRoute.includes("const isCustomer = String(order.customer_id) === String(user.id)"),"cash-payment reads must restrict customers to their own order");
+assert.ok(cashOrderPaymentRoute.includes('if (membershipError) return json({ error: "Payment access check failed" }, 500)'),"cash-payment membership lookup failures must fail closed");
+assert.ok(cashOrderPaymentRoute.includes("const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)"),"operational cash-payment reads must be scoped to the order business or tenant-wide membership");
+assert.ok(cashOrderPaymentRoute.includes('.eq("tenant_id", order.tenant_id).eq("order_id", order.id)'),"cash-payment lookup must bind the intent to the same tenant and order");
 assert.match(migration,/coalesce\(auth\.role\(\),''\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
 const cashConfirm=read("supabase/migrations/20261020140000_rc460_cash_confirmation_business_membership.sql");
