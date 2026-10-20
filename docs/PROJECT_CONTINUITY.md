@@ -716,3 +716,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - The loader now explicitly selects non-phone directory fields for `used_item_ads`; `seller_phone` is excluded from the client query. Source commit `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator commits `0ea0564050305059324ea3d0daa97dbcdd182fcf` and `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
 - Read-only live DB evidence still shows no authenticated SELECT privilege on `used_item_ads`. Do not add a broad table grant; the future migration must grant only approved columns and be paired with the verified RLS contract. No production DB mutation was performed.
+
+
+- Used-item read projection was minimized further: excludes seller phone plus unused description/image/fee fields; retains only rendered and query-filter/order fields. Commits `66fefa4ce874c1eb62962c8f476a3015378fa42e` and `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
