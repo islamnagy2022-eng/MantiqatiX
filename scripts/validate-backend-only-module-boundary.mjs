@@ -20,12 +20,14 @@ if(!operations.includes('function erpOperationsWorkspace(d)')) throw new Error('
 
 
 const gateway=fs.readFileSync('supabase/functions/erp-runtime/index.ts','utf8');
+const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
 const migration=fs.readFileSync('supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql','utf8');
 const loader=app.slice(app.indexOf('async function loadEnterpriseDomainData'),app.indexOf('async function loadRestaurantWorkspace'));
 if(!loader.includes('MNTY_BACKEND_ONLY_TABLES.has(table)')) throw new Error('enterprise module loader does not guard backend-only tables');
-if(!loader.includes("invokeMntyFunction('erp-runtime',{operation:'list'")) throw new Error('ERP reads are not connected to the authenticated server gateway');
-if(!app.includes("invokeMntyFunction('erp-runtime',{operation:'mutate'")) throw new Error('ERP mutations are not connected to the server gateway');
+if(!loader.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list'")) throw new Error('ERP reads are not connected to the authenticated server gateway');
+if(!app.includes("invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate'")) throw new Error('ERP mutations are not connected to the server gateway');
 if(!gateway.includes('admin.rpc("erp_runtime_execute"')) throw new Error('ERP gateway does not call the restricted actor-aware RPC');
+if(!api.includes('path === "/api/v1/erp/runtime"') || !api.includes('supabaseAdmin.rpc("erp_runtime_execute"')) throw new Error('deployed API ERP gateway route is missing');
 if(!gateway.includes('ERP_BRANCH_SCOPE_REQUIRED') || !gateway.includes('ERP_BUSINESS_SCOPE_INVALID')) throw new Error('ERP gateway scope checks are incomplete');
 if(!migration.includes('revoke all on function public.erp_runtime_execute(uuid,text,jsonb) from public, anon, authenticated')) throw new Error('ERP gateway RPC must remain service-role-only');
 console.log('Backend-only module boundary and ERP runtime gateway PASS');
