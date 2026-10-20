@@ -64,6 +64,13 @@ assert.match(intentRoute,/existingIntent/);
 assert.match(intentRoute,/\.insert\(newIntent\)/);
 assert.doesNotMatch(intentRoute,/\.upsert\(newIntent/,"retry must not replace an existing payment intent id");
 
+const paymentIntentReadStart=api.indexOf('const paymentIntentMatch = path.match');
+const paymentIntentReadEnd=api.indexOf('const cashConfirmMatch',paymentIntentReadStart);
+const paymentIntentReadRoute=api.slice(paymentIntentReadStart,paymentIntentReadEnd);
+assert.match(paymentIntentReadRoute,/select\("customer_id,business_id"\)/,"payment-intent read must load linked order business scope");
+assert.match(paymentIntentReadRoute,/String\(m\.business_id\) === String\(linkedOrder\.business_id\)/,"payment-intent read must enforce operational membership business scope");
+assert.match(paymentIntentReadRoute,/permissions\.PAYMENT_READ_ALL\s*===\s*true/,"payment-intent read must require a true-valued JSONB permission");
+assert.match(paymentIntentReadRoute,/if \(!isOrderCustomer\)/,"payment-intent read must allow customers only for their own order");
 assert.match(migration,/coalesce\(auth\.role\(\),''\) <> 'service_role'/);
 assert.match(migration,/CUSTOMER_MEMBERSHIP_REQUIRED/);
 const cashConfirm=read("supabase/migrations/20261020140000_rc460_cash_confirmation_business_membership.sql");
