@@ -1539,16 +1539,33 @@ function orderActions(order){
 const ORDER_STATUS_AR={PENDING:'قيد الانتظار',CREATED:'تم الإنشاء',CONFIRMED:'تم التأكيد',PREPARING:'جاري التجهيز',OUT_FOR_DELIVERY:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغي',FAILED:'فشل',EXPIRED:'منتهي'};
 function orderStatusLabel(s){const k=String(s||'').toUpperCase();return ORDER_STATUS_AR[k]||k||'غير محدد'}
 function orderStatusClass(s){return 'mx-order-status mx-order-status-'+String(s||'').toLowerCase().replace(/[^a-z_]+/g,'-')}
-function openOrderDetails(orderId){
+async function openOrderDetails(orderId){
  if(!user?.id||!orderId)return authView();const r=(live.records.orders||[]).find(x=>String(x.id)===String(orderId));if(!r)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
+ let paymentIntent=null,paymentReadError=false;
+ try{const payment=await invokeMntyApi('/api/v1/orders/'+encodeURIComponent(String(r.id))+'/payment-intent');paymentIntent=payment?.paymentIntent||null;}catch{paymentReadError=true;}
  const items=Array.isArray(r.items)?r.items:[],history=(live.records.orderHistory||[]).filter(x=>String(x.order_id)===String(r.id)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
  const itemText=items.length?items.map(x=>'<li><span>'+esc(x.name_ar||x.name||x.title||x.item_id||'صنف')+'</span><b>× '+esc(x.quantity??1)+'</b></li>').join(''):'<li><span>لا توجد تفاصيل أصناف محملة</span><b>—</b></li>';
  const timeline=history.length?history.map(x=>'<div class="mx-order-timeline__item"><span class="mx-order-timeline__dot"></span><div><b>'+esc(orderStatusLabel(x.new_status))+'</b><p>'+esc(x.reason||'تحديث حالة الطلب')+'</p><small>'+esc(x.created_at?new Date(x.created_at).toLocaleString('ar-EG'):'—')+'</small></div></div>').join(''):'<div class="mnty-screen-note">لا يوجد سجل انتقالات محمل لهذا الطلب.</div>';
  const total=r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—';
+ const payStatus=String(paymentIntent?.status||'').toUpperCase();
+ const paidStates=['PAID','SUCCEEDED','CONFIRMED','CASH_CONFIRMED','COLLECTED'];
+ const cashStatus=paymentReadError?'تعذر تحميل حالة الدفع النقدي':!paymentIntent?'لا توجد نية دفع نقدي مسجلة':paidStates.includes(payStatus)?'تم تأكيد التحصيل':payStatus==='FAILED'?'فشل إعداد الدفع النقدي':'بانتظار التحصيل النقدي';
+ const canConfirmCash=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','CASHIER','STAFF'].includes(String(live.role||'').toUpperCase());
+ const cashPaymentHtml='<div class="mx-record-kv-grid"><div><span>طريقة الدفع</span><b>نقدي عند الاستلام / التحصيل</b></div><div><span>حالة التحصيل</span><b>'+esc(cashStatus)+'</b></div><div><span>المبلغ</span><b>'+esc(paymentIntent?(Number(paymentIntent.amount).toFixed(2)+' '+String(paymentIntent.currency||r.currency||'')):'—')+'</b></div><div><span>مرجع نية الدفع</span><b>'+esc(paymentIntent?.id||'—')+'</b></div></div>'+(paymentIntent&&canConfirmCash&&!paidStates.includes(payStatus)?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="confirmCashPayment(\''+esc(paymentIntent.id)+'\',\''+esc(r.id)+'\')">تأكيد استلام المبلغ النقدي</button></div>':'')+'<p class="muted">'+(paymentIntent&&paidStates.includes(payStatus)?'تم تأكيد الحالة من المسار الخلفي.':paymentReadError?'حالة الدفع غير متاحة حاليًا؛ لا تعتبر الطلب مدفوعًا.':'لا تعتبر نية الدفع تحصيلًا فعليًا؛ يجب أن يؤكد موظف مخول استلام المبلغ.')+'</p>';
  openUnifiedRecordDetails({kicker:'ORDER DETAILS',title:'طلب '+String(r.id).slice(0,8),desc:'التفاصيل المتاحة من سجل الطلب الحالي فقط.',sections:[
  {title:'البيانات الأساسية',html:'<div class="mx-record-kv-grid"><div><span>الحالة الحالية</span><b><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span></b></div><div><span>الإجمالي</span><b>'+esc(total)+'</b></div><div><span>العميل</span><b>'+esc(r.customer_name||'—')+'</b></div><div><span>تاريخ الإنشاء</span><b>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</b></div><div><span>الهاتف</span><b>'+esc(r.customer_phone||r.phone||'غير متاح')+'</b></div><div><span>العنوان</span><b>'+esc(r.delivery_address||r.address||'غير متاح')+'</b></div></div>'},
+ {kicker:'CASH PAYMENT',title:'الدفع النقدي',html:cashPaymentHtml},
  {kicker:'ITEMS',title:'محتويات الطلب',badge:String(items.length||0),html:'<ul class="mx-order-items">'+itemText+'</ul>'},
  {kicker:'TIMELINE',title:'تسلسل الحالة',html:'<div class="mx-order-timeline">'+timeline+'</div>'}],actions:orderActions(r)});
+}
+async function confirmCashPayment(intentId,orderId){
+ if(!intentId||!orderId)return;
+ if(!window.confirm('تأكيد أنك استلمت المبلغ النقدي كاملًا لهذا الطلب؟ لا تنفذ التأكيد قبل الاستلام الفعلي.'))return;
+ try{
+  await invokeMntyApi('/api/v1/payments/'+encodeURIComponent(String(intentId))+'/cash/confirm',{method:'POST',body:{}});
+  await loadLiveData(); await renderApp(); showToast('تم تسجيل تأكيد التحصيل النقدي عبر المسار الخلفي.','success');
+  await openOrderDetails(orderId);
+ }catch(e){showToast('تعذر تأكيد التحصيل: '+(e?.message||'CASH_CONFIRM_FAILED'),'error');}
 }
 
 function orderCards(){
