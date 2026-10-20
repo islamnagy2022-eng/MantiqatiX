@@ -878,3 +878,10 @@ This status is intentional and must remain until the open gates above are indepe
 - CI caught an over-escaped regex in newly added cash-payment read source assertions (customer ownership/business scope). This was a validator defect, not an API runtime failure.
 - Replaced the four new checks with exact source-fragment assertions in commit `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45`. Wait for a fresh exact-head validation run before treating the added assertions as green.
 - Keep PR #307 draft/unmerged; launch remains **BLOCKED / NOT CERTIFIED** until CI, authenticated cash-flow E2E, and recovery evidence are complete.
+
+
+## Continuation — exact-head cash-only CI green — 2026-10-20
+- Cash payment read source-validator escaping fix is now verified: Module Professionalization Validation run [39376626578](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376626578) passed on validator commit `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45`.
+- Exact candidate head `fdd54b1faeb6e38e2cea3d955b4aebe7bf7d9a3e` passed Module Professionalization Validation [39376651542](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651542), Disposable Forward Migration Replay [39376655694](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376655694), MantiGO privacy boundary [39376651355](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651355), and backend-only boundary [39376651443](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651443).
+- Replay evidence is limited to the pinned RC424 schema-only baseline and the configured pending migrations plus disposable tenant-isolation test; it is not full historical replay or production verification.
+- Remaining P0 gates: authenticated cash checkout/confirmation E2E, adversarial live tenant/business isolation, production Auth/security configuration, and backup/restore/DR rehearsal. PR #307 remains draft/unmerged and global release remains **BLOCKED / NOT CERTIFIED**. No production mutation/deployment.
