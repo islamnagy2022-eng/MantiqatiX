@@ -22,6 +22,10 @@ create table public.warehouses(
   id varchar primary key, tenant_id varchar not null, business_id uuid not null,
   branch_id varchar, status varchar not null
 );
+create table public.catalog_items(
+  id uuid primary key, tenant_id varchar not null, business_id uuid not null,
+  branch_id varchar, status varchar not null
+);
 create or replace function public.create_purchase_order_backend(
   p_id varchar,p_tenant_id varchar,p_business_id uuid,p_branch_id varchar,p_order_number varchar,
   p_supplier_id varchar,p_total_amount numeric,p_tax_amount numeric,p_discount_amount numeric,p_reason text
@@ -47,4 +51,4 @@ create or replace function public.receive_stock_transfer_backend(p_transfer_id v
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
 begin return jsonb_build_object('success',true,'actor',auth.uid(),'operation','receive_stock_transfer'); end $$;
 
-grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_stock_transfers, public.warehouses to service_role;
+grant select,insert,update,delete on public.user_memberships, public.erp_purchase_orders, public.erp_stock_transfers, public.warehouses, public.catalog_items to service_role;
