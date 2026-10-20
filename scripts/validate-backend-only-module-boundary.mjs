@@ -20,6 +20,7 @@ if(!operations.includes('function erpOperationsWorkspace(d)')) throw new Error('
 if(!operations.includes('onclick="createPurchaseOrder()"') || !operations.includes('onclick="receivePurchaseStock()"') || !operations.includes('onclick="createStockTransfer()"')) throw new Error('ERP operations workspace must expose purchase, receiving, and transfer actions');
 if(!operations.includes("x[2]===true")) throw new Error('ERP action cells must use the explicit safe-action renderer');
 if(!operations.includes('function factoryOperationsWorkspace(d)') || !operations.includes('rows.inventory_transactions')) throw new Error('factory workspace must link inventory balances and movement history');
+if(!operations.includes('data-op-retry>إعادة المحاولة')) throw new Error('module load failure state must provide a retry action');
 
 
 const api=fs.readFileSync('supabase/functions/api/index.ts','utf8');
