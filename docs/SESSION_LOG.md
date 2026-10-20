@@ -298,3 +298,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - **Migration immutability correction:** restored the original unmerged `20261020231500_used_item_ads_minimal_directory_read.sql` and moved the RPC implementation to the strictly later `20261020232000_used_item_ads_directory_backend_v1.sql`. This follow-up revokes table-level and column-level browser SELECT privileges, then grants authenticated EXECUTE only on the RPC. Validator updated accordingly. Commits: `861d2eb6410aa18026325f1efa8b7ccf13288e20`, `c6aaa104f2d36318f498a82b1421666e671b51e4`, `89753cf6e26be56f31ec69fb4a82797846c954dc`.
+
+
+- **Behavioral test coverage added:** disposable PostgreSQL fixture + integration assertions verify owner-only sold listing visibility, active listings, optional tenant/business filters, anonymous/unauthenticated denial, and removal of direct table/column SELECT grants. Wired into the backend boundary workflow; CI result pending. Commits `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`.
