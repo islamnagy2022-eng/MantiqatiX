@@ -158,7 +158,7 @@ assert.match(scope,/cash-only collection/);
 assert.match(scope,/Digital-page paid checkout is disabled pre-launch/);
 assert.match(index,/app\.js\?v=mnty-module-system-20261020/);
 assert.match(index,/sw\.js\?v=mnty-module-system-20261020/);
-assert.match(sw,/const CACHE='mnty-web-v132'/);
+assert.match(sw,/const CACHE='mnty-web-v134'/);
 assert.match(sw,/app\.js\?v=mnty-module-system-20261020/);
 assert.match(chain,/20261020120000_rc458_cash_order_service_actor_contract\.sql/);
 assert.match(verifier,/20261020120000_rc458_cash_order_service_actor_contract\.sql/);
