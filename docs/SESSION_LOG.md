@@ -262,3 +262,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 - Fixed the sector workspace error renderer so missing authentication shows a human-readable Arabic instruction rather than `AUTH_REQUIRED`, and suppresses a retry button when retrying cannot restore a session. Source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`; validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`.
 - Exact-head CI is pending; no browser E2E was performed.
+
+
+## 2026-10-20 — live verification of sector RPC contracts
+
+- Read-only production SQL verified the three sector RPCs used by the UI exist and have `authenticated_execute=true`, `anon_execute=false`, and `public_execute=false`: `create_education_request_backend`, `submit_job_application_backend`, and `create_job_backend`.
+- The education RPC rejects anonymous sessions and validates the target/student fields; job creation binds caller identity and requires active business membership; job application binds caller identity and validates job/applicant data. Live schema confirms `jobs.id` and `job_applications.job_id` are UUID.
+- No production changes were made. These are catalog/function-contract checks, not authenticated browser E2E.
