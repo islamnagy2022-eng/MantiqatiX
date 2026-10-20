@@ -12,6 +12,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql"
+      - "supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql"
       - "supabase/tests/used_item_directory_read_*.sql"
       - ".github/workflows/used-item-directory-read.yml"
 permissions:
