@@ -137,12 +137,12 @@ serve(async (req) => {
 
     if (operation !== "mutate") return json({ error: "INVALID_OPERATION" }, 400)
     const action = String(body.action ?? "")
-    const allowedOperations = new Set(["create_supplier","create_purchase_order","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
+    const allowedOperations = new Set(["create_supplier","update_supplier","create_purchase_order","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
     if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
     const args = body.arguments
     if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
     const scopeMismatch = () => json({ error: "ERP_SCOPE_MISMATCH" }, 403)
-    if (["create_supplier","create_purchase_order","receive_purchase_stock","create_stock_transfer"].includes(action)) {
+    if (["create_supplier","update_supplier","create_purchase_order","receive_purchase_stock","create_stock_transfer"].includes(action)) {
       if (String(args.p_tenant_id ?? "") !== tenantId || String(args.p_business_id ?? "") !== businessId) return scopeMismatch()
     }
     if (["create_supplier","create_purchase_order"].includes(action) && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
@@ -195,8 +195,9 @@ serve(async (req) => {
         if ((warehouses ?? []).length !== 2 || warehouses.some((row) => String(row.branch_id ?? "") !== branchId)) return scopeMismatch()
       }
     }
-    if (action === "create_supplier") {
-      const { data: supplierResult, error: supplierError } = await supabaseAdmin.rpc("erp_supplier_create_backend", {
+    if (["create_supplier","update_supplier"].includes(action)) {
+      const rpcName = action === "create_supplier" ? "erp_supplier_create_backend" : "erp_supplier_update_backend"
+      const { data: supplierResult, error: supplierError } = await supabaseAdmin.rpc(rpcName, {
         p_actor_user_id: user.id, p_arguments: args
       })
       if (supplierError) {
@@ -205,15 +206,19 @@ serve(async (req) => {
           UNAUTHENTICATED: 401,
           ERP_MEMBERSHIP_REQUIRED: 403,
           ERP_SUPPLIER_CREATE_ROLE_REQUIRED: 403,
+          ERP_SUPPLIER_UPDATE_ROLE_REQUIRED: 403,
           ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SUPPLIER_SCOPE_INVALID: 403,
+          ERP_SUPPLIER_BRANCH_SCOPE_INVALID: 403,
           ERP_SUPPLIER_CODE_ALREADY_EXISTS: 409,
           ERP_SUPPLIER_IDEMPOTENCY_CONFLICT: 409,
           ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT: 409,
-          ERP_SUPPLIER_REQUIRED_FIELDS: 400
+          ERP_SUPPLIER_REQUIRED_FIELDS: 400,
+          ERP_SUPPLIER_STATUS_INVALID: 400
         }
         const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
         const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(message)
-        console.error("[erp-runtime] supplier create rejected", { code: supplierError.code, publicCode: publicCode ?? null, denied })
+        console.error("[erp-runtime] supplier mutation rejected", { action, code: supplierError.code, publicCode: publicCode ?? null, denied })
         if (publicCode) return json({ error: publicCode }, publicErrors[publicCode])
         return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
       }
