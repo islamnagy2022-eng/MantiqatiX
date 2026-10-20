@@ -119,3 +119,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #300 UI now keeps non-mutating preview inputs and action-review controls interactive, displays an explicit incomplete state, and explains prerequisites without writing or pretending success.
 - Updated the UI contract validator and product documentation. Exact-head CI is pending for these changes; no production mutation, merge, or deployment occurred.
 - Next: validate the exact PR head, fix any test failures, then inventory public discovery/listing surfaces and verified inquiry fallback contracts. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Product visibility UI implementation and CI
+- Updated `web/industry-workspaces.js` on PR #300: sector cards and tabs remain visible; disabled preview fields and actions were removed; non-destructive fields remain interactive; action-review controls display **حالة الإجراء: غير مكتمل** and the missing backend/security/E2E prerequisites. No data is submitted or persisted and no success is fabricated.
+- Updated `scripts/validate-industry-workspaces.mjs` to require the visibility/readiness distinction and reject globally disabled controls.
+- Updated `docs/INDUSTRY_WORKSPACE_UI.md`, `docs/MASTER_PRODUCTION_TODO.md`, and `docs/PROJECT_CONTINUITY.md` to record the product principle and next steps.
+- Initial CI failed only because one validator assertion still expected the old label `واجهة فقط · Backend غير موصول`. Fixed in `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`.
+- **PASS on code head `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`:** Industry Workspaces UI Contract [39361656812], Marketing Workspace Contract [39361656822], Module Professionalization Validation [39361656750], Backend-only Module Boundary [39361656799] including approval-audit and RC450 financial-journal PostgreSQL jobs, MantiGO Open Ride Privacy Boundary [39361656727], and Pages validation [39361656795]. Pages deploy skipped as expected for a PR.
+- **Not done:** no merge, production deployment, schema change, payment, or data mutation. PR #300 remains open/draft; public home listing and inquiry/booking fallback contracts still need separate inventory and implementation. Global production release remains **BLOCKED / NOT CERTIFIED**.
