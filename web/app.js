@@ -1292,7 +1292,12 @@ async function erpRpc(fn,args){
   const messages={
    ERP_OPERATION_FORBIDDEN:'ليست لديك صلاحية تنفيذ هذه العملية',
    ERP_SUPPLIER_CODE_ALREADY_EXISTS:'كود المورد مستخدم بالفعل',
+   ERP_SUPPLIER_SCOPE_INVALID:'المورد غير نشط أو لا يتبع المؤسسة الحالية',
+   ERP_SUPPLIER_BRANCH_SCOPE_INVALID:'المورد تابع لفرع مختلف عن الفرع المحدد',
+   ERP_SUPPLIER_REQUIRED:'اختر موردًا صالحًا لأمر الشراء',
    ERP_SUPPLIER_REQUIRED_FIELDS:'أدخل اسم المورد والبيانات الأساسية المطلوبة',
+   ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT:'أمر الشراء غير جاهز للاستلام بهذه الحالة',
+   ERP_PURCHASE_ORDER_SCOPE_INVALID:'أمر الشراء لا يتبع المؤسسة والفرع المحددين',
    ERP_MEMBERSHIP_REQUIRED:'لا توجد عضوية فعالة في المؤسسة المحددة',
    ERP_BRANCH_SCOPE_REQUIRED:'العملية خارج نطاق فرعك الحالي',
    ERP_SCOPE_MISMATCH:'البيانات لا تطابق المؤسسة أو الفرع المحدد',
