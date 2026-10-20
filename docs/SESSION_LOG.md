@@ -161,3 +161,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Corrected `scripts/validate-global-search-failure-state.mjs` so the accessibility assertion checks the actual rendered `aria-live="polite"` markup in `web/app.js`, rather than expecting `setAttribute(...)`.
 - Manually evaluated all seven source-contract regexes against the current branch's `web/app.js`; **7/7 matched**. This was a focused source comparison, not a Node execution or GitHub Actions result.
 - Latest commit: `410bca6f6eaf5e635b54cf509a06a2a0ae62ce20`. CI/browser E2E remain pending; no merge/deploy. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Global search zero-source state
+
+- Updated `web/app.js` to distinguish an empty result set from the case where role/permission filtering leaves no searchable sources at all.
+- Extended `scripts/validate-global-search-failure-state.mjs` with a source-contract assertion for that state.
+- Source comparison: seven targeted patterns matched the fetched `web/app.js` after the change. No Node/Pages workflow or browser E2E was executed/confirmed.
+- Code commits: `791907010399d94fb0f84f2b26548358d20c50e1`; validator commit: `f78b20bf7c91672dcf1bf77b59db8ab8ef36e674`. Release remains **BLOCKED / NOT CERTIFIED**.
