@@ -49,11 +49,11 @@ const domainModules=[
 {key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries']},
 {key:'COMPANIES',name:'المزايدات — الشركات',icon:'🏢',desc:'طلبات الشركات ومقدمو الخدمة والعروض.',tables:['indrive_requests','indrive_bids','businesses']},
 {key:'MARKETING',name:'المزايدات — التسويق',icon:'📣',desc:'طلبات التسويق ومقدمو الخدمة والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
-{key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والمخازن والأرصدة وحركة المخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances']},
+{key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والمخازن والأرصدة وحركة المخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances','catalog_items']},
 {key:'TRIPS',name:'المزايدات — الرحلات',icon:'✈️',desc:'طلبات الرحلات والعروض والتنفيذ.',tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids']},
 {key:'MAINTENANCE',name:'المزايدات — الصيانة',icon:'🔧',desc:'طلبات الصيانة والعروض والمتابعة.',tables:['indrive_requests','indrive_bids','support_tickets']},
 {key:'LEGAL',name:'المزايدات — الخدمات القانونية',icon:'⚖️',desc:'الوثائق والمتطلبات والاتفاقيات القانونية.',tables:['legal_documents','legal_requirements','agreements']},
-{key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن.',tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses']},
+{key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن.',tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','catalog_items']},
 {key:'MATRIMONY',name:'الزواج',icon:'💍',desc:'الملفات والطلبات وفتح وسائل التواصل وفق النظام.',tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks']},
 {key:'JOBS',name:'الوظائف',icon:'💼',desc:'الوظائف والتقديمات ومتابعة المرشحين.',tables:['jobs','job_applications']},
 {key:'MEDICAL',name:'المنظومة الطبية',icon:'🩺',desc:'اكتشاف مقدمي الخدمة والحجز الطبي ومتابعة المواعيد.',tables:['marketing_provider_profiles','medical_appointments']},
@@ -857,9 +857,9 @@ async function loadEnterpriseDomainData(m){
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
-   if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
-   if(['journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
-   if(['journal_entries','warehouses','stock_balances','inventory_transactions'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
+   if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
+   if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
    if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
    if(table==='mantigo_bids')q=q.limit(100);
    if(table==='matrimony_profiles')q=sb.from(table).select('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at').or('is_verified.eq.true,owner_user_id.eq.'+user.id);
@@ -993,6 +993,8 @@ function restaurantWorkspace(rows){
  +workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
+function erpWarehouseLabel(rows,id){const item=(rows.warehouses||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
+function erpProductLabel(rows,id){const item=(rows.catalog_items||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.sku||id):String(id||'—')}
 function enterpriseRowsTable(m,rows){
  const sourceRows=(m.tables||[]).map(table=>({table,count:Array.isArray(rows[table])?rows[table].length:0}));
  const sources=()=>recordsTable('مصادر البيانات الموصولة',sourceRows,[['المصدر',r=>r.table],['السجلات',r=>r.count],['الحالة',r=>r.count?'READABLE':'لا توجد سجلات']]);
@@ -1006,15 +1008,15 @@ function enterpriseRowsTable(m,rows){
  if(m.key==='ERP'){
   return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
    +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':'—']])
-   +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>r.warehouse_id],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
+   +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
    +recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الفرع',r=>r.branch_id],['الحالة',r=>r.status]])
-   +recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>r.from_warehouse_id],['إلى',r=>r.to_warehouse_id],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']])
+   +recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>erpWarehouseLabel(rows,r.from_warehouse_id)],['إلى',r=>erpWarehouseLabel(rows,r.to_warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']])
    +sources();
  }
  if(m.key==='FACTORIES'){
   return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])
-   +recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>r.warehouse_id],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])
-   +recordsTable('حركة المخزون',rows.inventory_transactions||[],[['النوع',r=>r.transaction_type],['المنتج',r=>r.product_id],['الكمية',r=>r.quantity],['تكلفة الوحدة',r=>r.unit_cost],['التاريخ',r=>r.created_at]])
+   +recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])
+   +recordsTable('حركة المخزون',rows.inventory_transactions||[],[['النوع',r=>r.transaction_type],['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['الكمية',r=>r.quantity],['تكلفة الوحدة',r=>r.unit_cost],['التاريخ',r=>r.created_at]])
    +recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]])
    +sources();
  }
