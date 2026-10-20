@@ -946,31 +946,125 @@ function mantigoWorkspace(rows){
  const bidCards=bids.length?bids.map(b=>'<article class="card"><div class="row"><strong>عرض '+esc(b.id)+'</strong><span>'+esc(b.offered_price??'—')+'</span></div><p><b>الرحلة:</b> '+esc(b.ride_id||'—')+'<br><b>الكابتن:</b> '+esc(b.captain_name||'—')+'<br><b>المركبة:</b> '+esc(b.vehicle_model||'—')+' · ETA '+esc(b.eta_minutes??'—')+' دقيقة</p><div class="action-bar">'+(role==='CUSTOMER'?'<button class="linkbtn" onclick="acceptMntBid(\''+esc(b.ride_id||'')+'\',\''+esc(b.id||'')+'\')">قبول العرض</button>':'')+'</div></article>').join(''):'<div class="empty-state">لا توجد عروض مرئية وفق صلاحيات الحساب.</div>';
  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMntRide()">+ إنشاء رحلة</button></div><section class="records"><div class="section-head"><div><h3>الرحلات</h3><p class="muted">'+rides.length+' رحلة مرئية وفق RLS</p></div></div><div class="grid3">'+rideCards+'</div></section><section class="records"><div class="section-head"><div><h3>العروض</h3><p class="muted">'+bids.length+' عرض مرئي وفق RLS</p></div></div><div class="grid3">'+bidCards+'</div></section>';
 }
+function medicalLocalMin(){
+ const d=new Date(Date.now()+60*60*1000);
+ d.setMinutes(Math.ceil(d.getMinutes()/15)*15,0,0);
+ return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+}
+async function loadMedicalWorkspace(){
+ const cache=live.moduleData.MEDICAL||{};
+ if(cache.rowsReady||cache.loading)return;
+ cache.loading=true;cache.errors={};live.moduleData.MEDICAL=cache;
+ const rows={marketing_provider_profiles:[],medical_appointments:[]},errors={};
+ const [providersRes,appointmentsRes]=await Promise.all([
+  sb.from('marketing_provider_profiles').select('id,business_id,owner_user_id,name_ar,name_en,provider_kind,description,specialties,service_areas,status,is_verified,profile_image_path').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['HEALTH','DENTAL','MEDICAL','VETERINARY']).order('name_ar',{ascending:true}).limit(100),
+  sb.from('medical_appointments').select('id,tenant_id,business_id,patient_id,doctor_id,date_time,status,reason,created_at,updated_at').order('date_time',{ascending:true}).limit(200)
+ ]);
+ if(providersRes.error)errors.providers='تعذر تحميل دليل الأطباء';
+ if(appointmentsRes.error)errors.appointments='تعذر تحميل المواعيد حسب صلاحيات الحساب';
+ let providers=providersRes.data||[];
+ const businessIds=[...new Set(providers.map(p=>p.business_id).filter(Boolean))];
+ let businessMap=new Map();
+ if(businessIds.length){
+  const businessRes=await sb.from('businesses').select('id,name,status').in('id',businessIds).eq('status','ACTIVE');
+  if(businessRes.error)errors.businesses='تعذر التحقق من حالة العيادات';
+  else businessMap=new Map((businessRes.data||[]).map(b=>[String(b.id),b]));
+ }
+ if(!errors.businesses)providers=providers.filter(p=>p.business_id&&businessMap.has(String(p.business_id)));
+ rows.marketing_provider_profiles=providers.map(p=>({...p,business_name:businessMap.get(String(p.business_id))?.name||''}));
+ rows.medical_appointments=appointmentsRes.data||[];
+ cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;
+ syncModuleRuntime('المنظومة الطبية');renderApp();
+}
+async function retryMedicalWorkspace(){
+ const cache=live.moduleData.MEDICAL;
+ if(cache){cache.rowsReady=false;cache.loading=false;cache.errors={};}
+ await loadMedicalWorkspace();
+}
+function medicalErrorMessage(error){
+ const code=String(error?.message||'');
+ const messages={
+  AUTH_USER_MISMATCH:'انتهت جلسة الدخول أو تعذر التحقق من الحساب',
+  ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND:'الطبيب غير منشور أو غير موثق أو غير متاح للحجز',
+  ACTIVE_TENANT_MEMBERSHIP_REQUIRED:'حسابك لا يملك عضوية نشطة تسمح بالحجز',
+  APPOINTMENT_TIME_MUST_BE_FUTURE:'اختر موعدا في المستقبل',
+  APPOINTMENT_REASON_TOO_LONG:'سبب الزيارة أطول من الحد المسموح',
+  DOCTOR_SLOT_UNAVAILABLE:'الموعد محجوز بالفعل اختر وقتا آخر',
+  APPOINTMENT_ID_ALREADY_EXISTS:'تعذر تكرار رقم الحجز يرجى المحاولة مرة أخرى',
+  DOCTOR_PROFILE_OWNERSHIP_REQUIRED:'لا يمكنك إدارة مواعيد طبيب آخر',
+  INVALID_MEDICAL_STATUS_TRANSITION:'تغيير الحالة غير مسموح في هذه المرحلة',
+  MEDICAL_APPOINTMENT_NOT_CANCELLABLE:'لا يمكن إلغاء هذا الموعد بعد انتهاء حالته'
+ };
+ return messages[code]||'تعذر تنفيذ العملية الطبية تحقق من البيانات والصلاحيات ثم حاول مرة أخرى';
+}
 async function createMedicalAppointment(providerId,businessId){
  if(!user?.id||!providerId||!businessId)return authView();
- const dateText=window.prompt('موعد الحجز — أدخل التاريخ والوقت بصيغة 2026-10-01 10:30');
- if(!dateText?.trim())return;
- const dt=new Date(dateText.replace(' ','T'));
- const timestamp=dt.getTime();
- if(!Number.isFinite(timestamp)||timestamp<=Date.now())return showToast('الموعد غير صالح أو في الماضي.','error');
- const reason=window.prompt('سبب/نوع الاستشارة','استشارة')||'استشارة';
- const {error}=await sb.rpc('create_medical_appointment_backend',{p_user_id:user.id,p_appointment_id:'MED-'+crypto.randomUUID(),p_business_id:businessId,p_doctor_id:providerId,p_date_time:timestamp,p_reason:reason.trim()});
- if(error)return showToast('تعذر حجز الموعد: '+error.message,'error');
- showToast('تم إنشاء الموعد بنجاح.','success');live.moduleData={};await loadDomainModule(current);renderApp();
+ const slotInput=document.getElementById('med-slot-'+providerId);
+ const reasonInput=document.getElementById('med-reason-'+providerId);
+ const dateText=slotInput?.value||'';
+ if(!dateText)return showToast('اختر موعد الزيارة أولا','error');
+ const timestamp=new Date(dateText).getTime();
+ if(!Number.isFinite(timestamp)||timestamp<=Date.now())return showToast('اختر موعدا صحيحا في المستقبل','error');
+ const reason=String(reasonInput?.value||'').trim();
+ if(reason.length>500)return showToast('سبب الزيارة يجب ألا يتجاوز 500 حرف','error');
+ const button=document.getElementById('med-book-'+providerId);
+ if(button){button.disabled=true;button.textContent='جار تأكيد الحجز…';}
+ try{
+  const {data,error}=await sb.rpc('create_medical_appointment_backend',{
+   p_user_id:user.id,p_appointment_id:'MED-'+crypto.randomUUID(),
+   p_business_id:businessId,p_doctor_id:providerId,p_date_time:timestamp,p_reason:reason||null
+  });
+  if(error)throw error;
+  showToast('تم إرسال طلب الموعد بنجاح','success');
+  live.moduleData.MEDICAL={rowsReady:false,loading:false,rows:{},errors:{}};
+  await loadMedicalWorkspace();
+ }catch(error){showToast(medicalErrorMessage(error),'error');}
+ finally{if(button){button.disabled=false;button.textContent='حجز موعد';}}
 }
 async function updateMedicalAppointmentStatus(id,status){
- if(!id||!status)return;
- const {error}=await sb.rpc('update_medical_appointment_status_backend',{p_user_id:user.id,p_appointment_id:id,p_target_status:status});
- if(error)return showToast('تعذر تحديث الموعد: '+error.message,'error');
- showToast('تم تحديث حالة الموعد.','success');live.moduleData={};await loadDomainModule(current);renderApp();
+ if(!user?.id||!id||!status)return;
+ const allowed=new Set(['CONFIRMED','CANCELLED','COMPLETED','NO_SHOW']);
+ if(!allowed.has(status))return showToast('حالة الموعد غير صالحة','error');
+ try{
+  const {error}=await sb.rpc('update_medical_appointment_status_backend',{p_user_id:user.id,p_appointment_id:id,p_target_status:status});
+  if(error)throw error;
+  showToast('تم تحديث حالة الموعد','success');
+  live.moduleData.MEDICAL={rowsReady:false,loading:false,rows:{},errors:{}};
+  await loadMedicalWorkspace();
+ }catch(error){showToast(medicalErrorMessage(error),'error');}
 }
-function medicalWorkspace(rows){
- const providers=(rows.marketing_provider_profiles||[]).filter(p=>p.status==='ACTIVE');
+function medicalWorkspace(rows,errors={}){
+ const medicalKinds=new Set(['HEALTH','DENTAL','MEDICAL','VETERINARY']);
+ const providers=(rows.marketing_provider_profiles||[]).filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&medicalKinds.has(String(p.provider_kind||'').toUpperCase()));
  const appointments=rows.medical_appointments||[];
  const role=String(live.role||'').toUpperCase();
- const providerCards=providers.map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||p.name_en||'مقدم طبي')+'</strong><span>'+esc(p.is_verified?'موثق':'متاح')+'</span></div><p class="muted">'+esc(p.provider_kind||'عيادة/طبيب')+'</p><p>'+esc(p.description||'')+'</p>'+(isCustomerMode()&&p.business_id?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMedicalAppointment(\''+esc(p.id)+'\',\''+esc(p.business_id)+'\')">حجز موعد</button></div>':'')+'</article>').join('')||'<div class="empty-state">لا يوجد مقدم طبي نشط ظاهر وفق البيانات الحالية.</div>';
- const apptCards=appointments.map(a=>'<article class="card"><div class="row"><strong>'+esc(a.id)+'</strong><span>'+esc(a.status||'—')+'</span></div><p><b>الموعد:</b> '+esc(a.date_time?new Date(Number(a.date_time)).toLocaleString('ar-EG'):'—')+'<br><b>الاستشارة:</b> '+esc(a.reason||'—')+'</p><div class="action-bar">'+(a.status==='BOOKED'&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CONFIRMED\')">تأكيد</button>':'')+(a.status==='CONFIRMED'&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'COMPLETED\')">إكمال</button>':'')+(['BOOKED','CONFIRMED'].includes(a.status)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CANCELLED\')">إلغاء</button>':'')+'</div></article>').join('')||'<div class="empty-state">لا توجد مواعيد مرئية وفق صلاحيات الحساب.</div>';
- return workspaceHead('MEDICAL','المنظومة الطبية','اكتشاف مقدمي الخدمة، حجز المواعيد ومتابعة الحالة. السجلات السريرية الحساسة خارج هذا المسار.','LIVE')+'<section class="records"><div class="section-head"><div><h3>الأطباء والعيادات</h3><p class="muted">'+providers.length+' مقدم طبي نشط</p></div></div><div class="grid3">'+providerCards+'</div></section><section class="records"><div class="section-head"><div><h3>المواعيد</h3><p class="muted">'+appointments.length+' موعد مرئي وفق RLS</p></div></div><div class="grid3">'+apptCards+'</div></section>';
+ const providerRole=['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role);
+ const providerMap=new Map(providers.map(p=>[String(p.id),p]));
+ const now=Date.now(),minSlot=medicalLocalMin();
+ const kindLabels={HEALTH:'طبيب أو عيادة',DENTAL:'أسنان',MEDICAL:'مركز طبي',VETERINARY:'طب بيطري'};
+ const statusLabels={BOOKED:'بانتظار التأكيد',CONFIRMED:'مؤكد',CANCELLED:'ملغي',COMPLETED:'مكتمل',NO_SHOW:'لم يحضر'};
+ const specialtyText=v=>Array.isArray(v)?v.map(x=>typeof x==='string'?x:(x?.name_ar||x?.name||'')).filter(Boolean).join('، '):typeof v==='string'?v:'';
+ const providerCards=providers.map(p=>{
+  const specialties=specialtyText(p.specialties);
+  return '<article class="card medical-provider-card"><div class="row"><strong>'+esc(p.name_ar||p.name_en||'طبيب')+'</strong><span>'+esc(p.is_verified?'موثق':'')+'</span></div><p class="muted">'+esc(kindLabels[String(p.provider_kind||'').toUpperCase()]||'مقدم طبي')+' · '+esc(p.business_name||'عيادة')+'</p>'+(specialties?'<p><b>التخصصات:</b> '+esc(specialties)+'</p>':'')+(p.description?'<p>'+esc(p.description)+'</p>':'')+(isCustomerMode()&&p.business_id?'<div class="field"><label for="med-slot-'+esc(p.id)+'">موعد الزيارة</label><input type="datetime-local" id="med-slot-'+esc(p.id)+'" min="'+esc(minSlot)+'" step="900" required></div><div class="field"><label for="med-reason-'+esc(p.id)+'">سبب الزيارة (اختياري)</label><input id="med-reason-'+esc(p.id)+'" maxlength="500" placeholder="مثال: كشف أو متابعة"></div><button id="med-book-'+esc(p.id)+'" class="btn btn-primary" type="button" onclick="createMedicalAppointment(\''+esc(p.id)+'\',\''+esc(p.business_id)+'\')">حجز موعد</button>':'')+'</article>';
+ }).join('');
+ const visibleAppointments=appointments.filter(a=>a.patient_id===user?.id||providerRole);
+ const apptCards=visibleAppointments.map(a=>{
+  const date=Number(a.date_time),doctor=providerMap.get(String(a.doctor_id));
+  const canManage=providerRole&&(role!=='SERVICE_PROVIDER'||doctor?.owner_user_id===user?.id);
+  const canCancel=['BOOKED','CONFIRMED'].includes(String(a.status||'').toUpperCase())&&(a.patient_id===user?.id||canManage);
+  const actions=(a.status==='BOOKED'&&canManage?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CONFIRMED\')">تأكيد الموعد</button>':'')
+   +(a.status==='CONFIRMED'&&canManage?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'COMPLETED\')">إتمام الزيارة</button>':'')
+   +(a.status==='CONFIRMED'&&canManage&&date<=now?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'NO_SHOW\')">لم يحضر</button>':'')
+   +(canCancel?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CANCELLED\')">إلغاء الموعد</button>':'');
+  return '<article class="card medical-appointment-card"><div class="row"><strong>'+esc(doctor?.name_ar||doctor?.name_en||'موعد طبي')+'</strong><span class="mnty-badge">'+esc(statusLabels[String(a.status||'').toUpperCase()]||a.status||'—')+'</span></div><p><b>التاريخ:</b> '+esc(Number.isFinite(date)&&date>0?new Date(date).toLocaleString('ar-EG'):'—')+'</p>'+(a.reason?'<p><b>سبب الزيارة:</b> '+esc(a.reason)+'</p>':'')+'<small>رقم الحجز: '+esc(a.id)+'</small>'+(actions?'<div class="action-bar">'+actions+'</div>':'')+'</article>';
+ }).join('');
+ const errorKeys=Object.keys(errors||{});
+ const errorPanel=errorKeys.length?'<div class="notice" role="alert"><b>بعض البيانات لم تحمل</b><p>'+esc(errorKeys.map(k=>errors[k]).join(' · '))+'</p><button class="btn btn-outline" type="button" style="width:auto" onclick="retryMedicalWorkspace()">إعادة المحاولة</button></div>':'';
+ return workspaceHead('MEDICAL','الأطباء والعيادات','دليل أطباء وعيادات موثقة وحجز المواعيد وإدارتها ضمن صلاحيات المريض والطبيب. لا يتضمن هذا الموديول ملفات طبية أو تشخيصات أو وصفات.','LIVE')
+ +errorPanel
+ +'<section class="records"><div class="section-head"><div><h3>دليل الأطباء والعيادات</h3><p class="muted">'+providers.length+' طبيب أو عيادة موثقة ومتاحة للحجز</p></div></div><div class="grid3">'+(providerCards||'<div class="empty-state">لا توجد حاليا عيادات موثقة ومتاحة للحجز. لن يتم إنشاء بيانات تجريبية بدلا منها.</div>')+'</div></section>'
+ +'<section class="records"><div class="section-head"><div><h3>المواعيد</h3><p class="muted">'+visibleAppointments.length+' موعد ظاهر حسب صلاحيات الحساب</p></div></div><div class="grid3">'+(apptCards||'<div class="empty-state">لا توجد مواعيد ظاهرة لهذا الحساب.</div>')+'</div></section>';
 }
 function restaurantWorkspace(rows){
  const menu=rows.restaurant_menu_items||[],orders=rows.restaurant_orders||[],tables=rows.restaurant_tables||[],inventory=rows.restaurant_inventory||[];
@@ -1044,6 +1138,10 @@ function enterpriseRowsTable(m,rows){
 function domainModuleWorkspace(){
  const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();
  const d=live.moduleData[m.key]||{tables:{},ready:false};
+ if(m.key==='MEDICAL'){
+  if(!d.rowsReady){loadMedicalWorkspace();return workspaceHead('MEDICAL','الأطباء والعيادات','دليل الأطباء وحجز المواعيد','LOADING')+'<div class="empty-state">جاري تحميل دليل الأطباء والمواعيد وفق صلاحيات الحساب…</div>'}
+  return medicalWorkspace(d.rows||{},d.errors||{})+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
+ }
  if(m.key==='RESTAURANTS'){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
   return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
