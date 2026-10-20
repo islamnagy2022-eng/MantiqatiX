@@ -110,7 +110,7 @@
       if(supabaseReady){
         await load('rbac.js?v=mnty120');
         await load('android-parity-catalog.js?v=mnty116');
-        await load('app.js?v=mnty-accounting-post-v1-20261020');
+        await load('app.js?v=mnty-accounting-post-v2-20261020');
         await load('module-blueprints.js?v=mnty-modules-v16-20261020');
         await load('restaurant-module.js?v=rc316-cash-only-20261020');
         await load('sector-modules.js?v=mnty116');
@@ -121,7 +121,7 @@
         if(typeof window.MNTYBootAuth==='function') window.MNTYBootAuth();
       }
       if("serviceWorker" in navigator){
-        navigator.serviceWorker.register("./sw.js?v=mnty-accounting-post-v1-20261020").catch(function(){});
+        navigator.serviceWorker.register("./sw.js?v=mnty-accounting-post-v2-20261020").catch(function(){});
       }
     }catch(e){
       console.error('[MantiqatiX boot fatal]',e);
