@@ -29,8 +29,6 @@ if(!operations.includes('const sharedERP=window.MNTYOperationsERPData')) throw n
 if(!operations.includes('if(sharedScopeMatches&&Object.prototype.hasOwnProperty.call(sharedERP,t))')) throw new Error('cross-module cache must be restricted to exact tenant/business/branch scope');
 if(!operations.includes('Date.now()-Number(sharedERP.loaded_at||0)<30000')) throw new Error('cross-module ERP cache must expire quickly to prevent stale inventory views');
 if(!operations.includes('visible===current')) throw new Error('post-mutation refresh must only reload the currently visible operations module');
-if(!operations.includes('Date.now()-Number(sharedERP.loaded_at||0)<30000')) throw new Error('cross-module ERP cache must expire quickly to prevent stale inventory views');
-if(!operations.includes('visible===current')) throw new Error('post-mutation refresh must only reload the currently visible operations module');
 if(!operations.includes('window.MNTYReloadOperationsModule=async function()')) throw new Error('operations module does not expose post-mutation refresh');
 if(!app.includes("if(typeof window.MNTYReloadOperationsModule==='function')await window.MNTYReloadOperationsModule()")) throw new Error('ERP mutations do not refresh the dependent module view');
 if(!fs.readFileSync('web/index.html','utf8').includes('operations-modules.js?v=mnty128') || !fs.readFileSync('web/sw.js','utf8').includes('operations-modules.js?v=mnty128')) throw new Error('operations module asset cache versions must match');
