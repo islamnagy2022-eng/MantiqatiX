@@ -25,7 +25,7 @@ The internal **Marketing & Advertising** workspace is distinct from the SMM stor
 6. Failure to configure cash must be explicit; the UI must never say “paid” or “collected” because an intent was created.
 7. Review every checkout entrypoint before launch to ensure no Paymob/card checkout can be initiated in the launch-one user surface.
 
-## Deferred until after launch
+## POST-LAUNCH DEFERRED
 
 - Paymob/card production activation, live provider transactions, electronic payment/refund E2E and webhook replay certification.
 - Digital Pages paid Portfolio/Menu checkout until a reviewed cash fulfillment contract is implemented or electronic payments are approved post-launch.
