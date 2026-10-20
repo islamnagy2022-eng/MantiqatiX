@@ -307,3 +307,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - **Test consolidation:** reused the existing `Used Item Directory Read Boundary` workflow and integration file instead of keeping a duplicate workflow job. Extended the existing SQL integration to verify direct seller-phone/owner-ID SELECT is revoked; the workflow now applies both the original and follow-up migrations. Updated path filters and static guards. CI pending.
+
+
+## 2026-10-20 — jobs read authorization boundary
+
+- **Live DB finding:** `jobs` and `job_applications` have no authenticated SELECT privilege. The sector workspace queried both tables directly, which made the job listings/application tabs fail. `jobs` also stores `employer_phone`; applications store `applicant_phone` and `cv_summary_text`, none of which are needed in these list views.
+- **Fix:** added `list_jobs_backend` and `list_job_applications_backend` in `20261020233000_jobs_directory_backend_v1.sql`; switched sector loader to RPC calls. Job rows are scope-filtered and omit employer contact; application rows are visible to the applicant or job owner and omit phone/CV. Job employer name is aliased to `company_name` to match the UI.
+- **Tests:** disposable PostgreSQL fixture/integration and `.github/workflows/job-directory-read.yml`, plus source-contract assertions. Commits: `00e62d2700a47cb5013373b917cf6a12286ac7d1`, `ed6753fe9b1266245598354b578c3394b0c47471`, `f69e13905855a8ad75124daaa5c0bdb2e89152d0`, `ca3be7eec648b9efd6a9b2fd0ad7699f23d6e1e2`, `8cb6225fdf925c211db651fff65d57f59dc84104`, `eb097141b5f01a01e33371b97aa626a7560e6346`.
+- No production migration applied; CI/browser E2E pending.
