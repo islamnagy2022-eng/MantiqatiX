@@ -111,6 +111,9 @@ assert.match(releaseWorkflow,/20261020200000_rc467_medical_booking_release_contr
 assert.match(releaseWorkflow,/rc462_medical_booking_integration\.sql/);
 assert.match(idempotencyMigration,/on conflict \(id\) do nothing/i,"RC468 must resolve concurrent same-ID inserts atomically");
 assert.match(idempotencyMigration,/medical-booking-id:/,"RC468 must serialize retries by stable request ID before checking/inserting");
+assert.ok(idempotencyMigration.indexOf("A replay of the same request") < idempotencyMigration.indexOf("select b.tenant_id"),"RC468 must replay committed bookings before requiring current provider availability");
+assert.match(idempotencyIntegration,/set status = 'INACTIVE'/,"RC468 integration must cover provider deactivation before a retry");
+assert.match(idempotencyIntegration,/set status = 'ACTIVE'/,"RC468 integration must restore provider fixture state after replay");
 assert.match(idempotencyMigration,/returning id into v_inserted_id/i,"RC468 must distinguish insert success from conflict replay");
 assert.match(idempotencyMigration,/APPOINTMENT_ID_ALREADY_EXISTS/,"RC468 must reject ID reuse with a different booking payload");
 assert.match(idempotencyMigration,/idempotent_replay', true/,"RC468 must return a stable replay result");
