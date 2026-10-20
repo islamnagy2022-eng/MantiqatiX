@@ -47,6 +47,8 @@ select public.assert_medical_rejected(
 select public.assert_medical_rejected(
  '22222222-2222-4222-8222-222222222222','appt-booked-invalid-complete','COMPLETED','INVALID_MEDICAL_STATUS_TRANSITION');
 select public.assert_medical_rejected(
+ '22222222-2222-4222-8222-222222222222','appt-future-noshow','NO_SHOW','MEDICAL_APPOINTMENT_NOT_DUE');
+select public.assert_medical_rejected(
  '33333333-3333-4333-8333-333333333333','appt-cross-tenant','CANCELLED','ACTIVE_MEMBERSHIP_REQUIRED');
 select public.assert_medical_rejected(
  '44444444-4444-4444-8444-444444444444','appt-booked-invalid-complete','CANCELLED','NOT_ALLOWED');
@@ -74,6 +76,7 @@ begin
   if (select status from public.medical_appointments where id='appt-booked-provider') <> 'CONFIRMED' then raise exception 'RC457_ASSERT_PROVIDER_CONFIRM'; end if;
   if (select status from public.medical_appointments where id='appt-confirmed-complete') <> 'COMPLETED' then raise exception 'RC457_ASSERT_COMPLETED'; end if;
   if (select status from public.medical_appointments where id='appt-confirmed-noshow') <> 'NO_SHOW' then raise exception 'RC457_ASSERT_NO_SHOW'; end if;
+  if (select status from public.medical_appointments where id='appt-future-noshow') <> 'CONFIRMED' then raise exception 'RC457_ASSERT_FUTURE_NO_SHOW_REJECTED'; end if;
   if (select status from public.medical_appointments where id='appt-booked-customer-cancel') <> 'CANCELLED' then raise exception 'RC457_ASSERT_PATIENT_CANCEL_BOOKED'; end if;
   if (select status from public.medical_appointments where id='appt-confirmed-customer-cancel') <> 'CANCELLED' then raise exception 'RC457_ASSERT_PATIENT_CANCEL_CONFIRMED'; end if;
   if has_function_privilege('anon','public.update_medical_appointment_status_backend(uuid,text,text)','EXECUTE') then raise exception 'RC457_ANON_EXECUTE_MUST_BE_DENIED'; end if;
