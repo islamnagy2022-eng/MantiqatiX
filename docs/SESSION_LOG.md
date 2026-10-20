@@ -149,3 +149,8 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Verified vs pending:** source edits and workflow wiring are committed to the branch. Exact-head CI and browser/E2E behavior are **PENDING**; source-contract tests do not prove deployed behavior or data/RLS correctness.
 - **Not performed:** no database migration, production mutation, Auth setting change, payment, ad spend, merge, or deployment.
 - **Next:** observe exact-head CI after opening the draft PR, then proceed module-by-module to real route/action flows and role-scoped activity/job-function controls. Subscription package/account expansion and expanded accounting UI remain deferred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Verification guard
+
+The UI/search changes are source-committed but not runtime-certified. This session has not executed the Node/Pages workflow locally and has not confirmed a successful exact-head GitHub Actions run. Do not treat validator source files as proof of a passing run. Release stays BLOCKED / NOT CERTIFIED.
