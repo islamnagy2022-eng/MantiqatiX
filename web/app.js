@@ -851,6 +851,7 @@ async function loadEnterpriseDomainData(m){
    if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
    const result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
    if(!result?.success)throw new Error(result?.error||'ERP_DATA_LOAD_FAILED');
+   rows.businesses=result.businesses||[];
    rows.erp_purchase_orders=result.orders||[];
    rows.erp_purchase_order_lines=result.order_lines||[];
    rows.erp_suppliers=result.suppliers||[];
@@ -866,7 +867,7 @@ async function loadEnterpriseDomainData(m){
    errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
   }
  }
- const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&['chart_of_accounts','journal_entries','journal_entry_lines','general_ledger'].includes(table)));
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&['chart_of_accounts','journal_entries','journal_entry_lines','general_ledger'].includes(table)));
  const results=await Promise.all(directTables.map(async table=>{
   try{
    let q=sb.from(table).select('*').limit(100);
