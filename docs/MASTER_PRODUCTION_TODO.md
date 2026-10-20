@@ -1922,3 +1922,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 
 - [x] Added disposable PostgreSQL fixture and behavioral integration tests for active listings, owner-only sold listings, tenant/business filtering, anonymous rejection, no direct `owner_user_id`/seller-phone column access, and RPC grants. Wired the test into `.github/workflows/backend-only-module-boundary.yml` and guarded the test coverage in `validate-sector-rendering.mjs`. Commits: `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`. Awaiting CI execution.
+
+
+- [x] Added a disposable PostgreSQL integration fixture and behavior test for the used-item read RPC, covering direct table privileges, function ACL/search_path, seller-phone omission, anonymous/no-identity rejection, sold-listing ownership, and tenant/business filtering. Workflow: `.github/workflows/used-item-directory-read.yml`.
+- [ ] The workflow is queued; do not mark the integration test passed until GitHub Actions reports success.
