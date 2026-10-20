@@ -99,7 +99,7 @@ begin
     perform public.erp_purchase_stock_receive_with_lines_backend(actor,jsonb_build_object(
       'p_id','rcv-lines-test-0003','p_tenant_id','tenant-a','p_business_id',biz,
       'p_purchase_order_id','po-lines-test-0001','p_receipt_number','RCV-LINES-003',
-      'p_warehouse_id','warehouse-global','p_product_id','55555555-5555-4555-8555-555555555555',
+      'p_warehouse_id','warehouse-global','p_product_id','77777777-7777-4777-8777-777777777777',
       'p_received_quantity',1,'p_unit_cost',1));
     raise exception 'RC465_PRODUCT_NOT_ON_ORDER_WAS_ALLOWED';
   exception when others then
