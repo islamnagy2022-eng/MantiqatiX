@@ -1003,7 +1003,7 @@ async function loadMedicalWorkspace(){
  const rows={marketing_provider_profiles:[],medical_appointments:[]},errors={};
  try{
   const [providersRes,appointmentsRes]=await Promise.all([
-   sb.from('marketing_provider_profiles').select('id,business_id,owner_user_id,name_ar,name_en,provider_kind,description,specialties,service_areas,status,is_verified,profile_image_path').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['HEALTH','DENTAL','MEDICAL']).order('name_ar',{ascending:true}).limit(100),
+   sb.from('marketing_provider_profiles').select('id,business_id,owner_user_id,name_ar,name_en,provider_kind,description,specialties,service_areas,status,is_verified,profile_image_path').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['HEALTH','DENTAL','MEDICAL','VETERINARY']).order('name_ar',{ascending:true}).limit(100),
    sb.from('medical_appointments').select('id,tenant_id,business_id,patient_id,doctor_id,date_time,status,reason,created_at,updated_at').order('date_time',{ascending:true}).limit(200)
   ]);
   if(providersRes.error)errors.providers='تعذر تحميل دليل الأطباء';
@@ -1102,7 +1102,7 @@ async function updateMedicalAppointmentStatus(id,status){
  }catch(error){showToast(medicalErrorMessage(error),'error');}
 }
 function medicalWorkspace(rows,errors={}){
- const medicalKinds=new Set(['HEALTH','DENTAL','MEDICAL']);
+ const medicalKinds=new Set(['HEALTH','DENTAL','MEDICAL','VETERINARY']);
  const providers=(rows.marketing_provider_profiles||[]).filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&medicalKinds.has(String(p.provider_kind||'').toUpperCase()));
  const appointments=rows.medical_appointments||[];
  const role=String(live.role||'').toUpperCase();
