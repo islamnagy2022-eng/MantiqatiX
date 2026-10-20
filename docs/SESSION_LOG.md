@@ -228,3 +228,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Verified PR #300 exact head 710819156f9f2b613f4905d5e1c7266937fc4a32 passed all six PR workflows, including industry UI contract and Pages validation; deploy was skipped as expected.
 - Expanded the draft PR #207 static validator to assert that global ad creation, digital-page publishing, captain onboarding review, and MantiGO financial configuration retain the platform-admin helper guard. Its exact-head workflow evidence has not been returned; this addition remains NOT VERIFIED.
 - No production migration, grant/RLS/Auth change, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-20 — RC462 disposable PostgreSQL behavioral PASS
+
+- Added job rc462-mantigo-platform-admin-scope-integration to PR #301's Module Professionalization workflow, pinned to candidate source commit 54b67bcf2f18e226f0d5206cce66b0bd39a6866c.
+- **PASS:** run 39357112639 / job 118414330318 applied RC449 and canonical RC462 in disposable PostgreSQL, then ran the expanded malformed-permission regression. Log explicitly reports RC462 malformed platform-admin permissions regression: PASS.
+- **PASS:** all nine PR workflows on code/workflow head ecaf98f28048775a0bf5629a6a6fdd27c2cc47f8. Forward replay run 39357112834 replayed 31 candidate migrations from the RC424 schema-only baseline and passed two-way tenant isolation; collision guard, migration uniqueness/history, approval audit, backend boundary, MantiGO privacy, module validation and web validation passed.
+- PR #248/#282 standalone validator runs have not been returned; no separate exact-head pass is claimed for those PRs. Their RC462 migration and fixture content hashes are aligned with the canonical tested source.
+- Production remains RC424 (283 versions through 20261008222845). RC449/RC462/RC565 remain undeployed; live MantiGO platform-admin authorization weakness remains a release blocker. Full blank-database historical replay still lacks authoritative creation provenance for counter_offer_indrive_bid(uuid,uuid,numeric).
+- No production mutation, merge, or deployment occurred. Release remains BLOCKED / NOT CERTIFIED.
