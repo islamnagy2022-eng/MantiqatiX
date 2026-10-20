@@ -327,3 +327,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 ### Safety and release status
 - PR #300 and PR #301 remain open/draft/unmerged. No production migration, merge, deployment, grant/RLS/Auth change, or financial transaction occurred in this checkpoint.
 - Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC457 current-head CI and forward replay passed
+
+- PR #301 current head at verification time: `a5507af59de50472e2a4e024f46ba981b135b5f6`.
+- PASS: all nine PR-triggered workflows. RC457 PostgreSQL integration: `39363371412`; disposable forward migration replay: `39363371480`; migration uniqueness `39363371402`; history immutability `39363371525`; collision guard `39363371431`; backend-only boundary `39363371496`; approval audit `39363371398`; MantiGO privacy `39363371667`; web validation `39363371434`.
+- Replay completed 31 pending candidate migrations in timestamp order from the pinned RC424 schema-only baseline; two-way tenant isolation passed. This does not certify a blank replay of all historical migrations.
+- Fixture syntax/validator path issue is resolved. PR #301 remains open/draft/unmerged; no production migration, merge, deployment, or financial mutation occurred.
+- Still open: NO_SHOW grace-period product decision; authoritative creation provenance for `counter_offer_indrive_bid(uuid,uuid,numeric)`; leaked-password protection owner action; live tenant/RBAC E2E; authorized Paymob/finance/refund E2E; backup/restore/rollback; browser/push/device and signed Android evidence; main-branch deployment smoke; sector-specific backend/E2E; final release evidence.
+- Production last read-only verified at RC424 (`20261008222845`, 283 versions). Global release remains **BLOCKED / NOT CERTIFIED**.
