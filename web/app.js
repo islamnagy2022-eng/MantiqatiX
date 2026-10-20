@@ -1803,6 +1803,7 @@ async function walletView(){
 window.walletView=walletView;
 
 async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
+ if(window.MNTY_ELECTRONIC_PAYMENTS_ENABLED!==true){showToast('شراء الصفحات الرقمية المدفوعة مؤجل لما بعد الإطلاق','error');return;}
  const type=String(pageType||'PORTFOLIO').toUpperCase();
  if(!['PORTFOLIO','MENU'].includes(type))return;
  const {data:products,error}=await sb.from('digital_page_products').select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features').eq('page_type',type).eq('active',true).order('price',{ascending:true});
