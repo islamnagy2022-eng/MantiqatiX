@@ -65,7 +65,7 @@ serve(async (req) => {
     if (!membership) return json({ error: branchId ? "ACCOUNTING_BRANCH_SCOPE_REQUIRED" : "ACCOUNTING_MEMBERSHIP_REQUIRED" }, 403)
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
-      .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle()
+      .select("id,tenant_id,name,code,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle()
     if (businessError) return json({ error: "ACCOUNTING_BUSINESS_LOOKUP_FAILED" }, 500)
     if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ACCOUNTING_BUSINESS_SCOPE_INVALID" }, 403)
     if (branchId) {
@@ -200,6 +200,7 @@ serve(async (req) => {
       const safeRows = (rows: Record<string, unknown>[] | null | undefined, fields: string[]): Record<string, unknown>[] => (rows ?? []).map((row: Record<string, unknown>) => Object.fromEntries(fields.filter((field: string) => Object.prototype.hasOwnProperty.call(row, field)).map((field: string) => [field, row[field]])))
       return json({
         success: true,
+        businesses: [{ id: business.id, tenant_id: business.tenant_id, name: business.name, code: business.code, status: business.status }],
         orders: safeRows(ordersRes.data, ["id","tenant_id","business_id","branch_id","order_number","supplier_id","total_amount","tax_amount","discount_amount","status","reason","created_at","updated_at"]),
         order_lines: safeRows(orderLinesData, ["id","tenant_id","business_id","purchase_order_id","product_id","ordered_quantity","received_quantity","unit_cost","line_total","created_at","updated_at"]),
         receipts: safeRows(receiptsRes.data, ["id","tenant_id","business_id","purchase_order_id","receipt_number","warehouse_id","product_id","received_quantity","unit_cost","status","created_at"]),
