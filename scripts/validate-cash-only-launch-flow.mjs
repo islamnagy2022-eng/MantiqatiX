@@ -270,7 +270,7 @@ assert.match(operations,/invokeErpApi\(\{operation:'list',tenantId:activeScope\.
 assert.match(operations,/rows\.catalog_items=data\.catalog_items\|\|\[\]/);
 assert.match(operations,/rows\.branches=data\.branches\|\|\[\]/);
 assert.match(app,/window\.MNTYOperationsERPData=null/,"ERP mutations must invalidate the shared cross-module reference cache");
-assert.ok(app.indexOf("window.MNTYOperationsERPData=null") > app.indexOf("async function erpRpc"), "ERP cache invalidation must run in the mutation path");
+assert.ok(app.indexOf("window.MNTYOperationsERPData=null",app.indexOf("async function erpRpc")) > app.indexOf("async function erpRpc"), "ERP cache invalidation must run in the mutation path");
 assert.match(app,/MNTY_ERP_IDEMPOTENCY/);
 assert.match(app,/sessionStorage\.setItem\(idempotencyKey,JSON\.stringify\(entry\)\)/);
 assert.match(app,/sessionStorage\.removeItem\(idempotencyKey\)/);
