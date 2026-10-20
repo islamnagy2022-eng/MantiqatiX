@@ -29,7 +29,7 @@ begin
   if p_business_id is null or p_doctor_id is null or pg_catalog.btrim(p_doctor_id) = '' or p_date_time is null then
     raise exception 'INVALID_APPOINTMENT';
   end if;
-  if p_date_time <= (pg_catalog.extract(epoch from pg_catalog.clock_timestamp()) * 1000)::bigint then
+  if p_date_time <= (extract(epoch from pg_catalog.clock_timestamp()) * 1000)::bigint then
     raise exception 'APPOINTMENT_TIME_MUST_BE_FUTURE';
   end if;
   if pg_catalog.length(coalesce(v_reason,'')) > 500 then
@@ -158,7 +158,7 @@ begin
     if not v_allowed then raise exception 'INVALID_MEDICAL_STATUS_TRANSITION'; end if;
   end if;
 
-  if v_target = 'NO_SHOW' and v_date_time > (pg_catalog.extract(epoch from pg_catalog.now()) * 1000)::bigint then
+  if v_target = 'NO_SHOW' and v_date_time > (extract(epoch from pg_catalog.now()) * 1000)::bigint then
     raise exception 'MEDICAL_APPOINTMENT_NOT_DUE';
   end if;
 
@@ -168,3 +168,29 @@ begin
   return pg_catalog.jsonb_build_object('id', p_appointment_id, 'old_status', v_old, 'status', v_target);
 end;
 $function$;
+
+-- Provider read access is limited to appointments for that provider's own profile.
+drop policy if exists medical_appointments_provider_select on public.medical_appointments;
+create policy medical_appointments_provider_select on public.medical_appointments
+for select to authenticated using (
+  exists (
+    select 1 from public.user_memberships um
+    where um.user_id = (select auth.uid())
+      and um.tenant_id = medical_appointments.tenant_id
+      and um.status = 'ACTIVE'
+      and (um.business_id is null or um.business_id = medical_appointments.business_id)
+      and (
+        upper(um.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')
+        or (
+          upper(um.role) = 'SERVICE_PROVIDER'
+          and exists (
+            select 1 from public.marketing_provider_profiles mp
+            where mp.id::text = medical_appointments.doctor_id
+              and mp.owner_user_id = (select auth.uid())
+              and mp.business_id = medical_appointments.business_id
+              and upper(coalesce(mp.status,'')) = 'ACTIVE'
+          )
+        )
+      )
+  )
+);
