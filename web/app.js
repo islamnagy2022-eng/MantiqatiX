@@ -1262,9 +1262,14 @@ async function erpRpc(fn,args){
  let idempotencyKey=null;
  let fingerprint=null;
  if(createPrefixes[action]){
-  idempotencyKey=['MNTY_ERP_IDEMPOTENCY',user.id,live.tenantId,live.businessId,action].join(':');
+  const idempotencyBase=['MNTY_ERP_IDEMPOTENCY',user.id,live.tenantId,live.businessId,action].join(':');
   const comparable={...requestArgs};delete comparable.p_id;
   fingerprint=JSON.stringify(comparable);
+  // Keep a separate retry slot per payload; creating a second supplier/order must not overwrite
+  // the pending retry identity for the first request.
+  let fingerprintHash=2166136261;
+  for(let i=0;i<fingerprint.length;i++){fingerprintHash^=fingerprint.charCodeAt(i);fingerprintHash=Math.imul(fingerprintHash,16777619);}
+  idempotencyKey=idempotencyBase+':'+(fingerprintHash>>>0).toString(36);
   let stored=null;
   try{stored=JSON.parse(sessionStorage.getItem(idempotencyKey)||'null')}catch(_){}
   stored=stored||live.erpIdempotency?.[idempotencyKey]||null;
