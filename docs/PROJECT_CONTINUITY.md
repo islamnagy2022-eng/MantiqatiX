@@ -619,3 +619,9 @@ This status is intentional and must remain until the open gates above are indepe
 - The first CI attempt caught one stale validator assertion requiring the old “واجهة فقط” label. Fixed in `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`.
 - Exact-head CI on `904ceedf9ee6cb7b1cce833412e16cbd685a32ca`: all six PR workflows passed; Pages deploy was skipped because this is a PR.
 - Next: confirm documentation-only handoff CI, then inventory the public activity discovery/profile/catalog and inquiry fallback paths. Keep any incomplete transaction explicitly labelled; global production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Public discovery status follow-up
+- Public home source now distinguishes listing visibility from operational readiness: published services remain discoverable, and a provider profile without a bound business/booking path remains visible with “الطلب والحجز غير مكتملين حاليًا”.
+- Exact code head `91927e5e859587be5f6f82634b1b0d937d76ca96` passed all six PR workflows, including the booking/payment source contract and PostgreSQL security integrations; Pages deploy was skipped in PR context.
+- Next: verify whether a tenant-safe, authoritative inquiry/contact endpoint already exists before wiring a fallback. Do not invent an endpoint or claim an inquiry was saved. Global release remains **BLOCKED / NOT CERTIFIED**.
