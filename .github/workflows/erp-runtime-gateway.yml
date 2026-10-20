@@ -1,0 +1,51 @@
+name: ERP Runtime Gateway Integration
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/functions/erp-runtime/**"
+      - "supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql"
+      - "supabase/tests/rc461_erp_runtime_gateway_*.sql"
+      - ".github/workflows/erp-runtime-gateway.yml"
+  pull_request:
+    branches: [main, "fix/medical-appointment-state-machine-20261019"]
+    paths:
+      - "supabase/functions/erp-runtime/**"
+      - "supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql"
+      - "supabase/tests/rc461_erp_runtime_gateway_*.sql"
+      - ".github/workflows/erp-runtime-gateway.yml"
+permissions:
+  contents: read
+jobs:
+  erp-runtime-gateway:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc461_erp_gateway_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc461_erp_gateway_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply gateway fixture and migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc461_erp_runtime_gateway_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261020150000_rc461_erp_runtime_service_gateway.sql "$pg_container:/tmp/migration.sql"
+          docker cp supabase/tests/rc461_erp_runtime_gateway_integration.sql "$pg_container:/tmp/test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_erp_gateway_test -v ON_ERROR_STOP=1 -f /tmp/test.sql
