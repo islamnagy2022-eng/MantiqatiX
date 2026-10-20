@@ -50,3 +50,9 @@ Status: Product scope decision recorded; implementation and E2E evidence remain 
 - Label deferred work POST-LAUNCH / NOT A LAUNCH GATE; do not label it DONE.
 - Continue to report all main and sub-items in the Master Production TODO at each continuation checkpoint.
 - No production migrations, grants, RLS changes, payment transactions, or deployments are authorized by this scope decision.
+
+
+## Server-side electronic payment deferral — 2026-10-20
+- Hard gates cover the Paymob order payment-intent Edge Function, digital-page paid order creation/payment intent, subscription payment intent, and MantiGO ride payment intent. The initial-launch deferral is hard-coded true and additionally requires `MNTY_ELECTRONIC_PAYMENTS_ENABLED=true` after post-launch code review; environment configuration alone cannot enable it before launch.
+- RC459 candidate blocks direct authenticated calls to the legacy `create_payment_intent_backend` RPC, closing the bypass around the Edge Function. Existing function grants are preserved; a reviewed post-launch migration must remove this gate when online payments are approved.
+- Marketplace cash checkout is the only payment path currently included in this launch scope. Digital-page paid orders, subscription payments and MantiGO ride payments remain unavailable until their cash path is implemented and tested or online payments are enabled after launch.
