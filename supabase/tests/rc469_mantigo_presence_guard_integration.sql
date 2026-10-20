@@ -5,6 +5,14 @@ begin
   perform set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',true);
   v_failed:=false;
   begin
+    perform public.update_mantigo_captain_presence_backend(auth.uid(),'OFFLINE',30.1,null);
+  exception when others then
+    v_failed:=sqlerrm='INVALID_COORDINATE_PAIR';
+  end;
+  if not v_failed then raise exception 'RC469_TEST_FAILED: partial coordinate update was accepted'; end if;
+
+  v_failed:=false;
+  begin
     perform public.update_mantigo_captain_presence_backend(auth.uid(),'AVAILABLE',null,null);
   exception when others then
     v_failed:=sqlerrm='CAPTAIN_LOCATION_REQUIRED_FOR_AVAILABILITY';
