@@ -1859,3 +1859,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Updated source validator to fail if direct mutations return or if the truthful unavailable states are removed.
 - [ ] Used-item read UI remains blocked by missing authenticated SELECT privilege. Resolve only with a reviewed migration/backend contract and tests; do not grant broad table privileges ad hoc.
 - [ ] Exact-head CI and browser verification pending. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — exact-head CI evidence and sector write-boundary guard — 2026-10-20
+- [x] On source head `5098c0617477fbf494c454233dd56c7bf27ca6d7`, GitHub Actions reported success for web validation/syntax, module professionalization validation, backend-only module boundary, MantiGO privacy integration, and marketing workspace contract.
+- [x] The web validation run's `validate` job succeeded; its `deploy` job was **skipped**, so this run does not establish a deployment.
+- [x] Added a broader source-contract assertion that forbids direct client table INSERT/UPDATE/UPSERT/DELETE calls anywhere in `web/sector-modules.js`, and checks the three intended backend RPCs. Commits: `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64`, regex correction `2731342b75ab0b889b54d679ee520bd12f589940`.
+- [ ] The new assertion and subsequent documentation commits still require their own exact-head CI. No authenticated browser E2E was observed. Release remains **BLOCKED / NOT CERTIFIED**.
