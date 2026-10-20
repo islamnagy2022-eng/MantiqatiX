@@ -41,6 +41,94 @@ serve(async (req) => {
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
   if (authError || !user || user.is_anonymous) return json({ error: "Unauthorized" }, 401)
 
+  if (req.method === "POST" && path === "/api/v1/erp/runtime") {
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_REQUEST" }, 400)
+    const operation = String(body.operation ?? "")
+    const tenantId = String(body.tenantId ?? "").trim()
+    const businessId = String(body.businessId ?? "").trim()
+    const branchId = body.branchId ? String(body.branchId).trim() : ""
+    if (!tenantId || !businessId) return json({ error: "ERP_SCOPE_REQUIRED" }, 400)
+
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,business_id,branch_id").eq("user_id", user.id).eq("tenant_id", tenantId)
+      .eq("business_id", businessId).eq("status", "ACTIVE")
+    if (membershipError) {
+      console.error("[erp-runtime] membership lookup failed", { code: membershipError.code })
+      return json({ error: "ERP_MEMBERSHIP_LOOKUP_FAILED" }, 500)
+    }
+    const roles = ["OWNER","BUSINESS_OWNER","ADMIN","MANAGER","EMPLOYEE","STAFF","ACCOUNTANT","FINANCE_MANAGER","FINANCE"]
+    const membership = (memberships ?? []).find((row) => {
+      const role = String(row.role ?? "").toUpperCase()
+      if (!roles.includes(role)) return false
+      if (!branchId) return !row.branch_id || (["OWNER","BUSINESS_OWNER","ADMIN"].includes(role) && !row.branch_id)
+      return !row.branch_id || String(row.branch_id) === branchId || (["OWNER","BUSINESS_OWNER","ADMIN"].includes(role) && !row.branch_id)
+    })
+    if (!membership) return json({ error: branchId ? "ERP_BRANCH_SCOPE_REQUIRED" : "ERP_MEMBERSHIP_REQUIRED" }, 403)
+    const role = String(membership.role ?? "").toUpperCase()
+    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
+      .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle()
+    if (businessError) return json({ error: "ERP_BUSINESS_LOOKUP_FAILED" }, 500)
+    if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ERP_BUSINESS_SCOPE_INVALID" }, 403)
+    if (branchId) {
+      const { data: branch, error: branchError } = await supabaseAdmin.from("branches")
+        .select("id").eq("id", branchId).eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (branchError) return json({ error: "ERP_BRANCH_LOOKUP_FAILED" }, 500)
+      if (!branch) return json({ error: "ERP_BRANCH_SCOPE_INVALID" }, 403)
+    }
+
+    if (operation === "list") {
+      let warehouseQuery = supabaseAdmin.from("warehouses").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("name", { ascending: true })
+      if (branchId) warehouseQuery = warehouseQuery.eq("branch_id", branchId)
+      const { data: warehousesData, error: warehousesError } = await warehouseQuery
+      if (warehousesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const warehouseIds = (warehousesData ?? []).map((row) => String(row.id))
+      let ordersQuery = supabaseAdmin.from("erp_purchase_orders").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
+      if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId)
+      let receiptsQuery = supabaseAdmin.from("erp_purchase_receipts").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
+      if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"])
+      const [ordersRes, receiptsRes] = await Promise.all([ordersQuery, receiptsQuery])
+      let transfers = []
+      if (!branchId) {
+        const { data, error } = await supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
+        if (error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+        transfers = data ?? []
+      } else if (warehouseIds.length) {
+        const [fromRes, toRes] = await Promise.all([
+          supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).in("from_warehouse_id", warehouseIds).limit(100).order("created_at", { ascending: false }),
+          supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).in("to_warehouse_id", warehouseIds).limit(100).order("created_at", { ascending: false })
+        ])
+        if (fromRes.error || toRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+        transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row) => [String(row.id), row])).values()]
+      }
+      if (ordersRes.error || receiptsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const safeRows = (rows, fields) => (rows ?? []).map((row) => Object.fromEntries(fields.filter((field) => Object.prototype.hasOwnProperty.call(row, field)).map((field) => [field, row[field]])))
+      return json({
+        success: true,
+        orders: safeRows(ordersRes.data, ["id","tenant_id","business_id","branch_id","order_number","supplier_id","total_amount","tax_amount","discount_amount","status","reason","created_at","updated_at"]),
+        receipts: safeRows(receiptsRes.data, ["id","tenant_id","business_id","purchase_order_id","receipt_number","warehouse_id","product_id","received_quantity","unit_cost","status","created_at"]),
+        transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
+        warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"])
+      })
+    }
+
+    if (operation !== "mutate") return json({ error: "INVALID_OPERATION" }, 400)
+    const action = String(body.action ?? "")
+    const allowedOperations = new Set(["create_purchase_order","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer"])
+    if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
+    const args = body.arguments
+    if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
+    const { data, error } = await supabaseAdmin.rpc("erp_runtime_execute", {
+      p_actor_user_id: user.id, p_operation: action, p_arguments: args
+    })
+    if (error) {
+      const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(String(error.message ?? ""))
+      console.error("[erp-runtime] mutation rejected", { action, code: error.code, denied })
+      return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
+    }
+    return json({ success: true, result: data })
+  }
+
   if (req.method === "GET" && path === "/api/v1/brand") {
     const { data: brand, error } = await supabaseAdmin.from("platform_brand_identity")
       .select("brand_key,brand_name_en,brand_name_ar,tagline_ar,primary_colors,typography,logo_usage,icon_sizes,version,status,logo_asset_ref,app_icon_asset_ref")
