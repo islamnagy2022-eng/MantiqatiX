@@ -8,6 +8,7 @@ declare
   business_a constant uuid := '20000000-0000-4000-8000-000000000001';
   business_b constant uuid := '20000000-0000-4000-8000-000000000002';
   n integer;
+  v_result text;
 begin
   insert into public.jobs(id,owner_user_id,tenant_id,business_id,title,company_name,employer_name,category,description,requirements,salary_range,location,job_type,employer_phone,is_active)
   values
@@ -46,14 +47,16 @@ begin
   if exists(select 1 from public.list_jobs_backend('tenant-a',business_a) where title='Active B') then
     raise exception 'JOB_TENANT_BUSINESS_FILTER_FAILED';
   end if;
-  if exists(select 1 from public.list_jobs_backend(null,null) where to_jsonb(list_jobs_backend.*) ? 'employer_phone') then
+  select pg_get_function_result(to_regprocedure('public.list_jobs_backend(character varying,uuid)')) into v_result;
+  if v_result ilike '%employer_phone%' then
     raise exception 'JOB_RPC_EXPOSED_EMPLOYER_PHONE';
   end if;
   select count(*) into n from public.list_job_applications_backend(null,null);
   if n <> 1 or not exists(select 1 from public.list_job_applications_backend(null,null) where applicant_name='Applicant B') then
     raise exception 'JOB_OWNER_APPLICATION_SCOPE_FAILED';
   end if;
-  if exists(select 1 from public.list_job_applications_backend(null,null) where to_jsonb(list_job_applications_backend.*) ? 'applicant_phone' or to_jsonb(list_job_applications_backend.*) ? 'cv_summary_text') then
+  select pg_get_function_result(to_regprocedure('public.list_job_applications_backend(character varying,uuid)')) into v_result;
+  if v_result ilike '%applicant_phone%' or v_result ilike '%cv_summary_text%' then
     raise exception 'APPLICATION_RPC_EXPOSED_SENSITIVE_FIELDS';
   end if;
 
