@@ -1352,12 +1352,16 @@ async function editERPSupplier(id){
  const name=window.prompt('اسم المورد بالعربية',row.name_ar||'');if(name==null)return;
  if(!name.trim())return showToast('اسم المورد مطلوب','error');
  const code=window.prompt('كود المورد (اتركه فارغًا لإزالته)',row.supplier_code||'');if(code==null)return;
+ const contact=window.prompt('اسم مسؤول التواصل',row.contact_name||'');if(contact==null)return;
  const phone=window.prompt('رقم الهاتف',row.phone||'');if(phone==null)return;
  const email=window.prompt('البريد الإلكتروني',row.email||'');if(email==null)return;
+ const taxNumber=window.prompt('الرقم الضريبي',row.tax_number||'');if(taxNumber==null)return;
+ const terms=window.prompt('شروط السداد',row.payment_terms||'');if(terms==null)return;
+ const notes=window.prompt('ملاحظات المورد',row.notes||'');if(notes==null)return;
  const status=window.prompt('الحالة: ACTIVE أو INACTIVE أو ARCHIVED',row.status||'ACTIVE');if(status==null)return;
  const normalizedStatus=status.trim().toUpperCase();
  if(!['ACTIVE','INACTIVE','ARCHIVED'].includes(normalizedStatus))return showToast('حالة المورد غير صحيحة','error');
- return erpRpc('update_erp_supplier_backend',{p_id:String(row.id),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:row.branch_id||null,p_name_ar:name.trim(),p_supplier_code:code.trim()||null,p_phone:phone.trim()||null,p_email:email.trim()||null,p_status:normalizedStatus});
+ return erpRpc('update_erp_supplier_backend',{p_id:String(row.id),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:row.branch_id||null,p_name_ar:name.trim(),p_supplier_code:code.trim()||null,p_contact_name:contact.trim()||null,p_phone:phone.trim()||null,p_email:email.trim()||null,p_tax_number:taxNumber.trim()||null,p_payment_terms:terms.trim()||null,p_notes:notes.trim()||null,p_status:normalizedStatus});
 }
 async function createPurchaseOrder(){const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;const supplierId=chooseERPRecord('erp_suppliers','المورد',r=>(r.name_ar||r.name_en||r.supplier_code||'مورد')+' — '+(r.supplier_code||r.phone||''));if(!supplierId)return;const total=Number(window.prompt('الإجمالي','0'));if(!Number.isFinite(total)||total<0)return showToast('قيمة إجمالي غير صحيحة','error');const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');return erpRpc('create_purchase_order_backend',{p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId,p_total_amount:total,p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null})}
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
