@@ -653,3 +653,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Generic module blueprint UI no longer asserts RLS/RBAC are enforced without module-specific evidence. It now marks them NOT VERIFIED and directs reviewers to verify server contracts and role tests before trusting sensitive operations.
 - The blueprint source-contract validator now guards this caveat and rejects the former ENFORCED badge wording. Eight source-pattern checks matched against the latest module blueprint; this is not a validator execution or CI result.
 - Next: run exact-head CI and authenticated role/tenant E2E; only then map a module to real read/write workflows. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Sector module query errors and retry
+
+- Sector workspace source now distinguishes query failures from genuine empty datasets, reports failed sources, and offers an accessible retry action. A duplicate job application handler was removed.
+- The existing sector-rendering validator now checks these contracts and duplicate handler count; it is already called from the Pages workflow. Changes: `8e5e84f1`, `faba79d2`, `eff9d6fa`.
+- Verification still required: run the validator and syntax checks, confirm exact-head CI, then exercise authenticated sector flows and tenant/role isolation in browser E2E. Release remains **BLOCKED / NOT CERTIFIED**.
