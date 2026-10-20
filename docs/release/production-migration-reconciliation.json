@@ -72,7 +72,7 @@
   "current_candidate_validation": {
     "checked_at": "2026-10-21",
     "candidate_branch": "feat/cash-only-launch-flow-rc458-20261020",
-    "candidate_head": "b552240fb56d994ab3329eb8cfb9de57ed0596f7",
+    "candidate_head": "f2d56f66d48881b6b9a07a540a7762815c18a71b",
     "pull_request": 307,
     "pull_request_state": "open",
     "pull_request_draft": true,
@@ -86,9 +86,10 @@
     },
     "rc469_presence_guard_postgres": "NOT VERIFIED",
     "chronological_replay_rc469": "NOT VERIFIED",
-    "source_validator_rc469_contract": "ADDED; execution result not independently verified",
+    "source_validator_rc469_contract": "UPDATED; execution result not independently verified",
     "production_database_mutated": false,
     "candidate_code_reviewed_through": "9f15434a3df391fbbcce848d2a87b333cf798a88",
-    "note": "The current PR head differs from the latest observed queued workflow commit. Do not infer CI success or failure for the current head from an earlier run. This evidence update does not claim current-head validation."
+    "note": "Candidate code has changed since previously observed queued CI. No prior run is treated as exact-head evidence; rerun/observe CI for this candidate before release.",
+    "rc469_follow_up": "Presence audit now records retained coordinates from the updated row; regression assertions verify OFFLINE retains coordinates and audit reflects stored state."
   }
 }
