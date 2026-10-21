@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const source = fs.readFileSync("supabase/functions/business-branch-admin/index.ts", "utf8");
+const coordinateParser = fs.readFileSync("supabase/functions/_shared/branch-coordinates.mjs", "utf8");
 
 assert.doesNotMatch(source, /\\n/, "source must not contain literal backslash-n sequences outside strings");
 assert.match(source, /if\(me\)return out\(\{error:"MEMBERSHIP_READ_FAILED"\},500\)/, "membership query errors must fail closed");
@@ -17,8 +18,8 @@ assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}/, "tenant and business IDs
 assert.match(source, /organization_id:business\.organization_id\?\?null/, "branch organization must be derived from the authorized business record");
 assert.doesNotMatch(source, /organization_id:body\.organizationId/, "caller must not override branch organization scope");
 assert.match(source, /phone\.length>64\|\|address\.length>500/, "branch contact fields must be length-bounded");
-assert.match(source, /latitude < -90\|\|latitude > 90/, "latitude must be range-validated");
-assert.match(source, /longitude < -180\|\|longitude > 180/, "longitude must be range-validated");
+assert.match(coordinateParser, /latitude < -90\|\|latitude > 90/, "shared coordinate parser must range-validate latitude");
+assert.match(coordinateParser, /longitude < -180\|\|longitude > 180/, "shared coordinate parser must range-validate longitude");
 assert.match(source, /INVALID_COORDINATES/, "invalid or partial coordinates must be rejected");
 assert.ok(source.includes('import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs"'), "branch endpoint must use the shared tested coordinate parser");
 assert.ok(source.includes("const coordinates=parseBranchCoordinates(input.latitude,input.longitude)"), "endpoint must use tested pair and range validation");
