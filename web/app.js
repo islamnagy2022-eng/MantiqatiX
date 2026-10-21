@@ -499,7 +499,7 @@ function globalSearchText(row,fields){return fields.map(k=>row?.[k]).filter(v=>v
 async function globalSearch(queryText){
  const rawQuery=String(queryText||'').trim();
  // Prevent user input from changing PostgREST .or() filter grammar.
- const q=rawQuery.replace(/[^\\p{L}\\p{N}\\s_-]/gu,' ').replace(/\\s+/g,' ').trim();
+ const q=rawQuery.replace(/[^\p{L}\p{N}\s_-]/gu,' ').replace(/\s+/g,' ').trim();
  if(q.length<2)return [];
  const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
  const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
