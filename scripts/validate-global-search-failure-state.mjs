@@ -15,4 +15,6 @@ assert.match(source,/try\{const results=await globalSearch\(value\);if\(seq!==gl
 assert.match(source,/catch\(_\)\{if\(seq!==globalSearchSeq\)return;gso\.innerHTML=.*تعذر إكمال البحث الآن\. تحقق من الاتصال ثم حاول مرة أخرى/,"unexpected global-search failures must render safe actionable feedback instead of leaving the loading state");
 assert.match(source,/role="status" aria-live="polite">جاري البحث في البيانات المتاحة/,"search loading state must be announced accessibly");
 assert.match(source,/globalSearchSeq\+\+;clearTimeout\(globalSearchTimer\);gsi\.value='';gso\.innerHTML='';gso\.classList\.remove\('is-open'\)/,"Escape must cancel pending debounce and invalidate in-flight results");
+assert.match(source,/const rawQuery=String\(queryText\|\|\x27\x27\)\.trim\(\)/,"search must normalize raw input before building filters");
+assert.match(source,/rawQuery\.replace\(\/\[\^\\\\p\{L\}\\\\p\{N\}\\\\s_-\]\/gu,\x27 \x27\)/,"search must strip PostgREST filter grammar metacharacters from user input");
 console.log("Global search failure-state contract PASS: empty results are distinct from partial/unavailable sources.");
