@@ -27,4 +27,17 @@ for(const [needle,label] of required){
 }
 if(!home.includes('id="mx-sector-count"')) throw new Error("FAIL: live sector count mount missing");
 if(!home.includes("dynamicTaxonomy(services,providers).length")) throw new Error("FAIL: sector KPI must use canonical/live taxonomy count");
+
+const searchRecovery=[
+  [home.includes('id="mx-home-search-status" class="mx-home-search-status" role="status" aria-live="polite" hidden'),"homepage catalog search must expose an accessible status region"],
+  [home.includes("const showHomeSearchStatus=(message,showRetry=false)=>"),"homepage search must have a reusable safe status renderer"],
+  [home.includes("retry.textContent='إعادة المحاولة'"),"homepage search failures must expose a retry action"],
+  [home.includes("const servicesFailed=servicesRes.status!=='fulfilled'||Boolean(servicesRes.value?.error)"),"homepage catalog must track service-source failure separately"],
+  [home.includes("const providersFailed=providersRes.status!=='fulfilled'||Boolean(providersRes.value?.error)"),"homepage catalog must track provider-source failure separately"],
+  [home.includes("تعذر تحميل الخدمات؛ تظهر نتائج مقدمي الخدمات المتاحة فقط"),"homepage must preserve available provider results when services fail"],
+  [home.includes("تعذر تحميل مقدمي الخدمات؛ تظهر نتائج الخدمات المتاحة فقط"),"homepage must preserve available service results when providers fail"],
+  [css.includes(".mx-home-search-status[hidden]{display:none}")&&css.includes("@media(max-width:560px){.mx-home-search-status"),"homepage search recovery must remain responsive and honor hidden state"]
+];
+for(const [ok,message] of searchRecovery){if(!ok)throw new Error("FAIL: "+message)}
+
 console.log("PASS: homepage production-content contract contains no fabricated offers/reviews/partners/map and keeps live-data boundaries.");
