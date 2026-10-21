@@ -19,7 +19,7 @@ assert.match(source,/const rawQuery=String\(queryText\|\|\x27\x27\)\.trim\(\)/,"
 assert.match(source,/rawQuery\.replace\(\/\[\^\\p\{L\}\\p\{N\}\\s_-\]\/gu,' '\)/,"search must strip PostgREST filter grammar metacharacters from user input");
 
 assert.ok(source.includes('id="mx-global-search-input" type="search" inputmode="search" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" value="${esc(query)}" autocomplete="off" aria-controls="mx-global-search-results" aria-expanded="false"'), "global search input must expose controlled listbox results and expanded state");
-assert.ok(source.includes('id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"'), "global search results must expose a listbox");
+assert.ok(source.includes('id="mx-global-search-results" class="mx-global-search-results" role="region" aria-label="البحث العام"'), "global search results must expose a listbox");
 assert.ok(source.includes('role="option" aria-selected="false" class="mx-global-search-hit"'), "search results must expose keyboard-focusable options");
 assert.ok(source.includes("if(e.key==='ArrowDown'&&gso?.classList.contains('is-open'))"), "ArrowDown must move keyboard focus from the combobox to its results");
 assert.ok(source.includes("if(e.key==='ArrowUp'){e.preventDefault();if(index<=0)gsi?.focus();else options[index-1]?.focus()}"), "ArrowUp must move through results and return to the search input");
@@ -29,6 +29,7 @@ assert.ok(source.includes("if(!document.documentElement.dataset.mxGlobalSearchOu
 assert.ok(source.includes("clearTimeout(window.__MNTYGlobalSearchTimer)"), "outside clicks must cancel pending debounce to prevent a hidden search from reopening");
 assert.ok(!source.includes("document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true})"), "outside-click dismissal must not remove itself after the first click");
 
+assert.ok(source.includes('class="mx-global-search-options" role="listbox"'), "status and retry content must remain outside listbox semantics");
 assert.match(source,/data-global-search-retry>إعادة المحاولة/, "fully failed global search must expose a retry control");
 assert.match(source,/data-global-search-retry>إعادة البحث/, "partial global search must expose a retry control");
 assert.match(source,/querySelector\('\[data-global-search-retry\]'\)\?\.addEventListener\('click',runGlobalSearch\)/, "retry controls must invoke the current search without reloading the page");
