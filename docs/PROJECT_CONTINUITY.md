@@ -779,3 +779,9 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Isolated branch `feat/marketing-lead-form-validation-20261021`, based on UI-first PR #309 head `0467aba3d1c60d95e02c4921fec51791bc16dbf6`.
 - Marketing lead form now includes labels, live status, bounded title/description/area lengths, finite nonnegative budget checks, minimum/maximum consistency checks, and a disabled submit button during the existing backend call. Added a static validator to Pages CI.
 - Exact-head CI and browser E2E pending; backend authorization and tenant isolation still require evidence. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Marketing lead form contract alignment
+
+- Reviewed the existing `marketing-lead-create` Edge Function. Client budget validation now rejects `max < min`, matching the server contract even when max is blank and resolves to zero.
+- The form captures requested services, de-duplicates entries, enforces up to 10 entries and 80 characters each, and sends `required_services`. Static validator updated. Exact-head CI and browser E2E pending; release remains BLOCKED / NOT CERTIFIED.
