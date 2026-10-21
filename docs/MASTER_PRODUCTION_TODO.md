@@ -2327,3 +2327,14 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added a bounded streaming reader that stops and cancels the request after 16 KiB even when Content-Length is absent or inaccurate.
 - [ ] Run Deno type checks and isolated integration tests; confirm live Edge Function parity before deployment.
 - **Status:** source and static guard committed; runtime verification pending. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## Branch coordinate input hardening — 2026-10-21
+- [x] Fixed branch creation coordinate parsing so blank strings are treated as absent rather than silently coerced to latitude/longitude zero.
+- [x] Reject unsupported JSON coordinate types and non-finite numeric values; existing range and paired-coordinate validation remains in place.
+- [x] Extracted the parser into `supabase/functions/_shared/branch-coordinates.mjs` so production code and runtime tests exercise the same implementation.
+- [x] Added Node runtime regression tests for missing/blank values, valid numbers/numeric strings, invalid numbers, and unsupported JSON types.
+- [x] Added the runtime test to the branch source-integrity workflow; GitHub Actions run **Business Branch Admin Source Integrity** passed on commit `a8224fcd9feee857cfb49d8a13241386c3d03eef`.
+- [ ] Deno type-check and isolated backend authorization/integration tests remain pending.
+- [ ] Exact-head full workflow suite is still running; verify all final conclusions before updating release status.
+- Release remains **BLOCKED / NOT CERTIFIED**; no production deployment, merge, payment, or live data mutation was performed.
+
