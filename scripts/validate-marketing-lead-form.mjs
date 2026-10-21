@@ -29,6 +29,7 @@ assert.match(form, /تعذر تأكيد إنشاء طلب التسويق/, "unce
 assert.match(source, /loadErrors=\{\}/, "table query failures must be tracked separately from empty results");
 assert.match(source, /loadErrors\[t\]=r\.error/, "failed table reads must preserve failure state");
 assert.match(source, /function marketingTableView\(d,key,content\)/, "marketing tables must share explicit query failure rendering");
+assert.match(source, /function overview\(d\)\{[\s\S]*?loadErrors\[t\]\?[\s\S]*?تعذر التحميل[\s\S]*?لا يمكن عرض عدد السجلات بأمان/, "overview counts must distinguish failed reads from real zero counts");
 assert.match(source, /marketingTableView\(d,'marketing_services'/, "services tab must show load failures");
 assert.match(source, /marketingTableView\(d,'marketing_plans'/, "plans tab must show load failures");
 assert.match(source, /marketingTableView\(d,'marketing_projects'/, "projects tab must show load failures");
