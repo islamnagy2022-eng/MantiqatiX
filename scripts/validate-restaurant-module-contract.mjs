@@ -131,6 +131,18 @@ assert.match(moduleSource, /if\(!errs\.length\)state\.lastLoadedAt=new Date\(\)\
 assert.match(moduleSource, /id="rest-refresh"/,
   'dashboard must expose a manual refresh control');
 
+// Order details are rendered only from the active, already scoped order set.
+assert.match(moduleSource, /function viewOrderDetails\\(order\\)/,
+  'orders workspace must provide a dedicated order detail view');
+assert.match(moduleSource, /state\\.orders\\.some\\(x=>x\\.id===order\\.id\\)/,
+  'order details must only open for an order already present in the scoped loaded set');
+assert.match(moduleSource, /data-order-detail=/,
+  'order list must expose an explicit order detail action');
+assert.match(moduleSource, /order\\.items_json/,
+  'order detail view must display item details when present in the loaded record');
+assert.match(moduleSource, /ليست إثباتًا على تحصيل المبلغ أو تسويته ماليًا/,
+  'order details must not imply that recorded totals are proof of payment settlement');
+
 // Order search/filter must stay within the already scoped and bounded client result set.
 assert.match(moduleSource, /const filtered=state\.orders\.filter\(x=>\{/,
   'order filters must operate on the loaded scoped order set');
