@@ -132,6 +132,24 @@ function menuView(){
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
+function orderAmount(value,currency){
+ const n=Number(value);
+ return (Number.isFinite(n)?n:0).toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+esc(currency||'EGP');
+}
+function orderSnapshotView(order){
+ const currency=order.currency||'EGP';
+ let items=order.items_json;
+ if(typeof items==='string'){
+  try{items=JSON.parse(items)}catch(e){items=null}
+ }
+ if(!Array.isArray(items))return '<p class="muted">تعذر عرض لقطة الأصناف المحفوظة بصيغة منظمة.</p>';
+ const rows=items.map(item=>{
+  const name=item?.name_ar||item?.name||item?.catalog_item_id||item?.legacy_ref||'صنف';
+  return '<tr><td>'+esc(name)+'</td><td>'+esc(item?.quantity??'—')+'</td><td>'+orderAmount(item?.unit_price,currency)+'</td><td>'+orderAmount(item?.option_total,currency)+'</td><td>'+orderAmount(item?.line_subtotal,currency)+'</td><td>'+orderAmount(item?.line_tax,currency)+'</td></tr>';
+ }).join('');
+ return '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإضافات</th><th>الإجمالي قبل الضريبة</th><th>الضريبة</th></tr></thead><tbody>'+(rows||'<tr><td colspan="6">لا توجد أصناف في لقطة الطلب.</td></tr>')+'</tbody></table></div>'+
+ '<dl><dt>الإجمالي الفرعي</dt><dd>'+orderAmount(order.subtotal,currency)+'</dd><dt>الخصم</dt><dd>'+orderAmount(order.discount,currency)+'</dd><dt>الضريبة</dt><dd>'+orderAmount(order.tax,currency)+'</dd><dt>التوصيل</dt><dd>'+orderAmount(order.delivery_fee,currency)+'</dd><dt><b>الإجمالي النهائي المحفوظ</b></dt><dd><b>'+orderAmount(order.total_amount??order.total,currency)+'</b></dd></dl>';
+}
 function ordersView(){
   // Mirror the canonical server transition graph so the UI cannot invite invalid state jumps.
   const transitions={
@@ -149,7 +167,7 @@ function ordersView(){
     ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
     :esc(current);
    const detailId='rest-order-detail-'+String(x.id).replace(/[^a-zA-Z0-9_-]/g,'');
-   const details='<div><b>الهاتف:</b> '+esc(x.customer_phone||'غير مسجل')+'</div><div><b>عنوان التوصيل:</b> '+esc(x.delivery_address||'غير مسجل')+'</div><div><b>ملاحظات:</b> '+esc(x.notes||'لا توجد')+'</div><div><b>تفاصيل الأصناف / لقطة التسعير:</b><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(typeof x.items_json==='string'?x.items_json:JSON.stringify(x.items_json||[],null,2))+'</pre></div>';
+   const details='<div><b>الهاتف:</b> '+esc(x.customer_phone||'غير مسجل')+'</div><div><b>عنوان التوصيل:</b> '+esc(x.delivery_address||'غير مسجل')+'</div><div><b>ملاحظات:</b> '+esc(x.notes||'لا توجد')+'</div><h4>الأصناف والتسعير المحفوظ</h4>'+orderSnapshotView(x);
    return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td><td><button class="linkbtn" type="button" data-order-details="'+esc(detailId)+'" aria-expanded="false">التفاصيل</button></td></tr><tr id="'+esc(detailId)+'" hidden><td colspan="7">'+details+'</td></tr>';
   }).join(''):'<tr><td colspan="7">لا توجد طلبات فعلية بعد.</td></tr>')+
   '</tbody></table></div>');
