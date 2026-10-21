@@ -4,6 +4,7 @@ declare
   v_result jsonb;
   v_count integer;
   v_status text;
+  v_config text;
 begin
   if has_function_privilege('anon','public.process_verified_mantigo_paymob_event(text,text,text,boolean,numeric,text,text,jsonb)','EXECUTE') then
     raise exception 'anon must not execute the atomic payment RPC';
@@ -13,6 +14,13 @@ begin
   end if;
   if not has_function_privilege('service_role','public.process_verified_mantigo_paymob_event(text,text,text,boolean,numeric,text,text,jsonb)','EXECUTE') then
     raise exception 'service_role must execute the atomic payment RPC';
+  end if;
+
+  select pg_catalog.array_to_string(p.proconfig, ',') into v_config
+  from pg_catalog.pg_proc p
+  where p.oid='public.process_verified_mantigo_paymob_event(text,text,text,boolean,numeric,text,text,jsonb)'::regprocedure;
+  if v_config not like '%search_path=pg_catalog, pg_temp%' then
+    raise exception 'atomic payment RPC must use a trusted search_path, got %',v_config;
   end if;
 
   insert into public.mantigo_financial_ledger(id,provider,gross_amount,currency,payment_status) values
