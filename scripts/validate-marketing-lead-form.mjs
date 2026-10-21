@@ -70,4 +70,5 @@ assert.match(edge, /typeof body\.title === "string"[\s\S]*?typeof body\.descript
 assert.match(edge, /rawRequiredServices\.some\(x => typeof x !== "string"\)/, "lead API must reject non-string requested service entries");
 assert.match(edge, /typeof budgetMin !== "number" \|\| typeof budgetMax !== "number"/, "lead API must reject string-coerced budget values");
 assert.match(edge, /async function readLimitedBody\(req: Request, limit: number\)[\s\S]*?totalBytes \+= value\.byteLength[\s\S]*?if \(totalBytes > limit\)[\s\S]*?await reader\.cancel\(\)[\s\S]*?return null/, "lead API must stop reading oversized request streams before allocating the full body");
+assert.match(edge, /try \{\s*chunkResult = await reader\.read\(\);\s*\} catch \{[\s\S]*?await reader\.cancel\(\)[\s\S]*?return new Uint8Array\(\);/, "lead API must handle request stream read failures without an unhandled exception");
 console.log("Marketing lead form validation contract PASS.");
