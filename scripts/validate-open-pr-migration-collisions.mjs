@@ -187,10 +187,43 @@ try {
   const all = [];
   for (const pr of openPulls.nodes) {
     if (pr.baseRefName !== current.base.ref || pr.baseRepository?.nameWithOwner?.toLowerCase() !== current.base.repo.full_name.toLowerCase()) continue;
-    if (pr.files?.pageInfo?.hasNextPage) {
-      throw new Error("Migration audit cannot safely enumerate all changed files for PR #" + pr.number + "; refusing to pass incomplete results.");
+    const fileNodes = [...(pr.files?.nodes || [])];
+    let filePage = pr.files;
+    while (filePage?.pageInfo?.hasNextPage) {
+      const pageQuery = `
+        query MigrationCollisionFilePage($owner: String!, $name: String!, $number: Int!, $cursor: String!) {
+          repository(owner: $owner, name: $name) {
+            pullRequest(number: $number) {
+              files(first: 100, after: $cursor) {
+                pageInfo { hasNextPage endCursor }
+                nodes { path changeType }
+              }
+            }
+          }
+        }`;
+      const pageResponse = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+          "X-GitHub-Api-Version": "2022-11-28"
+        },
+        body: JSON.stringify({
+          query: pageQuery,
+          variables: { owner, name: repoName, number: pr.number, cursor: filePage.pageInfo.endCursor }
+        })
+      });
+      const pageBody = await pageResponse.json().catch(() => ({}));
+      if (!pageResponse.ok || pageBody.errors?.length) {
+        const detail = (pageBody.errors || []).map(item => item.message).join("; ");
+        throw new Error("Could not enumerate changed files for PR #" + pr.number + " (" + pageResponse.status + ")" + (detail ? ": " + detail : ""));
+      }
+      filePage = pageBody.data?.repository?.pullRequest?.files;
+      if (!filePage) throw new Error("GitHub returned no changed-file page for PR #" + pr.number + "; refusing to pass incomplete results.");
+      fileNodes.push(...(filePage.nodes || []));
     }
-    const files = (pr.files?.nodes || []).map(file => ({
+    const files = fileNodes.map(file => ({
       filename: file.path,
       status: file.changeType === "DELETED" ? "removed" : file.changeType.toLowerCase()
     }));
