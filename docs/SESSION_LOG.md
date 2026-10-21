@@ -392,3 +392,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 strict input follow-up: the marketing lead API now rejects non-string `service_area` values instead of treating them as blank. Added a source-contract assertion and updated the production TODO/continuity notes. The Node validator and CI still need actual execution at the latest head.
+
+
+- 2026-10-21 user feedback reliability: added safe Arabic guidance for invalid title, description, and service-area API responses; extended source-contract assertions. The Node validator/CI have not yet been observed running at the latest head.
