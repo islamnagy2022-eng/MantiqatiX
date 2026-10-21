@@ -249,7 +249,9 @@ function addInventory(existing){
 }
 async function addInventoryMovement(existing){
  if(!existing||!canOperate('OPERATIONS','update'))return;
- modal('تسجيل حركة مخزون','<div class="notice">تحديث الرصيد يتم ذريًا عبر دالة خادمية ويسجل حركة غير قابلة للتعديل من المتصفح.</div><label class="field"><span>نوع الحركة</span><select id="stock-movement-type"><option value="RECEIPT">وارد / توريد</option><option value="ISSUE">صرف</option><option value="OPENING_BALANCE">رصيد افتتاحي</option></select></label>'+field('stock-movement-qty','الكمية','1','number','min="0.001" max="1000000" step="0.001" required')+field('stock-movement-cost','تكلفة الوحدة بالجنيه',existing.unit_cost_egp||0,'number','min="0" max="100000000" step="0.01" required')+'<label class="field"><span>ملاحظات / مرجع</span><textarea id="stock-movement-notes" rows="3" maxlength="1000"></textarea></label><button class="btn btn-primary" data-save>تسجيل الحركة</button>',async o=>{
+ const role=String(state.membership?.role||'').toUpperCase();
+ const openingOption=['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'].includes(role)?'<option value="OPENING_BALANCE">رصيد افتتاحي</option>':'';
+ modal('تسجيل حركة مخزون','<div class="notice">تحديث الرصيد يتم ذريًا عبر دالة خادمية ويسجل حركة غير قابلة للتعديل من المتصفح.</div><label class="field"><span>نوع الحركة</span><select id="stock-movement-type"><option value="RECEIPT">وارد / توريد</option><option value="ISSUE">صرف</option>'+openingOption+'</select></label>'+field('stock-movement-qty','الكمية','1','number','min="0.001" max="1000000" step="0.001" required')+field('stock-movement-cost','تكلفة الوحدة بالجنيه',existing.unit_cost_egp||0,'number','min="0" max="100000000" step="0.01" required')+'<label class="field"><span>ملاحظات / مرجع</span><textarea id="stock-movement-notes" rows="3" maxlength="1000"></textarea></label><button class="btn btn-primary" data-save>تسجيل الحركة</button>',async o=>{
   const s=scope();const type=o.querySelector('#stock-movement-type').value;
   const quantity=Number(o.querySelector('#stock-movement-qty').value);
   const unitCost=Number(o.querySelector('#stock-movement-cost').value);
