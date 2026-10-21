@@ -199,7 +199,7 @@ assert.match(source, /visibleKeys=keys\.slice\(0,8\)/, "generic module tables mu
 assert.match(source, /visibleKeys\.map\(k=>'<th>'/, "generic table headers must match safe displayed columns");
 
 // Accessibility contracts for shared module navigation, tables, and loading feedback.
-assert.match(source, /aria-pressed=.*data-op-tab/, "module navigation buttons must expose their selected state");
+assert.match(source, /data-op-tab=.*aria-pressed/, "module navigation buttons must expose their selected state");
 assert.match(source, /<th scope="col">/, "data tables must mark column headers semantically");
 assert.match(source, /class="table-wrap" role="region" aria-label="جدول البيانات" tabindex="0"/, "data tables must be keyboard-scrollable and labelled");
 assert.match(source, /role="status" aria-live="polite">جاري تحميل البيانات الفعلية/, "loading feedback must remain available to assistive technology");
