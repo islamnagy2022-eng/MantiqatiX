@@ -236,6 +236,14 @@ assert.match(bidSubmit, /setStatus\('أكمل موديل المركبة ورقم
 assert.match(source, /async function init\(\)\{const s=await sb\.auth\.getSession\(\)/, "module initialization must be async before awaiting the auth session");
 assert.match(source, /function listenOnce\(element,key,event,handler\)/, "workspace event binding must have a one-time listener helper");
 assert.match(source, /opSaveLeadBound/, "marketing lead save must be bound at most once per rendered control");
+
+assert.match(source, /id="mlTitleCount" class="muted">0 \/ 160/, "marketing lead title must expose its character limit");
+assert.match(source, /id="mlAreaCount" class="muted">0 \/ 120/, "marketing lead service area must expose its character limit");
+assert.match(source, /id="mlServicesCount" class="muted">0 \/ 800/, "marketing lead services must expose their character limit");
+assert.match(source, /id="mlDescCount" class="muted">0 \/ 5000/, "marketing lead description must expose its character limit");
+assert.match(source, /const updateLeadCounters=\(\)=>\{[\s\S]*field\.value\.length[\s\S]*counter\.textContent/, "marketing lead character counters must update from actual input values");
+assert.match(source, /opCounterBound!=='true'/, "marketing lead counter listeners must not accumulate across renders");
+
 assert.match(source, /opLeadSearchBound/, "marketing lead search must not accumulate duplicate input handlers");
 assert.match(source, /liveSearchBound==='true'/, "live table search must guard against duplicate event handlers");
 assert.match(source, /liveClearBound==='true'/, "live table clear controls must guard against duplicate event handlers");
