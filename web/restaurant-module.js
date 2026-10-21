@@ -186,10 +186,10 @@ function inventoryView(){
  (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">بيانات</button> <button class="linkbtn" data-inv-move="'+esc(x.id)+'">حركة</button>':'—')+' <button class="linkbtn" data-inv-history="'+esc(x.id)+'">السجل</button></td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
-function askOrderDetails(items){
+function askOrderDetails(items, catalogOptions=[]){
  return new Promise(resolve=>{
-  const options=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name||x.title||x.id)+'</option>').join('');
-  modal('تفاصيل الطلب','<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" step="1" required')+field('rest-customer','اسم العميل','', 'text','maxlength="120" required autocomplete="name"')+field('rest-phone','رقم الهاتف','', 'tel','maxlength="20" autocomplete="tel"')+field('rest-address','عنوان التوصيل','')+'<label class="field"><span>ملاحظات الطلب</span><textarea id="rest-notes" rows="3" maxlength="1000"></textarea></label><div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
+  const itemChoices=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name||x.title||x.id)+'</option>').join('');
+  modal('تفاصيل الطلب','<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+itemChoices+'</select></label><div id="rest-item-options" aria-live="polite"></div>'+field('rest-qty','الكمية','1','number','min="1" step="1" required')+field('rest-customer','اسم العميل','', 'text','maxlength="120" required autocomplete="name"')+field('rest-phone','رقم الهاتف','', 'tel','maxlength="20" autocomplete="tel"')+field('rest-address','عنوان التوصيل','')+'<label class="field"><span>ملاحظات الطلب</span><textarea id="rest-notes" rows="3" maxlength="1000"></textarea></label><p class="muted">السعر النهائي والضريبة يعتمدهما الخادم من الكتالوج النشط وليس من المتصفح.</p><div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
    const itemId=o.querySelector('#rest-item')?.value;
    const quantity=Number(o.querySelector('#rest-qty')?.value);
    const item=items.find(x=>String(x.id)===String(itemId));
@@ -199,10 +199,15 @@ function askOrderDetails(items){
    const customerPhone=o.querySelector('#rest-phone')?.value.trim()||'';
    const deliveryAddress=o.querySelector('#rest-address')?.value.trim()||'';
    const notes=o.querySelector('#rest-notes')?.value.trim()||'';
+   const selectedOptionIds=[...o.querySelectorAll('[data-rest-option]:checked')].map(input=>String(input.value));
+   if(new Set(selectedOptionIds).size!==selectedOptionIds.length)return notify('لا يمكن اختيار الإضافة نفسها أكثر من مرة.','error');
    if(!customerName||customerName.length>120){notify('أدخل اسم العميل بحد أقصى 120 حرفًا.','error');return;}
    if(customerPhone&&!/^[+0-9()\-\s]{7,20}$/.test(customerPhone)){notify('أدخل رقم هاتف صحيحًا.','error');return;}
-   o._close();resolve({item,quantity,customerName,customerPhone,deliveryAddress,notes});
+   o._close();resolve({item,quantity,selectedOptionIds,customerName,customerPhone,deliveryAddress,notes});
   },()=>resolve(null));
+  const itemSelect=document.getElementById('rest-item');
+  const renderOptions=()=>{const target=document.getElementById('rest-item-options');if(!target)return;const rows=catalogOptions.filter(option=>String(option.catalog_item_id)===String(itemSelect?.value));target.innerHTML=rows.length?'<fieldset class="card"><legend>الإضافات والخيارات (اختياري)</legend>'+rows.map(option=>'<label class="field"><span><input type="checkbox" data-rest-option value="'+esc(option.id)+'"> '+esc(option.name_ar||option.name_en||'إضافة')+' · '+(Number(option.price_delta)>=0?'+':'')+money(option.price_delta)+'</span></label>').join('')+'</fieldset>':'<p class="muted">لا توجد إضافات متاحة لهذا الصنف.</p>';};
+  itemSelect?.addEventListener('change',renderOptions);renderOptions();
  });
 }
 async function createRestaurantOrder(){
@@ -216,9 +221,9 @@ async function createRestaurantOrder(){
      const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
      const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
      if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-     const selection=await askOrderDetails(items);
+     const selection=await askOrderDetails(items,catalog?.options||[]);
      if(!selection)return;
-     payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+     payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:selection.selectedOptionIds}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
      state.pendingOrderPayload=payload;
    }else if(payload.tenantId!==m.tenant_id||payload.businessId!==m.business_id||payload.branchId!==m.branch_id){
      return notify('يوجد طلب غير مكتمل في نطاق آخر. ارجع إلى المؤسسة والفرع الأصليين لاستكماله.','error');
