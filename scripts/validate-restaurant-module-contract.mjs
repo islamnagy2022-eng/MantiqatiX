@@ -151,4 +151,11 @@ assert.match(moduleSource, /data-order-search-value=.*?x\.customer_phone.*?x\.br
 assert.match(moduleSource, /orderSearch\?\.addEventListener\('input',filterOrders\).*?orderStatusFilter\?\.addEventListener\('change',filterOrders\)/s, 'order filters must update the visible list without re-querying or changing server scope');
 assert.match(moduleSource, /if\(!visible\)\{detail\.hidden=true;const button=row\.querySelector\('\[data-order-details\]'\)/, 'hiding a filtered order must also close its detail disclosure');
 
+assert.match(moduleSource, /id="rest-order-date-from" type="date"/, 'orders view must provide a start date filter');
+assert.match(moduleSource, /id="rest-order-date-to" type="date"/, 'orders view must provide an end date filter');
+assert.match(moduleSource, /data-order-date-value=.*?x\.created_at/s, 'order rows must carry their saved creation date for local date filtering');
+assert.match(moduleSource, /from>to.*?setCustomValidity\('تاريخ النهاية يجب ألا يسبق تاريخ البداية'\)/s, 'date range validation must reject an end date before the start date');
+assert.match(moduleSource, /matchesFrom=!from\|\|!!date&&date>=from.*?matchesTo=!to\|\|!!date&&date<=to/s, 'date filtering must compare normalized ISO calendar dates');
+assert.match(moduleSource, /النتائج: '\+visibleCount\+' من '\+state\.orders\.length/s, 'order filters must report the number of visible results against the loaded set');
+
 console.log('Restaurant module contract PASS');
