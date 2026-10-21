@@ -772,3 +772,81 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - Job listing and application tabs now use narrow server-authorized RPCs instead of direct table SELECT. Listings omit employer phone and map `employer_name` to `company_name`; applications are visible only to the applicant or owner of the job and omit applicant phone/CV summary.
 - Added migration `20261020233000_jobs_directory_backend_v1.sql`, disposable PostgreSQL fixture/tests, dedicated CI workflow, and validator guards. Source-only until migration and tests are verified. CI/browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 continuation — marketing lead form guardrails
+
+- Isolated branch `feat/marketing-lead-form-validation-20261021`, based on UI-first PR #309 head `0467aba3d1c60d95e02c4921fec51791bc16dbf6`.
+- Marketing lead form now includes labels, live status, bounded title/description/area lengths, finite nonnegative budget checks, minimum/maximum consistency checks, and a disabled submit button during the existing backend call. Added a static validator to Pages CI.
+- Exact-head CI and browser E2E pending; backend authorization and tenant isolation still require evidence. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Marketing lead form contract alignment
+
+- Reviewed the existing `marketing-lead-create` Edge Function. Client budget validation now rejects `max < min`, matching the server contract even when max is blank and resolves to zero.
+- The form captures requested services, de-duplicates entries, enforces up to 10 entries and 80 characters each, and sends `required_services`. Static validator updated. Exact-head CI and browser E2E pending; release remains BLOCKED / NOT CERTIFIED.
+
+- Additional reliability guard: the UI now reports success only when the backend explicitly returns `ok: true` and a created lead ID. Unknown/malformed responses show a safe uncertainty message, and raw backend error text is no longer exposed to the user. Static source-contract checks were extended; CI/browser E2E still unverified.
+
+- Marketing list reliability: query failures for `marketing_leads` are now tracked separately and rendered as an explicit alert instead of showing an empty-state table that could be mistaken for zero requests. Static validator updated; CI/browser E2E remain unverified.
+
+- Lead-list presentation: the marketing requests table now shows requested services, the full min–max budget range, service area, status, and a localized request date. Static source-contract checks cover the added fields. Exact-head CI and browser E2E remain unverified.
+
+- Business selection follow-up: the marketing lead form now reads the authenticated user's active memberships (bounded to the backend's 50-row limit) and shows an explicit selector when multiple business IDs are available. The chosen ID is sent to the existing Edge Function, which remains responsible for authorization. Static contract assertions added; CI and browser E2E remain unverified.
+
+- Marketing lead search: added a bounded search input that filters the already-loaded, permission-scoped lead list by title, description, requested services, service area, status, and source; it does not issue broader queries or bypass backend scope. Static validator assertions added; exact-head CI and browser E2E remain pending.
+
+- Marketing workspace read reliability: provider, service, project, plan, subscription, participant, and commission tabs now display an explicit permission/connection error when their query fails, instead of silently rendering an empty table. Added source-contract assertions. Exact-head CI and browser E2E remain NOT VERIFIED.
+
+- Marketing membership safety: membership lookup failures are now explicit, and creating a marketing lead is disabled until the account's active memberships can be verified. The submit handler repeats this guard; source-contract assertions cover the failure path. Live authorization and browser E2E remain NOT VERIFIED.
+
+- Shared module overview reliability: overview cards now show an explicit `تعذر التحميل` state when a table read failed, rather than displaying a misleading `0` record count. This applies to module overviews using the shared `overview(d)` renderer; static source-contract coverage was added. Exact-head CI and browser verification remain NOT VERIFIED.
+
+- Shared module overview retry: when any overview table read fails, the overview now shows a clear Arabic warning and a retry action that reloads the current module. Source-contract checks cover the control and its event handler. Exact-head CI/browser tests remain NOT VERIFIED.
+
+- Detail-tab retry reliability: non-overview module pages now also show a retry action when table reads fail, unless that page already renders a specific alert, avoiding duplicate error banners. The retry reloads the current module. Static contract checks cover the behavior; exact-head CI/browser verification remains NOT VERIFIED.
+
+
+- Detail-tab retry correction (2026-10-21): retry visibility now checks for an existing retry control rather than treating any alert as a reason to suppress it. If a tab already has a specific error alert, the UI appends only the retry button, avoiding duplicate banners while retaining recovery. Static contract guard added; exact-head CI and browser E2E remain unverified.
+
+
+- MantiGO read-state follow-up (2026-10-21): captain profile lookup and the open-rides RPC now preserve query errors instead of silently mapping failures to missing profile/empty rides. Added source-contract guards. Runtime and browser verification are pending; production remains BLOCKED / NOT CERTIFIED.
+
+
+- Module-level recovery follow-up (2026-10-21): MantiGO/core module RPC failures rendered through the global error branch now expose a retry action; authentication-required state deliberately does not show a misleading retry button. Added a source-contract assertion. CI/browser verification remains pending; production stays BLOCKED / NOT CERTIFIED.
+
+
+- 2026-10-21 follow-up: catalog reads require a verified tenant scope and marketing project reads require a verified business scope before issuing queries. Missing scope becomes a visible load failure; no unscoped query is sent. Added source-contract guards. This is not proof of RLS correctness; tenant-isolation tests and CI remain required.
+
+
+- MantiGO open-rides follow-up (2026-10-21): removed a second RPC that was triggered from the render path and silently converted errors to an empty list. The tab-click loader remains the single request path and records errors for retry UI. Source-contract guards added; runtime/browser verification remains pending.
+
+
+## 2026-10-21 — marketing lead API boundary hardening
+
+The `marketing-lead-create` Edge Function now reads the request body as a bounded stream, counts actual bytes, cancels once the configured limit is exceeded, and avoids buffering the entire body before enforcing the limit. Stream-read failures are converted to a controlled invalid-input path. Request field types are validated explicitly so malformed JSON values are not silently coerced into strings or numbers. Static source-contract assertions and the session log were updated. This is source-only: the validator/CI have not been run at the exact current head, and Edge runtime, browser E2E, membership authorization, tenant isolation/RLS, and production deployment remain unverified. Keep release BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — backend-only overview state
+
+Shared module overview cards now distinguish tables intentionally excluded from direct browser reads (`BACKEND_ONLY_TABLES`) from genuine zero-row results. They display an explicit authorized-backend-only state rather than a zero count. A source-contract assertion was added. This UI change does not expose credentials or enable direct reads; runtime/browser/CI verification remains pending and production stays BLOCKED / NOT CERTIFIED.
+
+
+## Next identified follow-up — generic live-data tab
+
+Code review found `genericLiveView(d)` still reports `(rows[t] || []).length` and renders an empty table even when `loadErrors[t]` exists or the table is in `BACKEND_ONLY_TABLES`. The shared overview was corrected, but this detail/live tab remains a separate unresolved presentation defect. Next change should add per-table explicit error and backend-only states, then assert them. Do not claim fixed until a source change is committed and verified. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — generic live-data view reliability
+
+Fixed `genericLiveView(d)` to render explicit states when a table is backend-only or its read failed, rather than implying zero records. Added a source-contract assertion for both states. Also fixed a stale assertion in `validate-marketing-lead-form.mjs` that still expected the replaced `req.arrayBuffer()` body reader; it now checks the bounded `readLimitedBody` path. These are source edits only: the validator and CI have not been executed in a confirmed runtime. Browser E2E and authorization/RLS verification remain open; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — strict service-area type validation
+
+The marketing lead Edge Function now rejects a non-string `service_area` value with `invalid_service_area` instead of silently coercing it to an empty string. A static contract assertion was added. The generic live-data tab issue and stale body-size validator assertion are corrected in source, but runtime validation, exact-head CI, browser E2E, and tenant/RLS authorization checks remain unverified. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — safe field-specific lead errors
+
+The marketing lead form now maps `invalid_title`, `invalid_description`, and `invalid_service_area` to explicit Arabic guidance without exposing raw backend errors. Added source-contract assertions. Exact-head CI, actual Node validator execution, browser E2E, and authorization/RLS verification remain pending. Release remains BLOCKED / NOT CERTIFIED.

@@ -1938,3 +1938,65 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Revoked direct table SELECT and granted only authenticated execution of these RPCs; sector loader now calls the RPCs.
 - [x] Added disposable PostgreSQL fixture, behavioral test, dedicated CI workflow, and static contract guards.
 - [ ] Migration `20261020233000_jobs_directory_backend_v1.sql` is source-only and not applied to production. Exact-head CI and browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — marketing lead form safeguards
+
+- [x] Add labels and accessible live status to the marketing lead form.
+- [x] Bound text inputs and validate finite nonnegative budgets; reject minimum budget above a provided maximum.
+- [x] Prevent duplicate submission while `marketing-lead-create` is pending.
+- [x] Add `scripts/validate-marketing-lead-form.mjs` and wire it into Pages CI.
+- [ ] Exact-head CI result pending; browser E2E, backend authorization and tenant-isolation verification remain open.
+
+
+### Marketing lead form — backend contract alignment
+
+- [x] Align client budget validation with the existing backend budget boundary.
+- [x] Capture requested services and send `required_services` with backend-aligned limits.
+- [x] Extend the source-contract validator.
+- [ ] Exact-head CI, browser E2E, and authenticated tenant/business scope remain to be verified.
+
+
+### 2026-10-21 — marketing lead API boundary hardening (source-only)
+
+- [x] Enforce the request body limit against streamed raw bytes, cancel the stream when the configured limit is exceeded, and avoid full-body allocation before size validation.
+- [x] Handle request stream read failures through a controlled invalid-input response path.
+- [x] Reject malformed JSON field types instead of coercing title/description/service-area/business ID/service entries/budget values.
+- [x] Add source-contract assertions for byte limits, streaming cancellation, read failures, and strict field types.
+- [ ] Run the validator and full repository CI at the exact current head; Edge Function runtime tests and browser E2E remain pending.
+- [ ] Independently verify membership authorization, tenant isolation/RLS, and production deployment configuration. This source-only change does not certify production.
+
+
+### 2026-10-21 — overview counts for backend-only tables
+
+- [x] Avoid showing zero rows for tables intentionally skipped by `BACKEND_ONLY_TABLES`; show a clear authorized-backend-only state.
+- [x] Add a source-contract assertion for this state.
+- [ ] Runtime/browser verification and exact-head CI remain pending.
+
+
+### Next identified UI reliability defect — generic live-data tab
+
+- [x] Fix `genericLiveView(d)` to distinguish backend-only tables and read failures from genuine empty datasets; source-contract assertion added. Runtime/browser verification remains pending.
+
+
+### 2026-10-21 — generic live-data view reliability
+
+- [x] Distinguish tables restricted to backend-only access from normal live tables.
+- [x] Show explicit read-failure states instead of a zero count/empty table when `loadErrors[t]` exists.
+- [x] Add source-contract assertion for backend-only and read-failure rendering.
+- [x] Correct the marketing request-size validator to match the bounded stream reader instead of the removed `req.arrayBuffer()` implementation.
+- [ ] Run the actual Node validator, full CI, browser E2E, and authenticated authorization/RLS tests; exact-head CI remains unconfirmed.
+
+
+### 2026-10-21 — strict service-area input type
+
+- [x] Reject non-string `service_area` JSON values with `invalid_service_area` rather than silently converting them to an empty string.
+- [x] Add a source-contract assertion for this API boundary.
+- [ ] Run the Node validator and exact-head CI; source review is not runtime verification.
+
+
+### 2026-10-21 — safe field-specific lead API errors
+
+- [x] Map `invalid_title`, `invalid_description`, and `invalid_service_area` to safe, actionable Arabic guidance in the marketing lead form.
+- [x] Add source-contract assertions for these mappings.
+- [ ] Execute the Node validator and exact-head CI; source review remains non-runtime verification.

@@ -31,31 +31,44 @@ Deno.serve(async (req: Request) => {
   const actor = data.user;
   if (error || !actor || actor.is_anonymous) return json({ error: "unauthorized" }, 401);
 
+  const rawBytes = await readLimitedBody(req, maxBodyBytes);
+  if (rawBytes === null) return json({ error: "payload_too_large" }, 413);
+
   let body: Record<string, unknown>;
   try {
-    const raw = await req.text();
-    if (raw.length > maxBodyBytes) return json({ error: "payload_too_large" }, 413);
-    body = JSON.parse(raw);
+    body = JSON.parse(new TextDecoder().decode(rawBytes));
   } catch {
     return json({ error: "invalid_json" }, 400);
   }
   if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "invalid_body" }, 400);
 
-  const requestedBusinessId = String(body.business_id || "").trim() || null;
-  const title = String(body.title || "").trim();
-  const description = String(body.description || "").trim();
-  const serviceArea = String(body.service_area || "").trim();
-  const budgetMin = Number(body.budget_min || 0);
-  const budgetMax = Number(body.budget_max || 0);
-  const requiredServices = Array.isArray(body.required_services)
-    ? body.required_services.map(x => String(x || "").trim()).filter(Boolean)
-    : [];
+  if (body.business_id !== undefined && body.business_id !== null && typeof body.business_id !== "string") {
+    return json({ error: "business_not_authorized" }, 403);
+  }
+  const requestedBusinessId = typeof body.business_id === "string" ? body.business_id.trim() || null : null;
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  if (body.service_area !== undefined && body.service_area !== null && typeof body.service_area !== "string") {
+    return json({ error: "invalid_service_area" }, 400);
+  }
+  const serviceArea = typeof body.service_area === "string" ? body.service_area.trim() : "";
+  const budgetMin = body.budget_min === undefined || body.budget_min === null ? 0 : body.budget_min;
+  const budgetMax = body.budget_max === undefined || body.budget_max === null ? 0 : body.budget_max;
+  if (body.required_services !== undefined && !Array.isArray(body.required_services)) {
+    return json({ error: "invalid_required_services" }, 400);
+  }
+  const rawRequiredServices = Array.isArray(body.required_services) ? body.required_services : [];
+  if (rawRequiredServices.some(x => typeof x !== "string")) {
+    return json({ error: "invalid_required_services" }, 400);
+  }
+  const requiredServices = rawRequiredServices.map(x => x.trim()).filter(Boolean);
 
   if (!title || title.length > 200) return json({ error: "invalid_title" }, 400);
   if (!description || description.length > 5000) return json({ error: "invalid_description" }, 400);
   if (serviceArea.length > 200) return json({ error: "invalid_service_area" }, 400);
   if (requiredServices.length > 10 || requiredServices.some(x => x.length > 80)) return json({ error: "invalid_required_services" }, 400);
-  if (!Number.isFinite(budgetMin) || !Number.isFinite(budgetMax) || budgetMin < 0 || budgetMax < budgetMin) {
+  if (typeof budgetMin !== "number" || typeof budgetMax !== "number" ||
+      !Number.isFinite(budgetMin) || !Number.isFinite(budgetMax) || budgetMin < 0 || budgetMax < budgetMin) {
     return json({ error: "invalid_budget" }, 400);
   }
 
@@ -99,6 +112,39 @@ Deno.serve(async (req: Request) => {
   if (insertError) return json({ error: "lead_creation_failed" }, 500);
   return json({ ok: true, lead: created });
 });
+
+async function readLimitedBody(req: Request, limit: number): Promise<Uint8Array | null> {
+  const reader = req.body?.getReader();
+  if (!reader) return new Uint8Array();
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  while (true) {
+    let chunkResult: ReadableStreamReadResult<Uint8Array>;
+    try {
+      chunkResult = await reader.read();
+    } catch {
+      try { await reader.cancel(); } catch { /* stream is already closed */ }
+      return new Uint8Array();
+    }
+    const { done, value } = chunkResult;
+    if (done) break;
+    totalBytes += value.byteLength;
+    if (totalBytes > limit) {
+      try { await reader.cancel(); } catch { /* stream is already closed */ }
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
 
 function json(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {

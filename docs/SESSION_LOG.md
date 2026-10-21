@@ -315,3 +315,83 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** added `list_jobs_backend` and `list_job_applications_backend` in `20261020233000_jobs_directory_backend_v1.sql`; switched sector loader to RPC calls. Job rows are scope-filtered and omit employer contact; application rows are visible to the applicant or job owner and omit phone/CV. Job employer name is aliased to `company_name` to match the UI.
 - **Tests:** disposable PostgreSQL fixture/integration and `.github/workflows/job-directory-read.yml`, plus source-contract assertions. Commits: `00e62d2700a47cb5013373b917cf6a12286ac7d1`, `ed6753fe9b1266245598354b578c3394b0c47471`, `f69e13905855a8ad75124daaa5c0bdb2e89152d0`, `ca3be7eec648b9efd6a9b2fd0ad7699f23d6e1e2`, `8cb6225fdf925c211db651fff65d57f59dc84104`, `eb097141b5f01a01e33371b97aa626a7560e6346`.
 - No production migration applied; CI/browser E2E pending.
+
+
+## 2026-10-21 — marketing lead form validation slice
+
+- Improved the existing marketing lead form in `web/operations-modules.js`: explicit labels and accessible status announcements, bounded text lengths, nonnegative finite budget validation, min/max consistency validation, and duplicate-submit protection while the existing `marketing-lead-create` backend function is pending.
+- Added `scripts/validate-marketing-lead-form.mjs` and wired it into `.github/workflows/pages.yml`.
+- Source changes are committed on an isolated branch. Exact-head CI is pending; no test result is claimed until observed. Backend behavior, role/RLS behavior, and browser E2E remain NOT VERIFIED. No production data or backend contract changed.
+
+
+### Follow-up — align marketing lead UI with server contract
+
+- Reviewed `supabase/functions/marketing-lead-create/index.ts` directly. Found a client/server mismatch: the UI previously treated max budget `0` as omitted, while the backend rejects `budget_max < budget_min`. Fixed the client to reject every `max < min` case before sending.
+- Added a requested-services field, comma parsing, de-duplication, and client limits matching the existing server contract (at most 10 values, each at most 80 characters); the resulting array is sent as `required_services` instead of always sending an empty array.
+- Updated the static validator to cover budget boundary and required-services wiring. CI result is still not confirmed on this head; no test pass is claimed.
+
+- Follow-up UX fix: map known backend errors such as `business_selection_required`, `business_not_authorized`, `unauthorized`, invalid budgets, and invalid service lists to actionable Arabic messages rather than exposing raw machine codes. The static validator now guards these mappings; exact-head CI remains unconfirmed.
+
+
+## 2026-10-21 — Marketing workspace follow-up — explicit business scope
+
+- Added a business selector to the marketing lead form when the signed-in user has multiple active business memberships; membership retrieval is bounded to 50 rows to match the existing Edge Function lookup limit.
+- The selected `business_id` is submitted to the existing `marketing-lead-create` Edge Function, which remains the authority for membership authorization. No direct table write, schema change, migration, production mutation, merge, or deployment was performed.
+- Added static source-contract assertions for business selection and payload propagation. CI workflow query has not returned an exact-head run; browser E2E and live authorization behavior remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
+
+- Added client-side search to the marketing lead list across title, description, requested services, service area, status, and source. Search operates only on the already-loaded list, which remains filtered by the existing user-scoped query; no expanded backend query or permissions change was introduced.
+
+- Marketing workspace reliability pass: provider, service, project, plan, subscription, participant, and commission tabs now preserve and render query failure states rather than making failed reads look like empty datasets. Added source-contract assertions. No API/schema changes; exact-head CI and browser E2E remain pending.
+
+- Follow-up safety fix: marketing lead creation is blocked when active-membership lookup fails; the UI explains the issue, disables submission, and the submit handler independently guards against sending. Added static source-contract checks. No production mutation, schema change, merge, or deployment.
+
+- Shared overview fix: module overview cards now distinguish failed table reads from true zero counts, showing an explicit Arabic load-failure state. Added source-contract assertion. Exact-head CI/browser verification remain pending; no merge or deployment.
+
+- Shared overview retry: if an overview table read fails, show a clear warning and a retry action that reloads the current module. Added static contract assertions for the retry control and handler. Exact-head CI and browser tests remain unverified.
+
+- Extended retry behavior to non-overview module tabs: failed table reads now expose a visible retry action, with duplicate alert suppression when a tab already renders its own alert. Added source-contract assertions. Exact-head CI and browser verification remain pending.
+
+
+- Detail-tab retry correction (2026-10-21): preserved a visible retry action on tabs that already render a specific query-error alert, without duplicating the alert. Added a source-contract assertion. Exact-head CI/browser E2E remain unverified; production remains BLOCKED / NOT CERTIFIED.
+
+
+- MantiGO read-state follow-up (2026-10-21): captain profile lookup and the open-rides RPC now preserve query errors instead of silently mapping failures to missing profile/empty rides. Added source-contract guards. Runtime and browser verification are pending; production remains BLOCKED / NOT CERTIFIED.
+
+
+- Module-level recovery follow-up (2026-10-21): MantiGO/core module RPC failures rendered through the global error branch now expose a retry action; authentication-required state deliberately does not show a misleading retry button. Added a source-contract assertion. CI/browser verification remains pending; production stays BLOCKED / NOT CERTIFIED.
+
+
+- 2026-10-21 follow-up: catalog and price reads now require a verified tenant scope before querying; marketing project reads require a verified business scope. Missing scope is shown as a load failure instead of querying without an explicit filter. Added source guards. RLS and tenant isolation still require independent verification.
+
+
+- MantiGO open-rides follow-up (2026-10-21): removed a second RPC that was triggered from the render path and silently converted errors to an empty list. The tab-click loader remains the single request path and records errors for retry UI. Source-contract guards added; runtime/browser verification remains pending.
+
+
+- 2026-10-21 budget-validation UX correction: clarified the Arabic validation message so it explicitly states that the minimum budget cannot exceed the maximum. Added a source-contract assertion. This is a wording/UX fix only; runtime, browser E2E, exact-head CI, backend authorization and tenant-isolation verification remain pending.
+
+
+- 2026-10-21 API payload hardening: `marketing-lead-create` now checks the raw request body's actual `ArrayBuffer.byteLength` before UTF-8 decoding and JSON parsing, rather than using JavaScript string length as a proxy for bytes. Added a source-contract assertion. This closes a multibyte/Unicode size-accounting gap; runtime Edge Function tests, exact-head CI, browser E2E and authorization/isolation verification remain pending.
+
+
+- 2026-10-21 API input-shape hardening: `marketing-lead-create` no longer coerces objects/numbers into text fields or stringifies invalid service entries. It rejects non-string title/description/service-area/business IDs, non-array or non-string requested services, and non-number budget values; valid omitted budgets still default to zero. Added source-contract assertions. Edge runtime tests and exact-head CI remain pending.
+
+
+- 2026-10-21 payload-stream hardening: replaced full-body buffering with `readLimitedBody`, which counts incoming stream bytes, cancels the reader as soon as the configured limit is exceeded, and only concatenates chunks after the size check. This avoids allocating an arbitrarily large body before rejection when `Content-Length` is missing or misleading. Added a source-contract assertion; runtime Edge tests and exact-head CI remain pending.
+
+
+- 2026-10-21 request-stream recovery: the bounded body reader now catches stream-read failures, attempts cancellation, and returns an empty byte buffer so malformed/unreadable input follows the controlled `invalid_json` response path instead of becoming an unhandled Edge Function exception. Added a source-contract assertion. Runtime tests and exact-head CI remain pending.
+
+
+- 2026-10-21 overview truthfulness fix: tables deliberately excluded from direct browser reads (`BACKEND_ONLY_TABLES`) no longer appear as if they contain zero records. Overview cards now state that data must be accessed through an authorized backend path; added a source-contract assertion. This avoids confusing a security boundary with an empty dataset. Runtime/browser and CI verification remain pending.
+
+
+- 2026-10-21 follow-up review: identified one remaining shared-UI reliability issue in `genericLiveView(d)`: failed reads and tables intentionally skipped for backend-only access can still appear as zero rows in the live tab. Recorded as an open TODO; not yet fixed in this batch. The overview path is already corrected separately.
+
+
+- 2026-10-21 follow-up completed: `genericLiveView(d)` now differentiates backend-only tables and read failures from genuine empty datasets. Added a source-contract assertion. Corrected the stale request-size assertion to match the bounded stream reader. Source review checks are not a substitute for running the Node validator/CI; exact-head runtime verification remains pending.
+
+
+- 2026-10-21 strict input follow-up: the marketing lead API now rejects non-string `service_area` values instead of treating them as blank. Added a source-contract assertion and updated the production TODO/continuity notes. The Node validator and CI still need actual execution at the latest head.
+
+
+- 2026-10-21 user feedback reliability: added safe Arabic guidance for invalid title, description, and service-area API responses; extended source-contract assertions. The Node validator/CI have not yet been observed running at the latest head.
