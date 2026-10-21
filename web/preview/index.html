@@ -49,8 +49,8 @@
     </div>
 
     <section class="panel sector-explorer" aria-labelledby="sectorExplorerTitle">
-      <div class="section-head" style="margin-top:0"><div><div class="eyebrow">UI-FIRST SECTOR WORKSPACES</div><h2 id="sectorExplorerTitle">استعراض مساحات القطاعات</h2><p>نماذج تنقل فعلية للواجهات المخططة من مخطط الموديولات في فرع التطوير — ليست ربطًا تشغيليًا أو اعتمادًا للإنتاج.</p></div><span class="status">16 مخطط قطاع</span></div>
-      <div class="toolbar"><input id="sectorSearch" type="search" placeholder="ابحث عن قطاع..." aria-label="البحث في القطاعات"><span id="sectorCount" class="muted" style="font-size:12px">16 قطاعًا</span></div>
+      <div class="section-head" style="margin-top:0"><div><div class="eyebrow">UI-FIRST SECTOR WORKSPACES</div><h2 id="sectorExplorerTitle">استعراض مساحات القطاعات</h2><p>نماذج تنقل فعلية للواجهات المخططة من مخطط الموديولات في فرع التطوير — ليست ربطًا تشغيليًا أو اعتمادًا للإنتاج.</p></div><span class="status">27 قطاعًا وفق سجل القطاعات المعتمد</span></div>
+      <div class="toolbar"><input id="sectorSearch" type="search" placeholder="ابحث عن قطاع..." aria-label="البحث في القطاعات"><span id="sectorCount" class="muted" style="font-size:12px">27 قطاعًا</span></div>
       <div id="sectorGrid" class="sector-grid"></div>
       <div id="sectorWorkspace" class="sector-workspace" aria-live="polite"><h3 id="sectorName" style="margin:0">اختر قطاعًا لعرض مساراته</h3><p class="muted" style="font-size:12px">كل تبويب يعرض اسم مساحة العمل المخططة فقط. العمليات والبيانات الفعلية غير مفعلة هنا.</p><div id="sectorTabs" class="sector-tabs"></div><div id="sectorStatus" class="sector-status">لم يتم تنفيذ أي إجراء أو اتصال بقاعدة البيانات.</div></div>
     </section>
@@ -170,11 +170,37 @@ $("campaignForm").addEventListener("submit",e=>{
 $("clearCampaigns").addEventListener("click",()=>{campaignPlans=[];renderCampaigns();notify("تم مسح الخطط التجريبية من الجلسة.")});
 renderCampaigns();
 
+const sectorLabels={FOOD:"مطاعم وكافيهات",HEALTH:"أطباء وعيادات",PHARMACY:"صيدليات",LABS:"معامل تحاليل",RADIOLOGY:"مراكز الأشعة",DENTAL:"أطباء الأسنان",HOSPITAL:"المستشفيات",MEDICAL:"مراكز طبية",REAL_ESTATE:"عقارات",AUTO:"سيارات ونقل",MAINTENANCE:"الصيانة والخدمات المنزلية",ACCOUNTING:"المحاسبة ومكاتب المحاسبة",LEGAL:"المحاماة والخدمات القانونية",COMPANIES:"الشركات والموردون",EDU:"تعليم وتدريب",DIGITAL:"تسويق وإعلان",TECH:"البرمجيات والخدمات الرقمية",FITNESS:"رياضة ولياقة",TRAVEL:"سياحة وسفر",MANTIGO:"MantiGO والنقل عند الطلب",JOBS:"الوظائف والتوظيف",MATRIMONY:"الزواج والخدمات المرتبطة",USED_ITEMS:"المستعمل",FASHION:"الأزياء والخياطة",GROCERY:"البقالة والسوبر ماركت",VETERINARY:"العيادات والخدمات البيطرية",FREELANCER:"المستقلون ومقدمو الخدمات"};
 const sectorPlans={
- FASHION:["الكتالوج والمنتجات","المقاسات والخيارات","السلة والطلبات","المخزون","التسعير والعروض","التقارير"],GROCERY:["الكتالوج","الأسعار والعروض","المخزون والمستودعات","السلة والتوصيل","الطلبات","التقارير"],ACCOUNTING:["دليل الحسابات","طلبات المحاسبة","العروض والتفاوض","القيود اليومية","التسويات","التقارير المالية"],COMPANIES:["ملف الشركة","الخدمات","طلبات الأعمال","الموردون","العقود","التقارير"],MARKETING:["الخدمات التسويقية","العملاء المحتملون","المشروعات","الحملات","شركات التسويق الشريكة","التقارير"],FACTORIES:["المصانع","طلبات التوريد","المخازن","المشتريات","التحويلات","التقارير"],TRIPS:["الرحلات","المزايدات","اختيار العرض","التنفيذ المباشر","السائقون","التقييمات والتقارير"],MAINTENANCE:["طلبات الصيانة","المزايدات","مقدمو الخدمة","الجدولة","قطع الغيار","التقارير"],LEGAL:["الخدمات القانونية","طلبات العملاء","المستندات","الاتفاقيات","المواعيد","التقارير"],ERP:["أوامر الشراء","الاستلامات","المخازن","التحويلات","الموردون","التقارير"],MATRIMONY:["الملفات","البحث والترشيح","الطلبات","فتح التواصل","المتابعة","الخصوصية والتقارير"],JOBS:["الوظائف","طلبات التقديم","المرشحون","المقابلات","أصحاب العمل","التقارير"],MEDICAL:["الأطباء والعيادات","التخصصات والخدمات","الحجز","المواعيد","الترشيحات","التقارير"],RESTAURANTS:["القائمة","الإضافات","الطلبات","الطاولات","المطبخ","المخزون والتقارير"],EDUCATION:["المدارس","المدرسون","الدورات","طلبات التعليم","الحجوزات","التقارير"],USED_ITEMS:["الإعلانات","البحث والتصفية","العروض","التفاوض","المراسلات","التقارير"]
+ FOOD:["القائمة والأصناف","العروض والأسعار","الطلبات","المطبخ والتجهيز","التوصيل والاستلام","التقارير"],
+ HEALTH:["الأطباء","التخصصات","الحجوزات","المواعيد","الخدمات والباقات","التقارير"],
+ PHARMACY:["المنتجات والأدوية","الأسعار والتوافر","الطلبات","المخزون","خدمات الصيدلية","التقارير"],
+ LABS:["التحاليل والخدمات","الفروع","طلبات التحليل","المواعيد","النتائج والصلاحيات","التقارير"],
+ RADIOLOGY:["خدمات الأشعة","المراكز والفروع","الحجوزات","المواعيد","التقارير التشغيلية","الإعدادات"],
+ DENTAL:["الأطباء والعيادات","الخدمات","الحجوزات","المواعيد","متابعة الطلبات","التقارير"],
+ HOSPITAL:["الأقسام","الخدمات","الباقات","الحجوزات","طلبات المرضى","التقارير"],
+ MEDICAL:["مراكز طبية","التخصصات والخدمات","الحجز","المواعيد","الترشيحات","التقارير"],
+ REAL_ESTATE:["العقارات","البيع والإيجار","طلبات العملاء","المواعيد والمعاينات","العروض","التقارير"],
+ AUTO:["السيارات والمركبات","خدمات النقل","الصيانة","طلبات العملاء","العروض","التقارير"],
+ MAINTENANCE:["طلبات الصيانة","المزايدات","مقدمو الخدمة","الجدولة","قطع الغيار","التقارير"],
+ ACCOUNTING:["دليل الحسابات","طلبات المحاسبة","العروض والتفاوض","القيود اليومية","التسويات","التقارير المالية"],
+ LEGAL:["الخدمات القانونية","طلبات العملاء","المستندات","الاتفاقيات","المواعيد","التقارير"],
+ COMPANIES:["ملف الشركة","الخدمات","طلبات الأعمال","الموردون","العقود","التقارير"],
+ EDU:["المدارس ومراكز التدريب","المدرسون","الدورات","طلبات التعليم","الحجوزات","التقارير"],
+ DIGITAL:["الخدمات التسويقية","العملاء المحتملون","المشروعات","الحملات","شركات التسويق الشريكة","التقارير"],
+ TECH:["الخدمات التقنية","المواقع والبرمجيات","طلبات الأعمال","المشروعات","الدعم والصيانة","التقارير"],
+ FITNESS:["الأندية والمراكز","المدربون","الخدمات والبرامج","الحجوزات","الاشتراكات","التقارير"],
+ TRAVEL:["الرحلات","العروض والحجوزات","طلبات العملاء","المواعيد","مقدمو الخدمة","التقارير"],
+ MANTIGO:["الرحلات","المزايدات والعروض","اختيار العرض","التنفيذ المباشر","السائقون","التقييمات والتقارير"],
+ JOBS:["الوظائف","طلبات التقديم","المرشحون","المقابلات","أصحاب العمل","التقارير"],
+ MATRIMONY:["الملفات","البحث والترشيح","الطلبات","فتح التواصل","المتابعة","الخصوصية والتقارير"],
+ USED_ITEMS:["الإعلانات","البحث والتصفية","العروض","التفاوض","المراسلات","التقارير"],
+ FASHION:["الكتالوج والمنتجات","المقاسات والخيارات","السلة والطلبات","المخزون","التسعير والعروض","التقارير"],
+ GROCERY:["الكتالوج","الأسعار والعروض","المخزون والمستودعات","السلة والتوصيل","الطلبات","التقارير"],
+ VETERINARY:["العيادات البيطرية","الأطباء والخدمات","الحجوزات","المواعيد","ملفات الخدمة","التقارير"],
+ FREELANCER:["ملف مقدم الخدمة","الخدمات والتخصصات","المشروعات","العروض","طلبات العملاء","التقارير"]
 };
-const sectorLabels={FASHION:"الأزياء والملابس",GROCERY:"البقالة والمواد الغذائية",ACCOUNTING:"المحاسبة والمالية",COMPANIES:"الشركات والأعمال",MARKETING:"التسويق والإعلان",FACTORIES:"المصانع والتوريد",TRIPS:"الرحلات والنقل",MAINTENANCE:"الصيانة",LEGAL:"الخدمات القانونية",ERP:"إدارة المشتريات والمخازن",MATRIMONY:"الزواج والتعارف",JOBS:"التوظيف والوظائف",MEDICAL:"الخدمات الطبية",RESTAURANTS:"المطاعم",EDUCATION:"التعليم",USED_ITEMS:"المنتجات المستعملة"};
-let activeSector="MARKETING";
+let activeSector="DIGITAL";
 function renderSectorGrid(q=""){const grid=$("sectorGrid");if(!grid)return;grid.textContent="";const term=q.trim().toLocaleLowerCase("ar");let count=0;Object.keys(sectorPlans).filter(k=>(sectorLabels[k]+" "+k).toLocaleLowerCase("ar").includes(term)).forEach(k=>{count++;const b=document.createElement("button");b.type="button";b.className="sector-card";b.dataset.sector=k;b.setAttribute("aria-pressed",String(k===activeSector));const title=document.createElement("strong");title.textContent=sectorLabels[k];const small=document.createElement("small");small.textContent=sectorPlans[k].length+" مسارات مخططة";b.append(title,small);b.addEventListener("click",()=>selectSector(k));grid.appendChild(b)});$("sectorCount").textContent=count+" قطاع";}
 function selectSector(key){if(!sectorPlans[key])return;activeSector=key;$("sectorName").textContent=sectorLabels[key];const tabs=$("sectorTabs");tabs.textContent="";sectorPlans[key].forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.textContent=name;b.classList.toggle("active",i===0);b.setAttribute("aria-pressed",String(i===0));b.addEventListener("click",()=>{tabs.querySelectorAll("button").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});b.classList.add("active");b.setAttribute("aria-pressed","true");$("sectorStatus").textContent="المسار المحدد: "+sectorLabels[key]+" / "+name+". هذا توصيف واجهة مخطط فقط؛ لم يتم تنفيذ كتابة أو قراءة بيانات أو تغيير صلاحيات."});tabs.appendChild(b)});$("sectorStatus").textContent="تم عرض "+sectorPlans[key].length+" مسارات مخططة لقطاع "+sectorLabels[key]+". لا توجد عمليات خادمية في هذه المعاينة.";renderSectorGrid($("sectorSearch").value);}
 $("sectorSearch").addEventListener("input",()=>renderSectorGrid($("sectorSearch").value));
