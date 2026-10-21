@@ -1635,3 +1635,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### ERP purchase receiving — 2026-10-21
+- [x] Edge Function now delegates all receipt, stock-balance, inventory-ledger, and purchase-line mutation to the line-aware atomic RPC; removed direct multi-request mutation.
+- [x] Added strict request validation and safe error handling; missing/unavailable RPC fails closed with HTTP 503.
+- [x] Updated contract validator to assert the atomic RPC boundary.
+- [ ] Restore and review the complete missing RC425–RC432 and RC434–RC441 migration source chain; do not cherry-pick RC434 alone or bypass collision guard.
+- [ ] Resolve legacy approved purchase orders without modeled lines before receiving can be production-ready.
+- [ ] Run Postgres integration tests for atomic rollback, concurrent duplicate receipt, over-receiving, tenant/business isolation, and service-role-only function grants.
+- [ ] Await CI for commit `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; the production gate remains BLOCKED / NOT CERTIFIED.
