@@ -36,7 +36,7 @@ assert.ok(stockSql.includes('create table if not exists public.restaurant_invent
 assert.ok(stockSql.includes('alter table public.restaurant_inventory_movements force row level security'),
   'movement ledger must force row-level security');
 assert.ok(stockSql.includes('create or replace function public.guard_restaurant_inventory_balance()') && stockSql.includes('before insert or update on public.restaurant_inventory'), 'direct client writes must not bypass the movement ledger for stock or valuation');
-assert.ok(stockSql.includes("current_user in ('postgres','service_role')"), 'only trusted backend database roles may change stock balances directly');
+assert.ok(stockSql.includes("current_user = 'postgres'"), 'only the privileged migration/function owner may change stock balances directly');
 assert.ok(stockSql.includes('security definer') && stockSql.includes('set search_path = public, pg_temp'),
   'movement RPC must use a fixed search path');
 assert.ok(stockSql.includes('pg_advisory_xact_lock') && stockSql.includes('idempotency_key'),
