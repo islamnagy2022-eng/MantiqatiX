@@ -118,8 +118,8 @@ function cards(){
  '</div>';
 }
 function tabs(){
- return '<div class="action-bar" style="gap:8px;flex-wrap:wrap">'+['dashboard','menu','orders','tables','inventory','reservations'].map(x=>{
- const n={dashboard:'نظرة عامة',menu:'القائمة',orders:'الطلبات',tables:'الطاولات',inventory:'المخزون',reservations:'الحجوزات'}[x];
+ return '<div class="action-bar" style="gap:8px;flex-wrap:wrap">'+['dashboard','menu','orders','kitchen','tables','inventory','reservations'].map(x=>{
+ const n={dashboard:'نظرة عامة',menu:'القائمة',orders:'الطلبات',kitchen:'شاشة المطبخ',tables:'الطاولات',inventory:'المخزون',reservations:'الحجوزات'}[x];
  return '<button class="btn '+(state.tab===x?'btn-primary':'btn-outline')+'" data-rest-tab="'+x+'">'+n+'</button>';
  }).join('')+'</div>';
 }
@@ -200,6 +200,30 @@ function ordersView(){
   }).join(''):'<tr><td colspan="6">'+(state.orders.length?'لا توجد نتائج مطابقة للفلاتر.':'لا توجد طلبات فعلية بعد.')+'</td></tr>')+
   '</tbody></table></div><p class="muted">البحث محلي داخل آخر 100 طلب محمّل فقط؛ استخدم مصدر التقارير المعتمد للبحث التاريخي الكامل.</p>');
 }
+function kitchenView(){
+ const stages=[
+  {status:'CONFIRMED',title:'بانتظار بدء التحضير',next:'PREPARING',action:'بدء التحضير'},
+  {status:'PREPARING',title:'قيد التحضير',next:'OUT_FOR_DELIVERY',action:'تسليم للمندوب'}
+ ];
+ const counts=Object.fromEntries(stages.map(x=>[x.status,state.orders.filter(o=>String(o.status||'').toUpperCase()===x.status).length]));
+ const cards=stages.map(stage=>{
+  const orders=state.orders.filter(o=>String(o.status||'').toUpperCase()===stage.status);
+  const body=orders.length?orders.map(order=>{
+   let itemSummary='تفاصيل الأصناف غير متاحة';
+   try{
+    const raw=order.items_json;
+    const parsed=typeof raw==='string'?JSON.parse(raw||'[]'):raw;
+    const items=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.items)?parsed.items:[]);
+    if(items.length)itemSummary=items.map(i=>String(i.name_ar||i.name||i.title||i.item_name||'صنف')+' × '+String(i.quantity??i.qty??1)).join('، ');
+   }catch(_){}
+   const canUpdate=canOperate('ORDERS','update');
+   const action=canUpdate?'<label class="field"><span>الإجراء التالي</span><select data-order-status="'+esc(order.id)+'" data-current-status="'+esc(stage.status)+'"><option selected value="'+stage.status+'">'+stage.status+'</option><option value="'+stage.next+'">'+stage.action+'</option></select></label>':'<p class="muted">لا توجد صلاحية لتحديث حالة الطلب</p>';
+   return '<article class="card"><div class="card-title">طلب '+esc(order.id)+'</div><p><b>العميل:</b> '+esc(order.customer_name||'—')+'</p><p><b>الأصناف:</b> '+esc(itemSummary)+'</p><p><b>وقت الطلب:</b> '+esc(order.created_at?new Date(order.created_at).toLocaleString('ar-EG'):'—')+'</p>'+action+'<button type="button" class="btn btn-outline" data-order-detail="'+esc(order.id)+'">تفاصيل الطلب</button></article>';
+  }).join(''):'<div class="empty-state">لا توجد طلبات في هذه المرحلة ضمن البيانات المحمّلة.</div>';
+  return '<section class="card"><div class="workspace-head"><h3>'+stage.title+'</h3><span class="badge">'+counts[stage.status]+'</span></div><div class="cards">'+body+'</div></section>';
+ }).join('');
+ return shell('شاشة المطبخ (KDS)',tabs()+'<p class="notice">تعرض الشاشة الطلبات المحمّلة ضمن الفرع النشط فقط، بحد أقصى آخر 100 طلب. تحديث الحالة يتم عبر دالة الخادم الحالية؛ لا تُنشأ حالات جديدة من الواجهة.</p><div class="cards">'+cards+'</div><p class="muted">حالة «تسليم للمندوب» تستخدم انتقال OUT_FOR_DELIVERY الموجود حاليًا؛ لم تتم إضافة حالة «جاهز» مستقلة لأن عقد الخادم الحالي لا يثبت دعمها.</p>');
+}
 function tablesView(){
  const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
  return shell('إدارة الطاولات',tabs()+'<div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>رقم</th><th>السعة</th><th>الحالة</th><th>الفاتورة الحالية</th><th>حجز</th><th>إجراء</th></tr></thead><tbody>'+
@@ -268,7 +292,7 @@ function render(){
  if(state.error){const recovery=state.staleMembershipSelection?'<button class="btn btn-outline" id="rest-clear-membership">مسح الاختيار المحفوظ وإعادة الاختيار</button>':'';page.innerHTML=shell('تعذر تحميل موديول المطاعم',tabs()+'<div class="empty-state">'+esc(state.error)+'<div class="action-bar">'+recovery+'<button class="btn btn-primary" id="rest-retry">إعادة المحاولة</button></div></div>');bind();return;}
  if(state.selectionRequired){page.innerHTML=shell('اختيار المؤسسة والفرع', '<p class="muted">لديك أكثر من عضوية نشطة. اختر النطاق الذي تريد إدارته قبل تحميل بيانات المطعم.</p><div class="cards">'+state.membershipOptions.map(m=>'<article class="card"><div class="card-title">المؤسسة: '+esc(m.tenant_id)+'</div><p>النشاط: '+esc(m.business_id||'غير محدد')+'</p><p>الفرع: '+esc(m.branch_id||'غير محدد')+'</p><p>الدور: '+esc(m.role||'غير محدد')+'</p><button class="btn btn-primary" data-select-membership="'+esc(m.id)+'">اختيار هذا النطاق</button></article>').join('')+'</div>');bind();return;}
  if(state.loading){page.innerHTML=shell('جاري تحميل موديول المطاعم',tabs()+'<p class="muted">جاري تحميل البيانات الفعلية…</p>');return;}
- page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():state.tab==='reservations'?reservationsView():dashboard();
+ page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='kitchen'?kitchenView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():state.tab==='reservations'?reservationsView():dashboard();
  bind();
 }
 function modal(title,html,onSave,onCancel){
