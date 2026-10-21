@@ -2054,3 +2054,17 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Exact-head CI is currently in progress for this change; Node validator execution and browser/mobile E2E are not yet verified.
 - [ ] **Critical payment webhook recovery blocker:** the MantiGO Paymob webhook persists the provider event before updating the financial ledger. If the event insert succeeds and ledger update fails, a retry can be treated as idempotent and leave the ledger pending. Implement transaction-safe atomic processing or a reconciliation-safe state machine and test duplicate/retry/partial-failure cases before release.
 - Release gate remains **BLOCKED / NOT CERTIFIED** until required checks, browser verification, security tests, and payment failure-recovery tests pass.
+
+
+## متابعة تنفيذ 2026-10-21 — تحسين بحث واجهات الموديولات
+
+### تم تنفيذه على فرع `feat/module-safe-error-feedback-20261021`
+- أضيفت مساعدة عربية مرتبطة بحقل البحث في عرض السجلات العام عبر `aria-describedby` لتوضيح أن البحث محصور في الحقول المعروضة وأن حذف النص يعيد السجلات المرئية.
+- أضيفت تأكيدات مصدرية في `scripts/validate-marketing-lead-form.mjs` لضمان وجود المساعدة وربطها بالحقل.
+- الملفات: `web/operations-modules.js` و`scripts/validate-marketing-lead-form.mjs`.
+
+### ما يزال مطلوبًا — لا تعتبره منجزًا
+- تشغيل validator فعليًا وقراءة نتيجة CI؛ حتى لحظة التوثيق لا توجد نتائج Actions أو status checks مؤكدة لهذا التغيير.
+- مراجعة صفحات كل موديول مقابل قائمة صفحات معتمدة، وتحديد ما هو عرض فقط وما ينفذ عملية حقيقية وما ينقصه نموذج/بحث/حالة تحميل/خطأ/فراغ.
+- إصلاح مشكلة اتساق webhook الخاصة بـ MantiGO: إذا تم حفظ حدث Paymob ثم فشل تحديث سجل الدفتر المالي، فإن إعادة المحاولة قد تعتبر الحدث مكررًا وتترك الدفع في حالة قديمة. يلزم حل ذري عبر RPC/معاملة موثوقة أو آلية مصالحة آمنة، واختبار فشل جزئي وإعادة المحاولة قبل اعتماد بوابة الدفع.
+- PR #314 ما يزال مفتوحًا كمسودة وغير مدمج. بوابة الإطلاق تبقى BLOCKED / NOT CERTIFIED حتى نجاح الاختبارات الفعلية ومراجعة الأمان والتعافي.
