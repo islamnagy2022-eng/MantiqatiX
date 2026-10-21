@@ -785,3 +785,5 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - Reviewed the existing `marketing-lead-create` Edge Function. Client budget validation now rejects `max < min`, matching the server contract even when max is blank and resolves to zero.
 - The form captures requested services, de-duplicates entries, enforces up to 10 entries and 80 characters each, and sends `required_services`. Static validator updated. Exact-head CI and browser E2E pending; release remains BLOCKED / NOT CERTIFIED.
+
+- Additional reliability guard: the UI now reports success only when the backend explicitly returns `ok: true` and a created lead ID. Unknown/malformed responses show a safe uncertainty message, and raw backend error text is no longer exposed to the user. Static source-contract checks were extended; CI/browser E2E still unverified.
