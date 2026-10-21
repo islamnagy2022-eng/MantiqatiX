@@ -820,3 +820,8 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - MantiGO open-rides follow-up (2026-10-21): removed a second RPC that was triggered from the render path and silently converted errors to an empty list. The tab-click loader remains the single request path and records errors for retry UI. Source-contract guards added; runtime/browser verification remains pending.
+
+
+## 2026-10-21 — marketing lead API boundary hardening
+
+The `marketing-lead-create` Edge Function now reads the request body as a bounded stream, counts actual bytes, cancels once the configured limit is exceeded, and avoids buffering the entire body before enforcing the limit. Stream-read failures are converted to a controlled invalid-input path. Request field types are validated explicitly so malformed JSON values are not silently coerced into strings or numbers. Static source-contract assertions and the session log were updated. This is source-only: the validator/CI have not been run at the exact current head, and Edge runtime, browser E2E, membership authorization, tenant isolation/RLS, and production deployment remain unverified. Keep release BLOCKED / NOT CERTIFIED.
