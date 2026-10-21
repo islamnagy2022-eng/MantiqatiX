@@ -2239,3 +2239,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Investigated the web validation failure on commit `5718e5927693ac825e2fb5566d57330a75789b7c`: the implementation parsed, but a new source-contract regex incorrectly expected `field.value.length` before `counter.textContent`, while the actual renderer assigns `counter.textContent=String(field.value.length)`.
 - [x] Corrected the assertion to match the actual safe rendering expression; no production code behavior was weakened.
 - [ ] Re-run and verify web validation on the exact new head before treating the change as passed.
+
+
+## 2026-10-21 — Homepage catalog partial-failure recovery
+
+- [x] Public homepage search now distinguishes unavailable service/provider sources and preserves the successful source when the other fails.
+- [x] Added an accessible Arabic status region and a retry action for full/partial catalog failures, with safe `textContent` rendering and responsive styling.
+- [x] Extended the homepage production-content validator to cover partial-result preservation, status semantics, retry affordance, and mobile styling.
+- [ ] Exact-head web validation and module/security workflows must pass before treating this change as verified. Browser-level network-failure/retry checks remain NOT VERIFIED.
