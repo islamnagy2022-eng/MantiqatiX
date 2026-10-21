@@ -21,7 +21,7 @@ create table public.mantigo_financial_ledger (
 );
 
 create table public.payment_provider_events (
-  id uuid primary key default gen_random_uuid(),
+  id varchar primary key,
   tenant_id text not null,
   provider text not null,
   event_type text not null,
