@@ -217,4 +217,18 @@ assert.match(source, /<th scope="col">/, "data tables must mark column headers s
 assert.match(source, /class="table-wrap" role="region" aria-label="جدول البيانات" tabindex="0"/, "data tables must be keyboard-scrollable and labelled");
 assert.match(source, /role="status" aria-live="polite">جاري تحميل البيانات الفعلية/, "loading feedback must remain available to assistive technology");
 
+// MantiGO bid-form contracts: bounded inputs, accessible feedback, and strict numeric validation.
+const bidForm = source.slice(source.indexOf("function mantigoBidForm("), source.indexOf("async function mgSubmitBid()"));
+const bidSubmit = source.slice(source.indexOf("async function mgSubmitBid()"), source.indexOf("async function mgAccept("));
+assert.match(bidForm, /label for="mgBidModel"[\\s\\S]*maxlength="80"/, "captain bid fields must have associated labels and bounded vehicle-model input");
+assert.match(bidForm, /id="mgBidPlate"[^>]*maxlength="30"/, "captain bid plate input must be bounded");
+assert.match(bidForm, /id="mgBidPrice"[^>]*max="10000000"[^>]*step="0\\.01"/, "captain bid price must declare a finite maximum and decimal step");
+assert.match(bidForm, /id="mgBidEta"[^>]*max="1440"[^>]*step="1"/, "captain ETA must be bounded to an integer minute range");
+assert.match(bidForm, /role="status" aria-live="polite" data-mg-bid-status/, "bid form must announce validation and submission feedback accessibly");
+assert.match(bidSubmit, /if\(!model\|\|!plate\)/, "captain bid must require vehicle model and plate");
+assert.match(bidSubmit, /!Number\\.isFinite\\(price\\)\\|\\|price<=0\\|\\|price>10000000/, "captain bid must reject non-finite, non-positive, and excessive prices");
+assert.match(bidSubmit, /!Number\\.isInteger\\(eta\\)\\|\\|eta<0\\|\\|eta>1440/, "captain bid must reject fractional, negative, and excessive ETA values");
+assert.match(bidSubmit, /message.length>500/, "captain bid message length must be bounded in the client");
+assert.match(bidSubmit, /setStatus\('أكمل موديل المركبة ورقم اللوحة قبل إرسال العرض\.',true\)/, "captain bid validation errors must provide clear Arabic feedback");
+
 console.log("Marketing lead form validation contract PASS.");
