@@ -5,6 +5,8 @@ on:
       - "**"
     paths:
       - "supabase/functions/business-branch-admin/index.ts"
+      - "supabase/functions/_shared/branch-coordinates.mjs"
+      - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
   pull_request:
@@ -27,5 +29,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Runtime-test branch coordinate normalization
+        run: node --test scripts/test-branch-coordinate-normalization.mjs
       - name: Validate business branch admin source
         run: node scripts/validate-business-branch-admin-source.mjs
