@@ -814,3 +814,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Module-level recovery follow-up (2026-10-21): MantiGO/core module RPC failures rendered through the global error branch now expose a retry action; authentication-required state deliberately does not show a misleading retry button. Added a source-contract assertion. CI/browser verification remains pending; production stays BLOCKED / NOT CERTIFIED.
+
+
+- 2026-10-21 follow-up: catalog reads require a verified tenant scope and marketing project reads require a verified business scope before issuing queries. Missing scope becomes a visible load failure; no unscoped query is sent. Added source-contract guards. This is not proof of RLS correctness; tenant-isolation tests and CI remain required.
