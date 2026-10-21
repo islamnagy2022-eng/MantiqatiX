@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,menuSearch:'',menuCategoryFilter:'ALL',menuAvailabilityFilter:'ALL',orderSearch:'',orderStatusFilter:'ALL',error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,menuSearch:'',menuCategoryFilter:'ALL',menuAvailabilityFilter:'ALL',orderSearch:'',orderStatusFilter:'ALL',orderFromDate:'',orderToDate:'',error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -185,10 +185,11 @@ function ordersView(){
   const filtered=state.orders.filter(x=>{
    const status=String(x.status||'UNKNOWN').toUpperCase();
    const haystack=[x.id,x.customer_name,x.customer_phone].map(v=>String(v||'')).join(' ').toLocaleLowerCase();
-   return (!term||haystack.includes(term))&&(state.orderStatusFilter==='ALL'||status===state.orderStatusFilter);
+   const day=Number.isFinite(new Date(x.created_at).getTime())?(()=>{const d=new Date(x.created_at);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})():'';
+   return (!term||haystack.includes(term))&&(state.orderStatusFilter==='ALL'||status===state.orderStatusFilter)&&(!state.orderFromDate||(day&&day>=state.orderFromDate))&&(!state.orderToDate||(day&&day<=state.orderToDate));
   });
   const statuses=[...new Set(state.orders.map(x=>String(x.status||'UNKNOWN').toUpperCase()))].sort();
-  const controls='<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث برقم الطلب أو اسم العميل أو الهاتف</span><input id="rest-order-search" type="search" maxlength="120" value="'+esc(state.orderSearch)+'" placeholder="اكتب للبحث"></label><label class="field"><span>تصفية بالحالة</span><select id="rest-order-status-filter"><option value="ALL" '+(state.orderStatusFilter==='ALL'?'selected':'')+'>كل الحالات</option>'+statuses.map(s=>'<option value="'+esc(s)+'" '+(state.orderStatusFilter===s?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label><span class="muted">النتائج: '+filtered.length+' من '+state.orders.length+' طلب محمّل</span></div>';
+  const controls='<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث برقم الطلب أو اسم العميل أو الهاتف</span><input id="rest-order-search" type="search" maxlength="120" value="'+esc(state.orderSearch)+'" placeholder="اكتب للبحث"></label><label class="field"><span>تصفية بالحالة</span><select id="rest-order-status-filter"><option value="ALL" '+(state.orderStatusFilter==='ALL'?'selected':'')+'>كل الحالات</option>'+statuses.map(s=>'<option value="'+esc(s)+'" '+(state.orderStatusFilter===s?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label><label class="field"><span>من تاريخ</span><input id="rest-order-from-date" type="date" value="'+esc(state.orderFromDate)+'"></label><label class="field"><span>إلى تاريخ</span><input id="rest-order-to-date" type="date" value="'+esc(state.orderToDate)+'"></label><button type="button" class="btn btn-outline" id="rest-order-clear-dates">مسح التاريخ</button><span class="muted">النتائج: '+filtered.length+' من '+state.orders.length+' طلب محمّل</span></div>';
   return shell('طلبات المطعم',tabs()+controls+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
   (filtered.length?filtered.map(x=>{
    const current=String(x.status||'').toUpperCase();
@@ -460,6 +461,9 @@ function bind(){
  const orderSearch=document.getElementById('rest-order-search');
  if(orderSearch)orderSearch.addEventListener('input',()=>{const start=orderSearch.selectionStart;state.orderSearch=orderSearch.value;render();const next=document.getElementById('rest-order-search');if(next){next.focus();next.setSelectionRange(start,start);}});
  document.getElementById('rest-order-status-filter')?.addEventListener('change',e=>{state.orderStatusFilter=e.target.value;render();});
+ document.getElementById('rest-order-from-date')?.addEventListener('change',e=>{state.orderFromDate=e.target.value;render();});
+ document.getElementById('rest-order-to-date')?.addEventListener('change',e=>{state.orderToDate=e.target.value;render();});
+ document.getElementById('rest-order-clear-dates')?.addEventListener('click',()=>{state.orderFromDate='';state.orderToDate='';render();});
 
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
