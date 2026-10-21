@@ -371,3 +371,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 API payload hardening: `marketing-lead-create` now checks the raw request body's actual `ArrayBuffer.byteLength` before UTF-8 decoding and JSON parsing, rather than using JavaScript string length as a proxy for bytes. Added a source-contract assertion. This closes a multibyte/Unicode size-accounting gap; runtime Edge Function tests, exact-head CI, browser E2E and authorization/isolation verification remain pending.
+
+
+- 2026-10-21 API input-shape hardening: `marketing-lead-create` no longer coerces objects/numbers into text fields or stringifies invalid service entries. It rejects non-string title/description/service-area/business IDs, non-array or non-string requested services, and non-number budget values; valid omitted budgets still default to zero. Added source-contract assertions. Edge runtime tests and exact-head CI remain pending.
