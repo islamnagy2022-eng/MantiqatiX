@@ -13,4 +13,13 @@ assert.match(source, /BUSINESS_NOT_ACTIVE/, "inactive businesses must remain blo
 assert.match(source, /if\(ie\)return out\(\{error:"BRANCH_CREATE_FAILED"\},400\)/, "branch insert failures must not expose database error text");
 assert.doesNotMatch(source, /ie\.message/, "branch insert failures must not return ie.message");
 
+assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}/, "tenant and business IDs must be validated before filter interpolation");
+assert.match(source, /organization_id:business\.organization_id\?\?null/, "branch organization must be derived from the authorized business record");
+assert.doesNotMatch(source, /organization_id:body\.organizationId/, "caller must not override branch organization scope");
+assert.match(source, /phone\.length>64\|\|address\.length>500/, "branch contact fields must be length-bounded");
+assert.match(source, /latitude < -90\|\|latitude > 90/, "latitude must be range-validated");
+assert.match(source, /longitude < -180\|\|longitude > 180/, "longitude must be range-validated");
+assert.match(source, /INVALID_COORDINATES/, "invalid or partial coordinates must be rejected");
+assert.match(source, /BRANCH_CREATE_FAILED/, "database errors must be normalized before returning to the client");
+
 console.log("Business branch admin source integrity contract: PASS");
