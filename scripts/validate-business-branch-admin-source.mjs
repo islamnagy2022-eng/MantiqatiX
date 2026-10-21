@@ -20,8 +20,9 @@ assert.match(source, /phone\.length>64\|\|address\.length>500/, "branch contact 
 assert.match(source, /latitude < -90\|\|latitude > 90/, "latitude must be range-validated");
 assert.match(source, /longitude < -180\|\|longitude > 180/, "longitude must be range-validated");
 assert.match(source, /INVALID_COORDINATES/, "invalid or partial coordinates must be rejected");
-assert.ok(source.includes('import { parseOptionalCoordinate } from "../_shared/branch-coordinates.mjs"'), "branch endpoint must use the shared tested coordinate parser");
-assert.ok(source.includes("latitude=parseOptionalCoordinate(input.latitude),longitude=parseOptionalCoordinate(input.longitude)"), "both coordinates must use the guarded parser before range and pair validation");
+assert.ok(source.includes('import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs"'), "branch endpoint must use the shared tested coordinate parser");
+assert.ok(source.includes("const coordinates=parseBranchCoordinates(input.latitude,input.longitude)"), "endpoint must use tested pair and range validation");
+assert.ok(source.includes("if(coordinates.error)return out({error:coordinates.error},400)"), "invalid coordinate input must be rejected before database writes");
 assert.match(source, /BRANCH_CREATE_FAILED/, "database errors must be normalized before returning to the client");
 assert.match(source, /contentLength>maxBodyBytes/, "oversized declared request bodies must be rejected");
 assert.match(source, /totalBytes>maxBodyBytes/, "streamed bodies must be capped even without Content-Length");
