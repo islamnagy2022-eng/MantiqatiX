@@ -78,7 +78,9 @@ assert.match(moduleSource, /invokeMntyFunction\('order-status-update'/,
   'restaurant order status changes must use canonical status function');
 assert.doesNotMatch(moduleSource, /from\('restaurant_orders'\)\.update/,
   'legacy restaurant orders must not be updated directly by the browser');
-assert.ok(moduleSource.includes("data-current-status=\"'+esc(x.status)+'\""), 'order status selector must preserve its persisted value');
+assert.ok(moduleSource.includes("data-current-status=\"'+esc(current)+'\""), 'order status selector must preserve its persisted value');
+assert.match(moduleSource, /PENDING:\['CONFIRMED','CANCELLED'\],[\s\S]*?CONFIRMED:\['PREPARING','CANCELLED'\],[\s\S]*?PREPARING:\['OUT_FOR_DELIVERY','CANCELLED'\],[\s\S]*?OUT_FOR_DELIVERY:\['DELIVERED'\]/, 'UI must mirror the canonical server order transition graph');
+assert.ok(moduleSource.includes("(next.length?'':'disabled')"), 'terminal order statuses must not offer further transitions');
 assert.ok(moduleSource.includes("if(ok)s.dataset.currentStatus=selected;else s.value=previous"), 'rejected status updates must restore the prior selection');
 assert.match(moduleSource, /money\(x\.total_amount\?\?x\.total\)/, 'order totals must render from either supported canonical total field');
 assert.match(moduleSource, /توزيع الطلبات حسب الحالة/, 'dashboard must show canonical order counts by state');
