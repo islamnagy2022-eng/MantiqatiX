@@ -76,8 +76,10 @@ async function load(){
    tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
    invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
-   tablesQ=tablesQ.eq('owner_user_id',state.user.id);
-   invQ=invQ.eq('owner_user_id',state.user.id);
+   // Tables and inventory are operational records, not personal fallback data.
+   // If the active role cannot view OPERATIONS, do not query either table.
+   tablesQ=Promise.resolve({data:[],error:null});
+   invQ=Promise.resolve({data:[],error:null});
  }
  try{
   const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
