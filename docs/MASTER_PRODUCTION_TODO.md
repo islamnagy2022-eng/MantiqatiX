@@ -2000,3 +2000,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Map `invalid_title`, `invalid_description`, and `invalid_service_area` to safe, actionable Arabic guidance in the marketing lead form.
 - [x] Add source-contract assertions for these mappings.
 - [ ] Execute the Node validator and exact-head CI; source review remains non-runtime verification.
+
+
+## RC — Module-safe error feedback — 2026-10-21
+- [x] Removed 11 direct interpolations of backend `error.message` from module action alerts in `web/operations-modules.js`; users now receive bounded Arabic guidance rather than internal database/RPC error text.
+- [x] Extended the existing Pages source-contract validator with guards against raw backend error leakage and assertions for safe MantiGO, education-request, and job-application feedback.
+- [ ] Exact-head CI and browser-level journeys remain NOT VERIFIED until GitHub Actions results and interactive runtime evidence are observed.
+- No database, migrations, production data, Auth settings, Edge Function deployment, payments, merge, or release was changed. Production remains **BLOCKED / NOT CERTIFIED**.
