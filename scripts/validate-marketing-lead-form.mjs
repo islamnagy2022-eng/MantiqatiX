@@ -196,7 +196,7 @@ assert.match(source, /if\(tab==='appointments'\)return shell\(d,tabs\(d\)\+\(loa
 
 assert.ok(source.includes("sensitiveKey=/(?:access.?token|refresh.?token|id.?token|token|secret|password|passwd|credential|authorization|cookie|session|private.?key|api.?key|webhook.?payload|raw.?payload|headers|metadata)/i"), "generic module tables must exclude sensitive token, secret, credential, payload, and metadata fields");
 assert.match(source, /visibleKeys=keys\.slice\(0,8\)/, "generic module tables must render only the bounded safe field list");
-assert.match(source, /visibleKeys\.map\(k=>'<th>'/, "generic table headers must match safe displayed columns");
+assert.match(source, /visibleKeys\.map\(k=>'<th scope="col">'/, "generic table headers must match safe displayed columns and expose semantic column scope");
 
 // Accessibility contracts for shared module navigation, tables, and loading feedback.
 assert.match(source, /data-op-tab=.*aria-pressed/, "module navigation buttons must expose their selected state");
