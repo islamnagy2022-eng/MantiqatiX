@@ -405,3 +405,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Not verified yet:** exact-head CI, runtime flows, browser E2E, role authorization and tenant isolation.
 - **Not performed:** no migration/production data change, function deployment, payment, merge, or release.
 - **Next:** open a focused draft PR, then inspect exact-head workflow results and fix any real failures without weakening release gates.
+
+
+- **Follow-up hardening:** MantiGO electronic payment intent failures no longer display the raw `data.error` server response. Added two source-contract assertions. This was a UI source change only; no payment was initiated, and CI/payment E2E remain unverified.
