@@ -29,4 +29,8 @@ assert.ok(source.includes("if(!document.documentElement.dataset.mxGlobalSearchOu
 assert.ok(source.includes("clearTimeout(window.__MNTYGlobalSearchTimer)"), "outside clicks must cancel pending debounce to prevent a hidden search from reopening");
 assert.ok(!source.includes("document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true})"), "outside-click dismissal must not remove itself after the first click");
 
+assert.match(source,/data-global-search-retry>إعادة المحاولة/, "fully failed global search must expose a retry control");
+assert.match(source,/data-global-search-retry>إعادة البحث/, "partial global search must expose a retry control");
+assert.match(source,/querySelector\('\[data-global-search-retry\]'\)\?\.addEventListener\('click',runGlobalSearch\)/, "retry controls must invoke the current search without reloading the page");
+
 console.log("Global search failure-state contract PASS: empty results are distinct from partial/unavailable sources.");
