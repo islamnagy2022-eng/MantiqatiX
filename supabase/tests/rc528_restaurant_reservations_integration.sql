@@ -4,13 +4,13 @@ set role authenticated;
 select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
  'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
  'table_id','table-a','customer_name','Test Guest','customer_phone','01012345678','guest_count',3,
- 'starts_at',now()+interval '2 days','ends_at',now()+interval '2 days 1 hour',
+ 'starts_at','2026-10-24 12:00:00+00'::timestamptz,'ends_at','2026-10-24 13:00:00+00'::timestamptz,
  'notes','integration','idempotency_key','rc528-reservation-key-001'));
 -- Repeat the same key and payload; no duplicate should be created.
 select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
  'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
  'table_id','table-a','customer_name','Test Guest','customer_phone','01012345678','guest_count',3,
- 'starts_at',now()+interval '2 days','ends_at',now()+interval '2 days 1 hour',
+ 'starts_at','2026-10-24 12:00:00+00'::timestamptz,'ends_at','2026-10-24 13:00:00+00'::timestamptz,
  'notes','integration','idempotency_key','rc528-reservation-key-001'));
 reset role;
 do $$ begin
@@ -26,7 +26,7 @@ do $$ begin
   perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
    'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
    'table_id','table-a','customer_name','Overlap','customer_phone','','guest_count',2,
-   'starts_at',now()+interval '2 days 30 minutes','ends_at',now()+interval '2 days 90 minutes',
+   'starts_at','2026-10-24 12:30:00+00'::timestamptz,'ends_at','2026-10-24 13:30:00+00'::timestamptz,
    'notes','','idempotency_key','rc528-overlap-key-0001'));
   raise exception 'RC528_EXPECTED_FAILURE_NOT_RAISED';
  exception when raise_exception then
@@ -39,7 +39,7 @@ do $$ begin
   perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
    'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
    'table_id','table-a','customer_name','Too Many','customer_phone','','guest_count',5,
-   'starts_at',now()+interval '4 days','ends_at',now()+interval '4 days 1 hour',
+   'starts_at','2026-10-26 12:00:00+00'::timestamptz,'ends_at','2026-10-26 13:00:00+00'::timestamptz,
    'notes','','idempotency_key','rc528-capacity-key-001'));
   raise exception 'RC528_EXPECTED_FAILURE_NOT_RAISED';
  exception when raise_exception then
@@ -56,7 +56,7 @@ do $$ begin
   perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
    'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
    'table_id','table-a','customer_name','Cross tenant','customer_phone','','guest_count',1,
-   'starts_at',now()+interval '6 days','ends_at',now()+interval '6 days 1 hour',
+   'starts_at','2026-10-28 12:00:00+00'::timestamptz,'ends_at','2026-10-28 13:00:00+00'::timestamptz,
    'notes','','idempotency_key','rc528-cross-scope-key-01'));
   raise exception 'RC528_EXPECTED_FAILURE_NOT_RAISED';
  exception when raise_exception then
