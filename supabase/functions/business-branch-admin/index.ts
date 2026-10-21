@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs";
 import { isBranchCreationAuthorized } from "../_shared/branch-authorization.mjs";
 import { parseBearerToken } from "../_shared/bearer-token.mjs";
+import { isValidTenantId } from "../_shared/tenant-id.mjs";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 const cors = {
@@ -43,7 +44,7 @@ Deno.serve(async(req)=>{
   const tenantId=String(input.tenantId??"").trim(),businessId=String(input.businessId??"").trim(),name=String(input.name??"").trim();
   const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if(!tenantId||!businessId||!name)return out({error:"TENANT_BUSINESS_NAME_REQUIRED"},400);
-  if(!uuidPattern.test(tenantId)||!uuidPattern.test(businessId))return out({error:"INVALID_TENANT_OR_BUSINESS_ID"},400);
+  if(!isValidTenantId(tenantId)||!uuidPattern.test(businessId))return out({error:"INVALID_TENANT_OR_BUSINESS_ID"},400);
   if((input.phone!=null&&typeof input.phone!=="string")||(input.address!=null&&typeof input.address!=="string"))return out({error:"INVALID_REQUEST_FIELDS"},400);
   const phone=input.phone==null?"":input.phone.trim(),address=input.address==null?"":input.address.trim();
   const coordinates=parseBranchCoordinates(input.latitude,input.longitude);

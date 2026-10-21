@@ -12,6 +12,8 @@ on:
       - "scripts/test-bearer-token.mjs"
       - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
+      - "supabase/functions/_shared/tenant-id.mjs"
+      - "scripts/test-tenant-id.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
   pull_request:
     branches:

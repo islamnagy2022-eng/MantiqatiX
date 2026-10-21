@@ -5,6 +5,7 @@ const source = fs.readFileSync("supabase/functions/business-branch-admin/index.t
 const coordinateParser = fs.readFileSync("supabase/functions/_shared/branch-coordinates.mjs", "utf8");
 const authorizationPolicy = fs.readFileSync("supabase/functions/_shared/branch-authorization.mjs", "utf8");
 const bearerTokenParser = fs.readFileSync("supabase/functions/_shared/bearer-token.mjs", "utf8");
+const tenantIdParser = fs.readFileSync("supabase/functions/_shared/tenant-id.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/business-branch-admin-source-integrity.yml", "utf8");
 
 assert.doesNotMatch(source, /\\n/, "source must not contain literal backslash-n sequences outside strings");
@@ -34,7 +35,9 @@ assert.ok(source.indexOf("if(!isBranchCreationAuthorized") < source.indexOf('.fr
 assert.match(source, /if\(ie\)return out\(\{error:"BRANCH_CREATE_FAILED"\},500\)/, "branch insert failures must fail as server errors without exposing database error text");
 assert.doesNotMatch(source, /ie\.message/, "branch insert failures must not return ie.message");
 
-assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}/, "tenant and business IDs must be validated before filter interpolation");
+assert.match(source, /isValidTenantId\(tenantId\)\|\|!uuidPattern\.test\(businessId\)/, "tenant IDs must use the varchar-safe allowlist while business IDs remain UUIDs");
+assert.match(source, /import \{ isValidTenantId \} from "\.\.\/_shared\/tenant-id\.mjs"/, "branch endpoint must use the tested tenant ID validator");
+assert.match(tenantIdParser, /\^\[A-Za-z0-9\]\[A-Za-z0-9_-\]\{0,127\}\$/, "tenant ID validator must allow varchar tenant keys while blocking filter syntax");
 assert.match(source, /organization_id:business\.organization_id\?\?null/, "branch organization must be derived from the authorized business record");
 assert.doesNotMatch(source, /organization_id:body\.organizationId/, "caller must not override branch organization scope");
 assert.match(source, /phone\.length>64\|\|address\.length>500/, "branch contact fields must be length-bounded");
