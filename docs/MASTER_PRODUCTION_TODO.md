@@ -2146,3 +2146,15 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Walk the matrix module-by-module and implement the next small UI slice against verified backend contracts, starting with public discovery and provider profiles.
 - [ ] MantiGO Paymob webhook still uses separate event and ledger writes; atomic RPC/state-machine and replay/concurrency/partial-failure tests remain a critical release blocker.
 - [ ] Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — RC442 MantiGO Paymob webhook atomicity remediation (source only)
+
+- [x] Added `supabase/migrations/20261021195000_rc442_atomic_mantigo_paymob_webhook.sql` defining a service-role-only transaction-bound RPC. It locks the ledger row, validates provider/signature flag/amount/currency/event binding, persists the provider event and updates the pending ledger in one database transaction.
+- [x] Updated the MantiGO branch in `supabase/functions/paymob-webhook/index.ts` to call the RPC rather than issuing separate provider-event insert and ledger update requests.
+- [x] Added source-contract checks in `scripts/validate-finance-boundaries.mjs` for atomic delegation, replay binding, final-state conflict handling, and absence of the former two-write path.
+- [ ] **NOT YET VERIFIED:** execute the finance validator and JavaScript/TypeScript checks, review exact-head GitHub Actions, and add/run disposable PostgreSQL tests for duplicate event, concurrent delivery, wrong-ledger replay, amount/currency mismatch, existing-event recovery, and transaction rollback.
+- [ ] **Migration is not applied.** The Edge Function must not be deployed ahead of the migration. Apply only after chronological migration-chain review, database rehearsal, backup/restore validation, and explicit release approval.
+- [ ] Verify `payment_provider_events.id` and all relevant constraints against the target database schema before applying; confirm the service-role grant and absence of `anon`/`authenticated` execute privileges in the target catalog.
+- [ ] Browser/payment sandbox/webhook runtime evidence remains NOT VERIFIED. No production payment, database mutation, migration apply, Edge Function deploy, merge, or release was performed by this source change.
+- Production remains **BLOCKED / NOT CERTIFIED**.
