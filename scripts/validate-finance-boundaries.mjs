@@ -22,8 +22,8 @@ const mantigoStart=paymob.indexOf('if(mantigo){');
 const mantigoEnd=paymob.indexOf('const {data:intentByRef}',mantigoStart);
 if(mantigoStart<0||mantigoEnd<0)throw new Error('MantiGO Paymob webhook branch boundaries are missing.');
 const mantigoWebhook=paymob.slice(mantigoStart,mantigoEnd);
-const mantigoAtomicMigration='supabase/migrations/20261021195000_rc442_atomic_mantigo_paymob_webhook.sql';
-if(!fs.existsSync(mantigoAtomicMigration))throw new Error('RC442 atomic MantiGO webhook migration is missing.');
+const mantigoAtomicMigration='supabase/migrations/20261021195000_rc457_atomic_mantigo_paymob_webhook.sql';
+if(!fs.existsSync(mantigoAtomicMigration))throw new Error('RC457 atomic MantiGO webhook migration is missing.');
 const mantigoSql=fs.readFileSync(mantigoAtomicMigration,'utf8');
 for(const [src,marker,label] of [
   [mantigoWebhook,'process_verified_mantigo_paymob_event','MantiGO webhook delegates to atomic database processor'],
