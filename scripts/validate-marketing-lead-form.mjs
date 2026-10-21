@@ -43,6 +43,10 @@ assert.match(source, /if\(current==='MantiGO والنقل'&&tab==='open'\)\{cons
 
 
 assert.match(source, /function marketingTableView\(d,key,content\)/, "marketing tables must share explicit query failure rendering");
+assert.match(source, /aria-labelledby=\"'\+esc\(headingId\)\+'\"/, "module workspace sections must be associated with their visible heading");
+assert.match(source, /aria-busy=\"'\+\(loading\?'true':'false'\)\+'\"/, "module workspace loading state must be exposed accessibly");
+assert.match(source, /const headingId='op-heading-'\+String\(d\.key\|\|'module'\)\.toLowerCase\(\)\.replace\(\/\[\^a-z0-9_-\]\/g,'-'\)/, "module heading IDs must be deterministic and normalized");
+
 assert.match(source, /function overview\(d\)\{[\s\S]*?loadErrors\[t\]\?[\s\S]*?تعذر التحميل[\s\S]*?لا يمكن عرض عدد السجلات بأمان/, "overview counts must distinguish failed reads from real zero counts");
 assert.match(source, /data-op-reload/, "overview must expose a retry control after failed reads");
 assert.match(source, /querySelector\('\[data-op-reload\]'\)\?\.addEventListener\('click',\(\)=>\{if\(current&&defs\[current\]\)load\(defs\[current\]\)\}\)/, "retry control must reload the current module");
