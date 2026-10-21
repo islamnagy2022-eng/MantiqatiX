@@ -67,6 +67,7 @@ assert.match(source, /e=>\{const target=document\.getElementById\('mlLeadResults
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 assert.match(edge, /const rawBytes = await readLimitedBody\(req, maxBodyBytes\);[\s\S]*?JSON\.parse\(new TextDecoder\(\)\.decode\(rawBytes\)\)/, "lead API must enforce the request limit using its bounded byte stream before parsing JSON");
 assert.match(edge, /typeof body\.title === "string"[\s\S]*?typeof body\.description === "string"/, "lead API must reject non-string title and description values");
+assert.match(edge, /body\.service_area !== undefined[\s\S]*?typeof body\.service_area !== "string"[\s\S]*?invalid_service_area/, "lead API must reject non-string service-area values");
 assert.match(edge, /rawRequiredServices\.some\(x => typeof x !== "string"\)/, "lead API must reject non-string requested service entries");
 assert.match(edge, /typeof budgetMin !== "number" \|\| typeof budgetMax !== "number"/, "lead API must reject string-coerced budget values");
 assert.match(edge, /async function readLimitedBody\(req: Request, limit: number\)[\s\S]*?totalBytes \+= value\.byteLength[\s\S]*?if \(totalBytes > limit\)[\s\S]*?await reader\.cancel\(\)[\s\S]*?return null/, "lead API must stop reading oversized request streams before allocating the full body");
