@@ -72,7 +72,7 @@ assert.match(moduleSource, /field\('rest-customer','اسم العميل','', 'te
 assert.match(moduleSource, /if\(!customerName\|\|customerName\.length>120\)/, 'customer name must be validated before order submission');
 assert.match(moduleSource, /customerName:selection\.customerName,customerPhone:selection\.customerPhone,deliveryAddress:selection\.deliveryAddress/,
   'canonical order payload must carry the entered customer details without silently substituting an email');
-assert.match(moduleSource, /rest-notes.*selection\.notes/, 'canonical order payload must carry order notes');
+assert.match(moduleSource, /#rest-notes[\s\S]*notes:selection\.notes/, 'canonical order payload must carry order notes');
 assert.doesNotMatch(moduleSource, /function askQuantity\(/, 'order flow must not silently choose the first catalog item');
 assert.match(moduleSource, /invokeMntyFunction\('order-status-update'/,
   'restaurant order status changes must use canonical status function');
