@@ -845,3 +845,8 @@ Fixed `genericLiveView(d)` to render explicit states when a table is backend-onl
 ## 2026-10-21 — strict service-area type validation
 
 The marketing lead Edge Function now rejects a non-string `service_area` value with `invalid_service_area` instead of silently coercing it to an empty string. A static contract assertion was added. The generic live-data tab issue and stale body-size validator assertion are corrected in source, but runtime validation, exact-head CI, browser E2E, and tenant/RLS authorization checks remain unverified. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — safe field-specific lead errors
+
+The marketing lead form now maps `invalid_title`, `invalid_description`, and `invalid_service_area` to explicit Arabic guidance without exposing raw backend errors. Added source-contract assertions. Exact-head CI, actual Node validator execution, browser E2E, and authorization/RLS verification remain pending. Release remains BLOCKED / NOT CERTIFIED.
