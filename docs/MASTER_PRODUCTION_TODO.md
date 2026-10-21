@@ -2256,3 +2256,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Sector-module loading state now uses an Arabic live status announcement and exposes workspace busy state while data is loading.
 - [x] Sector navigation tabs now expose a named group, explicit button types, and active-state semantics.
 - [ ] Run exact-head source-contract validation and relevant CI; keyboard/screen-reader behavior still requires browser-level verification.
+
+
+## UI follow-up — partial source failures in sector workspaces (2026-10-21)
+
+- [x] Preserve successfully loaded sector data when one or more independent sources fail.
+- [x] Mark failed source counts as unavailable rather than showing a misleading zero.
+- [x] Show an accessible partial-failure notice and retry action without hiding working sections.
+- [ ] Exact-head CI and browser regression remain required; no claim of screen-reader/E2E verification.
