@@ -39,6 +39,6 @@ assert.match(moduleSource, /restaurant_menu_items'\)\.update\(payload\)\.eq\('id
 assert.match(moduleSource, /restaurant_tables'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'table updates must be scoped to the active branch and detect unmatched writes');
 assert.match(moduleSource, /restaurant_inventory'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'inventory updates must be scoped to the active branch and detect unmatched writes');
 assert.match(moduleSource, /if\(!r\.data\)return notify\('لم يتم الحفظ:/, 'zero-row updates must not be reported as success');
-assert.match(moduleSource, /if\(saveButton\.disabled\)return;saveButton\.disabled=true;try\{await onSave\(o\)\}catch\(error\)\{notify\('حدث خطأ غير متوقع أثناء الحفظ\. حاول مرة أخرى\.' ,'error'\)\}finally\{if\(o\.isConnected\)saveButton\.disabled=false\}/, 'modal saves must be single-flight and surface unexpected errors');
+assert.ok(moduleSource.includes("if(saveButton.disabled)return;saveButton.disabled=true;try{await onSave(o)}catch(error){notify('حدث خطأ غير متوقع أثناء الحفظ. حاول مرة أخرى.','error')}finally{if(o.isConnected)saveButton.disabled=false}"), 'modal saves must be single-flight and surface unexpected errors');
 
 console.log('Restaurant module contract PASS');
