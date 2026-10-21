@@ -1965,3 +1965,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Add source-contract assertions for byte limits, streaming cancellation, read failures, and strict field types.
 - [ ] Run the validator and full repository CI at the exact current head; Edge Function runtime tests and browser E2E remain pending.
 - [ ] Independently verify membership authorization, tenant isolation/RLS, and production deployment configuration. This source-only change does not certify production.
+
+
+### 2026-10-21 — overview counts for backend-only tables
+
+- [x] Avoid showing zero rows for tables intentionally skipped by `BACKEND_ONLY_TABLES`; show a clear authorized-backend-only state.
+- [x] Add a source-contract assertion for this state.
+- [ ] Runtime/browser verification and exact-head CI remain pending.
