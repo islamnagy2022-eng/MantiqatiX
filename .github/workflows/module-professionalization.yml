@@ -46,6 +46,7 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-module-contract.mjs
           node scripts/validate-rc526-restaurant-membership-rbac.mjs
+          node scripts/validate-rc528-restaurant-reservations.mjs
           node scripts/validate-erp-purchase-receive-contract.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-order-create-branch-scope.mjs
@@ -112,6 +113,37 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc527_restaurant_test -v ON_ERROR_STOP=1 -f /tmp/rc527_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc527_restaurant_test -v ON_ERROR_STOP=1 -f /tmp/rc527_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc527_restaurant_test -v ON_ERROR_STOP=1 -f /tmp/rc527_test.sql
+
+  restaurant-reservations-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc528_restaurant_reservations_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc528_restaurant_reservations_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC528 fixture, migration, and assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc528_restaurant_reservations_fixture.sql "$pg_container:/tmp/rc528_fixture.sql"
+          docker cp supabase/migrations/20261022120000_rc528_restaurant_reservations.sql "$pg_container:/tmp/rc528_migration.sql"
+          docker cp supabase/tests/rc528_restaurant_reservations_integration.sql "$pg_container:/tmp/rc528_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc528_restaurant_reservations_test -v ON_ERROR_STOP=1 -f /tmp/rc528_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc528_restaurant_reservations_test -v ON_ERROR_STOP=1 -f /tmp/rc528_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc528_restaurant_reservations_test -v ON_ERROR_STOP=1 -f /tmp/rc528_test.sql
 
   targeted-ads-search-path-integration:
     runs-on: ubuntu-latest
