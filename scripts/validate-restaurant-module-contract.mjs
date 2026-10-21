@@ -152,6 +152,8 @@ assert.match(moduleSource, /title:'بانتظار بدء التحضير',next:'P
   'kitchen board must start preparation using the existing CONFIRMED to PREPARING transition');
 assert.match(moduleSource, /next:'OUT_FOR_DELIVERY',action:'تسليم للمندوب'/,
   'kitchen board must use the existing OUT_FOR_DELIVERY transition rather than inventing a ready status');
+assert.match(moduleSource, /function kitchenView\(\)[\s\S]*?id="rest-refresh"[\s\S]*?آخر تحديث ناجح/,
+  'kitchen board must expose a manual refresh control and the last successful refresh time');
 assert.match(moduleSource, /تعرض الشاشة الطلبات المحمّلة ضمن الفرع النشط فقط، بحد أقصى آخر 100 طلب/,
   'kitchen board must disclose its bounded active-branch dataset');
 assert.match(moduleSource, /لا تُنشأ حالات جديدة من الواجهة/,
