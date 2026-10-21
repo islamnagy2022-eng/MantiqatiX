@@ -144,7 +144,7 @@ function tablesView(){
 function inventoryView(){
  const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-inv">+ إضافة صنف مخزون</button>':'';
  return shell('مخزون المطعم',tabs()+'<div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الوحدة</th><th>الرصيد</th><th>حد التنبيه</th><th>تكلفة الوحدة</th><th>المورد</th><th>إجراء</th></tr></thead><tbody>'+
- (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
+ (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">بيانات</button> <button class="linkbtn" data-inv-move="'+esc(x.id)+'">حركة</button>':'—')+' <button class="linkbtn" data-inv-history="'+esc(x.id)+'">السجل</button></td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function askOrderDetails(items){
@@ -237,15 +237,39 @@ function addInventory(existing){
  if(!canOperate('OPERATIONS',existing?'update':'create'))return;
  const x=existing||{};
  modal(existing?'تعديل صنف مخزون':'إضافة صنف مخزون',
- field('name','اسم الصنف',x.name_ar)+field('unit','الوحدة',x.unit||'KG')+(existing?'<div class="notice">لا يمكن تعديل الرصيد مباشرة من هذه الشاشة. استخدم حركة مخزون موثقة عند توفر مسار الحركات.</div>':field('stock','رصيد افتتاحي',x.current_stock_qty||0,'number','step="0.001" min="0"'))+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0"')+field('cost','تكلفة الوحدة بالجنيه',x.unit_cost_egp||0,'number','step="0.01" min="0"')+field('supplier','المورد',x.supplier_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
+ field('name','اسم الصنف',x.name_ar)+field('unit','الوحدة',x.unit||'KG')+'<div class="notice">يبدأ الصنف برصيد صفر. سجل الوارد أو الصرف أو الرصيد الافتتاحي من زر حركة ليتم تحديث الرصيد مع سجل تدقيق.</div>'+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0"')+field('supplier','المورد',x.supplier_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
-  const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),min_stock_alert_threshold:Number(o.querySelector('#min').value),unit_cost_egp:Number(o.querySelector('#cost').value),supplier_name:o.querySelector('#supplier').value.trim()};
-  if(!existing)payload.current_stock_qty=Number(o.querySelector('#stock').value);
-  if(!payload.name_ar||!payload.unit||[payload.min_stock_alert_threshold,payload.unit_cost_egp,...(!existing?[payload.current_stock_qty]:[])].some(v=>!Number.isFinite(v)||v<0))return notify('تحقق من بيانات المخزون.');
+  const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),min_stock_alert_threshold:Number(o.querySelector('#min').value),supplier_name:o.querySelector('#supplier').value.trim()};
+  if(!existing){payload.current_stock_qty=0;payload.unit_cost_egp=0;}
+  if(!payload.name_ar||!payload.unit||![payload.min_stock_alert_threshold].every(v=>Number.isFinite(v)&&v>=0))return notify('تحقق من بيانات المخزون.');
   const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle():sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
   const r=await q;if(r.error)return notify('تعذر الحفظ. تحقق من البيانات والصلاحيات ثم حاول مرة أخرى.','error');if(!r.data)return notify('لم يتم الحفظ: صنف المخزون خارج نطاق الفرع أو لا تملك الصلاحية.','error');o._close();await load();
  });
+}
+async function addInventoryMovement(existing){
+ if(!existing||!canOperate('OPERATIONS','update'))return;
+ modal('تسجيل حركة مخزون','<div class="notice">تحديث الرصيد يتم ذريًا عبر دالة خادمية ويسجل حركة غير قابلة للتعديل من المتصفح.</div><label class="field"><span>نوع الحركة</span><select id="stock-movement-type"><option value="RECEIPT">وارد / توريد</option><option value="ISSUE">صرف</option><option value="OPENING_BALANCE">رصيد افتتاحي</option></select></label>'+field('stock-movement-qty','الكمية','1','number','min="0.001" max="1000000" step="0.001" required')+field('stock-movement-cost','تكلفة الوحدة بالجنيه',existing.unit_cost_egp||0,'number','min="0" max="100000000" step="0.01" required')+'<label class="field"><span>ملاحظات / مرجع</span><textarea id="stock-movement-notes" rows="3" maxlength="1000"></textarea></label><button class="btn btn-primary" data-save>تسجيل الحركة</button>',async o=>{
+  const s=scope();const type=o.querySelector('#stock-movement-type').value;
+  const quantity=Number(o.querySelector('#stock-movement-qty').value);
+  const unitCost=Number(o.querySelector('#stock-movement-cost').value);
+  const notes=o.querySelector('#stock-movement-notes').value.trim();
+  if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+  if(!Number.isFinite(quantity)||quantity<=0||quantity>1000000||Math.round(quantity*1000)!==quantity*1000)return notify('أدخل كمية موجبة بحد أقصى ثلاث خانات عشرية.','error');
+  if(!Number.isFinite(unitCost)||unitCost<0||unitCost>100000000||Math.round(unitCost*100)!==unitCost*100)return notify('أدخل تكلفة صحيحة بحد أقصى خانتين عشريتين.','error');
+  const {data,error}=await sb.rpc('restaurant_inventory_move',{p_inventory_id:existing.id,p_movement_type:type,p_quantity:quantity,p_unit_cost_egp:unitCost,p_idempotency_key:'MNTY-REST-STOCK-'+uid(),p_notes:notes});
+  if(error){notify('تعذر تسجيل حركة المخزون. تحقق من الصلاحيات والرصيد ثم حاول مرة أخرى.','error');return;}
+  o._close();notify('تم تسجيل الحركة بنجاح. الرصيد الجديد: '+Number(data?.current_stock_qty??0).toLocaleString('ar-EG')+' '+existing.unit);await load();
+ });
+}
+async function viewInventoryMovements(existing){
+ if(!existing)return;
+ const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ const {data,error}=await sb.from('restaurant_inventory_movements').select('id,movement_type,quantity,unit_cost_egp,idempotency_key,notes,created_by,created_at').eq('inventory_id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).order('created_at',{ascending:false}).limit(50);
+ if(error)return notify('تعذر تحميل سجل الحركات. تحقق من الصلاحيات والاتصال.','error');
+ const rows=data||[];
+ const body='<p class="muted">آخر 50 حركة للصنف '+esc(existing.name_ar)+'. الرصيد الحالي: '+esc(existing.current_stock_qty)+' '+esc(existing.unit)+'</p><div class="table-wrap"><table><thead><tr><th>النوع</th><th>الكمية</th><th>تكلفة الوحدة</th><th>الملاحظات</th><th>التاريخ</th></tr></thead><tbody>'+(rows.length?rows.map(x=>'<tr><td>'+esc(x.movement_type)+'</td><td>'+esc(x.quantity)+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.notes||'—')+'</td><td>'+esc(new Date(x.created_at).toLocaleString('ar-EG'))+'</td></tr>').join(''):'<tr><td colspan="5">لا توجد حركات مسجلة لهذا الصنف بعد.</td></tr>')+'</tbody></table></div>';
+ modal('سجل حركات المخزون',body);
 }
 async function updateOrder(id,status){
  if(!canOperate('ORDERS','update'))return;
@@ -267,6 +291,8 @@ function bind(){
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
+ document.querySelectorAll('[data-inv-move]').forEach(b=>b.onclick=()=>addInventoryMovement(state.inventory.find(x=>x.id===b.dataset.invMove)));
+ document.querySelectorAll('[data-inv-history]').forEach(b=>b.onclick=()=>viewInventoryMovements(state.inventory.find(x=>x.id===b.dataset.invHistory)));
  document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=async()=>{if(s.dataset.pending==='1')return;const previous=s.dataset.currentStatus||s.value;const selected=s.value;s.dataset.pending='1';s.disabled=true;try{const ok=await updateOrder(s.dataset.orderStatus,selected);if(ok)s.dataset.currentStatus=selected;else s.value=previous}finally{delete s.dataset.pending;if(s.isConnected)s.disabled=false}});
 }
 function activeModule(){
