@@ -315,3 +315,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** added `list_jobs_backend` and `list_job_applications_backend` in `20261020233000_jobs_directory_backend_v1.sql`; switched sector loader to RPC calls. Job rows are scope-filtered and omit employer contact; application rows are visible to the applicant or job owner and omit phone/CV. Job employer name is aliased to `company_name` to match the UI.
 - **Tests:** disposable PostgreSQL fixture/integration and `.github/workflows/job-directory-read.yml`, plus source-contract assertions. Commits: `00e62d2700a47cb5013373b917cf6a12286ac7d1`, `ed6753fe9b1266245598354b578c3394b0c47471`, `f69e13905855a8ad75124daaa5c0bdb2e89152d0`, `ca3be7eec648b9efd6a9b2fd0ad7699f23d6e1e2`, `8cb6225fdf925c211db651fff65d57f59dc84104`, `eb097141b5f01a01e33371b97aa626a7560e6346`.
 - No production migration applied; CI/browser E2E pending.
+
+
+## 2026-10-21 — marketing lead form validation slice
+
+- Improved the existing marketing lead form in `web/operations-modules.js`: explicit labels and accessible status announcements, bounded text lengths, nonnegative finite budget validation, min/max consistency validation, and duplicate-submit protection while the existing `marketing-lead-create` backend function is pending.
+- Added `scripts/validate-marketing-lead-form.mjs` and wired it into `.github/workflows/pages.yml`.
+- Source changes are committed on an isolated branch. Exact-head CI is pending; no test result is claimed until observed. Backend behavior, role/RLS behavior, and browser E2E remain NOT VERIFIED. No production data or backend contract changed.
