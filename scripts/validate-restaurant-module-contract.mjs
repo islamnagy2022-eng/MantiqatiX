@@ -50,6 +50,12 @@ assert.match(moduleSource, /setItem\('MNTYActiveMembershipId',id\);load\(\)/,
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
+assert.match(moduleSource, /Tables and inventory are operational records, not personal fallback data/,
+  'tables and inventory must not use owner_user_id as a fallback when OPERATIONS:view is denied');
+assert.match(moduleSource, /tablesQ=Promise\.resolve\(\{data:\[\],error:null\}\);\s*invQ=Promise\.resolve\(\{data:\[\],error:null\}\);/,
+  'unauthorized operations reads must resolve to empty results without querying operational tables');
+assert.doesNotMatch(moduleSource, /tablesQ=tablesQ\.eq\('owner_user_id',state\.user\.id\)|invQ=invQ\.eq\('owner_user_id',state\.user\.id\)/,
+  'operations read denial must not fall back to owner-filtered table or inventory queries');
 
 // Order creation/status must go through the canonical server functions.
 assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
