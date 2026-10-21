@@ -2368,3 +2368,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added the helper/test to the dedicated source-integrity workflow and source-contract assertions. Exact-head run `39598341593` passed type-check, runtime tests, and source validation at `60f09c55c36aa62c16acc5104bb3a3e74132adc4`.
 - [ ] Live Supabase Auth / Edge Function integration, browser E2E, and deployed-function parity remain NOT VERIFIED. This does not certify production readiness.
 - Production remains **BLOCKED / NOT CERTIFIED**; no merge or manual production deployment was performed.
+
+- [x] Follow-up: included bearer-token helper and its runtime test in both push and pull-request path filters; source validator now asserts both triggers remain wired. Commit `9b41276e55f4b1902800df7fbfba030db9af2455`.
+- [ ] Exact-head Actions for the path-filter follow-up and source-validator follow-up must finish before recording their result; live Supabase Auth/Edge Function integration remains NOT VERIFIED.
