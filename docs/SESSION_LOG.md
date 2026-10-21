@@ -475,3 +475,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - The source validator now asserts HTTP 500 and the no-raw-error-leak boundary.
 - Verified exact commit `8503aa6dceaa25512b648013d26a5617eda0c577`: `Business Branch Admin Source Integrity` run `39598867255` passed type-check, runtime tests, and source validation.
 - No live Supabase integration test was run; production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — tenant ID compatibility fix + live drift confirmed
+- Read-only live schema check confirmed tenant IDs are `varchar` in `businesses`, `branches`, and `user_memberships`; business IDs are UUIDs. Previous source validation incorrectly required tenant IDs to be UUIDs, which could reject legitimate platform/business tenant keys.
+- Added `_shared/tenant-id.mjs` and `scripts/test-tenant-id.mjs`; endpoint now allows bounded alphanumeric / underscore / hyphen tenant keys and keeps business IDs strictly UUID-validated. CI now runs these tests and triggers for their changes on both pushes and PRs.
+- Exact-head run `39599342787` passed Deno check, runtime tests, and source validator at `25c75d99c16808c820e120bf4318a08e93669efc`.
+- Live Supabase function remains ACTIVE v5 with older source that lacks the new body-size limit, strict bearer parser, trusted organization derivation, coordinate normalization, and safe generic database errors. No deployment was performed. Release remains BLOCKED / NOT CERTIFIED.

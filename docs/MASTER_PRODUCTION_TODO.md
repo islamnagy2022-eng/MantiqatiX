@@ -2378,3 +2378,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Updated the source-contract regression assertion to require the server-error status and no raw database message.
 - [x] Exact-head `Business Branch Admin Source Integrity` run `39598867255` passed at commit `8503aa6dceaa25512b648013d26a5617eda0c577` (Deno type-check, runtime tests, source validator).
 - [ ] Live Supabase Auth + Edge Function integration, tenant isolation tests against a disposable real PostgreSQL/Supabase instance, and browser E2E remain NOT VERIFIED. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — verified tenant-key schema mismatch and live Edge Function drift
+- [x] Read-only Supabase schema inspection confirmed `public.businesses.tenant_id`, `public.branches.tenant_id`, and `public.user_memberships.tenant_id` are `character varying`, while `business_id` is `uuid`.
+- [x] Fixed branch admin validation so tenant IDs accept bounded varchar keys such as `MNTY-PLATFORM` / `tenant-a` and UUID-like tenant keys, while enforcing a strict safe-character allowlist before PostgREST filter interpolation; business IDs remain UUID-validated.
+- [x] Added unit regression tests for accepted/rejected tenant IDs and wired them into push + pull_request CI triggers and the test command.
+- [x] Exact-head CI passed at `25c75d99c16808c820e120bf4318a08e93669efc`: [Business Branch Admin Source Integrity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39599342787) (Deno type-check, runtime tests, source validator).
+- [!] Read-only live Supabase inspection found `business-branch-admin` remains ACTIVE v5 and its deployed source differs from the hardened repository version: no request body cap, weaker bearer parsing, caller-controlled `organization_id`, unchecked numeric coordinate coercion, and raw database error disclosure. Do not treat repository CI as deployment parity.
+- [ ] Deploy hardened function only through an approved, reviewed release path after compatibility and integration checks. Live production function has NOT been changed in this continuation. Release remains **BLOCKED / NOT CERTIFIED**.
