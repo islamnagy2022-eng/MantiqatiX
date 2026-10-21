@@ -1,0 +1,74 @@
+\set ON_ERROR_STOP on
+-- Staff may transition an order in their own branch.
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+set role authenticated;
+select public.update_order_status_backend('30000000-0000-0000-0000-000000000001','tenant-a','10000000-0000-0000-0000-000000000001','CONFIRMED',null);
+reset role;
+do $$ begin
+ if (select status from public.orders where id='30000000-0000-0000-0000-000000000001') <> 'CONFIRMED' then
+  raise exception 'RC529_FAIL: valid same-branch transition did not persist';
+ end if;
+end $$;
+
+-- A staff member in branch A cannot transition an order in branch B of the same business.
+set role authenticated;
+do $$ begin
+ begin
+  perform public.update_order_status_backend('30000000-0000-0000-0000-000000000002','tenant-a','10000000-0000-0000-0000-000000000001','CONFIRMED',null);
+  raise exception 'RC529_EXPECTED_FAILURE_NOT_RAISED';
+ exception when raise_exception then
+  if sqlerrm='RC529_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+ end;
+end $$;
+-- The restrictive RLS policy must also block direct cross-branch UPDATE attempts.
+update public.orders set status='CONFIRMED' where id='30000000-0000-0000-0000-000000000002';
+reset role;
+do $$ begin
+ if (select status from public.orders where id='30000000-0000-0000-0000-000000000002') <> 'PENDING' then
+  raise exception 'RC529_FAIL: cross-branch status mutation succeeded';
+ end if;
+end $$;
+
+-- A business-wide owner membership in another business of the same tenant cannot cross businesses.
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000003',false);
+set role authenticated;
+do $$ begin
+ begin
+  perform public.update_order_status_backend('30000000-0000-0000-0000-000000000001','tenant-a','10000000-0000-0000-0000-000000000003','CONFIRMED',null);
+  raise exception 'RC529_EXPECTED_FAILURE_NOT_RAISED';
+ exception when raise_exception then
+  if sqlerrm='RC529_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+ end;
+end $$;
+reset role;
+
+-- Customer cancellation remains possible only for the customer's own unpaid order.
+select set_config('request.jwt.claim.sub','40000000-0000-0000-0000-000000000001',false);
+set role authenticated;
+select public.update_order_status_backend('30000000-0000-0000-0000-000000000001','tenant-a','40000000-0000-0000-0000-000000000001','CANCELLED','customer cancellation');
+reset role;
+do $$ begin
+ if (select status from public.orders where id='30000000-0000-0000-0000-000000000001') <> 'CANCELLED' then
+  raise exception 'RC529_FAIL: customer cancellation did not persist';
+ end if;
+end $$;
+
+-- Paid orders still cannot be cancelled without a refund.
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+set role authenticated;
+do $$ begin
+ begin
+  perform public.update_order_status_backend('30000000-0000-0000-0000-000000000004','tenant-a','10000000-0000-0000-0000-000000000001','CANCELLED',null);
+  raise exception 'RC529_EXPECTED_FAILURE_NOT_RAISED';
+ exception when raise_exception then
+  if sqlerrm='RC529_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+ end;
+end $$;
+reset role;
+do $$ begin
+ if (select status from public.orders where id='30000000-0000-0000-0000-000000000004') <> 'PENDING' then
+  raise exception 'RC529_FAIL: paid order was cancelled without refund';
+ end if;
+end $$;
+
+select 'RC529_ORDER_BRANCH_SCOPE_PASS' as result;
