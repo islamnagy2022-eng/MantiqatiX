@@ -21,7 +21,8 @@ assert.match(source, /latitude < -90\|\|latitude > 90/, "latitude must be range-
 assert.match(source, /longitude < -180\|\|longitude > 180/, "longitude must be range-validated");
 assert.match(source, /INVALID_COORDINATES/, "invalid or partial coordinates must be rejected");
 assert.match(source, /BRANCH_CREATE_FAILED/, "database errors must be normalized before returning to the client");
-assert.match(source, /contentLength>16384/, "oversized declared request bodies must be rejected");
+assert.match(source, /contentLength>maxBodyBytes/, "oversized declared request bodies must be rejected");
+assert.match(source, /totalBytes>maxBodyBytes/, "streamed bodies must be capped even without Content-Length");
 assert.match(source, /REQUEST_TOO_LARGE/, "oversized requests must receive a stable error code");
 assert.match(source, /!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)/, "null, primitive, and array request bodies must be rejected");
 assert.match(source, /INVALID_REQUEST_BODY/, "malformed JSON shapes must receive a stable error code");
