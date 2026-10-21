@@ -84,5 +84,12 @@
     "production_changes_made": false,
     "evidence": "Read-only Supabase MCP queries executed during continuation; function definitions, effective execute grants, migration ledger, and advisor findings checked directly.",
     "next_gate": "Full chronological migration reconciliation and disposable PostgreSQL replay; tenant-isolation and payment/finance E2E; backup/restore rehearsal; Auth settings review; Edge Function parity; explicit rollout approval."
+  },
+  "live_function_parity": {
+    "checked_at": "2026-10-21",
+    "platform_admin_rpc_guards": "FAIL",
+    "targeted_ads_search_path": "FAIL",
+    "business_branch_admin": "FAIL",
+    "notes": "Read-only live source/catalog checks. These statuses must not be changed to PASS until exact deployed definitions and effective grants are rechecked after an approved release."
   }
 }
