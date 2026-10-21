@@ -2155,7 +2155,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added source-contract checks in `scripts/validate-finance-boundaries.mjs` for atomic delegation, replay binding, final-state conflict handling, and absence of the former two-write path.
 - [ ] **NOT YET VERIFIED:** execute the finance validator and JavaScript/TypeScript checks, review exact-head GitHub Actions, and add/run disposable PostgreSQL tests for duplicate event, concurrent delivery, wrong-ledger replay, amount/currency mismatch, existing-event recovery, and transaction rollback.
 - [ ] **Migration is not applied.** The Edge Function must not be deployed ahead of the migration. Apply only after chronological migration-chain review, database rehearsal, backup/restore validation, and explicit release approval.
-- [ ] Verify `payment_provider_events.id` and all relevant constraints against the target database schema before applying; confirm the service-role grant and absence of `anon`/`authenticated` execute privileges in the target catalog.
+- [x] Read-only target schema inspection confirmed `payment_provider_events.id` is `varchar` with no default, `payment_intent_id` is nullable and references `payment_intents(id)`, and `(provider, external_event_id)` is unique. `MNTY-PLATFORM` exists and is active. RC457 now creates a text event ID and leaves `payment_intent_id` NULL for MantiGO; the verified Paymob merchant order reference binds the event to the MantiGO ledger.
 - [ ] Browser/payment sandbox/webhook runtime evidence remains NOT VERIFIED. No production payment, database mutation, migration apply, Edge Function deploy, merge, or release was performed by this source change.
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
@@ -2174,3 +2174,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Covered first delivery, exact duplicate, wrong-ledger replay, contradictory replay status, amount mismatch, recovery of an already-recorded legacy event, failed payment, and rollback when the ledger update is forced to fail after event insertion.
 - [ ] Await exact-head CI result for the new workflow. A test file being present is not proof it passed.
 - [ ] Concurrent delivery stress and a target-Supabase schema/grant review remain required before deployment.
+
+
+### RC457 live-schema compatibility correction
+
+- [x] Read-only Supabase catalog inspection found a critical pre-existing mismatch: the generic provider-event table's `payment_intent_id` foreign key references `payment_intents(id)`, not `mantigo_financial_ledger(id)`. The former MantiGO webhook tried to put a MantiGO ledger ID into that foreign key, which can fail event persistence.
+- [x] Corrected the atomic RPC to store `payment_intent_id = NULL` for MantiGO and bind replays through the signed Paymob `merchant_order_id` in the retained raw payload, while keeping the provider/event unique key and ledger row lock.
+- [x] Updated the disposable fixture to mirror the live varchar ID and payment-intent foreign key shape, and updated tests to include the merchant reference.
+- [ ] Exact-head RC457 PostgreSQL workflow must pass before this source patch is treated as verified. No production SQL was executed; catalog checks were read-only. Migration and Edge Function remain undeployed.
