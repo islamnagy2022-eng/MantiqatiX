@@ -25,6 +25,9 @@ do $$ begin
   if (select current_stock_qty from public.restaurant_inventory where id='item-a') <> 11 then
     raise exception 'RC527_FAIL: issue did not atomically decrement stock';
   end if;
+  if (select unit_cost_egp from public.restaurant_inventory_movements where idempotency_key='rc527-issue-key-0000001') <> 6 then
+    raise exception 'RC527_FAIL: issue cost was not derived from the server-side weighted average';
+  end if;
 end $$;
 
 -- Insufficient stock must fail without changing the balance.
