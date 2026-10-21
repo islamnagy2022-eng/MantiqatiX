@@ -65,7 +65,8 @@ async function load(){
  if(s&&canOperate('CATALOG','view')){
    menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
-   menuQ=menuQ.eq('is_available',true);
+   // Limited catalog reads remain pinned to the selected tenant, business and branch.
+   menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).eq('is_available',true);
  }
  if(s&&canOperate('ORDERS','view')){
    ordersQ=ordersQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
