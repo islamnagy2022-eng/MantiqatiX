@@ -4,7 +4,10 @@ import vm from "node:vm";
 const entry = fs.readFileSync("web/preview/index.html", "utf8");
 const dashboard = fs.readFileSync("web/preview/dashboard.html", "utf8");
 const admin = fs.readFileSync("web/preview/admin.html", "utf8");
+const login = fs.readFileSync("web/preview/login.html", "utf8");
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+const loginScript = login.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+const dashboardScript = dashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const home = fs.readFileSync("web/index.html", "utf8");
 const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
@@ -31,18 +34,36 @@ const checks = [
   ["Demo forms constrain input length and require a name", /id="recordName"[^>]*required[^>]*maxlength="100"/.test(dashboard) && /maxlength="400"/.test(dashboard)],
   ["Demo UI escapes record content before rendering HTML", dashboard.includes("function safe(s)") && dashboard.includes(".replace(/[&<>")],
   ["Demo global search supports the Enter key", dashboard.includes("globalSearch').addEventListener('keydown'") && dashboard.includes("e.key==='Enter'")],
-  ["Demo navigation includes all four workspace tabs", /data-tab="overview"/.test(dashboard) && /data-tab="records"/.test(dashboard) && /data-tab="create"/.test(dashboard) && /data-tab="workflow"/.test(dashboard)],
-  ["Demo mutations remain in page-memory data structures", dashboard.includes("let current=null, toastTimer=null, data={}") && dashboard.includes("data[current.id].unshift")],
+  ["Demo navigation includes overview, subpages, records, create, specialized, workflow and permissions tabs", ["overview","subpages","records","create","specialized","workflow","permissions"].every(x => dashboard.includes('data-tab="'+x+'"'))],
+  ["Demo mutations remain in page-memory data structures", dashboard.includes("let current=null, toastTimer=null, data={}, editingRecordId=null") && dashboard.includes("data[current.id].unshift")],
   ["Demo dashboard stays standalone without network or persistence APIs", !/\bfetch\s*\(|\bsupabase\b|localStorage|sessionStorage/i.test(dashboard)],
   ["Dashboard links to the dedicated administration workspace", dashboard.includes('href="admin.html"')],
   ["Admin workspace is Arabic RTL and responsive", /<html lang="ar" dir="rtl">/.test(admin) && admin.includes('name="viewport"') && admin.includes('@media(max-width:760px)')],
   ["Admin workspace includes all 35 catalog modules", (() => { const match = admin.match(/const modules=([\s\S]*?);\nconst sections=/); return !!match && JSON.parse(match[1]).length === 35; })()],
-  ["Admin workspace covers users, roles, operations, finance, security and release controls", ["view-roles","users","providers","orders","marketing","payments","accounting","security","integrations","backup","monitoring","releases","settings"].every(x => admin.includes(x))],
+  ["Admin workspace covers users, roles, operations, finance, security and release controls", ["view-roles","users","providers","orders","marketing","sponsored","payments","accounting","security","integrations","backup","monitoring","releases","settings"].every(x => admin.includes(x))],
   ["Admin workspace supports local record creation, status changes and deletion", admin.includes("data-dynamic-form") && admin.includes("data-cycle") && admin.includes("data-delete") && admin.includes("data[key].unshift")],
   ["Admin workspace provides CSV exports and audit trail", admin.includes("exportAllBtn") && admin.includes("text/csv;charset=utf-8") && admin.includes("renderDynamicRecords('audit')")],
+  ["Admin audit screen renders searchable session events and exports them", admin.includes("if(key==='audit')renderDynamicRecords('audit')") && admin.includes("key==='audit'?[['time','event','area','result']") && admin.includes("سجل التدقيق للقراءة فقط")],
   ["Admin workspace clearly prevents production and external operations", admin.includes("لا يوجد اتصال بالخادم") && admin.includes("لا توجد عمليات خلفية") && !/fetch\s*\(/i.test(admin) && !/createClient\s*\(/i.test(admin) && !admin.includes("localStorage") && !admin.includes("sessionStorage")],
   ["Admin workspace inline JavaScript parses successfully", (() => { try { if (!adminScript) return false; new vm.Script(adminScript); return true; } catch (error) { console.error("Admin JavaScript syntax error:", error.message); return false; } })()],
-  ["Dashboard supports direct links to a module workspace", dashboard.includes("new URLSearchParams(window.location.search)") && dashboard.includes("openModule(requestedModule)") ]
+  ["Dashboard supports direct links to a module workspace", dashboard.includes("new URLSearchParams(window.location.search)") && dashboard.includes("openModule(requestedModule)") ],
+  ["Sponsored placements are a dedicated marketing subpage, not an extra module", dashboard.includes("الإعلانات الممولة والظهور المدفوع") && admin.includes("الإعلانات الممولة والظهور المدفوع") && !dashboard.includes("id:'sponsored'") && !admin.includes('"id":"sponsored"')],
+  ["Demo authentication includes login, registration, recovery and OTP simulation", ["loginForm","registerForm","forgotForm","otpForm"].every(x => login.includes('id="'+x+'"')) && login.includes("123456") && login.includes("محاكاة إنشاء حساب")],
+  ["Authentication demo cannot contact services or persist credentials", !/fetch\s*\(|\bXMLHttpRequest\b|createClient\s*\(/i.test(login) && !login.includes("localStorage") && !login.includes("sessionStorage") && login.includes("لا يتم حفظها")],
+  ["Authentication page inline JavaScript parses successfully", (() => { try { if (!loginScript) return false; new vm.Script(loginScript); return true; } catch (error) { console.error("Login JavaScript syntax error:", error.message); return false; } })()],
+  ["Admin and dashboard link to the demo authentication page", admin.includes('href="login.html"') && dashboard.includes('href="login.html"')],
+  ["All 35 module workspaces include domain-specific form configurations", (() => { const match = dashboard.match(/const specialized=(\{[\s\S]*?\});\n\nconst workspacePageNames=/); return !!match && Object.keys(JSON.parse(match[1])).length === 35; })()],
+  ["Every module has valid unique specialized form fields", (() => { const mm = dashboard.match(/const modules=\[([\s\S]*?)\n\];/); const sm = dashboard.match(/const specialized=(\{[\s\S]*?\});\n\nconst workspacePageNames=/); if (!mm || !sm) return false; const ids = [...mm[1].matchAll(/\{id:'([^']+)'/g)].map(x => x[1]); const cfg = JSON.parse(sm[1]); return ids.length === 35 && ids.every(id => Array.isArray(cfg[id]?.fields) && cfg[id].fields.length >= 3 && new Set(cfg[id].fields.map(f => f[0])).size === cfg[id].fields.length && cfg[id].fields.every(f => f.length >= 3 && ['text','select','number','email','date','textarea'].includes(f[2]) && (f[2] !== 'select' || Array.isArray(f[3]) && f[3].length > 0))) && Object.keys(cfg).length === ids.length; })()],
+  ["Admin demo safety control cannot be disabled and filters show only available states", admin.includes("حماية العرض التجريبي مفعلة دائمًا") && admin.includes("key==='strictDemo'") && !admin.includes('<option>قيد التطوير</option>') && !admin.includes('<option>مخطط</option>')],
+  ["Module workspace exposes a dedicated specialized-function tab", dashboard.includes('data-tab="specialized"') && dashboard.includes('id="specializedForm"') && dashboard.includes("renderSpecialized()")],
+  ["All 35 modules have at least five named subpages", (() => { const mm = dashboard.match(/const modules=\[([\s\S]*?)\n\];/); const pp = dashboard.match(/const workspacePageNames=\{([\s\S]*?)\n\};/); if (!mm || !pp) return false; const ids = [...mm[1].matchAll(/\{id:'([^']+)'/g)].map(x => x[1]); const pageIds = [...pp[1].matchAll(/^([a-z]+):\[([^\n]+)\]/gm)]; return ids.length === 35 && pageIds.length === 35 && ids.every(id => { const row = pageIds.find(x => x[1] === id); return !!row && (row[2].match(/,/g)||[]).length >= 4; }); })()],
+  ["Module workspace includes permissions matrix and six role profiles", dashboard.includes('data-tab="permissions"') && dashboard.includes("const roleMatrix=") && ["owner","manager","operator","reviewer","analyst","viewer"].every(r => dashboard.includes(r)) && dashboard.includes("renderPermissions()")],
+  ["Module records support details, edit, delete and status updates", ["data-view-record","data-edit-record","data-delete-record","data-cycle","editingRecordId"].every(x => dashboard.includes(x)) && dashboard.includes("تم تعديل السجل التجريبي محليًا فقط.")],
+  ["Role selection changes visible actions and enforces demo-side permission guards", dashboard.includes("function applyRolePreview()") && dashboard.includes("activeRole='owner'") && dashboard.includes("if(!(roleMatrix[activeRole]||roleMatrix.viewer).delete)") && dashboard.includes("if(!(roleMatrix[activeRole]||roleMatrix.viewer).edit)") && dashboard.includes("if(!(roleMatrix[activeRole]||roleMatrix.viewer).approve") && dashboard.includes("data-approve-record")],
+  ["Role preview keeps production authorization explicitly out of scope", dashboard.includes("يجب تطبيق RBAC وRLS والتحقق على الخادم قبل الإنتاج") && dashboard.includes("لا تُطبق صلاحيات حقيقية")],
+  ["Marketing sponsored ads remain reachable as a subpage", dashboard.includes("marketing:['لوحة التسويق الداخلي'") && dashboard.includes("الإعلانات الممولة والظهور المدفوع")],
+  ["Module-specific actions save only local synthetic records", dashboard.includes("data[current.id].unshift") && dashboard.includes("تم تنفيذ المحاكاة المتخصصة محليًا فقط.")],
+  ["Dashboard inline JavaScript parses successfully", (() => { try { if (!dashboardScript) return false; new vm.Script(dashboardScript); return true; } catch (error) { console.error("Dashboard JavaScript syntax error:", error.message); return false; } })()]
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
