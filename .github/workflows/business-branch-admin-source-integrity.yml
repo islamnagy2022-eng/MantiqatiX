@@ -7,7 +7,9 @@ on:
       - "supabase/functions/business-branch-admin/index.ts"
       - "supabase/functions/_shared/branch-coordinates.mjs"
       - "supabase/functions/_shared/branch-authorization.mjs"
+      - "supabase/functions/_shared/bearer-token.mjs"
       - "scripts/test-branch-authorization.mjs"
+      - "scripts/test-bearer-token.mjs"
       - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
@@ -41,6 +43,6 @@ jobs:
       - name: Type-check business branch admin Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/business-branch-admin/index.ts
       - name: Runtime-test branch input and authorization policies
-        run: node --test scripts/test-branch-coordinate-normalization.mjs scripts/test-branch-authorization.mjs
+        run: node --test scripts/test-branch-coordinate-normalization.mjs scripts/test-branch-authorization.mjs scripts/test-bearer-token.mjs
       - name: Validate business branch admin source
         run: node scripts/validate-business-branch-admin-source.mjs
