@@ -3,11 +3,16 @@ import assert from "node:assert/strict";
 
 const source = fs.readFileSync("supabase/functions/business-branch-admin/index.ts", "utf8");
 const coordinateParser = fs.readFileSync("supabase/functions/_shared/branch-coordinates.mjs", "utf8");
+const authorizationPolicy = fs.readFileSync("supabase/functions/_shared/branch-authorization.mjs", "utf8");
 
 assert.doesNotMatch(source, /\\n/, "source must not contain literal backslash-n sequences outside strings");
 assert.match(source, /if\(me\)return out\(\{error:"MEMBERSHIP_READ_FAILED"\},500\)/, "membership query errors must fail closed");
+assert.match(source, /isBranchCreationAuthorized\(membership\|\|\[\],businessId\)/, "branch endpoint must enforce the shared tested authorization policy");
 assert.match(source, /BUSINESS_MANAGEMENT_REQUIRED/, "branch creation must remain role-gated");
-assert.match(source, /SUPER_ADMIN/, "platform admin branch must remain explicitly scoped");
+assert.match(authorizationPolicy, /BUSINESS_MANAGER_ROLES/, "shared policy must use an explicit business-manager role allowlist");
+assert.match(authorizationPolicy, /scopedBusinessId\s*===\s*businessId/, "business manager roles must be scoped to the exact business");
+assert.match(authorizationPolicy, /membership\.permissions\?\.scope\s*===\s*"PLATFORM"/, "platform admin must require explicit platform scope");
+assert.match(authorizationPolicy, /membership\.permissions\?\.full_control\s*===\s*true/, "platform admin must require explicit full-control permission");
 assert.match(source, /if\(be\|\|!business\)/, "business existence must remain checked");
 assert.match(source, /BUSINESS_NOT_ACTIVE/, "inactive businesses must remain blocked");
 
