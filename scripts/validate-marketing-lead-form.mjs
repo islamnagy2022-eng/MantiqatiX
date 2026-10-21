@@ -121,3 +121,10 @@ assert.match(source, /data-live-results=/, "generic module search must have a de
 assert.match(source, /keys\.some\(k=>String\(r\[k\]\?\?''\)\.toLocaleLowerCase\(\)\.includes\(needle\)\)/, "generic search must filter only fields rendered to the user");
 assert.match(source, /لا توجد نتائج مطابقة للبحث/, "generic table search must distinguish no matches from an empty data source");
 assert.match(source, /if\(BACKEND_ONLY_TABLES\.has\(t\)\)return head[\s\S]*?مسار خلفي مصرح به فقط/, "generic search must not bypass backend-only table boundaries");
+
+assert.match(source, /function genericLiveTable\(t,query='',requestedPage=0\)/, "generic module tables must support requested pagination");
+assert.match(source, /pageSize=25/, "generic module tables must render a bounded page size");
+assert.match(source, /data-live-page=/, "paginated tables must expose previous/next controls");
+assert.match(source, /data-live-table=/, "pagination controls must be bound to their own table");
+assert.match(source, /aria-label="التنقل بين صفحات السجلات"/, "pagination navigation must have an accessible Arabic label");
+assert.match(source, /\[data-live-page\]/, "pagination controls must be wired to update the visible table");
