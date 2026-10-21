@@ -41,7 +41,7 @@ create table public.restaurant_inventory (
   business_id uuid not null,
   branch_id varchar not null
 );
-grant select on public.restaurant_inventory to authenticated;
+grant select, insert, update on public.restaurant_inventory to authenticated;
 
 insert into public.user_memberships (id,user_id,tenant_id,business_id,branch_id,role,status) values
 ('m-owner','10000000-0000-0000-0000-000000000001','tenant-a','20000000-0000-0000-0000-000000000001','branch-a','OWNER','ACTIVE'),
