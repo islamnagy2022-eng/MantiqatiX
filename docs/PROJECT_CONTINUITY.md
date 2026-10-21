@@ -772,3 +772,10 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 - Job listing and application tabs now use narrow server-authorized RPCs instead of direct table SELECT. Listings omit employer phone and map `employer_name` to `company_name`; applications are visible only to the applicant or owner of the job and omit applicant phone/CV summary.
 - Added migration `20261020233000_jobs_directory_backend_v1.sql`, disposable PostgreSQL fixture/tests, dedicated CI workflow, and validator guards. Source-only until migration and tests are verified. CI/browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 continuation — module blueprint keyboard accessibility
+
+- Isolated follow-up branch: `feat/ui-blueprint-accessibility-20261021`, based on UI-first PR #309 head `0467aba3d1c60d95e02c4921fec51791bc16dbf6`.
+- `web/module-blueprints.js` now links each tab to its panel with ARIA relationships and supports arrow-key/Home/End navigation with roving tabindex. Static contract validator added at `scripts/validate-module-blueprint-accessibility.mjs` and wired into Pages CI.
+- Implementation is source-level only until exact-head CI and browser/screen-reader E2E are observed. Do not treat this as a complete module or production certification. Production release remains **BLOCKED / NOT CERTIFIED**.
