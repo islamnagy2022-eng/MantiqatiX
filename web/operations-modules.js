@@ -48,7 +48,7 @@ const defs={
 'البرمجيات وERP':{key:'SOFTWARE_ERP',tabs:['overview','live'],tables:['indrive_requests','indrive_bids'],desc:'طلبات البرمجيات والعروض الفعلية.'}
 };
 let current=null,rows={},loadErrors={},user=null,membership=null,memberships=[],membershipLoadError=false,tab='overview',loading=false,error=null,mgRealtime=null,loadGeneration=0;
-async function listenOnce(element,key,event,handler){if(!element||element.dataset[key]==='true')return;element.dataset[key]='true';element.addEventListener(event,handler)}
+function listenOnce(element,key,event,handler){if(!element||element.dataset[key]==='true')return;element.dataset[key]='true';element.addEventListener(event,handler)}
 async function init(){const s=await sb.auth.getSession();user=s.data?.session?.user||null;if(!user)return;let activeId=null;try{activeId=localStorage.getItem('MNTYActiveMembershipId')}catch{}const r=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(50);membershipLoadError=!!r.error;memberships=r.error?[]:(r.data||[]);membership=(memberships.find(x=>x.id===activeId)||memberships[0]||null)}
 function scope(){return membership?.tenant_id?membership:null}
 function canWrite(){return ['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','SERVICE_PROVIDER'].includes(String(membership?.role||'').toUpperCase())}
