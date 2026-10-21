@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs";
+import { isBranchCreationAuthorized } from "../_shared/branch-authorization.mjs";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 const cors = {
@@ -50,9 +51,7 @@ Deno.serve(async(req)=>{
   if(coordinates.error)return out({error:coordinates.error},400);
   const {data:membership,error:me}=await db.from("user_memberships").select("id,role,business_id,status,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").or(`business_id.eq.${businessId},business_id.is.null`).order("id").limit(20);
   if(me)return out({error:"MEMBERSHIP_READ_FAILED"},500);
-  const allowed=(membership||[]).some((m:any)=>["OWNER","ADMIN","BUSINESS_OWNER","MANAGER"].includes(String(m.role).toUpperCase())&&String(m.business_id||"")===businessId)
-    || (membership||[]).some((m:any)=>String(m.role).toUpperCase()==="SUPER_ADMIN"&&String(m.business_id||"")===""&&m.permissions?.scope==="PLATFORM"&&m.permissions?.full_control===true);
-  if(!allowed)return out({error:"BUSINESS_MANAGEMENT_REQUIRED"},403);
+  if(!isBranchCreationAuthorized(membership||[],businessId))return out({error:"BUSINESS_MANAGEMENT_REQUIRED"},403);
   const {data:business,error:be}=await db.from("businesses").select("id,status,organization_id").eq("id",businessId).eq("tenant_id",tenantId).single();
   if(be||!business)return out({error:"BUSINESS_NOT_FOUND"},404);
   if(String(business.status).toUpperCase()!=="ACTIVE")return out({error:"BUSINESS_NOT_ACTIVE"},409);
