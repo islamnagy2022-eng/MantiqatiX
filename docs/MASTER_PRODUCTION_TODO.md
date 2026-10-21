@@ -2197,3 +2197,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] CI passed on source commit `72ae6352c54456c416adf9d1e13ed79b6551673a`: web validation, module professionalization validation, backend-only module boundary, MantiGO open-ride privacy integration, and RC457 Paymob atomicity integration.
 - [ ] Manual browser/mobile keyboard and screen-reader verification remains outstanding. Feature-branch production deployment is intentionally skipped.
 - Current PR #314 remains open as a draft; no merge or production release was performed.
+
+
+## RC457 follow-up — negative callback coverage — 2026-10-21
+
+- [x] Extended disposable PostgreSQL integration coverage for invalid/unverified signature flags, wrong Paymob merchant reference, currency mismatch, and null event status.
+- [x] Added a regression assertion that none of those rejected callbacks may persist a provider-event row.
+- [ ] Exact-head `MantiGO Paymob Atomicity` workflow must pass after this test-only change; prior passing runs do not certify this new head.
+- [ ] Production migration/deployment, live Paymob sandbox, browser payment flow, and target-database catalog verification remain NOT VERIFIED. Release stays **BLOCKED / NOT CERTIFIED**.
