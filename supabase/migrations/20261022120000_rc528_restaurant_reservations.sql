@@ -105,8 +105,9 @@ begin
     if length(v_key)<16 or length(v_key)>128 then raise exception 'INVALID_IDEMPOTENCY_KEY'; end if;
     perform pg_advisory_xact_lock(hashtextextended(v_tenant||':'||v_business::text||':'||v_branch||':'||v_key,0));
     if v_table_id is null or length(v_name) not between 1 and 120 or length(v_phone)>20
-      or (v_phone<>'' and v_phone !~ '^[+0-9()[:space:]-]{7,20}
-    if coalesce(p_payload->>'guest_count','') !~ '^[0-9]{1,3}$' then raise exception 'INVALID_GUEST_COUNT'; end if;
+      or (v_phone<>'' and v_phone !~ '^[+0-9()[:space:]-]{7,20}$') then
+      raise exception 'INVALID_RESERVATION_CUSTOMER_OR_TABLE';
+    end if;
     v_guests := (p_payload->>'guest_count')::integer;
     if v_guests<1 or v_guests>100 then raise exception 'INVALID_GUEST_COUNT'; end if;
     begin
