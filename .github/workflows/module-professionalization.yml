@@ -48,6 +48,7 @@ jobs:
           node scripts/validate-rc526-restaurant-membership-rbac.mjs
           node scripts/validate-erp-purchase-receive-contract.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
+          node scripts/validate-order-create-branch-scope.mjs
           node scripts/validate-membership-refresh-contract.mjs
 
   matrimony-privacy-postgres:
