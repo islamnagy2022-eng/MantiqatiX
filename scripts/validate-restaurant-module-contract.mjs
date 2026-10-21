@@ -27,6 +27,9 @@ assert.match(moduleSource, /invokeMntyFunction\('order-status-update'/,
   'restaurant order status changes must use canonical status function');
 assert.doesNotMatch(moduleSource, /from\('restaurant_orders'\)\.update/,
   'legacy restaurant orders must not be updated directly by the browser');
+assert.ok(moduleSource.includes("data-current-status=\"'+esc(x.status)+'\""), 'order status selector must preserve its persisted value');
+assert.ok(moduleSource.includes("if(ok)s.dataset.currentStatus=selected;else s.value=previous"), 'rejected status updates must restore the prior selection');
+assert.ok(moduleSource.includes("await load();return true;")&&moduleSource.includes("return false}"), 'status update handler must report success or failure');
 
 // Editing a table must preserve the saved status instead of silently resetting to EMPTY.
 assert.ok(moduleSource.includes("(x.status||'EMPTY')===status"),
