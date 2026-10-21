@@ -31,7 +31,7 @@ assert.ok(source.indexOf("if(!isBranchCreationAuthorized") < source.indexOf('fro
 assert.ok(source.indexOf("if(coordinates.error)") < source.indexOf('from("user_memberships")'), "invalid coordinates must be rejected before database reads");
 assert.ok(source.indexOf("if(!isBranchCreationAuthorized") < source.indexOf('.from("branches").insert'), "authorization must be enforced before branch writes");
 
-assert.match(source, /if\(ie\)return out\(\{error:"BRANCH_CREATE_FAILED"\},400\)/, "branch insert failures must not expose database error text");
+assert.match(source, /if\(ie\)return out\(\{error:"BRANCH_CREATE_FAILED"\},500\)/, "branch insert failures must fail as server errors without exposing database error text");
 assert.doesNotMatch(source, /ie\.message/, "branch insert failures must not return ie.message");
 
 assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}/, "tenant and business IDs must be validated before filter interpolation");
