@@ -2247,3 +2247,5 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added an accessible Arabic status region and a retry action for full/partial catalog failures, with safe `textContent` rendering and responsive styling.
 - [x] Extended the homepage production-content validator to cover partial-result preservation, status semantics, retry affordance, and mobile styling.
 - [ ] Exact-head web validation and module/security workflows must pass before treating this change as verified. Browser-level network-failure/retry checks remain NOT VERIFIED.
+
+- [x] Added the same actionable retry state when the public Supabase client is unavailable, avoiding a permanently misleading loading state.
