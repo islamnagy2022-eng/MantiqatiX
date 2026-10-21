@@ -12,6 +12,20 @@ select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
  'table_id','table-a','customer_name','Test Guest','customer_phone','01012345678','guest_count',3,
  'starts_at','2026-10-24 12:00:00+00'::timestamptz,'ends_at','2026-10-24 13:00:00+00'::timestamptz,
  'notes','integration','idempotency_key','rc528-reservation-key-001'));
+-- Reusing an idempotency key with changed payload must fail closed.
+do $ begin
+ begin
+  perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
+   'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+   'table_id','table-a','customer_name','Test Guest','customer_phone','01012345678','guest_count',4,
+   'starts_at','2026-10-24 12:00:00+00'::timestamptz,'ends_at','2026-10-24 13:00:00+00'::timestamptz,
+   'notes','integration','idempotency_key','rc528-reservation-key-001'));
+  raise exception 'RC528_EXPECTED_FAILURE_NOT_RAISED';
+ exception when raise_exception then
+  if sqlerrm='RC528_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+ end;
+end $;
+
 select public.restaurant_reservation_mutate('CONFIRM',jsonb_build_object(
  'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
  'reservation_id',(select id from public.restaurant_reservations where idempotency_key='rc528-reservation-key-001')));
