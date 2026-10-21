@@ -1,0 +1,40 @@
+name: MantiGO Paymob Atomicity
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  mantigo-paymob-atomicity-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc457_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc457_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run RC457 MantiGO Paymob atomicity tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc457_mantigo_paymob_atomicity_fixture.sql "$pg_container:/tmp/rc457_fixture.sql"
+          docker cp supabase/migrations/20261021195000_rc457_atomic_mantigo_paymob_webhook.sql "$pg_container:/tmp/rc457_migration.sql"
+          docker cp supabase/tests/rc457_mantigo_paymob_atomicity_integration.sql "$pg_container:/tmp/rc457_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_test -v ON_ERROR_STOP=1 -f /tmp/rc457_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_test -v ON_ERROR_STOP=1 -f /tmp/rc457_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_test -v ON_ERROR_STOP=1 -f /tmp/rc457_test.sql
