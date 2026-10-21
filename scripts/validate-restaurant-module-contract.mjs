@@ -101,7 +101,8 @@ assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:action,p_payload:/, 'reservation state transitions must use the secured database RPC');
 assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
 assert.match(moduleSource, /ends_at:endsAt,notes,idempotency_key:key/, 'reservation payload must carry bounded time range and idempotency key');
-assert.match(moduleSource, /start\.getTime\(\)>now\+180\*24\*60\*60\*1000\|\|end\.getTime\(\)-start\.getTime\(\)>8\*60\*60\*1000/, 'reservation dates and duration must be checked against the server contract before RPC');
+assert.match(moduleSource, /start\.getTime\(\)>now\+180\*24\*60\*60\*1000/, 'reservation start must be bounded to the server-supported 180-day window');
+assert.match(moduleSource, /end\.getTime\(\)-start\.getTime\(\)>8\*60\*60\*1000/, 'reservation duration must not exceed the server-supported eight-hour window');
 assert.match(moduleSource, /if\(notes\.length>1000\)/, 'reservation notes must be bounded before RPC');
 
 // Financial KPIs are intentionally omitted until an authoritative payment/settlement source is wired.
