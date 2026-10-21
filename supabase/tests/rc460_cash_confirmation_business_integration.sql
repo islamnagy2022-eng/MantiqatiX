@@ -75,7 +75,7 @@ where user_id='22222222-2222-4222-8222-222222222222'
 -- A service-role execution carrying an authenticated identity must not act for another user.
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
 set role service_role;
-do $
+do $$
 begin
  begin
   perform public.confirm_cash_payment('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','22222222-2222-4222-8222-222222222222');
@@ -84,10 +84,10 @@ begin
   if sqlerrm='RC460_AUTH_IDENTITY_MISMATCH_MUST_FAIL' then raise; end if;
   if position('FORBIDDEN' in sqlerrm)=0 then raise exception 'RC460_AUTH_IDENTITY_MISMATCH_WRONG_ERROR: %',sqlerrm; end if;
  end;
-end $;
+end $$;
 reset role;
 select set_config('request.jwt.claim.sub','',false);
-do $
+do $$
 declare result jsonb;
 begin
  result:=public.confirm_cash_payment('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','22222222-2222-4222-8222-222222222222');
