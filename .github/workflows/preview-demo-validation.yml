@@ -1,0 +1,31 @@
+name: Preview Demo Validation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/preview/**"
+      - "scripts/validate-preview-navigation.mjs"
+      - ".github/workflows/preview-demo-validation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "web/preview/**"
+      - "scripts/validate-preview-navigation.mjs"
+      - ".github/workflows/preview-demo-validation.yml"
+permissions:
+  contents: read
+concurrency:
+  group: preview-demo-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Validate demo navigation, admin coverage, and inline JavaScript syntax
+        run: node scripts/validate-preview-navigation.mjs

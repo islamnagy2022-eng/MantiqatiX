@@ -32,13 +32,15 @@ jobs:
           test -n "$changed"
           while IFS= read -r path; do
             case "$path" in
-              web/preview/*|.github/workflows/preview-pages.yml) ;;
+              web/preview/*|.github/workflows/preview-pages.yml|.github/workflows/preview-demo-validation.yml|scripts/validate-preview-navigation.mjs) ;;
               *) echo "Refusing preview-only deployment: unexpected changed path: $path"; exit 1 ;;
             esac
           done <<< "$changed"
           test -s web/preview/index.html
           grep -Fq 'نسخة معاينة مستقلة' web/preview/index.html
           grep -Fq 'ولا تنفذ أي تغييرات' web/preview/index.html
+      - name: Validate demo and administration contracts
+        run: node scripts/validate-preview-navigation.mjs
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
@@ -66,7 +68,12 @@ jobs:
           set -euo pipefail
           test -n "$PAGE_URL"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/" -o /tmp/preview.html
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/dashboard.html" -o /tmp/preview-dashboard.html
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/admin.html" -o /tmp/preview-admin.html
           grep -Fq 'MantiqaTiX' /tmp/preview.html
-          grep -Fq 'كل موديولات MantiqatiX' /tmp/preview.html
+          grep -Fq 'dashboard.html' /tmp/preview.html
+          grep -Fq 'كل موديولات MantiqatiX' /tmp/preview-dashboard.html
           grep -Fq 'وضع تجريبي فقط' /tmp/preview.html
-          echo "Preview route verified at ${PAGE_URL}preview/"
+          grep -Fq 'لوحة الإدارة الشاملة' /tmp/preview-admin.html
+          grep -Fq 'Demo Administration Center' /tmp/preview-admin.html
+          echo "Preview routes verified at ${PAGE_URL}preview/ and ${PAGE_URL}preview/admin.html"

@@ -32,7 +32,7 @@
  <div class="side-note">هذه نسخة واجهات مستقلة. كل عمليات الإضافة والتعديل والمحاكاة في الذاكرة المؤقتة للصفحة فقط. لا تستخدم بيانات حقيقية ولا تنفذ دفعًا أو إرسالًا أو صلاحيات فعلية.</div>
 </aside>
 <main class="main">
- <header class="top"><div><div class="eyebrow">MANTIQATIX / UI-FIRST BUILD</div><h1 id="pageTitle">مركز تجربة المنصة</h1><div class="muted" style="font-size:12px">تجربة الموديولات قبل استكمال الـ Backend والإطلاق</div></div><div class="search"><input id="globalSearch" type="search" placeholder="ابحث عن موديول أو صفحة أو وظيفة..." aria-label="بحث عام"><button class="btn" id="globalSearchBtn">بحث</button><a class="btn secondary" href="../" target="_blank" rel="noopener noreferrer">الموقع العام ↗</a></div></header>
+ <header class="top"><div><div class="eyebrow">MANTIQATIX / UI-FIRST BUILD</div><h1 id="pageTitle">مركز تجربة المنصة</h1><div class="muted" style="font-size:12px">تجربة الموديولات قبل استكمال الـ Backend والإطلاق</div></div><div class="search"><input id="globalSearch" type="search" placeholder="ابحث عن موديول أو صفحة أو وظيفة..." aria-label="بحث عام"><button class="btn" id="globalSearchBtn">بحث</button><a class="btn secondary" href="admin.html">لوحة الإدارة التجريبية ↗</a><a class="btn secondary" href="../" target="_blank" rel="noopener noreferrer">الموقع العام ↗</a></div></header>
  <section id="homeView">
   <div class="intro"><div class="eyebrow">UI-FIRST · SAFE SANDBOX</div><h2>كل موديولات MantiqatiX<br>في مساحة تجربة واحدة</h2><p>افتح أي موديول وجرّب التنقل بين نظرة عامة والسجلات والنماذج وسير العمل. المعروض هنا نموذج تجريبي قابل للتفاعل، وليس ادعاءً بأن الـ Backend أو الدفع أو الصلاحيات متصلة بالفعل.</p></div>
   <div class="stats">
@@ -153,6 +153,7 @@ $('exportBtn').addEventListener('click',()=>{if(!current)return;const rows=[['na
 $('simulateBtn').addEventListener('click',()=>{if(!current)return;const r=data[current.id][0];if(r){r.status=states[(states.indexOf(r.status)+1)%states.length];renderRecords();$('workflowFeedback').textContent='تمت محاكاة تغيير حالة السجل الأول. لم يتم الاتصال بخادم أو تنفيذ عملية خارجية.';toast('محاكاة ناجحة داخل الصفحة فقط.');}else toast('لا توجد سجلات لمحاكاتها.');});
 $('resetModuleBtn').addEventListener('click',()=>{if(!current)return;const i=modules.indexOf(current);data[current.id]=sampleNames.slice(0,3).map((name,j)=>({id:current.id+'-reset-'+j,name:name,type:current.group,owner:['فريق المنصة','فريق العمليات','مراجع تجريبي'][j],status:states[(i+j)%states.length],notes:'بيانات توضيحية اصطناعية',updated:'2026-10-'+String(18+j).padStart(2,'0')}));renderRecords();toast('تمت إعادة السجلات التجريبية لهذا الموديول.');});
 fillCategories('categoryFilter');fillCategories('catalogCategory');$('moduleCount').textContent=modules.length;renderGrid('moduleGrid','moduleSearch','categoryFilter');renderGrid('catalogGrid','catalogSearch','catalogCategory');renderJourney();
+const requestedModule=new URLSearchParams(window.location.search).get('module');if(requestedModule)openModule(requestedModule);
 })();
 </script>
 </body></html>
