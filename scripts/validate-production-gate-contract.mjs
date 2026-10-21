@@ -9,7 +9,6 @@ const continuity = read('docs/PROJECT_CONTINUITY.md');
 const workflow = read('.github/workflows/pages.yml');
 const productionVerifier = read('scripts/production/verify-production.mjs');
 const reconciliation = JSON.parse(read('docs/release/production-migration-reconciliation.json'));
-const productionVerifier = read('scripts/production/verify-production.mjs');
 
 const requiredTodoMarkers = [
   'E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED',
