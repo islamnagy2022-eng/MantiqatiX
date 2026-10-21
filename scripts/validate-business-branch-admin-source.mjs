@@ -4,9 +4,15 @@ import assert from "node:assert/strict";
 const source = fs.readFileSync("supabase/functions/business-branch-admin/index.ts", "utf8");
 const coordinateParser = fs.readFileSync("supabase/functions/_shared/branch-coordinates.mjs", "utf8");
 const authorizationPolicy = fs.readFileSync("supabase/functions/_shared/branch-authorization.mjs", "utf8");
+const bearerTokenParser = fs.readFileSync("supabase/functions/_shared/bearer-token.mjs", "utf8");
 
 assert.doesNotMatch(source, /\\n/, "source must not contain literal backslash-n sequences outside strings");
 assert.match(source, /if\(me\)return out\(\{error:"MEMBERSHIP_READ_FAILED"\},500\)/, "membership query errors must fail closed");
+assert.match(source, /parseBearerToken\(req\.headers\.get\("Authorization"\)\)/, "endpoint must parse a strict bearer token before calling auth");
+assert.match(source, /if\(!token\)return out\(\{error:"AUTH_REQUIRED"\},401\)/, "missing or malformed bearer credentials must be rejected");
+assert.match(source, /db\.auth\.getUser\(token\)/, "auth verification must receive only the parsed token");
+assert.match(bearerTokenParser, /\^Bearer\\s\*\[\\t\]/, "bearer parser must recognize the HTTP authorization scheme case-insensitively");
+assert.match(bearerTokenParser, /\(\[A-Za-z0-9\.\_~\+\/-\]\+=\*\)/, "bearer parser must restrict tokens to a single token value");
 assert.match(source, /isBranchCreationAuthorized\(membership\|\|\[\],businessId\)/, "branch endpoint must enforce the shared tested authorization policy");
 assert.match(source, /BUSINESS_MANAGEMENT_REQUIRED/, "branch creation must remain role-gated");
 assert.match(authorizationPolicy, /BUSINESS_MANAGER_ROLES/, "shared policy must use an explicit business-manager role allowlist");
