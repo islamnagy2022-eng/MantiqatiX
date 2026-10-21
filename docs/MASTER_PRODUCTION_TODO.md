@@ -2213,3 +2213,6 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added source-contract assertions that the retry controls are present and invoke the current search action.
 - [ ] Exact-head CI for the new retry-control code and assertions remains pending until the latest Actions results are observed.
 - [ ] Manual keyboard/mobile/screen-reader verification remains NOT VERIFIED. This is a UI resilience improvement, not a production certification.
+
+- [x] Follow-up: explicit Enter/retry actions now cancel a pending debounce timer before issuing a request, preventing duplicate parallel searches; added a source-contract assertion for timer cleanup.
+- [ ] Exact-head CI for the debounce follow-up remains pending; browser E2E is still NOT VERIFIED.
