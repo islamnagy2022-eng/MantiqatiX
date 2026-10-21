@@ -11,7 +11,7 @@ assert.match(source, /if\(me\)return out\(\{error:"MEMBERSHIP_READ_FAILED"\},500
 assert.match(source, /parseBearerToken\(req\.headers\.get\("Authorization"\)\)/, "endpoint must parse a strict bearer token before calling auth");
 assert.match(source, /if\(!token\)return out\(\{error:"AUTH_REQUIRED"\},401\)/, "missing or malformed bearer credentials must be rejected");
 assert.match(source, /db\.auth\.getUser\(token\)/, "auth verification must receive only the parsed token");
-assert.ok(bearerTokenParser.includes("Bearer[ \\\\t]+("), "bearer parser must recognize the HTTP authorization scheme case-insensitively");
+assert.ok(bearerTokenParser.includes("const match = /^Bearer[") && bearerTokenParser.includes("/i.exec"), "bearer parser must recognize the HTTP authorization scheme case-insensitively");
 assert.ok(bearerTokenParser.includes("([A-Za-z0-9._~+/-]+=*)"), "bearer parser must restrict tokens to a single token value");
 assert.match(source, /isBranchCreationAuthorized\(membership\|\|\[\],businessId\)/, "branch endpoint must enforce the shared tested authorization policy");
 assert.match(source, /BUSINESS_MANAGEMENT_REQUIRED/, "branch creation must remain role-gated");
