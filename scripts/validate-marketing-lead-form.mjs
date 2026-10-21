@@ -28,6 +28,11 @@ assert.match(form, /r\.data\?\.ok!==true\|\|!r\.data\?\.lead\?\.id/, "success mu
 assert.match(form, /تعذر تأكيد إنشاء طلب التسويق/, "uncertain API responses must not be reported as success");
 assert.match(source, /loadErrors=\{\}/, "table query failures must be tracked separately from empty results");
 assert.match(source, /loadErrors\[t\]=r\.error/, "failed table reads must preserve failure state");
+assert.match(source, /TENANT_SCOPE_UNAVAILABLE/, "catalog reads must fail closed without a verified tenant scope");
+assert.match(source, /BUSINESS_SCOPE_UNAVAILABLE/, "marketing project reads must fail closed without a verified business scope");
+assert.match(source, /q=q\.eq\('tenant_id',scope\(\)\.tenant_id\)/, "catalog reads must always be constrained to the active tenant");
+assert.match(source, /q=q\.eq\('client_business_id',membership\.business_id\)/, "marketing project reads must always be constrained to the selected business");
+
 assert.match(source, /if\(cp\.error\)loadErrors\.mantigo_captain_profile=cp\.error/, "captain profile read errors must not masquerade as a missing profile");
 assert.match(source, /if\(r\.error\)\{rows\.mantigo_open=\[\];loadErrors\.mantigo_open=r\.error\}/, "open rides RPC failures must remain visible rather than appearing as an empty list");
 
