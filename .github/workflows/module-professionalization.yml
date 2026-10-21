@@ -24,6 +24,7 @@ jobs:
       - name: JavaScript syntax
         run: |
           node --check web/app.js
+          node --check web/restaurant-module.js
           node --check web/module-blueprints.js
       - name: Module runtime contract
         run: |
