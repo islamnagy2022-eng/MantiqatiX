@@ -18,8 +18,8 @@ assert.match(source, /uuidPattern=\/\^\[0-9a-f\]\{8\}/, "tenant and business IDs
 assert.match(source, /organization_id:business\.organization_id\?\?null/, "branch organization must be derived from the authorized business record");
 assert.doesNotMatch(source, /organization_id:body\.organizationId/, "caller must not override branch organization scope");
 assert.match(source, /phone\.length>64\|\|address\.length>500/, "branch contact fields must be length-bounded");
-assert.match(coordinateParser, /latitude < -90\|\|latitude > 90/, "shared coordinate parser must range-validate latitude");
-assert.match(coordinateParser, /longitude < -180\|\|longitude > 180/, "shared coordinate parser must range-validate longitude");
+assert.match(coordinateParser, /latitude\s*<\s*-90\s*\|\|\s*latitude\s*>\s*90/, "shared coordinate parser must range-validate latitude");
+assert.match(coordinateParser, /longitude\s*<\s*-180\s*\|\|\s*longitude\s*>\s*180/, "shared coordinate parser must range-validate longitude");
 assert.match(source, /INVALID_COORDINATES/, "invalid or partial coordinates must be rejected");
 assert.ok(source.includes('import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs"'), "branch endpoint must use the shared tested coordinate parser");
 assert.ok(source.includes("const coordinates=parseBranchCoordinates(input.latitude,input.longitude)"), "endpoint must use tested pair and range validation");
