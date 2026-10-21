@@ -329,3 +329,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Reviewed `supabase/functions/marketing-lead-create/index.ts` directly. Found a client/server mismatch: the UI previously treated max budget `0` as omitted, while the backend rejects `budget_max < budget_min`. Fixed the client to reject every `max < min` case before sending.
 - Added a requested-services field, comma parsing, de-duplication, and client limits matching the existing server contract (at most 10 values, each at most 80 characters); the resulting array is sent as `required_services` instead of always sending an empty array.
 - Updated the static validator to cover budget boundary and required-services wiring. CI result is still not confirmed on this head; no test pass is claimed.
+
+- Follow-up UX fix: map known backend errors such as `business_selection_required`, `business_not_authorized`, `unauthorized`, invalid budgets, and invalid service lists to actionable Arabic messages rather than exposing raw machine codes. The static validator now guards these mappings; exact-head CI remains unconfirmed.
