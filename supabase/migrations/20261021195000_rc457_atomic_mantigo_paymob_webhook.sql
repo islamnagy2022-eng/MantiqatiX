@@ -13,7 +13,7 @@ create or replace function public.process_verified_mantigo_paymob_event(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = pg_catalog, pg_temp
 as $function$
 declare
   v_ledger public.mantigo_financial_ledger%rowtype;
