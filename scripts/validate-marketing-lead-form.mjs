@@ -34,6 +34,6 @@ assert.match(source, /money\(r\.budget_min\).*money\(r\.budget_max\)/, "lead lis
 assert.match(source, /toLocaleDateString\('ar-EG'\)/, "lead list must display localized request dates");
 assert.match(source, /id="mlSearch"/, "marketing lead list must provide a search field");
 assert.match(source, /function marketingLeadTable\(query=''\)/, "lead search must filter the existing visible dataset");
-assert.match(source, /data=>\{const target=document\.getElementById\('mlLeadResults'\)/, "lead search must update results as the user types");
+assert.match(source, /e=>\{const target=document\.getElementById\('mlLeadResults'\)/, "lead search must update results as the user types");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 console.log("Marketing lead form validation contract PASS.");
