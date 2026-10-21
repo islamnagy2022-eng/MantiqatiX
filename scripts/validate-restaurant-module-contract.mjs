@@ -37,6 +37,10 @@ assert.doesNotMatch(moduleSource, /notify\('تعذر الحفظ: '\+r\.error\.me
   'raw database mutation errors must not be exposed to the user');
 assert.doesNotMatch(moduleSource, /تعذر تحديث حالة الطلب: '\+\(e\?\.message/,
   'raw server mutation errors must not be exposed to the user');
+assert.doesNotMatch(moduleSource, /notify\('تعذر إنشاء الطلب: '\+\(e\?\.message/,
+  'raw order-creation errors must not be exposed to the user');
+assert.doesNotMatch(moduleSource, /notify\('تعذر الحفظ: '\+r\.error\.message/,
+  'raw save errors must not be exposed to the user in any restaurant editor');
 assert.match(moduleSource, /setItem\('MNTYActiveMembershipId',id\);load\(\)/,
   'the chosen membership must be explicitly saved before loading its workspace');
 
