@@ -2033,3 +2033,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added bounded required student/subject fields, live feedback, submit-button lockout, and safe error/uncertain-outcome handling while preserving create_education_request_backend.
 - [x] Added source-contract regression assertions; school and teacher forms are scoped by target type to avoid selector collisions.
 - [ ] Node validator, exact-head CI, browser E2E, and backend authorization/duplicate-request checks remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — UI-first medical booking form
+- [x] Replaced browser prompts with an inline booking form for each medical provider.
+- [x] Added required datetime-local input, future-date validation, bounded optional reason, accessible live feedback, duplicate-submit lockout, and safe uncertain-outcome guidance.
+- [x] Preserved create_medical_appointment_backend and added source-contract assertions.
+- [ ] Node validator, exact-head CI, browser E2E, appointment authorization, and real-provider workflow remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
