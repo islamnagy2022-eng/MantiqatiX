@@ -877,3 +877,5 @@ The MantiGO payment-intent Edge Function no longer assumes a conditional ledger 
 - Keep release state **BLOCKED / NOT CERTIFIED**; no deployment, merge, production mutation, or payment occurred.
 
 - Latest follow-up: education school/teacher request flows now use accessible inline forms instead of prompts, retaining the existing backend RPC and bounded required fields. Source-contract assertions were added; validator/CI/browser and authorization checks remain NOT VERIFIED.
+
+- Medical booking now uses an accessible inline datetime form with future-date validation and safe submit feedback; existing backend RPC retained. Static assertions added; runtime and CI remain NOT VERIFIED.
