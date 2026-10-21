@@ -2339,3 +2339,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Exact-head full workflow suite is still running; verify all final conclusions before updating release status.
 - Release remains **BLOCKED / NOT CERTIFIED**; no production deployment, merge, payment, or live data mutation was performed.
 
+
+
+## Coordinate validation contract follow-up — 2026-10-21
+- [x] Updated the source-contract validator to check range and invalid-coordinate rules in the shared parser, where the implementation now lives.
+- [x] Relaxed the static range assertions to tolerate harmless source formatting whitespace.
+- [x] Confirmed on commit c14b8ed725c3fc21f89a332383500dbf42533766 that Deno type-check, runtime coordinate regression tests, and the source-contract validation step all passed.
+- [ ] Re-run the complete workflow suite against the final documentation commit and confirm every workflow conclusion.
+- [ ] Backend authorization and tenant-isolation integration tests with real Supabase/Postgres fixtures remain outstanding.
+- **Status:** the dedicated source-integrity job passed on the code commit above; release remains **BLOCKED / NOT CERTIFIED** until exact-head suite and live-like integration/security checks pass. No merge or manual production deployment performed.
