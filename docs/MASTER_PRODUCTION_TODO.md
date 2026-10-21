@@ -1575,3 +1575,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Latest inspected mainline production verification remains `PRODUCTION_GATE=BLOCKED`: the RC425–RC441 migration source files are still absent from main. It also explicitly reports chronological replay NOT RUN, tenant isolation NOT VERIFIED, payment/finance E2E NOT VERIFIED, backup/restore NOT VERIFIED, Edge Function contracts NOT VERIFIED, SMM gateway parity NOT VERIFIED, and auth security settings NOT VERIFIED.
 - [ ] Do not interpret source-branch web workflow success as production certification. No recovered migration has been merged or applied to the live database.
 - [ ] Next release-critical work: complete isolated PostgreSQL chronological replay of the entire recovered chain, then attach test evidence and reconcile applied migration ledger before any release approval.
+
+
+### RC434 isolated PostgreSQL regression gate — 2026-10-21
+- [x] Added disposable PostgreSQL fixture for the RC434 receiving function, including test-only roles and a forced inventory-ledger failure trigger.
+- [x] Added behavioral assertions for successful receipt, duplicate replay idempotency, conflicting replay rejection, actor membership enforcement, approved-order enforcement, transaction rollback on ledger failure, and RPC execute privileges.
+- [x] Added dedicated `erp-receiving-postgres` CI job to apply the fixture, RC434 migration, and integration assertions on PostgreSQL 16.
+- [ ] CI run for commit `94b88fba1ca58184ecfe70ffee0177fcc400ad9a` is queued; mark the test as passed only after the dedicated PostgreSQL job completes successfully.
+- [ ] This test exercises RC434 in a disposable fixture, not the complete RC425–RC441 chain or the production schema. RC437's cumulative line-quantity enforcement still needs a dedicated behavioral test against the recovered full schema.
