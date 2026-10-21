@@ -86,6 +86,8 @@ assert.match(moduleSource, /money\(x\.total_amount\?\?x\.total\)/, 'order totals
 assert.match(moduleSource, /توزيع الطلبات حسب الحالة/, 'dashboard must show canonical order counts by state');
 assert.match(moduleSource, /PENDING:\['CONFIRMED','CANCELLED'\][\s\S]*OUT_FOR_DELIVERY:\['DELIVERED'\]/, 'order status UI must only offer canonical legal transitions');
 assert.match(moduleSource, /function reservationsView\(\)/, 'restaurant module must expose the reservation workspace');
+assert.match(moduleSource, /esc\(x\.table_number\?\?'—'\)/, 'table number must be escaped before rendering');
+assert.match(moduleSource, /esc\(x\.capacity_persons\?\?'—'\)/, 'table capacity must be escaped before rendering');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:'CREATE',p_payload:/, 'reservation creation must use the secured database RPC');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:action,p_payload:/, 'reservation state transitions must use the secured database RPC');
 assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
