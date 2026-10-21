@@ -799,3 +799,5 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Marketing workspace read reliability: provider, service, project, plan, subscription, participant, and commission tabs now display an explicit permission/connection error when their query fails, instead of silently rendering an empty table. Added source-contract assertions. Exact-head CI and browser E2E remain NOT VERIFIED.
 
 - Marketing membership safety: membership lookup failures are now explicit, and creating a marketing lead is disabled until the account's active memberships can be verified. The submit handler repeats this guard; source-contract assertions cover the failure path. Live authorization and browser E2E remain NOT VERIFIED.
+
+- Shared module overview reliability: overview cards now show an explicit `تعذر التحميل` state when a table read failed, rather than displaying a misleading `0` record count. This applies to module overviews using the shared `overview(d)` renderer; static source-contract coverage was added. Exact-head CI and browser verification remain NOT VERIFIED.
