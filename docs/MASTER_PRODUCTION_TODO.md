@@ -1645,3 +1645,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Resolve legacy approved purchase orders without modeled lines before receiving can be production-ready.
 - [ ] Run Postgres integration tests for atomic rollback, concurrent duplicate receipt, over-receiving, tenant/business isolation, and service-role-only function grants.
 - [ ] Await CI for commit `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; the production gate remains BLOCKED / NOT CERTIFIED.
+
+
+### RC434 source provenance check — 2026-10-21
+- [x] Compared the GitHub blob SHA for `20261009200000_rc434_atomic_erp_purchase_receiving.sql` across draft PR heads #271, #273, #282, and #286. All four resolve to the same blob SHA `a93a0a6827de15d50632e1deec015e20dd55b405` (6,968 bytes); no divergence was observed for RC434 itself.
+- [ ] This establishes agreement among these draft branches, not independent proof that the SQL matches the live production schema or is safe to apply. Keep the release gate blocked until the full RC425–RC441 chain is reviewed and replayed in an isolated database.
+- [ ] The four branches are still drafts and overlap on migration files; do not merge them together or bypass the open-PR migration collision guard.
+- [ ] Continue validating RC434 against the RC437 line-aware wrapper, actual table constraints, receipt replay semantics, and transaction rollback/concurrency integration tests before release.
