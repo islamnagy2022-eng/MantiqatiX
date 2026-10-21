@@ -23,7 +23,7 @@ begin
     ('ledger-failed','PAYMOB',55.00,'EGP','PENDING');
 
   -- A successful callback persists event and ledger transition together.
-  v_result:=public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','PAID',true,125.00,'EGP','txn-1','{"test":"success"}'::jsonb);
+  v_result:=public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','PAID',true,125.00,'EGP','txn-1',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-paid')), 'test', 'success'));
   if v_result->>'status' <> 'PAID' or v_result->>'idempotent' <> 'false' then
     raise exception 'first success result was unexpected: %',v_result;
   end if;
@@ -33,14 +33,14 @@ begin
   if v_count <> 1 then raise exception 'expected exactly one persisted provider event'; end if;
 
   -- Exact duplicate is idempotent and does not duplicate event rows.
-  v_result:=public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','PAID',true,125.00,'EGP','txn-1','{}'::jsonb);
+  v_result:=public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','PAID',true,125.00,'EGP','txn-1',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-paid'))));
   if v_result->>'idempotent' <> 'true' then raise exception 'exact replay was not idempotent: %',v_result; end if;
   select count(*) into v_count from public.payment_provider_events where external_event_id='paymob:txn-1';
   if v_count <> 1 then raise exception 'exact replay duplicated the event'; end if;
 
   -- Same external event cannot be rebound to another ledger.
   begin
-    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:txn-1','PAID',true,125.00,'EGP','txn-1','{}'::jsonb);
+    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:txn-1','PAID',true,125.00,'EGP','txn-1',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-wrong-target'))));
     raise exception 'wrong-ledger replay unexpectedly succeeded';
   exception when others then
     if sqlerrm not like '%MANTIGO_EVENT_BINDING_CONFLICT%' then raise; end if;
@@ -48,7 +48,7 @@ begin
 
   -- Same event ID with a contradictory status is rejected.
   begin
-    perform public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','FAILED',true,125.00,'EGP','txn-1','{}'::jsonb);
+    perform public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','FAILED',true,125.00,'EGP','txn-1',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-paid'))));
     raise exception 'contradictory replay status unexpectedly succeeded';
   exception when others then
     if sqlerrm not like '%MANTIGO_EVENT_STATUS_CONFLICT%' then raise; end if;
@@ -56,7 +56,7 @@ begin
 
   -- Amount/currency mismatch must not persist an event.
   begin
-    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:bad-amount','PAID',true,999.00,'EGP','bad-amount','{}'::jsonb);
+    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:bad-amount','PAID',true,999.00,'EGP','bad-amount',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-wrong-target'))));
     raise exception 'amount mismatch unexpectedly succeeded';
   exception when others then
     if sqlerrm not like '%MANTIGO_AMOUNT_CURRENCY_MISMATCH%' then raise; end if;
@@ -66,8 +66,8 @@ begin
 
   -- Recovery for a legacy partial write: existing verified event repairs a pending ledger.
   insert into public.payment_provider_events(id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
-  values('legacy-event-id','MNTY-PLATFORM','PAYMOB','MANTIGO_RIDE_PAYMENT','ledger-legacy','paymob:legacy','PAID',true,'{}'::jsonb,now());
-  v_result:=public.process_verified_mantigo_paymob_event('ledger-legacy','paymob:legacy','PAID',true,90.00,'EGP','legacy-txn','{}'::jsonb);
+  values('legacy-event-id','MNTY-PLATFORM','PAYMOB','MANTIGO_RIDE_PAYMENT',null,'paymob:legacy','PAID',true,jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-legacy'))),now());
+  v_result:=public.process_verified_mantigo_paymob_event('ledger-legacy','paymob:legacy','PAID',true,90.00,'EGP','legacy-txn',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-legacy'))));
   if v_result->>'recovered' <> 'true' then raise exception 'legacy event did not repair pending ledger: %',v_result; end if;
   select payment_status into v_status from public.mantigo_financial_ledger where id='ledger-legacy';
   if v_status <> 'PAID' then raise exception 'legacy partial write was not recovered'; end if;
@@ -75,7 +75,7 @@ begin
   -- A simulated failure after event insert must roll back the event insert too.
   perform set_config('test.fail_ledger_update','on',true);
   begin
-    perform public.process_verified_mantigo_paymob_event('ledger-fail-closed','paymob:txn-fail','PAID',true,70.00,'EGP','txn-fail','{}'::jsonb);
+    perform public.process_verified_mantigo_paymob_event('ledger-fail-closed','paymob:txn-fail','PAID',true,70.00,'EGP','txn-fail',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-fail-closed'))));
     raise exception 'simulated ledger write failure did not fire';
   exception when others then
     if sqlerrm not like '%SIMULATED_LEDGER_WRITE_FAILURE%' then raise; end if;
@@ -87,10 +87,10 @@ begin
   if v_status <> 'PENDING' then raise exception 'ledger state changed after simulated transaction failure'; end if;
 
   -- Failed provider status is also recorded atomically and cannot be replayed as success.
-  v_result:=public.process_verified_mantigo_paymob_event('ledger-failed','paymob:txn-failed','FAILED',true,55.00,'EGP','txn-failed','{}'::jsonb);
+  v_result:=public.process_verified_mantigo_paymob_event('ledger-failed','paymob:txn-failed','FAILED',true,55.00,'EGP','txn-failed',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-failed'))));
   if v_result->>'status' <> 'FAILED' then raise exception 'failed provider event was not recorded: %',v_result; end if;
   begin
-    perform public.process_verified_mantigo_paymob_event('ledger-failed','paymob:txn-failed','PAID',true,55.00,'EGP','txn-failed','{}'::jsonb);
+    perform public.process_verified_mantigo_paymob_event('ledger-failed','paymob:txn-failed','PAID',true,55.00,'EGP','txn-failed',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-failed'))));
     raise exception 'failed-to-paid contradictory replay unexpectedly succeeded';
   exception when others then
     if sqlerrm not like '%MANTIGO_EVENT_STATUS_CONFLICT%' then raise; end if;
