@@ -1938,3 +1938,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Revoked direct table SELECT and granted only authenticated execution of these RPCs; sector loader now calls the RPCs.
 - [x] Added disposable PostgreSQL fixture, behavioral test, dedicated CI workflow, and static contract guards.
 - [ ] Migration `20261020233000_jobs_directory_backend_v1.sql` is source-only and not applied to production. Exact-head CI and browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — marketing lead form safeguards
+
+- [x] Add labels and accessible live status to the marketing lead form.
+- [x] Bound text inputs and validate finite nonnegative budgets; reject minimum budget above a provided maximum.
+- [x] Prevent duplicate submission while `marketing-lead-create` is pending.
+- [x] Add `scripts/validate-marketing-lead-form.mjs` and wire it into Pages CI.
+- [ ] Exact-head CI result pending; browser E2E, backend authorization and tenant-isolation verification remain open.
