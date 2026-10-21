@@ -26,8 +26,15 @@ Deno.serve(async(req)=>{
   if(ue||!user||user.is_anonymous)return out({error:"UNAUTHORIZED"},401);
   let body:any;try{body=await req.json()}catch{return out({error:"INVALID_JSON"},400)}
   const tenantId=String(body.tenantId??"").trim(),businessId=String(body.businessId??"").trim(),name=String(body.name??"").trim();
+  const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if(!tenantId||!businessId||!name)return out({error:"TENANT_BUSINESS_NAME_REQUIRED"},400);
-  if(name.length>200)return out({error:"FIELD_TOO_LONG"},400);
+  if(!uuidPattern.test(tenantId)||!uuidPattern.test(businessId))return out({error:"INVALID_TENANT_OR_BUSINESS_ID"},400);
+  const phone=body.phone==null?"":String(body.phone).trim(),address=body.address==null?"":String(body.address).trim();
+  const latitude=body.latitude==null?null:Number(body.latitude),longitude=body.longitude==null?null:Number(body.longitude);
+  if(name.length>200||phone.length>64||address.length>500)return out({error:"FIELD_TOO_LONG"},400);
+  if((latitude!==null&&!Number.isFinite(latitude))||(longitude!==null&&!Number.isFinite(longitude))||
+     (latitude!==null&&(latitude < -90||latitude > 90))||(longitude!==null&&(longitude < -180||longitude > 180))||
+     ((latitude===null)!==(longitude===null)))return out({error:"INVALID_COORDINATES"},400);
   const {data:membership,error:me}=await db.from("user_memberships").select("id,role,business_id,status,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").or(`business_id.eq.${businessId},business_id.is.null`).order("id").limit(20);
   if(me)return out({error:"MEMBERSHIP_READ_FAILED"},500);
   const allowed=(membership||[]).some((m:any)=>["OWNER","ADMIN","BUSINESS_OWNER","MANAGER"].includes(String(m.role).toUpperCase())&&String(m.business_id||"")===businessId)
@@ -38,9 +45,9 @@ Deno.serve(async(req)=>{
   if(String(business.status).toUpperCase()!=="ACTIVE")return out({error:"BUSINESS_NOT_ACTIVE"},409);
   const branchId=crypto.randomUUID(), branchCode=code(name);
   const {data:branch,error:ie}=await db.from("branches").insert({
-    id:branchId,tenant_id:tenantId,organization_id:body.organizationId??business.organization_id??null,business_id:businessId,
-    name,code:branchCode,status:"ACTIVE",phone:body.phone?String(body.phone).trim():null,address:body.address?String(body.address).trim():null,
-    latitude:body.latitude==null?null:Number(body.latitude),longitude:body.longitude==null?null:Number(body.longitude),
+    id:branchId,tenant_id:tenantId,organization_id:business.organization_id??null,business_id:businessId,
+    name,code:branchCode,status:"ACTIVE",phone:phone||null,address:address||null,
+    latitude,longitude,
     settings:{source:"MNTY_PROVIDER_ONBOARDING"}
   }).select("id,tenant_id,organization_id,business_id,name,code,status,phone,address,latitude,longitude").single();
   if(ie)return out({error:"BRANCH_CREATE_FAILED"},400);
