@@ -2007,3 +2007,5 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Extended the existing Pages source-contract validator with guards against raw backend error leakage and assertions for safe MantiGO, education-request, and job-application feedback.
 - [ ] Exact-head CI and browser-level journeys remain NOT VERIFIED until GitHub Actions results and interactive runtime evidence are observed.
 - No database, migrations, production data, Auth settings, Edge Function deployment, payments, merge, or release was changed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Follow-up: removed the raw `data.error` display from the MantiGO electronic-payment intent response; payment failures now show safe guidance. Added two regression assertions for this path.
