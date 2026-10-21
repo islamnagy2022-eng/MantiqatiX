@@ -817,3 +817,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - 2026-10-21 follow-up: catalog reads require a verified tenant scope and marketing project reads require a verified business scope before issuing queries. Missing scope becomes a visible load failure; no unscoped query is sent. Added source-contract guards. This is not proof of RLS correctness; tenant-isolation tests and CI remain required.
+
+
+- MantiGO open-rides follow-up (2026-10-21): removed a second RPC that was triggered from the render path and silently converted errors to an empty list. The tab-click loader remains the single request path and records errors for retry UI. Source-contract guards added; runtime/browser verification remains pending.
