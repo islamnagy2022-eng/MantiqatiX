@@ -24,7 +24,7 @@ async function session(){
 }
 async function membership(user){
  const saved=localStorage.getItem('MNTYActiveMembershipId');
- const base=()=>sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
+ const base=()=>sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status,permissions').eq('user_id',user.id).eq('status','ACTIVE');
  // An explicit selection must resolve exactly; never silently switch tenant after failure.
  if(saved){
    const selected=await base().eq('id',saved).maybeSingle();
