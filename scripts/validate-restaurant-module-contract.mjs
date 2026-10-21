@@ -116,4 +116,18 @@ assert.match(moduleSource, /document\.removeEventListener\('keydown',onKey\)/, '
 assert.match(moduleSource, /o\._close=\(\)=>close\(false\)/, 'successful saves must close dialogs through the cleanup path');
 assert.match(moduleSource, /o\._close\(\);resolve\(\{item,quantity,customerName,customerPhone,deliveryAddress,notes\}\);\s*\},\(\)=>resolve\(null\)\)/, 'canceling order details must resolve the pending order flow without leaving a stuck promise');
 
+// Dashboard metrics must remain grounded in the bounded set of loaded orders.
+assert.match(moduleSource, /const statusCounts=\{\};[\s\S]*state\.orders\.forEach\(order=>\{const key=String\(order\.status\|\|'UNKNOWN'\)\.toUpperCase\(\)/,
+  'dashboard status counts must be derived from loaded order records');
+assert.match(moduleSource, /ضمن آخر 100 طلب محمّل/,
+  'dashboard must disclose the bounded sample behind status counts');
+assert.match(moduleSource, /لا نعرض إجمالي مبيعات أو متوسط طلب باعتبارهما أرقامًا مالية معتمدة/,
+  'dashboard must not present unverified sales totals as authoritative financial metrics');
+assert.match(moduleSource, /async function refreshDashboard\(\)[\s\S]*if\(state\.refreshing\|\|state\.loading\)return/,
+  'dashboard refresh must prevent overlapping refresh requests');
+assert.match(moduleSource, /if\(!errs\.length\)state\.lastLoadedAt=new Date\(\)\.toISOString\(\)/,
+  'last-updated timestamp must only advance after all dashboard queries succeed');
+assert.match(moduleSource, /id="rest-refresh"/,
+  'dashboard must expose a manual refresh control');
+
 console.log('Restaurant module contract PASS');
