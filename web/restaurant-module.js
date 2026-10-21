@@ -24,10 +24,13 @@ async function session(){
 }
 async function membership(user){
  const saved=localStorage.getItem('MNTYActiveMembershipId');
- let q=sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
- if(saved)q=q.eq('id',saved);
- let r=await q.maybeSingle();
- if(!r.data){r=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(1).maybeSingle()}
+ const base=()=>sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
+ // A stale or inaccessible explicit selection must fail closed; never silently switch the user's tenant.
+ if(saved){
+   const selected=await base().eq('id',saved).maybeSingle();
+   return selected.data||null;
+ }
+ const r=await base().limit(1).maybeSingle();
  return r.data||null;
 }
 function canOperate(module='CATALOG',action='update'){
