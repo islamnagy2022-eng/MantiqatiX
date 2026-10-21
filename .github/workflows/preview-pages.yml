@@ -38,7 +38,7 @@ jobs:
           done <<< "$changed"
           test -s web/preview/index.html
           grep -Fq 'نسخة معاينة مستقلة' web/preview/index.html
-          grep -Fq 'لا تتصل بقاعدة البيانات' web/preview/index.html
+          grep -Fq 'ولا تنفذ أي تغييرات' web/preview/index.html
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
