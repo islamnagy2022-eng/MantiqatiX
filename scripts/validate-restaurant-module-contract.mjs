@@ -3,6 +3,7 @@ import fs from 'node:fs';
 
 const moduleSource = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const rbacSource = fs.readFileSync('web/rbac.js', 'utf8');
+const optionSnapshotMigration = fs.readFileSync('supabase/migrations/20261022140000_rc530_order_option_snapshot_details.sql', 'utf8');
 
 // The restaurant workspace must use the shared RBAC contract, not its own role allowlist.
 assert.match(moduleSource, /select\('id,tenant_id,business_id,branch_id,role,status,permissions'\)/, 'membership lookup must include permission claims required by shared RBAC');
@@ -137,5 +138,10 @@ assert.match(moduleSource, /order\.subtotal,currency\).*?order\.discount,currenc
 assert.match(moduleSource, /typeof items==='string'\)\{\s*try\{items=JSON\.parse\(items\)\}catch\(e\)\{items=null\}/, 'order snapshot parser must safely handle malformed JSON');
 
 assert.match(moduleSource, /<td colspan="7">'\+details\+'<\/td>/, 'order detail content must remain inside the corresponding hidden table row');
+
+assert.match(optionSnapshotMigration, /'selected_options',\(select coalesce\(jsonb_agg\(jsonb_build_object\('id',o\.id,'name',coalesce\(to_jsonb\(o\)->>'name_ar',to_jsonb\(o\)->>'name',to_jsonb\(o\)->>'label_ar',to_jsonb\(o\)->>'label',o\.id::text\),'price_delta',o\.price_delta\)/, 'RC530 must snapshot selected option identifiers, labels, and price deltas from the database');
+assert.match(optionSnapshotMigration, /create or replace function public\.create_order_backend/, 'RC530 must update the canonical order creation function through a forward migration');
+assert.match(moduleSource, /Array\.isArray\(item\?\.selected_options\).*?option\?\.name\|\|option\?\.id.*?orderAmount\(option\?\.price_delta,currency\)/s, 'order details must safely display option labels and saved price deltas');
+assert.match(moduleSource, /optionDetails\?'<div class="muted">الخيارات: '\+optionDetails/s, 'option labels must be displayed alongside the matching item');
 
 console.log('Restaurant module contract PASS');
