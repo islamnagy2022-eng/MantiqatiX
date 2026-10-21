@@ -30,6 +30,7 @@ for(const [src,marker,label] of [
   [mantigoWebhook,'MANTIGO_ATOMIC_PAYMENT_PROCESSING_FAILED','safe atomic processor failure handling'],
   [mantigoWebhook,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory replay returns conflict'],
   [mantigoSql,'for update','ledger row serialization'],
+  [mantigoSql,'set search_path = pg_catalog, pg_temp','trusted atomic RPC search path'],
   [mantigoSql,'MANTIGO_EVENT_BINDING_CONFLICT','provider-event binding validation'],
   [mantigoSql,'MANTIGO_MERCHANT_REFERENCE_MISMATCH','merchant order reference must bind to ledger'],
   [mantigoSql,"null, p_external_event_id, p_status, true",'MantiGO ledger IDs must not be written into the payment-intent foreign key'],
