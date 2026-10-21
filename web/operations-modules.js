@@ -195,7 +195,7 @@ async function applyJob(jobId,form){
  setStatus('جارٍ إرسال طلب التقديم…');
  try{
   const r=await sb.rpc('submit_job_application_backend',p);
-  if(r.error){setStatus('تعذر إرسال التقديم بسبب الاتصال أو الصلاحيات. راجع بياناتك ثم حاول مرة أخرى.',true);return}
+  if(r.error){setStatus('تعذر إرسال الطلب بسبب الاتصال أو الصلاحيات. تحقق من البيانات ثم حاول مرة أخرى.',true);return}
   setStatus('تم إرسال التقديم بنجاح.');
   await load(defs['الوظائف']);tab='overview';render();
  }catch{
