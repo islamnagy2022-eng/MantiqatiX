@@ -2118,3 +2118,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - **Regression coverage added:** `scripts/validate-marketing-lead-form.mjs` asserts busy-state handling, safe network failure state, stale-response rejection, and control recovery.
 - **Verification status:** source-level assertions were checked against the current branch content in this session. GitHub Actions has not reported any workflow run or commit status for the latest commit; do not claim CI/runtime/E2E passed until those checks actually run.
 - **Still blocked for release:** the known MantiGO Paymob webhook partial-failure/idempotency case remains unresolved: a provider-event insert can succeed while the ledger update fails, and a retry can short-circuit on the existing event. Requires atomic server-side transaction/RPC plus regression tests before production certification.
+
+## 2026-10-21 — MantiGO ride form recovery and module navigation efficiency
+- [x] MantiGO ride creation now catches thrown network failures, validates the active session and proposed price, restores the submit control in `finally`, and provides safe guidance to check the user's rides before retrying an uncertain submission.
+- [x] The ride form reuses its idempotency key after an uncertain outcome rather than generating a new key on every click. This reduces client-side duplicate risk but does not replace verification of backend idempotency.
+- [x] Removed the 800ms document polling loop from the module observer; initial detection runs once and subsequent navigation detection is driven by DOM mutations.
+- [x] Added source-contract assertions for ride form recovery, retry identity, and event-driven module navigation; moved the validator's success message to the end so it cannot print before later assertions fail.
+- [ ] GitHub Actions has returned no workflow run/status for current PR head `e04fa6b3370f4138e16e438bbaca0b4623a56646`; Node validator execution and exact-head CI are NOT VERIFIED.
+- [ ] Browser/mobile E2E, backend idempotency tests, and role/tenant authorization checks remain NOT VERIFIED.
+- [ ] Critical MantiGO Paymob webhook partial-failure/idempotent-retry recovery remains unresolved as described above; production stays **BLOCKED / NOT CERTIFIED**.
