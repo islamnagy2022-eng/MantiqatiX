@@ -13,6 +13,10 @@ assert.match(form, /id="mlServices"/, "marketing lead form must capture requeste
 assert.match(form, /servicesRaw\.split\(','\)/, "requested services must be parsed from the form");
 assert.match(form, /requiredServices\.length>10/, "requested service count must respect backend limits");
 assert.match(form, /required_services:requiredServices/, "requested services must be sent to the existing backend contract");
+assert.match(source, /memberships=\[\]/, "active memberships must be retained for explicit business selection");
+assert.match(form, /id="mlBusiness"/, "lead form must expose business selection when multiple businesses are available");
+assert.match(form, /اختر النشاط التجاري الذي يخصه طلب التسويق/, "business selection must be required when multiple business memberships exist");
+assert.match(form, /p\.business_id=businessId/, "selected business ID must be sent for server-side authorization");
 assert.match(form, /if\(!button\|\|button\.disabled\)return/, "duplicate submissions must be blocked");
 assert.match(form, /button\.disabled=true/, "submit button must disable during request");
 assert.match(form, /finally\{button\.disabled=false/, "submit button must be restored after request");
