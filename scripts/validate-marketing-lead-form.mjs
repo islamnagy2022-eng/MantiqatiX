@@ -151,3 +151,9 @@ assert.match(source, /async function loadInternal\(d\)[\s\S]*?function load\(d\)
 assert.match(source, /loadGeneration=0/, "module loads must use a generation counter to prevent stale asynchronous responses");
 assert.match(source, /async function loadInternal\(d,generation\)[\s\S]*?if\(generation!==loadGeneration\)return/, "module loads must discard stale results after asynchronous initialization");
 assert.match(source, /function load\(d\)\{const generation=\+\+loadGeneration;return loadInternal\(d,generation\)\.catch\(\(\)=>\{if\(generation!==loadGeneration\)return;/, "stale module-load failures must not overwrite the currently selected module");
+
+// UI data-integrity regression checks: never label failed reads as empty inventories.
+
+assert.match(source, /loadErrors\.jobs\?'<div class="notice" role="alert">تعذر تحميل الوظائف؛ لم نعتبرها فارغة/, "job workspace must distinguish a read failure from an empty jobs list");
+assert.match(source, /loadErrors\.school_profiles\|\|loadErrors\.teacher_profiles\?'<div class="notice" role="alert">تعذر تحميل الجهات التعليمية؛ لم نعتبرها فارغة/, "education workspace must distinguish read failures from no providers");
+assert.match(source, /loadErrors\.marketing_provider_profiles\?'<div class="notice" role="alert">تعذر تحميل مقدمي الخدمة الطبية؛ لم نعتبر القائمة فارغة/, "medical provider workspace must distinguish read failures from no providers");
