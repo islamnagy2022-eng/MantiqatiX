@@ -87,7 +87,7 @@ assert.doesNotMatch(source, /alert\(data\.error/, "payment API failures must not
 assert.match(source, /تعذر بدء الدفع الإلكتروني\. تحقق من حالة الرحلة والاتصال ثم حاول مرة أخرى/, "payment failures must use safe actionable Arabic feedback");
 assert.match(source, /async function mgCardPay\(ride\)\{try\{[\s\S]*?تعذر الاتصال بخدمة الدفع الإلكتروني\. لم يتم تأكيد بدء الدفع/, "payment intent network failures must be caught and reported safely");
 assert.match(paymentEdge, /\.in\("payment_status",\["REQUIRED","PENDING"\]\)\.is\("provider_intent_id",null\)\.select\("id"\)\.maybeSingle\(\)/, "payment intent persistence must be conditional on an eligible ledger row without a provider intent");
-assert.match(paymentEdge, /if\(!persistedIntent\?\.id\)[\s\S]*?PAYMENT_INTENT_STATE_CHANGED[\s\S]*?Never return a checkout URL unless this exact provider intent was persisted/, "checkout must not be returned when a concurrent state change prevented persistence");
+assert.match(paymentEdge, /if\(!persistedIntent\?\.id\)[\s\S]*?Never return a checkout URL unless this exact provider intent was persisted[\s\S]*?PAYMENT_INTENT_STATE_CHANGED/, "checkout must not be returned when a concurrent state change prevented persistence");
 assert.match(paymentEdge, /stage:"persist_paymob_intent"[\s\S]*?PAYMENT_INTENT_PERSISTENCE_FAILED/, "payment persistence failures must be logged with a request ID and returned as a safe error code");
 
 
