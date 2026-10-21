@@ -33,6 +33,10 @@ assert.ok(ui.includes("if(!customerName||customerName.length>120)"),
 
 assert.ok(stockSql.includes('create table if not exists public.restaurant_inventory_movements'),
   'RC527 must create an explicit inventory movement ledger');
+assert.equal((stockSql.match(/\bv_cost\s+numeric\(14,2\);/g)||[]).length, 1,
+  'RC527 movement function must declare its unit-cost variable exactly once');
+assert.ok(stockSql.includes("v_cost := case when v_type = 'ISSUE' then v_item.unit_cost_egp else p_unit_cost_egp end;"),
+  'issue cost must be derived from the stored inventory valuation');
 assert.ok(stockSql.includes('alter table public.restaurant_inventory_movements force row level security'),
   'movement ledger must force row-level security');
 assert.ok(stockSql.includes('create or replace function public.guard_restaurant_inventory_balance()') && stockSql.includes('before insert or update on public.restaurant_inventory'), 'direct client writes must not bypass the movement ledger for stock or valuation');
