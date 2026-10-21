@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -70,6 +70,7 @@ async function load(){
  let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,total,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
  let tablesQ=sb.from('restaurant_tables').select('id,owner_user_id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
  let invQ=sb.from('restaurant_inventory').select('id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at').order('name_ar').limit(200);
+  let reservationsQ=sb.from('restaurant_reservations').select('id,table_id,customer_name,customer_phone,guest_count,starts_at,ends_at,status,notes,created_at').order('starts_at',{ascending:false}).limit(100);
  if(s&&canOperate('CATALOG','view')){
    menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
@@ -84,16 +85,18 @@ async function load(){
  if(s&&canOperate('OPERATIONS','view')){
    tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
    invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
+   reservationsQ=reservationsQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
    // Tables and inventory are operational records, not personal fallback data.
    // If the active role cannot view OPERATIONS, do not query either table.
    tablesQ=Promise.resolve({data:[],error:null});
    invQ=Promise.resolve({data:[],error:null});
+   reservationsQ=Promise.resolve({data:[],error:null});
  }
  try{
-  const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
-  state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
-  const errs=[a,b,c,d].filter(x=>x.error);
+  const [a,b,c,d,e]=await Promise.all([menuQ,ordersQ,tablesQ,invQ,reservationsQ]);
+  state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];state.reservations=e.data||[];
+  const errs=[a,b,c,d,e].filter(x=>x.error);
   // Do not expose raw database/provider errors in the user interface.
   state.error=errs.length?'تعذر تحميل بعض بيانات المطعم. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.':null;
  }catch(e){
@@ -117,8 +120,8 @@ function cards(){
  '</div><div class="card" style="margin-top:16px"><div class="card-title">توزيع الطلبات حسب الحالة</div><div class="action-bar" style="gap:8px;flex-wrap:wrap">'+statuses.map(status=>'<span class="badge">'+status+': '+state.orders.filter(x=>String(x.status||'').toUpperCase()===status).length+'</span>').join('')+'</div></div>';
 }
 function tabs(){
- return '<div class="action-bar" style="gap:8px;flex-wrap:wrap">'+['dashboard','menu','orders','tables','inventory'].map(x=>{
- const n={dashboard:'نظرة عامة',menu:'القائمة',orders:'الطلبات',tables:'الطاولات',inventory:'المخزون'}[x];
+ return '<div class="action-bar" style="gap:8px;flex-wrap:wrap">'+['dashboard','menu','orders','tables','inventory','reservations'].map(x=>{
+ const n={dashboard:'نظرة عامة',menu:'القائمة',orders:'الطلبات',tables:'الطاولات',inventory:'المخزون',reservations:'الحجوزات'}[x];
  return '<button class="btn '+(state.tab===x?'btn-primary':'btn-outline')+'" data-rest-tab="'+x+'">'+n+'</button>';
  }).join('')+'</div>';
 }
@@ -207,7 +210,7 @@ function render(){
  if(state.error){const recovery=state.staleMembershipSelection?'<button class="btn btn-outline" id="rest-clear-membership">مسح الاختيار المحفوظ وإعادة الاختيار</button>':'';page.innerHTML=shell('تعذر تحميل موديول المطاعم',tabs()+'<div class="empty-state">'+esc(state.error)+'<div class="action-bar">'+recovery+'<button class="btn btn-primary" id="rest-retry">إعادة المحاولة</button></div></div>');bind();return;}
  if(state.selectionRequired){page.innerHTML=shell('اختيار المؤسسة والفرع', '<p class="muted">لديك أكثر من عضوية نشطة. اختر النطاق الذي تريد إدارته قبل تحميل بيانات المطعم.</p><div class="cards">'+state.membershipOptions.map(m=>'<article class="card"><div class="card-title">المؤسسة: '+esc(m.tenant_id)+'</div><p>النشاط: '+esc(m.business_id||'غير محدد')+'</p><p>الفرع: '+esc(m.branch_id||'غير محدد')+'</p><p>الدور: '+esc(m.role||'غير محدد')+'</p><button class="btn btn-primary" data-select-membership="'+esc(m.id)+'">اختيار هذا النطاق</button></article>').join('')+'</div>');bind();return;}
  if(state.loading){page.innerHTML=shell('جاري تحميل موديول المطاعم',tabs()+'<p class="muted">جاري تحميل البيانات الفعلية…</p>');return;}
- page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():dashboard();
+ page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():state.tab==='reservations'?reservationsView():dashboard();
  bind();
 }
 function modal(title,html,onSave,onCancel){
@@ -305,6 +308,8 @@ function bind(){
  document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
+  document.getElementById('rest-add-reservation')?.addEventListener('click',()=>addReservation());
+  document.querySelectorAll('[data-reservation-cancel]').forEach(b=>b.addEventListener('click',()=>cancelReservation(b.dataset.reservationCancel)));
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
