@@ -163,3 +163,5 @@ assert.match(source, /id="mlStatusFilter"/, "marketing leads must expose a statu
 assert.match(source, /id="mlClearFilters"/, "marketing lead filters must be resettable");
 assert.match(source, /لا توجد طلبات تطابق البحث والتصفية الحالية/, "filtered empty results must be explained clearly");
 assert.match(source, /refreshMarketingLeads/, "search and status controls must refresh the same results view");
+
+assert.match(source, /new Date\(r\.date_time\)\.toLocaleString\('ar-EG'\)/, "ISO appointment timestamps must be parsed as date strings rather than coerced to numbers");
