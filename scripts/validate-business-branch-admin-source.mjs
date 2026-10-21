@@ -21,5 +21,11 @@ assert.match(source, /latitude < -90\|\|latitude > 90/, "latitude must be range-
 assert.match(source, /longitude < -180\|\|longitude > 180/, "longitude must be range-validated");
 assert.match(source, /INVALID_COORDINATES/, "invalid or partial coordinates must be rejected");
 assert.match(source, /BRANCH_CREATE_FAILED/, "database errors must be normalized before returning to the client");
+assert.match(source, /contentLength>16384/, "oversized declared request bodies must be rejected");
+assert.match(source, /REQUEST_TOO_LARGE/, "oversized requests must receive a stable error code");
+assert.match(source, /!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)/, "null, primitive, and array request bodies must be rejected");
+assert.match(source, /INVALID_REQUEST_BODY/, "malformed JSON shapes must receive a stable error code");
+assert.match(source, /typeof input\.tenantId!=="string"/, "tenant IDs must not be coerced from arbitrary JSON types");
+assert.match(source, /typeof input\.phone!=="string"/, "phone must be a string when supplied");
 
 console.log("Business branch admin source integrity contract: PASS");
