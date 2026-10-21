@@ -37,6 +37,7 @@ assert.match(source, /data-op-reload/, "overview must expose a retry control aft
 assert.match(source, /querySelector\('\[data-op-reload\]'\)\?\.addEventListener\('click',\(\)=>\{if\(current&&defs\[current\]\)load\(defs\[current\]\)\}\)/, "retry control must reload the current module");
 assert.match(source, /tab!=='overview'&&Object\.keys\(loadErrors\)\.length/, "detail tabs must expose retry when reads fail");
 assert.match(source, /!page\.querySelector\('\[data-op-reload\]'\)[\s\S]*?page\.querySelector\('\[role="alert"\]'\)[\s\S]*?retryMarkup/, "detail tabs must retain retry controls even when a specific error alert already exists");
+assert.match(source, /if\(error\)\{page\.innerHTML=shell\(d,tabs\(d\)\+'<div class="empty-state" role="alert">'[\s\S]*?data-op-reload/, "module-level RPC/load errors must expose retry unless authentication is required");
 assert.match(source, /تعذر تحميل بعض البيانات في هذه الصفحة[\s\S]*إعادة تحميل البيانات/, "detail-tab failures must be visible with a retry action");
 assert.match(source, /marketingTableView\(d,'marketing_services'/, "services tab must show load failures");
 assert.match(source, /marketingTableView\(d,'marketing_plans'/, "plans tab must show load failures");
