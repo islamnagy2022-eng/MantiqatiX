@@ -9,6 +9,7 @@ assert.match(form, /id="mlStatus" role="status" aria-live="polite"/, "form statu
 assert.match(form, /if\(!title\|\|!description\)/, "title and description must be required");
 assert.match(form, /!Number\.isFinite\(min\)\|\|!Number\.isFinite\(max\)\|\|min<0\|\|max<0/, "budgets must be finite and nonnegative");
 assert.match(form, /if\(max<min\)/, "minimum budget must not exceed the maximum, including an omitted maximum treated as zero");
+assert.match(form, /الميزانية الدنيا لا يمكن أن تتجاوز الميزانية القصوى/, "budget range validation must have clear Arabic guidance");
 assert.match(form, /id="mlServices"/, "marketing lead form must capture requested services");
 assert.match(form, /servicesRaw\.split\(','\)/, "requested services must be parsed from the form");
 assert.match(form, /requiredServices\.length>10/, "requested service count must respect backend limits");
