@@ -120,18 +120,32 @@ function askQuantity(label='الكمية'){
 async function createRestaurantOrder(){
  if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
  const m=scope();
+ const attemptKey='MNTY_RESTAURANT_CASH_ATTEMPT:'+m.tenant_id+':'+m.business_id+':'+m.branch_id;
  try{
-   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
-   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
-   if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const qty=await askQuantity('الكمية');
-   if(!Number.isInteger(qty)||qty<1)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   let attempt=null;
+   try{attempt=JSON.parse(sessionStorage.getItem(attemptKey)||'null')}catch(_){return notify('تعذر استعادة محاولة الطلب النقدي بأمان. لا تعاود إنشاء الطلب قبل تحديث الصفحة والتحقق من الطلبات.','error')}
+   if(!attempt?.payload){
+     const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
+     const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
+     const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
+     if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
+     const qty=await askQuantity('الكمية');
+     if(!Number.isInteger(qty)||qty<1)return;
+     const orderId=crypto.randomUUID();
+     const payload={orderId,tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+orderId,currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],paymentMethod:'CASH_ON_DELIVERY',notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true,payment_method:'CASH_ON_DELIVERY'}};
+     attempt={payload};
+     try{sessionStorage.setItem(attemptKey,JSON.stringify(attempt))}catch(_){return notify('التخزين الآمن لمحاولة إعادة الطلب غير متاح؛ لم يتم إرسال الطلب.','error')}
+   }
+   const payload=attempt.payload;
+   if(String(payload.tenantId)!==String(m.tenant_id)||String(payload.businessId)!==String(m.business_id)||String(payload.branchId)!==String(m.branch_id)||payload.paymentMethod!=='CASH_ON_DELIVERY')return notify('محاولة الطلب المحفوظة لا تطابق نطاق المطعم الحالي.','error');
    const r=await invokeMntyFunction('order-create',payload);
-   notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
+   const createdOrderId=String(r?.id||payload.orderId);
+   const payment=await invokeMntyApi('/api/v1/payments/intents',{method:'POST',body:{orderId:createdOrderId,provider:'CASH_ON_DELIVERY',idempotencyKey:'MNTY-REST-CASH:'+createdOrderId}});
+   if(!payment?.id||payment.provider!=='CASH_ON_DELIVERY')throw new Error('تعذر تثبيت اختيار الدفع النقدي');
+   try{sessionStorage.removeItem(attemptKey)}catch(_){}
+   notify('تم إنشاء الطلب '+createdOrderId+' وتجهيز الدفع النقدي بإجمالي '+money(payment.amount)+'. لا يُسجل مدفوعًا إلا بعد تأكيد التحصيل بواسطة موظف مخول.');
    await load();
- }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
+ }catch(e){notify('تعذر إكمال الطلب النقدي: '+(e?.message||'خطأ')+'. أعد المحاولة بنفس الطلب لتجنب التكرار.','error')}
 }
 function dashboard(){
  return shell('لوحة المطعم',tabs()+'<div class="action-bar"><button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button></div>'+cards()+

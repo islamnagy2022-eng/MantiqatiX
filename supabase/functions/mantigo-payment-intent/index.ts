@@ -7,6 +7,7 @@ const PAYMOB_SECRET_KEY=Deno.env.get("PAYMOB_SECRET_KEY")??"";
 const PAYMOB_PUBLIC_KEY=Deno.env.get("PAYMOB_PUBLIC_KEY")??"";
 const PAYMOB_INTEGRATION_ID=Deno.env.get("PAYMOB_INTEGRATION_ID")??"";
 const PAYMOB_CALLBACK_URL=Deno.env.get("PAYMOB_CALLBACK_URL")??`${SUPABASE_URL}/functions/v1/paymob-webhook`;
+const ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED=true;
 const admin=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}});
 const allowedOrigin="https://islamnagy2022-eng.github.io";
 const headers={"Access-Control-Allow-Origin":allowedOrigin,"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Vary":"Origin"};
@@ -23,6 +24,7 @@ Deno.serve(async req=>{
   const token=auth.slice(7);
   const {data:{user},error:authError}=await admin.auth.getUser(token);
   if(authError||!user||user.is_anonymous)return json({error:"UNAUTHORIZED"},401,requestId);
+  if(ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED")!=="true")return json({error:"ELECTRONIC_PAYMENTS_POST_LAUNCH",requestId},503,requestId);
   if(!PAYMOB_SECRET_KEY||!PAYMOB_INTEGRATION_ID)return json({error:"ELECTRONIC_PAYMENT_GATEWAY_NOT_CONFIGURED"},503,requestId);
   const body=await req.json().catch(()=>null) as Record<string,unknown>|null;
   const rideId=String(body?.rideId??"");

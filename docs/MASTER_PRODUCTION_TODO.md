@@ -1,3 +1,40 @@
+# ACTIVE EXECUTION ORDER — MODULE BY MODULE (2026-10-20)
+
+> هذه هي أولوية التنفيذ الحالية: إنهاء موديول واحد وظيفيًا وأمنيًا واختباريًا قبل الانتقال إلى الذي يليه. وجود واجهة أو migration أو تقرير لا يعني اكتمال الموديول.
+
+## ترتيب التنفيذ الإلزامي
+1. **الأطباء والحجوزات الطبية — الموديول النشط الأول.** استكمال دورة اكتشاف الطبيب والتحقق من ملفه والعيادة/المؤسسة والفروع، توفر المواعيد والحجز ومنع التعارض والتكرار وسباقات الطلبات، حالات الموعد وصلاحيات المريض والطبيب والإدارة، الإشعارات وسجل التدقيق والتقارير والربط المالي/التحصيل المطلوب، الواجهة المتجاوبة، RLS وصلاحيات RPC/API وعزل المؤسسة والفرع وخصوصية بيانات المرضى. اختبر الإيجابي والسلبي وE2E وCI على HEAD الحالي. ابدأ من RC457 وRC462 وRC467 وأي تغييرات أحدث، ولا تعتبر وجودها وحده إغلاقًا.
+2. **الصيدليات — التالي، لا تبدأ الإغلاق الكامل قبل الأطباء.** الملف المهني والتحقق، الكتالوج والتوافر والمخزون، طلبات العملاء والوصفات حيث يدعمها التصميم، الطلب والتحصيل النقدي حسب نطاق الإطلاق، الصلاحيات والعزل والإشعارات والتقارير والاختبارات وE2E.
+3. **المطاعم — الثالث.** القائمة والأسعار والتوافر والسلة والطلب ودورة حالته وواجهة فريق المطعم، التحصيل النقدي، المخزون والفرع والماليات والإشعارات، والصلاحيات والاختبارات وE2E.
+4. **MantiGO — الرابع.** تسجيل العميل والكابتن، طلب الرحلة والمزايدة/المطابقة والحالات والموقع والخصوصية والإلغاء والإشعارات والمحاسبة والتسوية وفق نطاق الإطلاق، التزامن وidempotency وتجربة الموبايل/offline والاختبارات وE2E.
+5. بعد ذلك أكمل الموديولات المشتركة المتبقية. نفذ الاعتمادات المشتركة عندما تكون ضرورية للموديول النشط فقط، ولا تسمح لموديول جانبي بتشتيت الأولوية.
+
+## حالة موديول الأطباء الآن
+- [x] أساس آلة حالات المواعيد RC457 موجود.
+- [x] اختبارات/fixtures الحجز RC462 موجودة.
+- [x] migration RC467 وعقد إطلاق طبي وسير CI مخصص موجودة.
+- [x] التحقق من سير عمل الأطباء وCI وإعادة تشغيل الترحيلات على HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b؛ Doctor Module Release Contract وDisposable Forward Migration Replay وERP gateway/stock وبوابات الصلاحيات والخصوصية نجحت على هذا الـ HEAD (2026-10-20).
+- [ ] فحص وتنفيذ فجوات الاستخدام الفعلي من الواجهة إلى API/RPC وقاعدة البيانات، بما يشمل الملفات والتحقق والتوفر والحجز والحالات والإلغاء وإعادة الجدولة إن كانت مدعومة.
+- [ ] إصلاح أي تجاوز للصلاحيات أو ملكية الموعد أو عزل tenant/business/branch أو تسرب بيانات المريض، واختبار الرفض والنجاح.
+- [ ] التأكد من حالات التحميل والفراغ والخطأ وإعادة المحاولة وعدم إخفاء أخطاء القراءة كأنها بيانات فارغة.
+- [ ] إثبات تدفقات المريض والطبيب والإدارة والربط المطلوب بالإشعارات والتدقيق والتقارير/التحصيل، مع توثيق أي اعتماد خارجي محدد لم يمكن اختباره.
+- [x] أضيفت اختبارات الإصلاحات المطلوبة واجتاز CI الحالي وforward migration replay على HEAD المذكور أعلاه؛ أدلة التشغيل: 39495915671 و39495915562 و39495915548 و39495915544 و39495914539. هذا لا يغلق تدفقات E2E الحية أو بوابات الإنتاج المستقلة.
+- [ ] لا تنتقل للصيدليات حتى تُغلق المتطلبات السابقة أو تُصنف قيود خارجية محددة بعد إكمال العمل المستقل الممكن.
+
+## تعريف الإغلاق والانتقال
+- كل الوظائف الأساسية تعمل فعليًا وليست واجهة شكلية.
+- الواجهة والخادم وقاعدة البيانات متوافقة؛ عمليات القراءة والكتابة تمر عبر المسار الآمن المقرر.
+- صلاحيات الدور والملكية وعزل المؤسسة/الفرع وRLS وRPC grants ومدخلات المستخدم والتكرار والتزامن مختبرة.
+- اختبارات تكامل إيجابية وسلبية وCI وإعادة تشغيل الترحيلات تنجح على النسخة الحالية.
+- الأخطاء ظاهرة بوضوح، ولا توجد بيانات وهمية أو إخفاء للأخطاء.
+- TODO والاستمرارية موثقان بالدليل، وأي اختبار حي غير متاح موسوم NOT VERIFIED.
+- migrations جديدة فقط وبالترتيب الزمني؛ لا دمج أو نشر أو تغيير إنتاج دون موافقة صريحة.
+- حالة الإطلاق العامة تظل **BLOCKED / NOT CERTIFIED** حتى إثبات بوابات الإنتاج والأمان والعزل والنسخ الاحتياطي والاستعادة.
+
+**الأمر التفصيلي القابل لإعادة الاستخدام:** [docs/MODULE_BY_MODULE_EXECUTION_PROMPT_AR.md](MODULE_BY_MODULE_EXECUTION_PROMPT_AR.md)
+
+---
+
 # MNTY / MantiqatiX — Master Production TODO & Release Execution Register
 
 الهدف: الوصول إلى نسخة إنتاج فعلية مؤمنة وقابلة للإطلاق.
@@ -219,7 +256,7 @@
 - [ ] Notifications
 - [ ] Support/CRM
 - [ ] Catalog/pricing
-- [ ] Cash-only order/payment E2E (required before launch)
+- [ ] Cash-only order/payment E2E (required before launch; candidate CI integration passes, but authenticated customer-to-provider production-like E2E remains NOT VERIFIED)
 - [ ] Cash confirmation authorization/idempotency/audit (required before launch)
 - [ ] Cash accounting/commission/settlement/GL as required by launch business model
 - [ ] Electronic payment / Paymob / online checkout / payment webhook E2E (POST-LAUNCH DEFERRED; not a launch gate)
@@ -1955,8 +1992,210 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Scope decision execution record — 2026-10-20
 - [x] Product-owner decision recorded: cash-only before launch; electronic payment processing and SMM live workflows deferred until after launch.
 - [x] Reclassified Paymob production E2E as POST-LAUNCH, not a pre-launch gate.
-- [ ] Cash-only UI/API path audit and authenticated E2E remain OPEN; this decision is not proof of implementation readiness.
+- [x] Source-level cash-only checkout/API gates added on the stacked cash-first branch; the change is not merged or deployed.
+- [ ] Static CI and disposable RC458 PostgreSQL integration must pass; authenticated browser E2E remains NOT VERIFIED.
 - [ ] Verify cash tenant configuration, authorized confirmation, server-derived amount, idempotency, audit trail, and required cash accounting.
 - [ ] Verify electronic methods are not exposed through the launch workflow; keep their backend security boundaries intact.
 - [ ] Keep SMM credentials/tables fail-closed and verify no SMM spend/fulfilment can be triggered in the launch scope.
 - [ ] Global release remains BLOCKED / NOT CERTIFIED until cash E2E and other mandatory non-deferred gates pass.
+
+
+## Cash-only launch implementation — 2026-10-20
+- Source implementation is now present in stacked branch `feat/cash-only-launch-flow-rc458-20261020`: marketplace cart opens a cash-only checkout form, verifies the current catalog and single business/branch, submits only item IDs/quantities, and preserves idempotency keys across retries in the browser session.
+- API now rejects non-cash order methods, checks tenant cash configuration before order creation, allows a null branch for businesses without branches, and derives the cash intent amount from `orders.total_amount`.
+- Cash intent retries use read-before-insert idempotency checks and reject keys bound to another order instead of overwriting an existing intent.
+- RC458 adjusts the existing service-role-only `create_order_backend` actor check: a trusted service-role call can proceed only after passing the existing customer membership, tenant/business, provider, branch, catalog and server-pricing checks. The migration does not alter function grants. Disposable PostgreSQL integration covers no-sub service-role calls, authoritative pricing, idempotency and membership rejection.
+- Digital-page paid checkout is blocked before its electronic-payment intent because no verified cash contract exists for that product. SMM UI remains deferred and gateway remains default-deny.
+- Static/CI and disposable PostgreSQL checks must pass; authenticated browser E2E remains NOT VERIFIED. No production migration, payment, merge or deployment is implied.
+
+
+## RC459 — pre-launch electronic payment hard gate — 2026-10-20
+- Added a forward-only RC459 candidate that blocks the legacy authenticated-executable `create_payment_intent_backend` RPC before any electronic intent row is inserted. Existing function ACLs are preserved; the gate returns `ELECTRONIC_PAYMENTS_POST_LAUNCH` until a reviewed post-launch migration removes it.
+- Added fail-closed code gates to Paymob order payments, digital-page paid order creation/payment, subscription payment intents, and MantiGO ride payment intents. The hard-coded launch deferral cannot be overridden by environment configuration alone; post-launch requires a reviewed code change plus explicit enablement.
+- Cash marketplace orders remain on the separate cash-only API path. Digital pages, subscription payments, and MantiGO ride payments remain unavailable before launch until a verified cash path exists or online payments are approved post-launch.
+- RC459 disposable PostgreSQL regression asserts direct authenticated RPC calls are denied before insert and ACLs remain unchanged. Exact-head CI and full ordered forward replay remain required; no production migration, payment, merge, or deployment occurred.
+
+### RC460 cash confirmation amount-source correction — 2026-10-20
+- **Additional tenant/business read authorization defect fixed:** review of `GET /api/v1/payments/intents/:id` found operational payment readers were authorized from a single arbitrary tenant membership without verifying that the membership was global or scoped to the linked order's business. The route now loads the linked order's `business_id`, evaluates all active memberships, applies business scope, and requires `PAYMENT_READ_ALL` object flags to be `true`; customers remain limited to their own order. Added static regression assertions. Fresh exact-head CI is required.
+- **Latest CI result:** RC460 PostgreSQL integration passed on commit `5730b7804d6d37bf51d497d43e90ede6c9a936a3`, including missing/false permission denial, no mutation on denial, true permission success, authorized idempotent retry, and no duplicate event/obligation. The same head's production security validator failed because its static assertion expected the false permission to be in the initial INSERT; the fixture now updates permissions to false before the denied call. Updated the assertion to match that actual fixture operation. Fresh CI required.
+- **Fail-closed correction:** extended the JSONB permission review to cover missing keys as well as explicit `false`. The SQL authorization expression now coalesces nullable permission evaluation to `false`; RC460 integration covers missing-key denial, false-value denial, no state/event mutation on both denials, true-value success, and idempotent retry. Latest changes require fresh replay and integration CI.
+- **Permission truthiness hardening:** review found that JSONB key-presence checks would treat `{"PAYMENT_CONFIRM_CASH": false}` as granted. RC460 SQL now supports permission arrays and object flags explicitly set to `true`; the API's `PAYMENT_CONFIRM_CASH` and `PAYMENT_CREATE` checks also require object values to be boolean `true`. Integration coverage now denies false-valued permission flags before allowing the true-valued custom permission. Fresh exact-head CI is required.
+- **RC460 integration failure fixed:** PostgreSQL CI exposed incomplete dollar-quote delimiters (`do $` / `end $`) in the expanded SQL integration block. Repaired the delimiters and added a validator assertion to prevent recurrence. The failed run is evidence of a real test-fixture defect; the corrected fixture still requires a fresh PostgreSQL pass.
+- **Second CI-discovered validator mismatch fixed:** the cash-only validator expected the older service-worker URL `rc460-cash-only-launch-20261020`, but `web/index.html` correctly registers `rc461-cash-restaurant-20261020`. Updated the assertion to the actual source version; exact-head CI must rerun.
+- **Validator runtime failure fixed:** the exact-head Module Professionalization run exposed `ReferenceError: replay is not defined` in `scripts/validate-cash-only-launch-flow.mjs`. Added the missing read of `.github/workflows/disposable-forward-migration-replay.yml`; a fresh exact-head CI run must confirm the fix.
+- **Authorization/idempotency hardening:** moved RC460's already-confirmed success response behind the active business-membership authorization check, so a service-role caller cannot pass an arbitrary user ID to retrieve a payment/order payload on the retry path. The integration fixture now tests a permission-only JSONB membership (`PAYMENT_CONFIRM_CASH`) and an authorized retry that must not duplicate the event or commission obligation. Exact-head PostgreSQL CI remains pending.
+- **Release-test wiring correction:** found that the disposable replay workflow omitted RC460, and the cash-only validator retained stale assertions for the old order projection and migration counts. Added RC460 to the ordered replay, production migration source gate and verifier, added a dedicated PostgreSQL RC460 fixture/migration/integration workflow job, and updated source assertions. These changes require a fresh exact-head run; no runtime verification is inferred from wiring alone.
+- **Additional P0 payment-state guard:** the cash payment-intent endpoint now rejects orders outside `PENDING`/`CREATED` before creating or replaying an intent. Added a source-contract assertion; runtime behavior remains NOT VERIFIED until CI and API integration tests pass.
+- **Additional P0 authorization fix:** cash payment-intent creation previously accepted any active membership in the tenant without checking that its business scope matched the order. It now checks all active memberships and permits operational access only for a tenant-wide membership or the order's business; JSONB permission objects are supported for `PAYMENT_CREATE`. Source assertions were added; runtime verification remains pending.
+
+- **Additional source correction:** the API cash-confirmation guard now accepts both permission arrays and JSONB permission objects. Previously the API accepted arrays only, while the SQL RPC checked JSONB key presence, causing custom permission-based staff to be rejected before reaching the RPC.
+- Added a source-contract assertion for both permission representations. This assertion and the updated API have not yet been proven by a completed exact-head CI run.
+- **DONE (source correction):** cash confirmation now binds payment amount to `orders.total_amount`, the authoritative total used by cash-intent creation, rather than the legacy `orders.total` field.
+- **Regression fixture updated:** RC460 fixture intentionally sets `total_amount=100` and legacy `total=99`; the valid cash-confirmation integration must succeed only when the function uses `total_amount`.
+- **NOT VERIFIED:** exact-head CI/PostgreSQL execution for this correction is pending. Static source assertions were added to `scripts/validate-cash-only-launch-flow.mjs`; this is not a substitute for the PostgreSQL test.
+- No production migration was applied. Release remains BLOCKED / NOT CERTIFIED.
+
+
+### Exact-head CI finding — stale marketing validator cache key — 2026-10-20
+- Exact head `96b413a8603811fb244a7456ccce4c50886eb814`: disposable forward migration replay passed; RC458, RC459, RC460, RC462, targeted ads, matrimony privacy, backend-only boundary and MantiGO privacy jobs passed.
+- The remaining `validate` job failed in `scripts/validate-marketing-campaign-ui.mjs` because it expected the stale service-worker URL `rc460-cash-only-launch-20261020`, while `web/index.html` correctly registers `rc461-cash-restaurant-20261020`. This is validator drift, not evidence of a runtime defect. Updated the assertion to the current exact cache key; fresh exact-head CI is required.
+- Release remains **BLOCKED / NOT CERTIFIED** until the new exact-head workflow passes and mandatory authenticated cash checkout/confirmation E2E is independently evidenced. No merge, deployment, or production mutation.
+
+
+### Cash payment read JSONB permission parity — 2026-10-20
+- Follow-up review after the cash-only CI pass found the `GET /api/v1/orders/:id/cash-payment` authorization accepted permission arrays but did not support the established JSONB object format. For a non-operational custom role with object permissions, this could fail to recognize a valid `PAYMENT_READ_ALL: true` grant.
+- Updated the route to support both array permissions and object flags explicitly equal to boolean `true`, while retaining the existing tenant/business scope and customer-own-order check. Added source-contract assertions for array compatibility and strict true-valued object flags.
+- This is a defensive consistency fix, not launch certification. Fresh exact-head CI is required; authenticated customer/provider cash flow E2E remains NOT VERIFIED. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+### Exact-head verification update — 2026-10-20 — head 65d8a4fe903264396a815141f80cfb76f3e77ec8
+- Confirmed exact-head CI success on this head: Disposable Forward Migration Replay run 39376153889; Backend-only Module Boundary run 39376148719; Module Professionalization Validation run 39376148873 (including RC458, RC459, RC460, RC462, targeted ads, matrimony privacy); MantiGO Open Ride Privacy Boundary run 39376148674.
+- These results supersede the earlier statements above that exact-head CI was pending for the cash-payment read JSONB permission parity fix. They establish CI/replay success for this commit only.
+- Still NOT VERIFIED: authenticated browser/API E2E for customer cash checkout and authorized cash confirmation, tenant/business isolation under live authenticated flows, production configuration readiness, and backup/restore/disaster-recovery evidence.
+- Release remains **BLOCKED / NOT CERTIFIED**. PR #307 remains draft/unmerged. No production migration or deployment was performed.
+
+
+### Cash-payment read authorization regression assertions — 2026-10-20
+- Expanded `scripts/validate-cash-only-launch-flow.mjs` to explicitly assert that the cash-payment read route restricts customers to their own order, fails closed on membership lookup errors, scopes operational access to the order business (or tenant-wide membership), and queries the cash intent by both tenant and order.
+- This is test-contract hardening of existing code; it does not change API runtime behavior. New exact-head CI must pass before this validator change is considered verified.
+- Authenticated browser/API E2E and production recovery evidence remain outstanding. Release remains **BLOCKED / NOT CERTIFIED**; PR #307 remains draft/unmerged.
+
+
+### Validator regex correction — 2026-10-20
+- The new cash-payment read source assertions correctly targeted customer ownership and tenant/business scoping, but the first CI attempt failed because the validator's regex escaping was over-escaped. This was a test assertion defect; the API source itself was unchanged.
+- Replaced those four brittle regex checks with exact source-fragment assertions. The corrected validator is committed in `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45`; fresh exact-head CI is required to confirm it passes.
+- Release remains **BLOCKED / NOT CERTIFIED** pending CI and real authenticated checkout/confirmation E2E plus recovery evidence.
+
+
+### Exact-head verification — cash payment read validator — 2026-10-20
+- [x] Corrected source-contract validator commit `2fce05fa6a5cfdc9c19bd762f8da882362aa5c45` passed Module Professionalization Validation run [39376626578](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376626578), including the cash-only source validator and RC458/RC459/RC460 integration jobs.
+- [x] Exact candidate head `fdd54b1faeb6e38e2cea3d955b4aebe7bf7d9a3e` passed all four observed workflows: Module Professionalization Validation [39376651542](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651542), Disposable Forward Migration Replay [39376655694](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376655694), MantiGO Open Ride Privacy Boundary [39376651355](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651355), and Backend-only Module Boundary [39376651443](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39376651443).
+- [x] The migration replay started from the pinned RC424 schema-only baseline and completed the configured ordered pending-migration replay plus disposable tenant-isolation checks; this is not a full replay of all historical migrations or production application evidence.
+- [ ] Still NOT VERIFIED: authenticated browser/API cash checkout and authorized cash confirmation, live two-tenant/business adversarial isolation, production Auth/security configuration, and backup/restore/disaster-recovery rehearsal.
+- [ ] PR #307 remains draft/open/unmerged. No production migration, merge, payment, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+### Build continuation — ERP runtime and cross-module scoping — 2026-10-20
+
+- [x] Add RC461 service-role-only ERP runtime gateway for purchase orders, purchase receiving, stock transfers, and scoped ERP reads.
+- [x] Connect both ERP workspace entry points to the gateway; keep backend-only ERP tables out of direct browser reads.
+- [x] Add PostgreSQL integration checks for authenticated actor propagation, membership denial, approval roles, branch isolation, operation allowlist, and RPC execution grants.
+- [x] Scope accounting journal lines through tenant/business/branch-filtered parent entries; scope matrimony contact unlocks through requests involving the current user; omit private contact columns from public-profile workspace reads.
+- [ ] Exact-head module validation and disposable migration replay must finish successfully; current runs are pending/in progress. Authenticated browser cash checkout/confirmation E2E, adversarial live tenant isolation, production Auth/security configuration, and backup/restore/DR rehearsal remain NOT VERIFIED.
+- [ ] Keep PR #307 draft/open/unmerged and global release **BLOCKED / NOT CERTIFIED**. No production migration or deployment has occurred.
+
+
+### RC461 — ERP runtime wiring and cross-module linkage — 2026-10-20
+- Implemented the RC461 service-role-only `erp_runtime_execute(uuid,text,jsonb)` RPC and registered the migration in the release verifier and disposable forward-replay chain.
+- Connected the existing authenticated `/api/v1/erp/runtime` route to the restricted RPC; the browser now reads ERP purchase orders, receipts, transfers, warehouses and active catalog items through that API rather than querying backend-only ERP tables directly.
+- Added active tenant/business/branch checks before mutations, scoped record lookups for status changes, warehouse/product validation, and SQL-level branch isolation for purchase orders, transfers and catalog products.
+- Linked receiving and stock-transfer prompts to the currently loaded scoped records; added retry-stable idempotency IDs for create/receive/transfer actions and role-aware purchase approval UI.
+- Connected accounting journal lines to their visible parent entries for debit/credit totals and balance display; corrected factory stock-balance product labels.
+- Added PostgreSQL integration coverage for the restricted RPC, actor propagation, role boundaries and cross-branch rejection; added source-contract assertions for the API route, active scope and PWA cache alignment.
+- Exact-head CI for the current branch is queued/in progress; do not treat older green runs as validation of the latest code. No production migration, merge or deployment was performed. Release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, authenticated live-flow checks and backup/restore evidence are complete.
+
+
+### RC463 — supplier master linked to ERP purchasing — 2026-10-20
+- [x] Added `erp_suppliers` as a backend-only tenant/business/branch-scoped master table, with active/inactive status, normalized unique supplier codes per business, and service-role-only create RPC.
+- [x] Connected supplier creation and supplier lookup to the same authenticated ERP runtime API used by purchase orders, receipts, transfers, catalog items, warehouses, inventory balances and movement history.
+- [x] Hardened RC461 purchase-order creation to reject missing/inactive/cross-tenant/cross-business suppliers, and reject branch-specific suppliers when the purchase order's branch does not match.
+- [x] Added PostgreSQL coverage for supplier RPC ACLs, branch scope, idempotent retry, duplicate supplier codes, non-member denial, plus cross-tenant/cross-branch supplier references in purchase-order creation.
+- [x] Added RC463 to the release migration verifier, ordered disposable replay, and source-contract checks. Removed the unused duplicate ERP Edge Function so the supported runtime is the existing authenticated `/api/v1/erp/runtime` route.
+- [ ] Exact-head integration and forward replay are still running; the latest RC461/RC463 gateway integration run on the previous test head passed, but the current head must finish its own workflows. Live authenticated browser flows and backup/restore/DR evidence remain NOT VERIFIED.
+- [ ] Keep PR #307 draft/open/unmerged and release **BLOCKED / NOT CERTIFIED** until all P0 gates are evidenced. No production migration or deployment has occurred.
+
+
+## 2026-10-20 — RC468 medical booking idempotency hardening
+
+- **Finding:** the web booking UI retains a stable request ID after an ambiguous failure, and RC468 already implemented exact-payload replay. Review found a remaining concurrent-request race: two requests could both observe no row, then the second request could hit the doctor-slot overlap guard instead of receiving the first request's replay result.
+- **Implemented:** RC468 now acquires a transaction advisory lock derived from the normalized booking request ID before checking for an existing booking, and uses `INSERT ... ON CONFLICT (id) DO NOTHING RETURNING` plus strict payload comparison as a final race-safe fallback.
+- **Integrity:** only the same authenticated patient with matching business, doctor, timestamp, and normalized reason can replay the existing booking. Conflicting payload reuse fails closed. No schema shape or RPC grants changed.
+- **Tests added:** `supabase/tests/rc468_medical_booking_idempotency_integration.sql` covers exact replay, unchanged row count, payload-conflict rejection, and actor binding. `scripts/validate-medical-appointment-state-machine.mjs` now checks the RC468 lock/conflict semantics and workflow wiring.
+- **CI wiring:** Doctor Module Release Contract applies RC468 after RC457/RC467; the ordered disposable migration replay and production source verifier now include RC468; the release-chain contract expects 39 candidate migration sources.
+- **Commits:** migration race fix `c40ef0e9c8f44b49de300abc9f5d6e86c226f0f9`; test/validator/doc wiring includes `1bcc59729d2aea74aca7649b989187f99aa29333`, `a2edd02e91ea9b985d0503a3d9026d482d959a92`, `19d180bea538e0a1410f7372080476b5afae4865`, `164ebf15fc99074ddda29b616644e589ac86b6dc`, `6a90b363c4657cc9d93302eec017a505e466c00e`, `44e2c94f4e7e3e977e5a988efebe0c79f30a7dea`, and `5988c27770370593f55d2336f99366d5fe2e7830`.
+- **Not yet verified:** exact-head CI results, the RC468 isolated PostgreSQL run, ordered forward replay on this exact head, authenticated live browser/API E2E, and production migration application. No production migration, deployment, merge, or financial/medical data mutation occurred.
+- **Release:** remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC468 replay behavior hardening follow-up
+
+- **Additional review finding:** the first RC468 draft checked current provider activation before looking for a previously committed booking. If a booking committed but its response was lost and the provider was deactivated before retry, the client would receive a provider-not-found error rather than the original booking result.
+- **Fix:** moved the exact-payload existing-booking replay check to immediately after the request-identity advisory lock and before current provider availability/membership checks. Authentication identity still must match; the stored patient, business, doctor, timestamp, and normalized reason must match exactly. A different payload continues to fail closed.
+- **Regression test:** the RC468 integration test now temporarily deactivates the provider, verifies exact replay still returns the committed appointment, and restores the provider fixture. The source validator asserts this ordering and test coverage.
+- **Commits:** migration ordering fix `d00db23d2081a5a9f36f954609fb572009bda8fe`; regression test `c657d6914efa9661c2550db4dd9e6c08e8b5ca26`; validator `ba975ec733e6dc1b457cd5a63249aab5570caa5b`.
+- **Verification:** exact-head workflows must rerun on the latest branch head; prior queued runs do not validate these follow-up commits. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Medical section publication gate update
+
+- Latest implementation includes consistent `VETERINARY` discovery in the primary medical directory, client-side 15-minute slot-alignment validation with a user-safe Arabic message, source-contract assertions, and synchronized app/service-worker asset versions (`mnty-medical-booking-v2-20261020`, cache `mnty-web-v173`).
+- Latest source/validator head observed: `2e66f22764fa97452632aeb496174b4d102ed408`; PR #307 head is `29d789c62eb54863e3def38fbdda250f833fc852` at the last PR metadata read, with later validator commit `2e66f227...` now on the branch; refresh PR metadata before any release decision.
+- **Publication remains blocked:** PR #307 is a draft stacked on PR #301's branch, not directly on `main`; the candidate stack contains cash-only checkout, ERP and medical migrations, so publishing only the UI or deploying the stack prematurely would break dependency/order guarantees. Doctor Module Release Contract and Disposable Forward Migration Replay jobs are queued, not passed, on recent code heads. Do not merge, dispatch a Pages production deployment, or apply migrations until exact-head CI completes and the migration stack/base is reconciled.
+- Next actions: refresh PR #307 head and CI; diagnose/resolve queued GitHub Actions if still stuck; verify exact-head source validation and ordered forward replay; review migration dependencies against PR #301 and the production RC424 ledger; only then make the release candidate eligible for a controlled merge/deployment. Authenticated cash checkout/confirmation E2E, production security settings, tenant isolation and backup/restore evidence remain independent launch gates.
+- No merge, production migration, Pages deployment, or live data mutation occurred in this continuation. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Validator source-target correction
+
+- **Defect found during continuation:** the medical source validator asserted the 15-minute timestamp check against `web/operations-modules.js`, but the actual customer booking handler is in `web/app.js`. This would produce a false failure in CI despite the UI guard being present.
+- **Fix committed:** changed the assertion to inspect the actual booking source (`app`) and match `timestamp%900000!==0`. Verified the branch file now contains the corrected assertion, the UI guard, and the veterinary provider filter.
+- **Commit:** `0438d46486e7ef4a31845e78af843d57b1386d20`.
+- **CI:** the available commit workflow query has not returned runs for this exact head. Older Doctor Module Release Contract and Disposable Forward Migration Replay jobs remain queued; they are not evidence of success. Do not claim test pass until exact-head results complete.
+- **Release dependency:** PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`; PR #301 is also open/draft and targets `main`. Do not merge the stack or deploy the medical section until the prerequisite PR, migration chain, exact-head tests, and user-facing E2E are verified.
+- No merge, production migration, or live deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Read-only production recheck — 2026-10-21 (current branch head 32ba0467a39098419919bd63dd6e6b78472637ff)
+
+- **Git/PR state:** PR #301 is open/draft and targets `main`; PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`. PR #307 head is `32ba0467a39098419919bd63dd6e6b78472637ff`. The branch ref for its base currently points at `4b8ac3e2bbb7d51cf23b19455e662d13642b04f1`, while PR #307 metadata reports base SHA `7de4006c342b332f4f730cba84de9e91875d894f`; verify/refresh the stacked PR base before any merge. Branch-protection endpoint was not accessible to the connected GitHub integration (403); protection state is NOT VERIFIED.
+- **Exact-head CI:** GitHub returned 16 check runs on `32ba0467...`; all 16 are completed/success, including disposable forward migration replay, RC457 medical appointment integration, RC458 cash order service-actor integration, RC459 electronic-payment RPC gate, RC460 cash confirmation business-scope integration, RC462 MantiGO admin-scope integration, ERP runtime gateway, ERP opening stock, doctor release contract, targeted-ad search-path integration, matrimony privacy, approval-action audit, financial journal integration, MantiGO open-ride privacy, and validation. This is candidate/CI evidence, not live authenticated cash E2E or production release proof. [Checks](https://github.com/islamnagy2022-eng/MantiqaTiX/commit/32ba0467a39098419919bd63dd6e6b78472637ff/checks)
+- **Production migration ledger (read-only):** 283 applied migrations; latest `20261008222845` / `rc424_atomic_digital_page_payment_webhook`. No production migration was applied.
+- **Security Advisor (observed 2026-10-20 21:25 UTC):** RLS enabled/no policy: `public.digital_page_payment_events` (1); anon-executable SECURITY DEFINER: `get_mnty_targeted_advertisements` (1); authenticated-executable SECURITY DEFINER functions (40); anonymous-role policy warnings on multiple tables. These findings require per-function/per-policy authorization review; do not blanket-revoke or add broad policies without verifying intended public/backend contracts. Leaked-password protection remains an owner/Dashboard gate unless freshly verified otherwise.
+- **Performance Advisor:** 105 unindexed-FK findings, 375 RLS init-plan findings, 123 unused-index findings, and 28 multiple-permissive-policy findings. These are remediation candidates, not permission to create/drop indexes or rewrite policies without query-plan and behavior evidence.
+- **Edge Functions (read-only inventory):** 37 active functions returned. Six have `verify_jwt=false` (`api`, `payment-webhook`, `paymob-webhook`, `mnty-push-dispatch`, `health`, `mantigo-payment-intent`). Some webhook/health endpoints may intentionally disable platform JWT verification; inspect each function's own authentication/signature/authorization boundary and live configuration before any change. No function was deployed or modified.
+- **Remaining P0:** authenticated browser/customer-to-provider cash-order E2E and authorized cash confirmation + finance/settlement assertions; live tenant/RBAC negative E2E; leaked-password protection; per-finding SECURITY DEFINER/RLS review; backup restore and rollback rehearsal; real-device/browser/PWA smoke; signed Android release evidence; historical blank-database replay provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; and verify deployed-source parity.
+- **Safety:** all Supabase calls in this check were read-only. No production schema, data, auth setting, function, payment, merge, or deployment was changed. Release status remains **BLOCKED / NOT CERTIFIED**.
+
+## Continuation — medical operations booking retry safety — 2026-10-21
+
+- **Implemented on candidate branch only:** `web/operations-modules.js` now derives a stable request key from the authenticated patient, business, doctor, slot timestamp and normalized reason; it persists the appointment ID before calling `create_medical_appointment_backend`, retains that ID after ambiguous errors, and clears it only after a confirmed successful RPC response. Exact retries can receive RC468's `idempotent_replay` result rather than generating a fresh appointment ID.
+- Added source-contract assertions in `scripts/validate-medical-appointment-state-machine.mjs` for stable ID reuse, persisting before RPC, clearing only after success, and communicating replayed success.
+- Bumped the operations-module asset query to `mnty134` in `web/index.html` and `web/sw.js`, and bumped the service-worker cache from `mnty-web-v173` to `mnty-web-v174`.
+- Candidate-branch commits: implementation `54632f8749b1777878df63f861e81c6ecf524dad`; validator `8dc47888ed49eacc10a93039a375e9a211bd025f`; index asset version `e35182bff7146d71012e77d0ac2efc6f7039c01c`; service-worker cache `6b0b66ea5f729e7e9d5135bfeae635de4c13aa6f`.
+- **Verification status:** source-level checks confirm the intended code and PWA version references are present. The available PR-triggered workflow query and commit status query did not return CI runs/statuses for the latest commit, so this change is **NOT YET CI-VERIFIED**. Do not treat it as tested or released until the medical validator and exact-head workflows pass.
+- **Scope/safety:** candidate branch only; no merge, deployment, production migration, Supabase setting, or live-data change. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC459 — MantiGO cash-only UI and network failure hardening — 2026-10-21
+
+- [x] Removed the electronic payment initiation function and click handler from the cash-only customer ride flow; the customer ride view offers cash confirmation only while the ledger state is exactly `REQUIRED`.
+- [x] Cash confirmation now requires the backend response to identify the same ride and report `CASH_CONFIRMED` or the idempotent `PAID` state before the UI reports success.
+- [x] Captain presence and trip-status updates now catch location/network/RPC failures and tell the user to refresh/check authoritative state before retrying ambiguous transitions.
+- [x] Extended `scripts/validate-medical-appointment-state-machine.mjs` source-contract assertions for the cash-only action, exact cash response, presence/transition failure handling, transition actor binding, and required cancellation/failure reason policy.
+- [x] Kept the index and service worker aligned on `operations-modules.js?v=mnty139`; incremented service-worker cache to `mnty-web-v180`.
+- [ ] Run the repository's actual Node validators and SQL regression contracts in CI; no workflow runs or commit status checks were returned for the latest commit at the time of this update.
+- [ ] Run authenticated customer/captain end-to-end tests covering duplicate requests, interrupted network, invalid transitions, payment idempotency, and cross-user access.
+- [ ] Verify deployed Supabase migration state and recovery evidence before any production release.
+- **Candidate commit:** `9f49df84a74848ed213f9440d855d501f6615762` (asset/cache sync; the candidate branch contains the full stage).
+- **Release status:** BLOCKED / NOT CERTIFIED. This checklist records source changes only; it does not assert live database or E2E success.
+
+
+## RC460 — MantiGO duplicate-transition guard and cash-only regression coverage — 2026-10-21
+
+- [x] Added per-action disabled-state guards and `finally` restoration for captain presence updates and trip-status transitions to prevent duplicate submissions and stuck buttons.
+- [x] Extended both `scripts/validate-medical-appointment-state-machine.mjs` and `scripts/validate-cash-only-launch-flow.mjs` with source contracts for duplicate-click protection, error recovery, cash-only payment behavior, and aligned asset versions.
+- [x] Confirmed source files currently agree on `operations-modules.js?v=mnty140` and `mnty-web-v181`.
+- [ ] Run actual Node validators and SQL integration suites; source review is not a substitute for executing tests.
+- [ ] Confirm CI checks, authenticated customer/captain journeys, role isolation, payment idempotency, and recovery behavior.
+- **Latest candidate commit:** `efb7aec8e772d0ad07e9625acff4b161e16ce888`.
+- **Release status:** BLOCKED / NOT CERTIFIED; no production deployment or database mutation performed.
+
+
+## RC461 — MantiGO fresh-location guard for captain availability — 2026-10-21
+
+- [x] Prevent a captain from switching to `AVAILABLE` unless the browser returns a fresh valid latitude and longitude; avoids retaining stale stored coordinates when location permission is denied or lookup times out.
+- [x] Keep duplicate-submit guards and button restoration intact on early return and network failure.
+- [x] Add source-contract assertions in both launch validators for fresh-location enforcement.
+- [x] Align operations asset to `mnty141` in index and service worker; cache is now `mnty-web-v182`.
+- [ ] Execute the Node validators and authenticated integration tests in CI; current source inspection is not a runtime pass.
+- **Candidate change:** `08510f2322e10de83c39cff7c5d6ffdaa684fa28`.
+- **Release status:** BLOCKED / NOT CERTIFIED pending CI, authenticated role-boundary tests, and live deployment/recovery evidence.

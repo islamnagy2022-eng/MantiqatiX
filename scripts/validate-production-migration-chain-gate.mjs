@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const replay = fs.readFileSync(".github/workflows/disposable-forward-migration-replay.yml", "utf8");
 const required = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261009130000_rc426_digital_page_provider_order_binding.sql",
@@ -33,16 +34,33 @@ const required = [
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
-  "20261019190000_rc457_medical_appointment_state_machine.sql"
-];
-assert.equal(required.length, 29, "release gate must track the complete 29-file migration source set");
+  "20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql",
+  "20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql",
+  "20261019190000_rc457_medical_appointment_state_machine.sql",
+  "20261020120000_rc458_cash_order_service_actor_contract.sql",
+  "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql",
+  "20261020140000_rc460_cash_confirmation_business_membership.sql",
+  "20261020150000_rc461_erp_runtime_service_gateway.sql",
+  "20261020160000_rc463_erp_supplier_master.sql",
+  "20261020170000_rc464_erp_supplier_update_backend.sql",
+  "20261020180000_rc465_erp_purchase_order_lines.sql",
+  "20261020190000_rc466_erp_opening_stock_backend.sql",
+  "20261020200000_rc467_medical_booking_release_contract.sql",
+  "20261020210000_rc468_medical_booking_idempotency.sql",
+  "20261021190000_rc469_mantigo_presence_verification_guard.sql",
+]
+assert.equal(required.length, 42, "release gate must track the complete 42-file migration source set");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
+assert.match(source,/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions\.sql/,"production verifier must require RC462");
+assert.match(source,/20261017100000_rc565_mantigo_financial_report_column_scope_fix\.sql/,"production verifier must require RC565");
 assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
 assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_NAME==="pull_request"\|\|\(process\.env\.GITHUB_EVENT_NAME==="push"&&process\.env\.GITHUB_REF!=="refs\/heads\/main"\);if\(results\.some\(r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"\)&&!nonProductionValidation\)process\.exitCode=1;/, "P0 gate blocks main/dispatch deployment while allowing PR and non-main branch validation");
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
+assert.ok(replay.includes("20261021190000_rc469_mantigo_presence_verification_guard.sql"), "disposable chronological replay must include RC469");
+assert.ok(replay.indexOf("20261020210000_rc468_medical_booking_idempotency.sql") < replay.indexOf("20261021190000_rc469_mantigo_presence_verification_guard.sql"), "RC469 must replay after RC468 by immutable timestamp");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
 assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/, "source/ledger identity must be reconciled");

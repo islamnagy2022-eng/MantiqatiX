@@ -47,6 +47,11 @@ jobs:
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
           node scripts/validate-medical-appointment-state-machine.mjs
+          node scripts/validate-cash-only-launch-flow.mjs
+          node scripts/validate-financial-journal-service-role.mjs
+          node scripts/validate-production-migration-chain-gate.mjs
+          node scripts/validate-marketing-campaign-ui.mjs
+          node scripts/validate-sector-rendering.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest
@@ -142,6 +147,99 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc457_test.sql
 
 
+  rc458-cash-order-service-actor-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc458_cash_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc458_cash_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC458 fixture, migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc458_cash_order_service_actor_fixture.sql "$pg_container:/tmp/rc458_fixture.sql"
+          docker cp supabase/migrations/20261020120000_rc458_cash_order_service_actor_contract.sql "$pg_container:/tmp/rc458_migration.sql"
+          docker cp supabase/tests/rc458_cash_order_service_actor_integration.sql "$pg_container:/tmp/rc458_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc458_cash_test -v ON_ERROR_STOP=1 -f /tmp/rc458_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc458_cash_test -v ON_ERROR_STOP=1 -f /tmp/rc458_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc458_cash_test -v ON_ERROR_STOP=1 -f /tmp/rc458_test.sql
+
+  rc459-electronic-payment-rpc-gate-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc459_payment_gate_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc459_payment_gate_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC459 fixture, migration, and direct-RPC denial assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc459_electronic_payment_rpc_fixture.sql "$pg_container:/tmp/rc459_fixture.sql"
+          docker cp supabase/migrations/20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql "$pg_container:/tmp/rc459_migration.sql"
+          docker cp supabase/tests/rc459_electronic_payment_rpc_integration.sql "$pg_container:/tmp/rc459_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_payment_gate_test -v ON_ERROR_STOP=1 -f /tmp/rc459_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_payment_gate_test -v ON_ERROR_STOP=1 -f /tmp/rc459_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_payment_gate_test -v ON_ERROR_STOP=1 -f /tmp/rc459_test.sql
+
+  rc460-cash-confirmation-business-scope-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc460_cash_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc460_cash_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC460 fixture, migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc460_cash_confirmation_business_fixture.sql "$pg_container:/tmp/rc460_fixture.sql"
+          docker cp supabase/migrations/20261020140000_rc460_cash_confirmation_business_membership.sql "$pg_container:/tmp/rc460_migration.sql"
+          docker cp supabase/tests/rc460_cash_confirmation_business_integration.sql "$pg_container:/tmp/rc460_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc460_cash_test -v ON_ERROR_STOP=1 -f /tmp/rc460_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc460_cash_test -v ON_ERROR_STOP=1 -f /tmp/rc460_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc460_cash_test -v ON_ERROR_STOP=1 -f /tmp/rc460_test.sql
+
   rc462-mantigo-platform-admin-scope-integration:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -190,3 +288,35 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc462_test.sql
+
+
+  mantigo-captain-presence-guard-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc469_presence_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc469_presence_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC469 fixture, migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc469_mantigo_presence_guard_fixture.sql "$pg_container:/tmp/rc469_fixture.sql"
+          docker cp supabase/migrations/20261021190000_rc469_mantigo_presence_verification_guard.sql "$pg_container:/tmp/rc469_migration.sql"
+          docker cp supabase/tests/rc469_mantigo_presence_guard_integration.sql "$pg_container:/tmp/rc469_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_presence_test -v ON_ERROR_STOP=1 -f /tmp/rc469_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_presence_test -v ON_ERROR_STOP=1 -f /tmp/rc469_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc469_presence_test -v ON_ERROR_STOP=1 -f /tmp/rc469_test.sql

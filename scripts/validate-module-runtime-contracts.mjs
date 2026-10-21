@@ -7,6 +7,7 @@ const files={
  restaurant:read("web/restaurant-module.js"),
  reverse:read("web/reverse-bidding-module.js")
 };
+const api=read("supabase/functions/api/index.ts");
 const modules=[
  ["RESTAURANTS","restaurant",["restaurant_menu_items","restaurant_orders","restaurant_tables"]],
  ["CAFES","restaurant",["restaurant_menu_items","restaurant_tables","restaurant_orders"]],
@@ -18,7 +19,7 @@ const modules=[
  ["SCHOOLS","operations",["school_profiles","teacher_profiles","education_requests"]],
  ["MAINTENANCE","reverse",["indrive_requests","indrive_bids","support_tickets"]],
  ["MARKETING","operations",["marketing_leads","marketing_provider_profiles","marketing_services","marketing_projects","marketing_plans","marketing_provider_subscriptions","marketing_project_participants","marketing_commission_rules"]],
- ["BUSINESS_ERP","operations",["businesses","erp_purchase_orders","erp_purchase_receipts","erp_stock_transfers","warehouses"]],
+ ["BUSINESS_ERP","operations",["businesses","erp_suppliers","erp_purchase_orders","erp_purchase_order_lines","erp_purchase_receipts","erp_stock_transfers","warehouses","branches","catalog_items","stock_balances","inventory_transactions"]],
  ["ACCOUNTING","operations",["chart_of_accounts","journal_entries","general_ledger"]],
  ["LEGAL","operations",["legal_documents","legal_requirements","agreements"]],
  ["PARTNERS","app",["success_partners","referred_businesses"]],
@@ -38,6 +39,55 @@ const modules=[
  ["SOFTWARE_ERP","reverse",["indrive_requests","indrive_bids"]]
 ];
 const failures=[];
+for(const [file,source] of Object.entries(files)){
+ const declared=[...source.matchAll(/(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(match=>match[1]);
+ const duplicates=[...new Set(declared.filter((name,index)=>declared.indexOf(name)!==index))];
+ if(duplicates.length)failures.push("DUPLICATE_FUNCTIONS_"+file.toUpperCase()+":"+duplicates.join(","));
+}
+const erpRouteStart=api.indexOf('path === "/api/v1/erp/runtime"');
+const erpRouteEnd=api.indexOf('\n  if (req.method === "GET" && path === "/api/v1/brand")',erpRouteStart+20);
+const erpRoute=api.slice(erpRouteStart,erpRouteEnd>erpRouteStart?erpRouteEnd:undefined);
+for(const required of [
+ 'erp_suppliers','erp_purchase_order_lines','stock_balances','inventory_transactions',
+ 'branches','initialize_opening_stock','create_purchase_order_with_lines',
+ 'erp_supplier_create_backend','erp_supplier_update_backend','erp_opening_stock_backend'
+])if(!erpRoute.includes(required))failures.push("ERP_ROUTE_MISSING_"+required.toUpperCase());
+if(!files.app.includes("window.MNTYOperationsERPData=null"))failures.push("ERP_SHARED_CACHE_INVALIDATION_MISSING");
+if(!files.app.includes("if(event==='SIGNED_OUT'){\nwindow.MNTYOperationsERPData=null;\nlive.moduleData={};"))failures.push("ERP_SHARED_CACHE_SIGNOUT_CLEAR_MISSING");
+if(!files.app.includes("if(session?.user&&String(user?.id||'')!==String(session.user.id)){\n window.MNTYOperationsERPData=null;\n live.moduleData={};"))failures.push("ERP_SHARED_CACHE_IDENTITY_CHANGE_CLEAR_MISSING");
+if(!files.app.includes("window.MNTYOperationsERPData={"))failures.push("ERP_APP_SNAPSHOT_NOT_PUBLISHED");
+if(!files.app.includes("businesses:rows.businesses"))failures.push("ERP_APP_SNAPSHOT_BUSINESS_REFERENCE_MISSING");
+if(!files.app.includes("erp_purchase_order_lines:rows.erp_purchase_order_lines"))failures.push("ERP_APP_SNAPSHOT_ORDER_LINES_MISSING");
+if(!files.app.includes("Date.now()-Number(shared.loaded_at||0)<30000"))failures.push("ERP_SHARED_SNAPSHOT_TTL_MISSING");
+if(!files.app.includes("String(shared.tenant_id||'')===String(live.tenantId)"))failures.push("ERP_SHARED_SNAPSHOT_TENANT_SCOPE_MISSING");
+if(!files.app.includes("String(shared.business_id||'')===String(live.businessId)"))failures.push("ERP_SHARED_SNAPSHOT_BUSINESS_SCOPE_MISSING");
+if(!files.app.includes("String(shared.user_id||'')===String(user.id)"))failures.push("ERP_SHARED_SNAPSHOT_USER_SCOPE_MISSING");
+if(!files.operations.includes("String(sharedERP.user_id||'')===String(user?.id||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_USER_SCOPE_MISSING");
+if(!files.operations.includes("user_id:user.id"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_ACTOR_MISSING");
+if(!files.app.includes("String(shared.membership_id||'')===String(live.activeMembershipId||'')"))failures.push("ERP_SHARED_SNAPSHOT_MEMBERSHIP_SCOPE_MISSING");
+if(!files.app.includes("String(shared.role||'')===String(live.role||'')"))failures.push("ERP_SHARED_SNAPSHOT_ROLE_SCOPE_MISSING");
+if(!files.operations.includes("String(sharedERP.membership_id||'')===String(membership?.id||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_MEMBERSHIP_SCOPE_MISSING");
+if(!files.operations.includes("String(sharedERP.role||'')===String(membership?.role||'')"))failures.push("ERP_OPERATIONS_SHARED_SNAPSHOT_ROLE_SCOPE_MISSING");
+if(!files.app.includes("shared.erp_purchase_order_lines"))failures.push("ERP_SHARED_SNAPSHOT_ORDER_LINES_MISSING");
+if(!files.app.includes("await window.MNTYReloadOperationsModule()"))failures.push("ERP_DEPENDENT_MODULE_REFRESH_MISSING");
+if(!erpRoute.includes("const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i"))failures.push("ERP_SCOPE_UUID_VALIDATION_MISSING");
+if(erpRoute.includes("productsQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)"))failures.push("ERP_BRANCH_FILTER_INTERPOLATION_UNSAFE");
+if(!erpRoute.includes("productsBase().is(\"branch_id\", null)")||!erpRoute.includes("productsBase().eq(\"branch_id\", branchId)"))failures.push("ERP_BRANCH_PRODUCT_SCOPE_SPLIT_MISSING");
+if(!erpRoute.includes("businesses: [{ id: business.id"))failures.push("ERP_BUSINESS_REFERENCE_NOT_RETURNED_BY_SCOPED_API");
+if(!files.app.includes("rows.businesses=result.businesses||[]"))failures.push("ERP_BUSINESS_REFERENCE_NOT_CONSUMED");
+if(!files.operations.includes("rows.businesses=data.businesses||[]"))failures.push("ERP_OPERATIONS_BUSINESS_REFERENCE_NOT_CONSUMED");
+if(!files.operations.includes("businesses:rows.businesses"))failures.push("ERP_SHARED_SNAPSHOT_BUSINESS_REFERENCE_MISSING");
+if(files.operations.includes("sb.from('businesses').select('id,tenant_id,name,code,status')"))failures.push("ERP_OPERATIONS_DIRECT_BUSINESS_QUERY_NOT_REMOVED");
+if(!files.app.includes("['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table)"))failures.push("ERP_BUSINESS_REFERENCE_DIRECT_READ_NOT_BLOCKED");
+if(!files.app.includes("data-erp-supplier-edit=")||!files.app.includes("editERPSupplier(this.dataset.erpSupplierEdit)"))failures.push("ERP_SUPPLIER_EDIT_ACTION_NOT_WIRED");
+if(!files.app.includes("function openERPSupplierForm(row=null)"))failures.push("ERP_SUPPLIER_FORM_MODAL_MISSING");
+if(!files.app.includes('id="mx-erp-supplier-form"')||!files.app.includes("mx-erp-supplier-submit"))failures.push("ERP_SUPPLIER_FORM_SUBMIT_NOT_WIRED");
+const supplierFormStart=files.app.indexOf("function openERPSupplierForm(row=null)");
+const supplierFormEnd=files.app.indexOf("async function createPurchaseOrder()",supplierFormStart);
+if(supplierFormStart<0||supplierFormEnd<=supplierFormStart||files.app.slice(supplierFormStart,supplierFormEnd).includes("window.prompt("))failures.push("ERP_SUPPLIER_PROMPT_FLOW_NOT_REPLACED");
+
+if(!files.app.includes("String(r.status||'').toUpperCase()==='DRAFT'")||!files.app.includes("String(r.status||'').toUpperCase()==='PENDING_APPROVAL'"))failures.push("ERP_ORDER_STATUS_ACTIONS_NOT_NORMALIZED");
+for(const code of ["ERP_SUPPLIER_CREATE_ROLE_REQUIRED","ERP_PURCHASE_APPROVAL_ROLE_REQUIRED","ERP_PURCHASE_ORDER_IDEMPOTENCY_CONFLICT","ERP_RECEIPT_IDEMPOTENCY_CONFLICT","ERP_WAREHOUSE_INVALID"])if(!files.app.includes(code))failures.push("ERP_USER_ERROR_MESSAGE_MISSING_"+code);
 const operationDefinitions=[...files.operations.matchAll(/^'([^']+)':\{key:/gm)].map(m=>m[1]);
 const duplicateOperationDefinitions=[...new Set(operationDefinitions.filter((name,i)=>operationDefinitions.indexOf(name)!==i))];
 if(duplicateOperationDefinitions.length) failures.push("DUPLICATE_MODULE_DEFINITIONS:"+duplicateOperationDefinitions.join(","));

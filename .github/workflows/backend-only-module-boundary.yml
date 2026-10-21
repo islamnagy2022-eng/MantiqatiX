@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
       - run: node --check web/app.js
+      - run: node --check web/operations-modules.js
       - run: node scripts/validate-backend-only-module-boundary.mjs
       - run: node scripts/validate-module-runtime-contracts.mjs
       - run: node scripts/validate-sensitive-module-writes.mjs

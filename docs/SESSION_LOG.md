@@ -355,3 +355,84 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Initial source inventory found an API cash-confirmation route that checks active tenant membership and operational role/permission before calling `confirm_cash_payment`. This is not yet an E2E pass.
 - Next: inspect the normal customer checkout/order path and tenant payment-method configuration; ensure only cash is offered for launch, then test authorized cash confirmation, server-derived amount, idempotency, audit, order state, accounting and tenant isolation. Confirm SMM/electronic methods cannot be activated in the launch path.
 - No production mutation, payment transaction, merge or deployment was performed. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC468 medical booking idempotency hardening
+
+- **Finding:** the web booking UI retains a stable request ID after an ambiguous failure, and RC468 already implemented exact-payload replay. Review found a remaining concurrent-request race: two requests could both observe no row, then the second request could hit the doctor-slot overlap guard instead of receiving the first request's replay result.
+- **Implemented:** RC468 now acquires a transaction advisory lock derived from the normalized booking request ID before checking for an existing booking, and uses `INSERT ... ON CONFLICT (id) DO NOTHING RETURNING` plus strict payload comparison as a final race-safe fallback.
+- **Integrity:** only the same authenticated patient with matching business, doctor, timestamp, and normalized reason can replay the existing booking. Conflicting payload reuse fails closed. No schema shape or RPC grants changed.
+- **Tests added:** `supabase/tests/rc468_medical_booking_idempotency_integration.sql` covers exact replay, unchanged row count, payload-conflict rejection, and actor binding. `scripts/validate-medical-appointment-state-machine.mjs` now checks the RC468 lock/conflict semantics and workflow wiring.
+- **CI wiring:** Doctor Module Release Contract applies RC468 after RC457/RC467; the ordered disposable migration replay and production source verifier now include RC468; the release-chain contract expects 39 candidate migration sources.
+- **Commits:** migration race fix `c40ef0e9c8f44b49de300abc9f5d6e86c226f0f9`; test/validator/doc wiring includes `1bcc59729d2aea74aca7649b989187f99aa29333`, `a2edd02e91ea9b985d0503a3d9026d482d959a92`, `19d180bea538e0a1410f7372080476b5afae4865`, `164ebf15fc99074ddda29b616644e589ac86b6dc`, `6a90b363c4657cc9d93302eec017a505e466c00e`, `44e2c94f4e7e3e977e5a988efebe0c79f30a7dea`, and `5988c27770370593f55d2336f99366d5fe2e7830`.
+- **Not yet verified:** exact-head CI results, the RC468 isolated PostgreSQL run, ordered forward replay on this exact head, authenticated live browser/API E2E, and production migration application. No production migration, deployment, merge, or financial/medical data mutation occurred.
+- **Release:** remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — RC468 replay behavior hardening follow-up
+
+- **Additional review finding:** the first RC468 draft checked current provider activation before looking for a previously committed booking. If a booking committed but its response was lost and the provider was deactivated before retry, the client would receive a provider-not-found error rather than the original booking result.
+- **Fix:** moved the exact-payload existing-booking replay check to immediately after the request-identity advisory lock and before current provider availability/membership checks. Authentication identity still must match; the stored patient, business, doctor, timestamp, and normalized reason must match exactly. A different payload continues to fail closed.
+- **Regression test:** the RC468 integration test now temporarily deactivates the provider, verifies exact replay still returns the committed appointment, and restores the provider fixture. The source validator asserts this ordering and test coverage.
+- **Commits:** migration ordering fix `d00db23d2081a5a9f36f954609fb572009bda8fe`; regression test `c657d6914efa9661c2550db4dd9e6c08e8b5ca26`; validator `ba975ec733e6dc1b457cd5a63249aab5570caa5b`.
+- **Verification:** exact-head workflows must rerun on the latest branch head; prior queued runs do not validate these follow-up commits. Production remains unchanged and release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Medical directory parity and slot validation follow-up
+
+- **Finding:** the backend and RC468 booking RPC support verified veterinary providers, and the medical labels already included veterinary care, but the primary customer directory filtered veterinary providers out of both its in-memory allowlist and Supabase query.
+- **Implemented:** added `VETERINARY` consistently to the primary medical provider filter and provider query. Added source-contract assertions to prevent this backend/UI mismatch from returning.
+- **Input hardening:** the booking handler now explicitly rejects timestamps not aligned to the backend's 15-minute slot rule before making the RPC call, and translates `APPOINTMENT_SLOT_ALIGNMENT_REQUIRED` into a clear Arabic action message.
+- **PWA cache:** refreshed the app/service-worker version to `mnty-medical-booking-v2-20261020` and cache to `mnty-web-v173`; verified index/app/service-worker version parity from the branch files.
+- **Commits:** app fix `b3e6b40d9b2cec87bdfeb8505af91be81d84b236`; validator `1820aafa54e85419591028833ef3bb2665f49e25`; slot validation `b85501b6cd067bbfbb4f21cb40cc7c1189a8e2ab`; validator hardening `7e115c674eaeec0fa828f2748299895b4b822916`; cache/index updates `5887916676e9c4b78738ada0987fc7bf3e612ae9` and `29d789c62eb54863e3def38fbdda250f833fc852`.
+- **Verification status:** exact candidate head is `29d789c62eb54863e3def38fbdda250f833fc852`. Doctor Module Release Contract, Disposable Forward Migration Replay, ERP Runtime Gateway Integration, and ERP Opening Stock Integration runs were created but remain `queued`; no test pass is claimed until these runs complete. Source-file parity checks passed by direct inspection only.
+- **Safety:** no merge, deployment, production migration, or live-data mutation occurred. PR #307 remains draft/open/unmerged; global release remains **BLOCKED / NOT CERTIFIED** pending exact-head CI and authenticated cash-flow E2E, live isolation, production security/configuration, and recovery evidence.
+
+
+## 2026-10-20 — Validator source-target correction
+
+- **Defect found during continuation:** the medical source validator asserted the 15-minute timestamp check against `web/operations-modules.js`, but the actual customer booking handler is in `web/app.js`. This would produce a false failure in CI despite the UI guard being present.
+- **Fix committed:** changed the assertion to inspect the actual booking source (`app`) and match `timestamp%900000!==0`. Verified the branch file now contains the corrected assertion, the UI guard, and the veterinary provider filter.
+- **Commit:** `0438d46486e7ef4a31845e78af843d57b1386d20`.
+- **CI:** the available commit workflow query has not returned runs for this exact head. Older Doctor Module Release Contract and Disposable Forward Migration Replay jobs remain queued; they are not evidence of success. Do not claim test pass until exact-head results complete.
+- **Release dependency:** PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`; PR #301 is also open/draft and targets `main`. Do not merge the stack or deploy the medical section until the prerequisite PR, migration chain, exact-head tests, and user-facing E2E are verified.
+- No merge, production migration, or live deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Exact-head CI and migration replay verified
+
+- **Candidate HEAD:** 69df9db11fdaa86ceb9a4d8c62073b121dcd426b on feat/cash-only-launch-flow-rc458-20261020.
+- **PASS:** Doctor Module Release Contract (39495915671), Disposable Forward Migration Replay from the RC424 schema baseline (39495915562), ERP Runtime Gateway (39495915548), ERP Opening Stock (39495915544), Backend-only Module Boundary (39495915321), Module Professionalization Validation (39495914539), and MantiGO Open Ride Privacy Boundary (39495915784). Forward replay and tenant-isolation checks completed successfully in the isolated disposable database.
+- **What this proves:** source validators and the listed integration/replay workflows passed on this exact candidate commit. It does not prove production migrations have been applied, nor authenticated customer/provider E2E, real two-tenant isolation, cash settlement E2E, production auth settings, backup/restore, or browser/device smoke.
+- **Release dependency:** PR #307 remains draft/open and based on fix/medical-appointment-state-machine-20261019; prerequisite PR #301 remains draft/open against main. No merge or deployment was performed.
+- **Decision:** global release remains BLOCKED / NOT CERTIFIED until the independent production and user-facing E2E gates are evidenced. Production reconciliation manifest remains BLOCKED; do not deploy or apply migrations from this candidate.
+
+
+## 2026-10-21 — Live Supabase read-only audit
+
+- Read-only inspection confirms production has 283 recorded migrations and ends at RC424. RC425-RC468 are not proven applied; the live medical booking RPC is still the pre-RC468 implementation and rejects duplicate request IDs rather than replaying the committed booking.
+- Candidate HEAD 69df9db11fdaa86ceb9a4d8c62073b121dcd426b passed Doctor Module Release Contract, disposable forward migration replay and its tenant-isolation step, ERP gateway/stock integration, backend boundary, module validation, and MantiGO privacy workflows. These are candidate/disposable tests, not production application evidence.
+- Supabase security advisors reported leaked-password protection disabled, anonymous-sign-in warnings, SECURITY DEFINER execution findings, and an RLS-enabled table with no policies. The authentication security gate is FAIL pending remediation/review.
+- Updated production reconciliation evidence and added docs/release/LIVE_PRODUCTION_READ_ONLY_AUDIT_20261021.md. No production migration, auth setting, Edge Function, or live data was changed.
+- Release remains BLOCKED / NOT CERTIFIED. Cash E2E, live tenant isolation, deployed Edge Function parity, auth settings, and backup/restore remain open.
+
+
+## Read-only production recheck — 2026-10-21 (current branch head 32ba0467a39098419919bd63dd6e6b78472637ff)
+
+- **Git/PR state:** PR #301 is open/draft and targets `main`; PR #307 is open/draft and targets `fix/medical-appointment-state-machine-20261019`. PR #307 head is `32ba0467a39098419919bd63dd6e6b78472637ff`. The branch ref for its base currently points at `4b8ac3e2bbb7d51cf23b19455e662d13642b04f1`, while PR #307 metadata reports base SHA `7de4006c342b332f4f730cba84de9e91875d894f`; verify/refresh the stacked PR base before any merge. Branch-protection endpoint was not accessible to the connected GitHub integration (403); protection state is NOT VERIFIED.
+- **Exact-head CI:** GitHub returned 16 check runs on `32ba0467...`; all 16 are completed/success, including disposable forward migration replay, RC457 medical appointment integration, RC458 cash order service-actor integration, RC459 electronic-payment RPC gate, RC460 cash confirmation business-scope integration, RC462 MantiGO admin-scope integration, ERP runtime gateway, ERP opening stock, doctor release contract, targeted-ad search-path integration, matrimony privacy, approval-action audit, financial journal integration, MantiGO open-ride privacy, and validation. This is candidate/CI evidence, not live authenticated cash E2E or production release proof. [Checks](https://github.com/islamnagy2022-eng/MantiqaTiX/commit/32ba0467a39098419919bd63dd6e6b78472637ff/checks)
+- **Production migration ledger (read-only):** 283 applied migrations; latest `20261008222845` / `rc424_atomic_digital_page_payment_webhook`. No production migration was applied.
+- **Security Advisor (observed 2026-10-20 21:25 UTC):** RLS enabled/no policy: `public.digital_page_payment_events` (1); anon-executable SECURITY DEFINER: `get_mnty_targeted_advertisements` (1); authenticated-executable SECURITY DEFINER functions (40); anonymous-role policy warnings on multiple tables. These findings require per-function/per-policy authorization review; do not blanket-revoke or add broad policies without verifying intended public/backend contracts. Leaked-password protection remains an owner/Dashboard gate unless freshly verified otherwise.
+- **Performance Advisor:** 105 unindexed-FK findings, 375 RLS init-plan findings, 123 unused-index findings, and 28 multiple-permissive-policy findings. These are remediation candidates, not permission to create/drop indexes or rewrite policies without query-plan and behavior evidence.
+- **Edge Functions (read-only inventory):** 37 active functions returned. Six have `verify_jwt=false` (`api`, `payment-webhook`, `paymob-webhook`, `mnty-push-dispatch`, `health`, `mantigo-payment-intent`). Some webhook/health endpoints may intentionally disable platform JWT verification; inspect each function's own authentication/signature/authorization boundary and live configuration before any change. No function was deployed or modified.
+- **Remaining P0:** authenticated browser/customer-to-provider cash-order E2E and authorized cash confirmation + finance/settlement assertions; live tenant/RBAC negative E2E; leaked-password protection; per-finding SECURITY DEFINER/RLS review; backup restore and rollback rehearsal; real-device/browser/PWA smoke; signed Android release evidence; historical blank-database replay provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`; and verify deployed-source parity.
+- **Safety:** all Supabase calls in this check were read-only. No production schema, data, auth setting, function, payment, merge, or deployment was changed. Release status remains **BLOCKED / NOT CERTIFIED**.
+
+## Continuation — medical operations booking retry safety — 2026-10-21
+
+- **Implemented on candidate branch only:** `web/operations-modules.js` now derives a stable request key from the authenticated patient, business, doctor, slot timestamp and normalized reason; it persists the appointment ID before calling `create_medical_appointment_backend`, retains that ID after ambiguous errors, and clears it only after a confirmed successful RPC response. Exact retries can receive RC468's `idempotent_replay` result rather than generating a fresh appointment ID.
+- Added source-contract assertions in `scripts/validate-medical-appointment-state-machine.mjs` for stable ID reuse, persisting before RPC, clearing only after success, and communicating replayed success.
+- Bumped the operations-module asset query to `mnty134` in `web/index.html` and `web/sw.js`, and bumped the service-worker cache from `mnty-web-v173` to `mnty-web-v174`.
+- Candidate-branch commits: implementation `54632f8749b1777878df63f861e81c6ecf524dad`; validator `8dc47888ed49eacc10a93039a375e9a211bd025f`; index asset version `e35182bff7146d71012e77d0ac2efc6f7039c01c`; service-worker cache `6b0b66ea5f729e7e9d5135bfeae635de4c13aa6f`.
+- **Verification status:** source-level checks confirm the intended code and PWA version references are present. The available PR-triggered workflow query and commit status query did not return CI runs/statuses for the latest commit, so this change is **NOT YET CI-VERIFIED**. Do not treat it as tested or released until the medical validator and exact-head workflows pass.
+- **Scope/safety:** candidate branch only; no merge, deployment, production migration, Supabase setting, or live-data change. Global release remains **BLOCKED / NOT CERTIFIED**.

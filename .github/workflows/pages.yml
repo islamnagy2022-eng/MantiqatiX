@@ -60,6 +60,8 @@ jobs:
           node scripts/validate-public-web-secrets.mjs
           node scripts/validate-web-config.mjs
           node scripts/validate-booking-payment-flow.mjs
+          node scripts/validate-cash-only-launch-flow.mjs
+          node scripts/validate-medical-appointment-state-machine.mjs
           node scripts/validate-release-preflight.mjs
           node scripts/validate-admin-workspace.mjs
           node scripts/validate-rbac-workspace.mjs

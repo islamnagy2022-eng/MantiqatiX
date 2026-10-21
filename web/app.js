@@ -2,6 +2,7 @@ const {createClient}=window.supabase;
 const cfg=window.MANTIQATIX_CONFIG;
 const sb=window.MNTY_SB || createClient(cfg.supabaseUrl,cfg.supabaseKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 window.MNTY_SB=sb;
+const MNTY_LAUNCH_SCOPE=Object.freeze({cashOnly:true,electronicPaymentsDeferred:true,smmDeferred:true});
 
 async function invokeMntyFunction(name,body){
  const {data:{session},error:sessionError}=await sb.auth.getSession();
@@ -25,7 +26,7 @@ async function invokeMntyApi(path,options={}){
  if(!session?.access_token)throw new Error('AUTH_REQUIRED');
  const res=await fetch(cfg.supabaseUrl+'/functions/v1/api'+path,{
   method:options.method||'GET',
-  headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,...(options.headers||{})},
+  headers:{'Content-Type':'application/json','Accept':'application/json','apikey':cfg.supabaseKey,'Authorization':'Bearer '+session.access_token,...(options.headers||{})},
   body:options.body?JSON.stringify(options.body):undefined
  });
  let payload=null;
@@ -37,7 +38,7 @@ const modules=[
 ['🛡️','التحكم الكامل','إنشاء وإدارة الأنشطة والفروع والخدمات والأسعار واعتماد مقدمي الخدمة'],
 ['🏠','الرئيسية','لوحة التحكم الموحدة'],['🧩','الموديولات','تشغيل وإدارة وحدات المنصة'],['🏢','المجالات والخدمات','القطاعات ومقدمو الخدمات'],
 ['🛍️','التجارة والأزياء','المنتجات، المقاسات، السلة والطلبات'],['🛒','البقالة والسوبر ماركت','المنتجات، المخزون، السلة والتوصيل'],['🍽️','المطاعم والمطابخ','القوائم، الإضافات، المطبخ والتوصيل'],
-['🩺','المنظومة الطبية','الأطباء، العيادات، الصيدليات، المعامل والأشعة والمستشفيات'],['🔧','الصيانة','طلبات الصيانة ومقدمو الخدمة'],['💼','الخدمات المهنية','المحاسبة، القانون، الشركات، البرمجيات والتسويق'],
+['🩺','الأطباء والعيادات','دليل الأطباء والعيادات والحجز وإدارة المواعيد'],['🔧','الصيانة','طلبات الصيانة ومقدمو الخدمة'],['💼','الخدمات المهنية','المحاسبة، القانون، الشركات، البرمجيات والتسويق'],
 ['🚗','MantiGO والمزايدات','الطلبات، العروض، الاختيار والتنفيذ'],['💍','الزواج','الملفات الموثقة والترشيحات والتواصل'],['💼','الوظائف','الوظائف، المتقدمون والمقابلات'],
 ['🎓','التعليم','المدارس والمدرسون والحجوزات'],['♻️','المستعمل','الإعلانات والعروض والتفاوض'],['📣','التسويق والإعلان','التسويق الداخلي وشركات التسويق والعملاء المحتملون'],['🚀','خدمات التسويق الرقمي SMM','الخدمات والموردون والطلبات والتتبع'],
 ['👥','المستخدمون وCRM','العملاء، مقدمو الخدمة، المتابعة والاحتفاظ'],['📑','الطلبات والعمليات','الطلبات والحجوزات وسير التنفيذ'],['💳','العمولات والباقات','العمولات والاشتراكات والباقات'],['📊','التقارير والتحليلات','الأداء، التحويلات، الإيرادات والمخاطر'],['🎫','الدعم والحوكمة','التذاكر، التدقيق، الصلاحيات والمراقبة'],['🛡️','طلبات التسجيل','اعتماد طلبات العملاء ومقدمي الخدمة'],['⚙️','الإعدادات','الحساب والمنصة والتفضيلات']
@@ -45,24 +46,24 @@ const modules=[
 const domainModules=[
 {key:'FASHION',name:'التجارة والأزياء',icon:'🛍️',desc:'المنتجات والطلبات والخياطة والمخزون.',tables:['fashion_products','fashion_orders','fashion_tailor_services']},
 {key:'GROCERY',name:'البقالة والسوبر ماركت',icon:'🛒',desc:'كتالوج الأصناف والأسعار والمخزون والطلبات.',tables:['catalog_items','catalog_item_prices','inventory_transactions','orders']},
-{key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries']},
+{key:'ACCOUNTING',name:'المزايدات — المحاسبة',icon:'🧾',desc:'طلبات الخدمات المحاسبية والعروض والتفاوض.',tables:['indrive_requests','indrive_bids','chart_of_accounts','journal_entries','journal_entry_lines','general_ledger']},
 {key:'COMPANIES',name:'المزايدات — الشركات',icon:'🏢',desc:'طلبات الشركات ومقدمو الخدمة والعروض.',tables:['indrive_requests','indrive_bids','businesses']},
 {key:'MARKETING',name:'المزايدات — التسويق',icon:'📣',desc:'طلبات التسويق ومقدمو الخدمة والمشروعات.',tables:['marketing_leads','marketing_provider_profiles','marketing_services','marketing_projects']},
-{key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والتشغيل المرتبط بالمخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses']},
+{key:'FACTORIES',name:'المزايدات — المصانع',icon:'🏭',desc:'طلبات المصانع والعروض والمخازن والأرصدة وحركة المخزون.',tables:['indrive_requests','indrive_bids','inventory_transactions','warehouses','stock_balances','catalog_items']},
 {key:'TRIPS',name:'المزايدات — الرحلات',icon:'✈️',desc:'طلبات الرحلات والعروض والتنفيذ.',tables:['indrive_requests','indrive_bids','mantigo_rides','mantigo_bids']},
 {key:'MAINTENANCE',name:'المزايدات — الصيانة',icon:'🔧',desc:'طلبات الصيانة والعروض والمتابعة.',tables:['indrive_requests','indrive_bids','support_tickets']},
 {key:'LEGAL',name:'المزايدات — الخدمات القانونية',icon:'⚖️',desc:'الوثائق والمتطلبات والاتفاقيات القانونية.',tables:['legal_documents','legal_requirements','agreements']},
-{key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن.',tables:['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses']},
+{key:'ERP',name:'المزايدات — البرمجيات ERP',icon:'💻',desc:'المشتريات والاستلام والتحويلات والمخازن والأرصدة وحركات المخزون.',tables:['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','warehouses','catalog_items','stock_balances','inventory_transactions']},
 {key:'MATRIMONY',name:'الزواج',icon:'💍',desc:'الملفات والطلبات وفتح وسائل التواصل وفق النظام.',tables:['matrimony_profiles','matrimony_requests','matrimony_contact_unlocks']},
 {key:'JOBS',name:'الوظائف',icon:'💼',desc:'الوظائف والتقديمات ومتابعة المرشحين.',tables:['jobs','job_applications']},
-{key:'MEDICAL',name:'المنظومة الطبية',icon:'🩺',desc:'اكتشاف مقدمي الخدمة والحجز الطبي ومتابعة المواعيد.',tables:['marketing_provider_profiles','medical_appointments']},
+{key:'MEDICAL',name:'الأطباء والعيادات',icon:'🩺',desc:'دليل الأطباء والعيادات والحجز وإدارة المواعيد.',tables:['marketing_provider_profiles','medical_appointments']},
 {key:'RESTAURANTS',name:'المطاعم والمطابخ',icon:'🍽️',desc:'القائمة والطلبات والطاولات والمخزون.',tables:['restaurant_menu_items','restaurant_orders','restaurant_tables','restaurant_inventory']},
 {key:'EDUCATION',name:'المدارس والتدريب',icon:'🎓',desc:'المدارس والمدرسون وطلبات التعليم.',tables:['school_profiles','teacher_profiles','education_requests']},
 {key:'USED_ITEMS',name:'المستعمل',icon:'♻️',desc:'إعلانات المستعمل والعروض والتفاوض.',tables:['used_item_ads']}
 ];
 const SECTOR_PRESENTATION={
  FOOD:['🍽️','مطاعم وكافيهات','الطلبات والعروض وإدارة النشاط'],
- HEALTH:['🩺','الأطباء والعيادات','ملفات الأطباء، التخصصات، الباقات، الترشيحات والعمولات'],
+ HEALTH:['🩺','الأطباء والعيادات','دليل الأطباء والعيادات والحجز وإدارة المواعيد'],
  PHARMACY:['💊','الصيدليات','الخدمات والمنتجات، الباقات، الطلبات والعمولات'],
  LABS:['🧪','معامل التحاليل','المعامل، الخدمات، الترشيحات والعمولات'],
  RADIOLOGY:['🩻','مراكز الأشعة','مراكز الأشعة، الخدمات، الترشيحات والعمولات'],
@@ -222,6 +223,21 @@ function membershipOptionLabel(m){
  const section=m?.business_section||'إدارة المنصة';
  return icon+' '+roleLabel(role)+' — '+activity+' — '+section;
 }
+function resetMembershipScopedCaches(){
+ window.MNTYOperationsERPData=null;
+ live.moduleData={};
+ live.counts={};
+ live.flags={};
+ live.catalogByBusiness={};
+ live.marketingCampaigns=[];
+ live.marketingCampaignParticipants=[];
+ live.marketingCampaignProviders=[];
+ live.marketingCampaignErrors=[];
+ live.marketingCampaignUnavailable=false;
+ live.marketingCampaignUnavailableReason=null;
+ live.myProviderProfile=null;
+ live.records={leads:[],providers:[],providerServices:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};
+}
 async function switchMembership(membershipId){
  const target=live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE');
  if(!target)return showToast('الدور المطلوب غير متاح في هذا الحساب.','error');
@@ -229,6 +245,7 @@ async function switchMembership(membershipId){
  const previous=live.memberships.find(m=>m.id===live.activeMembershipId&&m.status==='ACTIVE')||null;
  const selector=document.getElementById('mx-role-switcher');
  if(selector)selector.disabled=true;
+ resetMembershipScopedCaches();
  window.MNTYActiveMembershipId=membershipId;
  localStorage.setItem('MNTYActiveMembershipId',membershipId);
  live.activeMembershipId=membershipId;
@@ -318,7 +335,7 @@ function roleSwitcher(){
  const tenant=active?.tenant_id?'<small class="role-context-tenant">النطاق: '+esc(active.tenant_id)+'</small>':'';
  return '<label class="role-switcher"><span>تبديل الدور</span><select id="mx-role-switcher" aria-label="تبديل الدور بين العضويات الفعلية">'+options+'</select>'+tenant+'</label>';
 }
-const MNTY_BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','smm_admins','smm_provider_credentials','smm_providers']); function syncModuleRuntime(name){const m=domainModules.find(x=>x.name===name);if(!m)return;const d=live.moduleData?.[m.key];window.MNTYModuleRuntime=window.MNTYModuleRuntime||{};window.MNTYModuleRuntime[m.key]={ready:Boolean(d?.ready),tables:{...(d?.tables||{})},sourceCount:m.tables.length,readableCount:Object.values(d?.tables||{}).filter(v=>typeof v==='number').length};} async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};syncModuleRuntime(name);if(!m.tables.length){live.moduleData[m.key].ready=true;syncModuleRuntime(name);return}const out=await Promise.all(m.tables.map(async t=>{if(MNTY_BACKEND_ONLY_TABLES.has(t))return [t,null];const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true;syncModuleRuntime(name);}
+const MNTY_BACKEND_ONLY_TABLES=new Set(['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','erp_suppliers','smm_admins','smm_provider_credentials','smm_providers']); function syncModuleRuntime(name){const m=domainModules.find(x=>x.name===name);if(!m)return;const d=live.moduleData?.[m.key];window.MNTYModuleRuntime=window.MNTYModuleRuntime||{};window.MNTYModuleRuntime[m.key]={ready:Boolean(d?.ready),tables:{...(d?.tables||{})},sourceCount:m.tables.length,readableCount:Object.values(d?.tables||{}).filter(v=>typeof v==='number').length};} async function loadDomainModule(name){const m=domainModules.find(x=>x.name===name);if(!m)return;live.moduleData[m.key]={tables:{},ready:false};syncModuleRuntime(name);if(!m.tables.length){live.moduleData[m.key].ready=true;syncModuleRuntime(name);return}const out=await Promise.all(m.tables.map(async t=>{if(MNTY_BACKEND_ONLY_TABLES.has(t))return [t,null];const count=await safeCount(t,null,null);return [t,count]}));out.forEach(([t,c])=>{live.moduleData[m.key].tables[t]=c});live.moduleData[m.key].ready=true;syncModuleRuntime(name);}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mark=()=>'<span class="mark"></span>';
 function cleanAuthUrl(){
@@ -361,7 +378,7 @@ async function installApp(){if(!deferredInstallPrompt)return;deferredInstallProm
 function openLandingSector(button){const name=button?.dataset?.sector||'';return selectModule(sectorMapForLanding(name))}
 function sectorMapForLanding(name){
  const map={
-  'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','معامل التحاليل':'المنظومة الطبية','مراكز الأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','مراكز طبية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية',
+  'الأطباء والعيادات':'الأطباء والعيادات','الصيدليات':'المجالات والخدمات','معامل التحاليل':'المجالات والخدمات','مراكز الأشعة':'المجالات والخدمات','المستشفيات الخاصة':'المجالات والخدمات','الأسنان والعيادات التخصصية':'الأطباء والعيادات','مراكز طبية':'الأطباء والعيادات','الخدمات البيطرية':'المجالات والخدمات',
   'المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة',
   'المحاسبة ومكاتب المحاسبة':'المزايدات — المحاسبة','المحاماة والخدمات القانونية':'المزايدات — الخدمات القانونية','الشركات والموردون':'المزايدات — الشركات',
   'التعليم والتدريب':'التعليم','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'المزايدات — الرحلات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل'
@@ -395,7 +412,7 @@ document.getElementById('app').innerHTML=`<main class="landing">
 </section>
 <section class="landing-section" id="services"><div class="section-head"><div><h2>ماذا تقدم MantiqatiX؟</h2><p>منظومة تسويقية وربط للخدمات قابلة للتوسع حسب طبيعة كل نشاط.</p></div></div><div class="feature-grid"><article><span class="feature-icon">🔗</span><b>ربط مباشر</b><p>نساعد العميل على اكتشاف مقدم الخدمة المناسب، بينما تتم المعاملة المالية مباشرة بين الطرفين.</p></article><article><span class="feature-icon">💳</span><b>نماذج ربح مرنة</b><p>نظام مجاني، عمولة على العمليات المؤهلة، وباقات احترافية تختلف حسب قوة وطبيعة كل مجال.</p></article><article><span class="feature-icon">📣</span><b>تسويق وإعلان</b><p>نظام تسويق للشركة نفسها، مع إمكانية الاستفادة من شركات التسويق والشركاء ومصادر العملاء.</p></article><article><span class="feature-icon">🎯</span><b>ترشيحات مناسبة</b><p>عرض مقدمي الخدمات وفق المجال والتخصص وطريقة الاستفادة من الخدمة.</p></article><article><span class="feature-icon">📊</span><b>تقارير ومؤشرات</b><p>متابعة الطلبات، النشاط، العمولات، الباقات، ومصادر العملاء من لوحة موحدة.</p></article><article><span class="feature-icon">🧩</span><b>موديولات مستقلة</b><p>يمكن تشغيل الموديولات وإتاحتها حسب المجال والاشتراك والصلاحيات دون التأثير على باقي النظام.</p></article></div></section>
 <section class="landing-section soft" id="sectors"><div class="section-head"><div><h2>مجالات المنصة</h2><p>كل مجال له خدمات ومسارات عمل وباقات مناسبة لطبيعته.</p></div><button class="section-link" id="all-sectors">عرض كل المجالات</button></div><div class="sector-grid">${sectors.map(s=>`<article class="sector-card"><div class="sector-icon">${s[0]}</div><h3>${s[1]}</h3><p>${s[2]}</p><button type="button" data-sector="${s[1]}" onclick="openLandingSector(this)">استكشف المجال ←</button></article>`).join('')}</div></section>
-<style id="mnty-showcase-style">.mnty-showcase-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.mnty-showcase-card{background:var(--surface,#fff);border:1px solid rgba(24,100,171,.12);border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.06);display:flex;flex-direction:column}.mnty-showcase-card__media{height:150px;background:linear-gradient(135deg,#e7f5f8,#edf4ff);position:relative;display:grid;place-items:center}.mnty-showcase-card__media img{width:112px;height:112px;object-fit:contain}.mnty-showcase-card__emoji{position:absolute;top:10px;right:10px;background:#fff;border-radius:999px;padding:7px;box-shadow:0 4px 14px rgba(0,0,0,.08)}.mnty-showcase-card__body{padding:15px}.mnty-showcase-card__eyebrow{font-size:11px;color:#0b7285;font-weight:800}.mnty-showcase-card h3{margin:5px 0 7px;font-size:18px}.mnty-showcase-card p{margin:0 0 10px;color:#64748b;font-size:13px;line-height:1.7}.mnty-showcase-tags{display:flex;flex-wrap:wrap;gap:6px}.mnty-showcase-tags span{background:#f1f5f9;border-radius:999px;padding:5px 8px;font-size:11px}.mnty-showcase-card__actions{display:flex;align-items:center;justify-content:space-between;margin-top:14px}.mnty-verified{font-size:12px;color:#087f5b;font-weight:800}.mnty-showcase-empty{grid-column:1/-1;padding:30px;text-align:center;border:1px dashed #cbd5e1;border-radius:18px;color:#64748b}.mnty-module-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mnty-module-card{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid rgba(24,100,171,.12);border-radius:16px;background:#fff}.mnty-module-card>span{font-size:20px}.mnty-module-card b{display:block;font-size:13px}.mnty-module-card small{display:block;margin-top:4px;color:#64748b;line-height:1.5}@media(max-width:1100px){.mnty-showcase-grid,.mnty-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:760px){.mnty-showcase-grid,.mnty-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.mnty-showcase-grid,.mnty-module-grid{grid-template-columns:1fr}}</style><section class="landing-section soft" id="mantiqati-showcase"><div class="section-head"><div><span class="eyebrow">MANTIQATIX OFFICIAL</span><h2>أنشطة منطقتي</h2><p>ملفات أنشطة رسمية مُدارة من السوبر أدمن، مرتبطة بالموديولات والخدمات والصلاحيات داخل المنصة.</p></div></div><div id="mantiqati-showcase-grid" class="mnty-showcase-grid"><div class="mnty-showcase-empty">جاري تحميل الأنشطة الرسمية…</div></div></section><section class="landing-section" id="mantiqati-modules"><div class="section-head"><div><span class="eyebrow">MODULES</span><h2>الموديولات الأساسية</h2><p>كل نشاط رسمي مجهز ليستفيد من منظومة المنصة حسب صلاحياته.</p></div></div><div class="mnty-module-grid"><article class="mnty-module-card"><span>C</span><div><b>التحكم الكامل</b><small>إدارة الأنشطة والفروع والخدمات والاعتمادات</small></div></article><article class="mnty-module-card"><span>H</span><div><b>الرئيسية</b><small>لوحة التحكم الموحدة</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الموديولات</b><small>تشغيل وإدارة وحدات المنصة</small></div></article><article class="mnty-module-card"><span>D</span><div><b>المجالات والخدمات</b><small>القطاعات ومقدمو الخدمات</small></div></article><article class="mnty-module-card"><span>F</span><div><b>التجارة والأزياء</b><small>المنتجات والمقاسات والسلة والطلبات</small></div></article><article class="mnty-module-card"><span>G</span><div><b>البقالة والسوبر ماركت</b><small>المنتجات والمخزون والطلبات</small></div></article><article class="mnty-module-card"><span>R</span><div><b>المطاعم والمطابخ</b><small>القوائم والإضافات والمطبخ والتوصيل</small></div></article><article class="mnty-module-card"><span>M</span><div><b>المنظومة الطبية</b><small>الأطباء والعيادات والصيدليات والمعامل والأشعة والمستشفيات</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الصيانة</b><small>طلبات الصيانة ومقدمو الخدمة</small></div></article><article class="mnty-module-card"><span>P</span><div><b>الخدمات المهنية</b><small>المحاسبة والقانون والشركات والبرمجيات والتسويق</small></div></article><article class="mnty-module-card"><span>M</span><div><b>MantiGO والنقل</b><small>الطلبات والعروض والرحلات والتنفيذ</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الزواج</b><small>الملفات والترشيحات والتواصل</small></div></article><article class="mnty-module-card"><span>J</span><div><b>الوظائف</b><small>الوظائف والمتقدمون والمقابلات</small></div></article><article class="mnty-module-card"><span>E</span><div><b>التعليم</b><small>المدارس والمدرسون والحجوزات</small></div></article><article class="mnty-module-card"><span>U</span><div><b>المستعمل</b><small>الإعلانات والعروض والتفاوض</small></div></article><article class="mnty-module-card"><span>M</span><div><b>التسويق والإعلان</b><small>التسويق الداخلي وشركات التسويق والعملاء المحتملون</small></div></article><article class="mnty-module-card"><span>S</span><div><b>خدمات التسويق الرقمي SMM</b><small>الخدمات والموردون والطلبات والتتبع</small></div></article><article class="mnty-module-card"><span>C</span><div><b>المستخدمون وCRM</b><small>العملاء ومقدمو الخدمة والمتابعة والاحتفاظ</small></div></article><article class="mnty-module-card"><span>O</span><div><b>الطلبات والعمليات</b><small>الطلبات والحجوزات وسير التنفيذ</small></div></article><article class="mnty-module-card"><span>F</span><div><b>العمولات والباقات</b><small>العمولات والاشتراكات والباقات</small></div></article><article class="mnty-module-card"><span>A</span><div><b>التقارير والتحليلات</b><small>الأداء والتحويلات والإيرادات والمخاطر</small></div></article><article class="mnty-module-card"><span>G</span><div><b>الدعم والحوكمة</b><small>التذاكر والتدقيق والصلاحيات والمراقبة</small></div></article><article class="mnty-module-card"><span>R</span><div><b>طلبات التسجيل</b><small>اعتماد طلبات العملاء ومقدمي الخدمة</small></div></article><article class="mnty-module-card"><span>S</span><div><b>الإعدادات</b><small>الحساب والمنصة والتفضيلات</small></div></article></div></section><section class="landing-section" id="audiences"><div class="section-head"><div><h2>مصمم لكل طرف</h2><p>تجربة مختلفة حسب دور المستخدم داخل المنصة.</p></div></div><div class="audience-grid"><article><span>👤</span><h3>العميل</h3><p>اكتشاف الخدمات، مقارنة الخيارات، إرسال الطلبات والوصول لمقدم الخدمة المناسب.</p></article><article><span>🏢</span><h3>مقدم الخدمة</h3><p>ملف مهني، باقات، خدمات، استقبال العملاء والطلبات، وفرص تسويقية.</p></article><article><span>📣</span><h3>شركة التسويق</h3><p>مصادر عملاء وحملات وشراكات وتسويق للخدمات وفق نظام المنصة.</p></article><article><span>🤝</span><h3>الشريك</h3><p>مسارات شراكة وإحالة واستفادة من شبكة الخدمات والفرص المتاحة.</p></article></div></section>
+<style id="mnty-showcase-style">.mnty-showcase-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.mnty-showcase-card{background:var(--surface,#fff);border:1px solid rgba(24,100,171,.12);border-radius:22px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.06);display:flex;flex-direction:column}.mnty-showcase-card__media{height:150px;background:linear-gradient(135deg,#e7f5f8,#edf4ff);position:relative;display:grid;place-items:center}.mnty-showcase-card__media img{width:112px;height:112px;object-fit:contain}.mnty-showcase-card__emoji{position:absolute;top:10px;right:10px;background:#fff;border-radius:999px;padding:7px;box-shadow:0 4px 14px rgba(0,0,0,.08)}.mnty-showcase-card__body{padding:15px}.mnty-showcase-card__eyebrow{font-size:11px;color:#0b7285;font-weight:800}.mnty-showcase-card h3{margin:5px 0 7px;font-size:18px}.mnty-showcase-card p{margin:0 0 10px;color:#64748b;font-size:13px;line-height:1.7}.mnty-showcase-tags{display:flex;flex-wrap:wrap;gap:6px}.mnty-showcase-tags span{background:#f1f5f9;border-radius:999px;padding:5px 8px;font-size:11px}.mnty-showcase-card__actions{display:flex;align-items:center;justify-content:space-between;margin-top:14px}.mnty-verified{font-size:12px;color:#087f5b;font-weight:800}.mnty-showcase-empty{grid-column:1/-1;padding:30px;text-align:center;border:1px dashed #cbd5e1;border-radius:18px;color:#64748b}.mnty-module-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mnty-module-card{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid rgba(24,100,171,.12);border-radius:16px;background:#fff}.mnty-module-card>span{font-size:20px}.mnty-module-card b{display:block;font-size:13px}.mnty-module-card small{display:block;margin-top:4px;color:#64748b;line-height:1.5}@media(max-width:1100px){.mnty-showcase-grid,.mnty-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:760px){.mnty-showcase-grid,.mnty-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.mnty-showcase-grid,.mnty-module-grid{grid-template-columns:1fr}}</style><section class="landing-section soft" id="mantiqati-showcase"><div class="section-head"><div><span class="eyebrow">MANTIQATIX OFFICIAL</span><h2>أنشطة منطقتي</h2><p>ملفات أنشطة رسمية مُدارة من السوبر أدمن، مرتبطة بالموديولات والخدمات والصلاحيات داخل المنصة.</p></div></div><div id="mantiqati-showcase-grid" class="mnty-showcase-grid"><div class="mnty-showcase-empty">جاري تحميل الأنشطة الرسمية…</div></div></section><section class="landing-section" id="mantiqati-modules"><div class="section-head"><div><span class="eyebrow">MODULES</span><h2>الموديولات الأساسية</h2><p>كل نشاط رسمي مجهز ليستفيد من منظومة المنصة حسب صلاحياته.</p></div></div><div class="mnty-module-grid"><article class="mnty-module-card"><span>C</span><div><b>التحكم الكامل</b><small>إدارة الأنشطة والفروع والخدمات والاعتمادات</small></div></article><article class="mnty-module-card"><span>H</span><div><b>الرئيسية</b><small>لوحة التحكم الموحدة</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الموديولات</b><small>تشغيل وإدارة وحدات المنصة</small></div></article><article class="mnty-module-card"><span>D</span><div><b>المجالات والخدمات</b><small>القطاعات ومقدمو الخدمات</small></div></article><article class="mnty-module-card"><span>F</span><div><b>التجارة والأزياء</b><small>المنتجات والمقاسات والسلة والطلبات</small></div></article><article class="mnty-module-card"><span>G</span><div><b>البقالة والسوبر ماركت</b><small>المنتجات والمخزون والطلبات</small></div></article><article class="mnty-module-card"><span>R</span><div><b>المطاعم والمطابخ</b><small>القوائم والإضافات والمطبخ والتوصيل</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الأطباء والعيادات</b><small>دليل الأطباء والعيادات والحجز وإدارة المواعيد</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الصيانة</b><small>طلبات الصيانة ومقدمو الخدمة</small></div></article><article class="mnty-module-card"><span>P</span><div><b>الخدمات المهنية</b><small>المحاسبة والقانون والشركات والبرمجيات والتسويق</small></div></article><article class="mnty-module-card"><span>M</span><div><b>MantiGO والنقل</b><small>الطلبات والعروض والرحلات والتنفيذ</small></div></article><article class="mnty-module-card"><span>M</span><div><b>الزواج</b><small>الملفات والترشيحات والتواصل</small></div></article><article class="mnty-module-card"><span>J</span><div><b>الوظائف</b><small>الوظائف والمتقدمون والمقابلات</small></div></article><article class="mnty-module-card"><span>E</span><div><b>التعليم</b><small>المدارس والمدرسون والحجوزات</small></div></article><article class="mnty-module-card"><span>U</span><div><b>المستعمل</b><small>الإعلانات والعروض والتفاوض</small></div></article><article class="mnty-module-card"><span>M</span><div><b>التسويق والإعلان</b><small>التسويق الداخلي وشركات التسويق والعملاء المحتملون</small></div></article><article class="mnty-module-card"><span>S</span><div><b>خدمات التسويق الرقمي SMM</b><small>الخدمات والموردون والطلبات والتتبع</small></div></article><article class="mnty-module-card"><span>C</span><div><b>المستخدمون وCRM</b><small>العملاء ومقدمو الخدمة والمتابعة والاحتفاظ</small></div></article><article class="mnty-module-card"><span>O</span><div><b>الطلبات والعمليات</b><small>الطلبات والحجوزات وسير التنفيذ</small></div></article><article class="mnty-module-card"><span>F</span><div><b>العمولات والباقات</b><small>العمولات والاشتراكات والباقات</small></div></article><article class="mnty-module-card"><span>A</span><div><b>التقارير والتحليلات</b><small>الأداء والتحويلات والإيرادات والمخاطر</small></div></article><article class="mnty-module-card"><span>G</span><div><b>الدعم والحوكمة</b><small>التذاكر والتدقيق والصلاحيات والمراقبة</small></div></article><article class="mnty-module-card"><span>R</span><div><b>طلبات التسجيل</b><small>اعتماد طلبات العملاء ومقدمي الخدمة</small></div></article><article class="mnty-module-card"><span>S</span><div><b>الإعدادات</b><small>الحساب والمنصة والتفضيلات</small></div></article></div></section><section class="landing-section" id="audiences"><div class="section-head"><div><h2>مصمم لكل طرف</h2><p>تجربة مختلفة حسب دور المستخدم داخل المنصة.</p></div></div><div class="audience-grid"><article><span>👤</span><h3>العميل</h3><p>اكتشاف الخدمات، مقارنة الخيارات، إرسال الطلبات والوصول لمقدم الخدمة المناسب.</p></article><article><span>🏢</span><h3>مقدم الخدمة</h3><p>ملف مهني، باقات، خدمات، استقبال العملاء والطلبات، وفرص تسويقية.</p></article><article><span>📣</span><h3>شركة التسويق</h3><p>مصادر عملاء وحملات وشراكات وتسويق للخدمات وفق نظام المنصة.</p></article><article><span>🤝</span><h3>الشريك</h3><p>مسارات شراكة وإحالة واستفادة من شبكة الخدمات والفرص المتاحة.</p></article></div></section>
 <section class="landing-section soft" id="plans"><div class="section-head"><div><h2>نظام الباقات والعمولات</h2><p>النموذج الأساسي للمنصة قابل للتخصيص لكل قطاع.</p></div></div><div class="plans-grid"><article class="plan"><span>الأساسي</span><h3>مجاني</h3><p>وجود أساسي داخل المنصة والوصول إلى الخدمات المتاحة في المجال.</p><ul><li>ملف أساسي</li><li>ظهور داخل المجال</li><li>إدارة بيانات النشاط</li></ul><button class="btn btn-outline">اعرف المزيد</button></article><article class="plan featured"><span>العمولة</span><h3>حسب الاستخدام</h3><p>رسوم أو عمولة على العمليات أو الإضافات المؤهلة وفق طبيعة النشاط.</p><ul><li>مرونة في التكلفة</li><li>قياس العمليات</li><li>مناسب للنمو</li></ul><button class="btn btn-primary" id="commission-login">ابدأ الآن</button></article><article class="plan"><span>احترافي</span><h3>3 مستويات</h3><p>ثلاث باقات احترافية يمكن تخصيص مزاياها حسب قوة كل مجال وطريقة الاستفادة.</p><ul><li>مزايا إضافية</li><li>تسويق وظهور أكبر</li><li>تقارير متقدمة</li></ul><button class="btn btn-outline">اطلب التفاصيل</button></article></div></section>
 <section class="landing-section" id="how"><div class="section-head"><div><h2>كيف تعمل المنصة؟</h2><p>مسار واضح من البحث إلى التواصل والمتابعة.</p></div></div><div class="steps"><div><b>01</b><h3>اكتشف</h3><p>اختر المجال والخدمة المناسبة.</p></div><div><b>02</b><h3>قارن</h3><p>راجع مقدمي الخدمة والباقات المتاحة.</p></div><div><b>03</b><h3>اطلب</h3><p>أرسل طلبك أو تواصل مع مقدم الخدمة.</p></div><div><b>04</b><h3>تابع</h3><p>تابع الطلب والنتائج من حسابك.</p></div></div></section>
 <section class="landing-section soft" id="faq"><div class="section-head"><div><h2>أسئلة شائعة</h2><p>إجابات مختصرة عن طريقة عمل MantiqatiX.</p></div></div><div class="faq-grid"><details><summary>هل MantiqatiX تنفذ الخدمة بنفسها؟</summary><p>المنصة وسيط تسويقي وربط؛ التنفيذ والمعاملة المالية تكون مباشرة بين العميل ومقدم الخدمة.</p></details><details><summary>هل كل المجالات لها نفس الباقة؟</summary><p>لا. يمكن تخصيص الخدمات والباقات وطريقة الاستفادة حسب طبيعة وقوة كل مجال.</p></details><details><summary>هل يمكن لمقدم الخدمة البدء مجانًا؟</summary><p>يوجد نموذج مجاني أساسي، مع إمكانية الانتقال إلى العمولة أو الباقات الاحترافية حسب المجال.</p></details><details><summary>هل يمكن للشركات التسويقية الانضمام؟</summary><p>نعم، المنصة تتضمن مسارًا للتسويق والإعلان والشراكات ومصادر العملاء.</p></details></div></section>
@@ -534,7 +551,7 @@ function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.
 function sectorsPage(){
  const list=filtered(sectors);
  const sectorMap={
-  'الأطباء والعيادات':'المنظومة الطبية','الصيدليات':'المنظومة الطبية','معامل التحاليل':'المنظومة الطبية','مراكز الأشعة':'المنظومة الطبية','المستشفيات الخاصة':'المنظومة الطبية','الأسنان والعيادات التخصصية':'المنظومة الطبية','مراكز طبية':'المنظومة الطبية','الخدمات البيطرية':'المنظومة الطبية',
+  'الأطباء والعيادات':'الأطباء والعيادات','الصيدليات':'المجالات والخدمات','معامل التحاليل':'المجالات والخدمات','مراكز الأشعة':'المجالات والخدمات','المستشفيات الخاصة':'المجالات والخدمات','الأسنان والعيادات التخصصية':'الأطباء والعيادات','مراكز طبية':'الأطباء والعيادات','الخدمات البيطرية':'المجالات والخدمات',
   'المطاعم والكافيهات':'المطاعم والمطابخ','السوبر ماركت والبقالة':'البقالة والسوبر ماركت','الأزياء والخياطة':'التجارة والأزياء','الصيانة والخدمات المنزلية':'الصيانة',
   'المحاسبة ومكاتب المحاسبة':'المزايدات — المحاسبة','المحاماة والخدمات القانونية':'المزايدات — الخدمات القانونية','الشركات والموردون':'المزايدات — الشركات',
   'التعليم والتدريب':'التعليم','التسويق والإعلان':'التسويق والإعلان','السفر والرحلات':'المزايدات — الرحلات','MantiGO والنقل عند الطلب':'MantiGO والمزايدات','الوظائف والتوظيف':'الوظائف','الزواج والخدمات المرتبطة':'الزواج','المستعمل':'المستعمل'
@@ -650,7 +667,7 @@ if(!window.MNTYCatalogClickBound){
 }
 function isCustomerMode(){return String(live.role||'').toUpperCase()==='CUSTOMER'}
 function customerDashboard(){
- const customerNav=['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة']; const visible=modules.filter(m=>moduleEnabled(m[1])&&customerNav.includes(m[1]));
+ const customerNav=['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','الأطباء والعيادات','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة']; const visible=modules.filter(m=>moduleEnabled(m[1])&&customerNav.includes(m[1]));
  const providers=live.records.providers||[];
  const services=live.records.services||[];
  const providerCards=providers.slice(0,6).map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||'مقدم خدمة')+'</strong><span class="dot"></span></div><p class="muted">'+esc(p.provider_kind||'خدمة')+' · '+(p.is_verified?'موثق':'مسجل')+'</p><small>الحالة: '+esc(p.status||'—')+'</small>'+(p.business_id?'<button class="text-btn mx-provider-catalog" data-business-id="'+esc(p.business_id)+'" data-provider-name="'+esc(p.name_ar||'مقدم خدمة')+'">عرض الكتالوج</button>':'')+'</article>').join('');
@@ -727,7 +744,7 @@ function dashboard(){
  const quick=filtered(visibleModules).slice(0,8);
  return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM</span><h2>منصة تسويق وربط الخدمات المحلية</h2><p>واجهة موحدة لاكتشاف الخدمات، إدارة الأنشطة، استقبال الطلبات، التسويق، المتابعة والتقارير. كل رقم تشغيلي يظهر من مصدر فعلي فقط.</p><div class="hero-actions"><button class="btn btn-light" onclick="selectModule(\'المجالات والخدمات\')">استكشف المجالات</button><button class="btn btn-ghost" onclick="selectModule(\'الموديولات\')">إدارة الموديولات</button></div></div></section><section class="mnty-stat-strip"><div><b>'+sectors.length+'</b><span>مجالات</span></div><div><b>'+domainModules.length+'</b><span>وحدات تشغيلية</span></div><div><b>'+countOrDash('providers')+'</b><span>مقدمو خدمة</span></div><div><b>'+countOrDash('orders')+'</b><span>طلبات</span></div></section><div class="section-head"><div><h2>الوصول السريع</h2><p>ابدأ من المجال أو الوحدة المناسبة.</p></div><span class="count">'+quick.length+' مساحات</span></div><div class="modules">'+quick.map(m=>'<article class="card module" onclick="selectModule(\''+m[1]+'\')"><div class="icon">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="muted">'+m[2]+'</div><span class="status">فتح مساحة العمل</span></article>').join('')+'</div><section class="mnty-product-shell" style="margin-top:18px"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCT ROADMAP</span><h2>المنصة تُبنى كمنتج واحد</h2><p>الوحدات غير المكتملة خلفيًا لا تتوقف عن الظهور؛ نستكمل تجربة الاستخدام أولًا ثم نربط الخدمات الحقيقية تدريجيًا.</p></div><div class="mnty-future-stats"><div><b>UI</b><span>EVOLVING</span></div><div><b>DATA</b><span>REAL ONLY</span></div><div><b>API</b><span>SERVER</span></div></div></div></section>';
 }
-function smmModulePage(){return `<div class="section-head"><div><h2>خدمات التسويق الرقمي SMM</h2><p>موديول MANTIQATIX لإدارة الخدمات الرقمية والطلبات والموردين من نفس الحساب.</p></div><span class="count">Module / SMM</span></div><div class="embedded-module"><iframe src="smm.html" title="MANTIQATIX SMM Module" loading="lazy"></iframe></div>`}
+function smmModulePage(){return `<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">POST-LAUNCH MODULE</span><h2>خدمات التسويق الرقمي SMM</h2><p>هذه الوحدة مؤجلة لما بعد الإطلاق الأول. لا يمكن تنفيذ طلبات SMM أو مزامنة الموردين أو استخدام مفاتيح API أو إنفاق أرصدة خلال مرحلة الإطلاق النقدي.</p></div><span class="mnty-badge mnty-badge--pending">مؤجل بعد الإطلاق</span></div><div class="mnty-screen-note">قسم التسويق والإعلان وCRM وتخطيط الحملات الداخلي منفصل عن تنفيذ خدمات SMM، ويمكن استخدام الوظائف التي اجتازت التحقق فقط.</div></section>`}
 function enterpriseCommandCenter(){
  const role=String(live.role||'').toUpperCase();
  if(!canSuperAdmin()) return roleWorkspaceDashboard();
@@ -782,7 +799,7 @@ function bindEnterpriseCommandCenter(){
  input?.addEventListener('input',run); btn?.addEventListener('click',run);
 }
 function pageContent(){switch(current){case'الرئيسية':return canSuperAdmin()?enterpriseCommandCenter():((window.MNTY_RBAC?.roleOf(String(live.role||''))!=='CUSTOMER'&&!isCustomerMode())?roleCommandCenter():(isCustomerMode()?customerDashboard():isProviderMode()?providerDashboard():dashboard()));case'الموديولات':return modulePage();case'خدمات التسويق الرقمي SMM':return smmModulePage();case'المجالات والخدمات':return sectorsPage();case'المستخدمون':return genericPage('المستخدمون','إدارة العملاء ومقدمي الخدمة والموظفين.',[['العملاء','ملفات العملاء وتاريخ الطلبات'],['مقدمو الخدمة','الملفات والاعتماد والباقات'],['الموظفون','الأدوار والصلاحيات']]);case'الطلبات':return genericPage('الطلبات','متابعة الطلبات والحجوزات ومسارات الإحالة.',[['طلبات جديدة','طلبات تحتاج مراجعة'],['قيد المتابعة','طلبات مرتبطة بمقدم خدمة'],['مكتملة','سجل الطلبات المكتملة']]);case'التسويق والإعلان':return genericPage('التسويق والإعلان','نظام التسويق الخاص بالشركة مع إمكانية التعاون مع شركات تسويق أخرى.',[['حملات MantiqatiX','حملات جذب العملاء'],['شركات التسويق','إدارة الشركاء ومصادر العملاء'],['الإعلانات','الحملات والإعلانات الممولة']]);case'العمولات والباقات':return genericPage('العمولات والباقات','نماذج مجانية، عمولة بيع، وباقات احترافية تختلف حسب المجال.',[['الباقة المجانية','وجود أساسي داخل المنصة'],['نظام العمولة','عمولة على العمليات/الإضافات المؤهلة'],['الباقات الاحترافية','3 مستويات قابلة للتخصيص حسب المجال']]);case'التقارير':return genericPage('التقارير','لوحة مؤشرات للإدارة والأداء.',[['الأداء','نشاط المنصة ومقدمي الخدمة'],['الإيرادات','العمولات والباقات'],['التحويلات','مصادر العملاء والطلبات']]);case'الدعم':return customerSupportWorkspace();case'الإشعارات':return notificationsWorkspace();default:return genericPage('الإعدادات','إدارة الحساب والمنصة.',[['الحساب','بيانات الحساب وتسجيل الدخول'],['الصلاحيات','الأدوار والوصول'],['إعدادات المنصة','الهوية والإعدادات العامة']])}}
-const moduleAliases={'التحكم الكامل':['CONTROL','SUPER_ADMIN','PLATFORM_CONTROL'],'الرئيسية':['HOME','DASHBOARD'],'الموديولات':['MODULES'],'المجالات والخدمات':['DOMAINS','SECTORS','SERVICES'],'التجارة والأزياء':['FASHION','RETAIL'],'البقالة والسوبر ماركت':['GROCERY'],'المطاعم والمطابخ':['RESTAURANTS','CAFES'],'المنظومة الطبية':['MEDICAL','HEALTH','PHYSIOTHERAPY','PHARMACIES','CLINICS','HOSPITALS','LABS'],'الصيانة':['MAINTENANCE','HOME_MAINTENANCE'],'الخدمات المهنية':['PRO_SERVICES','BUSINESS_ERP','ACCOUNTING','ACCOUNTING_SERVICES','LEGAL','COMPANIES','FACTORIES','SOFTWARE_ERP','TECH','PROFESSIONAL','ERP'],'MantiGO والمزايدات':['MANTIGO','REVERSE_BIDDING','TRIPS','FLIGHTS_TRIPS'],'الزواج':['MATRIMONY','MARRIAGE'],'الوظائف':['JOBS'],'التعليم':['EDUCATION','SCHOOLS'],'المستعمل':['USED_ITEMS'],'التسويق والإعلان':['MARKETING','ADVERTISING'],'خدمات التسويق الرقمي SMM':['SMM'],'المستخدمون وCRM':['CRM','USERS'],'الطلبات والعمليات':['OPERATIONS','ORDERS'],'العمولات والباقات':['FINANCE','COMMISSIONS'],'التقارير والتحليلات':['ANALYTICS','REPORTS'],'الدعم والحوكمة':['GOVERNANCE','SUPPORT'],'طلبات التسجيل':['REGISTRATION'],'الإعدادات':['SETTINGS']};
+const moduleAliases={'التحكم الكامل':['CONTROL','SUPER_ADMIN','PLATFORM_CONTROL'],'الرئيسية':['HOME','DASHBOARD'],'الموديولات':['MODULES'],'المجالات والخدمات':['DOMAINS','SECTORS','SERVICES'],'التجارة والأزياء':['FASHION','RETAIL'],'البقالة والسوبر ماركت':['GROCERY'],'المطاعم والمطابخ':['RESTAURANTS','CAFES'],'الأطباء والعيادات':['MEDICAL','HEALTH','DENTAL','CLINICS','PHYSIOTHERAPY'],'الصيانة':['MAINTENANCE','HOME_MAINTENANCE'],'الخدمات المهنية':['PRO_SERVICES','BUSINESS_ERP','ACCOUNTING','ACCOUNTING_SERVICES','LEGAL','COMPANIES','FACTORIES','SOFTWARE_ERP','TECH','PROFESSIONAL','ERP'],'MantiGO والمزايدات':['MANTIGO','REVERSE_BIDDING','TRIPS','FLIGHTS_TRIPS'],'الزواج':['MATRIMONY','MARRIAGE'],'الوظائف':['JOBS'],'التعليم':['EDUCATION','SCHOOLS'],'المستعمل':['USED_ITEMS'],'التسويق والإعلان':['MARKETING','ADVERTISING'],'خدمات التسويق الرقمي SMM':['SMM'],'المستخدمون وCRM':['CRM','USERS'],'الطلبات والعمليات':['OPERATIONS','ORDERS'],'العمولات والباقات':['FINANCE','COMMISSIONS'],'التقارير والتحليلات':['ANALYTICS','REPORTS'],'الدعم والحوكمة':['GOVERNANCE','SUPPORT'],'طلبات التسجيل':['REGISTRATION'],'الإعدادات':['SETTINGS']};
 function normCode(v){return String(v||'').trim().toUpperCase().replace(/[\\s-]+/g,'_')}
 function moduleFlagKeys(name){return [normCode(name)].concat((moduleAliases[name]||[]).map(normCode))}
 function moduleEnabled(name){for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled!==false}}return true}
@@ -832,7 +849,112 @@ function accountStatusPanel(){
 function providerProfileWorkspace(){const p=live.myProviderProfile;if(!p)return workspaceHead('PROFILE','ملف نشاطي','لا يوجد ملف نشاط مرتبط بالحساب الحالي.','NOT FOUND')+'<div class="empty-state">سجل نشاطك كمقدم خدمة أولًا ليظهر هنا.</div>';const image=providerImageUrl(p.profile_image_path,p.updated_at);const activityLogoPath=p?.settings?.branding?.logo_path||'';const activityLogo=activityLogoPath?providerImageUrl(activityLogoPath,p.updated_at):'';const services=live.records.providerServices||[];let areas=[];try{areas=Array.isArray(p.service_areas)?p.service_areas:typeof p.service_areas==='string'?JSON.parse(p.service_areas||'[]'):[]}catch(_){areas=[]}const areaNames=areas.map(a=>a.center_name_ar||a.governorate_name_ar||a.name_ar).filter(Boolean);const activeServices=services.filter(s=>String(s.status||'ACTIVE').toUpperCase()==='ACTIVE');const serviceCards=services.length?services.slice(0,12).map(s=>'<article class="card mnty-provider-service-card"><div class="row"><strong>'+esc(s.service_description||'خدمة مقدمة')+'</strong><span class="mnty-badge">'+esc(String(s.status||'ACTIVE'))+'</span></div><p class="muted">'+(s.pricing_from!=null?'من '+esc(s.pricing_from)+' '+esc(s.currency||'EGP'):'السعر حسب الاتفاق')+(s.pricing_to!=null?' · حتى '+esc(s.pricing_to)+' '+esc(s.currency||'EGP'):'')+'</p></article>').join(''):'<div class="empty-state">لا توجد خدمات مسجلة في ملف النشاط حتى الآن.</div>';return workspaceHead('MY ACTIVITY','ملف نشاطي','لوحة إدارة واجهة النشاط والبيانات الظاهرة في الكتالوج العام. البيانات هنا من ملف النشاط الفعلي فقط.','OWNER')+'<section class="mnty-product-shell"><div class="mnty-product-head"><div><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(p.name_ar||p.name_en||'نشاطي')+'</h2><p>'+esc(p.provider_kind||'مقدم خدمة')+' · '+esc(p.status||'—')+'</p></div><span class="mnty-badge '+(p.is_verified?'mnty-badge--live':'')+'">'+esc(p.is_verified?'موثق':'قيد التحقق')+'</span></div><div class="mnty-stat-strip"><div><b>'+services.length+'</b><span>خدمات مسجلة</span></div><div><b>'+activeServices.length+'</b><span>خدمات نشطة</span></div><div><b>'+areaNames.length+'</b><span>مناطق خدمة</span></div><div><b>'+esc(p.is_featured?'نعم':'—')+'</b><span>ظهور مميز</span></div></div><div class="mnty-screen-note">'+esc(p.description||'لا يوجد وصف نشاط مسجل حاليًا.')+'</div></section><section class="card provider-profile-editor"><div class="row"><div><h3>الصورة العامة</h3><p class="muted">تظهر في الكتالوج العام بعد تحديث الملف.</p></div>'+(image?'<img class="provider-profile-preview" src="'+esc(image)+'" alt="صورة النشاط">':'<div class="provider-profile-preview provider-profile-preview--empty">صورة افتراضية</div>')+'</div><div class="field"><label>صورة النشاط</label><input id="provider-image-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB · يتم تجهيزها كـWebP قبل الحفظ.</small><div id="provider-image-preview" class="provider-image-preview-note" aria-live="polite">اختر صورة لمعاينتها قبل الحفظ.</div></div><div class="action-bar"><button class="btn btn-primary" id="provider-image-save" style="width:auto">حفظ صورة النشاط</button></div></section><section class="card provider-profile-editor mnty-provider-logo-editor"><div class="row"><div><h3>لوجو النشاط</h3><p class="muted">اللوجو مستقل عن صورة النشاط والأيقونة الأصلية. تغييره لا يستبدل الأصل ويمكن الرجوع إليه في أي وقت.</p></div>'+(activityLogo?'<img class="provider-profile-preview" src="'+esc(activityLogo)+'" alt="لوجو النشاط الحالي">':'<div class="provider-profile-preview provider-profile-preview--empty">الهوية الأصلية</div>')+'</div><div class="field"><label>لوجو جديد للنشاط</label><input id="provider-logo-file" type="file" accept="image/jpeg,image/png,image/webp"><small class="muted">JPG / PNG / WebP · حتى 5MB.</small></div><div class="action-bar"><button class="btn btn-primary" id="provider-logo-save" style="width:auto">حفظ لوجو النشاط</button><button class="btn btn-outline" id="provider-logo-reset" style="width:auto">الرجوع للأصل</button></div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICES</span><h3>الخدمات الفعلية</h3><p class="muted">يتم عرض الخدمات الموجودة في قاعدة البيانات فقط.</p></div></div><div class="grid3">'+serviceCards+'</div></section><section class="records"><div class="section-head"><div><span class="eyebrow">SERVICE AREAS</span><h3>مناطق تقديم الخدمة</h3></div></div><div class="request-list">'+(areaNames.length?areaNames.map(a=>'<div class="request-row"><span>'+esc(a)+'</span><b>محددة</b></div>').join(''):'<div class="empty-state">لا توجد مناطق خدمة مسجلة حاليًا.</div>')+'</div></section>'}
 
 
-async function loadEnterpriseDomainData(m){if(!user||!m.tables?.length)return;const cache=live.moduleData[m.key]||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData[m.key]=cache;const rows={};for(const table of m.tables){let q=sb.from(table).select('*').limit(100).order('created_at',{ascending:false});if(['chart_of_accounts','journal_entries','journal_entry_lines','erp_purchase_orders','erp_purchase_receipts','erp_stock_transfers','warehouses','stock_balances'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);if(table==='mantigo_rides')q=q.eq('customer_id',user.id);if(table==='mantigo_bids')q=q.limit(100);if(table==='matrimony_profiles')q=q.or('is_verified.eq.true,owner_user_id.eq.'+user.id);if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);const r=await q;rows[table]=r.error?[]:(r.data||[])}cache.rows=rows;cache.rowsReady=true;cache.loading=false;renderApp()}
+async function loadEnterpriseDomainData(m){
+ if(!user||!m.tables?.length)return;
+ const cache=live.moduleData[m.key]||{};
+ if(cache.rowsReady||cache.loading)return;
+ cache.loading=true;cache.errors={};live.moduleData[m.key]=cache;
+ const rows={},errors={};
+ if(['ERP','BUSINESS_ERP'].includes(m.key)){
+  try{
+   if(!live.tenantId||!live.businessId)throw new Error('ERP_SCOPE_REQUIRED');
+   const shared=window.MNTYOperationsERPData;
+   const sharedMatches=!!shared&&Date.now()-Number(shared.loaded_at||0)<30000
+    &&String(shared.user_id||'')===String(user.id)
+    &&String(shared.membership_id||'')===String(live.activeMembershipId||'')
+    &&String(shared.role||'')===String(live.role||'')
+    &&String(shared.tenant_id||'')===String(live.tenantId)
+    &&String(shared.business_id||'')===String(live.businessId)
+    &&String(shared.branch_id||'')===String(live.branchId||'');
+   let result=null;
+   if(sharedMatches&&Array.isArray(shared.erp_purchase_orders)&&Array.isArray(shared.erp_purchase_order_lines)&&Array.isArray(shared.erp_suppliers)){
+    result={success:true,businesses:shared.businesses||[],orders:shared.erp_purchase_orders,order_lines:shared.erp_purchase_order_lines,suppliers:shared.erp_suppliers,receipts:shared.erp_purchase_receipts||[],transfers:shared.erp_stock_transfers||[],warehouses:shared.warehouses||[],branches:shared.branches||[],catalog_items:shared.catalog_items||[],stock_balances:shared.stock_balances||[],inventory_transactions:shared.inventory_transactions||[]};
+   }else{
+    result=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'list',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
+   }
+   if(!result?.success)throw new Error(result?.error||'ERP_DATA_LOAD_FAILED');
+   rows.businesses=result.businesses||[];
+   rows.erp_purchase_orders=result.orders||[];
+   rows.erp_purchase_order_lines=result.order_lines||[];
+   rows.erp_suppliers=result.suppliers||[];
+   rows.erp_purchase_receipts=result.receipts||[];
+   rows.erp_stock_transfers=result.transfers||[];
+   rows.warehouses=result.warehouses||[];
+   rows.branches=result.branches||[];
+   rows.catalog_items=result.catalog_items||[];
+   rows.stock_balances=result.stock_balances||[];
+   rows.inventory_transactions=result.inventory_transactions||[];
+   window.MNTYOperationsERPData={
+    loaded_at:Date.now(),user_id:user.id,membership_id:live.activeMembershipId||null,role:live.role||null,tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
+    businesses:rows.businesses,erp_purchase_orders:rows.erp_purchase_orders,erp_purchase_order_lines:rows.erp_purchase_order_lines,
+    erp_suppliers:rows.erp_suppliers,erp_purchase_receipts:rows.erp_purchase_receipts,erp_stock_transfers:rows.erp_stock_transfers,
+    warehouses:rows.warehouses,branches:rows.branches,catalog_items:rows.catalog_items,
+    stock_balances:rows.stock_balances,inventory_transactions:rows.inventory_transactions
+   };
+  }catch(e){
+   for(const table of ['erp_purchase_orders','erp_purchase_order_lines','erp_purchase_receipts','erp_stock_transfers','warehouses','branches','catalog_items','stock_balances','inventory_transactions'])rows[table]=[];
+   errors.erp_runtime=String(e?.message||'ERP_DATA_LOAD_FAILED');
+  }
+ }
+ const directTables=m.tables.filter(table=>!MNTY_BACKEND_ONLY_TABLES.has(table)&&!(['ERP','BUSINESS_ERP'].includes(m.key)&&['businesses','warehouses','catalog_items','branches','stock_balances','inventory_transactions'].includes(table))&&!(m.key==='MATRIMONY'&&['matrimony_requests','matrimony_contact_unlocks'].includes(table))&&!(m.key==='ACCOUNTING'&&['chart_of_accounts','journal_entries','journal_entry_lines','general_ledger'].includes(table)));
+ const results=await Promise.all(directTables.map(async table=>{
+  try{
+   let q=sb.from(table).select('*').limit(100);
+   if(table==='businesses'&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(table==='businesses'&&live.businessId)q=q.eq('id',live.businessId);
+   if(['chart_of_accounts','journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items','branches'].includes(table)&&live.tenantId)q=q.eq('tenant_id',live.tenantId);
+   if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.businessId)q=q.eq('business_id',live.businessId);
+   if(['journal_entries','warehouses','stock_balances','inventory_transactions','catalog_items'].includes(table)&&live.branchId)q=q.eq('branch_id',live.branchId);
+   if(table==='mantigo_rides')q=q.eq('customer_id',user.id);
+   if(table==='mantigo_bids')q=q.limit(100);
+   if(table==='matrimony_profiles')q=sb.from(table).select('id,owner_user_id,pseudonym,age,city,country,nationality,education,occupation,marital_status,religiosity_level,housing_status,financial_status,about_me,partner_requirements,is_verified,compatibility_tags,created_at').or('is_verified.eq.true,owner_user_id.eq.'+user.id);
+   if(table==='matrimony_requests')q=q.or('from_user_id.eq.'+user.id);
+   const result=await q;
+   return {table,data:result.error?[]:(result.data||[]),error:result.error};
+  }catch(error){return {table,data:[],error};}
+ }));
+ for(const result of results){rows[result.table]=result.data;if(result.error)errors[result.table]='READ_FAILED';}
+ if(m.key==='ACCOUNTING'&&m.tables.includes('journal_entry_lines')){
+  try{
+   if(!live.tenantId||!live.businessId)throw new Error('ACCOUNTING_SCOPE_REQUIRED');
+   const result=await invokeMntyApi('/api/v1/accounting/ledger',{method:'POST',body:{tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null}});
+   if(!result?.success)throw new Error(result?.error||'ACCOUNTING_DATA_LOAD_FAILED');
+   rows.chart_of_accounts=result.accounts||[];
+   rows.journal_entries=result.entries||[];
+   rows.journal_entry_lines=result.lines||[];
+   rows.general_ledger=result.ledger||[];
+  }catch(error){
+   rows.chart_of_accounts=[];rows.journal_entries=[];rows.journal_entry_lines=[];rows.general_ledger=[];
+   errors.accounting_ledger=String(error?.message||'ACCOUNTING_DATA_LOAD_FAILED');
+  }
+ }
+ if(m.key==='MATRIMONY'){
+  try{
+   const ownedProfiles=(rows.matrimony_profiles||[]).filter(profile=>String(profile.owner_user_id)===String(user.id)).map(profile=>String(profile.id)).filter(Boolean);
+   const clauses=['from_user_id.eq.'+user.id];
+   if(ownedProfiles.length)clauses.push('to_profile_id.in.('+ownedProfiles.join(',')+')');
+   const requestResult=await sb.from('matrimony_requests').select('id,from_user_id,to_profile_id,status,message_text,created_at').or(clauses.join(',')).order('created_at',{ascending:false}).limit(100);
+   if(requestResult.error)throw requestResult.error;
+   rows.matrimony_requests=requestResult.data||[];
+  }catch(error){rows.matrimony_requests=[];errors.matrimony_requests='READ_FAILED';}
+  try{
+   const requestIds=(rows.matrimony_requests||[]).map(request=>String(request.id)).filter(Boolean);
+   if(requestIds.length){
+    const unlockResult=await sb.from('matrimony_contact_unlocks').select('id,request_id,unlocked_at').in('request_id',requestIds).limit(100);
+    if(unlockResult.error)throw unlockResult.error;
+    rows.matrimony_contact_unlocks=unlockResult.data||[];
+   }else rows.matrimony_contact_unlocks=[];
+  }catch(error){rows.matrimony_contact_unlocks=[];errors.matrimony_contact_unlocks='READ_FAILED';}
+ }
+ cache.rows=rows;cache.errors=errors;cache.rowsReady=true;cache.loading=false;syncModuleRuntime(m.name);renderApp();
+}
+window.retryEnterpriseDomainData=async function(key){
+ const m=domainModules.find(x=>x.key===String(key||''));
+ if(!m)return;
+ const cache=live.moduleData[m.key];
+ if(cache){cache.rowsReady=false;cache.loading=false;cache.errors={};}
+ await loadEnterpriseDomainData(m);
+};
 async function loadRestaurantWorkspace(){
  if(!user?.id)return;const cache=live.moduleData.RESTAURANTS||{};if(cache.rowsReady||cache.loading)return;cache.loading=true;live.moduleData.RESTAURANTS=cache;
  const scope={tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId};
@@ -866,31 +988,167 @@ function mantigoWorkspace(rows){
  const bidCards=bids.length?bids.map(b=>'<article class="card"><div class="row"><strong>عرض '+esc(b.id)+'</strong><span>'+esc(b.offered_price??'—')+'</span></div><p><b>الرحلة:</b> '+esc(b.ride_id||'—')+'<br><b>الكابتن:</b> '+esc(b.captain_name||'—')+'<br><b>المركبة:</b> '+esc(b.vehicle_model||'—')+' · ETA '+esc(b.eta_minutes??'—')+' دقيقة</p><div class="action-bar">'+(role==='CUSTOMER'?'<button class="linkbtn" onclick="acceptMntBid(\''+esc(b.ride_id||'')+'\',\''+esc(b.id||'')+'\')">قبول العرض</button>':'')+'</div></article>').join(''):'<div class="empty-state">لا توجد عروض مرئية وفق صلاحيات الحساب.</div>';
  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMntRide()">+ إنشاء رحلة</button></div><section class="records"><div class="section-head"><div><h3>الرحلات</h3><p class="muted">'+rides.length+' رحلة مرئية وفق RLS</p></div></div><div class="grid3">'+rideCards+'</div></section><section class="records"><div class="section-head"><div><h3>العروض</h3><p class="muted">'+bids.length+' عرض مرئي وفق RLS</p></div></div><div class="grid3">'+bidCards+'</div></section>';
 }
+function ensureMedicalRealtime(){
+ if(window.MNTYMedicalRealtimeChannel)return;
+ window.MNTYMedicalRealtimeChannel=sb.channel('mnty-medical-appointments-live')
+  .on('postgres_changes',{event:'*',schema:'public',table:'medical_appointments'},()=>{
+   const cache=live.moduleData.MEDICAL||{};
+   if(cache.loading){cache.refreshPending=true;live.moduleData.MEDICAL=cache;return;}
+   cache.rowsReady=false;live.moduleData.MEDICAL=cache;
+   if(current==='الأطباء والعيادات')loadMedicalWorkspace();
+  })
+  .subscribe();
+}
+function medicalLocalMin(){
+ const d=new Date(Date.now()+60*60*1000);
+ d.setMinutes(Math.ceil(d.getMinutes()/15)*15,0,0);
+ return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+}
+async function loadMedicalWorkspace(){
+ ensureMedicalRealtime();
+ const cache=live.moduleData.MEDICAL||{};
+ if(cache.rowsReady||cache.loading)return;
+ cache.loading=true;cache.errors={};live.moduleData.MEDICAL=cache;
+ const rows={marketing_provider_profiles:[],medical_appointments:[]},errors={};
+ try{
+  const [providersRes,appointmentsRes]=await Promise.all([
+   sb.from('marketing_provider_profiles').select('id,business_id,owner_user_id,name_ar,name_en,provider_kind,description,specialties,service_areas,status,is_verified,profile_image_path').eq('status','ACTIVE').eq('is_verified',true).in('provider_kind',['HEALTH','DENTAL','MEDICAL','VETERINARY']).order('name_ar',{ascending:true}).limit(100),
+   sb.from('medical_appointments').select('id,tenant_id,business_id,patient_id,doctor_id,date_time,status,reason,created_at,updated_at').order('date_time',{ascending:true}).limit(200)
+  ]);
+  if(providersRes.error)errors.providers='تعذر تحميل دليل الأطباء';
+  if(appointmentsRes.error)errors.appointments='تعذر تحميل المواعيد حسب صلاحيات الحساب';
+  let providers=providersRes.data||[];
+  const businessIds=[...new Set(providers.map(p=>p.business_id).filter(Boolean))];
+  let businessMap=new Map();
+  if(businessIds.length){
+   const businessRes=await sb.from('businesses').select('id,name,status').in('id',businessIds).eq('status','ACTIVE');
+   if(businessRes.error)errors.businesses='تعذر التحقق من حالة العيادات';
+   else businessMap=new Map((businessRes.data||[]).map(b=>[String(b.id),b]));
+  }
+  if(!errors.businesses)providers=providers.filter(p=>p.business_id&&businessMap.has(String(p.business_id)));
+  rows.marketing_provider_profiles=providers.map(p=>({...p,business_name:businessMap.get(String(p.business_id))?.name||''}));
+  rows.medical_appointments=appointmentsRes.data||[];
+ }catch(error){
+  errors.runtime='تعذر الاتصال بمصادر المواعيد الطبية. أعد المحاولة قبل تنفيذ الحجز.';
+  console.error('[medical-workspace] load failed',String(error?.message||error));
+ }finally{
+  const refreshPending=Boolean(cache.refreshPending);
+  cache.refreshPending=false;cache.rows=rows;cache.errors=errors;cache.rowsReady=!refreshPending;cache.loading=false;
+  syncModuleRuntime('الأطباء والعيادات');renderApp();
+  if(refreshPending&&current==='الأطباء والعيادات')queueMicrotask(()=>loadMedicalWorkspace());
+ }
+}
+async function retryMedicalWorkspace(){
+ const cache=live.moduleData.MEDICAL;
+ if(cache){cache.rowsReady=false;cache.loading=false;cache.errors={};}
+ await loadMedicalWorkspace();
+}
+function medicalErrorMessage(error){
+ const code=String(error?.message||'');
+ const messages={
+  AUTH_USER_MISMATCH:'انتهت جلسة الدخول أو تعذر التحقق من الحساب',
+  ACTIVE_VERIFIED_MEDICAL_PROVIDER_NOT_FOUND:'الطبيب غير منشور أو غير موثق أو غير متاح للحجز',
+  ACTIVE_TENANT_MEMBERSHIP_REQUIRED:'حسابك لا يملك عضوية نشطة تسمح بالحجز',
+  APPOINTMENT_TIME_MUST_BE_FUTURE:'اختر موعدا في المستقبل',
+  APPOINTMENT_SLOT_ALIGNMENT_REQUIRED:'اختر موعدا على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45',
+  APPOINTMENT_REASON_TOO_LONG:'سبب الزيارة أطول من الحد المسموح',
+  DOCTOR_SLOT_UNAVAILABLE:'الموعد محجوز بالفعل اختر وقتا آخر',
+  APPOINTMENT_ID_ALREADY_EXISTS:'تعذر تكرار رقم الحجز يرجى المحاولة مرة أخرى',
+  DOCTOR_PROFILE_OWNERSHIP_REQUIRED:'لا يمكنك إدارة مواعيد طبيب آخر',
+  INVALID_MEDICAL_STATUS_TRANSITION:'تغيير الحالة غير مسموح في هذه المرحلة',
+  MEDICAL_APPOINTMENT_NOT_CANCELLABLE:'لا يمكن إلغاء هذا الموعد بعد انتهاء حالته'
+ };
+ return messages[code]||'تعذر تنفيذ العملية الطبية تحقق من البيانات والصلاحيات ثم حاول مرة أخرى';
+}
 async function createMedicalAppointment(providerId,businessId){
  if(!user?.id||!providerId||!businessId)return authView();
- const dateText=window.prompt('موعد الحجز — أدخل التاريخ والوقت بصيغة 2026-10-01 10:30');
- if(!dateText?.trim())return;
- const dt=new Date(dateText.replace(' ','T'));
- const timestamp=dt.getTime();
- if(!Number.isFinite(timestamp)||timestamp<=Date.now())return showToast('الموعد غير صالح أو في الماضي.','error');
- const reason=window.prompt('سبب/نوع الاستشارة','استشارة')||'استشارة';
- const {error}=await sb.rpc('create_medical_appointment_backend',{p_user_id:user.id,p_appointment_id:'MED-'+crypto.randomUUID(),p_business_id:businessId,p_doctor_id:providerId,p_date_time:timestamp,p_reason:reason.trim()});
- if(error)return showToast('تعذر حجز الموعد: '+error.message,'error');
- showToast('تم إنشاء الموعد بنجاح.','success');live.moduleData={};await loadDomainModule(current);renderApp();
+ const slotInput=document.getElementById('med-slot-'+providerId);
+ const reasonInput=document.getElementById('med-reason-'+providerId);
+ const dateText=slotInput?.value||'';
+ if(!dateText)return showToast('اختر موعد الزيارة أولا','error');
+ const timestamp=new Date(dateText).getTime();
+ if(!Number.isFinite(timestamp)||timestamp<=Date.now())return showToast('اختر موعدا صحيحا في المستقبل','error');
+ if(timestamp%900000!==0)return showToast('اختر موعدا على ربع ساعة مثل 10:00 أو 10:15 أو 10:30 أو 10:45','error');
+ const reason=String(reasonInput?.value||'').trim();
+ if(reason.length>500)return showToast('سبب الزيارة يجب ألا يتجاوز 500 حرف','error');
+ const button=document.getElementById('med-book-'+providerId);
+ if(button){button.disabled=true;button.textContent='جار تأكيد الحجز…';}
+ const requestPayload=JSON.stringify([user.id,businessId,providerId,timestamp,reason||null]);
+ let requestHash=2166136261;
+ for(let i=0;i<requestPayload.length;i++){requestHash^=requestPayload.charCodeAt(i);requestHash=Math.imul(requestHash,16777619);}
+ const requestKey='MNTY_MEDICAL_BOOKING:'+user.id+':'+(requestHash>>>0).toString(36);
+ let storedRequest=null;
+ try{storedRequest=JSON.parse(sessionStorage.getItem(requestKey)||'null');}catch(_){}
+ storedRequest=storedRequest||live.medicalBookingIdempotency?.[requestKey]||null;
+ const appointmentId=storedRequest?.fingerprint===requestPayload&&storedRequest?.id
+  ?storedRequest.id:'MED-'+crypto.randomUUID();
+ const requestRecord={fingerprint:requestPayload,id:appointmentId};
+ live.medicalBookingIdempotency=live.medicalBookingIdempotency||{};
+ live.medicalBookingIdempotency[requestKey]=requestRecord;
+ try{sessionStorage.setItem(requestKey,JSON.stringify(requestRecord));}catch(_){}
+ try{
+  const {data,error}=await sb.rpc('create_medical_appointment_backend',{
+   p_user_id:user.id,p_appointment_id:appointmentId,
+   p_business_id:businessId,p_doctor_id:providerId,p_date_time:timestamp,p_reason:reason||null
+  });
+  if(error)throw error;
+  // Preserve the retry token unless the backend confirms this exact appointment ID.
+  if(!data||String(data.id||'')!==appointmentId){
+   showToast('لم يصل تأكيد موثوق للحجز من الخادم. احتفظنا ببيانات المحاولة؛ أعد المحاولة بنفس الموعد والسبب لتجنب التكرار','error');
+   return;
+  }
+  try{sessionStorage.removeItem(requestKey);}catch(_){}
+  if(live.medicalBookingIdempotency)delete live.medicalBookingIdempotency[requestKey];
+  showToast(data?.idempotent_replay?'تم استرجاع نتيجة الحجز السابق دون إنشاء موعد مكرر':'تم إرسال طلب الموعد بنجاح','success');
+  live.moduleData.MEDICAL={rowsReady:false,loading:false,rows:{},errors:{}};
+  await loadMedicalWorkspace();
+ }catch(error){showToast(medicalErrorMessage(error),'error');}
+ finally{if(button){button.disabled=false;button.textContent='حجز موعد';}}
 }
 async function updateMedicalAppointmentStatus(id,status){
- if(!id||!status)return;
- const {error}=await sb.rpc('update_medical_appointment_status_backend',{p_user_id:user.id,p_appointment_id:id,p_target_status:status});
- if(error)return showToast('تعذر تحديث الموعد: '+error.message,'error');
- showToast('تم تحديث حالة الموعد.','success');live.moduleData={};await loadDomainModule(current);renderApp();
+ if(!user?.id||!id||!status)return;
+ const allowed=new Set(['CONFIRMED','CANCELLED','COMPLETED','NO_SHOW']);
+ if(!allowed.has(status))return showToast('حالة الموعد غير صالحة','error');
+ try{
+  const {error}=await sb.rpc('update_medical_appointment_status_backend',{p_user_id:user.id,p_appointment_id:id,p_target_status:status});
+  if(error)throw error;
+  showToast('تم تحديث حالة الموعد','success');
+  live.moduleData.MEDICAL={rowsReady:false,loading:false,rows:{},errors:{}};
+  await loadMedicalWorkspace();
+ }catch(error){showToast(medicalErrorMessage(error),'error');}
 }
-function medicalWorkspace(rows){
- const providers=(rows.marketing_provider_profiles||[]).filter(p=>p.status==='ACTIVE');
+function medicalWorkspace(rows,errors={}){
+ const medicalKinds=new Set(['HEALTH','DENTAL','MEDICAL','VETERINARY']);
+ const providers=(rows.marketing_provider_profiles||[]).filter(p=>p.status==='ACTIVE'&&p.is_verified===true&&medicalKinds.has(String(p.provider_kind||'').toUpperCase()));
  const appointments=rows.medical_appointments||[];
  const role=String(live.role||'').toUpperCase();
- const providerCards=providers.map(p=>'<article class="card"><div class="row"><strong>'+esc(p.name_ar||p.name_en||'مقدم طبي')+'</strong><span>'+esc(p.is_verified?'موثق':'متاح')+'</span></div><p class="muted">'+esc(p.provider_kind||'عيادة/طبيب')+'</p><p>'+esc(p.description||'')+'</p>'+(isCustomerMode()&&p.business_id?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createMedicalAppointment(\''+esc(p.id)+'\',\''+esc(p.business_id)+'\')">حجز موعد</button></div>':'')+'</article>').join('')||'<div class="empty-state">لا يوجد مقدم طبي نشط ظاهر وفق البيانات الحالية.</div>';
- const apptCards=appointments.map(a=>'<article class="card"><div class="row"><strong>'+esc(a.id)+'</strong><span>'+esc(a.status||'—')+'</span></div><p><b>الموعد:</b> '+esc(a.date_time?new Date(Number(a.date_time)).toLocaleString('ar-EG'):'—')+'<br><b>الاستشارة:</b> '+esc(a.reason||'—')+'</p><div class="action-bar">'+(a.status==='BOOKED'&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CONFIRMED\')">تأكيد</button>':'')+(a.status==='CONFIRMED'&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'COMPLETED\')">إكمال</button>':'')+(['BOOKED','CONFIRMED'].includes(a.status)?'<button class="linkbtn" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CANCELLED\')">إلغاء</button>':'')+'</div></article>').join('')||'<div class="empty-state">لا توجد مواعيد مرئية وفق صلاحيات الحساب.</div>';
- return workspaceHead('MEDICAL','المنظومة الطبية','اكتشاف مقدمي الخدمة، حجز المواعيد ومتابعة الحالة. السجلات السريرية الحساسة خارج هذا المسار.','LIVE')+'<section class="records"><div class="section-head"><div><h3>الأطباء والعيادات</h3><p class="muted">'+providers.length+' مقدم طبي نشط</p></div></div><div class="grid3">'+providerCards+'</div></section><section class="records"><div class="section-head"><div><h3>المواعيد</h3><p class="muted">'+appointments.length+' موعد مرئي وفق RLS</p></div></div><div class="grid3">'+apptCards+'</div></section>';
+ const providerRole=['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role);
+ const providerMap=new Map(providers.map(p=>[String(p.id),p]));
+ const now=Date.now(),minSlot=medicalLocalMin();
+ const kindLabels={HEALTH:'طبيب أو عيادة',DENTAL:'أسنان',MEDICAL:'مركز طبي',VETERINARY:'طب بيطري'};
+ const statusLabels={BOOKED:'بانتظار التأكيد',CONFIRMED:'مؤكد',CANCELLED:'ملغي',COMPLETED:'مكتمل',NO_SHOW:'لم يحضر'};
+ const specialtyText=v=>Array.isArray(v)?v.map(x=>typeof x==='string'?x:(x?.name_ar||x?.name||'')).filter(Boolean).join('، '):typeof v==='string'?v:'';
+ const providerCards=providers.map(p=>{
+  const specialties=specialtyText(p.specialties);
+  return '<article class="card medical-provider-card"><div class="row"><strong>'+esc(p.name_ar||p.name_en||'طبيب')+'</strong><span>'+esc(p.is_verified?'موثق':'')+'</span></div><p class="muted">'+esc(kindLabels[String(p.provider_kind||'').toUpperCase()]||'مقدم طبي')+' · '+esc(p.business_name||'عيادة')+'</p>'+(specialties?'<p><b>التخصصات:</b> '+esc(specialties)+'</p>':'')+(p.description?'<p>'+esc(p.description)+'</p>':'')+(isCustomerMode()&&p.business_id?'<div class="field"><label for="med-slot-'+esc(p.id)+'">موعد الزيارة</label><input type="datetime-local" id="med-slot-'+esc(p.id)+'" min="'+esc(minSlot)+'" step="900" required></div><div class="field"><label for="med-reason-'+esc(p.id)+'">سبب الزيارة (اختياري)</label><input id="med-reason-'+esc(p.id)+'" maxlength="500" placeholder="مثال: كشف أو متابعة"></div><button id="med-book-'+esc(p.id)+'" class="btn btn-primary" type="button" onclick="createMedicalAppointment(\''+esc(p.id)+'\',\''+esc(p.business_id)+'\')">حجز موعد</button>':'')+'</article>';
+ }).join('');
+ const visibleAppointments=appointments.filter(a=>a.patient_id===user?.id||providerRole);
+ const apptCards=visibleAppointments.map(a=>{
+  const date=Number(a.date_time),doctor=providerMap.get(String(a.doctor_id));
+  const canManage=providerRole&&(role!=='SERVICE_PROVIDER'||doctor?.owner_user_id===user?.id);
+  const canCancel=['BOOKED','CONFIRMED'].includes(String(a.status||'').toUpperCase())&&(a.patient_id===user?.id||canManage);
+  const actions=(a.status==='BOOKED'&&canManage?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CONFIRMED\')">تأكيد الموعد</button>':'')
+   +(a.status==='CONFIRMED'&&canManage?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'COMPLETED\')">إتمام الزيارة</button>':'')
+   +(a.status==='CONFIRMED'&&canManage&&date<=now?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'NO_SHOW\')">لم يحضر</button>':'')
+   +(canCancel?'<button class="linkbtn" type="button" onclick="updateMedicalAppointmentStatus(\''+esc(a.id)+'\',\'CANCELLED\')">إلغاء الموعد</button>':'');
+  return '<article class="card medical-appointment-card"><div class="row"><strong>'+esc(doctor?.name_ar||doctor?.name_en||'موعد طبي')+'</strong><span class="mnty-badge">'+esc(statusLabels[String(a.status||'').toUpperCase()]||a.status||'—')+'</span></div><p><b>التاريخ:</b> '+esc(Number.isFinite(date)&&date>0?new Date(date).toLocaleString('ar-EG'):'—')+'</p>'+(a.reason?'<p><b>سبب الزيارة:</b> '+esc(a.reason)+'</p>':'')+'<small>رقم الحجز: '+esc(a.id)+'</small>'+(actions?'<div class="action-bar">'+actions+'</div>':'')+'</article>';
+ }).join('');
+ const errorKeys=Object.keys(errors||{});
+ const errorPanel=errorKeys.length?'<div class="notice" role="alert"><b>بعض البيانات لم تحمل</b><p>'+esc(errorKeys.map(k=>errors[k]).join(' · '))+'</p><button class="btn btn-outline" type="button" style="width:auto" onclick="retryMedicalWorkspace()">إعادة المحاولة</button></div>':'';
+ return workspaceHead('MEDICAL','الأطباء والعيادات','دليل أطباء وعيادات موثقة وحجز المواعيد وإدارتها ضمن صلاحيات المريض والطبيب. لا يتضمن هذا الموديول ملفات طبية أو تشخيصات أو وصفات.','LIVE')
+ +errorPanel
+ +'<section class="records"><div class="section-head"><div><h3>دليل الأطباء والعيادات</h3><p class="muted">'+providers.length+' طبيب أو عيادة موثقة ومتاحة للحجز</p></div></div><div class="grid3">'+(providerCards||'<div class="empty-state">لا توجد حاليا عيادات موثقة ومتاحة للحجز. لن يتم إنشاء بيانات تجريبية بدلا منها.</div>')+'</div></section>'
+ +'<section class="records"><div class="section-head"><div><h3>المواعيد</h3><p class="muted">'+visibleAppointments.length+' موعد ظاهر حسب صلاحيات الحساب</p></div></div><div class="grid3">'+(apptCards||'<div class="empty-state">لا توجد مواعيد ظاهرة لهذا الحساب.</div>')+'</div></section>';
 }
 function restaurantWorkspace(rows){
  const menu=rows.restaurant_menu_items||[],orders=rows.restaurant_orders||[],tables=rows.restaurant_tables||[],inventory=rows.restaurant_inventory||[];
@@ -920,21 +1178,119 @@ function restaurantWorkspace(rows){
  +workspaceCards([['أصناف متاحة',available+' / '+menu.length,'من قائمة الطعام الفعلية'],['طلبات نشطة',activeOrders,'تحتاج متابعة تشغيلية'],['طاولات مشغولة',occupiedTables+' / '+tables.length,'حالة الطاولات الحالية'],['تنبيهات المخزون',lowStock,'أصناف تحت حد التنبيه']])+menuTable+orderTable+tableTable+inventoryTable;
 }
 
-function enterpriseRowsTable(m,rows){if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة')return recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])+recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['الحالة',r=>r.status]]);if(m.key==='ERP')return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'+recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>r.supplier_id],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>r.status==='DRAFT'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'SUBMITTED\')">إرسال للاعتماد</button>':r.status==='PENDING_APPROVAL'?'<button class="linkbtn" onclick="updatePurchaseOrderStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':'—']])+recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>r.purchase_order_id],['المخزن',r=>r.warehouse_id],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])+recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>r.from_warehouse_id],['إلى',r=>r.to_warehouse_id],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']]);if(m.key==='FACTORIES')return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])+recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>r.product_id],['المخزن',r=>r.warehouse_id],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])+recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]]);if(m.key==='TRIPS')return mantigoWorkspace(rows);if(m.key==='MEDICAL')return medicalWorkspace(rows);if(m.key==='MATRIMONY')return '<div class="notice">بيانات الاتصال المباشر وبيانات الولي محجوبة من قائمة الملفات العامة.</div>'+recordsTable('الملفات المتاحة',rows.matrimony_profiles||[],[['الاسم المستعار',r=>r.pseudonym],['العمر',r=>r.age],['المدينة',r=>r.city],['التعليم',r=>r.education],['المهنة',r=>r.occupation],['الحالة',r=>r.marital_status],['موثق',r=>r.is_verified?'نعم':'لا']])+recordsTable('طلبات التواصل الخاصة بي',rows.matrimony_requests||[],[['الملف',r=>r.to_profile_id],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]]);return ''}
+function erpSupplierLabel(rows,id){const item=(rows.erp_suppliers||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.supplier_code||id):String(id||'—')}
+function erpWarehouseLabel(rows,id){const item=(rows.warehouses||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
+function erpBranchLabel(rows,id){const item=(rows.branches||[]).find(x=>String(x.id)===String(id));return item?String(item.name||item.code||id):String(id||'—')}
+function erpPurchaseOrderLabel(rows,id){const item=(rows.erp_purchase_orders||[]).find(x=>String(x.id)===String(id));return item?String(item.order_number||id):String(id||'—')}
+function erpProductLabel(rows,id){const item=(rows.catalog_items||[]).find(x=>String(x.id)===String(id));return item?String(item.name_ar||item.name_en||item.sku||id):String(id||'—')}
+function erpAccountLabel(rows,id){const item=(rows.chart_of_accounts||[]).find(x=>String(x.id)===String(id));return item?String(item.account_code||'')+' — '+String(item.account_name||id):String(id||'—')}
+function erpJournalTotals(rows,entryId,field){return (rows.journal_entry_lines||[]).filter(line=>String(line.journal_entry_id)===String(entryId)).reduce((sum,line)=>sum+Number(line[field]||0),0)}
+async function createAccountingJournal(){
+ if(!user?.id)return authView();
+ if(live.accountingJournalPosting)return;
+ const allowedRoles=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER'];
+ if(!allowedRoles.includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية إنشاء قيد محاسبي','error');
+ if(!live.tenantId||!live.businessId)return showToast('اختر مؤسسة فعالة قبل إنشاء القيد','error');
+ const cache=live.moduleData?.ACCOUNTING;
+ const accounts=(cache?.rows?.chart_of_accounts||[]).filter(a=>a.is_active===true);
+ if(accounts.length<2)return showToast('يلزم وجود حسابين نشطين على الأقل في دليل الحسابات','error');
+ const accountList=accounts.map((a,i)=>(i+1)+') '+String(a.account_code||'')+' '+String(a.account_name||a.account_name_ar||a.id)).join('\\n');
+ const debitChoice=Number(window.prompt('اختر رقم حساب المدين:\\n'+accountList,'1'));
+ if(!Number.isInteger(debitChoice)||debitChoice<1||debitChoice>accounts.length)return;
+ const debitAccount=accounts[debitChoice-1];
+ const creditChoice=Number(window.prompt('اختر رقم حساب الدائن:\\n'+accountList,String(Math.min(2,accounts.length))));
+ if(!Number.isInteger(creditChoice)||creditChoice<1||creditChoice>accounts.length)return;
+ const creditAccount=accounts[creditChoice-1];
+ if(String(debitAccount.id)===String(creditAccount.id))return showToast('اختر حسابين مختلفين للقيد','error');
+ const amount=Number(window.prompt('قيمة القيد بالجنيه','0'));
+ if(!Number.isFinite(amount)||amount<=0||Math.round(amount*10000)!==amount*10000)return showToast('أدخل قيمة موجبة وبحد أقصى 4 منازل عشرية','error');
+ const description=window.prompt('وصف القيد');
+ if(!description?.trim())return;
+ const referenceId=window.prompt('المرجع الاختياري','')||'';
+ if(!window.confirm('ترحيل قيد متوازن بقيمة '+amount.toLocaleString('ar-EG')+' ج.م؟'))return;
+ const id='journal-'+crypto.randomUUID();
+ const entry={
+  id,tenant_id:live.tenantId,business_id:live.businessId,branch_id:live.branchId||null,
+  entry_number:'MAN-'+new Date().toISOString().replace(/[-:TZ.]/g,'').slice(0,14)+'-'+crypto.randomUUID().slice(0,8).toUpperCase(),
+  reference_type:'MANUAL',reference_id:referenceId.trim()||null,description:description.trim(),
+  status:'POSTED',total_debit:amount,total_credit:amount,entry_date:new Date().toISOString().slice(0,10)
+ };
+ const lines=[
+  {account_id:String(debitAccount.id),line_number:1,debit:amount,credit:0,description:description.trim()},
+  {account_id:String(creditAccount.id),line_number:2,debit:0,credit:amount,description:description.trim()}
+ ];
+ live.accountingJournalPosting=true;
+ try{
+  const {data,error}=await sb.functions.invoke('financial-journal',{body:{tenantId:live.tenantId,entry,lines}});
+  if(error||!data?.success)throw new Error(data?.error||error?.message||'JOURNAL_POST_FAILED');
+  showToast('تم ترحيل القيد وتحديث دفتر الأستاذ','success');
+  live.moduleData.ACCOUNTING={};
+  await loadEnterpriseDomainData(domainModules.find(m=>m.key==='ACCOUNTING'));
+  renderApp();
+ }catch(error){
+  showToast('تعذر تأكيد ترحيل القيد. تحقق من سجل القيود قبل إعادة المحاولة لتجنب التكرار.','error');
+ }finally{live.accountingJournalPosting=false;}
+}
+
+function enterpriseRowsTable(m,rows){
+ const sourceRows=(m.tables||[]).map(table=>({table,count:Array.isArray(rows[table])?rows[table].length:0}));
+ const sources=()=>recordsTable('مصادر البيانات الموصولة',sourceRows,[['المصدر',r=>r.table],['السجلات',r=>r.count],['الحالة',r=>r.count?'READABLE':'لا توجد سجلات']]);
+ if(m.key==='ACCOUNTING'&&current==='المزايدات — المحاسبة'){
+  const journalAction=['OWNER','BUSINESS_OWNER','ADMIN','MANAGER','ACCOUNTANT','FINANCE','FINANCE_MANAGER'].includes(String(live.role||'').toUpperCase())?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createAccountingJournal()" '+(live.accountingJournalPosting?'disabled':'')+'>+ قيد محاسبي جديد</button></div>':'';
+  return journalAction+recordsTable('دليل الحسابات',rows.chart_of_accounts||[],[['الكود',r=>r.account_code],['الحساب',r=>r.account_name],['النوع',r=>r.account_type],['نشط',r=>r.is_active?'نعم':'لا']])
+   +recordsTable('طلبات الخدمات المحاسبية',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]])
+   +recordsTable('العروض والتفاوض',rows.indrive_bids||[],[['مقدم العرض',r=>r.provider_name],['القيمة',r=>r.offered_price],['ملاحظة',r=>r.note],['الحالة',r=>r.status]])
+   +recordsTable('القيود',rows.journal_entries||[],[['المرجع',r=>r.reference_type],['الوصف',r=>r.description],['التاريخ',r=>r.entry_date],['المدين',r=>erpJournalTotals(rows,r.id,'debit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['الدائن',r=>erpJournalTotals(rows,r.id,'credit').toLocaleString('ar-EG',{maximumFractionDigits:2})],['التوازن',r=>Math.abs(erpJournalTotals(rows,r.id,'debit')-erpJournalTotals(rows,r.id,'credit'))<0.005?'متوازن':(rows.journal_entry_lines||[]).some(line=>String(line.journal_entry_id)===String(r.id))?'غير متوازن':'بدون تفاصيل'],['الحالة',r=>r.status]])
+   +recordsTable('تفاصيل القيود',rows.journal_entry_lines||[],[['القيد',r=>r.journal_entry_id],['الحساب',r=>erpAccountLabel(rows,r.account_id)],['مدين',r=>r.debit],['دائن',r=>r.credit],['الوصف',r=>r.description]])
+   +recordsTable('دفتر الأستاذ العام',rows.general_ledger||[],[['القيد',r=>r.journal_entry_id],['الحساب',r=>erpAccountLabel(rows,r.account_id)],['مدين',r=>r.debit],['دائن',r=>r.credit],['الرصيد الجاري',r=>r.running_balance],['تاريخ القيد',r=>r.entry_date],['الترحيل',r=>r.posted_at]])
+   +sources();
+ }
+ if(['ERP','BUSINESS_ERP'].includes(m.key)){
+  return '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="createERPSupplier()">+ مورد جديد</button><button class="btn btn-primary" style="width:auto" onclick="createPurchaseOrder()">+ أمر شراء</button><button class="btn btn-outline" style="width:auto" onclick="receivePurchaseStock()">+ استلام مشتريات</button><button class="btn btn-outline" style="width:auto" onclick="initializeOpeningStock()">+ رصيد افتتاحي</button><button class="btn btn-outline" style="width:auto" onclick="createStockTransfer()">+ تحويل مخزني</button></div>'
+   +recordsTable('الموردون',rows.erp_suppliers||[],[['اسم المورد',r=>r.name_ar||r.name_en],['الكود',r=>r.supplier_code],['مسؤول التواصل',r=>r.contact_name],['الهاتف',r=>r.phone],['البريد',r=>r.email],['شروط السداد',r=>r.payment_terms],['الفرع',r=>erpBranchLabel(rows,r.branch_id)],['الحالة',r=>r.status],['إجراء',r=>'<button class="linkbtn" data-erp-supplier-edit="'+esc(String(r.id||''))+'" onclick="editERPSupplier(this.dataset.erpSupplierEdit)">تعديل المورد</button>']])
+   +recordsTable('أوامر الشراء',rows.erp_purchase_orders||[],[['رقم الأمر',r=>r.order_number],['المورد',r=>erpSupplierLabel(rows,r.supplier_id)],['الإجمالي',r=>r.total_amount],['الحالة',r=>r.status],['إجراء',r=>String(r.status||'').toUpperCase()==='DRAFT'?'<button class="linkbtn" data-order-id="'+esc(String(r.id||''))+'" onclick="updatePurchaseOrderStatus(this.dataset.orderId,\'SUBMITTED\')">إرسال للاعتماد</button>':String(r.status||'').toUpperCase()==='PENDING_APPROVAL'&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(String(live.role||'').toUpperCase())?'<button class="linkbtn" data-order-id="'+esc(String(r.id||''))+'" onclick="updatePurchaseOrderStatus(this.dataset.orderId,\'APPROVED\')">اعتماد</button>':String(r.status||'').toUpperCase()==='PENDING_APPROVAL'?'بانتظار اعتماد المالك أو المشرف':'—']])
+   +recordsTable('بنود أوامر الشراء',rows.erp_purchase_order_lines||[],[['أمر الشراء',r=>erpPurchaseOrderLabel(rows,r.purchase_order_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية المطلوبة',r=>r.ordered_quantity],['الكمية المستلمة',r=>r.received_quantity],['تكلفة الوحدة',r=>r.unit_cost],['إجمالي البند',r=>r.line_total]])
+   +recordsTable('أرصدة المخزون',rows.stock_balances||[],[['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المتاح',r=>r.quantity_on_hand],['المحجوز',r=>r.quantity_reserved],['آخر تحديث',r=>r.updated_at]])
+   +recordsTable('حركة المخزون',rows.inventory_transactions||[],[['النوع',r=>r.transaction_type],['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['الكمية',r=>r.quantity],['تكلفة الوحدة',r=>r.unit_cost],['المرجع',r=>r.reference_id],['التاريخ',r=>r.created_at]])
+   +recordsTable('الاستلامات',rows.erp_purchase_receipts||[],[['رقم الاستلام',r=>r.receipt_number],['الأمر',r=>erpPurchaseOrderLabel(rows,r.purchase_order_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.received_quantity],['الحالة',r=>r.status]])
+   +recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الفرع',r=>erpBranchLabel(rows,r.branch_id)],['الحالة',r=>r.status]])
+   +recordsTable('التحويلات',rows.erp_stock_transfers||[],[['التحويل',r=>r.transfer_number],['من',r=>erpWarehouseLabel(rows,r.from_warehouse_id)],['إلى',r=>erpWarehouseLabel(rows,r.to_warehouse_id)],['المنتج',r=>erpProductLabel(rows,r.product_id)],['الكمية',r=>r.quantity],['الحالة',r=>r.status],['إجراء',r=>r.status==='REQUESTED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'APPROVED\')">اعتماد</button>':r.status==='APPROVED'?'<button class="linkbtn" onclick="updateStockTransferStatus(\''+r.id+'\',\'IN_TRANSIT\')">إرسال</button>':r.status==='IN_TRANSIT'?'<button class="linkbtn" onclick="receiveStockTransfer(\''+r.id+'\')">استلام</button>':'—']])
+   +sources();
+ }
+ if(m.key==='FACTORIES'){
+  return recordsTable('المخازن',rows.warehouses||[],[['المخزن',r=>r.name],['الكود',r=>r.code],['الحالة',r=>r.status]])
+   +recordsTable('الأرصدة',rows.stock_balances||[],[['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['الرصيد',r=>r.quantity_on_hand],['محجوز',r=>r.quantity_reserved]])
+   +recordsTable('حركة المخزون',rows.inventory_transactions||[],[['النوع',r=>r.transaction_type],['المنتج',r=>erpProductLabel(rows,r.product_id)],['المخزن',r=>erpWarehouseLabel(rows,r.warehouse_id)],['الكمية',r=>r.quantity],['تكلفة الوحدة',r=>r.unit_cost],['التاريخ',r=>r.created_at]])
+   +recordsTable('طلبات المصانع',rows.indrive_requests||[],[['العنوان',r=>r.title],['المجال',r=>r.category_name],['الميزانية',r=>r.user_proposed_price],['الحالة',r=>r.status]])
+   +sources();
+ }
+ if(m.key==='TRIPS')return mantigoWorkspace(rows)+sources();
+ if(m.key==='MATRIMONY')return '<div class="notice">بيانات الاتصال المباشر وبيانات الولي لا تُحمّل إلى قائمة الملفات العامة.</div>'
+   +recordsTable('الملفات المتاحة',rows.matrimony_profiles||[],[['الاسم المستعار',r=>r.pseudonym],['العمر',r=>r.age],['المدينة',r=>r.city],['التعليم',r=>r.education],['المهنة',r=>r.occupation],['الحالة',r=>r.marital_status],['موثق',r=>r.is_verified?'نعم':'لا']])
+   +recordsTable('طلبات التواصل الخاصة بي',rows.matrimony_requests||[],[['الملف',r=>r.to_profile_id],['الحالة',r=>r.status],['التاريخ',r=>r.created_at]])
+   +sources();
+ return '';
+}
 function domainModuleWorkspace(){
  const m=domainModules.find(x=>x.name===current);if(!m)return modulePage();
  const d=live.moduleData[m.key]||{tables:{},ready:false};
+ if(m.key==='MEDICAL'){
+  if(!d.rowsReady){loadMedicalWorkspace();return workspaceHead('MEDICAL','الأطباء والعيادات','دليل الأطباء وحجز المواعيد','LOADING')+'<div class="empty-state">جاري تحميل دليل الأطباء والمواعيد وفق صلاحيات الحساب…</div>'}
+  return medicalWorkspace(d.rows||{},d.errors||{})+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
+ }
  if(m.key==='RESTAURANTS'){
   if(!d.rowsReady){loadRestaurantWorkspace();return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل بيانات المطعم الفعلية وفق نطاق النشاط والفرع والصلاحيات…</div>'}
   return restaurantWorkspace(d.rows)+'<div class="action-bar"><button class="btn btn-outline" style="width:auto" data-module="الموديولات" onclick="selectModule(this.dataset.module)">← العودة للموديولات</button></div>';
 }
-if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
+if(['ACCOUNTING','ERP','BUSINESS_ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   if(!d.rowsReady){loadEnterpriseDomainData(m);return workspaceHead(m.key,m.name,m.desc,'LOADING')+'<div class="empty-state">جاري تحميل البيانات التشغيلية الفعلية وفق صلاحياتك…</div>'}
+  const errorPanel=Object.keys(d.errors||{}).length?'<div class="notice" role="alert">تعذر تحميل بعض مصادر البيانات ('+Object.keys(d.errors).length+'). لم يتم اعتبارها بيانات فارغة. <button class="btn btn-outline" type="button" style="width:auto" onclick="retryEnterpriseDomainData(\''+esc(m.key)+'\')">إعادة المحاولة</button></div>':'';
   return workspaceHead(m.key,m.name,m.desc,'MODULE')
-   +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق RLS']))
+   +errorPanel
+   +workspaceCards(m.tables.map(t=>[t,String((d.rows?.[t]||[]).length),'سجلات مرئية وفق نطاق المؤسسة والصلاحيات']))
    +enterpriseRowsTable(m,d.rows||{})
    +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
-   +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
+   +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,{...m,rows:d.rows,errors:d.errors}))||'');
  }
  const cards=m.tables.map(t=>[t,d.tables?.[t]==null?'—':String(d.tables[t]),'عدد السجلات المتاحة وفق RLS']);
  if(!m.tables.length)cards.push(['حالة المخطط','NOT VERIFIED','لا يوجد جدول متخصص مثبت في المخطط الحالي']);
@@ -942,7 +1298,7 @@ if(['ACCOUNTING','ERP','FACTORIES','TRIPS','MATRIMONY'].includes(m.key)){
   +workspaceCards(cards)
   +'<div class="action-bar"><button class="btn btn-outline" style="width:auto" onclick="selectModule(\'الموديولات\')">← العودة للموديولات</button></div>'
   +recordsTable('مصادر البيانات الموصولة',m.tables.map(t=>({table:t,count:d.tables?.[t]})),[['الجدول',r=>r.table],['السجلات',r=>r.count==null?'—':r.count],['الحالة',r=>r.count==null?'NOT VERIFIED':'READABLE']])
-  +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,m))||'');
+  +((window.MNTYModuleBlueprint&&window.MNTYModuleBlueprint(m.name,{...m,rows:d.rows,errors:d.errors}))||'');
 }
 
 async function superAdminFunction(name,body){
@@ -1120,11 +1476,248 @@ async function mntRpc(fn,args){if(!user?.id)return authView();const {data,error}
 async function createMntRide(){const pickup=window.prompt('نقطة الانطلاق');const destination=window.prompt('الوجهة');const price=Number(window.prompt('السعر المقترح','0'));if(!pickup?.trim()||!destination?.trim()||!Number.isFinite(price)||price<=0)return showToast('بيانات الرحلة غير صحيحة','error');return mntRpc('create_mantigo_ride_backend',{p_user_id:user.id,p_customer_name:user.email||'Customer',p_customer_phone:'',p_vehicle_category:window.prompt('فئة المركبة','STANDARD')||'STANDARD',p_ride_type:window.prompt('نوع الرحلة','ONE_WAY')||'ONE_WAY',p_pickup_location:pickup.trim(),p_destination_location:destination.trim(),p_proposed_price:price,p_note:window.prompt('ملاحظة','')||null})}
 async function createMntBid(rideId){const price=Number(window.prompt('قيمة العرض','0'));if(!rideId||!Number.isFinite(price)||price<=0)return showToast('قيمة العرض غير صحيحة','error');return mntRpc('create_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:rideId,p_captain_name:user.email||'Captain',p_captain_phone:'',p_captain_rating:null,p_vehicle_category:window.prompt('فئة المركبة','STANDARD')||'STANDARD',p_vehicle_model:window.prompt('موديل المركبة','')||null,p_vehicle_plate:window.prompt('رقم اللوحة','')||null,p_offered_price:price,p_eta_minutes:Number(window.prompt('ETA بالدقائق','15'))||15,p_captain_message:window.prompt('رسالة','')||null})}
 async function acceptMntBid(rideId,bidId){if(!rideId||!bidId)return;return mntRpc('accept_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:rideId,p_bid_id:bidId})}
-async function erpRpc(fn,args){if(!user?.id)return authView();if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');const {data,error}=await sb.rpc(fn,args);if(error){showToast('تعذر تنفيذ العملية: '+error.message,'error');return null}showToast('تم تنفيذ العملية بنجاح','success');live.moduleData={};await loadDomainModule(current);renderApp();return data}
-async function createPurchaseOrder(){const orderNumber=window.prompt('رقم أمر الشراء');if(!orderNumber?.trim())return;const supplierId=window.prompt('معرف المورد');if(!supplierId?.trim())return;const total=Number(window.prompt('الإجمالي','0'));if(!Number.isFinite(total)||total<0)return showToast('قيمة إجمالي غير صحيحة','error');const tax=Number(window.prompt('الضريبة','0'));const discount=Number(window.prompt('الخصم','0'));if([tax,discount].some(v=>!Number.isFinite(v)||v<0))return showToast('قيمة ضريبة/خصم غير صحيحة','error');return erpRpc('create_purchase_order_backend',{p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId.trim(),p_total_amount:total,p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null})}
+async function erpRpc(fn,args){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل تنفيذ العملية','error');
+ const operations={
+  create_erp_supplier_backend:'create_supplier',
+  update_erp_supplier_backend:'update_supplier',
+  create_purchase_order_backend:'create_purchase_order',
+  create_purchase_order_with_lines_backend:'create_purchase_order_with_lines',
+  update_purchase_order_status_backend:'update_purchase_order_status',
+  receive_purchase_stock_backend:'receive_purchase_stock',
+  create_stock_transfer_backend:'create_stock_transfer',
+  initialize_opening_stock_backend:'initialize_opening_stock',
+  update_stock_transfer_status_backend:'update_stock_transfer_status',
+  receive_stock_transfer_backend:'receive_stock_transfer'
+ };
+ const action=operations[fn];
+ if(!action)return showToast('عملية ERP غير معروفة أو غير مسموح بها','error');
+ const createPrefixes={create_erp_supplier_backend:'sup-',create_supplier:'sup-',create_purchase_order:'po-',create_purchase_order_with_lines:'po-',receive_purchase_stock:'rcv-',create_stock_transfer:'tr-',initialize_opening_stock:'opening-'};
+ const requestArgs={...args};
+ let idempotencyKey=null;
+ let fingerprint=null;
+ if(createPrefixes[action]){
+  const idempotencyBase=['MNTY_ERP_IDEMPOTENCY',user.id,live.tenantId,live.businessId,action].join(':');
+  const comparable={...requestArgs};delete comparable.p_id;
+  fingerprint=JSON.stringify(comparable);
+  // Keep a separate retry slot per payload; creating a second supplier/order must not overwrite
+  // the pending retry identity for the first request.
+  let fingerprintHash=2166136261;
+  for(let i=0;i<fingerprint.length;i++){fingerprintHash^=fingerprint.charCodeAt(i);fingerprintHash=Math.imul(fingerprintHash,16777619);}
+  idempotencyKey=idempotencyBase+':'+(fingerprintHash>>>0).toString(36);
+  let stored=null;
+  try{stored=JSON.parse(sessionStorage.getItem(idempotencyKey)||'null')}catch(_){}
+  stored=stored||live.erpIdempotency?.[idempotencyKey]||null;
+  if(stored?.fingerprint===fingerprint&&stored?.id)requestArgs.p_id=stored.id;
+  else{
+   requestArgs.p_id=String(requestArgs.p_id||createPrefixes[action]+crypto.randomUUID());
+   const entry={fingerprint,id:requestArgs.p_id};
+   live.erpIdempotency=live.erpIdempotency||{};live.erpIdempotency[idempotencyKey]=entry;
+   try{sessionStorage.setItem(idempotencyKey,JSON.stringify(entry))}catch(_){}
+  }
+ }
+ try{
+  const response=await invokeMntyApi('/api/v1/erp/runtime',{method:'POST',body:{operation:'mutate',tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId||null,action,arguments:requestArgs}});
+  if(!response?.success)throw new Error(response?.error||'ERP_OPERATION_FAILED');
+  if(idempotencyKey){
+   if(live.erpIdempotency)delete live.erpIdempotency[idempotencyKey];
+   try{sessionStorage.removeItem(idempotencyKey)}catch(_){}
+  }
+  showToast('تم تنفيذ العملية بنجاح','success');
+  live.moduleData={};
+  // Invalidate the shared ERP reference snapshot so dependent modules never reuse stale suppliers or stock.
+  window.MNTYOperationsERPData=null;
+  if(typeof window.MNTYReloadOperationsModule==='function')await window.MNTYReloadOperationsModule();
+  await renderApp();
+  return response.result;
+ }catch(error){
+  const code=String(error?.message||'ERP_OPERATION_FAILED');
+  const messages={
+   ERP_OPERATION_FORBIDDEN:'ليست لديك صلاحية تنفيذ هذه العملية',
+   ERP_SUPPLIER_CODE_ALREADY_EXISTS:'كود المورد مستخدم بالفعل',
+   ERP_SUPPLIER_UPDATE_ROLE_REQUIRED:'لا تملك صلاحية تعديل الموردين',
+   ERP_SUPPLIER_CREATE_ROLE_REQUIRED:'لا تملك صلاحية إنشاء الموردين',
+   ERP_PURCHASE_APPROVAL_ROLE_REQUIRED:'اعتماد أمر الشراء متاح للمالك أو مدير المنصة فقط',
+   ERP_PURCHASE_ORDER_IDEMPOTENCY_CONFLICT:'رقم أمر الشراء مستخدم ببيانات مختلفة؛ راجع الأمر قبل إعادة المحاولة',
+   ERP_RECEIPT_IDEMPOTENCY_CONFLICT:'رقم الاستلام مستخدم ببيانات مختلفة؛ راجع سجل الاستلام',
+   ERP_WAREHOUSE_INVALID:'المخزن غير نشط أو لا يتبع المؤسسة المحددة',
+   ERP_OPERATION_ROLE_REQUIRED:'الدور الحالي لا يسمح بتنفيذ العملية',
+   ERP_PURCHASE_RECEIVING_ROLE_REQUIRED:'لا تملك صلاحية استلام المشتريات',
+   ERP_SUPPLIER_STATUS_INVALID:'حالة المورد غير صحيحة',
+   ERP_PURCHASE_ORDER_LINES_REQUIRED:'أضف صنفًا واحدًا على الأقل إلى أمر الشراء',
+   ERP_PURCHASE_ORDER_LINE_INVALID:'بيانات الصنف أو الكمية أو التكلفة غير صحيحة',
+   ERP_PURCHASE_ORDER_DUPLICATE_PRODUCT:'لا تضف الصنف نفسه مرتين في أمر الشراء',
+   ERP_PURCHASE_ORDER_RECEIVE_LIMIT_EXCEEDED:'الكمية المستلمة تتجاوز الكمية المطلوبة في أمر الشراء',
+   ERP_PURCHASE_ORDER_LINE_NOT_FOUND:'الصنف غير موجود ضمن بنود أمر الشراء',
+   ERP_PRODUCT_SCOPE_INVALID:'الصنف غير نشط أو خارج نطاق المؤسسة والفرع',
+   ERP_SUPPLIER_IDEMPOTENCY_CONFLICT:'طلب إنشاء المورد تكرر ببيانات مختلفة، راجع البيانات وأعد المحاولة',
+   ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT:'معرف المورد مستخدم داخل نطاق مختلف، حدّث الصفحة وأعد المحاولة',
+   ERP_SUPPLIER_SCOPE_INVALID:'المورد غير نشط أو لا يتبع المؤسسة الحالية',
+   ERP_SUPPLIER_BRANCH_SCOPE_INVALID:'المورد تابع لفرع مختلف عن الفرع المحدد',
+   ERP_SUPPLIER_REQUIRED:'اختر موردًا صالحًا لأمر الشراء',
+   ERP_SUPPLIER_REQUIRED_FIELDS:'أدخل اسم المورد والبيانات الأساسية المطلوبة',
+   ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT:'أمر الشراء غير جاهز للاستلام بهذه الحالة',
+   ERP_PURCHASE_ORDER_SCOPE_INVALID:'أمر الشراء لا يتبع المؤسسة والفرع المحددين',
+   ERP_MEMBERSHIP_REQUIRED:'لا توجد عضوية فعالة في المؤسسة المحددة',
+   ERP_BRANCH_SCOPE_REQUIRED:'العملية خارج نطاق فرعك الحالي',
+   ERP_SCOPE_MISMATCH:'البيانات لا تطابق المؤسسة أو الفرع المحدد',
+   ERP_RECORD_NOT_FOUND:'السجل المطلوب غير موجود ضمن نطاقك',
+   ERP_DATA_LOAD_FAILED:'تعذر تحميل بيانات ERP من الخادم',
+   ERP_WAREHOUSE_SELECTION_INVALID:'اختر مخزنين مختلفين ونشطين',
+   ERP_WAREHOUSE_LOOKUP_FAILED:'تعذر التحقق من المخزن المحدد',
+   ERP_PRODUCT_LOOKUP_FAILED:'تعذر التحقق من المنتج المحدد',
+   ERP_OPENING_STOCK_FAILED:'تعذر إضافة الرصيد الافتتاحي',
+   OPENING_STOCK_ROLE_REQUIRED:'لا تملك صلاحية إضافة رصيد افتتاحي',
+   INVALID_OPENING_STOCK:'الكمية يجب أن تكون موجبة والتكلفة غير سالبة',
+   INVALID_OPENING_STOCK_REFERENCE:'أدخل مرجعًا صحيحًا للجرد الافتتاحي',
+   WAREHOUSE_INVALID:'المخزن غير نشط أو خارج نطاق المؤسسة',
+   PRODUCT_INVALID:'الصنف غير نشط أو خارج نطاق المؤسسة والفرع'
+  };
+  showToast(messages[code]||'تعذر تنفيذ عملية ERP. تحقق من الصلاحيات والاتصال ثم أعد المحاولة.','error');
+  return null;
+ }
+}
+function chooseERPRecord(table,label,format,excludeId,filterFn){
+ const rows=(live.moduleData?.ERP?.rows?.[table]||live.moduleData?.BUSINESS_ERP?.rows?.[table]||window.MNTYOperationsERPData?.[table]||[]).filter(row=>(!excludeId||(Array.isArray(excludeId)?!excludeId.some(id=>String(id)===String(row.id)):String(row.id)!==String(excludeId)))&&(!filterFn||filterFn(row)));
+ if(!rows.length){showToast('لا توجد سجلات متاحة في '+label+' ضمن المؤسسة والفرع الحاليين','error');return null;}
+ const menu=rows.map((row,i)=>String(i+1)+') '+format(row)+' ['+row.id+']').join('\n');
+ const answer=window.prompt('اختر '+label+' بكتابة الرقم من القائمة أو لصق المعرف:\n'+menu);
+ if(answer==null||!answer.trim())return null;
+ const value=answer.trim();
+ const index=Number(value);
+ if(Number.isInteger(index)&&index>=1&&index<=rows.length)return String(rows[index-1].id);
+ const match=rows.find(row=>String(row.id)===value);
+ if(match)return String(match.id);
+ showToast('الاختيار غير موجود في القائمة الحالية','error');return null;
+}
+function openERPSupplierForm(row=null){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('يجب اختيار مؤسسة فعالة قبل إدارة الموردين','error');
+ const editing=!!row;
+ const field=(id,label,value='',type='text',required=false)=>'<label class="field"><span>'+label+'</span><input id="'+id+'" name="'+id+'" type="'+type+'" value="'+esc(value??'')+'" '+(required?'required':'')+'></label>';
+ const overlay=document.createElement('div');
+ overlay.className='mx-modal';
+ overlay.innerHTML='<div class="mx-modal-card" role="dialog" aria-modal="true" aria-labelledby="mx-erp-supplier-title"><div class="section-head"><div><span class="eyebrow">ERP · SUPPLIERS</span><h2 id="mx-erp-supplier-title">'+(editing?'تعديل بيانات المورد':'إضافة مورد جديد')+'</h2><p>تُحفظ البيانات على الخادم داخل المؤسسة والفرع المحددين.</p></div><button type="button" class="text-btn mx-close-modal">إغلاق</button></div><form id="mx-erp-supplier-form"><div class="form-grid">'+
+ field('mx-erp-supplier-name','اسم المورد بالعربية',row?.name_ar||'','text',true)+
+ field('mx-erp-supplier-code','كود المورد',row?.supplier_code||'')+
+ field('mx-erp-supplier-name-en','اسم المورد بالإنجليزية',row?.name_en||'')+
+ field('mx-erp-supplier-contact','مسؤول التواصل',row?.contact_name||'')+
+ field('mx-erp-supplier-phone','الهاتف',row?.phone||'','tel')+
+ field('mx-erp-supplier-email','البريد الإلكتروني',row?.email||'','email')+
+ field('mx-erp-supplier-tax','الرقم الضريبي',row?.tax_number||'')+
+ field('mx-erp-supplier-terms','شروط السداد',row?.payment_terms||'')+
+ (editing?'<label class="field"><span>الحالة</span><select id="mx-erp-supplier-status" name="mx-erp-supplier-status"><option value="ACTIVE" '+(String(row.status||'').toUpperCase()==='ACTIVE'?'selected':'')+'>نشط</option><option value="INACTIVE" '+(String(row.status||'').toUpperCase()==='INACTIVE'?'selected':'')+'>غير نشط</option><option value="ARCHIVED" '+(String(row.status||'').toUpperCase()==='ARCHIVED'?'selected':'')+'>مؤرشف</option></select></label>':'')+
+ '<label class="field" style="grid-column:1/-1"><span>ملاحظات</span><textarea id="mx-erp-supplier-notes" name="mx-erp-supplier-notes" rows="3">'+esc(row?.notes||'')+'</textarea></label></div><div class="action-bar"><button type="submit" class="btn btn-primary" id="mx-erp-supplier-submit" style="width:auto">'+(editing?'حفظ التعديلات':'حفظ المورد')+'</button><button type="button" class="btn btn-outline mx-close-modal" style="width:auto">إلغاء</button></div><p class="muted" id="mx-erp-supplier-error" role="alert" aria-live="polite"></p></form></div>';
+ document.body.appendChild(overlay);
+ overlay.querySelectorAll('.mx-close-modal').forEach(button=>button.addEventListener('click',closeMxModal));
+ const form=overlay.querySelector('#mx-erp-supplier-form');
+ form?.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const submit=overlay.querySelector('#mx-erp-supplier-submit');
+  const errorBox=overlay.querySelector('#mx-erp-supplier-error');
+  const value=id=>String(overlay.querySelector('#'+id)?.value??'').trim();
+  const name=value('mx-erp-supplier-name');
+  const email=value('mx-erp-supplier-email');
+  if(!name){errorBox.textContent='اسم المورد مطلوب';return}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){errorBox.textContent='صيغة البريد الإلكتروني غير صحيحة';return}
+  const args={
+   p_tenant_id:live.tenantId,p_business_id:live.businessId,
+   p_branch_id:editing?(row.branch_id||null):(live.branchId||null),
+   p_supplier_code:value('mx-erp-supplier-code')||null,p_name_ar:name,
+   p_name_en:value('mx-erp-supplier-name-en')||null,
+   p_contact_name:value('mx-erp-supplier-contact')||null,
+   p_phone:value('mx-erp-supplier-phone')||null,p_email:email||null,
+   p_tax_number:value('mx-erp-supplier-tax')||null,
+   p_payment_terms:value('mx-erp-supplier-terms')||null,
+   p_notes:value('mx-erp-supplier-notes')||null
+  };
+  if(editing){args.p_id=String(row.id);args.p_status=value('mx-erp-supplier-status')||'ACTIVE'}
+  submit.disabled=true;submit.textContent='جارٍ الحفظ…';errorBox.textContent='';
+  try{
+   const result=await erpRpc(editing?'update_erp_supplier_backend':'create_erp_supplier_backend',args);
+   if(result){closeMxModal();showToast(editing?'تم تحديث المورد':'تم إنشاء المورد','success')}
+   else {submit.disabled=false;submit.textContent=editing?'حفظ التعديلات':'حفظ المورد';errorBox.textContent='لم يتم الحفظ. راجع الصلاحيات والاتصال ثم أعد المحاولة.'}
+  }catch(_){submit.disabled=false;submit.textContent=editing?'حفظ التعديلات':'حفظ المورد';errorBox.textContent='حدث خطأ غير متوقع أثناء الحفظ.'}
+ });
+ overlay.querySelector('#mx-erp-supplier-name')?.focus();
+}
+async function createERPSupplier(){return openERPSupplierForm()}
+async function editERPSupplier(id){
+ const rows=live.moduleData?.ERP?.rows?.erp_suppliers||live.moduleData?.BUSINESS_ERP?.rows?.erp_suppliers||window.MNTYOperationsERPData?.erp_suppliers||[];
+ const row=rows.find(item=>String(item.id)===String(id));
+ if(!row)return showToast('المورد غير موجود في البيانات المحملة ضمن نطاقك','error');
+ return openERPSupplierForm(row);
+}
+async function createPurchaseOrder(){
+ const orderNumber=window.prompt('رقم أمر الشراء');
+ if(!orderNumber?.trim())return;
+ const supplierId=chooseERPRecord('erp_suppliers','المورد النشط',r=>(r.name_ar||r.name_en||r.supplier_code||'مورد')+' — '+(r.supplier_code||r.phone||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE');
+ if(!supplierId)return;
+ const lines=[];
+ while(lines.length<100){
+  const productId=chooseERPRecord('catalog_items','الصنف النشط',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||r.item_type||''),lines.map(x=>x.product_id),r=>{
+   const status=String(r.status||'').toUpperCase();
+   const branch=String(r.branch_id||'');
+   return status==='ACTIVE'&&(!live.branchId?!branch:(!branch||branch===String(live.branchId)));
+  });
+  if(!productId)break;
+  const quantity=Number(window.prompt('الكمية المطلوبة للصنف','1'));
+  if(!Number.isFinite(quantity)||quantity<=0)return showToast('الكمية يجب أن تكون أكبر من صفر','error');
+  const unitCost=Number(window.prompt('تكلفة الوحدة بالجنيه','0'));
+  if(!Number.isFinite(unitCost)||unitCost<0)return showToast('تكلفة الوحدة غير صحيحة','error');
+  lines.push({product_id:productId,quantity,unit_cost:unitCost});
+  if(lines.length>=100||!window.confirm('تمت إضافة الصنف. هل تريد إضافة صنف آخر؟'))break;
+ }
+ if(!lines.length)return showToast('أضف صنفًا واحدًا على الأقل لإنشاء أمر الشراء','error');
+ const subtotal=lines.reduce((sum,line)=>sum+line.quantity*line.unit_cost,0);
+ const tax=Number(window.prompt('قيمة الضريبة بالجنيه','0'));
+ const discount=Number(window.prompt('قيمة الخصم بالجنيه','0'));
+ if([tax,discount].some(v=>!Number.isFinite(v)||v<0)||discount>subtotal+tax)return showToast('راجع قيمة الضريبة والخصم؛ الخصم لا يمكن أن يتجاوز الإجمالي','error');
+ const total=subtotal+tax-discount;
+ if(!window.confirm('إجمالي أمر الشراء المحسوب من الأصناف: '+total.toLocaleString('ar-EG',{maximumFractionDigits:2})+' ج.م. هل تريد الحفظ؟'))return;
+ return erpRpc('create_purchase_order_with_lines_backend',{
+  p_id:'po-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,
+  p_branch_id:live.branchId||null,p_order_number:orderNumber.trim(),p_supplier_id:supplierId,
+  p_tax_amount:tax,p_discount_amount:discount,p_reason:window.prompt('سبب أمر الشراء','')||null,
+  p_lines:lines
+ });
+}
 async function updatePurchaseOrderStatus(id,status){if(!id)return;return erpRpc('update_purchase_order_status_backend',{p_order_id:id,p_target_status:status})}
-async function receivePurchaseStock(){const purchaseOrderId=window.prompt('معرف أمر الشراء');if(!purchaseOrderId?.trim())return;const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;const warehouseId=window.prompt('معرف المخزن');if(!warehouseId?.trim())return;const productId=window.prompt('معرف المنتج');if(!productId?.trim())return;const qty=Number(window.prompt('الكمية المستلمة','1'));const unitCost=Number(window.prompt('تكلفة الوحدة','0'));if(!Number.isFinite(qty)||qty<=0||!Number.isFinite(unitCost)||unitCost<0)return showToast('بيانات الاستلام غير صحيحة','error');return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId.trim(),p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId.trim(),p_product_id:productId.trim(),p_received_quantity:qty,p_unit_cost:unitCost})}
-async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=window.prompt('معرف المخزن المصدر');const to=window.prompt('معرف المخزن الهدف');const product=window.prompt('معرف المنتج');const qty=Number(window.prompt('الكمية','1'));if(!from?.trim()||!to?.trim()||!product?.trim()||!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from.trim(),p_to_warehouse_id:to.trim(),p_product_id:product.trim(),p_quantity:qty})}
+async function receivePurchaseStock(preselectedOrderId){
+ const purchaseOrderId=preselectedOrderId||chooseERPRecord('erp_purchase_orders','أمر الشراء الجاهز للاستلام',r=>r.order_number+' — '+r.status,null,r=>['SUBMITTED','APPROVED','PARTIALLY_RECEIVED'].includes(String(r.status||'').toUpperCase()));
+ if(!purchaseOrderId)return;
+ const orderLines=live.moduleData?.ERP?.rows?.erp_purchase_order_lines||live.moduleData?.BUSINESS_ERP?.rows?.erp_purchase_order_lines||window.MNTYOperationsERPData?.erp_purchase_order_lines||[];
+ const eligibleLines=orderLines.filter(line=>String(line.purchase_order_id)===String(purchaseOrderId)&&Number(line.ordered_quantity||0)>Number(line.received_quantity||0));
+ if(!eligibleLines.length)return showToast('لا توجد بنود متبقية للاستلام في أمر الشراء المحدد','error');
+ const receiptNumber=window.prompt('رقم الاستلام');if(!receiptNumber?.trim())return;
+ const warehouseId=chooseERPRecord('warehouses','المخزن النشط',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE'&&(!live.branchId||String(r.branch_id||'')===String(live.branchId)));
+ if(!warehouseId)return;
+ const eligibleProductIds=eligibleLines.map(line=>String(line.product_id));
+ const productId=chooseERPRecord('catalog_items','صنف أمر الشراء',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||''),null,r=>eligibleProductIds.includes(String(r.id)));
+ if(!productId)return;
+ const line=eligibleLines.find(item=>String(item.product_id)===String(productId));
+ const remaining=Number(line.ordered_quantity||0)-Number(line.received_quantity||0);
+ const qty=Number(window.prompt('الكمية المستلمة (المتبقي '+remaining+')',String(remaining)));
+ if(!Number.isFinite(qty)||qty<=0||qty>remaining)return showToast('الكمية يجب أن تكون أكبر من صفر ولا تتجاوز المتبقي في أمر الشراء','error');
+ return erpRpc('receive_purchase_stock_backend',{p_id:'rcv-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_purchase_order_id:purchaseOrderId,p_receipt_number:receiptNumber.trim(),p_warehouse_id:warehouseId,p_product_id:productId,p_received_quantity:qty,p_unit_cost:Number(line.unit_cost||0)});
+}
+async function initializeOpeningStock(){
+ if(!user?.id)return authView();
+ if(!live.tenantId||!live.businessId)return showToast('اختر مؤسسة فعالة قبل تسجيل الرصيد الافتتاحي','error');
+ const warehouseId=chooseERPRecord('warehouses','المخزن النشط',r=>(r.name||r.code||'مخزن')+' — '+(r.code||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE'&&(!live.branchId||String(r.branch_id||'')===String(live.branchId)));
+ if(!warehouseId)return;
+ const productId=chooseERPRecord('catalog_items','الصنف النشط',r=>(r.name_ar||r.name_en||r.sku||'صنف')+' — '+(r.sku||''),null,r=>String(r.status||'').toUpperCase()==='ACTIVE'&&(!live.branchId||!r.branch_id||String(r.branch_id)===String(live.branchId)));
+ if(!productId)return;
+ const quantity=Number(window.prompt('كمية الرصيد الافتتاحي','1'));
+ if(!Number.isFinite(quantity)||quantity<=0)return showToast('الكمية يجب أن تكون أكبر من صفر','error');
+ const unitCost=Number(window.prompt('تكلفة الوحدة بالجنيه','0'));
+ if(!Number.isFinite(unitCost)||unitCost<0)return showToast('تكلفة الوحدة غير صحيحة','error');
+ const reference=window.prompt('مرجع الرصيد الافتتاحي (مثال OPEN-2026-001)');
+ if(!reference?.trim())return showToast('مرجع الرصيد الافتتاحي مطلوب','error');
+ return erpRpc('initialize_opening_stock_backend',{p_tenant_id:live.tenantId,p_business_id:live.businessId,p_warehouse_id:warehouseId,p_product_id:productId,p_quantity:quantity,p_unit_cost:unitCost,p_reference_id:reference.trim()});
+}
+async function createStockTransfer(){const transferNumber=window.prompt('رقم التحويل');if(!transferNumber?.trim())return;const from=chooseERPRecord('warehouses','المخزن المصدر',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''));if(!from)return;const to=chooseERPRecord('warehouses','المخزن الهدف',r=>(r.name||r.code||'مخزن')+' — '+(r.status||''),from);if(!to)return;const product=chooseERPRecord('catalog_items','المنتج',r=>(r.name_ar||r.name_en||r.sku||'منتج')+' — '+(r.sku||''));if(!product)return;const qty=Number(window.prompt('الكمية','1'));if(!Number.isFinite(qty)||qty<=0)return showToast('بيانات التحويل غير صحيحة','error');return erpRpc('create_stock_transfer_backend',{p_id:'tr-'+crypto.randomUUID(),p_tenant_id:live.tenantId,p_business_id:live.businessId,p_transfer_number:transferNumber.trim(),p_from_warehouse_id:from,p_to_warehouse_id:to,p_product_id:product,p_quantity:qty})}
 async function updateStockTransferStatus(id,status){if(!id)return;return erpRpc('update_stock_transfer_status_backend',{p_transfer_id:id,p_target_status:status})}
 async function receiveStockTransfer(id){if(!id)return;return erpRpc('receive_stock_transfer_backend',{p_transfer_id:id})}
 const AD_BOOKING_LABELS={QUARTERLY:'ربع سنوي (3 أشهر)',HALF_YEARLY:'نصف سنوي (6 أشهر)',ANNUAL:'سنوي (12 شهرًا)'};
@@ -1528,8 +2121,13 @@ function orderActions(order){
 const ORDER_STATUS_AR={PENDING:'قيد الانتظار',CREATED:'تم الإنشاء',CONFIRMED:'تم التأكيد',PREPARING:'جاري التجهيز',OUT_FOR_DELIVERY:'في الطريق',DELIVERED:'تم التسليم',CANCELLED:'ملغي',FAILED:'فشل',EXPIRED:'منتهي'};
 function orderStatusLabel(s){const k=String(s||'').toUpperCase();return ORDER_STATUS_AR[k]||k||'غير محدد'}
 function orderStatusClass(s){return 'mx-order-status mx-order-status-'+String(s||'').toLowerCase().replace(/[^a-z_]+/g,'-')}
-function openOrderDetails(orderId){
+async function openOrderDetails(orderId){
  if(!user?.id||!orderId)return authView();const r=(live.records.orders||[]).find(x=>String(x.id)===String(orderId));if(!r)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
+ let cashPaymentInfo=null;try{cashPaymentInfo=await invokeMntyApi('/api/v1/orders/'+encodeURIComponent(r.id)+'/cash-payment')}catch(_){}
+ const cashIntent=cashPaymentInfo?.paymentIntent||null,role=String(live.role||'').toUpperCase(),permissions=live.permissions||{};
+ const hasCashConfirmPermission=permissions.PAYMENT_CONFIRM_CASH===true||(Array.isArray(permissions)&&permissions.includes('PAYMENT_CONFIRM_CASH'));
+ const canConfirmCash=Boolean(cashIntent&&['CREATED','PENDING'].includes(String(cashIntent.status||'').toUpperCase())&&(['ADMIN','MANAGER','CASHIER','STAFF','OWNER'].includes(role)||hasCashConfirmPermission)&&(!live.businessId||String(r.business_id)===String(live.businessId)));
+ const cashPaymentHtml=cashIntent?'<div class="mx-record-kv-grid"><div><span>طريقة الدفع</span><b>نقدًا عند الاستلام</b></div><div><span>حالة التحصيل</span><b>'+esc(String(cashIntent.status||'—').toUpperCase()==='SUCCEEDED'?'تم تأكيد استلام النقد':cashIntent.status||'—')+'</b></div><div><span>المبلغ</span><b>'+esc(cashIntent.amount??r.total_amount??'—')+' '+esc(cashIntent.currency||r.currency||'EGP')+'</b></div></div>'+(canConfirmCash?'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="confirmCashPayment(\''+esc(cashIntent.id)+'\',\''+esc(r.id)+'\')">تأكيد استلام النقد</button></div>':''):'<div class="notice">لا يوجد سجل دفع نقدي مرتبط بهذا الطلب. لا يمكن تأكيد التحصيل من الواجهة دون سجل دفع معتمد.</div>';
  const items=Array.isArray(r.items)?r.items:[],history=(live.records.orderHistory||[]).filter(x=>String(x.order_id)===String(r.id)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
  const itemText=items.length?items.map(x=>'<li><span>'+esc(x.name_ar||x.name||x.title||x.item_id||'صنف')+'</span><b>× '+esc(x.quantity??1)+'</b></li>').join(''):'<li><span>لا توجد تفاصيل أصناف محملة</span><b>—</b></li>';
  const timeline=history.length?history.map(x=>'<div class="mx-order-timeline__item"><span class="mx-order-timeline__dot"></span><div><b>'+esc(orderStatusLabel(x.new_status))+'</b><p>'+esc(x.reason||'تحديث حالة الطلب')+'</p><small>'+esc(x.created_at?new Date(x.created_at).toLocaleString('ar-EG'):'—')+'</small></div></div>').join(''):'<div class="mnty-screen-note">لا يوجد سجل انتقالات محمل لهذا الطلب.</div>';
@@ -1537,8 +2135,21 @@ function openOrderDetails(orderId){
  openUnifiedRecordDetails({kicker:'ORDER DETAILS',title:'طلب '+String(r.id).slice(0,8),desc:'التفاصيل المتاحة من سجل الطلب الحالي فقط.',sections:[
  {title:'البيانات الأساسية',html:'<div class="mx-record-kv-grid"><div><span>الحالة الحالية</span><b><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span></b></div><div><span>الإجمالي</span><b>'+esc(total)+'</b></div><div><span>العميل</span><b>'+esc(r.customer_name||'—')+'</b></div><div><span>تاريخ الإنشاء</span><b>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</b></div><div><span>الهاتف</span><b>'+esc(r.customer_phone||r.phone||'غير متاح')+'</b></div><div><span>العنوان</span><b>'+esc(r.delivery_address||r.address||'غير متاح')+'</b></div></div>'},
  {kicker:'ITEMS',title:'محتويات الطلب',badge:String(items.length||0),html:'<ul class="mx-order-items">'+itemText+'</ul>'},
- {kicker:'TIMELINE',title:'تسلسل الحالة',html:'<div class="mx-order-timeline">'+timeline+'</div>'}],actions:orderActions(r)});
+ {kicker:'TIMELINE',title:'تسلسل الحالة',html:'<div class="mx-order-timeline">'+timeline+'</div>'},{kicker:'CASH_PAYMENT',title:'الدفع والتحصيل النقدي',html:cashPaymentHtml}],actions:orderActions(r)});
 }
+
+
+async function confirmCashPayment(intentId,orderId){
+ if(!user?.id||!intentId||!orderId)return authView();
+ if(!window.confirm('هل تؤكد أنك استلمت قيمة هذا الطلب نقدًا بالفعل؟ لا تؤكد إلا بعد استلام المبلغ.'))return;
+ try{
+  const result=await invokeMntyApi('/api/v1/payments/'+encodeURIComponent(intentId)+'/cash/confirm',{method:'POST',body:{}});
+  if(String(result?.status||'').toLowerCase()!=='success')throw new Error('CASH_CONFIRMATION_NOT_VERIFIED');
+  showToast('تم تأكيد استلام النقد وتسجيل قيد العمولة حسب قاعدة المؤسسة.','success');
+  await loadLiveData();await renderApp();await openOrderDetails(orderId);
+ }catch(e){showToast('تعذر تأكيد استلام النقد: '+(e?.message||'CASH_CONFIRMATION_FAILED'),'error')}
+}
+window.confirmCashPayment=confirmCashPayment;
 
 function orderCards(){
  const rows=live.records.orders||[];
@@ -1766,8 +2377,55 @@ function cartView(){
  overlay.querySelector('.mx-close-modal')?.addEventListener('click',close);
  overlay.querySelectorAll('[data-cart-remove]').forEach(b=>b.addEventListener('click',()=>{const next=getMntiCart();next.splice(Number(b.dataset.cartRemove),1);setMntiCart(next);close();cartView()}));
  overlay.querySelector('#mx-cart-clear')?.addEventListener('click',()=>{setMntiCart([]);close();cartView()});
- overlay.querySelector('#mx-cart-checkout')?.addEventListener('click',()=>showToast('اختَر الخدمة من الكتالوج لبدء الطلب والدفع الآمن.','success'));
+ overlay.querySelector('#mx-cart-checkout')?.addEventListener('click',()=>{close();openCashCheckout(items)});
 }
+
+function cashCheckoutAttempt(fingerprint){
+ try{const saved=JSON.parse(sessionStorage.getItem('MNTY_CASH_CHECKOUT_ATTEMPT')||'null');if(saved&&saved.fingerprint===fingerprint&&saved.orderId&&saved.orderKey&&saved.paymentKey)return saved}catch(_){}
+ const attempt={fingerprint,orderId:crypto.randomUUID(),orderKey:crypto.randomUUID(),paymentKey:crypto.randomUUID()};
+ try{sessionStorage.setItem('MNTY_CASH_CHECKOUT_ATTEMPT',JSON.stringify(attempt))}catch(_){}
+ return attempt;
+}
+async function openCashCheckout(items=getMntiCart()){
+ if(!user?.id)return authView();
+ if(!Array.isArray(items)||!items.length)return showToast('السلة فارغة.','error');
+ const businessIds=[...new Set(items.map(x=>String(x.businessId||'')))],branchIds=[...new Set(items.map(x=>String(x.branchId||'')))];
+ if(businessIds.length!==1||!businessIds[0]||branchIds.length!==1)return showToast('كل طلب يجب أن يكون من نشاط وفرع واحد. أتمم كل نشاط أو فرع في طلب مستقل.','error');
+ if(items.some(x=>!x.itemId||!Number.isInteger(Number(x.quantity))||Number(x.quantity)<1||Number(x.quantity)>10000))return showToast('توجد خدمة غير صالحة في السلة. احذفها وأضفها من الكتالوج مرة أخرى.','error');
+ const businessId=businessIds[0],branchId=branchIds[0]||null;
+ const fingerprint=JSON.stringify(items.map(x=>({businessId:String(x.businessId),branchId:String(x.branchId||''),itemId:String(x.itemId),quantity:Math.max(1,Number(x.quantity)||1)})).sort((a,b)=>a.itemId.localeCompare(b.itemId)));
+ const attempt=cashCheckoutAttempt(fingerprint),overlay=document.createElement('div');overlay.className='mx-modal';
+ const defaultName=String(user.user_metadata?.full_name||user.user_metadata?.name||''),defaultPhone=String(user.user_metadata?.phone||'');
+ overlay.innerHTML='<div class="mx-modal-card" dir="rtl"><div class="section-head"><div><span class="eyebrow">CASH-ONLY LAUNCH</span><h2>تأكيد الطلب والدفع النقدي</h2><p>الدفع نقدًا عند الاستلام فقط في مرحلة الإطلاق الحالية.</p></div><button type="button" class="text-btn" id="mx-cash-close">إغلاق</button></div><div class="notice">السعر النهائي والعملة يُحددان من الكتالوج المعتمد على الخادم. لن يتم تحصيل أي مبلغ إلكتروني هنا.</div><label class="field"><span>الاسم بالكامل *</span><input id="mx-cash-name" maxlength="160" required autocomplete="name" value="'+esc(defaultName)+'"></label><label class="field"><span>رقم الهاتف *</span><input id="mx-cash-phone" maxlength="24" required autocomplete="tel" inputmode="tel" value="'+esc(defaultPhone)+'"></label><label class="field"><span>عنوان الاستلام أو التوصيل *</span><textarea id="mx-cash-address" maxlength="500" required autocomplete="street-address" rows="3"></textarea></label><label class="field"><span>ملاحظات (اختياري)</span><textarea id="mx-cash-notes" maxlength="500" rows="2"></textarea></label><div class="action-bar"><button type="button" class="btn btn-primary" id="mx-cash-submit">تأكيد الطلب نقدًا</button><button type="button" class="btn btn-outline" id="mx-cash-cancel">إلغاء</button></div><p class="muted" style="font-size:12px">تأكيد استلام النقد لاحقًا محصور في الأدوار التشغيلية المخولة ولا يستطيع العميل تأكيد استلامه بنفسه.</p></div>';
+ document.body.appendChild(overlay);
+ const close=()=>overlay.remove();overlay.querySelector('#mx-cash-close').onclick=close;overlay.querySelector('#mx-cash-cancel').onclick=close;
+ overlay.querySelector('#mx-cash-submit').onclick=async()=>{
+  const submit=overlay.querySelector('#mx-cash-submit');if(submit.disabled)return;
+  const customerName=overlay.querySelector('#mx-cash-name').value.trim(),customerPhone=overlay.querySelector('#mx-cash-phone').value.trim(),deliveryAddress=overlay.querySelector('#mx-cash-address').value.trim(),notes=overlay.querySelector('#mx-cash-notes').value.trim();
+  if(customerName.length<2)return showToast('اكتب الاسم بالكامل.','error');
+  if(!/^[+0-9() -]{7,24}$/.test(customerPhone))return showToast('راجع رقم الهاتف.','error');
+  if(deliveryAddress.length<5)return showToast('اكتب عنوان الاستلام أو التوصيل بالتفصيل.','error');
+  submit.disabled=true;submit.textContent='جارٍ التحقق وتسجيل الطلب...';
+  try{
+   const query=new URLSearchParams({businessId});if(branchId)query.set('branchId',branchId);
+   const catalog=await invokeMntyApi('/api/v1/catalog?'+query.toString());
+   if(!catalog?.tenantId||String(catalog.businessId)!==businessId)throw new Error('تعذر التحقق من النشاط أو المؤسسة');
+   const available=new Map((catalog.items||[]).map(x=>[String(x.id),x]));
+   const orderItems=items.map(x=>({catalogItemId:String(x.itemId),quantity:Math.max(1,Number(x.quantity)||1),selectedOptionIds:[]}));
+   for(const item of orderItems){const c=available.get(item.catalogItemId);if(!c)throw new Error('إحدى الخدمات لم تعد متاحة. حدّث الكتالوج ثم حاول مرة أخرى.');if(branchId?Boolean(c.branch_id&&String(c.branch_id)!==branchId):Boolean(c.branch_id))throw new Error('إحدى الخدمات تخص فرعًا مختلفًا. أنشئ طلبًا منفصلًا لهذا الفرع.');}
+   const order=await invokeMntyApi('/api/v1/orders',{method:'POST',body:{orderId:attempt.orderId,tenantId:String(catalog.tenantId),businessId,branchId,clientIdempotencyKey:attempt.orderKey,currency:'EGP',customerName,customerPhone,deliveryAddress,notes,paymentMethod:'CASH_ON_DELIVERY',items:orderItems}});
+   if(!order?.id)throw new Error('لم يرجع الخادم رقم طلب صالحًا');
+   const payment=await invokeMntyApi('/api/v1/payments/intents',{method:'POST',body:{orderId:String(order.id),provider:'CASH_ON_DELIVERY',idempotencyKey:attempt.paymentKey}});
+   if(!payment?.id||payment.provider!=='CASH_ON_DELIVERY')throw new Error('تعذر تثبيت اختيار الدفع النقدي');
+   setMntiCart([]);try{sessionStorage.removeItem('MNTY_CASH_CHECKOUT_ATTEMPT')}catch(_){}
+   overlay.innerHTML='<div class="mx-modal-card" dir="rtl"><div class="section-head"><div><span class="eyebrow">ORDER CREATED</span><h2>تم تسجيل طلبك</h2><p>طريقة الدفع: نقدًا عند الاستلام</p></div></div><div class="notice"><b>رقم الطلب:</b> '+esc(order.id)+'<br><b>الإجمالي المعتمد:</b> '+esc(order.total_amount??payment.amount??'—')+' '+esc(order.currency||payment.currency||'EGP')+'<br><b>حالة الدفع:</b> مستحق نقدًا — لم يتم تحصيل مبلغ الآن.</div><div class="action-bar"><button type="button" class="btn btn-primary" id="mx-cash-done">متابعة</button></div></div>';
+   overlay.querySelector('#mx-cash-done').onclick=()=>{close();showToast('تم تسجيل الطلب بالدفع النقدي عند الاستلام.','success');renderApp()};
+  }catch(e){submit.disabled=false;submit.textContent='إعادة المحاولة بنفس الطلب';showToast(e?.message||'تعذر إكمال الطلب النقدي. يمكنك إعادة المحاولة بأمان.','error')}
+ };
+ overlay.querySelector('#mx-cash-name')?.focus();
+}
+window.openCashCheckout=openCashCheckout;
+
 window.cartView=cartView;
 function addToMntiCart(item,price,providerName,businessId,branchId){
  const items=getMntiCart();
@@ -1803,6 +2461,7 @@ async function walletView(){
 window.walletView=walletView;
 
 async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
+ if(MNTY_LAUNCH_SCOPE.electronicPaymentsDeferred){showToast('شراء الصفحات الرقمية المدفوعة مؤجل لما بعد الإطلاق لأن مسار الدفع النقدي لهذه الخدمة لم يجتز التحقق بعد.','error');return;}
  const type=String(pageType||'PORTFOLIO').toUpperCase();
  if(!['PORTFOLIO','MENU'].includes(type))return;
  const {data:products,error}=await sb.from('digital_page_products').select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features').eq('page_type',type).eq('active',true).order('price',{ascending:true});
@@ -2223,7 +2882,7 @@ try{
    localStorage.removeItem('MNTYWorkspaceCurrent');
  }
 }catch(_){}
-if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}if(current==='التسويق والإعلان')await loadMarketingCampaignData();await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
+if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}if(current==='التسويق والإعلان')await loadMarketingCampaignData();await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','الأطباء والعيادات','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
  if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();bindMarketingAgencyWorkspace();bindMarketingCampaignWorkspace();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
  const gsi=document.getElementById('mx-global-search-input'),gso=document.getElementById('mx-global-search-results');let globalSearchTimer=null,globalSearchSeq=0;
  const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');const results=await globalSearch(value);if(seq!==globalSearchSeq)return;gso.innerHTML=globalSearchResultHtml(results);gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];if(hit?.source?.route)selectModule(hit.source.route);gso.classList.remove('is-open')}))};
@@ -2232,8 +2891,15 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
+window.MNTYOperationsERPData=null;
+live.moduleData={};
+if(window.MNTYMedicalRealtimeChannel){sb.removeChannel(window.MNTYMedicalRealtimeChannel);window.MNTYMedicalRealtimeChannel=null;}
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';
 window.MXHomeLanding?MXHomeLanding():landingView();return;
+}
+if(session?.user&&String(user?.id||'')!==String(session.user.id)){
+ window.MNTYOperationsERPData=null;
+ live.moduleData={};
 }
 if(session?.user&&!authRenderLock)enterAuthenticatedApp(session.user);
 });

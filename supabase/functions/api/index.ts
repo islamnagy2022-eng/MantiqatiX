@@ -41,6 +41,392 @@ serve(async (req) => {
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
   if (authError || !user || user.is_anonymous) return json({ error: "Unauthorized" }, 401)
 
+  if (req.method === "POST" && path === "/api/v1/accounting/ledger") {
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_REQUEST" }, 400)
+    const tenantId = String(body.tenantId ?? "").trim()
+    const businessId = String(body.businessId ?? "").trim()
+    const branchId = body.branchId ? String(body.branchId).trim() : ""
+    if (!tenantId || !businessId) return json({ error: "ACCOUNTING_SCOPE_REQUIRED" }, 400)
+
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,business_id,branch_id").eq("user_id", user.id).eq("tenant_id", tenantId)
+      .eq("business_id", businessId).eq("status", "ACTIVE")
+    if (membershipError) {
+      console.error("[accounting-ledger] membership lookup failed", { code: membershipError.code })
+      return json({ error: "ACCOUNTING_MEMBERSHIP_LOOKUP_FAILED" }, 500)
+    }
+    const roles = ["OWNER","BUSINESS_OWNER","ADMIN","MANAGER","ACCOUNTANT","FINANCE","FINANCE_MANAGER"]
+    const membership = (memberships ?? []).find((row) => {
+      const role = String(row.role ?? "").toUpperCase()
+      if (!roles.includes(role)) return false
+      return !row.branch_id || (branchId ? String(row.branch_id) === branchId : false)
+    })
+    if (!membership) return json({ error: branchId ? "ACCOUNTING_BRANCH_SCOPE_REQUIRED" : "ACCOUNTING_MEMBERSHIP_REQUIRED" }, 403)
+
+    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
+      .select("id,tenant_id,name,code,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle()
+    if (businessError) return json({ error: "ACCOUNTING_BUSINESS_LOOKUP_FAILED" }, 500)
+    if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ACCOUNTING_BUSINESS_SCOPE_INVALID" }, 403)
+    if (branchId) {
+      const { data: branch, error: branchError } = await supabaseAdmin.from("branches")
+        .select("id").eq("id", branchId).eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (branchError) return json({ error: "ACCOUNTING_BRANCH_LOOKUP_FAILED" }, 500)
+      if (!branch) return json({ error: "ACCOUNTING_BRANCH_SCOPE_INVALID" }, 403)
+    }
+
+    let entriesQuery = supabaseAdmin.from("journal_entries").select("id,tenant_id,organization_id,business_id,branch_id,reference_type,reference_id,description,status,entry_date,created_by,created_at")
+      .eq("tenant_id", tenantId).eq("business_id", businessId).limit(500).order("entry_date", { ascending: false })
+    if (branchId) entriesQuery = entriesQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`)
+    const [accountsRes, entriesRes] = await Promise.all([
+      supabaseAdmin.from("chart_of_accounts").select("id,tenant_id,account_code,account_name,account_type,is_active,created_at")
+        .eq("tenant_id", tenantId).limit(500).order("account_code", { ascending: true }),
+      entriesQuery
+    ])
+    if (accountsRes.error || entriesRes.error) {
+      console.error("[accounting-ledger] base query failed", { accounts: !!accountsRes.error, entries: !!entriesRes.error })
+      return json({ error: "ACCOUNTING_DATA_LOAD_FAILED" }, 500)
+    }
+    const entries = entriesRes.data ?? []
+    const entryIds = entries.map((entry) => String(entry.id)).filter(Boolean)
+    let lines: Record<string, unknown>[] = []
+    let ledger: Record<string, unknown>[] = []
+    if (entryIds.length) {
+      const [linesRes, ledgerRes] = await Promise.all([
+        supabaseAdmin.from("journal_entry_lines").select("id,journal_entry_id,account_id,debit,credit,description")
+          .in("journal_entry_id", entryIds).limit(2000),
+        supabaseAdmin.from("general_ledger").select("id,tenant_id,business_id,journal_entry_id,journal_line_id,account_id,debit,credit,running_balance,entry_date,posted_at")
+          .eq("tenant_id", tenantId).eq("business_id", businessId).in("journal_entry_id", entryIds)
+          .limit(2000).order("posted_at", { ascending: false })
+      ])
+      if (linesRes.error || ledgerRes.error) {
+        console.error("[accounting-ledger] protected detail query failed", { lines: !!linesRes.error, ledger: !!ledgerRes.error })
+        return json({ error: "ACCOUNTING_DATA_LOAD_FAILED" }, 500)
+      }
+      lines = linesRes.data ?? []
+      ledger = ledgerRes.data ?? []
+    }
+    return json({ success: true, accounts: accountsRes.data ?? [], entries, lines, ledger })
+  }
+
+  if (req.method === "POST" && path === "/api/v1/erp/runtime") {
+    const body = await req.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "INVALID_REQUEST" }, 400)
+    const operation = String(body.operation ?? "")
+    const tenantId = String(body.tenantId ?? "").trim()
+    const businessId = String(body.businessId ?? "").trim()
+    const branchId = body.branchId ? String(body.branchId).trim() : ""
+    if (!tenantId || !businessId) return json({ error: "ERP_SCOPE_REQUIRED" }, 400)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidPattern.test(businessId) || (branchId && !uuidPattern.test(branchId))) {
+      return json({ error: "ERP_SCOPE_INVALID" }, 400)
+    }
+
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,business_id,branch_id").eq("user_id", user.id).eq("tenant_id", tenantId)
+      .eq("business_id", businessId).eq("status", "ACTIVE")
+    if (membershipError) {
+      console.error("[erp-runtime] membership lookup failed", { code: membershipError.code })
+      return json({ error: "ERP_MEMBERSHIP_LOOKUP_FAILED" }, 500)
+    }
+    const roles = ["OWNER","BUSINESS_OWNER","ADMIN","MANAGER","EMPLOYEE","STAFF","ACCOUNTANT","FINANCE_MANAGER","FINANCE"]
+    const membership = (memberships ?? []).find((row) => {
+      const role = String(row.role ?? "").toUpperCase()
+      if (!roles.includes(role)) return false
+      if (!branchId) return !row.branch_id || (["OWNER","BUSINESS_OWNER","ADMIN"].includes(role) && !row.branch_id)
+      return !row.branch_id || String(row.branch_id) === branchId || (["OWNER","BUSINESS_OWNER","ADMIN"].includes(role) && !row.branch_id)
+    })
+    if (!membership) return json({ error: branchId ? "ERP_BRANCH_SCOPE_REQUIRED" : "ERP_MEMBERSHIP_REQUIRED" }, 403)
+    const role = String(membership.role ?? "").toUpperCase()
+    const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
+      .select("id,tenant_id,status").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle()
+    if (businessError) return json({ error: "ERP_BUSINESS_LOOKUP_FAILED" }, 500)
+    if (!business || String(business.status ?? "").toUpperCase() !== "ACTIVE") return json({ error: "ERP_BUSINESS_SCOPE_INVALID" }, 403)
+    if (branchId) {
+      const { data: branch, error: branchError } = await supabaseAdmin.from("branches")
+        .select("id").eq("id", branchId).eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (branchError) return json({ error: "ERP_BRANCH_LOOKUP_FAILED" }, 500)
+      if (!branch) return json({ error: "ERP_BRANCH_SCOPE_INVALID" }, 403)
+    }
+
+    if (operation === "list") {
+      let warehouseQuery = supabaseAdmin.from("warehouses").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("name", { ascending: true })
+      if (branchId) warehouseQuery = warehouseQuery.eq("branch_id", branchId)
+      let branchesQuery = supabaseAdmin.from("branches").select("id,tenant_id,business_id,name,code,status").eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").limit(100).order("name", { ascending: true })
+      if (branchId) branchesQuery = branchesQuery.eq("id", branchId)
+      const [{ data: warehousesData, error: warehousesError }, { data: branchesData, error: branchesError }] = await Promise.all([warehouseQuery, branchesQuery])
+      if (warehousesError || branchesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const supplierBase = () => supabaseAdmin.from("erp_suppliers").select("*")
+        .eq("tenant_id", tenantId).eq("business_id", businessId)
+        .limit(300).order("name_ar", { ascending: true })
+      const [globalSuppliersRes, branchSuppliersRes] = branchId
+        ? await Promise.all([supplierBase().is("branch_id", null), supplierBase().eq("branch_id", branchId)])
+        : [await supplierBase(), { data: [], error: null }]
+      if (globalSuppliersRes.error || branchSuppliersRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const suppliersData = [...new Map([...(globalSuppliersRes.data ?? []), ...(branchSuppliersRes.data ?? [])].map((row) => [String(row.id), row])).values()]
+      const warehouseIds = (warehousesData ?? []).map((row) => String(row.id))
+      let ordersQuery = supabaseAdmin.from("erp_purchase_orders").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
+      if (branchId) ordersQuery = ordersQuery.eq("branch_id", branchId)
+      let receiptsQuery = supabaseAdmin.from("erp_purchase_receipts").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
+      if (branchId) receiptsQuery = warehouseIds.length ? receiptsQuery.in("warehouse_id", warehouseIds) : receiptsQuery.in("warehouse_id", ["00000000-0000-0000-0000-000000000000"])
+      const productsBase = () => supabaseAdmin.from("catalog_items").select("*")
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
+        .limit(200).order("name_ar", { ascending: true })
+      const [globalProductsRes, branchProductsRes] = branchId
+        ? await Promise.all([productsBase().is("branch_id", null), productsBase().eq("branch_id", branchId)])
+        : [await productsBase(), { data: [], error: null }]
+      if (globalProductsRes.error || branchProductsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const productsData = [...new Map([...(globalProductsRes.data ?? []), ...(branchProductsRes.data ?? [])].map((row) => [String(row.id), row])).values()]
+      let balancesQuery = supabaseAdmin.from("stock_balances").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(300).order("updated_at", { ascending: false })
+      let transactionsQuery = supabaseAdmin.from("inventory_transactions").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(300).order("created_at", { ascending: false })
+      if (branchId) {
+        balancesQuery = balancesQuery.eq("branch_id", branchId)
+        transactionsQuery = transactionsQuery.eq("branch_id", branchId)
+      }
+      const [ordersRes, receiptsRes, balancesRes, transactionsRes] = await Promise.all([ordersQuery, receiptsQuery, balancesQuery, transactionsQuery])
+      let orderLinesData: Record<string, unknown>[] = []
+      if ((ordersRes.data ?? []).length) {
+        const { data: orderLines, error: orderLinesError } = await supabaseAdmin.from("erp_purchase_order_lines")
+          .select("*").eq("tenant_id", tenantId).eq("business_id", businessId)
+          .in("purchase_order_id", (ordersRes.data ?? []).map((row) => String(row.id)))
+          .limit(1000).order("created_at", { ascending: true })
+        if (orderLinesError) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+        orderLinesData = orderLines ?? []
+      }
+      let transfers = []
+      if (!branchId) {
+        const { data, error } = await supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).limit(100).order("created_at", { ascending: false })
+        if (error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+        transfers = data ?? []
+      } else if (warehouseIds.length) {
+        const [fromRes, toRes] = await Promise.all([
+          supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).in("from_warehouse_id", warehouseIds).limit(100).order("created_at", { ascending: false }),
+          supabaseAdmin.from("erp_stock_transfers").select("*").eq("tenant_id", tenantId).eq("business_id", businessId).in("to_warehouse_id", warehouseIds).limit(100).order("created_at", { ascending: false })
+        ])
+        if (fromRes.error || toRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+        transfers = [...new Map([...(fromRes.data ?? []), ...(toRes.data ?? [])].map((row) => [String(row.id), row])).values()]
+      }
+      if (ordersRes.error || receiptsRes.error || balancesRes.error || transactionsRes.error) return json({ error: "ERP_DATA_LOAD_FAILED" }, 500)
+      const safeRows = (rows: Record<string, unknown>[] | null | undefined, fields: string[]): Record<string, unknown>[] => (rows ?? []).map((row: Record<string, unknown>) => Object.fromEntries(fields.filter((field: string) => Object.prototype.hasOwnProperty.call(row, field)).map((field: string) => [field, row[field]])))
+      return json({
+        success: true,
+        businesses: [{ id: business.id, tenant_id: business.tenant_id, name: business.name, code: business.code, status: business.status }],
+        orders: safeRows(ordersRes.data, ["id","tenant_id","business_id","branch_id","order_number","supplier_id","total_amount","tax_amount","discount_amount","status","reason","created_at","updated_at"]),
+        order_lines: safeRows(orderLinesData, ["id","tenant_id","business_id","purchase_order_id","product_id","ordered_quantity","received_quantity","unit_cost","line_total","created_at","updated_at"]),
+        receipts: safeRows(receiptsRes.data, ["id","tenant_id","business_id","purchase_order_id","receipt_number","warehouse_id","product_id","received_quantity","unit_cost","status","created_at"]),
+        transfers: safeRows(transfers, ["id","tenant_id","business_id","transfer_number","from_warehouse_id","to_warehouse_id","product_id","quantity","status","created_at","updated_at"]),
+        warehouses: safeRows(warehousesData, ["id","tenant_id","business_id","branch_id","name","code","status"]),
+        branches: safeRows(branchesData, ["id","tenant_id","business_id","name","code","status"]),
+        catalog_items: safeRows(productsData, ["id","tenant_id","business_id","branch_id","name_ar","name_en","sku","item_type","status","tax_rate"]),
+        stock_balances: safeRows(balancesRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","quantity_on_hand","quantity_reserved","updated_at"]),
+        inventory_transactions: safeRows(transactionsRes.data, ["id","tenant_id","business_id","branch_id","warehouse_id","product_id","transaction_type","quantity","unit_cost","reference_id","created_by","created_at"]),
+        suppliers: safeRows(suppliersData, ["id","tenant_id","business_id","branch_id","supplier_code","name_ar","name_en","contact_name","phone","email","tax_number","payment_terms","notes","status","created_at","updated_at"])
+      })
+    }
+
+    if (operation !== "mutate") return json({ error: "INVALID_OPERATION" }, 400)
+    const action = String(body.action ?? "")
+    const allowedOperations = new Set(["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","update_purchase_order_status","receive_purchase_stock","create_stock_transfer","update_stock_transfer_status","receive_stock_transfer","initialize_opening_stock"])
+    if (!allowedOperations.has(action)) return json({ error: "ERP_OPERATION_NOT_ALLOWED" }, 400)
+    const args = body.arguments
+    if (!args || typeof args !== "object" || Array.isArray(args)) return json({ error: "INVALID_ARGUMENTS" }, 400)
+    const scopeMismatch = () => json({ error: "ERP_SCOPE_MISMATCH" }, 403)
+    if (["create_supplier","update_supplier","create_purchase_order","create_purchase_order_with_lines","receive_purchase_stock","create_stock_transfer","initialize_opening_stock"].includes(action)) {
+      if (String(args.p_tenant_id ?? "") !== tenantId || String(args.p_business_id ?? "") !== businessId) return scopeMismatch()
+    }
+    if (["create_supplier","create_purchase_order","create_purchase_order_with_lines"].includes(action) && String(args.p_branch_id ?? "") !== branchId) return scopeMismatch()
+    if (["update_purchase_order_status","receive_purchase_stock"].includes(action)) {
+      const orderId = action === "update_purchase_order_status" ? args.p_order_id : args.p_purchase_order_id
+      const { data: order, error: orderError } = await supabaseAdmin.from("erp_purchase_orders")
+        .select("id,tenant_id,business_id,branch_id").eq("id", String(orderId ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).maybeSingle()
+      if (orderError) return json({ error: "ERP_RECORD_LOOKUP_FAILED" }, 500)
+      if (!order) return json({ error: "ERP_RECORD_NOT_FOUND" }, 404)
+      if (branchId && String(order.branch_id ?? "") !== branchId) return scopeMismatch()
+    }
+    if (action === "receive_purchase_stock") {
+      const { data: warehouse, error: warehouseError } = await supabaseAdmin.from("warehouses")
+        .select("id,branch_id,status").eq("id", String(args.p_warehouse_id ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (warehouseError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
+      if (!warehouse || (branchId && String(warehouse.branch_id ?? "") !== branchId)) return scopeMismatch()
+      const { data: product, error: productError } = await supabaseAdmin.from("catalog_items")
+        .select("id,branch_id,status").eq("id", String(args.p_product_id ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500)
+      if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch()
+    }
+    if (action === "initialize_opening_stock") {
+      const warehouseId = String(args.p_warehouse_id ?? "");
+      const productId = String(args.p_product_id ?? "");
+      if (!warehouseId || !productId) return json({ error: "ERP_SCOPE_REQUIRED" }, 400);
+      const { data: warehouse, error: warehouseError } = await supabaseAdmin.from("warehouses")
+        .select("id,branch_id,status").eq("id", warehouseId).eq("tenant_id", tenantId)
+        .eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+      if (warehouseError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500);
+      if (!warehouse || (branchId && String(warehouse.branch_id ?? "") !== branchId)) return scopeMismatch();
+      const { data: product, error: productError } = await supabaseAdmin.from("catalog_items")
+        .select("id,branch_id,status").eq("id", productId).eq("tenant_id", tenantId)
+        .eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+      if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500);
+      if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch();
+    }
+    if (action === "create_stock_transfer") {
+      const warehouseIds = [String(args.p_from_warehouse_id ?? ""), String(args.p_to_warehouse_id ?? "")]
+      if (!warehouseIds[0] || !warehouseIds[1] || warehouseIds[0] === warehouseIds[1]) return json({ error: "ERP_WAREHOUSE_SELECTION_INVALID" }, 400)
+      const { data: warehouses, error: warehousesError } = await supabaseAdmin.from("warehouses")
+        .select("id,branch_id,status").eq("tenant_id", tenantId).eq("business_id", businessId).in("id", warehouseIds).eq("status", "ACTIVE")
+      if (warehousesError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
+      if ((warehouses ?? []).length !== 2 || (branchId && warehouses.some((row) => String(row.branch_id ?? "") !== branchId))) return scopeMismatch()
+      const { data: product, error: productError } = await supabaseAdmin.from("catalog_items")
+        .select("id,branch_id,status").eq("id", String(args.p_product_id ?? ""))
+        .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle()
+      if (productError) return json({ error: "ERP_PRODUCT_LOOKUP_FAILED" }, 500)
+      if (!product || (branchId && product.branch_id && String(product.branch_id) !== branchId)) return scopeMismatch()
+    }
+    if (["update_stock_transfer_status","receive_stock_transfer"].includes(action)) {
+      const transferId = args.p_transfer_id ?? args.p_id
+      const { data: transfer, error: transferError } = await supabaseAdmin.from("erp_stock_transfers")
+        .select("id,tenant_id,business_id,from_warehouse_id,to_warehouse_id")
+        .eq("id", String(transferId ?? "")).eq("tenant_id", tenantId).eq("business_id", businessId).maybeSingle()
+      if (transferError) return json({ error: "ERP_RECORD_LOOKUP_FAILED" }, 500)
+      if (!transfer) return json({ error: "ERP_RECORD_NOT_FOUND" }, 404)
+      if (branchId) {
+        const { data: warehouses, error: warehousesError } = await supabaseAdmin.from("warehouses")
+          .select("id,branch_id,status").eq("tenant_id", tenantId).eq("business_id", businessId)
+          .in("id", [String(transfer.from_warehouse_id), String(transfer.to_warehouse_id)]).eq("status", "ACTIVE")
+        if (warehousesError) return json({ error: "ERP_WAREHOUSE_LOOKUP_FAILED" }, 500)
+        if ((warehouses ?? []).length !== 2 || warehouses.some((row) => String(row.branch_id ?? "") !== branchId)) return scopeMismatch()
+      }
+    }
+    if (action === "initialize_opening_stock") {
+      const { data: openingStockResult, error: openingStockError } = await supabaseAdmin.rpc("erp_opening_stock_backend", {
+        p_actor_user_id: user.id, p_arguments: args
+      });
+      if (openingStockError) {
+        const message = String(openingStockError.message ?? "");
+        const publicErrors: Record<string, number> = {
+          UNAUTHENTICATED: 401,
+          OPENING_STOCK_ROLE_REQUIRED: 403,
+          ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SCOPE_REQUIRED: 400,
+          INVALID_ARGUMENTS: 400,
+          INVALID_OPENING_STOCK: 400,
+          INVALID_OPENING_STOCK_REFERENCE: 400,
+          WAREHOUSE_INVALID: 400,
+          PRODUCT_INVALID: 400
+        };
+        const publicCode = Object.keys(publicErrors).find(code => message.includes(code));
+        console.error("[erp-runtime] opening stock rejected", { code: openingStockError.code, publicCode: publicCode ?? null });
+        return json({ error: publicCode ?? "ERP_OPENING_STOCK_FAILED" }, publicCode ? publicErrors[publicCode] : 400);
+      }
+      return json({ success: true, result: openingStockResult });
+    }
+    if (["create_supplier","update_supplier"].includes(action)) {
+      const rpcName = action === "create_supplier" ? "erp_supplier_create_backend" : "erp_supplier_update_backend"
+      const { data: supplierResult, error: supplierError } = await supabaseAdmin.rpc(rpcName, {
+        p_actor_user_id: user.id, p_arguments: args
+      })
+      if (supplierError) {
+        const message = String(supplierError.message ?? "")
+        const publicErrors: Record<string, number> = {
+          UNAUTHENTICATED: 401,
+          ERP_MEMBERSHIP_REQUIRED: 403,
+          ERP_SUPPLIER_CREATE_ROLE_REQUIRED: 403,
+          ERP_SUPPLIER_UPDATE_ROLE_REQUIRED: 403,
+          ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SUPPLIER_SCOPE_INVALID: 403,
+          ERP_SUPPLIER_BRANCH_SCOPE_INVALID: 403,
+          ERP_SUPPLIER_CODE_ALREADY_EXISTS: 409,
+          ERP_SUPPLIER_IDEMPOTENCY_CONFLICT: 409,
+          ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT: 409,
+          ERP_SUPPLIER_REQUIRED_FIELDS: 400,
+          ERP_SUPPLIER_STATUS_INVALID: 400
+        }
+        const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
+        const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(message)
+        console.error("[erp-runtime] supplier mutation rejected", { action, code: supplierError.code, publicCode: publicCode ?? null, denied })
+        if (publicCode) return json({ error: publicCode }, publicErrors[publicCode])
+        return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
+      }
+      return json({ success: true, result: supplierResult })
+    }
+    if (action === "create_purchase_order_with_lines" || action === "receive_purchase_stock") {
+      const rpcName = action === "create_purchase_order_with_lines"
+        ? "erp_purchase_order_create_with_lines_backend"
+        : "erp_purchase_stock_receive_with_lines_backend"
+      const { data: result, error: rpcError } = await supabaseAdmin.rpc(rpcName, {
+        p_actor_user_id: user.id, p_arguments: args
+      })
+      if (rpcError) {
+        const message = String(rpcError.message ?? "")
+        const publicErrors: Record<string, number> = {
+          UNAUTHENTICATED: 401,
+          ERP_MEMBERSHIP_REQUIRED: 403,
+          PURCHASE_ORDER_ROLE_REQUIRED: 403,
+          PURCHASE_RECEIVING_ROLE_REQUIRED: 403,
+          ERP_BRANCH_SCOPE_REQUIRED: 403,
+          ERP_SUPPLIER_SCOPE_INVALID: 403,
+          ERP_PRODUCT_SCOPE_INVALID: 403,
+          ERP_PURCHASE_ORDER_LINE_NOT_FOUND: 409,
+          ERP_PURCHASE_ORDER_RECEIVE_LIMIT_EXCEEDED: 409,
+          ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT: 409,
+          ERP_PURCHASE_ORDER_IDEMPOTENCY_CONFLICT: 409,
+          ERP_RECEIPT_IDEMPOTENCY_CONFLICT: 409,
+          ERP_PURCHASE_ORDER_DUPLICATE_PRODUCT: 400,
+          ERP_PURCHASE_ORDER_LINES_REQUIRED: 400,
+          ERP_PURCHASE_ORDER_LINE_INVALID: 400,
+          ERP_PURCHASE_ORDER_AMOUNT_INVALID: 400,
+          ERP_PURCHASE_ORDER_REQUIRED_FIELDS: 400,
+          ERP_PURCHASE_ORDER_SCOPE_INVALID: 403,
+          ERP_WAREHOUSE_INVALID: 400,
+          ERP_SCOPE_REQUIRED: 400,
+          INVALID_ARGUMENTS: 400
+        }
+        const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
+        console.error("[erp-runtime] line mutation rejected", { action, code: rpcError.code, publicCode: publicCode ?? null })
+        return json({ error: publicCode ?? "ERP_OPERATION_FAILED" }, publicCode ? publicErrors[publicCode] : 400)
+      }
+      return json({ success: true, result })
+    }
+
+    const { data, error } = await supabaseAdmin.rpc("erp_runtime_execute", {
+      p_actor_user_id: user.id, p_operation: action, p_arguments: args
+    })
+    if (error) {
+      const message = String(error.message ?? "")
+      const publicErrors: Record<string, number> = {
+        UNAUTHENTICATED: 401,
+        ERP_MEMBERSHIP_REQUIRED: 403,
+        ERP_OPERATION_FORBIDDEN: 403,
+        ERP_OPERATION_ROLE_REQUIRED: 403,
+        ERP_PURCHASE_APPROVAL_ROLE_REQUIRED: 403,
+        ERP_PURCHASE_RECEIVING_ROLE_REQUIRED: 403,
+        ERP_SUPPLIER_CREATE_ROLE_REQUIRED: 403,
+        ERP_BRANCH_SCOPE_REQUIRED: 403,
+        ERP_SUPPLIER_SCOPE_INVALID: 403,
+        ERP_SUPPLIER_BRANCH_SCOPE_INVALID: 403,
+        ERP_PURCHASE_ORDER_SCOPE_INVALID: 403,
+        ERP_RECORD_NOT_FOUND: 404,
+        ERP_SUPPLIER_CODE_ALREADY_EXISTS: 409,
+        ERP_SUPPLIER_IDEMPOTENCY_CONFLICT: 409,
+        ERP_SUPPLIER_IDEMPOTENCY_SCOPE_CONFLICT: 409,
+        ERP_PURCHASE_ORDER_NOT_READY_FOR_RECEIPT: 409,
+        ERP_SUPPLIER_REQUIRED: 400,
+        ERP_SUPPLIER_REQUIRED_FIELDS: 400,
+        ERP_OPERATION_NOT_ALLOWED: 400,
+        ERP_SCOPE_REQUIRED: 400,
+        INVALID_ARGUMENTS: 400
+      }
+      const publicCode = Object.keys(publicErrors).find(code => message.includes(code))
+      const denied = /UNAUTHENTICATED|MEMBERSHIP_REQUIRED|ROLE_REQUIRED|FORBIDDEN|SCOPE_REQUIRED|NOT_ALLOWED|BRANCH_SCOPE_REQUIRED/.test(message)
+      console.error("[erp-runtime] mutation rejected", { action, code: error.code, publicCode: publicCode ?? null, denied })
+      if (publicCode) return json({ error: publicCode }, publicErrors[publicCode])
+      return json({ error: denied ? "ERP_OPERATION_FORBIDDEN" : "ERP_OPERATION_FAILED" }, denied ? 403 : 400)
+    }
+    return json({ success: true, result: data })
+  }
+
   if (req.method === "GET" && path === "/api/v1/brand") {
     const { data: brand, error } = await supabaseAdmin.from("platform_brand_identity")
       .select("brand_key,brand_name_en,brand_name_ar,tagline_ar,primary_colors,typography,logo_usage,icon_sizes,version,status,logo_asset_ref,app_icon_asset_ref")
@@ -129,8 +515,10 @@ serve(async (req) => {
   if (req.method === "POST" && path === "/api/v1/orders") {
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== "object") return json({ error: "Invalid JSON body" }, 400)
-    const required = ["orderId","tenantId","businessId","branchId","clientIdempotencyKey","items"]
+    const required = ["orderId","tenantId","businessId","clientIdempotencyKey","items","paymentMethod"]
     if (required.some((k) => body[k] == null || body[k] === "")) return json({ error: "Missing required order fields" }, 400)
+    if (String(body.paymentMethod).toUpperCase() !== "CASH_ON_DELIVERY") return json({ error: "CASH_ONLY_LAUNCH" }, 400)
+    if (!/^[0-9a-f-]{36}$/i.test(String(body.orderId))) return json({ error: "Invalid orderId" }, 400)
     if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
     if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
 
@@ -153,6 +541,12 @@ serve(async (req) => {
     const { data: provider } = await supabaseAdmin.from("marketing_provider_profiles")
       .select("id").eq("business_id", String(body.businessId)).eq("status", "ACTIVE").limit(1).maybeSingle()
     if (!provider) return json({ error: "Provider not available" }, 404)
+
+    const { data: cashMethod, error: cashMethodError } = await supabaseAdmin.from("tenant_payment_methods").select("id")
+      .eq("tenant_id", tenantId).eq("payment_method", "CASH_ON_DELIVERY")
+      .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
+    if (cashMethodError) return json({ error: "Cash payment configuration unavailable" }, 500)
+    if (!cashMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
     const { data, error } = await supabaseAdmin.rpc("create_order_backend", {
       p_order_id: String(body.orderId),
@@ -206,19 +600,25 @@ serve(async (req) => {
     if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,business_id,total_amount,currency,customer_id,status").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
+    if (!["PENDING","CREATED"].includes(String(order.status ?? "").toUpperCase()))
+      return json({ error: "ORDER_NOT_PAYABLE" }, 409)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Payment authorization check failed" }, 500)
 
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentAccess =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_CREATE")
-    const isOrderOwner = order.customer_id === user.id
+    const isOrderOwner = String(order.customer_id) === String(user.id)
+    const operationalPaymentAccess = (memberships || []).some((m: any) => {
+      const role = String(m.role ?? "").toUpperCase()
+      const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+      const hasCreatePermission = Array.isArray(permissions)
+        ? permissions.includes("PAYMENT_CREATE")
+        : permissions.PAYMENT_CREATE === true
+      const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
+      return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasCreatePermission)
+    })
     if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
 
     const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
@@ -226,37 +626,100 @@ serve(async (req) => {
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
+    const normalizedIdempotencyKey = String(idempotencyKey)
+    const { data: existingIntent, error: existingIntentError } = await supabaseAdmin.from("payment_intents")
+      .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+    if (existingIntentError) return json({ error: "Failed to verify payment intent idempotency" }, 500)
+    const matchesCashOrder = (intent: any) =>
+      String(intent.order_id) === String(order.id) &&
+      String(intent.provider) === "CASH_ON_DELIVERY" &&
+      String(intent.payment_method) === "CASH_ON_DELIVERY" &&
+      Number(intent.amount) === Number(order.total_amount) &&
+      String(intent.currency).toUpperCase() === String(order.currency).toUpperCase()
+    if (existingIntent) {
+      if (!matchesCashOrder(existingIntent)) return json({ error: "Idempotency key is already bound to another payment" }, 409)
+      return json(existingIntent)
+    }
+
     const newIntent = {
       id: crypto.randomUUID(),
       tenant_id: order.tenant_id,
       order_id: order.id,
-      amount: order.total,
+      amount: order.total_amount,
       currency: order.currency,
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
       payment_method: "CASH_ON_DELIVERY",
-      idempotency_key: String(idempotencyKey),
+      idempotency_key: normalizedIdempotencyKey,
     }
     const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
+      .insert(newIntent).select().single()
+    if (error) {
+      const { data: racedIntent } = await supabaseAdmin.from("payment_intents")
+        .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+      if (racedIntent && matchesCashOrder(racedIntent)) return json(racedIntent)
+      if (racedIntent) return json({ error: "Idempotency key is already bound to another payment" }, 409)
+      return json({ error: "Failed to create payment intent" }, 500)
+    }
     return json(data)
   }
+
+  const cashOrderPaymentMatch = path.match(/^\/api\/v1\/orders\/([^/]+)\/cash-payment$/)
+  if (req.method === "GET" && cashOrderPaymentMatch) {
+    const orderId = cashOrderPaymentMatch[1]
+    if (!/^[0-9a-f-]{36}$/i.test(orderId)) return json({ error: "Invalid orderId" }, 400)
+    const { data: order, error: orderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,business_id,customer_id,status,total_amount,currency")
+      .eq("id", orderId).maybeSingle()
+    if (orderError || !order) return json({ error: "Order not found" }, 404)
+    const isCustomer = String(order.customer_id) === String(user.id)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Payment access check failed" }, 500)
+    const operationalRead = (memberships || []).some((m: any) => {
+      const role = String(m.role || "").toUpperCase()
+      const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+      const hasReadPermission = Array.isArray(permissions)
+        ? permissions.includes("PAYMENT_READ_ALL")
+        : permissions.PAYMENT_READ_ALL === true
+      const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
+      return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasReadPermission)
+    })
+    if (!isCustomer && !operationalRead) return json({ error: "Forbidden" }, 403)
+    const { data: paymentIntent, error: paymentError } = await supabaseAdmin.from("payment_intents")
+      .select("id,tenant_id,order_id,amount,currency,status,provider,payment_method,created_at")
+      .eq("tenant_id", order.tenant_id).eq("order_id", order.id)
+      .eq("provider", "CASH_ON_DELIVERY").eq("payment_method", "CASH_ON_DELIVERY")
+      .order("created_at", { ascending: false }).limit(1).maybeSingle()
+    if (paymentError) return json({ error: "Cash payment lookup failed" }, 500)
+    return json({ order, paymentIntent: paymentIntent || null })
+  }
+
 
   const paymentIntentMatch = path.match(/^\/api\/v1\/payments\/intents\/([^/]+)$/)
   if (req.method === "GET" && paymentIntentMatch) {
     const { data: intent, error } = await supabaseAdmin.from("payment_intents").select("*").eq("id", paymentIntentMatch[1]).single()
     if (error || !intent) return json({ error: "Intent not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_READ_ALL")
-    const { data: linkedOrder } = await supabaseAdmin.from("orders").select("customer_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
-    if (linkedOrder?.customer_id !== user.id && !operationalPaymentRead) return json({ error: "Forbidden" }, 403)
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("customer_id,business_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError) return json({ error: "Payment order lookup failed" }, 500)
+    if (!linkedOrder) return json({ error: "Linked order not found" }, 404)
+    const isOrderCustomer = String(linkedOrder.customer_id) === String(user.id)
+    if (!isOrderCustomer) {
+      const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+        .select("role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+      if (membershipError) return json({ error: "Payment access check failed" }, 500)
+      const operationalPaymentRead = (memberships || []).some((m: any) => {
+        const role = String(m.role ?? "").toUpperCase()
+        const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+        const hasReadPermission = Array.isArray(permissions)
+          ? permissions.includes("PAYMENT_READ_ALL")
+          : permissions.PAYMENT_READ_ALL === true
+        const businessScoped = !m.business_id || String(m.business_id) === String(linkedOrder.business_id)
+        return businessScoped && (["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) || hasReadPermission)
+      })
+      if (!operationalPaymentRead) return json({ error: "Forbidden" }, 403)
+    }
     return json(intent)
   }
 
@@ -264,17 +727,24 @@ serve(async (req) => {
   if (req.method === "POST" && cashConfirmMatch) {
     const intentId = cashConfirmMatch[1]
     const { data: intent, error: intentError } = await supabaseAdmin.from("payment_intents")
-      .select("tenant_id").eq("id", intentId).single()
+      .select("tenant_id,order_id,provider,payment_method,status").eq("id", intentId).single()
     if (intentError || !intent) return json({ error: "Payment intent not found" }, 404)
-
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("role,permissions").eq("user_id", user.id).eq("tenant_id", intent.tenant_id)
-      .eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const authorized = ["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
-      permissions.includes("PAYMENT_CONFIRM_CASH")
+    if (intent.provider !== "CASH_ON_DELIVERY" || intent.payment_method !== "CASH_ON_DELIVERY") return json({ error: "CASH_PAYMENT_REQUIRED" }, 409)
+    const { data: order, error: orderError } = await supabaseAdmin.from("orders")
+      .select("id,business_id,status").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (orderError || !order) return json({ error: "Linked order not found" }, 404)
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id").eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Cash confirmation authorization failed" }, 500)
+    const authorized = (memberships || []).some((m: any) => {
+      const role = String(m.role ?? "").toUpperCase()
+      const permissions = m.permissions && typeof m.permissions === "object" ? m.permissions : []
+      const hasCashPermission = Array.isArray(permissions)
+        ? permissions.includes("PAYMENT_CONFIRM_CASH")
+        : permissions.PAYMENT_CONFIRM_CASH === true
+      const businessScoped = !m.business_id || String(m.business_id) === String(order.business_id)
+      return businessScoped && (["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(role) || hasCashPermission)
+    })
     if (!authorized) return json({ error: "Forbidden: insufficient permissions" }, 403)
 
     const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {

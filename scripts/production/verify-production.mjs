@@ -47,7 +47,20 @@ const requiredReleaseMigrations=[
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
-  "20261019190000_rc457_medical_appointment_state_machine.sql"
+  "20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql",
+  "20261017100000_rc565_mantigo_financial_report_column_scope_fix.sql",
+  "20261019190000_rc457_medical_appointment_state_machine.sql",
+  "20261020120000_rc458_cash_order_service_actor_contract.sql",
+  "20261020130000_rc459_disable_electronic_payment_intent_prelaunch.sql",
+  "20261020140000_rc460_cash_confirmation_business_membership.sql",
+  "20261020150000_rc461_erp_runtime_service_gateway.sql",
+  "20261020160000_rc463_erp_supplier_master.sql",
+  "20261020170000_rc464_erp_supplier_update_backend.sql",
+  "20261020180000_rc465_erp_purchase_order_lines.sql",
+  "20261020190000_rc466_erp_opening_stock_backend.sql",
+  "20261020200000_rc467_medical_booking_release_contract.sql",
+  "20261020210000_rc468_medical_booking_idempotency.sql",
+  "20261021190000_rc469_mantigo_presence_verification_guard.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));

@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const url=Deno.env.get("SUPABASE_URL")??""; const serviceRole=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??""; const secretKey=Deno.env.get("PAYMOB_SECRET_KEY")??""; const publicKey=Deno.env.get("PAYMOB_PUBLIC_KEY")??""; const integrationId=Deno.env.get("PAYMOB_INTEGRATION_ID")??"";
+const ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED=true;
 const admin=createClient(url,serviceRole,{auth:{persistSession:false,autoRefreshToken:false}});
 const json=(body:unknown,status=200,requestId?:string)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store",...(requestId?{"X-Request-Id":requestId}:{})}});
 Deno.serve(async req=>{
@@ -9,6 +10,7 @@ Deno.serve(async req=>{
  const auth=req.headers.get("Authorization")??""; if(!auth.startsWith("Bearer "))return json({error:"AUTH_REQUIRED"},401,requestId);
  try{
   const {data:{user},error:userError}=await admin.auth.getUser(auth.slice(7)); if(userError||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401,requestId);
+   if(ELECTRONIC_PAYMENTS_INITIAL_LAUNCH_DEFERRED||Deno.env.get("MNTY_ELECTRONIC_PAYMENTS_ENABLED")!=="true")return json({error:"ELECTRONIC_PAYMENTS_POST_LAUNCH",requestId},503,requestId);
   if(!secretKey||!publicKey||!integrationId)return json({error:"PAYMENT_PROVIDER_NOT_CONFIGURED",requestId},503,requestId);
   const body=await req.json().catch(()=>null) as Record<string,unknown>|null; if(!body)return json({error:"INVALID_JSON"},400,requestId);
   const businessId=String(body.businessId??""); const tierCode=String(body.tierCode??"").trim().toUpperCase(); const billingCycle=String(body.billingCycle??"").trim().toUpperCase(); const sector=String(body.sector??"").trim(); const idempotencyKey=String(body.idempotencyKey??"").trim();
