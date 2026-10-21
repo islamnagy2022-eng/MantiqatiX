@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,orderSearch:'',orderStatusFilter:'ALL',error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -109,16 +109,13 @@ function shell(title,body){
 }
 function cards(){
  const low=state.inventory.filter(x=>Number(x.current_stock_qty)<=Number(x.min_stock_alert_threshold)).length;
- const billable=state.orders.filter(x=>String(x.status||'').toUpperCase()!=='CANCELLED');
- const average=billable.length?billable.reduce((sum,x)=>sum+Number((x.total_amount??x.total)||0),0)/billable.length:0;
  const statuses=['CONFIRMED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
  return '<div class="cards">'+
  '<article class="card"><div class="card-title">🍽️ عناصر القائمة</div><div class="metric">'+state.menu.length+'</div><div class="muted">السجلات المتاحة ضمن نطاق العرض</div></article>'+
  '<article class="card"><div class="card-title">🧾 الطلبات</div><div class="metric">'+state.orders.length+'</div><div class="muted">آخر 100 طلب</div></article>'+
  '<article class="card"><div class="card-title">🪑 الطاولات</div><div class="metric">'+state.tables.length+'</div><div class="muted">حالة الطاولات الحالية</div></article>'+
  '<article class="card"><div class="card-title">📦 المخزون</div><div class="metric">'+state.inventory.length+'</div><div class="muted">'+low+' أصناف عند حد التنبيه</div></article>'+
- '<article class="card"><div class="card-title">متوسط قيمة الطلب</div><div class="metric">'+money(average)+'</div><div class="muted">للطلبات غير الملغاة ضمن آخر 100 طلب؛ ليس تقرير مبيعات محاسبيًا</div></article>'+
- '</div><div class="card" style="margin-top:16px"><div class="card-title">توزيع الطلبات حسب الحالة</div><div class="action-bar" style="gap:8px;flex-wrap:wrap">'+statuses.map(status=>'<span class="badge">'+status+': '+state.orders.filter(x=>String(x.status||'').toUpperCase()===status).length+'</span>').join('')+'</div></div>';
+ '</div>';
 }
 function tabs(){
  return '<div class="action-bar" style="gap:8px;flex-wrap:wrap">'+['dashboard','menu','orders','tables','inventory','reservations'].map(x=>{
@@ -134,7 +131,7 @@ function menuView(){
  '</tbody></table></div>');
 }
 function ordersView(){
-  // Mirror the canonical server transition graph so the UI cannot invite invalid state jumps.
+  // Search and status filtering apply only to the latest 100 records loaded within the active scope.
   const transitions={
    PENDING:['CONFIRMED','CANCELLED'],
    CREATED:['CONFIRMED','CANCELLED'],
@@ -142,16 +139,24 @@ function ordersView(){
    PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],
    OUT_FOR_DELIVERY:['DELIVERED']
   };
-  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
-  (state.orders.length?state.orders.map(x=>{
+  const term=String(state.orderSearch||'').trim().toLocaleLowerCase();
+  const filtered=state.orders.filter(x=>{
+   const status=String(x.status||'UNKNOWN').toUpperCase();
+   const haystack=[x.id,x.customer_name,x.customer_phone].map(v=>String(v||'')).join(' ').toLocaleLowerCase();
+   return (!term||haystack.includes(term))&&(state.orderStatusFilter==='ALL'||status===state.orderStatusFilter);
+  });
+  const statuses=[...new Set(state.orders.map(x=>String(x.status||'UNKNOWN').toUpperCase()))].sort();
+  const controls='<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث برقم الطلب أو اسم العميل أو الهاتف</span><input id="rest-order-search" type="search" maxlength="120" value="'+esc(state.orderSearch)+'" placeholder="اكتب للبحث"></label><label class="field"><span>تصفية بالحالة</span><select id="rest-order-status-filter"><option value="ALL" '+(state.orderStatusFilter==='ALL'?'selected':'')+'>كل الحالات</option>'+statuses.map(s=>'<option value="'+esc(s)+'" '+(state.orderStatusFilter===s?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label><span class="muted">النتائج: '+filtered.length+' من '+state.orders.length+' طلب محمّل</span></div>';
+  return shell('طلبات المطعم',tabs()+controls+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
+  (filtered.length?filtered.map(x=>{
    const current=String(x.status||'').toUpperCase();
    const next=transitions[current]||[];
    const statusControl=canOperate('ORDERS','update')
     ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
     :esc(current);
    return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
-  }).join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
-  '</tbody></table></div>');
+  }).join(''):'<tr><td colspan="6">'+(state.orders.length?'لا توجد نتائج مطابقة للفلاتر.':'لا توجد طلبات فعلية بعد.')+'</td></tr>')+
+  '</tbody></table></div><p class="muted">البحث محلي داخل آخر 100 طلب محمّل فقط؛ استخدم مصدر التقارير المعتمد للبحث التاريخي الكامل.</p>');
 }
 function tablesView(){
  const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
@@ -380,6 +385,10 @@ function bind(){
  document.querySelectorAll('[data-select-membership]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-select-membership');if(!state.membershipOptions.some(m=>m.id===id))return;localStorage.setItem('MNTYActiveMembershipId',id);load();}));
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
  document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
+ const orderSearch=document.getElementById('rest-order-search');
+ if(orderSearch)orderSearch.addEventListener('input',()=>{const start=orderSearch.selectionStart;state.orderSearch=orderSearch.value;render();const next=document.getElementById('rest-order-search');if(next){next.focus();next.setSelectionRange(start,start);}});
+ document.getElementById('rest-order-status-filter')?.addEventListener('change',e=>{state.orderStatusFilter=e.target.value;render();});
+
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
   document.getElementById('rest-add-reservation')?.addEventListener('click',()=>addReservation());
