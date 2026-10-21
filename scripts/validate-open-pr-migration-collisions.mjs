@@ -132,7 +132,13 @@ async function getAllPages(url) {
 }
 
 try {
-  const current = await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
+  // Prefer event-provided base metadata so the current PR lookup does not require
+  // an additional API call. The open-PR listing below remains mandatory and fail-closed.
+  const baseRef = process.env.CURRENT_PR_BASE_REF;
+  const baseRepo = process.env.CURRENT_PR_BASE_REPO;
+  const current = baseRef && baseRepo
+    ? { base: { ref: baseRef, repo: { full_name: baseRepo } } }
+    : await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
   const openPulls = await getAllPages("https://api.github.com/repos/" + repository + "/pulls?state=open");
   const comparable = openPulls.filter(pr =>
     pr.base?.ref === current.base?.ref &&
