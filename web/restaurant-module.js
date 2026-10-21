@@ -138,6 +138,40 @@ function menuView(){
  (filtered.length?filtered.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">'+(state.menu.length?'لا توجد أصناف مطابقة للفلاتر.':'لا توجد أصناف فعلية بعد.')+'</td></tr>')+
  '</tbody></table></div><p class="muted">البحث والفلاتر محلية داخل آخر 200 صنف محمّل؛ لا تمثل بحثًا شاملاً في كل صفحات الكتالوج.</p>');
 }
+function viewOrderDetails(order){
+ if(!order||!state.orders.some(x=>x.id===order.id))return;
+ let items=[];
+ try{
+  const raw=order.items_json;
+  const parsed=typeof raw==='string'?JSON.parse(raw||'[]'):raw;
+  items=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.items)?parsed.items:[]);
+ }catch(_){items=[];}
+ const itemRows=items.length?items.map(item=>{
+  const name=item.name_ar||item.name||item.title||item.item_name||'صنف';
+  const quantity=Number(item.quantity??item.qty??1);
+  const unitPrice=Number(item.unit_price??item.price??item.price_egp);
+  const total=Number(item.total??item.line_total);
+  return '<tr><td>'+esc(name)+'</td><td>'+esc(Number.isFinite(quantity)?quantity:1)+'</td><td>'+money(Number.isFinite(unitPrice)?unitPrice:0)+'</td><td>'+money(Number.isFinite(total)?total:(Number.isFinite(unitPrice)&&Number.isFinite(quantity)?unitPrice*quantity:0))+'</td></tr>';
+ }).join(''):'<tr><td colspan="4">تفاصيل الأصناف غير متاحة في البيانات المحمّلة لهذا الطلب.</td></tr>';
+ const value=(v)=>v===null||v===undefined||v===''?'—':esc(v);
+ const html='<div class="table-wrap"><table><tbody>'+
+  '<tr><th>رقم الطلب</th><td>'+value(order.id)+'</td></tr>'+
+  '<tr><th>الحالة الحالية</th><td>'+value(order.status)+'</td></tr>'+
+  '<tr><th>اسم العميل</th><td>'+value(order.customer_name)+'</td></tr>'+
+  '<tr><th>هاتف العميل</th><td>'+value(order.customer_phone)+'</td></tr>'+
+  '<tr><th>عنوان التوصيل</th><td>'+value(order.delivery_address)+'</td></tr>'+
+  '<tr><th>تاريخ الإنشاء</th><td>'+value(order.created_at?new Date(order.created_at).toLocaleString('ar-EG'):'')+'</td></tr>'+
+  '<tr><th>ملاحظات</th><td>'+value(order.notes)+'</td></tr>'+
+  '</tbody></table></div><h3>الأصناف</h3><div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr></thead><tbody>'+itemRows+'</tbody></table></div>'+
+  '<h3>ملخص المبلغ المسجل في الطلب</h3><div class="table-wrap"><table><tbody>'+
+  '<tr><th>المجموع الفرعي</th><td>'+money(order.subtotal)+'</td></tr>'+
+  '<tr><th>الخصم</th><td>'+money(order.discount)+'</td></tr>'+
+  '<tr><th>الضريبة</th><td>'+money(order.tax)+'</td></tr>'+
+  '<tr><th>رسوم التوصيل</th><td>'+money(order.delivery_fee)+'</td></tr>'+
+  '<tr><th>الإجمالي المسجل</th><td><b>'+money(order.total_amount??order.total)+'</b></td></tr>'+
+  '</tbody></table></div><p class="muted">هذه تفاصيل السجل المحمّل فقط وليست إثباتًا على تحصيل المبلغ أو تسويته ماليًا.</p>';
+ modal('تفاصيل الطلب',html,async()=>{});
+}
 function ordersView(){
   // Search and status filtering apply only to the latest 100 records loaded within the active scope.
   const transitions={
@@ -162,7 +196,7 @@ function ordersView(){
    const statusControl=canOperate('ORDERS','update')
     ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
     :esc(current);
-   return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
+   return '<tr><td><button type="button" class="btn btn-outline" data-order-detail="'+esc(x.id)+'">'+esc(x.id)+'</button></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
   }).join(''):'<tr><td colspan="6">'+(state.orders.length?'لا توجد نتائج مطابقة للفلاتر.':'لا توجد طلبات فعلية بعد.')+'</td></tr>')+
   '</tbody></table></div><p class="muted">البحث محلي داخل آخر 100 طلب محمّل فقط؛ استخدم مصدر التقارير المعتمد للبحث التاريخي الكامل.</p>');
 }
@@ -412,6 +446,7 @@ function bind(){
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
  document.querySelectorAll('[data-inv-move]').forEach(b=>b.onclick=()=>addInventoryMovement(state.inventory.find(x=>x.id===b.dataset.invMove)));
  document.querySelectorAll('[data-inv-history]').forEach(b=>b.onclick=()=>viewInventoryMovements(state.inventory.find(x=>x.id===b.dataset.invHistory)));
+ document.querySelectorAll('[data-order-detail]').forEach(b=>b.addEventListener('click',()=>viewOrderDetails(state.orders.find(x=>x.id===b.dataset.orderDetail))));
  document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=async()=>{if(s.dataset.pending==='1')return;const previous=s.dataset.currentStatus||s.value;const selected=s.value;s.dataset.pending='1';s.disabled=true;try{const ok=await updateOrder(s.dataset.orderStatus,selected);if(ok)s.dataset.currentStatus=selected;else s.value=previous}finally{delete s.dataset.pending;if(s.isConnected)s.disabled=false}});
 }
 function activeModule(){
