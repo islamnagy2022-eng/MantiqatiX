@@ -22,7 +22,9 @@ for (const marker of [
   'RC529_FAIL: cross-branch status mutation succeeded',
   'RC529_FAIL: valid same-branch transition did not persist',
   'RC529_FAIL: customer cancellation did not persist',
-  'RC529_FAIL: paid order was cancelled without refund'
+  'RC529_FAIL: paid order was cancelled without refund',
+  'RC529_FAIL: cross-business owner changed order state',
+  'RC529_FAIL: customer cancelled another customer order'
 ]) assert.ok(test.includes(marker), 'integration must cover ' + marker);
 
 console.log('RC529 order branch-scope and authenticated RPC contract PASS');
