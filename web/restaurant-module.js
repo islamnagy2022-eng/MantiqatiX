@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,orderSearch:'',orderStatusFilter:'ALL',error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,menuSearch:'',menuCategoryFilter:'ALL',menuAvailabilityFilter:'ALL',orderSearch:'',orderStatusFilter:'ALL',error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -125,10 +125,18 @@ function tabs(){
 }
 function menuView(){
  const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
- return shell('قائمة الطعام',tabs()+ '<div class="action-bar">'+add+'</div>'+
+ const term=String(state.menuSearch||'').trim().toLocaleLowerCase();
+ const categories=[...new Set(state.menu.map(x=>String(x.category||'غير مصنف')))].sort();
+ const filtered=state.menu.filter(x=>{
+  const text=[x.name_ar,x.description_ar,x.category].map(v=>String(v||'')).join(' ').toLocaleLowerCase();
+  const available=x.is_available===true?'AVAILABLE':'UNAVAILABLE';
+  return (!term||text.includes(term))&&(state.menuCategoryFilter==='ALL'||String(x.category||'غير مصنف')===state.menuCategoryFilter)&&(state.menuAvailabilityFilter==='ALL'||available===state.menuAvailabilityFilter);
+ });
+ const controls='<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث عن صنف أو وصف</span><input id="rest-menu-search" type="search" maxlength="120" value="'+esc(state.menuSearch)+'" placeholder="اسم الصنف أو الوصف"></label><label class="field"><span>الفئة</span><select id="rest-menu-category-filter"><option value="ALL" '+(state.menuCategoryFilter==='ALL'?'selected':'')+'>كل الفئات</option>'+categories.map(cat=>'<option value="'+esc(cat)+'" '+(state.menuCategoryFilter===cat?'selected':'')+'>'+esc(cat)+'</option>').join('')+'</select></label><label class="field"><span>التوافر</span><select id="rest-menu-availability-filter"><option value="ALL" '+(state.menuAvailabilityFilter==='ALL'?'selected':'')+'>الكل</option><option value="AVAILABLE" '+(state.menuAvailabilityFilter==='AVAILABLE'?'selected':'')+'>متاح</option><option value="UNAVAILABLE" '+(state.menuAvailabilityFilter==='UNAVAILABLE'?'selected':'')+'>غير متاح</option></select></label><span class="muted">النتائج: '+filtered.length+' من '+state.menu.length+' صنف محمّل</span></div>';
+ return shell('قائمة الطعام',tabs()+'<div class="action-bar">'+add+'</div>'+controls+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
- (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
- '</tbody></table></div>');
+ (filtered.length?filtered.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">'+(state.menu.length?'لا توجد أصناف مطابقة للفلاتر.':'لا توجد أصناف فعلية بعد.')+'</td></tr>')+
+ '</tbody></table></div><p class="muted">البحث والفلاتر محلية داخل آخر 200 صنف محمّل؛ لا تمثل بحثًا شاملاً في كل صفحات الكتالوج.</p>');
 }
 function ordersView(){
   // Search and status filtering apply only to the latest 100 records loaded within the active scope.
@@ -385,6 +393,11 @@ function bind(){
  document.querySelectorAll('[data-select-membership]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-select-membership');if(!state.membershipOptions.some(m=>m.id===id))return;localStorage.setItem('MNTYActiveMembershipId',id);load();}));
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
  document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
+ const menuSearch=document.getElementById('rest-menu-search');
+ if(menuSearch)menuSearch.addEventListener('input',()=>{const start=menuSearch.selectionStart;state.menuSearch=menuSearch.value;render();const next=document.getElementById('rest-menu-search');if(next){next.focus();next.setSelectionRange(start,start);}});
+ document.getElementById('rest-menu-category-filter')?.addEventListener('change',e=>{state.menuCategoryFilter=e.target.value;render();});
+ document.getElementById('rest-menu-availability-filter')?.addEventListener('change',e=>{state.menuAvailabilityFilter=e.target.value;render();});
+
  const orderSearch=document.getElementById('rest-order-search');
  if(orderSearch)orderSearch.addEventListener('input',()=>{const start=orderSearch.selectionStart;state.orderSearch=orderSearch.value;render();const next=document.getElementById('rest-order-search');if(next){next.focus();next.setSelectionRange(start,start);}});
  document.getElementById('rest-order-status-filter')?.addEventListener('change',e=>{state.orderStatusFilter=e.target.value;render();});
