@@ -2224,3 +2224,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Updated the source-contract validator to require the region/listbox separation and retain retry-control assertions.
 - [ ] Exact-head CI must pass for this accessibility correction before it is considered verified.
 - [ ] Screen-reader and mobile keyboard behavior still require manual verification; production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — Marketing lead form character guidance
+
+- [x] Added live character counters to marketing request title, service area, requested-services text, and description fields.
+- [x] Added accessible descriptions tying each input to its current character count and kept counters updated with one-time event bindings across rerenders.
+- [x] Added source-contract assertions for all four counters and their listener guard.
+- [ ] Exact-head CI must pass for this change. Browser/mobile screen-reader verification remains NOT VERIFIED.
