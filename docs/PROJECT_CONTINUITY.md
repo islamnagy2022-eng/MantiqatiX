@@ -857,3 +857,8 @@ The marketing lead form now maps `invalid_title`, `invalid_description`, and `in
 - Updated `web/operations-modules.js` to replace 11 direct raw backend error-message displays in ride creation, bids, captain actions, ride status/payment/rating, medical booking, education requests, and job applications with safe Arabic guidance.
 - Extended `scripts/validate-marketing-lead-form.mjs` with five source-contract assertions preventing raw backend error leakage and checking safe messages. The existing Pages workflow already invokes this validator.
 - These are source changes only. Exact-head Actions, JavaScript runtime, browser accessibility, role authorization, and multi-tenant E2E have not yet been verified. No production mutation/deployment or merge occurred; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Payment API error-display follow-up — 2026-10-21
+- Removed direct display of `data.error` from the MantiGO electronic-payment intent response; the UI now presents bounded Arabic guidance instead of raw backend response text.
+- Added two source-contract assertions to prevent reintroducing this behavior. Exact-head CI and payment/browser E2E remain unverified; no payment was initiated and production was not changed.
