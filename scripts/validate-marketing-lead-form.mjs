@@ -33,6 +33,10 @@ assert.match(source, /marketingTableView\(d,'marketing_services'/, "services tab
 assert.match(source, /marketingTableView\(d,'marketing_plans'/, "plans tab must show load failures");
 assert.match(source, /marketingTableView\(d,'marketing_projects'/, "projects tab must show load failures");
 assert.match(source, /تعذر تحميل البيانات المطلوبة[\s\S]*لم نعتبر النتيجة فارغة/, "non-lead marketing query errors must not masquerade as empty tables");
+assert.match(source, /membershipLoadError=!!r\.error/, "membership lookup failures must be tracked explicitly");
+assert.match(source, /تم إيقاف إرسال الطلب مؤقتًا[\s\S]*عضويات الحساب/, "membership lookup failures must be explained to the user");
+assert.match(source, /membershipLoadError\?'disabled aria-disabled="true"'/, "lead submission must be disabled if membership cannot be verified");
+assert.match(source, /if\(membershipLoadError\)\{setStatus\(/, "lead submission handler must enforce the membership safety guard");
 assert.match(source, /تعذر تحميل طلبات التسويق[\s\S]*لم نعتبر القائمة فارغة/, "lead query failure must not appear as an empty list");
 assert.match(source, /required_services\|\|\[\]/, "lead list must display requested services when available");
 assert.match(source, /money\(r\.budget_min\).*money\(r\.budget_max\)/, "lead list must show the full budget range");
