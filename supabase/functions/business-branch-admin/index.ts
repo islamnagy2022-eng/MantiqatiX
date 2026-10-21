@@ -43,7 +43,8 @@ Deno.serve(async(req)=>{
   if(!uuidPattern.test(tenantId)||!uuidPattern.test(businessId))return out({error:"INVALID_TENANT_OR_BUSINESS_ID"},400);
   if((input.phone!=null&&typeof input.phone!=="string")||(input.address!=null&&typeof input.address!=="string"))return out({error:"INVALID_REQUEST_FIELDS"},400);
   const phone=input.phone==null?"":input.phone.trim(),address=input.address==null?"":input.address.trim();
-  const latitude=input.latitude==null?null:Number(input.latitude),longitude=input.longitude==null?null:Number(input.longitude);
+  function coordinate(value:unknown):number|null{if(value==null||(typeof value==="string"&&value.trim()===""))return null;if(typeof value!=="number"&&typeof value!=="string")return Number.NaN;const parsed=typeof value==="number"?value:Number(value);return Number.isFinite(parsed)?parsed:Number.NaN;}
+  const latitude=coordinate(input.latitude),longitude=coordinate(input.longitude);
   if(name.length>200||phone.length>64||address.length>500)return out({error:"FIELD_TOO_LONG"},400);
   if((latitude!==null&&!Number.isFinite(latitude))||(longitude!==null&&!Number.isFinite(longitude))||
      (latitude!==null&&(latitude < -90||latitude > 90))||(longitude!==null&&(longitude < -180||longitude > 180))||
