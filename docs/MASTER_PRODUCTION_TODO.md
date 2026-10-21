@@ -2017,3 +2017,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] **Still required:** implement/verify a database-backed atomic idempotency/claim mechanism before calling Paymob so concurrent requests cannot create duplicate/orphan provider intents; reconcile orphan intents safely.
 - [ ] Execute Edge Function tests, concurrency tests, Paymob sandbox tests, webhook/idempotency tests, and exact-head CI. Source-contract assertions are not runtime proof.
 - [ ] No payment, deployment, merge, or release occurred in this follow-up. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — UI-first job application form slice
+- [x] Replaced browser prompt-based job application collection with an inline, accessible per-job form using the existing submit_job_application_backend RPC.
+- [x] Added required and length-bounded qualifications/CV fields, live status/error feedback, expanded-state semantics, duplicate-click protection, and safe ambiguous-outcome guidance.
+- [x] Added source-contract assertions for the job application form.
+- [ ] Execute the Node validator and exact-head CI; current connector query returned no workflow runs/statuses for the latest head, so test execution is NOT VERIFIED.
+- [ ] Browser E2E, mobile/responsive/accessibility audit, and server authorization/duplicate-application tests remain NOT VERIFIED.
+- Scope remains UI-first; no accounting/subscription expansion, production mutation, deployment, merge, or real payment. Release remains **BLOCKED / NOT CERTIFIED**.
