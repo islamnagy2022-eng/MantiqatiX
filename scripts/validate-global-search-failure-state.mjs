@@ -18,8 +18,11 @@ assert.match(source,/globalSearchSeq\+\+;clearTimeout\(globalSearchTimer\);gsi\.
 assert.match(source,/const rawQuery=String\(queryText\|\|\x27\x27\)\.trim\(\)/,"search must normalize raw input before building filters");
 assert.match(source,/rawQuery\.replace\(\/\[\^\\p\{L\}\\p\{N\}\\s_-\]\/gu,' '\)/,"search must strip PostgREST filter grammar metacharacters from user input");
 
-assert.ok(source.includes('id="mx-global-search-input" type="search" inputmode="search" value="${esc(query)}" autocomplete="off" aria-controls="mx-global-search-results" aria-expanded="false"'), "global search input must expose controlled results and expanded state");
-assert.ok(source.includes('id="mx-global-search-results" class="mx-global-search-results" role="region" aria-label="نتائج البحث"'), "action results must use a region rather than a listbox of non-option buttons");
+assert.ok(source.includes('id="mx-global-search-input" type="search" inputmode="search" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" value="${esc(query)}" autocomplete="off" aria-controls="mx-global-search-results" aria-expanded="false"'), "global search input must expose controlled listbox results and expanded state");
+assert.ok(source.includes('id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"'), "global search results must expose a listbox");
+assert.ok(source.includes('role="option" aria-selected="false" class="mx-global-search-hit"'), "search results must expose keyboard-focusable options");
+assert.ok(source.includes("if(e.key==='ArrowDown'&&gso?.classList.contains('is-open'))"), "ArrowDown must move keyboard focus from the combobox to its results");
+assert.ok(source.includes("if(e.key==='ArrowUp'){e.preventDefault();if(index<=0)gsi?.focus();else options[index-1]?.focus()}"), "ArrowUp must move through results and return to the search input");
 assert.ok(source.includes("gsi?.setAttribute('aria-expanded','true')"), "search must announce when its result region opens");
 assert.ok(source.includes("gsi?.setAttribute('aria-expanded','false')"), "search must announce when its result region closes");
 assert.ok(source.includes("if(!document.documentElement.dataset.mxGlobalSearchOutsideBound)"), "outside-click dismissal must be installed once across page rerenders");
