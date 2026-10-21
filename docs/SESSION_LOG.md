@@ -340,3 +340,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added static source-contract assertions for business selection and payload propagation. CI workflow query has not returned an exact-head run; browser E2E and live authorization behavior remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
 
 - Added client-side search to the marketing lead list across title, description, requested services, service area, status, and source. Search operates only on the already-loaded list, which remains filtered by the existing user-scoped query; no expanded backend query or permissions change was introduced.
+
+- Marketing workspace reliability pass: provider, service, project, plan, subscription, participant, and commission tabs now preserve and render query failure states rather than making failed reads look like empty datasets. Added source-contract assertions. No API/schema changes; exact-head CI and browser E2E remain pending.
