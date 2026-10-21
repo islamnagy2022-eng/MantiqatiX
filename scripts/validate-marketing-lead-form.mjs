@@ -115,6 +115,13 @@ assert.match(source, /sb\.rpc\('create_medical_appointment_backend'/, "medical b
 assert.match(source, /async function medicalBook\(providerId,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "medical booking must prevent duplicate clicks and restore the submit button");
 assert.doesNotMatch(source, /const raw=prompt\('موعد الحجز/, "medical booking flow must not rely on blocking browser prompts");
 
+assert.match(source, /data-mg-bid-form=/, "MantiGO bid form must be identifiable by ride to prevent duplicate forms and duplicate element IDs");
+assert.match(source, /const id=b\.dataset\.mgBid,existing=document\.querySelector\('\[data-mg-bid-form\]'\)/, "MantiGO must keep at most one bid form open because its form fields use shared IDs");
+assert.match(source, /if\(existing\.dataset\.mgBidForm===id\)[\s\S]*?existing\.remove\(\)/, "repeated bid clicks must focus the existing form and switching rides must remove the previous form");
+assert.match(source, /async function mgSubmitBid\(\)[\s\S]*?if\(!button\|\|button\.disabled\)return/, "MantiGO bid submission must ignore repeated clicks while a request is in flight");
+assert.match(source, /async function mgSubmitBid\(\)[\s\S]*?button\.disabled=true;button\.textContent='جاري إرسال العرض…'[\s\S]*?finally\{[\s\S]*?button\.disabled=false/, "MantiGO bid submission must restore the submit control after failure while avoiding duplicate requests");
+assert.match(source, /تعذر تأكيد إرسال العرض\. راجع قائمة عروضك قبل إعادة المحاولة لتجنب إرسال عرض مكرر/, "ambiguous MantiGO bid network failures must warn users to check existing bids before retrying");
+
 assert.match(source, /function liveColumnLabel\(key\)/, "generic live tables must translate common database column keys for Arabic users");
 assert.match(source, /name_ar:/, "live table column labels must include Arabic name fields");
 assert.match(source, /payment_status:/, "live table column labels must localize payment status");
