@@ -2087,3 +2087,26 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added three source-contract assertions for these user-history safety boundaries.
 - [x] Exact-head GitHub Actions run `39548130257` passed on code commit `0850017fab111e44cb8c4d45cf59a7bb43be5b0e`; production verification and syntax/source-contract checks succeeded.
 - [ ] Browser/mobile E2E, backend authorization and duplicate-submission checks remain NOT VERIFIED. MantiGO webhook partial-failure recovery remains a critical payment release blocker.
+
+---
+
+## متابعة التنفيذ — 2026-10-21
+
+### دفعة واجهات الموديولات
+
+- [x] إضافة ربط دلالي بين كل مساحة عمل في الموديول والعنوان الظاهر باستخدام `aria-labelledby`.
+- [x] إضافة `aria-busy` لمساحة العمل وربطه بحالة التحميل الفعلية حتى تستطيع التقنيات المساعدة معرفة أن الصفحة ما زالت تحمل البيانات.
+- [x] تطبيع معرّف العنوان من مفتاح الموديول لتقليل احتمالات وجود معرّفات غير صالحة.
+- [x] إضافة تأكيدات مصدرية لهذه المتطلبات داخل `scripts/validate-marketing-lead-form.mjs`.
+- [ ] تشغيل المدقق فعليًا في بيئة المشروع ومراجعة نتيجة CI؛ وجود التأكيدات في الملف لا يعني أنها اجتازت التنفيذ.
+- [ ] تنفيذ اختبار متصفح على أحجام شاشة مختلفة وفحص لوحة المفاتيح وقارئ الشاشة.
+
+### عائق حرج معروف — لا تعتبره محلولًا
+
+- [ ] مراجعة مسار `paymob-webhook` الخاص بـ MantiGO: يوجد احتمال أن يُسجل الحدث في `payment_provider_events` ثم يفشل تحديث `mantigo_financial_ledger`؛ إعادة إرسال الحدث قد تُعامل كحدث مكرر وتترك حالة السجل `PENDING`. يلزم إصلاح ذري/قابل للاستئناف مع اختبار تكرار الحدث والفشل بين الكتابتين.
+- [ ] مراجعة التزامن في إنشاء نية الدفع؛ حارس حفظ النية الحالي يقلل إظهار رابط دفع غير محفوظ لكنه لا يثبت منع إنشاء نوايا مزود يتيمة عند الطلبات المتزامنة.
+
+### بوابة الإصدار
+
+حالة الإصدار تظل **BLOCKED / NOT CERTIFIED** إلى أن تعمل الاختبارات المطلوبة فعليًا، وتُراجع نتائج CI، وتُختبر المصادقة والصلاحيات وعزل المستأجر والدفع والويب هوك والاستعادة من النسخ الاحتياطية في بيئة مناسبة. لا تُعد هذه الدفعة اعتمادًا للإطلاق.
+
