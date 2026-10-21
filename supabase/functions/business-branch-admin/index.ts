@@ -24,13 +24,19 @@ Deno.serve(async(req)=>{
   const db=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}});
   const {data:{user},error:ue}=await db.auth.getUser(auth.slice(7).trim());
   if(ue||!user||user.is_anonymous)return out({error:"UNAUTHORIZED"},401);
-  let body:any;try{body=await req.json()}catch{return out({error:"INVALID_JSON"},400)}
-  const tenantId=String(body.tenantId??"").trim(),businessId=String(body.businessId??"").trim(),name=String(body.name??"").trim();
+  const contentLength=Number(req.headers.get("Content-Length")||"0");
+  if(Number.isFinite(contentLength)&&contentLength>16384)return out({error:"REQUEST_TOO_LARGE"},413);
+  let body:unknown;try{body=await req.json()}catch{return out({error:"INVALID_JSON"},400)}
+  if(!body||typeof body!=="object"||Array.isArray(body))return out({error:"INVALID_REQUEST_BODY"},400);
+  const input=body as Record<string,unknown>;
+  if((input.tenantId!=null&&typeof input.tenantId!=="string")||(input.businessId!=null&&typeof input.businessId!=="string")||(input.name!=null&&typeof input.name!=="string"))return out({error:"INVALID_REQUEST_FIELDS"},400);
+  const tenantId=String(input.tenantId??"").trim(),businessId=String(input.businessId??"").trim(),name=String(input.name??"").trim();
   const uuidPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if(!tenantId||!businessId||!name)return out({error:"TENANT_BUSINESS_NAME_REQUIRED"},400);
   if(!uuidPattern.test(tenantId)||!uuidPattern.test(businessId))return out({error:"INVALID_TENANT_OR_BUSINESS_ID"},400);
-  const phone=body.phone==null?"":String(body.phone).trim(),address=body.address==null?"":String(body.address).trim();
-  const latitude=body.latitude==null?null:Number(body.latitude),longitude=body.longitude==null?null:Number(body.longitude);
+  if((input.phone!=null&&typeof input.phone!=="string")||(input.address!=null&&typeof input.address!=="string"))return out({error:"INVALID_REQUEST_FIELDS"},400);
+  const phone=input.phone==null?"":input.phone.trim(),address=input.address==null?"":input.address.trim();
+  const latitude=input.latitude==null?null:Number(input.latitude),longitude=input.longitude==null?null:Number(input.longitude);
   if(name.length>200||phone.length>64||address.length>500)return out({error:"FIELD_TOO_LONG"},400);
   if((latitude!==null&&!Number.isFinite(latitude))||(longitude!==null&&!Number.isFinite(longitude))||
      (latitude!==null&&(latitude < -90||latitude > 90))||(longitude!==null&&(longitude < -180||longitude > 180))||
