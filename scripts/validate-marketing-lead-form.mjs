@@ -22,5 +22,8 @@ assert.match(form, /business_not_authorized/, "unauthorized business scope must 
 assert.match(form, /invalid_required_services/, "service validation failures must receive a useful message");
 assert.match(form, /r\.data\?\.ok!==true\|\|!r\.data\?\.lead\?\.id/, "success must require a confirmed backend response and lead ID");
 assert.match(form, /تعذر تأكيد إنشاء طلب التسويق/, "uncertain API responses must not be reported as success");
+assert.match(source, /loadErrors=\{\}/, "table query failures must be tracked separately from empty results");
+assert.match(source, /loadErrors\[t\]=r\.error/, "failed table reads must preserve failure state");
+assert.match(source, /تعذر تحميل طلبات التسويق[\s\S]*لم نعتبر القائمة فارغة/, "lead query failure must not appear as an empty list");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 console.log("Marketing lead form validation contract PASS.");
