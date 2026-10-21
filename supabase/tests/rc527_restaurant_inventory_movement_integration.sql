@@ -21,14 +21,44 @@ select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000002'
 set role authenticated;
 select public.restaurant_inventory_move('item-a','ISSUE',4,0,'rc527-issue-key-0000001','صرف اختبار');
 reset role;
-do $$ begin
+do $ begin
   if (select current_stock_qty from public.restaurant_inventory where id='item-a') <> 11 then
     raise exception 'RC527_FAIL: issue did not atomically decrement stock';
   end if;
   if (select unit_cost_egp from public.restaurant_inventory_movements where idempotency_key='rc527-issue-key-0000001') <> 6 then
     raise exception 'RC527_FAIL: issue cost was not derived from the server-side weighted average';
   end if;
-end $$;
+end $;
+
+-- Direct authenticated balance/cost changes and non-zero initial stock must be blocked.
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+set role authenticated;
+do $ begin
+  begin
+    update public.restaurant_inventory set current_stock_qty=777 where id='item-a';
+    raise exception 'RC527_EXPECTED_FAILURE_NOT_RAISED';
+  exception when raise_exception then
+    if sqlerrm = 'RC527_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+  end;
+  begin
+    insert into public.restaurant_inventory
+      (id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,tenant_id,business_id,branch_id)
+    values ('item-direct','10000000-0000-0000-0000-000000000001','تجاوز مباشر','KG',5,0,10,'','tenant-a','20000000-0000-0000-0000-000000000001','branch-a');
+    raise exception 'RC527_EXPECTED_FAILURE_NOT_RAISED';
+  exception when raise_exception then
+    if sqlerrm = 'RC527_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+  end;
+end $;
+reset role;
+do $ begin
+  if (select current_stock_qty from public.restaurant_inventory where id='item-a') <> 11 then
+    raise exception 'RC527_FAIL: direct balance update bypassed the movement ledger';
+  end if;
+  if exists (select 1 from public.restaurant_inventory where id='item-direct') then
+    raise exception 'RC527_FAIL: direct non-zero stock insert bypassed the movement ledger';
+  end if;
+end $;
+
 
 -- Insufficient stock must fail without changing the balance.
 set role authenticated;
