@@ -72,6 +72,13 @@ if (process.argv.includes("--self-test")) {
     { prNumber: 50, entries: migrationEntries(50, [{ filename: "supabase/migrations/20261010060000_same.sql", sha: "one" }]) },
     { prNumber: 51, entries: migrationEntries(51, [{ filename: "supabase/migrations/20261010060000_same.sql", sha: "two" }]) }
   ]).length, 1);
+  // Several draft PRs may carry the same canonical migration source. Identical
+  // path + blob SHA is shared history, not a divergent migration collision.
+  assert.equal(crossPullRequestCollisions([
+    { prNumber: 70, entries: migrationEntries(70, [{ filename: "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql", sha: "canonical" }]) },
+    { prNumber: 71, entries: migrationEntries(71, [{ filename: "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql", sha: "canonical" }]) },
+    { prNumber: 72, entries: migrationEntries(72, [{ filename: "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql", sha: "canonical" }]) }
+  ]).length, 0);
   console.log("Cross-PR migration collision detector self-test: PASS");
   process.exit(0);
 }
