@@ -23,7 +23,8 @@ Deno.serve(async(req)=>{
  if(error||!data.user||data.user.is_anonymous)return out({error:"UNAUTHORIZED"},401);
  let body:any;try{body=await req.json()}catch{return out({error:"INVALID_JSON"},400)}
  if(!body.orderId||!body.tenantId||!body.newStatus)return out({error:"MISSING_FIELD"},400);
- const {data:result,error:rpcError}=await admin.rpc("update_order_status_backend",{p_order_id:body.orderId,p_tenant_id:body.tenantId,p_user_id:data.user.id,p_new_status:String(body.newStatus).toUpperCase(),p_reason:body.reason??null});
- if(rpcError)return out({error:rpcError.message||"ORDER_STATUS_UPDATE_FAILED"},400);
+ const userScoped=createClient(url,key,{global:{headers:{Authorization:h}},auth:{autoRefreshToken:false,persistSession:false}});
+ const {data:result,error:rpcError}=await userScoped.rpc("update_order_status_backend",{p_order_id:body.orderId,p_tenant_id:body.tenantId,p_user_id:data.user.id,p_new_status:String(body.newStatus).toUpperCase(),p_reason:body.reason??null});
+ if(rpcError)return out({error:"ORDER_STATUS_UPDATE_FAILED"},400);
  return out(result);
 });
