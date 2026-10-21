@@ -160,7 +160,7 @@ assert.match(moduleSource, /النتائج: '\+visibleCount\+' من '\+state\.or
 
 assert.match(moduleSource, /const statusLabels=\{PENDING:'معلق'.*?CANCELLED:'ملغي'\}/s, 'canonical order states must have Arabic display labels');
 assert.match(moduleSource, /value="'\+esc\(current\)\+'">'\+esc\(statusLabels\[current\]\|\|current\|\|'غير محدد'\)/, 'localized status labels must preserve canonical status values');
-assert.match(moduleSource, /next\.map\(s=>'<option value="'\+s+'">'\+esc\(statusLabels\[s\]\|\|s\)/, 'next-state options must be localized while retaining canonical values');
+assert.match(moduleSource, /next\.map\(s=>'<option value="'\+s\+'">'\+esc\(statusLabels\[s\]\|\|s\)/, 'next-state options must be localized while retaining canonical values');
 
 assert.match(moduleSource, /function askOrderDetails\(items, catalogOptions=\[\]\)/, 'order form must accept options returned by the central catalog');
 assert.match(moduleSource, /catalogOptions\.filter\(option=>String\(option\.catalog_item_id\)===String\(itemSelect\?\.value\)\)/, 'only options belonging to the selected catalog item may be shown');
