@@ -2182,3 +2182,8 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Corrected the atomic RPC to store `payment_intent_id = NULL` for MantiGO and bind replays through the signed Paymob `merchant_order_id` in the retained raw payload, while keeping the provider/event unique key and ledger row lock.
 - [x] Updated the disposable fixture to mirror the live varchar ID and payment-intent foreign key shape, and updated tests to include the merchant reference.
 - [ ] Exact-head RC457 PostgreSQL workflow must pass before this source patch is treated as verified. No production SQL was executed; catalog checks were read-only. Migration and Edge Function remain undeployed.
+
+
+- [x] Added an eight-way concurrent duplicate-delivery workload in `supabase/tests/rc457_mantigo_paymob_concurrent.sql`; the CI job verifies the result remains one provider event and one PAID ledger transition.
+- [x] Hardened the RPC search path to `pg_catalog, pg_temp` and added a regression assertion for that trusted path.
+- [ ] The newest exact-head workflow is still pending; do not count the earlier RC457 pass as proof of the latest search-path/concurrency changes.
