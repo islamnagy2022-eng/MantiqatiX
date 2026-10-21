@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -99,6 +99,7 @@ async function load(){
   const errs=[a,b,c,d,e].filter(x=>x.error);
   // Do not expose raw database/provider errors in the user interface.
   state.error=errs.length?'تعذر تحميل بعض بيانات المطعم. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.':null;
+  if(!errs.length)state.lastLoadedAt=new Date().toISOString();
  }catch(e){
   state.error='حدث خطأ أثناء تحميل بيانات المطعم. حاول مرة أخرى.';
  }finally{state.loading=false;render();}
@@ -201,9 +202,19 @@ async function createRestaurantOrder(){
  }catch(e){notify('تعذر إنشاء الطلب. تحقق من البيانات والصلاحيات والاتصال ثم حاول مرة أخرى.','error')}
 }
 function dashboard(){
- return shell('لوحة المطعم',tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button>':'')+'</div>'+cards()+
- '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
+ const statusCounts={};
+ state.orders.forEach(order=>{const key=String(order.status||'UNKNOWN').toUpperCase();statusCounts[key]=(statusCounts[key]||0)+1;});
+ const statusCards=Object.keys(statusCounts).sort().map(status=>'<article class="card"><div class="card-title">'+esc(status)+'</div><div class="metric">'+statusCounts[status]+'</div><div class="muted">ضمن آخر 100 طلب محمّل</div></article>').join('');
+ const refreshed=state.lastLoadedAt?new Date(state.lastLoadedAt).toLocaleString('ar-EG'):'لم يكتمل تحديث البيانات بنجاح بعد';
+ return shell('لوحة المطعم',tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button>':'')+'<button class="btn btn-outline" id="rest-refresh" '+(state.refreshing?'disabled aria-disabled="true"':'')+'>'+ (state.refreshing?'جاري التحديث…':'تحديث البيانات')+'</button><span class="muted">آخر تحديث ناجح: '+esc(refreshed)+'</span></div>'+cards()+
+ '<h3>توزيع الطلبات حسب الحالة</h3><div class="cards">'+(statusCards||'<article class="card"><div class="muted">لا توجد طلبات ضمن البيانات المحمّلة</div></article>')+'</div>'+
+ '<div class="notice" style="margin-top:16px">مؤشرات الحالات محسوبة من آخر 100 طلب محمّل فقط. لا نعرض إجمالي مبيعات أو متوسط طلب باعتبارهما أرقامًا مالية معتمدة قبل ربطهما بمصدر الدفع والتسوية المركزي.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
+}
+async function refreshDashboard(){
+ if(state.refreshing||state.loading)return;
+ state.refreshing=true;render();
+ try{await load();}finally{state.refreshing=false;render();}
 }
 function render(){
  const page=document.getElementById('page');if(!page)return;
@@ -364,6 +375,7 @@ async function updateOrder(id,status){
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
+ document.getElementById('rest-refresh')?.addEventListener('click',refreshDashboard);
  document.getElementById('rest-clear-membership')?.addEventListener('click',()=>{localStorage.removeItem('MNTYActiveMembershipId');load();});
  document.querySelectorAll('[data-select-membership]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-select-membership');if(!state.membershipOptions.some(m=>m.id===id))return;localStorage.setItem('MNTYActiveMembershipId',id);load();}));
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
