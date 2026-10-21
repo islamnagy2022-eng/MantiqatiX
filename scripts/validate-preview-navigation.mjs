@@ -18,6 +18,7 @@ const checks = [
   ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
   ["Preview keeps the live backend-connected homepage separate", !/href="\.\.\//.test(entry)],
   ["Homepage links to module demo, admin and authentication workspaces", /href="dashboard\.html"/.test(entry) && /href="admin\.html"/.test(entry) && /href="login\.html"/.test(entry)],
+  ["Preview banner exposes direct links to all demo workspaces", /aria-label="روابط التجربة"[\s\S]*?href="dashboard\.html"[\s\S]*?href="admin\.html"[\s\S]*?href="login\.html"/.test(entry)],
   ["Homepage clearly labels demo-only behavior", /معاينة تفاعلية/.test(entry) && /لا يوجد اتصال بالـ Backend/.test(entry) && /لا يوجد اتصال بالخادم/.test(entry)],
   ["Homepage has interactive search, location, category and service components", /id="searchForm"/.test(entry) && /id="locationSelect"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry)],
   ["Homepage supports local-only request and provider onboarding simulations", /requestForm/.test(entry) && /joinForm/.test(entry) && /لم يتم إرسال أو حفظ أي بيانات/.test(entry)],
