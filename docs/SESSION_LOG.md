@@ -359,3 +359,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - Module-level recovery follow-up (2026-10-21): MantiGO/core module RPC failures rendered through the global error branch now expose a retry action; authentication-required state deliberately does not show a misleading retry button. Added a source-contract assertion. CI/browser verification remains pending; production stays BLOCKED / NOT CERTIFIED.
+
+
+- 2026-10-21 follow-up: catalog and price reads now require a verified tenant scope before querying; marketing project reads require a verified business scope. Missing scope is shown as a load failure instead of querying without an explicit filter. Added source guards. RLS and tenant isolation still require independent verification.
