@@ -2127,3 +2127,14 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] GitHub Actions has returned no workflow run/status for current PR head `e04fa6b3370f4138e16e438bbaca0b4623a56646`; Node validator execution and exact-head CI are NOT VERIFIED.
 - [ ] Browser/mobile E2E, backend idempotency tests, and role/tenant authorization checks remain NOT VERIFIED.
 - [ ] Critical MantiGO Paymob webhook partial-failure/idempotent-retry recovery remains unresolved as described above; production stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Fix source-contract regression and record exact-head CI
+- [x] Inspected failed Pages run 6185 (commit `0b82450d913866af49f693cd8f83e9a2cb290052`): the failure was a stale source-contract assertion expecting the pre-auth-aware module error-rendering expression; it was not a JavaScript syntax error.
+- [x] Updated `scripts/validate-marketing-lead-form.mjs` to assert the current auth-aware error state and retry behavior without weakening the expected contract.
+- [x] Commit: `04d11a01d391fd886f914e2a4cf08954cce63ea7`.
+- [x] Pages validation run 6186 passed on that exact commit; deploy was correctly skipped for the feature branch.
+- [ ] Additional exact-head workflows (module professionalization, backend-only module boundary, MantiGO open-ride privacy) were still running at the time of this note; their final results must be checked before treating the whole PR validation set as complete.
+- [ ] Browser/mobile E2E, role/tenant authorization, and server-side duplicate-submission tests remain NOT VERIFIED.
+- [ ] Critical MantiGO Paymob webhook partial-failure/idempotent-retry issue remains open: provider event insertion and ledger update are separate writes. Fix requires a transaction-safe RPC/state machine plus retry/concurrency tests.
+- Release remains **BLOCKED / NOT CERTIFIED**. No merge, production deployment, database migration, or real payment was performed.
