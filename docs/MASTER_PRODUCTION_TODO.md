@@ -2264,3 +2264,13 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Mark failed source counts as unavailable rather than showing a misleading zero.
 - [x] Show an accessible partial-failure notice and retry action without hiding working sections.
 - [ ] Exact-head CI and browser regression remain required; no claim of screen-reader/E2E verification.
+
+
+## 2026-10-21 — Provider onboarding duplicate-submit protection
+
+- [x] Added per-form in-flight guards to business registration, branch creation, and service/price submission so repeated taps cannot start overlapping client requests.
+- [x] Submit controls are disabled while requests are pending and restored in `finally`, including failed network responses.
+- [x] Onboarding-status refresh is also guarded against overlapping clicks and always restores its button.
+- [x] Extended the module runtime source-contract validator to require the in-flight guards and recovery paths.
+- [ ] Exact-head CI, backend idempotency verification, and browser/mobile tests remain required; this client guard is not a substitute for server-side idempotency.
+- Production remains **BLOCKED / NOT CERTIFIED**.
