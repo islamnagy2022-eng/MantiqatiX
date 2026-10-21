@@ -12,6 +12,12 @@ assert.doesNotMatch(moduleSource, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER',
 assert.match(rbacSource, /'المطاعم والمطابخ':'CATALOG'/,
   'restaurant module alias must resolve through the shared catalog permission model');
 
+// An explicit stale membership selection must fail closed rather than silently switching tenant.
+assert.match(moduleSource, /if\(saved\)\{\s*const selected=await base\(\)\.eq\('id',saved\)\.maybeSingle\(\);\s*return selected\.data\|\|null;\s*\}/,
+  'stale or inaccessible active membership selection must not fall back to another tenant');
+assert.doesNotMatch(moduleSource, /if\(!r\.data\)\{r=await sb\.from\('user_memberships'\)/,
+  'membership lookup must not silently replace an invalid saved selection');
+
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
