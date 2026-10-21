@@ -322,3 +322,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Improved the existing marketing lead form in `web/operations-modules.js`: explicit labels and accessible status announcements, bounded text lengths, nonnegative finite budget validation, min/max consistency validation, and duplicate-submit protection while the existing `marketing-lead-create` backend function is pending.
 - Added `scripts/validate-marketing-lead-form.mjs` and wired it into `.github/workflows/pages.yml`.
 - Source changes are committed on an isolated branch. Exact-head CI is pending; no test result is claimed until observed. Backend behavior, role/RLS behavior, and browser E2E remain NOT VERIFIED. No production data or backend contract changed.
+
+
+### Follow-up — align marketing lead UI with server contract
+
+- Reviewed `supabase/functions/marketing-lead-create/index.ts` directly. Found a client/server mismatch: the UI previously treated max budget `0` as omitted, while the backend rejects `budget_max < budget_min`. Fixed the client to reject every `max < min` case before sending.
+- Added a requested-services field, comma parsing, de-duplication, and client limits matching the existing server contract (at most 10 values, each at most 80 characters); the resulting array is sent as `required_services` instead of always sending an empty array.
+- Updated the static validator to cover budget boundary and required-services wiring. CI result is still not confirmed on this head; no test pass is claimed.
