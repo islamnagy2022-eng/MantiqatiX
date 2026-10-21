@@ -2158,3 +2158,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Verify `payment_provider_events.id` and all relevant constraints against the target database schema before applying; confirm the service-role grant and absence of `anon`/`authenticated` execute privileges in the target catalog.
 - [ ] Browser/payment sandbox/webhook runtime evidence remains NOT VERIFIED. No production payment, database mutation, migration apply, Edge Function deploy, merge, or release was performed by this source change.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC442 follow-up — contradictory replay hardening
+
+- [x] The atomic RPC now rejects null/unsupported event status, a replay whose signed status differs from the already-persisted event, and event rows with a null/unsupported status.
+- [x] The webhook maps contradictory event replay to a safe HTTP 409 response; the finance source-contract validator asserts both the database and edge-function boundaries.
+- [ ] Exact-head CI is pending for this follow-up. These are source-contract checks only; PostgreSQL concurrency/rollback tests and target-schema validation remain open.
