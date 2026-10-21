@@ -107,3 +107,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** No merge, Pages deployment, database migration, Supabase production mutation, Edge Function deployment, or authentication/authorization change.
 - **Next step:** Use a real browser/HTTP probe on the four public routes and authenticated test accounts; then add focused preview-route tests in a follow-up branch if the current CI/contracts do not cover those paths. Keep PR #316 Draft until that evidence is available.
 - **Release state:** **BLOCKED / NOT CERTIFIED**. The main production blockers listed in `docs/MASTER_PRODUCTION_TODO.md` remain open, including authenticated multi-tenant E2E, payment/finance E2E, leaked-password protection, security-definer review, backup/restore, Android signed/device evidence, and browser smoke.
+
+
+## 2026-10-21 — SESSION — Preview routing contract and CI status follow-up
+
+- **Scope:** PR #316, branch `fix/preview-starts-at-public-home-20261021`, latest inspected head `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
+- **Implemented in branch:** added `scripts/validate-preview-navigation.mjs` and wired it into the Pages validation job; the deploy job includes HTTP smoke checks for the published preview entry and demo dashboard after an eligible main deployment.
+- **Source review:** the validator currently defines 11 static contract checks for Arabic RTL, preview redirect/fallback, dashboard disclaimer, public homepage boot fallback, public-mode fallback when Supabase is unavailable, Pages artifact root, main-only deployment, and service-worker navigation fallback.
+- **CI status at inspection:** run 39616462814 is still queued at job level; its deploy job is correctly skipped for a pull-request event. The latest check-run query returned 15 checks, with 0 completed and no recorded failures. This is pending, not a pass.
+- **Not verified:** validator has not been run locally in this session; published-site HTTP smoke, browser login/session, PWA offline behavior, tenant isolation, and production E2E are not certified by these source checks.
+- **Safety boundary:** no merge, no main push, no production deployment, no Supabase/database/auth/payment mutation.
+- **Next:** investigate stalled queued jobs / obtain CI conclusions; fix any reproduced failures, then verify the published Pages URLs after an authorized main deployment. Keep global release gate BLOCKED until P0 evidence is complete.
