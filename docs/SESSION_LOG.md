@@ -377,3 +377,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 payload-stream hardening: replaced full-body buffering with `readLimitedBody`, which counts incoming stream bytes, cancels the reader as soon as the configured limit is exceeded, and only concatenates chunks after the size check. This avoids allocating an arbitrarily large body before rejection when `Content-Length` is missing or misleading. Added a source-contract assertion; runtime Edge tests and exact-head CI remain pending.
+
+
+- 2026-10-21 request-stream recovery: the bounded body reader now catches stream-read failures, attempts cancellation, and returns an empty byte buffer so malformed/unreadable input follows the controlled `invalid_json` response path instead of becoming an unhandled Edge Function exception. Added a source-contract assertion. Runtime tests and exact-head CI remain pending.
