@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs";
 import { isBranchCreationAuthorized } from "../_shared/branch-authorization.mjs";
+import { parseBearerToken } from "../_shared/bearer-token.mjs";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 const cors = {
@@ -19,12 +20,12 @@ Deno.serve(async(req)=>{
   if(req.method==="OPTIONS"){if(origin&&origin!==allowedOrigin)return out({error:"ORIGIN_NOT_ALLOWED"},403);return new Response("ok",{status:200,headers:cors});}
   if(origin&&origin!==allowedOrigin)return out({error:"ORIGIN_NOT_ALLOWED"},403);
   if(req.method!=="POST")return out({error:"METHOD_NOT_ALLOWED"},405);
-  const auth=req.headers.get("Authorization")||"";
-  if(!auth.startsWith("Bearer "))return out({error:"AUTH_REQUIRED"},401);
+  const token=parseBearerToken(req.headers.get("Authorization"));
+  if(!token)return out({error:"AUTH_REQUIRED"},401);
   const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if(!url||!key)return out({error:"SERVER_MISCONFIGURED"},500);
   const db=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}});
-  const {data:{user},error:ue}=await db.auth.getUser(auth.slice(7).trim());
+  const {data:{user},error:ue}=await db.auth.getUser(token);
   if(ue||!user||user.is_anonymous)return out({error:"UNAUTHORIZED"},401);
   const maxBodyBytes=16384;
   const contentLength=Number(req.headers.get("Content-Length")||"0");
