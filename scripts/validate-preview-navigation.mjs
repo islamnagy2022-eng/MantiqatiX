@@ -6,6 +6,7 @@ const dashboard = fs.readFileSync("web/preview/dashboard.html", "utf8");
 const admin = fs.readFileSync("web/preview/admin.html", "utf8");
 const login = fs.readFileSync("web/preview/login.html", "utf8");
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+const loginScript = login.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const dashboardScript = dashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const home = fs.readFileSync("web/index.html", "utf8");
 const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
