@@ -373,6 +373,9 @@ async function addInventoryMovement(existing){
   const unitCost=Number(o.querySelector('#stock-movement-cost').value);
   const notes=o.querySelector('#stock-movement-notes').value.trim();
   if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+  if(!['RECEIPT','ISSUE','OPENING_BALANCE'].includes(type))return notify('نوع حركة المخزون غير معتمد.','error');
+  if(type==='OPENING_BALANCE'&&!['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'].includes(role))return notify('تسجيل الرصيد الافتتاحي متاح للأدوار المخولة فقط.','error');
+  if(notes.length>1000)return notify('الملاحظات يجب ألا تتجاوز 1000 حرف.','error');
   if(!Number.isFinite(quantity)||quantity<=0||quantity>1000000||Math.round(quantity*1000)!==quantity*1000)return notify('أدخل كمية موجبة بحد أقصى ثلاث خانات عشرية.','error');
   if(!Number.isFinite(unitCost)||unitCost<0||unitCost>100000000||Math.round(unitCost*100)!==unitCost*100)return notify('أدخل تكلفة صحيحة بحد أقصى خانتين عشريتين.','error');
   const {data,error}=await sb.rpc('restaurant_inventory_move',{p_inventory_id:existing.id,p_movement_type:type,p_quantity:quantity,p_unit_cost_egp:unitCost,p_idempotency_key:idempotencyKey,p_notes:notes});
