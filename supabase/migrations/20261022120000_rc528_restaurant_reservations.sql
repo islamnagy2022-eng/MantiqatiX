@@ -155,6 +155,23 @@ begin
       (v_tenant,v_business,v_branch,v_table_id,v_name,v_phone,v_guests,v_start,v_end,'PENDING',v_notes,v_key,v_actor)
     returning * into v_reservation;
     return jsonb_build_object('id',v_reservation.id,'status',v_reservation.status,'idempotent_replay',false);
+  elsif v_action in ('CONFIRM','SEAT','NO_SHOW') then
+    begin v_reservation_id := (p_payload->>'reservation_id')::uuid;
+    exception when others then raise exception 'INVALID_RESERVATION_ID'; end;
+    select r.* into v_reservation from public.restaurant_reservations r
+    where r.id=v_reservation_id and r.tenant_id=v_tenant and r.business_id=v_business and r.branch_id=v_branch
+    for update;
+    if not found then raise exception 'RESTAURANT_RESERVATION_NOT_FOUND'; end if;
+    if (v_action='CONFIRM' and v_reservation.status<>'PENDING')
+      or (v_action='SEAT' and v_reservation.status<>'CONFIRMED')
+      or (v_action='NO_SHOW' and v_reservation.status not in ('PENDING','CONFIRMED')) then
+      raise exception 'INVALID_RESERVATION_TRANSITION';
+    end if;
+    update public.restaurant_reservations
+      set status=case v_action when 'CONFIRM' then 'CONFIRMED' when 'SEAT' then 'SEATED' else 'NO_SHOW' end,
+          updated_at=now()
+      where id=v_reservation.id returning * into v_reservation;
+    return jsonb_build_object('id',v_reservation.id,'status',v_reservation.status,'idempotent_replay',false);
   elsif v_action='CANCEL' then
     begin v_reservation_id := (p_payload->>'reservation_id')::uuid;
     exception when others then raise exception 'INVALID_RESERVATION_ID'; end;
