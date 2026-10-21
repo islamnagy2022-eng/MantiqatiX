@@ -131,7 +131,11 @@ assert.match(moduleSource, /aria-expanded="false"/, 'order detail disclosure mus
 assert.match(moduleSource, /data-order-details.*?b\.setAttribute\('aria-expanded',String\(opening\)\)/s, 'order detail disclosure must keep aria-expanded synchronized');
 assert.match(moduleSource, /esc\(x\.customer_phone\|\|'غير مسجل'\)/, 'order details must HTML-escape customer phone data');
 assert.match(moduleSource, /esc\(x\.delivery_address\|\|'غير مسجل'\)/, 'order details must HTML-escape delivery address data');
-assert.match(moduleSource, /esc\(typeof x\.items_json==='string'\?x\.items_json:JSON\.stringify\(x\.items_json\|\|\[\],null,2\)\)/, 'order item snapshot must be escaped before HTML rendering');
+assert.match(moduleSource, /function orderSnapshotView\(order\)/, 'order details must render the saved item snapshot in a dedicated view');
+assert.match(moduleSource, /esc\(name\).*?esc\(item\?\.quantity\?\?'—'\).*?orderAmount\(item\?\.unit_price,currency\).*?orderAmount\(item\?\.line_subtotal,currency\).*?orderAmount\(item\?\.line_tax,currency\)/s, 'structured order item fields must be escaped and use saved pricing values');
+assert.match(moduleSource, /order\.subtotal,currency\).*?order\.discount,currency\).*?order\.tax,currency\).*?order\.delivery_fee,currency\).*?order\.total_amount\?\?order\.total,currency/s, 'order detail must display the stored pricing breakdown and final total');
+assert.match(moduleSource, /typeof items==='string'\)\{\s*try\{items=JSON\.parse\(items\)\}catch\(e\)\{items=null\}/, 'order snapshot parser must safely handle malformed JSON');
+
 assert.match(moduleSource, /<td colspan="7">'\+details\+'<\/td>/, 'order detail content must remain inside the corresponding hidden table row');
 
 console.log('Restaurant module contract PASS');
