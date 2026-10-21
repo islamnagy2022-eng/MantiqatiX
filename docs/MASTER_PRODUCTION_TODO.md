@@ -2216,3 +2216,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 - [x] Follow-up: explicit Enter/retry actions now cancel a pending debounce timer before issuing a request, preventing duplicate parallel searches; added a source-contract assertion for timer cleanup.
 - [ ] Exact-head CI for the debounce follow-up remains pending; browser E2E is still NOT VERIFIED.
+
+
+## 2026-10-21 — Global search ARIA structure correction
+
+- [x] Changed the overall results panel to a named region; result options alone are now inside a nested listbox. Loading/error/empty states and retry buttons no longer sit directly inside listbox semantics.
+- [x] Updated the source-contract validator to require the region/listbox separation and retain retry-control assertions.
+- [ ] Exact-head CI must pass for this accessibility correction before it is considered verified.
+- [ ] Screen-reader and mobile keyboard behavior still require manual verification; production remains BLOCKED / NOT CERTIFIED.
