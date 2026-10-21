@@ -145,3 +145,5 @@ assert.match(source, /\[data-live-page\]/, "pagination controls must be wired to
 assert.match(source, /const labels=\{overview:'نظرة عامة'[\s\S]*?appointments:'المواعيد'\}/, "module tabs must provide Arabic labels for all shared navigation categories");
 assert.match(source, /aria-label="أقسام الوحدة"/, "module navigation must expose an accessible Arabic label");
 assert.match(source, /aria-current="[\s\S]*?labels\[x\]\|\|'عرض البيانات'/, "module tabs must expose current navigation state and avoid raw English tab keys");
+
+assert.match(source, /async function loadInternal\(d\)[\s\S]*?function load\(d\)\{return loadInternal\(d\)\.catch\(\(\)=>\{loading=false;error='تعذر تحميل بيانات الوحدة بسبب مشكلة مؤقتة في الاتصال\. أعد المحاولة\.';render\(\)\}\)\}/, "unexpected module-load exceptions must be caught and shown as safe Arabic retry guidance");
