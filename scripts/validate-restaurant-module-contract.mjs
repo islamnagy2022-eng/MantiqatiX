@@ -143,6 +143,20 @@ assert.match(moduleSource, /order\.items_json/,
 assert.match(moduleSource, /ليست إثباتًا على تحصيل المبلغ أو تسويته ماليًا/,
   'order details must not imply that recorded totals are proof of payment settlement');
 
+// Kitchen board uses existing server-supported order statuses and the existing scoped dataset.
+assert.match(moduleSource, /function kitchenView\(\)/,
+  'restaurant module must expose a dedicated kitchen board');
+assert.match(moduleSource, /state\.tab==='kitchen'\?kitchenView\(\)/,
+  'kitchen board must be reachable from module navigation');
+assert.match(moduleSource, /title:'بانتظار بدء التحضير',next:'PREPARING'/,
+  'kitchen board must start preparation using the existing CONFIRMED to PREPARING transition');
+assert.match(moduleSource, /next:'OUT_FOR_DELIVERY',action:'تسليم للمندوب'/,
+  'kitchen board must use the existing OUT_FOR_DELIVERY transition rather than inventing a ready status');
+assert.match(moduleSource, /تعرض الشاشة الطلبات المحمّلة ضمن الفرع النشط فقط، بحد أقصى آخر 100 طلب/,
+  'kitchen board must disclose its bounded active-branch dataset');
+assert.match(moduleSource, /لا تُنشأ حالات جديدة من الواجهة/,
+  'kitchen board must not introduce unsupported status transitions');
+
 // Order search/filter must stay within the already scoped and bounded client result set.
 assert.match(moduleSource, /const filtered=state\.orders\.filter\(x=>\{/,
   'order filters must operate on the loaded scoped order set');
