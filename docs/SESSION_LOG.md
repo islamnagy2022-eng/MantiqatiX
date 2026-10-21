@@ -395,3 +395,13 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 user feedback reliability: added safe Arabic guidance for invalid title, description, and service-area API responses; extended source-contract assertions. The Node validator/CI have not yet been observed running at the latest head.
+
+
+## 2026-10-21 — UI module backend-error leakage guard
+
+- **Change:** Removed 11 direct backend error-message interpolations from `web/operations-modules.js`; user-facing failures now use safe Arabic messages that do not expose raw database/RPC details.
+- **Regression guard:** Added five assertions to `scripts/validate-marketing-lead-form.mjs`; confirmed `.github/workflows/pages.yml` invokes this validator.
+- **Static source review:** Replacement patterns matched 11 call sites; source contained zero remaining `error.message` references after the transformation. This is not equivalent to executing the validator or browser tests.
+- **Not verified yet:** exact-head CI, runtime flows, browser E2E, role authorization and tenant isolation.
+- **Not performed:** no migration/production data change, function deployment, payment, merge, or release.
+- **Next:** open a focused draft PR, then inspect exact-head workflow results and fix any real failures without weakening release gates.
