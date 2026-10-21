@@ -28,7 +28,7 @@ select public.create_order_backend(
 );
 
 do $$
-declare v_snapshot jsonb; v_total numeric; v_hash text;
+declare v_snapshot jsonb; v_total numeric; v_hash text; v_retry jsonb; v_duplicate_rejected boolean:=false;
 begin
  select pricing_snapshot,total_amount,pricing_hash into v_snapshot,v_total,v_hash
  from orders where id='50000000-0000-4000-8000-000000000001';
@@ -43,5 +43,42 @@ begin
  if (select items_json from orders where id='50000000-0000-4000-8000-000000000001') <> v_snapshot then
    raise exception 'RC530 items_json must match the immutable pricing snapshot';
  end if;
+ select public.create_order_backend(
+  '50000000-0000-4000-8000-000000000002',
+  'tenant-rc530',
+  '20000000-0000-4000-8000-000000000001',
+  null,
+  '10000000-0000-4000-8000-000000000001',
+  'rc530-option-snapshot-test-0001',
+  0,0,0,0,0,'EGP','عميل اختبار','01000000000','عنوان اختبار',
+  '[{"catalogItemId":"30000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+  'RC530 retry','{}'::jsonb
+ ) into v_retry;
+ if coalesce((v_retry->>'idempotent')::boolean,false) is not true
+    or v_retry->>'id' <> '50000000-0000-4000-8000-000000000001'
+    or v_retry->'pricing_snapshot' <> v_snapshot then
+   raise exception 'RC530 retry must return the original order and original snapshot: %',v_retry;
+ end if;
+
+ begin
+  perform public.create_order_backend(
+   '50000000-0000-4000-8000-000000000003',
+   'tenant-rc530',
+   '20000000-0000-4000-8000-000000000001',
+   null,
+   '10000000-0000-4000-8000-000000000001',
+   'rc530-option-snapshot-duplicate-0001',
+   0,0,0,0,0,'EGP','عميل اختبار','01000000000','عنوان اختبار',
+   '[{"catalogItemId":"30000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":["40000000-0000-4000-8000-000000000001","40000000-0000-4000-8000-000000000001"]}]'::jsonb,
+   'RC530 duplicate option','{}'::jsonb
+  );
+ exception when others then
+  if position('INVALID_ITEM_OPTIONS' in sqlerrm)>0 then
+   v_duplicate_rejected:=true;
+  else
+   raise;
+  end if;
+ end;
+ if not v_duplicate_rejected then raise exception 'RC530 duplicate option IDs must be rejected'; end if;
 end $$;
 rollback;
