@@ -8,10 +8,18 @@ for(const [code,tables] of expected){
   const inCatalog=new RegExp(`code:['"]${code}['"]`).test(catalog);
   const name=names[code];
   const inOps=ops.includes("'"+name+"':{key:'"+code+"'");
-  const covered=tables.some(t=>ops.includes("'"+t+"'")||ops.includes('"'+t+'"'));
+  const escapedName=name.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\  const covered=tables.some(t=>ops.includes("'"+t+"'")||ops.includes('"'+t+'"'));
   if(!inCatalog) missing.push(`${code}: missing from unified catalog`);
   if(!inOps) missing.push(`${code}: no routed live workspace in operations runtime`);
-  if(!covered) missing.push(`${code}: no live table binding in operations runtime`);
+  if(!covered) missing.push(`${code}: no live table binding in operations runtime`);');
+  const definitionPattern=new RegExp("'"+escapedName+"':\\\\{key:'"+code+"'[^}]*?tables:\\\\[([^\\\\]]*)\\\\]");
+  const definition=ops.match(definitionPattern);
+  const mappedTables=definition?[...definition[1].matchAll(/'([^']+)'/g)].map(m=>m[1]):[];
+  const missingTables=tables.filter(t=>!mappedTables.includes(t));
+  if(!inCatalog) missing.push(`${code}: missing from unified catalog`);
+  if(!inOps) missing.push(`${code}: no routed live workspace in operations runtime`);
+  if(!definition) missing.push(`${code}: no exact runtime definition for ${name}`);
+  else if(missingTables.length) missing.push(`${code}: missing runtime table bindings: ${missingTables.join(", ")}`);
 }
 if(!ops.includes('function genericLiveView')) missing.push('genericLiveView: missing live-data workspace');
 if(missing.length){console.error(missing.join('\n'));process.exit(1);}
