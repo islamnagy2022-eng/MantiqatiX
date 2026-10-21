@@ -2138,3 +2138,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Browser/mobile E2E, role/tenant authorization, and server-side duplicate-submission tests remain NOT VERIFIED.
 - [ ] Critical MantiGO Paymob webhook partial-failure/idempotent-retry issue remains open: provider event insertion and ledger update are separate writes. Fix requires a transaction-safe RPC/state machine plus retry/concurrency tests.
 - Release remains **BLOCKED / NOT CERTIFIED**. No merge, production deployment, database migration, or real payment was performed.
+
+
+## 2026-10-21 — repository-grounded module UI inventory
+- [x] Added `docs/UI_MODULE_COMPLETION_MATRIX.md`, mapping the 28 module keys already represented in `scripts/validate-module-runtime-contracts.mjs` to their current renderer and expected data sources.
+- [x] Explicitly kept every module UI/E2E status as NOT VERIFIED; existing source-contract/coverage tests do not prove browser journeys, role authorization, tenant isolation, or responsive behavior.
+- [ ] Walk the matrix module-by-module and implement the next small UI slice against verified backend contracts, starting with public discovery and provider profiles.
+- [ ] MantiGO Paymob webhook still uses separate event and ledger writes; atomic RPC/state-machine and replay/concurrency/partial-failure tests remain a critical release blocker.
+- [ ] Production remains **BLOCKED / NOT CERTIFIED**.
