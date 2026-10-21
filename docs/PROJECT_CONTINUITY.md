@@ -840,3 +840,8 @@ Code review found `genericLiveView(d)` still reports `(rows[t] || []).length` an
 ## 2026-10-21 — generic live-data view reliability
 
 Fixed `genericLiveView(d)` to render explicit states when a table is backend-only or its read failed, rather than implying zero records. Added a source-contract assertion for both states. Also fixed a stale assertion in `validate-marketing-lead-form.mjs` that still expected the replaced `req.arrayBuffer()` body reader; it now checks the bounded `readLimitedBody` path. These are source edits only: the validator and CI have not been executed in a confirmed runtime. Browser E2E and authorization/RLS verification remain open; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — strict service-area type validation
+
+The marketing lead Edge Function now rejects a non-string `service_area` value with `invalid_service_area` instead of silently coercing it to an empty string. A static contract assertion was added. The generic live-data tab issue and stale body-size validator assertion are corrected in source, but runtime validation, exact-head CI, browser E2E, and tenant/RLS authorization checks remain unverified. Production remains BLOCKED / NOT CERTIFIED.
