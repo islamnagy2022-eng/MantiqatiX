@@ -8,16 +8,21 @@ const login = fs.readFileSync("web/preview/login.html", "utf8");
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const loginScript = login.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const dashboardScript = dashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+const entryScript = entry.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const home = fs.readFileSync("web/index.html", "utf8");
 const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const checks = [
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
-  ["Preview opens the all-module demo by default", /window\.location\.replace\(['"]dashboard\.html['"]\)/.test(entry)],
-  ["Preview has a manual public-home fallback", /href="\.\.\/"/.test(entry)],
-  ["Preview has a direct demo link", /href="dashboard\.html"/.test(entry)],
-  ["Gateway clearly labels demo-only behavior", /وضع تجريبي فقط/.test(entry)],
+  ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
+  ["Preview keeps the live backend-connected homepage separate", !/href="\.\.\//.test(entry)],
+  ["Homepage links to module demo, admin and authentication workspaces", /href="dashboard\.html"/.test(entry) && /href="admin\.html"/.test(entry) && /href="login\.html"/.test(entry)],
+  ["Homepage clearly labels demo-only behavior", /معاينة تفاعلية/.test(entry) && /لا يوجد اتصال بالـ Backend/.test(entry) && /لا يوجد اتصال بالخادم/.test(entry)],
+  ["Homepage has interactive search, location, category and service components", /id="searchForm"/.test(entry) && /id="locationSelect"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry)],
+  ["Homepage supports local-only request and provider onboarding simulations", /requestForm/.test(entry) && /joinForm/.test(entry) && /لم يتم إرسال أو حفظ أي بيانات/.test(entry)],
+  ["Homepage has no external requests, persistence or Supabase client", !/\bfetch\s*\(|\bXMLHttpRequest\b|localStorage|sessionStorage|createClient\s*\(/i.test(entry)],
+  ["Homepage inline JavaScript parses successfully", (() => { try { if (!entryScript) return false; new vm.Script(entryScript); return true; } catch (error) { console.error("Homepage JavaScript syntax error:", error.message); return false; } })()],
   ["Demo dashboard is explicitly non-production", /Demo Mode/.test(dashboard) && /لا توجد عمليات فعلية/.test(dashboard)],
   ["Demo catalog includes platform modules across domains", /id:'marketing'/.test(dashboard) && /id:'orders'/.test(dashboard) && /id:'accounting'/.test(dashboard) && /id:'security'/.test(dashboard) && /id:'settings'/.test(dashboard)],
   ["Demo workspaces support local record creation and filtering", /recordForm/.test(dashboard) && /recordSearch/.test(dashboard) && /data\[current\.id\]\.unshift/.test(dashboard)],

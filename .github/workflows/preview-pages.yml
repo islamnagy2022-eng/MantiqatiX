@@ -38,8 +38,8 @@ jobs:
             esac
           done <<< "$changed"
           test -s web/preview/index.html
-          grep -Fq 'نسخة معاينة مستقلة' web/preview/index.html
-          grep -Fq 'ولا تنفذ أي تغييرات' web/preview/index.html
+          grep -Fq 'معاينة تفاعلية' web/preview/index.html
+          grep -Fq 'لا يوجد اتصال بالـ Backend' web/preview/index.html
       - name: Validate demo and administration contracts
         run: node scripts/validate-preview-navigation.mjs
       - name: Setup Node
@@ -69,6 +69,9 @@ jobs:
           set -euo pipefail
           test -n "$PAGE_URL"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/" -o /tmp/preview.html
+          grep -Fq 'id="heroTitle"' /tmp/preview.html
+          grep -Fq 'id="categoryGrid"' /tmp/preview.html
+          grep -Fq 'id="serviceCards"' /tmp/preview.html
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/dashboard.html" -o /tmp/preview-dashboard.html
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/admin.html" -o /tmp/preview-admin.html
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/login.html" -o /tmp/preview-login.html
