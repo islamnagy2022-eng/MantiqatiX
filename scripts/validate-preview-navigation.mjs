@@ -46,7 +46,7 @@ const checks = [
   ["Dashboard supports direct links to a module workspace", dashboard.includes("new URLSearchParams(window.location.search)") && dashboard.includes("openModule(requestedModule)") ],
   ["All 35 module workspaces include domain-specific form configurations", (() => { const match = dashboard.match(/const specialized=(\{[\s\S]*?\});\nconst sampleNames=/); return !!match && Object.keys(JSON.parse(match[1])).length === 35; })()],
   ["Module workspace exposes a dedicated specialized-function tab", dashboard.includes('data-tab="specialized"') && dashboard.includes('id="specializedForm"') && dashboard.includes("renderSpecialized()")],
-  ["Module-specific actions save only local synthetic records", dashboard.includes("data[current.id].unshift") && dashboard.includes("محاكاة محلية فقط")],
+  ["Module-specific actions save only local synthetic records", dashboard.includes("data[current.id].unshift") && dashboard.includes("تم تنفيذ المحاكاة المتخصصة محليًا فقط.")],
   ["Dashboard inline JavaScript parses successfully", (() => { try { if (!dashboardScript) return false; new vm.Script(dashboardScript); return true; } catch (error) { console.error("Dashboard JavaScript syntax error:", error.message); return false; } })()]
 ];
 const failed = checks.filter(([, ok]) => !ok);
