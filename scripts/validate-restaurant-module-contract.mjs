@@ -5,6 +5,7 @@ const moduleSource = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const rbacSource = fs.readFileSync('web/rbac.js', 'utf8');
 
 // The restaurant workspace must use the shared RBAC contract, not its own role allowlist.
+assert.match(moduleSource, /select\('id,tenant_id,business_id,branch_id,role,status,permissions'\)/, 'membership lookup must include permission claims required by shared RBAC');
 assert.match(moduleSource, /window\.MNTY_RBAC\?\.can\(role,module,action,state\.membership\?\.permissions\)===true/,
   'restaurant actions must be checked through shared RBAC');
 assert.doesNotMatch(moduleSource, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER','SERVICE_PROVIDER','STAFF'\]/,
