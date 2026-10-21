@@ -130,4 +130,18 @@ assert.match(moduleSource, /if\(!errs\.length\)state\.lastLoadedAt=new Date\(\)\
 assert.match(moduleSource, /id="rest-refresh"/,
   'dashboard must expose a manual refresh control');
 
+// Order search/filter must stay within the already scoped and bounded client result set.
+assert.match(moduleSource, /const filtered=state\.orders\.filter\(x=>\{/,
+  'order filters must operate on the loaded scoped order set');
+assert.match(moduleSource, /x\.id,x\.customer_name,x\.customer_phone/,
+  'order search must support order ID, customer name and phone');
+assert.match(moduleSource, /id="rest-order-status-filter"/,
+  'order list must expose a status filter');
+assert.match(moduleSource, /النتائج: '\+filtered\.length\+' من '\+state\.orders\.length\+' طلب محمّل/,
+  'order list must disclose the loaded result bound');
+assert.match(moduleSource, /البحث محلي داخل آخر 100 طلب محمّل فقط/,
+  'order list must disclose that local search is not historical global search');
+assert.doesNotMatch(moduleSource, /const average=billable\.length\?[\s\S]{0,250}متوسط قيمة الطلب/,
+  'dashboard must not imply an unverified order average is a verified financial metric');
+
 console.log('Restaurant module contract PASS');
