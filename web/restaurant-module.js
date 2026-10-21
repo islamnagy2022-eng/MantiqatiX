@@ -150,7 +150,7 @@ function inventoryView(){
 function askOrderDetails(items){
  return new Promise(resolve=>{
   const options=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name||x.title||x.id)+'</option>').join('');
-  modal('تفاصيل الطلب','<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" step="1" required')+field('rest-customer','اسم العميل')+field('rest-phone','رقم الهاتف','', 'tel','autocomplete="tel"')+field('rest-address','عنوان التوصيل','')+'<label class="field"><span>ملاحظات الطلب</span><textarea id="rest-notes" rows="3" maxlength="1000"></textarea></label><div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
+  modal('تفاصيل الطلب','<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" step="1" required')+field('rest-customer','اسم العميل','', 'text','maxlength="120" required autocomplete="name"')+field('rest-phone','رقم الهاتف','', 'tel','maxlength="20" autocomplete="tel"')+field('rest-address','عنوان التوصيل','')+'<label class="field"><span>ملاحظات الطلب</span><textarea id="rest-notes" rows="3" maxlength="1000"></textarea></label><div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
    const itemId=o.querySelector('#rest-item')?.value;
    const quantity=Number(o.querySelector('#rest-qty')?.value);
    const item=items.find(x=>String(x.id)===String(itemId));
@@ -160,6 +160,7 @@ function askOrderDetails(items){
    const customerPhone=o.querySelector('#rest-phone')?.value.trim()||'';
    const deliveryAddress=o.querySelector('#rest-address')?.value.trim()||'';
    const notes=o.querySelector('#rest-notes')?.value.trim()||'';
+   if(!customerName||customerName.length>120){notify('أدخل اسم العميل بحد أقصى 120 حرفًا.','error');return;}
    if(customerPhone&&!/^[+0-9()\-\s]{7,20}$/.test(customerPhone)){notify('أدخل رقم هاتف صحيحًا.','error');return;}
    o._close();resolve({item,quantity,customerName,customerPhone,deliveryAddress,notes});
   },()=>resolve(null));
@@ -176,7 +177,7 @@ async function createRestaurantOrder(){
    if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
    const selection=await askOrderDetails(items);
    if(!selection)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName||state.user.email||'',customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
    const r=await invokeMntyFunction('order-create',payload);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
