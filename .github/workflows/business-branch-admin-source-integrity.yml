@@ -25,6 +25,8 @@ on:
       - "scripts/test-branch-authorization.mjs"
       - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
+      - "supabase/functions/_shared/tenant-id.mjs"
+      - "scripts/test-tenant-id.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
       - "supabase/functions/_shared/bearer-token.mjs"
       - "scripts/test-bearer-token.mjs"
@@ -47,6 +49,6 @@ jobs:
       - name: Type-check business branch admin Edge Function
         run: deno check --node-modules-dir=auto supabase/functions/business-branch-admin/index.ts
       - name: Runtime-test branch input and authorization policies
-        run: node --test scripts/test-branch-coordinate-normalization.mjs scripts/test-branch-authorization.mjs scripts/test-bearer-token.mjs
+        run: node --test scripts/test-branch-coordinate-normalization.mjs scripts/test-branch-authorization.mjs scripts/test-bearer-token.mjs scripts/test-tenant-id.mjs
       - name: Validate business branch admin source
         run: node scripts/validate-business-branch-admin-source.mjs
