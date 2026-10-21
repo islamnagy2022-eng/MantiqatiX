@@ -2011,3 +2011,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Follow-up: removed the raw `data.error` display from the MantiGO electronic-payment intent response; payment failures now show safe guidance. Added two regression assertions for this path.
 
 - [x] Follow-up: wrapped MantiGO payment-intent initiation in controlled network/session error handling; ambiguous outcomes explicitly advise checking ride/payment state before retry. Added a source-contract assertion.
+
+## MantiGO payment-intent persistence follow-up — 2026-10-21
+- [ ] **Partial source hardening:** `mantigo-payment-intent` now verifies that the exact provider intent was persisted before returning a checkout URL; state conflicts return a safe 409 response, and database update errors are logged with a request ID.
+- [ ] **Still required:** implement/verify a database-backed atomic idempotency/claim mechanism before calling Paymob so concurrent requests cannot create duplicate/orphan provider intents; reconcile orphan intents safely.
+- [ ] Execute Edge Function tests, concurrency tests, Paymob sandbox tests, webhook/idempotency tests, and exact-head CI. Source-contract assertions are not runtime proof.
+- [ ] No payment, deployment, merge, or release occurred in this follow-up. Release remains **BLOCKED / NOT CERTIFIED**.
