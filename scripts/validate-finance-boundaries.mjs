@@ -31,6 +31,7 @@ for(const [src,marker,label] of [
   [mantigoSql,'for update','ledger row serialization'],
   [mantigoSql,'MANTIGO_EVENT_BINDING_CONFLICT','provider-event binding validation'],
   [mantigoSql,'MANTIGO_FINAL_STATE_CONFLICT','conflicting replay rejection'],
+  [mantigoSql,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory event replay rejection'],
   [mantigoSql,'grant execute on function public.process_verified_mantigo_paymob_event','service-role-only RPC grant']
 ]) if(!src.includes(marker)) throw new Error('MantiGO atomic webhook contract missing: '+label);
 if(mantigoWebhook.includes('.from("payment_provider_events").insert')||mantigoWebhook.includes('.from("mantigo_financial_ledger").update')) throw new Error('MantiGO webhook must not persist provider event and ledger state in separate client calls.');
