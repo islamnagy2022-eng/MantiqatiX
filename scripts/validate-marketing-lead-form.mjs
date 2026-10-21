@@ -178,6 +178,13 @@ assert.match(source, /catch\{if\(generation===loadGeneration&&current==='MantiGO
 assert.match(source, /if\(generation!==loadGeneration\|\|current!=='MantiGO والنقل'\|\|tab!=='open'\)return/, "late open-rides responses must not overwrite a newer navigation state");
 assert.match(source, /if\(b\.isConnected\)\{b\.disabled=false;b\.removeAttribute\('aria-busy'\)\}/, "open-rides controls must recover after success or failure");
 
+
+assert.match(source, /function shell\(d,body\)[\s\S]*?const accessContext=membershipLoadError\?/, "module shell must show membership verification failure rather than silently implying full access");
+assert.match(source, /تم إخفاء البيانات التي تحتاج إلى نطاق مؤسسي/, "membership lookup failure must explain that scoped data is hidden safely");
+assert.match(source, /module-access-context[\s\S]*?تم تحميل العضوية النشطة/, "module shell must show when an active membership context was loaded");
+assert.match(source, /لا توجد عضوية مؤسسة نشطة لهذا الحساب/, "module shell must explain missing active membership context");
+assert.match(source, /roleLabels=\{OWNER:'مالك المؤسسة'/, "membership roles must be rendered in Arabic instead of exposing role codes");
+
 console.log("Marketing lead form validation contract PASS.");
 
 // Fail closed when prior user-owned state cannot be verified.
