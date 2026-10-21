@@ -12,6 +12,28 @@ select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
  'table_id','table-a','customer_name','Test Guest','customer_phone','01012345678','guest_count',3,
  'starts_at','2026-10-24 12:00:00+00'::timestamptz,'ends_at','2026-10-24 13:00:00+00'::timestamptz,
  'notes','integration','idempotency_key','rc528-reservation-key-001'));
+select public.restaurant_reservation_mutate('CONFIRM',jsonb_build_object(
+ 'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+ 'reservation_id',(select id from public.restaurant_reservations where idempotency_key='rc528-reservation-key-001')));
+select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
+ 'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+ 'table_id','table-a','customer_name','Seated Guest','customer_phone','','guest_count',2,
+ 'starts_at','2026-10-24 14:00:00+00'::timestamptz,'ends_at','2026-10-24 15:00:00+00'::timestamptz,
+ 'notes','','idempotency_key','rc528-seated-key-0001'));
+select public.restaurant_reservation_mutate('CONFIRM',jsonb_build_object(
+ 'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+ 'reservation_id',(select id from public.restaurant_reservations where idempotency_key='rc528-seated-key-0001')));
+select public.restaurant_reservation_mutate('SEAT',jsonb_build_object(
+ 'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+ 'reservation_id',(select id from public.restaurant_reservations where idempotency_key='rc528-seated-key-0001')));
+select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
+ 'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+ 'table_id','table-a','customer_name','No Show Guest','customer_phone','','guest_count',2,
+ 'starts_at','2026-10-24 16:00:00+00'::timestamptz,'ends_at','2026-10-24 17:00:00+00'::timestamptz,
+ 'notes','','idempotency_key','rc528-noshow-key-001'));
+select public.restaurant_reservation_mutate('NO_SHOW',jsonb_build_object(
+ 'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+ 'reservation_id',(select id from public.restaurant_reservations where idempotency_key='rc528-noshow-key-001')));
 reset role;
 do $$ begin
  if (select count(*) from public.restaurant_reservations where idempotency_key='rc528-reservation-key-001') <> 1 then
