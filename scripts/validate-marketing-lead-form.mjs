@@ -242,4 +242,10 @@ assert.match(source, /jobSubmitBound==='true'/, "job application forms must not 
 assert.match(source, /eduSubmitBound==='true'/, "education request forms must not accumulate submit handlers");
 assert.match(source, /medicalSubmitBound==='true'/, "medical booking forms must not accumulate submit handlers");
 
+assert.match(source, /opReloadBound/, "reload control must not stack click handlers during nested form binding");
+assert.match(source, /mgLocationBound/, "MantiGO location control must bind once per rendered instance");
+assert.match(source, /mgCreateRideBound/, "ride creation control must not accumulate click handlers");
+assert.match(source, /mgSubmitBidBound/, "bid submission control must not accumulate click handlers");
+assert.match(source, /mgApplyCaptainBound/, "captain application control must bind once per rendered instance");
+
 console.log("Marketing lead form validation contract PASS.");
