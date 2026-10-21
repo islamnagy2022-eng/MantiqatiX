@@ -105,6 +105,6 @@ assert.ok(moduleSource.includes("if(saveButton.disabled)return;saveButton.disabl
 assert.match(moduleSource, /function modal\(title,html,onSave,onCancel\)/, 'modal must expose an explicit cancellation callback');
 assert.match(moduleSource, /document\.removeEventListener\('keydown',onKey\)/, 'modal keyboard listeners must be removed when the dialog closes');
 assert.match(moduleSource, /o\._close=\(\)=>close\(false\)/, 'successful saves must close dialogs through the cleanup path');
-assert.match(moduleSource, /o\._close\(\);resolve\(\{item,quantity\}\);\s*\},\(\)=>resolve\(null\)\)/, 'canceling order details must resolve the pending order flow without leaving a stuck promise');
+assert.match(moduleSource, /o\._close\(\);resolve\(\{item,quantity,customerName,customerPhone,deliveryAddress,notes\}\);\s*\},\(\)=>resolve\(null\)\)/, 'canceling order details must resolve the pending order flow without leaving a stuck promise');
 
 console.log('Restaurant module contract PASS');
