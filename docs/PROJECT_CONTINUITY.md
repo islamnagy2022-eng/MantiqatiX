@@ -835,3 +835,8 @@ Shared module overview cards now distinguish tables intentionally excluded from 
 ## Next identified follow-up — generic live-data tab
 
 Code review found `genericLiveView(d)` still reports `(rows[t] || []).length` and renders an empty table even when `loadErrors[t]` exists or the table is in `BACKEND_ONLY_TABLES`. The shared overview was corrected, but this detail/live tab remains a separate unresolved presentation defect. Next change should add per-table explicit error and backend-only states, then assert them. Do not claim fixed until a source change is committed and verified. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — generic live-data view reliability
+
+Fixed `genericLiveView(d)` to render explicit states when a table is backend-only or its read failed, rather than implying zero records. Added a source-contract assertion for both states. Also fixed a stale assertion in `validate-marketing-lead-form.mjs` that still expected the replaced `req.arrayBuffer()` body reader; it now checks the bounded `readLimitedBody` path. These are source edits only: the validator and CI have not been executed in a confirmed runtime. Browser E2E and authorization/RLS verification remain open; release remains BLOCKED / NOT CERTIFIED.
