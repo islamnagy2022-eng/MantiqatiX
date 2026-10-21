@@ -18,4 +18,7 @@ assert.match(source, /upsert_catalog_item_backend/);
 assert.match(source, /upsert_catalog_price_backend/);
 assert.match(source, /upsert_catalog_settings_backend/);
 
+assert.match(source, /catch\(e\)\{return new Response\(JSON\.stringify\(\{error:"CATALOG_OPERATION_FAILED"\}\),\{status:400,headers:cors\}\);\}/, "catalog operations must return a stable public error code");
+assert.doesNotMatch(source, /e instanceof Error\?e\.message/, "catalog operations must not expose raw exception messages");
+
 console.log("Catalog admin CORS and authorization source contract: PASS");
