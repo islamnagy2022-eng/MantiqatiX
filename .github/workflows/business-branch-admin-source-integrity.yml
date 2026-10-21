@@ -14,6 +14,8 @@ on:
       - main
     paths:
       - "supabase/functions/business-branch-admin/index.ts"
+      - "supabase/functions/_shared/branch-coordinates.mjs"
+      - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
 permissions:
@@ -33,7 +35,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check business branch admin Edge Function
-        run: deno check supabase/functions/business-branch-admin/index.ts
+        run: deno check --node-modules-dir=auto supabase/functions/business-branch-admin/index.ts
       - name: Runtime-test branch coordinate normalization
         run: node --test scripts/test-branch-coordinate-normalization.mjs
       - name: Validate business branch admin source
