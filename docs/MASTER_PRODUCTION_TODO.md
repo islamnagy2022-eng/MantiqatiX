@@ -2148,9 +2148,9 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Production remains **BLOCKED / NOT CERTIFIED**.
 
 
-## 2026-10-21 — RC442 MantiGO Paymob webhook atomicity remediation (source only)
+## 2026-10-21 — RC457 MantiGO Paymob webhook atomicity remediation (source only)
 
-- [x] Added `supabase/migrations/20261021195000_rc442_atomic_mantigo_paymob_webhook.sql` defining a service-role-only transaction-bound RPC. It locks the ledger row, validates provider/signature flag/amount/currency/event binding, persists the provider event and updates the pending ledger in one database transaction.
+- [x] Added `supabase/migrations/20261021195000_rc457_atomic_mantigo_paymob_webhook.sql` defining a service-role-only transaction-bound RPC. It locks the ledger row, validates provider/signature flag/amount/currency/event binding, persists the provider event and updates the pending ledger in one database transaction.
 - [x] Updated the MantiGO branch in `supabase/functions/paymob-webhook/index.ts` to call the RPC rather than issuing separate provider-event insert and ledger update requests.
 - [x] Added source-contract checks in `scripts/validate-finance-boundaries.mjs` for atomic delegation, replay binding, final-state conflict handling, and absence of the former two-write path.
 - [ ] **NOT YET VERIFIED:** execute the finance validator and JavaScript/TypeScript checks, review exact-head GitHub Actions, and add/run disposable PostgreSQL tests for duplicate event, concurrent delivery, wrong-ledger replay, amount/currency mismatch, existing-event recovery, and transaction rollback.
@@ -2160,7 +2160,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
 
-### RC442 follow-up — contradictory replay hardening
+### RC457 follow-up — contradictory replay hardening
 
 - [x] The atomic RPC now rejects null/unsupported event status, a replay whose signed status differs from the already-persisted event, and event rows with a null/unsupported status.
 - [x] The webhook maps contradictory event replay to a safe HTTP 409 response; the finance source-contract validator asserts both the database and edge-function boundaries.
