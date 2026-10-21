@@ -1938,3 +1938,13 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Revoked direct table SELECT and granted only authenticated execution of these RPCs; sector loader now calls the RPCs.
 - [x] Added disposable PostgreSQL fixture, behavioral test, dedicated CI workflow, and static contract guards.
 - [ ] Migration `20261020233000_jobs_directory_backend_v1.sql` is source-only and not applied to production. Exact-head CI and browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — UI-first follow-up: module blueprint accessibility
+
+- [x] Add ARIA tab-to-panel relationships and tabpanel semantics in `web/module-blueprints.js`.
+- [x] Add ArrowLeft/ArrowRight/Home/End keyboard navigation, focus movement, and roving tabindex for module blueprint tabs.
+- [x] Add `scripts/validate-module-blueprint-accessibility.mjs` and wire it into `.github/workflows/pages.yml`.
+- [ ] Exact-head Pages CI and static validator result: pending; do not mark verified before observing the run.
+- [ ] Browser keyboard, screen-reader, responsive and module action E2E: NOT VERIFIED.
+- [ ] Continue remaining module page/workflow gaps; global production release remains **BLOCKED / NOT CERTIFIED**.
