@@ -98,3 +98,11 @@ assert.match(source, /role="status" aria-live="polite"/, "job submission feedbac
 assert.match(source, /sb\.rpc\('submit_job_application_backend'/, "job application must use the existing authorized backend RPC");
 assert.match(source, /async function applyJob\(jobId,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "job submission must prevent duplicate clicks and restore the button");
 assert.doesNotMatch(source, /const qualifications=prompt\('اكتب مؤهلاتك/, "job application must not rely on blocking browser prompts");
+
+assert.match(source, /data-edu-form=/, "education requests must use accessible inline forms rather than browser prompts");
+assert.match(source, /aria-expanded="false" aria-controls="edu-form-/, "education request toggles must expose their expanded state");
+assert.match(source, /name="studentName" maxlength="120" required/, "education student name must be required and bounded");
+assert.match(source, /name="subject" maxlength="200" required/, "education subject or grade must be required and bounded");
+assert.match(source, /async function createEducationRequest\(targetId,targetType,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "education submission must prevent duplicate clicks and restore the submit button");
+assert.match(source, /sb\.rpc\('create_education_request_backend'/, "education form must use the existing authorized backend RPC");
+assert.doesNotMatch(source, /const student=prompt\('اسم الطالب/, "education request flow must not rely on blocking browser prompts");
