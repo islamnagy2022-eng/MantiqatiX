@@ -135,7 +135,8 @@ assert.match(source, /aria-label="سجلات /, "live data tables must expose an
 assert.match(source, /function genericLiveTable\(t,query=''/, "generic module tables must share a reusable search renderer");
 assert.match(source, /data-live-search=/, "generic module tables must expose a search field");
 assert.match(source, /aria-describedby="live-search-help-\x27\+esc\(t\)\+\x27"/, "generic module search fields must reference contextual help");
-assert.match(source, /مسح النص يعيد كل السجلات المرئية/, "generic module search must explain how to clear filters");
+assert.match(source, /data-live-clear=/, "generic module search must provide a dedicated clear-search control");
+assert.match(source, /querySelectorAll\(\x27\[data-live-clear\]\x27\)[\s\S]*?input\.value=\x27\x27[\s\S]*?genericLiveTable\(t,\x27\x27\)[\s\S]*?input\?\.focus\(\)/, "clear-search controls must reset the input, restore the unfiltered table, and return focus accessibly");
 assert.match(source, /data-live-results=/, "generic module search must have a dedicated results target");
 assert.match(source, /keys\.some\(k=>String\(r\[k\]\?\?''\)\.toLocaleLowerCase\(\)\.includes\(needle\)\)/, "generic search must filter only fields rendered to the user");
 assert.match(source, /لا توجد نتائج مطابقة للبحث/, "generic table search must distinguish no matches from an empty data source");
