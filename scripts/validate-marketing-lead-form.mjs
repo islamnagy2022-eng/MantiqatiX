@@ -197,3 +197,9 @@ assert.match(source, /if\(tab==='appointments'\)return shell\(d,tabs\(d\)\+\(loa
 assert.ok(source.includes("sensitiveKey=/(?:access.?token|refresh.?token|id.?token|token|secret|password|passwd|credential|authorization|cookie|session|private.?key|api.?key|webhook.?payload|raw.?payload|headers|metadata)/i"), "generic module tables must exclude sensitive token, secret, credential, payload, and metadata fields");
 assert.match(source, /visibleKeys=keys\.slice\(0,8\)/, "generic module tables must render only the bounded safe field list");
 assert.match(source, /visibleKeys\.map\(k=>'<th>'/, "generic table headers must match safe displayed columns");
+
+// Accessibility contracts for shared module navigation, tables, and loading feedback.
+assert.match(source, /aria-pressed=.*data-op-tab/, "module navigation buttons must expose their selected state");
+assert.match(source, /<th scope="col">/, "data tables must mark column headers semantically");
+assert.match(source, /class="table-wrap" role="region" aria-label="جدول البيانات" tabindex="0"/, "data tables must be keyboard-scrollable and labelled");
+assert.match(source, /role="status" aria-live="polite">جاري تحميل البيانات الفعلية/, "loading feedback must remain available to assistive technology");
