@@ -29,7 +29,7 @@ language plpgsql
 set search_path = public, pg_temp
 as $function$
 begin
-  if current_user in ('postgres','service_role') then
+  if current_user = 'postgres' then
     return new;
   end if;
   if tg_op = 'INSERT' then
