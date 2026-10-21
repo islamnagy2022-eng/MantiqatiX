@@ -155,13 +155,14 @@ begin
   if v_type = 'OPENING_BALANCE' and (
       v_item.current_stock_qty <> 0
       or exists (select 1 from public.restaurant_inventory_movements mv where mv.inventory_id = v_item.id)
-      or upper((select m.role from public.user_memberships m
-                where m.user_id = v_actor and m.status = 'ACTIVE'
-                  and m.tenant_id = v_item.tenant_id
-                  and m.business_id = v_item.business_id
-                  and m.branch_id = v_item.branch_id
-                order by m.created_at asc limit 1))
-         not in ('OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN')
+      or not exists (
+        select 1 from public.user_memberships m
+        where m.user_id = v_actor and m.status = 'ACTIVE'
+          and m.tenant_id = v_item.tenant_id
+          and m.business_id = v_item.business_id
+          and m.branch_id = v_item.branch_id
+          and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN')
+      )
     ) then
     raise exception 'Opening balance is allowed only once for an empty item by an authorized manager';
   end if;
