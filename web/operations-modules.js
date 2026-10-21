@@ -114,7 +114,7 @@ function genericLiveTable(t,query='',requestedPage=0){
  if(!visibleKeys.length)return head+'<div class="empty-state">لا توجد حقول عرض آمنة ضمن نطاق الصلاحية لهذه البيانات.</div>';
  const body=visible.length?visible.map(r=>'<tr>'+visibleKeys.map(k=>'<td>'+esc(r[k]??'—')+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+visibleKeys.length+'">لا توجد نتائج مطابقة للبحث.</td></tr>';
  const pager=filtered.length>pageSize?'<nav class="action-bar" aria-label="التنقل بين صفحات السجلات"><button type="button" class="btn btn-outline" data-live-page="'+(page-1)+'" data-live-table="'+esc(t)+'" aria-label="الصفحة السابقة"'+(page===0?' disabled':'')+'>السابق</button><span class="muted">صفحة '+(page+1)+' من '+pageCount+'</span><button type="button" class="btn btn-outline" data-live-page="'+(page+1)+'" data-live-table="'+esc(t)+'" aria-label="الصفحة التالية"'+(page>=pageCount-1?' disabled':'')+'>التالي</button></nav>':'';
- return head+'<div class="table-wrap"><table aria-label="سجلات '+esc(t)+'"><thead><tr>'+visibleKeys.map(k=>'<th>'+esc(liveColumnLabel(k))+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>'+pager;
+ return head+'<div class="table-wrap"><table aria-label="سجلات '+esc(t)+'"><thead><tr>'+visibleKeys.map(k=>'<th scope="col">'+esc(liveColumnLabel(k))+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>'+pager;
 }
 function genericLiveView(d){
  const blocks=d.tables.map(t=>{
