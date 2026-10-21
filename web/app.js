@@ -537,11 +537,11 @@ function globalSearchResultHtml(results){
  const searchableSources=Number(results.searchableSources)||0;
  if(!searchableSources)return '<div class="mx-global-search-empty" role="status">لا توجد مصادر بحث متاحة لهذا الحساب أو الدور الحالي.</div>';
  if(!results.length){
-  if(errors.length)return '<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث في '+errors.length+' من مصادر البيانات. حاول مرة أخرى بعد قليل.</div>';
+  if(errors.length)return '<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث في '+errors.length+' من مصادر البيانات. حاول مرة أخرى بعد قليل.</div><button type="button" class="btn btn-outline" data-global-search-retry>إعادة المحاولة</button>';
   return '<div class="mx-global-search-empty" role="status">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
  }
  const hits=results.map((hit,i)=>'<button type="button" role="option" aria-selected="false" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
- const warning=errors.length?'<div class="mx-global-search-partial" role="status" aria-live="polite">نتائج جزئية: تعذر البحث في '+errors.length+' من '+(results.searchableSources||'?')+' مصادر. قد لا تشمل النتائج كل البيانات المتاحة.</div>':'';
+ const warning=errors.length?'<div class="mx-global-search-partial" role="status" aria-live="polite">نتائج جزئية: تعذر البحث في '+errors.length+' من '+(results.searchableSources||'?')+' مصادر. قد لا تشمل النتائج كل البيانات المتاحة.</div><button type="button" class="btn btn-outline" data-global-search-retry>إعادة البحث</button>':'';
  return hits+warning;
 }
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
@@ -2259,6 +2259,7 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
     if(seq!==globalSearchSeq)return;
     const safeResults=Array.isArray(results)?results:[];
     gso.innerHTML=globalSearchResultHtml(safeResults);
+    gso.querySelector('[data-global-search-retry]')?.addEventListener('click',runGlobalSearch);
     gso.querySelectorAll('[data-search-index]').forEach(el=>{
       el.addEventListener('click',()=>{
         const hit=safeResults[Number(el.dataset.searchIndex)];
@@ -2276,7 +2277,8 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
     });
   }catch(_){
     if(seq!==globalSearchSeq)return;
-    gso.innerHTML='<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث الآن. تحقق من الاتصال ثم حاول مرة أخرى.</div>';
+    gso.innerHTML='<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث الآن. تحقق من الاتصال ثم حاول مرة أخرى.</div><button type="button" class="btn btn-outline" data-global-search-retry>إعادة المحاولة</button>';
+    gso.querySelector('[data-global-search-retry]')?.addEventListener('click',runGlobalSearch);
   }
 };
  gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280);window.__MNTYGlobalSearchTimer=globalSearchTimer});
