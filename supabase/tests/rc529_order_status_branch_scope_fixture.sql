@@ -11,10 +11,10 @@ returns uuid language sql stable
 as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 create or replace function auth.jwt()
 returns jsonb language sql stable
-as $ select jsonb_build_object('sub',nullif(current_setting('request.jwt.claim.sub',true),''),'is_anonymous',false) $;
+as $$ select jsonb_build_object('sub',nullif(current_setting('request.jwt.claim.sub',true),''),'is_anonymous',false) $$;
 create or replace function auth.role()
 returns text language sql stable
-as $ select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),current_user) $;
+as $$ select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),current_user) $$;
 grant usage on schema auth to authenticated, service_role;
 grant execute on function auth.uid() to authenticated, service_role;
 grant execute on function auth.jwt() to authenticated, service_role;
