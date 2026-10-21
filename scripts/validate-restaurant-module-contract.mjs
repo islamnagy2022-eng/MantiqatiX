@@ -93,6 +93,10 @@ assert.match(moduleSource, /payload\.capacity_persons>1000/, 'table capacity mus
 assert.match(moduleSource, /\['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'\]\.includes\(payload\.status\)/, 'table status must be validated against supported values');
 assert.match(moduleSource, /esc\(x\.current_stock_qty\?\?'—'\)/, 'inventory quantity must be escaped before rendering');
 assert.match(moduleSource, /esc\(x\.min_stock_alert_threshold\?\?'—'\)/, 'inventory alert threshold must be escaped before rendering');
+assert.match(moduleSource, /payload\.name_ar\.length>120/, 'inventory item names must be length-bounded');
+assert.match(moduleSource, /payload\.unit\.length>24/, 'inventory units must be length-bounded');
+assert.match(moduleSource, /payload\.supplier_name\.length>120/, 'inventory supplier names must be length-bounded');
+assert.match(moduleSource, /v<=1000000000/, 'inventory alert thresholds must have an upper bound');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:'CREATE',p_payload:/, 'reservation creation must use the secured database RPC');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:action,p_payload:/, 'reservation state transitions must use the secured database RPC');
 assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
