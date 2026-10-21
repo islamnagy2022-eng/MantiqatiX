@@ -793,3 +793,5 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Lead-list presentation: the marketing requests table now shows requested services, the full min–max budget range, service area, status, and a localized request date. Static source-contract checks cover the added fields. Exact-head CI and browser E2E remain unverified.
 
 - Business selection follow-up: the marketing lead form now reads the authenticated user's active memberships (bounded to the backend's 50-row limit) and shows an explicit selector when multiple business IDs are available. The chosen ID is sent to the existing Edge Function, which remains responsible for authorization. Static contract assertions added; CI and browser E2E remain unverified.
+
+- Marketing lead search: added a bounded search input that filters the already-loaded, permission-scoped lead list by title, description, requested services, service area, status, and source; it does not issue broader queries or bypass backend scope. Static validator assertions added; exact-head CI and browser E2E remain pending.
