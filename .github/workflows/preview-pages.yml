@@ -1,0 +1,71 @@
+name: Deploy MantiqaTiX Preview Route
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/preview/**"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-preview
+  cancel-in-progress: false
+
+jobs:
+  validate-preview-scope:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact deployed commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Ensure this commit changes only the preview route and this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA")"
+          test -n "$changed"
+          while IFS= read -r path; do
+            case "$path" in
+              web/preview/*|.github/workflows/preview-pages.yml) ;;
+              *) echo "Refusing preview-only deployment: unexpected changed path: $path"; exit 1 ;;
+            esac
+          done <<< "$changed"
+          test -s web/preview/index.html
+          grep -Fq 'نسخة معاينة مستقلة' web/preview/index.html
+          grep -Fq 'لا يوجد اتصال بقاعدة البيانات' web/preview/index.html
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Build browser SDK required by the existing site
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          mkdir -p web/vendor
+          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
+          test -s web/vendor/supabase.js
+      - name: Upload current web tree with additive preview route
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-preview-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./web
+      - name: Deploy preview route
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-preview-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Verify deployed preview route
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          test -n "$PAGE_URL"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/" -o /tmp/preview.html
+          grep -Fq 'MantiqaTiX' /tmp/preview.html
+          grep -Fq 'مساحات التطوير' /tmp/preview.html
+          echo "Preview route verified at ${PAGE_URL}preview/"
