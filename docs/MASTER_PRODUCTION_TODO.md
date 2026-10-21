@@ -1993,3 +1993,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Reject non-string `service_area` JSON values with `invalid_service_area` rather than silently converting them to an empty string.
 - [x] Add a source-contract assertion for this API boundary.
 - [ ] Run the Node validator and exact-head CI; source review is not runtime verification.
+
+
+### 2026-10-21 — safe field-specific lead API errors
+
+- [x] Map `invalid_title`, `invalid_description`, and `invalid_service_area` to safe, actionable Arabic guidance in the marketing lead form.
+- [x] Add source-contract assertions for these mappings.
+- [ ] Execute the Node validator and exact-head CI; source review remains non-runtime verification.
