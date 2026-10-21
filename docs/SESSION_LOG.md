@@ -421,3 +421,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added source-contract assertions to scripts/validate-marketing-lead-form.mjs.
 - Static source assertions were reviewed, but the Node validator has not been executed and GitHub Actions returned no workflow runs/statuses for the latest commit. Browser E2E and authorization tests remain pending.
 - No deployment, merge, production mutation, payment, or release occurred. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Education request form slice
+- Replaced school/teacher request prompts with inline accessible forms. Student name and subject/grade are required and length-bounded; feedback is announced via a live status region and duplicate clicks are blocked while submitting.
+- Preserved the existing create_education_request_backend RPC and scoped form selection by target type to avoid cross-entity selector collisions.
+- Added source-contract assertions. Runtime execution, exact-head CI, browser E2E, and server authorization checks remain NOT VERIFIED.
+- No deployment, merge, production mutation, or release occurred; production remains BLOCKED / NOT CERTIFIED.
