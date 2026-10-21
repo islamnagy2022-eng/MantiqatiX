@@ -13,11 +13,15 @@ const home = fs.readFileSync("web/index.html", "utf8");
 const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 
+const dashboardModuleIds = [...dashboard.matchAll(/\bid:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+const homepageModuleLinks = [...entry.matchAll(/\['[^']+','([^']+)','[^']+'\]/g)].map(match => match[1]);
 const checks = [
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
   ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
   ["Preview keeps the live backend-connected homepage separate", !/href="\.\.\//.test(entry)],
   ["Homepage links to module demo, admin and authentication workspaces", /href="dashboard\.html"/.test(entry) && /href="admin\.html"/.test(entry) && /href="login\.html"/.test(entry)],
+  ["Every homepage module shortcut targets a real module ID", homepageModuleLinks.length >= 10 && homepageModuleLinks.every(id => dashboardModuleIds.includes(id))],
+  ["Homepage module shortcut IDs are unique", new Set(homepageModuleLinks).size === homepageModuleLinks.length],
   ["Homepage clearly labels demo-only behavior", /معاينة تفاعلية/.test(entry) && /لا يوجد اتصال بالـ Backend/.test(entry) && /لا يوجد اتصال بالخادم/.test(entry)],
   ["Homepage has interactive search, location, category and service components", /id="searchForm"/.test(entry) && /id="locationSelect"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry)],
   ["Homepage supports local-only request and provider onboarding simulations", /requestForm/.test(entry) && /joinForm/.test(entry) && /لم يتم إرسال أو حفظ أي بيانات/.test(entry)],
