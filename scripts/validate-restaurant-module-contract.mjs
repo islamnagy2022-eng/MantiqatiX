@@ -75,8 +75,8 @@ assert.match(moduleSource, /إعادة محاولة الطلب المعلق/,
 assert.match(moduleSource, /payload\.tenantId!==m\.tenant_id\|\|payload\.businessId!==m\.business_id\|\|payload\.branchId!==m\.branch_id/,
   'a pending order must not be retried under a different tenant/business/branch');
 
-assert.match(moduleSource, /function askOrderDetails\(items\)/, 'order form must let staff select an authoritative catalog item');
-assert.match(moduleSource, /const selection=await askOrderDetails\(items\)/, 'selected catalog item and quantity must be used for order creation');
+assert.match(moduleSource, /function askOrderDetails\(items, catalogOptions=\[\]\)/, 'order form must let staff select an authoritative catalog item and its options');
+assert.match(moduleSource, /const selection=await askOrderDetails\(items,catalog\?\.options\|\|\[\]\)/, 'selected catalog item, quantity, and options must be used for order creation');
 assert.match(moduleSource, /field\('rest-customer','اسم العميل'.*field\('rest-phone','رقم الهاتف'.*field\('rest-address','عنوان التوصيل'/, 'restaurant order form must capture customer contact and delivery details');
 assert.match(moduleSource, /field\('rest-customer','اسم العميل','', 'text','maxlength="120" required autocomplete="name"'\)/, 'order form must require an explicit customer name');
 assert.match(moduleSource, /if\(!customerName\|\|customerName\.length>120\)/, 'customer name must be validated before order submission');
