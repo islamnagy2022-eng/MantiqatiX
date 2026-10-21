@@ -408,3 +408,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - **Follow-up hardening:** MantiGO electronic payment intent failures no longer display the raw `data.error` server response. Added two source-contract assertions. This was a UI source change only; no payment was initiated, and CI/payment E2E remain unverified.
+
+- **Payment flow follow-up:** Wrapped MantiGO payment-intent initiation in controlled session/network failure handling and added a source-contract assertion. Ambiguous failures explicitly tell the user to check ride/payment status before retrying; no payment was initiated. CI and browser/payment E2E remain unverified.
