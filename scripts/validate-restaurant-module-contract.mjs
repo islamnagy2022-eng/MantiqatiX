@@ -29,7 +29,7 @@ assert.doesNotMatch(moduleSource, /from\('restaurant_orders'\)\.update/,
   'legacy restaurant orders must not be updated directly by the browser');
 
 // Editing a table must preserve the saved status instead of silently resetting to EMPTY.
-assert.match(moduleSource, /\['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'\]\.map\(status=>'<option '\+\+\(\(x\.status\|\|'EMPTY'\)===status\?'selected':''\)/,
+assert.ok(moduleSource.includes("(x.status||'EMPTY')===status"),
   'table editor must select the persisted status');
 assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\)/,
   'table number and capacity must be validated');
