@@ -8,10 +8,13 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const checks = [
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
-  ["Preview auto-redirects to its parent site root", /window\.location\.replace\(['"]\.\.\/['"]\)/.test(entry)],
-  ["Preview has a manual homepage fallback", /href="\.\.\/"/.test(entry)],
-  ["Preview keeps a separate dashboard link", /href="dashboard\.html"/.test(entry)],
-  ["Dashboard is explicitly a demo, not production", /(?:لا تحفظ بيانات تشغيل حقيقية|لا تحفظ بيانات حقيقية|غير إنتاجية|غير إنتاجي)/i.test(entry + "\n" + dashboard)],
+  ["Preview opens the all-module demo by default", /window\.location\.replace\(['"]dashboard\.html['"]\)/.test(entry)],
+  ["Preview has a manual public-home fallback", /href="\.\.\/"/.test(entry)],
+  ["Preview has a direct demo link", /href="dashboard\.html"/.test(entry)],
+  ["Gateway clearly labels demo-only behavior", /وضع تجريبي فقط/.test(entry)],
+  ["Demo dashboard is explicitly non-production", /Demo Mode/.test(dashboard) && /لا توجد عمليات فعلية/.test(dashboard)],
+  ["Demo catalog includes platform modules across domains", /id:'marketing'/.test(dashboard) && /id:'orders'/.test(dashboard) && /id:'accounting'/.test(dashboard) && /id:'security'/.test(dashboard) && /id:'settings'/.test(dashboard)],
+  ["Demo workspaces support local record creation and filtering", /recordForm/.test(dashboard) && /recordSearch/.test(dashboard) && /data\[current\.id\]\.unshift/.test(dashboard)],
   ["Published homepage exists in the Pages artifact root", fs.existsSync("web/index.html")],
   ["Homepage has a visible boot failure fallback", /تعذر تحميل واجهة المنصة/.test(home)],
   ["Homepage keeps Supabase failure in public mode", /public mode remains open/.test(home)],
@@ -19,8 +22,8 @@ const checks = [
   ["Production deploy is restricted to main", /github\.ref == 'refs\/heads\/main'/.test(pages)],
   ["Service worker uses network-first navigation with cached homepage fallback", /event\.request\.mode==='navigate'[\s\S]*?caches\.match\('\.\/index\.html'\)/.test(sw)],
   ["Demo dashboard declares Arabic RTL and mobile viewport", /<html lang="ar" dir="rtl">/.test(dashboard) && /name="viewport"/.test(dashboard)],
-  ["Demo dashboard has tablet and phone responsive breakpoints", /@media\s*\(max-width:\s*980px\)/.test(dashboard) && /@media\s*\(max-width:\s*650px\)/.test(dashboard)],
-  ["Demo dashboard remains standalone without network or browser persistence APIs", !/\bfetch\s*\(|\bsupabase\b|localStorage|sessionStorage/i.test(dashboard)]
+  ["Demo dashboard has tablet and phone responsive breakpoints", /@media\s*\(max-width:\s*1050px\)/.test(dashboard) && /@media\s*\(max-width:\s*680px\)/.test(dashboard)],
+  ["Demo dashboard stays standalone without network or persistence APIs", !/\bfetch\s*\(|\bsupabase\b|localStorage|sessionStorage/i.test(dashboard)]
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
