@@ -158,4 +158,8 @@ assert.match(moduleSource, /from>to.*?setCustomValidity\('تاريخ النها�
 assert.match(moduleSource, /matchesFrom=!from\|\|!!date&&date>=from.*?matchesTo=!to\|\|!!date&&date<=to/s, 'date filtering must compare normalized ISO calendar dates');
 assert.match(moduleSource, /النتائج: '\+visibleCount\+' من '\+state\.orders\.length/s, 'order filters must report the number of visible results against the loaded set');
 
+assert.match(moduleSource, /const statusLabels=\{PENDING:'معلق'.*?CANCELLED:'ملغي'\}/s, 'canonical order states must have Arabic display labels');
+assert.match(moduleSource, /value="'\+esc\(current\)\+'">'\+esc\(statusLabels\[current\]\|\|current\|\|'غير محدد'\)/, 'localized status labels must preserve canonical status values');
+assert.match(moduleSource, /next\.map\(s=>'<option value="'\+s+'">'\+esc\(statusLabels\[s\]\|\|s\)/, 'next-state options must be localized while retaining canonical values');
+
 console.log('Restaurant module contract PASS');
