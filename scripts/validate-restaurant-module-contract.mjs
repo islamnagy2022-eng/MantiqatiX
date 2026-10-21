@@ -116,6 +116,9 @@ assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|p
   'table number and capacity must be validated');
 assert.match(moduleSource, /if\(!existing\)\{payload\.current_stock_qty=0;payload\.unit_cost_egp=0;\}/, 'new inventory items must start at zero until an audited movement is recorded');
 assert.match(moduleSource, /sb\.rpc\('restaurant_inventory_move'/, 'stock changes must use the atomic server-side movement RPC');
+assert.match(moduleSource, /if\(!\['RECEIPT','ISSUE','OPENING_BALANCE'\]\.includes\(type\)\)/, 'inventory movement type must be validated before calling the RPC');
+assert.match(moduleSource, /type==='OPENING_BALANCE'&&!\['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'\]\.includes\(role\)/, 'opening-balance movement must be restricted in the UI to privileged roles');
+assert.match(moduleSource, /if\(notes\.length>1000\)/, 'inventory movement notes must be length-bounded');
 assert.match(moduleSource, /restaurant_inventory_movements'\)\.select\('id,movement_type,quantity,unit_cost_egp,idempotency_key,notes,created_by,created_at'\)/, 'inventory movement history must be read from the audit ledger');
 assert.doesNotMatch(moduleSource, /restaurant_inventory'\)\.update\(\{[^}]*current_stock_qty/, 'browser code must not directly overwrite an existing stock balance');
 assert.match(moduleSource, /restaurant_menu_items'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'menu updates must be scoped to the active branch and detect unmatched writes');
