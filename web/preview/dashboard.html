@@ -3,213 +3,156 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101a35">
-<title>MantiqaTiX | مساحة تطوير الواجهات</title>
+<title>MantiqatiX | مركز تجربة جميع الموديولات</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1020;--panel:#121b31;--panel2:#182642;--line:#293754;--text:#f4f7ff;--muted:#9eacc8;--blue:#7baeff;--mint:#62e0c1;--amber:#f6c66b;--red:#ff9292}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#1b3b6b 0,transparent 35%),var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);line-height:1.6}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.app{min-height:100vh;display:grid;grid-template-columns:245px minmax(0,1fr)}aside{border-left:1px solid var(--line);padding:22px 16px;background:#0d1426}.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:18px;margin-bottom:28px}.mark{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#4389ff,#61dfc0);color:#071326;font-weight:950}.eyebrow{font-size:11px;color:var(--mint);font-weight:800;letter-spacing:.03em}.nav-label{font-size:11px;color:#7182a4;margin:22px 9px 8px}.nav{display:grid;gap:5px}.nav button{display:flex;gap:10px;align-items:center;text-align:right;color:var(--muted);background:transparent;border:1px solid transparent;padding:10px 12px;border-radius:11px}.nav button:hover,.nav button.active{background:#1a2a48;border-color:#2b4166;color:var(--text)}.nav .ico{width:23px;text-align:center}.side-note{font-size:11px;color:var(--muted);margin-top:30px;padding:12px;border:1px solid var(--line);border-radius:12px}.main{min-width:0;padding:22px clamp(16px,3vw,36px) 34px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}.top h1{font-size:22px;margin:2px 0}.muted{color:var(--muted)}.search{display:flex;gap:8px;min-width:min(100%,340px)}input,select{background:#0c1426;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px 12px;min-width:0}input{width:100%}.btn{border:1px solid transparent;background:var(--blue);color:#071326;border-radius:11px;padding:10px 14px;font-weight:800}.btn.secondary{background:transparent;color:var(--text);border-color:var(--line)}.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}.status{display:inline-flex;align-items:center;gap:7px;font-size:11px;padding:5px 9px;border-radius:8px;background:#3a2e18;color:#ffe0a0;border:1px solid #66552d}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}.intro{padding:25px 0 12px}.intro h2{font-size:clamp(25px,3vw,37px);line-height:1.25;margin:8px 0}.intro p{max-width:760px;color:var(--muted);margin:0}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}.stat,.panel,.module{background:linear-gradient(145deg,var(--panel),#0f172a);border:1px solid var(--line);border-radius:16px;padding:17px}.stat .num{font-size:26px;font-weight:850;margin:5px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:25px 0 13px}.section-head h2{font-size:18px;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:4px 0 0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.module{min-height:160px;text-align:right;color:var(--text);width:100%;transition:transform .15s,border-color .15s}.module:hover{transform:translateY(-2px);border-color:#5379b2}.module .icon{width:39px;height:39px;display:grid;place-items:center;background:#21375b;color:#b7d2ff;border-radius:12px;font-size:20px;margin-bottom:12px}.module h3{font-size:16px;margin:0 0 6px}.module p{font-size:12px;color:var(--muted);margin:0}.tag{display:inline-block;margin-top:12px;font-size:10px;color:#9df0dc;background:#173a36;padding:4px 8px;border-radius:7px}.notice{margin-top:20px;padding:13px 15px;border:1px solid #66552d;background:#2a2417;color:#f4dba7;border-radius:12px;font-size:12px}.panel{margin-top:18px}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}.toolbar input{max-width:320px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:570px}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px}th{background:#172440;color:#c8d7f2}tr:last-child td{border-bottom:0}.empty{padding:28px;text-align:center;color:var(--muted)}.back{margin-bottom:16px}.hidden{display:none!important}.toast{position:fixed;bottom:20px;left:20px;background:#173a36;border:1px solid #3b8c7b;color:#c8fff1;padding:12px 16px;border-radius:12px;box-shadow:0 12px 35px #0007;max-width:calc(100vw - 40px)}.footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-@media(max-width:980px){.app{grid-template-columns:190px minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.app{display:block}aside{padding:12px;border-left:0;border-bottom:1px solid var(--line)}.brand{margin:0 0 12px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;padding:8px 10px}.nav-label,.side-note{display:none}.main{padding:17px}.top{align-items:flex-start}.search{min-width:100%}.grid{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat .num{font-size:22px}}
-.sector-explorer{margin-top:22px}.sector-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sector-card{border:1px solid var(--line);background:#101a2d;border-radius:12px;padding:13px;text-align:right;color:var(--text);min-height:90px}.sector-card:hover,.sector-card[aria-pressed="true"]{border-color:var(--mint);background:#14283a}.sector-card strong{display:block;font-size:13px}.sector-card small{display:block;color:var(--muted);margin-top:5px;font-size:11px}.sector-workspace{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#0e1729}.sector-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.sector-tabs button{border:1px solid var(--line);background:#172440;color:var(--text);border-radius:9px;padding:8px 11px;font-size:12px}.sector-tabs button.active{border-color:var(--mint);color:var(--mint)}.sector-status{font-size:12px;color:var(--muted);padding:10px 12px;background:#151f34;border-radius:10px}@media(max-width:980px){.sector-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:650px){.sector-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
+:root{color-scheme:dark;--bg:#09111f;--panel:#111d31;--panel2:#172740;--line:#2a3b56;--text:#f4f7ff;--muted:#a5b3ca;--blue:#83b4ff;--mint:#65e2c2;--amber:#ffd078;--red:#ff9999}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 82% -12%,#1a3a68 0,transparent 38%),var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);line-height:1.6}button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.app{min-height:100vh;display:grid;grid-template-columns:260px minmax(0,1fr)}aside{border-left:1px solid var(--line);padding:18px 14px;background:#0b1425;position:sticky;top:0;height:100vh;overflow:auto}.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:17px;margin-bottom:15px}.mark{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#4389ff,#61dfc0);color:#071326;font-weight:950}.eyebrow{font-size:11px;color:var(--mint);font-weight:800;letter-spacing:.03em}.status{display:inline-flex;align-items:center;gap:7px;font-size:11px;padding:5px 9px;border-radius:8px;background:#3a2e18;color:#ffe0a0;border:1px solid #66552d}.nav-label{font-size:11px;color:#7182a4;margin:19px 9px 7px}.nav{display:grid;gap:4px}.nav button{display:flex;gap:9px;align-items:center;text-align:right;color:var(--muted);background:transparent;border:1px solid transparent;padding:9px 10px;border-radius:10px;width:100%;font-size:12px}.nav button:hover,.nav button.active{background:#1a2a48;border-color:#2b4166;color:var(--text)}.nav .ico{width:22px;text-align:center}.side-note{font-size:11px;color:var(--muted);margin-top:18px;padding:12px;border:1px solid var(--line);border-radius:12px;line-height:1.8}.main{min-width:0;padding:20px clamp(14px,2.6vw,34px) 36px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px}.top h1{font-size:21px;margin:2px 0}.muted{color:var(--muted)}.search{display:flex;gap:7px;min-width:min(100%,360px)}input,select,textarea{background:#0c1426;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px 12px;min-width:0}input{width:100%}.btn{border:1px solid transparent;background:var(--blue);color:#071326;border-radius:10px;padding:9px 13px;font-weight:800;font-size:12px;white-space:nowrap}.btn.secondary{background:transparent;color:var(--text);border-color:var(--line)}.btn.danger{background:#40232a;border-color:#74414a;color:#ffd4d4}.intro{padding:23px 0 9px}.intro h2{font-size:clamp(24px,3vw,35px);line-height:1.3;margin:8px 0}.intro p{max-width:850px;color:var(--muted);margin:0;font-size:13px}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:17px 0}.stat,.panel,.module,.metric{background:linear-gradient(145deg,var(--panel),#0e1728);border:1px solid var(--line);border-radius:15px;padding:15px}.stat .num{font-size:24px;font-weight:850;margin:4px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:22px 0 12px}.section-head h2{font-size:17px;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:4px 0 0}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}.toolbar input{max-width:330px}.toolbar select{max-width:220px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.module{min-height:154px;text-align:right;color:var(--text);width:100%;transition:transform .15s,border-color .15s}.module:hover{transform:translateY(-2px);border-color:#5379b2}.module .icon{width:38px;height:38px;display:grid;place-items:center;background:#21375b;color:#b7d2ff;border-radius:11px;font-size:19px;margin-bottom:10px}.module h3{font-size:14px;margin:0 0 5px}.module p{font-size:11px;color:var(--muted);margin:0}.tag{display:inline-block;margin-top:10px;font-size:10px;color:#9df0dc;background:#173a36;padding:4px 8px;border-radius:7px}.notice{margin-top:16px;padding:12px 14px;border:1px solid #66552d;background:#2a2417;color:#f4dba7;border-radius:12px;font-size:12px}.panel{margin-top:16px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}table{width:100%;border-collapse:collapse;min-width:600px}th,td{text-align:right;padding:11px 12px;border-bottom:1px solid var(--line);font-size:12px}th{background:#172440;color:#c8d7f2}tr:last-child td{border-bottom:0}.empty{padding:26px;text-align:center;color:var(--muted)}.hidden{display:none!important}.badge{display:inline-block;border-radius:7px;padding:3px 7px;font-size:10px;background:#20334d;color:#c5dcff}.badge.good{background:#173a36;color:#a8f4df}.badge.warn{background:#3a2e18;color:#ffe0a0}.badge.red{background:#40232a;color:#ffc6c6}.workspace-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.workspace-head h2{margin:0;font-size:24px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0}.tabs button{border:1px solid var(--line);background:#172440;color:var(--text);border-radius:9px;padding:8px 12px;font-size:12px}.tabs button.active{border-color:var(--mint);color:var(--mint)}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}.metric b{display:block;font-size:23px}.metric span{font-size:11px;color:var(--muted)}.workflow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.step{border:1px solid var(--line);background:#0d1729;border-radius:11px;padding:12px}.step b{display:block;font-size:12px}.step p{margin:5px 0 0;color:var(--muted);font-size:11px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:5px;font-size:12px;color:#c7d5eb}.field.full{grid-column:1/-1}.field input,.field select,.field textarea{width:100%}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.toast{position:fixed;bottom:18px;left:18px;background:#173a36;border:1px solid #3b8c7b;color:#c8fff1;padding:11px 15px;border-radius:11px;box-shadow:0 12px 35px #0007;max-width:calc(100vw - 36px);z-index:5}.footer{margin-top:25px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:1050px){.app{grid-template-columns:215px minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.workflow{grid-template-columns:1fr}}@media(max-width:680px){.app{display:block}aside{position:static;height:auto;padding:11px;border-left:0;border-bottom:1px solid var(--line)}.brand{margin-bottom:10px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;width:auto;flex-shrink:0;padding:8px}.nav-label,.side-note{display:none}.main{padding:15px}.search{min-width:100%}.grid{grid-template-columns:1fr}.stats{gap:7px}.stat{padding:11px}.stat .num{font-size:21px}.metrics{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.top{align-items:flex-start}}
+</style>
 </head>
 <body>
 <div class="app">
 <aside>
-  <div class="brand"><span class="mark">M</span><span>MantiqaTiX<br><span class="muted" style="font-size:11px;font-weight:500">Enterprise workspace</span></span></div>
-  <div class="eyebrow">مساحة تطوير الواجهات</div><div class="status" style="margin-top:8px">نسخة معاينة مستقلة</div>
-  <div class="nav-label">مساحة العمل</div>
-  <nav class="nav" aria-label="التنقل الرئيسي">
-    <button class="active" data-view="home"><span class="ico">▦</span>نظرة عامة</button>
-    <button data-view="discovery"><span class="ico">⌕</span>اكتشاف الخدمات</button>
-    <button data-view="marketing"><span class="ico">◈</span>التسويق والإعلان</button>
-    <button data-view="orders"><span class="ico">◷</span>الطلبات والعمليات</button>
-    <button data-view="providers"><span class="ico">♙</span>مقدمو الخدمات</button>
-    <button data-view="access"><span class="ico">⌘</span>الأدوار والصلاحيات</button>
-    <button data-view="reports"><span class="ico">▤</span>التقارير</button>
-  </nav>
-  <div class="side-note">نسخة تجريبية مستقلة<br>التغييرات هنا داخل المتصفح فقط ولا تحفظ في قاعدة بيانات.</div>
+ <div class="brand"><span class="mark">M</span><span>MantiqatiX<br><span class="muted" style="font-size:10px;font-weight:500">Enterprise Demo Workspace</span></span></div>
+ <div class="eyebrow">بيئة تجربة الواجهات</div><div class="status" style="margin-top:8px">Demo Mode · لا يوجد Backend</div>
+ <div class="nav-label">التنقل</div>
+ <nav class="nav" aria-label="التنقل الرئيسي">
+  <button class="active" data-nav="home"><span class="ico">▦</span>نظرة عامة</button>
+  <button data-nav="catalog"><span class="ico">▤</span>كل الموديولات</button>
+  <button data-nav="workflow"><span class="ico">⇄</span>دليل تجربة الاستخدام</button>
+ </nav>
+ <div class="nav-label">روابط سريعة</div>
+ <nav class="nav">
+  <button data-open="marketing"><span class="ico">◈</span>التسويق والإعلان</button>
+  <button data-open="orders"><span class="ico">◷</span>الطلبات والعمليات</button>
+  <button data-open="crm"><span class="ico">♙</span>العملاء وCRM</button>
+  <button data-open="reports"><span class="ico">▥</span>التقارير والتحليلات</button>
+ </nav>
+ <div class="side-note">هذه نسخة واجهات مستقلة. كل عمليات الإضافة والتعديل والمحاكاة في الذاكرة المؤقتة للصفحة فقط. لا تستخدم بيانات حقيقية ولا تنفذ دفعًا أو إرسالًا أو صلاحيات فعلية.</div>
 </aside>
 <main class="main">
-  <header class="top"><div><div class="eyebrow">MANTIQATIX / WORKSPACE</div><h1 id="pageTitle">نظرة عامة</h1><div class="muted" style="font-size:12px;margin-top:4px">هذه مساحة معاينة التطوير وليست واجهة الموقع العام</div></div><div class="search"><a class="btn" href="../" target="_blank" rel="noopener noreferrer" aria-label="فتح الموقع الرئيسي في نافذة جديدة">فتح الموقع الرئيسي ↗</a><input id="globalSearch" type="search" placeholder="ابحث في الأقسام المعروضة..." aria-label="بحث في الأقسام"><button class="btn" id="searchBtn">بحث</button></div></header>
-  <section id="homeView">
-    <div class="intro"><div class="eyebrow">واجهة تشغيل موحدة</div><h2>كل وحدات المنصة<br>في مساحة عمل واحدة</h2><p>نحوّل هيكل MantiqaTiX إلى واجهات واضحة قابلة للاختبار قبل ربطها بمصادر البيانات الحقيقية. افتح أي قسم من القائمة أو استخدم البحث للتنقل بسرعة.</p></div>
-    <div class="stats">
-      <div class="stat"><div class="muted" style="font-size:12px">الأقسام المعروضة</div><div class="num" id="moduleCount">6</div><div class="muted" style="font-size:11px">واجهات أولية</div></div>
-      <div class="stat"><div class="muted" style="font-size:12px">حالة الواجهة</div><div class="num" style="color:var(--mint)">RTL</div><div class="muted" style="font-size:11px">متجاوبة مع الشاشات</div></div>
-      <div class="stat"><div class="muted" style="font-size:12px">مصدر البيانات</div><div class="num" style="font-size:20px">Demo</div><div class="muted" style="font-size:11px">بيانات توضيحية فقط</div></div>
-      <div class="stat"><div class="muted" style="font-size:12px">حالة الربط</div><div class="num" style="font-size:20px;color:var(--amber)">غير مربوط</div><div class="muted" style="font-size:11px">لا يوجد اتصال إنتاجي</div></div>
-    </div>
-    <div class="section-head"><div><h2>الأقسام المتاحة للمعاينة</h2><p>اضغط على بطاقة لفتح واجهة القسم والتفاعل مع عناصرها التجريبية</p></div><span class="muted" id="resultCount" style="font-size:12px">6 أقسام</span></div>
-    <div class="grid" id="moduleGrid">
-      <button class="module" data-module="discovery" data-search="اكتشاف الخدمات البحث التصفح التصنيفات"><span class="icon">⌕</span><h3>اكتشاف الخدمات</h3><p>واجهة بحث وتصفح وتصنيفات تساعد العميل في الوصول إلى الخدمة المناسبة.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="marketing" data-search="التسويق الإعلان الحملات المحتوى العملاء"><span class="icon">◈</span><h3>التسويق والإعلان</h3><p>مساحة للحملات الإعلانية والمحتوى والعملاء، مع مخطط حملة تجريبي تفاعلي.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="orders" data-search="الطلبات العمليات الحالة المتابعة"><span class="icon">◷</span><h3>الطلبات والعمليات</h3><p>قائمة طلبات تجريبية مع بحث وتصفية للحالات.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="providers" data-search="مقدمو الخدمات القطاعات الملفات"><span class="icon">♙</span><h3>مقدمو الخدمات</h3><p>عرض نماذج ملفات مقدمي الخدمة والقطاعات والتصنيفات.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="access" data-search="الأدوار الصلاحيات المستخدمون الأمن"><span class="icon">⌘</span><h3>الأدوار والصلاحيات</h3><p>تصور إدارة الأدوار وحدود الوصول مع تنبيه أنها ليست صلاحيات فعلية.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="reports" data-search="التقارير التحليلات المؤشرات الأداء"><span class="icon">▤</span><h3>التقارير والمتابعة</h3><p>مؤشرات شكلية وتقارير توضيحية مع تمييزها عن بيانات التشغيل.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-    </div>
-
-    <section class="panel sector-explorer" aria-labelledby="sectorExplorerTitle">
-      <div class="section-head" style="margin-top:0"><div><div class="eyebrow">UI-FIRST SECTOR WORKSPACES</div><h2 id="sectorExplorerTitle">استعراض مساحات القطاعات</h2><p>نماذج تنقل فعلية للواجهات المخططة من مخطط الموديولات في فرع التطوير — ليست ربطًا تشغيليًا أو اعتمادًا للإنتاج.</p></div><span class="status">27 قطاعًا وفق سجل القطاعات المعتمد</span></div>
-      <div class="toolbar"><input id="sectorSearch" type="search" placeholder="ابحث عن قطاع..." aria-label="البحث في القطاعات"><span id="sectorCount" class="muted" style="font-size:12px">27 قطاعًا</span></div>
-      <div id="sectorGrid" class="sector-grid"></div>
-      <div id="sectorWorkspace" class="sector-workspace" aria-live="polite"><h3 id="sectorName" style="margin:0">اختر قطاعًا لعرض مساراته</h3><p class="muted" style="font-size:12px">كل تبويب يعرض اسم مساحة العمل المخططة فقط. العمليات والبيانات الفعلية غير مفعلة هنا.</p><div id="sectorTabs" class="sector-tabs"></div><div id="sectorStatus" class="sector-status">لم يتم تنفيذ أي إجراء أو اتصال بقاعدة البيانات.</div></div>
-    </section>
-    <div class="notice"><strong>حدود النسخة:</strong> هذه مساحة معاينة واجهات وليست بوابة الإنتاج. كل الأرقام والسجلات تجريبية؛ لا يوجد اتصال بقاعدة البيانات أو تسجيل دخول فعلي أو تنفيذ لطلبات أو مدفوعات أو صلاحيات إنتاجية، ولا تنفذ أي تغييرات على بيانات الإنتاج.</div>
-    <section class="panel" aria-labelledby="devProgressTitle" style="margin-top:22px">
-      <div class="section-head" style="margin-top:0">
-        <div><div class="eyebrow">DEVELOPMENT TRACKER</div><h2 id="devProgressTitle">تقدم التطوير الفعلي</h2><p>متابعة ما تم تجهيزه في فروع التطوير وما لم يصل إلى الموقع المنشور بعد</p></div>
-        <span class="status">مراجعة قبل النشر</span>
-      </div>
-      <div class="grid">
-        <article class="module" style="cursor:default">
-          <span class="icon">⌨</span><h3>سهولة الوصول والتنقل</h3>
-          <p>تحسين التنقل بلوحة المفاتيح وإتاحة استخدام مخططات الموديولات.</p>
-          <span class="tag">PR #312 · مفتوح</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/312" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">📣</span><h3>نماذج التسويق</h3>
-          <p>التحقق من بيانات العملاء المحتملين ومنع إرسال النموذج أكثر من مرة.</p>
-          <span class="tag">PR #313 · مفتوح</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/313" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">🛡</span><h3>النماذج والبحث الآمن</h3>
-          <p>رسائل خطأ عربية آمنة، نماذج مهيأة للوصول، وبحث داخل الجداول الظاهرة.</p>
-          <span class="tag">PR #314 · فحوص CI ناجحة</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/314" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">🧩</span><h3>واجهات القطاعات</h3>
-          <p>مسار تطوير واجهات أولية للقطاعات الـ27 مع استمرار مراجعة التغطية والسلوك.</p>
-          <span class="tag">PR #300 · مسودة مفتوحة</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/300" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">🧪</span><h3>قاعدة المراجعة</h3>
-          <p>هذه اللوحة تعرض حالة الفروع وطلبات الدمج؛ لا تدعي أن جميع التغييرات نُشرت أو أن بوابة الإنتاج اجتازت التحقق.</p>
-          <span class="tag">الإنتاج غير معتمد بعد</span>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">↗</span><h3>كل طلبات التطوير</h3>
-          <p>راجع قائمة الفروع والتعديلات المفتوحة قبل اعتماد أي تغيير.</p>
-          <span class="tag">مراجعة تراكمية</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pulls" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">فتح جميع طلبات الدمج ↗</a></p>
-        </article>
-      </div>
-      <div class="notice"><strong>مهم:</strong> التعديلات المذكورة موجودة في فروع وطلبات دمج مفتوحة وليست كلها ضمن الصفحة الرئيسية المنشورة. هذه اللوحة تجعل التقدم واضحًا من داخل المعاينة، لكنها لا تستبدل اختبار الواجهات الفعلية ولا تعني اعتماد الإنتاج.</div>
-    </section>
-  </section>
-  <section id="detailView" class="hidden">
-    <button class="btn secondary back" id="backBtn">→ الرجوع لنظرة عامة</button>
-    <div class="intro" style="padding-top:0"><div class="eyebrow" id="detailEyebrow">MODULE PREVIEW</div><h2 id="detailTitle">القسم</h2><p id="detailDescription"></p></div>
-    <div class="panel"><div class="section-head" style="margin-top:0"><div><h2 id="tableTitle">عناصر القسم</h2><p>سجلات توضيحية محلية لا تمثل بيانات حقيقية</p></div><button class="btn" id="addBtn">+ إضافة سجل تجريبي</button></div>
-      <div class="toolbar"><input id="tableSearch" type="search" placeholder="ابحث داخل السجلات..." aria-label="بحث داخل السجلات"><select id="statusFilter" aria-label="تصفية حسب الحالة"><option value="">كل الحالات</option><option>نشط</option><option>قيد المراجعة</option><option>مكتمل</option><option>مسودة</option></select><button class="btn secondary" id="resetBtn">إعادة ضبط العرض</button></div>
-      <div class="table-wrap"><table><thead><tr><th>الاسم</th><th>التصنيف</th><th>الحالة</th><th>آخر تحديث</th></tr></thead><tbody id="tableBody"></tbody></table><div class="empty hidden" id="emptyState">لا توجد نتائج مطابقة للبحث الحالي</div></div>
-    </div>
-    <div class="notice">الإضافة والبحث والتصفية تعمل محليًا في هذه الجلسة فقط. لا يتم حفظ البيانات بعد إغلاق الصفحة ولا تُستخدم هذه الواجهة للتحكم في الإنتاج.</div>
-  </section>
-  <section id="marketingWorkspace" class="panel hidden" aria-labelledby="marketingWorkspaceTitle">
-    <div class="section-head" style="margin-top:0"><div><h2 id="marketingWorkspaceTitle">مساحة تخطيط الحملات</h2><p>أنشئ بطاقة حملة تجريبية وحدد هدفها وقناتها وميزانيتها — لا يتم نشر إعلانات أو إنفاق أموال.</p></div><span class="status">تجريبي محلي</span></div>
-    <form id="campaignForm">
-      <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-        <label style="font-size:12px;color:var(--muted)">اسم الحملة<input id="campaignName" required maxlength="80" placeholder="مثال: حملة اكتساب عملاء" style="display:block;margin-top:6px"></label>
-        <label style="font-size:12px;color:var(--muted)">القناة<select id="campaignChannel" required style="display:block;width:100%;margin-top:6px"><option value="Meta / Facebook">Meta / Facebook</option><option value="Instagram">Instagram</option><option value="TikTok">TikTok</option><option value="Google Ads">Google Ads</option><option value="محتوى عضوي">محتوى عضوي</option></select></label>
-        <label style="font-size:12px;color:var(--muted)">الهدف<select id="campaignGoal" required style="display:block;width:100%;margin-top:6px"><option value="رسائل واستفسارات">رسائل واستفسارات</option><option value="زيارات الموقع">زيارات الموقع</option><option value="وعي بالعلامة">وعي بالعلامة</option><option value="مبيعات وتحويلات">مبيعات وتحويلات</option><option value="تفاعل ومتابعون">تفاعل ومتابعون</option></select></label>
-        <label style="font-size:12px;color:var(--muted)">الميزانية المخططة (جنيه)<input id="campaignBudget" type="number" required min="0" max="10000000" step="1" placeholder="0" style="display:block;margin-top:6px"></label>
-        <label style="font-size:12px;color:var(--muted)">تاريخ البداية<input id="campaignDate" type="date" required style="display:block;width:100%;margin-top:6px"></label>
-        <label style="font-size:12px;color:var(--muted)">المسؤول<input id="campaignOwner" maxlength="80" placeholder="اسم المسؤول (اختياري)" style="display:block;margin-top:6px"></label>
-      </div>
-      <div class="toolbar"><button class="btn" type="submit">+ إنشاء خطة حملة تجريبية</button><button class="btn secondary" type="reset">مسح الحقول</button><span class="muted" style="font-size:11px">لا اتصال بـ Meta ولا نشر تلقائي ولا حفظ على الخادم</span></div>
-    </form>
-    <div class="section-head"><div><h2>خطط الحملات في هذه الجلسة</h2><p id="campaignSummary">لم تُنشأ خطط بعد</p></div><button class="btn secondary" id="clearCampaigns" type="button">مسح الخطط التجريبية</button></div>
-    <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>الحملة</th><th>القناة والهدف</th><th>الميزانية المخططة</th><th>البداية</th><th>المسؤول</th><th>إجراء</th></tr></thead><tbody id="campaignBody"></tbody></table><div class="empty" id="campaignEmpty">أضف أول خطة حملة من النموذج أعلاه</div></div>
-    <div class="notice">تنبيه مالي: الميزانية هنا رقم تخطيطي فقط، وليست رصيدًا أو مصروفًا فعليًا. أي ربط بالإعلانات أو الفوترة يحتاج تكاملًا موثقًا وصلاحيات خادمية وموافقة صريحة قبل التنفيذ.</div>
-  </section>
-  <footer class="footer"><span>© MantiqaTiX — بيئة تطوير واجهات</span><span>معاينة مستقلة • عربي RTL • Responsive</span></footer>
+ <header class="top"><div><div class="eyebrow">MANTIQATIX / UI-FIRST BUILD</div><h1 id="pageTitle">مركز تجربة المنصة</h1><div class="muted" style="font-size:12px">تجربة الموديولات قبل استكمال الـ Backend والإطلاق</div></div><div class="search"><input id="globalSearch" type="search" placeholder="ابحث عن موديول أو صفحة أو وظيفة..." aria-label="بحث عام"><button class="btn" id="globalSearchBtn">بحث</button><a class="btn secondary" href="../" target="_blank" rel="noopener noreferrer">الموقع العام ↗</a></div></header>
+ <section id="homeView">
+  <div class="intro"><div class="eyebrow">UI-FIRST · SAFE SANDBOX</div><h2>كل موديولات MantiqatiX<br>في مساحة تجربة واحدة</h2><p>افتح أي موديول وجرّب التنقل بين نظرة عامة والسجلات والنماذج وسير العمل. المعروض هنا نموذج تجريبي قابل للتفاعل، وليس ادعاءً بأن الـ Backend أو الدفع أو الصلاحيات متصلة بالفعل.</p></div>
+  <div class="stats">
+   <div class="stat"><div class="muted" style="font-size:11px">الموديولات في الكتالوج</div><div class="num" id="moduleCount">32</div><div class="muted" style="font-size:10px">مساحات عمل تجريبية</div></div>
+   <div class="stat"><div class="muted" style="font-size:11px">وضع التشغيل</div><div class="num" style="color:var(--mint)">Demo</div><div class="muted" style="font-size:10px">بيانات اصطناعية فقط</div></div>
+   <div class="stat"><div class="muted" style="font-size:11px">حالة Backend</div><div class="num" style="font-size:19px;color:var(--amber)">غير متصل</div><div class="muted" style="font-size:10px">لا توجد عمليات فعلية</div></div>
+   <div class="stat"><div class="muted" style="font-size:11px">حالة الإطلاق</div><div class="num" style="font-size:19px;color:var(--amber)">محجوب</div><div class="muted" style="font-size:10px">حتى اجتياز بوابات التحقق</div></div>
+  </div>
+  <div class="section-head"><div><h2>ابدأ التجربة</h2><p>اختر أي موديول لفتح مساحة العمل الخاصة به</p></div><span class="muted" id="catalogCount" style="font-size:11px">32 موديولًا</span></div>
+  <div class="toolbar"><input id="moduleSearch" type="search" placeholder="فلترة الموديولات بالاسم أو الوظيفة..." aria-label="فلترة الموديولات"><select id="categoryFilter" aria-label="فلترة حسب المجموعة"><option value="">كل المجموعات</option></select></div>
+  <div class="grid" id="moduleGrid"></div>
+  <div class="notice"><strong>حدود التجربة:</strong> السجلات والأرقام مصطنعة. تسجيل الدخول والأدوار والدفع والمحافظ والقيود المالية والإشعارات الخارجية والعمليات الخلفية غير مفعلة. أي زر إجراء هنا يحاكي السلوك داخل المتصفح فقط.</div>
+ </section>
+ <section id="catalogView" class="hidden">
+  <div class="intro"><div class="eyebrow">MODULE DIRECTORY</div><h2>دليل الموديولات</h2><p>قائمة موحدة للموديولات الأساسية والقطاعات التشغيلية والإدارية، مع نقطة دخول واضحة لكل مساحة عمل.</p></div>
+  <div class="toolbar"><input id="catalogSearch" type="search" placeholder="ابحث في الدليل..." aria-label="بحث في دليل الموديولات"><select id="catalogCategory"><option value="">كل المجموعات</option></select></div>
+  <div id="catalogGrid" class="grid"></div>
+ </section>
+ <section id="workflowView" class="hidden">
+  <div class="intro"><div class="eyebrow">DEMO JOURNEY</div><h2>مسار تجربة المستخدم من البداية للنهاية</h2><p>استخدم هذا المسار لاختبار ترابط الشاشات قبل تنفيذ التكاملات الحقيقية. كل خطوة تنقلك للموديول المقابل وتعرض بيانات تجريبية.</p></div>
+  <div class="panel"><div class="workflow" id="journeyGrid"></div><div class="actions"><button class="btn" data-open="discovery">ابدأ من اكتشاف الخدمات</button><button class="btn secondary" data-open="orders">افتح الطلبات التجريبية</button></div></div>
+  <div class="notice">هذا المسار لا ينشئ طلبًا حقيقيًا ولا يرسل إشعارًا ولا يتصل بمقدم خدمة. سيجري تنفيذ هذه الوظائف بعد ربط الـ Backend واجتياز اختبارات التكامل والأمان.</div>
+ </section>
+ <section id="detailView" class="hidden">
+  <button class="btn secondary" id="backBtn">→ الرجوع إلى جميع الموديولات</button>
+  <div class="panel">
+   <div class="workspace-head"><div><div class="eyebrow" id="detailGroup">MODULE WORKSPACE</div><h2 id="detailTitle">مساحة الموديول</h2><p id="detailDescription" class="muted" style="font-size:12px;margin:5px 0 0"></p></div><span class="status">تجريبي · محلي فقط</span></div>
+   <div class="tabs" role="tablist"><button class="active" data-tab="overview">نظرة عامة</button><button data-tab="records">السجلات</button><button data-tab="create">إضافة / تعديل</button><button data-tab="workflow">سير العمل</button></div>
+   <div id="overviewTab">
+    <div class="metrics"><div class="metric"><span>سجلات تجريبية</span><b id="recordMetric">0</b></div><div class="metric"><span>نشط / مكتمل</span><b id="activeMetric">0</b></div><div class="metric"><span>وظائف قابلة للتجربة</span><b id="actionsMetric">4</b></div></div>
+    <div class="section-head"><div><h2>وظائف مساحة العمل</h2><p>اختصارات لفتح المهام الشائعة داخل الموديول</p></div></div>
+    <div class="workflow" id="quickActions"></div>
+   </div>
+   <div id="recordsTab" class="hidden">
+    <div class="toolbar"><input id="recordSearch" type="search" placeholder="بحث في السجلات..." aria-label="بحث في السجلات"><select id="recordStatus"><option value="">كل الحالات</option><option>نشط</option><option>قيد المراجعة</option><option>مكتمل</option><option>مسودة</option><option>معلق</option></select><button class="btn secondary" id="exportBtn">تصدير CSV تجريبي</button></div>
+    <div class="table-wrap"><table><thead><tr><th>الاسم / العنوان</th><th>التصنيف</th><th>المسؤول</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="recordBody"></tbody></table><div class="empty hidden" id="emptyRecords">لا توجد سجلات مطابقة</div></div>
+   </div>
+   <div id="createTab" class="hidden">
+    <form id="recordForm"><div class="form-grid">
+     <label class="field">الاسم أو العنوان<input id="recordName" name="name" required maxlength="100" placeholder="مثال: طلب تجريبي جديد"></label>
+     <label class="field">التصنيف<input id="recordType" name="type" maxlength="80" placeholder="مثال: خدمة / حملة / عميل"></label>
+     <label class="field">المسؤول<input id="recordOwner" name="owner" maxlength="80" placeholder="مثال: فريق العمليات"></label>
+     <label class="field">الحالة<select id="recordState" name="status"><option>مسودة</option><option>نشط</option><option>قيد المراجعة</option><option>معلق</option><option>مكتمل</option></select></label>
+     <label class="field full">ملاحظات تجريبية<textarea id="recordNotes" name="notes" rows="3" maxlength="400" placeholder="اكتب ملاحظة لا تحتوي بيانات حقيقية"></textarea></label>
+    </div><div class="actions"><button class="btn" type="submit">حفظ في جلسة التجربة</button><button class="btn secondary" type="reset">مسح الحقول</button></div><p class="muted" style="font-size:11px">الحفظ هنا في ذاكرة الصفحة فقط. لا يتم الإرسال إلى خادم أو قاعدة بيانات.</p></form>
+   </div>
+   <div id="workflowTab" class="hidden"><div class="workflow" id="moduleWorkflow"></div><div class="actions"><button class="btn" id="simulateBtn">محاكاة الخطوة التالية</button><button class="btn secondary" id="resetModuleBtn">إعادة بيانات الموديول</button></div><p class="muted" id="workflowFeedback" aria-live="polite" style="font-size:12px;margin-top:12px">لم يتم تنفيذ إجراء بعد.</p></div>
+  </div>
+  <div class="notice"><strong>تنبيه أمان:</strong> هذه واجهة تجريبية فقط. لا تستخدم بيانات شخصية أو مالية حقيقية. أزرار المحاكاة لا تنفذ عمليات دفع أو تحويل أو إرسال خارجي ولا تمنح صلاحيات فعلية.</div>
+ </section>
+ <footer class="footer"><span>MantiqatiX · UI-first prototype</span><span>Demo Mode — البيانات لا تغادر الصفحة ولا تستمر بعد إعادة التحميل</span><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/316" target="_blank" rel="noopener noreferrer">متابعة التطوير على GitHub ↗</a></footer>
 </main>
 </div>
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <script>
 (function(){
-const modules={
-discovery:{title:"اكتشاف الخدمات",desc:"واجهة استكشاف الخدمات مع بحث تجريبي وتصنيفات عامة.",rows:[["خدمات المنزل","المنزل والصيانة","نشط"],["التصميم والإبداع","أعمال رقمية","نشط"],["التوصيل المحلي","النقل والتوصيل","قيد المراجعة"]]},
-marketing:{title:"التسويق والإعلان",desc:"تنظيم الحملات والمحتوى والعملاء في مكان واحد. لا يتم نشر أي إعلان من هذه المعاينة.",rows:[["حملة الوعي بالعلامة","حملات إعلانية","نشط"],["تقويم المحتوى","إدارة المحتوى","مسودة"],["حملة اكتساب العملاء","اكتساب العملاء","قيد المراجعة"]]},
-orders:{title:"الطلبات والعمليات",desc:"استعراض حالات طلبات نموذجية لتجربة البحث والتصفية فقط.",rows:[["طلب تجريبي #1001","خدمة منزلية","قيد المراجعة"],["طلب تجريبي #1002","تصميم","مكتمل"],["طلب تجريبي #1003","توصيل","نشط"]]},
-providers:{title:"مقدمو الخدمات",desc:"نماذج ملفات مقدمي الخدمات والقطاعات. لا توجد ملفات حقيقية في هذه البيئة.",rows:[["مقدم خدمة نموذجي أ","صيانة منزلية","نشط"],["مقدم خدمة نموذجي ب","تصميم وإبداع","قيد المراجعة"],["مقدم خدمة نموذجي ج","نقل وتوصيل","نشط"]]},
-access:{title:"الأدوار والصلاحيات",desc:"عرض توضيحي لتقسيم الأدوار فقط. لا ينشئ أو يعدل صلاحيات حسابات فعلية.",rows:[["مدير المنصة — مثال","إدارة عامة","نشط"],["مدير محتوى — مثال","المحتوى","نشط"],["مراجع — مثال","مراجعة واعتماد","قيد المراجعة"]]},
-reports:{title:"التقارير والمتابعة",desc:"سجلات تقارير شكلية تساعد على اختبار بنية العرض وليست نتائج أعمال حقيقية.",rows:[["ملخص النشاط الأسبوعي","نشاط المنصة","مكتمل"],["أداء الحملات التجريبي","التسويق","قيد المراجعة"],["تقرير الخدمات","الاكتشاف","مسودة"]]}
-};
-let current="";let extraRows={};let toastTimer;let campaignPlans=[];
+'use strict';
+const modules=[
+{id:'admin',name:'الإدارة والتحكم',group:'الإدارة والحوكمة',icon:'⌘',desc:'لوحة الإدارة العامة، الفروع، إعدادات المنصة، الاعتمادات ومتابعة التشغيل.',tasks:['مراجعة لوحة الإدارة','إدارة الفروع والأنشطة','متابعة الاعتمادات']},
+{id:'discovery',name:'اكتشاف الخدمات والبحث',group:'تجربة العميل',icon:'⌕',desc:'البحث والتصفح والتصنيفات ونتائج الخدمات وصفحات التفاصيل.',tasks:['البحث عن خدمة','تصفية النتائج','فتح تفاصيل الخدمة']},
+{id:'crm',name:'العملاء وCRM',group:'تجربة العميل',icon:'♙',desc:'ملفات العملاء والعملاء المحتملون والمتابعة والاحتفاظ وتاريخ التواصل.',tasks:['عرض العملاء','تسجيل عميل محتمل','متابعة فرصة']},
+{id:'providers',name:'مقدمو الخدمات والقطاعات',group:'السوق والقطاعات',icon:'♧',desc:'ملفات مقدمي الخدمة والقطاعات والتصنيفات والخدمات ومراجعة الطلبات.',tasks:['استعراض مقدم خدمة','إضافة ملف تجريبي','مراجعة حالة اعتماد']},
+{id:'orders',name:'الطلبات والعمليات',group:'التشغيل',icon:'◷',desc:'الطلبات والحجوزات والحالات والإسناد ومتابعة سير التنفيذ.',tasks:['عرض الطلبات','تغيير حالة تجريبية','متابعة رحلة الطلب']},
+{id:'marketing',name:'التسويق والإعلان',group:'التسويق والنمو',icon:'◈',desc:'نظام التسويق الداخلي للشركة، وإدارة شركات التسويق الأخرى والعملاء والحملات.',tasks:['إنشاء حملة تجريبية','إدارة العملاء المحتملين','مقارنة شركات التسويق']},
+{id:'smm',name:'خدمات التسويق الرقمي SMM',group:'التسويق والنمو',icon:'◎',desc:'كتالوج خدمات التسويق الرقمي والموردون والطلبات وتتبع التنفيذ والحدود.',tasks:['استعراض الخدمات','إنشاء طلب تجريبي','مراجعة حالة المورد']},
+{id:'content',name:'المحتوى وإدارة المنصة',group:'التسويق والنمو',icon:'▤',desc:'إدارة الصفحات والمحتوى والتصنيفات والمواد الإرشادية والمراجعة.',tasks:['استعراض المحتوى','إضافة مسودة','مراجعة النشر']},
+{id:'campaigns',name:'الحملات والعملاء المحتملون',group:'التسويق والنمو',icon:'✳',desc:'تخطيط الحملات ومراحلها وقنواتها وميزانياتها التجريبية ونتائجها.',tasks:['إنشاء حملة','إدارة الميزانية التقديرية','متابعة التحويلات']},
+{id:'products',name:'المنتجات والكتالوج',group:'التجارة والمخزون',icon:'▦',desc:'المنتجات والفئات والأسعار والصور والعروض وتفاصيل الكتالوج.',tasks:['استعراض المنتجات','إضافة منتج تجريبي','تعديل التصنيف']},
+{id:'inventory',name:'المخزون والمستودعات',group:'التجارة والمخزون',icon:'▣',desc:'المخزون وحركاته والمستودعات والتحويلات ومستويات إعادة الطلب.',tasks:['مراجعة رصيد تجريبي','حركة مخزون توضيحية','تنبيه إعادة الطلب']},
+{id:'commerce',name:'التجارة والأزياء',group:'التجارة والمخزون',icon:'♧',desc:'المتاجر والملابس والمقاسات والألوان والسلة والطلبات.',tasks:['استعراض المقاسات','تجربة السلة','مراجعة الطلب']},
+{id:'grocery',name:'البقالة والسوبر ماركت',group:'التجارة والمخزون',icon:'⌂',desc:'كتالوج البقالة والتوفر والتجهيز والاستبدالات والتوصيل.',tasks:['استعراض المنتجات','قائمة مشتريات تجريبية','مراجعة التجهيز']},
+{id:'food',name:'المطاعم والمطابخ',group:'القطاعات المتخصصة',icon:'♨',desc:'القوائم والإضافات والمطبخ والتجهيز والتوصيل والحجوزات.',tasks:['عرض قائمة الطعام','تجربة طلب وجبة','متابعة حالة المطبخ']},
+{id:'medical',name:'المنظومة الطبية',group:'القطاعات المتخصصة',icon:'✚',desc:'الأطباء والعيادات والصيدليات والمعامل والأشعة والمستشفيات.',tasks:['استعراض جهة طبية','موعد تجريبي','إدارة دليل الخدمات']},
+{id:'maintenance',name:'الصيانة والخدمات المنزلية',group:'القطاعات المتخصصة',icon:'⚒',desc:'طلبات الصيانة والتشخيص الأولي وجدولة الزيارة ومقدمو الخدمة.',tasks:['إنشاء طلب صيانة تجريبي','إسناد فني افتراضي','متابعة الزيارة']},
+{id:'professional',name:'الخدمات المهنية والشركات',group:'القطاعات المتخصصة',icon:'▥',desc:'الخدمات القانونية والمحاسبية والاستشارية والشركات والبرمجيات.',tasks:['استعراض خدمة مهنية','طلب استشارة تجريبي','متابعة عرض سعر']},
+{id:'transport',name:'MantiGO والنقل والتنقل',group:'القطاعات المتخصصة',icon:'➜',desc:'الرحلات والعروض والسائقون والإسناد والتتبع في وضع المحاكاة.',tasks:['عرض رحلة تجريبية','محاكاة إسناد','تجربة حالة الرحلة']},
+{id:'matrimony',name:'الزواج والتوافق',group:'القطاعات المتخصصة',icon:'♡',desc:'الملفات والترشيحات والتفضيلات والتواصل مع مراعاة الخصوصية.',tasks:['عرض ملف اصطناعي','استعراض الترشيحات','مراجعة إعدادات الخصوصية']},
+{id:'jobs',name:'الوظائف والتوظيف',group:'القطاعات المتخصصة',icon:'▣',desc:'الوظائف والمتقدمون والسير الذاتية والمقابلات ومراحل التوظيف.',tasks:['استعراض وظيفة','إضافة طلب توظيف تجريبي','جدولة مقابلة افتراضية']},
+{id:'education',name:'التعليم والتدريب',group:'القطاعات المتخصصة',icon:'▤',desc:'المدارس والمدرسون والدورات والحجوزات والتسجيلات.',tasks:['استعراض دورة','تسجيل تجريبي','متابعة الحضور']},
+{id:'used',name:'المستعمل والإعلانات المبوبة',group:'القطاعات المتخصصة',icon:'◇',desc:'الإعلانات والعروض والتفاوض وحالة الإعلان والتواصل التجريبي.',tasks:['استعراض إعلان','إضافة إعلان تجريبي','محاكاة عرض سعر']},
+{id:'subscriptions',name:'العمولات والباقات والاشتراكات',group:'المال والأعمال',icon:'◉',desc:'الباقات والاشتراكات والعمولات ورسوم المنصة وحالات التجديد.',tasks:['استعراض الباقات','محاكاة اشتراك','مراجعة عمولة تقديرية']},
+{id:'wallet',name:'المحافظ والمدفوعات',group:'المال والأعمال',icon:'▰',desc:'شاشات المحافظ وحالات الدفع والتسوية في بيئة توضيحية دون أموال حقيقية.',tasks:['عرض رصيد وهمي','محاكاة حالة دفع','عرض سجل معاملات اصطناعي']},
+{id:'accounting',name:'الحسابات والدفاتر المالية',group:'المال والأعمال',icon:'≋',desc:'تصور القيود والدفتر العام والمطابقة والتسويات والتقارير المالية.',tasks:['عرض قيد تجريبي','استعراض دفتر توضيحي','مراجعة حالة مطابقة']},
+{id:'reports',name:'التقارير والتحليلات',group:'البيانات والرؤى',icon:'▥',desc:'مؤشرات الأداء والتحويلات والإيرادات والأداء حسب القطاع والمخاطر.',tasks:['استعراض المؤشرات','تصفية تقرير','تصدير تقرير تجريبي']},
+{id:'automation',name:'الأتمتة والإشعارات',group:'التشغيل',icon:'⚡',desc:'قواعد الأتمتة وقوالب التنبيهات وجدولة المهام وسجل التنفيذ التجريبي.',tasks:['عرض قاعدة أتمتة','تجربة إشعار محلي','مراجعة سجل التنفيذ']},
+{id:'support',name:'الدعم والشكاوى',group:'التشغيل',icon:'☏',desc:'تذاكر الدعم والشكاوى والأولوية والتصعيد وحالات الحل.',tasks:['فتح تذكرة تجريبية','تغيير الأولوية','محاكاة إغلاق التذكرة']},
+{id:'users',name:'المستخدمون والأدوار والصلاحيات',group:'الأمان والرقابة',icon:'♙',desc:'إدارة المستخدمين والأدوار ومصفوفة الصلاحيات في عرض توضيحي غير نافذ.',tasks:['عرض الأدوار','استعراض مصفوفة تجريبية','فحص حالة الحساب']},
+{id:'security',name:'قاعدة البيانات والأمان',group:'الأمان والرقابة',icon:'⬡',desc:'لوحات فحص السياسات والعزل والتدقيق وإعدادات الأمان دون اتصال إنتاجي.',tasks:['قائمة فحوص الأمان','مراجعة سياسة نموذجية','عرض عناصر تحتاج تحقق']},
+{id:'governance',name:'الحوكمة والرقابة والتدقيق',group:'الأمان والرقابة',icon:'⚖',desc:'سجل التدقيق والموافقات والمخاطر والضوابط والقرارات.',tasks:['استعراض سجل تدقيق اصطناعي','مراجعة موافقة','عرض سجل مخاطر']},
+{id:'backup',name:'النسخ الاحتياطي والتعافي',group:'المنصة والتقنية',icon:'↻',desc:'حالة النسخ الاحتياطي وخطط التعافي وتمارين الاستعادة في عرض غير تشغيلي.',tasks:['عرض خطة التعافي','قائمة تحقق للاستعادة','مراجعة آخر تمرين مسجل تجريبيًا']},
+{id:'monitoring',name:'المراقبة والصيانة التقنية',group:'المنصة والتقنية',icon:'⌁',desc:'لوحة مؤشرات النظام والتنبيهات والأخطاء وحالة الخدمات بشكل اصطناعي.',tasks:['عرض صحة الخدمات التجريبية','استعراض التنبيهات','مراجعة سجل صيانة']},
+{id:'release',name:'الإطلاق والإصدارات',group:'المنصة والتقنية',icon:'⇧',desc:'الإصدارات وبوابات الجودة وخطط النشر والتراجع وقائمة ما قبل الإطلاق.',tasks:['عرض قائمة الإصدار','مراجعة بوابة الجودة','تجربة خطة تراجع توضيحية']},
+{id:'settings',name:'الإعدادات والتكاملات',group:'المنصة والتقنية',icon:'⚙',desc:'إعدادات المنصة والتكاملات والبيئات وخيارات تجربة الواجهة.',tasks:['عرض إعدادات عامة','مراجعة التكاملات غير المتصلة','تبديل تفضيل الواجهة']}
+];
+const sampleNames=['طلب تجريبي رقم 1042','عميل افتراضي جديد','حملة الربع القادم','مقدم خدمة تجريبي','مراجعة واجهة الموديول'];
+const states=['نشط','قيد المراجعة','مكتمل','مسودة','معلق'];
+let current=null, toastTimer=null, data={};
+modules.forEach((m,i)=>{data[m.id]=sampleNames.slice(0,3).map((name,j)=>({id:m.id+'-'+j,name:name,type:m.group,owner:['فريق المنصة','فريق العمليات','مراجع تجريبي'][j],status:states[(i+j)%states.length],notes:'بيانات توضيحية اصطناعية',updated:'2026-10-'+String(18+j).padStart(2,'0')}));});
 const $=id=>document.getElementById(id);
-function notify(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),2600)}
-function setView(key){if(!modules[key])return;current=key;$("marketingWorkspace").classList.toggle("hidden",key!=="marketing");$("homeView").classList.add("hidden");$("detailView").classList.remove("hidden");$("pageTitle").textContent=modules[key].title;$("detailTitle").textContent=modules[key].title;$("detailDescription").textContent=modules[key].desc;$("detailEyebrow").textContent="MODULE / "+key.toUpperCase();$("tableTitle").textContent="سجلات "+modules[key].title;$("globalSearch").value="";$("tableSearch").value="";$("statusFilter").value="";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===key));renderRows();window.scrollTo({top:0,behavior:"smooth"})}
-function home(){$("marketingWorkspace").classList.add("hidden");current="";$("detailView").classList.add("hidden");$("homeView").classList.remove("hidden");$("pageTitle").textContent="نظرة عامة";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view==="home"));$("globalSearch").value="";filterCards("");window.scrollTo({top:0,behavior:"smooth"})}
-function filterCards(q){q=q.trim().toLocaleLowerCase("ar");let n=0;document.querySelectorAll(".module").forEach(card=>{const match=!q||(card.innerText+" "+card.dataset.search).toLocaleLowerCase("ar").includes(q);card.classList.toggle("hidden",!match);if(match)n++});$("resultCount").textContent=n+" أقسام";$("moduleCount").textContent="6"}
-function renderRows(){const base=modules[current].rows.map((r,i)=>({r,id:i}));const rows=base.concat((extraRows[current]||[]).map((r,i)=>({r,id:"x"+i})));const q=$("tableSearch").value.trim().toLocaleLowerCase("ar");const status=$("statusFilter").value;const filtered=rows.filter(x=>(!q||x.r.join(" ").toLocaleLowerCase("ar").includes(q))&&(!status||x.r[2]===status));$("tableBody").innerHTML="";filtered.forEach(x=>{const tr=document.createElement("tr");x.r.forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});const td=document.createElement("td");td.textContent="الآن";tr.appendChild(td);$("tableBody").appendChild(tr)});$("emptyState").classList.toggle("hidden",filtered.length>0)}
-document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>b.dataset.view==="home"?home():setView(b.dataset.view)));
-document.querySelectorAll(".module").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.module)));
-$("backBtn").addEventListener("click",home);
-function renderCampaigns(){
- const body=$("campaignBody");body.textContent="";
- campaignPlans.forEach((p,i)=>{
-  const tr=document.createElement("tr");
-  [p.name,p.channel+" · "+p.goal,"ج.م "+p.budget.toLocaleString("en-US"),p.date,p.owner||"—"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});
-  const td=document.createElement("td");const del=document.createElement("button");del.type="button";del.className="btn secondary";del.textContent="حذف";del.setAttribute("aria-label","حذف خطة "+p.name);del.addEventListener("click",()=>{campaignPlans.splice(i,1);renderCampaigns();notify("تم حذف الخطة التجريبية من الجلسة.")});td.appendChild(del);tr.appendChild(td);body.appendChild(tr);
- });
- $("campaignEmpty").classList.toggle("hidden",campaignPlans.length>0);
- $("campaignSummary").textContent=campaignPlans.length+" خطة · إجمالي الميزانيات المخططة: ج.م "+campaignPlans.reduce((s,p)=>s+p.budget,0).toLocaleString("en-US");
-}
-$("campaignForm").addEventListener("submit",e=>{
- e.preventDefault();
- const name=$("campaignName").value.trim();const budget=Number($("campaignBudget").value);const date=$("campaignDate").value;
- if(!name||!Number.isFinite(budget)||budget<0||!date){notify("راجع اسم الحملة والميزانية وتاريخ البداية.");return}
- campaignPlans.push({name,channel:$("campaignChannel").value,goal:$("campaignGoal").value,budget,date,owner:$("campaignOwner").value.trim()});
- renderCampaigns();$("campaignForm").reset();notify("تم إنشاء خطة تجريبية محلية فقط.");
-});
-$("clearCampaigns").addEventListener("click",()=>{campaignPlans=[];renderCampaigns();notify("تم مسح الخطط التجريبية من الجلسة.")});
-renderCampaigns();
-
-const sectorLabels={FOOD:"مطاعم وكافيهات",HEALTH:"أطباء وعيادات",PHARMACY:"صيدليات",LABS:"معامل تحاليل",RADIOLOGY:"مراكز الأشعة",DENTAL:"أطباء الأسنان",HOSPITAL:"المستشفيات",MEDICAL:"مراكز طبية",REAL_ESTATE:"عقارات",AUTO:"سيارات ونقل",MAINTENANCE:"الصيانة والخدمات المنزلية",ACCOUNTING:"المحاسبة ومكاتب المحاسبة",LEGAL:"المحاماة والخدمات القانونية",COMPANIES:"الشركات والموردون",EDU:"تعليم وتدريب",DIGITAL:"تسويق وإعلان",TECH:"البرمجيات والخدمات الرقمية",FITNESS:"رياضة ولياقة",TRAVEL:"سياحة وسفر",MANTIGO:"MantiGO والنقل عند الطلب",JOBS:"الوظائف والتوظيف",MATRIMONY:"الزواج والخدمات المرتبطة",USED_ITEMS:"المستعمل",FASHION:"الأزياء والخياطة",GROCERY:"البقالة والسوبر ماركت",VETERINARY:"العيادات والخدمات البيطرية",FREELANCER:"المستقلون ومقدمو الخدمات"};
-const sectorPlans={
- FOOD:["القائمة والأصناف","العروض والأسعار","الطلبات","المطبخ والتجهيز","التوصيل والاستلام","التقارير"],
- HEALTH:["الأطباء","التخصصات","الحجوزات","المواعيد","الخدمات والباقات","التقارير"],
- PHARMACY:["المنتجات والأدوية","الأسعار والتوافر","الطلبات","المخزون","خدمات الصيدلية","التقارير"],
- LABS:["التحاليل والخدمات","الفروع","طلبات التحليل","المواعيد","النتائج والصلاحيات","التقارير"],
- RADIOLOGY:["خدمات الأشعة","المراكز والفروع","الحجوزات","المواعيد","التقارير التشغيلية","الإعدادات"],
- DENTAL:["الأطباء والعيادات","الخدمات","الحجوزات","المواعيد","متابعة الطلبات","التقارير"],
- HOSPITAL:["الأقسام","الخدمات","الباقات","الحجوزات","طلبات المرضى","التقارير"],
- MEDICAL:["مراكز طبية","التخصصات والخدمات","الحجز","المواعيد","الترشيحات","التقارير"],
- REAL_ESTATE:["العقارات","البيع والإيجار","طلبات العملاء","المواعيد والمعاينات","العروض","التقارير"],
- AUTO:["السيارات والمركبات","خدمات النقل","الصيانة","طلبات العملاء","العروض","التقارير"],
- MAINTENANCE:["طلبات الصيانة","المزايدات","مقدمو الخدمة","الجدولة","قطع الغيار","التقارير"],
- ACCOUNTING:["دليل الحسابات","طلبات المحاسبة","العروض والتفاوض","القيود اليومية","التسويات","التقارير المالية"],
- LEGAL:["الخدمات القانونية","طلبات العملاء","المستندات","الاتفاقيات","المواعيد","التقارير"],
- COMPANIES:["ملف الشركة","الخدمات","طلبات الأعمال","الموردون","العقود","التقارير"],
- EDU:["المدارس ومراكز التدريب","المدرسون","الدورات","طلبات التعليم","الحجوزات","التقارير"],
- DIGITAL:["الخدمات التسويقية","العملاء المحتملون","المشروعات","الحملات","شركات التسويق الشريكة","التقارير"],
- TECH:["الخدمات التقنية","المواقع والبرمجيات","طلبات الأعمال","المشروعات","الدعم والصيانة","التقارير"],
- FITNESS:["الأندية والمراكز","المدربون","الخدمات والبرامج","الحجوزات","الاشتراكات","التقارير"],
- TRAVEL:["الرحلات","العروض والحجوزات","طلبات العملاء","المواعيد","مقدمو الخدمة","التقارير"],
- MANTIGO:["الرحلات","المزايدات والعروض","اختيار العرض","التنفيذ المباشر","السائقون","التقييمات والتقارير"],
- JOBS:["الوظائف","طلبات التقديم","المرشحون","المقابلات","أصحاب العمل","التقارير"],
- MATRIMONY:["الملفات","البحث والترشيح","الطلبات","فتح التواصل","المتابعة","الخصوصية والتقارير"],
- USED_ITEMS:["الإعلانات","البحث والتصفية","العروض","التفاوض","المراسلات","التقارير"],
- FASHION:["الكتالوج والمنتجات","المقاسات والخيارات","السلة والطلبات","المخزون","التسعير والعروض","التقارير"],
- GROCERY:["الكتالوج","الأسعار والعروض","المخزون والمستودعات","السلة والتوصيل","الطلبات","التقارير"],
- VETERINARY:["العيادات البيطرية","الأطباء والخدمات","الحجوزات","المواعيد","ملفات الخدمة","التقارير"],
- FREELANCER:["ملف مقدم الخدمة","الخدمات والتخصصات","المشروعات","العروض","طلبات العملاء","التقارير"]
-};
-let activeSector="DIGITAL";
-function renderSectorGrid(q=""){const grid=$("sectorGrid");if(!grid)return;grid.textContent="";const term=q.trim().toLocaleLowerCase("ar");let count=0;Object.keys(sectorPlans).filter(k=>(sectorLabels[k]+" "+k).toLocaleLowerCase("ar").includes(term)).forEach(k=>{count++;const b=document.createElement("button");b.type="button";b.className="sector-card";b.dataset.sector=k;b.setAttribute("aria-pressed",String(k===activeSector));const title=document.createElement("strong");title.textContent=sectorLabels[k];const small=document.createElement("small");small.textContent=sectorPlans[k].length+" مسارات مخططة";b.append(title,small);b.addEventListener("click",()=>selectSector(k));grid.appendChild(b)});$("sectorCount").textContent=count+" قطاع";}
-function selectSector(key){if(!sectorPlans[key])return;activeSector=key;$("sectorName").textContent=sectorLabels[key];const tabs=$("sectorTabs");tabs.textContent="";sectorPlans[key].forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.textContent=name;b.classList.toggle("active",i===0);b.setAttribute("aria-pressed",String(i===0));b.addEventListener("click",()=>{tabs.querySelectorAll("button").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});b.classList.add("active");b.setAttribute("aria-pressed","true");$("sectorStatus").textContent="المسار المحدد: "+sectorLabels[key]+" / "+name+". هذا توصيف واجهة مخطط فقط؛ لم يتم تنفيذ كتابة أو قراءة بيانات أو تغيير صلاحيات."});tabs.appendChild(b)});$("sectorStatus").textContent="تم عرض "+sectorPlans[key].length+" مسارات مخططة لقطاع "+sectorLabels[key]+". لا توجد عمليات خادمية في هذه المعاينة.";renderSectorGrid($("sectorSearch").value);}
-$("sectorSearch").addEventListener("input",()=>renderSectorGrid($("sectorSearch").value));
-renderSectorGrid();selectSector(activeSector);
-
-function doSearch(){const q=$("globalSearch").value;if(current){$("tableSearch").value=q;renderRows();}else{filterCards(q);if(q.trim()&&document.querySelectorAll(".module:not(.hidden)").length===1){const one=document.querySelector(".module:not(.hidden)");if(one)notify("تم العثور على قسم مطابق. اضغط البطاقة لفتحه.");}}}
-$("searchBtn").addEventListener("click",doSearch);$("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch()});$("globalSearch").addEventListener("input",()=>{if(!current)filterCards($("globalSearch").value)});$("tableSearch").addEventListener("input",renderRows);$("statusFilter").addEventListener("change",renderRows);
-$("addBtn").addEventListener("click",()=>{if(!current)return;const count=(extraRows[current]||[]).length+1;const r=["سجل تجريبي جديد "+count,"إضافة محلية","مسودة"];(extraRows[current]||(extraRows[current]=[])).push(r);renderRows();notify("أُضيف سجل تجريبي محلي فقط ولم يتم حفظه في الخادم.")});
-$("resetBtn").addEventListener("click",()=>{$("tableSearch").value="";$("statusFilter").value="";renderRows();notify("تمت إعادة ضبط البحث والتصفية.")});
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2800);}
+function safe(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function card(m){return '<button class="module" data-open="'+m.id+'" data-search="'+safe((m.name+' '+m.group+' '+m.desc+' '+m.tasks.join(' ')).toLowerCase())+'"><span class="icon">'+m.icon+'</span><h3>'+safe(m.name)+'</h3><p>'+safe(m.desc)+'</p><span class="tag">افتح مساحة التجربة ↗</span></button>';}
+function fillCategories(selectId){const el=$(selectId);const selected=el.value;const groups=[...new Set(modules.map(m=>m.group))];el.innerHTML='<option value="">كل المجموعات</option>'+groups.map(g=>'<option>'+safe(g)+'</option>').join('');el.value=selected;}
+function renderGrid(targetId,searchId,filterId){const q=($(searchId)?.value||'').trim().toLowerCase(), group=filterId?$(filterId).value:'';const found=modules.filter(m=>(!group||m.group===group)&&(!q||(m.name+' '+m.group+' '+m.desc+' '+m.tasks.join(' ')).toLowerCase().includes(q)));$(targetId).innerHTML=found.map(card).join('')||'<div class="empty">لا توجد موديولات مطابقة للبحث</div>';if(targetId==='moduleGrid')$('catalogCount').textContent=found.length+' من '+modules.length+' موديول';}
+function showView(view){['homeView','catalogView','workflowView','detailView'].forEach(id=>$(id).classList.add('hidden'));const id={home:'homeView',catalog:'catalogView',workflow:'workflowView',detail:'detailView'}[view]||'homeView';$(id).classList.remove('hidden');document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));window.scrollTo({top:0,behavior:'smooth'});}
+function badge(status){const cls=status==='نشط'||status==='مكتمل'?'good':status==='معلق'?'red':'warn';return '<span class="badge '+cls+'">'+safe(status)+'</span>';}
+function renderRecords(){if(!current)return;const q=$('recordSearch').value.trim().toLowerCase(),st=$('recordStatus').value;const rows=data[current.id].filter(r=>(!st||r.status===st)&&(!q||(r.name+' '+r.type+' '+r.owner+' '+r.status).toLowerCase().includes(q)));$('recordBody').innerHTML=rows.map(r=>'<tr><td><strong>'+safe(r.name)+'</strong><div class="muted" style="font-size:10px">'+safe(r.updated)+'</div></td><td>'+safe(r.type||'—')+'</td><td>'+safe(r.owner||'—')+'</td><td>'+badge(r.status)+'</td><td><button class="btn secondary" data-cycle="'+safe(r.id)+'">تغيير الحالة</button></td></tr>').join('');$('emptyRecords').classList.toggle('hidden',rows.length>0);$('recordMetric').textContent=data[current.id].length;$('activeMetric').textContent=data[current.id].filter(r=>r.status==='نشط'||r.status==='مكتمل').length;}
+function renderQuick(){ $('quickActions').innerHTML=current.tasks.map((t,i)=>'<article class="step"><b>'+safe(t)+'</b><p>تجربة واجهة داخلية مع بيانات اصطناعية فقط.</p><div class="actions"><button class="btn secondary" data-task="'+i+'">فتح المهمة</button></div></article>').join('');$('moduleWorkflow').innerHTML=['ابدأ من شاشة الموديول','راجع السجلات أو أنشئ نموذجًا','اختبر حالة أو إجراءً توضيحيًا'].map((t,i)=>'<article class="step"><b>'+(i+1)+'. '+t+'</b><p>'+safe(current.tasks[i%current.tasks.length])+'</p></article>').join('');}
+function openModule(id){const m=modules.find(x=>x.id===id);if(!m)return;current=m;$('pageTitle').textContent=m.name;$('detailGroup').textContent=m.group.toUpperCase();$('detailTitle').textContent=m.name;$('detailDescription').textContent=m.desc;$('recordSearch').value='';$('recordStatus').value='';$('workflowFeedback').textContent='لم يتم تنفيذ إجراء بعد.';renderRecords();renderQuick();document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab==='overview'));['overviewTab','recordsTab','createTab','workflowTab'].forEach(x=>$(x).classList.toggle('hidden',x!=='overviewTab'));showView('detail');}
+function tab(name){['overviewTab','recordsTab','createTab','workflowTab'].forEach(id=>$(id).classList.toggle('hidden',id!==name+'Tab'));document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));if(name==='records')renderRecords();}
+function allSearch(q){if(!q)return;const m=modules.find(x=>(x.name+' '+x.group+' '+x.desc+' '+x.tasks.join(' ')).toLowerCase().includes(q.toLowerCase()));if(m)openModule(m.id);else{showView('catalog');$('catalogSearch').value=q;renderGrid('catalogGrid','catalogSearch','catalogCategory');toast('لا يوجد موديول مطابق؛ جرّب كلمة أخرى.');}}
+function renderJourney(){$('journeyGrid').innerHTML=[['01','اكتشاف الخدمة','discovery','ابحث وتصفح ثم افتح تفاصيل خدمة اصطناعية.'],['02','اختيار مقدم الخدمة','providers','راجع ملفًا تجريبيًا وتصنيفاته.'],['03','تجربة الطلب','orders','افتح طلبًا وهميًا وغيّر حالته محليًا.'],['04','متابعة العميل','crm','استعرض سجل متابعة العميل الاصطناعي.'],['05','التسويق والنمو','marketing','راجع حملة ومسار عميل محتمل.'],['06','التقارير','reports','استعرض المؤشرات الوهمية والتصدير التجريبي.']].map(x=>'<article class="step"><span class="eyebrow">'+x[0]+'</span><b>'+x[1]+'</b><p>'+x[3]+'</p><div class="actions"><button class="btn secondary" data-open="'+x[2]+'">فتح الخطوة</button></div></article>').join('');}
+document.addEventListener('click',e=>{const open=e.target.closest('[data-open]');if(open){openModule(open.dataset.open);return;}const nav=e.target.closest('[data-nav]');if(nav){showView(nav.dataset.nav);return;}const t=e.target.closest('[data-tab]');if(t){tab(t.dataset.tab);return;}const task=e.target.closest('[data-task]');if(task){toast('تم فتح مهمة تجريبية: '+current.tasks[Number(task.dataset.task)]);$('workflowFeedback').textContent='تم فتح المهمة محليًا فقط: '+current.tasks[Number(task.dataset.task)];return;}const cycle=e.target.closest('[data-cycle]');if(cycle){const row=data[current.id].find(r=>r.id===cycle.dataset.cycle);if(row){row.status=states[(states.indexOf(row.status)+1)%states.length];renderRecords();toast('تم تغيير الحالة داخل الذاكرة المؤقتة فقط.');}return;}});
+$('moduleSearch').addEventListener('input',()=>renderGrid('moduleGrid','moduleSearch','categoryFilter'));$('categoryFilter').addEventListener('change',()=>renderGrid('moduleGrid','moduleSearch','categoryFilter'));$('catalogSearch').addEventListener('input',()=>renderGrid('catalogGrid','catalogSearch','catalogCategory'));$('catalogCategory').addEventListener('change',()=>renderGrid('catalogGrid','catalogSearch','catalogCategory'));$('globalSearchBtn').addEventListener('click',()=>allSearch($('globalSearch').value.trim()));$('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter')allSearch($('globalSearch').value.trim());});
+$('backBtn').addEventListener('click',()=>showView('catalog'));$('recordSearch').addEventListener('input',renderRecords);$('recordStatus').addEventListener('change',renderRecords);
+$('recordForm').addEventListener('submit',e=>{e.preventDefault();if(!current)return;const name=$('recordName').value.trim();if(!name){toast('اكتب اسمًا تجريبيًا أولًا.');return;}data[current.id].unshift({id:current.id+'-'+Date.now(),name:name,type:$('recordType').value.trim()||current.group,owner:$('recordOwner').value.trim()||'غير محدد',status:$('recordState').value,notes:$('recordNotes').value.trim(),updated:'جلسة حالية'});e.target.reset();renderRecords();tab('records');toast('تمت إضافة سجل تجريبي داخل هذه الجلسة فقط.');});
+$('exportBtn').addEventListener('click',()=>{if(!current)return;const rows=[['name','type','owner','status'],...data[current.id].map(r=>[r.name,r.type,r.owner,r.status])];const csv=rows.map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');const url='data:text/csv;charset=utf-8,'+encodeURIComponent('\ufeff'+csv);const a=document.createElement('a');a.href=url;a.download=current.id+'-demo.csv';document.body.appendChild(a);a.click();a.remove();toast('تم تجهيز ملف CSV تجريبي من البيانات المحلية.');});
+$('simulateBtn').addEventListener('click',()=>{if(!current)return;const r=data[current.id][0];if(r){r.status=states[(states.indexOf(r.status)+1)%states.length];renderRecords();$('workflowFeedback').textContent='تمت محاكاة تغيير حالة السجل الأول. لم يتم الاتصال بخادم أو تنفيذ عملية خارجية.';toast('محاكاة ناجحة داخل الصفحة فقط.');}else toast('لا توجد سجلات لمحاكاتها.');});
+$('resetModuleBtn').addEventListener('click',()=>{if(!current)return;const i=modules.indexOf(current);data[current.id]=sampleNames.slice(0,3).map((name,j)=>({id:current.id+'-reset-'+j,name:name,type:current.group,owner:['فريق المنصة','فريق العمليات','مراجع تجريبي'][j],status:states[(i+j)%states.length],notes:'بيانات توضيحية اصطناعية',updated:'2026-10-'+String(18+j).padStart(2,'0')}));renderRecords();toast('تمت إعادة السجلات التجريبية لهذا الموديول.');});
+fillCategories('categoryFilter');fillCategories('catalogCategory');$('moduleCount').textContent=modules.length;renderGrid('moduleGrid','moduleSearch','categoryFilter');renderGrid('catalogGrid','catalogSearch','catalogCategory');renderJourney();
 })();
 </script>
 </body></html>
