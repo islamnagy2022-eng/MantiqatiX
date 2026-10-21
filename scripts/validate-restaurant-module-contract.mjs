@@ -144,4 +144,11 @@ assert.match(optionSnapshotMigration, /create or replace function public\.create
 assert.match(moduleSource, /Array\.isArray\(item\?\.selected_options\).*?option\?\.name\|\|option\?\.id.*?orderAmount\(option\?\.price_delta,currency\)/s, 'order details must safely display option labels and saved price deltas');
 assert.match(moduleSource, /optionDetails\?'<div class="muted">الخيارات: '\+optionDetails/s, 'option labels must be displayed alongside the matching item');
 
+assert.match(moduleSource, /id="rest-order-search" type="search"/, 'orders view must provide a search input');
+assert.match(moduleSource, /id="rest-order-status-filter"/, 'orders view must provide a status filter');
+assert.match(moduleSource, /يعرض البحث آخر 100 طلب تم تحميلها لهذا الفرع فقط/, 'order search must disclose that it only filters the loaded branch-scoped result set');
+assert.match(moduleSource, /data-order-search-value=.*?x\.customer_phone.*?x\.branch_id/s, 'order search must index escaped ID, customer, phone, and branch values');
+assert.match(moduleSource, /orderSearch\?\.addEventListener\('input',filterOrders\).*?orderStatusFilter\?\.addEventListener\('change',filterOrders\)/s, 'order filters must update the visible list without re-querying or changing server scope');
+assert.match(moduleSource, /if\(!visible\)\{detail\.hidden=true;const button=row\.querySelector\('\[data-order-details\]'\)/, 'hiding a filtered order must also close its detail disclosure');
+
 console.log('Restaurant module contract PASS');
