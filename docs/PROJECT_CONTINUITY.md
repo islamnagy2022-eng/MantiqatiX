@@ -803,3 +803,5 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Shared module overview reliability: overview cards now show an explicit `تعذر التحميل` state when a table read failed, rather than displaying a misleading `0` record count. This applies to module overviews using the shared `overview(d)` renderer; static source-contract coverage was added. Exact-head CI and browser verification remain NOT VERIFIED.
 
 - Shared module overview retry: when any overview table read fails, the overview now shows a clear Arabic warning and a retry action that reloads the current module. Source-contract checks cover the control and its event handler. Exact-head CI/browser tests remain NOT VERIFIED.
+
+- Detail-tab retry reliability: non-overview module pages now also show a retry action when table reads fail, unless that page already renders a specific alert, avoiding duplicate error banners. The retry reloads the current module. Static contract checks cover the behavior; exact-head CI/browser verification remains NOT VERIFIED.
