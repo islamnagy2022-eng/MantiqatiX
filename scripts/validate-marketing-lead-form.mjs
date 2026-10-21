@@ -106,3 +106,11 @@ assert.match(source, /name="subject" maxlength="200" required/, "education subje
 assert.match(source, /async function createEducationRequest\(targetId,targetType,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "education submission must prevent duplicate clicks and restore the submit button");
 assert.match(source, /sb\.rpc\('create_education_request_backend'/, "education form must use the existing authorized backend RPC");
 assert.doesNotMatch(source, /const student=prompt\('اسم الطالب/, "education request flow must not rely on blocking browser prompts");
+
+assert.match(source, /data-medical-form=/, "medical booking must use an accessible inline form rather than browser prompts");
+assert.match(source, /type="datetime-local" required/, "medical booking must require a date and time");
+assert.match(source, /name="reason" maxlength="1000"/, "medical booking reason must have a bounded length");
+assert.match(source, /async function medicalBook\(providerId,form\)[\s\S]*?dt\.getTime\(\)<=Date\.now\(\)/, "medical booking must reject invalid or past appointments");
+assert.match(source, /sb\.rpc\('create_medical_appointment_backend'/, "medical booking must use the existing authorized backend RPC");
+assert.match(source, /async function medicalBook\(providerId,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "medical booking must prevent duplicate clicks and restore the submit button");
+assert.doesNotMatch(source, /const raw=prompt\('موعد الحجز/, "medical booking flow must not rely on blocking browser prompts");
