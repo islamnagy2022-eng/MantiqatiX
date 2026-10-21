@@ -348,3 +348,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Shared overview fix: module overview cards now distinguish failed table reads from true zero counts, showing an explicit Arabic load-failure state. Added source-contract assertion. Exact-head CI/browser verification remain pending; no merge or deployment.
 
 - Shared overview retry: if an overview table read fails, show a clear warning and a retry action that reloads the current module. Added static contract assertions for the retry control and handler. Exact-head CI and browser tests remain unverified.
+
+- Extended retry behavior to non-overview module tabs: failed table reads now expose a visible retry action, with duplicate alert suppression when a tab already renders its own alert. Added source-contract assertions. Exact-head CI and browser verification remain pending.
