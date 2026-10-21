@@ -96,6 +96,20 @@ begin
       )
   ) then raise exception 'ACTIVE_RESTAURANT_MEMBERSHIP_REQUIRED'; end if;
 
+  -- Mirror web/rbac.js OPERATIONS create/update role defaults server-side.
+  if v_action='CREATE' and not exists (
+    select 1 from public.user_memberships m
+    where m.user_id=v_actor and m.status='ACTIVE'
+      and m.tenant_id=v_tenant and m.business_id=v_business and m.branch_id=v_branch
+      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','PROVIDER_OWNER','PROVIDER_ADMIN','BRANCH_MANAGER','PROVIDER_OPERATIONS')
+  ) then raise exception 'RESTAURANT_RESERVATION_CREATE_FORBIDDEN'; end if;
+  if v_action in ('CONFIRM','SEAT','NO_SHOW','CANCEL') and not exists (
+    select 1 from public.user_memberships m
+    where m.user_id=v_actor and m.status='ACTIVE'
+      and m.tenant_id=v_tenant and m.business_id=v_business and m.branch_id=v_branch
+      and upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','EMPLOYEE','STAFF','SERVICE_PROVIDER','PROVIDER_OWNER','PROVIDER_ADMIN','BRANCH_MANAGER','PROVIDER_OPERATIONS')
+  ) then raise exception 'RESTAURANT_RESERVATION_UPDATE_FORBIDDEN'; end if;
+
   if v_action='CREATE' then
     v_table_id := nullif(trim(p_payload->>'table_id'),'');
     v_name := trim(coalesce(p_payload->>'customer_name',''));
