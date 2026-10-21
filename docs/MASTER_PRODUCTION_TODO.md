@@ -2318,3 +2318,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Run Deno type/lint checks and isolated integration tests with a real authorized membership, cross-tenant IDs, cross-organization override attempts, and invalid coordinates.
 - [ ] Confirm live Edge Function source parity before any deployment; do not deploy based on repository tests alone.
 - **Status:** source hardening and static assertions committed; exact-head CI and runtime authorization tests pending. Release gate remains BLOCKED / NOT CERTIFIED.
+
+
+## Branch request-shape hardening (2026-10-21)
+- [x] Reject JSON null, primitive, and array payloads before reading branch fields; return a stable client error instead of an uncaught property-access failure.
+- [x] Reject declared request bodies larger than 16 KiB and reject non-string identifiers/name/contact fields rather than coercing arbitrary JSON objects into query values.
+- [x] Add source-contract assertions for request shape, payload-size boundary, and field types.
+- [ ] A Content-Length check does not cap chunked bodies without that header; add a bounded streaming reader before treating request-size protection as complete.
+- [ ] Run Deno type checks and isolated integration tests; confirm live Edge Function parity before deployment.
+- **Status:** source and static guard committed; runtime verification pending. Production remains **BLOCKED / NOT CERTIFIED**.
