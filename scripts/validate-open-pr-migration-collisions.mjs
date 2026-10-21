@@ -146,9 +146,9 @@ try {
   const [owner, repoName] = repository.split("/");
   if (!owner || !repoName) throw new Error("GITHUB_REPOSITORY must be owner/repository.");
   const query = `
-    query MigrationCollisionAudit($owner: String!, $name: String!) {
+    query MigrationCollisionAudit($owner: String!, $name: String!, $baseRef: String!) {
       repository(owner: $owner, name: $name) {
-        pullRequests(first: 100, states: OPEN, baseRefName: "main", orderBy: {field: UPDATED_AT, direction: DESC}) {
+        pullRequests(first: 100, states: OPEN, baseRefName: $baseRef, orderBy: {field: UPDATED_AT, direction: DESC}) {
           pageInfo { hasNextPage }
           nodes {
             number
@@ -172,7 +172,7 @@ try {
       "Content-Type": "application/json",
       "X-GitHub-Api-Version": "2022-11-28"
     },
-    body: JSON.stringify({ query, variables: { owner, name: repoName } })
+    body: JSON.stringify({ query, variables: { owner, name: repoName, baseRef: current.base.ref } })
   });
   const graphBody = await graphResponse.json().catch(() => ({}));
   if (!graphResponse.ok || graphBody.errors?.length) {
