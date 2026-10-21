@@ -85,4 +85,7 @@ assert.match(source, /تعذر إنشاء طلب الرحلة بسبب الات�
 assert.doesNotMatch(source, /alert\(data\.error/, "payment API failures must not expose raw server error strings");
 assert.match(source, /تعذر بدء الدفع الإلكتروني\. تحقق من حالة الرحلة والاتصال ثم حاول مرة أخرى/, "payment failures must use safe actionable Arabic feedback");
 assert.match(source, /async function mgCardPay\(ride\)\{try\{[\s\S]*?تعذر الاتصال بخدمة الدفع الإلكتروني\. لم يتم تأكيد بدء الدفع/, "payment intent network failures must be caught and reported safely");
+assert.match(edge, /\.in\("payment_status",\["REQUIRED","PENDING"\]\)\.is\("provider_intent_id",null\)\.select\("id"\)\.maybeSingle\(\)/, "payment intent persistence must be conditional on an eligible ledger row without a provider intent");
+assert.match(edge, /if\(!persistedIntent\?\.id\)[\s\S]*?PAYMENT_INTENT_STATE_CHANGED[\s\S]*?Never return a checkout URL unless this exact provider intent was persisted/, "checkout must not be returned when a concurrent state change prevented persistence");
+assert.match(edge, /stage:"persist_paymob_intent"[\s\S]*?PAYMENT_INTENT_PERSISTENCE_FAILED/, "payment persistence failures must be logged with a request ID and returned as a safe error code");
 console.log("Marketing lead form validation contract PASS.");
