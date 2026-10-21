@@ -48,5 +48,7 @@ for (const check of ['RC527_FAIL: idempotent receipt changed stock more than onc
 }
 assert.ok(ui.includes("sb.rpc('restaurant_inventory_move'"), 'UI must use the audited movement RPC');
 assert.ok(ui.includes('data-inv-history'), 'UI must expose the movement history');
+assert.ok(ui.includes("['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'].includes(role)"), 'opening-balance UI must be restricted to authorized roles');
+assert.ok(stockTest.includes('RC527_FAIL: issue cost was not derived from the server-side weighted average'), 'integration test must verify server-side issue valuation');
 
 console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
