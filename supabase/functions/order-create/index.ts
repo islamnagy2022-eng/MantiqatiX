@@ -69,11 +69,15 @@ Deno.serve(async (req: Request) => {
     const explicitPlatformControl = role === "SUPER_ADMIN"
       && membership.permissions?.scope === "PLATFORM"
       && membership.permissions?.full_control === true;
+    if (role === "SUPER_ADMIN") {
+      return explicitPlatformControl
+        && (branchId ? (!membership.branch_id || String(membership.branch_id) === branchId) : !membership.branch_id);
+    }
     if (branchId) {
       return String(membership.branch_id ?? "") === branchId
-        || (!membership.branch_id && (businessWideRoles.has(role) || explicitPlatformControl));
+        || (!membership.branch_id && businessWideRoles.has(role));
     }
-    return !membership.branch_id && (businessWideRoles.has(role) || explicitPlatformControl);
+    return !membership.branch_id && businessWideRoles.has(role);
   });
 
   if (!hasScopedMembership) {
