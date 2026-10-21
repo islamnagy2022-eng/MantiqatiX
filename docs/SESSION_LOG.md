@@ -386,3 +386,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 follow-up review: identified one remaining shared-UI reliability issue in `genericLiveView(d)`: failed reads and tables intentionally skipped for backend-only access can still appear as zero rows in the live tab. Recorded as an open TODO; not yet fixed in this batch. The overview path is already corrected separately.
+
+
+- 2026-10-21 follow-up completed: `genericLiveView(d)` now differentiates backend-only tables and read failures from genuine empty datasets. Added a source-contract assertion. Corrected the stale request-size assertion to match the bounded stream reader. Source review checks are not a substitute for running the Node validator/CI; exact-head runtime verification remains pending.
