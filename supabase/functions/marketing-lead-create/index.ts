@@ -41,21 +41,30 @@ Deno.serve(async (req: Request) => {
   }
   if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "invalid_body" }, 400);
 
-  const requestedBusinessId = String(body.business_id || "").trim() || null;
-  const title = String(body.title || "").trim();
-  const description = String(body.description || "").trim();
-  const serviceArea = String(body.service_area || "").trim();
-  const budgetMin = Number(body.budget_min || 0);
-  const budgetMax = Number(body.budget_max || 0);
-  const requiredServices = Array.isArray(body.required_services)
-    ? body.required_services.map(x => String(x || "").trim()).filter(Boolean)
-    : [];
+  if (body.business_id !== undefined && body.business_id !== null && typeof body.business_id !== "string") {
+    return json({ error: "business_not_authorized" }, 403);
+  }
+  const requestedBusinessId = typeof body.business_id === "string" ? body.business_id.trim() || null : null;
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  const serviceArea = typeof body.service_area === "string" ? body.service_area.trim() : "";
+  const budgetMin = body.budget_min === undefined || body.budget_min === null ? 0 : body.budget_min;
+  const budgetMax = body.budget_max === undefined || body.budget_max === null ? 0 : body.budget_max;
+  if (body.required_services !== undefined && !Array.isArray(body.required_services)) {
+    return json({ error: "invalid_required_services" }, 400);
+  }
+  const rawRequiredServices = Array.isArray(body.required_services) ? body.required_services : [];
+  if (rawRequiredServices.some(x => typeof x !== "string")) {
+    return json({ error: "invalid_required_services" }, 400);
+  }
+  const requiredServices = rawRequiredServices.map(x => x.trim()).filter(Boolean);
 
   if (!title || title.length > 200) return json({ error: "invalid_title" }, 400);
   if (!description || description.length > 5000) return json({ error: "invalid_description" }, 400);
   if (serviceArea.length > 200) return json({ error: "invalid_service_area" }, 400);
   if (requiredServices.length > 10 || requiredServices.some(x => x.length > 80)) return json({ error: "invalid_required_services" }, 400);
-  if (!Number.isFinite(budgetMin) || !Number.isFinite(budgetMax) || budgetMin < 0 || budgetMax < budgetMin) {
+  if (typeof budgetMin !== "number" || typeof budgetMax !== "number" ||
+      !Number.isFinite(budgetMin) || !Number.isFinite(budgetMax) || budgetMin < 0 || budgetMax < budgetMin) {
     return json({ error: "invalid_budget" }, 400);
   }
 
