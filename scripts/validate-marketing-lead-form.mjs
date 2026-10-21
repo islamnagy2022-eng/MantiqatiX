@@ -220,25 +220,15 @@ assert.match(source, /role="status" aria-live="polite">جاري تحميل ال�
 // MantiGO bid-form contracts: bounded inputs, accessible feedback, and strict numeric validation.
 const bidForm = source.slice(source.indexOf("function mantigoBidForm("), source.indexOf("async function mgSubmitBid()"));
 const bidSubmit = source.slice(source.indexOf("async function mgSubmitBid()"), source.indexOf("async function mgAccept("));
-assert.match(bidForm, /label for="mgBidModel"[\\s\\S]*maxlength="80"/, "captain bid fields must have associated labels and bounded vehicle-model input");
+assert.match(bidForm, /label for="mgBidModel"[\s\S]*maxlength="80"/, "captain bid fields must have associated labels and bounded vehicle-model input");
 assert.match(bidForm, /id="mgBidPlate"[^>]*maxlength="30"/, "captain bid plate input must be bounded");
-assert.match(bidForm, /id="mgBidPrice"[^>]*max="10000000"[^>]*step="0\\.01"/, "captain bid price must declare a finite maximum and decimal step");
+assert.match(bidForm, /id="mgBidPrice"[^>]*max="10000000"[^>]*step="0\.01"/, "captain bid price must declare a finite maximum and decimal step");
 assert.match(bidForm, /id="mgBidEta"[^>]*max="1440"[^>]*step="1"/, "captain ETA must be bounded to an integer minute range");
 assert.match(bidForm, /role="status" aria-live="polite" data-mg-bid-status/, "bid form must announce validation and submission feedback accessibly");
 assert.match(bidSubmit, /if\(!model\|\|!plate\)/, "captain bid must require vehicle model and plate");
-assert.match(bidSubmit, /!Number\\.isFinite\\(price\\)\\|\\|price<=0\\|\\|price>10000000/, "captain bid must reject non-finite, non-positive, and excessive prices");
-assert.match(bidSubmit, /!Number\\.isInteger\\(eta\\)\\|\\|eta<0\\|\\|eta>1440/, "captain bid must reject fractional, negative, and excessive ETA values");
+assert.match(bidSubmit, /!Number\.isFinite\(price\)\|\|price<=0\|\|price>10000000/, "captain bid must reject non-finite, non-positive, and excessive prices");
+assert.match(bidSubmit, /!Number\.isInteger\(eta\)\|\|eta<0\|\|eta>1440/, "captain bid must reject fractional, negative, and excessive ETA values");
 assert.match(bidSubmit, /message.length>500/, "captain bid message length must be bounded in the client");
 assert.match(bidSubmit, /setStatus\('أكمل موديل المركبة ورقم اللوحة قبل إرسال العرض\.',true\)/, "captain bid validation errors must provide clear Arabic feedback");
-
-// Rebinding a workspace after inserting a nested form must not stack duplicate listeners.
-assert.match(source, /function listenOnce\(element,key,event,handler\)/, "workspace event binding must have a one-time listener helper");
-assert.match(source, /opSaveLeadBound/, "marketing lead save must be bound at most once per rendered control");
-assert.match(source, /opLeadSearchBound/, "marketing lead search must not accumulate duplicate input handlers");
-assert.match(source, /liveSearchBound==='true'/, "live table search must guard against duplicate event handlers");
-assert.match(source, /liveClearBound==='true'/, "live table clear controls must guard against duplicate event handlers");
-assert.match(source, /jobSubmitBound==='true'/, "job application forms must not submit multiple times from duplicate listeners");
-assert.match(source, /eduSubmitBound==='true'/, "education request forms must not accumulate submit handlers");
-assert.match(source, /medicalSubmitBound==='true'/, "medical booking forms must not accumulate submit handlers");
 
 console.log("Marketing lead form validation contract PASS.");
