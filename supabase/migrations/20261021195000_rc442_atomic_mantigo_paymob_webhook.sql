@@ -26,7 +26,7 @@ begin
   if p_external_event_id is null or length(trim(p_external_event_id)) = 0 then
     raise exception 'MANTIGO_EVENT_ID_REQUIRED';
   end if;
-  if p_status not in ('PAID', 'FAILED') then
+  if p_status is null or p_status not in ('PAID', 'FAILED') then
     raise exception 'MANTIGO_EVENT_STATUS_INVALID';
   end if;
   if p_amount is null or p_amount <= 0 or p_currency is null or length(trim(p_currency)) = 0 then
@@ -57,8 +57,11 @@ begin
     if v_event.payment_intent_id is distinct from v_ledger.id
        or v_event.event_type is distinct from 'MANTIGO_RIDE_PAYMENT'
        or v_event.signature_verified is distinct from true
-       or v_event.status not in ('PAID', 'FAILED') then
+       or v_event.status is null or v_event.status not in ('PAID', 'FAILED') then
       raise exception 'MANTIGO_EVENT_BINDING_CONFLICT';
+    end if;
+    if v_event.status is distinct from p_status then
+      raise exception 'MANTIGO_EVENT_STATUS_CONFLICT';
     end if;
     v_status := v_event.status;
     if v_ledger.payment_status = 'PENDING' then
