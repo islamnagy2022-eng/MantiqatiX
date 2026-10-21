@@ -114,12 +114,16 @@ function inventoryView(){
  (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
-function askQuantity(label='الكمية'){
+function askOrderDetails(items){
  return new Promise(resolve=>{
-  modal('إنشاء طلب',field('rest-qty','الكمية','1','number','min="1" step="1" required')+'<div class="action-bar"><button class="btn btn-primary" data-save>متابعة</button></div>',async o=>{
-   const value=Number(o.querySelector('#rest-qty')?.value);
-   if(!Number.isInteger(value)||value<1){notify('أدخل كمية صحيحة.','error');return;}
-   o.remove();resolve(value);
+  const options=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name||x.title||x.id)+'</option>').join('');
+  modal('تفاصيل الطلب','<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" step="1" required')+'<div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
+   const itemId=o.querySelector('#rest-item')?.value;
+   const quantity=Number(o.querySelector('#rest-qty')?.value);
+   const item=items.find(x=>String(x.id)===String(itemId));
+   if(!item){notify('اختر صنفًا صالحًا من الكتالوج.','error');return;}
+   if(!Number.isInteger(quantity)||quantity<1){notify('أدخل كمية صحيحة.','error');return;}
+   o.remove();resolve({item,quantity});
   });
  });
 }
@@ -130,11 +134,11 @@ async function createRestaurantOrder(){
  try{
    const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
    const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const item=(catalog?.items||[]).find(x=>String(x.status).toUpperCase()==='ACTIVE');
-   if(!item)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const qty=await askQuantity('الكمية');
-   if(!Number.isInteger(qty)||qty<1)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:item.id,quantity:qty,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
+   if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
+   const selection=await askOrderDetails(items);
+   if(!selection)return;
+   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
    const r=await invokeMntyFunction('order-create',payload);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
