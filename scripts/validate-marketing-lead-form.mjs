@@ -244,6 +244,9 @@ assert.match(source, /medicalSubmitBound==='true'/, "medical booking forms must 
 
 assert.match(source, /opReloadBound/, "reload control must not stack click handlers during nested form binding");
 assert.match(source, /mgLocationBound/, "MantiGO location control must bind once per rendered instance");
+assert.match(source, /!navigator\.geolocation&&!window\.MNTYLocationAdapter\?\.requestLocation/, "MantiGO must allow the configured location adapter when browser geolocation is unavailable");
+assert.match(source, /try\{p=await mgGetCurrentPosition\(\)\}catch\{p=null\}finally\{if\(b\.isConnected\)\{b\.disabled=false;b\.removeAttribute\('aria-busy'\)/, "MantiGO location control must recover its enabled state if the location provider throws");
+assert.match(source, /!Number\.isFinite\(p\.lat\)\|\|!Number\.isFinite\(p\.lon\)/, "MantiGO must reject invalid coordinates before populating the pickup field");
 assert.match(source, /mgCreateRideBound/, "ride creation control must not accumulate click handlers");
 assert.match(source, /mgSubmitBidBound/, "bid submission control must not accumulate click handlers");
 assert.match(source, /mgApplyCaptainBound/, "captain application control must bind once per rendered instance");
