@@ -15,7 +15,7 @@ using (
       and coalesce(m.status,'ACTIVE')='ACTIVE'
       and m.tenant_id=orders.tenant_id
       and m.business_id=orders.business_id
-      and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','MANAGER','STAFF','CASHIER','DRIVER','SERVICE_PROVIDER')
+      and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','MANAGER','STAFF','EMPLOYEE','CASHIER','DRIVER','SERVICE_PROVIDER')
       and (
         m.branch_id=orders.branch_id
         or (m.branch_id is null and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER'))
@@ -31,7 +31,7 @@ with check (
       and coalesce(m.status,'ACTIVE')='ACTIVE'
       and m.tenant_id=orders.tenant_id
       and m.business_id=orders.business_id
-      and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','MANAGER','STAFF','CASHIER','DRIVER','SERVICE_PROVIDER')
+      and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','MANAGER','STAFF','EMPLOYEE','CASHIER','DRIVER','SERVICE_PROVIDER')
       and (
         m.branch_id=orders.branch_id
         or (m.branch_id is null and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER'))
@@ -91,7 +91,7 @@ begin
     limit 1;
 
     v_is_staff := v_role=any(array[
-      'OWNER','ADMIN','MANAGER','STAFF','CASHIER','DRIVER','BUSINESS_OWNER','SERVICE_PROVIDER'
+      'OWNER','ADMIN','MANAGER','STAFF','EMPLOYEE','CASHIER','DRIVER','BUSINESS_OWNER','SERVICE_PROVIDER'
     ]);
     v_scope_ok := v_membership_business=v_order.business_id
       and (
