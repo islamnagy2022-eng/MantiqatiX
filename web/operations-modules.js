@@ -120,7 +120,7 @@ function genericLiveView(d){
   const head='<section class="card" style="margin:12px 0"><h3>'+esc(t)+'</h3>';
   if(BACKEND_ONLY_TABLES.has(t))return head+'<div class="notice">الوصول لهذا الجدول يتم عبر مسار خلفي مصرح به فقط.</div></section>';
   if(loadErrors[t])return head+'<div class="notice" role="alert">تعذر تحميل البيانات؛ لم يتم اعتبارها فارغة. أعد المحاولة أو راجع الصلاحيات.</div></section>';
-  return head+'<label for="live-search-'+esc(t)+'">البحث في السجلات<input class="input" id="live-search-'+esc(t)+'" type="search" maxlength="120" data-live-search="'+esc(t)+'" aria-label="البحث في سجلات '+esc(t)+'" placeholder="ابحث في الحقول المعروضة"/></label><div data-live-results="'+esc(t)+'">'+genericLiveTable(t)+'</div></section>';
+  return head+'<label for="live-search-'+esc(t)+'">البحث في السجلات<input class="input" id="live-search-'+esc(t)+'" type="search" maxlength="120" data-live-search="'+esc(t)+'" aria-label="البحث في سجلات '+esc(t)+'" aria-describedby="live-search-help-'+esc(t)+'" placeholder="ابحث في الحقول المعروضة"/></label><p id="live-search-help-'+esc(t)+'" class="muted">يبحث في الحقول المعروضة فقط. مسح النص يعيد كل السجلات المرئية.</p><div data-live-results="'+esc(t)+'">'+genericLiveTable(t)+'</div></section>';
  }).join('');
  return shell(d,tabs(d)+'<div class="notice">البيانات تخضع لصلاحيات الحساب. البحث يقتصر على الحقول المعروضة؛ أخطاء القراءة والجداول المخصصة للمسار الخلفي لا تظهر كنتائج فارغة.</div>'+(blocks||'<div class="empty-state">لا توجد بيانات فعلية ضمن نطاق الصلاحية.</div>'));
 }
