@@ -95,6 +95,40 @@ begin
   select payment_status into v_status from public.mantigo_financial_ledger where id='ledger-fail-closed';
   if v_status <> 'PENDING' then raise exception 'ledger state changed after simulated transaction failure'; end if;
 
+
+  -- Signature, merchant reference, and currency are independently enforced before writes.
+  begin
+    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:no-signature','PAID',false,125.00,'EGP','no-signature',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-wrong-target'))));
+    raise exception 'unverified signature unexpectedly succeeded';
+  exception when others then
+    if sqlerrm not like '%MANTIGO_SIGNATURE_REQUIRED%' then raise; end if;
+  end;
+
+  begin
+    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:wrong-merchant','PAID',true,125.00,'EGP','wrong-merchant',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-paid'))));
+    raise exception 'wrong merchant reference unexpectedly succeeded';
+  exception when others then
+    if sqlerrm not like '%MANTIGO_MERCHANT_REFERENCE_MISMATCH%' then raise; end if;
+  end;
+
+  begin
+    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:wrong-currency','PAID',true,125.00,'USD','wrong-currency',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-wrong-target'))));
+    raise exception 'currency mismatch unexpectedly succeeded';
+  exception when others then
+    if sqlerrm not like '%MANTIGO_AMOUNT_CURRENCY_MISMATCH%' then raise; end if;
+  end;
+
+  begin
+    perform public.process_verified_mantigo_paymob_event('ledger-wrong-target','paymob:null-status',null,true,125.00,'EGP','null-status',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-wrong-target'))));
+    raise exception 'null status unexpectedly succeeded';
+  exception when others then
+    if sqlerrm not like '%MANTIGO_EVENT_STATUS_INVALID%' then raise; end if;
+  end;
+
+  select count(*) into v_count from public.payment_provider_events
+  where external_event_id in ('paymob:no-signature','paymob:wrong-merchant','paymob:wrong-currency','paymob:null-status');
+  if v_count <> 0 then raise exception 'rejected invalid callbacks must not persist provider events'; end if;
+
   -- Failed provider status is also recorded atomically and cannot be replayed as success.
   v_result:=public.process_verified_mantigo_paymob_event('ledger-failed','paymob:txn-failed','FAILED',true,55.00,'EGP','txn-failed',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-failed'))));
   if v_result->>'status' <> 'FAILED' then raise exception 'failed provider event was not recorded: %',v_result; end if;
