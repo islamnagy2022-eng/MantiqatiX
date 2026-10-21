@@ -10,9 +10,9 @@ assert.match(source,/نتائج جزئية: تعذر البحث في/,"partial r
 assert.match(source,/globalSearchCan\)/,"search sources must remain permission-filtered");
 assert.match(source,/aria-live=(?:'|")polite(?:'|")/,"partial-failure status should be accessible");
 assert.match(source,/if\(!searchableSources\)return '<div class="mx-global-search-empty" role="status">لا توجد مصادر بحث متاحة لهذا الحساب أو الدور الحالي\./,"zero permitted search sources must not be reported as zero matching records");
-assert.match(source,/const seq=\\+\\+globalSearchSeq;if\\(value\\.length<2\\)/,"every query, including clear/short query, must invalidate older in-flight searches");
-assert.match(source,/try\\{const results=await globalSearch\\(value\\);if\\(seq!==globalSearchSeq\\)return/,"global search must ignore responses from superseded queries");
-assert.match(source,/catch\\(_\\)\\{if\\(seq!==globalSearchSeq\\)return;gso\\.innerHTML=.*تعذر إكمال البحث الآن\\. تحقق من الاتصال ثم حاول مرة أخرى/,"unexpected global-search failures must render safe actionable feedback instead of leaving the loading state");
+assert.match(source,/const seq=\+\+globalSearchSeq;if\(value\.length<2\)/,"every query, including clear/short query, must invalidate older in-flight searches");
+assert.match(source,/try\{const results=await globalSearch\(value\);if\(seq!==globalSearchSeq\)return/,"global search must ignore responses from superseded queries");
+assert.match(source,/catch\(_\)\{if\(seq!==globalSearchSeq\)return;gso\.innerHTML=.*تعذر إكمال البحث الآن\. تحقق من الاتصال ثم حاول مرة أخرى/,"unexpected global-search failures must render safe actionable feedback instead of leaving the loading state");
 assert.match(source,/role="status" aria-live="polite">جاري البحث في البيانات المتاحة/,"search loading state must be announced accessibly");
-assert.match(source,/globalSearchSeq\\+\\+;clearTimeout\\(globalSearchTimer\\);gsi\\.value='';gso\\.innerHTML='';gso\\.classList\\.remove\\('is-open'\\)/,"Escape must cancel pending debounce and invalidate in-flight results");
+assert.match(source,/globalSearchSeq\+\+;clearTimeout\(globalSearchTimer\);gsi\.value='';gso\.innerHTML='';gso\.classList\.remove\('is-open'\)/,"Escape must cancel pending debounce and invalidate in-flight results");
 console.log("Global search failure-state contract PASS: empty results are distinct from partial/unavailable sources.");
