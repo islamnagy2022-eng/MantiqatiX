@@ -35,6 +35,8 @@ assert.ok(stockSql.includes('create table if not exists public.restaurant_invent
   'RC527 must create an explicit inventory movement ledger');
 assert.ok(stockSql.includes('alter table public.restaurant_inventory_movements force row level security'),
   'movement ledger must force row-level security');
+assert.ok(stockSql.includes('create or replace function public.guard_restaurant_inventory_balance()') && stockSql.includes('before insert or update on public.restaurant_inventory'), 'direct client writes must not bypass the movement ledger for stock or valuation');
+assert.ok(stockSql.includes("current_user in ('postgres','service_role')"), 'only trusted backend database roles may change stock balances directly');
 assert.ok(stockSql.includes('security definer') && stockSql.includes('set search_path = public, pg_temp'),
   'movement RPC must use a fixed search path');
 assert.ok(stockSql.includes('pg_advisory_xact_lock') && stockSql.includes('idempotency_key'),
@@ -43,7 +45,7 @@ assert.ok(stockSql.includes("raise exception 'Insufficient inventory stock'"),
   'stock issue must reject negative inventory');
 assert.ok(stockSql.includes('grant execute on function public.restaurant_inventory_move(text,text,numeric,numeric,text,text) to authenticated'),
   'authenticated callers must use the explicitly granted movement RPC');
-for (const check of ['RC527_FAIL: idempotent receipt changed stock more than once','RC527_FAIL: rejected issue changed stock','RC527_FAIL: cross-scope attempt changed stock','RC527_FAIL: movement RLS exposed another tenant']) {
+for (const check of ['RC527_FAIL: idempotent receipt changed stock more than once','RC527_FAIL: rejected issue changed stock','RC527_FAIL: direct balance update bypassed the movement ledger','RC527_FAIL: direct non-zero stock insert bypassed the movement ledger','RC527_FAIL: cross-scope attempt changed stock','RC527_FAIL: movement RLS exposed another tenant']) {
   assert.ok(stockTest.includes(check), 'integration test must cover ' + check);
 }
 assert.ok(ui.includes("sb.rpc('restaurant_inventory_move'"), 'UI must use the audited movement RPC');
