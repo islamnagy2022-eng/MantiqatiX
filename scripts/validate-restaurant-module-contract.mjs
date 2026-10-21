@@ -144,4 +144,16 @@ assert.match(moduleSource, /البحث محلي داخل آخر 100 طلب مح�
 assert.doesNotMatch(moduleSource, /const average=billable\.length\?[\s\S]{0,250}متوسط قيمة الطلب/,
   'dashboard must not imply an unverified order average is a verified financial metric');
 
+// Menu search and filters remain bounded to the loaded catalog records.
+assert.match(moduleSource, /const filtered=state\.menu\.filter\(x=>\{/,
+  'menu search and filters must operate on the loaded menu set');
+assert.match(moduleSource, /id="rest-menu-search"/,
+  'menu view must expose a search field');
+assert.match(moduleSource, /id="rest-menu-category-filter"/,
+  'menu view must expose a category filter');
+assert.match(moduleSource, /id="rest-menu-availability-filter"/,
+  'menu view must expose an availability filter');
+assert.match(moduleSource, /البحث والفلاتر محلية داخل آخر 200 صنف محمّل/,
+  'menu view must disclose its loaded-record limit');
+
 console.log('Restaurant module contract PASS');
