@@ -33,5 +33,7 @@ assert.match(moduleSource, /\['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_S
   'table editor must select the persisted status');
 assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\)/,
   'table number and capacity must be validated');
+assert.match(moduleSource, /if\(!existing\)payload\.current_stock_qty=Number\(o\.querySelector\('#stock'\)\.value\)/, 'existing stock balance must not be directly overwritten');
+assert.match(moduleSource, /لا يمكن تعديل الرصيد مباشرة من هذه الشاشة/, 'inventory UI must explain the stock movement boundary');
 
 console.log('Restaurant module contract PASS');
