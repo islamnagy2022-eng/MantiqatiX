@@ -2205,3 +2205,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added a regression assertion that none of those rejected callbacks may persist a provider-event row.
 - [ ] Exact-head `MantiGO Paymob Atomicity` workflow must pass after this test-only change; prior passing runs do not certify this new head.
 - [ ] Production migration/deployment, live Paymob sandbox, browser payment flow, and target-database catalog verification remain NOT VERIFIED. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Global search retry recovery
+
+- [x] Added a direct retry action when every permitted search source fails, when results are partial, and when an unexpected search exception occurs.
+- [x] Added source-contract assertions that the retry controls are present and invoke the current search action.
+- [ ] Exact-head CI for the new retry-control code and assertions remains pending until the latest Actions results are observed.
+- [ ] Manual keyboard/mobile/screen-reader verification remains NOT VERIFIED. This is a UI resilience improvement, not a production certification.
