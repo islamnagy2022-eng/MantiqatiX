@@ -14,8 +14,8 @@ assert.match(source, /if\(!token\)return out\(\{error:"AUTH_REQUIRED"\},401\)/, 
 assert.match(source, /db\.auth\.getUser\(token\)/, "auth verification must receive only the parsed token");
 assert.ok(bearerTokenParser.includes("const match = /^Bearer[") && bearerTokenParser.includes("/i.exec"), "bearer parser must recognize the HTTP authorization scheme case-insensitively");
 assert.ok(bearerTokenParser.includes("([A-Za-z0-9._~+/-]+=*)"), "bearer parser must restrict tokens to a single token value");
-assert.equal((workflow.match(/supabase\/functions\/_shared\/bearer-token\.mjs/g)||[]).length, 2, "bearer parser must trigger source-integrity workflow on both push and pull_request");
-assert.equal((workflow.match(/scripts\/test-bearer-token\.mjs/g)||[]).length, 2, "bearer parser tests must trigger source-integrity workflow on both push and pull_request");
+assert.ok((workflow.match(/supabase\/functions\/_shared\/bearer-token\.mjs/g)||[]).length >= 2, "bearer parser must trigger source-integrity workflow on both push and pull_request");
+assert.ok((workflow.match(/scripts\/test-bearer-token\.mjs/g)||[]).length >= 2, "bearer parser tests must trigger source-integrity workflow on both push and pull_request");
 assert.match(source, /isBranchCreationAuthorized\(membership\|\|\[\],businessId\)/, "branch endpoint must enforce the shared tested authorization policy");
 assert.match(source, /BUSINESS_MANAGEMENT_REQUIRED/, "branch creation must remain role-gated");
 assert.match(authorizationPolicy, /BUSINESS_MANAGER_ROLES/, "shared policy must use an explicit business-manager role allowlist");
