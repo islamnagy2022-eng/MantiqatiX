@@ -251,6 +251,7 @@ async function addInventoryMovement(existing){
  if(!existing||!canOperate('OPERATIONS','update'))return;
  const role=String(state.membership?.role||'').toUpperCase();
  const openingOption=['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'].includes(role)?'<option value="OPENING_BALANCE">رصيد افتتاحي</option>':'';
+ const idempotencyKey='MNTY-REST-STOCK-'+uid();
  modal('تسجيل حركة مخزون','<div class="notice">تحديث الرصيد يتم ذريًا عبر دالة خادمية ويسجل حركة غير قابلة للتعديل من المتصفح.</div><label class="field"><span>نوع الحركة</span><select id="stock-movement-type"><option value="RECEIPT">وارد / توريد</option><option value="ISSUE">صرف</option>'+openingOption+'</select></label>'+field('stock-movement-qty','الكمية','1','number','min="0.001" max="1000000" step="0.001" required')+field('stock-movement-cost','تكلفة الوحدة بالجنيه',existing.unit_cost_egp||0,'number','min="0" max="100000000" step="0.01" required')+'<label class="field"><span>ملاحظات / مرجع</span><textarea id="stock-movement-notes" rows="3" maxlength="1000"></textarea></label><button class="btn btn-primary" data-save>تسجيل الحركة</button>',async o=>{
   const s=scope();const type=o.querySelector('#stock-movement-type').value;
   const quantity=Number(o.querySelector('#stock-movement-qty').value);
@@ -259,7 +260,7 @@ async function addInventoryMovement(existing){
   if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
   if(!Number.isFinite(quantity)||quantity<=0||quantity>1000000||Math.round(quantity*1000)!==quantity*1000)return notify('أدخل كمية موجبة بحد أقصى ثلاث خانات عشرية.','error');
   if(!Number.isFinite(unitCost)||unitCost<0||unitCost>100000000||Math.round(unitCost*100)!==unitCost*100)return notify('أدخل تكلفة صحيحة بحد أقصى خانتين عشريتين.','error');
-  const {data,error}=await sb.rpc('restaurant_inventory_move',{p_inventory_id:existing.id,p_movement_type:type,p_quantity:quantity,p_unit_cost_egp:unitCost,p_idempotency_key:'MNTY-REST-STOCK-'+uid(),p_notes:notes});
+  const {data,error}=await sb.rpc('restaurant_inventory_move',{p_inventory_id:existing.id,p_movement_type:type,p_quantity:quantity,p_unit_cost_egp:unitCost,p_idempotency_key:idempotencyKey,p_notes:notes});
   if(error){notify('تعذر تسجيل حركة المخزون. تحقق من الصلاحيات والرصيد ثم حاول مرة أخرى.','error');return;}
   o._close();notify('تم تسجيل الحركة بنجاح. الرصيد الجديد: '+Number(data?.current_stock_qty??0).toLocaleString('ar-EG')+' '+existing.unit);await load();
  });
