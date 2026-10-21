@@ -54,6 +54,7 @@ jobs:
           node --check web/operations-modules.js
           test -f supabase/functions/business-branch-admin/index.ts
           node scripts/validate-web-assets.mjs
+          node scripts/validate-preview-navigation.mjs
           node scripts/validate-public-brand.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
@@ -199,6 +200,12 @@ jobs:
           grep -Fq "openPlatform" <<<"$HOME_JS"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"$CONFIG_JS"
           grep -Fq "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'" <<<"$CONFIG_JS"
+          PREVIEW_ENTRY="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/")"
+          PREVIEW_DASHBOARD="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/dashboard.html")"
+          grep -Fq "window.location.replace('dashboard.html')" <<<"$PREVIEW_ENTRY"
+          grep -Fq 'dashboard.html' <<<"$PREVIEW_ENTRY"
+          grep -Fq 'كل موديولات MantiqatiX' <<<"$PREVIEW_DASHBOARD"
+          grep -Fq 'وضع تجريبي فقط' <<<"$PREVIEW_ENTRY"
           grep -Fq 'digital-page.js' <<<"$DIGITAL_PAGE_HTML"
           grep -Fq 'digital-page.css' <<<"$DIGITAL_PAGE_HTML"
           grep -Fq "eq('status','PUBLISHED')" <<<"$DIGITAL_PAGE_JS"

@@ -94,3 +94,36 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-21 — SESSION — PR #316 preview entry audit
+
+- **Verified fact:** PR [#316](https://github.com/islamnagy2022-eng/MantiqatiX/pull/316) remains open and Draft; head branch `fix/preview-starts-at-public-home-20261021`, exact head `1368a1583aa42e1905e064bc9a96f181a86d1b62`; base `main` at `e4fcc23dc99c1d9082c4dc237ec09dde85a437ab`.
+- **Verified fact:** Changed files are `web/preview/index.html` and `web/preview/dashboard.html`. The entry page redirects to `../`, and the existing public homepage bootstrap is `web/index.html`; the root `index.html` redirects to `./web/`.
+- **Verified fact:** Pages workflow `.github/workflows/pages.yml` validates pull requests, uploads only `./web` to Pages, and deploys only when `github.ref == refs/heads/main` and the event is push or workflow_dispatch. PR #316's `validate` job succeeded; its `deploy` job was skipped as intended.
+- **Verified fact:** Exact-head checks exposed by GitHub include successful `validate`, `matrimony-privacy-postgres`, `targeted-ads-search-path-integration`, `financial-journal-rc450-integration`, `approval-action-audit-postgres`, and `mantigo-open-ride-privacy-integration` jobs across related workflows; the Pages `deploy` job is skipped. No failing job was observed in the returned check set.
+- **Verified fact:** The `main` branch has no `web/preview/dashboard.html` file; the dashboard mock is only on PR #316. The feature entry and dashboard were read from the branch content API, not from the public deployed host.
+- **Inference / unresolved:** Current public routes and browser behavior for `/`, `/web/`, `/preview/`, and `/preview/dashboard.html` have **not been runtime-verified** by an HTTP/browser probe in this session. The GitHub connector cannot fetch the Pages host, so no live HTTP status, redirect, JS/CSS load, cache, Service Worker, Supabase connectivity, login, or account-role navigation result is claimed.
+- **Action performed:** Read PR metadata/diff, changed paths, Pages workflow, public homepage bootstrap, service worker, TODO, session log, and continuity handoff. No repository writes were made in this audit batch.
+- **Not performed:** No merge, Pages deployment, database migration, Supabase production mutation, Edge Function deployment, or authentication/authorization change.
+- **Next step:** Use a real browser/HTTP probe on the four public routes and authenticated test accounts; then add focused preview-route tests in a follow-up branch if the current CI/contracts do not cover those paths. Keep PR #316 Draft until that evidence is available.
+- **Release state:** **BLOCKED / NOT CERTIFIED**. The main production blockers listed in `docs/MASTER_PRODUCTION_TODO.md` remain open, including authenticated multi-tenant E2E, payment/finance E2E, leaked-password protection, security-definer review, backup/restore, Android signed/device evidence, and browser smoke.
+
+
+## 2026-10-21 — SESSION — Preview routing contract and CI status follow-up
+
+- **Scope:** PR #316, branch `fix/preview-starts-at-public-home-20261021`, latest inspected head `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
+- **Implemented in branch:** added `scripts/validate-preview-navigation.mjs` and wired it into the Pages validation job; the deploy job includes HTTP smoke checks for the published preview entry and demo dashboard after an eligible main deployment.
+- **Source review:** the validator currently defines 11 static contract checks for Arabic RTL, preview redirect/fallback, dashboard disclaimer, public homepage boot fallback, public-mode fallback when Supabase is unavailable, Pages artifact root, main-only deployment, and service-worker navigation fallback.
+- **CI status at inspection:** run 39616462814 is still queued at job level; its deploy job is correctly skipped for a pull-request event. The latest check-run query returned 15 checks, with 0 completed and no recorded failures. This is pending, not a pass.
+- **Not verified:** validator has not been run locally in this session; published-site HTTP smoke, browser login/session, PWA offline behavior, tenant isolation, and production E2E are not certified by these source checks.
+- **Safety boundary:** no merge, no main push, no production deployment, no Supabase/database/auth/payment mutation.
+- **Next:** investigate stalled queued jobs / obtain CI conclusions; fix any reproduced failures, then verify the published Pages URLs after an authorized main deployment. Keep global release gate BLOCKED until P0 evidence is complete.
+
+
+## 2026-10-21 — CI completed for preview-navigation PR
+
+- **Observed:** PR #316 head `57d9c20c71dab78a01c8ff50ccf69acb1b3c7818` had successful GitHub Actions checks, including Pages workflow `validate` (run 39616640682) and the targeted backend-only, MantiGO privacy, financial-journal, targeted-ads search-path, matrimony privacy, and approval-action audit jobs. No checks remained pending in the fetched check-run snapshot.
+- **Deploy behavior:** Pages `deploy` was skipped on the `pull_request` event as intended by the main-only deployment guard. Therefore the post-deploy HTTP smoke checks for `/preview/` and `/preview/dashboard.html` were not executed for this PR.
+- **Live verification limit:** attempted to retrieve both published preview URLs in this session; the fetch tool returned cache-miss errors, which are inconclusive and are not recorded as a site failure or pass.
+- **Action performed:** updated item 10 in `docs/MASTER_PRODUCTION_TODO.md` to distinguish successful source CI from the still-unverified deployed-preview smoke and browser E2E.
+- **Not performed:** no merge, production deploy, main update, or production data/configuration mutation. Production gate remains BLOCKED / NOT CERTIFIED.

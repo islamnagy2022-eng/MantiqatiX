@@ -8,6 +8,21 @@
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
 
+## Latest session update — 2026-10-21
+
+- Current active work is PR #316 on branch `fix/preview-starts-at-public-home-20261021`; inspected head before this documentation-only commit: `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
+- Preview/navigation contract validator is present and invoked by `.github/workflows/pages.yml`. The production Pages deploy job is intentionally restricted to `main` push or manual dispatch on `main`; PR runs should skip deploy.
+- CI run 39616462814 was still queued at job level during inspection; latest check-run snapshot had 15 checks, 0 completed, and no recorded failures. Treat this as pending, not passed.
+- No live site HTTP/browser test was performed in this session. Authenticated browser flow, PWA offline behavior, tenant isolation, and production E2E remain NOT VERIFIED. Global release gate stays BLOCKED / NOT CERTIFIED.
+- No merge, main push, production deployment, or production data/configuration mutation was performed. See the append-only details in `docs/SESSION_LOG.md`.
+
+## Latest verification update — 2026-10-21
+
+- PR #316 source CI completed successfully on head `57d9c20c71dab78a01c8ff50ccf69acb1b3c7818`; Pages `validate` passed and the related targeted privacy/financial/security integration checks passed. Run: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39616640682
+- Pages deploy was skipped on the PR event by design; post-deploy HTTP smoke checks were not executed for this PR. A direct fetch attempt for the public preview URLs returned cache-miss errors, which are inconclusive.
+- `docs/MASTER_PRODUCTION_TODO.md` item 10 now distinguishes passing CI from unverified deployed preview/browser E2E.
+- No merge or production deploy occurred. Authenticated browser flow, tenant isolation E2E, PWA offline behavior, and the overall production release remain NOT VERIFIED / BLOCKED.
+
 ## Current baseline
 
 - Repository: `islamnagy2022-eng/MantiqatiX`
@@ -577,3 +592,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
+
+
+## 2026-10-21 — Preview entry audit and PR #316 status
+- PR [#316](https://github.com/islamnagy2022-eng/MantiqatiX/pull/316) remains open/Draft at head `1368a1583aa42e1905e064bc9a96f181a86d1b62`; no merge or production deployment was performed.
+- The branch changes only `web/preview/index.html` and `web/preview/dashboard.html`. `web/preview/index.html` redirects to `../`; the main/root redirect chain is root `index.html` → `web/`. The Pages workflow publishes only `web/` and only deploys from `main` pushes or main workflow_dispatch. PR CI `validate` passed; Pages `deploy` was correctly skipped.
+- Exact-head associated checks returned successful validation, privacy, financial-journal, approval-audit, and targeted-ads integration jobs; no failing result was shown in the returned checks. This does not prove live browser behavior.
+- No live-host HTTP/browser probe could be completed using the GitHub connector. Thus deployed route responses, JS/CSS load, service-worker/cache effects, Supabase initialization, login, and role-aware navigation remain NOT VERIFIED.
+- TODO: live browser/HTTP smoke for `/`, `/web/`, `/preview/`, `/preview/dashboard.html`; add automated preview route and navigation tests if absent; keep PR #316 Draft until these checks are backed by evidence. Existing global production blockers in `docs/MASTER_PRODUCTION_TODO.md` remain open.
+- Release state: BLOCKED / NOT CERTIFIED. No production database/auth/payment changes or releases.

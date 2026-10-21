@@ -72,8 +72,10 @@
    - location permission عند الحاجة فقط.
 
 10. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
-    - GitHub Pages deployment + automated `Verify deployed site`: PASS for commit `569f1245fcd57ab50f30abcb08599409e483392a` (run 37861633528).
-    - Production Health Monitor: PASS for the same commit (run 37861633606); checks GitHub Pages, Supabase health function, and public web assets.
+    - Historical GitHub Pages deployment + automated `Verify deployed site`: PASS for commit `569f1245fcd57ab50f30abcb08599409e483392a` (run 37861633528).
+    - Historical Production Health Monitor: PASS for the same commit (run 37861633606); checks GitHub Pages, Supabase health function, and public web assets.
+    - Current PR #316 source/CI validation: PASS on commit `57d9c20c71dab78a01c8ff50ccf69acb1b3c7818` (run 39616640682, validate job successful). The deploy job was skipped correctly for the pull_request event; therefore this does NOT verify the new deployed-preview HTTP smoke checks.
+    - Live preview URLs could not be independently fetched in this session; do not mark deployed-preview smoke as passed on that basis.
     - Still NOT VERIFIED: interactive authenticated browser session, responsive/accessibility manual audit, PWA/service-worker offline behavior, and end-user auth flow.
 
 # P1 — أولوية عالية
