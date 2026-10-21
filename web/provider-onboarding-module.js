@@ -63,14 +63,14 @@
           const p=await call('business-register',{tenantId:s.active.tenant_id,organizationId:s.active.organization_id||null,name:document.getElementById('mnty-business-name').value.trim(),sector:document.getElementById('mnty-business-sector').value.trim()||'GENERAL',city:document.getElementById('mnty-business-city').value.trim(),district:document.getElementById('mnty-business-district').value.trim(),address:document.getElementById('mnty-business-address').value.trim(),phone:document.getElementById('mnty-business-phone').value.trim()});
           out.textContent='تم إنشاء طلب النشاط: '+(p.approvalRequestId||'PENDING')+' — النشاط في انتظار الموافقة.';
           setTimeout(render,500);
-        }catch(err){out.textContent='تعذر إرسال الطلب: '+esc(err.message);}finally{endAction(form);}
+        }catch(err){out.textContent='تعذر إرسال الطلب. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.';}finally{endAction(form);}
       });
       document.querySelectorAll('[data-branch-form]').forEach(form=>form.addEventListener('submit',async e=>{
         e.preventDefault();if(!beginAction(form))return; const out=form.querySelector('[data-branch-result]'); out.textContent='جارٍ إنشاء الفرع…';
         try{
           const branch=await call('business-branch-admin',{tenantId:s.active.tenant_id,businessId:form.dataset.branchForm,organizationId:s.active.organization_id||null,name:form.querySelector('[data-branch-name]').value.trim(),address:form.querySelector('[data-branch-address]').value.trim(),phone:form.querySelector('[data-branch-phone]').value.trim()});
           out.textContent='تم إنشاء الفرع: '+esc(branch?.branch?.name||'تم بنجاح');
-        }catch(err){out.textContent='تعذر إنشاء الفرع: '+esc(err.message);}finally{endAction(form);}
+        }catch(err){out.textContent='تعذر إنشاء الفرع. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.';}finally{endAction(form);}
       }));
       document.querySelectorAll('[data-catalog-form]').forEach(form=>form.addEventListener('submit',async e=>{
         e.preventDefault();if(!beginAction(form))return; const out=form.querySelector('[data-catalog-result]'); out.textContent='جارٍ حفظ الخدمة والسعر…';
@@ -103,9 +103,9 @@
         if(btn.disabled)return;btn.disabled=true;const oldLabel=btn.textContent;btn.textContent='جارٍ التحقق…';
         const id=btn.dataset.onboardStatus; const out=document.getElementById('onboard-status-'+id);
         try{const p=await call('business-onboarding-status',{businessId:id});out.textContent=(p.requests||[]).map(x=>'طلب '+x.id+': '+x.status).join(' · ')||'لا توجد حالة طلب.';}
-        catch(err){out.textContent='تعذر قراءة الحالة: '+err.message;}finally{btn.disabled=false;btn.textContent=oldLabel;}
+        catch(err){out.textContent='تعذر قراءة حالة التسجيل حاليا. حاول مرة أخرى لاحقا.';}finally{btn.disabled=false;btn.textContent=oldLabel;}
       }));
-    }catch(err){page('<section class="workspace-section"><div class="notice">تعذر تحميل تكوين النشاط: '+esc(err.message)+'</div></section>');}
+    }catch(err){page('<section class="workspace-section"><div class="notice">تعذر تحميل تكوين النشاط حاليا. تحقق من تسجيل الدخول والاتصال ثم حاول مرة أخرى.</div></section>');}
   }
 
   const onboardingView=async()=>{
@@ -165,9 +165,9 @@
           try{localStorage.removeItem('MNTYPendingActivityDraft');}catch(_){}
           out.textContent='تم إرسال طلب النشاط بنجاح. رقم الطلب: '+(p.onboarding_request_id||'PENDING');
           setTimeout(render,600);
-        }catch(err){btn.disabled=false;out.textContent='تعذر إرسال الطلب: '+esc(err.message);}
+        }catch(err){btn.disabled=false;out.textContent='تعذر إرسال الطلب. تحقق من الاتصال والصلاحيات ثم حاول مرة أخرى.';}
       });
-    }catch(err){page('<section class="workspace-section" dir="rtl"><div class="notice">تعذر تحميل طلب إضافة النشاط: '+esc(err.message)+'</div></section>');}
+    }catch(err){page('<section class="workspace-section" dir="rtl"><div class="notice">تعذر تحميل طلب إضافة النشاط حاليا. تحقق من الاتصال وصلاحية الحساب ثم حاول مرة أخرى.</div></section>');}
   };
   window.providerOnboardingView=onboardingView;
 
