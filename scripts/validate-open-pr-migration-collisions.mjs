@@ -157,7 +157,7 @@ try {
             baseRefName
             baseRepository { nameWithOwner }
             files(first: 100) {
-              pageInfo { hasNextPage }
+              pageInfo { hasNextPage endCursor }
               nodes { path changeType }
             }
           }
