@@ -29,6 +29,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check business branch admin Edge Function
+        run: deno check supabase/functions/business-branch-admin/index.ts
       - name: Runtime-test branch coordinate normalization
         run: node --test scripts/test-branch-coordinate-normalization.mjs
       - name: Validate business branch admin source
