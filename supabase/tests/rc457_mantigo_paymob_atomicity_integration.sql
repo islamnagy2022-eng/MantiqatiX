@@ -65,8 +65,8 @@ begin
   if v_count <> 0 then raise exception 'amount mismatch persisted an event'; end if;
 
   -- Recovery for a legacy partial write: existing verified event repairs a pending ledger.
-  insert into public.payment_provider_events(tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
-  values('MNTY-PLATFORM','PAYMOB','MANTIGO_RIDE_PAYMENT','ledger-legacy','paymob:legacy','PAID',true,'{}'::jsonb,now());
+  insert into public.payment_provider_events(id,tenant_id,provider,event_type,payment_intent_id,external_event_id,status,signature_verified,raw_payload,processed_at)
+  values('legacy-event-id','MNTY-PLATFORM','PAYMOB','MANTIGO_RIDE_PAYMENT','ledger-legacy','paymob:legacy','PAID',true,'{}'::jsonb,now());
   v_result:=public.process_verified_mantigo_paymob_event('ledger-legacy','paymob:legacy','PAID',true,90.00,'EGP','legacy-txn','{}'::jsonb);
   if v_result->>'recovered' <> 'true' then raise exception 'legacy event did not repair pending ledger: %',v_result; end if;
   select payment_status into v_status from public.mantigo_financial_ledger where id='ledger-legacy';
