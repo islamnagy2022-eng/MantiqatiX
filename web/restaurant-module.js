@@ -449,8 +449,16 @@ async function cancelReservation(id){
  notify('تم إلغاء الحجز.');await load();
 }
 async function updateOrder(id,status){
- if(!canOperate('ORDERS','update'))return;
- const m=scope(); if(!m)return notify('لا يوجد نطاق نشاط/فرع نشط.');
+ if(!canOperate('ORDERS','update'))return false;
+ const m=scope(); if(!m){notify('لا يوجد نطاق نشاط/فرع نشط.','error');return false;}
+ const order=state.orders.find(x=>String(x.id)===String(id));
+ if(!order){notify('الطلب غير موجود ضمن البيانات المحمّلة لهذا الفرع. حدّث القائمة ثم حاول مرة أخرى.','error');return false;}
+ const current=String(order.status||'').toUpperCase();
+ const allowed={PENDING:['CONFIRMED','CANCELLED'],CREATED:['CONFIRMED','CANCELLED'],CONFIRMED:['PREPARING','CANCELLED'],PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],OUT_FOR_DELIVERY:['DELIVERED']};
+ if(!Array.isArray(allowed[current])||!allowed[current].includes(String(status||'').toUpperCase())){
+  notify('انتقال الحالة غير مسموح من الحالة الحالية. حدّث الطلب وتحقق من حالته.','error');
+  return false;
+ }
  try{
   await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
   await load();return true;
