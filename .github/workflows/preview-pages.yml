@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "web/preview/**"
+      - ".github/workflows/preview-pages.yml"
 
 permissions:
   contents: read
@@ -70,7 +71,7 @@ jobs:
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/" -o /tmp/preview.html
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/dashboard.html" -o /tmp/preview-dashboard.html
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/admin.html" -o /tmp/preview-admin.html
-          grep -Fq 'MantiqaTiX' /tmp/preview.html
+          grep -Fq 'MantiqatiX' /tmp/preview.html
           grep -Fq 'dashboard.html' /tmp/preview.html
           grep -Fq 'كل موديولات MantiqatiX' /tmp/preview-dashboard.html
           grep -Fq 'وضع تجريبي فقط' /tmp/preview.html
