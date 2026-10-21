@@ -33,6 +33,6 @@ assert.match(source,/data-global-search-retry>إعادة المحاولة/, "ful
 assert.match(source,/data-global-search-retry>إعادة البحث/, "partial global search must expose a retry control");
 assert.match(source,/querySelector\('\[data-global-search-retry\]'\)\?\.addEventListener\('click',runGlobalSearch\)/, "retry controls must invoke the current search without reloading the page");
 
-assert.match(source,/const runGlobalSearch=async\\(\\)=>\\{\\s*clearTimeout\\(globalSearchTimer\\);\\s*globalSearchTimer=null;\\s*window\\.__MNTYGlobalSearchTimer=null;/, "explicit search and retry must cancel a pending debounce to avoid duplicate requests");
+assert.match(source,/const runGlobalSearch=async\(\)=>\{\s*clearTimeout\(globalSearchTimer\);\s*globalSearchTimer=null;\s*window\.__MNTYGlobalSearchTimer=null;/, "explicit search and retry must cancel a pending debounce to avoid duplicate requests");
 
 console.log("Global search failure-state contract PASS: empty results are distinct from partial/unavailable sources.");
