@@ -143,6 +143,12 @@ assert.match(moduleSource, /order\.items_json/,
 assert.match(moduleSource, /ليست إثباتًا على تحصيل المبلغ أو تسويته ماليًا/,
   'order details must not imply that recorded totals are proof of payment settlement');
 
+// Status mutation must be constrained by the currently loaded order and allowed transition map.
+assert.match(moduleSource, /const order=state\.orders\.find\(x=>String\(x\.id\)===String\(id\)\)/,
+  'status updates must target an order in the currently loaded scoped dataset');
+assert.match(moduleSource, /allowed\[current\]\.includes\(String\(status\|\|''\)\.toUpperCase\(\)\)/,
+  'status updates must reject transitions not allowed from the current loaded status');
+
 // Kitchen board uses existing server-supported order statuses and the existing scoped dataset.
 assert.match(moduleSource, /const orders=state\.orders\.filter\(o=>String\(o\.status\|\|''\)\.toUpperCase\(\)===stage\.status\)\.sort\(/,
   'kitchen queue must order each stage FIFO by order creation time');
