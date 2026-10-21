@@ -14,7 +14,7 @@ const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const dashboardModuleIds = [...dashboard.matchAll(/\bid:\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
-const homepageModuleLinks = [...entry.matchAll(/href="dashboard\.html\?module=([^"]+)"/g)].map(match => decodeURIComponent(match[1]));
+const homepageModuleLinks = [...entry.matchAll(/\['[^']+','([^']+)','[^']+'\]/g)].map(match => match[1]);
 const checks = [
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
   ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
