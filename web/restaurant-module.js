@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,error:null,staleMembershipSelection:false,pendingOrderPayload:null};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -188,20 +188,30 @@ async function createRestaurantOrder(){
  if(!canOperate('ORDERS','create'))return notify('ليس لديك صلاحية إنشاء الطلبات.','error');
  const m=scope();
  try{
-   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
-   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
-   if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const selection=await askOrderDetails(items);
-   if(!selection)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   let payload=state.pendingOrderPayload;
+   if(!payload){
+     const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
+     const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
+     const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
+     if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
+     const selection=await askOrderDetails(items);
+     if(!selection)return;
+     payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+     state.pendingOrderPayload=payload;
+   }else if(payload.tenantId!==m.tenant_id||payload.businessId!==m.business_id||payload.branchId!==m.branch_id){
+     return notify('يوجد طلب غير مكتمل في نطاق آخر. ارجع إلى المؤسسة والفرع الأصليين لاستكماله.','error');
+   }
    const r=await invokeMntyFunction('order-create',payload);
-   notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
+   notify('تم تأكيد الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
+   state.pendingOrderPayload=null;
    await load();
- }catch(e){notify('تعذر إنشاء الطلب. تحقق من البيانات والصلاحيات والاتصال ثم حاول مرة أخرى.','error')}
+ }catch(e){
+   notify('تعذر تأكيد الطلب. احتفظنا بنفس مفتاح الطلب لمنع التكرار؛ اضغط «إعادة محاولة الطلب المعلق» قبل إنشاء طلب جديد.','error');
+   render();
+ }
 }
 function dashboard(){
- return shell('لوحة المطعم',tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button>':'')+'</div>'+cards()+
+ return shell('لوحة المطعم',tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">'+(state.pendingOrderPayload?'إعادة محاولة الطلب المعلق':'+ طلب جديد')+'</button>':'')+'</div>'+(state.pendingOrderPayload?'<div class="notice" role="status">يوجد طلب لم يتأكد رد الخادم بشأنه. إعادة المحاولة ستستخدم نفس رقم الطلب ومفتاح منع التكرار.</div>':'')+cards()+
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
 }
