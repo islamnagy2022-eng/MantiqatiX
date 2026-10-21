@@ -1559,3 +1559,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] BLOCKED: Supabase Auth leaked-password protection and scoped SECURITY DEFINER/RLS review remain release security items.
 - [ ] No production mutation/deployment/PR merge was performed in this session; no release readiness claim is made.
 - **Rule:** update `docs/SESSION_LOG.md` after every material execution batch and keep this TODO/continuity snapshot current. DONE ≠ VERIFIED.
+
+
+### RC434/RC437 contract audit — 2026-10-21
+- [x] Added `scripts/validate-erp-receiving-migrations.mjs` to assert the RC434 atomic receipt function, order lock, idempotent receipt conflict handling, stock upsert, inventory ledger write, tenant/business membership scope, empty `search_path`, and service-role-only execution.
+- [x] The validator also checks RC437's purchase-order line constraints, line-level lock, over-receipt rejection, approved unit-cost match, received-quantity increment, and service-role-only execution.
+- [x] Wired the static contract validator into `module-professionalization.yml` on the migration-recovery branch.
+- [ ] CI for recovery branch commit `8df258b5a0b3b8db7afee9212502cdc37dc9f507` is queued/running; do not count it as passed until completed.
+- [ ] Static SQL contract checks do not replace chronological PostgreSQL replay or concurrent transaction tests.
+- [ ] Keep release blocked until RC425–RC441 are recovered as one reviewed chain and production schema compatibility is proven in an isolated database.
