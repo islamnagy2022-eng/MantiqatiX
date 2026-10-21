@@ -20,6 +20,9 @@ assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory
 // Order creation/status must go through the canonical server functions.
 assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must use canonical order-create function');
+assert.match(moduleSource, /function askOrderDetails\(items\)/, 'order form must let staff select an authoritative catalog item');
+assert.match(moduleSource, /const selection=await askOrderDetails\(items\)/, 'selected catalog item and quantity must be used for order creation');
+assert.doesNotMatch(moduleSource, /function askQuantity\(/, 'order flow must not silently choose the first catalog item');
 assert.match(moduleSource, /invokeMntyFunction\('order-status-update'/,
   'restaurant order status changes must use canonical status function');
 assert.doesNotMatch(moduleSource, /from\('restaurant_orders'\)\.update/,
