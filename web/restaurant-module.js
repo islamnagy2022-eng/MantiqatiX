@@ -145,7 +145,8 @@ function orderSnapshotView(order){
  if(!Array.isArray(items))return '<p class="muted">تعذر عرض لقطة الأصناف المحفوظة بصيغة منظمة.</p>';
  const rows=items.map(item=>{
   const name=item?.name_ar||item?.name||item?.catalog_item_id||item?.legacy_ref||'صنف';
-  return '<tr><td>'+esc(name)+'</td><td>'+esc(item?.quantity??'—')+'</td><td>'+orderAmount(item?.unit_price,currency)+'</td><td>'+orderAmount(item?.option_total,currency)+'</td><td>'+orderAmount(item?.line_subtotal,currency)+'</td><td>'+orderAmount(item?.line_tax,currency)+'</td></tr>';
+  const optionDetails=Array.isArray(item?.selected_options)?item.selected_options.map(option=>esc(option?.name||option?.id||'إضافة')+' ('+orderAmount(option?.price_delta,currency)+')').join('، '):'';
+  return '<tr><td><b>'+esc(name)+'</b>'+(optionDetails?'<div class="muted">الخيارات: '+optionDetails+'</div>':'')+'</td><td>'+esc(item?.quantity??'—')+'</td><td>'+orderAmount(item?.unit_price,currency)+'</td><td>'+orderAmount(item?.option_total,currency)+'</td><td>'+orderAmount(item?.line_subtotal,currency)+'</td><td>'+orderAmount(item?.line_tax,currency)+'</td></tr>';
  }).join('');
  return '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الكمية</th><th>سعر الوحدة</th><th>الإضافات</th><th>الإجمالي قبل الضريبة</th><th>الضريبة</th></tr></thead><tbody>'+(rows||'<tr><td colspan="6">لا توجد أصناف في لقطة الطلب.</td></tr>')+'</tbody></table></div>'+
  '<dl><dt>الإجمالي الفرعي</dt><dd>'+orderAmount(order.subtotal,currency)+'</dd><dt>الخصم</dt><dd>'+orderAmount(order.discount,currency)+'</dd><dt>الضريبة</dt><dd>'+orderAmount(order.tax,currency)+'</dd><dt>التوصيل</dt><dd>'+orderAmount(order.delivery_fee,currency)+'</dd><dt><b>الإجمالي النهائي المحفوظ</b></dt><dd><b>'+orderAmount(order.total_amount??order.total,currency)+'</b></dd></dl>';
