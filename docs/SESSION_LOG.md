@@ -342,3 +342,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added client-side search to the marketing lead list across title, description, requested services, service area, status, and source. Search operates only on the already-loaded list, which remains filtered by the existing user-scoped query; no expanded backend query or permissions change was introduced.
 
 - Marketing workspace reliability pass: provider, service, project, plan, subscription, participant, and commission tabs now preserve and render query failure states rather than making failed reads look like empty datasets. Added source-contract assertions. No API/schema changes; exact-head CI and browser E2E remain pending.
+
+- Follow-up safety fix: marketing lead creation is blocked when active-membership lookup fails; the UI explains the issue, disables submission, and the submit handler independently guards against sending. Added static source-contract checks. No production mutation, schema change, merge, or deployment.
