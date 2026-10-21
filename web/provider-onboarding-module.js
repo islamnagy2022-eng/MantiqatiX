@@ -6,6 +6,9 @@
   if(!cfg || !window.supabase?.createClient)return;
   const sb=window.MNTY_SB || window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey); window.MNTY_SB=sb;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const pendingActions=new WeakSet();
+  const beginAction=(form)=>{if(pendingActions.has(form))return false;pendingActions.add(form);form.querySelectorAll('button[type="submit"]').forEach(b=>{b.disabled=true;b.dataset.pendingLabel=b.textContent;b.textContent='جارٍ التنفيذ…';});return true;};
+  const endAction=(form)=>{pendingActions.delete(form);form.querySelectorAll('button[type="submit"]').forEach(b=>{b.disabled=false;if(b.dataset.pendingLabel!==undefined){b.textContent=b.dataset.pendingLabel;delete b.dataset.pendingLabel;}});};
   const call=async(name,body)=>{
     const {data:{session},error}=await sb.auth.getSession();
     if(error)throw error;
@@ -47,22 +50,22 @@
         '<section class="workspace-section"><h2>1. إنشاء نشاط</h2><form id="mnty-business-form" class="card"><div class="field"><label>اسم النشاط</label><input id="mnty-business-name" required maxlength="200" placeholder="اسم النشاط الحقيقي"></div><div class="field"><label>القطاع</label><input id="mnty-business-sector" maxlength="80" placeholder="مثال: MAINTENANCE"></div><div class="field"><label>المدينة</label><input id="mnty-business-city" maxlength="120"></div><div class="field"><label>المنطقة</label><input id="mnty-business-district" maxlength="120"></div><div class="field"><label>العنوان</label><input id="mnty-business-address" maxlength="500"></div><div class="field"><label>الهاتف</label><input id="mnty-business-phone" maxlength="64" inputmode="tel"></div><button class="btn btn-primary" type="submit">إرسال طلب إنشاء النشاط</button><div id="mnty-business-result" class="muted" style="margin-top:10px"></div></form></section>'+
         '<section class="workspace-section"><h2>2. أنشطتي</h2><div class="cards">'+(cards||'<div class="notice">لا يوجد نشاط بعد.</div>')+'</div></section>');
       document.getElementById('mnty-business-form')?.addEventListener('submit',async e=>{
-        e.preventDefault(); const out=document.getElementById('mnty-business-result'); out.textContent='جارٍ إرسال الطلب…';
+        e.preventDefault(); const form=e.currentTarget;if(!beginAction(form))return;const out=document.getElementById('mnty-business-result'); out.textContent='جارٍ إرسال الطلب…';
         try{
           const p=await call('business-register',{tenantId:s.active.tenant_id,organizationId:s.active.organization_id||null,name:document.getElementById('mnty-business-name').value.trim(),sector:document.getElementById('mnty-business-sector').value.trim()||'GENERAL',city:document.getElementById('mnty-business-city').value.trim(),district:document.getElementById('mnty-business-district').value.trim(),address:document.getElementById('mnty-business-address').value.trim(),phone:document.getElementById('mnty-business-phone').value.trim()});
           out.textContent='تم إنشاء طلب النشاط: '+(p.approvalRequestId||'PENDING')+' — النشاط في انتظار الموافقة.';
           setTimeout(render,500);
-        }catch(err){out.textContent='تعذر إرسال الطلب: '+esc(err.message);}
+        }catch(err){out.textContent='تعذر إرسال الطلب: '+esc(err.message);}finally{endAction(form);}
       });
       document.querySelectorAll('[data-branch-form]').forEach(form=>form.addEventListener('submit',async e=>{
-        e.preventDefault(); const out=form.querySelector('[data-branch-result]'); out.textContent='جارٍ إنشاء الفرع…';
+        e.preventDefault();if(!beginAction(form))return; const out=form.querySelector('[data-branch-result]'); out.textContent='جارٍ إنشاء الفرع…';
         try{
           const branch=await call('business-branch-admin',{tenantId:s.active.tenant_id,businessId:form.dataset.branchForm,organizationId:s.active.organization_id||null,name:form.querySelector('[data-branch-name]').value.trim(),address:form.querySelector('[data-branch-address]').value.trim(),phone:form.querySelector('[data-branch-phone]').value.trim()});
           out.textContent='تم إنشاء الفرع: '+esc(branch?.branch?.name||'تم بنجاح');
-        }catch(err){out.textContent='تعذر إنشاء الفرع: '+esc(err.message);}
+        }catch(err){out.textContent='تعذر إنشاء الفرع: '+esc(err.message);}finally{endAction(form);}
       }));
       document.querySelectorAll('[data-catalog-form]').forEach(form=>form.addEventListener('submit',async e=>{
-        e.preventDefault(); const out=form.querySelector('[data-catalog-result]'); out.textContent='جارٍ حفظ الخدمة والسعر…';
+        e.preventDefault();if(!beginAction(form))return; const out=form.querySelector('[data-catalog-result]'); out.textContent='جارٍ حفظ الخدمة والسعر…';
         try{
           const businessId=form.dataset.catalogForm; const name=form.querySelector('[data-service-name]').value.trim(); const price=Number(form.querySelector('[data-service-price]').value);
           if(!name||!Number.isFinite(price)||price<0)throw new Error('INVALID_SERVICE_OR_PRICE');
@@ -71,12 +74,13 @@
           if(!itemId)throw new Error('CATALOG_ITEM_ID_MISSING');
           await call('catalog-admin',{action:'PRICE_UPSERT',tenantId:s.active.tenant_id,businessId,catalogItemId:itemId,currency:'EGP',unitPrice:price});
           out.textContent='تمت إضافة الخدمة والسعر عبر المسار الخلفي الموثوق.';
-        }catch(err){out.textContent='تعذر حفظ الخدمة: '+esc(err.message);}
+        }catch(err){out.textContent='تعذر حفظ الخدمة: '+esc(err.message);}finally{endAction(form);}
       }));
       document.querySelectorAll('[data-onboard-status]').forEach(btn=>btn.addEventListener('click',async()=>{
-        const id=btn.dataset.onboardStatus; const out=document.getElementById('onboard-status-'+id); out.textContent='جارٍ التحقق…';
+        if(btn.disabled)return;btn.disabled=true;const oldLabel=btn.textContent;btn.textContent='جارٍ التحقق…';
+        const id=btn.dataset.onboardStatus; const out=document.getElementById('onboard-status-'+id);
         try{const p=await call('business-onboarding-status',{businessId:id});out.textContent=(p.requests||[]).map(x=>'طلب '+x.id+': '+x.status).join(' · ')||'لا توجد حالة طلب.';}
-        catch(err){out.textContent='تعذر قراءة الحالة: '+err.message;}
+        catch(err){out.textContent='تعذر قراءة الحالة: '+err.message;}finally{btn.disabled=false;btn.textContent=oldLabel;}
       }));
     }catch(err){page('<section class="workspace-section"><div class="notice">تعذر تحميل تكوين النشاط: '+esc(err.message)+'</div></section>');}
   }
