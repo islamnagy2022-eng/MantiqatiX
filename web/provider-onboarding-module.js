@@ -6,6 +6,9 @@
   if(!cfg || !window.supabase?.createClient)return;
   const sb=window.MNTY_SB || window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey); window.MNTY_SB=sb;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const pendingActions=new WeakSet();
+  const beginAction=(form)=>{if(pendingActions.has(form))return false;pendingActions.add(form);form.querySelectorAll('button[type="submit"]').forEach(b=>{b.disabled=true;b.dataset.pendingLabel=b.textContent;b.textContent='جارٍ التنفيذ…';});return true;};
+  const endAction=(form)=>{pendingActions.delete(form);form.querySelectorAll('button[type="submit"]').forEach(b=>{b.disabled=false;if(b.dataset.pendingLabel!==undefined){b.textContent=b.dataset.pendingLabel;delete b.dataset.pendingLabel;}});};
   const call=async(name,body)=>{
     const {data:{session},error}=await sb.auth.getSession();
     if(error)throw error;
@@ -20,7 +23,10 @@
     if(!user || user.is_anonymous)throw new Error('AUTH_REQUIRED');
     const {data:memberships,error}=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
     if(error)throw error;
-    const active=memberships?.find(x=>x.id===(window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId'))) || memberships?.[0] || null;
+    const requestedMembershipId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
+    const selected=memberships?.find(x=>x.id===requestedMembershipId)||null;
+    const active=selected||(memberships?.length===1?memberships[0]:null);
+    const membershipSelectionRequired=(memberships?.length||0)>1&&!active;
     const tenantId=active?.tenant_id||null;
     let businesses=[];
     if(tenantId){
@@ -28,12 +34,17 @@
       if(r.error)throw r.error;
       businesses=r.data||[];
     }
-    return {user,memberships:memberships||[],active,businesses};
+    return {user,memberships:memberships||[],active,membershipSelectionRequired,businesses};
   }
   function page(html){const p=document.getElementById('page');if(p)p.innerHTML=html;}
   async function render(){
     try{
       const s=await state();
+      if(s.membershipSelectionRequired){
+        page('<section class="workspace-section"><h2>اختيار عضوية النشاط</h2><div class="notice">لديك أكثر من عضوية نشطة. اختر العضوية المقصودة قبل متابعة إدارة الأنشطة لتجنب تنفيذ العمليات على نشاط غير مقصود.</div><div class="field"><label for="mnty-active-membership">العضوية النشطة</label><select id="mnty-active-membership" required><option value="">اختر العضوية</option>'+s.memberships.map((m,i)=>'<option value="'+esc(m.id)+'">عضوية '+(i+1)+' — '+esc(m.role||'بدون دور')+' — نشاط '+esc(String(m.business_id||m.organization_id||m.tenant_id||'غير محدد').slice(0,8))+'</option>').join('')+'</select></div></section>');
+        document.getElementById('mnty-active-membership')?.addEventListener('change',e=>{const chosen=s.memberships.find(m=>m.id===e.target.value);if(!chosen)return;try{localStorage.setItem('MNTYActiveMembershipId',chosen.id);}catch(_){}window.MNTYActiveMembershipId=chosen.id;render();});
+        return;
+      }
       const role=String(s.active?.role||'CUSTOMER').toUpperCase();
       if(!s.active || !['SERVICE_PROVIDER','BUSINESS_OWNER','OWNER','ADMIN'].includes(role)){
         page('<section class="workspace-section"><div class="notice">تكوين النشاط متاح للحسابات التي لديها عضوية تشغيلية مناسبة. حساب العميل لا يحتاج إنشاء نشاط.</div></section>');
@@ -47,38 +58,54 @@
         '<section class="workspace-section"><h2>1. إنشاء نشاط</h2><form id="mnty-business-form" class="card"><div class="field"><label>اسم النشاط</label><input id="mnty-business-name" required maxlength="200" placeholder="اسم النشاط الحقيقي"></div><div class="field"><label>القطاع</label><input id="mnty-business-sector" maxlength="80" placeholder="مثال: MAINTENANCE"></div><div class="field"><label>المدينة</label><input id="mnty-business-city" maxlength="120"></div><div class="field"><label>المنطقة</label><input id="mnty-business-district" maxlength="120"></div><div class="field"><label>العنوان</label><input id="mnty-business-address" maxlength="500"></div><div class="field"><label>الهاتف</label><input id="mnty-business-phone" maxlength="64" inputmode="tel"></div><button class="btn btn-primary" type="submit">إرسال طلب إنشاء النشاط</button><div id="mnty-business-result" class="muted" style="margin-top:10px"></div></form></section>'+
         '<section class="workspace-section"><h2>2. أنشطتي</h2><div class="cards">'+(cards||'<div class="notice">لا يوجد نشاط بعد.</div>')+'</div></section>');
       document.getElementById('mnty-business-form')?.addEventListener('submit',async e=>{
-        e.preventDefault(); const out=document.getElementById('mnty-business-result'); out.textContent='جارٍ إرسال الطلب…';
+        e.preventDefault(); const form=e.currentTarget;if(!beginAction(form))return;const out=document.getElementById('mnty-business-result'); out.textContent='جارٍ إرسال الطلب…';
         try{
           const p=await call('business-register',{tenantId:s.active.tenant_id,organizationId:s.active.organization_id||null,name:document.getElementById('mnty-business-name').value.trim(),sector:document.getElementById('mnty-business-sector').value.trim()||'GENERAL',city:document.getElementById('mnty-business-city').value.trim(),district:document.getElementById('mnty-business-district').value.trim(),address:document.getElementById('mnty-business-address').value.trim(),phone:document.getElementById('mnty-business-phone').value.trim()});
           out.textContent='تم إنشاء طلب النشاط: '+(p.approvalRequestId||'PENDING')+' — النشاط في انتظار الموافقة.';
           setTimeout(render,500);
-        }catch(err){out.textContent='تعذر إرسال الطلب: '+esc(err.message);}
+        }catch(err){out.textContent='تعذر إرسال الطلب. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.';}finally{endAction(form);}
       });
       document.querySelectorAll('[data-branch-form]').forEach(form=>form.addEventListener('submit',async e=>{
-        e.preventDefault(); const out=form.querySelector('[data-branch-result]'); out.textContent='جارٍ إنشاء الفرع…';
+        e.preventDefault();if(!beginAction(form))return; const out=form.querySelector('[data-branch-result]'); out.textContent='جارٍ إنشاء الفرع…';
         try{
           const branch=await call('business-branch-admin',{tenantId:s.active.tenant_id,businessId:form.dataset.branchForm,organizationId:s.active.organization_id||null,name:form.querySelector('[data-branch-name]').value.trim(),address:form.querySelector('[data-branch-address]').value.trim(),phone:form.querySelector('[data-branch-phone]').value.trim()});
           out.textContent='تم إنشاء الفرع: '+esc(branch?.branch?.name||'تم بنجاح');
-        }catch(err){out.textContent='تعذر إنشاء الفرع: '+esc(err.message);}
+        }catch(err){out.textContent='تعذر إنشاء الفرع. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.';}finally{endAction(form);}
       }));
       document.querySelectorAll('[data-catalog-form]').forEach(form=>form.addEventListener('submit',async e=>{
-        e.preventDefault(); const out=form.querySelector('[data-catalog-result]'); out.textContent='جارٍ حفظ الخدمة والسعر…';
+        e.preventDefault();if(!beginAction(form))return; const out=form.querySelector('[data-catalog-result]'); out.textContent='جارٍ حفظ الخدمة والسعر…';
         try{
           const businessId=form.dataset.catalogForm; const name=form.querySelector('[data-service-name]').value.trim(); const price=Number(form.querySelector('[data-service-price]').value);
           if(!name||!Number.isFinite(price)||price<0)throw new Error('INVALID_SERVICE_OR_PRICE');
-          const item=await call('catalog-admin',{action:'ITEM_UPSERT',tenantId:s.active.tenant_id,businessId,nameAr:name,itemType:'SERVICE',taxRate:0,metadata:{source:'provider_onboarding'}});
-          const itemId=item?.id||item?.catalog_item_id||item?.data?.id;
-          if(!itemId)throw new Error('CATALOG_ITEM_ID_MISSING');
+          if(form.dataset.catalogOutcomeUnknown==='true')throw new Error('CATALOG_OUTCOME_UNKNOWN');
+          let itemId=form.dataset.pendingCatalogItemId||'';
+          if(itemId&&form.dataset.pendingCatalogItemName!==name)throw new Error('PREVIOUS_SERVICE_PRICE_PENDING');
+          if(!itemId){
+            form.dataset.catalogOutcomeUnknown='true';
+            const item=await call('catalog-admin',{action:'ITEM_UPSERT',tenantId:s.active.tenant_id,businessId,nameAr:name,itemType:'SERVICE',taxRate:0,metadata:{source:'provider_onboarding'}});
+            itemId=item?.id||item?.catalog_item_id||item?.data?.id;
+            if(!itemId)throw new Error('CATALOG_ITEM_ID_MISSING');
+            form.dataset.pendingCatalogItemId=String(itemId);
+            form.dataset.pendingCatalogItemName=name;
+            delete form.dataset.catalogOutcomeUnknown;
+          }
           await call('catalog-admin',{action:'PRICE_UPSERT',tenantId:s.active.tenant_id,businessId,catalogItemId:itemId,currency:'EGP',unitPrice:price});
-          out.textContent='تمت إضافة الخدمة والسعر عبر المسار الخلفي الموثوق.';
-        }catch(err){out.textContent='تعذر حفظ الخدمة: '+esc(err.message);}
+          delete form.dataset.pendingCatalogItemId;delete form.dataset.pendingCatalogItemName;delete form.dataset.catalogOutcomeUnknown;
+          out.textContent='تم حفظ الخدمة والسعر بنجاح.';
+        }catch(err){
+          if(err.message==='PREVIOUS_SERVICE_PRICE_PENDING')out.textContent='هناك خدمة سابقة تم إنشاؤها ولم يكتمل سعرها. أكمل حفظ سعرها أولا قبل تغيير اسم الخدمة.';
+          else if(err.message==='CATALOG_OUTCOME_UNKNOWN'||err.message==='CATALOG_ITEM_ID_MISSING'||form.dataset.catalogOutcomeUnknown==='true')out.textContent='تعذر تأكيد نتيجة إنشاء الخدمة بسبب انقطاع الاتصال. لا تعاود الإرسال الآن؛ تحقق من الكتالوج قبل المحاولة لتجنب إنشاء سجل مكرر.';
+          else if(form.dataset.pendingCatalogItemId)out.textContent='تم إنشاء الخدمة لكن لم يتأكد حفظ السعر. غيّر السعر إذا لزم ثم أعد المحاولة؛ سيتم استخدام الخدمة نفسها دون إنشاء نسخة جديدة.';
+          else out.textContent='تعذر حفظ الخدمة. تحقق من الاتصال والصلاحيات ثم حاول مرة أخرى.';
+        }finally{endAction(form);}
       }));
       document.querySelectorAll('[data-onboard-status]').forEach(btn=>btn.addEventListener('click',async()=>{
-        const id=btn.dataset.onboardStatus; const out=document.getElementById('onboard-status-'+id); out.textContent='جارٍ التحقق…';
+        if(btn.disabled)return;btn.disabled=true;const oldLabel=btn.textContent;btn.textContent='جارٍ التحقق…';
+        const id=btn.dataset.onboardStatus; const out=document.getElementById('onboard-status-'+id);
         try{const p=await call('business-onboarding-status',{businessId:id});out.textContent=(p.requests||[]).map(x=>'طلب '+x.id+': '+x.status).join(' · ')||'لا توجد حالة طلب.';}
-        catch(err){out.textContent='تعذر قراءة الحالة: '+err.message;}
+        catch(err){out.textContent='تعذر قراءة حالة التسجيل حاليا. حاول مرة أخرى لاحقا.';}finally{btn.disabled=false;btn.textContent=oldLabel;}
       }));
-    }catch(err){page('<section class="workspace-section"><div class="notice">تعذر تحميل تكوين النشاط: '+esc(err.message)+'</div></section>');}
+    }catch(err){page('<section class="workspace-section"><div class="notice">تعذر تحميل تكوين النشاط حاليا. تحقق من تسجيل الدخول والاتصال ثم حاول مرة أخرى.</div></section>');}
   }
 
   const onboardingView=async()=>{
@@ -138,9 +165,9 @@
           try{localStorage.removeItem('MNTYPendingActivityDraft');}catch(_){}
           out.textContent='تم إرسال طلب النشاط بنجاح. رقم الطلب: '+(p.onboarding_request_id||'PENDING');
           setTimeout(render,600);
-        }catch(err){btn.disabled=false;out.textContent='تعذر إرسال الطلب: '+esc(err.message);}
+        }catch(err){btn.disabled=false;out.textContent='تعذر إرسال الطلب. تحقق من الاتصال والصلاحيات ثم حاول مرة أخرى.';}
       });
-    }catch(err){page('<section class="workspace-section" dir="rtl"><div class="notice">تعذر تحميل طلب إضافة النشاط: '+esc(err.message)+'</div></section>');}
+    }catch(err){page('<section class="workspace-section" dir="rtl"><div class="notice">تعذر تحميل طلب إضافة النشاط حاليا. تحقق من الاتصال وصلاحية الحساب ثم حاول مرة أخرى.</div></section>');}
   };
   window.providerOnboardingView=onboardingView;
 

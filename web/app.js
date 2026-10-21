@@ -497,7 +497,9 @@ function globalSearchCan(source){
 }
 function globalSearchText(row,fields){return fields.map(k=>row?.[k]).filter(v=>v!==null&&v!==undefined).map(v=>typeof v==='object'?JSON.stringify(v):String(v)).join(' ')}
 async function globalSearch(queryText){
- const q=String(queryText||'').trim();
+ const rawQuery=String(queryText||'').trim();
+ // Prevent user input from changing PostgREST .or() filter grammar.
+ const q=rawQuery.replace(/[^\p{L}\p{N}\s_-]/gu,' ').replace(/\s+/g,' ').trim();
  if(q.length<2)return [];
  const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
  const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
@@ -535,11 +537,11 @@ function globalSearchResultHtml(results){
  const searchableSources=Number(results.searchableSources)||0;
  if(!searchableSources)return '<div class="mx-global-search-empty" role="status">لا توجد مصادر بحث متاحة لهذا الحساب أو الدور الحالي.</div>';
  if(!results.length){
-  if(errors.length)return '<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث في '+errors.length+' من مصادر البيانات. حاول مرة أخرى بعد قليل.</div>';
+  if(errors.length)return '<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث في '+errors.length+' من مصادر البيانات. حاول مرة أخرى بعد قليل.</div><button type="button" class="btn btn-outline" data-global-search-retry>إعادة المحاولة</button>';
   return '<div class="mx-global-search-empty" role="status">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
  }
- const hits=results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
- const warning=errors.length?'<div class="mx-global-search-partial" role="status" aria-live="polite">نتائج جزئية: تعذر البحث في '+errors.length+' من '+(results.searchableSources||'?')+' مصادر. قد لا تشمل النتائج كل البيانات المتاحة.</div>':'';
+ const hits='<div class="mx-global-search-options" role="listbox" aria-label="نتائج البحث">'+results.map((hit,i)=>'<button type="button" role="option" aria-selected="false" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('')+'</div>';
+ const warning=errors.length?'<div class="mx-global-search-partial" role="status" aria-live="polite">نتائج جزئية: تعذر البحث في '+errors.length+' من '+(results.searchableSources||'?')+' مصادر. قد لا تشمل النتائج كل البيانات المتاحة.</div><button type="button" class="btn btn-outline" data-global-search-retry>إعادة البحث</button>':'';
  return hits+warning;
 }
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
@@ -2236,13 +2238,79 @@ try{
    localStorage.removeItem('MNTYWorkspaceCurrent');
  }
 }catch(_){}
-if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}if(current==='التسويق والإعلان')await loadMarketingCampaignData();await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" value="${esc(query)}" autocomplete="off" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="listbox" aria-label="نتائج البحث"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
+if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='OWNER')||live.memberships.find(m=>m.status==='ACTIVE'&&String(m.role||'').toUpperCase()==='SUPER_ADMIN')||live.memberships.find(m=>m.status==='ACTIVE'&&['ADMIN','MANAGER'].includes(String(m.role||'').toUpperCase()));if(privileged){window.MNTYAdminReturnMembershipId=privileged.id;localStorage.setItem('MNTYAdminReturnMembershipId',privileged.id);}else{window.MNTYAdminReturnMembershipId=null;localStorage.removeItem('MNTYAdminReturnMembershipId');}if(typeof window.MXHomeLanding==='function'){window.MXHomeLanding();return}if(typeof window.landingView==='function'){window.landingView();return}}if(current==='التسويق والإعلان')await loadMarketingCampaignData();await loadDomainModule(current);document.getElementById('app').innerHTML=`<div class="shell"><aside class="sidebar" aria-label="التنقل الرئيسي"><div class="side-brand"><div class="brand">${mark()}<span>MantiqatiX</span></div><div class="gradient-line"></div></div><div class="side-caption">منصة التسويق والربط</div><nav class="nav" aria-label="وحدات المنصة">${modules.filter(m=>(m[1]!=='التحكم الكامل'||String(live.role||'').toUpperCase()==='SUPER_ADMIN')&&moduleEnabled(m[1])&&(!isCustomerMode()||['الرئيسية','المجالات والخدمات','التجارة والأزياء','البقالة والسوبر ماركت','المطاعم والمطابخ','المنظومة الطبية','الصيانة','الخدمات المهنية','MantiGO والمزايدات','الزواج','الوظائف','التعليم','المستعمل','الطلبات والعمليات','الدعم والحوكمة'].includes(m[1]))&&(m[1]!=='طلبات التسجيل'||['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase()))).map(m=>`<button class="${m[1]===current?'active':''}" aria-current="${m[1]===current?'page':'false'}" onclick="selectModule('${m[1]}')"><span aria-hidden="true">${m[0]}</span><span>${isCustomerMode()&&m[1]==='الدعم والحوكمة'?'الدعم':m[1]}</span></button>`).join('')}</nav><div class="side-support">خدمة العملاء<br><b>01010171770</b></div></aside><main class="content" id="mnty-main-content"><header class="top" aria-label="رأس مساحة العمل"><div><div class="breadcrumb">MNTY / ${current}</div><h1>${current}</h1><div class="user" id="user">${esc(user?.email||'')} · ${esc(live.role)}</div></div><div class="top-actions">${roleSwitcher()}${pushButtonHtml()}${live.myProviderProfile?'<button class="btn btn-outline" id="manage-provider-profile" style="width:auto">🖼️ صورة نشاطي</button>':''}<div class="mx-global-search-wrap"><label class="search" for="mx-global-search-input">⌕ <input id="mx-global-search-input" type="search" inputmode="search" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" value="${esc(query)}" autocomplete="off" aria-controls="mx-global-search-results" aria-expanded="false" placeholder="ابحث عن نشاط، مقدم خدمة، طلب، خدمة، إعلان..."></label><div id="mx-global-search-results" class="mx-global-search-results" role="region" aria-label="البحث العام"></div></div><button class="btn btn-outline" id="go-public-home">الرئيسية</button><button class="btn btn-outline" id="account-open"><span class="mx-account-icon" aria-hidden="true">♙</span><span>حسابي</span></button><button class="logout" id="logout">خروج</button></div></header><div id="page">${enhancedPageContent()}</div></main></div>`;document.getElementById('logout').onclick=logout;
  if(current==='التحكم الكامل')setTimeout(initSuperAdminControlWorkspace,0);bindRoleCommandCenter();bindAttentionCenter();bindMarketingAgencyWorkspace();bindMarketingCampaignWorkspace();if(window.MNTYBindModuleBlueprint)setTimeout(window.MNTYBindModuleBlueprint,0);bindGenericWorkspaceTabs();document.getElementById('go-public-home')?.addEventListener('click',openContextualHome);document.getElementById('account-open')?.addEventListener('click',accountView);document.getElementById('device-push-toggle')?.addEventListener('click',enableDevicePush);pushButtonState();const roleSwitch=document.getElementById('mx-role-switcher');if(roleSwitch)roleSwitch.onchange=e=>switchMembership(e.target.value);const profileBtn=document.getElementById('manage-provider-profile');if(profileBtn)profileBtn.onclick=()=>selectModule('ملف نشاطي');const providerSave=document.getElementById('provider-image-save');if(providerSave)providerSave.onclick=saveProviderProfileImage;const providerLogoSave=document.getElementById('provider-logo-save');if(providerLogoSave)providerLogoSave.onclick=saveProviderLogo;const providerLogoReset=document.getElementById('provider-logo-reset');if(providerLogoReset)providerLogoReset.onclick=resetProviderLogo;const providerFile=document.getElementById('provider-image-file');const providerPreview=document.getElementById('provider-image-preview');if(providerFile&&providerPreview)providerFile.onchange=()=>{const file=providerFile.files?.[0];if(!file){providerPreview.textContent='اختر صورة لمعاينتها قبل الحفظ.';return}if(!/^image\/(jpeg|png|webp)$/.test(file.type)){providerPreview.textContent='صيغة غير مدعومة. استخدم JPG أو PNG أو WebP.';return}if(file.size>5*1024*1024){providerPreview.textContent='الصورة أكبر من 5MB.';return}const url=URL.createObjectURL(file);providerPreview.innerHTML='<img src="'+esc(url)+'" alt="معاينة صورة النشاط">';providerPreview.querySelector('img')?.addEventListener('load',()=>URL.revokeObjectURL(url),{once:true})};const si=document.getElementById('search');if(si)si.oninput=e=>{query=e.target.value;document.getElementById('page').innerHTML=enhancedPageContent()};
  const gsi=document.getElementById('mx-global-search-input'),gso=document.getElementById('mx-global-search-results');let globalSearchTimer=null,globalSearchSeq=0;
- const runGlobalSearch=async()=>{const value=String(gsi?.value||'').trim();if(!gso)return;if(value.length<2){gso.innerHTML='';gso.classList.remove('is-open');return}const seq=++globalSearchSeq;gso.innerHTML='<div class="mx-global-search-loading">جاري البحث في البيانات المتاحة…</div>';gso.classList.add('is-open');const results=await globalSearch(value);if(seq!==globalSearchSeq)return;gso.innerHTML=globalSearchResultHtml(results);gso.querySelectorAll('[data-search-index]').forEach(el=>el.addEventListener('click',()=>{const hit=results[Number(el.dataset.searchIndex)];if(hit?.source?.route)selectModule(hit.source.route);gso.classList.remove('is-open')}))};
- gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280)});
- gsi?.addEventListener('keydown',e=>{if(e.key==='Escape'){gsi.value='';gso.innerHTML='';gso.classList.remove('is-open')}if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
- document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}
+ const runGlobalSearch=async()=>{
+  clearTimeout(globalSearchTimer);
+  globalSearchTimer=null;
+  window.__MNTYGlobalSearchTimer=null;
+  const value=String(gsi?.value||'').trim();
+  if(!gso)return;
+  const seq=++globalSearchSeq;
+  if(value.length<2){
+    gso.innerHTML='';
+    gso.classList.remove('is-open');
+    gsi?.setAttribute('aria-expanded','false');
+    return;
+  }
+  gso.innerHTML='<div class="mx-global-search-loading" role="status" aria-live="polite">جاري البحث في البيانات المتاحة…</div>';
+  gso.classList.add('is-open');
+  gsi?.setAttribute('aria-expanded','true');
+  try{
+    const results=await globalSearch(value);
+    if(seq!==globalSearchSeq)return;
+    const safeResults=Array.isArray(results)?results:[];
+    gso.innerHTML=globalSearchResultHtml(safeResults);
+    gso.querySelector('[data-global-search-retry]')?.addEventListener('click',runGlobalSearch);
+    gso.querySelectorAll('[data-search-index]').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const hit=safeResults[Number(el.dataset.searchIndex)];
+        if(hit?.source?.route)selectModule(hit.source.route);
+        gso.classList.remove('is-open');
+        gsi?.setAttribute('aria-expanded','false');
+      });
+      el.addEventListener('keydown',e=>{
+        const options=[...gso.querySelectorAll('[data-search-index]')];
+        const index=options.indexOf(el);
+        if(e.key==='ArrowDown'){e.preventDefault();options[Math.min(index+1,options.length-1)]?.focus()}
+        if(e.key==='ArrowUp'){e.preventDefault();if(index<=0)gsi?.focus();else options[index-1]?.focus()}
+        if(e.key==='Escape'){e.preventDefault();gso.classList.remove('is-open');gsi?.setAttribute('aria-expanded','false');gsi?.focus()}
+      });
+    });
+  }catch(_){
+    if(seq!==globalSearchSeq)return;
+    gso.innerHTML='<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث الآن. تحقق من الاتصال ثم حاول مرة أخرى.</div><button type="button" class="btn btn-outline" data-global-search-retry>إعادة المحاولة</button>';
+    gso.querySelector('[data-global-search-retry]')?.addEventListener('click',runGlobalSearch);
+  }
+};
+ gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280);window.__MNTYGlobalSearchTimer=globalSearchTimer});
+ gsi?.addEventListener('keydown',e=>{
+   if(e.key==='Escape'){
+     globalSearchSeq++;
+     clearTimeout(globalSearchTimer);
+     window.__MNTYGlobalSearchTimer=null;
+     gsi.value='';
+     gso.innerHTML='';
+     gso.classList.remove('is-open');
+     gsi.setAttribute('aria-expanded','false');
+   }
+   if(e.key==='ArrowDown'&&gso?.classList.contains('is-open')){
+     e.preventDefault();
+     gso.querySelector('[data-search-index]')?.focus();
+   }
+   if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}
+ });
+ if(!document.documentElement.dataset.mxGlobalSearchOutsideBound){
+   document.documentElement.dataset.mxGlobalSearchOutsideBound='true';
+   document.addEventListener('click',e=>{
+     if(e.target instanceof Element&&e.target.closest('.mx-global-search-wrap'))return;
+     clearTimeout(window.__MNTYGlobalSearchTimer);
+     window.__MNTYGlobalSearchTimer=null;
+     document.querySelectorAll('.mx-global-search-results.is-open').forEach(el=>el.classList.remove('is-open'));
+     document.querySelectorAll('#mx-global-search-input[aria-expanded="true"]').forEach(el=>el.setAttribute('aria-expanded','false'));
+   });
+ }}
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';

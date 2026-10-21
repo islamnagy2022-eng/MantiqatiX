@@ -60,15 +60,31 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const {data:mantigo}=await admin.from("mantigo_financial_ledger").select("id,ride_id,customer_id,currency,gross_amount,payment_status,settlement_status").eq("id",merchantRef).maybeSingle();
  if(mantigo){
    if(Math.abs(Number(mantigo.gross_amount)-amount)>0.01||String(mantigo.currency).toUpperCase()!==currency)return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
-   const {data:existingM}=await admin.from("payment_provider_events").select("id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();
-   if(existingM)return json({ok:true,idempotent:true,requestId},200,requestId);
    const nextStatus=success?"PAID":"FAILED";
-   const {error:ee}=await admin.from("payment_provider_events").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",provider:"PAYMOB",event_type:"MANTIGO_RIDE_PAYMENT",payment_intent_id:mantigo.id,external_event_id:eventId,status:nextStatus,signature_verified:true,raw_payload:raw,processed_at:new Date().toISOString()});
-   if(ee)return json({error:"MANTIGO_PROVIDER_EVENT_PERSISTENCE",requestId},500,requestId);
-   const {error:le}=await admin.from("mantigo_financial_ledger").update({payment_status:nextStatus,payment_reference:eventId,provider_transaction_id:value(obj.id),payment_confirmed_at:success?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("id",mantigo.id).eq("payment_status","PENDING");
-   if(le)return json({error:"MANTIGO_PAYMENT_UPDATE_FAILED",requestId},500,requestId);
-   await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:mantigo.customer_id,type:"MANTIGO_PAYMENT",title:success?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:success?"تم تأكيد الدفع الإلكتروني للرحلة.":"تعذر تأكيد الدفع الإلكتروني للرحلة.",entity_type:"MANTIGO_RIDE",entity_id:mantigo.ride_id});
-   return json({ok:true,status:nextStatus,requestId},200,requestId);
+   const {data:processedMantigo,error:mantigoProcessError}=await admin.rpc("process_verified_mantigo_paymob_event",{
+     p_ledger_id:mantigo.id,
+     p_external_event_id:eventId,
+     p_status:nextStatus,
+     p_signature_verified:true,
+     p_amount:amount,
+     p_currency:currency,
+     p_provider_transaction_id:value(obj.id),
+     p_raw_payload:raw
+   });
+   if(mantigoProcessError){
+     const code=String(mantigoProcessError.message??"");
+     if(code.includes("MANTIGO_AMOUNT_CURRENCY_MISMATCH"))return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
+     if(code.includes("MANTIGO_LEDGER_NOT_FOUND"))return json({error:"MANTIGO_LEDGER_NOT_FOUND",requestId},404,requestId);
+     if(code.includes("MANTIGO_EVENT_BINDING_CONFLICT")||code.includes("MANTIGO_EVENT_STATUS_CONFLICT")||code.includes("MANTIGO_FINAL_STATE_CONFLICT")||code.includes("MANTIGO_PAYMENT_ALREADY_FINAL"))return json({error:"MANTIGO_EVENT_STATE_CONFLICT",requestId},409,requestId);
+     console.error("MANTIGO_ATOMIC_PAYMENT_PROCESSING_FAILED",requestId,code);
+     return json({error:"MANTIGO_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
+   }
+   const result=processedMantigo&&typeof processedMantigo==="object"?processedMantigo as Record<string,unknown>:{};
+   if(result.idempotent!==true||result.recovered===true){
+     const {error:notificationError}=await admin.from("notifications").insert({id:crypto.randomUUID(),tenant_id:"MNTY-PLATFORM",user_id:mantigo.customer_id,type:"MANTIGO_PAYMENT",title:value(result.status)==="PAID"?"تم تأكيد الدفع":"تعذر تأكيد الدفع",body:value(result.status)==="PAID"?"تم تأكيد الدفع الإلكتروني للرحلة.":"تعذر تأكيد الدفع الإلكتروني للرحلة.",entity_type:"MANTIGO_RIDE",entity_id:mantigo.ride_id});
+     if(notificationError)console.error("MANTIGO_PAYMENT_NOTIFICATION_FAILED",requestId,notificationError.message);
+   }
+   return json({ok:true,status:value(result.status)||nextStatus,idempotent:result.idempotent===true,recovered:result.recovered===true,requestId},200,requestId);
  }
 const {data:intentByRef}=await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("id",merchantRef).maybeSingle()
  const {data:intentByOrder}=intentByRef?{data:null}:await admin.from("payment_intents").select("id,tenant_id,order_id,amount,currency,status,pricing_version,pricing_hash").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()

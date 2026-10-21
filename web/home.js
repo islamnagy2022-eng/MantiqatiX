@@ -197,7 +197,7 @@
 <div class="mx-ref-actions"><button type="button" class="mx-ref-lang">◉ AR</button><button type="button" class="mx-ref-login" id="mx-login"><span class="mx-account-icon" aria-hidden="true"></span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button><button type="button" class="mx-ref-primary" id="mx-add">ابدأ الآن ←</button><button type="button" class="mx-ref-menu" id="mx-mobile-menu" aria-label="القائمة">☰</button></div>
 </div></header>
 <div class="mx-mobile-drawer-backdrop" id="mx-mobile-drawer-backdrop" hidden></div><aside class="mx-mobile-drawer" id="mx-mobile-drawer" aria-hidden="true"><div class="mx-mobile-drawer__head"><strong>القائمة</strong><button id="mx-mobile-menu-close" type="button">×</button></div><nav><a href="#mx-home" data-mobile-nav>الرئيسية</a><a href="#mx-categories" data-mobile-nav>الخدمات</a><a href="#mx-nearby" data-mobile-nav>مقدمو الخدمات</a><a href="#mx-offers" data-mobile-nav>الإعلانات</a><a href="smm.html" data-mobile-nav style="background:linear-gradient(135deg,#0750C9,#00A99D);color:#fff">خدمات التسويق الرقمي — قيد التطوير</a><button id="mx-mobile-add" type="button">أضف نشاطك</button></nav></aside><div class="mx-release-hooks" hidden aria-hidden="true"><span class="mx-whatsapp-float">WhatsApp</span><span>MNTY_SUPPORT</span></div><div id="mx-live-status" hidden>وضع العرض</div><div id="mx-search-context" hidden></div><div id="mx-search-clear-results" hidden></div><div id="mx-location-status" hidden></div><div id="mx-location-ranges" hidden></div>
-<div class="mx-ref-hero"><div class="mx-ref-hero__overlay"></div><div class="mx-ref-hero__content"><div class="mx-ref-hero__copy"><span class="mx-ref-kicker">منصة الخدمات المحلية الذكية</span><h1>كل الخدمات.. أقرب إليك</h1><p>منصة موثوقة تربطك بمقدمي الخدمات المعتمدين في منطقتك وتساعدك على الاكتشاف والمقارنة والتواصل بسهولة.</p></div><div class="mx-ref-search-card"><div class="mx-ref-search"><span class="mx-search-icon" aria-hidden="true"></span><input id="mx-home-search" autocomplete="off" inputmode="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة (مثل: طبيب، صيدلية، مطعم...)"><button id="mx-search-clear" type="button" hidden aria-label="مسح">×</button><button id="mx-search-btn" type="button" aria-label="بحث">بحث</button></div><div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div><div class="mx-ref-search-meta"><button id="mx-location-btn" type="button"><span class="mx-location-icon" aria-hidden="true"></span><span id="mx-location-label">القاهرة، مصر</span>⌄</button><span>ابحث داخل منطقتك أو اختر موقعك عند الحاجة</span></div></div></div><div class="mx-ref-hero__phone" aria-hidden="true"><div class="mx-ref-phone-screen"><b>MantiqatiX</b><span>كل الخدمات في مكانك</span><i></i><i></i><i></i></div></div></div>
+<div class="mx-ref-hero"><div class="mx-ref-hero__overlay"></div><div class="mx-ref-hero__content"><div class="mx-ref-hero__copy"><span class="mx-ref-kicker">منصة الخدمات المحلية الذكية</span><h1>كل الخدمات.. أقرب إليك</h1><p>منصة موثوقة تربطك بمقدمي الخدمات المعتمدين في منطقتك وتساعدك على الاكتشاف والمقارنة والتواصل بسهولة.</p></div><div class="mx-ref-search-card"><div class="mx-ref-search"><span class="mx-search-icon" aria-hidden="true"></span><input id="mx-home-search" autocomplete="off" inputmode="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة (مثل: طبيب، صيدلية، مطعم...)"><button id="mx-search-clear" type="button" hidden aria-label="مسح">×</button><button id="mx-search-btn" type="button" aria-label="بحث">بحث</button></div><div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div><div id="mx-home-search-status" class="mx-home-search-status" role="status" aria-live="polite" hidden></div><div class="mx-ref-search-meta"><button id="mx-location-btn" type="button"><span class="mx-location-icon" aria-hidden="true"></span><span id="mx-location-label">القاهرة، مصر</span>⌄</button><span>ابحث داخل منطقتك أو اختر موقعك عند الحاجة</span></div></div></div><div class="mx-ref-hero__phone" aria-hidden="true"><div class="mx-ref-phone-screen"><b>MantiqatiX</b><span>كل الخدمات في مكانك</span><i></i><i></i><i></i></div></div></div>
 <section class="mx-ref-category-bar" aria-label="أهم الخدمات"><button class="mx-ref-category is-more" data-category=""><span>•••</span><b>المزيد</b></button><button class="mx-ref-category" data-category="CONSULTING"><span>◌</span><b>الاستشارات</b></button><button class="mx-ref-category" data-category="REAL_ESTATE"><span>▦</span><b>العقارات</b></button><button class="mx-ref-category" data-category="EDUCATION"><span>◇</span><b>التعليم</b></button><button class="mx-ref-category" data-category="CARS"><span>▣</span><b>السيارات</b></button><button class="mx-ref-category" data-category="FOOD"><span>◈</span><b>المطاعم</b></button><button class="mx-ref-category" data-category="HOSPITALS"><span>✚</span><b>المستشفيات</b></button><button class="mx-ref-category" data-category="PHARMACY"><span>♧</span><b>الصيدليات</b></button><button class="mx-ref-category" data-category="MEDICAL"><span>⚕</span><b>الأطباء</b></button><button class="mx-ref-category" data-category="HOME_SERVICES"><span>⌂</span><b>الخدمات المنزلية</b></button></section>
 <main class="mx-ref-main" id="mx-home">
 <section class="mx-ref-ad-row" id="mx-offers"><div class="mx-ref-loading-panel" aria-live="polite"><span class="mx-ref-sponsored">إعلان ممول</span><strong>جارٍ تحميل الإعلانات المنشورة</strong><small>سيظهر هنا الإعلان الفعال فقط.</small></div></section>
@@ -872,7 +872,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const requestSequence=++homeLoadSequence;
       const sb=getClient();
       const status=document.getElementById('mx-live-status');
-      if(!sb){status.textContent='وضع العرض';renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);return}
+      if(!sb){status.textContent='وضع العرض';renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);showHomeSearchStatus('تعذر الاتصال بخدمة البيانات الآن. تحقق من الإعدادات أو الاتصال ثم أعد المحاولة.',true);return}
       const term=String(searchText||'').trim();
         const safeTerm=term.replace(/[^\p{L}\p{N}\s-]/gu,' ').trim().slice(0,60);
       try{
@@ -903,35 +903,60 @@ const categoryGrid=document.getElementById('mx-category-grid');
           p_limit:4
         });
         const [servicesRes,providersRes,adsRes]=await Promise.allSettled([serviceQuery,providerQuery,adsPromise]);
-        if(servicesRes.status!=='fulfilled' || servicesRes.value?.error) throw (servicesRes.status==='fulfilled'?servicesRes.value.error:new Error('تعذر تحميل الخدمات'));
-        if(providersRes.status!=='fulfilled' || providersRes.value?.error) throw (providersRes.status==='fulfilled'?providersRes.value.error:new Error('تعذر تحميل مقدمي الخدمات'));
         if(requestSequence!==homeLoadSequence)return;
-        const services=servicesRes.value?.data||[];
+        const servicesFailed=servicesRes.status!=='fulfilled'||Boolean(servicesRes.value?.error);
+        const providersFailed=providersRes.status!=='fulfilled'||Boolean(providersRes.value?.error);
+        const services=servicesFailed?[]:(servicesRes.value?.data||[]);
+        const rawProviders=providersFailed?[]:(providersRes.value?.data||[]);
         window.__MNTY_HOME_SERVICES=services;
-        window.__MNTY_HOME_PROVIDERS=providersRes.value?.data||[];
-        const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,providersRes.value?.data||[]):providersRes.value?.data||[];
+        window.__MNTY_HOME_PROVIDERS=rawProviders;
+        const providers=window.MNTYLocationAdapter?await window.MNTYLocationAdapter.applyProviderRange(sb,rawProviders):rawProviders;
         if(requestSequence!==homeLoadSequence)return;
         renderDynamicCategories(services,providers);
         renderServices(services,term);renderProviders(providers,term);
         const adsData=adsRes.status==='fulfilled' && !adsRes.value?.error ? (adsRes.value.data||[]) : [];
-        updateHomepageLiveStats({services,providers:providersRes.value?.data||[],ads:adsData});
+        updateHomepageLiveStats({services,providers:rawProviders,ads:adsData});
         if(adsData.length) renderTargetedAds(adsData);
         else { renderSideTargetedAd([]); renderSponsored(providers); }
         if(adsRes.status!=='fulfilled' || adsRes.value?.error) console.warn('[MantiqatiX home] ads load failed; catalog results kept visible',adsRes.value?.error||adsRes.reason);
-        status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
         const activeTerm=String(term||'').trim();
+        status.textContent=(servicesFailed||providersFailed)?'نتائج جزئية — بعض مصادر البحث غير متاحة':('مباشر · '+(services.length+providers.length)+' نتيجة');
         if(searchContext) searchContext.textContent=activeTerm?'نتائج البحث عن «'+activeTerm.slice(0,60)+'» من الكتالوج المنشور.':'استكشف الخدمات ومقدمي الخدمات المنشورين على المنصة.';
         if(searchClear) searchClear.hidden=!activeTerm;
         if(searchClearResults) searchClearResults.hidden=!activeTerm;
+        showHomeSearchStatus(servicesFailed&&providersFailed?'تعذر تحميل الخدمات ومقدمي الخدمات. تحقق من الاتصال ثم أعد المحاولة.':servicesFailed?'تعذر تحميل الخدمات؛ تظهر نتائج مقدمي الخدمات المتاحة فقط.':providersFailed?'تعذر تحميل مقدمي الخدمات؛ تظهر نتائج الخدمات المتاحة فقط.':'',Boolean(servicesFailed||providersFailed));
       }catch(error){
         if(requestSequence!==homeLoadSequence)return;
         console.warn('[MantiqatiX home] public catalog load failed',error);
         status.textContent='تعذر تحميل البيانات الحية';
         renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);
+        showHomeSearchStatus('تعذر إكمال البحث الآن. تحقق من الاتصال ثم حاول مرة أخرى.',true);
       }
     };
 
     const searchInput=document.getElementById('mx-home-search');
+    const homeSearchStatus=document.getElementById('mx-home-search-status');
+    const showHomeSearchStatus=(message,showRetry=false)=>{
+      if(!homeSearchStatus)return;
+      homeSearchStatus.replaceChildren();
+      homeSearchStatus.hidden=!message;
+      if(!message)return;
+      const text=document.createElement('span');
+      text.textContent=message;
+      homeSearchStatus.appendChild(text);
+      if(showRetry){
+        const retry=document.createElement('button');
+        retry.type='button';
+        retry.className='mx-home-search-retry';
+        retry.textContent='إعادة المحاولة';
+        retry.addEventListener('click',()=>{
+          retry.disabled=true;
+          retry.textContent='جارٍ إعادة المحاولة…';
+          loadData(searchInput?.value||'');
+        },{once:true});
+        homeSearchStatus.appendChild(retry);
+      }
+    };
     const searchButton=document.getElementById('mx-search-btn');
     const searchClear=document.getElementById('mx-search-clear');
     const searchSuggestions=document.getElementById('mx-search-suggestions');
@@ -972,6 +997,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
 
     const runSearch=()=>{
       const term=String(searchInput?.value||'').trim();
+      showHomeSearchStatus('جارٍ البحث في الخدمات ومقدمي الخدمات المنشورين.',false);
       closeSearchSuggestions();
       if(searchClear)searchClear.hidden=!term;
       if(searchClearResults)searchClearResults.hidden=!term;
@@ -980,6 +1006,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       scrollTo('mx-services');
     };
     const clearSearch=()=>{
+      showHomeSearchStatus('',false);
       if(searchInput)searchInput.value='';
       if(searchClear)searchClear.hidden=true;
       if(searchClearResults)searchClearResults.hidden=true;

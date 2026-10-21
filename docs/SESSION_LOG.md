@@ -395,3 +395,97 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 user feedback reliability: added safe Arabic guidance for invalid title, description, and service-area API responses; extended source-contract assertions. The Node validator/CI have not yet been observed running at the latest head.
+
+
+## 2026-10-21 — UI module backend-error leakage guard
+
+- **Change:** Removed 11 direct backend error-message interpolations from `web/operations-modules.js`; user-facing failures now use safe Arabic messages that do not expose raw database/RPC details.
+- **Regression guard:** Added five assertions to `scripts/validate-marketing-lead-form.mjs`; confirmed `.github/workflows/pages.yml` invokes this validator.
+- **Static source review:** Replacement patterns matched 11 call sites; source contained zero remaining `error.message` references after the transformation. This is not equivalent to executing the validator or browser tests.
+- **Not verified yet:** exact-head CI, runtime flows, browser E2E, role authorization and tenant isolation.
+- **Not performed:** no migration/production data change, function deployment, payment, merge, or release.
+- **Next:** open a focused draft PR, then inspect exact-head workflow results and fix any real failures without weakening release gates.
+
+
+- **Follow-up hardening:** MantiGO electronic payment intent failures no longer display the raw `data.error` server response. Added two source-contract assertions. This was a UI source change only; no payment was initiated, and CI/payment E2E remain unverified.
+
+- **Payment flow follow-up:** Wrapped MantiGO payment-intent initiation in controlled session/network failure handling and added a source-contract assertion. Ambiguous failures explicitly tell the user to check ride/payment status before retrying; no payment was initiated. CI and browser/payment E2E remain unverified.
+
+- **2026-10-21 payment persistence race guard:** `mantigo-payment-intent` now checks that its exact Paymob intent was persisted to an eligible ledger row with no prior provider intent before returning a checkout URL. If a concurrent request changes the row, it returns a safe 409 code rather than implying checkout is ready. Added source-contract assertions. This narrows a state-conflict bug but does not prove end-to-end idempotency; provider intent creation can still leave an orphan if competing requests reach Paymob concurrently. No payment/deployment occurred; CI, Edge runtime, and payment E2E remain unverified.
+
+
+## 2026-10-21 — UI-first job application form
+- Replaced blocking browser prompts in the Jobs module with an inline form attached to each active job card.
+- Added accessible expand/collapse semantics, required bounded fields, live status feedback, submit-button lockout, and safe error/uncertain-outcome messages.
+- Preserved the existing submit_job_application_backend RPC; no new business tables or client-side authority were introduced.
+- Added source-contract assertions to scripts/validate-marketing-lead-form.mjs.
+- Static source assertions were reviewed, but the Node validator has not been executed and GitHub Actions returned no workflow runs/statuses for the latest commit. Browser E2E and authorization tests remain pending.
+- No deployment, merge, production mutation, payment, or release occurred. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Education request form slice
+- Replaced school/teacher request prompts with inline accessible forms. Student name and subject/grade are required and length-bounded; feedback is announced via a live status region and duplicate clicks are blocked while submitting.
+- Preserved the existing create_education_request_backend RPC and scoped form selection by target type to avoid cross-entity selector collisions.
+- Added source-contract assertions. Runtime execution, exact-head CI, browser E2E, and server authorization checks remain NOT VERIFIED.
+- No deployment, merge, production mutation, or release occurred; production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — Medical booking form slice
+- Replaced prompt-based appointment booking with an inline form for each medical provider. The form requires a date/time, rejects past dates, bounds optional visit reasons, and announces status/errors accessibly.
+- Preserved the existing create_medical_appointment_backend RPC; submission is locked while pending and ambiguous failures advise checking the appointment list before retrying.
+- Added source-contract assertions. Node validator, exact-head CI, browser E2E, and appointment authorization remain NOT VERIFIED.
+- No deployment, merge, production mutation, or release occurred. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — Generic module table search
+- Added reusable client-side search to generic live table views, restricted to the fields actually rendered in the table.
+- Search feedback reports matching versus visible row counts and explicitly distinguishes no matches from a genuinely empty source. Backend-only tables and read-error states remain protected and do not receive a direct-browser search path.
+- Added source-contract assertions; execution of the Node validator, exact-head CI, responsive/keyboard review, and browser E2E remains pending.
+- No production mutation, deployment, merge, or release occurred. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — UI error-state and validator reliability follow-up
+- Fixed misleading empty states for failed Jobs, Education, and Medical-provider reads; failures now clearly instruct users to retry instead of suggesting there are no records.
+- Fixed medical appointment date rendering for ISO timestamps.
+- Corrected stale validator assertions and pointed payment-intent source checks to `supabase/functions/mantigo-payment-intent/index.ts`; the validator now reports PASS only after all assertions finish.
+- Exact-head Actions run `39547998299` passed, including production verification engine and syntax/source-contract checks, at commit `8f1d1bfe7fbf466d652a4241cd83f4b6d1974d9b`.
+- Remaining NOT VERIFIED: browser/mobile E2E, real authorization/tenant isolation tests, and MantiGO webhook partial-failure recovery. PR #314 remains draft/open; production release gate remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — fail-closed user-owned history UI
+- Job applications are now blocked when prior application history cannot be verified; this prevents read failures from presenting the user as a non-applicant.
+- Education request history and medical appointment history display explicit load-error states rather than false empty states.
+- Added source-contract checks. Exact-head Actions run `39548130257` passed at code commit `0850017fab111e44cb8c4d45cf59a7bb43be5b0e` (production verification, syntax and validator checks).
+- Browser/mobile E2E and server authorization/duplicate-submission tests are still NOT VERIFIED. The MantiGO webhook partial-failure recovery issue remains a release blocker.
+
+
+## 2026-10-21 — strict Bearer header parsing
+- Extracted `parseBearerToken` into `supabase/functions/_shared/bearer-token.mjs` and wired `business-branch-admin` to pass only the parsed token to `auth.getUser`.
+- Rejects missing/empty/malformed values and multiple whitespace-separated token parts; treats the HTTP Bearer scheme case-insensitively.
+- Added `scripts/test-bearer-token.mjs`, wired into `Business Branch Admin Source Integrity`, and added source-contract assertions.
+- Verified at commit `60f09c55c36aa62c16acc5104bb3a3e74132adc4`: Deno type-check, runtime tests, and source validation passed in Actions run `39598341593`.
+- Remaining: live Supabase Auth/Edge Function integration and browser E2E are not verified; release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — CI trigger coverage hardening
+- Added bearer-token helper/test to the dedicated workflow's pull-request path filter (push filter already included them).
+- Added source-contract assertions that both helper and test are present in both push and pull_request filters, preventing a regression where security tests silently stop running for PRs.
+- Commits: workflow filter `9b41276e55f4b1902800df7fbfba030db9af2455`; validator follow-up is being validated by exact-head Actions. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — branch write error classification
+- Unexpected branch persistence failures now return generic HTTP 500 `BRANCH_CREATE_FAILED` rather than HTTP 400, which incorrectly implied a client-input issue. Raw database error details remain hidden.
+- The source validator now asserts HTTP 500 and the no-raw-error-leak boundary.
+- Verified exact commit `8503aa6dceaa25512b648013d26a5617eda0c577`: `Business Branch Admin Source Integrity` run `39598867255` passed type-check, runtime tests, and source validation.
+- No live Supabase integration test was run; production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — tenant ID compatibility fix + live drift confirmed
+- Read-only live schema check confirmed tenant IDs are `varchar` in `businesses`, `branches`, and `user_memberships`; business IDs are UUIDs. Previous source validation incorrectly required tenant IDs to be UUIDs, which could reject legitimate platform/business tenant keys.
+- Added `_shared/tenant-id.mjs` and `scripts/test-tenant-id.mjs`; endpoint now allows bounded alphanumeric / underscore / hyphen tenant keys and keeps business IDs strictly UUID-validated. CI now runs these tests and triggers for their changes on both pushes and PRs.
+- Exact-head run `39599342787` passed Deno check, runtime tests, and source validator at `25c75d99c16808c820e120bf4318a08e93669efc`.
+- Live Supabase function remains ACTIVE v5 with older source that lacks the new body-size limit, strict bearer parser, trusted organization derivation, coordinate normalization, and safe generic database errors. No deployment was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — live production parity and security drift recheck
+- Read-only Supabase ledger shows 283 entries, latest RC424 version `20261008222845`; RC449/RC451 and required post-RC424 migrations are not recorded as applied.
+- Four live platform-wide MantiGO RPCs lack `mnty_can_platform_admin()` in their current definitions, despite the source RC449 migration. Live targeted ads function also has the pre-RC451 `search_path=public, pg_temp` configuration.
+- Security advisor inventory: one RLS-enabled table without policies (`digital_page_payment_events`), one anon-executable SECURITY DEFINER, and 40 authenticated-executable SECURITY DEFINER functions. No bulk grant changes were made.
+- `business-branch-admin` remains deployed as ACTIVE v5 and is behind repository hardening. No production database/function changes were performed; release remains BLOCKED / NOT CERTIFIED.

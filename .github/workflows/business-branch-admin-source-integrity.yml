@@ -5,15 +5,31 @@ on:
       - "**"
     paths:
       - "supabase/functions/business-branch-admin/index.ts"
+      - "supabase/functions/_shared/branch-coordinates.mjs"
+      - "supabase/functions/_shared/branch-authorization.mjs"
+      - "supabase/functions/_shared/bearer-token.mjs"
+      - "scripts/test-branch-authorization.mjs"
+      - "scripts/test-bearer-token.mjs"
+      - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
+      - "supabase/functions/_shared/tenant-id.mjs"
+      - "scripts/test-tenant-id.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
   pull_request:
     branches:
-      - main
+      - "**"
     paths:
       - "supabase/functions/business-branch-admin/index.ts"
+      - "supabase/functions/_shared/branch-coordinates.mjs"
+      - "supabase/functions/_shared/branch-authorization.mjs"
+      - "scripts/test-branch-authorization.mjs"
+      - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
+      - "supabase/functions/_shared/tenant-id.mjs"
+      - "scripts/test-tenant-id.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
+      - "supabase/functions/_shared/bearer-token.mjs"
+      - "scripts/test-bearer-token.mjs"
 permissions:
   contents: read
 jobs:
@@ -27,5 +43,12 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check business branch admin Edge Function
+        run: deno check --node-modules-dir=auto supabase/functions/business-branch-admin/index.ts
+      - name: Runtime-test branch input and authorization policies
+        run: node --test scripts/test-branch-coordinate-normalization.mjs scripts/test-branch-authorization.mjs scripts/test-bearer-token.mjs scripts/test-tenant-id.mjs
       - name: Validate business branch admin source
         run: node scripts/validate-business-branch-admin-source.mjs

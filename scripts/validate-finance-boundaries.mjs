@@ -17,4 +17,27 @@ const required=[
 ];
 for(const [src,marker,label] of required){if(!src.includes(marker))throw new Error('Finance boundary marker missing: '+label);}
 if(payment.includes('body.amount') && !payment.includes('order.total')) throw new Error('Payment flow appears to trust client amount');
+
+const mantigoStart=paymob.indexOf('if(mantigo){');
+const mantigoEnd=paymob.indexOf('const {data:intentByRef}',mantigoStart);
+if(mantigoStart<0||mantigoEnd<0)throw new Error('MantiGO Paymob webhook branch boundaries are missing.');
+const mantigoWebhook=paymob.slice(mantigoStart,mantigoEnd);
+const mantigoAtomicMigration='supabase/migrations/20261021195000_rc457_atomic_mantigo_paymob_webhook.sql';
+if(!fs.existsSync(mantigoAtomicMigration))throw new Error('RC457 atomic MantiGO webhook migration is missing.');
+const mantigoSql=fs.readFileSync(mantigoAtomicMigration,'utf8');
+for(const [src,marker,label] of [
+  [mantigoWebhook,'process_verified_mantigo_paymob_event','MantiGO webhook delegates to atomic database processor'],
+  [mantigoWebhook,'MANTIGO_ATOMIC_PAYMENT_PROCESSING_FAILED','safe atomic processor failure handling'],
+  [mantigoWebhook,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory replay returns conflict'],
+  [mantigoSql,'for update','ledger row serialization'],
+  [mantigoSql,'set search_path = pg_catalog, pg_temp','trusted atomic RPC search path'],
+  [mantigoSql,'MANTIGO_EVENT_BINDING_CONFLICT','provider-event binding validation'],
+  [mantigoSql,'MANTIGO_MERCHANT_REFERENCE_MISMATCH','merchant order reference must bind to ledger'],
+  [mantigoSql,"null, p_external_event_id, p_status, true",'MantiGO ledger IDs must not be written into the payment-intent foreign key'],
+  [mantigoSql,'MANTIGO_FINAL_STATE_CONFLICT','conflicting replay rejection'],
+  [mantigoSql,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory event replay rejection'],
+  [mantigoSql,'grant execute on function public.process_verified_mantigo_paymob_event','service-role-only RPC grant']
+]) if(!src.includes(marker)) throw new Error('MantiGO atomic webhook contract missing: '+label);
+if(mantigoWebhook.includes('.from("payment_provider_events").insert')||mantigoWebhook.includes('.from("mantigo_financial_ledger").update')) throw new Error('MantiGO webhook must not persist provider event and ledger state in separate client calls.');
+
 console.log('RC260 finance/payment boundary validation: PASS');

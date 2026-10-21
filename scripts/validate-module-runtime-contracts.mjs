@@ -45,6 +45,10 @@ const marketingSource=files.operations;
 const marketingKeyCount=(marketingSource.match(/'المزايدات — التسويق':/g)||[]).length;
 if(marketingKeyCount!==1) failures.push("MARKETING_DUPLICATE_DEFINITION");
 if(files.operations.includes("sb.from('education_requests').insert")) failures.push("EDUCATION_DIRECT_INSERT_FORBIDDEN");
+const providerOnboarding=read("web/provider-onboarding-module.js");
+for(const required of ["const pendingActions=new WeakSet();","if(!beginAction(form))return;","finally{endAction(form);}","if(btn.disabled)return;","btn.textContent='جارٍ التحقق…'"]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_ONBOARDING_IN_FLIGHT_GUARD:"+required);}
+for(const required of ["form.dataset.pendingCatalogItemId","form.dataset.pendingCatalogItemName","form.dataset.catalogOutcomeUnknown==='true'","PREVIOUS_SERVICE_PRICE_PENDING","PRICE_UPSERT","سيتم استخدام الخدمة نفسها دون إنشاء نسخة جديدة"]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_CATALOG_PARTIAL_RETRY_GUARD:"+required);}
+for(const required of ["membershipSelectionRequired=(memberships?.length||0)>1&&!active","if(s.membershipSelectionRequired)","mnty-active-membership","window.MNTYActiveMembershipId=chosen.id","memberships?.length===1?memberships[0]:null"]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_MEMBERSHIP_SELECTION_GUARD:"+required);}
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 for(const [code,owner,tables] of modules){
@@ -54,6 +58,8 @@ for(const [code,owner,tables] of modules){
  const runtimeMarker=owner==="app" ? source.length>1000 : source.length>1000;
  if(!catalogEntry||!tableCoverage||!runtimeMarker) failures.push(code);
 }
+for(const required of ["تعذر إرسال الطلب. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.","تعذر إنشاء الفرع. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.","تعذر قراءة حالة التسجيل حاليا. حاول مرة أخرى لاحقا.","تعذر تحميل تكوين النشاط حاليا. تحقق من تسجيل الدخول والاتصال ثم حاول مرة أخرى.","تعذر تحميل طلب إضافة النشاط حاليا. تحقق من الاتصال وصلاحية الحساب ثم حاول مرة أخرى."]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_SAFE_ERROR_FEEDBACK:"+required);}
+for(const unsafe of ["out.textContent='تعذر إرسال الطلب: '+esc(err.message)","out.textContent='تعذر إنشاء الفرع: '+esc(err.message)","out.textContent='تعذر قراءة الحالة: '+err.message","esc(err.message)+'</div></section>"]){if(providerOnboarding.includes(unsafe))failures.push("PROVIDER_RAW_ERROR_LEAK:"+unsafe);}
 if(failures.length){console.error("Module runtime contract FAILED:",failures.join(", "));process.exit(1);}
 console.log("Module runtime contract PASSED: "+modules.length+" modules mapped to existing runtime/data contracts.");
 console.log("E2E transaction testing remains NOT VERIFIED by design; no production data is created.");

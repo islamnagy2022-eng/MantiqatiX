@@ -37,5 +37,5 @@ Deno.serve(async (req) => {
       if(error)throw error; return new Response(JSON.stringify(data),{status:200,headers:cors});
     }
     return new Response(JSON.stringify({error:"UNSUPPORTED_ACTION"}),{status:400,headers:cors});
-  }catch(e){return new Response(JSON.stringify({error:e instanceof Error?e.message:"CATALOG_OPERATION_FAILED"}),{status:400,headers:cors});}
+  }catch(e){return new Response(JSON.stringify({error:"CATALOG_OPERATION_FAILED"}),{status:400,headers:cors});}
 });

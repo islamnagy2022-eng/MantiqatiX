@@ -72,10 +72,18 @@ Deno.serve(async req=>{
   }
 
   const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:provider.intention_order_id??null,paymob_payment_methods:provider.payment_methods??null};
-  const {error:updateError}=await admin.from("mantigo_financial_ledger").update({
+  const {data:persistedIntent,error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED");
-  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
+  }).eq("id",ledger.id).in("payment_status",["REQUIRED","PENDING"]).is("provider_intent_id",null).select("id").maybeSingle();
+  if(updateError){
+    console.error(JSON.stringify({requestId,stage:"persist_paymob_intent",code:"DATABASE_UPDATE_FAILED"}));
+    return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
+  }
+  if(!persistedIntent?.id){
+    // Another request may have changed the payment state while this intent was being created.
+    // Never return a checkout URL unless this exact provider intent was persisted.
+    return json({error:"PAYMENT_INTENT_STATE_CHANGED"},409,requestId);
+  }
   return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
  }catch(error){
   console.error(JSON.stringify({requestId,error:String(error)}));

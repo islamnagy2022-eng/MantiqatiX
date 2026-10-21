@@ -2000,3 +2000,400 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Map `invalid_title`, `invalid_description`, and `invalid_service_area` to safe, actionable Arabic guidance in the marketing lead form.
 - [x] Add source-contract assertions for these mappings.
 - [ ] Execute the Node validator and exact-head CI; source review remains non-runtime verification.
+
+
+## RC — Module-safe error feedback — 2026-10-21
+- [x] Removed 11 direct interpolations of backend `error.message` from module action alerts in `web/operations-modules.js`; users now receive bounded Arabic guidance rather than internal database/RPC error text.
+- [x] Extended the existing Pages source-contract validator with guards against raw backend error leakage and assertions for safe MantiGO, education-request, and job-application feedback.
+- [ ] Exact-head CI and browser-level journeys remain NOT VERIFIED until GitHub Actions results and interactive runtime evidence are observed.
+- No database, migrations, production data, Auth settings, Edge Function deployment, payments, merge, or release was changed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Follow-up: removed the raw `data.error` display from the MantiGO electronic-payment intent response; payment failures now show safe guidance. Added two regression assertions for this path.
+
+- [x] Follow-up: wrapped MantiGO payment-intent initiation in controlled network/session error handling; ambiguous outcomes explicitly advise checking ride/payment state before retry. Added a source-contract assertion.
+
+## MantiGO payment-intent persistence follow-up — 2026-10-21
+- [ ] **Partial source hardening:** `mantigo-payment-intent` now verifies that the exact provider intent was persisted before returning a checkout URL; state conflicts return a safe 409 response, and database update errors are logged with a request ID.
+- [ ] **Still required:** implement/verify a database-backed atomic idempotency/claim mechanism before calling Paymob so concurrent requests cannot create duplicate/orphan provider intents; reconcile orphan intents safely.
+- [ ] Execute Edge Function tests, concurrency tests, Paymob sandbox tests, webhook/idempotency tests, and exact-head CI. Source-contract assertions are not runtime proof.
+- [ ] No payment, deployment, merge, or release occurred in this follow-up. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — UI-first job application form slice
+- [x] Replaced browser prompt-based job application collection with an inline, accessible per-job form using the existing submit_job_application_backend RPC.
+- [x] Added required and length-bounded qualifications/CV fields, live status/error feedback, expanded-state semantics, duplicate-click protection, and safe ambiguous-outcome guidance.
+- [x] Added source-contract assertions for the job application form.
+- [ ] Execute the Node validator and exact-head CI; current connector query returned no workflow runs/statuses for the latest head, so test execution is NOT VERIFIED.
+- [ ] Browser E2E, mobile/responsive/accessibility audit, and server authorization/duplicate-application tests remain NOT VERIFIED.
+- Scope remains UI-first; no accounting/subscription expansion, production mutation, deployment, merge, or real payment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — UI-first education request forms
+- [x] Replaced browser prompts for school/teacher requests with inline forms and accessible expand/collapse controls.
+- [x] Added bounded required student/subject fields, live feedback, submit-button lockout, and safe error/uncertain-outcome handling while preserving create_education_request_backend.
+- [x] Added source-contract regression assertions; school and teacher forms are scoped by target type to avoid selector collisions.
+- [ ] Node validator, exact-head CI, browser E2E, and backend authorization/duplicate-request checks remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — UI-first medical booking form
+- [x] Replaced browser prompts with an inline booking form for each medical provider.
+- [x] Added required datetime-local input, future-date validation, bounded optional reason, accessible live feedback, duplicate-submit lockout, and safe uncertain-outcome guidance.
+- [x] Preserved create_medical_appointment_backend and added source-contract assertions.
+- [ ] Node validator, exact-head CI, browser E2E, appointment authorization, and real-provider workflow remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — UI-first generic module table search
+- [x] Added a shared search input/results renderer for generic live module tables.
+- [x] Search filters only the first eight displayed fields, distinguishes no-match from an actually empty dataset, and preserves explicit backend-only/error states.
+- [x] Added source-contract assertions for the search boundary and empty-result messaging.
+- [ ] Executed validator, exact-head CI, keyboard/mobile UX and browser E2E remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — Module navigation accessibility and production blockers
+- [x] Standardized shared module tabs with Arabic labels for overview, live records, marketing plans, subscriptions, participants, commissions, appointments, and other known tabs.
+- [x] Added an Arabic navigation landmark, explicit button type, and current-tab state; added source-contract assertions for these UI requirements.
+- [ ] Exact-head CI is currently in progress for this change; Node validator execution and browser/mobile E2E are not yet verified.
+- [x] **Source-level fix implemented:** the MantiGO Paymob path now delegates to the RC457 transaction-safe RPC; its disposable PostgreSQL integration/concurrency suite has passed on a prior commit. [ ] **Release verification remains blocked:** rerun on exact current head, inspect target schema/grants, rehearse migration and rollback, deploy migration before Edge Function, and verify Paymob sandbox/browser end-to-end. Do not describe the former two-write path as still present in source.
+- Release gate remains **BLOCKED / NOT CERTIFIED** until required checks, browser verification, security tests, and payment failure-recovery tests pass.
+
+
+## متابعة تنفيذ 2026-10-21 — تحسين بحث واجهات الموديولات
+
+### تم تنفيذه على فرع `feat/module-safe-error-feedback-20261021`
+- أضيفت مساعدة عربية مرتبطة بحقل البحث في عرض السجلات العام عبر `aria-describedby` لتوضيح أن البحث محصور في الحقول المعروضة وأن حذف النص يعيد السجلات المرئية.
+- أضيفت تأكيدات مصدرية في `scripts/validate-marketing-lead-form.mjs` لضمان وجود المساعدة وربطها بالحقل.
+- الملفات: `web/operations-modules.js` و`scripts/validate-marketing-lead-form.mjs`.
+
+### ما يزال مطلوبًا — لا تعتبره منجزًا
+- تشغيل validator فعليًا وقراءة نتيجة CI؛ حتى لحظة التوثيق لا توجد نتائج Actions أو status checks مؤكدة لهذا التغيير.
+- مراجعة صفحات كل موديول مقابل قائمة صفحات معتمدة، وتحديد ما هو عرض فقط وما ينفذ عملية حقيقية وما ينقصه نموذج/بحث/حالة تحميل/خطأ/فراغ.
+- إصلاح مشكلة اتساق webhook الخاصة بـ MantiGO: إذا تم حفظ حدث Paymob ثم فشل تحديث سجل الدفتر المالي، فإن إعادة المحاولة قد تعتبر الحدث مكررًا وتترك الدفع في حالة قديمة. يلزم حل ذري عبر RPC/معاملة موثوقة أو آلية مصالحة آمنة، واختبار فشل جزئي وإعادة المحاولة قبل اعتماد بوابة الدفع.
+- PR #314 ما يزال مفتوحًا كمسودة وغير مدمج. بوابة الإطلاق تبقى BLOCKED / NOT CERTIFIED حتى نجاح الاختبارات الفعلية ومراجعة الأمان والتعافي.
+
+## UI continuation — accurate empty/error states and verified source contract — 2026-10-21
+- [x] Jobs module now distinguishes a failed jobs read from a genuinely empty active-jobs list.
+- [x] Education workspace distinguishes failed school/teacher reads from an empty provider catalog.
+- [x] Medical provider workspace distinguishes failed provider reads from an empty provider catalog.
+- [x] Medical appointment timestamps now parse Supabase date strings directly instead of coercing ISO strings to numbers.
+- [x] Repaired stale source-contract assertions: marketing lead search now checks the search+status-filter behavior, payment-intent assertions inspect the correct Edge Function source, and the module-load assertion matches the generation-based stale-response guard.
+- [x] Moved the validator success log to the end so it is emitted only after all assertions pass.
+- [x] Exact-head GitHub Actions run `39547998299` completed successfully on commit `8f1d1bfe7fbf466d652a4241cd83f4b6d1974d9b`; production verification engine and syntax/source-contract steps succeeded.
+- [ ] Browser/mobile E2E, role/tenant authorization tests, and the MantiGO webhook partial-failure/idempotent-retry recovery remain NOT VERIFIED. The known webhook recovery issue is still a release blocker.
+- [ ] PR #314 remains open as a draft and has not been merged. Do not mark production certified or deploy from this result alone.
+
+## UI continuation — fail closed on unverified user history — 2026-10-21
+- [x] Job application form is withheld when prior application records cannot be loaded, preventing a failed read from making the user appear not to have applied.
+- [x] Education request history now explicitly reports a read failure instead of showing “no requests”.
+- [x] Medical appointments tab explicitly reports a read failure instead of rendering a false empty table.
+- [x] Added three source-contract assertions for these user-history safety boundaries.
+- [x] Exact-head GitHub Actions run `39548130257` passed on code commit `0850017fab111e44cb8c4d45cf59a7bb43be5b0e`; production verification and syntax/source-contract checks succeeded.
+- [ ] Browser/mobile E2E, backend authorization and duplicate-submission checks remain NOT VERIFIED. MantiGO webhook partial-failure recovery remains a critical payment release blocker.
+
+---
+
+## متابعة التنفيذ — 2026-10-21
+
+### دفعة واجهات الموديولات
+
+- [x] إضافة ربط دلالي بين كل مساحة عمل في الموديول والعنوان الظاهر باستخدام `aria-labelledby`.
+- [x] إضافة `aria-busy` لمساحة العمل وربطه بحالة التحميل الفعلية حتى تستطيع التقنيات المساعدة معرفة أن الصفحة ما زالت تحمل البيانات.
+- [x] تطبيع معرّف العنوان من مفتاح الموديول لتقليل احتمالات وجود معرّفات غير صالحة.
+- [x] إضافة تأكيدات مصدرية لهذه المتطلبات داخل `scripts/validate-marketing-lead-form.mjs`.
+- [x] تشغيل مجموعة التحقق في GitHub Actions؛ مهمة `validate` في التشغيل رقم 6129 اكتملت بنجاح، بما فيها `validate-marketing-lead-form.mjs` وفحص JavaScript syntax. هذا نجاح تحقق آلي فقط وليس اختبار متصفح أو اعتماد إطلاق.
+- [ ] تنفيذ اختبار متصفح على أحجام شاشة مختلفة وفحص لوحة المفاتيح وقارئ الشاشة.
+
+### عائق حرج معروف — لا تعتبره محلولًا
+
+- [x] تم تنفيذ إصلاح ذري على مستوى المصدر لمسار MantiGO عبر RPC ومعه اختبارات PostgreSQL للتكرار والتزامن. [ ] ما زال يلزم التحقق على أحدث commit ومراجعة الصلاحيات والمخطط الفعلي وتجربة الترحيل والتراجع وPaymob sandbox قبل الإطلاق؛ لم يتم تطبيق الترحيل أو نشر Edge Function للإنتاج.
+- [ ] مراجعة التزامن في إنشاء نية الدفع؛ حارس حفظ النية الحالي يقلل إظهار رابط دفع غير محفوظ لكنه لا يثبت منع إنشاء نوايا مزود يتيمة عند الطلبات المتزامنة.
+
+### بوابة الإصدار
+
+حالة الإصدار تظل **BLOCKED / NOT CERTIFIED** إلى أن تعمل الاختبارات المطلوبة فعليًا، وتُراجع نتائج CI، وتُختبر المصادقة والصلاحيات وعزل المستأجر والدفع والويب هوك والاستعادة من النسخ الاحتياطية في بيئة مناسبة. لا تُعد هذه الدفعة اعتمادًا للإطلاق.
+
+
+## 2026-10-21 — MantiGO open-rides UI resilience
+- **Implemented:** the MantiGO open-rides tab now disables the clicked control while its RPC is pending and exposes `aria-busy`.
+- **Implemented:** RPC errors and thrown network exceptions are represented as a failed read (`loadErrors.mantigo_open`), not as a legitimate empty list; the existing UI can show the retry/error state.
+- **Implemented:** stale responses are discarded if the module or tab changes before the request completes, and the control is restored in `finally`.
+- **Regression coverage added:** `scripts/validate-marketing-lead-form.mjs` asserts busy-state handling, safe network failure state, stale-response rejection, and control recovery.
+- **Verification status:** source-level assertions were checked against the current branch content in this session. GitHub Actions has not reported any workflow run or commit status for the latest commit; do not claim CI/runtime/E2E passed until those checks actually run.
+- **Still blocked for release, but the source-level partial-failure fix is implemented:** MantiGO now calls the RC457 atomic RPC, with disposable PostgreSQL replay/concurrency coverage. Remaining gates are exact-head CI, target-schema/privilege verification, migration rehearsal and rollback, backup/restore evidence, and Paymob sandbox/browser E2E. Migration and Edge Function remain undeployed.
+
+## 2026-10-21 — MantiGO ride form recovery and module navigation efficiency
+- [x] MantiGO ride creation now catches thrown network failures, validates the active session and proposed price, restores the submit control in `finally`, and provides safe guidance to check the user's rides before retrying an uncertain submission.
+- [x] The ride form reuses its idempotency key after an uncertain outcome rather than generating a new key on every click. This reduces client-side duplicate risk but does not replace verification of backend idempotency.
+- [x] Removed the 800ms document polling loop from the module observer; initial detection runs once and subsequent navigation detection is driven by DOM mutations.
+- [x] Added source-contract assertions for ride form recovery, retry identity, and event-driven module navigation; moved the validator's success message to the end so it cannot print before later assertions fail.
+- [ ] GitHub Actions has returned no workflow run/status for current PR head `e04fa6b3370f4138e16e438bbaca0b4623a56646`; Node validator execution and exact-head CI are NOT VERIFIED.
+- [ ] Browser/mobile E2E, backend idempotency tests, and role/tenant authorization checks remain NOT VERIFIED.
+- [ ] Critical MantiGO Paymob webhook partial-failure/idempotent-retry recovery remains unresolved as described above; production stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Fix source-contract regression and record exact-head CI
+- [x] Inspected failed Pages run 6185 (commit `0b82450d913866af49f693cd8f83e9a2cb290052`): the failure was a stale source-contract assertion expecting the pre-auth-aware module error-rendering expression; it was not a JavaScript syntax error.
+- [x] Updated `scripts/validate-marketing-lead-form.mjs` to assert the current auth-aware error state and retry behavior without weakening the expected contract.
+- [x] Commit: `04d11a01d391fd886f914e2a4cf08954cce63ea7`.
+- [x] Pages validation run 6186 passed on that exact commit; deploy was correctly skipped for the feature branch.
+- [ ] Additional exact-head workflows (module professionalization, backend-only module boundary, MantiGO open-ride privacy) were still running at the time of this note; their final results must be checked before treating the whole PR validation set as complete.
+- [ ] Browser/mobile E2E, role/tenant authorization, and server-side duplicate-submission tests remain NOT VERIFIED.
+- [x] MantiGO Paymob source path delegates to the RC457 atomic RPC; disposable PostgreSQL tests cover replay/concurrency/partial failure. [ ] Exact-head and target-environment verification, migration rehearsal/rollback, and Paymob sandbox/browser E2E remain release blockers.
+- Release remains **BLOCKED / NOT CERTIFIED**. No merge, production deployment, database migration, or real payment was performed.
+
+
+## 2026-10-21 — repository-grounded module UI inventory
+- [x] Added `docs/UI_MODULE_COMPLETION_MATRIX.md`, mapping the 28 module keys already represented in `scripts/validate-module-runtime-contracts.mjs` to their current renderer and expected data sources.
+- [x] Explicitly kept every module UI/E2E status as NOT VERIFIED; existing source-contract/coverage tests do not prove browser journeys, role authorization, tenant isolation, or responsive behavior.
+- [ ] Walk the matrix module-by-module and implement the next small UI slice against verified backend contracts, starting with public discovery and provider profiles.
+- [x] MantiGO Paymob webhook no longer uses the former separate client writes in source; it delegates to RC457 atomic processing. [ ] Runtime deployment and target-environment proof remain required before certification.
+- [ ] Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — RC457 MantiGO Paymob webhook atomicity remediation (source only)
+
+- [x] Added `supabase/migrations/20261021195000_rc457_atomic_mantigo_paymob_webhook.sql` defining a service-role-only transaction-bound RPC. It locks the ledger row, validates provider/signature flag/amount/currency/event binding, persists the provider event and updates the pending ledger in one database transaction.
+- [x] Updated the MantiGO branch in `supabase/functions/paymob-webhook/index.ts` to call the RPC rather than issuing separate provider-event insert and ledger update requests.
+- [x] Added source-contract checks in `scripts/validate-finance-boundaries.mjs` for atomic delegation, replay binding, final-state conflict handling, and absence of the former two-write path.
+- [ ] **NOT YET VERIFIED:** execute the finance validator and JavaScript/TypeScript checks, review exact-head GitHub Actions, and add/run disposable PostgreSQL tests for duplicate event, concurrent delivery, wrong-ledger replay, amount/currency mismatch, existing-event recovery, and transaction rollback.
+- [ ] **Migration is not applied.** The Edge Function must not be deployed ahead of the migration. Apply only after chronological migration-chain review, database rehearsal, backup/restore validation, and explicit release approval.
+- [x] Read-only target schema inspection confirmed `payment_provider_events.id` is `varchar` with no default, `payment_intent_id` is nullable and references `payment_intents(id)`, and `(provider, external_event_id)` is unique. `MNTY-PLATFORM` exists and is active. RC457 now creates a text event ID and leaves `payment_intent_id` NULL for MantiGO; the verified Paymob merchant order reference binds the event to the MantiGO ledger.
+- [ ] Browser/payment sandbox/webhook runtime evidence remains NOT VERIFIED. No production payment, database mutation, migration apply, Edge Function deploy, merge, or release was performed by this source change.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC457 follow-up — contradictory replay hardening
+
+- [x] The atomic RPC now rejects null/unsupported event status, a replay whose signed status differs from the already-persisted event, and event rows with a null/unsupported status.
+- [x] The webhook maps contradictory event replay to a safe HTTP 409 response; the finance source-contract validator asserts both the database and edge-function boundaries.
+- [ ] Exact-head CI is pending for this follow-up. These are source-contract checks only; PostgreSQL concurrency/rollback tests and target-schema validation remain open.
+
+
+### RC457 disposable PostgreSQL regression suite added
+
+- [x] Added `supabase/tests/rc457_mantigo_paymob_atomicity_fixture.sql` and `supabase/tests/rc457_mantigo_paymob_atomicity_integration.sql`.
+- [x] Added `.github/workflows/mantigo-paymob-atomicity.yml` to execute the fixture, migration, and behavioral checks against disposable PostgreSQL 16.
+- [x] Covered first delivery, exact duplicate, wrong-ledger replay, contradictory replay status, amount mismatch, recovery of an already-recorded legacy event, failed payment, and rollback when the ledger update is forced to fail after event insertion.
+- [ ] Await exact-head CI result for the new workflow. A test file being present is not proof it passed.
+- [ ] Concurrent delivery stress and a target-Supabase schema/grant review remain required before deployment.
+
+
+### RC457 live-schema compatibility correction
+
+- [x] Read-only Supabase catalog inspection found a critical pre-existing mismatch: the generic provider-event table's `payment_intent_id` foreign key references `payment_intents(id)`, not `mantigo_financial_ledger(id)`. The former MantiGO webhook tried to put a MantiGO ledger ID into that foreign key, which can fail event persistence.
+- [x] Corrected the atomic RPC to store `payment_intent_id = NULL` for MantiGO and bind replays through the signed Paymob `merchant_order_id` in the retained raw payload, while keeping the provider/event unique key and ledger row lock.
+- [x] Updated the disposable fixture to mirror the live varchar ID and payment-intent foreign key shape, and updated tests to include the merchant reference.
+- [ ] Exact-head RC457 PostgreSQL workflow must pass before this source patch is treated as verified. No production SQL was executed; catalog checks were read-only. Migration and Edge Function remain undeployed.
+
+
+- [x] Added an eight-way concurrent duplicate-delivery workload in `supabase/tests/rc457_mantigo_paymob_concurrent.sql`; the CI job verifies the result remains one provider event and one PAID ledger transition.
+- [x] Hardened the RPC search path to `pg_catalog, pg_temp` and added a regression assertion for that trusted path.
+- [ ] The newest exact-head workflow is still pending; do not count the earlier RC457 pass as proof of the latest search-path/concurrency changes.
+
+
+## 2026-10-21 — Global search accessibility and dismissal fix
+
+- [x] The authenticated global search input now exposes combobox/listbox semantics and the results are keyboard navigable with ArrowDown/ArrowUp; Escape closes the list and returns focus to the input.
+- [x] Outside clicks reliably dismiss search results across page rerenders, cancel the pending debounce, and reset `aria-expanded`; the previous one-shot document listener was removed.
+- [x] Expanded `scripts/validate-global-search-failure-state.mjs` to guard the new accessible state and keyboard behavior.
+- [x] CI passed on source commit `72ae6352c54456c416adf9d1e13ed79b6551673a`: web validation, module professionalization validation, backend-only module boundary, MantiGO open-ride privacy integration, and RC457 Paymob atomicity integration.
+- [ ] Manual browser/mobile keyboard and screen-reader verification remains outstanding. Feature-branch production deployment is intentionally skipped.
+- Current PR #314 remains open as a draft; no merge or production release was performed.
+
+
+## RC457 follow-up — negative callback coverage — 2026-10-21
+
+- [x] Extended disposable PostgreSQL integration coverage for invalid/unverified signature flags, wrong Paymob merchant reference, currency mismatch, and null event status.
+- [x] Added a regression assertion that none of those rejected callbacks may persist a provider-event row.
+- [ ] Exact-head `MantiGO Paymob Atomicity` workflow must pass after this test-only change; prior passing runs do not certify this new head.
+- [ ] Production migration/deployment, live Paymob sandbox, browser payment flow, and target-database catalog verification remain NOT VERIFIED. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Global search retry recovery
+
+- [x] Added a direct retry action when every permitted search source fails, when results are partial, and when an unexpected search exception occurs.
+- [x] Added source-contract assertions that the retry controls are present and invoke the current search action.
+- [ ] Exact-head CI for the new retry-control code and assertions remains pending until the latest Actions results are observed.
+- [ ] Manual keyboard/mobile/screen-reader verification remains NOT VERIFIED. This is a UI resilience improvement, not a production certification.
+
+- [x] Follow-up: explicit Enter/retry actions now cancel a pending debounce timer before issuing a request, preventing duplicate parallel searches; added a source-contract assertion for timer cleanup.
+- [ ] Exact-head CI for the debounce follow-up remains pending; browser E2E is still NOT VERIFIED.
+
+
+## 2026-10-21 — Global search ARIA structure correction
+
+- [x] Changed the overall results panel to a named region; result options alone are now inside a nested listbox. Loading/error/empty states and retry buttons no longer sit directly inside listbox semantics.
+- [x] Updated the source-contract validator to require the region/listbox separation and retain retry-control assertions.
+- [ ] Exact-head CI must pass for this accessibility correction before it is considered verified.
+- [ ] Screen-reader and mobile keyboard behavior still require manual verification; production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — Marketing lead form character guidance
+
+- [x] Added live character counters to marketing request title, service area, requested-services text, and description fields.
+- [x] Added accessible descriptions tying each input to its current character count and kept counters updated with one-time event bindings across rerenders.
+- [x] Added source-contract assertions for all four counters and their listener guard.
+- [ ] Exact-head CI must pass for this change. Browser/mobile screen-reader verification remains NOT VERIFIED.
+
+
+## 2026-10-21 — Lead-counter validator assertion correction
+
+- [x] Investigated the web validation failure on commit `5718e5927693ac825e2fb5566d57330a75789b7c`: the implementation parsed, but a new source-contract regex incorrectly expected `field.value.length` before `counter.textContent`, while the actual renderer assigns `counter.textContent=String(field.value.length)`.
+- [x] Corrected the assertion to match the actual safe rendering expression; no production code behavior was weakened.
+- [ ] Re-run and verify web validation on the exact new head before treating the change as passed.
+
+
+## 2026-10-21 — Homepage catalog partial-failure recovery
+
+- [x] Public homepage search now distinguishes unavailable service/provider sources and preserves the successful source when the other fails.
+- [x] Added an accessible Arabic status region and a retry action for full/partial catalog failures, with safe `textContent` rendering and responsive styling.
+- [x] Extended the homepage production-content validator to cover partial-result preservation, status semantics, retry affordance, and mobile styling.
+- [ ] Exact-head web validation and module/security workflows must pass before treating this change as verified. Browser-level network-failure/retry checks remain NOT VERIFIED.
+
+- [x] Added the same actionable retry state when the public Supabase client is unavailable, avoiding a permanently misleading loading state.
+
+
+## UI follow-up — sector workspace accessibility (2026-10-21)
+
+- [x] Sector-module loading state now uses an Arabic live status announcement and exposes workspace busy state while data is loading.
+- [x] Sector navigation tabs now expose a named group, explicit button types, and active-state semantics.
+- [ ] Run exact-head source-contract validation and relevant CI; keyboard/screen-reader behavior still requires browser-level verification.
+
+
+## UI follow-up — partial source failures in sector workspaces (2026-10-21)
+
+- [x] Preserve successfully loaded sector data when one or more independent sources fail.
+- [x] Mark failed source counts as unavailable rather than showing a misleading zero.
+- [x] Show an accessible partial-failure notice and retry action without hiding working sections.
+- [ ] Exact-head CI and browser regression remain required; no claim of screen-reader/E2E verification.
+
+
+## 2026-10-21 — Provider onboarding duplicate-submit protection
+
+- [x] Added per-form in-flight guards to business registration, branch creation, and service/price submission so repeated taps cannot start overlapping client requests.
+- [x] Submit controls are disabled while requests are pending and restored in `finally`, including failed network responses.
+- [x] Onboarding-status refresh is also guarded against overlapping clicks and always restores its button.
+- [x] Extended the module runtime source-contract validator to require the in-flight guards and recovery paths.
+- [ ] Exact-head CI, backend idempotency verification, and browser/mobile tests remain required; this client guard is not a substitute for server-side idempotency.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Provider catalog partial-write recovery
+
+- [x] Prevent retrying service creation when the previous item-creation request has an ambiguous network outcome; require checking the catalog before another attempt.
+- [x] If the service item ID was received but price saving failed, retain the item ID in the live form and retry only the price write, avoiding a second item creation from that form.
+- [x] Block changing the service name while a prior item's price is still pending; clear the pending item state only after the price call succeeds.
+- [x] Added source-contract assertions for ambiguous outcomes, pending item reuse, and price-only retry.
+- [ ] Backend idempotency, persistence across page reloads, real Edge Function response-shape validation, browser/mobile E2E, and exact-head CI are still required. Client-side state is not a server transaction.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Explicit active-membership selection
+
+- [x] Removed silent fallback to the first active membership when the user has multiple memberships but no valid selected membership ID.
+- [x] Added a membership chooser and persist the selected membership through the existing active-membership key.
+- [x] Single-membership accounts continue to select their sole membership automatically.
+- [x] Added source-contract checks for the ambiguous-membership guard and explicit chooser.
+- [ ] Verify compatibility with the main application's membership-switching UX, browser/mobile E2E, and server-side authorization boundaries.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+## Provider onboarding — safe user-facing error feedback (2026-10-21)
+- [x] Replace raw backend/function error details in provider onboarding UI with bounded Arabic guidance for business registration, branch creation, status refresh, initial load, and onboarding request load.
+- [x] Add source-contract checks that reject known raw-error rendering patterns and require the safe feedback copy.
+- [ ] Verify the behavior in browser/E2E against expired sessions, denied roles, function failures, malformed responses, and network interruptions.
+- [ ] Confirm backend authorization and tenant isolation independently; client-side messaging is not an authorization control.
+- **Status:** code and static contract added; runtime/E2E verification pending. Release gate remains BLOCKED / NOT CERTIFIED.
+
+## Edge Function error disclosure hardening (2026-10-21)
+- [x] Normalize branch-creation database failures to the stable public code `BRANCH_CREATE_FAILED`; do not return raw database error text to the browser.
+- [x] Normalize catalog-admin failures to `CATALOG_OPERATION_FAILED`; do not return raw RPC/exception messages to callers.
+- [x] Extend source-contract validators to reject the previous raw-error response patterns.
+- [ ] Verify all calling clients handle the stable error codes and that observability remains sufficient without exposing internal schema details.
+- [ ] Run isolated integration tests for authorization denial, invalid tenant/business IDs, database constraint failures, and successful branch/catalog operations.
+- **Status:** source changes and static guards committed; exact-head CI and runtime integration verification pending. No Edge Function deployment was performed by this change.
+
+## Branch authorization and input-boundary hardening (2026-10-21)
+- [x] Validate tenant and business identifiers as UUIDs before interpolating them into the membership query filter.
+- [x] Derive branch `organization_id` exclusively from the authorized business row; ignore caller-supplied organization scope.
+- [x] Bound branch name, phone, and address lengths; reject invalid, out-of-range, or partial coordinates.
+- [x] Extend the branch source-contract test to assert tenant/business scoping, organization derivation, bounds, and normalized database errors.
+- [ ] Run Deno type/lint checks and isolated integration tests with a real authorized membership, cross-tenant IDs, cross-organization override attempts, and invalid coordinates.
+- [ ] Confirm live Edge Function source parity before any deployment; do not deploy based on repository tests alone.
+- **Status:** source hardening and static assertions committed; exact-head CI and runtime authorization tests pending. Release gate remains BLOCKED / NOT CERTIFIED.
+
+
+## Branch request-shape hardening (2026-10-21)
+- [x] Reject JSON null, primitive, and array payloads before reading branch fields; return a stable client error instead of an uncaught property-access failure.
+- [x] Reject declared request bodies larger than 16 KiB and reject non-string identifiers/name/contact fields rather than coercing arbitrary JSON objects into query values.
+- [x] Add source-contract assertions for request shape, payload-size boundary, and field types.
+- [x] Added a bounded streaming reader that stops and cancels the request after 16 KiB even when Content-Length is absent or inaccurate.
+- [ ] Run Deno type checks and isolated integration tests; confirm live Edge Function parity before deployment.
+- **Status:** source and static guard committed; runtime verification pending. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## Branch coordinate input hardening — 2026-10-21
+- [x] Fixed branch creation coordinate parsing so blank strings are treated as absent rather than silently coerced to latitude/longitude zero.
+- [x] Reject unsupported JSON coordinate types and non-finite numeric values; existing range and paired-coordinate validation remains in place.
+- [x] Extracted the parser into `supabase/functions/_shared/branch-coordinates.mjs` so production code and runtime tests exercise the same implementation.
+- [x] Added Node runtime regression tests for missing/blank values, valid numbers/numeric strings, invalid numbers, and unsupported JSON types.
+- [x] Added the runtime test to the branch source-integrity workflow; GitHub Actions run **Business Branch Admin Source Integrity** passed on commit `a8224fcd9feee857cfb49d8a13241386c3d03eef`.
+- [x] Added `deno check --node-modules-dir=auto supabase/functions/business-branch-admin/index.ts` to the dedicated CI workflow; the Deno check, runtime coordinate tests, and source-contract validator all passed on commit `ec84fe16fffd02069fc94263705cd58df9e81b8d`.
+- [ ] Isolated backend authorization/integration tests remain pending; Deno type-check is not runtime authorization proof.
+- [ ] Exact-head full workflow suite is still running; verify all final conclusions before updating release status.
+- Release remains **BLOCKED / NOT CERTIFIED**; no production deployment, merge, payment, or live data mutation was performed.
+
+
+
+## Coordinate validation contract follow-up — 2026-10-21
+- [x] Updated the source-contract validator to check range and invalid-coordinate rules in the shared parser, where the implementation now lives.
+- [x] Relaxed the static range assertions to tolerate harmless source formatting whitespace.
+- [x] Confirmed on commit c14b8ed725c3fc21f89a332383500dbf42533766 that Deno type-check, runtime coordinate regression tests, and the source-contract validation step all passed.
+- [ ] Re-run the complete workflow suite against the final documentation commit and confirm every workflow conclusion.
+- [ ] Backend authorization and tenant-isolation integration tests with real Supabase/Postgres fixtures remain outstanding.
+- **Status:** the dedicated source-integrity job passed on the code commit above; release remains **BLOCKED / NOT CERTIFIED** until exact-head suite and live-like integration/security checks pass. No merge or manual production deployment performed.
+
+
+## 2026-10-21 — Branch authorization policy extraction and regression coverage
+
+- [x] Extracted branch-creation authorization into `supabase/functions/_shared/branch-authorization.mjs`; the Edge Function now calls the same policy exercised by runtime tests.
+- [x] Added runtime regression cases for exact-business scoping of OWNER/ADMIN/BUSINESS_OWNER/MANAGER, rejection of tenant-wide business-manager memberships, and rejection of unrelated business IDs.
+- [x] Added negative and positive tests for SUPER_ADMIN requiring both `scope=PLATFORM` and `full_control=true`; malformed membership collections and missing target IDs fail closed.
+- [x] Extended the dedicated CI workflow to run the new authorization tests and validate the shared policy contract. On commit `d601708de6586ced04b7787942c8beccc9e20453`, the dedicated workflow passed Deno type-check, runtime coordinate/authorization tests, and source-contract validation.
+- [x] Corrected the workflow pull-request base filter so it also runs for PRs targeting non-`main` branches, including the current stacked PR base.
+- [ ] The shared-policy tests verify policy logic but do not prove database membership-query correctness, live Supabase Auth behavior, tenant RLS, or actual Edge Function integration. Those remain separate required gates.
+- [ ] Run the dedicated workflow on the latest workflow-filter commit and verify all related CI conclusions before treating the new HEAD as fully validated.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, live database mutation, or manual production deployment was performed.
+
+
+## 2026-10-21 — strict bearer-token parsing follow-up
+- [x] Added a shared bearer-token parser for `business-branch-admin`; accepts the case-insensitive Bearer scheme and a single non-empty token value only.
+- [x] Added Node runtime tests for valid tokens, scheme casing, empty/missing credentials, whitespace-separated multiple tokens, malformed values, and header-injection-like input.
+- [x] Added the helper/test to the dedicated source-integrity workflow and source-contract assertions. Exact-head run `39598341593` passed type-check, runtime tests, and source validation at `60f09c55c36aa62c16acc5104bb3a3e74132adc4`.
+- [ ] Live Supabase Auth / Edge Function integration, browser E2E, and deployed-function parity remain NOT VERIFIED. This does not certify production readiness.
+- Production remains **BLOCKED / NOT CERTIFIED**; no merge or manual production deployment was performed.
+
+- [x] Follow-up: included bearer-token helper and its runtime test in both push and pull-request path filters; source validator now asserts both triggers remain wired. Commit `9b41276e55f4b1902800df7fbfba030db9af2455`.
+- [ ] Exact-head Actions for the path-filter follow-up and source-validator follow-up must finish before recording their result; live Supabase Auth/Edge Function integration remains NOT VERIFIED.
+
+
+## 2026-10-21 — branch persistence failure semantics
+- [x] Changed unexpected branch insert/database failures from HTTP 400 to a generic HTTP 500 `BRANCH_CREATE_FAILED`; the response does not expose database error details.
+- [x] Updated the source-contract regression assertion to require the server-error status and no raw database message.
+- [x] Exact-head `Business Branch Admin Source Integrity` run `39598867255` passed at commit `8503aa6dceaa25512b648013d26a5617eda0c577` (Deno type-check, runtime tests, source validator).
+- [ ] Live Supabase Auth + Edge Function integration, tenant isolation tests against a disposable real PostgreSQL/Supabase instance, and browser E2E remain NOT VERIFIED. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — verified tenant-key schema mismatch and live Edge Function drift
+- [x] Read-only Supabase schema inspection confirmed `public.businesses.tenant_id`, `public.branches.tenant_id`, and `public.user_memberships.tenant_id` are `character varying`, while `business_id` is `uuid`.
+- [x] Fixed branch admin validation so tenant IDs accept bounded varchar keys such as `MNTY-PLATFORM` / `tenant-a` and UUID-like tenant keys, while enforcing a strict safe-character allowlist before PostgREST filter interpolation; business IDs remain UUID-validated.
+- [x] Added unit regression tests for accepted/rejected tenant IDs and wired them into push + pull_request CI triggers and the test command.
+- [x] Exact-head CI passed at `25c75d99c16808c820e120bf4318a08e93669efc`: [Business Branch Admin Source Integrity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39599342787) (Deno type-check, runtime tests, source validator).
+- [!] Read-only live Supabase inspection found `business-branch-admin` remains ACTIVE v5 and its deployed source differs from the hardened repository version: no request body cap, weaker bearer parsing, caller-controlled `organization_id`, unchecked numeric coordinate coercion, and raw database error disclosure. Do not treat repository CI as deployment parity.
+- [ ] Deploy hardened function only through an approved, reviewed release path after compatibility and integration checks. Live production function has NOT been changed in this continuation. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — live production security drift confirmed (read-only)
+- [x] Re-read live Supabase migration ledger: 283 entries; latest applied version is still RC424 `20261008222845`. RC449/RC451 and the required post-RC424 release batch are not recorded as applied.
+- [x] Read-only function-definition checks confirmed four global MantiGO RPCs are still SECURITY DEFINER with `search_path=public` and lack `mnty_can_platform_admin()` checks in live definitions, while source RC449 requires an explicit platform-super-admin scope guard. This is a confirmed source/live parity blocker.
+- [x] Read-only check confirmed live `get_mnty_targeted_advertisements` remains `search_path=public, pg_temp`; source RC451 changes this to an empty search path. Preserve intended anonymous ad discovery unless reviewed access changes justify otherwise.
+- [x] Supabase security advisor findings captured: one RLS-enabled table without policies (`digital_page_payment_events`), one anon-executable SECURITY DEFINER, 40 authenticated-executable SECURITY DEFINER. No bulk revocations.
+- [x] Reconfirmed deployed `business-branch-admin` is ACTIVE v5 and is behind hardened repository source.
+- [ ] Reconcile/rehearse the complete ordered post-RC424 migration chain on disposable PostgreSQL, test tenant isolation/payment-finance E2E, rehearse backup/restore, verify Auth settings and Edge Function parity, then seek explicit rollout approval.
+- No production migrations, grants, RLS/Auth settings, function deployments, or financial operations were changed. Release remains **BLOCKED / NOT CERTIFIED**.

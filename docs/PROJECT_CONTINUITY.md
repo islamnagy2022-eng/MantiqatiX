@@ -850,3 +850,52 @@ The marketing lead Edge Function now rejects a non-string `service_area` value w
 ## 2026-10-21 — safe field-specific lead errors
 
 The marketing lead form now maps `invalid_title`, `invalid_description`, and `invalid_service_area` to explicit Arabic guidance without exposing raw backend errors. Added source-contract assertions. Exact-head CI, actual Node validator execution, browser E2E, and authorization/RLS verification remain pending. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — safe module error feedback batch
+- Working branch: `feat/module-safe-error-feedback-20261021`, based on the marketing lead validation branch head `526edf2270b7717335a718e02bbe5f65532f1473`.
+- Updated `web/operations-modules.js` to replace 11 direct raw backend error-message displays in ride creation, bids, captain actions, ride status/payment/rating, medical booking, education requests, and job applications with safe Arabic guidance.
+- Extended `scripts/validate-marketing-lead-form.mjs` with five source-contract assertions preventing raw backend error leakage and checking safe messages. The existing Pages workflow already invokes this validator.
+- These are source changes only. Exact-head Actions, JavaScript runtime, browser accessibility, role authorization, and multi-tenant E2E have not yet been verified. No production mutation/deployment or merge occurred; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Payment API error-display follow-up — 2026-10-21
+- Removed direct display of `data.error` from the MantiGO electronic-payment intent response; the UI now presents bounded Arabic guidance instead of raw backend response text.
+- Added two source-contract assertions to prevent reintroducing this behavior. Exact-head CI and payment/browser E2E remain unverified; no payment was initiated and production was not changed.
+
+- Payment intent flow now catches network/session failures and shows a safe uncertainty message rather than leaving an unhandled rejected promise. Users are told to verify ride/payment state before retrying if initiation could not be confirmed. Static contract added; browser/payment E2E remain unverified.
+
+### Payment-intent persistence conflict guard — 2026-10-21
+The MantiGO payment-intent Edge Function no longer assumes a conditional ledger update succeeded. It now requests the updated row and returns a checkout URL only when the provider intent was persisted to a row still in `REQUIRED`/`PENDING` with `provider_intent_id IS NULL`; a lost race returns `PAYMENT_INTENT_STATE_CHANGED` (409), and database update failures are logged with request ID plus a safe response code. Added source-contract assertions. This is not full idempotency: concurrent calls can still create an orphan Paymob intent before one persistence wins. A database-backed atomic claim/idempotency design and provider reconciliation are still needed. No payment or deployment occurred. Exact-head CI/runtime/payment E2E remain unverified; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest UI-first continuation — 2026-10-21
+- Current work remains on feat/module-safe-error-feedback-20261021 and PR #314 (open draft, not merged).
+- Jobs module: browser prompt-based applications were replaced with an accessible inline form that uses the existing submit_job_application_backend RPC, bounds required fields, announces status, and prevents duplicate clicks while submitting.
+- Source-contract assertions were added. Static checks were reviewed in-session, but the Node validator, exact-head CI, browser E2E, and server-side duplicate/authorization cases are not verified; the latest connector check returned no workflow runs/statuses.
+- Next UI-first slice: continue replacing prompt-based workflows with accessible forms in education and medical booking, then inventory remaining module pages and navigation gaps. Do not expand accounting/subscription billing before the module UI pass.
+- Keep release state **BLOCKED / NOT CERTIFIED**; no deployment, merge, production mutation, or payment occurred.
+
+- Latest follow-up: education school/teacher request flows now use accessible inline forms instead of prompts, retaining the existing backend RPC and bounded required fields. Source-contract assertions were added; validator/CI/browser and authorization checks remain NOT VERIFIED.
+
+- Medical booking now uses an accessible inline datetime form with future-date validation and safe submit feedback; existing backend RPC retained. Static assertions added; runtime and CI remain NOT VERIFIED.
+
+- Generic live module tables now have a shared search UI that filters only displayed columns and preserves backend-only/read-error boundaries; static contract added, runtime and CI remain NOT VERIFIED.
+
+
+- **2026-10-21 security follow-up:** `business-branch-admin` now parses its Authorization header through shared `parseBearerToken`; malformed/empty credentials fail closed before `auth.getUser`, while Bearer scheme casing is handled per HTTP conventions. Runtime tests and source assertions were added.
+- Verified exact code commit `60f09c55c36aa62c16acc5104bb3a3e74132adc4` via Actions run `39598341593` (Deno check + runtime tests + source validator: PASS). A duplicate run may still be active; use the exact commit SHA when checking final CI.
+- Do not mark live authentication, tenant isolation, Edge Function deployment parity, or browser E2E as verified. PR #314 remains draft/open and production remains BLOCKED / NOT CERTIFIED.
+
+- **CI trigger follow-up:** bearer-token helper and runtime test now appear in both push and pull_request path filters; the source validator asserts two occurrences of each path. This protects the PR validation gate from silently skipping the new security tests. Verify exact-head CI before marking this follow-up complete.
+
+
+- **Branch creation error semantics:** unexpected database insert failures in `business-branch-admin` now return safe generic HTTP 500 `BRANCH_CREATE_FAILED` instead of 400; source contract forbids exposing raw database messages. Exact-head run `39598867255` passed at `8503aa6dceaa25512b648013d26a5617eda0c577`.
+- Still not verified: actual Supabase Auth and Edge Function invocation, tenant isolation against disposable PostgreSQL/Supabase, and browser E2E. Keep release BLOCKED / NOT CERTIFIED.
+
+
+- **Tenant-key compatibility correction (2026-10-21):** read-only Supabase schema evidence confirms tenant columns are `character varying`; only `business_id` is UUID. The branch endpoint now validates tenant IDs using a bounded safe-character allowlist (including keys such as `MNTY-PLATFORM`) and validates `businessId` as UUID. New runtime tests are included in push and PR CI. Exact-head source-integrity run [39599342787](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39599342787) passed at `25c75d99c16808c820e120bf4318a08e93669efc`.
+- **Live/source drift remains a production blocker:** Supabase reports `business-branch-admin` ACTIVE v5; its deployed entrypoint is older than repository source and lacks bounded body reading, strict bearer parsing, trusted `organization_id` derivation, coordinate validation, and safe database error normalization. Production was not changed. Require a reviewed deployment path plus staging integration verification before rollout; status stays BLOCKED / NOT CERTIFIED.
+
+
+- **Live production parity recheck (2026-10-21):** the read-only Supabase ledger still ends at RC424 (`20261008222845`); RC449/RC451 and the required post-RC424 batch are not recorded as applied. Four global MantiGO RPCs remain SECURITY DEFINER with `search_path=public` and no `mnty_can_platform_admin()` check in their live definitions, despite source RC449 requiring explicit platform scope. Live targeted-advertisement RPC search path also differs from RC451 source. Supabase advisor findings: one RLS-enabled table without policies, one anon-executable SECURITY DEFINER, 40 authenticated-executable SECURITY DEFINER functions. Do not bulk-revoke; review each boundary. The deployed `business-branch-admin` remains ACTIVE v5 and is behind the hardened branch source. All observations were read-only; production remains BLOCKED / NOT CERTIFIED.
