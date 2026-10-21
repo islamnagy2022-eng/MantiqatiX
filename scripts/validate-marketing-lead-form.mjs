@@ -157,3 +157,9 @@ assert.match(source, /function load\(d\)\{const generation=\+\+loadGeneration;re
 assert.match(source, /loadErrors\.jobs\?'<div class="notice" role="alert">تعذر تحميل الوظائف؛ لم نعتبرها فارغة/, "job workspace must distinguish a read failure from an empty jobs list");
 assert.match(source, /loadErrors\.school_profiles\|\|loadErrors\.teacher_profiles\?'<div class="notice" role="alert">تعذر تحميل الجهات التعليمية؛ لم نعتبرها فارغة/, "education workspace must distinguish read failures from no providers");
 assert.match(source, /loadErrors\.marketing_provider_profiles\?'<div class="notice" role="alert">تعذر تحميل مقدمي الخدمة الطبية؛ لم نعتبر القائمة فارغة/, "medical provider workspace must distinguish read failures from no providers");
+
+assert.match(source, /function marketingLeadTable\(query='',status=''\)/, "marketing lead list must support search and status filtering");
+assert.match(source, /id="mlStatusFilter"/, "marketing leads must expose a status filter");
+assert.match(source, /id="mlClearFilters"/, "marketing lead filters must be resettable");
+assert.match(source, /لا توجد طلبات تطابق البحث والتصفية الحالية/, "filtered empty results must be explained clearly");
+assert.match(source, /refreshMarketingLeads/, "search and status controls must refresh the same results view");
