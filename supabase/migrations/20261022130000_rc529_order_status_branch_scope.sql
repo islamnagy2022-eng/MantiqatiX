@@ -60,7 +60,13 @@ declare
   v_allowed boolean := false;
   v_payment_status text;
 begin
-  if p_user_id is null or auth.uid() is null or p_user_id is distinct from auth.uid() then
+  if p_user_id is null then
+    raise exception 'AUTH_MISMATCH';
+  end if;
+  -- Only the JWT-verified Edge Function may invoke this backend-only RPC.
+  -- Direct authenticated clients must not receive EXECUTE on this SECURITY DEFINER function.
+  if coalesce(auth.role(),'') <> 'service_role'
+     and (auth.uid() is null or p_user_id is distinct from auth.uid()) then
     raise exception 'AUTH_MISMATCH';
   end if;
 
@@ -133,5 +139,5 @@ begin
 end;
 $function$;
 
-revoke all on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) from public, anon, service_role;
-grant execute on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) to authenticated;
+revoke all on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) from public, anon, authenticated, service_role;
+grant execute on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) to service_role;
