@@ -127,19 +127,20 @@ async function mgSubmitBid(){
  if(phone&&!/^[0-9+\\s()-]{7,20}$/.test(phone))return setStatus('أدخل رقم تواصل صحيحًا من 7 إلى 20 خانة.',true);
  if(!priceRaw||!Number.isFinite(price)||price<=0||price>10000000)return setStatus('أدخل سعرًا صحيحًا أكبر من صفر ولا يتجاوز 10 ملايين جنيه.',true);
  if(!Number.isFinite(eta)||!Number.isInteger(eta)||eta<0||eta>1440)return setStatus('أدخل وقت وصول صحيحًا من صفر إلى 1440 دقيقة.',true);
+ if(!user?.id)return setStatus('انتهت جلسة الدخول. سجل الدخول ثم حاول مرة أخرى.',true);
  const p={p_user_id:user.id,p_ride_id:rideId,p_captain_name:name,p_captain_phone:phone,p_captain_rating:null,p_vehicle_category:document.getElementById('mgBidVehicle')?.value,p_vehicle_model:model,p_vehicle_plate:plate,p_offered_price:price,p_eta_minutes:eta,p_captain_message:message};
  const originalText=button.textContent;
- button.disabled=true;button.textContent='جاري إرسال العرض…';
+ button.disabled=true;button.textContent='جاري إرسال العرض…';button.setAttribute('aria-busy','true');setStatus('جارٍ إرسال العرض…');
  try{
   const r=await sb.rpc('create_mantigo_bid_backend',p);
-  if(r.error){alert('تعذر إرسال العرض بسبب الاتصال أو الصلاحيات. تحقق من قائمة عروضك قبل إعادة المحاولة.');return}
-  alert('تم إرسال العرض للعميل.');
+  if(r.error){setStatus('تعذر إرسال العرض بسبب الاتصال أو الصلاحيات. تحقق من قائمة عروضك قبل إعادة المحاولة.',true);return}
+  setStatus('تم إرسال العرض بنجاح.');
   tab='bids';
   await load(defs[current]);
  }catch{
-  alert('تعذر تأكيد إرسال العرض. راجع قائمة عروضك قبل إعادة المحاولة لتجنب إرسال عرض مكرر.');
+  setStatus('تعذر تأكيد إرسال العرض. راجع قائمة عروضك قبل إعادة المحاولة لتجنب إرسال عرض مكرر.',true);
  }finally{
-  if(button.isConnected){button.disabled=false;button.textContent=originalText}
+  if(button.isConnected){button.disabled=false;button.textContent=originalText;button.removeAttribute('aria-busy')}
  }
 }
 async function mgAccept(id,ride){const r=await sb.rpc('accept_mantigo_bid_backend',{p_user_id:user.id,p_ride_id:ride,p_bid_id:id});if(r.error)return alert('تعذر تنفيذ العملية بسبب الاتصال أو الصلاحيات. تحقق من البيانات ثم حاول مرة أخرى.');await load(defs[current])}
