@@ -344,3 +344,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Marketing workspace reliability pass: provider, service, project, plan, subscription, participant, and commission tabs now preserve and render query failure states rather than making failed reads look like empty datasets. Added source-contract assertions. No API/schema changes; exact-head CI and browser E2E remain pending.
 
 - Follow-up safety fix: marketing lead creation is blocked when active-membership lookup fails; the UI explains the issue, disables submission, and the submit handler independently guards against sending. Added static source-contract checks. No production mutation, schema change, merge, or deployment.
+
+- Shared overview fix: module overview cards now distinguish failed table reads from true zero counts, showing an explicit Arabic load-failure state. Added source-contract assertion. Exact-head CI/browser verification remain pending; no merge or deployment.
