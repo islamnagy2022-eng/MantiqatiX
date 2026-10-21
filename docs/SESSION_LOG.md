@@ -468,3 +468,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added bearer-token helper/test to the dedicated workflow's pull-request path filter (push filter already included them).
 - Added source-contract assertions that both helper and test are present in both push and pull_request filters, preventing a regression where security tests silently stop running for PRs.
 - Commits: workflow filter `9b41276e55f4b1902800df7fbfba030db9af2455`; validator follow-up is being validated by exact-head Actions. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — branch write error classification
+- Unexpected branch persistence failures now return generic HTTP 500 `BRANCH_CREATE_FAILED` rather than HTTP 400, which incorrectly implied a client-input issue. Raw database error details remain hidden.
+- The source validator now asserts HTTP 500 and the no-raw-error-leak boundary.
+- Verified exact commit `8503aa6dceaa25512b648013d26a5617eda0c577`: `Business Branch Admin Source Integrity` run `39598867255` passed type-check, runtime tests, and source validation.
+- No live Supabase integration test was run; production remains BLOCKED / NOT CERTIFIED.

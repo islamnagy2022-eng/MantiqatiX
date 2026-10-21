@@ -888,3 +888,7 @@ The MantiGO payment-intent Edge Function no longer assumes a conditional ledger 
 - Do not mark live authentication, tenant isolation, Edge Function deployment parity, or browser E2E as verified. PR #314 remains draft/open and production remains BLOCKED / NOT CERTIFIED.
 
 - **CI trigger follow-up:** bearer-token helper and runtime test now appear in both push and pull_request path filters; the source validator asserts two occurrences of each path. This protects the PR validation gate from silently skipping the new security tests. Verify exact-head CI before marking this follow-up complete.
+
+
+- **Branch creation error semantics:** unexpected database insert failures in `business-branch-admin` now return safe generic HTTP 500 `BRANCH_CREATE_FAILED` instead of 400; source contract forbids exposing raw database messages. Exact-head run `39598867255` passed at `8503aa6dceaa25512b648013d26a5617eda0c577`.
+- Still not verified: actual Supabase Auth and Edge Function invocation, tenant isolation against disposable PostgreSQL/Supabase, and browser E2E. Keep release BLOCKED / NOT CERTIFIED.

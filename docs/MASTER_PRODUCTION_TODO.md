@@ -2371,3 +2371,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 - [x] Follow-up: included bearer-token helper and its runtime test in both push and pull-request path filters; source validator now asserts both triggers remain wired. Commit `9b41276e55f4b1902800df7fbfba030db9af2455`.
 - [ ] Exact-head Actions for the path-filter follow-up and source-validator follow-up must finish before recording their result; live Supabase Auth/Edge Function integration remains NOT VERIFIED.
+
+
+## 2026-10-21 — branch persistence failure semantics
+- [x] Changed unexpected branch insert/database failures from HTTP 400 to a generic HTTP 500 `BRANCH_CREATE_FAILED`; the response does not expose database error details.
+- [x] Updated the source-contract regression assertion to require the server-error status and no raw database message.
+- [x] Exact-head `Business Branch Admin Source Integrity` run `39598867255` passed at commit `8503aa6dceaa25512b648013d26a5617eda0c577` (Deno type-check, runtime tests, source validator).
+- [ ] Live Supabase Auth + Edge Function integration, tenant isolation tests against a disposable real PostgreSQL/Supabase instance, and browser E2E remain NOT VERIFIED. Release remains **BLOCKED / NOT CERTIFIED**.
