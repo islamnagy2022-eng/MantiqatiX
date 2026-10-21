@@ -365,3 +365,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - MantiGO open-rides follow-up (2026-10-21): removed a second RPC that was triggered from the render path and silently converted errors to an empty list. The tab-click loader remains the single request path and records errors for retry UI. Source-contract guards added; runtime/browser verification remains pending.
+
+
+- 2026-10-21 budget-validation UX correction: clarified the Arabic validation message so it explicitly states that the minimum budget cannot exceed the maximum. Added a source-contract assertion. This is a wording/UX fix only; runtime, browser E2E, exact-head CI, backend authorization and tenant-isolation verification remain pending.
