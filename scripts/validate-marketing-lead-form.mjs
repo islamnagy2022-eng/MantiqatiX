@@ -177,6 +177,12 @@ assert.match(source, /b\.disabled=true;b\.setAttribute\('aria-busy','true'\)/, "
 assert.match(source, /catch\{if\(generation===loadGeneration&&current==='MantiGO والنقل'&&tab==='open'\)\{rows\.mantigo_open=\[\];loadErrors\.mantigo_open=\{message:'NETWORK_OR_RPC_FAILURE'\}\}\}/, "open-rides network exceptions must become visible safe load failures");
 assert.match(source, /if\(generation!==loadGeneration\|\|current!=='MantiGO والنقل'\|\|tab!=='open'\)return/, "late open-rides responses must not overwrite a newer navigation state");
 assert.match(source, /if\(b\.isConnected\)\{b\.disabled=false;b\.removeAttribute\('aria-busy'\)\}/, "open-rides controls must recover after success or failure");
+const rideCreate = source.slice(source.indexOf("async function mgCreateRide()"), source.indexOf("function mantigoOpenRides()"));
+assert.match(rideCreate, /btn\.dataset\.idempotencyKey\|\|\(crypto\.randomUUID/, "ride creation must reuse the same idempotency key after uncertain outcomes");
+assert.match(rideCreate, /catch\{[\s\S]*?انقطع الاتصال قبل تأكيد نشر الطلب/, "ride creation network exceptions must show safe guidance instead of leaving an unhandled rejection");
+assert.match(rideCreate, /finally\{[\s\S]*?btn\.removeAttribute\('aria-busy'\)/, "ride creation controls must recover from success, server errors, and network exceptions");
+assert.match(rideCreate, /if\(!user\?\.id\)return alert\('انتهت جلسة الدخول/, "ride creation must fail safely when the session is unavailable");
+
 
 
 assert.match(source, /function shell\(d,body\)[\s\S]*?const accessContext=membershipLoadError\?/, "module shell must show membership verification failure rather than silently implying full access");
