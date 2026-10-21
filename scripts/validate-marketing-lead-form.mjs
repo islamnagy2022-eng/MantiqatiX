@@ -115,7 +115,11 @@ assert.match(source, /sb\.rpc\('create_medical_appointment_backend'/, "medical b
 assert.match(source, /async function medicalBook\(providerId,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "medical booking must prevent duplicate clicks and restore the submit button");
 assert.doesNotMatch(source, /const raw=prompt\('موعد الحجز/, "medical booking flow must not rely on blocking browser prompts");
 
-assert.match(source, /function liveColumnLabel\\(key\\)/, "generic live tables must translate common database column keys for Arabic users");\nassert.match(source, /name_ar:/, "live table column labels must include Arabic name fields");\nassert.match(source, /payment_status:/, "live table column labels must localize payment status");\nassert.match(source, /aria-label=\\"سجلات /, "live data tables must expose an accessible table label");\nassert.match(source, /function genericLiveTable\(t,query=''/, "generic module tables must share a reusable search renderer");
+assert.match(source, /function liveColumnLabel\\(key\\)/, "generic live tables must translate common database column keys for Arabic users");
+assert.match(source, /name_ar:/, "live table column labels must include Arabic name fields");
+assert.match(source, /payment_status:/, "live table column labels must localize payment status");
+assert.match(source, /aria-label=\\"سجلات /, "live data tables must expose an accessible table label");
+assert.match(source, /function genericLiveTable\(t,query=''/, "generic module tables must share a reusable search renderer");
 assert.match(source, /data-live-search=/, "generic module tables must expose a search field");
 assert.match(source, /data-live-results=/, "generic module search must have a dedicated results target");
 assert.match(source, /keys\.some\(k=>String\(r\[k\]\?\?''\)\.toLocaleLowerCase\(\)\.includes\(needle\)\)/, "generic search must filter only fields rendered to the user");
