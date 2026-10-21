@@ -24,9 +24,16 @@ Deno.serve(async(req)=>{
   const db=createClient(url,key,{auth:{autoRefreshToken:false,persistSession:false}});
   const {data:{user},error:ue}=await db.auth.getUser(auth.slice(7).trim());
   if(ue||!user||user.is_anonymous)return out({error:"UNAUTHORIZED"},401);
+  const maxBodyBytes=16384;
   const contentLength=Number(req.headers.get("Content-Length")||"0");
-  if(Number.isFinite(contentLength)&&contentLength>16384)return out({error:"REQUEST_TOO_LARGE"},413);
-  let body:unknown;try{body=await req.json()}catch{return out({error:"INVALID_JSON"},400)}
+  if(Number.isFinite(contentLength)&&contentLength>maxBodyBytes)return out({error:"REQUEST_TOO_LARGE"},413);
+  if(!req.body)return out({error:"INVALID_JSON"},400);
+  const reader=req.body.getReader(),chunks:Uint8Array[]=[];let totalBytes=0;
+  try{
+    while(true){const {done,value}=await reader.read();if(done)break;totalBytes+=value.byteLength;if(totalBytes>maxBodyBytes){await reader.cancel();return out({error:"REQUEST_TOO_LARGE"},413)}chunks.push(value)}
+  }catch{try{await reader.cancel()}catch{}return out({error:"INVALID_JSON"},400)}
+  const payload=new Uint8Array(totalBytes);let offset=0;for(const chunk of chunks){payload.set(chunk,offset);offset+=chunk.byteLength}
+  let body:unknown;try{body=JSON.parse(new TextDecoder().decode(payload))}catch{return out({error:"INVALID_JSON"},400)}
   if(!body||typeof body!=="object"||Array.isArray(body))return out({error:"INVALID_REQUEST_BODY"},400);
   const input=body as Record<string,unknown>;
   if((input.tenantId!=null&&typeof input.tenantId!=="string")||(input.businessId!=null&&typeof input.businessId!=="string")||(input.name!=null&&typeof input.name!=="string"))return out({error:"INVALID_REQUEST_FIELDS"},400);
