@@ -27,7 +27,7 @@ for(const check of [
 ]) assert.ok(test.includes(check),'integration test must cover '+check);
 
 assert.ok(ui.includes("sb.rpc('restaurant_reservation_mutate'"),'UI writes must use the reservation RPC');
-assert.ok(ui.includes("reservationsQ=reservationsQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id)'),'reservation reads must be scoped to the active branch');
+assert.ok(ui.includes("reservationsQ=reservationsQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id)"),'reservation reads must be scoped to the active branch');
 assert.ok(ui.includes("if(!Number.isInteger(guestCount)||guestCount<1||guestCount>Number(table.capacity_persons))"),'reservation form must validate guest count against table capacity');
 assert.ok(ui.includes('data-reservation-action="CONFIRM"') && ui.includes('data-reservation-action="SEAT"') && ui.includes('data-reservation-action="NO_SHOW"'),'reservation UI must expose guarded confirmation, seating and no-show actions');
 assert.ok(ui.includes('data-reservation-cancel'),'UI must expose a scoped cancellation action');
