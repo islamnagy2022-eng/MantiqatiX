@@ -28,4 +28,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          CURRENT_PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          CURRENT_PR_BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
         run: node scripts/validate-open-pr-migration-collisions.mjs
