@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const source = fs.readFileSync("web/operations-modules.js", "utf8");
 const edge = fs.readFileSync("supabase/functions/marketing-lead-create/index.ts", "utf8");
+const paymentEdge = fs.readFileSync("supabase/functions/mantigo-payment-intent/index.ts", "utf8");
 const form = source.slice(source.indexOf("function leadForm()"), source.indexOf("function educationWorkspace()"));
 assert.match(form, /id="mlTitle"[^>]*maxlength="160"/, "lead title must have a bounded length");
 assert.match(form, /id="mlDesc"[^>]*maxlength="5000"/, "lead description must have a bounded length");
@@ -62,8 +63,8 @@ assert.match(source, /required_services\|\|\[\]/, "lead list must display reques
 assert.match(source, /money\(r\.budget_min\).*money\(r\.budget_max\)/, "lead list must show the full budget range");
 assert.match(source, /toLocaleDateString\('ar-EG'\)/, "lead list must display localized request dates");
 assert.match(source, /id="mlSearch"/, "marketing lead list must provide a search field");
-assert.match(source, /function marketingLeadTable\(query=''\)/, "lead search must filter the existing visible dataset");
-assert.match(source, /e=>\{const target=document\.getElementById\('mlLeadResults'\)/, "lead search must update results as the user types");
+assert.match(source, /function marketingLeadTable\(query='',status=''\)/, "lead search and status filters must filter the existing visible dataset");
+assert.match(source, /const refreshMarketingLeads=\(\)=>\{const target=document\.getElementById\('mlLeadResults'\)[\s\S]*?addEventListener\('input',refreshMarketingLeads\)[\s\S]*?addEventListener\('change',refreshMarketingLeads\)/, "lead search and status filter must refresh results as users interact");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 assert.match(edge, /const rawBytes = await readLimitedBody\(req, maxBodyBytes\);[\s\S]*?JSON\.parse\(new TextDecoder\(\)\.decode\(rawBytes\)\)/, "lead API must enforce the request limit using its bounded byte stream before parsing JSON");
 assert.match(edge, /typeof body\.title === "string"[\s\S]*?typeof body\.description === "string"/, "lead API must reject non-string title and description values");
@@ -85,10 +86,10 @@ assert.match(source, /تعذر إنشاء طلب الرحلة بسبب الات�
 assert.doesNotMatch(source, /alert\(data\.error/, "payment API failures must not expose raw server error strings");
 assert.match(source, /تعذر بدء الدفع الإلكتروني\. تحقق من حالة الرحلة والاتصال ثم حاول مرة أخرى/, "payment failures must use safe actionable Arabic feedback");
 assert.match(source, /async function mgCardPay\(ride\)\{try\{[\s\S]*?تعذر الاتصال بخدمة الدفع الإلكتروني\. لم يتم تأكيد بدء الدفع/, "payment intent network failures must be caught and reported safely");
-assert.match(edge, /\.in\("payment_status",\["REQUIRED","PENDING"\]\)\.is\("provider_intent_id",null\)\.select\("id"\)\.maybeSingle\(\)/, "payment intent persistence must be conditional on an eligible ledger row without a provider intent");
-assert.match(edge, /if\(!persistedIntent\?\.id\)[\s\S]*?PAYMENT_INTENT_STATE_CHANGED[\s\S]*?Never return a checkout URL unless this exact provider intent was persisted/, "checkout must not be returned when a concurrent state change prevented persistence");
-assert.match(edge, /stage:"persist_paymob_intent"[\s\S]*?PAYMENT_INTENT_PERSISTENCE_FAILED/, "payment persistence failures must be logged with a request ID and returned as a safe error code");
-console.log("Marketing lead form validation contract PASS.");
+assert.match(paymentEdge, /\.in\("payment_status",\["REQUIRED","PENDING"\]\)\.is\("provider_intent_id",null\)\.select\("id"\)\.maybeSingle\(\)/, "payment intent persistence must be conditional on an eligible ledger row without a provider intent");
+assert.match(paymentEdge, /if\(!persistedIntent\?\.id\)[\s\S]*?PAYMENT_INTENT_STATE_CHANGED[\s\S]*?Never return a checkout URL unless this exact provider intent was persisted/, "checkout must not be returned when a concurrent state change prevented persistence");
+assert.match(paymentEdge, /stage:"persist_paymob_intent"[\s\S]*?PAYMENT_INTENT_PERSISTENCE_FAILED/, "payment persistence failures must be logged with a request ID and returned as a safe error code");
+
 
 assert.match(source, /data-job-form=/, "job applications must use an accessible in-page form rather than browser prompts");
 assert.match(source, /aria-expanded="false" aria-controls="job-form-/, "job application toggles must expose their expanded state accessibly");
@@ -165,3 +166,5 @@ assert.match(source, /لا توجد طلبات تطابق البحث والتص�
 assert.match(source, /refreshMarketingLeads/, "search and status controls must refresh the same results view");
 
 assert.match(source, /new Date\(r\.date_time\)\.toLocaleString\('ar-EG'\)/, "ISO appointment timestamps must be parsed as date strings rather than coerced to numbers");
+
+console.log("Marketing lead form validation contract PASS.");
