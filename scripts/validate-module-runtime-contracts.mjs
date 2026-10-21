@@ -58,6 +58,8 @@ for(const [code,owner,tables] of modules){
  const runtimeMarker=owner==="app" ? source.length>1000 : source.length>1000;
  if(!catalogEntry||!tableCoverage||!runtimeMarker) failures.push(code);
 }
+for(const required of ["تعذر إرسال الطلب. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.","تعذر إنشاء الفرع. راجع الاتصال وصلاحية الحساب ثم حاول مرة أخرى.","تعذر قراءة حالة التسجيل حاليا. حاول مرة أخرى لاحقا.","تعذر تحميل تكوين النشاط حاليا. تحقق من تسجيل الدخول والاتصال ثم حاول مرة أخرى.","تعذر تحميل طلب إضافة النشاط حاليا. تحقق من الاتصال وصلاحية الحساب ثم حاول مرة أخرى."]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_SAFE_ERROR_FEEDBACK:"+required);}
+for(const unsafe of ["out.textContent='تعذر إرسال الطلب: '+esc(err.message)","out.textContent='تعذر إنشاء الفرع: '+esc(err.message)","out.textContent='تعذر قراءة الحالة: '+err.message","esc(err.message)+'</div></section>"]){if(providerOnboarding.includes(unsafe))failures.push("PROVIDER_RAW_ERROR_LEAK:"+unsafe);}
 if(failures.length){console.error("Module runtime contract FAILED:",failures.join(", "));process.exit(1);}
 console.log("Module runtime contract PASSED: "+modules.length+" modules mapped to existing runtime/data contracts.");
 console.log("E2E transaction testing remains NOT VERIFIED by design; no production data is created.");
