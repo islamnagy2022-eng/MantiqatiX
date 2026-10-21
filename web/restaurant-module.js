@@ -352,12 +352,12 @@ function addInventory(existing){
  if(!canOperate('OPERATIONS',existing?'update':'create'))return;
  const x=existing||{};
  modal(existing?'تعديل صنف مخزون':'إضافة صنف مخزون',
- field('name','اسم الصنف',x.name_ar)+field('unit','الوحدة',x.unit||'KG')+'<div class="notice">يبدأ الصنف برصيد صفر. سجل الوارد أو الصرف أو الرصيد الافتتاحي من زر حركة ليتم تحديث الرصيد مع سجل تدقيق.</div>'+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0"')+field('supplier','المورد',x.supplier_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
+ field('name','اسم الصنف',x.name_ar,'text','maxlength="120" required')+field('unit','الوحدة',x.unit||'KG','text','maxlength="24" required')+'<div class="notice">يبدأ الصنف برصيد صفر. سجل الوارد أو الصرف أو الرصيد الافتتاحي من زر حركة ليتم تحديث الرصيد مع سجل تدقيق.</div>'+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0" max="1000000000" required')+field('supplier','المورد',x.supplier_name||'','text','maxlength="120"')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),min_stock_alert_threshold:Number(o.querySelector('#min').value),supplier_name:o.querySelector('#supplier').value.trim()};
   if(!existing){payload.current_stock_qty=0;payload.unit_cost_egp=0;}
-  if(!payload.name_ar||!payload.unit||![payload.min_stock_alert_threshold].every(v=>Number.isFinite(v)&&v>=0))return notify('تحقق من بيانات المخزون.');
+  if(!payload.name_ar||payload.name_ar.length>120||!payload.unit||payload.unit.length>24||payload.supplier_name.length>120||![payload.min_stock_alert_threshold].every(v=>Number.isFinite(v)&&v>=0&&v<=1000000000))return notify('تحقق من بيانات المخزون وحدود الحقول.','error');
   const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle():sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
   const r=await q;if(r.error)return notify('تعذر الحفظ. تحقق من البيانات والصلاحيات ثم حاول مرة أخرى.','error');if(!r.data)return notify('لم يتم الحفظ: صنف المخزون خارج نطاق الفرع أو لا تملك الصلاحية.','error');o._close();await load();
  });
