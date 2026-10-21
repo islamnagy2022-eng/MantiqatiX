@@ -17,7 +17,10 @@ const checks = [
   ["Homepage keeps Supabase failure in public mode", /public mode remains open/.test(home)],
   ["Pages artifact publishes web/ as the site root", /path:\s*\.\/web/.test(pages)],
   ["Production deploy is restricted to main", /github\.ref == 'refs\/heads\/main'/.test(pages)],
-  ["Service worker uses network-first navigation with cached homepage fallback", /event\.request\.mode==='navigate'[\s\S]*?caches\.match\('\.\/index\.html'\)/.test(sw)]
+  ["Service worker uses network-first navigation with cached homepage fallback", /event\\.request\\.mode==='navigate'[\\s\\S]*?caches\\.match\\('\\.\\/index\\.html'\\)/.test(sw)],
+  ["Demo dashboard declares Arabic RTL and mobile viewport", /<html lang="ar" dir="rtl">/.test(dashboard) && /name="viewport"/.test(dashboard)],
+  ["Demo dashboard has tablet and phone responsive breakpoints", /@media\\s*\\(max-width:\\s*980px\\)/.test(dashboard) && /@media\\s*\\(max-width:\\s*650px\\)/.test(dashboard)],
+  ["Demo dashboard remains standalone without network or browser persistence APIs", !/\\bfetch\\s*\\(|\\bsupabase\\b|localStorage|sessionStorage/i.test(dashboard)]
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
