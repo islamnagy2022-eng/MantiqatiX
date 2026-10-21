@@ -171,6 +171,13 @@ assert.match(source, /refreshMarketingLeads/, "search and status controls must r
 
 assert.match(source, /new Date\(r\.date_time\)\.toLocaleString\('ar-EG'\)/, "ISO appointment timestamps must be parsed as date strings rather than coerced to numbers");
 
+
+assert.match(source, /const nextTab=b\.dataset\.opTab;tab=nextTab/, "MantiGO tab navigation must use the selected tab consistently");
+assert.match(source, /b\.disabled=true;b\.setAttribute\('aria-busy','true'\)/, "open-rides loading must prevent duplicate requests and expose busy state");
+assert.match(source, /catch\{if\(generation===loadGeneration&&current==='MantiGO والنقل'&&tab==='open'\)\{rows\.mantigo_open=\[\];loadErrors\.mantigo_open=\{message:'NETWORK_OR_RPC_FAILURE'\}\}\}/, "open-rides network exceptions must become visible safe load failures");
+assert.match(source, /if\(generation!==loadGeneration\|\|current!=='MantiGO والنقل'\|\|tab!=='open'\)return/, "late open-rides responses must not overwrite a newer navigation state");
+assert.match(source, /if\(b\.isConnected\)\{b\.disabled=false;b\.removeAttribute\('aria-busy'\)\}/, "open-rides controls must recover after success or failure");
+
 console.log("Marketing lead form validation contract PASS.");
 
 // Fail closed when prior user-owned state cannot be verified.
