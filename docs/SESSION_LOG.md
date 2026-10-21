@@ -127,3 +127,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Live verification limit:** attempted to retrieve both published preview URLs in this session; the fetch tool returned cache-miss errors, which are inconclusive and are not recorded as a site failure or pass.
 - **Action performed:** updated item 10 in `docs/MASTER_PRODUCTION_TODO.md` to distinguish successful source CI from the still-unverified deployed-preview smoke and browser E2E.
 - **Not performed:** no merge, production deploy, main update, or production data/configuration mutation. Production gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — ERP receiving atomic boundary and release-gate confirmation
+- Updated `supabase/functions/erp-purchase-receive/index.ts` to call `receive_purchase_stock_with_order_line_backend` only. Direct REST mutations of `stock_balances`, `erp_purchase_receipts`, and `inventory_transactions` were removed from the Edge Function. If the RPC is missing or fails unexpectedly, the handler returns `ATOMIC_RECEIVING_UNAVAILABLE` (503); no non-atomic fallback exists.
+- The request path validates authenticated non-anonymous users, payload size/shape, identifier format, finite positive quantity, finite non-negative unit cost, allowed origin, and passes `user.id` as the actor to the database function.
+- Contract validator now asserts the atomic RPC path and finite amount validation. Static source checks confirmed no direct balance update, receipt insert, or inventory-ledger insert remains in the Edge Function.
+- CI on commit `3b31c381a011f4972a68b560074ee874a1d16509`: Module Professionalization Validation, Backend-only Module Boundary, MantiGO Open Ride Privacy Boundary, and Production Health Monitor passed. Pages deployment validation failed at `npm run verify:production` with `PRODUCTION_GATE=BLOCKED` because RC425–RC432 and RC434–RC441 migration source files are missing. The deploy job was skipped; this is expected fail-closed behavior, not a code syntax failure.
+- Required next: reconcile the competing RC434 migration definitions in draft PRs; recover/review the complete migration chain in order, with collision guard intact; resolve legacy purchase orders lacking lines; run Postgres integration tests for transaction rollback, concurrent duplicate receipt, over-receiving, tenant isolation, and service-role-only grants.
+- No production database, Edge Function deployment, or production data was mutated. Release remains **BLOCKED / NOT CERTIFIED**.
