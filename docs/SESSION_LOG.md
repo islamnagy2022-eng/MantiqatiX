@@ -338,3 +338,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added a business selector to the marketing lead form when the signed-in user has multiple active business memberships; membership retrieval is bounded to 50 rows to match the existing Edge Function lookup limit.
 - The selected `business_id` is submitted to the existing `marketing-lead-create` Edge Function, which remains the authority for membership authorization. No direct table write, schema change, migration, production mutation, merge, or deployment was performed.
 - Added static source-contract assertions for business selection and payload propagation. CI workflow query has not returned an exact-head run; browser E2E and live authorization behavior remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
+
+- Added client-side search to the marketing lead list across title, description, requested services, service area, status, and source. Search operates only on the already-loaded list, which remains filtered by the existing user-scoped query; no expanded backend query or permissions change was introduced.
