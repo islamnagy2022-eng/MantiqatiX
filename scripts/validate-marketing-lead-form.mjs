@@ -128,6 +128,8 @@ assert.match(source, /payment_status:/, "live table column labels must localize 
 assert.match(source, /aria-label="سجلات /, "live data tables must expose an accessible table label");
 assert.match(source, /function genericLiveTable\(t,query=''/, "generic module tables must share a reusable search renderer");
 assert.match(source, /data-live-search=/, "generic module tables must expose a search field");
+assert.match(source, /aria-describedby="live-search-help-\x27\+esc\(t\)\+\x27"/, "generic module search fields must reference contextual help");
+assert.match(source, /مسح النص يعيد كل السجلات المرئية/, "generic module search must explain how to clear filters");
 assert.match(source, /data-live-results=/, "generic module search must have a dedicated results target");
 assert.match(source, /keys\.some\(k=>String\(r\[k\]\?\?''\)\.toLocaleLowerCase\(\)\.includes\(needle\)\)/, "generic search must filter only fields rendered to the user");
 assert.match(source, /لا توجد نتائج مطابقة للبحث/, "generic table search must distinguish no matches from an empty data source");
