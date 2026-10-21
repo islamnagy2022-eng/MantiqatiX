@@ -31,10 +31,11 @@ Deno.serve(async (req: Request) => {
   const actor = data.user;
   if (error || !actor || actor.is_anonymous) return json({ error: "unauthorized" }, 401);
 
+  const rawBytes = await readLimitedBody(req, maxBodyBytes);
+  if (rawBytes === null) return json({ error: "payload_too_large" }, 413);
+
   let body: Record<string, unknown>;
   try {
-    const rawBytes = await req.arrayBuffer();
-    if (rawBytes.byteLength > maxBodyBytes) return json({ error: "payload_too_large" }, 413);
     body = JSON.parse(new TextDecoder().decode(rawBytes));
   } catch {
     return json({ error: "invalid_json" }, 400);
@@ -108,6 +109,32 @@ Deno.serve(async (req: Request) => {
   if (insertError) return json({ error: "lead_creation_failed" }, 500);
   return json({ ok: true, lead: created });
 });
+
+async function readLimitedBody(req: Request, limit: number): Promise<Uint8Array | null> {
+  const reader = req.body?.getReader();
+  if (!reader) return new Uint8Array();
+
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totalBytes += value.byteLength;
+    if (totalBytes > limit) {
+      try { await reader.cancel(); } catch { /* stream is already closed */ }
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
 
 function json(body: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(body), {
