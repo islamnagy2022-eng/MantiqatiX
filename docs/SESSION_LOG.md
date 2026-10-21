@@ -368,3 +368,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 budget-validation UX correction: clarified the Arabic validation message so it explicitly states that the minimum budget cannot exceed the maximum. Added a source-contract assertion. This is a wording/UX fix only; runtime, browser E2E, exact-head CI, backend authorization and tenant-isolation verification remain pending.
+
+
+- 2026-10-21 API payload hardening: `marketing-lead-create` now checks the raw request body's actual `ArrayBuffer.byteLength` before UTF-8 decoding and JSON parsing, rather than using JavaScript string length as a proxy for bytes. Added a source-contract assertion. This closes a multibyte/Unicode size-accounting gap; runtime Edge Function tests, exact-head CI, browser E2E and authorization/isolation verification remain pending.
