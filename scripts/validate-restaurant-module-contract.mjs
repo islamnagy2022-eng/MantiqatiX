@@ -91,8 +91,9 @@ assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:
 assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
 assert.match(moduleSource, /ends_at:endsAt,notes,idempotency_key:key/, 'reservation payload must carry bounded time range and idempotency key');
 
-assert.match(moduleSource, /متوسط قيمة الطلب/, 'dashboard must show a clearly scoped average order value');
-assert.match(moduleSource, /ليس تقرير مبيعات محاسبيًا/, 'dashboard must not misrepresent order totals as accounting sales');
+// Financial KPIs are intentionally omitted until an authoritative payment/settlement source is wired.
+assert.match(moduleSource, /لا نعرض إجمالي مبيعات أو متوسط طلب باعتبارهما أرقامًا مالية معتمدة/,
+  'dashboard must explicitly avoid presenting unverified financial KPIs as authoritative');
 assert.ok(moduleSource.includes("if(s.dataset.pending==='1')return;const previous=s.dataset.currentStatus||s.value;const selected=s.value;s.dataset.pending='1';s.disabled=true"), 'concurrent status changes must be serialized per order selector');
 assert.ok(moduleSource.includes("delete s.dataset.pending;if(s.isConnected)s.disabled=false"), 'status selector must be re-enabled after completion or failure');
 assert.ok(moduleSource.includes("await load();return true;")&&moduleSource.includes("return false}"), 'status update handler must report success or failure');
