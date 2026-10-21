@@ -374,3 +374,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 API input-shape hardening: `marketing-lead-create` no longer coerces objects/numbers into text fields or stringifies invalid service entries. It rejects non-string title/description/service-area/business IDs, non-array or non-string requested services, and non-number budget values; valid omitted budgets still default to zero. Added source-contract assertions. Edge runtime tests and exact-head CI remain pending.
+
+
+- 2026-10-21 payload-stream hardening: replaced full-body buffering with `readLimitedBody`, which counts incoming stream bytes, cancels the reader as soon as the configured limit is exceeded, and only concatenates chunks after the size check. This avoids allocating an arbitrarily large body before rejection when `Content-Length` is missing or misleading. Added a source-contract assertion; runtime Edge tests and exact-head CI remain pending.
