@@ -21,8 +21,10 @@ assert.match(moduleSource, /rest-clear-membership/,
   'a stale saved selection must expose an explicit recovery action');
 assert.match(moduleSource, /removeItem\('MNTYActiveMembershipId'\);load\(\)/,
   'membership selection is cleared only after the user explicitly chooses recovery');
-assert.match(moduleSource, /const r=await base\(\)\.limit\(20\);\s*const options=r\.data\|\|\[\];\s*return \{membership:options\.length===1\?options\[0\]:null,options,needsSelection:options\.length>1/,
-  'multiple active memberships must require an explicit choice instead of selecting the first');
+assert.match(moduleSource, /const pageSize=100;\s*const maxMemberships=500;[\s\S]*?base\(\)\.order\('id'\)\.range\(from,from\+pageSize-1\)/,
+  'active memberships must be paginated deterministically rather than silently truncating at 20');
+assert.match(moduleSource, /if\(options\.length>=maxMemberships\)return \{membership:null,options:\[\],needsSelection:false,stale:false,error:new Error\(/,
+  'membership lists beyond the safety cap must fail closed rather than show an incomplete choice list');
 assert.match(moduleSource, /if\(state\.selectionRequired\).*data-select-membership/s,
   'multiple active memberships must render a membership choice screen');
 assert.match(moduleSource, /const selectedScope=scope\(\);\s*if\(!selectedScope\)\{state\.membership=null;state\.error='بيانات نطاق المؤسسة أو النشاط أو الفرع غير مكتملة/,
@@ -48,6 +50,8 @@ assert.match(moduleSource, /setItem\('MNTYActiveMembershipId',id\);load\(\)/,
 
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
+assert.match(moduleSource, /Limited catalog reads remain pinned to the selected tenant, business and branch\.\s*menuQ=menuQ\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.eq\('is_available',true\)/,
+  'limited catalog reads must remain branch-scoped when CATALOG:view is denied');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 assert.match(moduleSource, /Tables and inventory are operational records, not personal fallback data/,
@@ -85,5 +89,9 @@ assert.match(moduleSource, /restaurant_tables'\)\.update\(payload\)\.eq\('id',ex
 assert.match(moduleSource, /restaurant_inventory'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'inventory updates must be scoped to the active branch and detect unmatched writes');
 assert.match(moduleSource, /if\(!r\.data\)return notify\('لم يتم الحفظ:/, 'zero-row updates must not be reported as success');
 assert.ok(moduleSource.includes("if(saveButton.disabled)return;saveButton.disabled=true;try{await onSave(o)}catch(error){notify('حدث خطأ غير متوقع أثناء الحفظ. حاول مرة أخرى.','error')}finally{if(o.isConnected)saveButton.disabled=false}"), 'modal saves must be single-flight and surface unexpected errors');
+assert.match(moduleSource, /function modal\(title,html,onSave,onCancel\)/, 'modal must expose an explicit cancellation callback');
+assert.match(moduleSource, /document\.removeEventListener\('keydown',onKey\)/, 'modal keyboard listeners must be removed when the dialog closes');
+assert.match(moduleSource, /o\._close=\(\)=>close\(false\)/, 'successful saves must close dialogs through the cleanup path');
+assert.match(moduleSource, /o\._close\(\);resolve\(\{item,quantity\}\);\s*\},\(\)=>resolve\(null\)\)/, 'canceling order details must resolve the pending order flow without leaving a stuck promise');
 
 console.log('Restaurant module contract PASS');
