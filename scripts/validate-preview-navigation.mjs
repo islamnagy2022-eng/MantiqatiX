@@ -12,7 +12,7 @@ const checks = [
   ["Preview has a manual public-home fallback", /href="\.\.\/"/.test(entry)],
   ["Preview has a direct demo link", /href="dashboard\.html"/.test(entry)],
   ["Gateway clearly labels demo-only behavior", /وضع تجريبي فقط/.test(entry)],
-  ["Demo dashboard is explicitly non-production", /Demo Mode/.test(dashboard) && /لا توجد عمليات إنتاجية/.test(dashboard)],
+  ["Demo dashboard is explicitly non-production", /Demo Mode/.test(dashboard) && /لا توجد عمليات فعلية/.test(dashboard)],
   ["Demo catalog includes platform modules across domains", /id:'marketing'/.test(dashboard) && /id:'orders'/.test(dashboard) && /id:'accounting'/.test(dashboard) && /id:'security'/.test(dashboard) && /id:'settings'/.test(dashboard)],
   ["Demo workspaces support local record creation and filtering", /recordForm/.test(dashboard) && /recordSearch/.test(dashboard) && /data\[current\.id\]\.unshift/.test(dashboard)],
   ["Published homepage exists in the Pages artifact root", fs.existsSync("web/index.html")],
