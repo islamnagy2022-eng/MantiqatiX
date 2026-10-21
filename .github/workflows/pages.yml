@@ -52,6 +52,7 @@ jobs:
           ! grep -REq 'customer@example\\.com|\\+201000000000' supabase/functions --include='*.ts'
           node --check web/sector-modules.js
           node --check web/operations-modules.js
+          node scripts/validate-marketing-lead-form.mjs
           node --check web/module-blueprints.js
           node scripts/validate-module-blueprint-actions.mjs
           node scripts/validate-global-search-failure-state.mjs
