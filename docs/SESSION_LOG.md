@@ -350,3 +350,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Shared overview retry: if an overview table read fails, show a clear warning and a retry action that reloads the current module. Added static contract assertions for the retry control and handler. Exact-head CI and browser tests remain unverified.
 
 - Extended retry behavior to non-overview module tabs: failed table reads now expose a visible retry action, with duplicate alert suppression when a tab already renders its own alert. Added source-contract assertions. Exact-head CI and browser verification remain pending.
+
+
+- Detail-tab retry correction (2026-10-21): preserved a visible retry action on tabs that already render a specific query-error alert, without duplicating the alert. Added a source-contract assertion. Exact-head CI/browser E2E remain unverified; production remains BLOCKED / NOT CERTIFIED.
