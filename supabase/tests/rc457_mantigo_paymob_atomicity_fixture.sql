@@ -38,7 +38,7 @@ create table public.payment_provider_events (
   event_type text not null,
   payment_intent_id varchar references public.payment_intents(id) on delete set null,
   external_event_id text not null,
-  status text,
+  status varchar not null default 'RECEIVED',
   signature_verified boolean not null default false,
   raw_payload jsonb not null default '{}'::jsonb,
   processed_at timestamptz,
