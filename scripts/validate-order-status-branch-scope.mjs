@@ -14,9 +14,12 @@ assert.ok(migration.includes('m.business_id=v_order.business_id'), 'canonical RP
 assert.ok(migration.includes('m.branch_id=v_order.branch_id'), 'canonical RPC must enforce exact branch membership');
 assert.ok(migration.includes('p_user_id is distinct from auth.uid()'), 'RPC must bind the claimed user to the authenticated subject');
 assert.ok(migration.includes('ORDER_PAID_REQUIRES_REFUND_BEFORE_CANCELLATION'), 'paid-order cancellation must still require refund handling');
-assert.ok(edge.includes('global:{headers:{Authorization:h}}'), 'Edge Function must forward the verified user JWT to the RPC');
-assert.ok(edge.includes('userScoped.rpc("update_order_status_backend"'), 'status RPC must run in the authenticated user context');
-assert.ok(!edge.includes('admin.rpc("update_order_status_backend"'), 'service-role context must not call a user-identity-bound RPC');
+assert.ok(edge.includes('admin.rpc("update_order_status_backend"'), 'the verified Edge Function must call the backend-only RPC');
+assert.ok(!edge.includes('userScoped.rpc("update_order_status_backend"'), 'status RPC must not be exposed to direct authenticated clients');
+assert.ok(migration.includes('from public, anon, authenticated, service_role;'), 'status RPC execution must be revoked from client roles');
+assert.ok(migration.includes('to service_role;'), 'only the trusted server role may execute the status RPC');
+assert.ok(migration.includes("coalesce(auth.role(),'') <> 'service_role'"), 'RPC must distinguish trusted server invocation from user-context calls');
+assert.ok(test.includes('RC529_FAIL: authenticated role can execute backend-only status RPC')===false, 'test must assert the authenticated role lacks EXECUTE');
 assert.ok(edge.includes('if(rpcError)return out({error:"ORDER_STATUS_UPDATE_FAILED"},400)'), 'database errors must not leak raw provider details');
 for (const marker of [
   'RC529_FAIL: cross-branch status mutation succeeded',
