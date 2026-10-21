@@ -787,3 +787,5 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - The form captures requested services, de-duplicates entries, enforces up to 10 entries and 80 characters each, and sends `required_services`. Static validator updated. Exact-head CI and browser E2E pending; release remains BLOCKED / NOT CERTIFIED.
 
 - Additional reliability guard: the UI now reports success only when the backend explicitly returns `ok: true` and a created lead ID. Unknown/malformed responses show a safe uncertainty message, and raw backend error text is no longer exposed to the user. Static source-contract checks were extended; CI/browser E2E still unverified.
+
+- Marketing list reliability: query failures for `marketing_leads` are now tracked separately and rendered as an explicit alert instead of showing an empty-state table that could be mistaken for zero requests. Static validator updated; CI/browser E2E remain unverified.
