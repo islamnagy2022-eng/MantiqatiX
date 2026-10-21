@@ -2187,3 +2187,13 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added an eight-way concurrent duplicate-delivery workload in `supabase/tests/rc457_mantigo_paymob_concurrent.sql`; the CI job verifies the result remains one provider event and one PAID ledger transition.
 - [x] Hardened the RPC search path to `pg_catalog, pg_temp` and added a regression assertion for that trusted path.
 - [ ] The newest exact-head workflow is still pending; do not count the earlier RC457 pass as proof of the latest search-path/concurrency changes.
+
+
+## 2026-10-21 — Global search accessibility and dismissal fix
+
+- [x] The authenticated global search input now exposes combobox/listbox semantics and the results are keyboard navigable with ArrowDown/ArrowUp; Escape closes the list and returns focus to the input.
+- [x] Outside clicks reliably dismiss search results across page rerenders, cancel the pending debounce, and reset `aria-expanded`; the previous one-shot document listener was removed.
+- [x] Expanded `scripts/validate-global-search-failure-state.mjs` to guard the new accessible state and keyboard behavior.
+- [x] CI passed on source commit `72ae6352c54456c416adf9d1e13ed79b6551673a`: web validation, module professionalization validation, backend-only module boundary, MantiGO open-ride privacy integration, and RC457 Paymob atomicity integration.
+- [ ] Manual browser/mobile keyboard and screen-reader verification remains outstanding. Feature-branch production deployment is intentionally skipped.
+- Current PR #314 remains open as a draft; no merge or production release was performed.
