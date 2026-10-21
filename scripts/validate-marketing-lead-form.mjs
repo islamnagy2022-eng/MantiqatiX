@@ -89,3 +89,12 @@ assert.match(edge, /\.in\("payment_status",\["REQUIRED","PENDING"\]\)\.is\("prov
 assert.match(edge, /if\(!persistedIntent\?\.id\)[\s\S]*?PAYMENT_INTENT_STATE_CHANGED[\s\S]*?Never return a checkout URL unless this exact provider intent was persisted/, "checkout must not be returned when a concurrent state change prevented persistence");
 assert.match(edge, /stage:"persist_paymob_intent"[\s\S]*?PAYMENT_INTENT_PERSISTENCE_FAILED/, "payment persistence failures must be logged with a request ID and returned as a safe error code");
 console.log("Marketing lead form validation contract PASS.");
+
+assert.match(source, /data-job-form=/, "job applications must use an accessible in-page form rather than browser prompts");
+assert.match(source, /aria-expanded="false" aria-controls="job-form-/, "job application toggles must expose their expanded state accessibly");
+assert.match(source, /name="qualifications" maxlength="2000" required/, "job qualifications must be required and length-bounded");
+assert.match(source, /name="summary" maxlength="5000" required/, "CV summary must be required and length-bounded");
+assert.match(source, /role="status" aria-live="polite"/, "job submission feedback must be announced accessibly");
+assert.match(source, /sb\.rpc\('submit_job_application_backend'/, "job application must use the existing authorized backend RPC");
+assert.match(source, /async function applyJob\(jobId,form\)[\s\S]*?submit\.disabled=true[\s\S]*?submit\.disabled=false/, "job submission must prevent duplicate clicks and restore the button");
+assert.doesNotMatch(source, /const qualifications=prompt\('اكتب مؤهلاتك/, "job application must not rely on blocking browser prompts");
