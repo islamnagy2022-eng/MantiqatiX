@@ -17,4 +17,7 @@ assert.match(form, /if\(!button\|\|button\.disabled\)return/, "duplicate submiss
 assert.match(form, /button\.disabled=true/, "submit button must disable during request");
 assert.match(form, /finally\{button\.disabled=false/, "submit button must be restored after request");
 assert.match(form, /marketing-lead-create/, "submission must continue through the existing backend function");
+assert.match(form, /business_selection_required/, "business selection failures must be explained to the user");
+assert.match(form, /business_not_authorized/, "unauthorized business scope must receive a safe user-facing message");
+assert.match(form, /invalid_required_services/, "service validation failures must receive a useful message");
 console.log("Marketing lead form validation contract PASS.");
