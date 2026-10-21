@@ -1972,3 +1972,8 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Avoid showing zero rows for tables intentionally skipped by `BACKEND_ONLY_TABLES`; show a clear authorized-backend-only state.
 - [x] Add a source-contract assertion for this state.
 - [ ] Runtime/browser verification and exact-head CI remain pending.
+
+
+### Next identified UI reliability defect — generic live-data tab
+
+- [ ] Fix `genericLiveView(d)`: it currently renders zero-row badges and empty tables for read failures and for tables in `BACKEND_ONLY_TABLES`. It must render explicit read-error/backend-only states, not imply the data is empty. Add source-contract assertions and verify exact-head CI/browser behavior.
