@@ -2284,3 +2284,13 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added source-contract assertions for ambiguous outcomes, pending item reuse, and price-only retry.
 - [ ] Backend idempotency, persistence across page reloads, real Edge Function response-shape validation, browser/mobile E2E, and exact-head CI are still required. Client-side state is not a server transaction.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Explicit active-membership selection
+
+- [x] Removed silent fallback to the first active membership when the user has multiple memberships but no valid selected membership ID.
+- [x] Added a membership chooser and persist the selected membership through the existing active-membership key.
+- [x] Single-membership accounts continue to select their sole membership automatically.
+- [x] Added source-contract checks for the ambiguous-membership guard and explicit chooser.
+- [ ] Verify compatibility with the main application's membership-switching UX, browser/mobile E2E, and server-side authorization boundaries.
+- Production remains **BLOCKED / NOT CERTIFIED**.
