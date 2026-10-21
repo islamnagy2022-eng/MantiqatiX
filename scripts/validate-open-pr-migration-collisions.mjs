@@ -99,7 +99,9 @@ async function githubGet(url) {
 
       const retryable = response.status === 429 || [500, 502, 503, 504].includes(response.status);
       if (!retryable || attempt === maxAttempts - 1) {
-        throw new Error("GitHub API request failed (" + response.status + "): " + url);
+        const detail = await response.text().catch(() => "");
+        throw new Error("GitHub API request failed (" + response.status + "): " + url +
+          (detail ? " — " + detail.slice(0, 500) : ""));
       }
       const retryAfter = Number(response.headers.get("retry-after") || 0);
       const delayMs = retryAfter > 0
