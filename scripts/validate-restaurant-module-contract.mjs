@@ -156,6 +156,7 @@ assert.match(moduleSource, /id="rest-reservation-from"/, 'reservation view must 
 assert.match(moduleSource, /id="rest-reservation-to"/, 'reservation view must expose an end-date filter');
 assert.match(moduleSource, /state\.reservations\.filter\(r=>\{/, 'reservation filters must operate on the scoped loaded reservations');
 assert.match(moduleSource, /آخر 100 حجز محمّل/, 'reservation view must disclose its local loaded-record bound');
+assert.match(moduleSource, /filtered\.length\?filtered\.map\(r=>\{[\s\S]*?\.join\(''\):''/, 'empty filtered reservation results must use the shared empty-state message rather than claim there are no reservations');
 
 // Kitchen board uses existing server-supported order statuses and the existing scoped dataset.
 assert.match(moduleSource, /const orders=state\.orders\.filter\(o=>String\(o\.status\|\|''\)\.toUpperCase\(\)===stage\.status\)\.sort\(/,
