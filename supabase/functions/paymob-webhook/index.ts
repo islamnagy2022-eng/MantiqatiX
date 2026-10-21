@@ -75,7 +75,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
      const code=String(mantigoProcessError.message??"");
      if(code.includes("MANTIGO_AMOUNT_CURRENCY_MISMATCH"))return json({error:"MANTIGO_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId);
      if(code.includes("MANTIGO_LEDGER_NOT_FOUND"))return json({error:"MANTIGO_LEDGER_NOT_FOUND",requestId},404,requestId);
-     if(code.includes("MANTIGO_EVENT_BINDING_CONFLICT")||code.includes("MANTIGO_FINAL_STATE_CONFLICT")||code.includes("MANTIGO_PAYMENT_ALREADY_FINAL"))return json({error:"MANTIGO_EVENT_STATE_CONFLICT",requestId},409,requestId);
+     if(code.includes("MANTIGO_EVENT_BINDING_CONFLICT")||code.includes("MANTIGO_EVENT_STATUS_CONFLICT")||code.includes("MANTIGO_FINAL_STATE_CONFLICT")||code.includes("MANTIGO_PAYMENT_ALREADY_FINAL"))return json({error:"MANTIGO_EVENT_STATE_CONFLICT",requestId},409,requestId);
      console.error("MANTIGO_ATOMIC_PAYMENT_PROCESSING_FAILED",requestId,code);
      return json({error:"MANTIGO_PAYMENT_PROCESSING_FAILED",requestId},500,requestId);
    }
