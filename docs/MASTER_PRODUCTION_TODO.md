@@ -2249,3 +2249,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Exact-head web validation and module/security workflows must pass before treating this change as verified. Browser-level network-failure/retry checks remain NOT VERIFIED.
 
 - [x] Added the same actionable retry state when the public Supabase client is unavailable, avoiding a permanently misleading loading state.
+
+
+## UI follow-up — sector workspace accessibility (2026-10-21)
+
+- [x] Sector-module loading state now uses an Arabic live status announcement and exposes workspace busy state while data is loading.
+- [x] Sector navigation tabs now expose a named group, explicit button types, and active-state semantics.
+- [ ] Run exact-head source-contract validation and relevant CI; keyboard/screen-reader behavior still requires browser-level verification.
