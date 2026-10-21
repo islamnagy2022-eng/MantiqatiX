@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -25,13 +25,15 @@ async function session(){
 async function membership(user){
  const saved=localStorage.getItem('MNTYActiveMembershipId');
  const base=()=>sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
- // A stale or inaccessible explicit selection must fail closed; never silently switch the user's tenant.
+ // An explicit selection must resolve exactly; never silently switch tenant after failure.
  if(saved){
    const selected=await base().eq('id',saved).maybeSingle();
-   return selected.data||null;
+   return {membership:selected.data||null,options:[],stale:!selected.data,error:selected.error||null};
  }
- const r=await base().limit(1).maybeSingle();
- return r.data||null;
+ // When more than one active membership exists, require an explicit user choice.
+ const r=await base().limit(20);
+ const options=r.data||[];
+ return {membership:options.length===1?options[0]:null,options,needsSelection:options.length>1,stale:false,error:r.error||null};
 }
 function canOperate(module='CATALOG',action='update'){
  const role=String(state.membership?.role||'').toUpperCase();
@@ -44,10 +46,12 @@ function scope(){
 async function load(){
  state.user=await session();
  if(!state.user){state.error='AUTH_REQUIRED';return render();}
- const savedMembershipId=localStorage.getItem('MNTYActiveMembershipId');
- state.membership=await membership(state.user);
- if(!state.membership){state.staleMembershipSelection=Boolean(savedMembershipId);state.error=state.staleMembershipSelection?'العضوية المحفوظة لم تعد متاحة. امسح الاختيار المحفوظ لإعادة اختيار عضوية نشطة.':'لا توجد عضوية تشغيلية نشطة.';return render();}
- state.staleMembershipSelection=false;
+ const result=await membership(state.user);
+ state.membershipOptions=result.options||[];state.selectionRequired=result.needsSelection===true;
+ if(result.error){state.error='تعذر التحقق من العضويات النشطة. حاول مرة أخرى.';return render();}
+ state.membership=result.membership;
+ if(!state.membership){state.staleMembershipSelection=result.stale===true;state.error=state.selectionRequired?null:(state.staleMembershipSelection?'العضوية المحفوظة لم تعد متاحة. امسح الاختيار المحفوظ لإعادة اختيار عضوية نشطة.':'لا توجد عضوية تشغيلية نشطة.');return render();}
+ state.staleMembershipSelection=false;state.selectionRequired=false;
  state.error=null; state.loading=true; render();
  const s=scope();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
@@ -157,6 +161,7 @@ function dashboard(){
 function render(){
  const page=document.getElementById('page');if(!page)return;
  if(state.error){const recovery=state.staleMembershipSelection?'<button class="btn btn-outline" id="rest-clear-membership">مسح الاختيار المحفوظ وإعادة الاختيار</button>':'';page.innerHTML=shell('تعذر تحميل موديول المطاعم',tabs()+'<div class="empty-state">'+esc(state.error)+'<div class="action-bar">'+recovery+'<button class="btn btn-primary" id="rest-retry">إعادة المحاولة</button></div></div>');bind();return;}
+ if(state.selectionRequired){page.innerHTML=shell('اختيار المؤسسة والفرع', '<p class="muted">لديك أكثر من عضوية نشطة. اختر النطاق الذي تريد إدارته قبل تحميل بيانات المطعم.</p><div class="cards">'+state.membershipOptions.map(m=>'<article class="card"><div class="card-title">المؤسسة: '+esc(m.tenant_id)+'</div><p>النشاط: '+esc(m.business_id||'غير محدد')+'</p><p>الفرع: '+esc(m.branch_id||'غير محدد')+'</p><p>الدور: '+esc(m.role||'غير محدد')+'</p><button class="btn btn-primary" data-select-membership="'+esc(m.id)+'">اختيار هذا النطاق</button></article>').join('')+'</div>');bind();return;}
  if(state.loading){page.innerHTML=shell('جاري تحميل موديول المطاعم',tabs()+'<p class="muted">جاري تحميل البيانات الفعلية…</p>');return;}
  page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():dashboard();
  bind();
@@ -224,6 +229,7 @@ function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
  document.getElementById('rest-clear-membership')?.addEventListener('click',()=>{localStorage.removeItem('MNTYActiveMembershipId');load();});
+ document.querySelectorAll('[data-select-membership]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-select-membership');if(!state.membershipOptions.some(m=>m.id===id))return;localStorage.setItem('MNTYActiveMembershipId',id);load();}));
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
  document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
