@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { parseOptionalCoordinate } from "../_shared/branch-coordinates.mjs";
+import { parseBranchCoordinates } from "../_shared/branch-coordinates.mjs";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 const cors = {
@@ -44,11 +44,10 @@ Deno.serve(async(req)=>{
   if(!uuidPattern.test(tenantId)||!uuidPattern.test(businessId))return out({error:"INVALID_TENANT_OR_BUSINESS_ID"},400);
   if((input.phone!=null&&typeof input.phone!=="string")||(input.address!=null&&typeof input.address!=="string"))return out({error:"INVALID_REQUEST_FIELDS"},400);
   const phone=input.phone==null?"":input.phone.trim(),address=input.address==null?"":input.address.trim();
-  const latitude=parseOptionalCoordinate(input.latitude),longitude=parseOptionalCoordinate(input.longitude);
+  const coordinates=parseBranchCoordinates(input.latitude,input.longitude);
+  const {latitude,longitude}=coordinates;
   if(name.length>200||phone.length>64||address.length>500)return out({error:"FIELD_TOO_LONG"},400);
-  if((latitude!==null&&!Number.isFinite(latitude))||(longitude!==null&&!Number.isFinite(longitude))||
-     (latitude!==null&&(latitude < -90||latitude > 90))||(longitude!==null&&(longitude < -180||longitude > 180))||
-     ((latitude===null)!==(longitude===null)))return out({error:"INVALID_COORDINATES"},400);
+  if(coordinates.error)return out({error:coordinates.error},400);
   const {data:membership,error:me}=await db.from("user_memberships").select("id,role,business_id,status,permissions").eq("user_id",user.id).eq("tenant_id",tenantId).eq("status","ACTIVE").or(`business_id.eq.${businessId},business_id.is.null`).order("id").limit(20);
   if(me)return out({error:"MEMBERSHIP_READ_FAILED"},500);
   const allowed=(membership||[]).some((m:any)=>["OWNER","ADMIN","BUSINESS_OWNER","MANAGER"].includes(String(m.role).toUpperCase())&&String(m.business_id||"")===businessId)
