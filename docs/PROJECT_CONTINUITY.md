@@ -862,3 +862,5 @@ The marketing lead form now maps `invalid_title`, `invalid_description`, and `in
 ### Payment API error-display follow-up — 2026-10-21
 - Removed direct display of `data.error` from the MantiGO electronic-payment intent response; the UI now presents bounded Arabic guidance instead of raw backend response text.
 - Added two source-contract assertions to prevent reintroducing this behavior. Exact-head CI and payment/browser E2E remain unverified; no payment was initiated and production was not changed.
+
+- Payment intent flow now catches network/session failures and shows a safe uncertainty message rather than leaving an unhandled rejected promise. Users are told to verify ride/payment state before retrying if initiation could not be confirmed. Static contract added; browser/payment E2E remain unverified.
