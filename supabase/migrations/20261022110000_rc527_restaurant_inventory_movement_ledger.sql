@@ -21,6 +21,36 @@ create index if not exists restaurant_inventory_movements_scope_history_idx
   on public.restaurant_inventory_movements
   (tenant_id, business_id, branch_id, inventory_id, created_at desc);
 
+-- Close direct PostgREST balance/cost writes. Only trusted SECURITY DEFINER
+-- database code may change the balance or valuation; client-created items start at zero.
+create or replace function public.guard_restaurant_inventory_balance()
+returns trigger
+language plpgsql
+set search_path = public, pg_temp
+as $function$
+begin
+  if current_user in ('postgres','service_role') then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    if coalesce(new.current_stock_qty,0) <> 0 or coalesce(new.unit_cost_egp,0) <> 0 then
+      raise exception 'Initial stock and cost must be recorded through an audited movement';
+    end if;
+  elsif new.current_stock_qty is distinct from old.current_stock_qty
+     or new.unit_cost_egp is distinct from old.unit_cost_egp then
+    raise exception 'Stock balance and unit cost require an audited movement';
+  end if;
+  return new;
+end;
+$function$;
+
+revoke all on function public.guard_restaurant_inventory_balance() from public, anon, authenticated;
+drop trigger if exists restaurant_inventory_balance_audit_guard on public.restaurant_inventory;
+create trigger restaurant_inventory_balance_audit_guard
+before insert or update on public.restaurant_inventory
+for each row execute function public.guard_restaurant_inventory_balance();
+
+
 alter table public.restaurant_inventory_movements enable row level security;
 alter table public.restaurant_inventory_movements force row level security;
 revoke all on table public.restaurant_inventory_movements from public, anon, authenticated;
