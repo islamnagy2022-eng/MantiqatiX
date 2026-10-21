@@ -28,7 +28,8 @@ begin
     ('ledger-wrong-target','PAYMOB',125.00,'EGP','PENDING'),
     ('ledger-legacy','PAYMOB',90.00,'EGP','PENDING'),
     ('ledger-fail-closed','PAYMOB',70.00,'EGP','PENDING'),
-    ('ledger-failed','PAYMOB',55.00,'EGP','PENDING');
+    ('ledger-failed','PAYMOB',55.00,'EGP','PENDING'),
+    ('ledger-concurrent','PAYMOB',33.00,'EGP','PENDING');
 
   -- A successful callback persists event and ledger transition together.
   v_result:=public.process_verified_mantigo_paymob_event('ledger-paid','paymob:txn-1','PAID',true,125.00,'EGP','txn-1',jsonb_build_object('obj', jsonb_build_object('order', jsonb_build_object('merchant_order_id','ledger-paid')), 'test', 'success'));
