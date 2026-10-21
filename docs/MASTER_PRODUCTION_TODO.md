@@ -2274,3 +2274,13 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Extended the module runtime source-contract validator to require the in-flight guards and recovery paths.
 - [ ] Exact-head CI, backend idempotency verification, and browser/mobile tests remain required; this client guard is not a substitute for server-side idempotency.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — Provider catalog partial-write recovery
+
+- [x] Prevent retrying service creation when the previous item-creation request has an ambiguous network outcome; require checking the catalog before another attempt.
+- [x] If the service item ID was received but price saving failed, retain the item ID in the live form and retry only the price write, avoiding a second item creation from that form.
+- [x] Block changing the service name while a prior item's price is still pending; clear the pending item state only after the price call succeeds.
+- [x] Added source-contract assertions for ambiguous outcomes, pending item reuse, and price-only retry.
+- [ ] Backend idempotency, persistence across page reloads, real Edge Function response-shape validation, browser/mobile E2E, and exact-head CI are still required. Client-side state is not a server transaction.
+- Production remains **BLOCKED / NOT CERTIFIED**.
