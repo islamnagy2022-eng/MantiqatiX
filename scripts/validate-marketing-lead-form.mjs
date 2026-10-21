@@ -77,4 +77,9 @@ assert.match(source, /function genericLiveView\(d\)[\s\S]*?BACKEND_ONLY_TABLES\.
 assert.match(form, /invalid_service_area:\x27أدخل نطاق الخدمة كنص لا يتجاوز 200 حرف\.\x27/, "service-area backend validation errors must have safe Arabic guidance");
 assert.match(form, /invalid_title:\x27أدخل عنوانًا صحيحًا لا يتجاوز 200 حرف\.\x27/, "title backend validation errors must have safe Arabic guidance");
 assert.match(form, /invalid_description:\x27أدخل تفاصيل الطلب ولا تتجاوز 5000 حرف\.\x27/, "description backend validation errors must have safe Arabic guidance");
+assert.doesNotMatch(source, /r\.error\.message|error\.message/, "module actions must not expose raw backend error messages to end users");
+assert.match(source, /تعذر تنفيذ العملية بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "generic module failures must use safe actionable Arabic feedback");
+assert.match(source, /تعذر إنشاء الطلب بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "education request failures must not leak backend internals");
+assert.match(source, /تعذر إرسال الطلب بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "job application failures must not leak backend internals");
+assert.match(source, /تعذر إنشاء طلب الرحلة بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "ride creation failures must not leak backend internals");
 console.log("Marketing lead form validation contract PASS.");
