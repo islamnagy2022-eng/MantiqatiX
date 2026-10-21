@@ -141,15 +141,17 @@ function ordersView(){
    PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],
    OUT_FOR_DELIVERY:['DELIVERED']
   };
-  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
+  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th>تفاصيل</th></tr></thead><tbody>'+
   (state.orders.length?state.orders.map(x=>{
    const current=String(x.status||'').toUpperCase();
    const next=transitions[current]||[];
    const statusControl=canOperate('ORDERS','update')
     ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
     :esc(current);
-   return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
-  }).join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+   const detailId='rest-order-detail-'+String(x.id).replace(/[^a-zA-Z0-9_-]/g,'');
+   const details='<div><b>الهاتف:</b> '+esc(x.customer_phone||'غير مسجل')+'</div><div><b>عنوان التوصيل:</b> '+esc(x.delivery_address||'غير مسجل')+'</div><div><b>ملاحظات:</b> '+esc(x.notes||'لا توجد')+'</div><div><b>تفاصيل الأصناف / لقطة التسعير:</b><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(typeof x.items_json==='string'?x.items_json:JSON.stringify(x.items_json||[],null,2))+'</pre></div>';
+   return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td><td><button class="linkbtn" type="button" data-order-details="'+esc(detailId)+'" aria-expanded="false">التفاصيل</button></td></tr><tr id="'+esc(detailId)+'" hidden><td colspan="7">'+details+'</td></tr>';
+  }).join(''):'<tr><td colspan="7">لا توجد طلبات فعلية بعد.</td></tr>')+
   '</tbody></table></div>');
 }
 function tablesView(){
@@ -388,6 +390,7 @@ function bind(){
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
  document.querySelectorAll('[data-inv-move]').forEach(b=>b.onclick=()=>addInventoryMovement(state.inventory.find(x=>x.id===b.dataset.invMove)));
  document.querySelectorAll('[data-inv-history]').forEach(b=>b.onclick=()=>viewInventoryMovements(state.inventory.find(x=>x.id===b.dataset.invHistory)));
+ document.querySelectorAll('[data-order-details]').forEach(b=>b.onclick=()=>{const row=document.getElementById(b.dataset.orderDetails);if(!row)return;const opening=row.hidden;row.hidden=!opening;b.setAttribute('aria-expanded',String(opening));b.textContent=opening?'إخفاء التفاصيل':'التفاصيل';});
  document.querySelectorAll('[data-order-status]').forEach(s=>s.onchange=async()=>{if(s.dataset.pending==='1')return;const previous=s.dataset.currentStatus||s.value;const selected=s.value;s.dataset.pending='1';s.disabled=true;try{const ok=await updateOrder(s.dataset.orderStatus,selected);if(ok)s.dataset.currentStatus=selected;else s.value=previous}finally{delete s.dataset.pending;if(s.isConnected)s.disabled=false}});
 }
 function activeModule(){
