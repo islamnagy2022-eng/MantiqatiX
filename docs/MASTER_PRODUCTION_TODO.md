@@ -2165,3 +2165,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] The atomic RPC now rejects null/unsupported event status, a replay whose signed status differs from the already-persisted event, and event rows with a null/unsupported status.
 - [x] The webhook maps contradictory event replay to a safe HTTP 409 response; the finance source-contract validator asserts both the database and edge-function boundaries.
 - [ ] Exact-head CI is pending for this follow-up. These are source-contract checks only; PostgreSQL concurrency/rollback tests and target-schema validation remain open.
+
+
+### RC457 disposable PostgreSQL regression suite added
+
+- [x] Added `supabase/tests/rc457_mantigo_paymob_atomicity_fixture.sql` and `supabase/tests/rc457_mantigo_paymob_atomicity_integration.sql`.
+- [x] Added `.github/workflows/mantigo-paymob-atomicity.yml` to execute the fixture, migration, and behavioral checks against disposable PostgreSQL 16.
+- [x] Covered first delivery, exact duplicate, wrong-ledger replay, contradictory replay status, amount mismatch, recovery of an already-recorded legacy event, failed payment, and rollback when the ledger update is forced to fail after event insertion.
+- [ ] Await exact-head CI result for the new workflow. A test file being present is not proof it passed.
+- [ ] Concurrent delivery stress and a target-Supabase schema/grant review remain required before deployment.
