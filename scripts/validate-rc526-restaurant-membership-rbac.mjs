@@ -63,22 +63,14 @@ assert.ok(stockTest.includes('RC527_FAIL: issue cost was not derived from the se
 assert.ok(reservationSql.includes('create table if not exists public.restaurant_reservations'), 'RC528 must create the reservation ledger');
 assert.ok(reservationSql.includes('alter table public.restaurant_reservations force row level security'), 'reservation rows must force RLS');
 assert.ok(reservationSql.includes('pg_advisory_xact_lock(hashtextextended(v_tenant||'), 'reservation idempotency must serialize concurrent retries');
-assert.ok(reservationSql.includes("v_phone !~ '^[+0-9()[:space:]-]{7,20}
-
-console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
-) then"), 'reservation phone validation must be syntactically complete and bounded');
-assert.ok(reservationSql.includes("if coalesce(p_payload->>'guest_count','') !~ '^[0-9]{1,3}
-
-console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
- then"), 'reservation guest count must be validated before casting');
+assert.ok(reservationSql.includes("v_phone !~ '^[+0-9()[:space:]-]{7,20}$') then"), 'reservation phone validation must be syntactically complete and bounded');
+assert.ok(reservationSql.includes("if coalesce(p_payload->>'guest_count','') !~ '^[0-9]{1,3}$' then"), 'reservation guest count must be validated before casting');
 assert.ok(reservationSql.includes("upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','PROVIDER_OWNER','PROVIDER_ADMIN','BRANCH_MANAGER','PROVIDER_OPERATIONS')"), 'reservation create must enforce server-side RBAC');
 assert.ok(reservationSql.includes('RESTAURANT_RESERVATION_CREATE_FORBIDDEN'), 'reservation create must reject roles without OPERATIONS:create');
 assert.ok(reservationSql.includes('RESTAURANT_RESERVATION_UPDATE_FORBIDDEN'), 'reservation state changes must enforce OPERATIONS:update roles');
-assert.ok(!reservationSql.includes("!~ '^[+0-9()[:space:]-]{7,20}\\n"), 'reservation phone regex must not be truncated across a SQL line');
-assert.ok((reservationSql.match(/grant execute on function public\\.restaurant_reservation_mutate/g)||[]).length===1, 'reservation migration must not contain duplicated function grants');
+assert.equal(reservationSql.split('grant execute on function public.restaurant_reservation_mutate').length - 1, 1, 'reservation migration must not contain duplicate function grants');
 assert.ok(reservationTest.includes('RC528_FAIL: staff bypassed reservation create RBAC'), 'reservation integration must cover role-based create denial');
 assert.ok(reservationTest.includes('RC528_FAIL: idempotent retry created duplicate reservation'), 'reservation integration must cover idempotency');
 assert.ok(reservationTest.includes('RC528_FAIL: reservation RLS exposed another tenant'), 'reservation integration must cover cross-tenant RLS');
 
-
-console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
+console.log('RC526/RC527/RC528 restaurant RBAC, inventory, and reservation contracts PASS');
