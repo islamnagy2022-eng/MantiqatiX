@@ -65,6 +65,15 @@ assert.doesNotMatch(moduleSource, /tablesQ=tablesQ\.eq\('owner_user_id',state\.u
 // Order creation/status must go through the canonical server functions.
 assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must use canonical order-create function');
+assert.match(moduleSource, /pendingOrderPayload/,
+  'an uncertain order-create response must retain the original payload for an idempotent retry');
+assert.match(moduleSource, /state\.pendingOrderPayload=payload/,
+  'the exact order id and client idempotency key must be retained before calling the server');
+assert.match(moduleSource, /إعادة محاولة الطلب المعلق/,
+  'the UI must offer an explicit retry for an order with an uncertain response');
+assert.match(moduleSource, /payload\.tenantId!==m\.tenant_id\|\|payload\.businessId!==m\.business_id\|\|payload\.branchId!==m\.branch_id/,
+  'a pending order must not be retried under a different tenant/business/branch');
+
 assert.match(moduleSource, /function askOrderDetails\(items\)/, 'order form must let staff select an authoritative catalog item');
 assert.match(moduleSource, /const selection=await askOrderDetails\(items\)/, 'selected catalog item and quantity must be used for order creation');
 assert.match(moduleSource, /field\('rest-customer','اسم العميل'.*field\('rest-phone','رقم الهاتف'.*field\('rest-address','عنوان التوصيل'/, 'restaurant order form must capture customer contact and delivery details');
