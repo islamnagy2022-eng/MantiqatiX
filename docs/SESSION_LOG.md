@@ -383,3 +383,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 overview truthfulness fix: tables deliberately excluded from direct browser reads (`BACKEND_ONLY_TABLES`) no longer appear as if they contain zero records. Overview cards now state that data must be accessed through an authorized backend path; added a source-contract assertion. This avoids confusing a security boundary with an empty dataset. Runtime/browser and CI verification remain pending.
+
+
+- 2026-10-21 follow-up review: identified one remaining shared-UI reliability issue in `genericLiveView(d)`: failed reads and tables intentionally skipped for backend-only access can still appear as zero rows in the live tab. Recorded as an open TODO; not yet fixed in this batch. The overview path is already corrected separately.
