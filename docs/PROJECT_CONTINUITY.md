@@ -886,3 +886,5 @@ The MantiGO payment-intent Edge Function no longer assumes a conditional ledger 
 - **2026-10-21 security follow-up:** `business-branch-admin` now parses its Authorization header through shared `parseBearerToken`; malformed/empty credentials fail closed before `auth.getUser`, while Bearer scheme casing is handled per HTTP conventions. Runtime tests and source assertions were added.
 - Verified exact code commit `60f09c55c36aa62c16acc5104bb3a3e74132adc4` via Actions run `39598341593` (Deno check + runtime tests + source validator: PASS). A duplicate run may still be active; use the exact commit SHA when checking final CI.
 - Do not mark live authentication, tenant isolation, Edge Function deployment parity, or browser E2E as verified. PR #314 remains draft/open and production remains BLOCKED / NOT CERTIFIED.
+
+- **CI trigger follow-up:** bearer-token helper and runtime test now appear in both push and pull_request path filters; the source validator asserts two occurrences of each path. This protects the PR validation gate from silently skipping the new security tests. Verify exact-head CI before marking this follow-up complete.
