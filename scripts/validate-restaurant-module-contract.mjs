@@ -144,7 +144,7 @@ assert.match(moduleSource, /ليست إثباتًا على تحصيل المبل
   'order details must not imply that recorded totals are proof of payment settlement');
 
 // Kitchen board uses existing server-supported order statuses and the existing scoped dataset.
-assert.match(moduleSource, /const orders=state\.orders\.filter\(o=>String\(o\.status\|\|' '\)\.toUpperCase\(\)===stage\.status\)\.sort\(/,
+assert.match(moduleSource, /const orders=state\.orders\.filter\(o=>String\(o\.status\|\|''\)\.toUpperCase\(\)===stage\.status\)\.sort\(/,
   'kitchen queue must order each stage FIFO by order creation time');
 assert.match(moduleSource, /Number\.POSITIVE_INFINITY/,
   'kitchen queue must place orders with invalid timestamps after timestamped orders');
