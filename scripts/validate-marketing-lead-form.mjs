@@ -138,7 +138,7 @@ assert.match(source, /aria-describedby="live-search-help-\x27\+esc\(t\)\+\x27"/,
 assert.match(source, /data-live-clear=/, "generic module search must provide a dedicated clear-search control");
 assert.match(source, /querySelectorAll\(\x27\[data-live-clear\]\x27\)[\s\S]*?input\.value=\x27\x27[\s\S]*?genericLiveTable\(t,\x27\x27\)[\s\S]*?input\?\.focus\(\)/, "clear-search controls must reset the input, restore the unfiltered table, and return focus accessibly");
 assert.match(source, /data-live-results=/, "generic module search must have a dedicated results target");
-assert.match(source, /keys\.some\(k=>String\(r\[k\]\?\?''\)\.toLocaleLowerCase\(\)\.includes\(needle\)\)/, "generic search must filter only fields rendered to the user");
+assert.match(source, /visibleKeys\.some\(k=>String\(r\[k\]\?\?''\)\.toLocaleLowerCase\(\)\.includes\(needle\)\)/, "generic search must filter only the bounded safe fields rendered to the user");
 assert.match(source, /لا توجد نتائج مطابقة للبحث/, "generic table search must distinguish no matches from an empty data source");
 assert.match(source, /if\(BACKEND_ONLY_TABLES\.has\(t\)\)return head[\s\S]*?مسار خلفي مصرح به فقط/, "generic search must not bypass backend-only table boundaries");
 
