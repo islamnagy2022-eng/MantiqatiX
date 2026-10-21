@@ -153,6 +153,8 @@ assert.match(moduleSource, /const reservation=state\.reservations\.find\(r=>Stri
 assert.match(moduleSource, /const allowed=\{CONFIRM:\['PENDING'\],SEAT:\['CONFIRMED'\],NO_SHOW:\['PENDING','CONFIRMED'\]\}/, 'reservation actions must be constrained by the current reservation status');
 assert.match(moduleSource, /if\(!\['PENDING','CONFIRMED'\]\.includes\(String\(reservation\.status\|\|''\)\.toUpperCase\(\)\)\)/, 'reservation cancellation must reject terminal or unsupported states in the UI');
 
+assert.match(moduleSource, /const startLabel=Number\.isFinite\(startMs\)\?new Date\(startMs\)\.toLocaleString\('ar-EG'\):'تاريخ غير صالح'/, 'reservation list must safely display invalid start timestamps');
+assert.match(moduleSource, /const endLabel=Number\.isFinite\(endMs\)\?new Date\(endMs\)\.toLocaleString\('ar-EG'\):'تاريخ غير صالح'/, 'reservation list must safely display invalid end timestamps');
 // Reservation filters must remain local and bounded to the already scoped loaded reservations.
 assert.match(moduleSource, /id="rest-reservation-search"/, 'reservation view must expose customer/phone/table search');
 assert.match(moduleSource, /id="rest-reservation-status"/, 'reservation view must expose a status filter');
