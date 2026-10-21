@@ -14,7 +14,7 @@ assert.match(source,/const seq=\+\+globalSearchSeq;\s*if\(value\.length<2\)/,"ev
 assert.match(source,/try\{\s*const results=await globalSearch\(value\);\s*if\(seq!==globalSearchSeq\)return/,"global search must ignore responses from superseded queries");
 assert.match(source,/catch\(_\)\{\s*if\(seq!==globalSearchSeq\)return;\s*gso\.innerHTML=.*تعذر إكمال البحث الآن\. تحقق من الاتصال ثم حاول مرة أخرى/,"unexpected global-search failures must render safe actionable feedback instead of leaving the loading state");
 assert.match(source,/role="status" aria-live="polite">جاري البحث في البيانات المتاحة/,"search loading state must be announced accessibly");
-assert.match(source,/globalSearchSeq\+\+;[\s\S]{0,120}gsi\.value='';gso\.innerHTML='';gso\.classList\.remove\('is-open'\)/,"Escape must cancel pending debounce and invalidate in-flight results");
+assert.match(source,/globalSearchSeq\+\+;[\s\S]{0,120}gsi\.value='';\s*gso\.innerHTML='';\s*gso\.classList\.remove\('is-open'\)/,"Escape must cancel pending debounce and invalidate in-flight results");
 assert.match(source,/const rawQuery=String\(queryText\|\|\x27\x27\)\.trim\(\)/,"search must normalize raw input before building filters");
 assert.match(source,/rawQuery\.replace\(\/\[\^\\p\{L\}\\p\{N\}\\s_-\]\/gu,' '\)/,"search must strip PostgREST filter grammar metacharacters from user input");
 
