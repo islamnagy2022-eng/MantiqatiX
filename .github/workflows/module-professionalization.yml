@@ -65,6 +65,9 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Validate ERP receiving migration contract
+        run: node scripts/validate-erp-receiving-migrations.mjs
+
       - name: Apply fixture, migration, and privacy tests
         shell: bash
         run: |
