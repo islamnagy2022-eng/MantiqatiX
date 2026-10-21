@@ -463,3 +463,8 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added `scripts/test-bearer-token.mjs`, wired into `Business Branch Admin Source Integrity`, and added source-contract assertions.
 - Verified at commit `60f09c55c36aa62c16acc5104bb3a3e74132adc4`: Deno type-check, runtime tests, and source validation passed in Actions run `39598341593`.
 - Remaining: live Supabase Auth/Edge Function integration and browser E2E are not verified; release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — CI trigger coverage hardening
+- Added bearer-token helper/test to the dedicated workflow's pull-request path filter (push filter already included them).
+- Added source-contract assertions that both helper and test are present in both push and pull_request filters, preventing a regression where security tests silently stop running for PRs.
+- Commits: workflow filter `9b41276e55f4b1902800df7fbfba030db9af2455`; validator follow-up is being validated by exact-head Actions. Production remains BLOCKED / NOT CERTIFIED.
