@@ -17,4 +17,13 @@ assert.match(source,/role="status" aria-live="polite">جاري البحث في �
 assert.match(source,/globalSearchSeq\+\+;clearTimeout\(globalSearchTimer\);gsi\.value='';gso\.innerHTML='';gso\.classList\.remove\('is-open'\)/,"Escape must cancel pending debounce and invalidate in-flight results");
 assert.match(source,/const rawQuery=String\(queryText\|\|\x27\x27\)\.trim\(\)/,"search must normalize raw input before building filters");
 assert.match(source,/rawQuery\.replace\(\/\[\^\\p\{L\}\\p\{N\}\\s_-\]\/gu,' '\)/,"search must strip PostgREST filter grammar metacharacters from user input");
+
+assert.match(source, /id="mx-global-search-input" type="search" inputmode="search" value="\\$\\{esc\\(query\\)\\}" autocomplete="off" aria-controls="mx-global-search-results" aria-expanded="false"/, "global search input must expose controlled results and expanded state");
+assert.match(source, /id="mx-global-search-results" class="mx-global-search-results" role="region" aria-label="نتائج البحث"/, "action results must use a region rather than a listbox of non-option buttons");
+assert.match(source, /gsi\\?\\.setAttribute\\('aria-expanded','true'\\)/, "search must announce when its result region opens");
+assert.match(source, /gsi\\?\\.setAttribute\\('aria-expanded','false'\\)/, "search must announce when its result region closes");
+assert.match(source, /if\\(!document\\.documentElement\\.dataset\\.mxGlobalSearchOutsideBound\\)/, "outside-click dismissal must be installed once across page rerenders");
+assert.match(source, /clearTimeout\\(window\\.__MNTYGlobalSearchTimer\\)/, "outside clicks must cancel pending debounce to prevent a hidden search from reopening");
+assert.doesNotMatch(source, /document\\.addEventListener\\('click',[\\s\\S]{0,200}\\{once:true\\}/, "outside-click dismissal must not remove itself after the first click");
+
 console.log("Global search failure-state contract PASS: empty results are distinct from partial/unavailable sources.");
