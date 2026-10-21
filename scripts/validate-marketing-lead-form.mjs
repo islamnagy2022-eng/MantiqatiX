@@ -82,4 +82,6 @@ assert.match(source, /تعذر تنفيذ العملية بسبب الاتصال
 assert.match(source, /تعذر إنشاء الطلب بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "education request failures must not leak backend internals");
 assert.match(source, /تعذر إرسال الطلب بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "job application failures must not leak backend internals");
 assert.match(source, /تعذر إنشاء طلب الرحلة بسبب الاتصال أو الصلاحيات\. تحقق من البيانات ثم حاول مرة أخرى/, "ride creation failures must not leak backend internals");
+assert.doesNotMatch(source, /alert\(data\.error/, "payment API failures must not expose raw server error strings");
+assert.match(source, /تعذر بدء الدفع الإلكتروني\. تحقق من حالة الرحلة والاتصال ثم حاول مرة أخرى/, "payment failures must use safe actionable Arabic feedback");
 console.log("Marketing lead form validation contract PASS.");
