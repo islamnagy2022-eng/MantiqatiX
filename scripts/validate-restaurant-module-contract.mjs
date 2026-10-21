@@ -149,6 +149,10 @@ assert.match(moduleSource, /const order=state\.orders\.find\(x=>String\(x\.id\)=
 assert.match(moduleSource, /allowed\[current\]\.includes\(String\(status\|\|''\)\.toUpperCase\(\)\)/,
   'status updates must reject transitions not allowed from the current loaded status');
 
+assert.match(moduleSource, /const reservation=state\.reservations\.find\(r=>String\(r\.id\)===String\(id\)\)/, 'reservation actions must target a reservation in the currently loaded scoped dataset');
+assert.match(moduleSource, /const allowed=\{CONFIRM:\['PENDING'\],SEAT:\['CONFIRMED'\],NO_SHOW:\['PENDING','CONFIRMED'\]\}/, 'reservation actions must be constrained by the current reservation status');
+assert.match(moduleSource, /if\(!\['PENDING','CONFIRMED'\]\.includes\(String\(reservation\.status\|\|''\)\.toUpperCase\(\)\)\)/, 'reservation cancellation must reject terminal or unsupported states in the UI');
+
 // Reservation filters must remain local and bounded to the already scoped loaded reservations.
 assert.match(moduleSource, /id="rest-reservation-search"/, 'reservation view must expose customer/phone/table search');
 assert.match(moduleSource, /id="rest-reservation-status"/, 'reservation view must expose a status filter');
