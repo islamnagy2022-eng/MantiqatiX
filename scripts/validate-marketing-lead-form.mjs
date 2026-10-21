@@ -204,7 +204,8 @@ assert.match(source, /loadErrors\.education_requests\?'<tr><td colspan="4">تع�
 assert.match(source, /if\(tab==='appointments'\)return shell\(d,tabs\(d\)\+\(loadErrors\.medical_appointments\?'<div class="notice" role="alert">تعذر تحميل مواعيدك؛ لم نعتبر القائمة فارغة/, "medical appointment history must distinguish read failure from no appointments");
 
 
-assert.ok(source.includes("sensitiveKey=/(?:access.?token|refresh.?token|id.?token|token|secret|password|passwd|credential|authorization|cookie|session|private.?key|api.?key|webhook.?payload|raw.?payload|headers|metadata)/i"), "generic module tables must exclude sensitive token, secret, credential, payload, and metadata fields");
+assert.ok(source.includes("sensitiveKey=/(?:access.?token|refresh.?token|id.?token|token|secret|password|passwd|credential|authorization|cookie|session|private.?key|api.?key|webhook.?payload|raw.?payload|headers|metadata|e.?mail|phone|mobile|address|latitude|longitude|current.?lat|current.?lon|pickup.?lat|pickup.?lon|destination.?lat|destination.?lon|patient|student.?name|customer.?name|captain.?name|full.?name|first.?name|last.?name|date.?of.?birth|emergency.?contact|private.?note)/i"), "generic module tables must exclude secrets, contact details, precise coordinates, and sensitive personal fields");
+assert.match(source, /sensitiveKey=\/[\s\S]*?e\.\?mail[\s\S]*?latitude[\s\S]*?patient[\s\S]*?\/i/, "generic module tables must exclude contact details, precise coordinates, and sensitive personal fields");
 assert.match(source, /visibleKeys=keys\.slice\(0,8\)/, "generic module tables must render only the bounded safe field list");
 assert.match(source, /visibleKeys\.map\(k=>'<th scope="col">'/, "generic table headers must match safe displayed columns and expose semantic column scope");
 
