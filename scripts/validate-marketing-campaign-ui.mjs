@@ -37,14 +37,14 @@ assert.match(app, /MARKETING:\{eyebrow:'MARKETING COMMAND CENTER'[\s\S]{0,500}خ
 assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SMM quick access");
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
 const appVersion = index.match(/app\.js\?v=([^'"]+)/)?.[1];
-assert.ok(appVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+|medical-booking-v\\d+)-2026102\\d/.test(appVersion), "browser app cache key must use the current module build version");
+assert.ok(appVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+|medical-booking-v\d+)-2026102\d/.test(appVersion), "browser app cache key must use the current module build version");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 const shellVersion = sw.match(/const CACHE='([^']+)'/)?.[1];
 const swAppVersion = sw.match(/\.\/app\.js\?v=([^'"]+)/)?.[1];
 const registeredSwVersion = index.match(/sw\.js\?v=([^'"]+)/)?.[1];
 assert.ok(shellVersion && /mnty-web-v\d+/.test(shellVersion), "PWA cache must use a versioned shell key");
 assert.equal(swAppVersion, appVersion, "service worker and HTML must load the same app build");
-assert.ok(registeredSwVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+|medical-booking-v\\d+)-2026102\\d/.test(registeredSwVersion), "service worker registration cache key must use the current module build version");
+assert.ok(registeredSwVersion && /mnty-(?:modules-v\d+|doctors-v1|erp-ops-v\d+|accounting-post-v\d+|medical-booking-v\d+)-2026102\d/.test(registeredSwVersion), "service worker registration cache key must use the current module build version");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
 
 console.log("Marketing workspace contract: PASS (32 assertions)");
