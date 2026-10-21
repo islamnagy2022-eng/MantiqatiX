@@ -435,3 +435,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Preserved the existing create_medical_appointment_backend RPC; submission is locked while pending and ambiguous failures advise checking the appointment list before retrying.
 - Added source-contract assertions. Node validator, exact-head CI, browser E2E, and appointment authorization remain NOT VERIFIED.
 - No deployment, merge, production mutation, or release occurred. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — Generic module table search
+- Added reusable client-side search to generic live table views, restricted to the fields actually rendered in the table.
+- Search feedback reports matching versus visible row counts and explicitly distinguishes no matches from a genuinely empty source. Backend-only tables and read-error states remain protected and do not receive a direct-browser search path.
+- Added source-contract assertions; execution of the Node validator, exact-head CI, responsive/keyboard review, and browser E2E remains pending.
+- No production mutation, deployment, merge, or release occurred. Release remains BLOCKED / NOT CERTIFIED.
