@@ -1,56 +1,91 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#101a35">
-<title>MantiqaTiX | معاينة التطوير</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101a35">
+<title>MantiqaTiX | مساحة تطوير الواجهات</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1020;--panel:#121b31;--panel2:#172440;--line:#293754;--text:#f4f7ff;--muted:#9eacc8;--blue:#6da8ff;--mint:#62e0c1;--amber:#f6c66b}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% -10%,#1b3b6b 0,transparent 38%),var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);line-height:1.65}a{color:inherit;text-decoration:none}.wrap{max-width:1180px;margin:auto;padding:24px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0 28px}.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px}.mark{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#4389ff,#61dfc0);color:#071326;font-weight:900}.pill{font-size:12px;border:1px solid #715d32;color:#ffe0a0;background:#3b2e17;padding:6px 11px;border-radius:999px}.hero{padding:36px 0 30px;display:grid;grid-template-columns:1.2fr .8fr;gap:24px;align-items:center}.eyebrow{color:var(--mint);font-size:13px;font-weight:800;letter-spacing:.04em}.hero h1{font-size:clamp(32px,5vw,54px);line-height:1.2;margin:12px 0}.hero p{color:var(--muted);max-width:680px;margin:0 0 24px}.actions{display:flex;flex-wrap:wrap;gap:10px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 17px;border-radius:12px;background:var(--blue);color:#071326;font-weight:800}.btn.secondary{background:transparent;color:var(--text);border:1px solid var(--line)}.preview-card{background:linear-gradient(150deg,#182847,#111a2d);border:1px solid #304365;border-radius:24px;padding:22px;box-shadow:0 24px 70px #0005}.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.live-dot{display:inline-block;width:8px;height:8px;background:var(--mint);border-radius:50%;margin-left:7px}.mini-label{font-size:12px;color:var(--muted)}.metric{font-size:32px;font-weight:850}.chart{height:90px;display:flex;align-items:end;gap:8px;border-bottom:1px solid var(--line);padding:0 4px 8px;margin-top:10px}.bar{flex:1;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#6da8ff,#416bd2);min-height:15px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:14px;margin:26px 0 16px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:4px 0 0;color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.module{background:linear-gradient(145deg,var(--panel),#0f172a);border:1px solid var(--line);border-radius:18px;padding:19px;min-height:170px}.icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#21375b;color:#9bc3ff;font-size:21px;margin-bottom:13px}.module h3{margin:0 0 7px;font-size:17px}.module p{margin:0;color:var(--muted);font-size:13px}.status{display:inline-block;margin-top:15px;font-size:11px;padding:4px 8px;border-radius:8px;background:#173a36;color:#8df0d7}.notice{margin-top:22px;border:1px solid #66552d;background:#2a2417;color:#f4dba7;border-radius:14px;padding:13px 16px;font-size:13px}.footer{margin-top:32px;padding:20px 0;border-top:1px solid var(--line);color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-@media(max-width:780px){.wrap{padding:17px}.hero{grid-template-columns:1fr;padding-top:16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.top{align-items:flex-start}.hero h1{font-size:36px}}
-@media(max-width:500px){.grid{grid-template-columns:1fr}.pill{max-width:150px;text-align:center}.section-title{align-items:flex-start;flex-direction:column}.preview-card{padding:17px}}
+:root{color-scheme:dark;--bg:#0b1020;--panel:#121b31;--panel2:#182642;--line:#293754;--text:#f4f7ff;--muted:#9eacc8;--blue:#7baeff;--mint:#62e0c1;--amber:#f6c66b;--red:#ff9292}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#1b3b6b 0,transparent 35%),var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);line-height:1.6}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.app{min-height:100vh;display:grid;grid-template-columns:245px minmax(0,1fr)}aside{border-left:1px solid var(--line);padding:22px 16px;background:#0d1426}.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:18px;margin-bottom:28px}.mark{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#4389ff,#61dfc0);color:#071326;font-weight:950}.eyebrow{font-size:11px;color:var(--mint);font-weight:800;letter-spacing:.03em}.nav-label{font-size:11px;color:#7182a4;margin:22px 9px 8px}.nav{display:grid;gap:5px}.nav button{display:flex;gap:10px;align-items:center;text-align:right;color:var(--muted);background:transparent;border:1px solid transparent;padding:10px 12px;border-radius:11px}.nav button:hover,.nav button.active{background:#1a2a48;border-color:#2b4166;color:var(--text)}.nav .ico{width:23px;text-align:center}.side-note{font-size:11px;color:var(--muted);margin-top:30px;padding:12px;border:1px solid var(--line);border-radius:12px}.main{min-width:0;padding:22px clamp(16px,3vw,36px) 34px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}.top h1{font-size:22px;margin:2px 0}.muted{color:var(--muted)}.search{display:flex;gap:8px;min-width:min(100%,340px)}input,select{background:#0c1426;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px 12px;min-width:0}input{width:100%}.btn{border:1px solid transparent;background:var(--blue);color:#071326;border-radius:11px;padding:10px 14px;font-weight:800}.btn.secondary{background:transparent;color:var(--text);border-color:var(--line)}.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}.status{display:inline-flex;align-items:center;gap:7px;font-size:11px;padding:5px 9px;border-radius:8px;background:#3a2e18;color:#ffe0a0;border:1px solid #66552d}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}.intro{padding:25px 0 12px}.intro h2{font-size:clamp(25px,3vw,37px);line-height:1.25;margin:8px 0}.intro p{max-width:760px;color:var(--muted);margin:0}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}.stat,.panel,.module{background:linear-gradient(145deg,var(--panel),#0f172a);border:1px solid var(--line);border-radius:16px;padding:17px}.stat .num{font-size:26px;font-weight:850;margin:5px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:25px 0 13px}.section-head h2{font-size:18px;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:4px 0 0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.module{min-height:160px;text-align:right;color:var(--text);width:100%;transition:transform .15s,border-color .15s}.module:hover{transform:translateY(-2px);border-color:#5379b2}.module .icon{width:39px;height:39px;display:grid;place-items:center;background:#21375b;color:#b7d2ff;border-radius:12px;font-size:20px;margin-bottom:12px}.module h3{font-size:16px;margin:0 0 6px}.module p{font-size:12px;color:var(--muted);margin:0}.tag{display:inline-block;margin-top:12px;font-size:10px;color:#9df0dc;background:#173a36;padding:4px 8px;border-radius:7px}.notice{margin-top:20px;padding:13px 15px;border:1px solid #66552d;background:#2a2417;color:#f4dba7;border-radius:12px;font-size:12px}.panel{margin-top:18px}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}.toolbar input{max-width:320px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:570px}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px}th{background:#172440;color:#c8d7f2}tr:last-child td{border-bottom:0}.empty{padding:28px;text-align:center;color:var(--muted)}.back{margin-bottom:16px}.hidden{display:none!important}.toast{position:fixed;bottom:20px;left:20px;background:#173a36;border:1px solid #3b8c7b;color:#c8fff1;padding:12px 16px;border-radius:12px;box-shadow:0 12px 35px #0007;max-width:calc(100vw - 40px)}.footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:980px){.app{grid-template-columns:190px minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.app{display:block}aside{padding:12px;border-left:0;border-bottom:1px solid var(--line)}.brand{margin:0 0 12px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;padding:8px 10px}.nav-label,.side-note{display:none}.main{padding:17px}.top{align-items:flex-start}.search{min-width:100%}.grid{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat .num{font-size:22px}}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header class="top">
-  <div class="brand"><span class="mark">M</span><span>MantiqaTiX <span style="color:var(--muted);font-weight:500">Enterprise</span></span></div>
-  <span class="pill">نسخة معاينة مستقلة</span>
-</header>
-<main>
-<section class="hero">
-  <div>
-    <div class="eyebrow">منصة واحدة لإدارة الخدمات والأعمال</div>
-    <h1>تطوير أوضح<br>وتجربة تشغيل أكثر احترافية</h1>
-    <p>مساحة معاينة مرئية لتصميم MantiqaTiX وتوجه الواجهات القادمة. هذه نسخة عرض مستقلة للمعاينة المرئية، منفصلة عن بوابة الإنتاج، ولا تنفذ أي تغييرات على حسابات المستخدمين أو الطلبات أو الأموال.</p>
-    <div class="actions"><a class="btn" href="../index.html">فتح الموقع الحالي ↗</a><a class="btn secondary" href="https://github.com/islamnagy2022-eng/MantiqaTiX/pull/307">متابعة التطوير على GitHub</a></div>
-  </div>
-  <aside class="preview-card" aria-label="نموذج لوحة معلومات تجريبية">
-    <div class="card-head"><div><div class="mini-label">لوحة متابعة تجريبية</div><strong>ملخص مساحة العمل</strong></div><span class="mini-label"><span class="live-dot"></span>عرض توضيحي</span></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div style="background:#0c1426;border:1px solid var(--line);border-radius:14px;padding:13px"><div class="mini-label">مساحات العمل</div><div class="metric">28</div><div class="mini-label">وحدات في الكتالوج</div></div>
-      <div style="background:#0c1426;border:1px solid var(--line);border-radius:14px;padding:13px"><div class="mini-label">حالة المعاينة</div><div class="metric" style="font-size:25px;color:var(--mint)">UI</div><div class="mini-label">واجهة تجريبية فقط</div></div>
+<div class="app">
+<aside>
+  <div class="brand"><span class="mark">M</span><span>MantiqaTiX<br><span class="muted" style="font-size:11px;font-weight:500">Enterprise workspace</span></span></div>
+  <div class="eyebrow">مساحة تطوير الواجهات</div>
+  <div class="nav-label">مساحة العمل</div>
+  <nav class="nav" aria-label="التنقل الرئيسي">
+    <button class="active" data-view="home"><span class="ico">▦</span>نظرة عامة</button>
+    <button data-view="discovery"><span class="ico">⌕</span>اكتشاف الخدمات</button>
+    <button data-view="marketing"><span class="ico">◈</span>التسويق والإعلان</button>
+    <button data-view="orders"><span class="ico">◷</span>الطلبات والعمليات</button>
+    <button data-view="providers"><span class="ico">♙</span>مقدمو الخدمات</button>
+    <button data-view="access"><span class="ico">⌘</span>الأدوار والصلاحيات</button>
+    <button data-view="reports"><span class="ico">▤</span>التقارير</button>
+  </nav>
+  <div class="side-note">نسخة تجريبية مستقلة<br>التغييرات هنا داخل المتصفح فقط ولا تحفظ في قاعدة بيانات.</div>
+</aside>
+<main class="main">
+  <header class="top"><div><div class="eyebrow">MANTIQATIX / WORKSPACE</div><h1 id="pageTitle">نظرة عامة</h1></div><div class="search"><input id="globalSearch" type="search" placeholder="ابحث في الأقسام المعروضة..." aria-label="بحث في الأقسام"><button class="btn" id="searchBtn">بحث</button></div></header>
+  <section id="homeView">
+    <div class="intro"><div class="eyebrow">واجهة تشغيل موحدة</div><h2>كل وحدات المنصة<br>في مساحة عمل واحدة</h2><p>نحوّل هيكل MantiqaTiX إلى واجهات واضحة قابلة للاختبار قبل ربطها بمصادر البيانات الحقيقية. افتح أي قسم من القائمة أو استخدم البحث للتنقل بسرعة.</p></div>
+    <div class="stats">
+      <div class="stat"><div class="muted" style="font-size:12px">الأقسام المعروضة</div><div class="num" id="moduleCount">6</div><div class="muted" style="font-size:11px">واجهات أولية</div></div>
+      <div class="stat"><div class="muted" style="font-size:12px">حالة الواجهة</div><div class="num" style="color:var(--mint)">RTL</div><div class="muted" style="font-size:11px">متجاوبة مع الشاشات</div></div>
+      <div class="stat"><div class="muted" style="font-size:12px">مصدر البيانات</div><div class="num" style="font-size:20px">Demo</div><div class="muted" style="font-size:11px">بيانات توضيحية فقط</div></div>
+      <div class="stat"><div class="muted" style="font-size:12px">حالة الربط</div><div class="num" style="font-size:20px;color:var(--amber)">غير مربوط</div><div class="muted" style="font-size:11px">لا يوجد اتصال إنتاجي</div></div>
     </div>
-    <div class="mini-label" style="margin-top:18px">توزيع بصري توضيحي — ليست بيانات تشغيل فعلية</div>
-    <div class="chart" aria-hidden="true"><span class="bar" style="height:34%"></span><span class="bar" style="height:57%"></span><span class="bar" style="height:43%"></span><span class="bar" style="height:77%"></span><span class="bar" style="height:63%"></span><span class="bar" style="height:91%"></span><span class="bar" style="height:70%"></span><span class="bar" style="height:100%"></span></div>
-  </aside>
-</section>
-<section>
-  <div class="section-title"><div><h2>مساحات التطوير</h2><p>نموذج مرئي للأقسام التي يجري تنظيمها داخل المنصة</p></div></div>
-  <div class="grid">
-    <article class="module"><div class="icon">⌕</div><h3>اكتشاف الخدمات</h3><p>تجربة بحث وتصفح تساعد العميل على الوصول للخدمات ومقدميها.</p><span class="status">تصور واجهة</span></article>
-    <article class="module"><div class="icon">▦</div><h3>التسويق والإعلان</h3><p>مساحة موحدة للحملات والمحتوى والعملاء وشركاء التسويق.</p><span class="status">تصور واجهة</span></article>
-    <article class="module"><div class="icon">◷</div><h3>الطلبات والعمليات</h3><p>عرض حالات الطلبات ومسارات المتابعة في تجربة تشغيل منظمة.</p><span class="status">تصور واجهة</span></article>
-    <article class="module"><div class="icon">♙</div><h3>مقدمو الخدمات</h3><p>إدارة ملفات مقدمي الخدمة والقطاعات ومعلومات النشاط.</p><span class="status">تصور واجهة</span></article>
-    <article class="module"><div class="icon">⌘</div><h3>الأدوار والصلاحيات</h3><p>تجربة واجهة توضح فصل مساحات العمل حسب الدور والصلاحية.</p><span class="status">تصور واجهة</span></article>
-    <article class="module"><div class="icon">▤</div><h3>التقارير والمتابعة</h3><p>ملخصات بصرية لمؤشرات العمل مع تمييز البيانات الفعلية من التجريبية.</p><span class="status">تصور واجهة</span></article>
-  </div>
-  <div class="notice"><strong>تنبيه واضح:</strong> الأرقام والرسوم والبطاقات في هذه الصفحة تجريبية للعرض البصري فقط. لا يوجد اتصال بقاعدة البيانات ولا تنفيذ لأي عملية مالية أو تشغيلية.</div>
-</section>
+    <div class="section-head"><div><h2>الأقسام المتاحة للمعاينة</h2><p>اضغط على بطاقة لفتح واجهة القسم والتفاعل مع عناصرها التجريبية</p></div><span class="muted" id="resultCount" style="font-size:12px">6 أقسام</span></div>
+    <div class="grid" id="moduleGrid">
+      <button class="module" data-module="discovery" data-search="اكتشاف الخدمات البحث التصفح التصنيفات"><span class="icon">⌕</span><h3>اكتشاف الخدمات</h3><p>واجهة بحث وتصفح وتصنيفات تساعد العميل في الوصول إلى الخدمة المناسبة.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
+      <button class="module" data-module="marketing" data-search="التسويق الإعلان الحملات المحتوى العملاء"><span class="icon">◈</span><h3>التسويق والإعلان</h3><p>مساحة للحملات الإعلانية والمحتوى والعملاء ومتابعة مراحل التنفيذ.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
+      <button class="module" data-module="orders" data-search="الطلبات العمليات الحالة المتابعة"><span class="icon">◷</span><h3>الطلبات والعمليات</h3><p>قائمة طلبات تجريبية مع بحث وتصفية للحالات.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
+      <button class="module" data-module="providers" data-search="مقدمو الخدمات القطاعات الملفات"><span class="icon">♙</span><h3>مقدمو الخدمات</h3><p>عرض نماذج ملفات مقدمي الخدمة والقطاعات والتصنيفات.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
+      <button class="module" data-module="access" data-search="الأدوار الصلاحيات المستخدمون الأمن"><span class="icon">⌘</span><h3>الأدوار والصلاحيات</h3><p>تصور إدارة الأدوار وحدود الوصول مع تنبيه أنها ليست صلاحيات فعلية.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
+      <button class="module" data-module="reports" data-search="التقارير التحليلات المؤشرات الأداء"><span class="icon">▤</span><h3>التقارير والمتابعة</h3><p>مؤشرات شكلية وتقارير توضيحية مع تمييزها عن بيانات التشغيل.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
+    </div>
+    <div class="notice"><strong>حدود النسخة:</strong> هذه مساحة معاينة واجهات وليست بوابة الإنتاج. كل الأرقام والسجلات تجريبية؛ لا يوجد اتصال بقاعدة البيانات أو تسجيل دخول فعلي أو تنفيذ لطلبات أو مدفوعات أو صلاحيات إنتاجية.</div>
+  </section>
+  <section id="detailView" class="hidden">
+    <button class="btn secondary back" id="backBtn">→ الرجوع لنظرة عامة</button>
+    <div class="intro" style="padding-top:0"><div class="eyebrow" id="detailEyebrow">MODULE PREVIEW</div><h2 id="detailTitle">القسم</h2><p id="detailDescription"></p></div>
+    <div class="panel"><div class="section-head" style="margin-top:0"><div><h2 id="tableTitle">عناصر القسم</h2><p>سجلات توضيحية محلية لا تمثل بيانات حقيقية</p></div><button class="btn" id="addBtn">+ إضافة سجل تجريبي</button></div>
+      <div class="toolbar"><input id="tableSearch" type="search" placeholder="ابحث داخل السجلات..." aria-label="بحث داخل السجلات"><select id="statusFilter" aria-label="تصفية حسب الحالة"><option value="">كل الحالات</option><option>نشط</option><option>قيد المراجعة</option><option>مكتمل</option><option>مسودة</option></select><button class="btn secondary" id="resetBtn">إعادة ضبط العرض</button></div>
+      <div class="table-wrap"><table><thead><tr><th>الاسم</th><th>التصنيف</th><th>الحالة</th><th>آخر تحديث</th></tr></thead><tbody id="tableBody"></tbody></table><div class="empty hidden" id="emptyState">لا توجد نتائج مطابقة للبحث الحالي</div></div>
+    </div>
+    <div class="notice">الإضافة والبحث والتصفية تعمل محليًا في هذه الجلسة فقط. لا يتم حفظ البيانات بعد إغلاق الصفحة ولا تُستخدم هذه الواجهة للتحكم في الإنتاج.</div>
+  </section>
+  <footer class="footer"><span>© MantiqaTiX — بيئة تطوير واجهات</span><span>معاينة مستقلة • عربي RTL • Responsive</span></footer>
 </main>
-<footer class="footer"><span>© MantiqaTiX — مساحة معاينة التطوير</span><span>مستقلة عن بيانات الإنتاج • RTL • Responsive</span></footer>
 </div>
-</body>
-</html>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+(function(){
+const modules={
+discovery:{title:"اكتشاف الخدمات",desc:"واجهة استكشاف الخدمات مع بحث تجريبي وتصنيفات عامة.",rows:[["خدمات المنزل","المنزل والصيانة","نشط"],["التصميم والإبداع","أعمال رقمية","نشط"],["التوصيل المحلي","النقل والتوصيل","قيد المراجعة"]]},
+marketing:{title:"التسويق والإعلان",desc:"تنظيم الحملات والمحتوى والعملاء في مكان واحد. لا يتم نشر أي إعلان من هذه المعاينة.",rows:[["حملة الوعي بالعلامة","حملات إعلانية","نشط"],["تقويم المحتوى","إدارة المحتوى","مسودة"],["حملة اكتساب العملاء","اكتساب العملاء","قيد المراجعة"]]},
+orders:{title:"الطلبات والعمليات",desc:"استعراض حالات طلبات نموذجية لتجربة البحث والتصفية فقط.",rows:[["طلب تجريبي #1001","خدمة منزلية","قيد المراجعة"],["طلب تجريبي #1002","تصميم","مكتمل"],["طلب تجريبي #1003","توصيل","نشط"]]},
+providers:{title:"مقدمو الخدمات",desc:"نماذج ملفات مقدمي الخدمات والقطاعات. لا توجد ملفات حقيقية في هذه البيئة.",rows:[["مقدم خدمة نموذجي أ","صيانة منزلية","نشط"],["مقدم خدمة نموذجي ب","تصميم وإبداع","قيد المراجعة"],["مقدم خدمة نموذجي ج","نقل وتوصيل","نشط"]]},
+access:{title:"الأدوار والصلاحيات",desc:"عرض توضيحي لتقسيم الأدوار فقط. لا ينشئ أو يعدل صلاحيات حسابات فعلية.",rows:[["مدير المنصة — مثال","إدارة عامة","نشط"],["مدير محتوى — مثال","المحتوى","نشط"],["مراجع — مثال","مراجعة واعتماد","قيد المراجعة"]]},
+reports:{title:"التقارير والمتابعة",desc:"سجلات تقارير شكلية تساعد على اختبار بنية العرض وليست نتائج أعمال حقيقية.",rows:[["ملخص النشاط الأسبوعي","نشاط المنصة","مكتمل"],["أداء الحملات التجريبي","التسويق","قيد المراجعة"],["تقرير الخدمات","الاكتشاف","مسودة"]]}
+};
+let current="";let extraRows={};let toastTimer;
+const $=id=>document.getElementById(id);
+function notify(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),2600)}
+function setView(key){if(!modules[key])return;current=key;$("homeView").classList.add("hidden");$("detailView").classList.remove("hidden");$("pageTitle").textContent=modules[key].title;$("detailTitle").textContent=modules[key].title;$("detailDescription").textContent=modules[key].desc;$("detailEyebrow").textContent="MODULE / "+key.toUpperCase();$("tableTitle").textContent="سجلات "+modules[key].title;$("globalSearch").value="";$("tableSearch").value="";$("statusFilter").value="";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===key));renderRows();window.scrollTo({top:0,behavior:"smooth"})}
+function home(){current="";$("detailView").classList.add("hidden");$("homeView").classList.remove("hidden");$("pageTitle").textContent="نظرة عامة";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view==="home"));$("globalSearch").value="";filterCards("");window.scrollTo({top:0,behavior:"smooth"})}
+function filterCards(q){q=q.trim().toLocaleLowerCase("ar");let n=0;document.querySelectorAll(".module").forEach(card=>{const match=!q||(card.innerText+" "+card.dataset.search).toLocaleLowerCase("ar").includes(q);card.classList.toggle("hidden",!match);if(match)n++});$("resultCount").textContent=n+" أقسام";$("moduleCount").textContent="6"}
+function renderRows(){const base=modules[current].rows.map((r,i)=>({r,id:i}));const rows=base.concat((extraRows[current]||[]).map((r,i)=>({r,id:"x"+i})));const q=$("tableSearch").value.trim().toLocaleLowerCase("ar");const status=$("statusFilter").value;const filtered=rows.filter(x=>(!q||x.r.join(" ").toLocaleLowerCase("ar").includes(q))&&(!status||x.r[2]===status));$("tableBody").innerHTML="";filtered.forEach(x=>{const tr=document.createElement("tr");x.r.forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});const td=document.createElement("td");td.textContent="الآن";tr.appendChild(td);$("tableBody").appendChild(tr)});$("emptyState").classList.toggle("hidden",filtered.length>0)}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>b.dataset.view==="home"?home():setView(b.dataset.view)));
+document.querySelectorAll(".module").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.module)));
+$("backBtn").addEventListener("click",home);
+function doSearch(){const q=$("globalSearch").value;if(current){$("tableSearch").value=q;renderRows();}else{filterCards(q);if(q.trim()&&document.querySelectorAll(".module:not(.hidden)").length===1){const one=document.querySelector(".module:not(.hidden)");if(one)notify("تم العثور على قسم مطابق. اضغط البطاقة لفتحه.");}}}
+$("searchBtn").addEventListener("click",doSearch);$("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch()});$("globalSearch").addEventListener("input",()=>{if(!current)filterCards($("globalSearch").value)});$("tableSearch").addEventListener("input",renderRows);$("statusFilter").addEventListener("change",renderRows);
+$("addBtn").addEventListener("click",()=>{if(!current)return;const count=(extraRows[current]||[]).length+1;const r=["سجل تجريبي جديد "+count,"إضافة محلية","مسودة"];(extraRows[current]||(extraRows[current]=[])).push(r);renderRows();notify("أُضيف سجل تجريبي محلي فقط ولم يتم حفظه في الخادم.")});
+$("resetBtn").addEventListener("click",()=>{$("tableSearch").value="";$("statusFilter").value="";renderRows();notify("تمت إعادة ضبط البحث والتصفية.")});
+})();
+</script>
+</body></html>
