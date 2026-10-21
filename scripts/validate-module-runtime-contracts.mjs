@@ -48,6 +48,7 @@ if(files.operations.includes("sb.from('education_requests').insert")) failures.p
 const providerOnboarding=read("web/provider-onboarding-module.js");
 for(const required of ["const pendingActions=new WeakSet();","if(!beginAction(form))return;","finally{endAction(form);}","if(btn.disabled)return;","btn.textContent='جارٍ التحقق…'"]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_ONBOARDING_IN_FLIGHT_GUARD:"+required);}
 for(const required of ["form.dataset.pendingCatalogItemId","form.dataset.pendingCatalogItemName","form.dataset.catalogOutcomeUnknown==='true'","PREVIOUS_SERVICE_PRICE_PENDING","PRICE_UPSERT","سيتم استخدام الخدمة نفسها دون إنشاء نسخة جديدة"]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_CATALOG_PARTIAL_RETRY_GUARD:"+required);}
+for(const required of ["membershipSelectionRequired=(memberships?.length||0)>1&&!active","if(s.membershipSelectionRequired)","mnty-active-membership","window.MNTYActiveMembershipId=chosen.id","memberships?.length===1?memberships[0]:null"]){if(!providerOnboarding.includes(required))failures.push("PROVIDER_MEMBERSHIP_SELECTION_GUARD:"+required);}
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 for(const [code,owner,tables] of modules){
