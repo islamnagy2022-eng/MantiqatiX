@@ -15,6 +15,12 @@ assert.match(authorizationPolicy, /membership\.permissions\?\.scope\s*===\s*"PLA
 assert.match(authorizationPolicy, /membership\.permissions\?\.full_control\s*===\s*true/, "platform admin must require explicit full-control permission");
 assert.match(source, /if\(be\|\|!business\)/, "business existence must remain checked");
 assert.match(source, /BUSINESS_NOT_ACTIVE/, "inactive businesses must remain blocked");
+assert.match(source, /\.eq\("user_id",user\.id\)\.eq\("tenant_id",tenantId\)\.eq\("status","ACTIVE"\)/, "membership lookup must be scoped to the authenticated user, requested tenant, and active status");
+assert.match(source, /\.eq\("id",businessId\)\.eq\("tenant_id",tenantId\)\.single\(\)/, "business lookup must bind business ID and tenant ID in the same query");
+assert.ok(source.indexOf("db.auth.getUser") < source.indexOf('from("user_memberships")'), "identity must be verified before membership lookup");
+assert.ok(source.indexOf("if(!isBranchCreationAuthorized") < source.indexOf('from("businesses")'), "membership authorization must be enforced before business lookup");
+assert.ok(source.indexOf("if(coordinates.error)") < source.indexOf('from("user_memberships")'), "invalid coordinates must be rejected before database reads");
+assert.ok(source.indexOf("if(!isBranchCreationAuthorized") < source.indexOf('.from("branches").insert'), "authorization must be enforced before branch writes");
 
 assert.match(source, /if\(ie\)return out\(\{error:"BRANCH_CREATE_FAILED"\},400\)/, "branch insert failures must not expose database error text");
 assert.doesNotMatch(source, /ie\.message/, "branch insert failures must not return ie.message");
