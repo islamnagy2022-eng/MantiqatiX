@@ -241,7 +241,7 @@ assert.match(source, /id="mlTitleCount" class="muted">0 \/ 160/, "marketing lead
 assert.match(source, /id="mlAreaCount" class="muted">0 \/ 120/, "marketing lead service area must expose its character limit");
 assert.match(source, /id="mlServicesCount" class="muted">0 \/ 800/, "marketing lead services must expose their character limit");
 assert.match(source, /id="mlDescCount" class="muted">0 \/ 5000/, "marketing lead description must expose its character limit");
-assert.match(source, /const updateLeadCounters=\(\)=>\{[\s\S]*field\.value\.length[\s\S]*counter\.textContent/, "marketing lead character counters must update from actual input values");
+assert.match(source, /const updateLeadCounters=\(\)=>\{[\s\S]*counter\.textContent=String\(field\.value\.length\)/, "marketing lead character counters must update from actual input values");
 assert.match(source, /opCounterBound!=='true'/, "marketing lead counter listeners must not accumulate across renders");
 
 assert.match(source, /opLeadSearchBound/, "marketing lead search must not accumulate duplicate input handlers");
