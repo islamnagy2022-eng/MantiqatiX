@@ -101,7 +101,6 @@ declare
   v_movement_id uuid;
   v_new_stock numeric;
   v_new_cost numeric;
-  v_cost numeric(14,2);
   v_scope_key text;
 begin
   if v_actor is null then
