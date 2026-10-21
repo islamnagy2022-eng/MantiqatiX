@@ -68,7 +68,7 @@ assert.match(source, /money\(r\.budget_min\).*money\(r\.budget_max\)/, "lead lis
 assert.match(source, /toLocaleDateString\('ar-EG'\)/, "lead list must display localized request dates");
 assert.match(source, /id="mlSearch"/, "marketing lead list must provide a search field");
 assert.match(source, /function marketingLeadTable\(query='',status=''\)/, "lead search and status filters must filter the existing visible dataset");
-assert.match(source, /const refreshMarketingLeads=\(\)=>\{const target=document\.getElementById\('mlLeadResults'\)[\s\S]*?addEventListener\('input',refreshMarketingLeads\)[\s\S]*?addEventListener\('change',refreshMarketingLeads\)/, "lead search and status filter must refresh results as users interact");
+assert.match(source, /const refreshMarketingLeads=\(\)=>\{const target=document\.getElementById\('mlLeadResults'\)[\s\S]*?listenOnce\(document\.getElementById\('mlSearch'\),'opLeadSearchBound','input',refreshMarketingLeads\)[\s\S]*?listenOnce\(document\.getElementById\('mlStatusFilter'\),'opLeadStatusBound','change',refreshMarketingLeads\)/, "lead search and status filter must refresh results through guarded one-time listeners");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 assert.match(edge, /const rawBytes = await readLimitedBody\(req, maxBodyBytes\);[\s\S]*?JSON\.parse\(new TextDecoder\(\)\.decode\(rawBytes\)\)/, "lead API must enforce the request limit using its bounded byte stream before parsing JSON");
 assert.match(edge, /typeof body\.title === "string"[\s\S]*?typeof body\.description === "string"/, "lead API must reject non-string title and description values");
