@@ -19,7 +19,7 @@ assert.ok(!edge.includes('userScoped.rpc("update_order_status_backend"'), 'statu
 assert.ok(migration.includes('from public, anon, authenticated, service_role;'), 'status RPC execution must be revoked from client roles');
 assert.ok(migration.includes('to service_role;'), 'only the trusted server role may execute the status RPC');
 assert.ok(migration.includes("coalesce(auth.role(),'') <> 'service_role'"), 'RPC must distinguish trusted server invocation from user-context calls');
-assert.ok(test.includes('RC529_FAIL: authenticated role can execute backend-only status RPC')===false, 'test must assert the authenticated role lacks EXECUTE');
+assert.ok(test.includes('RC529_FAIL: authenticated role can execute backend-only status RPC'), 'integration must assert the authenticated role lacks EXECUTE');
 assert.ok(edge.includes('if(rpcError)return out({error:"ORDER_STATUS_UPDATE_FAILED"},400)'), 'database errors must not leak raw provider details');
 for (const marker of [
   'RC529_FAIL: cross-branch status mutation succeeded',
