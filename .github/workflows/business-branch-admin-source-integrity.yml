@@ -24,6 +24,8 @@ on:
       - "scripts/test-branch-coordinate-normalization.mjs"
       - "scripts/validate-business-branch-admin-source.mjs"
       - ".github/workflows/business-branch-admin-source-integrity.yml"
+      - "supabase/functions/_shared/bearer-token.mjs"
+      - "scripts/test-bearer-token.mjs"
 permissions:
   contents: read
 jobs:
