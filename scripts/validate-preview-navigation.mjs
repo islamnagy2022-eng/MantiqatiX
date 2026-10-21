@@ -29,8 +29,8 @@ const checks = [
   ["Demo UI escapes record content before rendering HTML", dashboard.includes("function safe(s)") && dashboard.includes(".replace(/[&<>")],
   ["Demo global search supports the Enter key", dashboard.includes("globalSearch').addEventListener('keydown'") && dashboard.includes("e.key==='Enter'")],
   ["Demo navigation includes all four workspace tabs", /data-tab="overview"/.test(dashboard) && /data-tab="records"/.test(dashboard) && /data-tab="create"/.test(dashboard) && /data-tab="workflow"/.test(dashboard)],
-  ["Demo mutations remain in page-memory data structures", /let current=null, toastTimer=null, data=\\{\\}/.test(dashboard) && /data\\[current\\.id\\]\\.unshift/.test(dashboard)],
-  ["Demo dashboard stays standalone without network or persistence APIs", !/\\bfetch\\s*\\(|\\bsupabase\\b|localStorage|sessionStorage/i.test(dashboard)]
+  ["Demo mutations remain in page-memory data structures", dashboard.includes("let current=null, toastTimer=null, data={}") && dashboard.includes("data[current.id].unshift")],
+  ["Demo dashboard stays standalone without network or persistence APIs", !/\bfetch\s*\(|\bsupabase\b|localStorage|sessionStorage/i.test(dashboard)]
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
