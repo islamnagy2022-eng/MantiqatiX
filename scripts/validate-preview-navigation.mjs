@@ -23,7 +23,14 @@ const checks = [
   ["Service worker uses network-first navigation with cached homepage fallback", /event\.request\.mode==='navigate'[\s\S]*?caches\.match\('\.\/index\.html'\)/.test(sw)],
   ["Demo dashboard declares Arabic RTL and mobile viewport", /<html lang="ar" dir="rtl">/.test(dashboard) && /name="viewport"/.test(dashboard)],
   ["Demo dashboard has tablet and phone responsive breakpoints", /@media\s*\(max-width:\s*1050px\)/.test(dashboard) && /@media\s*\(max-width:\s*680px\)/.test(dashboard)],
-  ["Demo dashboard stays standalone without network or persistence APIs", !/\bfetch\s*\(|\bsupabase\b|localStorage|sessionStorage/i.test(dashboard)]
+  ["Demo dashboard supports a local CSV export flow", /exportBtn/.test(dashboard) && /text\\/csv;charset=utf-8/.test(dashboard) && /a\\.download=current\\.id\\+'-demo\\.csv'/.test(dashboard)],
+  ["Demo dashboard supports simulated workflow and reset actions", /simulateBtn/.test(dashboard) && /resetModuleBtn/.test(dashboard) && /محاكاة ناجحة داخل الصفحة فقط/.test(dashboard)],
+  ["Demo forms constrain input length and require a name", /id="recordName"[^>]*required[^>]*maxlength="100"/.test(dashboard) && /maxlength="400"/.test(dashboard)],
+  ["Demo UI escapes record content before rendering HTML", /function safe\\(s\\)/.test(dashboard) && /replace\\(\\/\\[&<>"'\\]\\/g/.test(dashboard)],
+  ["Demo global search supports the Enter key", /globalSearch.*addEventListener\\('keydown'/.test(dashboard) && /e\\.key==='Enter'/.test(dashboard)],
+  ["Demo navigation includes all four workspace tabs", /data-tab="overview"/.test(dashboard) && /data-tab="records"/.test(dashboard) && /data-tab="create"/.test(dashboard) && /data-tab="workflow"/.test(dashboard)],
+  ["Demo mutations remain in page-memory data structures", /let current=null, toastTimer=null, data=\\{\\}/.test(dashboard) && /data\\[current\\.id\\]\\.unshift/.test(dashboard)],
+  ["Demo dashboard stays standalone without network or persistence APIs", !/\\bfetch\\s*\\(|\\bsupabase\\b|localStorage|sessionStorage/i.test(dashboard)]
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
