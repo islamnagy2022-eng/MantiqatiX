@@ -160,12 +160,13 @@ function ordersView(){
    PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],
    OUT_FOR_DELIVERY:['DELIVERED']
   };
+  const statusLabels={PENDING:'معلق',CREATED:'جديد',CONFIRMED:'مؤكد',PREPARING:'قيد التجهيز',OUT_FOR_DELIVERY:'خرج للتوصيل',DELIVERED:'تم التسليم',CANCELLED:'ملغي'};
   return shell('طلبات المطعم',tabs()+'<div class="action-bar"><label class="field"><span>بحث في الطلبات المحملة</span><input id="rest-order-search" type="search" maxlength="160" placeholder="رقم الطلب أو العميل أو الهاتف أو الفرع" autocomplete="off"></label><label class="field"><span>تصفية الحالة</span><select id="rest-order-status-filter"><option value="">كل الحالات</option><option value="PENDING">معلق</option><option value="CREATED">جديد</option><option value="CONFIRMED">مؤكد</option><option value="PREPARING">قيد التجهيز</option><option value="OUT_FOR_DELIVERY">خرج للتوصيل</option><option value="DELIVERED">تم التسليم</option><option value="CANCELLED">ملغي</option></select></label><label class="field"><span>من تاريخ</span><input id="rest-order-date-from" type="date"></label><label class="field"><span>إلى تاريخ</span><input id="rest-order-date-to" type="date"></label><span id="rest-order-filter-count" class="muted" aria-live="polite">الطلبات المحملة: '+state.orders.length+'</span><span class="muted">يعرض البحث آخر 100 طلب تم تحميلها لهذا الفرع فقط</span></div><div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th>تفاصيل</th></tr></thead><tbody>'+
   (state.orders.length?state.orders.map(x=>{
    const current=String(x.status||'').toUpperCase();
    const next=transitions[current]||[];
    const statusControl=canOperate('ORDERS','update')
-    ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
+    ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(statusLabels[current]||current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+esc(statusLabels[s]||s)+'</option>').join('')+'</select>'
     :esc(current);
    const detailId='rest-order-detail-'+String(x.id).replace(/[^a-zA-Z0-9_-]/g,'');
    const details='<div><b>الهاتف:</b> '+esc(x.customer_phone||'غير مسجل')+'</div><div><b>عنوان التوصيل:</b> '+esc(x.delivery_address||'غير مسجل')+'</div><div><b>ملاحظات:</b> '+esc(x.notes||'لا توجد')+'</div><h4>الأصناف والتسعير المحفوظ</h4>'+orderSnapshotView(x);
