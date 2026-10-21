@@ -315,3 +315,13 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Fix:** added `list_jobs_backend` and `list_job_applications_backend` in `20261020233000_jobs_directory_backend_v1.sql`; switched sector loader to RPC calls. Job rows are scope-filtered and omit employer contact; application rows are visible to the applicant or job owner and omit phone/CV. Job employer name is aliased to `company_name` to match the UI.
 - **Tests:** disposable PostgreSQL fixture/integration and `.github/workflows/job-directory-read.yml`, plus source-contract assertions. Commits: `00e62d2700a47cb5013373b917cf6a12286ac7d1`, `ed6753fe9b1266245598354b578c3394b0c47471`, `f69e13905855a8ad75124daaa5c0bdb2e89152d0`, `ca3be7eec648b9efd6a9b2fd0ad7699f23d6e1e2`, `8cb6225fdf925c211db651fff65d57f59dc84104`, `eb097141b5f01a01e33371b97aa626a7560e6346`.
 - No production migration applied; CI/browser E2E pending.
+
+
+## 2026-10-21 — UI blueprint keyboard accessibility slice
+
+- **Baseline checked:** PR #309 (`feat/ui-first-module-completion-20261020`) was open/draft at head `0467aba3d1c60d95e02c4921fec51791bc16dbf6`; this slice is isolated on `feat/ui-blueprint-accessibility-20261021` and does not merge or deploy the parent PR.
+- **Code change:** `web/module-blueprints.js` now gives each module card tabpanel semantics and links it to its tab with `aria-controls`/`aria-labelledby`. Tabs support ArrowLeft/ArrowRight, Home, End, focus movement, and roving tabindex while keeping only the selected panel visible.
+- **Test added:** `scripts/validate-module-blueprint-accessibility.mjs` asserts the keyboard and ARIA source contract. `.github/workflows/pages.yml` runs it during validation.
+- **Verification status:** GitHub file writes succeeded. The validator and full Pages CI have NOT yet been observed running on this head; do not claim test PASS until the exact-head workflow completes. Browser/screen-reader E2E remains NOT VERIFIED.
+- **Safety:** no database, migrations, Auth, financial state, secrets, production deployment, or merge changed. Production remains **BLOCKED / NOT CERTIFIED**.
+- **Next:** open a focused PR, inspect exact-head CI, fix any failures, then continue the next UI module gap from the source-grounded inventory.
