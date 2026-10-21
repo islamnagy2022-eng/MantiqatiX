@@ -164,6 +164,12 @@ assert.match(moduleSource, /const filtered=state\.orders\.filter\(x=>\{/,
   'order filters must operate on the loaded scoped order set');
 assert.match(moduleSource, /x\.id,x\.customer_name,x\.customer_phone/,
   'order search must support order ID, customer name and phone');
+assert.match(moduleSource, /id="rest-order-from-date"/,
+  'orders view must expose a start-date filter');
+assert.match(moduleSource, /id="rest-order-to-date"/,
+  'orders view must expose an end-date filter');
+assert.match(moduleSource, /state\.orderFromDate/,
+  'order date filtering must be based on explicit local UI state');
 assert.match(moduleSource, /id="rest-order-status-filter"/,
   'order list must expose a status filter');
 assert.match(moduleSource, /النتائج: '\+filtered\.length\+' من '\+state\.orders\.length\+' طلب محمّل/,
