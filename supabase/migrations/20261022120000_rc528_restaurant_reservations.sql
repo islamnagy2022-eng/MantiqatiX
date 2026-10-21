@@ -165,6 +165,7 @@ begin
     if v_reservation.status in ('CANCELLED','NO_SHOW') then
       return jsonb_build_object('id',v_reservation.id,'status',v_reservation.status,'idempotent_replay',true);
     end if;
+    if v_reservation.status='SEATED' then raise exception 'SEATED_RESERVATION_CANNOT_BE_CANCELLED'; end if;
     update public.restaurant_reservations set status='CANCELLED',updated_at=now()
     where id=v_reservation.id returning * into v_reservation;
     return jsonb_build_object('id',v_reservation.id,'status',v_reservation.status,'idempotent_replay',false);
