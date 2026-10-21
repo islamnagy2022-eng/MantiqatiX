@@ -8,7 +8,7 @@ assert.match(form, /id="mlDesc"[^>]*maxlength="5000"/, "lead description must ha
 assert.match(form, /id="mlStatus" role="status" aria-live="polite"/, "form status must be announced accessibly");
 assert.match(form, /if\(!title\|\|!description\)/, "title and description must be required");
 assert.match(form, /!Number\.isFinite\(min\)\|\|!Number\.isFinite\(max\)\|\|min<0\|\|max<0/, "budgets must be finite and nonnegative");
-assert.match(form, /if\(max>0&&min>max\)/, "minimum budget must not exceed a provided maximum");
+assert.match(form, /if\(max<min\)/, "minimum budget must not exceed the maximum, including an omitted maximum treated as zero");
 assert.match(form, /if\(!button\|\|button\.disabled\)return/, "duplicate submissions must be blocked");
 assert.match(form, /button\.disabled=true/, "submit button must disable during request");
 assert.match(form, /finally\{button\.disabled=false/, "submit button must be restored after request");
