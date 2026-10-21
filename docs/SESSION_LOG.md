@@ -482,3 +482,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Added `_shared/tenant-id.mjs` and `scripts/test-tenant-id.mjs`; endpoint now allows bounded alphanumeric / underscore / hyphen tenant keys and keeps business IDs strictly UUID-validated. CI now runs these tests and triggers for their changes on both pushes and PRs.
 - Exact-head run `39599342787` passed Deno check, runtime tests, and source validator at `25c75d99c16808c820e120bf4318a08e93669efc`.
 - Live Supabase function remains ACTIVE v5 with older source that lacks the new body-size limit, strict bearer parser, trusted organization derivation, coordinate normalization, and safe generic database errors. No deployment was performed. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — live production parity and security drift recheck
+- Read-only Supabase ledger shows 283 entries, latest RC424 version `20261008222845`; RC449/RC451 and required post-RC424 migrations are not recorded as applied.
+- Four live platform-wide MantiGO RPCs lack `mnty_can_platform_admin()` in their current definitions, despite the source RC449 migration. Live targeted ads function also has the pre-RC451 `search_path=public, pg_temp` configuration.
+- Security advisor inventory: one RLS-enabled table without policies (`digital_page_payment_events`), one anon-executable SECURITY DEFINER, and 40 authenticated-executable SECURITY DEFINER functions. No bulk grant changes were made.
+- `business-branch-admin` remains deployed as ACTIVE v5 and is behind repository hardening. No production database/function changes were performed; release remains BLOCKED / NOT CERTIFIED.

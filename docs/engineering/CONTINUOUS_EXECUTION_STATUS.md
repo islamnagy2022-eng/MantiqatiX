@@ -1,3 +1,384 @@
+# MantiqatiX Continuous Execution Status
+Last updated: 2026-10-16 — source-parity follow-ups verified; production release remains not certified
+
+## Release status
+**NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
+
+## Latest continuation — explicit migration-chain gate (2026-10-11)
+
+- Draft PR [#193](https://github.com/islamnagy2022-eng/MantiqatiX/pull/193) strengthens `scripts/production/verify-production.mjs` to check 28 required forward-only migration source files across payment, SMM, ERP/finance, security, privacy, CRM, and marketing tracks.
+- Missing required migration sources now produce a P0 `BLOCKED` release-gate result. The required sequence is evaluated in immutable filename-timestamp order (the RC446 filename predates RC442/RC444, so it is intentionally earlier in execution order; existing migration filenames are not rewritten). The companion contract validator checks the fail-closed gate behavior.
+- The gate reports `PRODUCTION_GATE=BLOCKED` while the post-RC424 batch is incomplete. Pull-request and non-main branch validation may pass so remediation can be merged; a `main` push or manual deployment dispatch fails closed while any P0 `FAIL`/`BLOCKED` result remains. The latest run before this guard refinement confirmed the missing-source block and uploaded a production-verification artifact; current-head CI is still pending.
+- The live migration ledger remains at RC424 version `20261008222845`, while the RC424 source filename carries timestamp `20261009010000`. Read-only comparison confirms the live bodies of `process_verified_digital_page_payment_backend` and `fulfill_digital_page_publish` match the RC424 source; this is partial function-parity evidence, not proof that the complete applied migration matches the source or that the ledger identity mismatch is resolved. The RC425–RC441 payment/finance/security migration batch is not fully present on `main`; dependency reconciliation and disposable-PostgreSQL rehearsal remain required.
+- Exact-head validation at `2fc91b36baa3a383dfd0f238ce020a061cd8c4f0`: Pages validation passed [run 38097730612](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097730612), printed `PRODUCTION_GATE=BLOCKED`, and skipped deployment; Backend-only Module Boundary passed [38097730614](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097730614), MantiGO privacy passed [38097730620](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097730620), and Module Professionalization Validation passed [38097727730](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38097727730). These are PR/isolated validation results; no production deployment is claimed.
+- RC451's source sets `get_mnty_targeted_advertisements` to `search_path=''`, but the live function still has `search_path=public, pg_temp` and remains intentionally executable by `anon` for public ad discovery. Do not revoke public execution blindly; include RC451 in the complete reviewed migration batch. Supabase Advisor also reports leaked-password protection disabled, 40 authenticated-executable SECURITY DEFINER functions, and one anon-executable SECURITY DEFINER function; these require function-by-function/Auth-setting review rather than bulk revocations.
+- No production schema, data, grants, Auth configuration, Edge Functions, payments, or wallet state was changed by this work.
+
+## Latest continuation — RC456 SMM gateway access and trusted UI staging (2026-10-11)
+
+- Current main checkpoint at the start of this update: `5f832bb55f53a8d448d8771769b8a0c920eb7a7e`, which merged PR #188 (RC456 SMM service-role access boundary). RC456 is source-only and has not been applied to production.
+- A fresh read-only production ACL matrix found that `service_role` had no SELECT/INSERT/UPDATE/DELETE privileges on `smm_admins`, `smm_providers`, `smm_services`, `smm_orders`, `smm_wallets`, or `smm_order_events`. This explains why gateway reads/order writes could fail despite using the service-role client.
+- RC456 grants only the required privileges to `service_role`: SELECT on admin/provider/wallet tables; SELECT/INSERT/UPDATE on services/orders; INSERT-only on order events. Direct `anon`/`authenticated` access is revoked; no DELETE grants are added; provider credentials and wallet transactions remain RPC-only.
+- RC456 validation passed: [SMM Service Role Access Boundary 38089643157](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089643157) completed the disposable PostgreSQL ACL integration; the static contract and Deno type check passed in the same workflow. No production grants or migration were applied.
+- The deployed `smm-gateway` is still version 6. Draft PR #189 stages the SMM UI's trusted `catalog`/`my_data` reads and passes [SMM Trusted UI 38089783851](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089783851). Pages validation [38089783932](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089783932) passed and its `deploy` job was skipped. Keep PR #189 draft until the approved RC456 migration and updated Edge Function are deployed and smoke-tested.
+- Marketing campaign backend RC453 is merged as source-only. Draft PR #191 (current head `11a575def1763355feb199806930142aa015b27f`) stages the tabbed agency workspace, RC453 campaign/partner RPC integration, SMM home quick access, and retry-safe idempotency. Latest checks passed: [Marketing Campaign UI 38090013473](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38090013473), [Module Professionalization 38090013466](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38090013466), [Backend-only Module Boundary 38090013493](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38090013493), and [MantiGO privacy 38090013425](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38090013425). Pages validation [38090013393](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38090013393) passed and deploy was skipped. PR #186 is closed as superseded; PR #191 remains draft.
+- Read-only production migration ledger still ends at RC424 version `20261008222845`. RC447–RC450, RC453, and RC456 remain unapplied in production. Draft PR #189 stages the trusted SMM UI; the deployed `smm-gateway` is still version 6, so keep #189 draft until RC456 is approved/applied, the updated Edge Function is deployed, and smoke tests pass.
+- **Migration-chain caution:** RC447 → RC448 → RC449 → RC449A → RC450 → RC453 → RC456 is only the relevant feature-track subset, not a complete production migration plan. The ledger stops at RC424; RC425–RC431 payment hardening and other required dependencies are not all merged into main (PR #84 remains blocked). Do not apply only the listed subset. First reconcile every required migration after RC424 against the live ledger and current source, then rehearse the full chronological chain on disposable PostgreSQL and obtain explicit rollout approval.
+- No production migration, grants/RLS/Auth change, Edge Function deployment, payment, wallet mutation, SMM order, external ad publishing, or campaign creation occurred.
+
+**Release remains NOT CERTIFIED.** Source merge and disposable CI are not production rollout evidence. Required gates remain the approved ordered migration batch, coordinated Edge Function deployment, authenticated runtime/browser smoke tests, backup/restore rehearsal, and rollback verification.
+
+## Latest continuation — RC453 backend verified; campaign UI staged (2026-10-11)
+
+- Current main checkpoint: `c709348adbb03573c8209767c10e10c1df3be107`, which merged PR #184 (RC453 secure internal campaign and partner workflow). This is source-only; the migration was not applied to production.
+- The initial RC453 PostgreSQL job failed because the disposable fixture's `auth.jwt()` body used a malformed dollar delimiter. The fixture was corrected to matching `$ ... $` delimiters before merge. Corrected-head run [38088683549](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38088683549) passed both the source validator and the disposable PostgreSQL campaign/partner integration.
+- Read-only production schema inspection confirmed the existing columns referenced by RC453 are present in `businesses`, `user_memberships`, `marketing_provider_profiles`, `audit_logs`, and `notifications`. This is compatibility evidence only, not proof that the new RC453 tables/functions exist in production.
+- PR #186 current head `db4ab1ef8642dd52015350f5ff426d3825e3e617` combines the tabbed agency workspace with the RC453 campaign RPCs, explicit read-field allowlists, visible read-error handling, SMM/CRM shortcuts including homepage quick access, and a per-session idempotency key retained across ambiguous retries and cleared only after confirmed success. Latest checks passed: [Marketing Campaign UI 38089317370](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089317370) (Node syntax + 21 contract assertions), [Module Professionalization Validation 38089317440](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089317440), [Backend-only Module Boundary 38089317366](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089317366), and [MantiGO privacy 38089317468](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089317468). Pages validation [38089317388](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38089317388) passed, but its `deploy` job was skipped because the change is still a PR.
+- PR #186 remains deliberately unmerged. The production migration ledger still ends at RC424 version `20261008222845`; deploying the UI before the ordered database rollout would expose a campaign screen whose backend is intentionally unavailable. No campaign UI deployment is claimed.
+- Production rollout order remains RC447 → RC448 → RC449 → RC449A → RC450 → RC453, subject to migration-ledger verification, explicit approval, and runtime acceptance tests. None of these migrations has been applied to production in this continuation.
+- Security Advisor snapshot observed at `2026-10-10T21:40Z`: one anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), 40 authenticated-executable SECURITY DEFINER functions, and an informational finding for `digital_page_payment_events` having RLS enabled without policies. These need function-by-function intent/ACL review; do not apply blanket revocations.
+- No production migration, data mutation, grant/RLS/Auth change, financial transaction, payment, Edge Function deployment, or external ad publishing occurred.
+
+**Release remains NOT CERTIFIED.** Passing isolated CI does not replace the approved production migration batch, authenticated runtime/browser acceptance, backup/restore rehearsal, and rollback verification.
+
+## Latest verified continuation — RC449A financial schema prerequisite (2026-10-10)
+
+- Main checkpoint before this documentation update: `5bcd7dff1f2fd3edbec2cb90e52c2b98085a3738`.
+- PR #166 merged as `5bcd7dff1f2fd3edbec2cb90e52c2b98085a3738`, adding RC449A `20261010175000_rc449a_financial_journal_schema_prerequisites.sql`. It is ordered after RC449 (`20261010170000`) and before RC450 (`20261010180000`), because RC450's own preflight correctly rejects the live schema when these columns are absent.
+- Fresh read-only production schema check found `journal_entries` lacks `entry_number`, `total_debit`, `total_credit`, `posted_at`, `updated_at`, and `reversed_by_entry_id`; `journal_entry_lines` lacks `line_number`. Existing posting, settlement, and reversal function bodies reference these fields. Counts at the time of inspection were `journal_entries=0`, `journal_lines=0`, `general_ledger_rows=0`, and `posted_entries=0`; these counts do not remove the schema dependency.
+- RC449A exact-head validation on `185eee0d05bc9ec6d66004c697316f50edda4c22`: [Financial Journal Schema Prerequisites](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38066458912) passed; [Backend-only Module Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38066458875) passed, including the RC450 financial-journal integration; [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38066458948), [Migration History Immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38066458926), [Migration Version Uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38066458910), [Open PR Migration Collision Guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38066458944), MantiGO privacy, approval-audit integration, and Pages validation also passed. The Pages deploy job was skipped; no web asset was part of this PR.
+- Production migration ledger remains at RC424 version `20261008222845`. **RC447, RC448, RC449, RC449A, and RC450 are all source-only and unapplied to production.** Apply in the reviewed timestamp order only after explicit rollout approval: RC447 → RC448 → RC449 → RC449A → RC450. RC449A must precede RC450.
+- No production migration, data mutation, grant/RLS/Auth change, journal post, settlement, payment, Edge Function deployment, or web deployment occurred. Release remains **NOT CERTIFIED**.
+
+## Latest verified continuation — RC449/RC450 security hardening (2026-10-10)
+
+- Main checkpoint before this status update: `6302b5da8828bbb5a2e4002aa9266d9ab40916c9`.
+- PR #163 merged as `67ced2d0c5eb22200c552ed332ef7c0692a9fddc`, adding forward-only RC449 `20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql`. It requires an ACTIVE `SUPER_ADMIN` membership bound to `MNTY-PLATFORM` with `scope=PLATFORM` and `full_control=true` for the platform-wide MantiGO dashboard, financial report, settlement, and stale-ride expiry RPCs.
+- RC449 exact-head validation on `3e958b8abc6cc3edf8d2aba1691bd92f34d1837b`: PostgreSQL 16 platform-admin integration, static module validation, Backend-only Module Boundary, migration-history immutability, migration-version uniqueness, cross-PR collision guard, MantiGO open-ride privacy, approval-action audit, and Pages validation all passed. The Pages deploy job was skipped because this was backend-only source.
+- PR #164 merged as `6302b5da8828bbb5a2e4002aa9266d9ab40916c9`, adding forward-only RC450 `20261010180000_rc450_financial_journal_service_role_boundary.sql` and a hardened `financial-journal` Edge Function source. Exact-head PostgreSQL 16 financial-journal integration, static validation, Backend-only Module Boundary, Module Professionalization Validation, migration-history immutability, migration-version uniqueness, cross-PR collision guard, and related regression suites passed. Pages validation passed and deployment was skipped.
+- Stale PR #159 was closed without merge; its earlier RC448 financial-journal migration was replaced by clean-main RC450 so the source migration order remains reviewable after RC449.
+- Read-only production checks still show the migration ledger ends at RC424 `20261008222845`; **RC447, RC448, RC449, and RC450 are not applied to production**. Live MantiGO admin RPCs remain on the old authorization until RC449 is approved/applied. The live financial-journal RPC still denies `service_role` EXECUTE and the deployed Edge Function remains behind the RC450 source until its approved rollout.
+- Read-only matrimony preflight returned `active_requests=0`, `duplicate_active_request_pairs=0`, `unlock_rows=0`, and `duplicate_unlock_request_ids=0`. RLS/FORCE RLS are enabled; authenticated still has direct request/unlock DML grants until RC448 is applied. Do not change these grants manually outside the reviewed migration.
+- UI PR #158 is open as DRAFT and intentionally gated until RC447 and RC448 are approved/applied in order, live policy/RPC acceptance tests pass, and authenticated browser flows are verified. No production migration, Edge Function, RLS/Auth/grant, financial data, payment, or UI deployment was performed in this continuation.
+- Supabase security advisor still reports one anon-executable SECURITY DEFINER function and 40 authenticated-executable SECURITY DEFINER functions, plus leaked-password protection disabled. Do not bulk-revoke these grants; triage each function and resolve Auth settings through an approved change.
+- Release remains **NOT CERTIFIED**. RC424 source/ledger mismatch, Paymob Edge Function parity, RC439 checkout recovery, sandbox payment E2E, backup/restore and rollback rehearsals, and branch protection remain release gates.
+
+## Previous checkpoint — RC448 lifecycle gate (2026-10-10 16:05 UTC)
+
+- Current main checkpoint before this documentation update: `7c2e2efa157e330b1d4fbb738ff91df5cc59664a`.
+- PR #160 was merged as `17cb67aba1b025cecf936d8c21db86b1341b92ab` after fixing the disposable integration test: the test had counted unlock rows while still running as `authenticated`, whose RLS correctly hides direct rows. The row-cardinality assertion now runs as the fixture/database owner; the RPC idempotency timestamps remain checked under the authenticated role.
+- Exact-head validation on commit `4defe8966362883dc700457b7a1b1d4f0424e23b`: [RC448 PostgreSQL lifecycle integration](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604601) **passed**; [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604621) **passed**; [Backend-only Module Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604635) **passed**; [MantiGO Open Ride Privacy Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604598) **passed**; [Approval Action Audit Atomicity](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604658) **passed**; [Migration History Immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604655), [Migration Version Uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604656), and [Open PR Migration Collision Guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38065604586) **passed**.
+- The Pages workflow on the RC448 PR passed web validation, while its actual deploy job was skipped. No production UI or database deployment occurred as part of PR #160.
+- Read-only production RC448 preflight: `active_requests=0`, `duplicate_active_request_pairs=0`, `unlock_rows=0`, `duplicate_unlock_request_ids=0`. RLS and FORCE RLS are enabled on the three matrimony tables. Existing unique indexes include `matrimony_profiles_owner_user_id_key` and `matrimony_contact_unlocks_request_id_key`. This is a clean count snapshot, not rollout approval.
+- The production migration ledger remains at RC424 version `20261008222845`; **RC447–RC450 remain unapplied**. Production `authenticated` still has direct DML grants on request/unlock tables until the approved RC448 rollout; do not revoke them manually outside the migration.
+- UI PR #158 remains DRAFT and unmerged. Earlier source/contract workflows passed, but it must remain gated until RC447 and RC448 are applied in order and live policy/RPC acceptance tests pass.
+- Production DB/Auth/RLS/grants, Edge Functions, user data, payments, and web assets were not changed in this continuation. Release remains **NOT CERTIFIED**.
+
+## Latest verified continuation — 2026-10-10
+
+- Current main checkpoint: `ac8979a17862000d545d90df90f972b8e0f2bcdc` (`docs: reconcile RC447 privacy and staged rollout status`).
+- Main Pages deployment after PR #154: [workflow 38063841084](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38063841084) passed both validation and deployment; the `Verify deployed site` step succeeded. PR #154 contained no web assets, so this was a deployment of the unchanged UI.
+- RC447 migration `20261010150000_rc447_matrimony_profile_privacy_boundary.sql` is now on main with PostgreSQL 16 fixture/integration tests and a rollout runbook. **It has not been applied to production.** The read-only Supabase migration ledger still ends at RC424 version `20261008222845`; RC447 is absent.
+- Production privacy boundary confirmed by read-only inspection: `matrimony_profiles` has RLS and FORCE RLS enabled, `authenticated` has SELECT, `anon` does not, and the live permissive `matrimony_profiles_select` policy only excludes anonymous sessions rather than restricting rows to their owners.
+- Production schema matches RC447's referenced columns; `matrimony_profiles.owner_user_id` is unique and `matrimony_requests.status` is NOT NULL. The generic `public.is_platform_admin()` helper only checks active ADMIN/SUPER_ADMIN roles without platform-scope binding, so RC447 does not trust it for verification; the trigger permits only trusted server/database roles.
+- RC447 source-contract checks, migration-history/version/collision guards, and PostgreSQL 16 privacy integration passed on the backend-only PR head. This is isolated-test evidence, not production certification.
+- UI PR #158 is DRAFT and intentionally unmerged; it routes discovery and request/contact actions through RC447/RC448 RPCs. It must not be merged/published until RC447 and RC448 are approved/applied in order and live policy/RPC acceptance tests pass.
+- PR #160 is merged as `17cb67aba1b025cecf936d8c21db86b1341b92ab`. Its corrected exact-head PostgreSQL 16 lifecycle integration passed run `38065604601`; the initial failure was a test assertion that attempted to count rows under RLS as `authenticated`, not an RPC idempotency failure.
+- PR #141 was closed as stale/superseded. Do not reopen it; its duplicate RC443 migration and older lifecycle integration test are replaced by the staged candidates.
+- PR #153 was closed in favor of the staged rollout. Duplicate/stale PRs #129, #119, #126, #111 and stacked UI PR #155 were closed as superseded. Do not merge old alternatives.
+- No production migration, RLS/Auth/grant change, customer data mutation, payment, or Edge Function deployment occurred in this continuation. Release state remains **NOT CERTIFIED**.
+
+
+## Safety/actions taken
+- All live Supabase queries in this execution cycle were read-only.
+- No production database migrations, grants, RLS/Auth settings, financial data, payments, or payment Edge Functions were changed/deployed. The latest post-PR #154 Pages deployment was independently verified in workflow `38063841084`, including the deployed-site smoke check.
+- Source/CI-only PRs #124 (cross-PR migration collision guard), #132 (canonical module aliases), and #133 (local migration-version uniqueness guard) were merged after passing CI.
+- No changes were merged that apply database migrations or modify production configuration.
+
+## Current main
+- Latest main SHA at the time of this update: `c475092cb7b498ea6155a8633a6434e3cc2ba0f8` (PR #154 backend-only RC447 privacy gate).
+- PR #124 was squash-merged as `cb0b0a594f64def5b55488b0229369473091f495`. Cross-PR migration collision guard is on main. CI on its PR head passed: guard run `38052383301`, Module Professionalization Validation `38052383360`, Backend-only Module Boundary `38052383327`; Pages validation passed but deploy was skipped (`38052383344`).
+- PR #132 was squash-merged as `ba94b8469f7f5d1d994d70a2c26e80bb7c11a899`. It aligns canonical module flag codes to UI categories and keeps `ACCOUNTING_SERVICES` under professional services rather than MantiGO. CI on head `0de2a2c07516e2988d52ab4d1f6525f52be0ece4` passed: Module Professionalization Validation `38052923207`, Backend-only Module Boundary `38052923211`, Pages validation `38052923232`; deploy job skipped.
+- PR #133 was merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`, adding local migration-version uniqueness validation alongside the cross-PR guard. Main-commit checks passed, including `validate-migration-versions` run `38053072649`, health run `38053072662`, and Pages deploy run `38053072656`; deploy logs reported smoke verification passed.
+- Main branch metadata reports branch protection disabled and no required status checks. No branch-protection write tool was available in this cycle; this remains a governance risk.
+
+## Relevant PRs
+
+- #154 — CLOSED, merged as `c475092cb7b498ea6155a8633a6434e3cc2ba0f8`. Adds the RC447 forward-only matrimony privacy migration, source contract, disposable PostgreSQL 16 integration tests, and rollout runbook. No web assets or production database changes were included; all required checks on the merge head passed.
+- #158 — OPEN, unmerged UI release gate. Calls RC447 discovery and RC448 request/contact RPCs, adds explicit read-error handling, and keeps revealed contact details in memory only. Do not merge until both backend migrations are approved/applied in order and live acceptance tests pass.
+- #160 — CLOSED, merged as `17cb67aba1b025cecf936d8c21db86b1341b92ab`; RC448 server-authoritative matrimony request/contact lifecycle. PostgreSQL 16 integration and migration guards passed on the corrected exact head. Migration remains unapplied to production.
+- #156 — CLOSED without merge; superseded by expanded UI PR #158.
+- #153 — CLOSED without merge; replaced by backend-only #154 and staged UI #158 to avoid deploying frontend code before its database dependency.
+- #141 — CLOSED without merge; stale duplicate RC443 branch with failed PostgreSQL integration, replaced by #154, #158, and #160.
+- #129, #119, #126, #111, #155 — CLOSED without merge as stale/superseded by the staged RC447/RC448 candidates.
+- #84 — OPEN, unmerged. Latest observed head: `934f2fc28ec61bdfc5023479b0e796e743244eb1`. Latest Module Professionalization Validation run `38053053450` completed successfully with all 12 jobs, including payment, checkout recovery, search-path, and MantiGO platform-admin integration. Cross-PR collision guard run `38053053434` passed. This is source/isolated-test evidence only; see the live Edge Function parity audit below. Do not merge until RC424 historical migration immutability and source/production parity are resolved.
+- #95 — CLOSED without merge; duplicate migration and migration-specific validator/workflow were removed from its branch. No duplicate migration is retained in the active PR set.
+- #121 — CLOSED without merge as superseded by the canonical RC441 integration suite in #84.
+- #122 — CLOSED without merge; superseded by #133.
+- #123 — CLOSED without merge due stale-base workflow conflict; replaced by #132, now merged.
+- #124 — CLOSED, merged as above.
+- #125 — CLOSED without merge in favor of #124.
+- #131 — CLOSED without merge; superseded by #136.
+- #133 — CLOSED, merged as `7dd8dc4b480f69b1314e9b5b883f3146f367f146`; adds local migration-version uniqueness validation and its CI workflow.
+- #134 — CLOSED without merge; superseded by #136.
+- #135 — CLOSED, merged as `3255966463600c58fe581ac02f557f5100c8ea0f`. Migration-history immutability guard is now on main. CI on its head passed self-test and all validation workflows (`38057071404`, `38057071370`, `38057071412`, `38057071431`; Pages deploy skipped).
+- #136 — CLOSED, merged as `5d3a9df1e6020b8cf1337fbc224dc9bfa34e977e`. Updated this status report after #135 merged; Module Professionalization Validation (`38057335158`), Backend-only Module Boundary (`38057335147`), and Pages validation (`38057335146`) passed; deploy was skipped on the PR.
+
+## Migration collision remediation
+- Latest main includes migration-history immutability gate #135 and migration-version uniqueness guard #133. PR #84 is DRAFT, stale/conflicted, and edits historical RC424; it must be rebuilt from current main with RC424 unchanged before review can proceed.
+- Migration-history immutability is enforced by `.github/workflows/migration-history-immutability.yml` and `scripts/validate-migration-history-immutability.mjs`, merged via #135. It only allows adding new migration files; edits/deletions of existing migration files fail the PR gate.
+- Migration-history immutability gate #135 is on main and rejects PR changes/deletions to existing migration files. PR #84 is DRAFT, stale/conflicted, and must not be merged. Rebuild its candidate against current main, preserve historical RC424 exactly, and move hardening into unique forward-only migrations. Main still lacks required branch-protection checks.
+- The real conflict was version `20261009170000`: RC430 subscription success webhook in #84 vs duplicate MantiGO admin migration in #95.
+- The duplicate migration was removed from #95 and #95 closed without merge. No applied migration was renamed.
+- The #124 guard was fixed to ignore GitHub changed-file entries with status `removed`, with a regression self-test. The guard passed on the corrected PR head and is now on main.
+- Local uniqueness guard #122 still provides complementary filename checks with a fixed allowlist of exact legacy collisions.
+
+## Live Supabase findings (read-only)
+Project: `moyhiluyhjsujhwlyeuu`.
+
+### Migration ledger/source parity
+The latest rows returned for versions >= `20261008000000` are:
+- `20261008125422 / rc423_convert_authenticated_guard_policies_to_restrictive`
+- `20261008222845 / rc424_atomic_digital_page_payment_webhook`
+
+The canonical source file for RC424 is `20261009010000_rc424_atomic_digital_page_payment_webhook.sql`. This source/ledger version discrepancy is unresolved. Do not rename or replay historical migrations blindly.
+
+### Payment RPCs
+- Live `process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)` has `search_path=public, pg_temp`, but the current live definition lacks the provider-order binding and replay-status guards expected by RC424/RC431 source/runbook.
+- Live finalizer is the legacy four-argument `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)`; RC431 source expects a five-argument signature.
+- `subscription_payment_intents` lacks `checkout_secret_ciphertext`, `checkout_secret_iv`, and `checkout_secret_key_version`; RC439 encrypted checkout recovery is not reflected in the live schema.
+- These are release blockers. Reconcile the exact deployed RC424 artifact and ledger first, then plan a reviewed ordered migration chain and sandbox verification. No production change was made.
+
+### MantiGO platform-wide RPCs
+Read-only catalog checks show the following live RPCs remain `SECURITY DEFINER`, use `search_path=public`, are executable by `authenticated`, and do not call `mnty_can_platform_admin()`:
+- `get_mantigo_admin_dashboard_backend`
+- `get_mantigo_admin_financial_report_backend`
+- `settle_mantigo_captain_backend`
+- `expire_stale_mantigo_rides_backend`
+
+RC449 is now merged in main and hardens these RPCs behind an active `MNTY-PLATFORM` membership with `SUPER_ADMIN`, `scope=PLATFORM`, and `full_control=true`. Its PostgreSQL 16 integration passed, but RC449 is not recorded in the inspected live migration ledger and has not been applied. This remains a critical release blocker.
+
+### RLS/table ACL triage
+- Supabase advisors reported one anon-executable SECURITY DEFINER function, 40 authenticated-executable SECURITY DEFINER functions, leaked-password protection disabled, and several `auth_allow_anonymous_sign_ins` labels.
+- For the inspected finance/module tables, those advisor labels did not match actual `anon` policies: policies were scoped to `authenticated`, and direct `anon` SELECT/INSERT privileges were false on all inspected tables.
+- `refund_transactions`, `settlement_attempts`, `settlement_transactions`, `wallet_accounts`, `wallet_transactions`, and `tenant_modules` had FORCE RLS enabled. `digital_page_payment_events` had RLS enabled, no policies, and direct SELECT/INSERT denied to anon/authenticated; this is consistent with backend-only access but must remain an explicit contract.
+- Do not bulk-revoke SECURITY DEFINER grants based solely on advisor counts; review each function's intended exposure and authorization behavior.
+
+
+### Live payment Edge Function parity (read-only audit, 2026-10-10)
+- Deployed `paymob-webhook` (live version 8) does not contain the branch's atomic MantiGO/subscription payment RPC paths or the provider-order mismatch guards. It still has direct table writes for parts of the ledger/event/notification flow and an early return on existing events before full replay binding. The deployed source is behind the PR #84 source.
+- Deployed `subscription-payment-intent` (live version 2) lacks the RC439 checkout-encryption version/key handling and encrypt/decrypt recovery helpers. This confirms encrypted checkout recovery is not deployed; do not infer more than that from the audit.
+- Deployed `digital-page-payment-intent` (live version 3) still uses the legacy four-argument finalizer; the source chain expects the five-argument order-bound finalizer.
+- Deployed `payment-intent` (live version 6) lacks the provider-outcome-unknown / already-initialized guards and provider-order persistence expected by the branch.
+- No Edge Functions were deployed because the migration ledger, live RPC signatures, and source are not reconciled. A comment documenting these blockers was added to PR #84 (comment ID `6098132918`).
+
+## CI evidence and limits
+- RC440 search-path integration passed on #84's tested code head; it tests anon/authenticated exposure, already-hardened and service-only exclusions, grant preservation, and temporary-table shadowing.
+- RC449 platform-admin integration passed on the clean-main PR #163 head, including positive platform-admin flow, tenant role denials, settlement replay/idempotency, stale-ride expiry/audit/notification, and ACL assertions.
+- #84's tested head: `cffbe446630ba717bb5fd05c51ce28cd54bcd0a8`. Later head `6aec05eb58a75c6a5292caa638fe467238d0bfaf` only added read-only diagnostic SQL to `docs/runbooks/VERIFY_PAYMOB_RC424_RC431.sql`; no SQL runtime code changed after the passing tests.
+- CI passes do not establish production migration application, real Paymob sandbox E2E, or payment Edge Function deployment. Main commit `7dd8dc4b480f69b1314e9b5b883f3146f367f146` did deploy the static GitHub Pages site and smoke verification passed; that does not certify payment/backend production readiness.
+
+## Next actions, in order
+1. Reconcile RC424 source/ledger mismatch and actual live function definition without renumbering or replaying history blindly.
+2. Prepare one ordered, reviewable migration release for RC431/RC439/RC440/RC447/RC448/RC449/RC450 and related dependencies; validate the full pending chain on disposable PostgreSQL.
+3. Run signed Paymob sandbox E2E: success/failure/replay/conflicting replay, amount/currency/order tampering, callback-before-persistence, concurrency, ambiguous provider timeout, and encrypted checkout recovery. No live payments.
+4. Apply RC447–RC450 only through a separately reviewed and approved release process; then verify live RPC definitions, grants, and role-negative cases read-only.
+5. Triage all SECURITY DEFINER advisor findings per function; address leaked-password protection via authorized Supabase Auth settings.
+6. Continue two-user/two-tenant E2E, Auth/OTP, module source-of-truth and membership checks, finance/inventory regression, backup restore on an isolated environment, monitoring/alerts, rollback, and Android build/signing/device gates.
+7. Enable main branch protection/required checks through a controlled GitHub repository settings action; main is currently unprotected.
+
+## Fresh production recheck — read-only, 2026-10-10 14:12 UTC
+
+- Supabase migration listing returned **283 migrations**. The latest entries include RC422 (`20261007223944`), RC423 (`20261008125422`), and RC424 (`20261008222845`); no RC425+ migration is recorded as applied.
+- Deployed Edge Function inventory still reports: `paymob-webhook` v8, `payment-intent` v6, `subscription-payment-intent` v2, `digital-page-payment-intent` v3, and `mantigo-payment-intent` v3. Inventory versions are not evidence that source/production parity has been restored.
+- The live `finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)` is SECURITY DEFINER with `search_path=public, pg_temp`; `anon` cannot execute it, while `authenticated` can. Its body checks `auth.uid()`, but it remains the legacy four-argument finalizer and does not mention provider-order binding. Review whether authenticated EXECUTE is intended for this claim-token-bound flow; do not revoke it blindly without tracing the client/Edge call contract.
+- The live digital-page payment processor remains SECURITY DEFINER with `search_path=public, pg_temp`; `anon` and `authenticated` cannot execute it directly. The inspected source/production gaps remain: provider-order binding and replay-status comparison are absent from its live body.
+- A read-only policy catalog comparison found 126 public tables with at least one policy targeting `authenticated`; 71 have a restrictive policy whose expression explicitly checks the `is_anonymous` JWT claim, while 55 do not have that particular guard. **This is a triage signal, not a confirmed exposure count**: each remaining table must be evaluated against its ownership/membership predicates, direct table grants, and actual anonymous-session behavior before any policy changes.
+- The Supabase security advisor still includes an Auth warning that leaked-password protection is disabled, plus `auth_allow_anonymous_sign_ins` notices for policies targeting `authenticated`. Many inspected tables have restrictive anonymous-session guards, so do not interpret every advisor notice as a proven vulnerability and do not bulk-revoke policies/grants. Confirm the Auth setting through authorized project configuration and test representative anonymous and normal-user sessions.
+- The same live catalog query reconfirmed that the four platform-wide MantiGO RPCs (`get_mantigo_admin_dashboard_backend`, `get_mantigo_admin_financial_report_backend`, `settle_mantigo_captain_backend`, `expire_stale_mantigo_rides_backend`) remain SECURITY DEFINER, executable by `authenticated`, and do not call `mnty_can_platform_admin()`.
+- All checks in this recheck were read-only. No production writes, migrations, grant/RLS/Auth changes, Edge Function deployments, or financial operations were performed.
+
+## Continuation update — 2026-10-10 14:32 UTC
+
+### Source-only merges since the previous report
+- PR #128 merged as `650572eaf1ec4c7cd125e0e2b0035eb9424dab6a`: RC442 approval audit atomicity. Its disposable PostgreSQL integration passed, including direct-write revocation, atomic state/audit transition, unauthorized actor denial, duplicate resolution denial, role-conflict fail-closed behavior, and `search_path=pg_catalog`. Migration is in source only; production was not migrated.
+- PR #102 merged as `3863f800720d7bd7cc68e41a559f77574bc4f52c`: MantiGO open-ride location privacy. Its RC446 disposable PostgreSQL integration passed; migration is in source only; production was not migrated.
+- PR #138 merged as `412605e77446978f586dba5557603db2bb025d7d` and PR #139 merged as `44d020fa7f3dcfaae09f861d5fe9f543d0469dbc`; both are documentation-only.
+
+### Current source-candidate coordination
+- PR #127 SMM trusted-read gateway: latest head `ef2dc590cad968e270626de9e6b12d97f45f7311` passed Backend-only Module Boundary, Module Professionalization Validation (including SMM gateway contract), and web workflow validation. The Pages deploy job is skipped on a PR. **Do not merge yet**: production `smm-gateway` is still v6, so publishing the new web client before a coordinated Edge Function rollout would break SMM reads. No production Edge Function deployment was performed.
+- Historical PR #129 combined enterprise read-error visibility and RC443 matrimony privacy, but was closed without merge because it duplicated the RC443 migration version. Its replacement is staged RC447 (#154) and RC448 (#160); do not reopen the stale candidate.
+- PR #111 and #126 overlap the read-error/MEDICAL changes now being carried by #129. Keep them unmerged; close as superseded only after the combined candidate passes latest-head CI.
+- PR #101 ERP server-mutation candidate is DRAFT. It bundles RC445, Edge Function source, and web assets; branch-scope negative tests remain required, and it must not be merged until dependency order and backend-first deployment are resolved.
+- PR #87 was closed without merge on 2026-10-10 as superseded by RC449A/RC450. Its RC564 RPC lacked business/branch binding; do not reopen or apply that migration.
+- PR #84 is DRAFT and remains blocked by the immutable RC424 source/ledger mismatch and payment runtime parity. Do not merge or deploy it as-is.
+
+### Release-candidate migration labels
+Migration version prefixes remain unique; the labels are now disambiguated for the new source candidates:
+- RC442 — approval audit atomicity (merged source; not applied to production).
+- RC447 — matrimony privacy boundary (PR #154; source merged, not production-applied); RC448 — request lifecycle authority (PR #160; source merged, not production-applied).
+- RC444 — CRM business-scope RLS (PR #130; unmerged).
+- RC445 — ERP service mutations (PR #101; DRAFT, unmerged, dependency and branch-scope gates remain).
+- RC446 — MantiGO open-ride privacy (PR #102; merged source; not applied to production).
+- RC563/RC564/RC565/RC566 remain separate candidates in their respective open PRs; review dependencies before selecting a single ordered migration batch.
+
+### Safety boundary for this continuation
+All Supabase production queries were read-only. No production migrations, table writes, grants, RLS/Auth settings, Edge Function deployments, payments, wallet changes, or financial operations were performed. Source merges and isolated PostgreSQL tests do not certify production readiness.
+
+## Status vocabulary
+- SOURCE_FIXED: source changed, not yet validated.
+- CI_VERIFIED: CI passed for an exact commit.
+- ISOLATED_DB_VERIFIED: disposable PostgreSQL integration passed.
+- PRODUCTION_VERIFIED: production state checked after approved rollout.
+- NOT VERIFIED: no adequate evidence.
+
+## Continuation security review — 2026-10-10
+
+### Candidate freshness and overlap
+- Historical comparison found PR #129's branch diverged from main; it is now closed without merge. Do not reopen it; use RC447/RC448 and UI PR #158, which remains DRAFT pending production rollout approval.
+- The separate older matrimony candidate PR #119 had passing source-contract and disposable-PostgreSQL runs on head `3abe4e10560e061df23c77b6d5802f731dea8d8e` (runs `38060226500`, `38060226557`, with migration guards `38060226503`, `38060226524` successful). This is not proof that PR #129's distinct combined head passes.
+- PRs #111, #126, #119, and #120 were reopened as backup review candidates after a premature closure, because the consolidated replacements have not yet been proven mergeable and current-head verified. Keep overlapping candidates unmerged; select one canonical implementation per domain and reconcile migration order before release.
+- PR #130's RC444 CRM migration is also a source candidate, not production state. It is stacked on the matrimony/workspace work; refresh its base and validate the final combined candidate before merge. PR #120 is a duplicate/alternate RC566 CRM candidate and remains open only as a backup.
+- PR #138 and PR #139 are documented as merged documentation-only changes; their merges do not certify the production backend.
+
+### Read-only production authorization findings
+- `public.matrimony_profiles` currently has a permissive `matrimony_profiles_select` policy for authenticated non-anonymous sessions without an owner predicate. The proposed RC443 migration replaces that policy with `owner_user_id = auth.uid()`, but RC443 is not applied to production. Do not claim the matrimony privacy fix is live.
+- Live production still grants authenticated DML on request/unlock tables until RC448 is approved/applied. RC448's server-only RPCs and DML revocation are source-only; the live bypass remains a release blocker. Confirm whether contact unlock is based on mutual acceptance alone or requires payment/server approval before production rollout.
+- Live CRM policies `CRM managers view marketing leads` and `CRM managers view marketing providers` currently grant SELECT based on active role alone, without business binding. RC444 proposes business-scoped membership checks and explicit platform full-control checks; it has not been applied to production.
+- Historical PR #87 / RC564 financial-journal source checked active finance membership by actor + tenant and chart account tenant, but did not bind entry business/branch scope to the actor or account. PR #87 was closed without merge because RC450 supersedes it; its scope gap remains a reason not to reuse that stale branch.
+
+### Safety boundary
+- This continuation used read-only Supabase catalog/privilege queries and GitHub source/CI review only.
+- No production migrations, data writes, grants, RLS/Auth settings, Edge Function deployments, payments, wallet changes, or financial operations were performed.
+- The latest post-merge GitHub Pages deployment was not independently rechecked during this review; prior Pages smoke verification remains limited to its recorded commit/run.
+
+## Follow-up verification — RC443 / RC444 candidates
+
+### RC444 CRM business scope — PR #143
+- Clean-main CRM-only PR #143 was squash-merged as `e9d44f90c80b543ce1109ad469f1b27bf77bc95f`: https://github.com/islamnagy2022-eng/MantiqatiX/pull/143
+- Exact head `68c5fae13ec7e9be4154c5ed5817448f2a07d299` passed the RC444 source-contract and disposable PostgreSQL integration jobs (run `38060878977`). Migration-history immutability (`38060878837`), migration-version uniqueness (`38060878850`), cross-PR migration collision guard (`38060878832`), Module Professionalization Validation (`38060878852`), Backend-only Module Boundary (`38060878874`), and the other associated checks passed. The Pages workflow validation passed but the deploy job was skipped because this is a PR.
+- PR #130 was closed as a duplicate stacked candidate because it included both RC443 and RC444, causing an avoidable migration collision. PR #120 was closed as superseded by the clean RC444-only candidate. RC444 is now in main source only; no production migration was applied.
+
+### Historical RC443 matrimony/workspace candidates — PRs #129 and #141
+- Both stale RC443 candidates are closed without merge because they duplicated the RC443 migration version; the old integration failure involving ambiguous `RETURNING unlocked_at` belongs to that stale candidate. The clean replacements are RC447 (#154) and RC448 (#160). Their source/isolated tests do not prove production application.
+- A separate prior check failed because the static validator expected an outdated medical-workspace string; that validator was updated afterward, but fresh CI on the exact newest head is still required.
+- The cross-PR collision guard previously flagged duplicate RC443 files in PRs #129 and #130. Both stale candidates are now closed without merge; the clean staged candidates are RC447 in PR #154 and RC448 in PR #160. Do not reopen or merge duplicate RC443 migration branches.
+- RC448 is the forward-only server-authority migration that revokes direct authenticated DML on request/unlock tables and exposes scoped RPCs for request creation, recipient response, and contact unlock. Its disposable PostgreSQL tests are source/isolated-test evidence, not production proof.
+
+### Other reviewed authorization gates
+- PR #87 was closed without merge as superseded by RC450; use the mainline RC449A → RC450 chain and retain cross-business/cross-branch denial tests in the release acceptance suite.
+- PR #101 ERP service-mutation candidate: review comment `6098667875` requires a branch-scope contract and cross-branch negative tests for order and stock-transfer operations.
+- PR #129, #141, #119, #111, and #126 are closed or superseded; the staged replacements are RC447 (#154), RC448 (#160), and the dependent UI candidate (#158). Keep the UI gated until the approved backend rollout and live acceptance checks complete.
+- No production migrations, grants, RLS/Auth settings, Edge Function deployments, payments, or financial data were changed during this continuation.
+
+### RC443 latest failure detail
+- Historical RC443 integration failed at `matrimony_unlock_contact_backend(uuid)` with an ambiguous `RETURNING unlocked_at` reference. That stale candidate was superseded and closed; the clean RC448 lifecycle migration uses an aliased INSERT target and has its own PostgreSQL integration evidence. Do not treat the old RC443 failure as the current RC448 test result.
+- The old RC443 candidate's validator/test results are historical only. RC447 and RC448 must be judged by their exact-head CI runs and the current migration collision/immutability gates.
+- RC444's merge adds only the migration/test/validator source to main. It does not mean the policy is live; production migration approval, ordered batch rehearsal, and read-only post-rollout verification remain required.
+
+## SMM trusted-read gateway — PR #145
+
+- Clean-main PR #145 is ready for review and remains unmerged: https://github.com/islamnagy2022-eng/MantiqatiX/pull/145
+- Exact head `32bfaa39b4d204f10aefa79cefc043f4b805cb8a` passed Module Professionalization Validation (`38061291329`), Backend-only Module Boundary (`38061291372`), Pages validation (`38061291362`; deploy skipped because this is a PR), MantiGO Open Ride Privacy integration (`38061291344`), and associated validation/integration jobs.
+- The candidate routes SMM catalog and personal order/wallet reads through authenticated `smm-gateway` actions, rejects anonymous sessions, restricts membership-based SMM administration to active platform-scoped full-control SUPER_ADMIN, and renders an explicit unavailable state instead of falsely showing an empty catalog or zero wallet on read failure.
+- PRs #127 and #113 were closed as superseded by #145. No production Edge Function was deployed. The Pages web deployment and SMM gateway deployment must be coordinated; do not enable the new UI in production until the gateway actions are deployed and smoke-tested together.
+- This is CI/source verification only. It does not establish that the live SMM gateway version supports `catalog` and `my_data`.
+
+## Selected membership / activity profile — PR #148
+
+- Clean-main PR #148 is ready for review and remains unmerged: https://github.com/islamnagy2022-eng/MantiqatiX/pull/148
+- Exact head `4226a0df6bb96d5226c0a562092a7e00101b7728` passed Module Professionalization Validation (`38061600711`), Backend-only Module Boundary (`38061600716`), Pages validation (`38061600730`; deploy skipped because this is a PR), and associated integration jobs (`38061600740`).
+- The candidate no longer silently falls back to the first membership when a saved membership ID is stale; provider profile loading is bound to the selected active business, and the homepage activity label resolves only from the selected membership/business.
+- PRs #99 and #103 were closed as superseded by #148. Before merge/production rollout, test switching between two businesses in a deployed staging build; CI source assertions do not replace this browser E2E gate.
+
+### Current release boundary
+- PR #143's RC444 CRM source is merged in main but has not been applied to production.
+- PR #145's SMM trusted-read gateway is DRAFT because it bundles web assets and Edge Function source. Split backend and UI or use an approved coordinated backend-first rollout; do not merge/publish the UI before the live gateway supports `catalog` and `my_data`.
+- PR #141 and PR #129 are closed without merge because they carried duplicate/stale RC443 work. The replacement RC447/RC448 candidates are in main source; they remain unapplied to production. Do not merge or reopen the stale branches.
+- No production migrations, RLS/grant/Auth changes, Edge Function deployments, wallet changes, payments, or financial mutations were performed in this continuation.
+
+## RC450 integration assertion correction (2026-10-10)
+
+- PR #169 merged as `3d7669ca0043db847dfe14fe1b81b86329c4377f`. It fixes a test query that selected the final cash balance by UUID order rather than journal line order; the preceding ordered line assertions had already shown the expected cumulative values `[130,150]`.
+- Exact PR-head checks on `372d29efffc6ef338e0c1ab4d3f1b350ce39625b`: Backend-only Module Boundary passed (including `financial-journal-rc450-integration` and approval-audit integration), Module Professionalization Validation passed (including matrimony privacy PostgreSQL integration), MantiGO Open Ride Privacy passed, and Pages validation passed. The PR Pages deploy job was not a production deployment.
+- The merge changes the test only; no live schema, grants, Edge Functions, or financial data changed. Post-merge main-commit workflow outcomes have not been independently confirmed in this check.
+- RC450 and the RC449/RC449A prerequisites remain source-only and unapplied to production; release status remains **NOT CERTIFIED**.
+
+## Continuation reconciliation — matrimony candidates (2026-10-10)
+
+- Closed stale PR #129 without merge; it duplicated the RC443 migration version and was superseded by staged RC447/RC448 and UI PR #158. No migration from #129 was applied to production.
+- RC447 (PR #154) and RC448 (PR #160) are in main source but are not applied to production. RC448 revokes direct authenticated request/unlock DML and routes request lifecycle transitions through backend RPCs, addressing the reviewed risk of sender self-acceptance through direct table updates.
+- UI PR #158 remains gated until RC447 and RC448 are approved/applied in order, production policies/RPCs are verified read-only, and authenticated browser acceptance tests pass.
+- No production schema, data, RLS/grants/Auth settings, Edge Functions, payments, or financial records were changed during this continuation.
+
+## Continuation reconciliation — financial-journal candidate (2026-10-10)
+
+- Closed stale PR #87 without merge. Its RC564 branch was superseded by RC449A/RC450 and lacked explicit business/branch binding; it must not be merged or deployed.
+- RC450 test assertion correction is merged as PR #169. The exact PR head passed the RC450 PostgreSQL integration and related validation suites; the main-commit workflow outcomes still require independent verification.
+- The supported source sequence remains RC449 → RC449A → RC450, all unapplied to production. Do not use RC564 as a substitute or apply any part of this sequence without the approved migration window.
+
+## Current PR safety state — 2026-10-10
+
+- **DRAFT / release-blocked:** PR #84 (Paymob; immutable RC424 and runtime parity), PR #86 (restaurant migration + Edge Functions + web UI), PR #101 (ERP migration + Edge Function + web UI; branch-scope tests), PR #145 (SMM gateway + web UI), and PR #158 (matrimony UI awaiting RC447/RC448 production rollout). These candidates are deliberately draft to prevent accidental Pages publication before their backend contracts are live.
+- PR #87 and PR #129 were closed without merge as stale candidates superseded by current-main release work.
+- PR #169 merged a test-only correction for RC450's repeated-account running-balance assertion. Exact PR-head integration/validation passed; post-merge main workflow outcomes are not independently confirmed in this check.
+- No production migration, grant/RLS/Auth change, Edge Function deployment, payment, settlement, or financial data mutation was performed in this continuation.
+
+ 
+## Live Edge Function parity and release acceptance gates — 2026-10-11
+
+- Read-only comparison against Supabase project `moyhiluyhjsujhwlyeuu`: `payment-intent` v6, `paymob-webhook` v8, `digital-page-payment-intent` v3, and `erp-purchase-receive` v1 match the `main` entrypoint source byte-for-byte.
+- `smm-gateway` live v6 does **not** match `main`: live entrypoint is 8,325 bytes, source is 10,256 bytes, and live v6 lacks `catalog` and `my_data` actions present in source. Do not deploy it independently of the RC456 least-privilege table boundary and post-deploy smoke tests.
+- Read-only privilege inspection for all eight SMM tables (`smm_admins`, `smm_providers`, `smm_services`, `smm_orders`, `smm_wallets`, `smm_order_events`, `smm_provider_credentials`, `smm_wallet_transactions`) returned no direct table privileges for `service_role`, `anon`, or `authenticated` in the live database. This confirms the gateway's table-access contract must be validated together with RC456 and its RPC paths; no grants were changed.
+- Read-only live row-count preflight on 2026-10-11 found zero rows in `journal_entries`, `journal_entry_lines`, `erp_purchase_orders`, `erp_purchase_receipts`, `payment_intents`, `subscription_payment_intents`, `smm_orders`, and `smm_wallet_transactions`. This supports the current empty-table assumptions for some candidate migrations but does not replace migration replay, schema validation, or a reviewed rollout/rollback plan.
+- RC456 migration and updated SMM function have not been applied/deployed. PR #188 is non-mergeable/stale; use its diff only as review context, not as a deployment instruction.
+- The release manifest now requires explicit PASS evidence for source/ledger reconciliation, full migration application, chronological disposable replay, tenant-isolation tests, payment/finance E2E, backup/restore rehearsal, Edge Function contract parity, SMM gateway parity, and critical Auth security settings. Source presence alone cannot satisfy these gates.
+- Draft PR [#198](https://github.com/islamnagy2022-eng/MantiqatiX/pull/198) is the clean source-only migration recovery branch for 16 missing RC425–RC441 files (RC433 remains absent). Migration Version Uniqueness and Migration History Immutability pass, but the latest Open PR Migration Collision Guard fails because stale open PR #84 still proposes the same RC434 migration version. Do not merge #198 until this duplicate proposal is reconciled. Earlier PR #194 was closed unmerged because it contained unrelated changes from the stale branch.
+- No production migration, Edge Function deployment, grant/RLS/Auth change, payment, wallet mutation, or customer-data write was performed. Release remains **NOT CERTIFIED**.
+
+
+## Focused live SECURITY DEFINER audit — 2026-10-11
+
+- Read-only query against Supabase confirms the only `SECURITY DEFINER` function executable by `anon` is `public.get_mnty_targeted_advertisements(varchar,varchar,varchar,double precision,double precision,varchar,integer)`. Its live configuration is `search_path=public, pg_temp`.
+- The live function body schema-qualifies application tables (`public.advertisements`, `public.advertisement_target_locations`, `public.platform_geo_areas`, `public.platform_global_advertisements`); built-in math/time functions resolve from `pg_catalog`. This reduces immediate object-shadowing exposure, but the public-schema search path remains an avoidable SECURITY DEFINER risk.
+- Main already contains RC451 `20261010200000_rc451_targeted_ads_empty_search_path.sql`, which changes only the function setting to `search_path = ''` and deliberately preserves anonymous execution for public ad discovery. The live setting has not changed; RC451 has **not** been applied to production. Apply only through the approved migration/release process after the migration ledger discrepancy and ordered replay gates are resolved.
+- Read-only catalog inspection also confirms `public.digital_page_payment_events` has RLS enabled and zero policies. Direct anon/authenticated SELECT/INSERT was previously verified denied; retain that deny-by-default boundary unless a documented feature requirement and negative tests justify a narrower policy.
+- No SQL, grants, RLS policies, function settings, Auth configuration, or production data were changed during this audit.
+
+ 
+## RC424 source/ledger reconciliation — 2026-10-11
+
+- Read-only query of `supabase_migrations.schema_migrations` shows the applied row `20261008222845 / rc424_atomic_digital_page_payment_webhook` contains one recorded SQL statement, 7,208 bytes.
+- The recorded statement matches `supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql` byte-for-byte (7,208 bytes; source blob `49f46e3e159e6306534adbf61f626901c2d73488`). The filename timestamp and applied ledger version differ, but the SQL content and migration name match exactly.
+- Resolution: document this as a legacy ledger-version alias; do not rewrite or delete the applied migration history. The release manifest records the exact-match evidence and immutable-history requirement.
+- This resolves only the RC424 content-identity question. The post-RC424 migration batch is not proven applied, the full chain has not yet been replayed on one disposable database, and release remains **NOT CERTIFIED**.
+
+ 
+## ERP atomic receiving integration — 2026-10-11
+
+- Draft PR [#201](https://github.com/islamnagy2022-eng/MantiqatiX/pull/201) is stacked on migration-recovery PR #198 and does not duplicate migration files. It adds authenticated `erp-purchase-order-create` and `erp-purchase-receive` Edge Functions, routes the existing ERP UI away from legacy header-only/direct receiving RPCs, and adds bounded multi-line purchase-order input (up to 20 lines).
+- At exact head `0d08e2a66f8c60eb7cf05d38e8ac1167cfc967c3`, Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy CI all passed. The isolated RC434 atomic-receiving and RC437 order-line PostgreSQL jobs passed, as did the static contract and JavaScript syntax checks.
+- This does not prove browser-to-live-Edge-to-production-database E2E. Do not deploy the functions until RC434/RC437/RC438 are reviewed as part of the complete chronological migration chain, and the base migration PR collision with PR #84 is resolved.
+- Redundant draft PR #200 was closed unmerged because it duplicated migration filenames; PR #201 replaces it as a stacked, non-migration-changing implementation PR.
+
+
+## Latest continuation — Edge Function source parity and customer RPC boundary (2026-10-16)
+
+- **Current `main` checkpoint:** `3899df67b0c972955cfcac336b59e818d56f9554` at the time of this status update.
+- **Production ledger rechecked read-only:** 283 applied migrations; latest `20261008222845` (RC424). RC449A (`20261010175000`) and RC450 (`20261010180000`) remain absent from the production ledger. Release stays **NOT CERTIFIED**; no RC449A/RC450 migration was applied.
+- **Verified production Edge Function updates:** `catalog-admin` ACTIVE v6 with allowlisted browser CORS and no wildcard origin; `digital-page-order-create` ACTIVE v4 with idempotency replay guards; `business-branch-admin` ACTIVE v5 with valid source line breaks and membership/business authorization checks. Their exact-head PRs #256, #257, and #259 were merged and the live Supabase function metadata/source was re-read after deployment.
+- **SMM source parity:** PR #262 merged the restored gateway helper modules and a narrowly scoped `my_data` response change that distinguishes a missing wallet from a legitimate zero balance. The six helper files match the currently deployed v12 source byte-for-byte; the only gateway index difference is the explicit wallet-state response. `SMM_INITIAL_LAUNCH_DEFERRED=true` remains active and the deployed function remains v12; **no SMM deployment or launch occurred**.
+- **Customer registration RPC drift:** PR #261 added a static CI contract and a staging acceptance matrix. Production `mnty-customer-registration` remains ACTIVE v4 calling `ensure_customer_membership_for_user`, while tracked `main` calls `activate_customer_registration_atomic`. The functions differ in pending-request cleanup, lock keys, membership insert scope, and audit-failure behavior. No production RPC was invoked or replaced; source convergence remains blocked until the intended invariants are approved and isolated staging integration tests pass.
+- **Exact-head CI:** PR #261 passed Customer Registration RPC Contract, Module Professionalization Validation, Backend-only Module Boundary, MantiGO privacy, and web validation. PR #262 passed SMM Service Role Access Boundary (including Deno source checks and disposable PostgreSQL ACL integration), Module Professionalization Validation, Backend-only Module Boundary, and MantiGO privacy. Web validation was cancelled/skipped for PR-only runs and is not counted as a production deployment.
+- **Safety boundary:** no production migration, wallet/order/payment mutation, provider call, grant/RLS/Auth change, or financial-journal deployment occurred during this continuation.
+
+### Remaining blockers
+
+1. Complete the chronological migration-chain and disposable replay review before certifying the production baseline.
+2. Keep financial journal blocked until the approved RC449A → RC450 → matching Edge Function sequence and staging acceptance evidence are complete.
+3. Resolve customer-registration RPC behavior through a reviewed design decision and isolated tests; do not bulk-sync live and repository source.
+4. Keep SMM launch deferred until a separate approved launch change; source parity is not launch approval.
+5. Complete remaining production E2E gates in `docs/MASTER_PRODUCTION_TODO.md`, including authenticated cross-tenant browser flows and authorized Paymob/settlement tests.
 
 
 ## Latest continuation — live production parity recheck (2026-10-21)
