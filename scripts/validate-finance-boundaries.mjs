@@ -28,6 +28,7 @@ const mantigoSql=fs.readFileSync(mantigoAtomicMigration,'utf8');
 for(const [src,marker,label] of [
   [mantigoWebhook,'process_verified_mantigo_paymob_event','MantiGO webhook delegates to atomic database processor'],
   [mantigoWebhook,'MANTIGO_ATOMIC_PAYMENT_PROCESSING_FAILED','safe atomic processor failure handling'],
+  [mantigoWebhook,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory replay returns conflict'],
   [mantigoSql,'for update','ledger row serialization'],
   [mantigoSql,'MANTIGO_EVENT_BINDING_CONFLICT','provider-event binding validation'],
   [mantigoSql,'MANTIGO_FINAL_STATE_CONFLICT','conflicting replay rejection'],
