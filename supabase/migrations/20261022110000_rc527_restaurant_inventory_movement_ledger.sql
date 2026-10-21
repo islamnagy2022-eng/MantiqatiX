@@ -71,6 +71,7 @@ declare
   v_movement_id uuid;
   v_new_stock numeric;
   v_new_cost numeric;
+  v_cost numeric(14,2);
   v_scope_key text;
 begin
   if v_actor is null then
@@ -119,6 +120,8 @@ begin
     raise exception 'Active membership with inventory permission required';
   end if;
 
+  v_cost := case when v_type = 'ISSUE' then v_item.unit_cost_egp else p_unit_cost_egp end;
+
   v_scope_key := v_item.tenant_id || ':' || v_item.business_id::text || ':' ||
                  v_item.branch_id || ':' || v_key;
   perform pg_advisory_xact_lock(hashtextextended(v_scope_key, 0));
@@ -134,7 +137,7 @@ begin
     if v_existing.inventory_id is distinct from v_item.id
        or v_existing.movement_type is distinct from v_type
        or v_existing.quantity is distinct from p_quantity
-       or v_existing.unit_cost_egp is distinct from p_unit_cost_egp
+       or (v_type <> 'ISSUE' and v_existing.unit_cost_egp is distinct from v_cost)
        or v_existing.notes is distinct from v_notes
        or v_existing.created_by is distinct from v_actor then
       raise exception 'Idempotency key was already used for a different movement';
@@ -172,11 +175,11 @@ begin
     else v_item.current_stock_qty + p_quantity end;
 
   if v_type = 'OPENING_BALANCE' then
-    v_new_cost := p_unit_cost_egp;
+    v_new_cost := v_cost;
   elsif v_type = 'RECEIPT' then
     v_new_cost := case when v_new_stock > 0
       then round(((v_item.current_stock_qty * v_item.unit_cost_egp) +
-                  (p_quantity * p_unit_cost_egp)) / v_new_stock, 2)
+                  (p_quantity * v_cost)) / v_new_stock, 2)
       else p_unit_cost_egp end;
   else
     v_new_cost := v_item.unit_cost_egp;
@@ -187,7 +190,7 @@ begin
     quantity, unit_cost_egp, idempotency_key, notes, created_by
   ) values (
     v_item.id, v_item.tenant_id, v_item.business_id, v_item.branch_id, v_type,
-    p_quantity, p_unit_cost_egp, v_key, v_notes, v_actor
+    p_quantity, v_cost, v_key, v_notes, v_actor
   ) returning id into v_movement_id;
 
   update public.restaurant_inventory
