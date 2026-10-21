@@ -1976,7 +1976,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 ### Next identified UI reliability defect — generic live-data tab
 
-- [ ] Fix `genericLiveView(d)`: it currently renders zero-row badges and empty tables for read failures and for tables in `BACKEND_ONLY_TABLES`. It must render explicit read-error/backend-only states, not imply the data is empty. Add source-contract assertions and verify exact-head CI/browser behavior.
+- [x] Fix `genericLiveView(d)` to distinguish backend-only tables and read failures from genuine empty datasets; source-contract assertion added. Runtime/browser verification remains pending.
 
 
 ### 2026-10-21 — generic live-data view reliability
@@ -1986,3 +1986,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Add source-contract assertion for backend-only and read-failure rendering.
 - [x] Correct the marketing request-size validator to match the bounded stream reader instead of the removed `req.arrayBuffer()` implementation.
 - [ ] Run the actual Node validator, full CI, browser E2E, and authenticated authorization/RLS tests; exact-head CI remains unconfirmed.
+
+
+### 2026-10-21 — strict service-area input type
+
+- [x] Reject non-string `service_area` JSON values with `invalid_service_area` rather than silently converting them to an empty string.
+- [x] Add a source-contract assertion for this API boundary.
+- [ ] Run the Node validator and exact-head CI; source review is not runtime verification.
