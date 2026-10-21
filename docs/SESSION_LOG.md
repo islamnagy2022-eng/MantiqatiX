@@ -356,3 +356,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - MantiGO read-state follow-up (2026-10-21): captain profile lookup and the open-rides RPC now preserve query errors instead of silently mapping failures to missing profile/empty rides. Added source-contract guards. Runtime and browser verification are pending; production remains BLOCKED / NOT CERTIFIED.
+
+
+- Module-level recovery follow-up (2026-10-21): MantiGO/core module RPC failures rendered through the global error branch now expose a retry action; authentication-required state deliberately does not show a misleading retry button. Added a source-contract assertion. CI/browser verification remains pending; production stays BLOCKED / NOT CERTIFIED.
