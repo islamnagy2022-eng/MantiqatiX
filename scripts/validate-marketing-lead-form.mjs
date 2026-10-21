@@ -194,6 +194,6 @@ assert.match(source, /loadErrors\.education_requests\?'<tr><td colspan="4">تع�
 assert.match(source, /if\(tab==='appointments'\)return shell\(d,tabs\(d\)\+\(loadErrors\.medical_appointments\?'<div class="notice" role="alert">تعذر تحميل مواعيدك؛ لم نعتبر القائمة فارغة/, "medical appointment history must distinguish read failure from no appointments");
 
 
-assert.match(source, /sensitiveKey=\/(?:access\.?token\|refresh\.?token\|id\.?token\|token\|secret\|password\|passwd\|credential\|authorization\|cookie\|session\|private\.?key\|api\.?key\|webhook\.?payload\|raw\.?payload\|headers\|metadata)\/i, "generic module tables must exclude sensitive token, secret, credential, payload, and metadata fields");
+assert.ok(source.includes("sensitiveKey=/(?:access.?token|refresh.?token|id.?token|token|secret|password|passwd|credential|authorization|cookie|session|private.?key|api.?key|webhook.?payload|raw.?payload|headers|metadata)/i"), "generic module tables must exclude sensitive token, secret, credential, payload, and metadata fields");
 assert.match(source, /visibleKeys=keys\.slice\(0,8\)/, "generic module tables must render only the bounded safe field list");
 assert.match(source, /visibleKeys\.map\(k=>'<th>'/, "generic table headers must match safe displayed columns");
