@@ -182,14 +182,16 @@ function ordersView(){
    OUT_FOR_DELIVERY:['DELIVERED']
   };
   const term=String(state.orderSearch||'').trim().toLocaleLowerCase();
+  const invalidDateRange=Boolean(state.orderFromDate&&state.orderToDate&&state.orderFromDate>state.orderToDate);
   const filtered=state.orders.filter(x=>{
+   if(invalidDateRange)return false;
    const status=String(x.status||'UNKNOWN').toUpperCase();
    const haystack=[x.id,x.customer_name,x.customer_phone].map(v=>String(v||'')).join(' ').toLocaleLowerCase();
    const day=Number.isFinite(new Date(x.created_at).getTime())?(()=>{const d=new Date(x.created_at);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})():'';
    return (!term||haystack.includes(term))&&(state.orderStatusFilter==='ALL'||status===state.orderStatusFilter)&&(!state.orderFromDate||(day&&day>=state.orderFromDate))&&(!state.orderToDate||(day&&day<=state.orderToDate));
   });
   const statuses=[...new Set(state.orders.map(x=>String(x.status||'UNKNOWN').toUpperCase()))].sort();
-  const controls='<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث برقم الطلب أو اسم العميل أو الهاتف</span><input id="rest-order-search" type="search" maxlength="120" value="'+esc(state.orderSearch)+'" placeholder="اكتب للبحث"></label><label class="field"><span>تصفية بالحالة</span><select id="rest-order-status-filter"><option value="ALL" '+(state.orderStatusFilter==='ALL'?'selected':'')+'>كل الحالات</option>'+statuses.map(s=>'<option value="'+esc(s)+'" '+(state.orderStatusFilter===s?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label><label class="field"><span>من تاريخ</span><input id="rest-order-from-date" type="date" value="'+esc(state.orderFromDate)+'"></label><label class="field"><span>إلى تاريخ</span><input id="rest-order-to-date" type="date" value="'+esc(state.orderToDate)+'"></label><button type="button" class="btn btn-outline" id="rest-order-clear-dates">مسح التاريخ</button><span class="muted">النتائج: '+filtered.length+' من '+state.orders.length+' طلب محمّل</span></div>';
+  const controls=(invalidDateRange?'<p class="muted" role="alert">تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له.</p>':'')+'<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث برقم الطلب أو اسم العميل أو الهاتف</span><input id="rest-order-search" type="search" maxlength="120" value="'+esc(state.orderSearch)+'" placeholder="اكتب للبحث"></label><label class="field"><span>تصفية بالحالة</span><select id="rest-order-status-filter"><option value="ALL" '+(state.orderStatusFilter==='ALL'?'selected':'')+'>كل الحالات</option>'+statuses.map(s=>'<option value="'+esc(s)+'" '+(state.orderStatusFilter===s?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label><label class="field"><span>من تاريخ</span><input id="rest-order-from-date" type="date" value="'+esc(state.orderFromDate)+'"></label><label class="field"><span>إلى تاريخ</span><input id="rest-order-to-date" type="date" value="'+esc(state.orderToDate)+'"></label><button type="button" class="btn btn-outline" id="rest-order-clear-dates">مسح التاريخ</button><span class="muted">النتائج: '+filtered.length+' من '+state.orders.length+' طلب محمّل</span></div>';
   return shell('طلبات المطعم',tabs()+controls+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
   (filtered.length?filtered.map(x=>{
    const current=String(x.status||'').toUpperCase();
