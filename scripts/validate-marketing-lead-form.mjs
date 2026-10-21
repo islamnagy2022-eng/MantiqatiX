@@ -168,3 +168,10 @@ assert.match(source, /refreshMarketingLeads/, "search and status controls must r
 assert.match(source, /new Date\(r\.date_time\)\.toLocaleString\('ar-EG'\)/, "ISO appointment timestamps must be parsed as date strings rather than coerced to numbers");
 
 console.log("Marketing lead form validation contract PASS.");
+
+// Fail closed when prior user-owned state cannot be verified.
+
+assert.match(source, /if\(loadErrors\.job_applications\)return shell\(defs\['الوظائف'\][\s\S]*?تم إيقاف التقديم مؤقتًا حتى لا يظهر الحساب وكأنه لم يتقدم/, "job applications must be blocked when prior application state cannot be verified");
+assert.match(source, /loadErrors\.education_requests\?'<tr><td colspan="4">تعذر تحميل الطلبات السابقة؛ أعد المحاولة/, "education request history must not show a false empty state after a read failure");
+assert.match(source, /if\(tab==='appointments'\)return shell\(d,tabs\(d\)\+\(loadErrors\.medical_appointments\?'<div class="notice" role="alert">تعذر تحميل مواعيدك؛ لم نعتبر القائمة فارغة/, "medical appointment history must distinguish read failure from no appointments");
+
