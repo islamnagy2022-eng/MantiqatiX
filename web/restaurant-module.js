@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,menuSearch:'',menuCategoryFilter:'ALL',menuAvailabilityFilter:'ALL',orderSearch:'',orderStatusFilter:'ALL',orderFromDate:'',orderToDate:'',error:null,staleMembershipSelection:false};
+let state={user:null,membership:null,membershipOptions:[],selectionRequired:false,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],reservations:[],loading:false,refreshing:false,lastLoadedAt:null,menuSearch:'',menuCategoryFilter:'ALL',menuAvailabilityFilter:'ALL',orderSearch:'',orderStatusFilter:'ALL',orderFromDate:'',orderToDate:'',reservationSearch:'',reservationStatusFilter:'ALL',reservationFromDate:'',reservationToDate:'',error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -394,7 +394,17 @@ function localTimezoneOffsetMs(){return new Date().getTimezoneOffset()*60000;}
 function reservationsView(){
  const add=canOperate('OPERATIONS','create')&&state.tables.length
   ?'<button class="btn btn-primary" id="rest-add-reservation">+ حجز جديد</button>':'';
- const rows=state.reservations.length?state.reservations.map(r=>{
+ const term=String(state.reservationSearch||'').trim().toLocaleLowerCase();
+ const from=state.reservationFromDate||'',to=state.reservationToDate||'';
+ const invalidDateRange=Boolean(from&&to&&from>to);
+ const filtered=state.reservations.filter(r=>{
+  if(invalidDateRange)return false;
+  const hay=[r.customer_name,r.customer_phone,r.id,r.table_id].map(v=>String(v||'')).join(' ').toLocaleLowerCase();
+  const time=Date.parse(r.starts_at||'');
+  const day=Number.isFinite(time)?(()=>{const d=new Date(time);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')})():'';
+  return (!term||hay.includes(term))&&(!state.reservationStatusFilter||state.reservationStatusFilter==='ALL'||String(r.status||'').toUpperCase()===state.reservationStatusFilter)&&(!from||(day&&day>=from))&&(!to||(day&&day<=to));
+ });
+ const rows=filtered.length?filtered.map(r=>{
   const table=state.tables.find(t=>String(t.id)===String(r.table_id));
   const canChange=canOperate('OPERATIONS','update');
   const actions=[];
@@ -403,7 +413,9 @@ function reservationsView(){
   if(canChange&&['PENDING','CONFIRMED'].includes(r.status))actions.push('<button class="linkbtn" data-reservation-cancel="'+esc(r.id)+'">إلغاء</button><button class="linkbtn" data-reservation-action="NO_SHOW" data-reservation-id="'+esc(r.id)+'">لم يحضر</button>');
   return '<tr><td>'+esc(table?'طاولة '+table.table_number:r.table_id)+'</td><td>'+esc(r.customer_name)+'<div class="muted">'+esc(r.customer_phone||'—')+'</div></td><td>'+esc(r.guest_count)+'</td><td>'+esc(new Date(r.starts_at).toLocaleString('ar-EG'))+'</td><td>'+esc(new Date(r.ends_at).toLocaleString('ar-EG'))+'</td><td>'+esc(r.status)+'</td><td>'+esc(r.notes||'—')+'</td><td>'+ (actions.join(' ')||'—')+'</td></tr>';
  }).join(''):'<tr><td colspan="8">لا توجد حجوزات مسجلة لهذا الفرع بعد.</td></tr>';
- return shell('حجوزات المطعم',tabs()+'<div class="action-bar">'+add+'</div><div class="notice">يتم منع تداخل حجوزات الطاولة على مستوى قاعدة البيانات مع التحقق من السعة ونطاق الفرع.</div><div class="table-wrap"><table><thead><tr><th>الطاولة</th><th>العميل</th><th>الأفراد</th><th>من</th><th>إلى</th><th>الحالة</th><th>ملاحظات</th><th>إجراءات</th></tr></thead><tbody>'+rows+'</tbody></table></div>');
+ const statuses=[...new Set(state.reservations.map(r=>String(r.status||'UNKNOWN').toUpperCase()))].sort();
+ const controls=(invalidDateRange?'<p role="alert" class="muted">تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له.</p>':'')+'<div class="action-bar" style="gap:8px;flex-wrap:wrap"><label class="field"><span>بحث بالعميل أو الهاتف أو رقم الحجز أو الطاولة</span><input id="rest-reservation-search" type="search" maxlength="120" value="'+esc(state.reservationSearch||'')+'"></label><label class="field"><span>الحالة</span><select id="rest-reservation-status"><option value="ALL">كل الحالات</option>'+statuses.map(x=>'<option value="'+esc(x)+'" '+(state.reservationStatusFilter===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label><label class="field"><span>من تاريخ البداية</span><input id="rest-reservation-from" type="date" value="'+esc(from)+'"></label><label class="field"><span>إلى تاريخ البداية</span><input id="rest-reservation-to" type="date" value="'+esc(to)+'"></label><button type="button" class="btn btn-outline" id="rest-reservation-clear">مسح الفلاتر</button><span class="muted">النتائج: '+filtered.length+' من '+state.reservations.length+' حجز محمّل</span></div>';
+ return shell('حجوزات المطعم',tabs()+'<div class="action-bar">'+add+'</div>'+controls+'<div class="notice">يتم منع تداخل حجوزات الطاولة على مستوى قاعدة البيانات مع التحقق من السعة ونطاق الفرع.</div><div class="table-wrap"><table><thead><tr><th>الطاولة</th><th>العميل</th><th>الأفراد</th><th>من</th><th>إلى</th><th>الحالة</th><th>ملاحظات</th><th>إجراءات</th></tr></thead><tbody>'+(rows||'<tr><td colspan="8">'+(state.reservations.length?'لا توجد حجوزات مطابقة للفلاتر.':'لا توجد حجوزات مسجلة لهذا الفرع بعد.')+'</td></tr>')+'</tbody></table></div><p class="muted">البحث والتصفية محليان ضمن آخر 100 حجز محمّل؛ لا يمثلان سجلًا تاريخيًا كاملًا.</p>');
 }
 async function addReservation(){
  if(!canOperate('OPERATIONS','create'))return notify('ليس لديك صلاحية إنشاء الحجوزات.','error');
@@ -487,6 +499,12 @@ function bind(){
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
   document.getElementById('rest-add-reservation')?.addEventListener('click',()=>addReservation());
+ const reservationSearch=document.getElementById('rest-reservation-search');
+ if(reservationSearch)reservationSearch.addEventListener('input',()=>{const pos=reservationSearch.selectionStart;state.reservationSearch=reservationSearch.value;render();const next=document.getElementById('rest-reservation-search');if(next){next.focus();next.setSelectionRange(pos,pos);}});
+ document.getElementById('rest-reservation-status')?.addEventListener('change',e=>{state.reservationStatusFilter=e.target.value;render();});
+ document.getElementById('rest-reservation-from')?.addEventListener('change',e=>{state.reservationFromDate=e.target.value;render();});
+ document.getElementById('rest-reservation-to')?.addEventListener('change',e=>{state.reservationToDate=e.target.value;render();});
+ document.getElementById('rest-reservation-clear')?.addEventListener('click',()=>{state.reservationSearch='';state.reservationStatusFilter='ALL';state.reservationFromDate='';state.reservationToDate='';render();});
   document.querySelectorAll('[data-reservation-cancel]').forEach(b=>b.addEventListener('click',()=>cancelReservation(b.dataset.reservationCancel)));
   document.querySelectorAll('[data-reservation-action]').forEach(b=>b.addEventListener('click',()=>setReservationAction(b.dataset.reservationId,b.dataset.reservationAction)));
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
