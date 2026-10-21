@@ -13,7 +13,7 @@ select public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
  'starts_at','2026-10-24 12:00:00+00'::timestamptz,'ends_at','2026-10-24 13:00:00+00'::timestamptz,
  'notes','integration','idempotency_key','rc528-reservation-key-001'));
 -- Reusing an idempotency key with changed payload must fail closed.
-do $ begin
+do $$ begin
  begin
   perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
    'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
@@ -24,7 +24,7 @@ do $ begin
  exception when raise_exception then
   if sqlerrm='RC528_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
  end;
-end $;
+end $$;
 
 select public.restaurant_reservation_mutate('CONFIRM',jsonb_build_object(
  'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
@@ -53,7 +53,7 @@ reset role;
 -- Staff has update permission but not create permission in the shared RBAC contract.
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000002',false);
 set role authenticated;
-do $ begin
+do $$ begin
  begin
   perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
    'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
@@ -64,15 +64,15 @@ do $ begin
  exception when raise_exception then
   if sqlerrm='RC528_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
  end;
-end $;
+end $$;
 reset role;
-do $ begin
+do $$ begin
  if exists(select 1 from public.restaurant_reservations where idempotency_key='rc528-staff-forbidden-01') then
   raise exception 'RC528_FAIL: staff bypassed reservation create RBAC';
  end if;
-end $;
+end $$;
 
-do $ begin
+do $$ begin
  if (select count(*) from public.restaurant_reservations where idempotency_key='rc528-reservation-key-001') <> 1 then
   raise exception 'RC528_FAIL: idempotent retry created duplicate reservation';
  end if;
