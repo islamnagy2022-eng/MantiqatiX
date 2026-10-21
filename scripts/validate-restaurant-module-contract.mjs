@@ -154,7 +154,7 @@ assert.match(moduleSource, /next:'OUT_FOR_DELIVERY',action:'تسليم للمن�
   'kitchen board must use the existing OUT_FOR_DELIVERY transition rather than inventing a ready status');
 assert.match(moduleSource, /function kitchenView\(\)[\s\S]*?id="rest-refresh"[\s\S]*?آخر تحديث ناجح/,
   'kitchen board must expose a manual refresh control and the last successful refresh time');
-assert.match(moduleSource, /مدة الانتظار حتى الآن/,
+assert.match(moduleSource, /مدة الانتظار وقت عرض الشاشة/,
   'kitchen cards must display elapsed time from the recorded order timestamp');
 assert.match(moduleSource, /Date\.now\(\)-created\.getTime\(\)/,
   'kitchen elapsed time must be derived from the loaded order creation timestamp');
