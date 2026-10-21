@@ -84,6 +84,13 @@ assert.ok(moduleSource.includes("(next.length?'':'disabled')"), 'terminal order 
 assert.ok(moduleSource.includes("if(ok)s.dataset.currentStatus=selected;else s.value=previous"), 'rejected status updates must restore the prior selection');
 assert.match(moduleSource, /money\(x\.total_amount\?\?x\.total\)/, 'order totals must render from either supported canonical total field');
 assert.match(moduleSource, /توزيع الطلبات حسب الحالة/, 'dashboard must show canonical order counts by state');
+assert.match(moduleSource, /PENDING:\['CONFIRMED','CANCELLED'\][\s\S]*OUT_FOR_DELIVERY:\['DELIVERED'\]/, 'order status UI must only offer canonical legal transitions');
+assert.match(moduleSource, /function reservationsView\(\)/, 'restaurant module must expose the reservation workspace');
+assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:'CREATE',p_payload:/, 'reservation creation must use the secured database RPC');
+assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:action,p_payload:/, 'reservation state transitions must use the secured database RPC');
+assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
+assert.match(moduleSource, /ends_at:endsAt,notes,idempotency_key:key/, 'reservation payload must carry bounded time range and idempotency key');
+
 assert.match(moduleSource, /متوسط قيمة الطلب/, 'dashboard must show a clearly scoped average order value');
 assert.match(moduleSource, /ليس تقرير مبيعات محاسبيًا/, 'dashboard must not misrepresent order totals as accounting sales');
 assert.ok(moduleSource.includes("if(s.dataset.pending==='1')return;const previous=s.dataset.currentStatus||s.value;const selected=s.value;s.dataset.pending='1';s.disabled=true"), 'concurrent status changes must be serialized per order selector');
