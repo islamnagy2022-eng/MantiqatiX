@@ -28,6 +28,9 @@ assert.match(form, /r\.data\?\.ok!==true\|\|!r\.data\?\.lead\?\.id/, "success mu
 assert.match(form, /تعذر تأكيد إنشاء طلب التسويق/, "uncertain API responses must not be reported as success");
 assert.match(source, /loadErrors=\{\}/, "table query failures must be tracked separately from empty results");
 assert.match(source, /loadErrors\[t\]=r\.error/, "failed table reads must preserve failure state");
+assert.match(source, /if\(cp\.error\)loadErrors\.mantigo_captain_profile=cp\.error/, "captain profile read errors must not masquerade as a missing profile");
+assert.match(source, /if\(r\.error\)\{rows\.mantigo_open=\[\];loadErrors\.mantigo_open=r\.error\}/, "open rides RPC failures must remain visible rather than appearing as an empty list");
+
 assert.match(source, /function marketingTableView\(d,key,content\)/, "marketing tables must share explicit query failure rendering");
 assert.match(source, /function overview\(d\)\{[\s\S]*?loadErrors\[t\]\?[\s\S]*?تعذر التحميل[\s\S]*?لا يمكن عرض عدد السجلات بأمان/, "overview counts must distinguish failed reads from real zero counts");
 assert.match(source, /data-op-reload/, "overview must expose a retry control after failed reads");
