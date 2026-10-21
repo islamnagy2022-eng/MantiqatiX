@@ -446,6 +446,11 @@ async function addReservation(){
 async function setReservationAction(id,action){
  if(!canOperate('OPERATIONS','update'))return notify('ليس لديك صلاحية تعديل الحجوزات.','error');
  const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ const reservation=state.reservations.find(r=>String(r.id)===String(id));
+ if(!reservation)return notify('الحجز غير موجود ضمن الحجوزات المحمّلة لهذا الفرع. حدّث القائمة ثم حاول مرة أخرى.','error');
+ const current=String(reservation.status||'').toUpperCase();
+ const allowed={CONFIRM:['PENDING'],SEAT:['CONFIRMED'],NO_SHOW:['PENDING','CONFIRMED']};
+ if(!Array.isArray(allowed[action])||!allowed[action].includes(current))return notify('الإجراء لا يناسب حالة الحجز الحالية. حدّث القائمة وتحقق من الحالة.','error');
  const labels={CONFIRM:'تأكيد الحجز',SEAT:'تسجيل حضور العميل',NO_SHOW:'تسجيل عدم الحضور'};
  if(!window.confirm((labels[action]||'تحديث الحجز')+'؟'))return;
  const {error}=await sb.rpc('restaurant_reservation_mutate',{p_action:action,p_payload:{tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,reservation_id:id}});
@@ -455,6 +460,9 @@ async function setReservationAction(id,action){
 async function cancelReservation(id){
  if(!canOperate('OPERATIONS','update'))return notify('ليس لديك صلاحية إلغاء الحجوزات.','error');
  const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ const reservation=state.reservations.find(r=>String(r.id)===String(id));
+ if(!reservation)return notify('الحجز غير موجود ضمن الحجوزات المحمّلة لهذا الفرع. حدّث القائمة ثم حاول مرة أخرى.','error');
+ if(!['PENDING','CONFIRMED'].includes(String(reservation.status||'').toUpperCase()))return notify('لا يمكن إلغاء الحجز من حالته الحالية. حدّث القائمة وتحقق من الحالة.','error');
  if(!window.confirm('هل تريد إلغاء هذا الحجز؟'))return;
  const {error}=await sb.rpc('restaurant_reservation_mutate',{p_action:'CANCEL',p_payload:{tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,reservation_id:id}});
  if(error)return notify('تعذر إلغاء الحجز. قد يكون الحجز قد تم تسكينه أو تغيرت حالته.','error');
