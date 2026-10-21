@@ -15,7 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
+let state={user:null,membership:null,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null,staleMembershipSelection:false};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
@@ -44,8 +44,10 @@ function scope(){
 async function load(){
  state.user=await session();
  if(!state.user){state.error='AUTH_REQUIRED';return render();}
+ const savedMembershipId=localStorage.getItem('MNTYActiveMembershipId');
  state.membership=await membership(state.user);
- if(!state.membership){state.error='لا توجد عضوية تشغيلية نشطة.';return render();}
+ if(!state.membership){state.staleMembershipSelection=Boolean(savedMembershipId);state.error=state.staleMembershipSelection?'العضوية المحفوظة لم تعد متاحة. امسح الاختيار المحفوظ لإعادة اختيار عضوية نشطة.':'لا توجد عضوية تشغيلية نشطة.';return render();}
+ state.staleMembershipSelection=false;
  state.error=null; state.loading=true; render();
  const s=scope();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
@@ -154,7 +156,7 @@ function dashboard(){
 }
 function render(){
  const page=document.getElementById('page');if(!page)return;
- if(state.error){page.innerHTML=shell('تعذر تحميل موديول المطاعم',tabs()+'<div class="empty-state">'+esc(state.error)+'<div class="action-bar"><button class="btn btn-primary" id="rest-retry">إعادة المحاولة</button></div></div>');bind();return;}
+ if(state.error){const recovery=state.staleMembershipSelection?'<button class="btn btn-outline" id="rest-clear-membership">مسح الاختيار المحفوظ وإعادة الاختيار</button>':'';page.innerHTML=shell('تعذر تحميل موديول المطاعم',tabs()+'<div class="empty-state">'+esc(state.error)+'<div class="action-bar">'+recovery+'<button class="btn btn-primary" id="rest-retry">إعادة المحاولة</button></div></div>');bind();return;}
  if(state.loading){page.innerHTML=shell('جاري تحميل موديول المطاعم',tabs()+'<p class="muted">جاري تحميل البيانات الفعلية…</p>');return;}
  page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():dashboard();
  bind();
@@ -221,6 +223,7 @@ async function updateOrder(id,status){
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
+ document.getElementById('rest-clear-membership')?.addEventListener('click',()=>{localStorage.removeItem('MNTYActiveMembershipId');load();});
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
  document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
