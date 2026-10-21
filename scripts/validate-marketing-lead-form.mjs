@@ -25,5 +25,8 @@ assert.match(form, /تعذر تأكيد إنشاء طلب التسويق/, "unce
 assert.match(source, /loadErrors=\{\}/, "table query failures must be tracked separately from empty results");
 assert.match(source, /loadErrors\[t\]=r\.error/, "failed table reads must preserve failure state");
 assert.match(source, /تعذر تحميل طلبات التسويق[\s\S]*لم نعتبر القائمة فارغة/, "lead query failure must not appear as an empty list");
+assert.match(source, /required_services\|\|\[\]/, "lead list must display requested services when available");
+assert.match(source, /money\(r\.budget_min\).*money\(r\.budget_max\)/, "lead list must show the full budget range");
+assert.match(source, /toLocaleDateString\('ar-EG'\)/, "lead list must display localized request dates");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 console.log("Marketing lead form validation contract PASS.");
