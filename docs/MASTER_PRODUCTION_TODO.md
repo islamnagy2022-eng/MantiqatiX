@@ -2040,3 +2040,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added required datetime-local input, future-date validation, bounded optional reason, accessible live feedback, duplicate-submit lockout, and safe uncertain-outcome guidance.
 - [x] Preserved create_medical_appointment_backend and added source-contract assertions.
 - [ ] Node validator, exact-head CI, browser E2E, appointment authorization, and real-provider workflow remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — UI-first generic module table search
+- [x] Added a shared search input/results renderer for generic live module tables.
+- [x] Search filters only the first eight displayed fields, distinguishes no-match from an actually empty dataset, and preserves explicit backend-only/error states.
+- [x] Added source-contract assertions for the search boundary and empty-result messaging.
+- [ ] Executed validator, exact-head CI, keyboard/mobile UX and browser E2E remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
