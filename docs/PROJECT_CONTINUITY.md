@@ -867,3 +867,11 @@ The marketing lead form now maps `invalid_title`, `invalid_description`, and `in
 
 ### Payment-intent persistence conflict guard — 2026-10-21
 The MantiGO payment-intent Edge Function no longer assumes a conditional ledger update succeeded. It now requests the updated row and returns a checkout URL only when the provider intent was persisted to a row still in `REQUIRED`/`PENDING` with `provider_intent_id IS NULL`; a lost race returns `PAYMENT_INTENT_STATE_CHANGED` (409), and database update failures are logged with request ID plus a safe response code. Added source-contract assertions. This is not full idempotency: concurrent calls can still create an orphan Paymob intent before one persistence wins. A database-backed atomic claim/idempotency design and provider reconciliation are still needed. No payment or deployment occurred. Exact-head CI/runtime/payment E2E remain unverified; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest UI-first continuation — 2026-10-21
+- Current work remains on feat/module-safe-error-feedback-20261021 and PR #314 (open draft, not merged).
+- Jobs module: browser prompt-based applications were replaced with an accessible inline form that uses the existing submit_job_application_backend RPC, bounds required fields, announces status, and prevents duplicate clicks while submitting.
+- Source-contract assertions were added. Static checks were reviewed in-session, but the Node validator, exact-head CI, browser E2E, and server-side duplicate/authorization cases are not verified; the latest connector check returned no workflow runs/statuses.
+- Next UI-first slice: continue replacing prompt-based workflows with accessible forms in education and medical booking, then inventory remaining module pages and navigation gaps. Do not expand accounting/subscription billing before the module UI pass.
+- Keep release state **BLOCKED / NOT CERTIFIED**; no deployment, merge, production mutation, or payment occurred.
