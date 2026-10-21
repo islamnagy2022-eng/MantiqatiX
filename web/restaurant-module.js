@@ -179,7 +179,7 @@ function addTable(existing){
  const x=existing||{};
  modal(existing?'تعديل طاولة':'إضافة طاولة',
  field('num','رقم الطاولة',x.table_number,'number','min="1" step="1" required')+field('cap','السعة',x.capacity_persons||2,'number','min="1" step="1" required')+
- '<label class="field"><span>الحالة</span><select id="status"><option>EMPTY</option><option>OCCUPIED</option><option>RESERVED</option><option>CLEANING</option><option>OUT_OF_SERVICE</option></select></label>'+
+ '<label class="field"><span>الحالة</span><select id="status">'+['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'].map(status=>'<option '+((x.status||'EMPTY')===status?'selected':'')+'>'+status+'</option>').join('')+'</select></label>'+
  field('reserved','اسم الحجز',x.reserved_customer_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
