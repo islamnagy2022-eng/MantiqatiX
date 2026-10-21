@@ -66,6 +66,10 @@ assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must use canonical order-create function');
 assert.match(moduleSource, /function askOrderDetails\(items\)/, 'order form must let staff select an authoritative catalog item');
 assert.match(moduleSource, /const selection=await askOrderDetails\(items\)/, 'selected catalog item and quantity must be used for order creation');
+assert.match(moduleSource, /field\('rest-customer','اسم العميل'\).*field\('rest-phone','رقم الهاتف'.*field\('rest-address','عنوان التوصيل'/, 'restaurant order form must capture customer contact and delivery details');
+assert.match(moduleSource, /customerName:selection\.customerName\|\|state\.user\.email\|\|'',customerPhone:selection\.customerPhone,deliveryAddress:selection\.deliveryAddress/,
+  'canonical order payload must carry the entered customer details');
+assert.match(moduleSource, /rest-notes.*selection\.notes/, 'canonical order payload must carry order notes');
 assert.doesNotMatch(moduleSource, /function askQuantity\(/, 'order flow must not silently choose the first catalog item');
 assert.match(moduleSource, /invokeMntyFunction\('order-status-update'/,
   'restaurant order status changes must use canonical status function');
