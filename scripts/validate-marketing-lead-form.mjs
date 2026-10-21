@@ -74,4 +74,7 @@ assert.match(edge, /async function readLimitedBody\(req: Request, limit: number\
 assert.match(edge, /try \{\s*chunkResult = await reader\.read\(\);\s*\} catch \{[\s\S]*?await reader\.cancel\(\)[\s\S]*?return new Uint8Array\(\);/, "lead API must handle request stream read failures without an unhandled exception");
 assert.match(source, /BACKEND_ONLY_TABLES\.has\(t\)[\s\S]*?عرض آمن عبر مسار خلفي[\s\S]*?لا يتم قراءة هذا الجدول مباشرة من المتصفح/, "overview must not report backend-only tables as empty");
 assert.match(source, /function genericLiveView\(d\)[\s\S]*?BACKEND_ONLY_TABLES\.has\(t\)[\s\S]*?الوصول لهذا الجدول يتم عبر مسار خلفي مصرح به فقط[\s\S]*?if\(loadErrors\[t\]\)[\s\S]*?تعذر تحميل البيانات؛ لم يتم اعتبارها فارغة/, "live data view must distinguish backend-only tables and read failures from empty results");
+assert.match(form, /invalid_service_area:\x27أدخل نطاق الخدمة كنص لا يتجاوز 200 حرف\.\x27/, "service-area backend validation errors must have safe Arabic guidance");
+assert.match(form, /invalid_title:\x27أدخل عنوانًا صحيحًا لا يتجاوز 200 حرف\.\x27/, "title backend validation errors must have safe Arabic guidance");
+assert.match(form, /invalid_description:\x27أدخل تفاصيل الطلب ولا تتجاوز 5000 حرف\.\x27/, "description backend validation errors must have safe Arabic guidance");
 console.log("Marketing lead form validation contract PASS.");
