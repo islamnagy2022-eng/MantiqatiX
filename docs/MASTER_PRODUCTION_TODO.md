@@ -2232,3 +2232,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added accessible descriptions tying each input to its current character count and kept counters updated with one-time event bindings across rerenders.
 - [x] Added source-contract assertions for all four counters and their listener guard.
 - [ ] Exact-head CI must pass for this change. Browser/mobile screen-reader verification remains NOT VERIFIED.
+
+
+## 2026-10-21 — Lead-counter validator assertion correction
+
+- [x] Investigated the web validation failure on commit `5718e5927693ac825e2fb5566d57330a75789b7c`: the implementation parsed, but a new source-contract regex incorrectly expected `field.value.length` before `counter.textContent`, while the actual renderer assigns `counter.textContent=String(field.value.length)`.
+- [x] Corrected the assertion to match the actual safe rendering expression; no production code behavior was weakened.
+- [ ] Re-run and verify web validation on the exact new head before treating the change as passed.
