@@ -130,10 +130,24 @@ function menuView(){
  '</tbody></table></div>');
 }
 function ordersView(){
- const statuses=['CONFIRMED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
- return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
- (state.orders.length?state.orders.map(x=>'<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+(canOperate('ORDERS','update')?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(x.status)+'">'+(statuses.includes(x.status)?'':('<option selected disabled>'+esc(x.status)+'</option>'))+statuses.map(s=>'<option '+(s===x.status?'selected':'')+'>'+s+'</option>').join('')+'</select>':esc(x.status))+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
- '</tbody></table></div>');
+  // Mirror the canonical server transition graph so the UI cannot invite invalid state jumps.
+  const transitions={
+   PENDING:['CONFIRMED','CANCELLED'],
+   CREATED:['CONFIRMED','CANCELLED'],
+   CONFIRMED:['PREPARING','CANCELLED'],
+   PREPARING:['OUT_FOR_DELIVERY','CANCELLED'],
+   OUT_FOR_DELIVERY:['DELIVERED']
+  };
+  return shell('طلبات المطعم',tabs()+'<div class="table-wrap"><table><thead><tr><th>الطلب</th><th>العميل</th><th>الفرع</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th></tr></thead><tbody>'+
+  (state.orders.length?state.orders.map(x=>{
+   const current=String(x.status||'').toUpperCase();
+   const next=transitions[current]||[];
+   const statusControl=canOperate('ORDERS','update')
+    ?'<select data-order-status="'+esc(x.id)+'" data-current-status="'+esc(current)+'" '+(next.length?'':'disabled')+'><option selected value="'+esc(current)+'">'+esc(current||'غير محدد')+'</option>'+next.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
+    :esc(current);
+   return '<tr><td><b>'+esc(x.id)+'</b></td><td>'+esc(x.customer_name)+'</td><td>'+esc(x.branch_id||'—')+'</td><td>'+money(x.total_amount??x.total)+'</td><td>'+statusControl+'</td><td>'+new Date(x.created_at).toLocaleString('ar-EG')+'</td></tr>';
+  }).join(''):'<tr><td colspan="6">لا توجد طلبات فعلية بعد.</td></tr>')+
+  '</tbody></table></div>');
 }
 function tablesView(){
  const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
