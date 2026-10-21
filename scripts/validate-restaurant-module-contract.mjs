@@ -25,6 +25,10 @@ assert.match(moduleSource, /const r=await base\(\)\.limit\(20\);\s*const options
   'multiple active memberships must require an explicit choice instead of selecting the first');
 assert.match(moduleSource, /if\(state\.selectionRequired\).*data-select-membership/s,
   'multiple active memberships must render a membership choice screen');
+assert.match(moduleSource, /Do not expose raw database\/provider errors in the user interface/);
+assert.match(moduleSource, /state\.error=errs\.length\?'تعذر تحميل بعض بيانات المطعم/);
+assert.match(moduleSource, /finally\{state\.loading=false;render\(\);\}/,
+  'data loading must recover from query failures and always clear loading state');
 assert.match(moduleSource, /setItem\('MNTYActiveMembershipId',id\);load\(\)/,
   'the chosen membership must be explicitly saved before loading its workspace');
 
