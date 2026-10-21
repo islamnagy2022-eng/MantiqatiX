@@ -428,3 +428,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Preserved the existing create_education_request_backend RPC and scoped form selection by target type to avoid cross-entity selector collisions.
 - Added source-contract assertions. Runtime execution, exact-head CI, browser E2E, and server authorization checks remain NOT VERIFIED.
 - No deployment, merge, production mutation, or release occurred; production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — Medical booking form slice
+- Replaced prompt-based appointment booking with an inline form for each medical provider. The form requires a date/time, rejects past dates, bounds optional visit reasons, and announces status/errors accessibly.
+- Preserved the existing create_medical_appointment_backend RPC; submission is locked while pending and ambiguous failures advise checking the appointment list before retrying.
+- Added source-contract assertions. Node validator, exact-head CI, browser E2E, and appointment authorization remain NOT VERIFIED.
+- No deployment, merge, production mutation, or release occurred. Production remains BLOCKED / NOT CERTIFIED.
