@@ -72,7 +72,7 @@ async function mgGetCurrentPosition(){if(window.MNTYLocationAdapter?.requestLoca
  const proposedPrice=Number(priceEl?.value);
  if(!Number.isFinite(proposedPrice)||proposedPrice<=0)return alert('أدخل سعرًا مقترحًا صحيحًا أكبر من صفر.');
  const phone=(phoneEl?.value||'').trim();
- if(phone&&!/^[0-9+\\s()-]{7,20}$/.test(phone))return alert('أدخل رقم تواصل صحيحًا.');
+ if(phone&&!/^[0-9+\s()-]{7,20}$/.test(phone))return alert('أدخل رقم تواصل صحيحًا.');
  if(!user?.id)return alert('انتهت جلسة الدخول. سجّل الدخول ثم حاول مرة أخرى.');
  // Reuse the same key after an uncertain network result to reduce duplicate ride creation.
  const key=btn?.dataset.idempotencyKey||(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random());
