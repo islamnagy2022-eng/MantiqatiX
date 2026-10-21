@@ -31,6 +31,8 @@ for(const [src,marker,label] of [
   [mantigoWebhook,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory replay returns conflict'],
   [mantigoSql,'for update','ledger row serialization'],
   [mantigoSql,'MANTIGO_EVENT_BINDING_CONFLICT','provider-event binding validation'],
+  [mantigoSql,'MANTIGO_MERCHANT_REFERENCE_MISMATCH','merchant order reference must bind to ledger'],
+  [mantigoSql,"'MANTIGO_RIDE_PAYMENT',\n    null, p_external_event_id",'MantiGO ledger IDs must not be written into the payment-intent foreign key'],
   [mantigoSql,'MANTIGO_FINAL_STATE_CONFLICT','conflicting replay rejection'],
   [mantigoSql,'MANTIGO_EVENT_STATUS_CONFLICT','contradictory event replay rejection'],
   [mantigoSql,'grant execute on function public.process_verified_mantigo_paymob_event','service-role-only RPC grant']
