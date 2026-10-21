@@ -136,3 +136,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - CI on commit `3b31c381a011f4972a68b560074ee874a1d16509`: Module Professionalization Validation, Backend-only Module Boundary, MantiGO Open Ride Privacy Boundary, and Production Health Monitor passed. Pages deployment validation failed at `npm run verify:production` with `PRODUCTION_GATE=BLOCKED` because RC425–RC432 and RC434–RC441 migration source files are missing. The deploy job was skipped; this is expected fail-closed behavior, not a code syntax failure.
 - Required next: reconcile the competing RC434 migration definitions in draft PRs; recover/review the complete migration chain in order, with collision guard intact; resolve legacy purchase orders lacking lines; run Postgres integration tests for transaction rollback, concurrent duplicate receipt, over-receiving, tenant isolation, and service-role-only grants.
 - No production database, Edge Function deployment, or production data was mutated. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — RC434 migration provenance comparison
+- Compared the RC434 migration blob in draft PR #271, #273, #282, and #286. All four branches contain the exact same blob SHA `a93a0a6827de15d50632e1deec015e20dd55b405` (6,968 bytes), so the previously noted RC434 source divergence is not present across these four reviewed heads.
+- This is provenance corroboration only; it does not prove the migration can safely apply to production or that the complete migration chain is correct.
+- Recorded in `docs/MASTER_PRODUCTION_TODO.md`. No migration was merged or applied. All four PRs remain drafts and overlap on source files; the collision guard remains required.
+- Next: inspect the entire RC425–RC441 chain as one ordered set, validate RC434/RC437 function signature and integration test alignment, then run disposable Postgres chronological replay and rollback/concurrency/tenant-isolation tests. Keep production blocked until evidence exists.
