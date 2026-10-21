@@ -222,7 +222,8 @@ function kitchenView(){
   }).join(''):'<div class="empty-state">لا توجد طلبات في هذه المرحلة ضمن البيانات المحمّلة.</div>';
   return '<section class="card"><div class="workspace-head"><h3>'+stage.title+'</h3><span class="badge">'+counts[stage.status]+'</span></div><div class="cards">'+body+'</div></section>';
  }).join('');
- return shell('شاشة المطبخ (KDS)',tabs()+'<p class="notice">تعرض الشاشة الطلبات المحمّلة ضمن الفرع النشط فقط، بحد أقصى آخر 100 طلب. تحديث الحالة يتم عبر دالة الخادم الحالية؛ لا تُنشأ حالات جديدة من الواجهة.</p><div class="cards">'+cards+'</div><p class="muted">حالة «تسليم للمندوب» تستخدم انتقال OUT_FOR_DELIVERY الموجود حاليًا؛ لم تتم إضافة حالة «جاهز» مستقلة لأن عقد الخادم الحالي لا يثبت دعمها.</p>');
+ const refreshed=state.lastLoadedAt?new Date(state.lastLoadedAt).toLocaleString('ar-EG'):'لم يكتمل تحديث ناجح بعد';
+ return shell('شاشة المطبخ (KDS)',tabs()+'<div class="action-bar"><button class="btn btn-outline" id="rest-refresh" '+(state.refreshing?'disabled aria-disabled="true"':'')+'>'+(state.refreshing?'جاري التحديث…':'تحديث طلبات المطبخ')+'</button><span class="muted">آخر تحديث ناجح: '+esc(refreshed)+'</span></div><p class="notice">تعرض الشاشة الطلبات المحمّلة ضمن الفرع النشط فقط، بحد أقصى آخر 100 طلب. تحديث الحالة يتم عبر دالة الخادم الحالية؛ لا تُنشأ حالات جديدة من الواجهة.</p><div class="cards">'+cards+'</div><p class="muted">حالة «تسليم للمندوب» تستخدم انتقال OUT_FOR_DELIVERY الموجود حاليًا؛ لم تتم إضافة حالة «جاهز» مستقلة لأن عقد الخادم الحالي لا يثبت دعمها.</p>');
 }
 function tablesView(){
  const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-table">+ إضافة طاولة</button>':'';
