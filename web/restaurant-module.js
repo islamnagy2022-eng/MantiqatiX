@@ -292,10 +292,10 @@ async function viewInventoryMovements(existing){
  modal('سجل حركات المخزون',body);
 }
 function localDateTime(hoursFromNow){
- const d=new Date(Date.now()+hoursFromNow*3600000-dummyTimezoneOffset());
+ const d=new Date(Date.now()+hoursFromNow*3600000-localTimezoneOffsetMs());
  return d.toISOString().slice(0,16);
 }
-function dummyTimezoneOffset(){return new Date().getTimezoneOffset()*60000;}
+function localTimezoneOffsetMs(){return new Date().getTimezoneOffset()*60000;}
 function reservationsView(){
  const add=canOperate('OPERATIONS','create')&&state.tables.length
   ?'<button class="btn btn-primary" id="rest-add-reservation">+ حجز جديد</button>':'';
