@@ -86,13 +86,29 @@ assert.match(moduleSource, /money\(x\.total_amount\?\?x\.total\)/, 'order totals
 assert.match(moduleSource, /توزيع الطلبات حسب الحالة/, 'dashboard must show canonical order counts by state');
 assert.match(moduleSource, /PENDING:\['CONFIRMED','CANCELLED'\][\s\S]*OUT_FOR_DELIVERY:\['DELIVERED'\]/, 'order status UI must only offer canonical legal transitions');
 assert.match(moduleSource, /function reservationsView\(\)/, 'restaurant module must expose the reservation workspace');
+assert.match(moduleSource, /esc\(x\.table_number\?\?'—'\)/, 'table number must be escaped before rendering');
+assert.match(moduleSource, /esc\(x\.capacity_persons\?\?'—'\)/, 'table capacity must be escaped before rendering');
+assert.match(moduleSource, /payload\.table_number>100000/, 'table number must have an upper bound');
+assert.match(moduleSource, /payload\.capacity_persons>1000/, 'table capacity must have an upper bound');
+assert.match(moduleSource, /\['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'\]\.includes\(payload\.status\)/, 'table status must be validated against supported values');
+assert.match(moduleSource, /esc\(x\.current_stock_qty\?\?'—'\)/, 'inventory quantity must be escaped before rendering');
+assert.match(moduleSource, /esc\(x\.min_stock_alert_threshold\?\?'—'\)/, 'inventory alert threshold must be escaped before rendering');
+assert.match(moduleSource, /payload\.name_ar\.length>120/, 'inventory item names must be length-bounded');
+assert.match(moduleSource, /payload\.unit\.length>24/, 'inventory units must be length-bounded');
+assert.match(moduleSource, /payload\.supplier_name\.length>120/, 'inventory supplier names must be length-bounded');
+assert.match(moduleSource, /v<=1000000000/, 'inventory alert thresholds must have an upper bound');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:'CREATE',p_payload:/, 'reservation creation must use the secured database RPC');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:action,p_payload:/, 'reservation state transitions must use the secured database RPC');
 assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
 assert.match(moduleSource, /ends_at:endsAt,notes,idempotency_key:key/, 'reservation payload must carry bounded time range and idempotency key');
+assert.match(moduleSource, /start\.getTime\(\)>now\+180\*24\*60\*60\*1000/, 'reservation start must be bounded to the server-supported 180-day window');
+assert.match(moduleSource, /end\.getTime\(\)-start\.getTime\(\)>8\*60\*60\*1000/, 'reservation duration must not exceed the server-supported eight-hour window');
+assert.match(moduleSource, /async function addReservation\(\)[\s\S]*?if\(notes\.length>1000\)/, 'reservation notes must be length-bounded before the RPC');
+assert.match(moduleSource, /if\(notes\.length>1000\)/, 'reservation notes must be bounded before RPC');
 
-assert.match(moduleSource, /متوسط قيمة الطلب/, 'dashboard must show a clearly scoped average order value');
-assert.match(moduleSource, /ليس تقرير مبيعات محاسبيًا/, 'dashboard must not misrepresent order totals as accounting sales');
+// Financial KPIs are intentionally omitted until an authoritative payment/settlement source is wired.
+assert.match(moduleSource, /لا نعرض إجمالي مبيعات أو متوسط طلب باعتبارهما أرقامًا مالية معتمدة/,
+  'dashboard must explicitly avoid presenting unverified financial KPIs as authoritative');
 assert.ok(moduleSource.includes("if(s.dataset.pending==='1')return;const previous=s.dataset.currentStatus||s.value;const selected=s.value;s.dataset.pending='1';s.disabled=true"), 'concurrent status changes must be serialized per order selector');
 assert.ok(moduleSource.includes("delete s.dataset.pending;if(s.isConnected)s.disabled=false"), 'status selector must be re-enabled after completion or failure');
 assert.ok(moduleSource.includes("await load();return true;")&&moduleSource.includes("return false}"), 'status update handler must report success or failure');
@@ -100,10 +116,13 @@ assert.ok(moduleSource.includes("await load();return true;")&&moduleSource.inclu
 // Editing a table must preserve the saved status instead of silently resetting to EMPTY.
 assert.ok(moduleSource.includes("(x.status||'EMPTY')===status"),
   'table editor must select the persisted status');
-assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\)/,
+assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|payload\.table_number>100000\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\|\|payload\.capacity_persons>1000\)/,
   'table number and capacity must be validated');
 assert.match(moduleSource, /if\(!existing\)\{payload\.current_stock_qty=0;payload\.unit_cost_egp=0;\}/, 'new inventory items must start at zero until an audited movement is recorded');
 assert.match(moduleSource, /sb\.rpc\('restaurant_inventory_move'/, 'stock changes must use the atomic server-side movement RPC');
+assert.match(moduleSource, /if\(!\['RECEIPT','ISSUE','OPENING_BALANCE'\]\.includes\(type\)\)/, 'inventory movement type must be validated before calling the RPC');
+assert.match(moduleSource, /type==='OPENING_BALANCE'&&!\['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'\]\.includes\(role\)/, 'opening-balance movement must be restricted in the UI to privileged roles');
+assert.match(moduleSource, /if\(notes\.length>1000\)/, 'inventory movement notes must be length-bounded');
 assert.match(moduleSource, /restaurant_inventory_movements'\)\.select\('id,movement_type,quantity,unit_cost_egp,idempotency_key,notes,created_by,created_at'\)/, 'inventory movement history must be read from the audit ledger');
 assert.doesNotMatch(moduleSource, /restaurant_inventory'\)\.update\(\{[^}]*current_stock_qty/, 'browser code must not directly overwrite an existing stock balance');
 assert.match(moduleSource, /restaurant_menu_items'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'menu updates must be scoped to the active branch and detect unmatched writes');
@@ -115,5 +134,112 @@ assert.match(moduleSource, /function modal\(title,html,onSave,onCancel\)/, 'moda
 assert.match(moduleSource, /document\.removeEventListener\('keydown',onKey\)/, 'modal keyboard listeners must be removed when the dialog closes');
 assert.match(moduleSource, /o\._close=\(\)=>close\(false\)/, 'successful saves must close dialogs through the cleanup path');
 assert.match(moduleSource, /o\._close\(\);resolve\(\{item,quantity,customerName,customerPhone,deliveryAddress,notes\}\);\s*\},\(\)=>resolve\(null\)\)/, 'canceling order details must resolve the pending order flow without leaving a stuck promise');
+
+// Dashboard metrics must remain grounded in the bounded set of loaded orders.
+assert.match(moduleSource, /const statusCounts=\{\};[\s\S]*state\.orders\.forEach\(order=>\{const key=String\(order\.status\|\|'UNKNOWN'\)\.toUpperCase\(\)/,
+  'dashboard status counts must be derived from loaded order records');
+assert.match(moduleSource, /ضمن آخر 100 طلب محمّل/,
+  'dashboard must disclose the bounded sample behind status counts');
+assert.match(moduleSource, /لا نعرض إجمالي مبيعات أو متوسط طلب باعتبارهما أرقامًا مالية معتمدة/,
+  'dashboard must not present unverified sales totals as authoritative financial metrics');
+assert.match(moduleSource, /async function refreshDashboard\(\)[\s\S]*if\(state\.refreshing\|\|state\.loading\)return/,
+  'dashboard refresh must prevent overlapping refresh requests');
+assert.match(moduleSource, /if\(!errs\.length\)state\.lastLoadedAt=new Date\(\)\.toISOString\(\)/,
+  'last-updated timestamp must only advance after all dashboard queries succeed');
+assert.match(moduleSource, /id="rest-refresh"/,
+  'dashboard must expose a manual refresh control');
+
+// Order details are rendered only from the active, already scoped order set.
+assert.match(moduleSource, /function viewOrderDetails\(order\)/,
+  'orders workspace must provide a dedicated order detail view');
+assert.match(moduleSource, /state\.orders\.some\(x=>x\.id===order\.id\)/,
+  'order details must only open for an order already present in the scoped loaded set');
+assert.match(moduleSource, /data-order-detail=/,
+  'order list must expose an explicit order detail action');
+assert.match(moduleSource, /order\.items_json/,
+  'order detail view must display item details when present in the loaded record');
+assert.match(moduleSource, /ليست إثباتًا على تحصيل المبلغ أو تسويته ماليًا/,
+  'order details must not imply that recorded totals are proof of payment settlement');
+
+// Status mutation must be constrained by the currently loaded order and allowed transition map.
+assert.match(moduleSource, /const order=state\.orders\.find\(x=>String\(x\.id\)===String\(id\)\)/,
+  'status updates must target an order in the currently loaded scoped dataset');
+assert.match(moduleSource, /allowed\[current\]\.includes\(String\(status\|\|''\)\.toUpperCase\(\)\)/,
+  'status updates must reject transitions not allowed from the current loaded status');
+
+assert.match(moduleSource, /const reservation=state\.reservations\.find\(r=>String\(r\.id\)===String\(id\)\)/, 'reservation actions must target a reservation in the currently loaded scoped dataset');
+assert.match(moduleSource, /const allowed=\{CONFIRM:\['PENDING'\],SEAT:\['CONFIRMED'\],NO_SHOW:\['PENDING','CONFIRMED'\]\}/, 'reservation actions must be constrained by the current reservation status');
+assert.match(moduleSource, /if\(!\['PENDING','CONFIRMED'\]\.includes\(String\(reservation\.status\|\|''\)\.toUpperCase\(\)\)\)/, 'reservation cancellation must reject terminal or unsupported states in the UI');
+
+assert.match(moduleSource, /const startLabel=Number\.isFinite\(startMs\)\?new Date\(startMs\)\.toLocaleString\('ar-EG'\):'تاريخ غير صالح'/, 'reservation list must safely display invalid start timestamps');
+assert.match(moduleSource, /const endLabel=Number\.isFinite\(endMs\)\?new Date\(endMs\)\.toLocaleString\('ar-EG'\):'تاريخ غير صالح'/, 'reservation list must safely display invalid end timestamps');
+// Reservation filters must remain local and bounded to the already scoped loaded reservations.
+assert.match(moduleSource, /id="rest-reservation-search"/, 'reservation view must expose customer/phone/table search');
+assert.match(moduleSource, /id="rest-reservation-status"/, 'reservation view must expose a status filter');
+assert.match(moduleSource, /id="rest-reservation-from"/, 'reservation view must expose a start-date filter');
+assert.match(moduleSource, /id="rest-reservation-to"/, 'reservation view must expose an end-date filter');
+assert.match(moduleSource, /state\.reservations\.filter\(r=>\{/, 'reservation filters must operate on the scoped loaded reservations');
+assert.match(moduleSource, /آخر 100 حجز محمّل/, 'reservation view must disclose its local loaded-record bound');
+assert.match(moduleSource, /filtered\.length\?filtered\.map\(r=>\{[\s\S]*?\.join\(''\):''/, 'empty filtered reservation results must use the shared empty-state message rather than claim there are no reservations');
+
+// Kitchen board uses existing server-supported order statuses and the existing scoped dataset.
+assert.match(moduleSource, /const orders=state\.orders\.filter\(o=>String\(o\.status\|\|''\)\.toUpperCase\(\)===stage\.status\)\.sort\(/,
+  'kitchen queue must order each stage FIFO by order creation time');
+assert.match(moduleSource, /Number\.POSITIVE_INFINITY/,
+  'kitchen queue must place orders with invalid timestamps after timestamped orders');
+assert.match(moduleSource, /function kitchenView\(\)/,
+  'restaurant module must expose a dedicated kitchen board');
+assert.match(moduleSource, /state\.tab==='kitchen'\?kitchenView\(\)/,
+  'kitchen board must be reachable from module navigation');
+assert.match(moduleSource, /title:'بانتظار بدء التحضير',next:'PREPARING'/,
+  'kitchen board must start preparation using the existing CONFIRMED to PREPARING transition');
+assert.match(moduleSource, /next:'OUT_FOR_DELIVERY',action:'تسليم للمندوب'/,
+  'kitchen board must use the existing OUT_FOR_DELIVERY transition rather than inventing a ready status');
+assert.match(moduleSource, /function kitchenView\(\)[\s\S]*?id="rest-refresh"[\s\S]*?آخر تحديث ناجح/,
+  'kitchen board must expose a manual refresh control and the last successful refresh time');
+assert.match(moduleSource, /مدة الانتظار وقت عرض الشاشة/,
+  'kitchen cards must display elapsed time from the recorded order timestamp');
+assert.match(moduleSource, /Date\.now\(\)-created\.getTime\(\)/,
+  'kitchen elapsed time must be derived from the loaded order creation timestamp');
+assert.match(moduleSource, /تعرض الشاشة الطلبات المحمّلة ضمن الفرع النشط فقط، بحد أقصى آخر 100 طلب/,
+  'kitchen board must disclose its bounded active-branch dataset');
+assert.match(moduleSource, /لا تُنشأ حالات جديدة من الواجهة/,
+  'kitchen board must not introduce unsupported status transitions');
+
+// Order search/filter must stay within the already scoped and bounded client result set.
+assert.match(moduleSource, /const filtered=state\.orders\.filter\(x=>\{/,
+  'order filters must operate on the loaded scoped order set');
+assert.match(moduleSource, /x\.id,x\.customer_name,x\.customer_phone/,
+  'order search must support order ID, customer name and phone');
+assert.match(moduleSource, /invalidDateRange=Boolean\(state\.orderFromDate&&state\.orderToDate&&state\.orderFromDate>state\.orderToDate\)/,
+  'order date filters must reject an inverted date range');
+assert.match(moduleSource, /تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له/,
+  'inverted order date ranges must display a clear Arabic validation message');
+assert.match(moduleSource, /id="rest-order-from-date"/,
+  'orders view must expose a start-date filter');
+assert.match(moduleSource, /id="rest-order-to-date"/,
+  'orders view must expose an end-date filter');
+assert.match(moduleSource, /state\.orderFromDate/,
+  'order date filtering must be based on explicit local UI state');
+assert.match(moduleSource, /id="rest-order-status-filter"/,
+  'order list must expose a status filter');
+assert.match(moduleSource, /النتائج: '\+filtered\.length\+' من '\+state\.orders\.length\+' طلب محمّل/,
+  'order list must disclose the loaded result bound');
+assert.match(moduleSource, /البحث محلي داخل آخر 100 طلب محمّل فقط/,
+  'order list must disclose that local search is not historical global search');
+assert.doesNotMatch(moduleSource, /const average=billable\.length\?[\s\S]{0,250}متوسط قيمة الطلب/,
+  'dashboard must not imply an unverified order average is a verified financial metric');
+
+// Menu search and filters remain bounded to the loaded catalog records.
+assert.match(moduleSource, /const filtered=state\.menu\.filter\(x=>\{/,
+  'menu search and filters must operate on the loaded menu set');
+assert.match(moduleSource, /id="rest-menu-search"/,
+  'menu view must expose a search field');
+assert.match(moduleSource, /id="rest-menu-category-filter"/,
+  'menu view must expose a category filter');
+assert.match(moduleSource, /id="rest-menu-availability-filter"/,
+  'menu view must expose an availability filter');
+assert.match(moduleSource, /البحث والفلاتر محلية داخل آخر 200 صنف محمّل/,
+  'menu view must disclose its loaded-record limit');
 
 console.log('Restaurant module contract PASS');
