@@ -103,6 +103,7 @@ assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'rese
 assert.match(moduleSource, /ends_at:endsAt,notes,idempotency_key:key/, 'reservation payload must carry bounded time range and idempotency key');
 assert.match(moduleSource, /start\.getTime\(\)>now\+180\*24\*60\*60\*1000/, 'reservation start must be bounded to the server-supported 180-day window');
 assert.match(moduleSource, /end\.getTime\(\)-start\.getTime\(\)>8\*60\*60\*1000/, 'reservation duration must not exceed the server-supported eight-hour window');
+assert.match(moduleSource, /async function addReservation\(\)[\s\S]*?if\(notes\.length>1000\)/, 'reservation notes must be length-bounded before the RPC');
 assert.match(moduleSource, /if\(notes\.length>1000\)/, 'reservation notes must be bounded before RPC');
 
 // Financial KPIs are intentionally omitted until an authoritative payment/settlement source is wired.
