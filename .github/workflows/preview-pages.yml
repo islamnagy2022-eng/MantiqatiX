@@ -38,8 +38,8 @@ jobs:
             esac
           done <<< "$changed"
           test -s web/preview/index.html
-          grep -Fq 'نسخة معاينة مستقلة' web/preview/index.html
-          grep -Fq 'ولا تنفذ أي تغييرات' web/preview/index.html
+          grep -Fq 'معاينة تفاعلية' web/preview/index.html
+          grep -Fq 'لا يوجد اتصال بالـ Backend' web/preview/index.html
       - name: Validate demo and administration contracts
         run: node scripts/validate-preview-navigation.mjs
       - name: Setup Node
