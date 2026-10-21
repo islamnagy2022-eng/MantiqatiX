@@ -808,3 +808,6 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 
 
 - Detail-tab retry correction (2026-10-21): retry visibility now checks for an existing retry control rather than treating any alert as a reason to suppress it. If a tab already has a specific error alert, the UI appends only the retry button, avoiding duplicate banners while retaining recovery. Static contract guard added; exact-head CI and browser E2E remain unverified.
+
+
+- MantiGO read-state follow-up (2026-10-21): captain profile lookup and the open-rides RPC now preserve query errors instead of silently mapping failures to missing profile/empty rides. Added source-contract guards. Runtime and browser verification are pending; production remains BLOCKED / NOT CERTIFIED.
