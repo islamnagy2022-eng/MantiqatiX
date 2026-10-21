@@ -178,7 +178,7 @@ assert.match(source, /catch\{if\(generation===loadGeneration&&current==='MantiGO
 assert.match(source, /if\(generation!==loadGeneration\|\|current!=='MantiGO والنقل'\|\|tab!=='open'\)return/, "late open-rides responses must not overwrite a newer navigation state");
 assert.match(source, /if\(b\.isConnected\)\{b\.disabled=false;b\.removeAttribute\('aria-busy'\)\}/, "open-rides controls must recover after success or failure");
 const rideCreate = source.slice(source.indexOf("async function mgCreateRide()"), source.indexOf("function mantigoOpenRides()"));
-assert.match(rideCreate, /btn\.dataset\.idempotencyKey\|\|\(crypto\.randomUUID/, "ride creation must reuse the same idempotency key after uncertain outcomes");
+assert.match(rideCreate, /btn\?\.dataset\.idempotencyKey\|\|\(crypto\.randomUUID/, "ride creation must reuse the same idempotency key after uncertain outcomes");
 assert.match(rideCreate, /catch\{[\s\S]*?انقطع الاتصال قبل تأكيد نشر الطلب/, "ride creation network exceptions must show safe guidance instead of leaving an unhandled rejection");
 assert.match(rideCreate, /finally\{[\s\S]*?btn\.removeAttribute\('aria-busy'\)/, "ride creation controls must recover from success, server errors, and network exceptions");
 assert.match(rideCreate, /if\(!user\?\.id\)return alert\('انتهت جلسة الدخول/, "ride creation must fail safely when the session is unavailable");
@@ -195,7 +195,7 @@ assert.match(source, /roleLabels=\{OWNER:'مالك المؤسسة'/, "membership
 assert.match(source, /new MutationObserver\(observe\)\.observe\(document\.body,\{childList:true,subtree:true\}\);observe\(\);/, "module navigation must initialize once and react to DOM mutations without periodic polling");
 assert.doesNotMatch(source, /setInterval\(observe,\s*800\)/, "module navigation must not poll the document every 800ms");
 
-console.log("Marketing lead form validation contract PASS.");
+
 
 // Fail closed when prior user-owned state cannot be verified.
 
@@ -213,3 +213,5 @@ assert.match(source, /data-op-tab=.*aria-pressed/, "module navigation buttons mu
 assert.match(source, /<th scope="col">/, "data tables must mark column headers semantically");
 assert.match(source, /class="table-wrap" role="region" aria-label="جدول البيانات" tabindex="0"/, "data tables must be keyboard-scrollable and labelled");
 assert.match(source, /role="status" aria-live="polite">جاري تحميل البيانات الفعلية/, "loading feedback must remain available to assistive technology");
+
+console.log("Marketing lead form validation contract PASS.");
