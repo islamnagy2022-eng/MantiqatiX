@@ -331,3 +331,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Updated the static validator to cover budget boundary and required-services wiring. CI result is still not confirmed on this head; no test pass is claimed.
 
 - Follow-up UX fix: map known backend errors such as `business_selection_required`, `business_not_authorized`, `unauthorized`, invalid budgets, and invalid service lists to actionable Arabic messages rather than exposing raw machine codes. The static validator now guards these mappings; exact-head CI remains unconfirmed.
+
+
+## 2026-10-21 — Marketing workspace follow-up — explicit business scope
+
+- Added a business selector to the marketing lead form when the signed-in user has multiple active business memberships; membership retrieval is bounded to 50 rows to match the existing Edge Function lookup limit.
+- The selected `business_id` is submitted to the existing `marketing-lead-create` Edge Function, which remains the authority for membership authorization. No direct table write, schema change, migration, production mutation, merge, or deployment was performed.
+- Added static source-contract assertions for business selection and payload propagation. CI workflow query has not returned an exact-head run; browser E2E and live authorization behavior remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
