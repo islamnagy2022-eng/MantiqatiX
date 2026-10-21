@@ -147,3 +147,7 @@ assert.match(source, /aria-label="أقسام الوحدة"/, "module navigation 
 assert.match(source, /aria-current="[\s\S]*?labels\[x\]\|\|'عرض البيانات'/, "module tabs must expose current navigation state and avoid raw English tab keys");
 
 assert.match(source, /async function loadInternal\(d\)[\s\S]*?function load\(d\)\{return loadInternal\(d\)\.catch\(\(\)=>\{loading=false;error='تعذر تحميل بيانات الوحدة بسبب مشكلة مؤقتة في الاتصال\. أعد المحاولة\.';render\(\)\}\)\}/, "unexpected module-load exceptions must be caught and shown as safe Arabic retry guidance");
+
+assert.match(source, /loadGeneration=0/, "module loads must use a generation counter to prevent stale asynchronous responses");
+assert.match(source, /async function loadInternal\(d,generation\)[\s\S]*?if\(generation!==loadGeneration\)return/, "module loads must discard stale results after asynchronous initialization");
+assert.match(source, /function load\(d\)\{const generation=\+\+loadGeneration;return loadInternal\(d,generation\)\.catch\(\(\)=>\{if\(generation!==loadGeneration\)return;/, "stale module-load failures must not overwrite the currently selected module");
