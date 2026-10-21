@@ -2079,3 +2079,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Exact-head GitHub Actions run `39547998299` completed successfully on commit `8f1d1bfe7fbf466d652a4241cd83f4b6d1974d9b`; production verification engine and syntax/source-contract steps succeeded.
 - [ ] Browser/mobile E2E, role/tenant authorization tests, and the MantiGO webhook partial-failure/idempotent-retry recovery remain NOT VERIFIED. The known webhook recovery issue is still a release blocker.
 - [ ] PR #314 remains open as a draft and has not been merged. Do not mark production certified or deploy from this result alone.
+
+## UI continuation — fail closed on unverified user history — 2026-10-21
+- [x] Job application form is withheld when prior application records cannot be loaded, preventing a failed read from making the user appear not to have applied.
+- [x] Education request history now explicitly reports a read failure instead of showing “no requests”.
+- [x] Medical appointments tab explicitly reports a read failure instead of rendering a false empty table.
+- [x] Added three source-contract assertions for these user-history safety boundaries.
+- [x] Exact-head GitHub Actions run `39548130257` passed on code commit `0850017fab111e44cb8c4d45cf59a7bb43be5b0e`; production verification and syntax/source-contract checks succeeded.
+- [ ] Browser/mobile E2E, backend authorization and duplicate-submission checks remain NOT VERIFIED. MantiGO webhook partial-failure recovery remains a critical payment release blocker.
