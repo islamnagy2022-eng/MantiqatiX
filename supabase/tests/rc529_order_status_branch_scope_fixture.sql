@@ -11,10 +11,14 @@ returns uuid language sql stable
 as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 create or replace function auth.jwt()
 returns jsonb language sql stable
-as $$ select jsonb_build_object('sub',nullif(current_setting('request.jwt.claim.sub',true),''),'is_anonymous',false) $$;
-grant usage on schema auth to authenticated;
-grant execute on function auth.uid() to authenticated;
-grant execute on function auth.jwt() to authenticated;
+as $ select jsonb_build_object('sub',nullif(current_setting('request.jwt.claim.sub',true),''),'is_anonymous',false) $;
+create or replace function auth.role()
+returns text language sql stable
+as $ select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),current_user) $;
+grant usage on schema auth to authenticated, service_role;
+grant execute on function auth.uid() to authenticated, service_role;
+grant execute on function auth.jwt() to authenticated, service_role;
+grant execute on function auth.role() to authenticated, service_role;
 
 create table public.user_memberships(
  id text primary key,user_id uuid not null,tenant_id varchar not null,business_id uuid not null,
