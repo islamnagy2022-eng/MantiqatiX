@@ -51,18 +51,32 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const branchId = body.branchId ? String(body.branchId) : null;
+  const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,status,branch_id,permissions")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .eq("status", "ACTIVE")
-    .limit(1)
-    .maybeSingle();
+    .limit(501);
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+  if ((targetMemberships ?? []).length > 500) return json({ error: "MEMBERSHIP_SCOPE_LIMIT" }, 409);
 
-  if (!targetMembership) {
+  const businessWideRoles = new Set(["OWNER", "ADMIN", "BUSINESS_OWNER", "PROVIDER_OWNER", "PROVIDER_ADMIN"]);
+  const hasScopedMembership = (targetMemberships ?? []).some((membership: any) => {
+    const role = String(membership.role ?? "").toUpperCase();
+    const explicitPlatformControl = role === "SUPER_ADMIN"
+      && membership.permissions?.scope === "PLATFORM"
+      && membership.permissions?.full_control === true;
+    if (branchId) {
+      return String(membership.branch_id ?? "") === branchId
+        || (!membership.branch_id && (businessWideRoles.has(role) || explicitPlatformControl));
+    }
+    return !membership.branch_id && (businessWideRoles.has(role) || explicitPlatformControl);
+  });
+
+  if (!hasScopedMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
       .from("user_memberships")
       .select("id,role,status")
@@ -109,7 +123,6 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
