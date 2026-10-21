@@ -33,13 +33,13 @@ function badge(kind){
 }
 function card(title,idx,m){
  const r=runtime(m),kind=!r.tables.length?'NOT_VERIFIED':r.readable===r.tables.length?'LIVE':'PARTIAL';
- return '<article class="mnty-blueprint-card" data-module-card="'+idx+'"><div class="mnty-blueprint-icon">'+icons[idx%icons.length]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(title)+'</h3>'+badge(kind)+'</div><p>'+esc(['مساحة تشغيل أساسية مع عرض الحالة الحالية.','استعراض البيانات المتاحة ضمن نطاق الحساب والصلاحيات.','العمليات الحساسة تمر عبر المسار الخادمي المعتمد.','متابعة الحالات والطلبات دون إنشاء بيانات تجريبية.','المؤشرات تعتمد على البيانات التشغيلية المتاحة فقط.','الإعدادات والصلاحيات تخضع لـRBAC وRLS.'][idx]||'مساحة تشغيلية للموديول.')+'</p><div class="mnty-blueprint-source"><span>'+r.tables.length+' مصادر</span><span>'+r.readable+' مقروءة</span></div><button type="button" class="linkbtn mnty-blueprint-btn" data-blueprint="'+esc(title)+'">فتح القسم ←</button></div></article>';
+ return '<article class="mnty-blueprint-card" data-module-card="'+idx+'"><div class="mnty-blueprint-icon">'+icons[idx%icons.length]+'</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(title)+'</h3>'+badge(kind)+'</div><p>'+esc(['مساحة تشغيل أساسية مع عرض الحالة الحالية.','استعراض البيانات المتاحة ضمن نطاق الحساب والصلاحيات.','العمليات الحساسة تمر عبر المسار الخادمي المعتمد.','متابعة الحالات والطلبات دون إنشاء بيانات تجريبية.','المؤشرات تعتمد على البيانات التشغيلية المتاحة فقط.','الإعدادات والصلاحيات تخضع لـRBAC وRLS.'][idx]||'مساحة تشغيلية للموديول.')+'</p><div class="mnty-blueprint-source"><span>'+r.tables.length+' مصادر</span><span>'+r.readable+' مقروءة</span></div><button type="button" class="linkbtn mnty-blueprint-btn" data-blueprint="'+esc(title)+'" aria-expanded="false">حالة القسم</button></div></article>';
 }
 function panel(name,m){
  const list=plans[m?.key]||['نظرة عامة','البيانات','العمليات','الطلبات','التقارير','الإعدادات'];
  const r=runtime(m),kind=!r.tables.length?'NOT_VERIFIED':r.readable===r.tables.length?'LIVE':'PARTIAL';
  const rows=r.tables.map(t=>'<tr><td>'+esc(t.replace(/_/g,' '))+'</td><td>'+esc(r.counts[t]??'—')+'</td><td>'+badge(r.counts[t]==null?'NOT_VERIFIED':'LIVE')+'</td></tr>').join('');
- return '<section class="mnty-product-shell" data-module-blueprint="'+esc(m?.key||'')+'"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCTION MODULE / '+esc(m?.key||'MODULE')+'</span><h2>مساحة العمل — '+esc(name)+'</h2><p>هذه الطبقة تعرض الحالة التشغيلية الفعلية للموديول ولا تعتبر وجود الواجهة دليلًا على اكتمال الخدمة.</p></div><div class="mnty-product-meta">'+badge(kind)+'<small>'+r.readable+' / '+r.tables.length+' مصادر مقروءة</small></div></div><div class="mnty-module-tabs" role="tablist">'+list.map((x,i)=>'<button type="button" class="'+(i===0?'active':'')+'" data-blueprint-tab="'+i+'" role="tab" aria-selected="'+(i===0?'true':'false')+'">'+esc(x)+'</button>').join('')+'</div><div class="mnty-blueprint-grid">'+list.map((x,i)=>card(x,i,m)).join('')+'</div><section class="mnty-runtime-panel"><div class="section-head"><div><span class="eyebrow">RUNTIME SOURCES</span><h3>مصادر البيانات الحالية</h3></div></div><div class="table-wrap"><table><thead><tr><th>المصدر</th><th>السجلات</th><th>الحالة</th></tr></thead><tbody>'+rows+'</tbody></table></div></section><div class="mnty-future-panel"><div><span class="eyebrow">SECURITY BOUNDARY</span><h3>الكتابات الحساسة عبر الخادم</h3><p>الواجهة لا تمنح صلاحيات إضافية ولا تنفذ عمليات حساسة مباشرة؛ المسار القائم هو مصدر الحقيقة.</p></div><div class="mnty-future-stats"><div><b>RLS</b><span>ENFORCED</span></div><div><b>RBAC</b><span>ENFORCED</span></div><div><b>WRITE</b><span>SERVER</span></div></div></div></section>';
+ return '<section class="mnty-product-shell" data-module-blueprint="'+esc(m?.key||'')+'"><div class="mnty-product-head"><div><span class="eyebrow">PRODUCTION MODULE / '+esc(m?.key||'MODULE')+'</span><h2>مساحة العمل — '+esc(name)+'</h2><p>هذه الطبقة تعرض الحالة التشغيلية الفعلية للموديول ولا تعتبر وجود الواجهة دليلًا على اكتمال الخدمة.</p></div><div class="mnty-product-meta">'+badge(kind)+'<small>'+r.readable+' / '+r.tables.length+' مصادر مقروءة</small></div></div><div class="mnty-module-tabs" role="tablist">'+list.map((x,i)=>'<button type="button" class="'+(i===0?'active':'')+'" data-blueprint-tab="'+i+'" role="tab" aria-selected="'+(i===0?'true':'false')+'">'+esc(x)+'</button>').join('')+'</div><div class="mnty-blueprint-grid">'+list.map((x,i)=>card(x,i,m)).join('')+'</div><section class="mnty-runtime-panel"><div class="section-head"><div><span class="eyebrow">RUNTIME SOURCES</span><h3>مصادر البيانات الحالية</h3></div></div><div class="table-wrap"><table><thead><tr><th>المصدر</th><th>السجلات</th><th>الحالة</th></tr></thead><tbody>'+rows+'</tbody></table></div></section><div class="mnty-future-panel"><div><span class="eyebrow">SECURITY VERIFICATION</span><h3>بوابات الأمان المطلوبة</h3><p>وجود هذه الشاشة لا يثبت أن سياسات RLS أو صلاحيات RBAC أو مسارات الكتابة قد تم اختبارها لهذا الموديول. يجب التحقق من عقود الخادم واختبارات الأدوار قبل اعتماد أي عملية.</p></div><div class="mnty-future-stats"><div><b>RLS</b><span>NOT VERIFIED</span></div><div><b>RBAC</b><span>NOT VERIFIED</span></div><div><b>WRITE</b><span>CONTRACT CHECK</span></div></div></div></section>';
 }
 window.MNTYModuleBlueprint=(name,m)=>panel(name,m);
 window.MNTYBindModuleBlueprint=()=>{
@@ -47,7 +47,27 @@ window.MNTYBindModuleBlueprint=()=>{
   const tabs=[...root.querySelectorAll('[data-blueprint-tab]')],cards=[...root.querySelectorAll('[data-module-card]')];
   tabs.forEach(btn=>btn.onclick=()=>{tabs.forEach(x=>{x.classList.remove('active');x.setAttribute('aria-selected','false')});btn.classList.add('active');btn.setAttribute('aria-selected','true');cards.forEach((c,i)=>c.hidden=i!==Number(btn.dataset.blueprintTab))});
   cards.forEach((c,i)=>c.hidden=i!==0);
-  root.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=()=>window.showToast?.('تم فتح قسم «'+btn.dataset.blueprint+'».','success'));
+  root.querySelectorAll('.mnty-blueprint-btn').forEach(btn=>btn.onclick=()=>{
+   const card=btn.closest('[data-module-card]');
+   if(!card)return;
+   const current=card.querySelector('[data-blueprint-action-status]');
+   if(current){
+    current.remove();
+    btn.textContent='حالة القسم';
+    btn.setAttribute('aria-expanded','false');
+    return;
+   }
+   const status=document.createElement('p');
+   status.dataset.blueprintActionStatus='true';
+   status.className='mnty-blueprint-action-status';
+   status.setAttribute('role','status');
+   status.setAttribute('aria-live','polite');
+   status.style.cssText='margin:12px 0 0;padding:12px;border:1px solid #f0c36d;border-radius:10px;background:#fff9e8;color:#654d16;font-size:13px;line-height:1.7';
+   status.textContent='هذا القسم معروض كخريطة أولية فقط ولم يتم ربطه بمسار تشغيل مستقل بعد. لم يتم تنفيذ أي إجراء أو تغيير بيانات.';
+   card.appendChild(status);
+   btn.textContent='إخفاء الحالة';
+   btn.setAttribute('aria-expanded','true');
+  });
  });
 };
 })();

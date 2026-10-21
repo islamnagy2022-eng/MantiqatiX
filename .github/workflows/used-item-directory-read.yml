@@ -1,0 +1,52 @@
+name: Used Item Directory Read Boundary
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql"
+      - "supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql"
+      - "supabase/tests/used_item_directory_read_*.sql"
+      - ".github/workflows/used-item-directory-read.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql"
+      - "supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql"
+      - "supabase/tests/used_item_directory_read_*.sql"
+      - ".github/workflows/used-item-directory-read.yml"
+permissions:
+  contents: read
+jobs:
+  used-item-directory-read-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: used_item_directory_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d used_item_directory_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run used-item directory read integration tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/used_item_directory_read_fixture.sql "$pg_container:/tmp/used_item_fixture.sql"
+          docker cp supabase/migrations/20261020231500_used_item_ads_minimal_directory_read.sql "$pg_container:/tmp/used_item_migration.sql"
+          docker cp supabase/migrations/20261020232000_used_item_ads_directory_backend_v1.sql "$pg_container:/tmp/used_item_rpc_migration.sql"
+          docker cp supabase/tests/used_item_directory_read_integration.sql "$pg_container:/tmp/used_item_test.sql"
+          docker exec "$pg_container" psql -U postgres -d used_item_directory_test -v ON_ERROR_STOP=1 -f /tmp/used_item_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d used_item_directory_test -v ON_ERROR_STOP=1 -f /tmp/used_item_migration.sql
+          docker exec "$pg_container" psql -U postgres -d used_item_directory_test -v ON_ERROR_STOP=1 -f /tmp/used_item_rpc_migration.sql
+          docker exec "$pg_container" psql -U postgres -d used_item_directory_test -v ON_ERROR_STOP=1 -f /tmp/used_item_test.sql

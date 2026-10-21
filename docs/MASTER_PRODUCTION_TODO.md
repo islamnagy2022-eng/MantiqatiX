@@ -12,6 +12,64 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
+# UI-FIRST PRODUCT COMPLETION — execution order (2026-10-20)
+
+**Owner decision / scope:** Before expanding subscription plans, subscription billing/accounts, or the full accounting UI, complete and verify the user-facing pages and module workspaces first. This is a product sequencing decision; it does **not** waive mandatory authentication, authorization, tenant-isolation, cash-order integrity, security, migration, backup/restore, or release gates.
+
+## Product implementation order (do not mark complete without evidence)
+
+### UI-0 — inventory and shared shell
+- [ ] Produce a repository-grounded inventory of every public route, module, page, modal/form, navigation entry, role-specific dashboard, empty/error/loading state, and current API/RPC dependency.
+- [ ] Establish a consistent responsive web/PWA shell, module registry/navigation, breadcrumbs/back behavior, accessible controls, shared search/filter/table/form patterns, and reliable loading/empty/error states. Reuse current architecture and design tokens; do not rebuild working modules from scratch.
+- [ ] Every visible action must either work end-to-end, be explicitly disabled with a reason, or show a truthful rollout/dependency notice. No dead buttons or fake success.
+
+### UI-1 — identity, sign-in, and onboarding
+- [ ] Finish sign-in/sign-up/OTP verification, resend/expiry, logout, session restore/refresh, password/recovery paths where supported, validation, retry/error messages, and mobile layouts.
+- [ ] Complete customer/provider/business-owner/staff/admin onboarding and active membership/business selection without leaking data between identities or tenants.
+- [ ] Add browser-level tests for unauthenticated, expired-session, wrong-role, membership-switch, and logout behavior. Do not alter production Auth settings from a docs/UI-only branch.
+
+### UI-2 — global search and discovery
+- [ ] Map existing search APIs/RPCs and supported entities before changing contracts.
+- [ ] Complete search input, submit/clear, debouncing where appropriate, loading/empty/error states, filters, result cards, pagination/incremental loading, keyboard/mobile accessibility, and route/deep-link behavior.
+- [ ] Preserve existing backend authority, visibility rules, location minimization, and tenant scoping. Never fake results or expose private records in search.
+
+### UI-3 — sponsored placement surfaces (not monetization)
+- [ ] Complete public sponsored/ad display slots, clearly marked as sponsored, with responsive layouts, safe fallback when no eligible ads are returned, and click/impression behavior only where an existing verified contract supports it.
+- [ ] Complete the UI for internal campaign/creative/placement management only where current backend contracts exist; show a clear unavailable/deferred state where the server contract is not deployed or verified.
+- [ ] **Do not build or enable pre-launch ad billing, budgets charged to accounts, subscription monetization, or paid campaign execution.** Those remain deferred. Do not contact external ad networks or claim campaigns were published.
+
+### UI-4 — all module pages and complete navigation
+- [ ] Create an explicit module-by-module matrix covering at least: platform administration; customer discovery and provider profiles/services; orders and order lifecycle; CRM/leads/support; marketing workspace and non-SMM campaign planning; sponsored placements; restaurants; ERP/inventory/purchasing; medical; pharmacies; education; jobs; MantiGO; reverse bidding; digital pages; provider onboarding; and any additional module registered in the current repository.
+- [ ] For each module, complete list/detail/create/edit/view flows, forms, validation, filters/search, pagination, status/empty/error/loading states, navigation, responsive behavior, and role-specific action visibility.
+- [ ] Keep accounting/ledger/settlement UI and subscription plan/billing/account-management expansion deferred unless a minimal read-only/status view is required for an existing launch flow. Preserve current backend records and APIs; do not delete or rewrite contracts.
+
+### UI-5 — activity controls, work roles, and authorization UX
+- [ ] Define a permission matrix from actual existing roles/permission contracts, not invented client-side rules.
+- [ ] Provide authorized controls to create/manage activities and configure who can view, create, edit, assign, approve, cancel, or close them, as supported by the business model.
+- [ ] Complete role/job-function management UX: assign/revoke role or responsibility, membership/business scope, active/inactive state, confirmation, validation, audit visibility, and denial states.
+- [ ] Enforce every sensitive action on the server/RPC/Edge Function; hiding a button is not authorization. Deny by default and preserve tenant/business boundaries.
+- [ ] Test positive and negative cases for CUSTOMER, SERVICE_PROVIDER, STAFF, MANAGER, BUSINESS_OWNER/OWNER, and platform ADMIN/SUPER_ADMIN where those roles exist. Never grant a tenant user global-admin powers.
+
+### UI-6 — cross-module integration and quality
+- [ ] Test links across module cards, detail pages, create/edit forms, global search, dashboards, notifications, and role-specific navigation.
+- [ ] Add/extend deterministic source-contract tests and browser/E2E coverage for critical journeys; run syntax, accessibility/responsive checks, module boundaries, and applicable isolated database tests.
+- [ ] Verify exact-head CI and deployed Pages behavior separately. A passing PR validation is not proof of production deployment.
+- [ ] Only after UI/module journeys are usable and verified, revisit subscription packages, subscription billing/accounts, and expanded accounting UI as a separate post-launch phase.
+
+## Deferred before launch
+- [ ] Subscription package catalog, paid subscription activation/renewal, plan-based quotas, subscription invoices/billing/account UI.
+- [ ] Expanded accounting UI and any new accounting/subscription data model not required by an already-approved launch path.
+- [ ] Paid sponsored campaign execution, ad-budget charging, SMM provider execution, electronic payments/Paymob/cards/wallets/transfers.
+- [ ] Preserve existing code/data/contracts and fail closed for deferred actions. Deferral does not mean deleting the module or weakening backend security.
+
+## Execution discipline
+1. Inspect current main, open PRs, TODO, continuity and session log before each batch. Do not overwrite or bypass in-progress work.
+2. Implement in small independently reviewable slices; prefer frontend pages/contracts first, then connect only to existing verified backend endpoints.
+3. Never create parallel business truth, duplicate tables/RPCs, client-authoritative prices/statuses, fake data presented as real, or direct browser writes to protected tables.
+4. For each slice: impact analysis → implementation → tests → security/role review → exact-head CI → update TODO + session log + continuity.
+5. Do not merge, deploy, run production mutations, apply migrations, change Auth settings, or trigger real payments/external ad spend without explicit authorization and verified release gates.
+6. Keep the global release state **BLOCKED / NOT CERTIFIED** until all existing mandatory gates have evidence. DONE ≠ VERIFIED.
+
 # P0 — حواجز الإطلاق
 
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
@@ -1633,3 +1691,250 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] PR #286 contains RC431 hardening and disposable PostgreSQL tests for these negative cases; comment added with exact live/source differences.
 - [ ] Do not apply RC431 alone out of order. Complete the reviewed RC425–RC441 chronological chain, rehearsal, backup/restore, and payment sandbox acceptance before any production migration.
 - Payment/webhook integrity remains **NOT VERIFIED**; production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — UI-first module completion scope
+
+- [x] Owner sequencing decision recorded: finish module interfaces/pages, login/onboarding, global search/discovery, sponsored display surfaces, activity management controls, and job-function/role UX before subscription packages, subscription billing/accounts, and expanded accounting UI.
+- [x] Added the detailed execution contract at [docs/MASTER_UI_FIRST_CONTINUATION_PROMPT.md](MASTER_UI_FIRST_CONTINUATION_PROMPT.md).
+- [x] Created the initial source-grounded route/module inventory at [docs/UI_MODULE_ROUTE_INVENTORY.md](UI_MODULE_ROUTE_INVENTORY.md); the inventory explicitly distinguishes confirmed source entrypoints from E2E-unverified status.
+- [x] Identified a concrete false-success UI behavior in `web/module-blueprints.js`: the “فتح القسم” button only emits a success toast and does not open a real workflow. Next code slice should fix it after confirming consumers/routes and adding a focused test.
+- [ ] **IN PROGRESS:** finish exhaustive route/action mapping inside `web/app.js` and verify every module-blueprint consumer; the initial inventory is not yet exhaustive.
+- [x] Implemented the first focused UI integrity fix in `web/module-blueprints.js`: the former false-success “opened section” toast is replaced by an accessible status panel that truthfully says the section has no independent workflow yet and no data was changed.
+- [x] Added `scripts/validate-module-blueprint-actions.mjs` and wired it into `.github/workflows/module-professionalization.yml`; execution result is pending CI on this branch.
+- [ ] **NEXT IMPLEMENTATION:** map activity/role-management APIs and permissions; continue the route/action matrix and implement the next UI journey in a small tested slice.
+- [ ] Do not treat this documentation update as completion of module UIs or authentication/search E2E. Those remain open until code and tests prove them.
+- [ ] Sponsored display/placement UX is in scope; ad billing, paid campaign execution, SMM execution and external network publication remain deferred. Subscription package/billing/accounts and expanded accounting UI remain deferred.
+- [ ] This change is staged on branch `feat/ui-first-module-completion-20261020`; no application code, SQL migration, production setting, payment, merge, or deployment changed in this documentation batch.
+- Global release remains **BLOCKED / NOT CERTIFIED**; existing security, migration provenance, tenant isolation, finance/payment integrity, backup/restore and production E2E gates remain mandatory.
+
+- [ ] Initial inventory is source-grounded but not a complete browser/route verification; do not mark module UI completion VERIFIED until route/action tests and authenticated E2E pass.
+
+- [ ] The blueprint-action source contract has been added to CI but is NOT VERIFIED until the exact branch run completes successfully. No browser E2E was performed.
+
+- [x] Opened Draft PR [#309](https://github.com/islamnagy2022-eng/MantiqatiX/pull/309) for the UI-first plan, inventory, and first UI integrity fix. The initial workflow edit caused failures on earlier intermediate heads; corrected the workflow to define the validator as its own step. Only the latest exact-head CI result can verify the corrected workflow.
+
+
+## 2026-10-20 — first-pass UI inventory from source inspection
+
+- [x] Added [docs/UI_MODULE_INVENTORY.md](UI_MODULE_INVENTORY.md), covering the 24 top-level workspace entries, registered domain modules, web entrypoints, and route/page audit matrix.
+- [x] Confirmed source-level gaps to address before claiming completeness: auth UI currently presents Google OAuth; global search lists 10 source groups and collapses individual query errors into an empty result; generic module blueprint buttons display a success toast without opening a real section; membership switching is not a full job-function assignment UI; public add-activity request is not the full activity lifecycle.
+- [ ] NEXT: fix the generic blueprint false-success action and add tests; then improve global-search partial-failure states and continue module-by-module routes/actions mapping.
+- [ ] Browser E2E, server permission contracts, production deployment parity and all release gates remain NOT VERIFIED. No app code changed in this inventory-only batch.
+
+
+## 2026-10-20 — first UI implementation slice: honest module state + search failure visibility
+
+- [x] Generic module blueprint action in the working branch now exposes an accessible status panel stating that the selected section is only a blueprint and is not wired to a standalone workflow; it explicitly states that no action/data mutation occurred. The action no longer reports a fake successful navigation.
+- [x] Added `scripts/validate-module-blueprint-actions.mjs` and wired it into `.github/workflows/pages.yml`.
+- [x] Updated global search to retain per-source failures as metadata, distinguish zero results from an all-source failure, and show an accessible partial-results warning when some sources fail. The existing role-based source filter is preserved.
+- [x] Added `scripts/validate-global-search-failure-state.mjs` and wired it into the Pages validation workflow.
+- [ ] CI for the exact working branch must pass before marking these changes verified. No browser E2E was run in this batch; the tests are source-contract checks, not proof of live search/RLS behavior.
+- [ ] Next: continue module-by-module route/action inventory, then replace blueprint-only panels with real views backed by verified contracts. Build activity and job-function management only after mapping existing server RPC/Edge Function authorization and audit contracts.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — UI batch verification status
+
+- Source-level changes are committed on `feat/ui-first-module-completion-20261020`: honest blueprint status and global search partial-source-failure messaging, plus CI contract validators.
+- **Verification still open:** no browser/E2E run has been executed from this environment. A branch push alone does not prove the Pages workflow ran or passed. Keep release blocked until exact-head CI and deployed smoke tests are checked.
+- Next implementation batch: inspect and test current branch changes in a real CI environment; continue route-to-backend contract mapping before adding activity CRUD or role/job-function write controls.
+
+
+## 2026-10-20 — Search validator correction
+
+- [x] Corrected the global-search source-contract assertion to match the actual rendered `aria-live="polite"` status markup (the earlier assertion incorrectly expected a JavaScript `setAttribute` call).
+- [x] Re-evaluated all seven validator regex contracts against the current branch's `web/app.js` source; all seven matched. This is a targeted source-level check only, not execution of the Node validator or CI.
+- [ ] Exact-head Pages CI and browser E2E remain unverified. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Search empty-state distinction
+
+- [x] Fixed an additional UX ambiguity: if role filtering leaves zero permitted global-search sources, the UI now says no search sources are available for the current account/role instead of claiming there were zero matching records.
+- [x] Added a source-contract assertion for this state and checked seven source patterns against the fetched `web/app.js` content; all seven matched. This was not a Node execution or CI run.
+- [ ] Exact-head Pages CI, authenticated browser E2E, and runtime permission behavior remain unverified. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Module security status honesty
+
+- [x] Removed unsupported UI claims that RLS/RBAC were “ENFORCED” on generic module blueprint screens. The panel now explicitly says those controls and write contracts are not proven by the presence of a screen and require module-specific backend-contract and role tests.
+- [x] Extended the blueprint source-contract validator to reject unverified “ENFORCED” badges and require explicit verification caveats.
+- [x] Checked eight targeted source patterns against the current module blueprint; all eight matched the intended contract. This was source inspection, not execution of the validator or CI.
+- [ ] Exact-head CI, authenticated browser tests, and live RLS behavior remain unverified. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Explicit module page completion TODO matrix
+
+Status rule: **0 modules are E2E-certified complete by this UI-first branch**. This is not a claim that no working code exists; it means complete page journeys, role/tenant authorization, and exact-head CI have not been proven together here.
+
+### Page families — current status and remaining work
+
+- [x] **Module blueprint integrity:** generic section action now explains that no standalone workflow is wired and that no data changed.
+- [x] **Security-status honesty:** generic blueprints no longer claim RLS/RBAC enforcement without module-specific evidence.
+- [x] **Global-search state distinction:** source now distinguishes unavailable permitted sources and source failures from genuine zero results (source-level checks only; runtime still unverified).
+- [ ] **Shared shell/navigation:** enumerate every actual route, modal, button handler, role dashboard, back/deep-link behavior and dependency; test keyboard/mobile.
+- [ ] **Authentication/session:** verify OAuth/OTP contract, callback, expired session, restore/refresh, logout and membership switching.
+- [ ] **Public discovery/provider profiles:** verify search → result → profile/service → contact/request, privacy, loading/error/empty and responsive behavior.
+- [ ] **Fashion:** product list/detail, orders, tailoring; verify tenant/business scope and owner boundaries.
+- [ ] **Grocery/supermarket:** catalog/pricing/stock/orders; verify branch stock and order state integrity.
+- [ ] **Restaurants/kitchens:** menu/modifiers/tables/orders/kitchen/inventory full lifecycle and role-specific controls.
+- [ ] **Medical/clinics/pharmacy:** provider/patient views, appointment state machine, duplicate booking and private-data boundaries; discover pharmacy-specific route/contract.
+- [ ] **Maintenance/professional services/reverse bidding:** request, bid, selection, assignment, completion/cancel, duplicate/retry and privacy.
+- [ ] **MantiGO/trips:** ride request, captain offers, selection, trip states, rating and location privacy.
+- [ ] **Jobs:** employer job management, candidate applications, duplicate prevention and applicant privacy.
+- [ ] **Education:** schools/teachers, requests, requester ownership, consent, validation and privacy.
+- [ ] **Used items:** listing, seller-owned update/sold action, inquiry/offer lifecycle and concurrent updates.
+- [ ] **Marketing/CRM:** leads, projects, participants, planning views, assignment/status changes and error-aware source loading.
+- [ ] **Legal:** private documents, requirements, agreements and authorized lifecycle transitions.
+- [ ] **Companies/factories:** actual routes and supplier/request/inventory workflows with scoped authorization.
+- [ ] **ERP/purchasing/inventory:** confirm deployed schema/migrations; server-only purchase order/receipt/transfer writes; stock reconciliation and negative tests.
+- [ ] **Digital pages/editor:** safe public slug, unpublished state, owner-only preview/save/publish/unpublish.
+- [ ] **Provider onboarding/activity management:** create/edit/approve/suspend/close via verified existing Edge Function/RPC.
+- [ ] **Platform admin/users/roles:** scoped role assignment/revocation, confirmations, audit trail, denial states and negative tenant-user tests.
+- [ ] **Sponsored placements:** clearly labeled display and verified click/impression only; paid billing and external spend remain deferred.
+- [ ] **Matrimony:** blueprint only; privacy and consent-first matching/contact pages not yet verified.
+- [ ] **Accounting/commissions/subscriptions:** expanded UI remains deferred; preserve mandatory cash/order/ledger security gates.
+- [ ] **SMM paid execution/electronic payments:** deferred; keep fail-closed and do not imply real provider execution.
+- [ ] **Cross-module E2E:** connect dashboard/search/cards/notifications/deep links and test key customer/provider/admin journeys.
+- [ ] **Exact-head verification:** run validators, CI, responsive/accessibility checks and authenticated browser E2E; record links/results. No green release until all required gates pass.
+
+### Current branch facts
+
+- [ ] Current PR #309 remains draft/open and unmerged; do not treat source commits as release approval.
+- [ ] Exact-head workflow runs were not returned by the PR-run lookup; this is not proof that no workflow ran, only that this lookup did not provide evidence.
+- [ ] No browser E2E or live RLS test has been confirmed in this session.
+- [ ] Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-20 — Sector workspace data-error integrity
+
+- [x] Updated `web/sector-modules.js`: failed table reads are no longer silently converted to empty arrays; the UI now reports which sources failed, shows an accessible alert, and offers an explicit retry.
+- [x] Removed a duplicate `applyToJob(jobId)` declaration that was shadowed by the later overload in the same source file.
+- [x] Extended the existing `scripts/validate-sector-rendering.mjs` contract to guard query-error/empty-state distinction, accessible retry, and exactly one job-application handler. The Pages workflow already invokes this validator.
+- [ ] Validator execution, Node syntax check, exact-head CI, and authenticated browser E2E have not been confirmed in this session. Keep release **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — job application authorization boundary — 2026-10-20
+- [x] Replaced the sector workspace's direct `job_applications` table INSERT with the existing `submit_job_application_backend` RPC, which binds `p_user_id` to `auth.uid()`, requires phone/qualifications/CV summary, validates that the job exists, and returns `ALREADY_APPLIED` for a duplicate.
+- [x] UI now validates all required application fields before calling the RPC and handles the duplicate status without claiming a new submission.
+- [x] Added static guards in `scripts/validate-sector-rendering.mjs` for RPC use, required-field validation, and duplicate response handling.
+- [ ] Exact-head CI/syntax validation pending. This is a source-level correction, not browser E2E or production certification.
+- No database migration, production data mutation, deployment, or merge was performed. Final Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — seller-owned sold listing recovery — 2026-10-20
+- [x] Fixed the used-items query so active listings remain visible and seller-owned sold listings can still be found and reactivated: `is_sold=false OR owner_user_id=current authenticated user`. Existing active-membership tenant/business filters and row-level security remain in place.
+- [x] Added a source-contract assertion so the seller-owned sold-listing branch cannot silently disappear.
+- [ ] Exact-head CI and authenticated browser E2E remain pending. This is not proof that production RLS permits the intended update or that the deployed UI is current.
+- No database or production mutation, deployment, or merge occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — education request backend authority restored in sector workspace — 2026-10-20
+- [x] Replaced the sector workspace's direct `education_requests` INSERT with the existing `create_education_request_backend` RPC. The migration contract binds requester identity to `auth.uid()`, rejects anonymous sessions, validates target type/availability, and is executable by authenticated users while direct authenticated INSERT is revoked.
+- [x] Added subject-length validation and a fail-closed response when the RPC does not return a row.
+- [x] Extended sector source-contract validation to reject a direct education-request INSERT and require the backend RPC.
+- [ ] Exact-head CI and browser E2E pending. No production database change or deployment was performed; the fix restores the client to an existing backend contract.
+- Final Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+- [x] Follow-up hardening: client validates student name length (2–200 characters) before calling the education backend; the validator guards this requirement. Source commit `82fafbe1ec770c60e6d5ad49e316b090fb34bbc5`; validator commit `c6eaa0ac4a2c04b9ae456971f381ce2f2ff98b71`.
+
+
+## RC — used-items ownership-safe controls — 2026-10-20
+- [x] Status controls now render only for listings owned by the signed-in user; public listings no longer display a misleading seller-only action.
+- [x] Status updates request the updated row and report a clear failure if no row matched the owner-scoped update, rather than silently appearing successful.
+- [x] Added static assertions for owner-only controls and zero-row failure handling. Source commit `edeee30e5546956020f7ccbc999c934dea2a66a3`; validator commit `66a9bfa98276ebc78847847e5b29412b3627a2f1`.
+- [ ] CI and browser/RLS E2E pending. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — fashion product nullable branch scope — 2026-10-20
+- [x] Product creation now sends `branch_id: null` when the active membership has no branch, rather than an empty string that may fail UUID validation or misrepresent an absent scope.
+- [x] Added a static assertion for the null fallback. Source commit `680d433e682881d0f233a4ac4e46d95b23ebee4a`; validator commit `6423df32f69ed4ec24eaaaf0c556771e6ff95ab7`.
+- [ ] Exact-head CI/browser validation pending; no production changes or deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — fail-closed product/used-item writes after live privilege check — 2026-10-20
+- [x] Read-only Supabase privilege check against project `moyhiluyhjsujhwlyeuu` confirmed `authenticated` has SELECT on `fashion_products`, but no INSERT/UPDATE/DELETE; `used_item_ads` returned no authenticated SELECT/INSERT/UPDATE/DELETE table privileges. RLS policies alone do not grant SQL table privileges.
+- [x] Removed direct client write functions for `fashion_products` and `used_item_ads`; their forms now disclose that the operation is unavailable until a verified backend/write-access contract exists. No grants or production schema were changed.
+- [x] Updated source validator to fail if direct mutations return or if the truthful unavailable states are removed.
+- [ ] Used-item read UI remains blocked by missing authenticated SELECT privilege. Resolve only with a reviewed migration/backend contract and tests; do not grant broad table privileges ad hoc.
+- [ ] Exact-head CI and browser verification pending. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — exact-head CI evidence and sector write-boundary guard — 2026-10-20
+- [x] On source head `5098c0617477fbf494c454233dd56c7bf27ca6d7`, GitHub Actions reported success for web validation/syntax, module professionalization validation, backend-only module boundary, MantiGO privacy integration, and marketing workspace contract.
+- [x] The web validation run's `validate` job succeeded; its `deploy` job was **skipped**, so this run does not establish a deployment.
+- [x] Added a broader source-contract assertion that forbids direct client table INSERT/UPDATE/UPSERT/DELETE calls anywhere in `web/sector-modules.js`, and checks the three intended backend RPCs. Commits: `dddf3bba6dcf06174596f4ce6b11749ef0a3ef64`, regex correction `2731342b75ab0b889b54d679ee520bd12f589940`.
+- [ ] The new assertion and subsequent documentation commits still require their own exact-head CI. No authenticated browser E2E was observed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — safe used-item directory field projection — 2026-10-20
+- [x] The sector loader now explicitly selects the used-item directory fields and omits `seller_phone`; it no longer requests `SELECT *` for this table. This reduces accidental disclosure if narrow read privileges are later restored.
+- [x] Added a regression assertion that guards the explicit projection and verifies the sensitive phone column is absent from the sector source.
+- Source commit: `ec6d9dbbc1170d0c7414353f19b0f301c64c9208`; validator commits: `0ea0564050305059324ea3d0daa97dbcdd182fcf`, `7026d7f75c59899244f57b1dde84c77e6dcb9e78`.
+- [ ] This does not restore missing database SELECT privileges; the module must continue to fail closed until a reviewed migration establishes the intended narrow read contract. Exact-head CI pending.
+
+
+- [x] Tightened the used-item projection further to only fields required for current rendering, query filters, and ordering; unused `description`, `image_url`, and `fee_paid` are excluded too. Source commit `66fefa4ce874c1eb62962c8f476a3015378fa42e`; validator commit `a3d9744dc84b82df633e1035cc8a42d1dfccdeb1`.
+
+
+## RC — sector authentication error UX — 2026-10-20
+- [x] The sector workspace now displays a human-readable Arabic sign-in requirement instead of the raw `AUTH_REQUIRED` token and does not show a retry button that cannot fix a missing session.
+- [x] Added a source-contract assertion for the authentication error message and retry suppression. Source commit `b26ded4f7aa325deff7a3d4b23539167c265829d`; validator commit `8f97bbf72c6e1ab74aa6e39e17384799a83276eb`.
+- [ ] Exact-head CI pending; browser E2E remains open.
+
+
+## RC — live RPC execution ACL verification — 2026-10-20
+- [x] Read-only production SQL inspection confirmed `create_education_request_backend`, `submit_job_application_backend`, and `create_job_backend` exist with `SECURITY DEFINER`, execute granted to `authenticated`, and execute denied to both `anon` and `PUBLIC`. Source definitions include identity/target or active-membership checks.
+- [x] Live `jobs.id` and `job_applications.job_id` are both UUID, matching the application RPC's `p_job_id uuid` contract.
+- No production SQL was changed. Browser E2E and end-to-end user journey verification remain open.
+
+
+## RC — production/repository migration drift blocks privilege repair — 2026-10-20
+- [x] Read-only Supabase migration inventory: production has 150 recorded migrations and its latest record is `20261008222845`; the current branch tracks 140 migration files and includes later files through `20261014230000_rc525_digital_page_product_platform_admin_scope.sql`.
+- [x] Therefore the used-item privilege gap must not be repaired by an ad hoc live GRANT or by assuming the branch's later migration set is already deployed. Reconcile migration history first and test a narrow column-level read grant with the existing RLS contract.
+- [ ] No migration was applied to production. Migration reconciliation, safe used-item read privilege restoration, exact-head CI, and authenticated browser E2E remain open.
+
+
+## RC — used-item narrow read contract — 2026-10-20
+- [x] Added migration `20261020231500_used_item_ads_minimal_directory_read.sql`: revoke table-wide SELECT from `anon` and `authenticated`, then grant only directory columns to authenticated users. `seller_phone` is not granted.
+- [x] Updated the sector UI notice to distinguish directory reading from the still-disabled status mutation workflow.
+- [x] Extended `scripts/validate-sector-rendering.mjs` to assert the narrow grant, explicit absence of seller-phone access, and honest read/mutation messaging.
+- [ ] Migration is committed to the PR branch but has **not** been applied to the live database. Confirm exact-head CI and migration integration tests before applying. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC — used-item directory moved behind server RPC — 2026-10-20
+- [x] Replaced the proposed column-level table read grant with `public.list_used_item_ads_backend(varchar, uuid)`, returning only listing fields and never `seller_phone` or `owner_user_id`.
+- [x] The function rejects unauthenticated and anonymous Auth sessions, returns unsold ads plus the caller's own sold ads, and applies optional tenant/business filters server-side.
+- [x] Direct table SELECT/INSERT/UPDATE/DELETE privileges for `anon` and `authenticated` are revoked; authenticated clients receive EXECUTE only on the narrow RPC.
+- [x] Sector loader now calls the RPC instead of selecting the table directly. Validator now checks the RPC boundary and privacy behavior.
+- [x] Removed the duplicate migration version and consolidated the function into `20261020231500_used_item_ads_minimal_directory_read.sql`.
+- [ ] Migration has **not** been applied to the connected production database. Apply through the approved migration process and run authenticated/non-anonymous, anonymous-denial, sold-owner, and seller-phone non-disclosure tests before relying on the read path. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Correction — final used-item read design
+- The final migration supersedes the earlier column-grant draft: `20261020231500_used_item_ads_minimal_directory_read.sql` now exposes a narrow `SECURITY DEFINER` read RPC, `list_used_item_ads_backend(varchar, uuid)`, checks for an authenticated non-anonymous session, returns only public listing fields, and revokes direct table DML from `anon`/ `authenticated`.
+- The sector loader calls that RPC instead of querying `used_item_ads` directly. `seller_phone` is not returned.
+- This is still branch-only; the live database has not been changed. Apply only after exact-head validation and review of the security-definer function.
+
+
+- **Migration history safety follow-up:** preserved `20261020231500_used_item_ads_minimal_directory_read.sql` unchanged and moved the RPC/privilege revocation into the new follow-up migration `20261020232000_used_item_ads_directory_backend_v1.sql`. The follow-up explicitly revokes both table-level and prior column-level SELECT grants before granting only RPC EXECUTE. Validator points at the follow-up migration. Commits: `861d2eb6410aa18026325f1efa8b7ccf13288e20`, `c6aaa104f2d36318f498a82b1421666e671b51e4`, `89753cf6e26be56f31ec69fb4a82797846c954dc`.
+
+
+- [x] Added disposable PostgreSQL fixture and behavioral integration tests for active listings, owner-only sold listings, tenant/business filtering, anonymous rejection, no direct `owner_user_id`/seller-phone column access, and RPC grants. Wired the test into `.github/workflows/backend-only-module-boundary.yml` and guarded the test coverage in `validate-sector-rendering.mjs`. Commits: `36cabb5278ee83daa3287d012106e40f5b3472a2`, `88038efaf22afeeefb5e47acd2c3e603824d4b94`, `9c35ef15fc61e29982bd493009931d1454bf5783`, `cadae558830bf29505bde6c8d72e286d99262399`. Awaiting CI execution.
+
+
+- [x] Added a disposable PostgreSQL integration fixture and behavior test for the used-item read RPC, covering direct table privileges, function ACL/search_path, seller-phone omission, anonymous/no-identity rejection, sold-listing ownership, and tenant/business filtering. Workflow: `.github/workflows/used-item-directory-read.yml`.
+- [ ] The workflow is queued; do not mark the integration test passed until GitHub Actions reports success.
+
+
+- [x] Consolidated behavioral coverage into the repository's existing `Used Item Directory Read Boundary` workflow and `used_item_directory_read_integration.sql`; removed the duplicate fixture/workflow job. The existing integration now asserts seller-phone and owner-ID column grants are absent, and the workflow applies both migrations in order. CI trigger and static contract assertions were aligned to the follow-up migration. Commits: `1575707eda5a95fa51bc97d59000a5d234f82be5`, `98ed691d1016baa2c15140a0dc633a2128b08ad4`, `7505f36ccd8924f2a0f741cb54ec150d28cdc0e2`, `877fcb57fd46a1650504795508c5900a1862c69f`, `640b0f46166d9b45875f03ee89e94de458343cb1`. Awaiting CI.
+
+
+## RC — job directory read contracts — 2026-10-20
+- [x] Live read-only inspection showed `jobs` and `job_applications` have no authenticated SELECT privilege, so direct sector reads fail despite RLS policies; `jobs.employer_phone`, `job_applications.applicant_phone`, and `cv_summary_text` are sensitive fields.
+- [x] Added `list_jobs_backend` returning only listing fields (aliases `employer_name` to the UI's expected `company_name`), active jobs plus owner-owned inactive jobs, and optional tenant/business filtering.
+- [x] Added `list_job_applications_backend` returning only application fields needed by the UI, restricted to the applicant or owner of the associated job. It excludes phone and CV summary.
+- [x] Revoked direct table SELECT and granted only authenticated execution of these RPCs; sector loader now calls the RPCs.
+- [x] Added disposable PostgreSQL fixture, behavioral test, dedicated CI workflow, and static contract guards.
+- [ ] Migration `20261020233000_jobs_directory_backend_v1.sql` is source-only and not applied to production. Exact-head CI and browser E2E pending; release remains **BLOCKED / NOT CERTIFIED**.

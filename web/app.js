@@ -501,6 +501,7 @@ async function globalSearch(queryText){
  if(q.length<2)return [];
  const needle='%'+q.replace(/[%_]/g,m=>'\\'+m)+'%';
  const sources=GLOBAL_SEARCH_SOURCES.filter(globalSearchCan);
+ const sourceErrors=[];
  const tasks=sources.map(async source=>{
   try{
    let queryBuilder=sb.from(source.table).select(source.select).limit(6);
@@ -519,15 +520,27 @@ async function globalSearch(queryText){
    return (result.data||[]).map(row=>({source,row,title:row.name||row.name_ar||row.name_en||row.title||row.subject||row.code||row.id,detail:globalSearchText(row,source.fields)}));
   }catch(error){
    console.warn('[MantiqatiX global search]',source.key,error?.message||error);
+   sourceErrors.push({label:source.label,key:source.key});
    return [];
   }
  });
  const groups=await Promise.all(tasks);
- return groups.flat().slice(0,40);
+ const results=groups.flat().slice(0,40);
+ results.searchErrors=sourceErrors;
+ results.searchableSources=sources.length;
+ return results;
 }
 function globalSearchResultHtml(results){
- if(!results.length)return '<div class="mx-global-search-empty">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
- return results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
+ const errors=Array.isArray(results.searchErrors)?results.searchErrors:[];
+ const searchableSources=Number(results.searchableSources)||0;
+ if(!searchableSources)return '<div class="mx-global-search-empty" role="status">لا توجد مصادر بحث متاحة لهذا الحساب أو الدور الحالي.</div>';
+ if(!results.length){
+  if(errors.length)return '<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث في '+errors.length+' من مصادر البيانات. حاول مرة أخرى بعد قليل.</div>';
+  return '<div class="mx-global-search-empty" role="status">لا توجد نتائج حقيقية متاحة ضمن صلاحيات الحساب.</div>';
+ }
+ const hits=results.map((hit,i)=>'<button type="button" class="mx-global-search-hit" data-search-index="'+i+'"><span class="mx-global-search-icon">'+hit.source.icon+'</span><span><b>'+esc(hit.title||'بدون اسم')+'</b><small>'+esc(hit.source.label)+' · '+esc(hit.detail||'')+'</small></span><span>›</span></button>').join('');
+ const warning=errors.length?'<div class="mx-global-search-partial" role="status" aria-live="polite">نتائج جزئية: تعذر البحث في '+errors.length+' من '+(results.searchableSources||'?')+' مصادر. قد لا تشمل النتائج كل البيانات المتاحة.</div>':'';
+ return hits+warning;
 }
 function filtered(list){const q=query.trim().toLowerCase();return q?list.filter(x=>x.join(' ').toLowerCase().includes(q)):list}
 function modulePage(){const list=filtered(domainModules.map(m=>[m.icon,m.name,m.desc]));return `<div class="section-head"><div><h2>مركز الموديولات</h2><p>تحكم في الوحدات التي تظهر للمنصة والمشتركين.</p></div><span class="count">${list.length} وحدات</span></div><div class="modules">${list.map(m=>`<article class="card module" onclick="selectModule('${m[1]}')"><div class="icon">${m[0]}</div><h3>${m[1]}</h3><div class="muted">${m[2]}</div><span class="status">${canManage()?'إدارة متاحة':'متاح للعرض'}</span></article>`).join('')}</div>`}

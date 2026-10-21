@@ -34,6 +34,8 @@ jobs:
         run: node scripts/validate-matrimony-privacy-boundary.mjs
       - name: Canonical module feature-flag codes
         run: node scripts/validate-module-feature-flag-codes.mjs
+      - name: Module blueprint action contract
+        run: node scripts/validate-module-blueprint-actions.mjs
       - name: Customer registration RPC behavior boundary
         run: node scripts/validate-customer-registration-rpc-contract.mjs
       - name: Cross-PR migration collision detector self-test
