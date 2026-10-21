@@ -601,3 +601,12 @@ This status is intentional and must remain until the open gates above are indepe
 - No live-host HTTP/browser probe could be completed using the GitHub connector. Thus deployed route responses, JS/CSS load, service-worker/cache effects, Supabase initialization, login, and role-aware navigation remain NOT VERIFIED.
 - TODO: live browser/HTTP smoke for `/`, `/web/`, `/preview/`, `/preview/dashboard.html`; add automated preview route and navigation tests if absent; keep PR #316 Draft until these checks are backed by evidence. Existing global production blockers in `docs/MASTER_PRODUCTION_TODO.md` remain open.
 - Release state: BLOCKED / NOT CERTIFIED. No production database/auth/payment changes or releases.
+
+
+## 2026-10-21 — ERP receiving changed to fail-closed atomic RPC
+- Updated `supabase/functions/erp-purchase-receive/index.ts` to stop mutating receipt, balance, and inventory-ledger tables through separate REST requests.
+- The function now validates request size/shape, UUIDs, finite positive quantity, finite non-negative unit cost, authenticated non-anonymous actor, and allowed origin; it delegates the complete mutation to `receive_purchase_stock_with_order_line_backend` and passes the verified actor ID.
+- Unknown database errors and a missing RPC return `ATOMIC_RECEIVING_UNAVAILABLE` (503). There is intentionally no fallback to the old non-atomic mutation path.
+- Source contract validator updated to require the atomic RPC call. Commit: `4ed9e962a7c85baf4c87fcf0ce172f498c3b1abf`; validator follow-up: `82a5c17e588abf0d8452397a4c0a4d055c2204bb`.
+- **Important dependency:** the required RC434 + RC437 migrations are absent from `main`. This change is fail-closed and must not be deployed as a working ERP receiving feature until the full, reviewed migration chain is recovered and applied in order. RC437 notes legacy purchase orders without line items need reconciliation; do not certify receiving until that data condition is resolved.
+- Current CI is queued on `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; production deployment remains blocked. No production database or Edge Function was mutated.
