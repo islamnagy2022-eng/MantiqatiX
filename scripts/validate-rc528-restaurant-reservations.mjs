@@ -19,7 +19,9 @@ for(const check of [
  'RC528_FAIL: idempotent retry created duplicate reservation',
  'RC528_EXPECTED_FAILURE_NOT_RAISED',
  'RC528_FAIL: reservation RLS exposed another tenant',
- 'RC528_FAIL: cancellation did not persist'
+ 'RC528_FAIL: cancellation did not persist',
+ 'rc528-seated-key-0001',
+ 'rc528-noshow-key-001'
 ]) assert.ok(test.includes(check),'integration test must cover '+check);
 assert.ok(ui.includes("sb.rpc('restaurant_reservation_mutate'"),'UI writes must use the reservation RPC');
 assert.ok(ui.includes("reservationsQ=reservationsQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id)"),'reservation reads must be scoped to the active branch');
