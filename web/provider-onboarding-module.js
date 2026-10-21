@@ -69,12 +69,27 @@
         try{
           const businessId=form.dataset.catalogForm; const name=form.querySelector('[data-service-name]').value.trim(); const price=Number(form.querySelector('[data-service-price]').value);
           if(!name||!Number.isFinite(price)||price<0)throw new Error('INVALID_SERVICE_OR_PRICE');
-          const item=await call('catalog-admin',{action:'ITEM_UPSERT',tenantId:s.active.tenant_id,businessId,nameAr:name,itemType:'SERVICE',taxRate:0,metadata:{source:'provider_onboarding'}});
-          const itemId=item?.id||item?.catalog_item_id||item?.data?.id;
-          if(!itemId)throw new Error('CATALOG_ITEM_ID_MISSING');
+          if(form.dataset.catalogOutcomeUnknown==='true')throw new Error('CATALOG_OUTCOME_UNKNOWN');
+          let itemId=form.dataset.pendingCatalogItemId||'';
+          if(itemId&&form.dataset.pendingCatalogItemName!==name)throw new Error('PREVIOUS_SERVICE_PRICE_PENDING');
+          if(!itemId){
+            form.dataset.catalogOutcomeUnknown='true';
+            const item=await call('catalog-admin',{action:'ITEM_UPSERT',tenantId:s.active.tenant_id,businessId,nameAr:name,itemType:'SERVICE',taxRate:0,metadata:{source:'provider_onboarding'}});
+            itemId=item?.id||item?.catalog_item_id||item?.data?.id;
+            if(!itemId)throw new Error('CATALOG_ITEM_ID_MISSING');
+            form.dataset.pendingCatalogItemId=String(itemId);
+            form.dataset.pendingCatalogItemName=name;
+            delete form.dataset.catalogOutcomeUnknown;
+          }
           await call('catalog-admin',{action:'PRICE_UPSERT',tenantId:s.active.tenant_id,businessId,catalogItemId:itemId,currency:'EGP',unitPrice:price});
-          out.textContent='تمت إضافة الخدمة والسعر عبر المسار الخلفي الموثوق.';
-        }catch(err){out.textContent='تعذر حفظ الخدمة: '+esc(err.message);}finally{endAction(form);}
+          delete form.dataset.pendingCatalogItemId;delete form.dataset.pendingCatalogItemName;delete form.dataset.catalogOutcomeUnknown;
+          out.textContent='تم حفظ الخدمة والسعر بنجاح.';
+        }catch(err){
+          if(err.message==='PREVIOUS_SERVICE_PRICE_PENDING')out.textContent='هناك خدمة سابقة تم إنشاؤها ولم يكتمل سعرها. أكمل حفظ سعرها أولا قبل تغيير اسم الخدمة.';
+          else if(err.message==='CATALOG_OUTCOME_UNKNOWN'||err.message==='CATALOG_ITEM_ID_MISSING'||form.dataset.catalogOutcomeUnknown==='true')out.textContent='تعذر تأكيد نتيجة إنشاء الخدمة بسبب انقطاع الاتصال. لا تعاود الإرسال الآن؛ تحقق من الكتالوج قبل المحاولة لتجنب إنشاء سجل مكرر.';
+          else if(form.dataset.pendingCatalogItemId)out.textContent='تم إنشاء الخدمة لكن لم يتأكد حفظ السعر. غيّر السعر إذا لزم ثم أعد المحاولة؛ سيتم استخدام الخدمة نفسها دون إنشاء نسخة جديدة.';
+          else out.textContent='تعذر حفظ الخدمة. تحقق من الاتصال والصلاحيات ثم حاول مرة أخرى.';
+        }finally{endAction(form);}
       }));
       document.querySelectorAll('[data-onboard-status]').forEach(btn=>btn.addEventListener('click',async()=>{
         if(btn.disabled)return;btn.disabled=true;const oldLabel=btn.textContent;btn.textContent='جارٍ التحقق…';
