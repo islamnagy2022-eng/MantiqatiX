@@ -2026,3 +2026,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Execute the Node validator and exact-head CI; current connector query returned no workflow runs/statuses for the latest head, so test execution is NOT VERIFIED.
 - [ ] Browser E2E, mobile/responsive/accessibility audit, and server authorization/duplicate-application tests remain NOT VERIFIED.
 - Scope remains UI-first; no accounting/subscription expansion, production mutation, deployment, merge, or real payment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-21 — UI-first education request forms
+- [x] Replaced browser prompts for school/teacher requests with inline forms and accessible expand/collapse controls.
+- [x] Added bounded required student/subject fields, live feedback, submit-button lockout, and safe error/uncertain-outcome handling while preserving create_education_request_backend.
+- [x] Added source-contract regression assertions; school and teacher forms are scoped by target type to avoid selector collisions.
+- [ ] Node validator, exact-head CI, browser E2E, and backend authorization/duplicate-request checks remain NOT VERIFIED. Production remains BLOCKED / NOT CERTIFIED.
