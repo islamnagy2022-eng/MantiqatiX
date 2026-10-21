@@ -32,6 +32,8 @@ assert.match(source, /function marketingTableView\(d,key,content\)/, "marketing 
 assert.match(source, /function overview\(d\)\{[\s\S]*?loadErrors\[t\]\?[\s\S]*?تعذر التحميل[\s\S]*?لا يمكن عرض عدد السجلات بأمان/, "overview counts must distinguish failed reads from real zero counts");
 assert.match(source, /data-op-reload/, "overview must expose a retry control after failed reads");
 assert.match(source, /querySelector\('\[data-op-reload\]'\)\?\.addEventListener\('click',\(\)=>\{if\(current&&defs\[current\]\)load\(defs\[current\]\)\}\)/, "retry control must reload the current module");
+assert.match(source, /tab!=='overview'&&Object\.keys\(loadErrors\)\.length/, "detail tabs must expose retry when reads fail");
+assert.match(source, /تعذر تحميل بعض البيانات في هذه الصفحة[\s\S]*إعادة تحميل البيانات/, "detail-tab failures must be visible with a retry action");
 assert.match(source, /marketingTableView\(d,'marketing_services'/, "services tab must show load failures");
 assert.match(source, /marketingTableView\(d,'marketing_plans'/, "plans tab must show load failures");
 assert.match(source, /marketingTableView\(d,'marketing_projects'/, "projects tab must show load failures");
