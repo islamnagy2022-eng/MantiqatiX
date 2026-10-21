@@ -4,6 +4,8 @@ import fs from 'node:fs';
 const sql = fs.readFileSync('supabase/migrations/20261022100000_rc526_restaurant_membership_rbac_policies.sql', 'utf8');
 const stockSql = fs.readFileSync('supabase/migrations/20261022110000_rc527_restaurant_inventory_movement_ledger.sql', 'utf8');
 const stockTest = fs.readFileSync('supabase/tests/rc527_restaurant_inventory_movement_integration.sql', 'utf8');
+const reservationSql = fs.readFileSync('supabase/migrations/20261022120000_rc528_restaurant_reservations.sql', 'utf8');
+const reservationTest = fs.readFileSync('supabase/tests/rc528_restaurant_reservations_integration.sql', 'utf8');
 const ui = fs.readFileSync('web/restaurant-module.js', 'utf8');
 
 assert.ok(sql.includes('create or replace function public.guard_restaurant_row_scope()'),
@@ -57,5 +59,26 @@ assert.ok(ui.includes("const idempotencyKey='MNTY-REST-STOCK-'+uid()") && ui.inc
 assert.ok(ui.includes('data-inv-history'), 'UI must expose the movement history');
 assert.ok(ui.includes("['OWNER','ADMIN','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN'].includes(role)"), 'opening-balance UI must be restricted to authorized roles');
 assert.ok(stockTest.includes('RC527_FAIL: issue cost was not derived from the server-side weighted average'), 'integration test must verify server-side issue valuation');
+
+assert.ok(reservationSql.includes('create table if not exists public.restaurant_reservations'), 'RC528 must create the reservation ledger');
+assert.ok(reservationSql.includes('alter table public.restaurant_reservations force row level security'), 'reservation rows must force RLS');
+assert.ok(reservationSql.includes('pg_advisory_xact_lock(hashtextextended(v_tenant||'), 'reservation idempotency must serialize concurrent retries');
+assert.ok(reservationSql.includes("v_phone !~ '^[+0-9()[:space:]-]{7,20}
+
+console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
+) then"), 'reservation phone validation must be syntactically complete and bounded');
+assert.ok(reservationSql.includes("if coalesce(p_payload->>'guest_count','') !~ '^[0-9]{1,3}
+
+console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
+ then"), 'reservation guest count must be validated before casting');
+assert.ok(reservationSql.includes("upper(m.role) in ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER','PROVIDER_OWNER','PROVIDER_ADMIN','BRANCH_MANAGER','PROVIDER_OPERATIONS')"), 'reservation create must enforce server-side RBAC');
+assert.ok(reservationSql.includes('RESTAURANT_RESERVATION_CREATE_FORBIDDEN'), 'reservation create must reject roles without OPERATIONS:create');
+assert.ok(reservationSql.includes('RESTAURANT_RESERVATION_UPDATE_FORBIDDEN'), 'reservation state changes must enforce OPERATIONS:update roles');
+assert.ok(!reservationSql.includes("!~ '^[+0-9()[:space:]-]{7,20}\\n"), 'reservation phone regex must not be truncated across a SQL line');
+assert.ok((reservationSql.match(/grant execute on function public\\.restaurant_reservation_mutate/g)||[]).length===1, 'reservation migration must not contain duplicated function grants');
+assert.ok(reservationTest.includes('RC528_FAIL: staff bypassed reservation create RBAC'), 'reservation integration must cover role-based create denial');
+assert.ok(reservationTest.includes('RC528_FAIL: idempotent retry created duplicate reservation'), 'reservation integration must cover idempotency');
+assert.ok(reservationTest.includes('RC528_FAIL: reservation RLS exposed another tenant'), 'reservation integration must cover cross-tenant RLS');
+
 
 console.log('RC526/RC527 restaurant RBAC and inventory movement contracts PASS');
