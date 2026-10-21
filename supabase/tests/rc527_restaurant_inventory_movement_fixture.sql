@@ -25,6 +25,8 @@ create table public.user_memberships (
   status varchar not null,
   created_at timestamptz not null default now()
 );
+grant select on public.user_memberships to authenticated;
+
 create table public.restaurant_inventory (
   id text primary key,
   owner_user_id uuid not null,
