@@ -28,6 +28,7 @@ assert.match(source, /BRANCH_CREATE_FAILED/, "database errors must be normalized
 assert.match(source, /contentLength>maxBodyBytes/, "oversized declared request bodies must be rejected");
 assert.match(source, /totalBytes>maxBodyBytes/, "streamed bodies must be capped even without Content-Length");
 assert.match(source, /REQUEST_TOO_LARGE/, "oversized requests must receive a stable error code");
+assert.match(source, /if\(totalBytes>maxBodyBytes\)\{try\{await reader\.cancel\(\)\}catch\{\}return out\(\{error:"REQUEST_TOO_LARGE"\},413\)\}/, "stream cancellation failures must not downgrade oversized-body responses to invalid JSON");
 assert.match(source, /!body\|\|typeof body!=="object"\|\|Array\.isArray\(body\)/, "null, primitive, and array request bodies must be rejected");
 assert.match(source, /INVALID_REQUEST_BODY/, "malformed JSON shapes must receive a stable error code");
 assert.match(source, /typeof input\.tenantId!=="string"/, "tenant IDs must not be coerced from arbitrary JSON types");
