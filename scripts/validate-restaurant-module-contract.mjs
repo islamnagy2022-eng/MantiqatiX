@@ -29,6 +29,14 @@ assert.match(moduleSource, /Do not expose raw database\/provider errors in the u
 assert.match(moduleSource, /state\.error=errs\.length\?'تعذر تحميل بعض بيانات المطعم/);
 assert.match(moduleSource, /finally\{state\.loading=false;render\(\);\}/,
   'data loading must recover from query failures and always clear loading state');
+assert.match(moduleSource, /انتهت الجلسة أو لم يتم تسجيل الدخول/,
+  'unauthenticated users must see a human-readable session message');
+assert.match(moduleSource, /تعذر التحقق من جلسة المستخدم أو عضوياته/,
+  'membership/session exceptions must fail closed with a generic message');
+assert.doesNotMatch(moduleSource, /notify\('تعذر الحفظ: '\+r\.error\.message/,
+  'raw database mutation errors must not be exposed to the user');
+assert.doesNotMatch(moduleSource, /تعذر تحديث حالة الطلب: '\+\(e\?\.message/,
+  'raw server mutation errors must not be exposed to the user');
 assert.match(moduleSource, /setItem\('MNTYActiveMembershipId',id\);load\(\)/,
   'the chosen membership must be explicitly saved before loading its workspace');
 
