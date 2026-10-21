@@ -58,6 +58,23 @@
     </div>
     <div class="notice">الإضافة والبحث والتصفية تعمل محليًا في هذه الجلسة فقط. لا يتم حفظ البيانات بعد إغلاق الصفحة ولا تُستخدم هذه الواجهة للتحكم في الإنتاج.</div>
   </section>
+  <section id="marketingWorkspace" class="panel hidden" aria-labelledby="marketingWorkspaceTitle">
+    <div class="section-head" style="margin-top:0"><div><h2 id="marketingWorkspaceTitle">مساحة تخطيط الحملات</h2><p>أنشئ بطاقة حملة تجريبية وحدد هدفها وقناتها وميزانيتها — لا يتم نشر إعلانات أو إنفاق أموال.</p></div><span class="status">تجريبي محلي</span></div>
+    <form id="campaignForm">
+      <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+        <label style="font-size:12px;color:var(--muted)">اسم الحملة<input id="campaignName" required maxlength="80" placeholder="مثال: حملة اكتساب عملاء" style="display:block;margin-top:6px"></label>
+        <label style="font-size:12px;color:var(--muted)">القناة<select id="campaignChannel" required style="display:block;width:100%;margin-top:6px"><option value="Meta / Facebook">Meta / Facebook</option><option value="Instagram">Instagram</option><option value="TikTok">TikTok</option><option value="Google Ads">Google Ads</option><option value="محتوى عضوي">محتوى عضوي</option></select></label>
+        <label style="font-size:12px;color:var(--muted)">الهدف<select id="campaignGoal" required style="display:block;width:100%;margin-top:6px"><option value="رسائل واستفسارات">رسائل واستفسارات</option><option value="زيارات الموقع">زيارات الموقع</option><option value="وعي بالعلامة">وعي بالعلامة</option><option value="مبيعات وتحويلات">مبيعات وتحويلات</option><option value="تفاعل ومتابعون">تفاعل ومتابعون</option></select></label>
+        <label style="font-size:12px;color:var(--muted)">الميزانية المخططة (جنيه)<input id="campaignBudget" type="number" required min="0" max="10000000" step="1" placeholder="0" style="display:block;margin-top:6px"></label>
+        <label style="font-size:12px;color:var(--muted)">تاريخ البداية<input id="campaignDate" type="date" required style="display:block;width:100%;margin-top:6px"></label>
+        <label style="font-size:12px;color:var(--muted)">المسؤول<input id="campaignOwner" maxlength="80" placeholder="اسم المسؤول (اختياري)" style="display:block;margin-top:6px"></label>
+      </div>
+      <div class="toolbar"><button class="btn" type="submit">+ إنشاء خطة حملة تجريبية</button><button class="btn secondary" type="reset">مسح الحقول</button><span class="muted" style="font-size:11px">لا اتصال بـ Meta ولا نشر تلقائي ولا حفظ على الخادم</span></div>
+    </form>
+    <div class="section-head"><div><h2>خطط الحملات في هذه الجلسة</h2><p id="campaignSummary">لم تُنشأ خطط بعد</p></div><button class="btn secondary" id="clearCampaigns" type="button">مسح الخطط التجريبية</button></div>
+    <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>الحملة</th><th>القناة والهدف</th><th>الميزانية المخططة</th><th>البداية</th><th>المسؤول</th><th>إجراء</th></tr></thead><tbody id="campaignBody"></tbody></table><div class="empty" id="campaignEmpty">أضف أول خطة حملة من النموذج أعلاه</div></div>
+    <div class="notice">تنبيه مالي: الميزانية هنا رقم تخطيطي فقط، وليست رصيدًا أو مصروفًا فعليًا. أي ربط بالإعلانات أو الفوترة يحتاج تكاملًا موثقًا وصلاحيات خادمية وموافقة صريحة قبل التنفيذ.</div>
+  </section>
   <footer class="footer"><span>© MantiqaTiX — بيئة تطوير واجهات</span><span>معاينة مستقلة • عربي RTL • Responsive</span></footer>
 </main>
 </div>
@@ -72,16 +89,35 @@ providers:{title:"مقدمو الخدمات",desc:"نماذج ملفات مقد�
 access:{title:"الأدوار والصلاحيات",desc:"عرض توضيحي لتقسيم الأدوار فقط. لا ينشئ أو يعدل صلاحيات حسابات فعلية.",rows:[["مدير المنصة — مثال","إدارة عامة","نشط"],["مدير محتوى — مثال","المحتوى","نشط"],["مراجع — مثال","مراجعة واعتماد","قيد المراجعة"]]},
 reports:{title:"التقارير والمتابعة",desc:"سجلات تقارير شكلية تساعد على اختبار بنية العرض وليست نتائج أعمال حقيقية.",rows:[["ملخص النشاط الأسبوعي","نشاط المنصة","مكتمل"],["أداء الحملات التجريبي","التسويق","قيد المراجعة"],["تقرير الخدمات","الاكتشاف","مسودة"]]}
 };
-let current="";let extraRows={};let toastTimer;
+let current="";let extraRows={};let toastTimer;let campaignPlans=[];
 const $=id=>document.getElementById(id);
 function notify(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),2600)}
-function setView(key){if(!modules[key])return;current=key;$("homeView").classList.add("hidden");$("detailView").classList.remove("hidden");$("pageTitle").textContent=modules[key].title;$("detailTitle").textContent=modules[key].title;$("detailDescription").textContent=modules[key].desc;$("detailEyebrow").textContent="MODULE / "+key.toUpperCase();$("tableTitle").textContent="سجلات "+modules[key].title;$("globalSearch").value="";$("tableSearch").value="";$("statusFilter").value="";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===key));renderRows();window.scrollTo({top:0,behavior:"smooth"})}
-function home(){current="";$("detailView").classList.add("hidden");$("homeView").classList.remove("hidden");$("pageTitle").textContent="نظرة عامة";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view==="home"));$("globalSearch").value="";filterCards("");window.scrollTo({top:0,behavior:"smooth"})}
+function setView(key){if(!modules[key])return;current=key;$("marketingWorkspace").classList.toggle("hidden",key!=="marketing");$("homeView").classList.add("hidden");$("detailView").classList.remove("hidden");$("pageTitle").textContent=modules[key].title;$("detailTitle").textContent=modules[key].title;$("detailDescription").textContent=modules[key].desc;$("detailEyebrow").textContent="MODULE / "+key.toUpperCase();$("tableTitle").textContent="سجلات "+modules[key].title;$("globalSearch").value="";$("tableSearch").value="";$("statusFilter").value="";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===key));renderRows();window.scrollTo({top:0,behavior:"smooth"})}
+function home(){$("marketingWorkspace").classList.add("hidden");current="";$("detailView").classList.add("hidden");$("homeView").classList.remove("hidden");$("pageTitle").textContent="نظرة عامة";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view==="home"));$("globalSearch").value="";filterCards("");window.scrollTo({top:0,behavior:"smooth"})}
 function filterCards(q){q=q.trim().toLocaleLowerCase("ar");let n=0;document.querySelectorAll(".module").forEach(card=>{const match=!q||(card.innerText+" "+card.dataset.search).toLocaleLowerCase("ar").includes(q);card.classList.toggle("hidden",!match);if(match)n++});$("resultCount").textContent=n+" أقسام";$("moduleCount").textContent="6"}
 function renderRows(){const base=modules[current].rows.map((r,i)=>({r,id:i}));const rows=base.concat((extraRows[current]||[]).map((r,i)=>({r,id:"x"+i})));const q=$("tableSearch").value.trim().toLocaleLowerCase("ar");const status=$("statusFilter").value;const filtered=rows.filter(x=>(!q||x.r.join(" ").toLocaleLowerCase("ar").includes(q))&&(!status||x.r[2]===status));$("tableBody").innerHTML="";filtered.forEach(x=>{const tr=document.createElement("tr");x.r.forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});const td=document.createElement("td");td.textContent="الآن";tr.appendChild(td);$("tableBody").appendChild(tr)});$("emptyState").classList.toggle("hidden",filtered.length>0)}
 document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>b.dataset.view==="home"?home():setView(b.dataset.view)));
 document.querySelectorAll(".module").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.module)));
 $("backBtn").addEventListener("click",home);
+function renderCampaigns(){
+ const body=$("campaignBody");body.textContent="";
+ campaignPlans.forEach((p,i)=>{
+  const tr=document.createElement("tr");
+  [p.name,p.channel+" · "+p.goal,"ج.م "+p.budget.toLocaleString("en-US"),p.date,p.owner||"—"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});
+  const td=document.createElement("td");const del=document.createElement("button");del.type="button";del.className="btn secondary";del.textContent="حذف";del.setAttribute("aria-label","حذف خطة "+p.name);del.addEventListener("click",()=>{campaignPlans.splice(i,1);renderCampaigns();notify("تم حذف الخطة التجريبية من الجلسة.")});td.appendChild(del);tr.appendChild(td);body.appendChild(tr);
+ });
+ $("campaignEmpty").classList.toggle("hidden",campaignPlans.length>0);
+ $("campaignSummary").textContent=campaignPlans.length+" خطة · إجمالي الميزانيات المخططة: ج.م "+campaignPlans.reduce((s,p)=>s+p.budget,0).toLocaleString("en-US");
+}
+$("campaignForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const name=$("campaignName").value.trim();const budget=Number($("campaignBudget").value);const date=$("campaignDate").value;
+ if(!name||!Number.isFinite(budget)||budget<0||!date){notify("راجع اسم الحملة والميزانية وتاريخ البداية.");return}
+ campaignPlans.push({name,channel:$("campaignChannel").value,goal:$("campaignGoal").value,budget,date,owner:$("campaignOwner").value.trim()});
+ renderCampaigns();$("campaignForm").reset();notify("تم إنشاء خطة تجريبية محلية فقط.");
+});
+$("clearCampaigns").addEventListener("click",()=>{campaignPlans=[];renderCampaigns();notify("تم مسح الخطط التجريبية من الجلسة.")});
+renderCampaigns();
 function doSearch(){const q=$("globalSearch").value;if(current){$("tableSearch").value=q;renderRows();}else{filterCards(q);if(q.trim()&&document.querySelectorAll(".module:not(.hidden)").length===1){const one=document.querySelector(".module:not(.hidden)");if(one)notify("تم العثور على قسم مطابق. اضغط البطاقة لفتحه.");}}}
 $("searchBtn").addEventListener("click",doSearch);$("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch()});$("globalSearch").addEventListener("input",()=>{if(!current)filterCards($("globalSearch").value)});$("tableSearch").addEventListener("input",renderRows);$("statusFilter").addEventListener("change",renderRows);
 $("addBtn").addEventListener("click",()=>{if(!current)return;const count=(extraRows[current]||[]).length+1;const r=["سجل تجريبي جديد "+count,"إضافة محلية","مسودة"];(extraRows[current]||(extraRows[current]=[])).push(r);renderRows();notify("أُضيف سجل تجريبي محلي فقط ولم يتم حفظه في الخادم.")});
