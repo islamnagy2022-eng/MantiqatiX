@@ -28,6 +28,11 @@ assert.match(form, /r\.data\?\.ok!==true\|\|!r\.data\?\.lead\?\.id/, "success mu
 assert.match(form, /تعذر تأكيد إنشاء طلب التسويق/, "uncertain API responses must not be reported as success");
 assert.match(source, /loadErrors=\{\}/, "table query failures must be tracked separately from empty results");
 assert.match(source, /loadErrors\[t\]=r\.error/, "failed table reads must preserve failure state");
+assert.match(source, /function marketingTableView\(d,key,content\)/, "marketing tables must share explicit query failure rendering");
+assert.match(source, /marketingTableView\(d,'marketing_services'/, "services tab must show load failures");
+assert.match(source, /marketingTableView\(d,'marketing_plans'/, "plans tab must show load failures");
+assert.match(source, /marketingTableView\(d,'marketing_projects'/, "projects tab must show load failures");
+assert.match(source, /تعذر تحميل البيانات المطلوبة[\s\S]*لم نعتبر النتيجة فارغة/, "non-lead marketing query errors must not masquerade as empty tables");
 assert.match(source, /تعذر تحميل طلبات التسويق[\s\S]*لم نعتبر القائمة فارغة/, "lead query failure must not appear as an empty list");
 assert.match(source, /required_services\|\|\[\]/, "lead list must display requested services when available");
 assert.match(source, /money\(r\.budget_min\).*money\(r\.budget_max\)/, "lead list must show the full budget range");
