@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const replay = fs.readFileSync(".github/workflows/disposable-forward-migration-replay.yml", "utf8");
 const required = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261009130000_rc426_digital_page_provider_order_binding.sql",
