@@ -8,6 +8,14 @@
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
 
+## Latest session update — 2026-10-21
+
+- Current active work is PR #316 on branch `fix/preview-starts-at-public-home-20261021`; inspected head before this documentation-only commit: `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
+- Preview/navigation contract validator is present and invoked by `.github/workflows/pages.yml`. The production Pages deploy job is intentionally restricted to `main` push or manual dispatch on `main`; PR runs should skip deploy.
+- CI run 39616462814 was still queued at job level during inspection; latest check-run snapshot had 15 checks, 0 completed, and no recorded failures. Treat this as pending, not passed.
+- No live site HTTP/browser test was performed in this session. Authenticated browser flow, PWA offline behavior, tenant isolation, and production E2E remain NOT VERIFIED. Global release gate stays BLOCKED / NOT CERTIFIED.
+- No merge, main push, production deployment, or production data/configuration mutation was performed. See the append-only details in `docs/SESSION_LOG.md`.
+
 ## Current baseline
 
 - Repository: `islamnagy2022-eng/MantiqatiX`
