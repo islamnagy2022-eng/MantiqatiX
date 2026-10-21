@@ -346,3 +346,5 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Follow-up safety fix: marketing lead creation is blocked when active-membership lookup fails; the UI explains the issue, disables submission, and the submit handler independently guards against sending. Added static source-contract checks. No production mutation, schema change, merge, or deployment.
 
 - Shared overview fix: module overview cards now distinguish failed table reads from true zero counts, showing an explicit Arabic load-failure state. Added source-contract assertion. Exact-head CI/browser verification remain pending; no merge or deployment.
+
+- Shared overview retry: if an overview table read fails, show a clear warning and a retry action that reloads the current module. Added static contract assertions for the retry control and handler. Exact-head CI and browser tests remain unverified.
