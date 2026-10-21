@@ -21,3 +21,9 @@ This is the chronological handoff ledger for material project decisions and exec
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
+
+
+## 2026-10-21 — CI evidence and release gate status
+- Recovery branch checks passed for the static ERP receiving contract and migration filename uniqueness/collision guards.
+- Inspected mainline production verification log: `PRODUCTION_GATE=BLOCKED` because RC425–RC441 sources are absent from main; replay and operational security tests remain explicitly unverified.
+- A successful check on the recovery branch is not production-release evidence. No schema migration was merged or applied.
