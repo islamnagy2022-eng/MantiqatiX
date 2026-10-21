@@ -39,6 +39,89 @@ for each row execute function public.guard_restaurant_row_scope();
 -- Existing restrictive tenant/business/branch and authenticated-session policies remain in force.
 -- These permissive policies only grant the role-specific operation inside the exact active membership scope.
 
+-- Do not let a generic platform-admin helper bypass branch isolation for these workspaces.
+-- The workspace always operates under an explicitly selected active membership.
+drop policy if exists legacy_scope_boundary on public.restaurant_menu_items;
+create policy legacy_scope_boundary
+on public.restaurant_menu_items
+as restrictive
+for all
+to authenticated
+using (
+  exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_menu_items.tenant_id
+      and m.business_id = restaurant_menu_items.business_id
+      and m.branch_id = restaurant_menu_items.branch_id
+  )
+)
+with check (
+  exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_menu_items.tenant_id
+      and m.business_id = restaurant_menu_items.business_id
+      and m.branch_id = restaurant_menu_items.branch_id
+  )
+);
+
+drop policy if exists legacy_scope_boundary on public.restaurant_tables;
+create policy legacy_scope_boundary
+on public.restaurant_tables
+as restrictive
+for all
+to authenticated
+using (
+  exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_tables.tenant_id
+      and m.business_id = restaurant_tables.business_id
+      and m.branch_id = restaurant_tables.branch_id
+  )
+)
+with check (
+  exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_tables.tenant_id
+      and m.business_id = restaurant_tables.business_id
+      and m.branch_id = restaurant_tables.branch_id
+  )
+);
+
+drop policy if exists legacy_scope_boundary on public.restaurant_inventory;
+create policy legacy_scope_boundary
+on public.restaurant_inventory
+as restrictive
+for all
+to authenticated
+using (
+  exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_inventory.tenant_id
+      and m.business_id = restaurant_inventory.business_id
+      and m.branch_id = restaurant_inventory.branch_id
+  )
+)
+with check (
+  exists (
+    select 1 from public.user_memberships m
+    where m.user_id = (select auth.uid())
+      and m.status = 'ACTIVE'
+      and m.tenant_id = restaurant_inventory.tenant_id
+      and m.business_id = restaurant_inventory.business_id
+      and m.branch_id = restaurant_inventory.branch_id
+  )
+);
+
 create policy restaurant_menu_items_membership_select
 on public.restaurant_menu_items
 as permissive
