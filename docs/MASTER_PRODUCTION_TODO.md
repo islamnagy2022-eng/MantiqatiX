@@ -2047,3 +2047,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Search filters only the first eight displayed fields, distinguishes no-match from an actually empty dataset, and preserves explicit backend-only/error states.
 - [x] Added source-contract assertions for the search boundary and empty-result messaging.
 - [ ] Executed validator, exact-head CI, keyboard/mobile UX and browser E2E remain NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — Module navigation accessibility and production blockers
+- [x] Standardized shared module tabs with Arabic labels for overview, live records, marketing plans, subscriptions, participants, commissions, appointments, and other known tabs.
+- [x] Added an Arabic navigation landmark, explicit button type, and current-tab state; added source-contract assertions for these UI requirements.
+- [ ] Exact-head CI is currently in progress for this change; Node validator execution and browser/mobile E2E are not yet verified.
+- [ ] **Critical payment webhook recovery blocker:** the MantiGO Paymob webhook persists the provider event before updating the financial ledger. If the event insert succeeds and ledger update fails, a retry can be treated as idempotent and leave the ledger pending. Implement transaction-safe atomic processing or a reconciliation-safe state machine and test duplicate/retry/partial-failure cases before release.
+- Release gate remains **BLOCKED / NOT CERTIFIED** until required checks, browser verification, security tests, and payment failure-recovery tests pass.
