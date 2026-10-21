@@ -17,6 +17,10 @@ assert.match(moduleSource, /if\(saved\)\{\s*const selected=await base\(\)\.eq\('
   'stale or inaccessible active membership selection must not fall back to another tenant');
 assert.doesNotMatch(moduleSource, /if\(!r\.data\)\{r=await sb\.from\('user_memberships'\)/,
   'membership lookup must not silently replace an invalid saved selection');
+assert.match(moduleSource, /rest-clear-membership/,
+  'a stale saved selection must expose an explicit recovery action');
+assert.match(moduleSource, /removeItem\('MNTYActiveMembershipId'\);load\(\)/,
+  'membership selection is cleared only after the user explicitly chooses recovery');
 
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
