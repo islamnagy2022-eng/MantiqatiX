@@ -118,3 +118,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not verified:** validator has not been run locally in this session; published-site HTTP smoke, browser login/session, PWA offline behavior, tenant isolation, and production E2E are not certified by these source checks.
 - **Safety boundary:** no merge, no main push, no production deployment, no Supabase/database/auth/payment mutation.
 - **Next:** investigate stalled queued jobs / obtain CI conclusions; fix any reproduced failures, then verify the published Pages URLs after an authorized main deployment. Keep global release gate BLOCKED until P0 evidence is complete.
+
+
+## 2026-10-21 — CI completed for preview-navigation PR
+
+- **Observed:** PR #316 head `57d9c20c71dab78a01c8ff50ccf69acb1b3c7818` had successful GitHub Actions checks, including Pages workflow `validate` (run 39616640682) and the targeted backend-only, MantiGO privacy, financial-journal, targeted-ads search-path, matrimony privacy, and approval-action audit jobs. No checks remained pending in the fetched check-run snapshot.
+- **Deploy behavior:** Pages `deploy` was skipped on the `pull_request` event as intended by the main-only deployment guard. Therefore the post-deploy HTTP smoke checks for `/preview/` and `/preview/dashboard.html` were not executed for this PR.
+- **Live verification limit:** attempted to retrieve both published preview URLs in this session; the fetch tool returned cache-miss errors, which are inconclusive and are not recorded as a site failure or pass.
+- **Action performed:** updated item 10 in `docs/MASTER_PRODUCTION_TODO.md` to distinguish successful source CI from the still-unverified deployed-preview smoke and browser E2E.
+- **Not performed:** no merge, production deploy, main update, or production data/configuration mutation. Production gate remains BLOCKED / NOT CERTIFIED.
