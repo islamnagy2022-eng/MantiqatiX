@@ -2348,3 +2348,15 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Re-run the complete workflow suite against the final documentation commit and confirm every workflow conclusion.
 - [ ] Backend authorization and tenant-isolation integration tests with real Supabase/Postgres fixtures remain outstanding.
 - **Status:** the dedicated source-integrity job passed on the code commit above; release remains **BLOCKED / NOT CERTIFIED** until exact-head suite and live-like integration/security checks pass. No merge or manual production deployment performed.
+
+
+## 2026-10-21 — Branch authorization policy extraction and regression coverage
+
+- [x] Extracted branch-creation authorization into `supabase/functions/_shared/branch-authorization.mjs`; the Edge Function now calls the same policy exercised by runtime tests.
+- [x] Added runtime regression cases for exact-business scoping of OWNER/ADMIN/BUSINESS_OWNER/MANAGER, rejection of tenant-wide business-manager memberships, and rejection of unrelated business IDs.
+- [x] Added negative and positive tests for SUPER_ADMIN requiring both `scope=PLATFORM` and `full_control=true`; malformed membership collections and missing target IDs fail closed.
+- [x] Extended the dedicated CI workflow to run the new authorization tests and validate the shared policy contract. On commit `d601708de6586ced04b7787942c8beccc9e20453`, the dedicated workflow passed Deno type-check, runtime coordinate/authorization tests, and source-contract validation.
+- [x] Corrected the workflow pull-request base filter so it also runs for PRs targeting non-`main` branches, including the current stacked PR base.
+- [ ] The shared-policy tests verify policy logic but do not prove database membership-query correctness, live Supabase Auth behavior, tenant RLS, or actual Edge Function integration. Those remain separate required gates.
+- [ ] Run the dedicated workflow on the latest workflow-filter commit and verify all related CI conclusions before treating the new HEAD as fully validated.
+- Production remains **BLOCKED / NOT CERTIFIED**. No merge, live database mutation, or manual production deployment was performed.
