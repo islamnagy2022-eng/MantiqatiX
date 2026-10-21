@@ -222,7 +222,7 @@ function kitchenView(){
    const created=order.created_at?new Date(order.created_at):null;
    const elapsed=created&&Number.isFinite(created.getTime())?Math.max(0,Math.floor((Date.now()-created.getTime())/60000)):null;
    const waitLabel=elapsed===null?'مدة الانتظار غير متاحة':elapsed<60?elapsed+' دقيقة':Math.floor(elapsed/60)+' ساعة و'+(elapsed%60)+' دقيقة';
-   return '<article class="card"><div class="card-title">طلب '+esc(order.id)+'</div><p><b>العميل:</b> '+esc(order.customer_name||'—')+'</p><p><b>الأصناف:</b> '+esc(itemSummary)+'</p><p><b>وقت الطلب:</b> '+esc(created&&Number.isFinite(created.getTime())?created.toLocaleString('ar-EG'):'—')+'</p><p><b>مدة الانتظار حتى الآن:</b> '+esc(waitLabel)+'</p>'+action+'<button type="button" class="btn btn-outline" data-order-detail="'+esc(order.id)+'">تفاصيل الطلب</button></article>';
+   return '<article class="card"><div class="card-title">طلب '+esc(order.id)+'</div><p><b>العميل:</b> '+esc(order.customer_name||'—')+'</p><p><b>الأصناف:</b> '+esc(itemSummary)+'</p><p><b>وقت الطلب:</b> '+esc(created&&Number.isFinite(created.getTime())?created.toLocaleString('ar-EG'):'—')+'</p><p><b>مدة الانتظار وقت عرض الشاشة:</b> '+esc(waitLabel)+'</p>'+action+'<button type="button" class="btn btn-outline" data-order-detail="'+esc(order.id)+'">تفاصيل الطلب</button></article>';
   }).join(''):'<div class="empty-state">لا توجد طلبات في هذه المرحلة ضمن البيانات المحمّلة.</div>';
   return '<section class="card"><div class="workspace-head"><h3>'+stage.title+'</h3><span class="badge">'+counts[stage.status]+'</span></div><div class="cards">'+body+'</div></section>';
  }).join('');
