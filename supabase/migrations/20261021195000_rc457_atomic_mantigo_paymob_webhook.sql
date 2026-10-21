@@ -88,7 +88,7 @@ begin
     id, tenant_id, provider, event_type, payment_intent_id,
     external_event_id, status, signature_verified, raw_payload, processed_at
   ) values (
-    gen_random_uuid(), 'MNTY-PLATFORM', 'PAYMOB', 'MANTIGO_RIDE_PAYMENT',
+    gen_random_uuid()::text, 'MNTY-PLATFORM', 'PAYMOB', 'MANTIGO_RIDE_PAYMENT',
     v_ledger.id, p_external_event_id, p_status, true,
     coalesce(p_raw_payload, '{}'::jsonb), now()
   );
