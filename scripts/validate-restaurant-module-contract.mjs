@@ -125,4 +125,13 @@ assert.match(moduleSource, /document\.removeEventListener\('keydown',onKey\)/, '
 assert.match(moduleSource, /o\._close=\(\)=>close\(false\)/, 'successful saves must close dialogs through the cleanup path');
 assert.match(moduleSource, /o\._close\(\);resolve\(\{item,quantity,customerName,customerPhone,deliveryAddress,notes\}\);\s*\},\(\)=>resolve\(null\)\)/, 'canceling order details must resolve the pending order flow without leaving a stuck promise');
 
+// Order detail disclosure must render only escaped server-returned values and be keyboard/screen-reader discoverable.
+assert.match(moduleSource, /data-order-details=/, 'order rows must expose a detail disclosure control');
+assert.match(moduleSource, /aria-expanded="false"/, 'order detail disclosure must expose its initial expanded state');
+assert.match(moduleSource, /data-order-details.*?b\.setAttribute\('aria-expanded',String\(opening\)\)/s, 'order detail disclosure must keep aria-expanded synchronized');
+assert.match(moduleSource, /esc\(x\.customer_phone\|\|'غير مسجل'\)/, 'order details must HTML-escape customer phone data');
+assert.match(moduleSource, /esc\(x\.delivery_address\|\|'غير مسجل'\)/, 'order details must HTML-escape delivery address data');
+assert.match(moduleSource, /esc\(typeof x\.items_json==='string'\?x\.items_json:JSON\.stringify\(x\.items_json\|\|\[\],null,2\)\)/, 'order item snapshot must be escaped before HTML rendering');
+assert.match(moduleSource, /<td colspan="7">'\+details\+'<\/td>/, 'order detail content must remain inside the corresponding hidden table row');
+
 console.log('Restaurant module contract PASS');
