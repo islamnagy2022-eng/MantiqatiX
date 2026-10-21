@@ -133,5 +133,5 @@ begin
 end;
 $function$;
 
-revoke all on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) from public, anon;
-grant execute on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) to authenticated, service_role;
+revoke all on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) from public, anon, service_role;
+grant execute on function public.update_order_status_backend(uuid,character varying,uuid,character varying,text) to authenticated;
