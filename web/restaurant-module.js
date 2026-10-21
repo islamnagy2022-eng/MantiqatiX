@@ -31,9 +31,17 @@ async function membership(user){
    return {membership:selected.data||null,options:[],stale:!selected.data,error:selected.error||null};
  }
  // When more than one active membership exists, require an explicit user choice.
- const r=await base().limit(20);
- const options=r.data||[];
- return {membership:options.length===1?options[0]:null,options,needsSelection:options.length>1,stale:false,error:r.error||null};
+ const options=[];
+ const pageSize=100;
+ const maxMemberships=500;
+ for(let from=0;from<maxMemberships;from+=pageSize){
+   const r=await base().order('id').range(from,from+pageSize-1);
+   if(r.error)return {membership:null,options:[],needsSelection:false,stale:false,error:r.error};
+   options.push(...(r.data||[]));
+   if(!r.data||r.data.length<pageSize)break;
+ }
+ if(options.length>=maxMemberships)return {membership:null,options:[],needsSelection:false,stale:false,error:new Error('Membership selection exceeds the supported safety limit')};
+ return {membership:options.length===1?options[0]:null,options,needsSelection:options.length>1,stale:false,error:null};
 }
 function canOperate(module='CATALOG',action='update'){
  const role=String(state.membership?.role||'').toUpperCase();
