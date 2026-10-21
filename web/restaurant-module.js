@@ -53,6 +53,8 @@ async function load(){
  state.membership=result.membership;
  if(!state.membership){state.staleMembershipSelection=result.stale===true;state.error=state.selectionRequired?null:(state.staleMembershipSelection?'العضوية المحفوظة لم تعد متاحة. امسح الاختيار المحفوظ لإعادة اختيار عضوية نشطة.':'لا توجد عضوية تشغيلية نشطة.');return render();}
  state.staleMembershipSelection=false;state.selectionRequired=false;
+ const selectedScope=scope();
+ if(!selectedScope){state.membership=null;state.error='بيانات نطاق المؤسسة أو النشاط أو الفرع غير مكتملة. تواصل مع مسؤول النظام لتصحيح العضوية.';state.loading=false;return render();}
  }catch(e){state.error='تعذر التحقق من جلسة المستخدم أو عضوياته. حاول إعادة تحميل الصفحة.';state.loading=false;return render();}
  state.error=null; state.loading=true; render();
  const s=scope();
