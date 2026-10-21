@@ -231,4 +231,14 @@ assert.match(bidSubmit, /!Number\\.isInteger\\(eta\\)\\|\\|eta<0\\|\\|eta>1440/,
 assert.match(bidSubmit, /message.length>500/, "captain bid message length must be bounded in the client");
 assert.match(bidSubmit, /setStatus\('أكمل موديل المركبة ورقم اللوحة قبل إرسال العرض\.',true\)/, "captain bid validation errors must provide clear Arabic feedback");
 
+// Rebinding a workspace after inserting a nested form must not stack duplicate listeners.
+assert.match(source, /function listenOnce\(element,key,event,handler\)/, "workspace event binding must have a one-time listener helper");
+assert.match(source, /opSaveLeadBound/, "marketing lead save must be bound at most once per rendered control");
+assert.match(source, /opLeadSearchBound/, "marketing lead search must not accumulate duplicate input handlers");
+assert.match(source, /liveSearchBound==='true'/, "live table search must guard against duplicate event handlers");
+assert.match(source, /liveClearBound==='true'/, "live table clear controls must guard against duplicate event handlers");
+assert.match(source, /jobSubmitBound==='true'/, "job application forms must not submit multiple times from duplicate listeners");
+assert.match(source, /eduSubmitBound==='true'/, "education request forms must not accumulate submit handlers");
+assert.match(source, /medicalSubmitBound==='true'/, "medical booking forms must not accumulate submit handlers");
+
 console.log("Marketing lead form validation contract PASS.");
