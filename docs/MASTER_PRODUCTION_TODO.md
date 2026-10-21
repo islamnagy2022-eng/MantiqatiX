@@ -2309,3 +2309,12 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Verify all calling clients handle the stable error codes and that observability remains sufficient without exposing internal schema details.
 - [ ] Run isolated integration tests for authorization denial, invalid tenant/business IDs, database constraint failures, and successful branch/catalog operations.
 - **Status:** source changes and static guards committed; exact-head CI and runtime integration verification pending. No Edge Function deployment was performed by this change.
+
+## Branch authorization and input-boundary hardening (2026-10-21)
+- [x] Validate tenant and business identifiers as UUIDs before interpolating them into the membership query filter.
+- [x] Derive branch `organization_id` exclusively from the authorized business row; ignore caller-supplied organization scope.
+- [x] Bound branch name, phone, and address lengths; reject invalid, out-of-range, or partial coordinates.
+- [x] Extend the branch source-contract test to assert tenant/business scoping, organization derivation, bounds, and normalized database errors.
+- [ ] Run Deno type/lint checks and isolated integration tests with a real authorized membership, cross-tenant IDs, cross-organization override attempts, and invalid coordinates.
+- [ ] Confirm live Edge Function source parity before any deployment; do not deploy based on repository tests alone.
+- **Status:** source hardening and static assertions committed; exact-head CI and runtime authorization tests pending. Release gate remains BLOCKED / NOT CERTIFIED.
