@@ -389,3 +389,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 follow-up completed: `genericLiveView(d)` now differentiates backend-only tables and read failures from genuine empty datasets. Added a source-contract assertion. Corrected the stale request-size assertion to match the bounded stream reader. Source review checks are not a substitute for running the Node validator/CI; exact-head runtime verification remains pending.
+
+
+- 2026-10-21 strict input follow-up: the marketing lead API now rejects non-string `service_area` values instead of treating them as blank. Added a source-contract assertion and updated the production TODO/continuity notes. The Node validator and CI still need actual execution at the latest head.
