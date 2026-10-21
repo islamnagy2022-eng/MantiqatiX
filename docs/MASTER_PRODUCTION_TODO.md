@@ -2110,3 +2110,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 حالة الإصدار تظل **BLOCKED / NOT CERTIFIED** إلى أن تعمل الاختبارات المطلوبة فعليًا، وتُراجع نتائج CI، وتُختبر المصادقة والصلاحيات وعزل المستأجر والدفع والويب هوك والاستعادة من النسخ الاحتياطية في بيئة مناسبة. لا تُعد هذه الدفعة اعتمادًا للإطلاق.
 
+
+## 2026-10-21 — MantiGO open-rides UI resilience
+- **Implemented:** the MantiGO open-rides tab now disables the clicked control while its RPC is pending and exposes `aria-busy`.
+- **Implemented:** RPC errors and thrown network exceptions are represented as a failed read (`loadErrors.mantigo_open`), not as a legitimate empty list; the existing UI can show the retry/error state.
+- **Implemented:** stale responses are discarded if the module or tab changes before the request completes, and the control is restored in `finally`.
+- **Regression coverage added:** `scripts/validate-marketing-lead-form.mjs` asserts busy-state handling, safe network failure state, stale-response rejection, and control recovery.
+- **Verification status:** source-level assertions were checked against the current branch content in this session. GitHub Actions has not reported any workflow run or commit status for the latest commit; do not claim CI/runtime/E2E passed until those checks actually run.
+- **Still blocked for release:** the known MantiGO Paymob webhook partial-failure/idempotency case remains unresolved: a provider-event insert can succeed while the ledger update fails, and a retry can short-circuit on the existing event. Requires atomic server-side transaction/RPC plus regression tests before production certification.
