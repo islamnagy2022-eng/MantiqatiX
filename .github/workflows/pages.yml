@@ -204,7 +204,7 @@ jobs:
           PREVIEW_DASHBOARD="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/dashboard.html")"
           grep -Fq "window.location.replace('dashboard.html')" <<<"$PREVIEW_ENTRY"
           grep -Fq 'dashboard.html' <<<"$PREVIEW_ENTRY"
-          grep -Fq 'مركز تجربة جميع الموديولات' <<<"$PREVIEW_DASHBOARD"
+          grep -Fq 'كل موديولات MantiqatiX' <<<"$PREVIEW_DASHBOARD"
           grep -Fq 'وضع تجريبي فقط' <<<"$PREVIEW_ENTRY"
           grep -Fq 'digital-page.js' <<<"$DIGITAL_PAGE_HTML"
           grep -Fq 'digital-page.css' <<<"$DIGITAL_PAGE_HTML"
