@@ -446,6 +446,9 @@ async function addReservation(){
   if(customerPhone&&!/^[+0-9()\-\s]{7,20}$/.test(customerPhone))return notify('أدخل رقم هاتف صحيحًا.','error');
   if(!Number.isInteger(guestCount)||guestCount<1||guestCount>Number(table.capacity_persons))return notify('عدد الأفراد يجب ألا يتجاوز سعة الطاولة ('+table.capacity_persons+').','error');
   if(!startValue||!endValue||!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<=start)return notify('تحقق من وقت بداية الحجز ونهايته.','error');
+  const now=Date.now();
+  if(start.getTime()<now-5*60*1000||start.getTime()>now+180*24*60*60*1000||end.getTime()-start.getTime()>8*60*60*1000)return notify('موعد الحجز يجب أن يكون خلال الـ180 يومًا القادمة، وألا تتجاوز مدة الحجز 8 ساعات.','error');
+  if(notes.length>1000)return notify('الملاحظات يجب ألا تتجاوز 1000 حرف.','error');
   let startsAt,endsAt;try{startsAt=start.toISOString();endsAt=end.toISOString()}catch(e){return notify('وقت الحجز غير صالح.','error');}
   const {data,error}=await sb.rpc('restaurant_reservation_mutate',{p_action:'CREATE',p_payload:{tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,table_id:tableId,customer_name:customerName,customer_phone:customerPhone,guest_count:guestCount,starts_at:startsAt,ends_at:endsAt,notes,idempotency_key:key}});
   if(error){notify('تعذر إنشاء الحجز. قد تكون الطاولة محجوزة في هذا الوقت أو أن بيانات الحجز غير صحيحة.','error');return;}
