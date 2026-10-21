@@ -128,3 +128,7 @@ assert.match(source, /data-live-page=/, "paginated tables must expose previous/n
 assert.match(source, /data-live-table=/, "pagination controls must be bound to their own table");
 assert.match(source, /aria-label="التنقل بين صفحات السجلات"/, "pagination navigation must have an accessible Arabic label");
 assert.match(source, /\[data-live-page\]/, "pagination controls must be wired to update the visible table");
+
+assert.match(source, /const labels=\{overview:'نظرة عامة'[\s\S]*?appointments:'المواعيد'\}/, "module tabs must provide Arabic labels for all shared navigation categories");
+assert.match(source, /aria-label="أقسام الوحدة"/, "module navigation must expose an accessible Arabic label");
+assert.match(source, /aria-current="[\s\S]*?labels\[x\]\|\|'عرض البيانات'/, "module tabs must expose current navigation state and avoid raw English tab keys");
