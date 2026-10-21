@@ -2009,3 +2009,5 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - No database, migrations, production data, Auth settings, Edge Function deployment, payments, merge, or release was changed. Production remains **BLOCKED / NOT CERTIFIED**.
 
 - [x] Follow-up: removed the raw `data.error` display from the MantiGO electronic-payment intent response; payment failures now show safe guidance. Added two regression assertions for this path.
+
+- [x] Follow-up: wrapped MantiGO payment-intent initiation in controlled network/session error handling; ambiguous outcomes explicitly advise checking ride/payment state before retry. Added a source-contract assertion.
