@@ -850,3 +850,10 @@ The marketing lead Edge Function now rejects a non-string `service_area` value w
 ## 2026-10-21 — safe field-specific lead errors
 
 The marketing lead form now maps `invalid_title`, `invalid_description`, and `invalid_service_area` to explicit Arabic guidance without exposing raw backend errors. Added source-contract assertions. Exact-head CI, actual Node validator execution, browser E2E, and authorization/RLS verification remain pending. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-21 — safe module error feedback batch
+- Working branch: `feat/module-safe-error-feedback-20261021`, based on the marketing lead validation branch head `526edf2270b7717335a718e02bbe5f65532f1473`.
+- Updated `web/operations-modules.js` to replace 11 direct raw backend error-message displays in ride creation, bids, captain actions, ride status/payment/rating, medical booking, education requests, and job applications with safe Arabic guidance.
+- Extended `scripts/validate-marketing-lead-form.mjs` with five source-contract assertions preventing raw backend error leakage and checking safe messages. The existing Pages workflow already invokes this validator.
+- These are source changes only. Exact-head Actions, JavaScript runtime, browser accessibility, role authorization, and multi-tenant E2E have not yet been verified. No production mutation/deployment or merge occurred; release remains **BLOCKED / NOT CERTIFIED**.
