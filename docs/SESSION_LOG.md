@@ -412,3 +412,12 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - **Payment flow follow-up:** Wrapped MantiGO payment-intent initiation in controlled session/network failure handling and added a source-contract assertion. Ambiguous failures explicitly tell the user to check ride/payment status before retrying; no payment was initiated. CI and browser/payment E2E remain unverified.
 
 - **2026-10-21 payment persistence race guard:** `mantigo-payment-intent` now checks that its exact Paymob intent was persisted to an eligible ledger row with no prior provider intent before returning a checkout URL. If a concurrent request changes the row, it returns a safe 409 code rather than implying checkout is ready. Added source-contract assertions. This narrows a state-conflict bug but does not prove end-to-end idempotency; provider intent creation can still leave an orphan if competing requests reach Paymob concurrently. No payment/deployment occurred; CI, Edge runtime, and payment E2E remain unverified.
+
+
+## 2026-10-21 — UI-first job application form
+- Replaced blocking browser prompts in the Jobs module with an inline form attached to each active job card.
+- Added accessible expand/collapse semantics, required bounded fields, live status feedback, submit-button lockout, and safe error/uncertain-outcome messages.
+- Preserved the existing submit_job_application_backend RPC; no new business tables or client-side authority were introduced.
+- Added source-contract assertions to scripts/validate-marketing-lead-form.mjs.
+- Static source assertions were reviewed, but the Node validator has not been executed and GitHub Actions returned no workflow runs/statuses for the latest commit. Browser E2E and authorization tests remain pending.
+- No deployment, merge, production mutation, payment, or release occurred. Production remains **BLOCKED / NOT CERTIFIED**.
