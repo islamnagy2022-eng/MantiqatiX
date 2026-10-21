@@ -789,3 +789,5 @@ The UI/search changes are committed to the working branch, but no exact-head CI 
 - Additional reliability guard: the UI now reports success only when the backend explicitly returns `ok: true` and a created lead ID. Unknown/malformed responses show a safe uncertainty message, and raw backend error text is no longer exposed to the user. Static source-contract checks were extended; CI/browser E2E still unverified.
 
 - Marketing list reliability: query failures for `marketing_leads` are now tracked separately and rendered as an explicit alert instead of showing an empty-state table that could be mistaken for zero requests. Static validator updated; CI/browser E2E remain unverified.
+
+- Lead-list presentation: the marketing requests table now shows requested services, the full min–max budget range, service area, status, and a localized request date. Static source-contract checks cover the added fields. Exact-head CI and browser E2E remain unverified.
