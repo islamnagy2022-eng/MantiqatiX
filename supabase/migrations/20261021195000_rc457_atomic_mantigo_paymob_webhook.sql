@@ -43,6 +43,9 @@ begin
   if v_ledger.provider is distinct from 'PAYMOB' then
     raise exception 'MANTIGO_PROVIDER_MISMATCH';
   end if;
+  if coalesce(p_raw_payload #>> '{obj,order,merchant_order_id}', p_raw_payload #>> '{order,merchant_order_id}') is distinct from v_ledger.id then
+    raise exception 'MANTIGO_MERCHANT_REFERENCE_MISMATCH';
+  end if;
   if abs(v_ledger.gross_amount - p_amount) > 0.01
      or upper(v_ledger.currency) <> upper(p_currency) then
     raise exception 'MANTIGO_AMOUNT_CURRENCY_MISMATCH';
@@ -54,7 +57,7 @@ begin
   for update;
 
   if found then
-    if v_event.payment_intent_id is distinct from v_ledger.id
+    if coalesce(v_event.raw_payload #>> '{obj,order,merchant_order_id}', v_event.raw_payload #>> '{order,merchant_order_id}') is distinct from v_ledger.id
        or v_event.event_type is distinct from 'MANTIGO_RIDE_PAYMENT'
        or v_event.signature_verified is distinct from true
        or v_event.status is null or v_event.status not in ('PAID', 'FAILED') then
@@ -89,7 +92,7 @@ begin
     external_event_id, status, signature_verified, raw_payload, processed_at
   ) values (
     gen_random_uuid()::text, 'MNTY-PLATFORM', 'PAYMOB', 'MANTIGO_RIDE_PAYMENT',
-    v_ledger.id, p_external_event_id, p_status, true,
+    null, p_external_event_id, p_status, true,
     coalesce(p_raw_payload, '{}'::jsonb), now()
   );
 
