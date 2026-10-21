@@ -20,12 +20,23 @@ create table public.mantigo_financial_ledger (
   updated_at timestamptz not null default now()
 );
 
+create table public.tenants (
+  id varchar primary key,
+  code varchar not null,
+  status varchar not null default 'ACTIVE'
+);
+insert into public.tenants(id,code,status) values('MNTY-PLATFORM','MNTY','ACTIVE');
+
+create table public.payment_intents (
+  id varchar primary key
+);
+
 create table public.payment_provider_events (
   id varchar primary key,
-  tenant_id text not null,
+  tenant_id varchar not null references public.tenants(id) on delete restrict,
   provider text not null,
   event_type text not null,
-  payment_intent_id text not null,
+  payment_intent_id varchar references public.payment_intents(id) on delete set null,
   external_event_id text not null,
   status text,
   signature_verified boolean not null default false,
