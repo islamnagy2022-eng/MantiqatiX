@@ -449,3 +449,9 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Corrected stale validator assertions and pointed payment-intent source checks to `supabase/functions/mantigo-payment-intent/index.ts`; the validator now reports PASS only after all assertions finish.
 - Exact-head Actions run `39547998299` passed, including production verification engine and syntax/source-contract checks, at commit `8f1d1bfe7fbf466d652a4241cd83f4b6d1974d9b`.
 - Remaining NOT VERIFIED: browser/mobile E2E, real authorization/tenant isolation tests, and MantiGO webhook partial-failure recovery. PR #314 remains draft/open; production release gate remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — fail-closed user-owned history UI
+- Job applications are now blocked when prior application history cannot be verified; this prevents read failures from presenting the user as a non-applicant.
+- Education request history and medical appointment history display explicit load-error states rather than false empty states.
+- Added source-contract checks. Exact-head Actions run `39548130257` passed at code commit `0850017fab111e44cb8c4d45cf59a7bb43be5b0e` (production verification, syntax and validator checks).
+- Browser/mobile E2E and server authorization/duplicate-submission tests are still NOT VERIFIED. The MantiGO webhook partial-failure recovery issue remains a release blocker.
