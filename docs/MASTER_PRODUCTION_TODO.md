@@ -1947,3 +1947,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Prevent duplicate submission while `marketing-lead-create` is pending.
 - [x] Add `scripts/validate-marketing-lead-form.mjs` and wire it into Pages CI.
 - [ ] Exact-head CI result pending; browser E2E, backend authorization and tenant-isolation verification remain open.
+
+
+### Marketing lead form — backend contract alignment
+
+- [x] Align client budget validation with the existing backend budget boundary.
+- [x] Capture requested services and send `required_services` with backend-aligned limits.
+- [x] Extend the source-contract validator.
+- [ ] Exact-head CI, browser E2E, and authenticated tenant/business scope remain to be verified.
