@@ -875,3 +875,5 @@ The MantiGO payment-intent Edge Function no longer assumes a conditional ledger 
 - Source-contract assertions were added. Static checks were reviewed in-session, but the Node validator, exact-head CI, browser E2E, and server-side duplicate/authorization cases are not verified; the latest connector check returned no workflow runs/statuses.
 - Next UI-first slice: continue replacing prompt-based workflows with accessible forms in education and medical booking, then inventory remaining module pages and navigation gaps. Do not expand accounting/subscription billing before the module UI pass.
 - Keep release state **BLOCKED / NOT CERTIFIED**; no deployment, merge, production mutation, or payment occurred.
+
+- Latest follow-up: education school/teacher request flows now use accessible inline forms instead of prompts, retaining the existing backend RPC and bounded required fields. Source-contract assertions were added; validator/CI/browser and authorization checks remain NOT VERIFIED.
