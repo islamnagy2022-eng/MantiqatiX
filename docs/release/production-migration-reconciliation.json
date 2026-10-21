@@ -30,5 +30,59 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "latest_read_only_live_check": {
+    "checked_at": "2026-10-21",
+    "status": "BLOCKED",
+    "read_only": true,
+    "live_migration_ledger": {
+      "count": 283,
+      "last_version": "20261008222845",
+      "last_name": "rc424_atomic_digital_page_payment_webhook",
+      "rc449_applied": false,
+      "rc451_applied": false
+    },
+    "platform_admin_rpcs": {
+      "signatures": [
+        "get_mantigo_admin_dashboard_backend(uuid)",
+        "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
+        "settle_mantigo_captain_backend(uuid,text,text)",
+        "expire_stale_mantigo_rides_backend(uuid,integer)"
+      ],
+      "security_definer": true,
+      "authenticated_execute": true,
+      "anon_execute": false,
+      "search_path": "public",
+      "mnty_can_platform_admin_guard_present": false
+    },
+    "targeted_ads_rpc": {
+      "signature": "get_mnty_targeted_advertisements(varchar,varchar,varchar,double precision,double precision,varchar,integer)",
+      "security_definer": true,
+      "anon_execute": true,
+      "authenticated_execute": true,
+      "search_path": "public, pg_temp",
+      "rc451_source_hardens_search_path": true,
+      "review_note": "Anonymous ad discovery may be intentional; do not revoke execution blindly."
+    },
+    "business_branch_admin": {
+      "status": "ACTIVE",
+      "version": 5,
+      "source_parity": "FAIL",
+      "findings": [
+        "no streamed request-body cap",
+        "weaker bearer parsing",
+        "caller-supplied organization_id",
+        "unchecked coordinate coercion",
+        "raw database error disclosure"
+      ]
+    },
+    "security_advisor": {
+      "rls_enabled_without_policy": 1,
+      "anon_executable_security_definer": 1,
+      "authenticated_executable_security_definer": 40
+    },
+    "production_changes_made": false,
+    "evidence": "Read-only Supabase MCP queries executed during continuation; function definitions, effective execute grants, migration ledger, and advisor findings checked directly.",
+    "next_gate": "Full chronological migration reconciliation and disposable PostgreSQL replay; tenant-isolation and payment/finance E2E; backup/restore rehearsal; Auth settings review; Edge Function parity; explicit rollout approval."
+  }
 }
