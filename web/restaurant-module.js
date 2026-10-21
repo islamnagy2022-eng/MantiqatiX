@@ -105,12 +105,16 @@ function shell(title,body){
 }
 function cards(){
  const low=state.inventory.filter(x=>Number(x.current_stock_qty)<=Number(x.min_stock_alert_threshold)).length;
+ const billable=state.orders.filter(x=>String(x.status||'').toUpperCase()!=='CANCELLED');
+ const average=billable.length?billable.reduce((sum,x)=>sum+Number((x.total_amount??x.total)||0),0)/billable.length:0;
+ const statuses=['CONFIRMED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
  return '<div class="cards">'+
  '<article class="card"><div class="card-title">🍽️ عناصر القائمة</div><div class="metric">'+state.menu.length+'</div><div class="muted">السجلات المتاحة ضمن نطاق العرض</div></article>'+
  '<article class="card"><div class="card-title">🧾 الطلبات</div><div class="metric">'+state.orders.length+'</div><div class="muted">آخر 100 طلب</div></article>'+
  '<article class="card"><div class="card-title">🪑 الطاولات</div><div class="metric">'+state.tables.length+'</div><div class="muted">حالة الطاولات الحالية</div></article>'+
  '<article class="card"><div class="card-title">📦 المخزون</div><div class="metric">'+state.inventory.length+'</div><div class="muted">'+low+' أصناف عند حد التنبيه</div></article>'+
- '</div>';
+ '<article class="card"><div class="card-title">متوسط قيمة الطلب</div><div class="metric">'+money(average)+'</div><div class="muted">للطلبات غير الملغاة ضمن آخر 100 طلب؛ ليس تقرير مبيعات محاسبيًا</div></article>'+
+ '</div><div class="card" style="margin-top:16px"><div class="card-title">توزيع الطلبات حسب الحالة</div><div class="action-bar" style="gap:8px;flex-wrap:wrap">'+statuses.map(status=>'<span class="badge">'+status+': '+state.orders.filter(x=>String(x.status||'').toUpperCase()===status).length+'</span>').join('')+'</div></div>';
 }
 function tabs(){
  return '<div class="action-bar" style="gap:8px;flex-wrap:wrap">'+['dashboard','menu','orders','tables','inventory'].map(x=>{
