@@ -2270,11 +2270,12 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
     gso.innerHTML='<div class="mx-global-search-empty mx-global-search-empty--error" role="status" aria-live="polite">تعذر إكمال البحث الآن. تحقق من الاتصال ثم حاول مرة أخرى.</div>';
   }
 };
- gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280)});
+ gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280);window.__MNTYGlobalSearchTimer=globalSearchTimer});
  gsi?.addEventListener('keydown',e=>{
    if(e.key==='Escape'){
      globalSearchSeq++;
      clearTimeout(globalSearchTimer);
+     window.__MNTYGlobalSearchTimer=null;
      gsi.value='';
      gso.innerHTML='';
      gso.classList.remove('is-open');
@@ -2286,6 +2287,8 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
    document.documentElement.dataset.mxGlobalSearchOutsideBound='true';
    document.addEventListener('click',e=>{
      if(e.target instanceof Element&&e.target.closest('.mx-global-search-wrap'))return;
+     clearTimeout(window.__MNTYGlobalSearchTimer);
+     window.__MNTYGlobalSearchTimer=null;
      document.querySelectorAll('.mx-global-search-results.is-open').forEach(el=>el.classList.remove('is-open'));
      document.querySelectorAll('#mx-global-search-input[aria-expanded="true"]').forEach(el=>el.setAttribute('aria-expanded','false'));
    });
