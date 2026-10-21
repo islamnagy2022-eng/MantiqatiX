@@ -291,6 +291,68 @@ async function viewInventoryMovements(existing){
  const body='<p class="muted">آخر 50 حركة للصنف '+esc(existing.name_ar)+'. الرصيد الحالي: '+esc(existing.current_stock_qty)+' '+esc(existing.unit)+'</p><div class="table-wrap"><table><thead><tr><th>النوع</th><th>الكمية</th><th>تكلفة الوحدة</th><th>الملاحظات</th><th>التاريخ</th></tr></thead><tbody>'+(rows.length?rows.map(x=>'<tr><td>'+esc(x.movement_type)+'</td><td>'+esc(x.quantity)+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.notes||'—')+'</td><td>'+esc(new Date(x.created_at).toLocaleString('ar-EG'))+'</td></tr>').join(''):'<tr><td colspan="5">لا توجد حركات مسجلة لهذا الصنف بعد.</td></tr>')+'</tbody></table></div>';
  modal('سجل حركات المخزون',body);
 }
+function localDateTime(hoursFromNow){
+ const d=new Date(Date.now()+hoursFromNow*3600000-dummyTimezoneOffset());
+ return d.toISOString().slice(0,16);
+}
+function dummyTimezoneOffset(){return new Date().getTimezoneOffset()*60000;}
+function reservationsView(){
+ const add=canOperate('OPERATIONS','create')&&state.tables.length
+  ?'<button class="btn btn-primary" id="rest-add-reservation">+ حجز جديد</button>':'';
+ const rows=state.reservations.length?state.reservations.map(r=>{
+  const table=state.tables.find(t=>String(t.id)===String(r.table_id));
+  const canChange=canOperate('OPERATIONS','update');
+  const actions=[];
+  if(canChange&&r.status==='PENDING')actions.push('<button class="linkbtn" data-reservation-action="CONFIRM" data-reservation-id="'+esc(r.id)+'">تأكيد</button>');
+  if(canChange&&r.status==='CONFIRMED')actions.push('<button class="linkbtn" data-reservation-action="SEAT" data-reservation-id="'+esc(r.id)+'">تم التسكين</button>');
+  if(canChange&&['PENDING','CONFIRMED'].includes(r.status))actions.push('<button class="linkbtn" data-reservation-cancel="'+esc(r.id)+'">إلغاء</button><button class="linkbtn" data-reservation-action="NO_SHOW" data-reservation-id="'+esc(r.id)+'">لم يحضر</button>');
+  return '<tr><td>'+esc(table?'طاولة '+table.table_number:r.table_id)+'</td><td>'+esc(r.customer_name)+'<div class="muted">'+esc(r.customer_phone||'—')+'</div></td><td>'+esc(r.guest_count)+'</td><td>'+esc(new Date(r.starts_at).toLocaleString('ar-EG'))+'</td><td>'+esc(new Date(r.ends_at).toLocaleString('ar-EG'))+'</td><td>'+esc(r.status)+'</td><td>'+esc(r.notes||'—')+'</td><td>'+ (actions.join(' ')||'—')+'</td></tr>';
+ }).join(''):'<tr><td colspan="8">لا توجد حجوزات مسجلة لهذا الفرع بعد.</td></tr>';
+ return shell('حجوزات المطعم',tabs()+'<div class="action-bar">'+add+'</div><div class="notice">يتم منع تداخل حجوزات الطاولة على مستوى قاعدة البيانات مع التحقق من السعة ونطاق الفرع.</div><div class="table-wrap"><table><thead><tr><th>الطاولة</th><th>العميل</th><th>الأفراد</th><th>من</th><th>إلى</th><th>الحالة</th><th>ملاحظات</th><th>إجراءات</th></tr></thead><tbody>'+rows+'</tbody></table></div>');
+}
+async function addReservation(){
+ if(!canOperate('OPERATIONS','create'))return notify('ليس لديك صلاحية إنشاء الحجوزات.','error');
+ if(!state.tables.length)return notify('أضف طاولة نشطة قبل إنشاء الحجز.','error');
+ const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ const options=state.tables.map(t=>'<option value="'+esc(t.id)+'">طاولة '+esc(t.table_number)+' — سعة '+esc(t.capacity_persons)+'</option>').join('');
+ const key='MNTY-REST-RES-'+uid();
+ modal('حجز مطعم جديد','<label class="field"><span>الطاولة</span><select id="res-table" required>'+options+'</select></label>'+field('res-name','اسم العميل','','text','maxlength="120" required autocomplete="name"')+field('res-phone','رقم الهاتف','','tel','maxlength="20" autocomplete="tel"')+field('res-guests','عدد الأفراد','2','number','min="1" max="100" step="1" required')+field('res-start','وقت البداية',localDateTime(2),'datetime-local','required')+field('res-end','وقت النهاية',localDateTime(3),'datetime-local','required')+'<label class="field"><span>ملاحظات</span><textarea id="res-notes" rows="3" maxlength="1000"></textarea></label><button class="btn btn-primary" data-save>حفظ الحجز</button>',async o=>{
+  const tableId=o.querySelector('#res-table').value;
+  const customerName=o.querySelector('#res-name').value.trim();
+  const customerPhone=o.querySelector('#res-phone').value.trim();
+  const guestCount=Number(o.querySelector('#res-guests').value);
+  const startValue=o.querySelector('#res-start').value;
+  const endValue=o.querySelector('#res-end').value;
+  const notes=o.querySelector('#res-notes').value.trim();
+  const table=state.tables.find(t=>String(t.id)===String(tableId));
+  const start=new Date(startValue),end=new Date(endValue);
+  if(!table||!customerName||customerName.length>120)return notify('تحقق من الطاولة واسم العميل.','error');
+  if(customerPhone&&!/^[+0-9()\-\s]{7,20}$/.test(customerPhone))return notify('أدخل رقم هاتف صحيحًا.','error');
+  if(!Number.isInteger(guestCount)||guestCount<1||guestCount>Number(table.capacity_persons))return notify('عدد الأفراد يجب ألا يتجاوز سعة الطاولة ('+table.capacity_persons+').','error');
+  if(!startValue||!endValue||!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<=start)return notify('تحقق من وقت بداية الحجز ونهايته.','error');
+  let startsAt,endsAt;try{startsAt=start.toISOString();endsAt=end.toISOString()}catch(e){return notify('وقت الحجز غير صالح.','error');}
+  const {data,error}=await sb.rpc('restaurant_reservation_mutate',{p_action:'CREATE',p_payload:{tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,table_id:tableId,customer_name:customerName,customer_phone:customerPhone,guest_count:guestCount,starts_at:startsAt,ends_at:endsAt,notes,idempotency_key:key}});
+  if(error){notify('تعذر إنشاء الحجز. قد تكون الطاولة محجوزة في هذا الوقت أو أن بيانات الحجز غير صحيحة.','error');return;}
+  o._close();notify('تم حفظ الحجز بنجاح.');await load();
+ });
+}
+async function setReservationAction(id,action){
+ if(!canOperate('OPERATIONS','update'))return notify('ليس لديك صلاحية تعديل الحجوزات.','error');
+ const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ const labels={CONFIRM:'تأكيد الحجز',SEAT:'تسجيل حضور العميل',NO_SHOW:'تسجيل عدم الحضور'};
+ if(!window.confirm((labels[action]||'تحديث الحجز')+'؟'))return;
+ const {error}=await sb.rpc('restaurant_reservation_mutate',{p_action:action,p_payload:{tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,reservation_id:id}});
+ if(error)return notify('تعذر تحديث حالة الحجز. تحقق من الحالة والصلاحيات.','error');
+ notify('تم تحديث حالة الحجز.');await load();
+}
+async function cancelReservation(id){
+ if(!canOperate('OPERATIONS','update'))return notify('ليس لديك صلاحية إلغاء الحجوزات.','error');
+ const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ if(!window.confirm('هل تريد إلغاء هذا الحجز؟'))return;
+ const {error}=await sb.rpc('restaurant_reservation_mutate',{p_action:'CANCEL',p_payload:{tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,reservation_id:id}});
+ if(error)return notify('تعذر إلغاء الحجز. قد يكون الحجز قد تم تسكينه أو تغيرت حالته.','error');
+ notify('تم إلغاء الحجز.');await load();
+}
 async function updateOrder(id,status){
  if(!canOperate('ORDERS','update'))return;
  const m=scope(); if(!m)return notify('لا يوجد نطاق نشاط/فرع نشط.');
@@ -310,6 +372,7 @@ function bind(){
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
   document.getElementById('rest-add-reservation')?.addEventListener('click',()=>addReservation());
   document.querySelectorAll('[data-reservation-cancel]').forEach(b=>b.addEventListener('click',()=>cancelReservation(b.dataset.reservationCancel)));
+  document.querySelectorAll('[data-reservation-action]').forEach(b=>b.addEventListener('click',()=>setReservationAction(b.dataset.reservationId,b.dataset.reservationAction)));
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
