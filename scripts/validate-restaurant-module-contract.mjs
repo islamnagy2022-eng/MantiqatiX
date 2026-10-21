@@ -168,6 +168,10 @@ assert.match(moduleSource, /const filtered=state\.orders\.filter\(x=>\{/,
   'order filters must operate on the loaded scoped order set');
 assert.match(moduleSource, /x\.id,x\.customer_name,x\.customer_phone/,
   'order search must support order ID, customer name and phone');
+assert.match(moduleSource, /invalidDateRange=Boolean\(state\.orderFromDate&&state\.orderToDate&&state\.orderFromDate>state\.orderToDate\)/,
+  'order date filters must reject an inverted date range');
+assert.match(moduleSource, /تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له/,
+  'inverted order date ranges must display a clear Arabic validation message');
 assert.match(moduleSource, /id="rest-order-from-date"/,
   'orders view must expose a start-date filter');
 assert.match(moduleSource, /id="rest-order-to-date"/,
