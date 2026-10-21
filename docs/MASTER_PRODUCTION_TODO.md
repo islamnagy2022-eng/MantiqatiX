@@ -2360,3 +2360,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] The shared-policy tests verify policy logic but do not prove database membership-query correctness, live Supabase Auth behavior, tenant RLS, or actual Edge Function integration. Those remain separate required gates.
 - [ ] Run the dedicated workflow on the latest workflow-filter commit and verify all related CI conclusions before treating the new HEAD as fully validated.
 - Production remains **BLOCKED / NOT CERTIFIED**. No merge, live database mutation, or manual production deployment was performed.
+
+
+## 2026-10-21 — strict bearer-token parsing follow-up
+- [x] Added a shared bearer-token parser for `business-branch-admin`; accepts the case-insensitive Bearer scheme and a single non-empty token value only.
+- [x] Added Node runtime tests for valid tokens, scheme casing, empty/missing credentials, whitespace-separated multiple tokens, malformed values, and header-injection-like input.
+- [x] Added the helper/test to the dedicated source-integrity workflow and source-contract assertions. Exact-head run `39598341593` passed type-check, runtime tests, and source validation at `60f09c55c36aa62c16acc5104bb3a3e74132adc4`.
+- [ ] Live Supabase Auth / Edge Function integration, browser E2E, and deployed-function parity remain NOT VERIFIED. This does not certify production readiness.
+- Production remains **BLOCKED / NOT CERTIFIED**; no merge or manual production deployment was performed.

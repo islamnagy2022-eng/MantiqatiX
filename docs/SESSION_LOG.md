@@ -455,3 +455,11 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Education request history and medical appointment history display explicit load-error states rather than false empty states.
 - Added source-contract checks. Exact-head Actions run `39548130257` passed at code commit `0850017fab111e44cb8c4d45cf59a7bb43be5b0e` (production verification, syntax and validator checks).
 - Browser/mobile E2E and server authorization/duplicate-submission tests are still NOT VERIFIED. The MantiGO webhook partial-failure recovery issue remains a release blocker.
+
+
+## 2026-10-21 — strict Bearer header parsing
+- Extracted `parseBearerToken` into `supabase/functions/_shared/bearer-token.mjs` and wired `business-branch-admin` to pass only the parsed token to `auth.getUser`.
+- Rejects missing/empty/malformed values and multiple whitespace-separated token parts; treats the HTTP Bearer scheme case-insensitively.
+- Added `scripts/test-bearer-token.mjs`, wired into `Business Branch Admin Source Integrity`, and added source-contract assertions.
+- Verified at commit `60f09c55c36aa62c16acc5104bb3a3e74132adc4`: Deno type-check, runtime tests, and source validation passed in Actions run `39598341593`.
+- Remaining: live Supabase Auth/Edge Function integration and browser E2E are not verified; release remains BLOCKED / NOT CERTIFIED.
