@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const source = fs.readFileSync("web/operations-modules.js", "utf8");
+const edge = fs.readFileSync("supabase/functions/marketing-lead-create/index.ts", "utf8");
 const form = source.slice(source.indexOf("function leadForm()"), source.indexOf("function educationWorkspace()"));
 assert.match(form, /id="mlTitle"[^>]*maxlength="160"/, "lead title must have a bounded length");
 assert.match(form, /id="mlDesc"[^>]*maxlength="5000"/, "lead description must have a bounded length");
@@ -64,4 +65,5 @@ assert.match(source, /id="mlSearch"/, "marketing lead list must provide a search
 assert.match(source, /function marketingLeadTable\(query=''\)/, "lead search must filter the existing visible dataset");
 assert.match(source, /e=>\{const target=document\.getElementById\('mlLeadResults'\)/, "lead search must update results as the user types");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
+assert.match(edge, /const rawBytes = await req\.arrayBuffer\(\);[\s\S]*?rawBytes\.byteLength > maxBodyBytes[\s\S]*?JSON\.parse\(new TextDecoder\(\)\.decode\(rawBytes\)\)/, "lead API must enforce the request limit against raw bytes before parsing JSON");
 console.log("Marketing lead form validation contract PASS.");
