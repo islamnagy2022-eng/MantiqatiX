@@ -246,7 +246,7 @@ function tablesView(){
 function inventoryView(){
  const add=canOperate('OPERATIONS','create')?'<button class="btn btn-primary" id="rest-add-inv">+ إضافة صنف مخزون</button>':'';
  return shell('مخزون المطعم',tabs()+'<div class="action-bar">'+add+'</div><div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الوحدة</th><th>الرصيد</th><th>حد التنبيه</th><th>تكلفة الوحدة</th><th>المورد</th><th>إجراء</th></tr></thead><tbody>'+
- (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">بيانات</button> <button class="linkbtn" data-inv-move="'+esc(x.id)+'">حركة</button>':'—')+' <button class="linkbtn" data-inv-history="'+esc(x.id)+'">السجل</button></td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
+ (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+esc(x.current_stock_qty??'—')+'</td><td>'+esc(x.min_stock_alert_threshold??'—')+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">بيانات</button> <button class="linkbtn" data-inv-move="'+esc(x.id)+'">حركة</button>':'—')+' <button class="linkbtn" data-inv-history="'+esc(x.id)+'">السجل</button></td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
 function askOrderDetails(items){
@@ -339,8 +339,11 @@ function addTable(existing){
  field('reserved','اسم الحجز',x.reserved_customer_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
-  const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:o.querySelector('#reserved').value.trim()||null};
-  if(!Number.isInteger(payload.table_number)||payload.table_number<1||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1)return notify('أدخل رقم وسعة صحيحين.');
+  const reservedName=o.querySelector('#reserved').value.trim();
+  const payload={table_number:Number(o.querySelector('#num').value),capacity_persons:Number(o.querySelector('#cap').value),status:o.querySelector('#status').value,reserved_customer_name:reservedName||null};
+  if(!Number.isInteger(payload.table_number)||payload.table_number<1||payload.table_number>100000||!Number.isInteger(payload.capacity_persons)||payload.capacity_persons<1||payload.capacity_persons>1000)return notify('رقم الطاولة والسعة يجب أن يكونا أعدادًا صحيحة ضمن الحدود المسموحة.','error');
+  if(!['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'].includes(payload.status))return notify('حالة الطاولة غير معتمدة.','error');
+  if(reservedName.length>120)return notify('اسم الحجز يجب ألا يتجاوز 120 حرفًا.','error');
   let q=existing?sb.from('restaurant_tables').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle():sb.from('restaurant_tables').insert({...payload,id:uid(),owner_user_id:state.user.id,current_active_order_id:null,current_bill_egp:0,...s}).select('id').single();
   const r=await q;if(r.error)return notify('تعذر الحفظ. تحقق من البيانات والصلاحيات ثم حاول مرة أخرى.','error');if(!r.data)return notify('لم يتم الحفظ: الطاولة خارج نطاق الفرع أو لا تملك الصلاحية.','error');o._close();await load();
  });
