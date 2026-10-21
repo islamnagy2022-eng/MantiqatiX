@@ -112,7 +112,7 @@ assert.ok(moduleSource.includes("await load();return true;")&&moduleSource.inclu
 // Editing a table must preserve the saved status instead of silently resetting to EMPTY.
 assert.ok(moduleSource.includes("(x.status||'EMPTY')===status"),
   'table editor must select the persisted status');
-assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\)/,
+assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|payload\.table_number>100000\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\|\|payload\.capacity_persons>1000\)/,
   'table number and capacity must be validated');
 assert.match(moduleSource, /if\(!existing\)\{payload\.current_stock_qty=0;payload\.unit_cost_egp=0;\}/, 'new inventory items must start at zero until an audited movement is recorded');
 assert.match(moduleSource, /sb\.rpc\('restaurant_inventory_move'/, 'stock changes must use the atomic server-side movement RPC');
