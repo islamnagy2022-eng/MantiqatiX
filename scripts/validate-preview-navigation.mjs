@@ -4,7 +4,7 @@ import vm from "node:vm";
 const entry = fs.readFileSync("web/preview/index.html", "utf8");
 const dashboard = fs.readFileSync("web/preview/dashboard.html", "utf8");
 const admin = fs.readFileSync("web/preview/admin.html", "utf8");
-const adminScript = admin.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1] ?? "";
+const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const home = fs.readFileSync("web/index.html", "utf8");
 const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
@@ -34,15 +34,15 @@ const checks = [
   ["Demo navigation includes all four workspace tabs", /data-tab="overview"/.test(dashboard) && /data-tab="records"/.test(dashboard) && /data-tab="create"/.test(dashboard) && /data-tab="workflow"/.test(dashboard)],
   ["Demo mutations remain in page-memory data structures", dashboard.includes("let current=null, toastTimer=null, data={}") && dashboard.includes("data[current.id].unshift")],
   ["Demo dashboard stays standalone without network or persistence APIs", !/\bfetch\s*\(|\bsupabase\b|localStorage|sessionStorage/i.test(dashboard)],
-  ["Dashboard links to the dedicated administration workspace", /href="admin\\.html"/.test(dashboard)],
-  ["Admin workspace is Arabic RTL and responsive", /<html lang="ar" dir="rtl">/.test(admin) && /name="viewport"/.test(admin) && /@media\\(max-width:760px\\)/.test(admin)],
-  ["Admin workspace includes all 35 catalog modules", (() => { const match = admin.match(/const modules=(\\[[\\s\\S]*?\\]);\\nconst sections=/); return !!match && JSON.parse(match[1]).length === 35; })()],
+  ["Dashboard links to the dedicated administration workspace", dashboard.includes('href="admin.html"')],
+  ["Admin workspace is Arabic RTL and responsive", /<html lang="ar" dir="rtl">/.test(admin) && admin.includes('name="viewport"') && admin.includes('@media(max-width:760px)')],
+  ["Admin workspace includes all 35 catalog modules", (() => { const match = admin.match(/const modules=([\s\S]*?);\nconst sections=/); return !!match && JSON.parse(match[1]).length === 35; })()],
   ["Admin workspace covers users, roles, operations, finance, security and release controls", ["view-roles","users","providers","orders","marketing","payments","accounting","security","integrations","backup","monitoring","releases","settings"].every(x => admin.includes(x))],
-  ["Admin workspace supports local record creation, status changes and deletion", /data-dynamic-form/.test(admin) && /data-cycle/.test(admin) && /data-delete/.test(admin) && /data\\[key\\]\\.unshift/.test(admin)],
-  ["Admin workspace provides CSV exports and audit trail", /exportAllBtn/.test(admin) && /text\\/csv;charset=utf-8/.test(admin) && /renderDynamicRecords\\('audit'\\)/.test(admin)],
-  ["Admin workspace clearly prevents production and external operations", /لا يوجد اتصال بالخادم/.test(admin) && /لا توجد عمليات خلفية/.test(admin) && !/\\bfetch\\s*\\(|\\bsupabase\\b|localStorage|sessionStorage/i.test(admin)],
+  ["Admin workspace supports local record creation, status changes and deletion", admin.includes("data-dynamic-form") && admin.includes("data-cycle") && admin.includes("data-delete") && admin.includes("data[key].unshift")],
+  ["Admin workspace provides CSV exports and audit trail", admin.includes("exportAllBtn") && admin.includes("text/csv;charset=utf-8") && admin.includes("renderDynamicRecords('audit')")],
+  ["Admin workspace clearly prevents production and external operations", admin.includes("لا يوجد اتصال بالخادم") && admin.includes("لا توجد عمليات خلفية") && !/fetch\s*\(/i.test(admin) && !/supabase/i.test(admin) && !admin.includes("localStorage") && !admin.includes("sessionStorage")],
   ["Admin workspace inline JavaScript parses successfully", (() => { try { if (!adminScript) return false; new vm.Script(adminScript); return true; } catch (error) { console.error("Admin JavaScript syntax error:", error.message); return false; } })()],
-  ["Dashboard supports direct links to a module workspace", /new URLSearchParams\\(window\\.location\\.search\\)/.test(dashboard) && /openModule\\(requestedModule\\)/.test(dashboard)]
+  ["Dashboard supports direct links to a module workspace", dashboard.includes("new URLSearchParams(window.location.search)") && dashboard.includes("openModule(requestedModule)") ]
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
