@@ -35,6 +35,9 @@ assert.match(source, /q=q\.eq\('client_business_id',membership\.business_id\)/, 
 
 assert.match(source, /if\(cp\.error\)loadErrors\.mantigo_captain_profile=cp\.error/, "captain profile read errors must not masquerade as a missing profile");
 assert.match(source, /if\(r\.error\)\{rows\.mantigo_open=\[\];loadErrors\.mantigo_open=r\.error\}/, "open rides RPC failures must remain visible rather than appearing as an empty list");
+assert.doesNotMatch(source, /if\(tab==='open'&&!rows\.mantigo_open\)\{sb\.rpc\('list_open_mantigo_rides_backend'/, "MantiGO open-tab rendering must not fire a second unhandled RPC");
+assert.match(source, /if\(current==='MantiGO والنقل'&&tab==='open'\)\{const r=await sb\.rpc\('list_open_mantigo_rides_backend'[\s\S]*?loadErrors\.mantigo_open=r\.error/, "open-rides loading must use one error-aware request path");
+
 
 assert.match(source, /function marketingTableView\(d,key,content\)/, "marketing tables must share explicit query failure rendering");
 assert.match(source, /function overview\(d\)\{[\s\S]*?loadErrors\[t\]\?[\s\S]*?تعذر التحميل[\s\S]*?لا يمكن عرض عدد السجلات بأمان/, "overview counts must distinguish failed reads from real zero counts");
