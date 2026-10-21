@@ -2301,3 +2301,11 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [ ] Verify the behavior in browser/E2E against expired sessions, denied roles, function failures, malformed responses, and network interruptions.
 - [ ] Confirm backend authorization and tenant isolation independently; client-side messaging is not an authorization control.
 - **Status:** code and static contract added; runtime/E2E verification pending. Release gate remains BLOCKED / NOT CERTIFIED.
+
+## Edge Function error disclosure hardening (2026-10-21)
+- [x] Normalize branch-creation database failures to the stable public code `BRANCH_CREATE_FAILED`; do not return raw database error text to the browser.
+- [x] Normalize catalog-admin failures to `CATALOG_OPERATION_FAILED`; do not return raw RPC/exception messages to callers.
+- [x] Extend source-contract validators to reject the previous raw-error response patterns.
+- [ ] Verify all calling clients handle the stable error codes and that observability remains sufficient without exposing internal schema details.
+- [ ] Run isolated integration tests for authorization denial, invalid tenant/business IDs, database constraint failures, and successful branch/catalog operations.
+- **Status:** source changes and static guards committed; exact-head CI and runtime integration verification pending. No Edge Function deployment was performed by this change.
