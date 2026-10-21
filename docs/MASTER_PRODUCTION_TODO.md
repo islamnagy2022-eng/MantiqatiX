@@ -2068,3 +2068,14 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - مراجعة صفحات كل موديول مقابل قائمة صفحات معتمدة، وتحديد ما هو عرض فقط وما ينفذ عملية حقيقية وما ينقصه نموذج/بحث/حالة تحميل/خطأ/فراغ.
 - إصلاح مشكلة اتساق webhook الخاصة بـ MantiGO: إذا تم حفظ حدث Paymob ثم فشل تحديث سجل الدفتر المالي، فإن إعادة المحاولة قد تعتبر الحدث مكررًا وتترك الدفع في حالة قديمة. يلزم حل ذري عبر RPC/معاملة موثوقة أو آلية مصالحة آمنة، واختبار فشل جزئي وإعادة المحاولة قبل اعتماد بوابة الدفع.
 - PR #314 ما يزال مفتوحًا كمسودة وغير مدمج. بوابة الإطلاق تبقى BLOCKED / NOT CERTIFIED حتى نجاح الاختبارات الفعلية ومراجعة الأمان والتعافي.
+
+## UI continuation — accurate empty/error states and verified source contract — 2026-10-21
+- [x] Jobs module now distinguishes a failed jobs read from a genuinely empty active-jobs list.
+- [x] Education workspace distinguishes failed school/teacher reads from an empty provider catalog.
+- [x] Medical provider workspace distinguishes failed provider reads from an empty provider catalog.
+- [x] Medical appointment timestamps now parse Supabase date strings directly instead of coercing ISO strings to numbers.
+- [x] Repaired stale source-contract assertions: marketing lead search now checks the search+status-filter behavior, payment-intent assertions inspect the correct Edge Function source, and the module-load assertion matches the generation-based stale-response guard.
+- [x] Moved the validator success log to the end so it is emitted only after all assertions pass.
+- [x] Exact-head GitHub Actions run `39547998299` completed successfully on commit `8f1d1bfe7fbf466d652a4241cd83f4b6d1974d9b`; production verification engine and syntax/source-contract steps succeeded.
+- [ ] Browser/mobile E2E, role/tenant authorization tests, and the MantiGO webhook partial-failure/idempotent-retry recovery remain NOT VERIFIED. The known webhook recovery issue is still a release blocker.
+- [ ] PR #314 remains open as a draft and has not been merged. Do not mark production certified or deploy from this result alone.
