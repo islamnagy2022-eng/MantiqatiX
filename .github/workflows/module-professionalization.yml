@@ -46,6 +46,7 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-rbac-contract.mjs
           node scripts/validate-membership-refresh-contract.mjs
+          node scripts/validate-medical-appointment-state-machine.mjs
 
   matrimony-privacy-postgres:
     runs-on: ubuntu-latest
@@ -108,3 +109,84 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_test.sql
+
+  rc457-medical-appointment-state-machine-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc457_medical_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc457_medical_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply fixture, forward migration, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc457_medical_appointment_state_machine_fixture.sql "$pg_container:/tmp/rc457_fixture.sql"
+          docker cp supabase/migrations/20261019190000_rc457_medical_appointment_state_machine.sql "$pg_container:/tmp/rc457_migration.sql"
+          docker cp supabase/tests/rc457_medical_appointment_state_machine_integration.sql "$pg_container:/tmp/rc457_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc457_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc457_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc457_medical_test -v ON_ERROR_STOP=1 -f /tmp/rc457_test.sql
+
+
+  rc462-mantigo-platform-admin-scope-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc462_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc462_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Fetch pinned RC449/RC462 source candidate
+        shell: bash
+        env:
+          MIGRATION_SOURCE_COMMIT: "54b67bcf2f18e226f0d5206cce66b0bd39a6866c"
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$MIGRATION_SOURCE_COMMIT" --depth=1
+          mkdir -p "$RUNNER_TEMP/rc462"
+          git show "$MIGRATION_SOURCE_COMMIT:supabase/tests/rc449_mantigo_platform_admin_fixture.sql" > "$RUNNER_TEMP/rc462/fixture.sql"
+          git show "$MIGRATION_SOURCE_COMMIT:supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql" > "$RUNNER_TEMP/rc462/rc449.sql"
+          git show "$MIGRATION_SOURCE_COMMIT:supabase/migrations/20261012040000_rc462_mantigo_platform_admin_guard_malformed_permissions.sql" > "$RUNNER_TEMP/rc462/rc462.sql"
+          git show "$MIGRATION_SOURCE_COMMIT:supabase/tests/rc462_mantigo_platform_admin_malformed_permissions.sql" > "$RUNNER_TEMP/rc462/test.sql"
+          test -s "$RUNNER_TEMP/rc462/fixture.sql"
+          test -s "$RUNNER_TEMP/rc462/rc449.sql"
+          test -s "$RUNNER_TEMP/rc462/rc462.sql"
+          test -s "$RUNNER_TEMP/rc462/test.sql"
+      - name: Apply RC449, RC462 and malformed-permission behavioral regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp "$RUNNER_TEMP/rc462/fixture.sql" "$pg_container:/tmp/rc462_fixture.sql"
+          docker cp "$RUNNER_TEMP/rc462/rc449.sql" "$pg_container:/tmp/rc449.sql"
+          docker cp "$RUNNER_TEMP/rc462/rc462.sql" "$pg_container:/tmp/rc462.sql"
+          docker cp "$RUNNER_TEMP/rc462/test.sql" "$pg_container:/tmp/rc462_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc462_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc462_test -v ON_ERROR_STOP=1 -f /tmp/rc462_test.sql

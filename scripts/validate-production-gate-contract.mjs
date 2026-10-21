@@ -10,7 +10,8 @@ const workflow = read('.github/workflows/pages.yml');
 
 const requiredTodoMarkers = [
   'E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED',
-  'Paymob production E2E — WAIT',
+  'Cash-only order/payment E2E (required before launch)',
+  'Paymob production E2E — DEFERRED POST-LAUNCH (NOT A LAUNCH GATE)',
   'Leaked Password Protection — WAIT',
   'Production release build + signing — WAIT',
   'Real-device release test — WAIT',
