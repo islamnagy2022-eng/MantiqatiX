@@ -117,7 +117,14 @@ async function readLimitedBody(req: Request, limit: number): Promise<Uint8Array 
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
   while (true) {
-    const { done, value } = await reader.read();
+    let chunkResult: ReadableStreamReadResult<Uint8Array>;
+    try {
+      chunkResult = await reader.read();
+    } catch {
+      try { await reader.cancel(); } catch { /* stream is already closed */ }
+      return new Uint8Array();
+    }
+    const { done, value } = chunkResult;
     if (done) break;
     totalBytes += value.byteLength;
     if (totalBytes > limit) {
