@@ -1,0 +1,16 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+
+const source = fs.readFileSync("web/operations-modules.js", "utf8");
+const form = source.slice(source.indexOf("function leadForm()"), source.indexOf("function educationWorkspace()"));
+assert.match(form, /id="mlTitle"[^>]*maxlength="160"/, "lead title must have a bounded length");
+assert.match(form, /id="mlDesc"[^>]*maxlength="5000"/, "lead description must have a bounded length");
+assert.match(form, /id="mlStatus" role="status" aria-live="polite"/, "form status must be announced accessibly");
+assert.match(form, /if\(!title\|\|!description\)/, "title and description must be required");
+assert.match(form, /!Number\.isFinite\(min\)\|\|!Number\.isFinite\(max\)\|\|min<0\|\|max<0/, "budgets must be finite and nonnegative");
+assert.match(form, /if\(max>0&&min>max\)/, "minimum budget must not exceed a provided maximum");
+assert.match(form, /if\(!button\|\|button\.disabled\)return/, "duplicate submissions must be blocked");
+assert.match(form, /button\.disabled=true/, "submit button must disable during request");
+assert.match(form, /finally\{button\.disabled=false/, "submit button must be restored after request");
+assert.match(form, /marketing-lead-create/, "submission must continue through the existing backend function");
+console.log("Marketing lead form validation contract PASS.");
