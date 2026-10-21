@@ -66,4 +66,7 @@ assert.match(source, /function marketingLeadTable\(query=''\)/, "lead search mus
 assert.match(source, /e=>\{const target=document\.getElementById\('mlLeadResults'\)/, "lead search must update results as the user types");
 assert.doesNotMatch(form, /messages\[code\]\|\|r\.error\?\.message/, "raw backend error messages must not be exposed to users");
 assert.match(edge, /const rawBytes = await req\.arrayBuffer\(\);[\s\S]*?rawBytes\.byteLength > maxBodyBytes[\s\S]*?JSON\.parse\(new TextDecoder\(\)\.decode\(rawBytes\)\)/, "lead API must enforce the request limit against raw bytes before parsing JSON");
+assert.match(edge, /typeof body\.title === "string"[\s\S]*?typeof body\.description === "string"/, "lead API must reject non-string title and description values");
+assert.match(edge, /rawRequiredServices\.some\(x => typeof x !== "string"\)/, "lead API must reject non-string requested service entries");
+assert.match(edge, /typeof budgetMin !== "number" \|\| typeof budgetMax !== "number"/, "lead API must reject string-coerced budget values");
 console.log("Marketing lead form validation contract PASS.");
