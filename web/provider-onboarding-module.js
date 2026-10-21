@@ -23,7 +23,10 @@
     if(!user || user.is_anonymous)throw new Error('AUTH_REQUIRED');
     const {data:memberships,error}=await sb.from('user_memberships').select('id,tenant_id,organization_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
     if(error)throw error;
-    const active=memberships?.find(x=>x.id===(window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId'))) || memberships?.[0] || null;
+    const requestedMembershipId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
+    const selected=memberships?.find(x=>x.id===requestedMembershipId)||null;
+    const active=selected||(memberships?.length===1?memberships[0]:null);
+    const membershipSelectionRequired=(memberships?.length||0)>1&&!active;
     const tenantId=active?.tenant_id||null;
     let businesses=[];
     if(tenantId){
@@ -31,12 +34,17 @@
       if(r.error)throw r.error;
       businesses=r.data||[];
     }
-    return {user,memberships:memberships||[],active,businesses};
+    return {user,memberships:memberships||[],active,membershipSelectionRequired,businesses};
   }
   function page(html){const p=document.getElementById('page');if(p)p.innerHTML=html;}
   async function render(){
     try{
       const s=await state();
+      if(s.membershipSelectionRequired){
+        page('<section class="workspace-section"><h2>اختيار عضوية النشاط</h2><div class="notice">لديك أكثر من عضوية نشطة. اختر العضوية المقصودة قبل متابعة إدارة الأنشطة لتجنب تنفيذ العمليات على نشاط غير مقصود.</div><div class="field"><label for="mnty-active-membership">العضوية النشطة</label><select id="mnty-active-membership" required><option value="">اختر العضوية</option>'+s.memberships.map((m,i)=>'<option value="'+esc(m.id)+'">عضوية '+(i+1)+' — '+esc(m.role||'بدون دور')+' — نشاط '+esc(String(m.business_id||m.organization_id||m.tenant_id||'غير محدد').slice(0,8))+'</option>').join('')+'</select></div></section>');
+        document.getElementById('mnty-active-membership')?.addEventListener('change',e=>{const chosen=s.memberships.find(m=>m.id===e.target.value);if(!chosen)return;try{localStorage.setItem('MNTYActiveMembershipId',chosen.id);}catch(_){}window.MNTYActiveMembershipId=chosen.id;render();});
+        return;
+      }
       const role=String(s.active?.role||'CUSTOMER').toUpperCase();
       if(!s.active || !['SERVICE_PROVIDER','BUSINESS_OWNER','OWNER','ADMIN'].includes(role)){
         page('<section class="workspace-section"><div class="notice">تكوين النشاط متاح للحسابات التي لديها عضوية تشغيلية مناسبة. حساب العميل لا يحتاج إنشاء نشاط.</div></section>');
