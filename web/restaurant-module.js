@@ -210,7 +210,13 @@ function kitchenView(){
  ];
  const counts=Object.fromEntries(stages.map(x=>[x.status,state.orders.filter(o=>String(o.status||'').toUpperCase()===x.status).length]));
  const cards=stages.map(stage=>{
-  const orders=state.orders.filter(o=>String(o.status||'').toUpperCase()===stage.status);
+  // FIFO: oldest valid creation timestamp first; unknown timestamps stay at the end.
+  const orders=state.orders.filter(o=>String(o.status||'').toUpperCase()===stage.status).sort((a,b)=>{
+   const ta=Date.parse(a.created_at||'');const tb=Date.parse(b.created_at||'');
+   const va=Number.isFinite(ta)?ta:Number.POSITIVE_INFINITY;
+   const vb=Number.isFinite(tb)?tb:Number.POSITIVE_INFINITY;
+   return va-vb;
+  });
   const body=orders.length?orders.map(order=>{
    let itemSummary='تفاصيل الأصناف غير متاحة';
    try{
