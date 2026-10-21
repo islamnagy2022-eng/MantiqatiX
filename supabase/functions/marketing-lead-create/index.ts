@@ -48,6 +48,9 @@ Deno.serve(async (req: Request) => {
   const requestedBusinessId = typeof body.business_id === "string" ? body.business_id.trim() || null : null;
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const description = typeof body.description === "string" ? body.description.trim() : "";
+  if (body.service_area !== undefined && body.service_area !== null && typeof body.service_area !== "string") {
+    return json({ error: "invalid_service_area" }, 400);
+  }
   const serviceArea = typeof body.service_area === "string" ? body.service_area.trim() : "";
   const budgetMin = body.budget_min === undefined || body.budget_min === null ? 0 : body.budget_min;
   const budgetMax = body.budget_max === undefined || body.budget_max === null ? 0 : body.budget_max;
