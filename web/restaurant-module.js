@@ -158,7 +158,7 @@ async function createRestaurantOrder(){
    const r=await invokeMntyFunction('order-create',payload);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
- }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
+ }catch(e){notify('تعذر إنشاء الطلب. تحقق من البيانات والصلاحيات والاتصال ثم حاول مرة أخرى.','error')}
 }
 function dashboard(){
  return shell('لوحة المطعم',tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button>':'')+'</div>'+cards()+
