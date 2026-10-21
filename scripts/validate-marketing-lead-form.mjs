@@ -185,6 +185,10 @@ assert.match(source, /module-access-context[\s\S]*?تم تحميل العضوي�
 assert.match(source, /لا توجد عضوية مؤسسة نشطة لهذا الحساب/, "module shell must explain missing active membership context");
 assert.match(source, /roleLabels=\{OWNER:'مالك المؤسسة'/, "membership roles must be rendered in Arabic instead of exposing role codes");
 
+// Navigation observation is event-driven: avoid polling the entire document every 800ms.
+assert.match(source, /new MutationObserver\(observe\)\.observe\(document\.body,\{childList:true,subtree:true\}\);observe\(\);/, "module navigation must initialize once and react to DOM mutations without periodic polling");
+assert.doesNotMatch(source, /setInterval\(observe,\s*800\)/, "module navigation must not poll the document every 800ms");
+
 console.log("Marketing lead form validation contract PASS.");
 
 // Fail closed when prior user-owned state cannot be verified.
