@@ -872,7 +872,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const requestSequence=++homeLoadSequence;
       const sb=getClient();
       const status=document.getElementById('mx-live-status');
-      if(!sb){status.textContent='وضع العرض';renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);return}
+      if(!sb){status.textContent='وضع العرض';renderDynamicCategories(TAXONOMY,[]);renderServices([]);renderProviders([]);renderSponsored([]);showHomeSearchStatus('تعذر الاتصال بخدمة البيانات الآن. تحقق من الإعدادات أو الاتصال ثم أعد المحاولة.',true);return}
       const term=String(searchText||'').trim();
         const safeTerm=term.replace(/[^\p{L}\p{N}\s-]/gu,' ').trim().slice(0,60);
       try{
