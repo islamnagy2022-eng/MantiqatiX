@@ -353,3 +353,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - Detail-tab retry correction (2026-10-21): preserved a visible retry action on tabs that already render a specific query-error alert, without duplicating the alert. Added a source-contract assertion. Exact-head CI/browser E2E remain unverified; production remains BLOCKED / NOT CERTIFIED.
+
+
+- MantiGO read-state follow-up (2026-10-21): captain profile lookup and the open-rides RPC now preserve query errors instead of silently mapping failures to missing profile/empty rides. Added source-contract guards. Runtime and browser verification are pending; production remains BLOCKED / NOT CERTIFIED.
