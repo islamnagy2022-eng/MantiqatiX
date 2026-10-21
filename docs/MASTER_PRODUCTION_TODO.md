@@ -1568,3 +1568,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] CI for recovery branch commit `8df258b5a0b3b8db7afee9212502cdc37dc9f507` is queued/running; do not count it as passed until completed.
 - [ ] Static SQL contract checks do not replace chronological PostgreSQL replay or concurrent transaction tests.
 - [ ] Keep release blocked until RC425–RC441 are recovered as one reviewed chain and production schema compatibility is proven in an isolated database.
+
+
+### CI result and mainline gate reconciliation — 2026-10-21
+- [x] On recovery branch commit `8da702ab22568614d492c3388860511f1827cba6`, Module Professionalization Validation passed, including the ERP receiving migration contract validator; Migration Version Uniqueness and Open PR Migration Collision Guard also passed on commit `8df258b5a0b3b8db7afee9212502cdc37dc9f507`.
+- [x] Latest inspected mainline production verification remains `PRODUCTION_GATE=BLOCKED`: the RC425–RC441 migration source files are still absent from main. It also explicitly reports chronological replay NOT RUN, tenant isolation NOT VERIFIED, payment/finance E2E NOT VERIFIED, backup/restore NOT VERIFIED, Edge Function contracts NOT VERIFIED, SMM gateway parity NOT VERIFIED, and auth security settings NOT VERIFIED.
+- [ ] Do not interpret source-branch web workflow success as production certification. No recovered migration has been merged or applied to the live database.
+- [ ] Next release-critical work: complete isolated PostgreSQL chronological replay of the entire recovered chain, then attach test evidence and reconcile applied migration ledger before any release approval.
