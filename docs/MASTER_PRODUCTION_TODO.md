@@ -2294,3 +2294,10 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added source-contract checks for the ambiguous-membership guard and explicit chooser.
 - [ ] Verify compatibility with the main application's membership-switching UX, browser/mobile E2E, and server-side authorization boundaries.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+## Provider onboarding — safe user-facing error feedback (2026-10-21)
+- [x] Replace raw backend/function error details in provider onboarding UI with bounded Arabic guidance for business registration, branch creation, status refresh, initial load, and onboarding request load.
+- [x] Add source-contract checks that reject known raw-error rendering patterns and require the safe feedback copy.
+- [ ] Verify the behavior in browser/E2E against expired sessions, denied roles, function failures, malformed responses, and network interruptions.
+- [ ] Confirm backend authorization and tenant isolation independently; client-side messaging is not an authorization control.
+- **Status:** code and static contract added; runtime/E2E verification pending. Release gate remains BLOCKED / NOT CERTIFIED.
