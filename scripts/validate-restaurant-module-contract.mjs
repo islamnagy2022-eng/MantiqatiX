@@ -21,6 +21,12 @@ assert.match(moduleSource, /rest-clear-membership/,
   'a stale saved selection must expose an explicit recovery action');
 assert.match(moduleSource, /removeItem\('MNTYActiveMembershipId'\);load\(\)/,
   'membership selection is cleared only after the user explicitly chooses recovery');
+assert.match(moduleSource, /const r=await base\(\)\.limit\(20\);\s*const options=r\.data\|\|\[\];\s*return \{membership:options\.length===1\?options\[0\]:null,options,needsSelection:options\.length>1/,
+  'multiple active memberships must require an explicit choice instead of selecting the first');
+assert.match(moduleSource, /if\(state\.selectionRequired\).*data-select-membership/s,
+  'multiple active memberships must render a membership choice screen');
+assert.match(moduleSource, /setItem\('MNTYActiveMembershipId',id\);load\(\)/,
+  'the chosen membership must be explicitly saved before loading its workspace');
 
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
