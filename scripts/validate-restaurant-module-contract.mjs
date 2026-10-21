@@ -88,6 +88,11 @@ assert.match(moduleSource, /PENDING:\['CONFIRMED','CANCELLED'\][\s\S]*OUT_FOR_DE
 assert.match(moduleSource, /function reservationsView\(\)/, 'restaurant module must expose the reservation workspace');
 assert.match(moduleSource, /esc\(x\.table_number\?\?'—'\)/, 'table number must be escaped before rendering');
 assert.match(moduleSource, /esc\(x\.capacity_persons\?\?'—'\)/, 'table capacity must be escaped before rendering');
+assert.match(moduleSource, /payload\.table_number>100000/, 'table number must have an upper bound');
+assert.match(moduleSource, /payload\.capacity_persons>1000/, 'table capacity must have an upper bound');
+assert.match(moduleSource, /\['EMPTY','OCCUPIED','RESERVED','CLEANING','OUT_OF_SERVICE'\]\.includes\(payload\.status\)/, 'table status must be validated against supported values');
+assert.match(moduleSource, /esc\(x\.current_stock_qty\?\?'—'\)/, 'inventory quantity must be escaped before rendering');
+assert.match(moduleSource, /esc\(x\.min_stock_alert_threshold\?\?'—'\)/, 'inventory alert threshold must be escaped before rendering');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:'CREATE',p_payload:/, 'reservation creation must use the secured database RPC');
 assert.match(moduleSource, /sb\.rpc\('restaurant_reservation_mutate',\{p_action:action,p_payload:/, 'reservation state transitions must use the secured database RPC');
 assert.match(moduleSource, /guestCount>Number\(table\.capacity_persons\)/, 'reservation UI must validate the selected table capacity');
