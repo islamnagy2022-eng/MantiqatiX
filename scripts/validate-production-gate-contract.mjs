@@ -9,6 +9,7 @@ const continuity = read('docs/PROJECT_CONTINUITY.md');
 const workflow = read('.github/workflows/pages.yml');
 const productionVerifier = read('scripts/production/verify-production.mjs');
 const reconciliation = JSON.parse(read('docs/release/production-migration-reconciliation.json'));
+const productionVerifier = read('scripts/production/verify-production.mjs');
 
 const requiredTodoMarkers = [
   'E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED',
@@ -48,6 +49,8 @@ const missing = [
   ...requiredContinuityMarkers.filter(x => !continuity.includes(x)).map(x => 'CONTINUITY:' + x),
   ...requiredWorkflowMarkers.filter(x => !workflow.includes(x)).map(x => 'WORKFLOW:' + x),
   ...requiredProductionGateMarkers.filter(x => !productionVerifier.includes(x)).map(x => 'PRODUCTION_GATE:' + x),
+  ...(['platform_admin_rpc_guards','targeted_ads_search_path','business_branch_admin'].filter(k => reconciliation.live_function_parity?.[k] !== 'FAIL').map(k => 'LIVE_PARITY: unresolved production drift must remain FAIL for ' + k)),
+  ...(!productionVerifier.includes('!liveReconciliationVerified') ? ['PRODUCTION_GATE: live reconciliation must fail closed'] : []),
   ...(reconciliation.status !== 'BLOCKED' || reconciliation.verified !== false ? ['RECONCILIATION: live production must remain blocked until evidence is complete'] : []),
   ...(['platform_admin_rpc_guards','targeted_ads_search_path','business_branch_admin'].filter(k => reconciliation.live_function_parity?.[k] !== 'FAIL').map(k => 'RECONCILIATION: current live drift must remain explicitly failed for ' + k)),
 ];
