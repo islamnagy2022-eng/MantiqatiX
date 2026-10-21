@@ -149,6 +149,14 @@ assert.match(moduleSource, /const order=state\.orders\.find\(x=>String\(x\.id\)=
 assert.match(moduleSource, /allowed\[current\]\.includes\(String\(status\|\|''\)\.toUpperCase\(\)\)/,
   'status updates must reject transitions not allowed from the current loaded status');
 
+// Reservation filters must remain local and bounded to the already scoped loaded reservations.
+assert.match(moduleSource, /id="rest-reservation-search"/, 'reservation view must expose customer/phone/table search');
+assert.match(moduleSource, /id="rest-reservation-status"/, 'reservation view must expose a status filter');
+assert.match(moduleSource, /id="rest-reservation-from"/, 'reservation view must expose a start-date filter');
+assert.match(moduleSource, /id="rest-reservation-to"/, 'reservation view must expose an end-date filter');
+assert.match(moduleSource, /state\.reservations\.filter\(r=>\{/, 'reservation filters must operate on the scoped loaded reservations');
+assert.match(moduleSource, /آخر 100 حجز محمّل/, 'reservation view must disclose its local loaded-record bound');
+
 // Kitchen board uses existing server-supported order statuses and the existing scoped dataset.
 assert.match(moduleSource, /const orders=state\.orders\.filter\(o=>String\(o\.status\|\|''\)\.toUpperCase\(\)===stage\.status\)\.sort\(/,
   'kitchen queue must order each stage FIFO by order creation time');
