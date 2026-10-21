@@ -1,215 +1,36 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#101a35">
-<title>MantiqaTiX | مساحة تطوير الواجهات</title>
-<style>
-:root{color-scheme:dark;--bg:#0b1020;--panel:#121b31;--panel2:#182642;--line:#293754;--text:#f4f7ff;--muted:#9eacc8;--blue:#7baeff;--mint:#62e0c1;--amber:#f6c66b;--red:#ff9292}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#1b3b6b 0,transparent 35%),var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);line-height:1.6}button,input,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.app{min-height:100vh;display:grid;grid-template-columns:245px minmax(0,1fr)}aside{border-left:1px solid var(--line);padding:22px 16px;background:#0d1426}.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:18px;margin-bottom:28px}.mark{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,#4389ff,#61dfc0);color:#071326;font-weight:950}.eyebrow{font-size:11px;color:var(--mint);font-weight:800;letter-spacing:.03em}.nav-label{font-size:11px;color:#7182a4;margin:22px 9px 8px}.nav{display:grid;gap:5px}.nav button{display:flex;gap:10px;align-items:center;text-align:right;color:var(--muted);background:transparent;border:1px solid transparent;padding:10px 12px;border-radius:11px}.nav button:hover,.nav button.active{background:#1a2a48;border-color:#2b4166;color:var(--text)}.nav .ico{width:23px;text-align:center}.side-note{font-size:11px;color:var(--muted);margin-top:30px;padding:12px;border:1px solid var(--line);border-radius:12px}.main{min-width:0;padding:22px clamp(16px,3vw,36px) 34px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}.top h1{font-size:22px;margin:2px 0}.muted{color:var(--muted)}.search{display:flex;gap:8px;min-width:min(100%,340px)}input,select{background:#0c1426;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px 12px;min-width:0}input{width:100%}.btn{border:1px solid transparent;background:var(--blue);color:#071326;border-radius:11px;padding:10px 14px;font-weight:800}.btn.secondary{background:transparent;color:var(--text);border-color:var(--line)}.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}.status{display:inline-flex;align-items:center;gap:7px;font-size:11px;padding:5px 9px;border-radius:8px;background:#3a2e18;color:#ffe0a0;border:1px solid #66552d}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}.intro{padding:25px 0 12px}.intro h2{font-size:clamp(25px,3vw,37px);line-height:1.25;margin:8px 0}.intro p{max-width:760px;color:var(--muted);margin:0}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}.stat,.panel,.module{background:linear-gradient(145deg,var(--panel),#0f172a);border:1px solid var(--line);border-radius:16px;padding:17px}.stat .num{font-size:26px;font-weight:850;margin:5px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:25px 0 13px}.section-head h2{font-size:18px;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:4px 0 0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.module{min-height:160px;text-align:right;color:var(--text);width:100%;transition:transform .15s,border-color .15s}.module:hover{transform:translateY(-2px);border-color:#5379b2}.module .icon{width:39px;height:39px;display:grid;place-items:center;background:#21375b;color:#b7d2ff;border-radius:12px;font-size:20px;margin-bottom:12px}.module h3{font-size:16px;margin:0 0 6px}.module p{font-size:12px;color:var(--muted);margin:0}.tag{display:inline-block;margin-top:12px;font-size:10px;color:#9df0dc;background:#173a36;padding:4px 8px;border-radius:7px}.notice{margin-top:20px;padding:13px 15px;border:1px solid #66552d;background:#2a2417;color:#f4dba7;border-radius:12px;font-size:12px}.panel{margin-top:18px}.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0}.toolbar input{max-width:320px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;min-width:570px}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px}th{background:#172440;color:#c8d7f2}tr:last-child td{border-bottom:0}.empty{padding:28px;text-align:center;color:var(--muted)}.back{margin-bottom:16px}.hidden{display:none!important}.toast{position:fixed;bottom:20px;left:20px;background:#173a36;border:1px solid #3b8c7b;color:#c8fff1;padding:12px 16px;border-radius:12px;box-shadow:0 12px 35px #0007;max-width:calc(100vw - 40px)}.footer{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-@media(max-width:980px){.app{grid-template-columns:190px minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:650px){.app{display:block}aside{padding:12px;border-left:0;border-bottom:1px solid var(--line)}.brand{margin:0 0 12px}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;padding:8px 10px}.nav-label,.side-note{display:none}.main{padding:17px}.top{align-items:flex-start}.search{min-width:100%}.grid{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat .num{font-size:22px}}
-.sector-explorer{margin-top:22px}.sector-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sector-card{border:1px solid var(--line);background:#101a2d;border-radius:12px;padding:13px;text-align:right;color:var(--text);min-height:90px}.sector-card:hover,.sector-card[aria-pressed="true"]{border-color:var(--mint);background:#14283a}.sector-card strong{display:block;font-size:13px}.sector-card small{display:block;color:var(--muted);margin-top:5px;font-size:11px}.sector-workspace{margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#0e1729}.sector-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.sector-tabs button{border:1px solid var(--line);background:#172440;color:var(--text);border-radius:9px;padding:8px 11px;font-size:12px}.sector-tabs button.active{border-color:var(--mint);color:var(--mint)}.sector-status{font-size:12px;color:var(--muted);padding:10px 12px;background:#151f34;border-radius:10px}@media(max-width:980px){.sector-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:650px){.sector-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0750c9">
+  <title>MantiqatiX | بدء المعاينة</title>
+  <style>
+    :root{color-scheme:light;--ink:#241113;--muted:#6b7280;--blue:#0750c9;--line:#e5e7eb}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(145deg,#f7f9ff,#fbf8f2);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--ink)}
+    main{width:min(100%,560px);text-align:center;background:#fff;border:1px solid var(--line);border-radius:24px;padding:clamp(24px,5vw,42px);box-shadow:0 18px 55px #17255412}
+    .mark{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 16px;border-radius:18px;background:linear-gradient(135deg,#0750c9,#63d8c0);color:#fff;font-size:29px;font-weight:900}
+    h1{font-size:clamp(25px,4vw,34px);margin:0}.sub{color:var(--muted);line-height:1.9;margin:12px 0 24px}
+    .actions{display:grid;gap:10px}.btn{display:block;padding:13px 16px;border-radius:12px;text-decoration:none;font-weight:800;border:1px solid var(--line);color:var(--ink)}
+    .primary{background:var(--blue);color:#fff;border-color:var(--blue)}.note{font-size:12px;color:var(--muted);margin-top:18px}
+  </style>
+  <script>
+    // Preview URL should enter the real public landing page, not the dashboard mock.
+    window.setTimeout(function(){ window.location.replace('../'); }, 1200);
+  </script>
 </head>
 <body>
-<div class="app">
-<aside>
-  <div class="brand"><span class="mark">M</span><span>MantiqaTiX<br><span class="muted" style="font-size:11px;font-weight:500">Enterprise workspace</span></span></div>
-  <div class="eyebrow">مساحة تطوير الواجهات</div><div class="status" style="margin-top:8px">نسخة معاينة مستقلة</div>
-  <div class="nav-label">مساحة العمل</div>
-  <nav class="nav" aria-label="التنقل الرئيسي">
-    <button class="active" data-view="home"><span class="ico">▦</span>نظرة عامة</button>
-    <button data-view="discovery"><span class="ico">⌕</span>اكتشاف الخدمات</button>
-    <button data-view="marketing"><span class="ico">◈</span>التسويق والإعلان</button>
-    <button data-view="orders"><span class="ico">◷</span>الطلبات والعمليات</button>
-    <button data-view="providers"><span class="ico">♙</span>مقدمو الخدمات</button>
-    <button data-view="access"><span class="ico">⌘</span>الأدوار والصلاحيات</button>
-    <button data-view="reports"><span class="ico">▤</span>التقارير</button>
-  </nav>
-  <div class="side-note">نسخة تجريبية مستقلة<br>التغييرات هنا داخل المتصفح فقط ولا تحفظ في قاعدة بيانات.</div>
-</aside>
-<main class="main">
-  <header class="top"><div><div class="eyebrow">MANTIQATIX / WORKSPACE</div><h1 id="pageTitle">نظرة عامة</h1><div class="muted" style="font-size:12px;margin-top:4px">هذه مساحة معاينة التطوير وليست واجهة الموقع العام</div></div><div class="search"><a class="btn" href="../" target="_blank" rel="noopener noreferrer" aria-label="فتح الموقع الرئيسي في نافذة جديدة">فتح الموقع الرئيسي ↗</a><input id="globalSearch" type="search" placeholder="ابحث في الأقسام المعروضة..." aria-label="بحث في الأقسام"><button class="btn" id="searchBtn">بحث</button></div></header>
-  <section id="homeView">
-    <div class="intro"><div class="eyebrow">واجهة تشغيل موحدة</div><h2>كل وحدات المنصة<br>في مساحة عمل واحدة</h2><p>نحوّل هيكل MantiqaTiX إلى واجهات واضحة قابلة للاختبار قبل ربطها بمصادر البيانات الحقيقية. افتح أي قسم من القائمة أو استخدم البحث للتنقل بسرعة.</p></div>
-    <div class="stats">
-      <div class="stat"><div class="muted" style="font-size:12px">الأقسام المعروضة</div><div class="num" id="moduleCount">6</div><div class="muted" style="font-size:11px">واجهات أولية</div></div>
-      <div class="stat"><div class="muted" style="font-size:12px">حالة الواجهة</div><div class="num" style="color:var(--mint)">RTL</div><div class="muted" style="font-size:11px">متجاوبة مع الشاشات</div></div>
-      <div class="stat"><div class="muted" style="font-size:12px">مصدر البيانات</div><div class="num" style="font-size:20px">Demo</div><div class="muted" style="font-size:11px">بيانات توضيحية فقط</div></div>
-      <div class="stat"><div class="muted" style="font-size:12px">حالة الربط</div><div class="num" style="font-size:20px;color:var(--amber)">غير مربوط</div><div class="muted" style="font-size:11px">لا يوجد اتصال إنتاجي</div></div>
+  <main>
+    <div class="mark" aria-hidden="true">M</div>
+    <h1>MantiqatiX</h1>
+    <p class="sub">جاري فتح الصفحة الرئيسية للمنصة. من هناك يمكنك استعراض الخدمات وتسجيل الدخول ثم الانتقال إلى مساحة حسابك حسب صلاحياته.</p>
+    <div class="actions">
+      <a class="btn primary" href="../">فتح الصفحة الرئيسية الآن</a>
+      <a class="btn" href="dashboard.html">فتح لوحة المعاينة التجريبية</a>
     </div>
-    <div class="section-head"><div><h2>الأقسام المتاحة للمعاينة</h2><p>اضغط على بطاقة لفتح واجهة القسم والتفاعل مع عناصرها التجريبية</p></div><span class="muted" id="resultCount" style="font-size:12px">6 أقسام</span></div>
-    <div class="grid" id="moduleGrid">
-      <button class="module" data-module="discovery" data-search="اكتشاف الخدمات البحث التصفح التصنيفات"><span class="icon">⌕</span><h3>اكتشاف الخدمات</h3><p>واجهة بحث وتصفح وتصنيفات تساعد العميل في الوصول إلى الخدمة المناسبة.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="marketing" data-search="التسويق الإعلان الحملات المحتوى العملاء"><span class="icon">◈</span><h3>التسويق والإعلان</h3><p>مساحة للحملات الإعلانية والمحتوى والعملاء، مع مخطط حملة تجريبي تفاعلي.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="orders" data-search="الطلبات العمليات الحالة المتابعة"><span class="icon">◷</span><h3>الطلبات والعمليات</h3><p>قائمة طلبات تجريبية مع بحث وتصفية للحالات.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="providers" data-search="مقدمو الخدمات القطاعات الملفات"><span class="icon">♙</span><h3>مقدمو الخدمات</h3><p>عرض نماذج ملفات مقدمي الخدمة والقطاعات والتصنيفات.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="access" data-search="الأدوار الصلاحيات المستخدمون الأمن"><span class="icon">⌘</span><h3>الأدوار والصلاحيات</h3><p>تصور إدارة الأدوار وحدود الوصول مع تنبيه أنها ليست صلاحيات فعلية.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-      <button class="module" data-module="reports" data-search="التقارير التحليلات المؤشرات الأداء"><span class="icon">▤</span><h3>التقارير والمتابعة</h3><p>مؤشرات شكلية وتقارير توضيحية مع تمييزها عن بيانات التشغيل.</p><span class="tag">واجهة تفاعلية تجريبية</span></button>
-    </div>
-
-    <section class="panel sector-explorer" aria-labelledby="sectorExplorerTitle">
-      <div class="section-head" style="margin-top:0"><div><div class="eyebrow">UI-FIRST SECTOR WORKSPACES</div><h2 id="sectorExplorerTitle">استعراض مساحات القطاعات</h2><p>نماذج تنقل فعلية للواجهات المخططة من مخطط الموديولات في فرع التطوير — ليست ربطًا تشغيليًا أو اعتمادًا للإنتاج.</p></div><span class="status">27 قطاعًا وفق سجل القطاعات المعتمد</span></div>
-      <div class="toolbar"><input id="sectorSearch" type="search" placeholder="ابحث عن قطاع..." aria-label="البحث في القطاعات"><span id="sectorCount" class="muted" style="font-size:12px">27 قطاعًا</span></div>
-      <div id="sectorGrid" class="sector-grid"></div>
-      <div id="sectorWorkspace" class="sector-workspace" aria-live="polite"><h3 id="sectorName" style="margin:0">اختر قطاعًا لعرض مساراته</h3><p class="muted" style="font-size:12px">كل تبويب يعرض اسم مساحة العمل المخططة فقط. العمليات والبيانات الفعلية غير مفعلة هنا.</p><div id="sectorTabs" class="sector-tabs"></div><div id="sectorStatus" class="sector-status">لم يتم تنفيذ أي إجراء أو اتصال بقاعدة البيانات.</div></div>
-    </section>
-    <div class="notice"><strong>حدود النسخة:</strong> هذه مساحة معاينة واجهات وليست بوابة الإنتاج. كل الأرقام والسجلات تجريبية؛ لا يوجد اتصال بقاعدة البيانات أو تسجيل دخول فعلي أو تنفيذ لطلبات أو مدفوعات أو صلاحيات إنتاجية، ولا تنفذ أي تغييرات على بيانات الإنتاج.</div>
-    <section class="panel" aria-labelledby="devProgressTitle" style="margin-top:22px">
-      <div class="section-head" style="margin-top:0">
-        <div><div class="eyebrow">DEVELOPMENT TRACKER</div><h2 id="devProgressTitle">تقدم التطوير الفعلي</h2><p>متابعة ما تم تجهيزه في فروع التطوير وما لم يصل إلى الموقع المنشور بعد</p></div>
-        <span class="status">مراجعة قبل النشر</span>
-      </div>
-      <div class="grid">
-        <article class="module" style="cursor:default">
-          <span class="icon">⌨</span><h3>سهولة الوصول والتنقل</h3>
-          <p>تحسين التنقل بلوحة المفاتيح وإتاحة استخدام مخططات الموديولات.</p>
-          <span class="tag">PR #312 · مفتوح</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/312" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">📣</span><h3>نماذج التسويق</h3>
-          <p>التحقق من بيانات العملاء المحتملين ومنع إرسال النموذج أكثر من مرة.</p>
-          <span class="tag">PR #313 · مفتوح</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/313" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">🛡</span><h3>النماذج والبحث الآمن</h3>
-          <p>رسائل خطأ عربية آمنة، نماذج مهيأة للوصول، وبحث داخل الجداول الظاهرة.</p>
-          <span class="tag">PR #314 · فحوص CI ناجحة</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/314" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">🧩</span><h3>واجهات القطاعات</h3>
-          <p>مسار تطوير واجهات أولية للقطاعات الـ27 مع استمرار مراجعة التغطية والسلوك.</p>
-          <span class="tag">PR #300 · مسودة مفتوحة</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pull/300" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">مراجعة التغييرات على GitHub ↗</a></p>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">🧪</span><h3>قاعدة المراجعة</h3>
-          <p>هذه اللوحة تعرض حالة الفروع وطلبات الدمج؛ لا تدعي أن جميع التغييرات نُشرت أو أن بوابة الإنتاج اجتازت التحقق.</p>
-          <span class="tag">الإنتاج غير معتمد بعد</span>
-        </article>
-        <article class="module" style="cursor:default">
-          <span class="icon">↗</span><h3>كل طلبات التطوير</h3>
-          <p>راجع قائمة الفروع والتعديلات المفتوحة قبل اعتماد أي تغيير.</p>
-          <span class="tag">مراجعة تراكمية</span>
-          <p style="margin-top:12px"><a href="https://github.com/islamnagy2022-eng/MantiqatiX/pulls" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:underline">فتح جميع طلبات الدمج ↗</a></p>
-        </article>
-      </div>
-      <div class="notice"><strong>مهم:</strong> التعديلات المذكورة موجودة في فروع وطلبات دمج مفتوحة وليست كلها ضمن الصفحة الرئيسية المنشورة. هذه اللوحة تجعل التقدم واضحًا من داخل المعاينة، لكنها لا تستبدل اختبار الواجهات الفعلية ولا تعني اعتماد الإنتاج.</div>
-    </section>
-  </section>
-  <section id="detailView" class="hidden">
-    <button class="btn secondary back" id="backBtn">→ الرجوع لنظرة عامة</button>
-    <div class="intro" style="padding-top:0"><div class="eyebrow" id="detailEyebrow">MODULE PREVIEW</div><h2 id="detailTitle">القسم</h2><p id="detailDescription"></p></div>
-    <div class="panel"><div class="section-head" style="margin-top:0"><div><h2 id="tableTitle">عناصر القسم</h2><p>سجلات توضيحية محلية لا تمثل بيانات حقيقية</p></div><button class="btn" id="addBtn">+ إضافة سجل تجريبي</button></div>
-      <div class="toolbar"><input id="tableSearch" type="search" placeholder="ابحث داخل السجلات..." aria-label="بحث داخل السجلات"><select id="statusFilter" aria-label="تصفية حسب الحالة"><option value="">كل الحالات</option><option>نشط</option><option>قيد المراجعة</option><option>مكتمل</option><option>مسودة</option></select><button class="btn secondary" id="resetBtn">إعادة ضبط العرض</button></div>
-      <div class="table-wrap"><table><thead><tr><th>الاسم</th><th>التصنيف</th><th>الحالة</th><th>آخر تحديث</th></tr></thead><tbody id="tableBody"></tbody></table><div class="empty hidden" id="emptyState">لا توجد نتائج مطابقة للبحث الحالي</div></div>
-    </div>
-    <div class="notice">الإضافة والبحث والتصفية تعمل محليًا في هذه الجلسة فقط. لا يتم حفظ البيانات بعد إغلاق الصفحة ولا تُستخدم هذه الواجهة للتحكم في الإنتاج.</div>
-  </section>
-  <section id="marketingWorkspace" class="panel hidden" aria-labelledby="marketingWorkspaceTitle">
-    <div class="section-head" style="margin-top:0"><div><h2 id="marketingWorkspaceTitle">مساحة تخطيط الحملات</h2><p>أنشئ بطاقة حملة تجريبية وحدد هدفها وقناتها وميزانيتها — لا يتم نشر إعلانات أو إنفاق أموال.</p></div><span class="status">تجريبي محلي</span></div>
-    <form id="campaignForm">
-      <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-        <label style="font-size:12px;color:var(--muted)">اسم الحملة<input id="campaignName" required maxlength="80" placeholder="مثال: حملة اكتساب عملاء" style="display:block;margin-top:6px"></label>
-        <label style="font-size:12px;color:var(--muted)">القناة<select id="campaignChannel" required style="display:block;width:100%;margin-top:6px"><option value="Meta / Facebook">Meta / Facebook</option><option value="Instagram">Instagram</option><option value="TikTok">TikTok</option><option value="Google Ads">Google Ads</option><option value="محتوى عضوي">محتوى عضوي</option></select></label>
-        <label style="font-size:12px;color:var(--muted)">الهدف<select id="campaignGoal" required style="display:block;width:100%;margin-top:6px"><option value="رسائل واستفسارات">رسائل واستفسارات</option><option value="زيارات الموقع">زيارات الموقع</option><option value="وعي بالعلامة">وعي بالعلامة</option><option value="مبيعات وتحويلات">مبيعات وتحويلات</option><option value="تفاعل ومتابعون">تفاعل ومتابعون</option></select></label>
-        <label style="font-size:12px;color:var(--muted)">الميزانية المخططة (جنيه)<input id="campaignBudget" type="number" required min="0" max="10000000" step="1" placeholder="0" style="display:block;margin-top:6px"></label>
-        <label style="font-size:12px;color:var(--muted)">تاريخ البداية<input id="campaignDate" type="date" required style="display:block;width:100%;margin-top:6px"></label>
-        <label style="font-size:12px;color:var(--muted)">المسؤول<input id="campaignOwner" maxlength="80" placeholder="اسم المسؤول (اختياري)" style="display:block;margin-top:6px"></label>
-      </div>
-      <div class="toolbar"><button class="btn" type="submit">+ إنشاء خطة حملة تجريبية</button><button class="btn secondary" type="reset">مسح الحقول</button><span class="muted" style="font-size:11px">لا اتصال بـ Meta ولا نشر تلقائي ولا حفظ على الخادم</span></div>
-    </form>
-    <div class="section-head"><div><h2>خطط الحملات في هذه الجلسة</h2><p id="campaignSummary">لم تُنشأ خطط بعد</p></div><button class="btn secondary" id="clearCampaigns" type="button">مسح الخطط التجريبية</button></div>
-    <div class="table-wrap"><table style="min-width:650px"><thead><tr><th>الحملة</th><th>القناة والهدف</th><th>الميزانية المخططة</th><th>البداية</th><th>المسؤول</th><th>إجراء</th></tr></thead><tbody id="campaignBody"></tbody></table><div class="empty" id="campaignEmpty">أضف أول خطة حملة من النموذج أعلاه</div></div>
-    <div class="notice">تنبيه مالي: الميزانية هنا رقم تخطيطي فقط، وليست رصيدًا أو مصروفًا فعليًا. أي ربط بالإعلانات أو الفوترة يحتاج تكاملًا موثقًا وصلاحيات خادمية وموافقة صريحة قبل التنفيذ.</div>
-  </section>
-  <footer class="footer"><span>© MantiqaTiX — بيئة تطوير واجهات</span><span>معاينة مستقلة • عربي RTL • Responsive</span></footer>
-</main>
-</div>
-<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-<script>
-(function(){
-const modules={
-discovery:{title:"اكتشاف الخدمات",desc:"واجهة استكشاف الخدمات مع بحث تجريبي وتصنيفات عامة.",rows:[["خدمات المنزل","المنزل والصيانة","نشط"],["التصميم والإبداع","أعمال رقمية","نشط"],["التوصيل المحلي","النقل والتوصيل","قيد المراجعة"]]},
-marketing:{title:"التسويق والإعلان",desc:"تنظيم الحملات والمحتوى والعملاء في مكان واحد. لا يتم نشر أي إعلان من هذه المعاينة.",rows:[["حملة الوعي بالعلامة","حملات إعلانية","نشط"],["تقويم المحتوى","إدارة المحتوى","مسودة"],["حملة اكتساب العملاء","اكتساب العملاء","قيد المراجعة"]]},
-orders:{title:"الطلبات والعمليات",desc:"استعراض حالات طلبات نموذجية لتجربة البحث والتصفية فقط.",rows:[["طلب تجريبي #1001","خدمة منزلية","قيد المراجعة"],["طلب تجريبي #1002","تصميم","مكتمل"],["طلب تجريبي #1003","توصيل","نشط"]]},
-providers:{title:"مقدمو الخدمات",desc:"نماذج ملفات مقدمي الخدمات والقطاعات. لا توجد ملفات حقيقية في هذه البيئة.",rows:[["مقدم خدمة نموذجي أ","صيانة منزلية","نشط"],["مقدم خدمة نموذجي ب","تصميم وإبداع","قيد المراجعة"],["مقدم خدمة نموذجي ج","نقل وتوصيل","نشط"]]},
-access:{title:"الأدوار والصلاحيات",desc:"عرض توضيحي لتقسيم الأدوار فقط. لا ينشئ أو يعدل صلاحيات حسابات فعلية.",rows:[["مدير المنصة — مثال","إدارة عامة","نشط"],["مدير محتوى — مثال","المحتوى","نشط"],["مراجع — مثال","مراجعة واعتماد","قيد المراجعة"]]},
-reports:{title:"التقارير والمتابعة",desc:"سجلات تقارير شكلية تساعد على اختبار بنية العرض وليست نتائج أعمال حقيقية.",rows:[["ملخص النشاط الأسبوعي","نشاط المنصة","مكتمل"],["أداء الحملات التجريبي","التسويق","قيد المراجعة"],["تقرير الخدمات","الاكتشاف","مسودة"]]}
-};
-let current="";let extraRows={};let toastTimer;let campaignPlans=[];
-const $=id=>document.getElementById(id);
-function notify(msg){$("toast").textContent=msg;$("toast").classList.remove("hidden");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),2600)}
-function setView(key){if(!modules[key])return;current=key;$("marketingWorkspace").classList.toggle("hidden",key!=="marketing");$("homeView").classList.add("hidden");$("detailView").classList.remove("hidden");$("pageTitle").textContent=modules[key].title;$("detailTitle").textContent=modules[key].title;$("detailDescription").textContent=modules[key].desc;$("detailEyebrow").textContent="MODULE / "+key.toUpperCase();$("tableTitle").textContent="سجلات "+modules[key].title;$("globalSearch").value="";$("tableSearch").value="";$("statusFilter").value="";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===key));renderRows();window.scrollTo({top:0,behavior:"smooth"})}
-function home(){$("marketingWorkspace").classList.add("hidden");current="";$("detailView").classList.add("hidden");$("homeView").classList.remove("hidden");$("pageTitle").textContent="نظرة عامة";document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view==="home"));$("globalSearch").value="";filterCards("");window.scrollTo({top:0,behavior:"smooth"})}
-function filterCards(q){q=q.trim().toLocaleLowerCase("ar");let n=0;document.querySelectorAll(".module").forEach(card=>{const match=!q||(card.innerText+" "+card.dataset.search).toLocaleLowerCase("ar").includes(q);card.classList.toggle("hidden",!match);if(match)n++});$("resultCount").textContent=n+" أقسام";$("moduleCount").textContent="6"}
-function renderRows(){const base=modules[current].rows.map((r,i)=>({r,id:i}));const rows=base.concat((extraRows[current]||[]).map((r,i)=>({r,id:"x"+i})));const q=$("tableSearch").value.trim().toLocaleLowerCase("ar");const status=$("statusFilter").value;const filtered=rows.filter(x=>(!q||x.r.join(" ").toLocaleLowerCase("ar").includes(q))&&(!status||x.r[2]===status));$("tableBody").innerHTML="";filtered.forEach(x=>{const tr=document.createElement("tr");x.r.forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});const td=document.createElement("td");td.textContent="الآن";tr.appendChild(td);$("tableBody").appendChild(tr)});$("emptyState").classList.toggle("hidden",filtered.length>0)}
-document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>b.dataset.view==="home"?home():setView(b.dataset.view)));
-document.querySelectorAll(".module").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.module)));
-$("backBtn").addEventListener("click",home);
-function renderCampaigns(){
- const body=$("campaignBody");body.textContent="";
- campaignPlans.forEach((p,i)=>{
-  const tr=document.createElement("tr");
-  [p.name,p.channel+" · "+p.goal,"ج.م "+p.budget.toLocaleString("en-US"),p.date,p.owner||"—"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});
-  const td=document.createElement("td");const del=document.createElement("button");del.type="button";del.className="btn secondary";del.textContent="حذف";del.setAttribute("aria-label","حذف خطة "+p.name);del.addEventListener("click",()=>{campaignPlans.splice(i,1);renderCampaigns();notify("تم حذف الخطة التجريبية من الجلسة.")});td.appendChild(del);tr.appendChild(td);body.appendChild(tr);
- });
- $("campaignEmpty").classList.toggle("hidden",campaignPlans.length>0);
- $("campaignSummary").textContent=campaignPlans.length+" خطة · إجمالي الميزانيات المخططة: ج.م "+campaignPlans.reduce((s,p)=>s+p.budget,0).toLocaleString("en-US");
-}
-$("campaignForm").addEventListener("submit",e=>{
- e.preventDefault();
- const name=$("campaignName").value.trim();const budget=Number($("campaignBudget").value);const date=$("campaignDate").value;
- if(!name||!Number.isFinite(budget)||budget<0||!date){notify("راجع اسم الحملة والميزانية وتاريخ البداية.");return}
- campaignPlans.push({name,channel:$("campaignChannel").value,goal:$("campaignGoal").value,budget,date,owner:$("campaignOwner").value.trim()});
- renderCampaigns();$("campaignForm").reset();notify("تم إنشاء خطة تجريبية محلية فقط.");
-});
-$("clearCampaigns").addEventListener("click",()=>{campaignPlans=[];renderCampaigns();notify("تم مسح الخطط التجريبية من الجلسة.")});
-renderCampaigns();
-
-const sectorLabels={FOOD:"مطاعم وكافيهات",HEALTH:"أطباء وعيادات",PHARMACY:"صيدليات",LABS:"معامل تحاليل",RADIOLOGY:"مراكز الأشعة",DENTAL:"أطباء الأسنان",HOSPITAL:"المستشفيات",MEDICAL:"مراكز طبية",REAL_ESTATE:"عقارات",AUTO:"سيارات ونقل",MAINTENANCE:"الصيانة والخدمات المنزلية",ACCOUNTING:"المحاسبة ومكاتب المحاسبة",LEGAL:"المحاماة والخدمات القانونية",COMPANIES:"الشركات والموردون",EDU:"تعليم وتدريب",DIGITAL:"تسويق وإعلان",TECH:"البرمجيات والخدمات الرقمية",FITNESS:"رياضة ولياقة",TRAVEL:"سياحة وسفر",MANTIGO:"MantiGO والنقل عند الطلب",JOBS:"الوظائف والتوظيف",MATRIMONY:"الزواج والخدمات المرتبطة",USED_ITEMS:"المستعمل",FASHION:"الأزياء والخياطة",GROCERY:"البقالة والسوبر ماركت",VETERINARY:"العيادات والخدمات البيطرية",FREELANCER:"المستقلون ومقدمو الخدمات"};
-const sectorPlans={
- FOOD:["القائمة والأصناف","العروض والأسعار","الطلبات","المطبخ والتجهيز","التوصيل والاستلام","التقارير"],
- HEALTH:["الأطباء","التخصصات","الحجوزات","المواعيد","الخدمات والباقات","التقارير"],
- PHARMACY:["المنتجات والأدوية","الأسعار والتوافر","الطلبات","المخزون","خدمات الصيدلية","التقارير"],
- LABS:["التحاليل والخدمات","الفروع","طلبات التحليل","المواعيد","النتائج والصلاحيات","التقارير"],
- RADIOLOGY:["خدمات الأشعة","المراكز والفروع","الحجوزات","المواعيد","التقارير التشغيلية","الإعدادات"],
- DENTAL:["الأطباء والعيادات","الخدمات","الحجوزات","المواعيد","متابعة الطلبات","التقارير"],
- HOSPITAL:["الأقسام","الخدمات","الباقات","الحجوزات","طلبات المرضى","التقارير"],
- MEDICAL:["مراكز طبية","التخصصات والخدمات","الحجز","المواعيد","الترشيحات","التقارير"],
- REAL_ESTATE:["العقارات","البيع والإيجار","طلبات العملاء","المواعيد والمعاينات","العروض","التقارير"],
- AUTO:["السيارات والمركبات","خدمات النقل","الصيانة","طلبات العملاء","العروض","التقارير"],
- MAINTENANCE:["طلبات الصيانة","المزايدات","مقدمو الخدمة","الجدولة","قطع الغيار","التقارير"],
- ACCOUNTING:["دليل الحسابات","طلبات المحاسبة","العروض والتفاوض","القيود اليومية","التسويات","التقارير المالية"],
- LEGAL:["الخدمات القانونية","طلبات العملاء","المستندات","الاتفاقيات","المواعيد","التقارير"],
- COMPANIES:["ملف الشركة","الخدمات","طلبات الأعمال","الموردون","العقود","التقارير"],
- EDU:["المدارس ومراكز التدريب","المدرسون","الدورات","طلبات التعليم","الحجوزات","التقارير"],
- DIGITAL:["الخدمات التسويقية","العملاء المحتملون","المشروعات","الحملات","شركات التسويق الشريكة","التقارير"],
- TECH:["الخدمات التقنية","المواقع والبرمجيات","طلبات الأعمال","المشروعات","الدعم والصيانة","التقارير"],
- FITNESS:["الأندية والمراكز","المدربون","الخدمات والبرامج","الحجوزات","الاشتراكات","التقارير"],
- TRAVEL:["الرحلات","العروض والحجوزات","طلبات العملاء","المواعيد","مقدمو الخدمة","التقارير"],
- MANTIGO:["الرحلات","المزايدات والعروض","اختيار العرض","التنفيذ المباشر","السائقون","التقييمات والتقارير"],
- JOBS:["الوظائف","طلبات التقديم","المرشحون","المقابلات","أصحاب العمل","التقارير"],
- MATRIMONY:["الملفات","البحث والترشيح","الطلبات","فتح التواصل","المتابعة","الخصوصية والتقارير"],
- USED_ITEMS:["الإعلانات","البحث والتصفية","العروض","التفاوض","المراسلات","التقارير"],
- FASHION:["الكتالوج والمنتجات","المقاسات والخيارات","السلة والطلبات","المخزون","التسعير والعروض","التقارير"],
- GROCERY:["الكتالوج","الأسعار والعروض","المخزون والمستودعات","السلة والتوصيل","الطلبات","التقارير"],
- VETERINARY:["العيادات البيطرية","الأطباء والخدمات","الحجوزات","المواعيد","ملفات الخدمة","التقارير"],
- FREELANCER:["ملف مقدم الخدمة","الخدمات والتخصصات","المشروعات","العروض","طلبات العملاء","التقارير"]
-};
-let activeSector="DIGITAL";
-function renderSectorGrid(q=""){const grid=$("sectorGrid");if(!grid)return;grid.textContent="";const term=q.trim().toLocaleLowerCase("ar");let count=0;Object.keys(sectorPlans).filter(k=>(sectorLabels[k]+" "+k).toLocaleLowerCase("ar").includes(term)).forEach(k=>{count++;const b=document.createElement("button");b.type="button";b.className="sector-card";b.dataset.sector=k;b.setAttribute("aria-pressed",String(k===activeSector));const title=document.createElement("strong");title.textContent=sectorLabels[k];const small=document.createElement("small");small.textContent=sectorPlans[k].length+" مسارات مخططة";b.append(title,small);b.addEventListener("click",()=>selectSector(k));grid.appendChild(b)});$("sectorCount").textContent=count+" قطاع";}
-function selectSector(key){if(!sectorPlans[key])return;activeSector=key;$("sectorName").textContent=sectorLabels[key];const tabs=$("sectorTabs");tabs.textContent="";sectorPlans[key].forEach((name,i)=>{const b=document.createElement("button");b.type="button";b.textContent=name;b.classList.toggle("active",i===0);b.setAttribute("aria-pressed",String(i===0));b.addEventListener("click",()=>{tabs.querySelectorAll("button").forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false")});b.classList.add("active");b.setAttribute("aria-pressed","true");$("sectorStatus").textContent="المسار المحدد: "+sectorLabels[key]+" / "+name+". هذا توصيف واجهة مخطط فقط؛ لم يتم تنفيذ كتابة أو قراءة بيانات أو تغيير صلاحيات."});tabs.appendChild(b)});$("sectorStatus").textContent="تم عرض "+sectorPlans[key].length+" مسارات مخططة لقطاع "+sectorLabels[key]+". لا توجد عمليات خادمية في هذه المعاينة.";renderSectorGrid($("sectorSearch").value);}
-$("sectorSearch").addEventListener("input",()=>renderSectorGrid($("sectorSearch").value));
-renderSectorGrid();selectSector(activeSector);
-
-function doSearch(){const q=$("globalSearch").value;if(current){$("tableSearch").value=q;renderRows();}else{filterCards(q);if(q.trim()&&document.querySelectorAll(".module:not(.hidden)").length===1){const one=document.querySelector(".module:not(.hidden)");if(one)notify("تم العثور على قسم مطابق. اضغط البطاقة لفتحه.");}}}
-$("searchBtn").addEventListener("click",doSearch);$("globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch()});$("globalSearch").addEventListener("input",()=>{if(!current)filterCards($("globalSearch").value)});$("tableSearch").addEventListener("input",renderRows);$("statusFilter").addEventListener("change",renderRows);
-$("addBtn").addEventListener("click",()=>{if(!current)return;const count=(extraRows[current]||[]).length+1;const r=["سجل تجريبي جديد "+count,"إضافة محلية","مسودة"];(extraRows[current]||(extraRows[current]=[])).push(r);renderRows();notify("أُضيف سجل تجريبي محلي فقط ولم يتم حفظه في الخادم.")});
-$("resetBtn").addEventListener("click",()=>{$("tableSearch").value="";$("statusFilter").value="";renderRows();notify("تمت إعادة ضبط البحث والتصفية.")});
-})();
-</script>
-</body></html>
+    <p class="note">لو لم يتم التحويل تلقائيا استخدم زر الصفحة الرئيسية. لوحة المعاينة مستقلة ولا تحفظ بيانات تشغيل حقيقية.</p>
+  </main>
+</body>
+</html>
