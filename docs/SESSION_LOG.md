@@ -362,3 +362,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 follow-up: catalog and price reads now require a verified tenant scope before querying; marketing project reads require a verified business scope. Missing scope is shown as a load failure instead of querying without an explicit filter. Added source guards. RLS and tenant isolation still require independent verification.
+
+
+- MantiGO open-rides follow-up (2026-10-21): removed a second RPC that was triggered from the render path and silently converted errors to an empty list. The tab-click loader remains the single request path and records errors for retry UI. Source-contract guards added; runtime/browser verification remains pending.
