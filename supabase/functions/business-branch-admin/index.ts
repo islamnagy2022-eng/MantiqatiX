@@ -43,6 +43,6 @@ Deno.serve(async(req)=>{
     latitude:body.latitude==null?null:Number(body.latitude),longitude:body.longitude==null?null:Number(body.longitude),
     settings:{source:"MNTY_PROVIDER_ONBOARDING"}
   }).select("id,tenant_id,organization_id,business_id,name,code,status,phone,address,latitude,longitude").single();
-  if(ie)return out({error:ie.message||"BRANCH_CREATE_FAILED"},400);
+  if(ie)return out({error:"BRANCH_CREATE_FAILED"},400);
   return out({success:true,branch});
 });
