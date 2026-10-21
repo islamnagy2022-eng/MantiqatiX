@@ -380,3 +380,6 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 
 
 - 2026-10-21 request-stream recovery: the bounded body reader now catches stream-read failures, attempts cancellation, and returns an empty byte buffer so malformed/unreadable input follows the controlled `invalid_json` response path instead of becoming an unhandled Edge Function exception. Added a source-contract assertion. Runtime tests and exact-head CI remain pending.
+
+
+- 2026-10-21 overview truthfulness fix: tables deliberately excluded from direct browser reads (`BACKEND_ONLY_TABLES`) no longer appear as if they contain zero records. Overview cards now state that data must be accessed through an authorized backend path; added a source-contract assertion. This avoids confusing a security boundary with an empty dataset. Runtime/browser and CI verification remain pending.
