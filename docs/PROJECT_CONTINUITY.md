@@ -830,3 +830,8 @@ The `marketing-lead-create` Edge Function now reads the request body as a bounde
 ## 2026-10-21 — backend-only overview state
 
 Shared module overview cards now distinguish tables intentionally excluded from direct browser reads (`BACKEND_ONLY_TABLES`) from genuine zero-row results. They display an explicit authorized-backend-only state rather than a zero count. A source-contract assertion was added. This UI change does not expose credentials or enable direct reads; runtime/browser/CI verification remains pending and production stays BLOCKED / NOT CERTIFIED.
+
+
+## Next identified follow-up — generic live-data tab
+
+Code review found `genericLiveView(d)` still reports `(rows[t] || []).length` and renders an empty table even when `loadErrors[t]` exists or the table is in `BACKEND_ONLY_TABLES`. The shared overview was corrected, but this detail/live tab remains a separate unresolved presentation defect. Next change should add per-table explicit error and backend-only states, then assert them. Do not claim fixed until a source change is committed and verified. Release remains BLOCKED / NOT CERTIFIED.
