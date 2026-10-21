@@ -2052,7 +2052,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Standardized shared module tabs with Arabic labels for overview, live records, marketing plans, subscriptions, participants, commissions, appointments, and other known tabs.
 - [x] Added an Arabic navigation landmark, explicit button type, and current-tab state; added source-contract assertions for these UI requirements.
 - [ ] Exact-head CI is currently in progress for this change; Node validator execution and browser/mobile E2E are not yet verified.
-- [ ] **Critical payment webhook recovery blocker:** the MantiGO Paymob webhook persists the provider event before updating the financial ledger. If the event insert succeeds and ledger update fails, a retry can be treated as idempotent and leave the ledger pending. Implement transaction-safe atomic processing or a reconciliation-safe state machine and test duplicate/retry/partial-failure cases before release.
+- [x] **Source-level fix implemented:** the MantiGO Paymob path now delegates to the RC457 transaction-safe RPC; its disposable PostgreSQL integration/concurrency suite has passed on a prior commit. [ ] **Release verification remains blocked:** rerun on exact current head, inspect target schema/grants, rehearse migration and rollback, deploy migration before Edge Function, and verify Paymob sandbox/browser end-to-end. Do not describe the former two-write path as still present in source.
 - Release gate remains **BLOCKED / NOT CERTIFIED** until required checks, browser verification, security tests, and payment failure-recovery tests pass.
 
 
@@ -2103,7 +2103,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 
 ### عائق حرج معروف — لا تعتبره محلولًا
 
-- [ ] مراجعة مسار `paymob-webhook` الخاص بـ MantiGO: يوجد احتمال أن يُسجل الحدث في `payment_provider_events` ثم يفشل تحديث `mantigo_financial_ledger`؛ إعادة إرسال الحدث قد تُعامل كحدث مكرر وتترك حالة السجل `PENDING`. يلزم إصلاح ذري/قابل للاستئناف مع اختبار تكرار الحدث والفشل بين الكتابتين.
+- [x] تم تنفيذ إصلاح ذري على مستوى المصدر لمسار MantiGO عبر RPC ومعه اختبارات PostgreSQL للتكرار والتزامن. [ ] ما زال يلزم التحقق على أحدث commit ومراجعة الصلاحيات والمخطط الفعلي وتجربة الترحيل والتراجع وPaymob sandbox قبل الإطلاق؛ لم يتم تطبيق الترحيل أو نشر Edge Function للإنتاج.
 - [ ] مراجعة التزامن في إنشاء نية الدفع؛ حارس حفظ النية الحالي يقلل إظهار رابط دفع غير محفوظ لكنه لا يثبت منع إنشاء نوايا مزود يتيمة عند الطلبات المتزامنة.
 
 ### بوابة الإصدار
@@ -2117,7 +2117,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - **Implemented:** stale responses are discarded if the module or tab changes before the request completes, and the control is restored in `finally`.
 - **Regression coverage added:** `scripts/validate-marketing-lead-form.mjs` asserts busy-state handling, safe network failure state, stale-response rejection, and control recovery.
 - **Verification status:** source-level assertions were checked against the current branch content in this session. GitHub Actions has not reported any workflow run or commit status for the latest commit; do not claim CI/runtime/E2E passed until those checks actually run.
-- **Still blocked for release:** the known MantiGO Paymob webhook partial-failure/idempotency case remains unresolved: a provider-event insert can succeed while the ledger update fails, and a retry can short-circuit on the existing event. Requires atomic server-side transaction/RPC plus regression tests before production certification.
+- **Still blocked for release, but the source-level partial-failure fix is implemented:** MantiGO now calls the RC457 atomic RPC, with disposable PostgreSQL replay/concurrency coverage. Remaining gates are exact-head CI, target-schema/privilege verification, migration rehearsal and rollback, backup/restore evidence, and Paymob sandbox/browser E2E. Migration and Edge Function remain undeployed.
 
 ## 2026-10-21 — MantiGO ride form recovery and module navigation efficiency
 - [x] MantiGO ride creation now catches thrown network failures, validates the active session and proposed price, restores the submit control in `finally`, and provides safe guidance to check the user's rides before retrying an uncertain submission.
@@ -2136,7 +2136,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Pages validation run 6186 passed on that exact commit; deploy was correctly skipped for the feature branch.
 - [ ] Additional exact-head workflows (module professionalization, backend-only module boundary, MantiGO open-ride privacy) were still running at the time of this note; their final results must be checked before treating the whole PR validation set as complete.
 - [ ] Browser/mobile E2E, role/tenant authorization, and server-side duplicate-submission tests remain NOT VERIFIED.
-- [ ] Critical MantiGO Paymob webhook partial-failure/idempotent-retry issue remains open: provider event insertion and ledger update are separate writes. Fix requires a transaction-safe RPC/state machine plus retry/concurrency tests.
+- [x] MantiGO Paymob source path delegates to the RC457 atomic RPC; disposable PostgreSQL tests cover replay/concurrency/partial failure. [ ] Exact-head and target-environment verification, migration rehearsal/rollback, and Paymob sandbox/browser E2E remain release blockers.
 - Release remains **BLOCKED / NOT CERTIFIED**. No merge, production deployment, database migration, or real payment was performed.
 
 
@@ -2144,7 +2144,7 @@ Status rule: **0 modules are E2E-certified complete by this UI-first branch**. T
 - [x] Added `docs/UI_MODULE_COMPLETION_MATRIX.md`, mapping the 28 module keys already represented in `scripts/validate-module-runtime-contracts.mjs` to their current renderer and expected data sources.
 - [x] Explicitly kept every module UI/E2E status as NOT VERIFIED; existing source-contract/coverage tests do not prove browser journeys, role authorization, tenant isolation, or responsive behavior.
 - [ ] Walk the matrix module-by-module and implement the next small UI slice against verified backend contracts, starting with public discovery and provider profiles.
-- [ ] MantiGO Paymob webhook still uses separate event and ledger writes; atomic RPC/state-machine and replay/concurrency/partial-failure tests remain a critical release blocker.
+- [x] MantiGO Paymob webhook no longer uses the former separate client writes in source; it delegates to RC457 atomic processing. [ ] Runtime deployment and target-environment proof remain required before certification.
 - [ ] Production remains **BLOCKED / NOT CERTIFIED**.
 
 
