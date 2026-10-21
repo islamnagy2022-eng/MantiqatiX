@@ -442,3 +442,10 @@ The UI/search changes are source-committed but not runtime-certified. This sessi
 - Search feedback reports matching versus visible row counts and explicitly distinguishes no matches from a genuinely empty source. Backend-only tables and read-error states remain protected and do not receive a direct-browser search path.
 - Added source-contract assertions; execution of the Node validator, exact-head CI, responsive/keyboard review, and browser E2E remains pending.
 - No production mutation, deployment, merge, or release occurred. Release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-21 — UI error-state and validator reliability follow-up
+- Fixed misleading empty states for failed Jobs, Education, and Medical-provider reads; failures now clearly instruct users to retry instead of suggesting there are no records.
+- Fixed medical appointment date rendering for ISO timestamps.
+- Corrected stale validator assertions and pointed payment-intent source checks to `supabase/functions/mantigo-payment-intent/index.ts`; the validator now reports PASS only after all assertions finish.
+- Exact-head Actions run `39547998299` passed, including production verification engine and syntax/source-contract checks, at commit `8f1d1bfe7fbf466d652a4241cd83f4b6d1974d9b`.
+- Remaining NOT VERIFIED: browser/mobile E2E, real authorization/tenant isolation tests, and MantiGO webhook partial-failure recovery. PR #314 remains draft/open; production release gate remains BLOCKED / NOT CERTIFIED.
