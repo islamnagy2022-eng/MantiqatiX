@@ -44,14 +44,16 @@ function scope(){
  return m?.tenant_id&&m?.business_id&&m?.branch_id?{tenant_id:m.tenant_id,business_id:m.business_id,branch_id:m.branch_id}:null;
 }
 async function load(){
+ try{
  state.user=await session();
- if(!state.user){state.error='AUTH_REQUIRED';return render();}
+ if(!state.user){state.error='انتهت الجلسة أو لم يتم تسجيل الدخول. سجل الدخول ثم أعد المحاولة.';return render();}
  const result=await membership(state.user);
  state.membershipOptions=result.options||[];state.selectionRequired=result.needsSelection===true;
  if(result.error){state.error='تعذر التحقق من العضويات النشطة. حاول مرة أخرى.';return render();}
  state.membership=result.membership;
  if(!state.membership){state.staleMembershipSelection=result.stale===true;state.error=state.selectionRequired?null:(state.staleMembershipSelection?'العضوية المحفوظة لم تعد متاحة. امسح الاختيار المحفوظ لإعادة اختيار عضوية نشطة.':'لا توجد عضوية تشغيلية نشطة.');return render();}
  state.staleMembershipSelection=false;state.selectionRequired=false;
+ }catch(e){state.error='تعذر التحقق من جلسة المستخدم أو عضوياته. حاول إعادة تحميل الصفحة.';state.loading=false;return render();}
  state.error=null; state.loading=true; render();
  const s=scope();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
@@ -190,7 +192,7 @@ function addMenu(existing){
   let q;
   if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle();
   else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
-  const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');if(!r.data)return notify('لم يتم الحفظ: الصنف غير موجود في نطاق الفرع أو لا تملك الصلاحية.','error');o.remove();await load();
+  const r=await q;if(r.error)return notify('تعذر الحفظ. تحقق من البيانات والصلاحيات ثم حاول مرة أخرى.','error');if(!r.data)return notify('لم يتم الحفظ: الصنف غير موجود في نطاق الفرع أو لا تملك الصلاحية.','error');o.remove();await load();
  });
 }
 function addTable(existing){
@@ -228,7 +230,7 @@ async function updateOrder(id,status){
  try{
   await invokeMntyFunction('order-status-update',{orderId:id,tenantId:m.tenant_id,newStatus:status});
   await load();return true;
- }catch(e){notify('تعذر تحديث حالة الطلب: '+(e?.message||'خطأ'),'error');return false}
+ }catch(e){notify('تعذر تحديث حالة الطلب. تحقق من الصلاحيات والاتصال ثم حاول مرة أخرى.','error');return false}
 }
 function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
