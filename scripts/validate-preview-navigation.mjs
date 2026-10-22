@@ -20,6 +20,7 @@ const customerRestaurantsScript = customerRestaurants.match(/<script>([\s\S]*?)<
 const customerOrderScript = customerOrder.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 
 const checks = [
+  ["Restaurant and cafe category opens customer restaurant discovery", entry.includes("if(selected==='FOOD'){window.location.href='restaurants.html';return;}")],
   ["Customer restaurant page lists the three requested demo restaurants", ["مطعم الزعيم", "مطعم أولاد جابر", "الأصلي", "بركة السبع"].every(x => customerRestaurants.includes(x))],
   ["Customer discovery links to restaurant menu and ordering", customerRestaurants.includes('href="restaurant-order.html?restaurant=') && customerRestaurants.includes('data-kind="كشري وسندوتشات"') && customerRestaurants.includes('data-kind="فول وطعمية"') && customerRestaurants.includes('data-kind="مشويات"')],
   ["Customer order page supports size, extras, quantities, multi-item cart and demo checkout", ["data-pick", "data-size", "data-extra", "data-inc", "data-dec", "data-del", "DEMO-", "تأكيد الطلب التجريبي"].every(x => customerOrder.includes(x))],
