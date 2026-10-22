@@ -190,7 +190,7 @@ checks.push(["Business-owner dashboard inline JavaScript parses successfully", (
 checks.push(["Business-owner dashboard links to the restaurant operations preview", ownerDashboard.includes('href="restaurant.html"') && ownerDashboard.includes('href="restaurants.html"') && ownerDashboard.includes('href="dashboard.html"')]);
 checks.push(["Restaurant entry is clearly demo-only and warns against live order or inventory changes", ownerDashboard.includes('id="restaurant-operations"') && ownerDashboard.includes('معاينة فقط') && ownerDashboard.includes('لا تنفّذ هذه الروابط طلبات حقيقية')]);
 checks.push(["Business-owner restaurant links resolve to existing preview pages", ["web/preview/restaurant.html","web/preview/restaurants.html","web/preview/dashboard.html"].every(path => fs.existsSync(path))]);
-checks.push(["Restaurant operator preview has no backend or persistent browser writes", /لا يوجد اتصال بالخادم/.test(restaurant) && !/\\bfetch\\s*\\(|XMLHttpRequest|localStorage|sessionStorage|createClient\\s*\\(/i.test(restaurant)]);
+checks.push(["Restaurant operator preview has no backend or persistent browser writes", /لا يوجد اتصال بالخادم/.test(restaurant) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(restaurant)]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
