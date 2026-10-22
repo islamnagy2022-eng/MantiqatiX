@@ -29,6 +29,11 @@ assert.ok(moduleSource.includes("menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('bus
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 
+// Authorization and read failures must not leak operational records or leave stale data visible.
+assert.match(moduleSource, /tablesQ=tablesQ\.limit\(0\);\s*invQ=invQ\.limit\(0\);/, 'operations records must not be fetched without operations view capability');
+assert.match(moduleSource, /if\(errs\.length\)\{\s*state\.menu=\[\];state\.orders=\[\];state\.tables=\[\];state\.inventory=\[\];/, 'any failed data read must clear all potentially stale module data');
+assert.match(moduleSource, /catch\(error\)\{\s*state\.user=null;state\.membership=null;state\.menu=\[\];state\.orders=\[\];state\.tables=\[\];state\.inventory=\[\];/, 'session or membership exceptions must clear prior user and operational state');
+assert.match(moduleSource, /if\(!s\)\{state\.loading=false;state\.error='العضوية لا تحتوي نطاق نشاط وفرع كامل/, 'invalid membership scope must exit loading state');
 // A rejected network request must not leave the module stuck in a permanent loading state.
 assert.match(moduleSource, /catch\(error\)\{\s*state\.menu=\[\];state\.orders=\[\];state\.tables=\[\];state\.inventory=\[\];\s*state\.error='تعذر الاتصال بخدمة بيانات المطاعم/);
 assert.match(moduleSource, /finally\{\s*state\.loading=false;render\(\);\s*\}/, 'restaurant data loading must always clear the loading state');
