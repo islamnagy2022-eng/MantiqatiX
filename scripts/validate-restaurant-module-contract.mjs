@@ -176,7 +176,7 @@ assert.match(moduleSource, /if\(window\.__MNTY_RESTAURANT_MODULE_OBSERVER__\)ret
 assert.match(moduleSource, /window\.__MNTY_RESTAURANT_MODULE_POLL__=window\.setInterval\(observe,800\)/, 'the singleton poll handle must be retained for lifecycle diagnostics');
 
 assert.match(moduleSource, /function menuView\(\)[\s\S]*?id="rest-menu-search"[\s\S]*?id="rest-menu-category"[\s\S]*?data-menu-row="1"/, 'local menu records must expose searchable rows and category filters');
-assert.match(moduleSource, /const filterMenu=\(\)=>[\s\S]*?matchesText[\s\S]*?matchesCategory[\s\S]*?rest-menu-filter-count/, 'menu filters must update visible rows and a result count');
+assert.match(moduleSource, /const filterMenu=\(\)=>[\s\S]*?matchesText[\s\S]*?matchesCategory[\s\S]*?menuFilterCount\.textContent/, 'menu filters must update visible rows and a result count');
 assert.match(moduleSource, /النتائج ضمن أول 200 سجل قائمة محلي محمل/, 'menu filtering must disclose that it only covers loaded local legacy records');
 assert.match(moduleSource, /تعديل السجل المحلي/, 'menu editing must be clearly labeled as local legacy data, not central catalog pricing');
 assert.match(orderCreateSource, /INVALID_CUSTOMER_NAME[\s\S]*?customerName\.trim\(\)\.length > 120/, 'canonical order creation must reject blank or overlong customer names server-side');
