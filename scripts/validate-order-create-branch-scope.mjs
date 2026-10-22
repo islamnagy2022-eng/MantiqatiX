@@ -11,8 +11,10 @@ assert.ok(source.includes('.eq("tenant_id", body.tenantId)') && source.includes(
   'membership lookup must be bound to the requested tenant and business');
 assert.ok(source.includes('String(membership.branch_id ?? "") === branchId'),
   'branch-scoped memberships must match the requested branch exactly');
-assert.ok(source.includes('(!membership.branch_id && businessWideRoles.has(role))'),
-  'only business-wide roles may use an unscoped membership for a branch order');
+assert.ok(source.includes('const orderCreatorRoles = new Set(["OWNER", "SALES"])') &&
+          source.includes('if (!orderCreatorRoles.has(role)) return false;') &&
+          source.includes('(!membership.branch_id && role === "OWNER")'),
+  'only roles with ORDERS:create may use an unscoped membership for a branch order');
 assert.ok(source.includes('role === "SUPER_ADMIN"') &&
           source.includes('membership.permissions?.scope === "PLATFORM"') &&
           source.includes('membership.permissions?.full_control === true'),
