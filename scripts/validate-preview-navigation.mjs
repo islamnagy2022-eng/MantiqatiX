@@ -138,6 +138,34 @@ checks.push(["Shared cart add/update/remove enforce quantity and recompute line 
   } catch(error) { console.error("Shared cart mutation test failed:",error.message); return false; }
 })()]);
 
+checks.push(["Shared cart rejects invalid quantity updates without corrupting existing lines", (() => {
+  let stored=JSON.stringify([{id:"line-safe",merchantId:"shop-a",name:"Safe",unit:10,qty:2,total:20}]);
+  const storage={getItem:()=>stored,setItem:(k,v)=>{stored=v;return true;},removeItem:()=>{stored="[]";}};
+  const context={window:{},sessionStorage:storage,crypto:{randomUUID:()=>"runtime-id"}};
+  try {
+    vm.runInNewContext(sharedCart,context);
+    const cart=context.window.MXCart;
+    if(cart.update("line-safe","not-a-number")!==false)return false;
+    if(cart.update("line-safe",NaN)!==false)return false;
+    const rows=cart.list();
+    return rows.length===1&&rows[0].qty===2&&rows[0].total===20;
+  } catch(error) { console.error("Shared cart invalid quantity test failed:",error.message); return false; }
+})()]);
+checks.push(["Shared cart removes duplicate IDs from tampered stored data", (() => {
+  let stored=JSON.stringify([
+    {id:"duplicate",merchantId:"shop-a",name:"First",unit:10,qty:1},
+    {id:"duplicate",merchantId:"shop-b",name:"Second",unit:99,qty:2},
+    {id:"unique",merchantId:"shop-a",name:"Third",unit:5,qty:1}
+  ]);
+  const storage={getItem:()=>stored,setItem:(k,v)=>{stored=v;return true;},removeItem:()=>{stored="[]";}};
+  const context={window:{},sessionStorage:storage,crypto:{randomUUID:()=>"runtime-id"}};
+  try {
+    vm.runInNewContext(sharedCart,context);
+    const rows=context.window.MXCart.list();
+    return rows.length===2&&rows[0].id==="duplicate"&&rows[0].name==="First"&&rows[1].id==="unique";
+  } catch(error) { console.error("Shared cart duplicate storage test failed:",error.message); return false; }
+})()]);
+
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 if (failed.length) {
