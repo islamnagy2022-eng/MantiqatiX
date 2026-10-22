@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
   if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 120) {
     return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
   }
-  if (typeof body.customerPhone !== "string" || (body.customerPhone.trim() !== "" && !/^[+0-9()\\-\\s]{7,20}$/.test(body.customerPhone.trim()))) {
+  if (typeof body.customerPhone !== "string" || (body.customerPhone.trim() !== "" && !/^[+0-9()\-\s]{7,20}$/.test(body.customerPhone.trim()))) {
     return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
   }
   if (typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 500) {
