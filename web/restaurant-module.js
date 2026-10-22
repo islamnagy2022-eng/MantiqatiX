@@ -126,51 +126,8 @@ function inventoryView(){
  (state.inventory.length?state.inventory.map(x=>'<tr><td>'+esc(x.name_ar)+'</td><td>'+esc(x.unit)+'</td><td>'+x.current_stock_qty+'</td><td>'+x.min_stock_alert_threshold+'</td><td>'+money(x.unit_cost_egp)+'</td><td>'+esc(x.supplier_name)+'</td><td>'+(canOperate('OPERATIONS','update')?'<button class="linkbtn" data-inv-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف مخزون فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
 }
-function askOrderDetails(items){
- return new Promise(resolve=>{
-  const options=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name||x.title||x.id)+'</option>').join('');
-  modal('بيانات الطلب','<div class="form-grid">'+field('rest-customer','اسم العميل','','text','maxlength="120" autocomplete="name" required')+field('rest-phone','رقم الهاتف','','tel','maxlength="24" autocomplete="tel" required')+'</div>'+field('rest-address','عنوان التوصيل','','text','maxlength="300" autocomplete="street-address" required')+'<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" max="1000" step="1" required')+field('rest-notes','ملاحظات إضافية','','text','maxlength="500"')+'<div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
-   const itemId=o.querySelector('#rest-item')?.value;
-   const quantity=Number(o.querySelector('#rest-qty')?.value);
-   const customerName=o.querySelector('#rest-customer')?.value.trim()||'';
-   const customerPhone=o.querySelector('#rest-phone')?.value.trim()||'';
-   const deliveryAddress=o.querySelector('#rest-address')?.value.trim()||'';
-   const notes=o.querySelector('#rest-notes')?.value.trim()||'';
-   const item=items.find(x=>String(x.id)===String(itemId));
-   if(!customerName||customerName.length>120){notify('أدخل اسم العميل بشكل صحيح.','error');return;}
-   if(!/^[+0-9()\s.-]{7,24}$/.test(customerPhone)||customerPhone.replace(/\D/g,'').length<7){notify('أدخل رقم هاتف صحيحًا.','error');return;}
-   if(!deliveryAddress||deliveryAddress.length>300){notify('أدخل عنوان التوصيل بشكل صحيح.','error');return;}
-   if(!item){notify('اختر صنفًا صالحًا من الكتالوج.','error');return;}
-   if(!Number.isInteger(quantity)||quantity<1||quantity>1000){notify('أدخل كمية صحيحة بين 1 و1000.','error');return;}
-   const selection={item,quantity,customerName,customerPhone,deliveryAddress,notes};
-   o.__close(false);resolve(selection);
-  },()=>resolve(null));
- });
-}
-async function createRestaurantOrder(){
- if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
- // The canonical marketplace endpoint always binds customer_id to auth.uid().
- // Until a dedicated, audited staff-created restaurant-order contract exists,
- // fail closed rather than misattribute a customer order to the operator account.
- const actorRole=String(state.membership?.role||'').toUpperCase();
- if(actorRole!=='CUSTOMER')return notify('إنشاء طلب بالنيابة عن عميل من لوحة المطعم متوقف مؤقتًا لحماية ملكية الطلب. يلزم مسار خادمي مخصص يسجل الموظف والعميل بشكل منفصل.','error');
- if(!canOperate('ORDERS','create'))return notify('ليس لديك صلاحية إنشاء الطلبات.','error');
- const m=scope();
- try{
-   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
-   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
-   if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const selection=await askOrderDetails(items);
-   if(!selection)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
-   const r=await invokeMntyFunction('order-create',payload);
-   notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
-   await load();
- }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
-}
 function dashboard(){
- return shell('لوحة المطعم',tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button>':'')+'</div>'+cards()+
+ return shell('لوحة المطعم',tabs()+'<div class="notice" role="status">إنشاء طلب بالنيابة عن عميل غير متاح من لوحة التشغيل حاليًا. سنفعّله بعد إضافة مسار خادمي يفصل هوية العميل عن الموظف المنشئ للطلب.</div>'+cards()+
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
 }
@@ -244,7 +201,6 @@ function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
- document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
