@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The web/PWA uses `web/location-adapter.js` as its single browser integration boundary for the canonical RC40 location contract. This file preserves the existing `window.MNTYLocationAdapter` global so existing home-page consumers remain compatible; it is not a second GPS engine.
+The web/PWA uses `web/location-adapter.js` as its single browser integration boundary for the canonical RC40 location contract. It exposes `window.MNTYLocationService` as the canonical name and `window.MNTYLocationAdapter` as a backward-compatible alias; both point to the same frozen API and state. It is not a second GPS engine.
 
 ## Current shared contract
 
