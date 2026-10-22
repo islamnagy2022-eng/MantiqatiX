@@ -149,6 +149,11 @@ function askOrderDetails(items){
 }
 async function createRestaurantOrder(){
  if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
+ // The canonical marketplace endpoint always binds customer_id to auth.uid().
+ // Until a dedicated, audited staff-created restaurant-order contract exists,
+ // fail closed rather than misattribute a customer order to the operator account.
+ const actorRole=String(state.membership?.role||'').toUpperCase();
+ if(actorRole!=='CUSTOMER')return notify('إنشاء طلب بالنيابة عن عميل من لوحة المطعم متوقف مؤقتًا لحماية ملكية الطلب. يلزم مسار خادمي مخصص يسجل الموظف والعميل بشكل منفصل.','error');
  if(!canOperate('ORDERS','create'))return notify('ليس لديك صلاحية إنشاء الطلبات.','error');
  const m=scope();
  try{
