@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 const moduleSource = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const rbacSource = fs.readFileSync('web/rbac.js', 'utf8');
@@ -55,5 +56,41 @@ assert.match(moduleSource, /restaurant_tables'\)\.update\(payload\)\.eq\('id',ex
 assert.match(moduleSource, /restaurant_inventory'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'inventory updates must be scoped to the active branch and detect unmatched writes');
 assert.match(moduleSource, /if\(!r\.data\)return notify\('لم يتم الحفظ:/, 'zero-row updates must not be reported as success');
 assert.ok(moduleSource.includes("if(saveButton.disabled)return;saveButton.disabled=true;try{await onSave(o)}catch(error){notify('حدث خطأ غير متوقع أثناء الحفظ. حاول مرة أخرى.','error')}finally{if(o.isConnected)saveButton.disabled=false}"), 'modal saves must be single-flight and surface unexpected errors');
+
+// Exercise the actual membership selector against mocked Supabase query results.
+const membershipSource = moduleSource.slice(moduleSource.indexOf('async function membership(user){'), moduleSource.indexOf('function canOperate('));
+assert.ok(membershipSource.startsWith('async function membership(user){'), 'membership function must be extractable for behavior tests');
+function membershipHarness(rows, savedId = null) {
+  const localStorage = { getItem: () => savedId };
+  const sb = { from: () => {
+    const filters = [];
+    let maxRows = Infinity;
+    const query = {
+      select: () => query,
+      eq: (key, value) => { filters.push([key, value]); return query; },
+      limit: (n) => { maxRows = n; return query; },
+      maybeSingle: async () => {
+        const found = rows.filter(row => filters.every(([key, value]) => row[key] === value)).slice(0, maxRows);
+        return { data: found.length === 1 ? found[0] : null, error: null };
+      },
+      then: (resolve, reject) => Promise.resolve({
+        data: rows.filter(row => filters.every(([key, value]) => row[key] === value)).slice(0, maxRows),
+        error: null
+      }).then(resolve, reject)
+    };
+    return query;
+  }};
+  return vm.runInNewContext(membershipSource + '; membership', { localStorage, sb });
+}
+const activeMembershipA = { id: 'membership-a', user_id: 'user-a', tenant_id: 'tenant-a', business_id: 'business-a', branch_id: 'branch-a', role: 'BUSINESS_OWNER', status: 'ACTIVE' };
+const activeMembershipB = { id: 'membership-b', user_id: 'user-a', tenant_id: 'tenant-b', business_id: 'business-b', branch_id: 'branch-b', role: 'BUSINESS_OWNER', status: 'ACTIVE' };
+const oneMembershipResult = await membershipHarness([activeMembershipA])( { id: 'user-a' } );
+assert.equal(oneMembershipResult.membership.id, 'membership-a', 'a single active membership may be selected automatically');
+const ambiguousMembershipResult = await membershipHarness([activeMembershipA, activeMembershipB])({ id: 'user-a' });
+assert.equal(ambiguousMembershipResult.membership, null, 'multiple active memberships must not auto-select the first');
+assert.match(ambiguousMembershipResult.error, /أكثر من عضوية نشطة/);
+const staleSavedMembershipResult = await membershipHarness([activeMembershipA], 'deleted-membership')({ id: 'user-a' });
+assert.equal(staleSavedMembershipResult.membership, null, 'a stale saved membership must fail closed even if another active membership exists');
+assert.match(staleSavedMembershipResult.error, /العضوية المحفوظة غير متاحة/);
 
 console.log('Restaurant module contract PASS');
