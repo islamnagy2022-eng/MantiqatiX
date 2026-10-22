@@ -12,6 +12,12 @@ assert.doesNotMatch(moduleSource, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER',
 assert.match(rbacSource, /'المطاعم والمطابخ':'CATALOG'/,
   'restaurant module alias must resolve through the shared catalog permission model');
 
+// Route detection must not poll forever when the DOM observer already covers route changes.
+assert.match(moduleSource, /const mo=new MutationObserver\(observe\);\s*mo\.observe\(document\.body,\{childList:true,subtree:true\}\);\s*\/\/ Handle the initial route once; subsequent route changes are observed through DOM mutations\.\s*observe\(\);/,
+  'restaurant route detection must initialize once and observe subsequent DOM changes');
+assert.doesNotMatch(moduleSource, /setInterval\(observe,\s*800\)/,
+  'restaurant route detection must not use an unnecessary permanent polling timer');
+
 // Membership selection must fail closed: never fall back to the first membership.
 assert.match(moduleSource, /if\(saved\)\{\s*const selected=await base\(\)\.eq\('id',saved\)\.maybeSingle\(\);\s*return selected\.error\?null:\(selected\.data\|\|null\);\s*\}/,
   'a stale or invalid selected membership must not silently switch businesses');
