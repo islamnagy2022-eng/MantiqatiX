@@ -6,6 +6,7 @@ const dashboard = fs.readFileSync("web/preview/dashboard.html", "utf8");
 const admin = fs.readFileSync("web/preview/admin.html", "utf8");
 const login = fs.readFileSync("web/preview/login.html", "utf8");
 const restaurant = fs.readFileSync("web/preview/restaurant.html", "utf8");
+const restaurantScript = restaurant.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const loginScript = login.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const dashboardScript = dashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
@@ -27,12 +28,26 @@ const checks = [
   ["Customer discovery links to restaurant menu and ordering", customerRestaurants.includes('href="restaurant-order.html?restaurant=') && customerRestaurants.includes('data-kind="كشري وسندوتشات"') && customerRestaurants.includes('data-kind="فول وطعمية"') && customerRestaurants.includes('data-kind="مشويات"')],
   ["Customer order page supports size, extras, quantities, multi-item cart and demo checkout", ["data-pick", "data-size", "data-extra", "data-inc", "data-dec", "data-del", "DEMO-", "تأكيد الطلب التجريبي"].every(x => customerOrder.includes(x))],
   ["Customer restaurant menu supports live search and accessible result count", customerOrder.includes('id="menuSearch"') && customerOrder.includes('id="menuCount"') && customerOrder.includes("addEventListener('input',renderMenu)")],
-  ["Customer restaurant ordering is local-only and does not use backend or browser persistence", /لا يوجد دفع أو إرسال للمطعم/.test(customerOrder) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(customerOrder)],
+  ["Customer restaurant ordering has no backend, external requests, or localStorage", /لا يوجد دفع أو إرسال للمطعم/.test(customerOrder) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|createClient\s*\(/i.test(customerOrder)],
   ["Customer restaurant page JavaScript parses successfully", (() => { try { if (!customerRestaurantsScript) return false; new vm.Script(customerRestaurantsScript); return true; } catch (error) { console.error("Customer restaurants JavaScript syntax error:", error.message); return false; } })()],
+  ["Shared demo cart uses tab-scoped session storage and avoids network or localStorage", sharedCart.includes("sessionStorage.getItem(KEY)") && sharedCart.includes("sessionStorage.setItem(KEY") && !/\blocalStorage\b|\bfetch\s*\(|XMLHttpRequest|createClient\s*\(/i.test(sharedCart)],
+  ["Shared demo cart validates imported lines and bounds quantity, price, and line count", sharedCart.includes("MAX_LINES=100") && sharedCart.includes("Number.isInteger(Number(x.qty))") && sharedCart.includes("Math.min(20,Number(x.qty))") && sharedCart.includes("total:unit*qty")],
+  ["Shared demo cart recalculates line totals and rejects invalid quantity updates", sharedCart.includes("total:unit*qty") && sharedCart.includes("if(!Number.isFinite(n))return false") && sharedCart.includes("x.total=x.qty*x.unit")],
+
   ["Customer order page JavaScript parses successfully", (() => { try { if (!customerOrderScript) return false; new vm.Script(customerOrderScript); return true; } catch (error) { console.error("Customer order JavaScript syntax error:", error.message); return false; } })()],
+  ["Restaurant item dialog supports Escape-to-close and restores keyboard focus", customerOrder.includes("e.key==='Escape'") && customerOrder.includes("modalTrigger=document.activeElement") && customerOrder.includes("document.getElementById('cancel').focus()") && customerOrder.includes("modalTrigger.focus()")],
+
   ["Preview homepage and restaurant workspace link to customer restaurant journey", entry.includes('href="restaurants.html"') && restaurant.includes('href="restaurants.html"')],
   ["Restaurant demo is clearly isolated from live backend", /وضع تجريبي فقط/.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant) && /لم يتم إرساله إلى أي خادم/.test(restaurant)],
   ["Restaurant demo supports multi-item orders and order-state transitions", /إنشاء طلب متعدد الأصناف/.test(restaurant) && /id="orderLines"/.test(restaurant) && /data-next/.test(restaurant) && /data-filter/.test(restaurant)],
+  ["Restaurant operator demo JavaScript parses successfully", (() => { try { if (!restaurantScript) return false; new vm.Script(restaurantScript); return true; } catch (error) { console.error("Restaurant operator JavaScript syntax error:", error.message); return false; } })()],
+  ["Restaurant demo order status transitions are sequential and terminal at completed", restaurantScript.includes("new:'cooking',cooking:'ready',ready:'done'") && restaurantScript.includes("o.status!=='done'") && restaurantScript.includes("data-next")],
+  ["Restaurant demo validates order quantities and escapes dynamic order text", restaurantScript.includes("qty<=50") && restaurantScript.includes("const safe=s=>") && restaurantScript.includes("safe(o.customer)") && restaurantScript.includes("safe(o.id)")],
+
+  ["Restaurant demo generates sequential order IDs independent of current order count", restaurant.includes("nextOrderSequence=Math.max(2084,...orders.map(o=>Number(String(o.id).replace(/^MX-/,'').replace(/\\D/g,''))||0))+1") && restaurant.includes("id:'MX-'+(nextOrderSequence++)")],
+  ["Restaurant order queue supports bounded live search by ID, customer, or phone", restaurant.includes('id="orderSearch"') && restaurant.includes("addEventListener('input'") && restaurant.includes("[o.id,o.customer,o.phone]") && restaurant.includes("orderSearch=e.target.value.slice(0,100)")],
+  ["Restaurant demo limits active order lines without blocking additions after a line is removed", restaurant.includes("if(document.querySelectorAll('.line-item').length>=10)return") && restaurant.includes("row.remove();calcTotal()")],
+
   ["Restaurant demo is linked from preview homepage and module dashboard", /href="restaurant\.html"/.test(entry) && /href="restaurant\.html"/.test(dashboard)],
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
   ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
@@ -74,9 +89,9 @@ const checks = [
   ["Admin workspace inline JavaScript parses successfully", (() => { try { if (!adminScript) return false; new vm.Script(adminScript); return true; } catch (error) { console.error("Admin JavaScript syntax error:", error.message); return false; } })()],
   ["Dashboard supports direct links to a module workspace", dashboard.includes("new URLSearchParams(window.location.search)") && dashboard.includes("openModule(requestedModule)") ],
   ["Sponsored placements are a dedicated marketing subpage, not an extra module", dashboard.includes("الإعلانات الممولة والظهور المدفوع") && admin.includes("الإعلانات الممولة والظهور المدفوع") && !dashboard.includes("id:'sponsored'") && !admin.includes('"id":"sponsored"')],
-  ["Demo authentication includes login, registration, recovery and OTP simulation", ["loginForm","registerForm","forgotForm","otpForm"].every(x => login.includes('id="'+x+'"')) && login.includes("123456") && login.includes("محاكاة إنشاء حساب")],
-  ["Authentication demo cannot contact services or persist credentials", !/fetch\s*\(|\bXMLHttpRequest\b|createClient\s*\(/i.test(login) && !login.includes("localStorage") && !login.includes("sessionStorage") && login.includes("لا يتم حفظها")],
-  ["Authentication page inline JavaScript parses successfully", (() => { try { if (!loginScript) return false; new vm.Script(loginScript); return true; } catch (error) { console.error("Login JavaScript syntax error:", error.message); return false; } })()],
+  ["Preview authentication matches the Google sign-in entry experience", login.includes("SECURE GOOGLE SIGN-IN") && login.includes("المتابعة باستخدام Google") && login.includes('href="../index.html?openAuth=1"') && login.includes("لا تدخل كلمة مرور Google في هذه الصفحة")],
+  ["Preview login routes to the real platform Google OAuth flow without collecting credentials", !/fetch\s*\(|\bXMLHttpRequest|createClient\s*\(/i.test(login) && !login.includes("localStorage") && !login.includes("sessionStorage") && login.includes('href="../index.html?openAuth=1"')],
+  ["Google sign-in preview is a static accessible page without inline JavaScript", !loginScript && login.includes('aria-label="متابعة تسجيل الدخول بحساب Google"')],
   ["Admin and dashboard link to the demo authentication page", admin.includes('href="login.html"') && dashboard.includes('href="login.html"')],
   ["All 35 module workspaces include domain-specific form configurations", (() => { const match = dashboard.match(/const specialized=(\{[\s\S]*?\});\n\nconst workspacePageNames=/); return !!match && Object.keys(JSON.parse(match[1])).length === 35; })()],
   ["Every module has valid unique specialized form fields", (() => { const mm = dashboard.match(/const modules=\[([\s\S]*?)\n\];/); const sm = dashboard.match(/const specialized=(\{[\s\S]*?\});\n\nconst workspacePageNames=/); if (!mm || !sm) return false; const ids = [...mm[1].matchAll(/\{id:'([^']+)'/g)].map(x => x[1]); const cfg = JSON.parse(sm[1]); return ids.length === 35 && ids.every(id => Array.isArray(cfg[id]?.fields) && cfg[id].fields.length >= 3 && new Set(cfg[id].fields.map(f => f[0])).size === cfg[id].fields.length && cfg[id].fields.every(f => f.length >= 3 && ['text','select','number','email','date','textarea'].includes(f[2]) && (f[2] !== 'select' || Array.isArray(f[3]) && f[3].length > 0))) && Object.keys(cfg).length === ids.length; })()],
@@ -176,6 +191,21 @@ checks.push(["Restaurant demo checkout filters the current restaurant cart befor
   const emptyCheck=handler.indexOf("if(!cart.length)");
   return declaration>=0&&emptyCheck>declaration&&!handler.includes("if(!cart.length){alert('أضف صنفًا للسلة أولًا')");
 })()]);
+
+
+const ownerDashboard = fs.readFileSync("web/preview/business-owner.html", "utf8");
+const ownerScript = ownerDashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+checks.push(["Business-owner dashboard is linked from the preview homepage", entry.includes('href="business-owner.html"')]);
+checks.push(["Business-owner dashboard includes all eight owner work areas", ["overview","orders","services","customers","team","marketing","reports","settings"].every(id => ownerDashboard.includes('id="' + id + '"'))]);
+checks.push(["Business-owner dashboard clearly labels demo data and no live backend", /معاينة تجريبية/.test(ownerDashboard) && /بيانات تجريبية ثابتة/.test(ownerDashboard) && /لا توجد اتصالات خلفية/.test(ownerDashboard) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(ownerDashboard)]);
+checks.push(["Business-owner dashboard links to the platform Google sign-in flow", ownerDashboard.includes('href="../index.html?openAuth=1"') && ownerDashboard.includes("تسجيل الدخول الآمن")]);
+checks.push(["Business-owner dashboard has accessible Arabic RTL navigation and responsive layouts", /<html lang="ar" dir="rtl">/.test(ownerDashboard) && /aria-label="القائمة الرئيسية"/.test(ownerDashboard) && /@media\(max-width:650px\)/.test(ownerDashboard)]);
+checks.push(["Business-owner dashboard inline JavaScript parses successfully", (() => { try { if (!ownerScript) return false; new vm.Script(ownerScript); return true; } catch (error) { console.error("Business-owner dashboard JavaScript syntax error:", error.message); return false; } })()]);
+
+checks.push(["Business-owner dashboard links to the restaurant operations preview", ownerDashboard.includes('href="restaurant.html"') && ownerDashboard.includes('href="restaurants.html"') && ownerDashboard.includes('href="dashboard.html"')]);
+checks.push(["Restaurant entry is clearly demo-only and warns against live order or inventory changes", ownerDashboard.includes('id="restaurant-operations"') && ownerDashboard.includes('معاينة فقط') && ownerDashboard.includes('لا تنفّذ هذه الروابط طلبات حقيقية')]);
+checks.push(["Business-owner restaurant links resolve to existing preview pages", ["web/preview/restaurant.html","web/preview/restaurants.html","web/preview/dashboard.html"].every(path => fs.existsSync(path))]);
+checks.push(["Restaurant operator preview has no backend or persistent browser writes", /لا يوجد اتصال بالخادم/.test(restaurant) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(restaurant)]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);

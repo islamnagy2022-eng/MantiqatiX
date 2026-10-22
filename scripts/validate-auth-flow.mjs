@@ -40,7 +40,39 @@ const required = [
   ["No direct registration review update", ".from('account_registration_requests').update", app, true]
 ];
 
+
 const failures = [];
+if (/\basync\s+\n\s*function\s+/.test(app)) failures.push("No dangling async keyword may precede a non-async function declaration");
+const googleStart = app.indexOf("async function signInWithGoogle(intent='login'){");
+const googleEnd = app.indexOf("function authView(msg='',emailValue='',mode=authIntent){", googleStart);
+const googleSignIn = googleStart >= 0 && googleEnd > googleStart ? app.slice(googleStart, googleEnd) : "";
+if (!googleSignIn.includes("authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'',intent);")) failures.push("Google OAuth errors must preserve the login or registration mode");
+if (googleSignIn.includes("authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'','',intent);")) failures.push("Google OAuth error handler must not pass registration intent in an ignored fourth argument");
+const authBootStart = app.indexOf("async function bootAuth(){");
+const authBootEnd = app.indexOf("function bindGenericWorkspaceTabs(){", authBootStart);
+const authBoot = authBootStart >= 0 && authBootEnd > authBootStart ? app.slice(authBootStart, authBootEnd) : "";
+if (!authBoot.includes("if(new URLSearchParams(window.location.search).get('openAuth')==='1'){authView();return}")) failures.push("Google preview entry must open the platform auth view");
+if (!authBoot.includes("authView('تعذر تهيئة جلسة الدخول. أعد المحاولة بعد تحديث الصفحة.');") || !authBoot.includes("get('openAuth')==='1'")) failures.push("Auth bootstrap errors must preserve the Google sign-in view");
+if (authBoot.indexOf("if(data?.session)") < 0 || authBoot.indexOf("if(data?.session)") > authBoot.indexOf("get('openAuth')==='1'")) failures.push("Existing authenticated sessions must be handled before showing sign-in");
+const membershipLoadStart = app.indexOf("async function loadLiveData(){");
+const membershipLoadEnd = app.indexOf("function ", membershipLoadStart + 30);
+const membershipLoad = membershipLoadStart >= 0 ? app.slice(membershipLoadStart, membershipLoadEnd > membershipLoadStart ? membershipLoadEnd : membershipLoadStart + 12000) : "";
+if (!membershipLoad.includes("live.memberships.length===1?live.memberships[0]:null")) failures.push("Multiple active memberships must not silently select the first tenant");
+if (!membershipLoad.includes("savedMembership||null")) failures.push("Stale saved membership IDs must fail closed rather than switching tenants");
+if (!app.includes("function membershipSelectionRequiredView()") || !app.includes("if(!live.activeMembershipId){membershipSelectionRequiredView();return}")) failures.push("Missing explicit membership selection gate");
+if (!app.includes("data-select-membership") || !app.includes("switchMembership(button.dataset.selectMembership)")) failures.push("Membership selection actions must use the validated membership switcher");
+const membershipViewStart = app.indexOf("function membershipSelectionRequiredView(){");
+const membershipViewEnd = app.indexOf("function membershipRequiredView(){", membershipViewStart);
+const membershipView = membershipViewStart >= 0 && membershipViewEnd > membershipViewStart ? app.slice(membershipViewStart, membershipViewEnd) : "";
+if (!membershipView.includes("live.memberships.filter(m=>m.status==='ACTIVE')")) failures.push("Workspace selector must list active memberships only");
+if (!membershipView.includes("esc(m.id)")) failures.push("Workspace selector must HTML-escape membership identifiers");
+const switchStart = app.indexOf("async function switchMembership(membershipId){");
+const switchEnd = app.indexOf("async function openPrivilegedWorkspace", switchStart);
+const switchSource = switchStart >= 0 && switchEnd > switchStart ? app.slice(switchStart, switchEnd) : "";
+if (!switchSource.includes("live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE')")) failures.push("Membership switch must validate the requested ID against the signed-in user's active memberships");
+if (!switchSource.includes("if(!target)return showToast(")) failures.push("Invalid or inactive membership switch attempts must fail closed");
+
+
 const bootStart = app.indexOf("async function bootAuth(){");
 const bootEnd = app.indexOf("async function renderApp()", bootStart);
 const bootAuth = bootStart >= 0 && bootEnd > bootStart ? app.slice(bootStart, bootEnd) : "";

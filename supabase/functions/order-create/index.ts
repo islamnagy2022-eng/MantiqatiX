@@ -62,6 +62,12 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
 
+  // This endpoint is customer-owned. An active business/operator membership must not
+  // authorize a staff account to create marketplace orders through the customer path.
+  if (targetMembership && String(targetMembership.role).toUpperCase() !== "CUSTOMER") {
+    return json({ error: "FORBIDDEN" }, 403);
+  }
+
   if (!targetMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
       .from("user_memberships")
