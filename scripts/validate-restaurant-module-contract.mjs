@@ -42,6 +42,10 @@ assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/,
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
+assert.match(moduleSource, /tablesQ=tablesQ\.eq\('id','__MNTY_NO_OPERATIONS_VIEW__'\);\s*invQ=invQ\.eq\('id','__MNTY_NO_OPERATIONS_VIEW__'\);/,
+  'users without operations view must not fall back to owner-only reads across tenants or branches');
+assert.doesNotMatch(moduleSource, /tablesQ=tablesQ\.eq\('owner_user_id',state\.user\.id\)|invQ=invQ\.eq\('owner_user_id',state\.user\.id\)/,
+  'table and inventory reads must not use owner-only fallback scope');
 
 // Inventory balances must not be edited as untraceable scalar values.
 assert.ok(moduleSource.includes('if(!existing)payload.current_stock_qty=0;'), 'new inventory items must start at zero until an auditable stock-movement endpoint exists');
