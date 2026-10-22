@@ -129,14 +129,22 @@ function inventoryView(){
 function askOrderDetails(items){
  return new Promise(resolve=>{
   const options=items.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar||x.name||x.title||x.id)+'</option>').join('');
-  modal('تفاصيل الطلب','<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" step="1" required')+'<div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
+  modal('بيانات الطلب','<div class="form-grid">'+field('rest-customer','اسم العميل','','text','maxlength="120" autocomplete="name" required')+field('rest-phone','رقم الهاتف','','tel','maxlength="24" autocomplete="tel" required')+'</div>'+field('rest-address','عنوان التوصيل','','text','maxlength="300" autocomplete="street-address" required')+'<label class="field"><span>الصنف من الكتالوج المركزي</span><select id="rest-item" required>'+options+'</select></label>'+field('rest-qty','الكمية','1','number','min="1" max="1000" step="1" required')+field('rest-notes','ملاحظات إضافية','','text','maxlength="500"')+'<div class="action-bar"><button class="btn btn-primary" data-save>إنشاء الطلب</button></div>',async o=>{
    const itemId=o.querySelector('#rest-item')?.value;
    const quantity=Number(o.querySelector('#rest-qty')?.value);
+   const customerName=o.querySelector('#rest-customer')?.value.trim()||'';
+   const customerPhone=o.querySelector('#rest-phone')?.value.trim()||'';
+   const deliveryAddress=o.querySelector('#rest-address')?.value.trim()||'';
+   const notes=o.querySelector('#rest-notes')?.value.trim()||'';
    const item=items.find(x=>String(x.id)===String(itemId));
+   if(!customerName||customerName.length>120){notify('أدخل اسم العميل بشكل صحيح.','error');return;}
+   if(!/^[+0-9()\s.-]{7,24}$/.test(customerPhone)||customerPhone.replace(/\D/g,'').length<7){notify('أدخل رقم هاتف صحيحًا.','error');return;}
+   if(!deliveryAddress||deliveryAddress.length>300){notify('أدخل عنوان التوصيل بشكل صحيح.','error');return;}
    if(!item){notify('اختر صنفًا صالحًا من الكتالوج.','error');return;}
-   if(!Number.isInteger(quantity)||quantity<1){notify('أدخل كمية صحيحة.','error');return;}
-   o.remove();resolve({item,quantity});
-  });
+   if(!Number.isInteger(quantity)||quantity<1||quantity>1000){notify('أدخل كمية صحيحة بين 1 و1000.','error');return;}
+   const selection={item,quantity,customerName,customerPhone,deliveryAddress,notes};
+   o.__close(false);resolve(selection);
+  },()=>resolve(null));
  });
 }
 async function createRestaurantOrder(){
@@ -150,7 +158,7 @@ async function createRestaurantOrder(){
    if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
    const selection=await askOrderDetails(items);
    if(!selection)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:selection.customerName,customerPhone:selection.customerPhone,deliveryAddress:selection.deliveryAddress,items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:selection.notes,metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
    const r=await invokeMntyFunction('order-create',payload);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
@@ -168,9 +176,9 @@ function render(){
  page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():dashboard();
  bind();
 }
-function modal(title,html,onSave){
+function modal(title,html,onSave,onClose){
  const o=document.createElement('div');o.className='mx-modal';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label',title);o.tabIndex=-1;o.innerHTML='<div class="mx-modal-card"><div class="workspace-head"><h2>'+title+'</h2><button class="btn btn-outline" id="rest-close">إغلاق</button></div><div class="modal-body">'+html+'</div></div>';
- const previousFocus=document.activeElement;document.body.appendChild(o);let closed=false;const close=()=>{if(closed)return;closed=true;o.remove();document.removeEventListener('keydown',onKey);if(previousFocus&&typeof previousFocus.focus==='function')requestAnimationFrame(()=>previousFocus.focus());};const focusables=()=>[...o.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key!=='Tab')return;const list=focusables();if(!list.length)return;const first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};o.querySelector('#rest-close').setAttribute('aria-label','إغلاق');o.querySelector('#rest-close').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});document.addEventListener('keydown',onKey);requestAnimationFrame(()=>o.querySelector('#rest-close')?.focus());
+ const previousFocus=document.activeElement;document.body.appendChild(o);let closed=false;const close=(cancel=true)=>{if(closed)return;closed=true;o.remove();document.removeEventListener('keydown',onKey);if(cancel&&typeof onClose==='function')onClose();if(previousFocus&&typeof previousFocus.focus==='function')requestAnimationFrame(()=>previousFocus.focus());};o.__close=close;const focusables=()=>[...o.querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close();return;}if(e.key!=='Tab')return;const list=focusables();if(!list.length)return;const first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}};o.querySelector('#rest-close').setAttribute('aria-label','إغلاق');o.querySelector('#rest-close').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});document.addEventListener('keydown',onKey);requestAnimationFrame(()=>o.querySelector('#rest-close')?.focus());
  const saveButton=o.querySelector('[data-save]');saveButton?.addEventListener('click',async()=>{if(saveButton.disabled)return;saveButton.disabled=true;try{await onSave(o)}catch(error){notify('حدث خطأ غير متوقع أثناء الحفظ. حاول مرة أخرى.','error')}finally{if(o.isConnected)saveButton.disabled=false}});
 }
 function field(id,label,value='',type='text',extra=''){return '<label class="field"><span>'+label+'</span><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" '+extra+'></label>'}
