@@ -341,7 +341,7 @@ async function signInWithGoogle(intent='login'){
   if(error)throw error;
  }catch(e){
   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
-  authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'','',intent);
+  authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'',intent);
  }finally{authSendInFlight=false}
 }
 function authView(msg='',emailValue='',mode=authIntent){
