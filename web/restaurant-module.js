@@ -15,6 +15,7 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
+let loadGeneration=0;
 let state={user:null,membership:null,memberships:[],tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
 
 async function session(){
@@ -43,10 +44,13 @@ function scope(){
  return m?.tenant_id&&m?.business_id&&m?.branch_id?{tenant_id:m.tenant_id,business_id:m.business_id,branch_id:m.branch_id}:null;
 }
 async function load(){
+ const generation=++loadGeneration;
  state.loading=true;state.error=null;render();
- state.user=await session();
+ const currentUser=await session();
+ if(generation!==loadGeneration)return;
+ state.user=currentUser;
  if(!state.user){state.membership=null;state.memberships=[];state.error='AUTH_REQUIRED';state.loading=false;return render();}
- try{state.memberships=await activeMemberships(state.user);}catch(e){state.membership=null;state.error=e.message||'تعذر تحميل العضويات.';state.loading=false;return render();}
+ try{state.memberships=await activeMemberships(state.user);if(generation!==loadGeneration)return;}catch(e){if(generation!==loadGeneration)return;state.membership=null;state.error=e.message||'تعذر تحميل العضويات.';state.loading=false;return render();}
  const saved=localStorage.getItem('MNTYActiveMembershipId');
  state.membership=saved?state.memberships.find(m=>String(m.id)===String(saved))||null:null;
  if(!state.membership&&state.memberships.length===1){
@@ -91,6 +95,9 @@ async function load(){
    invQ=invQ.eq('id','__MNTY_NO_OPERATIONS_VIEW__');
  }
  const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
+ // A newer membership/branch load may have started while these queries were in flight.
+ // Discard stale results so previous-branch data cannot overwrite the current workspace.
+ if(generation!==loadGeneration)return;
  state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
  const errs=[a,b,c,d].filter(x=>x.error).map(x=>x.error.message);
  state.error=errs.length?errs.join(' | '):null;state.loading=false;render();
