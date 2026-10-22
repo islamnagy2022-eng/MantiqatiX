@@ -120,6 +120,22 @@ checks.push(["Shared cart runtime normalizes tampered session data", (() => {
     return rows.length===1 && rows[0].qty===20 && rows[0].total===500 && rows[0].extras.length===20 && rows[0].extras[0].length===80 && rows[0].note.length===100;
   } catch (error) { console.error("Shared cart runtime validation failed:",error.message); return false; }
 })()]);
+checks.push(["Shared cart add/update/remove enforce quantity and recompute line totals", (() => {
+  let stored="[]";
+  const storage={getItem:()=>stored,setItem:(k,v)=>{stored=v;return true;},removeItem:()=>{stored="[]";}};
+  const context={window:{},sessionStorage:storage,crypto:{randomUUID:()=>"runtime-line-id"}};
+  try {
+    vm.runInNewContext(sharedCart,context);
+    const cart=context.window.MXCart;
+    const added=cart.add({id:"line-1",merchantId:"shop-a",name:"Demo",unit:12.5,qty:99,total:0});
+    const afterAdd=cart.list()[0];
+    if(!added.ok||afterAdd.qty!==20||afterAdd.unit!==13||afterAdd.total!==260)return false;
+    if(!cart.update("line-1",3))return false;
+    if(cart.list()[0].qty!==3||cart.total()!==39||cart.count()!==3)return false;
+    if(!cart.remove("line-1"))return false;
+    return cart.list().length===0&&cart.total()===0;
+  } catch(error) { console.error("Shared cart mutation test failed:",error.message); return false; }
+})()]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
