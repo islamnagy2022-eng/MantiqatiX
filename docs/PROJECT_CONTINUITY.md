@@ -1,5 +1,15 @@
 # MantiqatiX — Project Continuity & Production Handoff
 
+## أحدث قرار نطاق الإطلاق — 2026-10-20
+
+- **الهدف الحالي: إطلاق نقدي فقط.** قبل الإطلاق، يسمح مسار الطلبات بـ `CASH_ON_DELIVERY` فقط؛ يجب التحقق من الواجهة والخادم معًا وعدم الاكتفاء بإخفاء زر الدفع الإلكتروني.
+- **مؤجل لما بعد الإطلاق:** Paymob وجميع وسائل الدفع الإلكتروني، اشتراكات/صفحات الدفع الإلكتروني، وSMM بالكامل (المزودون والحملات والمحفظة والإنفاق). يجب أن تظل نقاطها غير متاحة بوضوح وfail-closed؛ لا تحذف الكود ولا تطبق ترحيلات مؤجلة على الإنتاج.
+- **أولويات التنفيذ الحالية:** (1) إصلاح/التحقق من فشل CI على PR #301، (2) اختبار رحلة النقد ومطابقتها، (3) اختبارات auth/RBAC/tenant isolation، (4) إكمال باقي بوابات الأمن والنسخ الاحتياطي والنشر والأجهزة. الدفع الإلكتروني وSMM ليسا من متطلبات الإطلاق النقدي، لكنهما يبقيان في سجل ما بعد الإطلاق.
+- **الحالة العامة:** BLOCKED / NOT CERTIFIED حتى تُغلق بوابات الإطلاق المتبقية بأدلة فعلية. لا دمج أو نشر أو ترحيلات إنتاجية دون مراجعة واعتماد منفصل.
+- **تقرير كل جلسة إلزامي:** عرض الرابط العام، حالة TODO الرئيسي والفرعي، ما تم وما لم يتم، آخر commit/PR/CI موثق، آخر نقطة مؤكدة، والخطوة التالية. الاستمرار تلقائيًا من أول بند مفتوح وفق ترتيب TODO، وعند الحاجة لجلسة جديدة يكتب تسليمًا دقيقًا لا يطلب من المستخدم إعادة الشرح.
+
+
+
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
 > **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
