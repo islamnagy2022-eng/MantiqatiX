@@ -185,4 +185,10 @@ assert.match(orderCreateSource, /INVALID_DELIVERY_ADDRESS[\s\S]*?body\.deliveryA
 assert.match(orderCreateSource, /INVALID_ORDER_NOTES[\s\S]*?body\.notes\.length > 1000/, 'canonical order creation must bound order notes');
 assert.match(orderCreateSource, /INVALID_ITEM_OPTIONS[\s\S]*?new Set\(x\.selectedOptionIds\)\.size !== x\.selectedOptionIds\.length/, 'canonical order creation must reject duplicate selected option IDs before pricing');
 
+assert.ok(orderCreateSource.includes("INVALID_CUSTOMER_NAME") && orderCreateSource.includes("customerName.trim().length > 120"), 'server must validate customer name');
+assert.ok(orderCreateSource.includes("INVALID_CUSTOMER_PHONE") && orderCreateSource.includes("customerPhone.trim()"), 'server must validate supplied customer phone');
+assert.ok(orderCreateSource.includes("INVALID_DELIVERY_ADDRESS") && orderCreateSource.includes("body.deliveryAddress.length > 500"), 'server must bound delivery address');
+assert.ok(orderCreateSource.includes("INVALID_ORDER_NOTES") && orderCreateSource.includes("body.notes.length > 1000"), 'server must bound order notes');
+assert.ok(orderCreateSource.includes("new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length"), 'server must reject duplicate option IDs before pricing');
+
 console.log('Restaurant module contract PASS');
