@@ -192,4 +192,16 @@ assert.ok(orderCreateSource.includes("INVALID_ORDER_NOTES") && orderCreateSource
 assert.ok(orderCreateSource.includes("new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length"), 'server must reject duplicate option IDs before pricing');
 assert.ok(orderCreateSource.includes('const orderCreatorRoles = new Set(["OWNER", "SALES"])') && orderCreateSource.includes('if (!orderCreatorRoles.has(role)) return false;'), 'restaurant staff must have ORDERS:create rather than merely any active branch membership');
 
+// Multi-item orders must retain independent quantities and option selections per line.
+assert.match(moduleSource, /data-order-line/,
+  'order creation must render separately addressable item lines');
+assert.match(moduleSource, /selectedItems\.push\(\{item,quantity,selectedOptionIds\}\)/,
+  'each item line must preserve its own catalog item, quantity and selected options');
+assert.match(moduleSource, /items:selection\.items\.map\(line=>\(\{catalogItemId:line\.item\.id,quantity:line\.quantity,selectedOptionIds:line\.selectedOptionIds\}\)\)/,
+  'the canonical order payload must contain all selected item lines');
+assert.match(moduleSource, /querySelectorAll\('\[data-order-line\]'\)\.length>=50/,
+  'the UI must enforce a bounded number of item lines');
+assert.match(moduleSource, /data-remove-order-line/,
+  'users must be able to remove an accidental order line');
+
 console.log('Restaurant module contract PASS');
