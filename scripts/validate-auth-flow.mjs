@@ -42,6 +42,11 @@ const required = [
 
 
 const failures = [];
+const googleStart = app.indexOf("async function signInWithGoogle(intent='login'){");
+const googleEnd = app.indexOf("function authView(msg='',emailValue='',mode=authIntent){", googleStart);
+const googleSignIn = googleStart >= 0 && googleEnd > googleStart ? app.slice(googleStart, googleEnd) : "";
+if (!googleSignIn.includes("authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'',intent);")) failures.push("Google OAuth errors must preserve the login or registration mode");
+if (googleSignIn.includes("authView('تعذر بدء تسجيل الدخول بحساب Google: '+(e?.message||'خطأ غير معروف'),'','',intent);")) failures.push("Google OAuth error handler must not pass registration intent in an ignored fourth argument");
 const authBootStart = app.indexOf("async function bootAuth(){");
 const authBootEnd = app.indexOf("function bindGenericWorkspaceTabs(){", authBootStart);
 const authBoot = authBootStart >= 0 && authBootEnd > authBootStart ? app.slice(authBootStart, authBootEnd) : "";
