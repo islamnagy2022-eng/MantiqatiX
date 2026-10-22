@@ -187,6 +187,8 @@ checks.push(["Business-owner dashboard links to the platform Google sign-in flow
 checks.push(["Business-owner dashboard has accessible Arabic RTL navigation and responsive layouts", /<html lang="ar" dir="rtl">/.test(ownerDashboard) && /aria-label="القائمة الرئيسية"/.test(ownerDashboard) && /@media\(max-width:650px\)/.test(ownerDashboard)]);
 checks.push(["Business-owner dashboard inline JavaScript parses successfully", (() => { try { if (!ownerScript) return false; new vm.Script(ownerScript); return true; } catch (error) { console.error("Business-owner dashboard JavaScript syntax error:", error.message); return false; } })()]);
 
+checks.push(["Business-owner dashboard links to the restaurant operations preview", ownerDashboard.includes('href="restaurant.html"') && ownerDashboard.includes('href="restaurants.html"') && ownerDashboard.includes('href="dashboard.html"')]);
+checks.push(["Restaurant entry is clearly demo-only and warns against live order or inventory changes", ownerDashboard.includes('id="restaurant-operations"') && ownerDashboard.includes('معاينة فقط') && ownerDashboard.includes('لا تنفّذ هذه الروابط طلبات حقيقية')]);
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 if (failed.length) {
