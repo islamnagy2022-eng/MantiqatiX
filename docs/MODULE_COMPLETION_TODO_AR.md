@@ -468,3 +468,15 @@
 - [ ] هذه النتائج تثبت اجتياز فحوص CI المسجلة لهذا الـ commit فقط، ولا تثبت تشغيل المتصفح أو RLS الفعلي أو اختبار أدوار وأنشطة وفروع متعددة.
 - [ ] مديول المطاعم **PARTIAL / NOT CLOSED**: لا يزال إنشاء الطلب التشغيلي للموظف معطلًا لحين وجود عقد خلفي آمن، وحركات المخزون معطلة لحين وجود مسار خادمي ذري موثق، كما أن اختبارات runtime/RLS والنشر الحي لم تثبت بعد.
 - [ ] لا يبدأ إعلان اكتمال المطاعم ولا الانتقال المنطقي إلى إغلاق مديول آخر قبل استيفاء بوابة الإغلاق أعلاه؛ يمكن تنفيذ الأعمال المستقلة بالتوازي دون إخفاء العوائق.
+
+
+### تحديث نتائج CI بعد توثيق الحالة — 2026-10-22
+- commit: `cdf57facbf89a3653ad4bb107bcdcd8a104a3fdf`
+- [x] `Module Professionalization Validation` run `39807527842`: SUCCESS.
+- [x] `Preview Demo Validation` run `39807527740`: SUCCESS.
+- [x] `Backend-only Module Boundary` run `39807527881`: SUCCESS.
+- [x] `MantiGO Open Ride Privacy Boundary` run `39807527747`: SUCCESS.
+- [x] `Deploy MantiqatiX Web` run `39807527783`: workflow SUCCESS، لكن الحدث هو `pull_request`، لذلك لا يثبت أن deploy job نفّذ نشرًا على GitHub Pages.
+- [ ] `Marketing Workspace Contract` run `39807527774` كان ما يزال `in_progress` وقت الفحص الأخير؛ لا تسجل نتيجته نجاحًا حتى يكتمل.
+- [ ] حاولنا التحقق من صفحات GitHub Pages من بيئة الفحص باستخدام HTTP، لكن تعذر حل اسم المضيف DNS؛ لذلك حالة الموقع الحي **UNVERIFIED** وليست PASS ولا FAIL.
+- [ ] مديول المطاعم يظل **PARTIAL / NOT CLOSED** حتى إثبات اختبارات runtime/RLS والنشر الحي، وإغلاق عقد إنشاء الطلب التشغيلي ومسار حركة المخزون الذري.
