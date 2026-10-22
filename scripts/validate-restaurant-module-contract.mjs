@@ -29,6 +29,8 @@ assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must re
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 
 // Order creation/status must go through the canonical server functions.
+assert.ok(moduleSource.includes("const actorRole=String(state.membership?.role||'').toUpperCase();"), 'staff-created orders must not be sent through the customer-owned marketplace endpoint');
+assert.ok(moduleSource.includes("if(actorRole!=='CUSTOMER')return notify('إنشاء طلب بالنيابة عن عميل من لوحة المطعم متوقف مؤقتًا لحماية ملكية الطلب."), 'restaurant operator order creation must fail closed until a dedicated staff-order backend contract exists');
 assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must use canonical order-create function');
 assert.match(moduleSource, /function askOrderDetails\(items\)/, 'order form must let staff select an authoritative catalog item');
