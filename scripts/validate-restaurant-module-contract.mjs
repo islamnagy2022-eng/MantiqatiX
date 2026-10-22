@@ -28,6 +28,10 @@ assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must re
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 
+// A rejected network request must not leave the module stuck in a permanent loading state.
+assert.match(moduleSource, /catch\(error\)\{\s*state\.menu=\[\];state\.orders=\[\];state\.tables=\[\];state\.inventory=\[\];\s*state\.error='تعذر الاتصال بخدمة بيانات المطاعم/);
+assert.match(moduleSource, /finally\{\s*state\.loading=false;render\(\);\s*\}/, 'restaurant data loading must always clear the loading state');
+
 // Staff-created restaurant orders remain disabled until the backend can separate the operator from the customer identity.
 assert.doesNotMatch(moduleSource, /invokeMntyFunction\('order-create'/, 'restaurant operations must not use the customer-owned marketplace order endpoint');
 assert.doesNotMatch(moduleSource, /function createRestaurantOrder\(/, 'no staff order submit handler may exist without a dedicated backend contract');
