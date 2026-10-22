@@ -23,12 +23,22 @@ async function session(){
  return data.session.user;
 }
 async function membership(user){
- const saved=localStorage.getItem('MNTYActiveMembershipId');
- let q=sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
- if(saved)q=q.eq('id',saved);
- let r=await q.maybeSingle();
- if(!r.data){r=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(1).maybeSingle()}
- return r.data||null;
+ let saved=null;
+ try{saved=localStorage.getItem('MNTYActiveMembershipId')}catch{}
+ const columns='id,tenant_id,business_id,branch_id,role,status';
+ const base=()=>sb.from('user_memberships').select(columns).eq('user_id',user.id).eq('status','ACTIVE');
+ if(saved){
+  const r=await base().eq('id',saved).maybeSingle();
+  if(r.error)return {membership:null,error:'تعذر التحقق من العضوية المحفوظة. أعد المحاولة.'};
+  if(!r.data)return {membership:null,error:'العضوية المحفوظة غير متاحة أو لم تعد نشطة. اختر النشاط والفرع الصحيحين من الحساب ثم أعد المحاولة.'};
+  return {membership:r.data,error:null};
+ }
+ const r=await base().limit(2);
+ if(r.error)return {membership:null,error:'تعذر تحميل عضويات الحساب. أعد المحاولة.'};
+ const rows=r.data||[];
+ if(rows.length===1)return {membership:rows[0],error:null};
+ if(rows.length>1)return {membership:null,error:'لديك أكثر من عضوية نشطة. حدد النشاط والفرع من الحساب قبل تشغيل المطاعم.'};
+ return {membership:null,error:'لا توجد عضوية تشغيلية نشطة لهذا الحساب.'};
 }
 function canOperate(module='CATALOG',action='update'){
  const role=String(state.membership?.role||'').toUpperCase();
@@ -41,10 +51,12 @@ function scope(){
 async function load(){
  state.user=await session();
  if(!state.user){state.error='AUTH_REQUIRED';return render();}
- state.membership=await membership(state.user);
- if(!state.membership){state.error='لا توجد عضوية تشغيلية نشطة.';return render();}
- state.error=null; state.loading=true; render();
+ const membershipResult=await membership(state.user);
+ state.membership=membershipResult.membership;
+ if(!state.membership){state.error=membershipResult.error||'تعذر تحديد العضوية التشغيلية.';return render();}
  const s=scope();
+ if(!s){state.error='العضوية لا تحتوي نطاق نشاط وفرع كامل. تم إيقاف تحميل بيانات المطاعم حتى اكتمال النطاق.';return render();}
+ state.error=null; state.loading=true; render();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
  let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,total,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
  let tablesQ=sb.from('restaurant_tables').select('id,owner_user_id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
