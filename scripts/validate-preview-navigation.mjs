@@ -5,6 +5,7 @@ const entry = fs.readFileSync("web/preview/index.html", "utf8");
 const dashboard = fs.readFileSync("web/preview/dashboard.html", "utf8");
 const admin = fs.readFileSync("web/preview/admin.html", "utf8");
 const login = fs.readFileSync("web/preview/login.html", "utf8");
+const restaurant = fs.readFileSync("web/preview/restaurant.html", "utf8");
 const adminScript = admin.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const loginScript = login.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const dashboardScript = dashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
@@ -14,6 +15,9 @@ const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const checks = [
+  ["Restaurant demo is clearly isolated from live backend", /وضع تجريبي فقط/.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant) && /لم يتم إرساله إلى أي خادم/.test(restaurant)],
+  ["Restaurant demo supports multi-item orders and order-state transitions", /إنشاء طلب متعدد الأصناف/.test(restaurant) && /id="orderLines"/.test(restaurant) && /data-next/.test(restaurant) && /data-filter/.test(restaurant)],
+  ["Restaurant demo is linked from preview homepage and module dashboard", /href="restaurant\.html"/.test(entry) && /href="restaurant\.html"/.test(dashboard)],
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
   ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
   ["Preview keeps the live backend-connected homepage separate", !/href="\.\.\//.test(entry)],
