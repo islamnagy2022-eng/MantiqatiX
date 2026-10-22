@@ -1,7 +1,7 @@
-/* MNTY Location Adapter
-   Web/PWA integration layer for the canonical RC40 location contract.
-   It does not replace LocationEngine; it adapts browser location permission
-   to the existing GPS/range semantics used by the Android client.
+/* MNTY Central Location Service
+   Extends the canonical RC40 location contract for all web/PWA modules.
+   Keep MNTYLocationAdapter and existing range semantics backward compatible.
+   Provider-specific geocoding/routing is intentionally not fabricated here.
 */
 (function(){
   'use strict';
@@ -13,15 +13,87 @@
     {km:10,label:'الكل 🗺️'}
   ]);
 
-  const state={coords:null,radiusKm:3,status:'idle',accuracyMeters:null};
+  const state={coords:null,radiusKm:3,status:'idle',accuracyMeters:null,source:null,updatedAt:null};
   let locationRequestId=0;
 
+  const validateCoordinates=(latitude,longitude)=>{
+    const lat=Number(latitude),lon=Number(longitude);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;
+    return {latitude:lat,longitude:lon};
+  };
+
   const distanceKm=(lat1,lon1,lat2,lon2)=>{
+    const a=validateCoordinates(lat1,lon1),b=validateCoordinates(lat2,lon2);
+    if(!a||!b)return null;
     const R=6371;
-    const dLat=(lat2-lat1)*Math.PI/180;
-    const dLon=(lon2-lon1)*Math.PI/180;
-    const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return 2*R*Math.asin(Math.sqrt(a));
+    const dLat=(b.latitude-a.latitude)*Math.PI/180;
+    const dLon=(b.longitude-a.longitude)*Math.PI/180;
+    const sinLat=Math.sin(dLat/2),sinLon=Math.sin(dLon/2);
+    const h=Math.min(1,Math.max(0,sinLat*sinLat+Math.cos(a.latitude*Math.PI/180)*Math.cos(b.latitude*Math.PI/180)*sinLon*sinLon));
+    return 2*R*Math.asin(Math.sqrt(h));
+  };
+
+  const setManualLocation=(latitude,longitude,metadata={})=>{
+    const coords=validateCoordinates(latitude,longitude);
+    if(!coords)return false;
+    ++locationRequestId;
+    state.coords=coords;
+    state.accuracyMeters=null;
+    state.status='manual';
+    state.source='manual';
+    state.updatedAt=new Date().toISOString();
+    if(metadata&&typeof metadata==='object'&&!Array.isArray(metadata)){
+      if(typeof metadata.label==='string')state.label=metadata.label.slice(0,240);
+      else delete state.label;
+    }
+    return getLocationSnapshot();
+  };
+
+  const clearLocation=()=>{
+    ++locationRequestId;
+    state.coords=null;
+    state.accuracyMeters=null;
+    state.status='idle';
+    state.source=null;
+    state.updatedAt=null;
+    delete state.label;
+    return getLocationSnapshot();
+  };
+
+  const getLocationSnapshot=()=>({
+    coords:state.coords?{latitude:state.coords.latitude,longitude:state.coords.longitude}:null,
+    radiusKm:state.radiusKm,
+    status:state.status,
+    accuracyMeters:state.accuracyMeters,
+    source:state.source,
+    updatedAt:state.updatedAt,
+    label:state.label||null
+  });
+
+  // GeoJSON Polygon or a ring of [longitude, latitude] pairs.
+  // Returns null for malformed geometry rather than guessing coverage.
+  const pointInZone=(latitude,longitude,zone)=>{
+    const point=validateCoordinates(latitude,longitude);
+    if(!point||!zone)return null;
+    let ring=Array.isArray(zone)?zone:(zone.type==='Polygon'&&Array.isArray(zone.coordinates)?zone.coordinates[0]:null);
+    if(!Array.isArray(ring)||ring.length<4)return null;
+    const points=[];
+    for(const pair of ring){
+      if(!Array.isArray(pair)||pair.length<2)return null;
+      const c=validateCoordinates(pair[1],pair[0]);
+      if(!c)return null;
+      points.push([c.longitude,c.latitude]);
+    }
+    let inside=false;
+    const x=point.longitude,y=point.latitude;
+    for(let i=0,j=points.length-1;i<points.length;j=i++){
+      const [xi,yi]=points[i],[xj,yj]=points[j];
+      const cross=(x-xi)*(yj-yi)-(y-yi)*(xj-xi);
+      if(Math.abs(cross)<1e-10&&x>=Math.min(xi,xj)-1e-10&&x<=Math.max(xi,xj)+1e-10&&y>=Math.min(yi,yj)-1e-10&&y<=Math.max(yi,yj)+1e-10)return true;
+      const intersects=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi);
+      if(intersects)inside=!inside;
+    }
+    return inside;
   };
 
   const requestLocation=()=>new Promise(resolve=>{
@@ -31,17 +103,23 @@
     navigator.geolocation.getCurrentPosition(
       p=>{
         if(requestId!==locationRequestId)return resolve(null);
-        const latitude=Number(p.coords.latitude),longitude=Number(p.coords.longitude);
-        if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180){state.coords=null;state.status='denied';return resolve(null)}
-        state.coords={latitude,longitude};
-        state.accuracyMeters=Number.isFinite(p.coords.accuracy)?p.coords.accuracy:null;
+        const coords=validateCoordinates(p.coords.latitude,p.coords.longitude);
+        if(!coords){state.coords=null;state.accuracyMeters=null;state.source=null;state.status='unavailable';resolve(null);return}
+        state.coords=coords;
+        state.accuracyMeters=Number.isFinite(p.coords.accuracy)&&p.coords.accuracy>=0?p.coords.accuracy:null;
         state.status='ready';
-        resolve(state.coords);
+        state.source='gps';
+        state.updatedAt=new Date().toISOString();
+        delete state.label;
+        resolve(getLocationSnapshot().coords);
       },
-      ()=>{
+      error=>{
         if(requestId!==locationRequestId)return resolve(null);
         state.coords=null;
-        state.status='denied';
+        state.accuracyMeters=null;
+        state.source=null;
+        state.status=error?.code===1?'denied':error?.code===3?'timeout':'unavailable';
+        state.updatedAt=null;
         resolve(null);
       },
       {enableHighAccuracy:false,maximumAge:300000,timeout:7000}
@@ -106,19 +184,31 @@
 
   const statusText=()=>{
     if(state.status==='ready')return 'تم تحديد موقعك';
+    if(state.status==='manual')return 'تم اختيار الموقع يدويًا';
     if(state.status==='requesting')return 'جارٍ تحديد موقعك…';
-    if(state.status==='denied')return 'الموقع غير متاح — عرض النتائج العامة';
-    if(state.status==='unsupported')return 'الموقع غير مدعوم — عرض النتائج العامة';
+    if(state.status==='denied')return 'تم رفض إذن الموقع — يمكنك اختيار الموقع يدويًا';
+    if(state.status==='timeout')return 'انتهت مهلة تحديد الموقع — يمكنك اختيار الموقع يدويًا';
+    if(state.status==='unsupported')return 'الموقع غير مدعوم — يمكنك اختيار الموقع يدويًا';
+    if(state.status==='unavailable')return 'الموقع غير متاح — يمكنك اختيار الموقع يدويًا';
     return 'الموقع عند الحاجة';
   };
 
-  window.MNTYLocationAdapter=Object.freeze({
+  // Publish one shared API under the new central name and the legacy name.
+  // Both globals reference the same frozen object; there is only one location state.
+  const api=Object.freeze({
     ranges:RANGES,
     state,
     requestLocation,
     applyProviderRange,
     setRadius,
     statusText,
-    distanceKm
+    distanceKm,
+    validateCoordinates,
+    setManualLocation,
+    clearLocation,
+    getLocationSnapshot,
+    pointInZone
   });
+  window.MNTYLocationService=api;
+  window.MNTYLocationAdapter=api;
 })();
