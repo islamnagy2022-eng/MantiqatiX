@@ -68,6 +68,28 @@ begin
    raise exception 'RC530 retry must return the original order and original snapshot: %',v_retry;
  end if;
 
+ -- A different customer reusing the same tenant-scoped key must not receive the stored snapshot.
+ insert into user_memberships(user_id,tenant_id,status,role)
+ values('10000000-0000-4000-8000-000000000002','tenant-rc530','ACTIVE','CUSTOMER');
+ perform set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000002',true);
+ begin
+  perform public.create_order_backend(
+   '50000000-0000-4000-8000-000000000003',
+   'tenant-rc530',
+   '20000000-0000-4000-8000-000000000001',
+   null,
+   '10000000-0000-4000-8000-000000000002',
+   'rc530-option-snapshot-test-0001',
+   0,0,0,0,0,'EGP','عميل آخر','01000000001','عنوان آخر',
+   '[{"catalogItemId":"30000000-0000-4000-8000-000000000002","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+   'RC530 cross-customer replay','{}'::jsonb
+  );
+  raise exception 'RC530 cross-customer idempotency replay must be rejected';
+ exception when others then
+  if position('IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_ORDER' in sqlerrm)=0 then raise; end if;
+ end;
+ perform set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000001',true);
+
  begin
   perform public.create_order_backend(
    '50000000-0000-4000-8000-000000000003',
