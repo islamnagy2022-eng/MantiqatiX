@@ -22,7 +22,15 @@ begin
  if not exists(select 1 from marketing_provider_profiles pp where pp.business_id=p_business_id and pp.status='ACTIVE') then raise exception 'PROVIDER_NOT_AVAILABLE'; end if;
  if p_branch_id is not null and not exists(select 1 from branches br where br.id=p_branch_id and br.business_id=p_business_id and br.tenant_id=p_tenant_id and coalesce(br.status,'ACTIVE')='ACTIVE') then raise exception 'BRANCH_BUSINESS_MISMATCH'; end if;
  select * into v_existing from orders where tenant_id=p_tenant_id and client_idempotency_key=trim(p_client_idempotency_key) for update;
- if found then return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true); end if;
+ if found then
+   -- Keep idempotent retries safe without disclosing another customer's order snapshot.
+   if v_existing.customer_id is distinct from p_customer_id
+      or v_existing.business_id is distinct from p_business_id
+      or v_existing.branch_id is distinct from p_branch_id then
+     raise exception 'IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_ORDER';
+   end if;
+   return jsonb_build_object('id',v_existing.id,'status',v_existing.status,'total_amount',v_existing.total_amount,'currency',v_existing.currency,'pricing_version',v_existing.pricing_version,'pricing_hash',v_existing.pricing_hash,'pricing_snapshot',v_existing.pricing_snapshot,'idempotent',true);
+ end if;
  select * into v_settings from catalog_business_settings where business_id=p_business_id;
  if not found then insert into catalog_business_settings(business_id,tenant_id) values(p_business_id,p_tenant_id) on conflict (business_id) do nothing; select * into v_settings from catalog_business_settings where business_id=p_business_id; end if;
  v_currency:=upper(coalesce(v_settings.currency,p_currency,'EGP')); v_delivery:=v_settings.delivery_fee;
