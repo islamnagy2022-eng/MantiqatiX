@@ -89,13 +89,6 @@ const checks = [
   ["Module-specific actions save only local synthetic records", dashboard.includes("data[current.id].unshift") && dashboard.includes("تم تنفيذ المحاكاة المتخصصة محليًا فقط.")],
   ["Dashboard inline JavaScript parses successfully", (() => { try { if (!dashboardScript) return false; new vm.Script(dashboardScript); return true; } catch (error) { console.error("Dashboard JavaScript syntax error:", error.message); return false; } })()]
 ];
-const failed = checks.filter(([, ok]) => !ok);
-for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
-if (failed.length) {
-  console.error(`Preview/navigation contract failed: ${failed.length}/${checks.length}`);
-  process.exit(1);
-}
-console.log(`Preview/navigation contract passed: ${checks.length} checks`);
 
 checks.push(["Project profile page supports per-project logo and cover previews", (() => {
   const page = fs.readFileSync("web/preview/project.html", "utf8");
@@ -104,3 +97,11 @@ checks.push(["Project profile page supports per-project logo and cover previews"
     page.includes("5*1024*1024") && page.includes("لم يتم حفظ البيانات أو رفع الصور");
 })()]);
 checks.push(["Service card image is the clickable project entry point", entry.includes('class="card-visual" type="button" data-details=') && !entry.includes('class="btn ghost" type="button" data-details=')]);
+
+const failed = checks.filter(([, ok]) => !ok);
+for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
+if (failed.length) {
+  console.error(`Preview/navigation contract failed: ${failed.length}/${checks.length}`);
+  process.exit(1);
+}
+console.log(`Preview/navigation contract passed: ${checks.length} checks`);
