@@ -16,14 +16,14 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const customerRestaurants = fs.readFileSync("web/preview/restaurants.html", "utf8");
 const customerOrder = fs.readFileSync("web/preview/restaurant-order.html", "utf8");
-const customerRestaurantsScript = customerRestaurants.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1] ?? "";
-const customerOrderScript = customerOrder.match(/<script>([\\s\\S]*?)<\\/script>/)?.[1] ?? "";
+const customerRestaurantsScript = customerRestaurants.match(/<script>([\s\\S]*?)<\\/script>/)?.[1] ?? "";
+const customerOrderScript = customerOrder.match(/<script>([\s\\S]*?)<\\/script>/)?.[1] ?? "";
 
 const checks = [
   ["Customer restaurant page lists the three requested demo restaurants", ["مطعم الزعيم", "مطعم أولاد جابر", "الأصلي", "بركة السبع"].every(x => customerRestaurants.includes(x))],
   ["Customer discovery links to restaurant menu and ordering", customerRestaurants.includes('href="restaurant-order.html?restaurant=') && customerRestaurants.includes('data-kind="كشري وسندوتشات"') && customerRestaurants.includes('data-kind="فول وطعمية"') && customerRestaurants.includes('data-kind="مشويات"')],
   ["Customer order page supports size, extras, quantities, multi-item cart and demo checkout", ["data-pick", "data-size", "data-extra", "data-inc", "data-dec", "data-del", "DEMO-", "تأكيد الطلب التجريبي"].every(x => customerOrder.includes(x))],
-  ["Customer restaurant ordering is local-only and does not use backend or browser persistence", /لا يوجد دفع أو إرسال للمطعم/.test(customerOrder) && !/\\bfetch\\s*\\(|XMLHttpRequest|localStorage|sessionStorage|createClient\\s*\\(/i.test(customerOrder)],
+  ["Customer restaurant ordering is local-only and does not use backend or browser persistence", /لا يوجد دفع أو إرسال للمطعم/.test(customerOrder) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(customerOrder)],
   ["Customer restaurant page JavaScript parses successfully", (() => { try { if (!customerRestaurantsScript) return false; new vm.Script(customerRestaurantsScript); return true; } catch (error) { console.error("Customer restaurants JavaScript syntax error:", error.message); return false; } })()],
   ["Customer order page JavaScript parses successfully", (() => { try { if (!customerOrderScript) return false; new vm.Script(customerOrderScript); return true; } catch (error) { console.error("Customer order JavaScript syntax error:", error.message); return false; } })()],
   ["Preview homepage and restaurant workspace link to customer restaurant journey", entry.includes('href="restaurants.html"') && restaurant.includes('href="restaurants.html"')],
