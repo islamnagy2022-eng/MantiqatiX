@@ -27,6 +27,8 @@ assert.match(moduleSource, /state\.memberships\.find\(m=>String\(m\.id\)===Strin
   'a stale saved membership must not silently switch businesses');
 assert.match(moduleSource, /if\(!state\.membership&&state\.memberships\.length===1\)/,
   'auto-selection is allowed only when exactly one active membership exists');
+assert.match(moduleSource, /if\(!state\.membership\.tenant_id\|\|!state\.membership\.business_id\|\|!state\.membership\.branch_id\)/,
+  'incomplete tenant/business/branch scope must fail closed before data reads');
 assert.match(moduleSource, /function membershipChooser\(\)/,
   'ambiguous memberships must display an explicit chooser');
 assert.match(moduleSource, /data-membership-choice/,
