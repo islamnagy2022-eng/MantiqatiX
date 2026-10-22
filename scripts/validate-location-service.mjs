@@ -41,4 +41,25 @@ assert.equal(location.getLocationSnapshot().status,'idle');
 await location.requestLocation();
 assert.equal(location.getLocationSnapshot().status,'unsupported','unsupported GPS must leave a usable manual-location path');
 
+
+const pendingGps={};
+const raceSandbox={window:{},navigator:{geolocation:{getCurrentPosition(success,error,options){pendingGps.success=success;pendingGps.error=error;pendingGps.options=options;}}}};
+vm.runInNewContext(source,raceSandbox,{filename:'web/location-adapter.js#gps-race'});
+const raceLocation=raceSandbox.window.MNTYLocationAdapter;
+const gpsPromise=raceLocation.requestLocation();
+assert.equal(raceLocation.getLocationSnapshot().status,'requesting');
+assert.equal(pendingGps.options.timeout,7000,'GPS request must have a bounded timeout');
+const manualDuringGps=raceLocation.setManualLocation(30.5,31.5,{label:'اختيار يدوي أحدث'});
+pendingGps.success({coords:{latitude:29.9,longitude:30.9,accuracy:15}});
+assert.equal(await gpsPromise,null,'stale GPS response must be ignored after manual selection');
+assert.equal(raceLocation.getLocationSnapshot().source,'manual');
+assert.equal(raceLocation.getLocationSnapshot().coords.latitude,manualDuringGps.coords.latitude);
+assert.equal(raceLocation.getLocationSnapshot().coords.longitude,manualDuringGps.coords.longitude);
+
+const deniedSandbox={window:{},navigator:{geolocation:{getCurrentPosition(success,error){error({code:1});}}}};
+vm.runInNewContext(source,deniedSandbox,{filename:'web/location-adapter.js#gps-denied'});
+assert.equal(await deniedSandbox.window.MNTYLocationAdapter.requestLocation(),null);
+assert.equal(deniedSandbox.window.MNTYLocationAdapter.getLocationSnapshot().status,'denied');
+assert.match(deniedSandbox.window.MNTYLocationAdapter.statusText(),/يدويًا/);
+
 console.log('Central location service contract PASS: coordinate validation, manual location, range compatibility, distance, polygon coverage and GPS fallback.');
