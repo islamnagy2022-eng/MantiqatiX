@@ -171,4 +171,7 @@ assert.match(moduleSource, /askOrderDetails\(items,catalog\?\.options\|\|\[\]\)/
 assert.match(moduleSource, /selectedOptionIds:selection\.selectedOptionIds/, 'the selected option IDs must reach the server-authoritative order creation function');
 assert.match(moduleSource, /السعر النهائي والضريبة يعتمدهما الخادم/, 'the UI must clarify that the server controls final pricing');
 
+assert.match(moduleSource, /if\(window\.__MNTY_RESTAURANT_MODULE_OBSERVER__\)return;\s*window\.__MNTY_RESTAURANT_MODULE_OBSERVER__=true;\s*const mo=new MutationObserver\(observe\)/, 'repeated script evaluation must not attach duplicate restaurant module observers');
+assert.match(moduleSource, /window\.__MNTY_RESTAURANT_MODULE_POLL__=window\.setInterval\(observe,800\)/, 'the singleton poll handle must be retained for lifecycle diagnostics');
+
 console.log('Restaurant module contract PASS');
