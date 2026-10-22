@@ -97,7 +97,7 @@ $('searchForm').addEventListener('submit',e=>{e.preventDefault();query=$('search
 $('searchInput').addEventListener('input',()=>{query=$('searchInput').value;render();});
 $('locationSelect').addEventListener('change',()=>{area=$('locationSelect').value;render();});
 document.addEventListener('click',e=>{
-const c=e.target.closest('[data-category]');if(c){category=c.dataset.category;render();if(category!=='all')$('featured').scrollIntoView({behavior:'smooth'});return;}
+const c=e.target.closest('[data-category]');if(c){const selected=c.dataset.category;if(selected==='FOOD'){window.location.href='restaurants.html';return;}category=selected;render();if(category!=='all')$('featured').scrollIntoView({behavior:'smooth'});return;}
 const d=e.target.closest('[data-details]');if(d){details(d.dataset.details);return;}
 if(e.target.closest('[data-join]')){joinForm();return;}
 if(e.target.closest('[data-request]')){requestForm(null);return;}
