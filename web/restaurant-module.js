@@ -57,6 +57,10 @@ async function load(){
    state.error=state.memberships.length?'MEMBERSHIP_SELECTION_REQUIRED':'لا توجد عضوية تشغيلية نشطة لهذا الحساب.';
    state.loading=false;return render();
  }
+ if(!state.membership.tenant_id||!state.membership.business_id||!state.membership.branch_id){
+   state.error='بيانات العضوية لا تحتوي على المؤسسة والنشاط والفرع كاملة. تم إيقاف التحميل لحماية فصل البيانات؛ راجع مدير المنصة.';
+   state.loading=false;return render();
+ }
  state.error=null; state.loading=true; render();
  const s=scope();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
