@@ -106,6 +106,20 @@ checks.push(["Restaurant ordering uses the shared cart module", customerOrder.in
 checks.push(["Shared cart storage schema excludes customer and payment fields", sharedCart.includes("mantiqatix.demo.cart.v1") && sharedCart.includes("sessionStorage") && !sharedCart.includes("customerName") && !sharedCart.includes("phoneNumber") && !sharedCart.includes("paymentToken")]);
 checks.push(["Shared cart JavaScript parses successfully", (() => { try { new vm.Script(sharedCart); return true; } catch (error) { console.error("Shared cart syntax error:", error.message); return false; } })()]);
 checks.push(["Shared cart revalidates stored lines, bounds quantities and recomputes totals", sharedCart.includes("Number(x.unit)<=100000000") && sharedCart.includes("Math.min(20,Number(x.qty))") && sharedCart.includes("total:unit*qty") && sharedCart.includes("x.extras.slice(0,20)")]);
+checks.push(["Shared cart runtime normalizes tampered session data", (() => {
+  let stored = JSON.stringify([
+    {id:"valid-1",merchantId:"shop-a",merchantName:"A",module:"products",name:"Item",unit:25,qty:99,total:1,extras:Array(30).fill("x".repeat(120)),note:"n".repeat(300)},
+    {id:"bad-price",name:"Bad",unit:-5,qty:1},
+    {id:"bad-qty",name:"Bad quantity",unit:5,qty:0}
+  ]);
+  const storage = {getItem:()=>stored,setItem:(k,v)=>{stored=v;},removeItem:()=>{stored="[]";}};
+  const context = {window:{},sessionStorage:storage,crypto:{randomUUID:()=>"generated-id"}};
+  try {
+    vm.runInNewContext(sharedCart,context);
+    const rows=context.window.MXCart.list();
+    return rows.length===1 && rows[0].qty===20 && rows[0].total===500 && rows[0].extras.length===20 && rows[0].extras[0].length===80 && rows[0].note.length===100;
+  } catch (error) { console.error("Shared cart runtime validation failed:",error.message); return false; }
+})()]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
