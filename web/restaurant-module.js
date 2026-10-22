@@ -243,5 +243,6 @@ function observe(){
 }
 const mo=new MutationObserver(observe);
 mo.observe(document.body,{childList:true,subtree:true});
-setInterval(observe,800);
+// Handle the initial route once; subsequent route changes are observed through DOM mutations.
+observe();
 })();
