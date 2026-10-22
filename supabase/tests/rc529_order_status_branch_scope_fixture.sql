@@ -50,7 +50,8 @@ grant select on public.payment_intents to authenticated;
 insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status) values
  ('staff-a','10000000-0000-0000-0000-000000000001','tenant-a','20000000-0000-0000-0000-000000000001','branch-a','STAFF','ACTIVE'),
  ('staff-b','10000000-0000-0000-0000-000000000002','tenant-a','20000000-0000-0000-0000-000000000001','branch-b','STAFF','ACTIVE'),
- ('owner-other-business','10000000-0000-0000-0000-000000000003','tenant-a','20000000-0000-0000-0000-000000000002',null,'OWNER','ACTIVE');
+ ('owner-other-business','10000000-0000-0000-0000-000000000003','tenant-a','20000000-0000-0000-0000-000000000002',null,'OWNER','ACTIVE'),
+ ('staff-null-status','10000000-0000-0000-0000-000000000004','tenant-a','20000000-0000-0000-0000-000000000001','branch-a','STAFF',null);
 
 insert into public.orders(id,tenant_id,business_id,branch_id,customer_id,status,notes) values
  ('30000000-0000-0000-0000-000000000001','tenant-a','20000000-0000-0000-0000-000000000001','branch-a','40000000-0000-0000-0000-000000000001','PENDING',''),
