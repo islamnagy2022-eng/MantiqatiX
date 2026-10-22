@@ -1,0 +1,33 @@
+# Tenant-isolation verifier — fail-closed correction (2026-10-17)
+
+## Finding
+
+The previous `scripts/verify-tenant-isolation.sql` could report PASS when the target tenant or rows were absent because it only asserted that cross-tenant counts were zero. A zero count is not evidence of isolation if there is nothing to hide. It also selected an identity from `MNTY-PLATFORM`, which is not an appropriate principal for a tenant-to-tenant adversarial test.
+
+A read-only production aggregate check found `MNTY-TEST-B` exists with one active non-showcase business, but no rows in `orders`, `payment_intents`, or `provider_onboarding_requests` for the queried tenants. Therefore the old verifier's zero-count assertions for those three surfaces would have been vacuous. No user IDs, emails, payment details, or business names are included in this report.
+
+## Correction
+
+- The verifier requires synthetic `MNTY-TEST-A` and `MNTY-TEST-B`, isolated owner identities, and positive fixture rows in both tenants for businesses, orders, payment intents, and provider onboarding.
+- It tests both directions: Tenant A can read its own rows but not private Tenant B rows, and vice versa.
+- Public showcase businesses are excluded from the cross-tenant business assertion because the schema intentionally allows active showcase rows to be read publicly.
+- The synthetic fixture uses `example.invalid` identities, is explicitly marked test-only, and refuses to run unless invoked with `psql -v mantiqati_disposable=on`.
+- The verifier runs in a transaction and rolls back. A static validator and dedicated CI workflow enforce the fail-closed contract.
+
+## Verification scope
+
+The behavioral SQL test is run only on a separate disposable-baseline branch after schema restore and synthetic fixture seeding. This PR does not create test identities, tenant rows, or financial rows in production. Production tenant isolation remains **NOT VERIFIED** until the controlled two-user/two-tenant test passes in an approved isolated environment and deployed-policy parity is reviewed.
+
+
+## Exact-head continuation — 2026-10-18
+
+- Strengthened `scripts/validate-tenant-isolation-verifier.mjs` so it inspects each tenant assertion block separately, requires own-tenant visibility and zero cross-tenant visibility for all four surfaces in both directions, rejects database mutation statements in the verifier, and verifies that both tenants are seeded in the synthetic fixture.
+- The exact-head static contract workflow passed at [run 39089428859](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089428859) for commit `8c7321216823113d1fef437c0c27f9dbad97487d`.
+- The PR remains Draft. This is static contract evidence only; the disposable PostgreSQL behavioral test and review of deployed RLS-policy parity are still pending. No production rows, migrations, functions, settings, or payments were changed.
+
+
+## Disposable behavioral E2E result — 2026-10-18
+
+- The verifier and synthetic fixture were run against a disposable Supabase instance restored from the schema-only snapshot, not production.
+- [Run 39089734987](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39089734987) passed. SQL emitted positive results for both tenant directions: each synthetic owner could read its own private business, order, payment intent, and onboarding rows, while cross-tenant counts remained zero.
+- This closes the **test-harness behavioral check against the captured baseline**. It does not prove production policy parity or close the production tenant-isolation release gate. The PR remains Draft until reviewers validate the baseline and deployed-policy parity is independently established.
