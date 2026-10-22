@@ -64,6 +64,12 @@ assert.ok(moduleSource.includes("(x.status||'EMPTY')===status"),
 assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\)/,
   'table number and capacity must be validated');
 assert.match(moduleSource, /if\(!existing\)payload\.current_stock_qty=0/, 'new inventory items must start at zero until audited stock movements are implemented');
+const inventoryEditorSource = moduleSource.slice(moduleSource.indexOf('function addInventory(existing){'), moduleSource.indexOf('async function updateOrder('));
+assert.ok(inventoryEditorSource.startsWith('function addInventory(existing){'), 'inventory editor must be extractable for mutation-boundary tests');
+assert.match(inventoryEditorSource, /if\(!existing\)payload\.current_stock_qty=0/, 'only new inventory records may initialize their balance, and only at zero');
+assert.doesNotMatch(inventoryEditorSource, /payload\.current_stock_qty\s*=\s*(?!0\b)/, 'inventory editor must never write a nonzero stock balance');
+assert.match(inventoryEditorSource, /restaurant_inventory'\)\.update\(payload\)/, 'inventory metadata updates must use the scoped update path');
+assert.match(inventoryEditorSource, /\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)/, 'inventory writes must be limited to the selected tenant, business, and branch');
 assert.match(moduleSource, /الرصيد الافتتاحي وحركات الإضافة والصرف غير متاحة من هذه الشاشة/, 'inventory UI must explain that stock balances cannot be changed without an audited movement path');
 assert.match(moduleSource, /restaurant_menu_items'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'menu updates must be scoped to the active branch and detect unmatched writes');
 assert.match(moduleSource, /restaurant_tables'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'table updates must be scoped to the active branch and detect unmatched writes');
