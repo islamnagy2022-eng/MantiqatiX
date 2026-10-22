@@ -39,6 +39,9 @@ assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/,
   'membership lookup must not silently select the first active membership');
 
 // Reads must be scoped independently by each module capability.
+assert.match(moduleSource, /let loadGeneration=0;/, 'restaurant loads must have a monotonically increasing generation');
+assert.match(moduleSource, /const generation=\+\+loadGeneration;/, 'each restaurant load must invalidate prior in-flight reads');
+assert.match(moduleSource, /if\(generation!==loadGeneration\)return;/, 'stale asynchronous results must be discarded after membership or branch changes');
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
