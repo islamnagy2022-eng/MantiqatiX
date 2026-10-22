@@ -1661,7 +1661,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Preserve the existing 1/3/5/10 km range contract and backend proximity RPC boundary.
 - [x] Add `scripts/validate-location-service.mjs` and wire it into the Pages validation workflow.
 - [x] Document current capabilities and limitations in `docs/CENTRAL_LOCATION_SERVICE.md`.
-- [ ] Execute the new Node validator locally and confirm exact-head Pages CI.
+- [x] Exact-head CI executed `node scripts/validate-location-service.mjs` successfully on commit `d038eeb908a0cf8bdb5822440e787c01a3c4e9df`.
+- [ ] Full Pages workflow remains blocked by the existing `web/preview/index.html` inline-JavaScript syntax contract (`Invalid or unexpected token`); this file is unchanged in this PR and the unrelated failure must be diagnosed before merge.
 - [ ] Verify existing home-page consumers and GPS/manual location behavior in a real browser and mobile device.
 - [ ] Select and configure a supported geocoding / map / road-routing provider only after coverage, cost, terms and secret-handling review.
 - [ ] Implement the shared map/address-picker UI and authenticated saved-address workflow; no such production capability is claimed by this increment.
