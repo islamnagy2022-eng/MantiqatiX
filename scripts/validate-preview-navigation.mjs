@@ -34,6 +34,8 @@ const checks = [
   ["Shared demo cart recalculates line totals and rejects invalid quantity updates", sharedCart.includes("total:unit*qty") && sharedCart.includes("if(!Number.isFinite(n))return false") && sharedCart.includes("x.total=x.qty*x.unit")],
 
   ["Customer order page JavaScript parses successfully", (() => { try { if (!customerOrderScript) return false; new vm.Script(customerOrderScript); return true; } catch (error) { console.error("Customer order JavaScript syntax error:", error.message); return false; } })()],
+  ["Restaurant item dialog supports Escape-to-close and restores keyboard focus", customerOrder.includes("e.key==='Escape'") && customerOrder.includes("modalTrigger=document.activeElement") && customerOrder.includes("document.getElementById('cancel').focus()") && customerOrder.includes("modalTrigger.focus()")],
+
   ["Preview homepage and restaurant workspace link to customer restaurant journey", entry.includes('href="restaurants.html"') && restaurant.includes('href="restaurants.html"')],
   ["Restaurant demo is clearly isolated from live backend", /وضع تجريبي فقط/.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant) && /لم يتم إرساله إلى أي خادم/.test(restaurant)],
   ["Restaurant demo supports multi-item orders and order-state transitions", /إنشاء طلب متعدد الأصناف/.test(restaurant) && /id="orderLines"/.test(restaurant) && /data-next/.test(restaurant) && /data-filter/.test(restaurant)],
