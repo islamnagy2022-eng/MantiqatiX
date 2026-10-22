@@ -243,3 +243,7 @@ assert.match(moduleSource, /البحث والفلاتر محلية داخل آخ
   'menu view must disclose its loaded-record limit');
 
 console.log('Restaurant module contract PASS');
+
+// Keep the known menu-to-canonical-catalog integration gap visible until an idempotent server-side bridge is implemented and verified.
+assert.match(moduleSource, /تنبيه تكاملي: أصناف شاشة restaurant_menu_items ليست مضمونة الظهور في الكتالوج التشغيلي المستخدم لإنشاء الطلبات/,
+  'restaurant menu UI must disclose that local menu records are not yet guaranteed to be orderable through the canonical catalog');
