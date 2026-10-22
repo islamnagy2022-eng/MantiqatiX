@@ -39,6 +39,9 @@ const checks = [
   ["Preview homepage and restaurant workspace link to customer restaurant journey", entry.includes('href="restaurants.html"') && restaurant.includes('href="restaurants.html"')],
   ["Restaurant demo is clearly isolated from live backend", /وضع تجريبي فقط/.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant) && /لم يتم إرساله إلى أي خادم/.test(restaurant)],
   ["Restaurant demo supports multi-item orders and order-state transitions", /إنشاء طلب متعدد الأصناف/.test(restaurant) && /id="orderLines"/.test(restaurant) && /data-next/.test(restaurant) && /data-filter/.test(restaurant)],
+  ["Restaurant demo generates sequential order IDs independent of current order count", restaurant.includes("nextOrderSequence=Math.max(2084,...orders.map(o=>Number(String(o.id).replace(/^MX-/,'').replace(/\\D/g,''))||0))+1") && restaurant.includes("id:'MX-'+(nextOrderSequence++)")],
+  ["Restaurant demo limits active order lines without blocking additions after a line is removed", restaurant.includes("if(document.querySelectorAll('.line-item').length>=10)return") && restaurant.includes("row.remove();calcTotal()")],
+
   ["Restaurant demo is linked from preview homepage and module dashboard", /href="restaurant\.html"/.test(entry) && /href="restaurant\.html"/.test(dashboard)],
   ["Arabic RTL preview gateway", /<html lang="ar" dir="rtl">/.test(entry)],
   ["Preview root opens the developed homepage directly", /id="heroTitle"/.test(entry) && /id="categoryGrid"/.test(entry) && /id="serviceCards"/.test(entry) && !/window\.location\.replace/.test(entry)],
