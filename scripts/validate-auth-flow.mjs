@@ -40,6 +40,14 @@ const required = [
   ["No direct registration review update", ".from('account_registration_requests').update", app, true]
 ];
 
+
+const authBootStart = app.indexOf("async function bootAuth(){");
+const authBootEnd = app.indexOf("function bindGenericWorkspaceTabs(){", authBootStart);
+const authBoot = authBootStart >= 0 && authBootEnd > authBootStart ? app.slice(authBootStart, authBootEnd) : "";
+if (!authBoot.includes("if(new URLSearchParams(window.location.search).get('openAuth')==='1'){authView();return}")) failures.push("Google preview entry must open the platform auth view");
+if (!authBoot.includes("if(new URLSearchParams(window.location.search).get('openAuth')==='1'){\\n authView('تعذر تهيئة جلسة الدخول. أعد المحاولة بعد تحديث الصفحة.');\\n return;\\n}")) failures.push("Auth bootstrap errors must preserve the Google sign-in view");
+if (authBoot.indexOf("if(data?.session)") < 0 || authBoot.indexOf("if(data?.session)") > authBoot.indexOf("get('openAuth')==='1'")) failures.push("Existing authenticated sessions must be handled before showing sign-in");
+
 const failures = [];
 const bootStart = app.indexOf("async function bootAuth(){");
 const bootEnd = app.indexOf("async function renderApp()", bootStart);
