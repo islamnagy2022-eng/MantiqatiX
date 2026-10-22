@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const moduleSource = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const rbacSource = fs.readFileSync('web/rbac.js', 'utf8');
 const optionSnapshotMigration = fs.readFileSync('supabase/migrations/20261022140000_rc530_order_option_snapshot_details.sql', 'utf8');
+const orderCreateSource = fs.readFileSync('supabase/functions/order-create/index.ts', 'utf8');
 
 // The restaurant workspace must use the shared RBAC contract, not its own role allowlist.
 assert.match(moduleSource, /select\('id,tenant_id,business_id,branch_id,role,status,permissions'\)/, 'membership lookup must include permission claims required by shared RBAC');
@@ -178,4 +179,10 @@ assert.match(moduleSource, /function menuView\(\)[\s\S]*?id="rest-menu-search"[\
 assert.match(moduleSource, /const filterMenu=\(\)=>[\s\S]*?matchesText[\s\S]*?matchesCategory[\s\S]*?rest-menu-filter-count/, 'menu filters must update visible rows and a result count');
 assert.match(moduleSource, /النتائج ضمن أول 200 سجل قائمة محلي محمل/, 'menu filtering must disclose that it only covers loaded local legacy records');
 assert.match(moduleSource, /تعديل السجل المحلي/, 'menu editing must be clearly labeled as local legacy data, not central catalog pricing');
+assert.match(orderCreateSource, /INVALID_CUSTOMER_NAME[\s\S]*?customerName\.trim\(\)\.length > 120/, 'canonical order creation must reject blank or overlong customer names server-side');
+assert.match(orderCreateSource, /INVALID_CUSTOMER_PHONE[\s\S]*?customerPhone\.trim\(\)/, 'canonical order creation must validate a supplied phone number server-side');
+assert.match(orderCreateSource, /INVALID_DELIVERY_ADDRESS[\s\S]*?body\.deliveryAddress\.length > 500/, 'canonical order creation must bound delivery address length');
+assert.match(orderCreateSource, /INVALID_ORDER_NOTES[\s\S]*?body\.notes\.length > 1000/, 'canonical order creation must bound order notes');
+assert.match(orderCreateSource, /INVALID_ITEM_OPTIONS[\s\S]*?new Set\(x\.selectedOptionIds\)\.size !== x\.selectedOptionIds\.length/, 'canonical order creation must reject duplicate selected option IDs before pricing');
+
 console.log('Restaurant module contract PASS');
