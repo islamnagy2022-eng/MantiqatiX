@@ -2191,6 +2191,10 @@ if(new URLSearchParams(window.location.search).get('openAuth')==='1'){authView()
 window.MXHomeLanding?MXHomeLanding():landingView();
 }catch(e){
 user=null;
+if(new URLSearchParams(window.location.search).get('openAuth')==='1'){
+ authView('تعذر تهيئة جلسة الدخول. أعد المحاولة بعد تحديث الصفحة.');
+ return;
+}
 window.MXHomeLanding?MXHomeLanding():landingView();
 showToast('تعذر تهيئة جلسة الدخول. أعد تحميل الصفحة.','error');
 }
