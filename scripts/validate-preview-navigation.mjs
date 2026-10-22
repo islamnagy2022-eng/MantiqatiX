@@ -16,8 +16,8 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const customerRestaurants = fs.readFileSync("web/preview/restaurants.html", "utf8");
 const customerOrder = fs.readFileSync("web/preview/restaurant-order.html", "utf8");
-const customerRestaurantsScript = customerRestaurants.match(/<script>([\s\\S]*?)<\\/script>/)?.[1] ?? "";
-const customerOrderScript = customerOrder.match(/<script>([\s\\S]*?)<\\/script>/)?.[1] ?? "";
+const customerRestaurantsScript = customerRestaurants.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+const customerOrderScript = customerOrder.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 
 const checks = [
   ["Customer restaurant page lists the three requested demo restaurants", ["مطعم الزعيم", "مطعم أولاد جابر", "الأصلي", "بركة السبع"].every(x => customerRestaurants.includes(x))],
