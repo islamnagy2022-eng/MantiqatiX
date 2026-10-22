@@ -17,7 +17,7 @@ assert.equal(location.distanceKm(91,0,0,0),null);
 
 const square={type:'Polygon',coordinates:[[[30,29],[32,29],[32,31],[30,31],[30,29]]]};
 assert.equal(location.pointInZone(30,31,square),true);
-assert.equal(location.pointInZone(32,31,square),true,'points on polygon boundary count as inside');
+assert.equal(location.pointInZone(31,31,square),true,'points on polygon boundary count as inside');
 assert.equal(location.pointInZone(35,35,square),false);
 assert.equal(location.pointInZone(91,31,square),null);
 assert.equal(location.pointInZone(30,31,{type:'Point',coordinates:[31,30]}),null);
