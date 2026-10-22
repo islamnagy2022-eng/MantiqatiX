@@ -89,6 +89,15 @@ const checks = [
   ["Module-specific actions save only local synthetic records", dashboard.includes("data[current.id].unshift") && dashboard.includes("تم تنفيذ المحاكاة المتخصصة محليًا فقط.")],
   ["Dashboard inline JavaScript parses successfully", (() => { try { if (!dashboardScript) return false; new vm.Script(dashboardScript); return true; } catch (error) { console.error("Dashboard JavaScript syntax error:", error.message); return false; } })()]
 ];
+
+checks.push(["Project profile page supports per-project logo and cover previews", (() => {
+  const page = fs.readFileSync("web/preview/project.html", "utf8");
+  return page.includes('id="logoFile"') && page.includes('id="coverFile"') &&
+    page.includes('id="publicLogo"') && page.includes('id="publicCover"') &&
+    page.includes("5*1024*1024") && page.includes("لم يتم حفظ البيانات أو رفع الصور");
+})()]);
+checks.push(["Service card image is the clickable project entry point", entry.includes('class="card-visual" type="button" data-project=') && !entry.includes('class="btn ghost" type="button" data-details=')]);
+
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 if (failed.length) {
