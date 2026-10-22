@@ -69,8 +69,12 @@ async function load(){
  let invQ=sb.from('restaurant_inventory').select('id,owner_user_id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name,updated_at').order('name_ar').limit(200);
  if(s&&canOperate('CATALOG','view')){
    menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
+ }else if(s){
+   // Public/limited catalog views remain inside the explicitly selected branch.
+   menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).eq('is_available',true);
  }else{
-   menuQ=menuQ.eq('is_available',true);
+   // No trusted branch scope means no cross-tenant catalog query.
+   menuQ=menuQ.eq('id','__MNTY_NO_CATALOG_SCOPE__');
  }
  if(s&&canOperate('ORDERS','view')){
    ordersQ=ordersQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
