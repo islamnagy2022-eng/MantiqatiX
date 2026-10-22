@@ -41,6 +41,12 @@ assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must re
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 
+// Inventory balances must not be edited as untraceable scalar values.
+assert.match(moduleSource, /if\(!existing\)payload\.current_stock_qty=0;/,
+  'new inventory items must start at zero until an auditable stock-movement endpoint exists');
+assert.doesNotMatch(moduleSource, /field\('stock','رصيد افتتاحي'/,
+  'the browser must not accept unaudited opening stock balances');
+
 // Order creation/status must go through the canonical server functions.
 assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must use canonical order-create function');
