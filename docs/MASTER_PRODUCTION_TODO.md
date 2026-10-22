@@ -1661,8 +1661,9 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Preserve the existing 1/3/5/10 km range contract and backend proximity RPC boundary.
 - [x] Add `scripts/validate-location-service.mjs` and wire it into the Pages validation workflow.
 - [x] Document current capabilities and limitations in `docs/CENTRAL_LOCATION_SERVICE.md`.
-- [x] Exact-head CI executed `node scripts/validate-location-service.mjs` successfully on commit `d038eeb908a0cf8bdb5822440e787c01a3c4e9df`.
-- [ ] Full Pages workflow remains blocked by the existing `web/preview/index.html` inline-JavaScript syntax contract (`Invalid or unexpected token`); this file is unchanged in this PR and the unrelated failure must be diagnosed before merge.
+- [x] Exact-head CI passed the central location contract on PR #342; merge commit `11d035ab848c948c7a021d1f33f4a27c9b26b8d6` includes the validator in Pages workflow.
+- [x] PR #343 added mocked GPS-denial and stale-callback race tests; all four PR CI workflows and three push workflows passed for head `887af86a919879744470e7b906d2a8fa15aa49ec`; merged as `fdf69114e7235f50c25c0df35ffb4b58aedff408`.
+- [ ] Re-run and independently verify the latest main-branch Pages deployment after the location-service merges; do not infer deployment success from PR CI alone.
 - [ ] Verify existing home-page consumers and GPS/manual location behavior in a real browser and mobile device.
 - [ ] Select and configure a supported geocoding / map / road-routing provider only after coverage, cost, terms and secret-handling review.
 - [ ] Implement the shared map/address-picker UI and authenticated saved-address workflow; no such production capability is claimed by this increment.
