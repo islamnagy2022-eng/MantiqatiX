@@ -45,6 +45,7 @@ const checks = [
   ["Restaurant demo validates order quantities and escapes dynamic order text", restaurantScript.includes("qty<=50") && restaurantScript.includes("function safe(s)") && restaurantScript.includes("safe(o.customer)") && restaurantScript.includes("safe(o.id)")],
 
   ["Restaurant demo generates sequential order IDs independent of current order count", restaurant.includes("nextOrderSequence=Math.max(2084,...orders.map(o=>Number(String(o.id).replace(/^MX-/,'').replace(/\\D/g,''))||0))+1") && restaurant.includes("id:'MX-'+(nextOrderSequence++)")],
+  ["Restaurant order queue supports bounded live search by ID, customer, or phone", restaurant.includes('id="orderSearch"') && restaurant.includes("addEventListener('input'") && restaurant.includes("[o.id,o.customer,o.phone]") && restaurant.includes("orderSearch=e.target.value.slice(0,100)")],
   ["Restaurant demo limits active order lines without blocking additions after a line is removed", restaurant.includes("if(document.querySelectorAll('.line-item').length>=10)return") && restaurant.includes("row.remove();calcTotal()")],
 
   ["Restaurant demo is linked from preview homepage and module dashboard", /href="restaurant\.html"/.test(entry) && /href="restaurant\.html"/.test(dashboard)],
