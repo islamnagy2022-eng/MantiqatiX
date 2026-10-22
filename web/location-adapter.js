@@ -193,8 +193,9 @@
     return 'الموقع عند الحاجة';
   };
 
-  // Preserve the legacy global name for existing home/PWA consumers.
-  window.MNTYLocationAdapter=Object.freeze({
+  // Publish one shared API under the new central name and the legacy name.
+  // Both globals reference the same frozen object; there is only one location state.
+  const api=Object.freeze({
     ranges:RANGES,
     state,
     requestLocation,
@@ -208,4 +209,6 @@
     getLocationSnapshot,
     pointInZone
   });
+  window.MNTYLocationService=api;
+  window.MNTYLocationAdapter=api;
 })();
