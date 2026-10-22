@@ -453,3 +453,18 @@
 - [x] كشف CI أن اختبار العقد يحتوي تأكيدًا قديمًا لمسار نطاق العضوية، رغم أن الكود صار يعيد ضبط `state.loading=false` عند الخروج المبكر.
 - [x] تحديث التأكيد المتبقي في `scripts/validate-restaurant-module-contract.mjs` ليتطابق مع سلوك الإغلاق الآمن، مع الإبقاء على شرط إيقاف التحميل.
 - [ ] انتظار تشغيل CI على الالتزام الجديد وإعادة مراجعة السجلات؛ لا يُعتبر الإصلاح ناجحًا حتى تظهر نتيجة جديدة خضراء.
+
+
+### تحقق فعلي من CI — 2026-10-22 — PR #348
+- الفرع: `feat/business-owner-dashboard-preview-20261022`
+- commit الذي تم فحصه: `9898dda2d11ea9197327280e674be64f82de4455`
+- PR: https://github.com/islamnagy2022-eng/MantiqaTiX/pull/348
+- [x] `Module Professionalization Validation` — نتيجة التشغيل المرتبط بالـ commit: SUCCESS؛ jobs التي تمت مراجعتها: `validate` و`targeted-ads-search-path-integration` و`matrimony-privacy-postgres`.
+- [x] `Preview Demo Validation` — job `validate-demo`: SUCCESS.
+- [x] `Backend-only Module Boundary`: SUCCESS.
+- [x] `Marketing Workspace Contract`: SUCCESS.
+- [x] `MantiGO Open Ride Privacy Boundary`: SUCCESS.
+- [x] `Deploy MantiqatiX Web` انتهى بنتيجة workflow SUCCESS، لكن ذلك لا يثبت النشر: تشغيل PR لا ينفذ خطوة deploy المقيدة بفرع `main`؛ لم يُعتبر الموقع المنشور محدثًا بسبب هذا التشغيل.
+- [ ] هذه النتائج تثبت اجتياز فحوص CI المسجلة لهذا الـ commit فقط، ولا تثبت تشغيل المتصفح أو RLS الفعلي أو اختبار أدوار وأنشطة وفروع متعددة.
+- [ ] مديول المطاعم **PARTIAL / NOT CLOSED**: لا يزال إنشاء الطلب التشغيلي للموظف معطلًا لحين وجود عقد خلفي آمن، وحركات المخزون معطلة لحين وجود مسار خادمي ذري موثق، كما أن اختبارات runtime/RLS والنشر الحي لم تثبت بعد.
+- [ ] لا يبدأ إعلان اكتمال المطاعم ولا الانتقال المنطقي إلى إغلاق مديول آخر قبل استيفاء بوابة الإغلاق أعلاه؛ يمكن تنفيذ الأعمال المستقلة بالتوازي دون إخفاء العوائق.
