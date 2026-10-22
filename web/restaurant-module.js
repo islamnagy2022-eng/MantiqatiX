@@ -49,11 +49,18 @@ function scope(){
  return m?.tenant_id&&m?.business_id&&m?.branch_id?{tenant_id:m.tenant_id,business_id:m.business_id,branch_id:m.branch_id}:null;
 }
 async function load(){
- state.user=await session();
- if(!state.user){state.error='AUTH_REQUIRED';return render();}
- const membershipResult=await membership(state.user);
- state.membership=membershipResult.membership;
- if(!state.membership){state.error=membershipResult.error||'تعذر تحديد العضوية التشغيلية.';return render();}
+ state.loading=true;state.error=null;render();
+ try{
+  state.user=await session();
+  if(!state.user){state.membership=null;state.menu=[];state.orders=[];state.tables=[];state.inventory=[];state.error='AUTH_REQUIRED';return render();}
+  const membershipResult=await membership(state.user);
+  state.membership=membershipResult.membership;
+  if(!state.membership){state.menu=[];state.orders=[];state.tables=[];state.inventory=[];state.error=membershipResult.error||'تعذر تحديد العضوية التشغيلية.';return render();}
+ }catch(error){
+  state.user=null;state.membership=null;state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
+  state.error='تعذر التحقق من جلسة الحساب أو عضوية النشاط. أعد المحاولة.';
+  return render();
+ }
  const s=scope();
  if(!s){state.error='العضوية لا تحتوي نطاق نشاط وفرع كامل. تم إيقاف تحميل بيانات المطاعم حتى اكتمال النطاق.';return render();}
  state.error=null; state.loading=true; render();
@@ -76,14 +83,20 @@ async function load(){
    tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
    invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
-   tablesQ=tablesQ.eq('owner_user_id',state.user.id);
-   invQ=invQ.eq('owner_user_id',state.user.id);
+   // Do not fetch operational records when the membership lacks view permission.
+   tablesQ=tablesQ.limit(0);
+   invQ=invQ.limit(0);
  }
  try{
   const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
-  state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
   const errs=[a,b,c,d].filter(x=>x.error).map(x=>x.error.message);
-  state.error=errs.length?'تعذر تحميل بعض بيانات المطعم: '+errs.join(' | '):null;
+  if(errs.length){
+   state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
+   state.error='تعذر تحميل بيانات المطعم بالكامل: '+errs.join(' | ');
+  }else{
+   state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
+   state.error=null;
+  }
  }catch(error){
   state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
   state.error='تعذر الاتصال بخدمة بيانات المطاعم. تحقق من الاتصال ثم أعد المحاولة.';
