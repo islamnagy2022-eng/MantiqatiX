@@ -142,7 +142,9 @@ try{
    }catch(_){}
  }
  const savedId=window.MNTYActiveMembershipId||localStorage.getItem('MNTYActiveMembershipId');
- const active=live.memberships.find(m=>m.id===savedId)||live.memberships[0];
+ const savedMembership=savedId?live.memberships.find(m=>m.id===savedId&&m.status==='ACTIVE'):null;
+ // Never silently switch tenants: use the saved active membership, or auto-select only when exactly one exists.
+ const active=savedId?(savedMembership||null):(live.memberships.length===1?live.memberships[0]:null);
  if(active){window.MNTYActiveMembershipId=active.id;localStorage.setItem('MNTYActiveMembershipId',active.id);}
  live.activeMembershipId=active?.id||null;
  live.role=String(active?.role||'CUSTOMER').toUpperCase();
@@ -1995,6 +1997,15 @@ async function providerOnboardingView(){
   }
 }
 window.providerOnboardingView=providerOnboardingView;
+function membershipSelectionRequiredView(){
+ window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false,selectionRequired:true};
+ const app=document.getElementById('app');
+ if(!app)return;
+ const options=live.memberships.filter(m=>m.status==='ACTIVE').map(m=>'<button class="btn btn-outline" type="button" data-select-membership="'+esc(m.id)+'" style="display:block;width:100%;text-align:right;margin:8px 0">'+esc(membershipOptionLabel(m))+'</button>').join('');
+ app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">CHOOSE WORKSPACE</span><h1>اختر مساحة العمل</h1><p>لديك أكثر من عضوية نشطة. اختر النشاط أو الدور الذي تريد العمل ضمنه قبل تحميل بياناته.</p><div class="mnty-screen-note">لن يتم اختيار نشاط تلقائيًا لتجنب عرض بيانات نطاق غير مقصود.</div><div>'+options+'</div><div class="action-bar"><button class="btn btn-outline" id="membership-selection-logout" type="button">تسجيل الخروج</button></div></section></main>';
+ app.querySelectorAll('[data-select-membership]').forEach(button=>button.addEventListener('click',()=>switchMembership(button.dataset.selectMembership)));
+ document.getElementById('membership-selection-logout')?.addEventListener('click',logout);
+}
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
 const app=document.getElementById('app');
@@ -2214,7 +2225,7 @@ function showAppLoading(){const el=document.getElementById('app');if(el)el.inner
 function showAppError(message){const el=document.getElementById('app');if(!el)return;el.innerHTML=platformStateView('error','تعذر تحميل البيانات',message,'<button class="btn btn-primary" id="retry-load">إعادة المحاولة</button><button class="text-btn" id="logout-load">خروج</button>');document.getElementById('retry-load')?.addEventListener('click',()=>renderApp());document.getElementById('logout-load')?.addEventListener('click',logout);}
 async 
 function bindRoleAfterRender(){bindRoleCommandCenter();}
-async function renderApp(options={}){if(!user?.id)return;live.loading=true;showAppLoading();await loadLiveData();if(live.error){showAppError(live.error);return}if(!live.memberships.length){membershipRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
+async function renderApp(options={}){if(!user?.id)return;live.loading=true;showAppLoading();await loadLiveData();if(live.error){showAppError(live.error);return}if(!live.memberships.length){membershipRequiredView();return}if(!live.activeMembershipId){membershipSelectionRequiredView();return}window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:true,role:live.role};
 let restoreAdminWorkspace=options.forceWorkspace===true;
 try{
  const savedWorkspace=localStorage.getItem('MNTYWorkspaceMode');
