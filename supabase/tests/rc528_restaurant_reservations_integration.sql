@@ -124,6 +124,24 @@ do $$ begin
 end $$;
 reset role;
 
+-- A user authorized for branch-a cannot reserve a table physically assigned to branch-b,
+-- even when both branches belong to the same tenant and business.
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
+set role authenticated;
+do $ begin
+ begin
+  perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
+   'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
+   'table_id','table-a-branch-b','customer_name','Cross branch','customer_phone','','guest_count',1,
+   'starts_at','2026-10-28 14:00:00+00'::timestamptz,'ends_at','2026-10-28 15:00:00+00'::timestamptz,
+   'notes','','idempotency_key','rc528-cross-branch-key-01'));
+  raise exception 'RC528_EXPECTED_FAILURE_NOT_RAISED';
+ exception when raise_exception then
+  if sqlerrm='RC528_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+ end;
+end $;
+reset role;
+
 -- The row-level security policy does not expose another tenant's reservations.
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000003',false);
 set role authenticated;
