@@ -143,7 +143,7 @@
     if(Object.keys(nearest).length||Number(state.radiusKm)>=10)return {nearest,fallback:{}};
     try{
       const r=await sb.rpc('find_mnty_nearest_provider_businesses',{p_lat:state.coords.latitude,p_lon:state.coords.longitude,p_limit:12});
-      if(requestId!==locationRequestId)return {nearest,fallback:{}};
+      if(requestId!==locationRequestId)return {nearest:{},fallback:{}};
       if(!r.error){
         const fallback={};
         (r.data||[]).forEach(row=>{
