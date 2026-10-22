@@ -28,23 +28,13 @@ assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must re
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 
-// Order creation/status must go through the canonical server functions.
-assert.ok(moduleSource.includes("const actorRole=String(state.membership?.role||'').toUpperCase();"), 'staff-created orders must not be sent through the customer-owned marketplace endpoint');
-assert.ok(moduleSource.includes("if(actorRole!=='CUSTOMER')return notify('إنشاء طلب بالنيابة عن عميل من لوحة المطعم متوقف مؤقتًا لحماية ملكية الطلب."), 'restaurant operator order creation must fail closed until a dedicated staff-order backend contract exists');
-assert.match(moduleSource, /invokeMntyFunction\('order-create',payload\)/,
-  'restaurant order creation must use canonical order-create function');
-assert.match(moduleSource, /function askOrderDetails\(items\)/, 'order form must let staff select an authoritative catalog item');
-assert.match(moduleSource, /const selection=await askOrderDetails\(items\)/, 'selected catalog item and quantity must be used for order creation');
+// Staff-created restaurant orders remain disabled until the backend can separate the operator from the customer identity.
+assert.doesNotMatch(moduleSource, /invokeMntyFunction\('order-create'/, 'restaurant operations must not use the customer-owned marketplace order endpoint');
+assert.doesNotMatch(moduleSource, /function createRestaurantOrder\(/, 'no staff order submit handler may exist without a dedicated backend contract');
+assert.doesNotMatch(moduleSource, /function askOrderDetails\(/, 'do not expose a misleading order form before backend ownership is defined');
+assert.ok(moduleSource.includes('إنشاء طلب بالنيابة عن عميل غير متاح من لوحة التشغيل حاليًا'), 'dashboard must explain why staff order creation is disabled');
+assert.match(moduleSource, /function dashboard\(\)/, 'restaurant dashboard remains available while staff order creation is gated');
 assert.doesNotMatch(moduleSource, /function askQuantity\(/, 'order flow must not silently choose the first catalog item');
-assert.match(moduleSource, /field\('rest-customer','اسم العميل'/, 'order form must collect the customer name');
-assert.match(moduleSource, /field\('rest-phone','رقم الهاتف'/, 'order form must collect a phone number');
-assert.match(moduleSource, /field\('rest-address','عنوان التوصيل'/, 'order form must collect a delivery address');
-assert.match(moduleSource, /customerPhone:selection\.customerPhone,deliveryAddress:selection\.deliveryAddress/, 'order payload must use the validated customer contact details');
-assert.ok(moduleSource.includes("if(!/^[+0-9()\\s.-]{7,24}$/.test(customerPhone)"), 'order form must validate phone input before submitting');
-assert.match(moduleSource, /o\.__close\(false\);resolve\(selection\);/, 'successful order-form completion must close cleanly without resolving as cancellation');
-assert.match(moduleSource, /function modal\(title,html,onSave,onClose\)/, 'modal must expose cancellation handling for async forms');
-assert.match(moduleSource, /if\(cancel&&typeof onClose==='function'\)onClose\(\)/, 'closing a modal must resolve pending async forms as cancelled');
-
 assert.match(moduleSource, /invokeMntyFunction\('order-status-update'/,
   'restaurant order status changes must use canonical status function');
 assert.doesNotMatch(moduleSource, /from\('restaurant_orders'\)\.update/,
