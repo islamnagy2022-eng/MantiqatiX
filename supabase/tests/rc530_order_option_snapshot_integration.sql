@@ -14,6 +14,14 @@ insert into catalog_item_prices(catalog_item_id,tenant_id,status,effective_from,
 values('30000000-0000-4000-8000-000000000001','tenant-rc530','ACTIVE',now()-interval '1 hour',null,null,50,1);
 insert into catalog_item_options(id,catalog_item_id,status,price_delta,name_ar)
 values('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','ACTIVE',7.5,'إضافة شوت');
+insert into catalog_items(id,tenant_id,business_id,status,branch_id,legacy_ref,name_ar,tax_rate)
+values('30000000-0000-4000-8000-000000000002','tenant-rc530','20000000-0000-4000-8000-000000000001','ACTIVE',null,'tea-rc530','شاي اختبار',0);
+insert into catalog_item_prices(catalog_item_id,tenant_id,status,effective_from,effective_to,branch_id,unit_price,version)
+values('30000000-0000-4000-8000-000000000002','tenant-rc530','ACTIVE',now()-interval '1 hour',null,null,30,1);
+insert into catalog_item_options(id,catalog_item_id,status,price_delta,name_ar)
+values
+ ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','ACTIVE',4,'إضافة تخص الشاي'),
+ ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000001','INACTIVE',99,'إضافة متوقفة');
 
 select public.create_order_backend(
  '50000000-0000-4000-8000-000000000001',
@@ -80,5 +88,40 @@ begin
   end if;
  end;
  if not v_duplicate_rejected then raise exception 'RC530 duplicate option IDs must be rejected'; end if;
-end $$;
+
+ -- Options belonging to a different item or inactive options must never be priced or persisted.
+ begin
+  perform public.create_order_backend(
+   '50000000-0000-4000-8000-000000000004',
+   'tenant-rc530',
+   '20000000-0000-4000-8000-000000000001',
+   null,
+   '10000000-0000-4000-8000-000000000001',
+   'rc530-option-cross-item-0001',
+   0,0,0,0,0,'EGP','عميل اختبار','01000000000','عنوان اختبار',
+   '[{"catalogItemId":"30000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":["40000000-0000-4000-8000-000000000002"]}]'::jsonb,
+   'RC530 cross-item option','{}'::jsonb
+  );
+  raise exception 'RC530 must reject an option belonging to another catalog item';
+ exception when others then
+  if position('INVALID_ITEM_OPTIONS' in sqlerrm)=0 then raise; end if;
+ end;
+
+ begin
+  perform public.create_order_backend(
+   '50000000-0000-4000-8000-000000000005',
+   'tenant-rc530',
+   '20000000-0000-4000-8000-000000000001',
+   null,
+   '10000000-0000-4000-8000-000000000001',
+   'rc530-option-inactive-0001',
+   0,0,0,0,0,'EGP','عميل اختبار','01000000000','عنوان اختبار',
+   '[{"catalogItemId":"30000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":["40000000-0000-4000-8000-000000000003"]}]'::jsonb,
+   'RC530 inactive option','{}'::jsonb
+  );
+  raise exception 'RC530 must reject inactive options';
+ exception when others then
+  if position('INVALID_ITEM_OPTIONS' in sqlerrm)=0 then raise; end if;
+ end;
+end $;
 rollback;
