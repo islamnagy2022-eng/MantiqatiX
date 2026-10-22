@@ -179,11 +179,11 @@ assert.match(moduleSource, /function menuView\(\)[\s\S]*?id="rest-menu-search"[\
 assert.match(moduleSource, /const filterMenu=\(\)=>[\s\S]*?matchesText[\s\S]*?matchesCategory[\s\S]*?menuFilterCount\.textContent/, 'menu filters must update visible rows and a result count');
 assert.match(moduleSource, /النتائج ضمن أول 200 سجل قائمة محلي محمل/, 'menu filtering must disclose that it only covers loaded local legacy records');
 assert.match(moduleSource, /تعديل السجل المحلي/, 'menu editing must be clearly labeled as local legacy data, not central catalog pricing');
-assert.match(orderCreateSource, /INVALID_CUSTOMER_NAME[\s\S]*?customerName\.trim\(\)\.length > 120/, 'canonical order creation must reject blank or overlong customer names server-side');
-assert.match(orderCreateSource, /INVALID_CUSTOMER_PHONE[\s\S]*?customerPhone\.trim\(\)/, 'canonical order creation must validate a supplied phone number server-side');
-assert.match(orderCreateSource, /INVALID_DELIVERY_ADDRESS[\s\S]*?body\.deliveryAddress\.length > 500/, 'canonical order creation must bound delivery address length');
-assert.match(orderCreateSource, /INVALID_ORDER_NOTES[\s\S]*?body\.notes\.length > 1000/, 'canonical order creation must bound order notes');
-assert.match(orderCreateSource, /INVALID_ITEM_OPTIONS[\s\S]*?new Set\(x\.selectedOptionIds\)\.size !== x\.selectedOptionIds\.length/, 'canonical order creation must reject duplicate selected option IDs before pricing');
+assert.match(orderCreateSource, /customerName\.trim\(\)\.length > 120[\s\S]*?INVALID_CUSTOMER_NAME/, 'canonical order creation must reject blank or overlong customer names server-side');
+assert.match(orderCreateSource, /customerPhone\.trim\(\)[\s\S]*?INVALID_CUSTOMER_PHONE/, 'canonical order creation must validate a supplied phone number server-side');
+assert.match(orderCreateSource, /body\.deliveryAddress\.length > 500[\s\S]*?INVALID_DELIVERY_ADDRESS/, 'canonical order creation must bound delivery address length');
+assert.match(orderCreateSource, /body\.notes\.length > 1000[\s\S]*?INVALID_ORDER_NOTES/, 'canonical order creation must bound order notes');
+assert.match(orderCreateSource, /new Set\(x\.selectedOptionIds\)\.size !== x\.selectedOptionIds\.length[\s\S]*?INVALID_ITEM_OPTIONS/, 'canonical order creation must reject duplicate selected option IDs before pricing');
 
 assert.ok(orderCreateSource.includes("INVALID_CUSTOMER_NAME") && orderCreateSource.includes("customerName.trim().length > 120"), 'server must validate customer name');
 assert.ok(orderCreateSource.includes("INVALID_CUSTOMER_PHONE") && orderCreateSource.includes("customerPhone.trim()"), 'server must validate supplied customer phone');
