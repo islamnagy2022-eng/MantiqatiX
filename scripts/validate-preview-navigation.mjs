@@ -183,6 +183,7 @@ const ownerScript = ownerDashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ??
 checks.push(["Business-owner dashboard is linked from the preview homepage", entry.includes('href="business-owner.html"')]);
 checks.push(["Business-owner dashboard includes all eight owner work areas", ["overview","orders","services","customers","team","marketing","reports","settings"].every(id => ownerDashboard.includes('id="' + id + '"'))]);
 checks.push(["Business-owner dashboard clearly labels demo data and no live backend", /معاينة تجريبية/.test(ownerDashboard) && /بيانات تجريبية ثابتة/.test(ownerDashboard) && /لا توجد اتصالات خلفية/.test(ownerDashboard) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(ownerDashboard)]);
+checks.push(["Business-owner dashboard links to the platform Google sign-in flow", ownerDashboard.includes('href="../index.html?openAuth=1"') && ownerDashboard.includes("تسجيل الدخول الآمن")]);
 checks.push(["Business-owner dashboard has accessible Arabic RTL navigation and responsive layouts", /<html lang="ar" dir="rtl">/.test(ownerDashboard) && /aria-label="القائمة الرئيسية"/.test(ownerDashboard) && /@media\(max-width:650px\)/.test(ownerDashboard)]);
 checks.push(["Business-owner dashboard inline JavaScript parses successfully", (() => { try { if (!ownerScript) return false; new vm.Script(ownerScript); return true; } catch (error) { console.error("Business-owner dashboard JavaScript syntax error:", error.message); return false; } })()]);
 
