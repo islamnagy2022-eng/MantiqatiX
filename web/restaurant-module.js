@@ -52,17 +52,17 @@ async function load(){
  state.loading=true;state.error=null;render();
  try{
   state.user=await session();
-  if(!state.user){state.membership=null;state.menu=[];state.orders=[];state.tables=[];state.inventory=[];state.error='AUTH_REQUIRED';return render();}
+  if(!state.user){state.membership=null;state.menu=[];state.orders=[];state.tables=[];state.inventory=[];state.loading=false;state.error='AUTH_REQUIRED';return render();}
   const membershipResult=await membership(state.user);
   state.membership=membershipResult.membership;
-  if(!state.membership){state.menu=[];state.orders=[];state.tables=[];state.inventory=[];state.error=membershipResult.error||'تعذر تحديد العضوية التشغيلية.';return render();}
+  if(!state.membership){state.menu=[];state.orders=[];state.tables=[];state.inventory=[];state.loading=false;state.error=membershipResult.error||'تعذر تحديد العضوية التشغيلية.';return render();}
  }catch(error){
   state.user=null;state.membership=null;state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
-  state.error='تعذر التحقق من جلسة الحساب أو عضوية النشاط. أعد المحاولة.';
+  state.loading=false;state.error='تعذر التحقق من جلسة الحساب أو عضوية النشاط. أعد المحاولة.';
   return render();
  }
  const s=scope();
- if(!s){state.error='العضوية لا تحتوي نطاق نشاط وفرع كامل. تم إيقاف تحميل بيانات المطاعم حتى اكتمال النطاق.';return render();}
+ if(!s){state.loading=false;state.error='العضوية لا تحتوي نطاق نشاط وفرع كامل. تم إيقاف تحميل بيانات المطاعم حتى اكتمال النطاق.';return render();}
  state.error=null; state.loading=true; render();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
  let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,discount,tax,delivery_fee,total_amount,total,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
