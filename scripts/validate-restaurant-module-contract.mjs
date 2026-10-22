@@ -43,7 +43,6 @@ assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory
 
 // Inventory balances must not be edited as untraceable scalar values.
 assert.ok(moduleSource.includes('if(!existing)payload.current_stock_qty=0;'), 'new inventory items must start at zero until an auditable stock-movement endpoint exists');
-  'new inventory items must start at zero until an auditable stock-movement endpoint exists');
 assert.doesNotMatch(moduleSource, /field\('stock','رصيد افتتاحي'/,
   'the browser must not accept unaudited opening stock balances');
 
