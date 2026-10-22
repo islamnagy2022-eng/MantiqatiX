@@ -2187,6 +2187,7 @@ const vr=await sb.auth.getUser();
 if(vr.error)throw vr.error;
 if(vr.data?.user){await enterAuthenticatedApp(vr.data.user);return}
 }
+if(new URLSearchParams(window.location.search).get('openAuth')==='1'){authView();return}
 window.MXHomeLanding?MXHomeLanding():landingView();
 }catch(e){
 user=null;
