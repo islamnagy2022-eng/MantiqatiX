@@ -20,7 +20,7 @@ assert.match(moduleSource, /const r=await base\(\)\.limit\(2\);/);
 assert.match(moduleSource, /if\(rows\.length===1\)return \{membership:rows\[0\],error:null\};/);
 assert.match(moduleSource, /if\(rows\.length>1\)return \{membership:null,error:'لديك أكثر من عضوية نشطة/);
 assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/, 'restaurant membership must never silently select the first active membership');
-assert.match(moduleSource, /if\(!s\)\{state\.error='العضوية لا تحتوي نطاق نشاط وفرع كامل/);
+assert.match(moduleSource, /if\(!s\)\{state\.loading=false;state\.error='العضوية لا تحتوي نطاق نشاط وفرع كامل/, 'invalid membership scope must exit loading state');
 assert.match(moduleSource, /const membershipResult=await membership\(state\.user\);/);
 
 assert.match(moduleSource, /mo\.observe\(document\.body,\{childList:true,subtree:true\}\);\s*observe\(\);/, 'module activation must rely on DOM observation without recurring polling');
