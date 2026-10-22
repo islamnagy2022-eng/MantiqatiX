@@ -51,6 +51,19 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
+  if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 120) {
+    return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
+  }
+  if (typeof body.customerPhone !== "string" || (body.customerPhone.trim() !== "" && !/^[+0-9()\\-\\s]{7,20}$/.test(body.customerPhone.trim()))) {
+    return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
+  }
+  if (typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 500) {
+    return json({ error: "INVALID_DELIVERY_ADDRESS" }, 400);
+  }
+  if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 1000)) {
+    return json({ error: "INVALID_ORDER_NOTES" }, 400);
+  }
+
   const branchId = body.branchId ? String(body.branchId) : null;
   const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
@@ -115,6 +128,14 @@ Deno.serve(async (req: Request) => {
 
   if (normalizedItems.some((x: any) => !x.catalogItemId || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
+  }
+  if (normalizedItems.some((x: any) =>
+    !Array.isArray(x.selectedOptionIds)
+    || x.selectedOptionIds.length > 30
+    || x.selectedOptionIds.some((id: string) => !id || id.length > 100)
+    || new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length
+  )) {
+    return json({ error: "INVALID_ITEM_OPTIONS" }, 400);
   }
 
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
