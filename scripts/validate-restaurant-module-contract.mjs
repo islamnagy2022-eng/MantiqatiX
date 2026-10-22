@@ -12,6 +12,16 @@ assert.doesNotMatch(moduleSource, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER',
 assert.match(rbacSource, /'المطاعم والمطابخ':'CATALOG'/,
   'restaurant module alias must resolve through the shared catalog permission model');
 
+// Membership selection must fail closed when the saved membership is stale or multiple active memberships exist.
+assert.match(moduleSource, /if\(saved\)\{\s*const r=await base\(\)\.eq\('id',saved\)\.maybeSingle\(\);/);
+assert.match(moduleSource, /if\(!r\.data\)return \{membership:null,error:'العضوية المحفوظة غير متاحة/);
+assert.match(moduleSource, /const r=await base\(\)\.limit\(2\);/);
+assert.match(moduleSource, /if\(rows\.length===1\)return \{membership:rows\[0\],error:null\};/);
+assert.match(moduleSource, /if\(rows\.length>1\)return \{membership:null,error:'لديك أكثر من عضوية نشطة/);
+assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/, 'restaurant membership must never silently select the first active membership');
+assert.match(moduleSource, /if\(!s\)\{state\.error='العضوية لا تحتوي نطاق نشاط وفرع كامل/);
+assert.match(moduleSource, /const membershipResult=await membership\(state\.user\);/);
+
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
