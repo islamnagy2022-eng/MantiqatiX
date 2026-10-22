@@ -1652,3 +1652,19 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] This establishes agreement among these draft branches, not independent proof that the SQL matches the live production schema or is safe to apply. Keep the release gate blocked until the full RC425–RC441 chain is reviewed and replayed in an isolated database.
 - [ ] The four branches are still drafts and overlap on migration files; do not merge them together or bypass the open-PR migration collision guard.
 - [ ] Continue validating RC434 against the RC437 line-aware wrapper, actual table constraints, receipt replay semantics, and transaction rollback/concurrency integration tests before release.
+
+
+### Central Location Service — incremental implementation — 2026-10-22
+- [x] Reuse the established `web/location-adapter.js` and preserve the `MNTYLocationAdapter` global; do not introduce a duplicate GPS engine.
+- [x] Add validated manual coordinate selection and explicit location reset.
+- [x] Add shared coordinate validation, straight-line distance validation, and point-in-polygon checks for GeoJSON Polygon / ring inputs.
+- [x] Preserve the existing 1/3/5/10 km range contract and backend proximity RPC boundary.
+- [x] Add `scripts/validate-location-service.mjs` and wire it into the Pages validation workflow.
+- [x] Document current capabilities and limitations in `docs/CENTRAL_LOCATION_SERVICE.md`.
+- [ ] Execute the new Node validator locally and confirm exact-head Pages CI.
+- [ ] Verify existing home-page consumers and GPS/manual location behavior in a real browser and mobile device.
+- [ ] Select and configure a supported geocoding / map / road-routing provider only after coverage, cost, terms and secret-handling review.
+- [ ] Implement the shared map/address-picker UI and authenticated saved-address workflow; no such production capability is claimed by this increment.
+- [ ] Implement server-authoritative restaurant branch delivery-zone eligibility and fee calculation; do not rely on browser polygon checks for checkout authorization.
+- [ ] Map all module consumers and integrate them incrementally after central contract verification.
+- [ ] Production remains BLOCKED / NOT CERTIFIED until live backend authorization, privacy, browser/mobile E2E, provider, and release gates are evidenced.
