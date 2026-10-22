@@ -190,5 +190,6 @@ assert.ok(orderCreateSource.includes("INVALID_CUSTOMER_PHONE") && orderCreateSou
 assert.ok(orderCreateSource.includes("INVALID_DELIVERY_ADDRESS") && orderCreateSource.includes("body.deliveryAddress.length > 500"), 'server must bound delivery address');
 assert.ok(orderCreateSource.includes("INVALID_ORDER_NOTES") && orderCreateSource.includes("body.notes.length > 1000"), 'server must bound order notes');
 assert.ok(orderCreateSource.includes("new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length"), 'server must reject duplicate option IDs before pricing');
+assert.ok(orderCreateSource.includes('const orderCreatorRoles = new Set(["OWNER", "SALES"])') && orderCreateSource.includes('if (!orderCreatorRoles.has(role)) return false;'), 'restaurant staff must have ORDERS:create rather than merely any active branch membership');
 
 console.log('Restaurant module contract PASS');
