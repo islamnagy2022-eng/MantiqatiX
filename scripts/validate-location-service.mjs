@@ -7,6 +7,7 @@ const sandbox={window:{},navigator:{}};
 vm.runInNewContext(source,sandbox,{filename:'web/location-adapter.js'});
 const location=sandbox.window.MNTYLocationAdapter;
 assert.ok(location,'central location adapter must be exposed');
+assert.equal(sandbox.window.MNTYLocationService,location,'central service and legacy adapter must share the same instance');
 assert.deepEqual(JSON.parse(JSON.stringify(location.ranges.map(x=>x.km))),[1,3,5,10]);
 assert.equal(location.validateCoordinates(30.1,31.2).latitude,30.1);
 assert.equal(location.validateCoordinates(91,31.2),null);
