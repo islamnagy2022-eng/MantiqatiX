@@ -81,8 +81,10 @@ async function load(){
    tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
    invQ=invQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
-   tablesQ=tablesQ.eq('owner_user_id',state.user.id);
-   invQ=invQ.eq('owner_user_id',state.user.id);
+   // Do not fall back to owner_user_id: one owner may belong to multiple tenants or branches.
+   // No operations-view capability means no table or inventory rows should be requested.
+   tablesQ=tablesQ.eq('id','__MNTY_NO_OPERATIONS_VIEW__');
+   invQ=invQ.eq('id','__MNTY_NO_OPERATIONS_VIEW__');
  }
  const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
  state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
