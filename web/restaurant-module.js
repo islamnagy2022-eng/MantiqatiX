@@ -127,7 +127,7 @@ function tabs(){
 }
 function menuView(){
  const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
- return shell('قائمة الطعام',tabs()+ '<div class="action-bar">'+add+'</div>'+
+ return shell('قائمة الطعام',tabs()+ '<div class="notice" role="note">تنبيه تشغيلي: هذه شاشة القائمة المحلية القديمة ولا تتحكم في الأصناف أو الأسعار التي تُستخدم عند إنشاء الطلب. إنشاء الطلبات يعتمد على الكتالوج المركزي وأسعاره المحفوظة خادميًا. لا تعتبر تعديل السعر هنا تحديثًا لسعر الطلب الفعلي.</div><div class="action-bar">'+add+'</div>'+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
