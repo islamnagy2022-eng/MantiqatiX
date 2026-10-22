@@ -25,6 +25,7 @@ assert.match(moduleSource, /const membershipResult=await membership\(state\.user
 
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
+assert.ok(moduleSource.includes("menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).eq('is_available',true)"), 'public menu fallback must remain scoped to the active tenant, business, and branch');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
 
