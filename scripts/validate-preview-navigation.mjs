@@ -96,7 +96,7 @@ checks.push(["Project profile page supports per-project logo and cover previews"
     page.includes('id="publicLogo"') && page.includes('id="publicCover"') &&
     page.includes("5*1024*1024") && page.includes("لم يتم حفظ البيانات أو رفع الصور");
 })()]);
-checks.push(["Service card image is the clickable project entry point", entry.includes('class="card-visual" type="button" data-details=') && !entry.includes('class="btn ghost" type="button" data-details=')]);
+checks.push(["Service card image is the clickable project entry point", entry.includes('class="card-visual" type="button" data-project=') && !entry.includes('class="btn ghost" type="button" data-details=')]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
