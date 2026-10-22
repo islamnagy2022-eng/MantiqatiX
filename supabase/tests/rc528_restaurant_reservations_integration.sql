@@ -128,7 +128,7 @@ reset role;
 -- even when both branches belong to the same tenant and business.
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',false);
 set role authenticated;
-do $ begin
+do $rc528_cross_branch$ begin
  begin
   perform public.restaurant_reservation_mutate('CREATE',jsonb_build_object(
    'tenant_id','tenant-a','business_id','20000000-0000-0000-0000-000000000001','branch_id','branch-a',
@@ -139,7 +139,7 @@ do $ begin
  exception when raise_exception then
   if sqlerrm='RC528_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
  end;
-end $;
+end $rc528_cross_branch$;
 reset role;
 
 -- The row-level security policy does not expose another tenant's reservations.
