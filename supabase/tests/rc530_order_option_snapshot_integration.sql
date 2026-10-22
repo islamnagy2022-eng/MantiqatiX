@@ -123,5 +123,5 @@ begin
  exception when others then
   if position('INVALID_ITEM_OPTIONS' in sqlerrm)=0 then raise; end if;
  end;
-end $;
+end $$;
 rollback;
