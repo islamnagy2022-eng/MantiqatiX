@@ -76,7 +76,9 @@ Deno.serve(async (req: Request) => {
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
   if ((targetMemberships ?? []).length > 500) return json({ error: "MEMBERSHIP_SCOPE_LIMIT" }, 409);
 
-  const businessWideRoles = new Set(["OWNER", "ADMIN", "BUSINESS_OWNER", "PROVIDER_OWNER", "PROVIDER_ADMIN"]);
+  // Match the shared UI RBAC contract: only OWNER and SALES have ORDERS:create.
+  // A scoped membership alone is not proof of permission to create orders.
+  const orderCreatorRoles = new Set(["OWNER", "SALES"]);
   const hasScopedMembership = (targetMemberships ?? []).some((membership: any) => {
     const role = String(membership.role ?? "").toUpperCase();
     const explicitPlatformControl = role === "SUPER_ADMIN"
@@ -86,11 +88,12 @@ Deno.serve(async (req: Request) => {
       return explicitPlatformControl
         && (branchId ? (!membership.branch_id || String(membership.branch_id) === branchId) : !membership.branch_id);
     }
+    if (!orderCreatorRoles.has(role)) return false;
     if (branchId) {
       return String(membership.branch_id ?? "") === branchId
-        || (!membership.branch_id && businessWideRoles.has(role));
+        || (!membership.branch_id && role === "OWNER");
     }
-    return !membership.branch_id && businessWideRoles.has(role);
+    return !membership.branch_id;
   });
 
   if (!hasScopedMembership) {
