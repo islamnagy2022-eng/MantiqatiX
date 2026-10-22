@@ -78,10 +78,17 @@ async function load(){
    tablesQ=tablesQ.eq('owner_user_id',state.user.id);
    invQ=invQ.eq('owner_user_id',state.user.id);
  }
- const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
- state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
- const errs=[a,b,c,d].filter(x=>x.error).map(x=>x.error.message);
- state.error=errs.length?errs.join(' | '):null;state.loading=false;render();
+ try{
+  const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
+  state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
+  const errs=[a,b,c,d].filter(x=>x.error).map(x=>x.error.message);
+  state.error=errs.length?'تعذر تحميل بعض بيانات المطعم: '+errs.join(' | '):null;
+ }catch(error){
+  state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
+  state.error='تعذر الاتصال بخدمة بيانات المطاعم. تحقق من الاتصال ثم أعد المحاولة.';
+ }finally{
+  state.loading=false;render();
+ }
 }
 function shell(title,body){
  return '<section class="workspace-section"><div class="workspace-head"><div><div class="eyebrow">RESTAURANTS</div><h2>'+title+'</h2><p class="muted">إدارة المطعم والقائمة والطلبات والطاولات والمخزون من بيانات Supabase الفعلية فقط.</p></div></div>'+body+'</section>';
