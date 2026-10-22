@@ -105,6 +105,7 @@ checks.push(["Central cart page groups items by seller and supports quantity upd
 checks.push(["Restaurant ordering uses the shared cart module", customerOrder.includes('src="shared-cart.js"') && customerOrder.includes("window.MXCart.add") && customerOrder.includes("window.MXCart.removeMerchant(key)")]);
 checks.push(["Shared cart storage schema excludes customer and payment fields", sharedCart.includes("mantiqatix.demo.cart.v1") && sharedCart.includes("sessionStorage") && !sharedCart.includes("customerName") && !sharedCart.includes("phoneNumber") && !sharedCart.includes("paymentToken")]);
 checks.push(["Shared cart JavaScript parses successfully", (() => { try { new vm.Script(sharedCart); return true; } catch (error) { console.error("Shared cart syntax error:", error.message); return false; } })()]);
+checks.push(["Shared cart rejects malformed and duplicate additions", sharedCart.includes("reason:'invalid'") && sharedCart.includes("reason:'duplicate-id'") && sharedCart.includes("reason:ok?undefined:'storage-unavailable'")]);
 checks.push(["Shared cart revalidates stored lines, bounds quantities and recomputes totals", sharedCart.includes("Number(x.unit)<=100000000") && sharedCart.includes("Math.min(20,Number(x.qty))") && sharedCart.includes("total:unit*qty") && sharedCart.includes("x.extras.slice(0,20)")]);
 checks.push(["Shared cart runtime normalizes tampered session data", (() => {
   let stored = JSON.stringify([

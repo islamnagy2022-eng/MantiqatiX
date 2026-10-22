@@ -7,7 +7,7 @@ const safeWrite=items=>{try{sessionStorage.setItem(KEY,JSON.stringify(items.slic
 const clean=x=>{const unit=Math.max(0,Math.min(100000000,Math.round(Number(x.unit)||0))),qty=Math.max(1,Math.min(20,Math.trunc(Number(x.qty)||1)));return {id:text(x.id||crypto.randomUUID(),100),merchantId:text(x.merchantId||'unknown',80),merchantName:text(x.merchantName||'بائع',100),module:text(x.module||'products',40),name:text(x.name||'منتج',140),icon:text(x.icon||'🛍️',8),size:text(x.size||'',80),extras:Array.isArray(x.extras)?x.extras.slice(0,20).map(v=>text(v,80)):[],note:text(x.note||'',100),unit,qty,total:unit*qty}};
 window.MXCart={
 list(){return safeRead()},
-add(line){const items=safeRead(),item=clean(line);if(items.length>=MAX_LINES)return {ok:false,reason:'limit'};items.push(item);return {ok:safeWrite(items),item}},
+add(line){if(!line||typeof line!=='object'||Array.isArray(line))return {ok:false,reason:'invalid'};const items=safeRead(),item=clean(line);if(items.length>=MAX_LINES)return {ok:false,reason:'limit'};if(items.some(x=>x.id===item.id))return {ok:false,reason:'duplicate-id'};items.push(item);const ok=safeWrite(items);return {ok,item:ok?item:null,reason:ok?undefined:'storage-unavailable'}},
 update(id,qty){const items=safeRead(),x=items.find(v=>v.id===String(id));if(!x)return false;const n=Math.trunc(Number(qty));if(n<1)return this.remove(id);x.qty=Math.min(20,n);x.total=x.qty*x.unit;return safeWrite(items)},
 remove(id){return safeWrite(safeRead().filter(x=>x.id!==String(id)))},
 removeMerchant(id){return safeWrite(safeRead().filter(x=>x.merchantId!==String(id)))},
