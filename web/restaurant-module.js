@@ -431,7 +431,9 @@ function observe(){
  if(now&&!last){state.tab='dashboard';load();}
  last=now;
 }
+if(window.__MNTY_RESTAURANT_MODULE_OBSERVER__)return;
+window.__MNTY_RESTAURANT_MODULE_OBSERVER__=true;
 const mo=new MutationObserver(observe);
 mo.observe(document.body,{childList:true,subtree:true});
-setInterval(observe,800);
+window.__MNTY_RESTAURANT_MODULE_POLL__=window.setInterval(observe,800);
 })();
