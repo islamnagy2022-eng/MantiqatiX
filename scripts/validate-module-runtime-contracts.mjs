@@ -48,6 +48,7 @@ if(files.operations.includes("sb.from('education_requests').insert")) failures.p
 if(files.operations.includes("if(r.error)rows[t]=[]")) failures.push("OPERATIONS_QUERY_ERRORS_MUST_FAIL_CLOSED");
 if(files.operations.includes(".limit(1).maybeSingle()")) failures.push("OPERATIONS_MUST_NOT_PICK_ARBITRARY_MEMBERSHIP");
 if(!files.operations.includes("اختر المؤسسة أو الفرع الصحيح")) failures.push("OPERATIONS_MEMBERSHIP_SELECTION_REQUIRED");
+if(!files.operations.includes("تم إيقاف تحميل بيانات المؤسسة حفاظًا على العزل")) failures.push("SCOPED_OPERATIONS_REQUIRE_ACTIVE_MEMBERSHIP");
 if(!files.operations.includes("لم نعرضها كأنها فارغة")) failures.push("OPERATIONS_QUERY_ERROR_STATE_MISSING");
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
