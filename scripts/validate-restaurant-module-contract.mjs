@@ -42,6 +42,10 @@ assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/,
 assert.match(moduleSource, /let loadGeneration=0;/, 'restaurant loads must have a monotonically increasing generation');
 assert.match(moduleSource, /const generation=\+\+loadGeneration;/, 'each restaurant load must invalidate prior in-flight reads');
 assert.match(moduleSource, /if\(generation!==loadGeneration\)return;/, 'stale asynchronous results must be discarded after membership or branch changes');
+assert.match(moduleSource, /catch\(error\)\{\s*if\(generation!==loadGeneration\)return;\s*state\.menu=\[\];state\.orders=\[\];state\.tables=\[\];state\.inventory=\[\];/,
+  'unexpected read failures must clear stale rows and fail closed');
+assert.match(moduleSource, /if\(errs\.length\)\{\s*state\.menu=\[\];state\.orders=\[\];state\.tables=\[\];state\.inventory=\[\];/,
+  'partial query errors must not leave a misleading mixed dashboard');
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.match(moduleSource, /canOperate\('ORDERS','view'\)/, 'order reads must respect order view capability');
 assert.match(moduleSource, /canOperate\('OPERATIONS','view'\)/, 'table/inventory reads must respect operations view capability');
