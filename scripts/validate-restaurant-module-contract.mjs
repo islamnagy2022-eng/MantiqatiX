@@ -68,7 +68,7 @@ assert.ok(moduleSource.includes("(x.status||'EMPTY')===status"),
   'table editor must select the persisted status');
 assert.match(moduleSource, /if\(!Number\.isInteger\(payload\.table_number\)\|\|payload\.table_number<1\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\)/,
   'table number and capacity must be validated');
-assert.match(moduleSource, /if\(!existing\)payload\.current_stock_qty=Number\(o\.querySelector\('#stock'\)\.value\)/, 'existing stock balance must not be directly overwritten');
+assert.match(moduleSource, /if\\(!existing\\)payload\\.current_stock_qty=0;/, 'new inventory items must start at zero until an auditable stock-movement endpoint exists');
 assert.match(moduleSource, /لا يمكن تعديل الرصيد مباشرة من هذه الشاشة/, 'inventory UI must explain the stock movement boundary');
 assert.match(moduleSource, /restaurant_menu_items'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'menu updates must be scoped to the active branch and detect unmatched writes');
 assert.match(moduleSource, /restaurant_tables'\)\.update\(payload\)\.eq\('id',existing\.id\)\.eq\('tenant_id',s\.tenant_id\)\.eq\('business_id',s\.business_id\)\.eq\('branch_id',s\.branch_id\)\.select\('id'\)\.maybeSingle\(\)/, 'table updates must be scoped to the active branch and detect unmatched writes');
