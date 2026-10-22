@@ -42,6 +42,7 @@ const required = [
 
 
 const failures = [];
+if (/\\basync\\s+\\n\\s*function\\s+/.test(app)) failures.push("No dangling async keyword may precede a non-async function declaration");
 const googleStart = app.indexOf("async function signInWithGoogle(intent='login'){");
 const googleEnd = app.indexOf("function authView(msg='',emailValue='',mode=authIntent){", googleStart);
 const googleSignIn = googleStart >= 0 && googleEnd > googleStart ? app.slice(googleStart, googleEnd) : "";
