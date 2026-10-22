@@ -132,6 +132,7 @@ assert.match(moduleSource, /aria-expanded="false"/, 'order detail disclosure mus
 assert.match(moduleSource, /data-order-details.*?b\.setAttribute\('aria-expanded',String\(opening\)\)/s, 'order detail disclosure must keep aria-expanded synchronized');
 assert.match(moduleSource, /esc\(x\.customer_phone\|\|'غير مسجل'\)/, 'order details must HTML-escape customer phone data');
 assert.match(moduleSource, /esc\(x\.delivery_address\|\|'غير مسجل'\)/, 'order details must HTML-escape delivery address data');
+assert.match(moduleSource, /هذه شاشة القائمة المحلية القديمة ولا تتحكم في الأصناف أو الأسعار التي تُستخدم عند إنشاء الطلب.*?الكتالوج المركزي/s, 'the legacy restaurant menu must clearly disclose that order creation uses the central catalog');
 assert.match(moduleSource, /function orderSnapshotView\(order\)/, 'order details must render the saved item snapshot in a dedicated view');
 assert.match(moduleSource, /esc\(name\).*?esc\(item\?\.quantity\?\?'—'\).*?orderAmount\(item\?\.unit_price,currency\).*?orderAmount\(item\?\.line_subtotal,currency\).*?orderAmount\(item\?\.line_tax,currency\)/s, 'structured order item fields must be escaped and use saved pricing values');
 assert.match(moduleSource, /order\.subtotal,currency\).*?order\.discount,currency\).*?order\.tax,currency\).*?order\.delivery_fee,currency\).*?order\.total_amount\?\?order\.total,currency/s, 'order detail must display the stored pricing breakdown and final total');
