@@ -126,10 +126,12 @@ function tabs(){
  }).join('')+'</div>';
 }
 function menuView(){
- const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
- return shell('قائمة الطعام',tabs()+ '<div class="notice" role="note">تنبيه تشغيلي: هذه شاشة القائمة المحلية القديمة ولا تتحكم في الأصناف أو الأسعار التي تُستخدم عند إنشاء الطلب. إنشاء الطلبات يعتمد على الكتالوج المركزي وأسعاره المحفوظة خادميًا. لا تعتبر تعديل السعر هنا تحديثًا لسعر الطلب الفعلي.</div><div class="action-bar">'+add+'</div>'+
- '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
- (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
+ const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة سجل قائمة محلية</button>':'';
+ const categories=[...new Set(state.menu.map(x=>String(x.category||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+ const categoryOptions=categories.map(category=>'<option value="'+esc(category)+'">'+esc(category)+'</option>').join('');
+ return shell('قائمة الطعام',tabs()+'<div class="notice" role="note">تنبيه تشغيلي: هذه شاشة القائمة المحلية القديمة ولا تتحكم في الأصناف أو الأسعار التي تُستخدم عند إنشاء الطلب. إنشاء الطلبات يعتمد على الكتالوج المركزي وأسعاره المحفوظة خادميًا. لا تعتبر تعديل السعر هنا تحديثًا لسعر الطلب الفعلي.</div><div class="action-bar"><label class="field"><span>بحث في القائمة المحملة</span><input id="rest-menu-search" type="search" maxlength="160" placeholder="اسم الصنف أو الوصف أو الفئة" autocomplete="off"></label><label class="field"><span>تصفية الفئة</span><select id="rest-menu-category"><option value="">كل الفئات</option>'+categoryOptions+'</select></label><span id="rest-menu-filter-count" class="muted" aria-live="polite">الأصناف المحملة: '+state.menu.length+'</span><span class="muted">النتائج ضمن أول 200 سجل قائمة محلي محمل</span>'+add+'</div>'+
+ '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر المحلي</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
+ (state.menu.length?state.menu.map(x=>'<tr data-menu-row="1" data-menu-search-value="'+esc([x.name_ar,x.description_ar,x.category].join(' ').toLocaleLowerCase())+'" data-menu-category-value="'+esc(x.category||'')+'"><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+(x.is_available?'متاح':'غير متاح')+'</td><td>'+(x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل السجل المحلي</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد سجلات قائمة محلية محملة.</td></tr>')+
  '</tbody></table></div>');
 }
 function orderAmount(value,currency){
@@ -410,6 +412,9 @@ function bind(){
   document.getElementById('rest-add-reservation')?.addEventListener('click',()=>addReservation());
   document.querySelectorAll('[data-reservation-cancel]').forEach(b=>b.addEventListener('click',()=>cancelReservation(b.dataset.reservationCancel)));
   document.querySelectorAll('[data-reservation-action]').forEach(b=>b.addEventListener('click',()=>setReservationAction(b.dataset.reservationId,b.dataset.reservationAction)));
+ const menuSearch=document.getElementById('rest-menu-search');const menuCategory=document.getElementById('rest-menu-category');const menuFilterCount=document.getElementById('rest-menu-filter-count');
+ const filterMenu=()=>{const term=String(menuSearch?.value||'').trim().toLocaleLowerCase();const category=String(menuCategory?.value||'');let visibleCount=0;document.querySelectorAll('tr[data-menu-row]').forEach(row=>{const matchesText=String(row.dataset.menuSearchValue||'').includes(term);const matchesCategory=!category||row.dataset.menuCategoryValue===category;const visible=matchesText&&matchesCategory;row.hidden=!visible;if(visible)visibleCount++;});if(menuFilterCount)menuFilterCount.textContent='النتائج: '+visibleCount+' من '+state.menu.length+' سجل محمل';};
+ menuSearch?.addEventListener('input',filterMenu);menuCategory?.addEventListener('change',filterMenu);
  document.querySelectorAll('[data-menu-edit]').forEach(b=>b.onclick=()=>addMenu(state.menu.find(x=>x.id===b.dataset.menuEdit)));
  document.querySelectorAll('[data-table-edit]').forEach(b=>b.onclick=()=>addTable(state.tables.find(x=>x.id===b.dataset.tableEdit)));
  document.querySelectorAll('[data-inv-edit]').forEach(b=>b.onclick=()=>addInventory(state.inventory.find(x=>x.id===b.dataset.invEdit)));
