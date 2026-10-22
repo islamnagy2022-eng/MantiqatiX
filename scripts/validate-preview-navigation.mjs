@@ -166,6 +166,15 @@ checks.push(["Shared cart removes duplicate IDs from tampered stored data", (() 
   } catch(error) { console.error("Shared cart duplicate storage test failed:",error.message); return false; }
 })()]);
 
+checks.push(["Restaurant demo checkout initializes its filtered cart before reading it", (() => {
+  const start=customerOrderScript.indexOf("document.getElementById('checkout').addEventListener('submit'");
+  if(start<0)return false;
+  const handler=customerOrderScript.slice(start,customerOrderScript.indexOf("});renderCart()",start));
+  const declaration=handler.indexOf("let cart=window.MXCart.list().filter");
+  const emptyCheck=handler.indexOf("if(!cart.length)");
+  return declaration>=0&&emptyCheck>declaration&&!handler.includes("if(!cart.length){alert('أضف صنفًا للسلة أولًا')");
+})()]);
+
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 if (failed.length) {
