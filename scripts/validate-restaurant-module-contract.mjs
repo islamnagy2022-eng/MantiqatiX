@@ -106,4 +106,10 @@ assert.match(moduleSource, /ordersQ=ordersQ\.eq\('id','__MNTY_NO_ORDERS_VIEW__'\
 assert.doesNotMatch(moduleSource, /ordersQ=ordersQ\.eq\('customer_id',state\.user\.id\)/,
   'restaurant order dashboard must not use a customer-history fallback');
 
+// Table and reservation inputs must be bounded before persistence.
+assert.match(moduleSource, /payload\.table_number>10000\|\|!Number\.isInteger\(payload\.capacity_persons\)\|\|payload\.capacity_persons<1\|\|payload\.capacity_persons>100/,
+  'table number and capacity must stay within bounded operational limits');
+assert.match(moduleSource, /String\(payload\.reserved_customer_name\|\|'\'\)\.length>150/,
+  'reservation name must have a bounded length');
+
 console.log('Restaurant module contract PASS');
