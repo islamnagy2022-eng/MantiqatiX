@@ -83,7 +83,9 @@ async function load(){
  if(s&&canOperate('ORDERS','view')){
    ordersQ=ordersQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
  }else{
-   ordersQ=ordersQ.eq('customer_id',state.user.id);
+   // This workspace is the restaurant operations console, not a customer order-history page.
+   // Do not populate its order dashboard with a different access model when ORDERS:view is absent.
+   ordersQ=ordersQ.eq('id','__MNTY_NO_ORDERS_VIEW__');
  }
  if(s&&canOperate('OPERATIONS','view')){
    tablesQ=tablesQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id);
