@@ -99,7 +99,8 @@ $('locationSelect').addEventListener('change',()=>{area=$('locationSelect').valu
 document.addEventListener('click',e=>{
 const c=e.target.closest('[data-category]');if(c){const selected=c.dataset.category;if(selected==='FOOD'){window.location.href='restaurants.html';return;}category=selected;render();if(category!=='all')$('featured').scrollIntoView({behavior:'smooth'});return;}
 const p=e.target.closest('[data-project]');if(p){const s=services.find(x=>x[0]===p.dataset.project);if(s){const u=new URLSearchParams({name:s[1],category:categoryName(s[2]),kind:s[3],area:s[5],description:s[4],image:s[8]});window.location.href='project.html?'+u.toString();}return;}const d=e.target.closest('[data-details]');if(d){details(d.dataset.details);return;}
-if(e.target.closest('[data-join]')){joinForm();return;}\nif(e.target.closest('[data-project-page]')){window.location.href='project.html';return;}
+if(e.target.closest('[data-join]')){joinForm();return;}
+if(e.target.closest('[data-project-page]')){window.location.href='project.html';return;}
 if(e.target.closest('[data-request]')){requestForm(null);return;}
 const scroll=e.target.closest('[data-scroll]');if(scroll){$(scroll.dataset.scroll).scrollIntoView({behavior:'smooth'});return;}
 if(e.target.closest('#clearFilters')||e.target.closest('#emptyClear')){category='all';query='';area='كل المناطق';$('searchInput').value='';$('locationSelect').value=area;render();return;}
