@@ -12,7 +12,7 @@ using (
     select 1
     from public.user_memberships m
     where m.user_id=(select auth.uid())
-      and coalesce(m.status,'ACTIVE')='ACTIVE'
+      and m.status='ACTIVE'
       and m.tenant_id=orders.tenant_id
       and m.business_id=orders.business_id
       and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','MANAGER','STAFF','EMPLOYEE','CASHIER','DRIVER','SERVICE_PROVIDER')
@@ -28,7 +28,7 @@ with check (
     select 1
     from public.user_memberships m
     where m.user_id=(select auth.uid())
-      and coalesce(m.status,'ACTIVE')='ACTIVE'
+      and m.status='ACTIVE'
       and m.tenant_id=orders.tenant_id
       and m.business_id=orders.business_id
       and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER','MANAGER','STAFF','EMPLOYEE','CASHIER','DRIVER','SERVICE_PROVIDER')
@@ -88,7 +88,7 @@ begin
     where m.user_id=p_user_id
       and m.tenant_id=p_tenant_id
       and m.business_id=v_order.business_id
-      and coalesce(m.status,'ACTIVE')='ACTIVE'
+      and m.status='ACTIVE'
       and (
         m.branch_id=v_order.branch_id
         or (m.branch_id is null and upper(m.role) in ('OWNER','ADMIN','BUSINESS_OWNER'))
