@@ -217,12 +217,12 @@ function addMenu(existing){
  if(!canOperate('CATALOG',existing?'update':'create'))return;
  const x=existing||{};
  modal(existing?'تعديل صنف':'إضافة صنف',
- field('name','اسم الصنف',x.name_ar)+field('desc','الوصف',x.description_ar)+field('cat','الفئة',x.category)+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" required')+
+ field('name','اسم الصنف',x.name_ar,'text','maxlength="150" required')+field('desc','الوصف',x.description_ar,'text','maxlength="2000"')+field('cat','الفئة',x.category,'text','maxlength="80" required')+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" max="100000000" required')+
  '<div class="action-bar"><label><input id="available" type="checkbox" '+(x.is_available!==false?'checked':'')+'> متاح</label><label><input id="popular" type="checkbox" '+(x.is_popular?'checked':'')+'> الأكثر طلباً</label></div><button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
-  if(!payload.name_ar||!payload.category||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0)return notify('أكمل الاسم والفئة والسعر بشكل صحيح.');
+  if(!payload.name_ar||payload.name_ar.length>150||!payload.category||payload.category.length>80||payload.description_ar.length>2000||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0||payload.base_price_egp>100000000||Math.round(payload.base_price_egp*100)!==payload.base_price_egp*100)return notify('تحقق من الاسم والفئة والوصف والسعر؛ السعر يجب أن يكون حتى منزلتين عشريتين.');
   let q;
   if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle();
   else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
@@ -248,12 +248,12 @@ function addInventory(existing){
  if(!canOperate('OPERATIONS',existing?'update':'create'))return;
  const x=existing||{};
  modal(existing?'تعديل صنف مخزون':'إضافة صنف مخزون',
- field('name','اسم الصنف',x.name_ar)+field('unit','الوحدة',x.unit||'KG')+(existing?'<div class="notice">لا يمكن تعديل الرصيد مباشرة من هذه الشاشة. استخدم حركة مخزون موثقة عند توفر مسار الحركات.</div>':'<div class="notice">سيُنشأ الصنف برصيد صفر. لا يمكن تسجيل رصيد افتتاحي قبل توفر مسار حركة مخزون موثق وقابل للتدقيق.</div>')+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0"')+field('cost','تكلفة الوحدة بالجنيه',x.unit_cost_egp||0,'number','step="0.01" min="0"')+field('supplier','المورد',x.supplier_name||'')+'<button class="btn btn-primary" data-save>حفظ</button>',
+ field('name','اسم الصنف',x.name_ar,'text','maxlength="150" required')+field('unit','الوحدة',x.unit||'KG','text','maxlength="30" required')+(existing?'<div class="notice">لا يمكن تعديل الرصيد مباشرة من هذه الشاشة. استخدم حركة مخزون موثقة عند توفر مسار الحركات.</div>':'<div class="notice">سيُنشأ الصنف برصيد صفر. لا يمكن تسجيل رصيد افتتاحي قبل توفر مسار حركة مخزون موثق وقابل للتدقيق.</div>')+field('min','حد التنبيه',x.min_stock_alert_threshold||0,'number','step="0.001" min="0" max="100000000"')+field('cost','تكلفة الوحدة بالجنيه',x.unit_cost_egp||0,'number','step="0.01" min="0" max="100000000"')+field('supplier','المورد',x.supplier_name||'','text','maxlength="150"')+'<button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),unit:o.querySelector('#unit').value.trim(),min_stock_alert_threshold:Number(o.querySelector('#min').value),unit_cost_egp:Number(o.querySelector('#cost').value),supplier_name:o.querySelector('#supplier').value.trim()};
   if(!existing)payload.current_stock_qty=0;
-  if(!payload.name_ar||!payload.unit||[payload.min_stock_alert_threshold,payload.unit_cost_egp,...(!existing?[payload.current_stock_qty]:[])].some(v=>!Number.isFinite(v)||v<0))return notify('تحقق من بيانات المخزون.');
+  if(!payload.name_ar||payload.name_ar.length>150||!payload.unit||payload.unit.length>30||payload.supplier_name.length>150||[payload.min_stock_alert_threshold,payload.unit_cost_egp,...(!existing?[payload.current_stock_qty]:[])].some(v=>!Number.isFinite(v)||v<0||v>100000000)||Math.round(payload.min_stock_alert_threshold*1000)!==payload.min_stock_alert_threshold*1000||Math.round(payload.unit_cost_egp*100)!==payload.unit_cost_egp*100)return notify('تحقق من بيانات المخزون وحدود النصوص والأرقام والمنازل العشرية.');
   const q=existing?sb.from('restaurant_inventory').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle():sb.from('restaurant_inventory').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
   const r=await q;if(r.error)return notify('تعذر الحفظ: '+r.error.message,'error');if(!r.data)return notify('لم يتم الحفظ: صنف المخزون خارج نطاق الفرع أو لا تملك الصلاحية.','error');o.remove();await load();
  });
