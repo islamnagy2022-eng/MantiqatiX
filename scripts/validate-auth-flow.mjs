@@ -55,6 +55,16 @@ if (!membershipLoad.includes("live.memberships.length===1?live.memberships[0]:nu
 if (!membershipLoad.includes("savedMembership||null")) failures.push("Stale saved membership IDs must fail closed rather than switching tenants");
 if (!app.includes("function membershipSelectionRequiredView()") || !app.includes("if(!live.activeMembershipId){membershipSelectionRequiredView();return}")) failures.push("Missing explicit membership selection gate");
 if (!app.includes("data-select-membership") || !app.includes("switchMembership(button.dataset.selectMembership)")) failures.push("Membership selection actions must use the validated membership switcher");
+const membershipViewStart = app.indexOf("function membershipSelectionRequiredView(){");
+const membershipViewEnd = app.indexOf("function membershipRequiredView(){", membershipViewStart);
+const membershipView = membershipViewStart >= 0 && membershipViewEnd > membershipViewStart ? app.slice(membershipViewStart, membershipViewEnd) : "";
+if (!membershipView.includes("live.memberships.filter(m=>m.status==='ACTIVE')")) failures.push("Workspace selector must list active memberships only");
+if (!membershipView.includes("esc(m.id)")) failures.push("Workspace selector must HTML-escape membership identifiers");
+const switchStart = app.indexOf("async function switchMembership(membershipId){");
+const switchEnd = app.indexOf("async function openPrivilegedWorkspace", switchStart);
+const switchSource = switchStart >= 0 && switchEnd > switchStart ? app.slice(switchStart, switchEnd) : "";
+if (!switchSource.includes("live.memberships.find(m=>m.id===membershipId&&m.status==='ACTIVE')")) failures.push("Membership switch must validate the requested ID against the signed-in user's active memberships");
+if (!switchSource.includes("if(!target)return showToast(")) failures.push("Invalid or inactive membership switch attempts must fail closed");
 
 
 const bootStart = app.indexOf("async function bootAuth(){");
