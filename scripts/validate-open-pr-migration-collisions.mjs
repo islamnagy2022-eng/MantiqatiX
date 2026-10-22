@@ -99,7 +99,9 @@ async function githubGet(url) {
 
       const retryable = response.status === 429 || [500, 502, 503, 504].includes(response.status);
       if (!retryable || attempt === maxAttempts - 1) {
-        throw new Error("GitHub API request failed (" + response.status + "): " + url);
+        const detail = await response.text().catch(() => "");
+        throw new Error("GitHub API request failed (" + response.status + "): " + url +
+          (detail ? " — " + detail.slice(0, 500) : ""));
       }
       const retryAfter = Number(response.headers.get("retry-after") || 0);
       const delayMs = retryAfter > 0
@@ -132,18 +134,101 @@ async function getAllPages(url) {
 }
 
 try {
-  const current = await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
-  const openPulls = await getAllPages("https://api.github.com/repos/" + repository + "/pulls?state=open");
-  const comparable = openPulls.filter(pr =>
-    pr.base?.ref === current.base?.ref &&
-    pr.base?.repo?.full_name === current.base?.repo?.full_name
-  );
+  // Prefer event-provided base metadata so the current PR lookup does not require
+  // an additional API call. The open-PR listing below remains mandatory and fail-closed.
+  const baseRef = process.env.CURRENT_PR_BASE_REF;
+  const baseRepo = process.env.CURRENT_PR_BASE_REPO;
+  const current = baseRef && baseRepo
+    ? { base: { ref: baseRef, repo: { full_name: baseRepo } } }
+    : await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
+  // Use one GraphQL request to avoid exhausting the GitHub App installation
+  // REST quota by fetching every open PR and then each PR's file list separately.
+  const [owner, repoName] = repository.split("/");
+  if (!owner || !repoName) throw new Error("GITHUB_REPOSITORY must be owner/repository.");
+  const query = `
+    query MigrationCollisionAudit($owner: String!, $name: String!, $baseRef: String!) {
+      repository(owner: $owner, name: $name) {
+        pullRequests(first: 100, states: OPEN, baseRefName: $baseRef, orderBy: {field: UPDATED_AT, direction: DESC}) {
+          pageInfo { hasNextPage }
+          nodes {
+            number
+            title
+            url
+            baseRefName
+            baseRepository { nameWithOwner }
+            files(first: 100) {
+              pageInfo { hasNextPage endCursor }
+              nodes { path changeType }
+            }
+          }
+        }
+      }
+    }`;
+  const graphResponse = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    },
+    body: JSON.stringify({ query, variables: { owner, name: repoName, baseRef: current.base.ref } })
+  });
+  const graphBody = await graphResponse.json().catch(() => ({}));
+  if (!graphResponse.ok || graphBody.errors?.length) {
+    const detail = (graphBody.errors || []).map(item => item.message).join("; ");
+    throw new Error("GitHub GraphQL migration audit failed (" + graphResponse.status + ")" + (detail ? ": " + detail : ""));
+  }
+  const openPulls = graphBody.data?.repository?.pullRequests;
+  if (!openPulls || openPulls.pageInfo?.hasNextPage) {
+    throw new Error("Migration audit cannot safely enumerate all open PRs in one page; refusing to pass incomplete results.");
+  }
 
   const all = [];
-  for (const pr of comparable) {
-    const files = await getAllPages("https://api.github.com/repos/" + repository + "/pulls/" + pr.number + "/files");
+  for (const pr of openPulls.nodes) {
+    if (pr.baseRefName !== current.base.ref || pr.baseRepository?.nameWithOwner?.toLowerCase() !== current.base.repo.full_name.toLowerCase()) continue;
+    const fileNodes = [...(pr.files?.nodes || [])];
+    let filePage = pr.files;
+    while (filePage?.pageInfo?.hasNextPage) {
+      const pageQuery = `
+        query MigrationCollisionFilePage($owner: String!, $name: String!, $number: Int!, $cursor: String!) {
+          repository(owner: $owner, name: $name) {
+            pullRequest(number: $number) {
+              files(first: 100, after: $cursor) {
+                pageInfo { hasNextPage endCursor }
+                nodes { path changeType }
+              }
+            }
+          }
+        }`;
+      const pageResponse = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+          "X-GitHub-Api-Version": "2022-11-28"
+        },
+        body: JSON.stringify({
+          query: pageQuery,
+          variables: { owner, name: repoName, number: pr.number, cursor: filePage.pageInfo.endCursor }
+        })
+      });
+      const pageBody = await pageResponse.json().catch(() => ({}));
+      if (!pageResponse.ok || pageBody.errors?.length) {
+        const detail = (pageBody.errors || []).map(item => item.message).join("; ");
+        throw new Error("Could not enumerate changed files for PR #" + pr.number + " (" + pageResponse.status + ")" + (detail ? ": " + detail : ""));
+      }
+      filePage = pageBody.data?.repository?.pullRequest?.files;
+      if (!filePage) throw new Error("GitHub returned no changed-file page for PR #" + pr.number + "; refusing to pass incomplete results.");
+      fileNodes.push(...(filePage.nodes || []));
+    }
+    const files = fileNodes.map(file => ({
+      filename: file.path,
+      status: file.changeType === "DELETED" ? "removed" : file.changeType.toLowerCase()
+    }));
     const entries = migrationEntries(pr.number, files);
-    if (entries.length) all.push({ prNumber: pr.number, title: pr.title, url: pr.html_url, base: pr.base, entries });
+    if (entries.length) all.push({ prNumber: pr.number, title: pr.title, url: pr.url, base: { ref: pr.baseRefName, repo: { full_name: pr.baseRepository.nameWithOwner } }, entries });
   }
 
   const collisions = crossPullRequestCollisions(all);

@@ -51,18 +51,52 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 120) {
+    return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
+  }
+  if (typeof body.customerPhone !== "string" || (body.customerPhone.trim() !== "" && !/^[+0-9()\-\s]{7,20}$/.test(body.customerPhone.trim()))) {
+    return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
+  }
+  if (typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 500) {
+    return json({ error: "INVALID_DELIVERY_ADDRESS" }, 400);
+  }
+  if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 1000)) {
+    return json({ error: "INVALID_ORDER_NOTES" }, 400);
+  }
+
+  const branchId = body.branchId ? String(body.branchId) : null;
+  const { data: targetMemberships, error: targetMembershipError } = await admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,status,branch_id,permissions")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
     .eq("status", "ACTIVE")
-    .limit(1)
-    .maybeSingle();
+    .limit(501);
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
+  if ((targetMemberships ?? []).length > 500) return json({ error: "MEMBERSHIP_SCOPE_LIMIT" }, 409);
 
-  if (!targetMembership) {
+  // Match the shared UI RBAC contract: only OWNER and SALES have ORDERS:create.
+  // A scoped membership alone is not proof of permission to create orders.
+  const orderCreatorRoles = new Set(["OWNER", "SALES"]);
+  const hasScopedMembership = (targetMemberships ?? []).some((membership: any) => {
+    const role = String(membership.role ?? "").toUpperCase();
+    const explicitPlatformControl = role === "SUPER_ADMIN"
+      && membership.permissions?.scope === "PLATFORM"
+      && membership.permissions?.full_control === true;
+    if (role === "SUPER_ADMIN") {
+      return explicitPlatformControl
+        && (branchId ? (!membership.branch_id || String(membership.branch_id) === branchId) : !membership.branch_id);
+    }
+    if (!orderCreatorRoles.has(role)) return false;
+    if (branchId) {
+      return String(membership.branch_id ?? "") === branchId
+        || (!membership.branch_id && role === "OWNER");
+    }
+    return !membership.branch_id;
+  });
+
+  if (!hasScopedMembership) {
     const { data: customerMembership, error: customerMembershipError } = await admin
       .from("user_memberships")
       .select("id,role,status")
@@ -98,6 +132,14 @@ Deno.serve(async (req: Request) => {
   if (normalizedItems.some((x: any) => !x.catalogItemId || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
   }
+  if (normalizedItems.some((x: any) =>
+    !Array.isArray(x.selectedOptionIds)
+    || x.selectedOptionIds.length > 30
+    || x.selectedOptionIds.some((id: string) => !id || id.length > 100)
+    || new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length
+  )) {
+    return json({ error: "INVALID_ITEM_OPTIONS" }, 400);
+  }
 
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
   const { data: catalogItems, error: itemError } = await admin
@@ -109,7 +151,6 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
