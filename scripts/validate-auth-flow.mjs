@@ -41,6 +41,7 @@ const required = [
 ];
 
 
+const failures = [];
 const authBootStart = app.indexOf("async function bootAuth(){");
 const authBootEnd = app.indexOf("function bindGenericWorkspaceTabs(){", authBootStart);
 const authBoot = authBootStart >= 0 && authBootEnd > authBootStart ? app.slice(authBootStart, authBootEnd) : "";
@@ -48,7 +49,6 @@ if (!authBoot.includes("if(new URLSearchParams(window.location.search).get('open
 if (!authBoot.includes("authView('تعذر تهيئة جلسة الدخول. أعد المحاولة بعد تحديث الصفحة.');") || !authBoot.includes("get('openAuth')==='1'")) failures.push("Auth bootstrap errors must preserve the Google sign-in view");
 if (authBoot.indexOf("if(data?.session)") < 0 || authBoot.indexOf("if(data?.session)") > authBoot.indexOf("get('openAuth')==='1'")) failures.push("Existing authenticated sessions must be handled before showing sign-in");
 
-const failures = [];
 const bootStart = app.indexOf("async function bootAuth(){");
 const bootEnd = app.indexOf("async function renderApp()", bootStart);
 const bootAuth = bootStart >= 0 && bootEnd > bootStart ? app.slice(bootStart, bootEnd) : "";
