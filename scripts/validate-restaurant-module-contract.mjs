@@ -79,7 +79,7 @@ assert.match(moduleSource, /payload\.tenantId!==m\.tenant_id\|\|payload\.busines
 assert.match(moduleSource, /function askOrderDetails\(items, catalogOptions=\[\]\)/, 'order form must let staff select an authoritative catalog item and its options');
 assert.match(moduleSource, /const selection=await askOrderDetails\(items,catalog\?\.options\|\|\[\]\)/, 'selected catalog item, quantity, and options must be used for order creation');
 assert.match(moduleSource, /field\('rest-customer','اسم العميل'.*field\('rest-phone','رقم الهاتف'.*field\('rest-address','عنوان التوصيل'/, 'restaurant order form must capture customer contact and delivery details');
-assert.match(moduleSource, /field\('rest-customer','اسم العميل','', 'text','maxlength="120" required autocomplete="name"'\)/, 'order form must require an explicit customer name');
+assert.match(moduleSource, /field\('rest-customer','اسم العميل','',? ?'text','maxlength="120" required autocomplete="name"'\)/, 'multi-item order form must require an explicit customer name');
 assert.match(moduleSource, /if\(!customerName\|\|customerName\.length>120\)/, 'customer name must be validated before order submission');
 assert.match(moduleSource, /customerName:selection\.customerName,customerPhone:selection\.customerPhone,deliveryAddress:selection\.deliveryAddress/,
   'canonical order payload must carry the entered customer details without silently substituting an email');
@@ -165,12 +165,12 @@ assert.match(moduleSource, /value="'\+esc\(current\)\+'">'\+esc\(statusLabels\[c
 assert.match(moduleSource, /next\.map\(s=>'<option value="'\+s\+'">'\+esc\(statusLabels\[s\]\|\|s\)/, 'next-state options must be localized while retaining canonical values');
 
 assert.match(moduleSource, /function askOrderDetails\(items, catalogOptions=\[\]\)/, 'order form must accept options returned by the central catalog');
-assert.match(moduleSource, /catalogOptions\.filter\(option=>String\(option\.catalog_item_id\)===String\(itemSelect\?\.value\)\)/, 'only options belonging to the selected catalog item may be shown');
+assert.match(moduleSource, /catalogOptions\.filter\(option=>String\(option\.catalog_item_id\)===String\(selectedId\)\)/, 'each order line may show only options belonging to its selected catalog item');
 assert.match(moduleSource, /data-rest-option value="'\+esc\(option\.id\)/, 'option IDs must be escaped in the selection UI');
-assert.match(moduleSource, /selectedOptionIds=\[\.\.\.o\.querySelectorAll\('\[data-rest-option\]:checked'\)\]/, 'the order form must submit explicitly selected option IDs');
+assert.match(moduleSource, /selectedOptionIds=\[\.\.\.line\.querySelectorAll\('\[data-rest-option\]:checked'\)\]/, 'each order line must submit explicitly selected option IDs');
 assert.match(moduleSource, /askOrderDetails\(items,catalog\?\.options\|\|\[\]\)/, 'the restaurant order form must consume catalog options returned by the API');
-assert.match(moduleSource, /selectedOptionIds:selection\.selectedOptionIds/, 'the selected option IDs must reach the server-authoritative order creation function');
-assert.match(moduleSource, /السعر النهائي والضريبة يعتمدهما الخادم/, 'the UI must clarify that the server controls final pricing');
+assert.match(moduleSource, /items:selection\.items\.map\(line=>\(\{catalogItemId:line\.item\.id,quantity:line\.quantity,selectedOptionIds:line\.selectedOptionIds\}\)\)/, 'all validated order lines and their selected option IDs must reach the server-authoritative order creation function');
+assert.match(moduleSource, /الأسعار والضرائب والإضافات النهائية يعتمدها الخادم/, 'the UI must clarify that the server controls final pricing for every line');
 
 assert.match(moduleSource, /if\(window\.__MNTY_RESTAURANT_MODULE_OBSERVER__\)return;\s*window\.__MNTY_RESTAURANT_MODULE_OBSERVER__=true;\s*const mo=new MutationObserver\(observe\)/, 'repeated script evaluation must not attach duplicate restaurant module observers');
 assert.match(moduleSource, /window\.__MNTY_RESTAURANT_MODULE_POLL__=window\.setInterval\(observe,800\)/, 'the singleton poll handle must be retained for lifecycle diagnostics');
