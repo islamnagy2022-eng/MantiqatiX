@@ -16,6 +16,8 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 
 const customerRestaurants = fs.readFileSync("web/preview/restaurants.html", "utf8");
 const customerOrder = fs.readFileSync("web/preview/restaurant-order.html", "utf8");
+const sharedCart = fs.readFileSync("web/preview/shared-cart.js", "utf8");
+const cartPage = fs.readFileSync("web/preview/cart.html", "utf8");
 const customerRestaurantsScript = customerRestaurants.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const customerOrderScript = customerOrder.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 
@@ -97,6 +99,12 @@ checks.push(["Project profile page supports per-project logo and cover previews"
     page.includes("5*1024*1024") && page.includes("لم يتم حفظ البيانات أو رفع الصور");
 })()]);
 checks.push(["Service card image is the clickable project entry point", entry.includes('class="card-visual" type="button" data-project=') && !entry.includes('class="btn ghost" type="button" data-details=')]);
+
+
+checks.push(["Central cart page groups items by seller and supports quantity updates", cartPage.includes("groups=new Map()") && cartPage.includes("data-inc") && cartPage.includes("data-del") && cartPage.includes("window.MXCart.total()")]);
+checks.push(["Restaurant ordering uses the shared cart module", customerOrder.includes('src="shared-cart.js"') && customerOrder.includes("window.MXCart.add") && customerOrder.includes("window.MXCart.removeMerchant(key)")]);
+checks.push(["Shared cart storage schema excludes customer and payment fields", sharedCart.includes("mantiqatix.demo.cart.v1") && sharedCart.includes("sessionStorage") && !sharedCart.includes("customerName") && !sharedCart.includes("phoneNumber") && !sharedCart.includes("paymentToken")]);
+checks.push(["Shared cart JavaScript parses successfully", (() => { try { new vm.Script(sharedCart); return true; } catch (error) { console.error("Shared cart syntax error:", error.message); return false; } })()]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
