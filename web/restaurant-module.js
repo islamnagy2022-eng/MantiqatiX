@@ -94,13 +94,28 @@ async function load(){
    tablesQ=tablesQ.eq('id','__MNTY_NO_OPERATIONS_VIEW__');
    invQ=invQ.eq('id','__MNTY_NO_OPERATIONS_VIEW__');
  }
- const [a,b,c,d]=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
+ let results;
+ try{
+   results=await Promise.all([menuQ,ordersQ,tablesQ,invQ]);
+ }catch(error){
+   if(generation!==loadGeneration)return;
+   state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
+   state.error='تعذر الاتصال ببيانات المطعم. تحقق من الاتصال ثم أعد المحاولة.';
+   state.loading=false;render();return;
+ }
  // A newer membership/branch load may have started while these queries were in flight.
  // Discard stale results so previous-branch data cannot overwrite the current workspace.
  if(generation!==loadGeneration)return;
- state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
- const errs=[a,b,c,d].filter(x=>x.error).map(x=>x.error.message);
- state.error=errs.length?errs.join(' | '):null;state.loading=false;render();
+ const [a,b,c,d]=results;
+ const errs=[a,b,c,d].filter(x=>x.error);
+ if(errs.length){
+   state.menu=[];state.orders=[];state.tables=[];state.inventory=[];
+   state.error='تعذر تحميل بعض بيانات المطعم بسبب خطأ في الوصول أو الصلاحيات. أعد المحاولة أو تواصل مع الدعم.';
+ }else{
+   state.menu=a.data||[];state.orders=b.data||[];state.tables=c.data||[];state.inventory=d.data||[];
+   state.error=null;
+ }
+ state.loading=false;render();
 }
 function shell(title,body){
  return '<section class="workspace-section"><div class="workspace-head"><div><div class="eyebrow">RESTAURANTS</div><h2>'+title+'</h2><p class="muted">إدارة المطعم والقائمة والطلبات والطاولات والمخزون من بيانات Supabase الفعلية فقط.</p></div></div>'+body+'</section>';
