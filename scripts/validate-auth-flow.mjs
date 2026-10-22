@@ -48,6 +48,14 @@ const authBoot = authBootStart >= 0 && authBootEnd > authBootStart ? app.slice(a
 if (!authBoot.includes("if(new URLSearchParams(window.location.search).get('openAuth')==='1'){authView();return}")) failures.push("Google preview entry must open the platform auth view");
 if (!authBoot.includes("authView('تعذر تهيئة جلسة الدخول. أعد المحاولة بعد تحديث الصفحة.');") || !authBoot.includes("get('openAuth')==='1'")) failures.push("Auth bootstrap errors must preserve the Google sign-in view");
 if (authBoot.indexOf("if(data?.session)") < 0 || authBoot.indexOf("if(data?.session)") > authBoot.indexOf("get('openAuth')==='1'")) failures.push("Existing authenticated sessions must be handled before showing sign-in");
+const membershipLoadStart = app.indexOf("async function loadLiveData(){");
+const membershipLoadEnd = app.indexOf("function ", membershipLoadStart + 30);
+const membershipLoad = membershipLoadStart >= 0 ? app.slice(membershipLoadStart, membershipLoadEnd > membershipLoadStart ? membershipLoadEnd : membershipLoadStart + 12000) : "";
+if (!membershipLoad.includes("live.memberships.length===1?live.memberships[0]:null")) failures.push("Multiple active memberships must not silently select the first tenant");
+if (!membershipLoad.includes("savedMembership||null")) failures.push("Stale saved membership IDs must fail closed rather than switching tenants");
+if (!app.includes("function membershipSelectionRequiredView()") || !app.includes("if(!live.activeMembershipId){membershipSelectionRequiredView();return}")) failures.push("Missing explicit membership selection gate");
+if (!app.includes("data-select-membership") || !app.includes("switchMembership(button.dataset.selectMembership)")) failures.push("Membership selection actions must use the validated membership switcher");
+
 
 const bootStart = app.indexOf("async function bootAuth(){");
 const bootEnd = app.indexOf("async function renderApp()", bootStart);
