@@ -100,4 +100,10 @@ assert.match(moduleSource, /payload\.unit_cost_egp\*100\)!==payload\.unit_cost_e
 assert.match(moduleSource, /max="100000000"/,
   'numeric menu and inventory fields must expose a reasonable upper bound');
 
+// The restaurant operations dashboard must not substitute customer-history reads for order-view permission.
+assert.match(moduleSource, /ordersQ=ordersQ\.eq\('id','__MNTY_NO_ORDERS_VIEW__'\)/,
+  'users without ORDERS:view must receive no rows in the restaurant order console');
+assert.doesNotMatch(moduleSource, /ordersQ=ordersQ\.eq\('customer_id',state\.user\.id\)/,
+  'restaurant order dashboard must not use a customer-history fallback');
+
 console.log('Restaurant module contract PASS');
