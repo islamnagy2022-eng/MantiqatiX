@@ -18,11 +18,21 @@ assert.match(moduleSource, /const mo=new MutationObserver\(observe\);\s*mo\.obse
 assert.doesNotMatch(moduleSource, /setInterval\(observe,\s*800\)/,
   'restaurant route detection must not use an unnecessary permanent polling timer');
 
-// Membership selection must fail closed: never fall back to the first membership.
-assert.match(moduleSource, /if\(saved\)\{\s*const selected=await base\(\)\.eq\('id',saved\)\.maybeSingle\(\);\s*return selected\.error\?null:\(selected\.data\|\|null\);\s*\}/,
-  'a stale or invalid selected membership must not silently switch businesses');
-assert.match(moduleSource, /const result=await base\(\)\.limit\(2\);\s*if\(result\.error\|\|!Array\.isArray\(result\.data\)\|\|result\.data\.length!==1\)return null;/,
-  'no saved selection may be auto-resolved only when exactly one active membership exists');
+// Membership selection must fail closed and require an explicit choice when ambiguous.
+assert.match(moduleSource, /async function activeMemberships\(user\)/,
+  'active memberships must be loaded for an explicit, user-scoped choice');
+assert.match(moduleSource, /state\.memberships=await activeMemberships\(state\.user\)/,
+  'membership selection must be based on the signed-in user');
+assert.match(moduleSource, /state\.memberships\.find\(m=>String\(m\.id\)===String\(saved\)\)\|\|null/,
+  'a stale saved membership must not silently switch businesses');
+assert.match(moduleSource, /if\(!state\.membership&&state\.memberships\.length===1\)/,
+  'auto-selection is allowed only when exactly one active membership exists');
+assert.match(moduleSource, /function membershipChooser\(\)/,
+  'ambiguous memberships must display an explicit chooser');
+assert.match(moduleSource, /data-membership-choice/,
+  'the user must explicitly choose the intended membership');
+assert.match(moduleSource, /localStorage\.setItem\('MNTYActiveMembershipId',selected\.id\)/,
+  'only the selected active membership may be persisted');
 assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/,
   'membership lookup must not silently select the first active membership');
 
