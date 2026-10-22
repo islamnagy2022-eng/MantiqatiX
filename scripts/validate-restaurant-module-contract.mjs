@@ -23,6 +23,9 @@ assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/, 'restaurant m
 assert.match(moduleSource, /if\(!s\)\{state\.error='العضوية لا تحتوي نطاق نشاط وفرع كامل/);
 assert.match(moduleSource, /const membershipResult=await membership\(state\.user\);/);
 
+assert.match(moduleSource, /mo\.observe\(document\.body,\{childList:true,subtree:true\}\);\s*observe\(\);/, 'module activation must rely on DOM observation without recurring polling');
+assert.doesNotMatch(moduleSource, /setInterval\(observe,/, 'restaurant module must not poll the DOM every 800ms');
+
 // Reads must be scoped independently by each module capability.
 assert.match(moduleSource, /canOperate\('CATALOG','view'\)/, 'menu reads must respect catalog view capability');
 assert.ok(moduleSource.includes("menuQ=menuQ.eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).eq('is_available',true)"), 'public menu fallback must remain scoped to the active tenant, business, and branch');
