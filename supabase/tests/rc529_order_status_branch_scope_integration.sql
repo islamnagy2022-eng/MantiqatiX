@@ -57,6 +57,24 @@ do $$ begin
  end if;
 end $$;
 
+-- A membership with NULL status is not active and must never authorize a transition.
+select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000004',false);
+set role service_role;
+do $ begin
+ begin
+  perform public.update_order_status_backend('30000000-0000-0000-0000-000000000001','tenant-a','10000000-0000-0000-0000-000000000004','PREPARING',null);
+  raise exception 'RC529_EXPECTED_FAILURE_NOT_RAISED';
+ exception when raise_exception then
+  if sqlerrm='RC529_EXPECTED_FAILURE_NOT_RAISED' then raise; end if;
+ end;
+end $;
+reset role;
+do $ begin
+ if (select status from public.orders where id='30000000-0000-0000-0000-000000000001') <> 'CONFIRMED' then
+  raise exception 'RC529_FAIL: NULL-status membership changed order state';
+ end if;
+end $;
+
 -- Customer cancellation remains possible only for the customer's own unpaid order.
 select set_config('request.jwt.claim.sub','40000000-0000-0000-0000-000000000001',false);
 set role service_role;
