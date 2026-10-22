@@ -15,24 +15,24 @@ function notify(message,type='info'){
  setTimeout(()=>{el.classList.remove('is-visible');setTimeout(()=>el.remove(),220)},4200);
 }
 
-let state={user:null,membership:null,tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
+let state={user:null,membership:null,memberships:[],tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
 
 async function session(){
  const {data,error}=await sb.auth.getSession();
  if(error||!data?.session?.user)return null;
  return data.session.user;
 }
-async function membership(user){
- const saved=localStorage.getItem('MNTYActiveMembershipId');
- const base=()=>sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE');
- if(saved){
-  const selected=await base().eq('id',saved).maybeSingle();
-  return selected.error?null:(selected.data||null);
- }
- // Never silently choose the first tenant/business when a user has multiple memberships.
- const result=await base().limit(2);
- if(result.error||!Array.isArray(result.data)||result.data.length!==1)return null;
- return result.data[0]||null;
+async function activeMemberships(user){
+ const result=await sb.from('user_memberships').select('id,tenant_id,business_id,branch_id,role,status').eq('user_id',user.id).eq('status','ACTIVE').limit(100);
+ if(result.error)throw new Error('تعذر التحقق من عضوياتك النشطة. أعد المحاولة أو تواصل مع الدعم.');
+ return Array.isArray(result.data)?result.data:[];
+}
+function chooseMembership(id){
+ const selected=state.memberships.find(m=>String(m.id)===String(id));
+ if(!selected)return notify('اختيار العضوية غير صالح. حدّث الصفحة وحاول مرة أخرى.','error');
+ localStorage.setItem('MNTYActiveMembershipId',selected.id);
+ state.membership=selected;state.error=null;state.tab='dashboard';
+ load();
 }
 function canOperate(module='CATALOG',action='update'){
  const role=String(state.membership?.role||'').toUpperCase();
@@ -43,10 +43,20 @@ function scope(){
  return m?.tenant_id&&m?.business_id&&m?.branch_id?{tenant_id:m.tenant_id,business_id:m.business_id,branch_id:m.branch_id}:null;
 }
 async function load(){
+ state.loading=true;state.error=null;render();
  state.user=await session();
- if(!state.user){state.error='AUTH_REQUIRED';return render();}
- state.membership=await membership(state.user);
- if(!state.membership){state.error='لا توجد عضوية تشغيلية نشطة.';return render();}
+ if(!state.user){state.membership=null;state.memberships=[];state.error='AUTH_REQUIRED';state.loading=false;return render();}
+ try{state.memberships=await activeMemberships(state.user);}catch(e){state.membership=null;state.error=e.message||'تعذر تحميل العضويات.';state.loading=false;return render();}
+ const saved=localStorage.getItem('MNTYActiveMembershipId');
+ state.membership=saved?state.memberships.find(m=>String(m.id)===String(saved))||null:null;
+ if(!state.membership&&state.memberships.length===1){
+   state.membership=state.memberships[0];
+   localStorage.setItem('MNTYActiveMembershipId',state.membership.id);
+ }
+ if(!state.membership){
+   state.error=state.memberships.length?'MEMBERSHIP_SELECTION_REQUIRED':'لا توجد عضوية تشغيلية نشطة لهذا الحساب.';
+   state.loading=false;return render();
+ }
  state.error=null; state.loading=true; render();
  const s=scope();
  let menuQ=sb.from('restaurant_menu_items').select('id,owner_user_id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular,created_at,updated_at').order('category').order('name_ar').limit(200);
@@ -153,8 +163,13 @@ function dashboard(){
  '<div class="notice" style="margin-top:16px">البيانات المعروضة حقيقية من قاعدة البيانات. لا يتم إنشاء مطاعم أو طلبات أو مخزون تجريبي تلقائيًا.</div>'+
  '<div class="cards" style="margin-top:16px"><article class="card"><div class="card-title">حدود الأمان</div><div class="muted">كل عمليات الكتابة تمر عبر جلسة المستخدم وRLS ونطاق العضوية. لا يتم تجاوز صلاحيات الخادم.</div></article><article class="card"><div class="card-title">النطاق الحالي</div><div class="muted">'+(scope()?esc(scope().business_id)+' · فرع '+esc(scope().branch_id):'عرض قراءة فقط')+'</div></article></div>');
 }
+function membershipChooser(){
+ const options=state.memberships.map((m,i)=>'<button type="button" class="btn btn-outline" data-membership-choice="'+esc(m.id)+'" style="display:block;width:100%;text-align:right;margin:8px 0"><b>نشاط '+(i+1)+'</b><div class="muted">الدور: '+esc(m.role)+' · النشاط: '+esc(m.business_id)+' · الفرع: '+esc(m.branch_id||'غير محدد')+'</div><small class="muted">معرّف العضوية: '+esc(m.id)+'</small></button>').join('');
+ return shell('اختيار النشاط والفرع','<div class="notice">حسابك مرتبط بأكثر من نشاط أو أن الاختيار السابق لم يعد صالحًا. اختر العضوية المقصودة صراحةً؛ لن يتم تحويلك تلقائيًا إلى نشاط آخر.</div><div style="max-width:720px;margin:16px auto">'+options+'<div class="action-bar"><button class="btn btn-primary" id="rest-membership-retry">إعادة تحميل العضويات</button></div></div>');
+}
 function render(){
  const page=document.getElementById('page');if(!page)return;
+ if(state.error==='MEMBERSHIP_SELECTION_REQUIRED'){page.innerHTML=membershipChooser();bind();return;}
  if(state.error){page.innerHTML=shell('تعذر تحميل موديول المطاعم',tabs()+'<div class="empty-state">'+esc(state.error)+'<div class="action-bar"><button class="btn btn-primary" id="rest-retry">إعادة المحاولة</button></div></div>');bind();return;}
  if(state.loading){page.innerHTML=shell('جاري تحميل موديول المطاعم',tabs()+'<p class="muted">جاري تحميل البيانات الفعلية…</p>');return;}
  page.innerHTML=state.tab==='menu'?menuView():state.tab==='orders'?ordersView():state.tab==='tables'?tablesView():state.tab==='inventory'?inventoryView():dashboard();
@@ -220,6 +235,8 @@ async function updateOrder(id,status){
  }catch(e){notify('تعذر تحديث حالة الطلب: '+(e?.message||'خطأ'),'error');return false}
 }
 function bind(){
+ document.querySelectorAll('[data-membership-choice]').forEach(b=>b.addEventListener('click',()=>chooseMembership(b.dataset.membershipChoice)));
+ document.getElementById('rest-membership-retry')?.addEventListener('click',load);
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
