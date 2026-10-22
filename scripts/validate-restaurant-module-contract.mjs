@@ -38,7 +38,7 @@ assert.match(moduleSource, /field\('rest-customer','اسم العميل'/, 'orde
 assert.match(moduleSource, /field\('rest-phone','رقم الهاتف'/, 'order form must collect a phone number');
 assert.match(moduleSource, /field\('rest-address','عنوان التوصيل'/, 'order form must collect a delivery address');
 assert.match(moduleSource, /customerPhone:selection\.customerPhone,deliveryAddress:selection\.deliveryAddress/, 'order payload must use the validated customer contact details');
-assert.match(moduleSource, /if\(!\/\^\[\+0-9\(\)\\s\.\-\]\{7,24\}\$\/.test\(customerPhone\)/, 'order form must validate phone input before submitting');
+assert.ok(moduleSource.includes("if(!/^[+0-9()\\s.-]{7,24}$/.test(customerPhone)"), 'order form must validate phone input before submitting');
 assert.match(moduleSource, /o\.__close\(false\);resolve\(selection\);/, 'successful order-form completion must close cleanly without resolving as cancellation');
 assert.match(moduleSource, /function modal\(title,html,onSave,onClose\)/, 'modal must expose cancellation handling for async forms');
 assert.match(moduleSource, /if\(cancel&&typeof onClose==='function'\)onClose\(\)/, 'closing a modal must resolve pending async forms as cancelled');
