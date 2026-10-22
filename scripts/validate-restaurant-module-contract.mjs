@@ -4,6 +4,16 @@ import vm from 'node:vm';
 
 const moduleSource = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const rbacSource = fs.readFileSync('web/rbac.js', 'utf8');
+const customerOrderSource = fs.readFileSync('supabase/functions/order-create/index.ts', 'utf8');
+
+// The marketplace order endpoint is customer-owned; an operator membership must not
+// turn the customer endpoint into a staff-order endpoint.
+assert.match(customerOrderSource, /if\s*\(targetMembership\s*&&\s*String\(targetMembership\.role\)\.toUpperCase\(\)\s*!==\s*"CUSTOMER"\)/,
+  'customer order endpoint must reject active non-customer business memberships');
+assert.match(customerOrderSource, /p_customer_id:\s*user\.id/,
+  'customer order ownership must come from the authenticated user');
+assert.doesNotMatch(customerOrderSource, /p_customer_id:\s*body\./,
+  'client-supplied customer identifiers must never define order ownership');
 
 // The restaurant workspace must use the shared RBAC contract, not its own role allowlist.
 assert.match(moduleSource, /window\.MNTY_RBAC\?\.can\(role,module,action,state\.membership\?\.permissions\)===true/,
