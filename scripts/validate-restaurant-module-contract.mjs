@@ -88,4 +88,16 @@ assert.match(moduleSource, /restaurant_inventory'\)\.update\(payload\)\.eq\('id'
 assert.match(moduleSource, /if\(!r\.data\)return notify\('لم يتم الحفظ:/, 'zero-row updates must not be reported as success');
 assert.ok(moduleSource.includes("if(saveButton.disabled)return;saveButton.disabled=true;try{await onSave(o)}catch(error){notify('حدث خطأ غير متوقع أثناء الحفظ. حاول مرة أخرى.','error')}finally{if(o.isConnected)saveButton.disabled=false}"), 'modal saves must be single-flight and surface unexpected errors');
 
+// Menu and inventory inputs must have explicit client-side bounds and decimal precision checks.
+assert.match(moduleSource, /payload\.name_ar\.length>150\|\|!payload\.category\|\|payload\.category\.length>80\|\|payload\.description_ar\.length>2000/,
+  'menu text fields must have bounded lengths');
+assert.match(moduleSource, /Math\.round\(payload\.base_price_egp\*100\)!==payload\.base_price_egp\*100/,
+  'menu price must not contain more than two decimal places');
+assert.match(moduleSource, /payload\.min_stock_alert_threshold\*1000\)!==payload\.min_stock_alert_threshold\*1000/,
+  'inventory alert threshold must not contain more than three decimal places');
+assert.match(moduleSource, /payload\.unit_cost_egp\*100\)!==payload\.unit_cost_egp\*100/,
+  'inventory unit cost must not contain more than two decimal places');
+assert.match(moduleSource, /max="100000000"/,
+  'numeric menu and inventory fields must expose a reasonable upper bound');
+
 console.log('Restaurant module contract PASS');
