@@ -32,6 +32,8 @@ const required=[
   ["Order creation validates catalog items", "CATALOG_ITEM_NOT_AVAILABLE", order],
   ["Order creation validates active pricing", "ACTIVE_PRICE_NOT_AVAILABLE", order],
   ["Order creation rejects duplicate or oversized selected options", "INVALID_ITEM_OPTIONS", order],
+  ["Cross-item option mismatch returns a controlled client error", 'return json({ error: "OPTION_ITEM_MISMATCH" }, 400)', order],
+  ["Order option mismatch is validated before price calculation", "Validate option-to-item relationships before calculation", order],
   ["Order pricing rejects non-finite final totals", "if (!Number.isFinite(totalAmount))", order],
   ["Server requires branch when active branches exist", "BRANCH_REQUIRED", order],
   ["Server validates selected branch", "BRANCH_NOT_AVAILABLE", order],
