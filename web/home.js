@@ -43,6 +43,8 @@
   const normCode = value => String(value||'').trim().toUpperCase().replace(/[^A-Z0-9_:-]+/g,'_');
   // Public sector codes may differ from backend taxonomy codes; keep the public contract stable and map only at the data boundary.
   const DATA_CATEGORY_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',FITNESS:'SPORTS',TRAVEL:'TRIPS',TECH:'ERP',FOOD:'FOOD'};
+  const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'DIGITAL',SPORTS:'FITNESS',TRIPS:'TRAVEL',ERP:'TECH'};
+  const publicCategoryCode = code => PUBLIC_CATEGORY_ALIASES[normCode(code)] || normCode(code);
   const dataCategoryCode = code => DATA_CATEGORY_ALIASES[normCode(code)] || normCode(code);
   let PUBLIC_DIRECTORY_COUNTS = null;
   let PUBLIC_DIRECTORY_TOTALS = {services:0,providers:0};
@@ -60,8 +62,8 @@
         providers:Number(providersTotalRes.count||0)
       };
       const counts={};
-      (servicesRes.data||[]).forEach(x=>{const k=normCode(x?.category_code);if(k){counts[k]??={services:0,providers:0};counts[k].services++;}});
-      (providersRes.data||[]).forEach(x=>{const k=normCode(x?.provider_kind);if(k){counts[k]??={services:0,providers:0};counts[k].providers++;}});
+      (servicesRes.data||[]).forEach(x=>{const k=publicCategoryCode(x?.category_code);if(k){counts[k]??={services:0,providers:0};counts[k].services++;}});
+      (providersRes.data||[]).forEach(x=>{const k=publicCategoryCode(x?.provider_kind);if(k){counts[k]??={services:0,providers:0};counts[k].providers++;}});
       PUBLIC_DIRECTORY_COUNTS=counts;
     } catch(_) {
       PUBLIC_DIRECTORY_COUNTS=null;
@@ -102,9 +104,9 @@
   const homeSectionEnabled = code => homeFeatureEnabled(code);
   const dynamicTaxonomy = (services,providers) => {
     const known=new Map(TAXONOMY.map(x=>[x[3],x]));
-    [...(services||[]).map(x=>x.category_code),...(providers||[]).map(x=>x.provider_kind)]
+    [...Object.keys(PUBLIC_DIRECTORY_COUNTS||{}),...(services||[]).map(x=>x.category_code),...(providers||[]).map(x=>x.provider_kind)]
       .filter(Boolean).forEach(code=>{
-        const key=normCode(code);
+        const key=publicCategoryCode(code);
         if(!known.has(key) && homeFeatureEnabled(key)){
           const label=String(code).replace(/[_-]+/g,' ').trim();
           known.set(key,['',label,'خدمات وأنشطة منشورة على المنصة',key]);
@@ -531,10 +533,28 @@ const categoryGrid=document.getElementById('mx-category-grid');
       };
       const ux=SECTOR_UX[key]||{eyebrow:key,title:'اكتشف '+escapeHtml(label),desc:'استعرض الخدمات ومقدمي الخدمات المنشورين ثم ابدأ الطلب من المسار المتاح.',actions:[['استعرض الخدمات','الخدمات'],['اختر مقدم خدمة','مقدمو الخدمات'],['ابدأ الطلب','الطلب']]};
       const uxCards='<section class="mx-category-page__section"><div class="section-head"><div><h2>'+escapeHtml(ux.title)+'</h2><p class="muted">'+escapeHtml(ux.desc)+'</p></div></div><div class="cards">'+ux.actions.map((a,i)=>'<article class="card mx-sector-action-card"><div class="metric">'+(i+1)+'</div><h3>'+escapeHtml(a[0])+'</h3><p class="muted">'+escapeHtml(a[1])+'</p><button type="button" class="btn '+(i===0?'btn-primary':'btn-outline')+'" data-sector-action="'+i+'">'+escapeHtml(a[0])+' ←</button></article>').join('')+'</div></section>';
-      app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">'+escapeHtml(ux.eyebrow)+'</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>'+escapeHtml(ux.title)+'</h2><p>'+escapeHtml(ux.desc)+'</p></div></section>'+uxCards+'<section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات المنشورة</h2><p class="muted">نعرض الخدمات النشطة فقط من الكتالوج الفعلي.</p></div></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>مقدمو الخدمات</h2><p class="muted">تظهر الأنشطة النشطة والمنشورة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
+      app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">'+escapeHtml(ux.eyebrow)+'</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>'+escapeHtml(ux.title)+'</h2><p>'+escapeHtml(ux.desc)+'</p></div></section>'+uxCards+'<section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات المنشورة</h2><p class="muted">نعرض الخدمات النشطة فقط من الكتالوج الفعلي.</p></div></div><div class="mx-category-filter"><label for="mx-category-filter-input">ابحث داخل هذا القطاع</label><div class="mx-category-filter__controls"><input id="mx-category-filter-input" type="search" maxlength="80" autocomplete="off" placeholder="اسم الخدمة أو النشاط أو المنطقة"><button type="button" class="mx-ref-outline" id="mx-category-filter-clear">مسح البحث</button></div><p class="muted" id="mx-category-filter-status" aria-live="polite">يمكنك البحث في الخدمات والأنشطة المعروضة في هذه الصفحة.</p></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>مقدمو الخدمات</h2><p class="muted">تظهر الأنشطة النشطة والمنشورة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
       document.getElementById('mx-category-back').onclick=()=>{try{history.pushState({},'', '#mx-home');}catch(_){};window.MXHomeLanding?.();};
       document.getElementById('mx-category-account').onclick=async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView();if(typeof window.authView==='function')return window.authView();};
       document.querySelectorAll('[data-sector-action]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.sectorAction||0);if(i===0||i===2)document.getElementById('mx-category-services')?.scrollIntoView({behavior:'smooth',block:'start'});else document.getElementById('mx-category-providers')?.scrollIntoView({behavior:'smooth',block:'start'});});
+      const categoryFilter=document.getElementById('mx-category-filter-input');
+      const categoryFilterStatus=document.getElementById('mx-category-filter-status');
+      const applyCategoryFilter=()=>{
+        const term=String(categoryFilter?.value||'').trim().toLocaleLowerCase('ar');
+        let visible=0, total=0;
+        ['mx-category-services','mx-category-providers'].forEach(id=>{
+          const host=document.getElementById(id); if(!host)return;
+          host.querySelectorAll('.mx-category-result-card').forEach(card=>{
+            total++;
+            const matches=!term||card.textContent.toLocaleLowerCase('ar').includes(term);
+            card.hidden=!matches;
+            if(matches)visible++;
+          });
+        });
+        if(categoryFilterStatus)categoryFilterStatus.textContent=term?(visible?'عدد النتائج المطابقة: '+visible+' من '+total+' بطاقة محملة.':'لا توجد نتائج مطابقة ضمن البطاقات المحملة. جرّب كلمة أخرى أو امسح البحث.'):'يمكنك البحث في الخدمات والأنشطة المعروضة في هذه الصفحة.';
+      };
+      categoryFilter?.addEventListener('input',applyCategoryFilter);
+      document.getElementById('mx-category-filter-clear')?.addEventListener('click',()=>{if(categoryFilter)categoryFilter.value='';applyCategoryFilter();categoryFilter?.focus();});
       try{
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
         const [sr,pr]=await Promise.all([
@@ -544,11 +564,12 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(sr.error)throw sr.error; if(pr.error)throw pr.error;
         const services=sr.data||[], providers=pr.data||[];
         const se=document.getElementById('mx-category-services'), pe=document.getElementById('mx-category-providers');
-        se.innerHTML=services.length?services.map(s=>'<article class="mx-category-result-card"><img src="'+activityImage(key)+'" alt=""><div><span class="mx-chip">'+escapeHtml(key)+'</span><h3>'+escapeHtml(s.name_ar||s.name_en||'خدمة')+'</h3><p>'+escapeHtml(s.description||'خدمة منشورة على MantiqatiX.')+'</p><button type="button" class="mx-card-link" data-cat-service="'+escapeHtml(s.id)+'">استكشف الخدمة ←</button></div></article>').join(''):'<div class="empty-state">لا توجد خدمات منشورة حاليًا في هذا القطاع.</div>';
+        se.innerHTML=services.length?services.map(s=>'<article class="mx-category-result-card"><img src="'+activityImage(key)+'" alt=""><div><span class="mx-chip">'+escapeHtml(key)+'</span><h3>'+escapeHtml(s.name_ar||s.name_en||'خدمة')+'</h3><p>'+escapeHtml(s.description||'خدمة منشورة على MantiqatiX.')+'</p><div class="mx-category-service-details" hidden><p><strong>كود الخدمة:</strong> '+escapeHtml(s.code||'غير محدد')+'</p><p><strong>القطاع:</strong> '+escapeHtml(label)+'</p><p>لبدء الطلب، استعرض مقدمي الخدمات المنشورين في هذا القطاع واختر النشاط المناسب.</p></div><button type="button" class="mx-card-link" data-cat-service="'+escapeHtml(s.id)+'" aria-expanded="false">عرض تفاصيل الخدمة ←</button></div></article>').join(''):'<div class="empty-state">لا توجد خدمات منشورة حاليًا في هذا القطاع.</div>';
         pe.innerHTML=providers.length?providers.map(p=>'<article class="mx-category-result-card"><div class="mx-category-result-card__media">'+providerMedia(p)+'</div><div><span class="mx-verified">'+(p.is_verified?'✓ موثق':'منشور')+'</span><h3>'+escapeHtml(p.name_ar||p.name_en||'مقدم خدمة')+'</h3><p>'+escapeHtml(p.description||'نشاط مسجل على MantiqatiX.')+'</p><span class="mx-location">⌖ '+escapeHtml(readArea(p.service_areas)||'نطاق خدمة معلن')+'</span><div class="mx-provider-actions"><button type="button" class="mx-card-link" data-cat-provider="'+escapeHtml(p.id)+'">عرض الملف ←</button>'+(p.business_id?'<button type="button" class="mx-card-book" data-cat-book="'+escapeHtml(p.business_id)+'" data-cat-provider-name="'+escapeHtml(p.name_ar||p.name_en||'مقدم الخدمة')+'">احجز / اطلب</button>':'')+'</div></div></article>').join(''):'<div class="empty-state">لا توجد أنشطة منشورة حاليًا في هذا القطاع.</div>';
-        se.querySelectorAll('[data-cat-service]').forEach(b=>b.onclick=()=>{const s=services.find(x=>String(x.id)===String(b.dataset.catService));if(s){document.getElementById('mx-category-services')?.scrollIntoView({behavior:'smooth'});}});
+        se.querySelectorAll('[data-cat-service]').forEach(b=>b.onclick=()=>{const card=b.closest('.mx-category-result-card');const detail=card?.querySelector('.mx-category-service-details');if(!detail)return;const expanded=detail.hidden;detail.hidden=!expanded;b.setAttribute('aria-expanded',expanded?'true':'false');b.textContent=expanded?'إخفاء التفاصيل ↑':'عرض تفاصيل الخدمة ←';});
         pe.querySelectorAll('[data-cat-provider]').forEach(b=>{b.onclick=()=>{const p=providers.find(x=>String(x.id)===String(b.dataset.catProvider));if(p)openProviderProfilePage(p,label);}});
         pe.querySelectorAll('[data-cat-book]').forEach(b=>b.onclick=()=>{const id=b.dataset.catBook,n=b.dataset.catProviderName||'مقدم الخدمة';if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function')return openProviderCatalog(id,n);try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId:id,providerName:n}));}catch(_){};goLogin();});
+        applyCategoryFilter();
       }catch(e){document.getElementById('mx-category-services').innerHTML='<div class="empty-state">تعذر تحميل الخدمات حاليًا.</div>';document.getElementById('mx-category-providers').innerHTML='<div class="empty-state">تعذر تحميل الأنشطة حاليًا.</div>';}
     };
 

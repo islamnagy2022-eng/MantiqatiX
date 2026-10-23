@@ -1791,3 +1791,25 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Recheck every workflow against the latest head before certifying this increment.
 - [ ] Real authenticated browser E2E, Paymob payment/refund and settlement E2E, backup/restore, Auth security settings, Android signing/device regression, and live production parity remain open.
 - No production migration, data write, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+## RC452 — متابعة بوابة الإطلاق بعد جرد SECURITY DEFINER — 2026-10-24
+
+**Commit موثق:** `2ce5841c977279447e26fc4f4eb41389bcad522e` على فرع `work/module-parity-wave2-20261024`، وPR #352 ما زال Draft وغير مدمج.
+
+### أدلة التحقق
+- [x] أضيف `docs/SECURITY_DEFINER_LIVE_INVENTORY_AR.md` كجرد فرز أولي للدوال التي ظهرت في فحص `pg_proc` وامتيازات EXECUTE الحية.
+- [x] نجاح `Module Professionalization Validation` على commit أعلاه، بما في ذلك اختبار PostgreSQL الخاص بنطاق مسؤول MantiGO، واختبار targeted-ads، واختبار خصوصية matrimony.
+- [x] نجاح `Backend-only Module Boundary` بما في ذلك اختبارات RC450 المالية وسجل الموافقات.
+- [x] نجاح `MantiGO Open Ride Privacy Boundary`.
+- [x] اجتاز تحقق نشر الويب مرحلة validation، لكن وظيفة `deploy` كانت **skipped**؛ لا يُسجل ذلك كنشر فعلي.
+- [x] لم تُنفذ كتابة SQL أو ترحيل أو تغيير صلاحيات في قاعدة الإنتاج خلال هذه الجولة.
+
+### البوابات المفتوحة — لا تعتبر منجزة بسبب نجاح CI
+- [ ] RC449: تطبيق معتمد على staging ثم الإنتاج، ثم إثبات سجل الترحيلات وتعريفات الدوال والامتيازات الحية واختبارات رفض الأدوار غير المخولة. المصدر موجود فقط، ولا يوجد إثبات حي بأنه طُبق.
+- [ ] حسم عقد نطاق المؤسسة/الفرع/المخزن: معنى `business_id IS NULL` و`branch_id IS NULL`، نطاق الأسعار الموروث من الصنف، وحدود المخزن في حركات المخزون.
+- [ ] مراجعة عدائية متعددة الحسابات للدوال الحساسة المتبقية؛ الجرد الأمني قائمة فرز وليس دليل استغلال ولا إثبات سلامة شاملًا.
+- [ ] اختبارات E2E حقيقية لعزل المؤسسات والصلاحيات، والدفع/الـ webhook/التسوية، والنسخ الاحتياطي والتعافي.
+- [ ] التحقق من الإصدار المنشور فعليًا بعد أي إطلاق معتمد؛ CI الأخضر لا يثبت أن الإنتاج تم تحديثه.
+
+### قرار الإطلاق
+**الحالة: `BLOCKED / NOT CERTIFIED`.** لا دمج ولا تطبيق ترحيل على الإنتاج ولا نشر يدوي قبل إغلاق البوابات أعلاه بالأدلة والموافقات المطلوبة. لا تُعدّل الترحيلات التاريخية؛ أي إصلاح لاحق يكون migration جديدًا ومراجعًا.

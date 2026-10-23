@@ -66,6 +66,52 @@ if(!files.operations.includes("لم نعرضها كأنها فارغة")) failur
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 if(!files.operations.includes("'provider-services'")||!files.operations.includes("rows.marketing_provider_services")) failures.push("MARKETING_PROVIDER_SERVICES_VIEW_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
+// Sensitive catalog/inventory workspaces are intentionally read-only until an approved server mutation contract exists.
+const forbiddenDirectWrites = [
+  ["catalog_items", /sb\.from\(['"]catalog_items['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["catalog_item_prices", /sb\.from\(['"]catalog_item_prices['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["inventory_transactions", /sb\.from\(['"]inventory_transactions['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["fashion_products", /sb\.from\(['"]fashion_products['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["fashion_orders", /sb\.from\(['"]fashion_orders['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["fashion_tailor_services", /sb\.from\(['"]fashion_tailor_services['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["chart_of_accounts", /sb\.from\(['"]chart_of_accounts['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["journal_entries", /sb\.from\(['"]journal_entries['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["general_ledger", /sb\.from\(['"]general_ledger['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["erp_purchase_orders", /sb\.from\(['"]erp_purchase_orders['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["erp_purchase_receipts", /sb\.from\(['"]erp_purchase_receipts['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["erp_stock_transfers", /sb\.from\(['"]erp_stock_transfers['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["warehouses", /sb\.from\(['"]warehouses['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["orders", /sb\.from\(['"]orders['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["marketing_commission_rules", /sb\.from\(['"]marketing_commission_rules['"]\)\.(?:insert|update|delete|upsert)\s*\(/]
+];
+const requiredSensitiveWriteGuards = ["catalog_items","catalog_item_prices","inventory_transactions","fashion_products","fashion_orders","fashion_tailor_services","chart_of_accounts","journal_entries","general_ledger","erp_purchase_orders","erp_purchase_receipts","erp_stock_transfers","warehouses","orders","marketing_commission_rules"];
+for(const table of requiredSensitiveWriteGuards){
+ const guard=forbiddenDirectWrites.find(([name])=>name===table);
+ if(!guard) failures.push("SENSITIVE_WRITE_GUARD_MISSING:"+table);
+ else if(!guard[1].test("sb.from(\u0027"+table+"\u0027).upsert(")) failures.push("SENSITIVE_WRITE_GUARD_MUST_COVER_UPSERT:"+table);
+}
+for(const [table,pattern] of forbiddenDirectWrites){
+ if(pattern.test(files.operations)) failures.push("SENSITIVE_DIRECT_WRITE_FORBIDDEN:"+table);
+}
+// Fail closed for any new direct browser mutation unless its table is explicitly reviewed here.
+// Keep this allowlist narrow: financial, order, catalog, and inventory writes must use approved server contracts.
+const approvedDirectMutationTables = new Set(["marketing_provider_profiles","marketing_provider_services"]);
+const directMutationPattern = /sb\.from\(\s*(['"])([^'"]+)\1\s*\)\s*\.\s*(insert|update|delete|upsert)\s*\(/g;
+for(const match of files.operations.matchAll(directMutationPattern)){
+ const table=match[2];
+ const operation=match[3];
+ if(!approvedDirectMutationTables.has(table)) failures.push("UNAPPROVED_DIRECT_BROWSER_MUTATION:"+table+":"+operation);
+}
+// Dynamic table names paired with a mutation cannot be reviewed safely by this literal allowlist.
+const dynamicMutationPattern = /sb\.from\(\s*(?!['"\x60])[^)]+\)\s*\.\s*(insert|update|delete|upsert)\s*\(/g;
+for(const match of files.operations.matchAll(dynamicMutationPattern)) failures.push("DYNAMIC_TABLE_DIRECT_MUTATION_FORBIDDEN:"+match[1]);
+// Self-check the policy itself so weakening its patterns is caught by this validator.
+if(![..."sb.from('marketing_provider_services').insert(".matchAll(directMutationPattern)].length) failures.push("DIRECT_MUTATION_ALLOWLIST_PATTERN_BROKEN");
+if(![..."sb.from('journal_entries').upsert(".matchAll(directMutationPattern)].length) failures.push("DIRECT_MUTATION_DENY_PATTERN_BROKEN");
+if(![..."sb.from(tableName).update(".matchAll(dynamicMutationPattern)].length) failures.push("DYNAMIC_MUTATION_PATTERN_BROKEN");
+if(!files.operations.includes("عرض للقراءة فقط ضمن المؤسسة والفرع المحددين")) failures.push("GROCERY_READ_ONLY_NOTICE_REQUIRED");
+if(!files.operations.includes("عرض الطلبات للقراءة فقط")) failures.push("FASHION_ORDERS_READ_ONLY_NOTICE_REQUIRED");
+
 for(const [code,owner,tables] of modules){
  const source=files[owner];
  const catalogEntry=catalog.includes("code:'"+code+"'");
