@@ -27,6 +27,10 @@ for(const [needle,label] of required){
 }
 if(!home.includes('id="mx-sector-count"')) throw new Error("FAIL: live sector count mount missing");
 if(!home.includes("dynamicTaxonomy(services,providers).length")) throw new Error("FAIL: sector KPI must use canonical/live taxonomy count");
+if(!home.includes("const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'DIGITAL',SPORTS:'FITNESS',TRIPS:'TRAVEL',ERP:'TECH'}")) throw new Error("FAIL: backend sector codes must map to canonical public sectors");
+if(!home.includes("publicCategoryCode(x?.category_code)")) throw new Error("FAIL: live service counts must use canonical public sector codes");
+if(!home.includes("publicCategoryCode(x?.provider_kind)")) throw new Error("FAIL: live provider counts must use canonical public sector codes");
+if(!home.includes("Object.keys(PUBLIC_DIRECTORY_COUNTS||{})")) throw new Error("FAIL: public sector directory must include all discovered live sector codes");
 for(const [needle,label] of [
   ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
   ['id="mx-category-filter-clear"',"sector search must provide a clear action"],
