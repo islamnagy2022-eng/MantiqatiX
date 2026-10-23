@@ -5,6 +5,9 @@ const ui = fs.readFileSync("web/operations-modules.js", "utf8");
 const rls = fs.readFileSync("supabase/migrations/20260928010000_rc99_g5_provider_services_rls_hardening.sql", "utf8");
 const grants = fs.readFileSync("supabase/migrations/20261023020000_rc102_provider_services_owner_write_grants.sql", "utf8");
 const baseline = fs.readFileSync("docs/RC100_G5_PROVIDER_PROFILE_SERVICES_BASELINE.md", "utf8");
+const integration = fs.readFileSync("supabase/tests/rc102_provider_services_integration.sql", "utf8");
+const fixture = fs.readFileSync("supabase/tests/rc102_provider_services_fixture.sql", "utf8");
+const workflow = fs.readFileSync(".github/workflows/provider-services-owner-isolation.yml", "utf8");
 
 assert.match(ui, /function providerServicesWorkspace\(d\)/, "provider services workspace must exist");
 assert.match(ui, /\.filter\(p=>p\.owner_user_id===user\?\.id\)/, "UI must list only profiles owned by current user");
@@ -27,6 +30,12 @@ assert.match(grants, /grant\s+insert\s*,\s*update\s*,\s*delete\s+on\s+table\s+pu
 assert.doesNotMatch(grants, /grant\s+[^;]+\s+to\s+(anon|public|service_role)\b/i, "provider service mutation grants must not be broadened to anon, public, or service_role");
 assert.match(baseline, /no dedicated generic provider-availability\/location table/i, "do not invent a generic availability table");
 assert.doesNotMatch(ui, /create table|availability_slots|provider_availability/i, "UI must not introduce a new availability model");
+assert.match(fixture, /enable row level security/i, "disposable fixture must enable RLS");
+assert.match(integration, /cross-owner insert was accepted/, "integration test must reject cross-owner inserts");
+assert.match(integration, /transferred a service to owner B profile/, "integration test must reject cross-owner ownership changes");
+assert.match(integration, /anonymous Auth session wrote a provider service/, "integration test must reject anonymous Auth sessions");
+assert.match(workflow, /image: postgres:16/, "provider isolation test must use disposable PostgreSQL 16");
+assert.match(workflow, /rc99_policy\.sql[\s\S]*rc102_grants\.sql[\s\S]*rc102_test\.sql/, "workflow must apply existing RLS policy before grants and behavior tests");
 
 console.log("Provider services contract passed: owner checks, RLS boundary, existing schema only, validation, and server-response guard.");
-console.log("Live two-account isolation and browser E2E remain NOT VERIFIED until executed with separate real test accounts.");
+console.log("Disposable PostgreSQL owner-isolation test is wired into CI; live two-account isolation and browser E2E remain NOT VERIFIED until executed with separate real test accounts.");
