@@ -37,6 +37,9 @@ for(const [needle,label] of [
   ["card.textContent.toLocaleLowerCase('ar').includes(term)","sector search must filter visible service/provider cards locally"],
   ["applyCategoryFilter();","sector results must be filtered after loading"]
 ]) if(!home.includes(needle)) throw new Error("FAIL: "+label+" ("+needle+")");
+if(!home.includes('class="mx-category-service-details" hidden')) throw new Error("FAIL: public service cards must expose expandable service details");
+if(!home.includes("b.setAttribute('aria-expanded',expanded?'true':'false')")) throw new Error("FAIL: expandable service details must expose their state accessibly");
+if(!css.includes(".mx-category-service-details[hidden]{display:none!important}")) throw new Error("FAIL: expandable service details must respect their hidden state");
 if(!css.includes(".mx-category-result-card[hidden]{display:none!important}")) throw new Error("FAIL: filtered sector cards must be hidden accessibly and consistently");
 if(!css.includes(".mx-category-filter__controls")) throw new Error("FAIL: sector search controls must have responsive styling");
 console.log("PASS: homepage production-content contract contains no fabricated offers/reviews/partners/map and keeps live-data boundaries.");
