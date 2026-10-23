@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const ui = fs.readFileSync("web/operations-modules.js", "utf8");
 const rls = fs.readFileSync("supabase/migrations/20260928010000_rc99_g5_provider_services_rls_hardening.sql", "utf8");
+const grants = fs.readFileSync("supabase/migrations/20261023020000_rc102_provider_services_owner_write_grants.sql", "utf8");
 const baseline = fs.readFileSync("docs/RC100_G5_PROVIDER_PROFILE_SERVICES_BASELINE.md", "utf8");
 
 assert.match(ui, /function providerServicesWorkspace\(d\)/, "provider services workspace must exist");
@@ -22,6 +23,8 @@ assert.match(ui, /Number\.isFinite\(from\).*from<0/s, "prices must be finite and
 assert.match(ui, /to<from/, "price range must reject inverted ranges");
 assert.match(ui, /const catalog=\(rows\.marketing_services\|\|\[\]\)\.filter\(s=>String\(s\.status\|\|''\)\.toUpperCase\(\)==='ACTIVE'\)/, "only active catalog services should be selectable");
 assert.match(rls, /marketing_provider_services_owner_manage[\s\S]*owner_user_id = auth\.uid\(\)/, "existing RLS must enforce provider profile ownership");
+assert.match(grants, /grant\s+insert\s*,\s*update\s*,\s*delete\s+on\s+table\s+public\.marketing_provider_services\s+to\s+authenticated\s*;/i, "authenticated mutations must have table privileges so owner-scoped RLS can authorize them");
+assert.doesNotMatch(grants, /to\s+(anon|public|service_role)\b/i, "provider service mutation grants must not be broadened to anon, public, or service_role");
 assert.match(baseline, /no dedicated generic provider-availability\/location table/i, "do not invent a generic availability table");
 assert.doesNotMatch(ui, /create table|availability_slots|provider_availability/i, "UI must not introduce a new availability model");
 
