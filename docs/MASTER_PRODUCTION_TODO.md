@@ -1681,7 +1681,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Add a provider-services contract validator and include it in Pages CI.
 - [ ] Verify exact-head CI result after the latest commit.
 - [ ] Run browser E2E with two separate provider accounts proving cross-provider update/delete is denied.
-- [ ] Verify live database grants/policies and schema types for provider-service mutations; do not change RLS or migrations without evidence.
+- [x] Read-only live grant/policy check found authenticated SELECT-only on `marketing_provider_services`; owner-scoped RLS is present and RLS/FORCE RLS are enabled.
+- [x] RC102 branch-only migration proposes INSERT/UPDATE/DELETE grants to authenticated, guarded by the existing owner-scoped RLS policy; it has NOT been applied to production.
 - [ ] Review and test the central orders/bookings lifecycle after C4 completion.
 - Global production gate remains **BLOCKED / NOT CERTIFIED**.
 
@@ -1692,4 +1693,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Run browser E2E: customer discovery → order create → provider status transition.
 - [ ] Run two-tenant/cross-provider isolation tests and medical booking concurrency/notification tests.
 - [ ] Run payment/refund E2E only in the approved sandbox with test fixtures; no production transactions.
-- [ ] Exact-head CI remains NOT VERIFIED; available PR workflow runs are queued/in progress on earlier head and no new run is attached to the latest head.
+- [ ] Exact-head CI remains NOT VERIFIED; workflows triggered for the latest branch commits are queued/in progress. The Pages deployment job is validation-only/skipped on this feature branch.
+
+
+### RC102 — Provider service mutation privilege gap — 2026-10-23
+- [x] Live read-only audit verified `marketing_provider_services` has RLS and FORCE RLS enabled, an owner-scoped mutation policy, and only SELECT table privilege for `authenticated`.
+- [x] Added branch-only migration `20261023020000_rc102_provider_services_owner_write_grants.sql` granting INSERT/UPDATE/DELETE to `authenticated`; no anon/public/service-role mutation grant.
+- [x] Extended the provider-services static contract validator to require the grant and reject broader SQL grants.
+- [x] Migration version uniqueness passed on commit `7264e1353d6c5a575a9ae9aa17e616925dfb1ca3`; latest head remains pending, so do not infer current CI success.
+- [ ] Exact-head CI and migration collision guard on latest head.
+- [ ] Isolated database migration + owner/cross-owner behavioral test.
+- [ ] Browser E2E for add/edit/status/delete with two separate provider identities.
+- [ ] Do not merge/apply production until all above gates pass.
