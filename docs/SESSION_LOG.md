@@ -154,3 +154,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Static contract/CI result for the final commit: PENDING at the time of this log entry; do not infer pass from source edits.
 - Not verified: actual browser interaction, two-account cross-provider denial, live schema compatibility under a real authenticated provider, and full orders/bookings regression.
 - No merge, production deploy, or production data mutation performed. Production release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-23 — C3 orders/bookings source review after RC101
+
+- Reviewed `supabase/functions/order-create/index.ts`: requires a Bearer session, rejects anonymous users, validates active business/branch and catalog/pricing, and delegates creation to `create_order_backend`; server pricing is authoritative.
+- Reviewed `supabase/functions/order-status-update/index.ts`: requires authenticated non-anonymous user and delegates state changes to `update_order_status_backend` with the caller ID and tenant context.
+- Reviewed the existing booking/payment contract validator and medical booking migrations: the contract checks caller identity, active provider/membership, duplicate appointment IDs, role-gated medical status changes, and status allowlisting. The validator also guards against direct browser writes to central orders/payment intents.
+- No new order or booking schema/API was added; no payment or production transaction was created.
+- **Still NOT VERIFIED:** browser E2E from customer discovery through order creation and provider status transition; two-tenant/cross-provider isolation; medical booking concurrency and notification delivery; Paymob payment/refund runtime E2E.
+- Next C3 action: run exact-head CI once available, then browser/integration E2E with disposable authorized identities; keep release blocked meanwhile.
