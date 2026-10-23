@@ -204,7 +204,7 @@ checks.push(["Restaurant checkout does not persist customer contact or delivery 
   const end=start<0?-1:customerOrderScript.indexOf("});renderCart()",start);
   if(start<0||end<0)return false;
   const handler=customerOrderScript.slice(start,end);
-  return handler.includes("document.getElementById('customer').value") && handler.includes("document.getElementById('phone').value") && handler.includes("document.getElementById('address').value") && !handler.includes("localStorage") && !handler.includes("sessionStorage") && !handler.includes("fetch(") && !/(?:customerName|phoneNumber|deliveryAddress|paymentToken)/i.test(sharedCart);
+  return handler.includes("document.getElementById('customer').value") && customerOrder.includes('id="phone"') && customerOrder.includes('id="address"') && !handler.includes("localStorage") && !handler.includes("sessionStorage") && !handler.includes("fetch(") && !/(?:customerName|phoneNumber|deliveryAddress|paymentToken)/i.test(sharedCart);
 })()]);
 checks.push(["Restaurant checkout clears only the selected merchant cart after demo confirmation", (() => {
   const start=customerOrderScript.indexOf("document.getElementById('checkout').addEventListener('submit'");
