@@ -144,7 +144,7 @@ async function saveProviderService(){
  const from=fromRaw===''?null:Number(fromRaw),to=toRaw===''?null:Number(toRaw);
  if(!providerId||!serviceId)return alert('اختر ملف مقدم الخدمة والخدمة المعتمدة.');
  if(!['EGP','SAR','USD'].includes(currency)||!['ACTIVE','INACTIVE'].includes(status))return alert('العملة أو الحالة غير صالحة.');
- const validPrice=n=>n===null||(Number.isFinite(n)&&n>=0&&n<=100000000&&Math.round(n*100)===n*100);if(!validPrice(from)||!validPrice(to)||(from!==null&&to!==null&&to<from))return alert('راجع نطاق الأسعار؛ يجب أن تكون الأسعار بين صفر و100 مليون وبحد أقصى منزلتين عشريتين والسعر الأعلى لا يقل عن الأدنى.');
+ const validPrice=n=>n===null||(Number.isFinite(n)&&n>=0&&n<=100000000&&Math.round(n*100)/100===n);if(!validPrice(from)||!validPrice(to)||(from!==null&&to!==null&&to<from))return alert('راجع نطاق الأسعار؛ يجب أن تكون الأسعار بين صفر و100 مليون وبحد أقصى منزلتين عشريتين والسعر الأعلى لا يقل عن الأدنى.');
  if(description.length>2000)return alert('وصف الخدمة أطول من الحد المسموح.');
  try{
   const owner=await providerServiceOwner(providerId);
