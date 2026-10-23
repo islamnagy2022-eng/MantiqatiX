@@ -126,4 +126,13 @@ assert.match(moduleSource, /let ordersQ=sb\.from\('orders'\)\.select\('id,tenant
 assert.doesNotMatch(moduleSource, /ordersQ=sb\.from\('orders'\)\.select\([^)]*(customer_phone|delivery_address|items_json|notes)/,
   'restaurant order list must not fetch customer contact, delivery address, item payloads, or notes when the UI does not use them');
 
+assert.match(moduleSource, /let menuQ=sb\.from\('restaurant_menu_items'\)\.select\('id,name_ar,description_ar,base_price_egp,original_price_egp,category,is_available,is_popular'\)/,
+  'restaurant menu reads must request only fields rendered or used by its current workspace');
+assert.match(moduleSource, /let tablesQ=sb\.from\('restaurant_tables'\)\.select\('id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name'\)/,
+  'restaurant table reads must not retrieve unused owner identifiers');
+assert.match(moduleSource, /let invQ=sb\.from\('restaurant_inventory'\)\.select\('id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name'\)/,
+  'restaurant inventory reads must not retrieve unused owner identifiers or timestamps');
+assert.doesNotMatch(moduleSource, /(?:menuQ|tablesQ|invQ)=sb\.from\([^)]*\.select\([^)]*owner_user_id/,
+  'restaurant workspace list queries must not fetch unused owner_user_id fields');
+
 console.log('Restaurant module contract PASS');
