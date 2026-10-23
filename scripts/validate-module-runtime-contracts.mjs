@@ -73,7 +73,16 @@ const forbiddenDirectWrites = [
   ["inventory_transactions", /sb\.from\(['"]inventory_transactions['"]\)\.(?:insert|update|delete)\s*\(/],
   ["fashion_products", /sb\.from\(['"]fashion_products['"]\)\.(?:insert|update|delete)\s*\(/],
   ["fashion_orders", /sb\.from\(['"]fashion_orders['"]\)\.(?:insert|update|delete)\s*\(/],
-  ["fashion_tailor_services", /sb\.from\(['"]fashion_tailor_services['"]\)\.(?:insert|update|delete)\s*\(/]
+  ["fashion_tailor_services", /sb\.from\(['"]fashion_tailor_services['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["chart_of_accounts", /sb\.from\(['"]chart_of_accounts['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["journal_entries", /sb\.from\(['"]journal_entries['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["general_ledger", /sb\.from\(['"]general_ledger['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["erp_purchase_orders", /sb\.from\(['"]erp_purchase_orders['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["erp_purchase_receipts", /sb\.from\(['"]erp_purchase_receipts['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["erp_stock_transfers", /sb\.from\(['"]erp_stock_transfers['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["warehouses", /sb\.from\(['"]warehouses['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["orders", /sb\.from\(['"]orders['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
+  ["marketing_commission_rules", /sb\.from\(['"]marketing_commission_rules['"]\)\.(?:insert|update|delete|upsert)\s*\(/]
 ];
 for(const [table,pattern] of forbiddenDirectWrites){
  if(pattern.test(files.operations)) failures.push("SENSITIVE_DIRECT_WRITE_FORBIDDEN:"+table);
