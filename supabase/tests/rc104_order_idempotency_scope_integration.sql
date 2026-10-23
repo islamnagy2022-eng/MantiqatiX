@@ -23,7 +23,27 @@ begin
     raise exception 'TEST_FAILED: same-scope idempotent replay did not return original order';
   end if;
 
+  -- The verified Edge Function invokes the backend-only RPC with service_role after auth.getUser(token).
+  -- It has no end-user auth.uid() claim, but it passes the verified customer ID.
+  perform set_config('request.jwt.claim.sub', '', false);
+  perform set_config('request.jwt.claim.role', 'service_role', false);
+  result := public.create_order_backend(
+    '30000000-0000-4000-8000-000000000095',
+    'tenant-a',
+    '20000000-0000-4000-8000-000000000001',
+    'branch-a',
+    customer_one,
+    'same-key-rc104',
+    0,0,0,0,0,'EGP','Customer One','01000000000','Test address',
+    '[{"catalogItemId":"40000000-0000-4000-8000-000000000001","quantity":1,"selectedOptionIds":[]}]'::jsonb,
+    null,'{}'::jsonb
+  );
+  if result->>'id' <> '30000000-0000-4000-8000-000000000001' or result->>'idempotent' <> 'true' then
+    raise exception 'TEST_FAILED: verified service-role Edge Function path could not invoke order RPC';
+  end if;
+
   -- A different authenticated customer must not receive the stored order or pricing snapshot.
+  perform set_config('request.jwt.claim.role', 'authenticated', false);
   perform set_config('request.jwt.claim.sub', customer_two::text, false);
   rejected := false;
   begin
