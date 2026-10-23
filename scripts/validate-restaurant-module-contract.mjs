@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const moduleSource = fs.readFileSync('web/restaurant-module.js', 'utf8');
+const operationsSource = fs.readFileSync('web/operations-modules.js', 'utf8');
 const rbacSource = fs.readFileSync('web/rbac.js', 'utf8');
 
 // The restaurant workspace must use the shared RBAC contract, not its own role allowlist.
@@ -11,6 +12,14 @@ assert.doesNotMatch(moduleSource, /\['OWNER','ADMIN','MANAGER','BUSINESS_OWNER',
   'restaurant must not keep a local hard-coded role allowlist');
 assert.match(rbacSource, /'المطاعم والمطابخ':'CATALOG'/,
   'restaurant module alias must resolve through the shared catalog permission model');
+assert.match(rbacSource, /'المطاعم':'CATALOG'.*'كافيهات':'CATALOG'/,
+  'restaurant and cafe aliases must resolve through the shared catalog permission model');
+assert.match(moduleSource, /\['المطاعم والمطابخ','المطاعم','كافيهات'\]\.includes\(label\)/,
+  'the restaurant workspace must explicitly support restaurant and cafe routes');
+assert.match(moduleSource, /function isCafe\(\)/,
+  'the shared workspace must adapt its labels for cafe operators');
+assert.match(operationsSource, /const restaurantWorkspace=\['المطاعم والمطابخ','المطاعم','كافيهات'\]\.includes\(n\);if\(restaurantWorkspace\)\{current=null;return\}/,
+  'generic operations workspace must not race the restaurant workspace on restaurant/cafe routes');
 
 // Route detection must not poll forever when the DOM observer already covers route changes.
 assert.match(moduleSource, /const mo=new MutationObserver\(observe\);\s*mo\.observe\(document\.body,\{childList:true,subtree:true\}\);\s*\/\/ Handle the initial route once; subsequent route changes are observed through DOM mutations\.\s*observe\(\);/,
