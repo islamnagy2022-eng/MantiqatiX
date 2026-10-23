@@ -3,6 +3,7 @@ do $test$
 declare
   manager_a uuid := '10000000-0000-4000-8000-000000000001';
   owner_user uuid := '10000000-0000-4000-8000-000000000002';
+  other_business_admin uuid := '10000000-0000-4000-8000-000000000004';
   customer_user uuid := '10000000-0000-4000-8000-000000000003';
   tenant_key varchar := 'tenant-a';
   rejected boolean;
@@ -31,6 +32,19 @@ begin
   if (select status from public.orders where id='30000000-0000-4000-8000-000000000002') <> 'PENDING' then
     raise exception 'TEST_FAILED: rejected cross-branch update changed order status';
   end if;
+
+  -- An ADMIN membership scoped to another business must not inherit tenant-wide access.
+  perform set_config('request.jwt.claim.sub', other_business_admin::text, false);
+  rejected := false;
+  begin
+    perform public.update_order_status_backend(
+      '30000000-0000-4000-8000-000000000002', tenant_key, other_business_admin, 'CONFIRMED', null
+    );
+  exception when others then
+    if sqlerrm <> 'INVALID_ORDER_TRANSITION' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'TEST_FAILED: business-scoped ADMIN changed an unrelated business order'; end if;
 
   -- Tenant-wide OWNER access remains compatible with the previous contract.
   perform set_config('request.jwt.claim.sub', owner_user::text, false);
