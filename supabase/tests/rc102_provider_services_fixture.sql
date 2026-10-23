@@ -49,6 +49,17 @@ insert into public.marketing_provider_profiles(id, owner_user_id) values
  ('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001'),
  ('10000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002');
 
+alter table public.marketing_provider_profiles enable row level security;
+alter table public.marketing_provider_profiles force row level security;
+create policy provider_profile_owner_read
+  on public.marketing_provider_profiles for select to authenticated
+  using (owner_user_id = auth.uid());
+
+alter table public.marketing_provider_services enable row level security;
+alter table public.marketing_provider_services force row level security;
+alter table public.marketing_services enable row level security;
+alter table public.marketing_services force row level security;
+
 grant usage on schema public, auth to authenticated, anon;
 grant execute on function auth.uid() to authenticated, anon;
 grant execute on function auth.jwt() to authenticated, anon;
