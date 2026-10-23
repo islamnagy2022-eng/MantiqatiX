@@ -168,6 +168,10 @@ assert.match(moduleSource, /let payload=readPendingRestaurantOrder\(m\)/,
   'a retry must restore the previous logical order instead of generating a new idempotency key');
 assert.match(moduleSource, /savePendingRestaurantOrder\(m,payload\);\s*const r=await invokeMntyFunction\('order-create',payload\);\s*clearPendingRestaurantOrder\(m\);/,
   'pending idempotency state must be saved before submission and cleared only after confirmed success');
+assert.match(moduleSource, /notify\('تم إنشاء الطلب '\+\(r\?\.id\|\|payload\.orderId\)[\s\S]*?try\{await load\(\);\}catch\(refreshError\)/,
+  'a refresh failure after confirmed creation must not be treated as a failed order submission');
+assert.match(moduleSource, /تم إنشاء الطلب بنجاح لكن تعذر تحديث الشاشة/,
+  'post-create refresh errors must tell the user the order already exists and must not be resubmitted');
 assert.match(moduleSource, /trigger\.disabled=true;trigger\.textContent='جارٍ تجهيز الطلب…'/,
   'the order creation control must visibly disable while catalog/order requests are pending');
 assert.match(moduleSource, /finally\{\s*creatingRestaurantOrder=false;\s*if\(trigger\?\.isConnected\)\{trigger\.disabled=false;trigger\.textContent=originalLabel;\}/,
