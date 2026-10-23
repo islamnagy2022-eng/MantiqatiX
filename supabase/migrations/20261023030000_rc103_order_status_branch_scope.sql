@@ -1,5 +1,5 @@
 -- RC103: enforce branch-level authorization for canonical order status changes.
--- Only tenant-wide OWNER/ADMIN memberships (business_id IS NULL) retain tenant-wide access.
+-- Only fully unscoped OWNER/ADMIN memberships (business_id and branch_id both NULL) retain tenant-wide access.
 -- Business-scoped operational memberships must match both the order business and exact branch.
 -- Customer cancellation of one's own order and the existing transition/payment guards remain intact.
 create or replace function public.update_order_status_backend(
