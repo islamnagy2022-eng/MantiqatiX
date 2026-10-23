@@ -10,6 +10,10 @@ const fixture = fs.readFileSync("supabase/tests/rc102_provider_services_fixture.
 const workflow = fs.readFileSync(".github/workflows/provider-services-owner-isolation.yml", "utf8");
 
 assert.match(ui, /function providerServicesWorkspace\(d\)/, "provider services workspace must exist");
+assert.match(ui, /id="psLinkSearch"/, "provider services workspace must expose a searchable service list");
+assert.match(ui, /id="psLinkStatus"/, "provider services workspace must expose a status filter");
+assert.match(ui, /data-provider-service-row data-status=/, "provider service rows must expose safe filter metadata");
+assert.match(ui, /const filterProviderLinks=\(\)=>\{[\s\S]*data-provider-service-row[\s\S]*psLinkCount/, "provider service search and status filters must update visible rows and result count");
 assert.match(ui, /d\.key==='MARKETING'&&tab==='provider-services'&&t==='marketing_provider_profiles'\)\{q=sb\.from\(t\)\.select\('id,owner_user_id,name_ar,name_en,slug,service_areas,status'\)\.eq\('owner_user_id',user\.id\)/,
   "provider-services tab must query only the current user's profiles and only required profile fields");
 assert.match(ui, /d\.key==='MARKETING'&&tab==='provider-services'&&t==='marketing_services'\)\{q=sb\.from\(t\)\.select\('id,name_ar,name_en,code,status'\)\.eq\('status','ACTIVE'\)/,
