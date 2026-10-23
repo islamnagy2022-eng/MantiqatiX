@@ -189,3 +189,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Extended `scripts/validate-booking-payment-flow.mjs` to assert bounded streaming, early stop/cancellation, malformed UTF-8 rejection, duplicate/oversized selected-option rejection, and finite final totals.
 - Prior exact head `7330fd1a7014aaed15ad0c373cf140a1c7c0ae1f` passed all 12 PR workflows. RC109 changes are on a new head and require a fresh exact-head CI run.
 - No merge, production deployment, production migration, payment transaction, or production data write occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — RC110 — Controlled order-option mismatch handling
+
+- Reviewed the selected-option pricing path after RC109 streaming hardening.
+- Replaced an unhandled thrown exception for an option attached to the wrong catalog item with a controlled `OPTION_ITEM_MISMATCH` HTTP 400 response before price calculation.
+- Added source-contract assertions that require the controlled error and pre-calculation validation.
+- Exact-head CI for this source/test update is running on `8dfa86ba97c3af6980fa2974b745500b6ab38e88`; all 12 workflows were queued/pending at the first status poll. Do not claim the new head passes until all are completed successfully.
+- No production deployment, migration, payment transaction, or production data write occurred. PR #350 remains draft/unmerged; production release remains **BLOCKED / NOT CERTIFIED**.
