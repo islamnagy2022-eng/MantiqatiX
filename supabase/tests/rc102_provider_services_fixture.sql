@@ -49,6 +49,10 @@ insert into public.marketing_provider_profiles(id, owner_user_id) values
  ('10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001'),
  ('10000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002');
 
+-- Seed an owner-B row as the disposable fixture administrator; owner A must not mutate it.
+insert into public.marketing_provider_services(provider_id, service_id, service_description)
+values ('10000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','Owner B protected service');
+
 alter table public.marketing_provider_profiles enable row level security;
 alter table public.marketing_provider_profiles force row level security;
 create policy provider_profile_owner_read
