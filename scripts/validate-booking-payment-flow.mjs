@@ -9,6 +9,7 @@ const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.
 const orderStatusScope=fs.readFileSync("supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql","utf8");
 const orderIdempotencyScope=fs.readFileSync("supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql","utf8");
 const orderCreateServiceRoleScope=fs.readFileSync("supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql","utf8");
+const orderStatusServiceRoleScope=fs.readFileSync("supabase/migrations/20261023060000_rc106_order_status_service_role_identity.sql","utf8");
 const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
 const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
 
@@ -57,6 +58,9 @@ const forbiddenClientOrder=[
 const additionalRequired=[
   ["Order status endpoint requires bearer authentication", 'h.startsWith("Bearer ")', orderStatus],
   ["Order status endpoint rejects anonymous sessions", "data.user.is_anonymous", orderStatus],
+  ["Order status RPC accepts verified service-role Edge Function identity", "coalesce(auth.role(), '') <> 'service_role'", orderStatusServiceRoleScope],
+  ["Non-service-role order status mutation remains bound to auth.uid", "p_user_id is distinct from auth.uid()", orderStatusServiceRoleScope],
+  ["Order status service-role migration preserves existing RPC ACL", "CREATE OR REPLACE preserves the existing function identity and ACL", orderStatusServiceRoleScope],
   ["Order status mutation delegates to authoritative backend RPC", 'admin.rpc("update_order_status_backend"', orderStatus],
   ["Order status branch-scope migration preserves authenticated identity binding", "p_user_id is distinct from auth.uid()", orderStatusScope],
   ["Operational status updates require exact business and branch membership", "m.branch_id is not distinct from v_order.branch_id", orderStatusScope],
@@ -85,6 +89,7 @@ if(order.split("const branchId = body.branchId").length-1!==1) failures.push("Or
 if(orderStatusScope.toLowerCase().includes("grant execute")||orderStatusScope.toLowerCase().includes("revoke execute")) failures.push("RC103 must not broaden or alter backend-only order-status RPC execution grants");
 if(orderIdempotencyScope.toLowerCase().includes("grant execute")||orderIdempotencyScope.toLowerCase().includes("revoke execute")) failures.push("RC104 must not broaden or alter backend-only order-create RPC execution grants");
 if(orderCreateServiceRoleScope.toLowerCase().includes("grant execute")||orderCreateServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC105 must not broaden or alter backend-only order-create RPC execution grants");
+if(orderStatusServiceRoleScope.toLowerCase().includes("grant execute")||orderStatusServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC106 must not broaden or alter backend-only order-status RPC execution grants");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
 
 if(failures.length){
