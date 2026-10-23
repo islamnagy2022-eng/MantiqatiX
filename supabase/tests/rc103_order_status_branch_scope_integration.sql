@@ -19,6 +19,20 @@ begin
     raise exception 'TEST_FAILED: branch A manager could not confirm own-branch order';
   end if;
 
+  -- The verified Edge Function uses service_role after auth.getUser(token), so auth.uid() is absent.
+  perform set_config('request.jwt.claim.sub', '', false);
+  perform set_config('request.jwt.claim.role', 'service_role', false);
+  result := public.update_order_status_backend(
+    '30000000-0000-4000-8000-000000000005', tenant_key, manager_a, 'CONFIRMED', null
+  );
+  if result->>'status' <> 'CONFIRMED' then
+    raise exception 'TEST_FAILED: verified service-role Edge Function path could not update order';
+  end if;
+
+  -- Restore an end-user JWT claim for direct identity-bound calls in the remaining tests.
+  perform set_config('request.jwt.claim.role', 'authenticated', false);
+  perform set_config('request.jwt.claim.sub', manager_a::text, false);
+
   -- The same manager must not mutate an order in branch B of the same business.
   rejected := false;
   begin
