@@ -54,6 +54,11 @@ if(!files.operations.includes("q=q.eq('tenant_id',m.tenant_id).in('catalog_item_
 if(!files.operations.includes("عرض للقراءة فقط ضمن المؤسسة والفرع المحددين")) failures.push("GROCERY_READ_ONLY_INVENTORY_ORDER_VIEW");
 if(!files.operations.includes("table([['الصنف','product_id'],['نوع الحركة','transaction_type']")) failures.push("GROCERY_INVENTORY_PRODUCT_ID_COLUMN");
 if(!files.operations.includes("'سوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices','live']")) failures.push("SUPERMARKET_ALIAS_SHARED_GROCERY_WORKSPACE");
+if(!files.operations.includes("'ملابس وأزياء':{key:'FASHION',tabs:['overview','products','orders','tailors']")) failures.push("FASHION_ALIAS_SHARED_WORKSPACE");
+if(!files.operations.includes("q=q.eq('tenant_id',m.tenant_id).eq('business_id',m.business_id).order('created_at',{ascending:false})")) failures.push("FASHION_PRODUCTS_ORDERS_SCOPED");
+if(!files.operations.includes("q=q.eq('owner_user_id',user.id).order('created_at',{ascending:false})")) failures.push("FASHION_TAILOR_SERVICES_OWNER_SCOPED");
+if(!files.operations.includes("لا يتم عرض هاتف العميل أو عنوانه")) failures.push("FASHION_ORDER_PII_NOT_IN_LIST");
+if(!files.operations.includes("يلزم اختيار عضوية نشطة مرتبطة بمؤسسة محددة لعرض بيانات هذا النشاط")) failures.push("FASHION_MEMBERSHIP_SCOPE_FAIL_CLOSED");
 if(!files.operations.includes('id="op-membership-select"')||!files.operations.includes("data-op-use-membership")) failures.push("OPERATIONS_MEMBERSHIP_SELECTOR_UI_MISSING");
 if(!files.operations.includes("localStorage.setItem('MNTYActiveMembershipId',selected.id)")) failures.push("OPERATIONS_MEMBERSHIP_SELECTION_NOT_PERSISTED");
 if(!files.operations.includes("تم إيقاف تحميل بيانات المؤسسة حفاظًا على العزل")) failures.push("SCOPED_OPERATIONS_REQUIRE_ACTIVE_MEMBERSHIP");
