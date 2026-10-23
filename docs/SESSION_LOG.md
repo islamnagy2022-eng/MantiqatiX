@@ -173,3 +173,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Fixed a duplicate `async` keyword found by CI, corrected a malformed contract-test regex, and aligned the modal-save assertion with keyboard-listener cleanup. Exact-head CI on `0fb3032f3d578c651d7de0ee16bc1977518c02d6` passed all 11 workflows, including Preview Demo Validation, migration uniqueness/history/collision guards, provider-service owner isolation, backend-only module boundary, module professionalization, MantiGO privacy, approval-audit atomicity, and RC103 branch-scope PostgreSQL behavior.
 - No production migration execution, production data writes, payment transactions, merge, or deployment occurred. RC103 remains branch-only; PR #350 remains draft/unmerged.
 - **Still NOT VERIFIED:** real browser E2E with distinct authorized staff accounts, end-to-end customer order creation and staff status transitions on the live stack, Paymob payment/refund runtime, backup/restore drill, and full release evidence. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — RC108 — bounded order-create request contract
+
+- Hardened `supabase/functions/order-create/index.ts` to reject request bodies larger than 256 KiB before JSON parsing, including an actual encoded-byte check rather than relying only on Content-Length.
+- Added object-shape validation and explicit maximum lengths for customer name (200), phone (32), delivery address (500), and notes (2,000).
+- Client-supplied metadata is now limited to the supported `source` and `catalog_authoritative` keys with type/length checks; the server still appends authoritative pricing metadata.
+- Updated `scripts/validate-booking-payment-flow.mjs` to enforce these source contracts.
+- CI on the preceding head passed all 12 workflows; exact-head CI for RC108 is pending/rechecking and must pass before this change is considered verified.
+- No production Edge Function deployment, database migration, order creation, payment, merge, or production data mutation occurred. Production release remains **BLOCKED / NOT CERTIFIED**.
