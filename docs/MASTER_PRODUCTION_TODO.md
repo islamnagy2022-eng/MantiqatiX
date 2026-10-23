@@ -1701,8 +1701,8 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added branch-only migration `20261023020000_rc102_provider_services_owner_write_grants.sql` granting INSERT/UPDATE/DELETE to `authenticated`; no anon/public/service-role mutation grant.
 - [x] Extended the provider-services static contract validator to require the grant and reject broader SQL grants.
 - [x] Migration version uniqueness passed on commit `7264e1353d6c5a575a9ae9aa17e616925dfb1ca3`; latest head remains pending, so do not infer current CI success.
-- [ ] Exact-head CI and migration collision guard on latest head.
-- [ ] Isolated database migration + owner/cross-owner behavioral test.
+- [x] Exact-head migration uniqueness [run 39883171165](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171165), history immutability [run 39883171079](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171079), and cross-PR collision guard [run 39883171151](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171151) passed on head `a051ca2ce6d8cfc4fb85da9fa77d3260339c2c0b`.
+- [x] Isolated PostgreSQL migration + owner/cross-owner behavioral test passed in CI run [39883171148](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171148).
 - [ ] Browser E2E for add/edit/status/delete with two separate provider identities.
 - [ ] Do not merge/apply production until all above gates pass.
 
@@ -1712,6 +1712,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added behavioral SQL cases for owner insert/update/delete, cross-owner read/insert/update/delete boundaries, and anonymous-session denial.
 - [x] Added dedicated workflow `.github/workflows/provider-services-owner-isolation.yml` to apply fixture → existing RC99 policy → RC102 grants → integration test in that order.
 - [x] Extended the static contract validator to assert the integration cases and isolated PostgreSQL workflow.
-- [ ] The new workflow's run result is not yet available for exact head `f5dba425d1bfce11f0ea36a7b9fda52a38ec2459`; do not mark the behavioral SQL test passed until GitHub Actions reports success.
+- [x] Exact-head provider-services workflow [run 39883171148](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171148) passed on head `a051ca2ce6d8cfc4fb85da9fa77d3260339c2c0b`: both the static contract and disposable PostgreSQL 16 owner-isolation integration test succeeded.
 - [ ] Real browser E2E with two separate provider identities remains NOT VERIFIED.
 - [ ] RC102 is still branch-only and has not been applied to production. Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC102 CI status refresh — 2026-10-23
+- [x] Provider-services contract validator and PostgreSQL 16 owner-isolation integration passed on exact head `a051ca2ce6d8cfc4fb85da9fa77d3260339c2c0b`.
+- [x] Migration version uniqueness, migration history immutability, and cross-PR migration collision guard passed on the same head.
+- [x] Pages validation passed; deploy job skipped as expected for a pull request. No deployment occurred.
+- [ ] Backend-only module boundary and module professionalization/privacy workflows are still queued/in progress at last check; recheck before treating the whole PR CI suite as green.
+- [ ] Browser E2E with two separate real provider accounts remains NOT VERIFIED.
+- [ ] RC102 remains branch-only; production schema and grants are unchanged.
