@@ -1724,3 +1724,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Backend-only module boundary and module professionalization/privacy workflows are still queued/in progress at last check; recheck before treating the whole PR CI suite as green.
 - [ ] Browser E2E with two separate real provider accounts remains NOT VERIFIED.
 - [ ] RC102 remains branch-only; production schema and grants are unchanged.
+
+
+### RC101/RC102 and restaurant preview CI refresh — 2026-10-23
+- [x] Rechecked all relevant workflows against head `b63bbdab63b653ca8e630552e9cfb363d5ecce66`: Preview Demo Validation, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, MantiGO Open Ride Privacy Boundary, Approval Action Audit Atomicity, Provider Services Owner Isolation, Backend-only Module Boundary, and Module Professionalization Validation all completed successfully.
+- [x] Provider Services Owner Isolation passed on this exact head, including its static contract and disposable PostgreSQL integration job.
+- [x] Backend-only Module Boundary and Module Professionalization Validation completed successfully, including financial-journal, approval-audit, targeted-ads, and matrimony privacy PostgreSQL jobs.
+- [x] Pages workflow completed successfully as a workflow, but deployment was skipped for the feature PR branch; no deployment is claimed.
+- [ ] Customer checkout still creates only a local demo confirmation; it does not persist an order or send it to a restaurant. Real browser E2E, backend integration, live pricing/availability checks, and authenticated tenant-isolation tests remain open.
+- [ ] PR #350 remains draft/unmerged; RC102 migration remains branch-only. Production gate remains **BLOCKED / NOT CERTIFIED**.
