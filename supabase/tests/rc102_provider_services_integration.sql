@@ -56,8 +56,26 @@ begin
     raise exception 'failed cross-owner update damaged the owner A row';
   end if;
 
-  -- RLS must silently scope DELETE to rows visible to the actor.
+  -- RLS must silently scope UPDATE and DELETE to rows visible to the actor.
+  update public.marketing_provider_services
+    set service_description='Tampered by owner A'
+    where provider_id=provider_b and service_id=service_b;
   delete from public.marketing_provider_services where provider_id=provider_b and service_id=service_b;
+
+  -- Switch claims to owner B to verify the protected row still exists unchanged.
+  perform set_config('request.jwt.claim.sub',owner_b::text,false);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',owner_b::text,'is_anonymous',false)::text,false);
+  if not exists(
+    select 1 from public.marketing_provider_services
+    where provider_id=provider_b and service_id=service_b
+      and service_description='Owner B protected service'
+  ) then
+    raise exception 'owner A modified or deleted owner B service';
+  end if;
+
+  -- Restore owner A claims before testing owner A's allowed mutations.
+  perform set_config('request.jwt.claim.sub',owner_a::text,false);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',owner_a::text,'is_anonymous',false)::text,false);
   if not exists(select 1 from public.marketing_provider_services where provider_id=provider_a and service_id=service_a) then
     raise exception 'owner A deleted or lost owner A service unexpectedly';
   end if;
