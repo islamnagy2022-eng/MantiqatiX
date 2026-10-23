@@ -8,6 +8,7 @@ const payment=fs.readFileSync("supabase/functions/payment-intent/index.ts","utf8
 const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.ts","utf8");
 const orderStatusScope=fs.readFileSync("supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql","utf8");
 const orderIdempotencyScope=fs.readFileSync("supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql","utf8");
+const orderCreateServiceRoleScope=fs.readFileSync("supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql","utf8");
 const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
 const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
 
@@ -30,6 +31,9 @@ const required=[
   ["Customer order sends selected branch", "branchId,clientIdempotencyKey", app],
   ["Order creation uses server-authoritative pricing", "pricing_server_authoritative: true", order],
   ["Order creation records catalog pricing authority", 'pricing_authority: "catalog_v1"', order],
+  ["Verified Edge Function service-role path is supported for order creation", "coalesce(auth.role(),'') <> 'service_role'", orderCreateServiceRoleScope],
+  ["Non-service-role order creation remains bound to auth.uid", "auth.uid() is distinct from p_customer_id", orderCreateServiceRoleScope],
+  ["Order-create service-role migration preserves the existing RPC ACL", "CREATE OR REPLACE preserves the existing function identity and its ACL", orderCreateServiceRoleScope],
   ["Order idempotency key rejects reuse by another customer or seller scope", "IDEMPOTENCY_KEY_CONFLICT", orderIdempotencyScope],
   ["Idempotent replay is filtered by authenticated customer", "and customer_id=p_customer_id", orderIdempotencyScope],
   ["Idempotent replay is filtered by business", "and business_id=p_business_id", orderIdempotencyScope],
@@ -80,6 +84,7 @@ if(branchScopeIndex<0||customerFallbackIndex<0||branchScopeIndex>customerFallbac
 if(order.split("const branchId = body.branchId").length-1!==1) failures.push("Order creation must define branch scope exactly once before membership authorization");
 if(orderStatusScope.toLowerCase().includes("grant execute")||orderStatusScope.toLowerCase().includes("revoke execute")) failures.push("RC103 must not broaden or alter backend-only order-status RPC execution grants");
 if(orderIdempotencyScope.toLowerCase().includes("grant execute")||orderIdempotencyScope.toLowerCase().includes("revoke execute")) failures.push("RC104 must not broaden or alter backend-only order-create RPC execution grants");
+if(orderCreateServiceRoleScope.toLowerCase().includes("grant execute")||orderCreateServiceRoleScope.toLowerCase().includes("revoke execute")) failures.push("RC105 must not broaden or alter backend-only order-create RPC execution grants");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
 
 if(failures.length){
