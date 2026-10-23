@@ -3,11 +3,11 @@ create extension if not exists pgcrypto;
 create schema if not exists auth;
 create or replace function auth.uid()
 returns uuid language sql stable
-as $ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $;
+as $function$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $function$;
 
 create or replace function auth.role()
 returns text language sql stable
-as $ select nullif(current_setting('request.jwt.claim.role', true), '') $;
+as $function$ select nullif(current_setting('request.jwt.claim.role', true), '') $function$;
 
 create table public.orders (
   id uuid primary key,
