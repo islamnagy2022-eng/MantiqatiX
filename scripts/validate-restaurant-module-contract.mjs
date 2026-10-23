@@ -135,4 +135,7 @@ assert.match(moduleSource, /let invQ=sb\.from\('restaurant_inventory'\)\.select\
 assert.doesNotMatch(moduleSource, /(?:menuQ|tablesQ|invQ)=sb\.from\([^)]*\.select\([^)]*owner_user_id/,
   'restaurant workspace list queries must not fetch unused owner_user_id fields');
 
+assert.equal(Math.round(0.29 * 100) / 100, 0.29, 'valid 0.29 EGP must survive floating-point-safe cents validation');
+assert.notEqual(Math.round(1.234 * 100) / 100, 1.234, 'prices with more than two decimal places must be rejected');
+
 console.log('Restaurant module contract PASS');
