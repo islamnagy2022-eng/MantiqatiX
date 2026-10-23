@@ -60,5 +60,16 @@ assert.equal(validProviderPrice(1.234), false, "provider prices must reject more
 assert.equal(validProviderPrice(-0.01), false, "provider prices must reject negative values");
 assert.equal(validProviderPrice(100000001), false, "provider prices must reject values over the configured maximum");
 
+
+assert.match(ui, /document\.getElementById\('psAreaProvider'\)\?\.addEventListener\('change',[\s\S]*owner_user_id===user\?\.id[\s\S]*area\.value=v\.join\('\\n'\)/,
+  "changing the selected provider profile must refresh the textarea from that owned profile's service areas");
+assert.match(ui, /if\(result\.error\)throw new Error\(result\.error\.message\);[\s\S]*if\(!result\.data\?\.length\)/,
+  "profile-area and provider-service mutations must treat server errors and empty confirmations as failures");
+assert.match(ui, /if\(description\.length>2000\)/, "provider service descriptions must be length-bounded before writes");
+assert.match(ui, /if\(!\['EGP','SAR','USD'\]\.includes\(currency\)\|\|!\['ACTIVE','INACTIVE'\]\.includes\(status\)\)/,
+  "provider service currency and lifecycle status must be allow-listed");
+assert.match(ui, /const psSearch=document\.getElementById\('psLinkSearch'\),psStatus=document\.getElementById\('psLinkStatus'\)/,
+  "provider-service list search and status filter controls must be bound at runtime");
+
 console.log("Provider services contract passed: owner checks, RLS boundary, existing schema only, validation, and server-response guard.");
 console.log("Disposable PostgreSQL owner-isolation test is wired into CI; live two-account isolation and browser E2E remain NOT VERIFIED until executed with separate real test accounts.");
