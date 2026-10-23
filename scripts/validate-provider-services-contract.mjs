@@ -17,7 +17,7 @@ assert.match(ui, /\.eq\('provider_id',providerId\)\.eq\('service_id',serviceId\)
 assert.match(ui, /if\(!result\.data\?\.length\)/, "UI must not claim success without returned server rows");
 assert.match(ui, /Number\.isFinite\(from\).*from<0/s, "prices must be finite and non-negative");
 assert.match(ui, /to<from/, "price range must reject inverted ranges");
-assert.match(ui, /\.filter\(s=>String\(s\.status\|\|' '\)\.toUpperCase\(\)==='ACTIVE'\)/.test(ui) ? ui : " ", /./, "placeholder");
+assert.match(ui, /const catalog=\(rows\.marketing_services\|\|\[\]\)\.filter\(s=>String\(s\.status\|\|'ACTIVE'\)\.toUpperCase\(\)==='ACTIVE'\)/, "only active catalog services should be selectable");
 assert.match(rls, /marketing_provider_services_owner_manage[\s\S]*owner_user_id = auth\.uid\(\)/, "existing RLS must enforce provider profile ownership");
 assert.match(baseline, /No dedicated generic provider-availability\/location table/, "do not invent a generic availability table");
 assert.doesNotMatch(ui, /create table|availability_slots|provider_availability/i, "UI must not introduce a new availability model");
