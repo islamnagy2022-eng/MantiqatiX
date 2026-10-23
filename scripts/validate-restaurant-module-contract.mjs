@@ -145,4 +145,11 @@ assert.match(moduleSource, /const catalog=await invokeMntyApi\('/api\/v1\/catalo
 assert.match(moduleSource, /const r=await invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must await the server-authoritative order endpoint');
 
+assert.match(moduleSource, /function modal\(title,html,onSave,onClose\)/,
+  'shared restaurant modal must support an explicit cancellation callback');
+assert.match(moduleSource, /if\(typeof onClose==='function'\)onClose\(\)/,
+  'closing a modal by button, Escape, or backdrop must invoke its cancellation callback once');
+assert.match(moduleSource, /\},\(\)=>resolve\(null\)\);/,
+  'cancelling restaurant order details must resolve the pending promise instead of leaving the flow suspended');
+
 console.log('Restaurant module contract PASS');
