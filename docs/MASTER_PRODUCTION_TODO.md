@@ -1705,3 +1705,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Isolated database migration + owner/cross-owner behavioral test.
 - [ ] Browser E2E for add/edit/status/delete with two separate provider identities.
 - [ ] Do not merge/apply production until all above gates pass.
+
+
+### RC102 — isolated owner-isolation CI coverage added — 2026-10-23
+- [x] Added disposable PostgreSQL 16 fixture for provider profiles/services, including RLS and the existing RC99 ownership policy.
+- [x] Added behavioral SQL cases for owner insert/update/delete, cross-owner read/insert/update/delete boundaries, and anonymous-session denial.
+- [x] Added dedicated workflow `.github/workflows/provider-services-owner-isolation.yml` to apply fixture → existing RC99 policy → RC102 grants → integration test in that order.
+- [x] Extended the static contract validator to assert the integration cases and isolated PostgreSQL workflow.
+- [ ] The new workflow's run result is not yet available for exact head `f5dba425d1bfce11f0ea36a7b9fda52a38ec2459`; do not mark the behavioral SQL test passed until GitHub Actions reports success.
+- [ ] Real browser E2E with two separate provider identities remains NOT VERIFIED.
+- [ ] RC102 is still branch-only and has not been applied to production. Release gate remains **BLOCKED / NOT CERTIFIED**.
