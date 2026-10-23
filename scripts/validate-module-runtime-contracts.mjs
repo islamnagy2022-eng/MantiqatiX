@@ -53,6 +53,7 @@ if(!files.operations.includes("localStorage.setItem('MNTYActiveMembershipId',sel
 if(!files.operations.includes("تم إيقاف تحميل بيانات المؤسسة حفاظًا على العزل")) failures.push("SCOPED_OPERATIONS_REQUIRE_ACTIVE_MEMBERSHIP");
 if(!files.operations.includes("لم نعرضها كأنها فارغة")) failures.push("OPERATIONS_QUERY_ERROR_STATE_MISSING");
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
+if(!files.operations.includes("'provider-services'")||!files.operations.includes("rows.marketing_provider_services")) failures.push("MARKETING_PROVIDER_SERVICES_VIEW_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 for(const [code,owner,tables] of modules){
  const source=files[owner];
