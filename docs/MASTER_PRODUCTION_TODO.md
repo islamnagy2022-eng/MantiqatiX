@@ -1766,3 +1766,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Open PR Migration Collision Guard could not complete its cross-PR check because GitHub API returned HTTP 403 while fetching another open PR's file list. The self-test passed, but the guard remains unresolved; do not weaken fail-closed behavior. Retry when API access/rate limits permit.
 - [ ] The latest documentation commit, if any, requires a fresh exact-head CI check. Live browser E2E with real authorized identities, live order/payment/refund integration, backup/restore drill, and production runtime evidence remain unverified.
 - [ ] RC102–RC106 remain branch-only and unapplied to production. No production database writes, migration execution, merge, or deployment occurred. PR #350 remains draft/unmerged; global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC107 — confirmed order versus refresh failure — 2026-10-23
+- [x] Fixed the restaurant order UI so a confirmed successful `order-create` response is not reclassified as an order-creation failure if the subsequent dashboard refresh fails.
+- [x] In this case the UI now preserves the success result and tells the user to reload to review the order, rather than encouraging a new submission.
+- [x] Added a contract regression assertion for this behavior.
+- [ ] RC107 is not certified until the exact-head CI completes. The cross-PR migration collision guard remains blocked by GitHub API installation rate limiting; it must complete successfully before merge.
