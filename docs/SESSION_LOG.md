@@ -163,3 +163,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No new order or booking schema/API was added; no payment or production transaction was created.
 - **Still NOT VERIFIED:** browser E2E from customer discovery through order creation and provider status transition; two-tenant/cross-provider isolation; medical booking concurrency and notification delivery; Paymob payment/refund runtime E2E.
 - Next C3 action: run exact-head CI once available, then browser/integration E2E with disposable authorized identities; keep release blocked meanwhile.
+
+
+## 2026-10-23 — RC103 — Restaurant order branch authorization
+- During source review, found that `order-create` selected an active membership by tenant/business but did not bind operational staff to the requested branch. Added exact-branch membership filtering for staff-context creation.
+- Found that `update_order_status_backend` permitted operational memberships by business without checking the order branch, and treated any OWNER/ADMIN membership as tenant-wide. Added branch-only RC103 migration: operational roles and business-scoped OWNER/ADMIN must match the order's business and exact branch; only unscoped tenant-wide OWNER/ADMIN memberships retain tenant-wide access.
+- Preserved customer cancellation of their own order, the existing state-transition allowlist, and paid-order cancellation protection.
+- Added an isolated PostgreSQL 16 fixture and behavior tests for same-branch success, cross-branch rejection, cross-business admin rejection, tenant-wide owner compatibility, customer cancellation, invalid transition rejection, and paid-order cancellation rejection. Dedicated CI workflow passed on code head `0fb3032f3d578c651d7de0ee16bc1977518c02d6`.
+- Fixed a duplicate `async` keyword found by CI, corrected a malformed contract-test regex, and aligned the modal-save assertion with keyboard-listener cleanup. Exact-head CI on `0fb3032f3d578c651d7de0ee16bc1977518c02d6` passed all 11 workflows, including Preview Demo Validation, migration uniqueness/history/collision guards, provider-service owner isolation, backend-only module boundary, module professionalization, MantiGO privacy, approval-audit atomicity, and RC103 branch-scope PostgreSQL behavior.
+- No production migration execution, production data writes, payment transactions, merge, or deployment occurred. RC103 remains branch-only; PR #350 remains draft/unmerged.
+- **Still NOT VERIFIED:** real browser E2E with distinct authorized staff accounts, end-to-end customer order creation and staff status transitions on the live stack, Paymob payment/refund runtime, backup/restore drill, and full release evidence. Production remains **BLOCKED / NOT CERTIFIED**.
