@@ -140,8 +140,16 @@ Deno.serve(async (req: Request) => {
         : [],
   }));
 
-  if (normalizedItems.some((x: any) => !x.catalogItemId || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
+  if (normalizedItems.some((x: any) => !x.catalogItemId || x.catalogItemId.length > 100 || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
+  }
+  // Prevent repeated options from being charged multiple times and bound per-line option work.
+  if (normalizedItems.some((x: any) =>
+    x.selectedOptionIds.length > 20 ||
+    x.selectedOptionIds.some((id: string) => !id.trim() || id.length > 100) ||
+    new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length
+  )) {
+    return json({ error: "INVALID_ITEM_OPTIONS" }, 400);
   }
 
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
@@ -238,6 +246,7 @@ Deno.serve(async (req: Request) => {
 
   if (!Number.isFinite(subtotal) || !Number.isFinite(tax)) return json({ error: "INVALID_SERVER_TOTAL" }, 500);
   const totalAmount = subtotal + tax;
+  if (!Number.isFinite(totalAmount)) return json({ error: "INVALID_SERVER_TOTAL" }, 500);
 
   const { data, error } = await admin.rpc("create_order_backend", {
     p_order_id: body.orderId,
