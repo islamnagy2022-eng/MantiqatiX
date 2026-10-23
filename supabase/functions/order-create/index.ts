@@ -51,13 +51,18 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const branchId = body.branchId ? String(body.branchId) : null;
+  let targetMembershipQuery = admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,status,branch_id")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
-    .eq("status", "ACTIVE")
+    .eq("status", "ACTIVE");
+  // Staff operations must be authorized for the exact selected branch, not just
+  // any branch belonging to the same business.
+  if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);
+  const { data: targetMembership, error: targetMembershipError } = await targetMembershipQuery
     .limit(1)
     .maybeSingle();
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
@@ -109,7 +114,6 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
