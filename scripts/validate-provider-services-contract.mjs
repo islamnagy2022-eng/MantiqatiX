@@ -8,6 +8,9 @@ const baseline = fs.readFileSync("docs/RC100_G5_PROVIDER_PROFILE_SERVICES_BASELI
 assert.match(ui, /function providerServicesWorkspace\(d\)/, "provider services workspace must exist");
 assert.match(ui, /\.filter\(p=>p\.owner_user_id===user\?\.id\)/, "UI must list only profiles owned by current user");
 assert.match(ui, /async function providerServiceOwner\(providerId\)/, "mutations must re-check ownership");
+assert.match(ui, /async function saveProviderServiceAreas\(\)/, "service area editing must use existing provider profile field");
+assert.match(ui, /update\(\{service_areas:areas\}\)\.eq\('id',providerId\)\.eq\('owner_user_id',user\.id\)/, "service area writes must be constrained to owned profile");
+assert.match(ui, /if\(areas.length>50\)/, "service area input must have a bounded item count");
 assert.match(ui, /\.eq\('owner_user_id',user\.id\)\.maybeSingle\(\)/, "ownership must be checked against the current authenticated user");
 assert.match(ui, /if\(!owner\)return alert\('تم رفض العملية: الحساب الحالي ليس مالك ملف مقدم الخدمة\.'\)/, "mutations must fail closed when ownership is absent");
 assert.match(ui, /\.from\('marketing_provider_services'\)\.insert\(/, "add must use existing provider-services table");
