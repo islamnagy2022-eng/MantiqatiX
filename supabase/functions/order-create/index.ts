@@ -239,13 +239,21 @@ Deno.serve(async (req: Request) => {
     if (optionMap.size !== optionIds.length) return json({ error: "OPTION_NOT_AVAILABLE" }, 409);
   }
 
+  // Validate option-to-item relationships before calculation so malformed cross-item
+  // options produce a controlled client error rather than an unhandled function exception.
+  for (const item of normalizedItems) {
+    const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
+    if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) {
+      return json({ error: "OPTION_ITEM_MISMATCH" }, 400);
+    }
+  }
+
   let subtotal = 0;
   let tax = 0;
   const authoritativeItems = normalizedItems.map((item: any) => {
     const catalog = itemMap.get(item.catalogItemId);
     const price = priceMap.get(item.catalogItemId);
     const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
-    if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) throw new Error("OPTION_ITEM_MISMATCH");
     const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
     const unitPrice = Number(price.unit_price) + optionDelta;
     if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("INVALID_SERVER_PRICE");
