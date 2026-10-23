@@ -143,3 +143,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - This is provenance corroboration only; it does not prove the migration can safely apply to production or that the complete migration chain is correct.
 - Recorded in `docs/MASTER_PRODUCTION_TODO.md`. No migration was merged or applied. All four PRs remain drafts and overlap on source files; the collision guard remains required.
 - Next: inspect the entire RC425–RC441 chain as one ordered set, validate RC434/RC437 function signature and integration test alignment, then run disposable Postgres chronological replay and rollback/concurrency/tenant-isolation tests. Keep production blocked until evidence exists.
+
+## 2026-10-23 — RC101 — Provider services management workspace
+
+- Implemented owner-filtered provider-service management in `web/operations-modules.js` using the existing `marketing_provider_profiles`, `marketing_services`, and `marketing_provider_services` tables.
+- Added service create/edit, activate/deactivate, and remove actions; validated non-negative finite price bounds, currency/status allowlists, and server-confirmed returned rows.
+- Before each mutation, the UI re-queries `marketing_provider_profiles` with both provider ID and authenticated `user.id`; writes remain subject to existing Supabase RLS. No role grant, RLS policy, migration, service-role key, or backend bypass was added.
+- Added owner-scoped editing of `service_areas` on the existing provider profile field, with item/length limits. No generic availability or schedule table was introduced.
+- Added `scripts/validate-provider-services-contract.mjs` and wired it into Pages validation.
+- Static contract/CI result for the final commit: PENDING at the time of this log entry; do not infer pass from source edits.
+- Not verified: actual browser interaction, two-account cross-provider denial, live schema compatibility under a real authenticated provider, and full orders/bookings regression.
+- No merge, production deploy, or production data mutation performed. Production release remains BLOCKED / NOT CERTIFIED.
