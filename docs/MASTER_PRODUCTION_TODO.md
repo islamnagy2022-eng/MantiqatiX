@@ -1673,3 +1673,121 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Implement server-authoritative restaurant branch delivery-zone eligibility and fee calculation; do not rely on browser polygon checks for checkout authorization.
 - [ ] Map all module consumers and integrate them incrementally after central contract verification.
 - [ ] Production remains BLOCKED / NOT CERTIFIED until live backend authorization, privacy, browser/mobile E2E, provider, and release gates are evidenced.
+
+### RC101 — Provider services UI and ownership contract — 2026-10-23
+- [x] Implement provider-owned service list and service catalog selection using existing tables only.
+- [x] Implement add/edit/status/delete actions for provider-service links; re-check profile ownership and rely on existing RLS for final authorization.
+- [x] Implement owner-scoped `service_areas` editing on the existing profile field; no new availability schema.
+- [x] Add a provider-services contract validator and include it in Pages CI.
+- [ ] Verify exact-head CI result after the latest commit.
+- [ ] Run browser E2E with two separate provider accounts proving cross-provider update/delete is denied.
+- [x] Read-only live grant/policy check found authenticated SELECT-only on `marketing_provider_services`; owner-scoped RLS is present and RLS/FORCE RLS are enabled.
+- [x] RC102 branch-only migration proposes INSERT/UPDATE/DELETE grants to authenticated, guarded by the existing owner-scoped RLS policy; it has NOT been applied to production.
+- [ ] Review and test the central orders/bookings lifecycle after C4 completion.
+- Global production gate remains **BLOCKED / NOT CERTIFIED**.
+
+### C3 — Orders and bookings review after RC101 — 2026-10-23
+- [x] Static review of authenticated order-create and server-authoritative pricing/branch validation.
+- [x] Static review of authenticated order-status update delegation to the authoritative backend RPC.
+- [x] Reviewed existing medical booking/status authorization contract and existing CI invariant validator; no parallel order/booking schema added.
+- [ ] Run browser E2E: customer discovery → order create → provider status transition.
+- [ ] Run two-tenant/cross-provider isolation tests and medical booking concurrency/notification tests.
+- [ ] Run payment/refund E2E only in the approved sandbox with test fixtures; no production transactions.
+- [ ] Exact-head CI remains NOT VERIFIED; workflows triggered for the latest branch commits are queued/in progress. The Pages deployment job is validation-only/skipped on this feature branch.
+
+
+### RC102 — Provider service mutation privilege gap — 2026-10-23
+- [x] Live read-only audit verified `marketing_provider_services` has RLS and FORCE RLS enabled, an owner-scoped mutation policy, and only SELECT table privilege for `authenticated`.
+- [x] Added branch-only migration `20261023020000_rc102_provider_services_owner_write_grants.sql` granting INSERT/UPDATE/DELETE to `authenticated`; no anon/public/service-role mutation grant.
+- [x] Extended the provider-services static contract validator to require the grant and reject broader SQL grants.
+- [x] Migration version uniqueness passed on commit `7264e1353d6c5a575a9ae9aa17e616925dfb1ca3`; latest head remains pending, so do not infer current CI success.
+- [x] Exact-head migration uniqueness [run 39883171165](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171165), history immutability [run 39883171079](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171079), and cross-PR collision guard [run 39883171151](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171151) passed on head `a051ca2ce6d8cfc4fb85da9fa77d3260339c2c0b`.
+- [x] Isolated PostgreSQL migration + owner/cross-owner behavioral test passed in CI run [39883171148](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171148).
+- [ ] Browser E2E for add/edit/status/delete with two separate provider identities.
+- [ ] Do not merge/apply production until all above gates pass.
+
+
+### RC102 — isolated owner-isolation CI coverage added — 2026-10-23
+- [x] Added disposable PostgreSQL 16 fixture for provider profiles/services, including RLS and the existing RC99 ownership policy.
+- [x] Added behavioral SQL cases for owner insert/update/delete, cross-owner read/insert/update/delete boundaries, and anonymous-session denial.
+- [x] Added dedicated workflow `.github/workflows/provider-services-owner-isolation.yml` to apply fixture → existing RC99 policy → RC102 grants → integration test in that order.
+- [x] Extended the static contract validator to assert the integration cases and isolated PostgreSQL workflow.
+- [x] Exact-head provider-services workflow [run 39883171148](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39883171148) passed on head `a051ca2ce6d8cfc4fb85da9fa77d3260339c2c0b`: both the static contract and disposable PostgreSQL 16 owner-isolation integration test succeeded.
+- [ ] Real browser E2E with two separate provider identities remains NOT VERIFIED.
+- [ ] RC102 is still branch-only and has not been applied to production. Release gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC102 CI status refresh — 2026-10-23
+- [x] Provider-services contract validator and PostgreSQL 16 owner-isolation integration passed on exact head `a051ca2ce6d8cfc4fb85da9fa77d3260339c2c0b`.
+- [x] Migration version uniqueness, migration history immutability, and cross-PR migration collision guard passed on the same head.
+- [x] Pages validation passed; deploy job skipped as expected for a pull request. No deployment occurred.
+- [ ] Backend-only module boundary and module professionalization/privacy workflows are still queued/in progress at last check; recheck before treating the whole PR CI suite as green.
+- [ ] Browser E2E with two separate real provider accounts remains NOT VERIFIED.
+- [ ] RC102 remains branch-only; production schema and grants are unchanged.
+
+
+### RC101/RC102 and restaurant preview CI refresh — 2026-10-23
+- [x] Rechecked all relevant workflows against head `b63bbdab63b653ca8e630552e9cfb363d5ecce66`: Preview Demo Validation, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, MantiGO Open Ride Privacy Boundary, Approval Action Audit Atomicity, Provider Services Owner Isolation, Backend-only Module Boundary, and Module Professionalization Validation all completed successfully.
+- [x] Provider Services Owner Isolation passed on this exact head, including its static contract and disposable PostgreSQL integration job.
+- [x] Backend-only Module Boundary and Module Professionalization Validation completed successfully, including financial-journal, approval-audit, targeted-ads, and matrimony privacy PostgreSQL jobs.
+- [x] Pages workflow completed successfully as a workflow, but deployment was skipped for the feature PR branch; no deployment is claimed.
+- [ ] Customer checkout still creates only a local demo confirmation; it does not persist an order or send it to a restaurant. Real browser E2E, backend integration, live pricing/availability checks, and authenticated tenant-isolation tests remain open.
+- [ ] PR #350 remains draft/unmerged; RC102 migration remains branch-only. Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC101/RC102 and restaurant demo hardening — exact-head refresh — 2026-10-23
+- [x] Revalidated all 10 PR workflows on code head `1ce859e5809f3c456c8f4ad3377d83780216afdc`: Preview Demo Validation, migration version uniqueness, migration-history immutability, cross-PR migration collision guard, Provider Services Owner Isolation, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Approval Action Audit Atomicity, and Pages validation all completed successfully.
+- [x] Preview validator now checks required/bounded synthetic checkout fields, confirms the checkout does not persist contact/address fields or submit to a backend, and verifies the shared cart can remove one restaurant without altering another seller's items.
+- [x] Shared-cart parser rejects IDs longer than 100 characters; its runtime normalization test covers oversized IDs, duplicate IDs, tampered quantities, and bounded line totals.
+- [ ] A new docs-only commit or any subsequent code commit creates a new head; rerun exact-head CI before describing the newer head as green.
+- [ ] Browser-based customer-to-restaurant order lifecycle E2E and real two-provider-account browser E2E remain unverified. Demo checkout still creates only a local confirmation and does not persist/send a real order.
+- [ ] RC102 migration remains branch-only and unapplied. No production writes, migration execution, merge, or deployment occurred. Global production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC103 — Restaurant order authorization and status branch isolation — 2026-10-23
+- [x] Fixed the restaurant order handler declaration and made order submission single-flight; canceling order details now resolves the pending flow, and successful modal saves clean up keyboard listeners and restore focus.
+- [x] Minimized restaurant workspace query projections to fields currently used by the UI; added contract assertions for the projections and order flow.
+- [x] Scoped the order-create Edge Function's operational membership check to the exact requested branch.
+- [x] Added branch-only migration `supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql`. Operational roles must match both business and branch; business-scoped OWNER/ADMIN memberships cannot bypass business scope. Only tenant-wide OWNER/ADMIN memberships with no business binding retain tenant-wide access. Customer-owned cancellation, allowed transitions, and paid-order cancellation protection remain guarded.
+- [x] Added a disposable PostgreSQL 16 fixture/integration suite and dedicated `Order Status Branch Scope` workflow. Behavioral coverage includes same-branch success, cross-branch denial, cross-business admin denial, tenant-wide owner access, customer-owned cancellation, invalid transitions, and paid-order cancellation rejection.
+- [x] Exact-head CI on code head `0fb3032f3d578c651d7de0ee16bc1977518c02d6` passed all 11 workflows: Preview Demo Validation, Deploy MantiqatiX Web (validation passed; deploy skipped for PR branch), Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Provider Services Owner Isolation, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Approval Action Audit Atomicity, and Order Status Branch Scope.
+- [x] Rechecked exact-head CI on code/documentation head `4d9d965e3f95324b6fbc58729e57d2d02337c382`: all 11 workflows completed successfully, including the isolated RC103 PostgreSQL behavior suite. Any later commit still requires its own exact-head CI check.
+- [ ] Live browser E2E with separate authorized staff accounts, real customer-to-restaurant order creation/status lifecycle, Paymob payment/refund E2E, backup/restore drill, and production runtime evidence remain unverified.
+- [ ] RC102 and RC103 migrations are branch-only and unapplied. No production database writes, migration execution, merge, or deployment occurred. PR #350 remains draft/unmerged; global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC104–RC106 — idempotency isolation and Edge Function RPC identity — 2026-10-23
+- [x] Added branch-only RC104 migration to prevent an idempotency key from returning an order/pricing snapshot when the customer, business, or branch differs from the original request.
+- [x] Added isolated PostgreSQL 16 behavior tests: exact same-scope replay returns the original order; cross-customer, cross-branch, and cross-business key reuse is rejected; no duplicate row is created.
+- [x] Source review found a mismatch between Edge Function authentication and backend RPC identity checks: order-create and order-status-update validate the bearer token with auth.getUser(token), then call backend-only RPCs through a service-role client. The RPCs previously required auth.uid() to equal the verified user ID, which is not the service-role JWT identity.
+- [x] Added branch-only RC105/RC106 migrations to accept the trusted service-role path while retaining auth.uid() identity binding for non-service-role callers. No execute grants were broadened. Added PostgreSQL tests proving both service-role paths and the ordinary identity-bound behavior.
+- [x] Restaurant order retry state now reuses the same order ID/idempotency key after ambiguous network failures, storing only non-PII request fields in sessionStorage with an in-memory fallback. Pending state is cleared only after a confirmed response.
+- [x] On code head `bb62e5cd732dbef0d917562cc8847d5fad2d984e`, the RC103 branch-scope PostgreSQL suite and RC104–RC105 idempotency/service-role PostgreSQL suite passed; preview validation, migration uniqueness/history checks, provider isolation, backend-only boundary, module professionalization, MantiGO privacy, and approval-audit checks also passed.
+- [ ] Open PR Migration Collision Guard could not complete its cross-PR check because GitHub API returned HTTP 403 while fetching another open PR's file list. The self-test passed, but the guard remains unresolved; do not weaken fail-closed behavior. Retry when API access/rate limits permit.
+- [ ] The latest documentation commit, if any, requires a fresh exact-head CI check. Live browser E2E with real authorized identities, live order/payment/refund integration, backup/restore drill, and production runtime evidence remain unverified.
+- [ ] RC102–RC106 remain branch-only and unapplied to production. No production database writes, migration execution, merge, or deployment occurred. PR #350 remains draft/unmerged; global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC107 — confirmed order versus refresh failure — 2026-10-23
+- [x] Fixed the restaurant order UI so a confirmed successful `order-create` response is not reclassified as an order-creation failure if the subsequent dashboard refresh fails.
+- [x] In this case the UI now preserves the success result and tells the user to reload to review the order, rather than encouraging a new submission.
+- [x] Added a contract regression assertion for this behavior.
+- [ ] RC107 is not certified until the exact-head CI completes. The cross-PR migration collision guard remains blocked by GitHub API installation rate limiting; it must complete successfully before merge.
+
+### RC107 — exact-head CI result — 2026-10-23
+- [x] Rechecked PR #350 at exact head `7ed49dc0ea4b6780b6b1147d0001b0e8551bbc83`: all 12 PR workflows completed successfully, including Migration Version Uniqueness, Open PR Migration Collision Guard, Migration History Immutability, Provider Services Owner Isolation, Order Idempotency Scope, Order Status Branch Scope, Approval Action Audit Atomicity, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Preview Demo Validation, and Pages validation.
+- [x] The migration collision guard completed successfully on this exact head; the prior API-rate-limit failure was transient and is not the latest result.
+- [x] Pages workflow's validation job passed; its deploy job was skipped for the pull-request event. This is CI/source validation, **not** a deployment or live-site smoke pass.
+- [ ] Browser E2E using separate real customer/provider/branch identities remains NOT VERIFIED.
+- [ ] Paymob payment/refund and finance/settlement E2E, backup/restore rehearsal, production Auth security settings, full live RLS/catalog checks, Android signed release, real-device regression, monitoring/alert and rollback drills remain open.
+- [ ] RC102–RC106 migrations remain branch-only; no production migration, production write, merge, or deployment occurred.
+- [ ] Any documentation/source commit changes the PR head and requires a fresh exact-head CI run. Keep PR #350 draft/unmerged and the global production gate **BLOCKED / NOT CERTIFIED** until all mandatory evidence and external approvals are present.
+
+### RC109 — Bounded streaming for order-create payloads — 2026-10-23
+- [x] Replaced full-body buffering with bounded streaming reads capped at 256 KiB; oversized streams are cancelled before additional body data is buffered.
+- [x] Strict UTF-8 decoding occurs before JSON parsing.
+- [x] Validator now checks streaming cap/cancellation, malformed UTF-8 handling, duplicate/oversized selected options, and finite final order total.
+- [x] Prior exact head `7330fd1a7014aaed15ad0c373cf140a1c7c0ae1f` passed all 12 workflows, including the cross-PR migration collision guard; this does not certify the newer RC109 head.
+- [ ] Recheck every workflow against the latest head before certifying this increment.
+- [ ] Real authenticated browser E2E, Paymob payment/refund and settlement E2E, backup/restore, Auth security settings, Android signing/device regression, and live production parity remain open.
+- No production migration, data write, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.

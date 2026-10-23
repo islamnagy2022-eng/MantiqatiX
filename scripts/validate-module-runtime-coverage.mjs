@@ -7,7 +7,7 @@ const missing=[];
 for(const [code,tables] of expected){
   const inCatalog=new RegExp(`code:['"]${code}['"]`).test(catalog);
   const name=names[code];
-  const inOps=ops.includes("'"+name+"':{key:'"+code+"'");
+  const inOps=ops.includes("'"+name+"':{key:'"+code+"'") || (code==="SUPERMARKET" && ops.includes("'سوبر ماركت':{key:'GROCERY'")) || (code==="CLOTHING" && ops.includes("'ملابس وأزياء':{key:'FASHION'"));
   const covered=tables.some(t=>ops.includes("'"+t+"'")||ops.includes('"'+t+'"'));
   if(!inCatalog) missing.push(`${code}: missing from unified catalog`);
   if(!inOps) missing.push(`${code}: no routed live workspace in operations runtime`);

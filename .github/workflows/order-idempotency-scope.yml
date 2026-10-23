@@ -1,0 +1,64 @@
+name: Order Idempotency Scope
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql"
+      - "supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql"
+      - "supabase/tests/rc104_order_idempotency_scope_*.sql"
+      - "scripts/validate-booking-payment-flow.mjs"
+      - ".github/workflows/order-idempotency-scope.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql"
+      - "supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql"
+      - "supabase/tests/rc104_order_idempotency_scope_*.sql"
+      - "scripts/validate-booking-payment-flow.mjs"
+      - ".github/workflows/order-idempotency-scope.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node scripts/validate-booking-payment-flow.mjs
+
+  order-idempotency-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc104_order_idempotency_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc104_order_idempotency_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply isolated fixture, RC104 migration, and behavioral tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc104_order_idempotency_scope_fixture.sql "$pg_container:/tmp/rc104_fixture.sql"
+          docker cp supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql "$pg_container:/tmp/rc104_migration.sql"
+          docker cp supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql "$pg_container:/tmp/rc105_migration.sql"
+          docker cp supabase/tests/rc104_order_idempotency_scope_integration.sql "$pg_container:/tmp/rc104_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc105_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_test.sql

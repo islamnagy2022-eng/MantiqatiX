@@ -38,8 +38,44 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return json({ error: "UNAUTHORIZED" }, 401);
 
+  // Bound request memory and parser work before accepting any client-controlled payload.
+  const MAX_BODY_BYTES = 256 * 1024;
+  const declaredLength = Number(req.headers.get("content-length") ?? 0);
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    return json({ error: "REQUEST_TOO_LARGE" }, 413);
+  }
   let body: any;
-  try { body = await req.json(); } catch { return json({ error: "INVALID_JSON" }, 400); }
+  try {
+    if (!req.body) return json({ error: "INVALID_BODY" }, 400);
+    const reader = req.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_BODY_BYTES) {
+        await reader.cancel("REQUEST_TOO_LARGE");
+        return json({ error: "REQUEST_TOO_LARGE" }, 413);
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof SyntaxError) {
+      return json({ error: "INVALID_JSON" }, 400);
+    }
+    return json({ error: "REQUEST_READ_FAILED" }, 400);
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return json({ error: "INVALID_BODY" }, 400);
+  }
 
   const required = ["orderId", "tenantId", "businessId", "clientIdempotencyKey", "currency", "customerName", "customerPhone", "deliveryAddress", "items"];
   for (const key of required) {
@@ -48,16 +84,46 @@ Deno.serve(async (req: Request) => {
 
   if (!String(body.orderId).match(/^[0-9a-f-]{36}$/i)) return json({ error: "INVALID_ORDER_ID" }, 400);
   if (!String(body.clientIdempotencyKey).trim() || String(body.clientIdempotencyKey).length > 200) return json({ error: "INVALID_IDEMPOTENCY_KEY" }, 400);
+  if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 200) {
+    return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
+  }
+  if (typeof body.customerPhone !== "string" || body.customerPhone.length > 32) {
+    return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
+  }
+  if (typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 500) {
+    return json({ error: "INVALID_DELIVERY_ADDRESS" }, 400);
+  }
+  if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 2000)) {
+    return json({ error: "INVALID_ORDER_NOTES" }, 400);
+  }
+  if (body.metadata !== undefined && body.metadata !== null) {
+    if (typeof body.metadata !== "object" || Array.isArray(body.metadata)) return json({ error: "INVALID_ORDER_METADATA" }, 400);
+    const allowedMetadataKeys = new Set(["source", "catalog_authoritative"]);
+    if (Object.keys(body.metadata).some((key) => !allowedMetadataKeys.has(key))) {
+      return json({ error: "UNSUPPORTED_ORDER_METADATA" }, 400);
+    }
+    if (body.metadata.source !== undefined && (typeof body.metadata.source !== "string" || body.metadata.source.length > 40)) {
+      return json({ error: "INVALID_ORDER_METADATA" }, 400);
+    }
+    if (body.metadata.catalog_authoritative !== undefined && typeof body.metadata.catalog_authoritative !== "boolean") {
+      return json({ error: "INVALID_ORDER_METADATA" }, 400);
+    }
+  }
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
-  const { data: targetMembership, error: targetMembershipError } = await admin
+  const branchId = body.branchId ? String(body.branchId) : null;
+  let targetMembershipQuery = admin
     .from("user_memberships")
-    .select("id,role,status")
+    .select("id,role,status,branch_id")
     .eq("user_id", user.id)
     .eq("tenant_id", body.tenantId)
     .eq("business_id", body.businessId)
-    .eq("status", "ACTIVE")
+    .eq("status", "ACTIVE");
+  // Staff operations must be authorized for the exact selected branch, not just
+  // any branch belonging to the same business.
+  if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);
+  const { data: targetMembership, error: targetMembershipError } = await targetMembershipQuery
     .limit(1)
     .maybeSingle();
   if (targetMembershipError) return json({ error: "MEMBERSHIP_READ_FAILED" }, 500);
@@ -95,8 +161,16 @@ Deno.serve(async (req: Request) => {
         : [],
   }));
 
-  if (normalizedItems.some((x: any) => !x.catalogItemId || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
+  if (normalizedItems.some((x: any) => !x.catalogItemId || x.catalogItemId.length > 100 || !Number.isInteger(x.quantity) || x.quantity < 1 || x.quantity > 1000)) {
     return json({ error: "INVALID_ITEM_QUANTITY" }, 400);
+  }
+  // Prevent repeated options from being charged multiple times and bound per-line option work.
+  if (normalizedItems.some((x: any) =>
+    x.selectedOptionIds.length > 20 ||
+    x.selectedOptionIds.some((id: string) => !id.trim() || id.length > 100) ||
+    new Set(x.selectedOptionIds).size !== x.selectedOptionIds.length
+  )) {
+    return json({ error: "INVALID_ITEM_OPTIONS" }, 400);
   }
 
   const itemIds = [...new Set(normalizedItems.map((x: any) => x.catalogItemId))];
@@ -109,7 +183,6 @@ Deno.serve(async (req: Request) => {
     .eq("status", "ACTIVE");
   if (itemError) return json({ error: "CATALOG_READ_FAILED" }, 500);
 
-  const branchId = body.branchId ? String(body.branchId) : null;
   const { data: activeBranches, error: branchReadError } = await admin
     .from("branches")
     .select("id")
@@ -166,13 +239,21 @@ Deno.serve(async (req: Request) => {
     if (optionMap.size !== optionIds.length) return json({ error: "OPTION_NOT_AVAILABLE" }, 409);
   }
 
+  // Validate option-to-item relationships before calculation so malformed cross-item
+  // options produce a controlled client error rather than an unhandled function exception.
+  for (const item of normalizedItems) {
+    const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
+    if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) {
+      return json({ error: "OPTION_ITEM_MISMATCH" }, 400);
+    }
+  }
+
   let subtotal = 0;
   let tax = 0;
   const authoritativeItems = normalizedItems.map((item: any) => {
     const catalog = itemMap.get(item.catalogItemId);
     const price = priceMap.get(item.catalogItemId);
     const optionRows = item.selectedOptionIds.map((id: string) => optionMap.get(id)).filter(Boolean);
-    if (optionRows.some((x: any) => String(x.catalog_item_id) !== item.catalogItemId)) throw new Error("OPTION_ITEM_MISMATCH");
     const optionDelta = optionRows.reduce((sum: number, x: any) => sum + Number(x.price_delta ?? 0), 0);
     const unitPrice = Number(price.unit_price) + optionDelta;
     if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("INVALID_SERVER_PRICE");
@@ -194,6 +275,7 @@ Deno.serve(async (req: Request) => {
 
   if (!Number.isFinite(subtotal) || !Number.isFinite(tax)) return json({ error: "INVALID_SERVER_TOTAL" }, 500);
   const totalAmount = subtotal + tax;
+  if (!Number.isFinite(totalAmount)) return json({ error: "INVALID_SERVER_TOTAL" }, 500);
 
   const { data, error } = await admin.rpc("create_order_backend", {
     p_order_id: body.orderId,
@@ -208,9 +290,9 @@ Deno.serve(async (req: Request) => {
     p_delivery_fee: 0,
     p_total_amount: totalAmount,
     p_currency: String(body.currency).toUpperCase(),
-    p_customer_name: String(body.customerName).trim(),
-    p_customer_phone: String(body.customerPhone).trim(),
-    p_delivery_address: String(body.deliveryAddress).trim(),
+    p_customer_name: body.customerName.trim(),
+    p_customer_phone: body.customerPhone.trim(),
+    p_delivery_address: body.deliveryAddress.trim(),
     p_items_json: authoritativeItems,
     p_notes: body.notes ?? null,
     p_metadata: {

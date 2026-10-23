@@ -143,3 +143,66 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - This is provenance corroboration only; it does not prove the migration can safely apply to production or that the complete migration chain is correct.
 - Recorded in `docs/MASTER_PRODUCTION_TODO.md`. No migration was merged or applied. All four PRs remain drafts and overlap on source files; the collision guard remains required.
 - Next: inspect the entire RC425–RC441 chain as one ordered set, validate RC434/RC437 function signature and integration test alignment, then run disposable Postgres chronological replay and rollback/concurrency/tenant-isolation tests. Keep production blocked until evidence exists.
+
+## 2026-10-23 — RC101 — Provider services management workspace
+
+- Implemented owner-filtered provider-service management in `web/operations-modules.js` using the existing `marketing_provider_profiles`, `marketing_services`, and `marketing_provider_services` tables.
+- Added service create/edit, activate/deactivate, and remove actions; validated non-negative finite price bounds, currency/status allowlists, and server-confirmed returned rows.
+- Before each mutation, the UI re-queries `marketing_provider_profiles` with both provider ID and authenticated `user.id`; writes remain subject to existing Supabase RLS. No role grant, RLS policy, migration, service-role key, or backend bypass was added.
+- Added owner-scoped editing of `service_areas` on the existing provider profile field, with item/length limits. No generic availability or schedule table was introduced.
+- Added `scripts/validate-provider-services-contract.mjs` and wired it into Pages validation.
+- Static contract/CI result for the final commit: PENDING at the time of this log entry; do not infer pass from source edits.
+- Not verified: actual browser interaction, two-account cross-provider denial, live schema compatibility under a real authenticated provider, and full orders/bookings regression.
+- No merge, production deploy, or production data mutation performed. Production release remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-23 — C3 orders/bookings source review after RC101
+
+- Reviewed `supabase/functions/order-create/index.ts`: requires a Bearer session, rejects anonymous users, validates active business/branch and catalog/pricing, and delegates creation to `create_order_backend`; server pricing is authoritative.
+- Reviewed `supabase/functions/order-status-update/index.ts`: requires authenticated non-anonymous user and delegates state changes to `update_order_status_backend` with the caller ID and tenant context.
+- Reviewed the existing booking/payment contract validator and medical booking migrations: the contract checks caller identity, active provider/membership, duplicate appointment IDs, role-gated medical status changes, and status allowlisting. The validator also guards against direct browser writes to central orders/payment intents.
+- No new order or booking schema/API was added; no payment or production transaction was created.
+- **Still NOT VERIFIED:** browser E2E from customer discovery through order creation and provider status transition; two-tenant/cross-provider isolation; medical booking concurrency and notification delivery; Paymob payment/refund runtime E2E.
+- Next C3 action: run exact-head CI once available, then browser/integration E2E with disposable authorized identities; keep release blocked meanwhile.
+
+
+## 2026-10-23 — RC103 — Restaurant order branch authorization
+- During source review, found that `order-create` selected an active membership by tenant/business but did not bind operational staff to the requested branch. Added exact-branch membership filtering for staff-context creation.
+- Found that `update_order_status_backend` permitted operational memberships by business without checking the order branch, and treated any OWNER/ADMIN membership as tenant-wide. Added branch-only RC103 migration: operational roles and business-scoped OWNER/ADMIN must match the order's business and exact branch; only unscoped tenant-wide OWNER/ADMIN memberships retain tenant-wide access.
+- Preserved customer cancellation of their own order, the existing state-transition allowlist, and paid-order cancellation protection.
+- Added an isolated PostgreSQL 16 fixture and behavior tests for same-branch success, cross-branch rejection, cross-business admin rejection, tenant-wide owner compatibility, customer cancellation, invalid transition rejection, and paid-order cancellation rejection. Dedicated CI workflow passed on code head `0fb3032f3d578c651d7de0ee16bc1977518c02d6`.
+- Fixed a duplicate `async` keyword found by CI, corrected a malformed contract-test regex, and aligned the modal-save assertion with keyboard-listener cleanup. Exact-head CI on `0fb3032f3d578c651d7de0ee16bc1977518c02d6` passed all 11 workflows, including Preview Demo Validation, migration uniqueness/history/collision guards, provider-service owner isolation, backend-only module boundary, module professionalization, MantiGO privacy, approval-audit atomicity, and RC103 branch-scope PostgreSQL behavior.
+- No production migration execution, production data writes, payment transactions, merge, or deployment occurred. RC103 remains branch-only; PR #350 remains draft/unmerged.
+- **Still NOT VERIFIED:** real browser E2E with distinct authorized staff accounts, end-to-end customer order creation and staff status transitions on the live stack, Paymob payment/refund runtime, backup/restore drill, and full release evidence. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — RC108 — bounded order-create request contract
+
+- Hardened `supabase/functions/order-create/index.ts` to reject request bodies larger than 256 KiB before JSON parsing, including an actual encoded-byte check rather than relying only on Content-Length.
+- Added object-shape validation and explicit maximum lengths for customer name (200), phone (32), delivery address (500), and notes (2,000).
+- Client-supplied metadata is now limited to the supported `source` and `catalog_authoritative` keys with type/length checks; the server still appends authoritative pricing metadata.
+- Updated `scripts/validate-booking-payment-flow.mjs` to enforce these source contracts.
+- CI on the preceding head passed all 12 workflows; exact-head CI for RC108 is pending/rechecking and must pass before this change is considered verified.
+- No production Edge Function deployment, database migration, order creation, payment, merge, or production data mutation occurred. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — RC109 — Bounded streaming for order-create payloads
+
+- Replaced whole-body `req.text()` buffering with a streaming reader that stops once the 256 KiB limit is exceeded, cancels the request stream, and decodes UTF-8 strictly before JSON parsing.
+- Extended `scripts/validate-booking-payment-flow.mjs` to assert bounded streaming, early stop/cancellation, malformed UTF-8 rejection, duplicate/oversized selected-option rejection, and finite final totals.
+- Prior exact head `7330fd1a7014aaed15ad0c373cf140a1c7c0ae1f` passed all 12 PR workflows. RC109 changes are on a new head and require a fresh exact-head CI run.
+- No merge, production deployment, production migration, payment transaction, or production data write occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — RC110 — Controlled order-option mismatch handling
+
+- Reviewed the selected-option pricing path after RC109 streaming hardening.
+- Replaced an unhandled thrown exception for an option attached to the wrong catalog item with a controlled `OPTION_ITEM_MISMATCH` HTTP 400 response before price calculation.
+- Added source-contract assertions that require the controlled error and pre-calculation validation.
+- Exact-head CI for this source/test update is running on `8dfa86ba97c3af6980fa2974b745500b6ab38e88`; all 12 workflows were queued/pending at the first status poll. Do not claim the new head passes until all are completed successfully.
+- No production deployment, migration, payment transaction, or production data write occurred. PR #350 remains draft/unmerged; production release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — Preview 404 investigation — deployment gate is blocking publication
+
+- Confirmed the preview source files exist on `main`: `web/preview/index.html` and `web/preview/dashboard.html`. The Pages workflow publishes `./web`, so the intended routes are `/preview/` and `/preview/dashboard.html` under the project Pages base URL.
+- Read the main-branch Pages run `39742731869` for commit `c96da6959e7d66a7920164eb9e8bb6e6c5667012`. Its `validate` job failed in `npm run verify:production`; the deploy job was skipped.
+- The production gate explicitly reports missing authoritative migration sources RC425–RC432 and RC434–RC441, and says chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function contracts, SMM parity, and Auth security settings are not verified.
+- Therefore the current 404 is consistent with the preview route not being included in the currently published Pages artifact; it is not evidence that the preview HTML files are missing from source. Public-site HTTP fetch was inconclusive in this session, so live HTTP status is not independently confirmed.
+- Safety decision: do not bypass the production gate or publish the entire production site from a feature branch merely to restore the preview. The correct deployment fix is to restore/review the missing migration chain and clear the release gate, or provision a separately approved preview host that cannot replace production.
+- No merge, Pages deployment, production migration, or production data mutation was performed.
