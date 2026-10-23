@@ -27,4 +27,20 @@ for(const [needle,label] of required){
 }
 if(!home.includes('id="mx-sector-count"')) throw new Error("FAIL: live sector count mount missing");
 if(!home.includes("dynamicTaxonomy(services,providers).length")) throw new Error("FAIL: sector KPI must use canonical/live taxonomy count");
+if(!home.includes("const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'DIGITAL',SPORTS:'FITNESS',TRIPS:'TRAVEL',ERP:'TECH'}")) throw new Error("FAIL: backend sector codes must map to canonical public sectors");
+if(!home.includes("publicCategoryCode(x?.category_code)")) throw new Error("FAIL: live service counts must use canonical public sector codes");
+if(!home.includes("publicCategoryCode(x?.provider_kind)")) throw new Error("FAIL: live provider counts must use canonical public sector codes");
+if(!home.includes("Object.keys(PUBLIC_DIRECTORY_COUNTS||{})")) throw new Error("FAIL: public sector directory must include all discovered live sector codes");
+for(const [needle,label] of [
+  ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
+  ['id="mx-category-filter-clear"',"sector search must provide a clear action"],
+  ["card.textContent.toLocaleLowerCase('ar').includes(term)","sector search must filter visible service/provider cards locally"],
+  ["applyCategoryFilter();","sector results must be filtered after loading"]
+]) if(!home.includes(needle)) throw new Error("FAIL: "+label+" ("+needle+")");
+if(!home.includes('class="mx-category-service-details" hidden')) throw new Error("FAIL: public service cards must expose expandable service details");
+if(!home.includes("b.setAttribute('aria-expanded',expanded?'true':'false')")) throw new Error("FAIL: expandable service details must expose their state accessibly");
+if(!css.includes(".mx-category-service-details[hidden]{display:none!important}")) throw new Error("FAIL: expandable service details must respect their hidden state");
+if(!css.includes(".mx-category-result-card[hidden]{display:none!important}")) throw new Error("FAIL: filtered sector cards must be hidden accessibly and consistently");
+if(!css.includes(".mx-category-filter__controls")) throw new Error("FAIL: sector search controls must have responsive styling");
 console.log("PASS: homepage production-content contract contains no fabricated offers/reviews/partners/map and keeps live-data boundaries.");
+console.log("PASS: public sector pages include responsive local search across loaded services and providers.");
