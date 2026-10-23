@@ -121,7 +121,7 @@ async function providerServiceOwner(providerId){
 async function saveProviderServiceAreas(){
  const providerId=document.getElementById('psAreaProvider')?.value;
  const raw=document.getElementById('psAreaValues')?.value||'';
- const areas=[...new Set(raw.split(/[\\n,،]/).map(x=>x.trim()).filter(Boolean))];
+ const areas=[...new Set(raw.split(/[\n,،]/).map(x=>x.trim()).filter(Boolean))];
  if(areas.some(x=>x.length>120))return alert('اسم المنطقة لا يمكن أن يتجاوز 120 حرفًا.');
  if(areas.length>50)return alert('يمكن تسجيل 50 منطقة كحد أقصى.');
  try{
