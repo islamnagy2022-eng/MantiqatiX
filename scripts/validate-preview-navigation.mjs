@@ -70,7 +70,7 @@ const checks = [
   ["Published homepage exists in the Pages artifact root", fs.existsSync("web/index.html")],
   ["GitHub Pages 404 recovery page exists and uses Arabic RTL", /<html lang="ar" dir="rtl">/.test(notFound) && /<div class="code">404<\/div>/.test(notFound)],
   ["404 recovery links use the canonical case-sensitive project base path", notFound.includes('href="/MantiqatiX/preview/"') && notFound.includes('href="/MantiqatiX/preview/dashboard.html"') && notFound.includes('href="/MantiqatiX/"') && !notFound.includes('href="./preview/')],
-  ["Pages 404 recovery page links to preview home, module dashboard, and root", notFound.includes('href="/MantiqatiX/preview/"') && notFound.includes('href="/MantiqatiX/preview/dashboard.html"') && notFound.includes('href="/MantiqatiX/")],
+  ["Pages 404 recovery page links to preview home, module dashboard, and root", notFound.includes('href="/MantiqatiX/preview/"') && notFound.includes('href="/MantiqatiX/preview/dashboard.html"') && notFound.includes('href="/MantiqatiX/"')],,
   ["Pages 404 recovery page is Arabic RTL and provides explicit recovery actions", /<html lang="ar" dir="rtl">/.test(notFound) && notFound.includes("الصفحة غير موجودة") && notFound.includes('aria-label="روابط الاستعادة"')],
   ["Homepage has a visible boot failure fallback", /تعذر تحميل واجهة المنصة/.test(home)],
   ["Homepage keeps Supabase failure in public mode", /public mode remains open/.test(home)],
