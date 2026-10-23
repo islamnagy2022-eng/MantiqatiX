@@ -87,8 +87,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          site_root="$(dirname "$SITE_DIR")"
-          repo_root="$(dirname "$site_root")"
+          repo_root="$(dirname "$SITE_DIR")"
           cd "$repo_root"
           npm install --ignore-scripts --no-audit --no-fund
           mkdir -p "$SITE_DIR/vendor"
