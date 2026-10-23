@@ -1673,3 +1673,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Implement server-authoritative restaurant branch delivery-zone eligibility and fee calculation; do not rely on browser polygon checks for checkout authorization.
 - [ ] Map all module consumers and integrate them incrementally after central contract verification.
 - [ ] Production remains BLOCKED / NOT CERTIFIED until live backend authorization, privacy, browser/mobile E2E, provider, and release gates are evidenced.
+
+### RC101 — Provider services UI and ownership contract — 2026-10-23
+- [x] Implement provider-owned service list and service catalog selection using existing tables only.
+- [x] Implement add/edit/status/delete actions for provider-service links; re-check profile ownership and rely on existing RLS for final authorization.
+- [x] Implement owner-scoped `service_areas` editing on the existing profile field; no new availability schema.
+- [x] Add a provider-services contract validator and include it in Pages CI.
+- [ ] Verify exact-head CI result after the latest commit.
+- [ ] Run browser E2E with two separate provider accounts proving cross-provider update/delete is denied.
+- [ ] Verify live database grants/policies and schema types for provider-service mutations; do not change RLS or migrations without evidence.
+- [ ] Review and test the central orders/bookings lifecycle after C4 completion.
+- Global production gate remains **BLOCKED / NOT CERTIFIED**.
