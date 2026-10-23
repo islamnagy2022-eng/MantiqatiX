@@ -44,5 +44,11 @@ assert.match(integration, /anonymous Auth session wrote a provider service/, "in
 assert.match(workflow, /image: postgres:16/, "provider isolation test must use disposable PostgreSQL 16");
 assert.match(workflow, /rc99_policy\.sql[\s\S]*rc102_grants\.sql[\s\S]*rc102_test\.sql/, "workflow must apply existing RLS policy before grants and behavior tests");
 
+const validProviderPrice = n => Number.isFinite(n) && n >= 0 && n <= 100000000 && Math.round(n * 100) / 100 === n;
+assert.equal(validProviderPrice(0.29), true, "valid 29-piastre price must not fail due to binary floating-point scaling");
+assert.equal(validProviderPrice(1.234), false, "provider prices must reject more than two decimal places");
+assert.equal(validProviderPrice(-0.01), false, "provider prices must reject negative values");
+assert.equal(validProviderPrice(100000001), false, "provider prices must reject values over the configured maximum");
+
 console.log("Provider services contract passed: owner checks, RLS boundary, existing schema only, validation, and server-response guard.");
 console.log("Disposable PostgreSQL owner-isolation test is wired into CI; live two-account isolation and browser E2E remain NOT VERIFIED until executed with separate real test accounts.");
