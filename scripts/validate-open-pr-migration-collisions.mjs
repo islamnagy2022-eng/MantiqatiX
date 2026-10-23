@@ -44,6 +44,13 @@ function collisionsForPullRequest(collisions, prNumber) {
   return collisions.filter(collision => collision.leftPr === prNumber || collision.rightPr === prNumber);
 }
 
+function isRateLimited403(status, remaining, body) {
+  return status === 403 && (
+    String(remaining ?? "") === "0" ||
+    /api rate limit exceeded|secondary rate limit|abuse detection/i.test(String(body ?? ""))
+  );
+}
+
 if (process.argv.includes("--self-test")) {
   const candidates = [
     { prNumber: 10, entries: migrationEntries(10, ["supabase/migrations/20261009170000_rc430_payment.sql"]) },
@@ -57,6 +64,9 @@ if (process.argv.includes("--self-test")) {
   assert.equal(collisionsForPullRequest(collisions, 20).length, 1);
   assert.equal(collisionsForPullRequest(collisions, 30).length, 0);
   assert.equal(collisionsForPullRequest(collisions, 99).length, 0);
+  assert.equal(isRateLimited403(403, "0", '{"message":"API rate limit exceeded"}'), true);
+  assert.equal(isRateLimited403(403, "4999", '{"message":"Resource not accessible by integration"}'), false);
+  assert.equal(isRateLimited403(403, "4999", '{"message":"You have exceeded a secondary rate limit"}'), true);
   assert.equal(crossPullRequestCollisions([candidates[0], candidates[2]]).length, 0);
   // Deleted migration paths must not be treated as active candidate migrations.
   assert.equal(migrationEntries(60, [{ filename: "supabase/migrations/20261009170000_removed.sql", status: "removed", sha: "deleted" }]).length, 0);
@@ -97,14 +107,24 @@ async function githubGet(url) {
       });
       if (response.ok) return response.json();
 
-      const retryable = response.status === 429 || [500, 502, 503, 504].includes(response.status);
+      const errorBody = await response.text();
+      const rateLimited403 = isRateLimited403(
+        response.status,
+        response.headers.get("x-ratelimit-remaining"),
+        errorBody
+      );
+      const retryable = response.status === 429 || rateLimited403 || [500, 502, 503, 504].includes(response.status);
       if (!retryable || attempt === maxAttempts - 1) {
-        throw new Error("GitHub API request failed (" + response.status + "): " + url);
+        throw new Error("GitHub API request failed (" + response.status + "): " + url + (errorBody ? " — " + errorBody.slice(0, 300) : ""));
       }
       const retryAfter = Number(response.headers.get("retry-after") || 0);
+      const resetAt = Number(response.headers.get("x-ratelimit-reset") || 0);
+      const resetDelay = resetAt > 0 ? Math.max(0, resetAt * 1000 - Date.now()) : 0;
       const delayMs = retryAfter > 0
-        ? Math.min(retryAfter * 1000, 10000)
-        : Math.min(300 * (2 ** attempt), 5000);
+        ? Math.min(retryAfter * 1000, 60000)
+        : resetDelay > 0 && rateLimited403
+          ? Math.min(resetDelay, 60000)
+          : Math.min(1000 * (2 ** attempt), 15000);
       console.warn("Retrying transient GitHub API " + response.status + " response in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
       await new Promise(resolve => setTimeout(resolve, delayMs));
     } catch (error) {
