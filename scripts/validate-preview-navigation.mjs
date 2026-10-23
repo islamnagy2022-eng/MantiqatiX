@@ -35,13 +35,10 @@ const checks = [
       const customerStart = customerOrderScript.indexOf("const data=") + "const data=".length;
       const customerEnd = customerOrderScript.indexOf("};const esc=", customerStart) + 1;
       const operatorStart = restaurant.indexOf("const restaurants=") + "const restaurants=".length;
-      const operatorEnd = restaurant.indexOf("};\\nconst allItems=", operatorStart) + 1;
+      const operatorEnd = restaurant.lastIndexOf("};", restaurant.indexOf("const allItems=", operatorStart)) + 1;
       if (customerStart < "const data=".length || customerEnd < 1 || operatorStart < "const restaurants=".length || operatorEnd < 1) return false;
       const customer = vm.runInNewContext("(" + customerOrderScript.slice(customerStart, customerEnd) + ")");
       const operator = vm.runInNewContext("(" + restaurant.slice(operatorStart, operatorEnd) + ")");
-      if (!customerMatch || !operatorMatch) return false;
-      const customer = vm.runInNewContext("(" + customerMatch[1] + ")");
-      const operator = vm.runInNewContext("(" + operatorMatch[1] + ")");
       return ["zaeem", "gaber", "asli"].every(id => {
         const left = customer[id]?.items;
         const right = operator[id]?.items;
