@@ -215,6 +215,22 @@ checks.push(["Restaurant checkout clears only the selected merchant cart after d
 })()]);
 checks.push(["Customer and operator demo catalogs remain isolated from network submission", !customerOrder.includes("fetch(") && !customerOrder.includes("XMLHttpRequest") && !customerOrder.includes("createClient(") && !restaurant.includes("fetch(") && !restaurant.includes("XMLHttpRequest") && !restaurant.includes("createClient(") && /لا يوجد اتصال بالخادم/.test(restaurant)]);
 
+
+checks.push(["Shared cart can remove one restaurant order without affecting other sellers", (() => {
+  let stored="[]";
+  const storage={getItem:()=>stored,setItem:(k,v)=>{stored=v;return true;},removeItem:()=>{stored="[]";}};
+  const context={window:{},sessionStorage:storage,crypto:{randomUUID:()=>"runtime-line-id"}};
+  try {
+    vm.runInNewContext(sharedCart,context);
+    const cart=context.window.MXCart;
+    if(!cart.add({id:"restaurant-a",merchantId:"zaeem",merchantName:"الزعيم",name:"كشري",unit:25,qty:2}).ok)return false;
+    if(!cart.add({id:"restaurant-b",merchantId:"asli",merchantName:"الأصلي",name:"كفتة",unit:85,qty:1}).ok)return false;
+    if(!cart.removeMerchant("zaeem"))return false;
+    const rows=cart.list();
+    return rows.length===1&&rows[0].merchantId==="asli"&&rows[0].total===85&&cart.total()===85&&cart.count()===1;
+  } catch(error) { console.error("Merchant cart isolation test failed:",error.message); return false; }
+})()]);
+
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 if (failed.length) {
