@@ -1,0 +1,60 @@
+name: Order Status Branch Scope
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql"
+      - "supabase/tests/rc103_order_status_branch_scope_*.sql"
+      - "scripts/validate-booking-payment-flow.mjs"
+      - ".github/workflows/order-status-branch-scope.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql"
+      - "supabase/tests/rc103_order_status_branch_scope_*.sql"
+      - "scripts/validate-booking-payment-flow.mjs"
+      - ".github/workflows/order-status-branch-scope.yml"
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: node scripts/validate-booking-payment-flow.mjs
+
+  order-status-branch-scope-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc103_order_status_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc103_order_status_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply isolated fixture, RC103 migration, and behavioral tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc103_order_status_branch_scope_fixture.sql "$pg_container:/tmp/rc103_fixture.sql"
+          docker cp supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql "$pg_container:/tmp/rc103_migration.sql"
+          docker cp supabase/tests/rc103_order_status_branch_scope_integration.sql "$pg_container:/tmp/rc103_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc103_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc103_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc103_test.sql
