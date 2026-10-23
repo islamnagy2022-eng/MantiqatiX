@@ -232,7 +232,10 @@ async function createRestaurantOrder(){
    const r=await invokeMntyFunction('order-create',payload);
    clearPendingRestaurantOrder(m);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
-   await load();
+   // A post-create refresh failure must never be reported as an order-create failure.
+   try{await load();}catch(refreshError){
+     notify('تم إنشاء الطلب بنجاح لكن تعذر تحديث الشاشة. أعد تحميل الصفحة لمراجعة الطلب دون إنشاء طلب جديد.','error');
+   }
  }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ')+' — يمكنك إعادة المحاولة بنفس الطلب.','error')}
  finally{
    creatingRestaurantOrder=false;
