@@ -16,6 +16,7 @@ function notify(message,type='info'){
 }
 
 let loadGeneration=0;
+let creatingRestaurantOrder=false;
 let state={user:null,membership:null,memberships:[],tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
 
 async function session(){
@@ -179,8 +180,13 @@ function askOrderDetails(items){
  },()=>resolve(null));
 }
 async async function createRestaurantOrder(){
+ if(creatingRestaurantOrder)return;
  if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
  if(!canOperate('ORDERS','create'))return notify('ليس لديك صلاحية إنشاء الطلبات.','error');
+ creatingRestaurantOrder=true;
+ const trigger=document.getElementById('rest-create-order');
+ const originalLabel=trigger?.textContent||'+ طلب جديد';
+ if(trigger){trigger.disabled=true;trigger.textContent='جارٍ تجهيز الطلب…';}
  const m=scope();
  try{
    const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
@@ -194,6 +200,10 @@ async async function createRestaurantOrder(){
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
  }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
+ finally{
+   creatingRestaurantOrder=false;
+   if(trigger?.isConnected){trigger.disabled=false;trigger.textContent=originalLabel;}
+ }
 }
 function dashboard(){
  return shell('لوحة '+workspaceNoun(),tabs()+'<div class="action-bar">'+(canOperate('ORDERS','create')?'<button class="btn btn-primary" id="rest-create-order">+ طلب جديد</button>':'')+'</div>'+cards()+
