@@ -1742,3 +1742,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] A new docs-only commit or any subsequent code commit creates a new head; rerun exact-head CI before describing the newer head as green.
 - [ ] Browser-based customer-to-restaurant order lifecycle E2E and real two-provider-account browser E2E remain unverified. Demo checkout still creates only a local confirmation and does not persist/send a real order.
 - [ ] RC102 migration remains branch-only and unapplied. No production writes, migration execution, merge, or deployment occurred. Global production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC103 — Restaurant order authorization and status branch isolation — 2026-10-23
+- [x] Fixed the restaurant order handler declaration and made order submission single-flight; canceling order details now resolves the pending flow, and successful modal saves clean up keyboard listeners and restore focus.
+- [x] Minimized restaurant workspace query projections to fields currently used by the UI; added contract assertions for the projections and order flow.
+- [x] Scoped the order-create Edge Function's operational membership check to the exact requested branch.
+- [x] Added branch-only migration `supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql`. Operational roles must match both business and branch; business-scoped OWNER/ADMIN memberships cannot bypass business scope. Only tenant-wide OWNER/ADMIN memberships with no business binding retain tenant-wide access. Customer-owned cancellation, allowed transitions, and paid-order cancellation protection remain guarded.
+- [x] Added a disposable PostgreSQL 16 fixture/integration suite and dedicated `Order Status Branch Scope` workflow. Behavioral coverage includes same-branch success, cross-branch denial, cross-business admin denial, tenant-wide owner access, customer-owned cancellation, invalid transitions, and paid-order cancellation rejection.
+- [x] Exact-head CI on code head `0fb3032f3d578c651d7de0ee16bc1977518c02d6` passed all 11 workflows: Preview Demo Validation, Deploy MantiqatiX Web (validation passed; deploy skipped for PR branch), Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Provider Services Owner Isolation, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Approval Action Audit Atomicity, and Order Status Branch Scope.
+- [ ] The documentation refresh creates a new commit; recheck CI on the new exact head before claiming the updated head is green.
+- [ ] Live browser E2E with separate authorized staff accounts, real customer-to-restaurant order creation/status lifecycle, Paymob payment/refund E2E, backup/restore drill, and production runtime evidence remain unverified.
+- [ ] RC102 and RC103 migrations are branch-only and unapplied. No production database writes, migration execution, merge, or deployment occurred. PR #350 remains draft/unmerged; global release remains **BLOCKED / NOT CERTIFIED**.
