@@ -227,7 +227,7 @@ function addMenu(existing){
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
   const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
-  if(!payload.name_ar||payload.name_ar.length>150||!payload.category||payload.category.length>80||payload.description_ar.length>2000||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0||payload.base_price_egp>100000000||Math.round(payload.base_price_egp*100)!==payload.base_price_egp*100)return notify('تحقق من الاسم والفئة والوصف والسعر؛ السعر يجب أن يكون حتى منزلتين عشريتين.');
+  if(!payload.name_ar||payload.name_ar.length>150||!payload.category||payload.category.length>80||payload.description_ar.length>2000||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0||payload.base_price_egp>100000000||Math.round(payload.base_price_egp*100)/100!==payload.base_price_egp)return notify('تحقق من الاسم والفئة والوصف والسعر؛ السعر يجب أن يكون حتى منزلتين عشريتين.');
   let q;
   if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle();
   else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
