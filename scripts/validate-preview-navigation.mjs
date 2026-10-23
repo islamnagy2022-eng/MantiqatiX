@@ -47,7 +47,7 @@ const checks = [
       });
     } catch (error) { console.error("Restaurant catalog parity failed:", error.message); return false; }
   })()],
-  ["Restaurant operator sales total is calculated from the selected restaurant orders", restaurant.includes('id="statSales"') && /statSales').textContent=money\\(orders\\.filter\\(o=>o\\.restaurant===selectedRestaurant\\)\\.reduce\\(\\(sum,o\\)=>sum\\+total\\(o\\),0\\)\\)/.test(restaurant)],
+  ["Restaurant operator sales total is calculated from the selected restaurant orders", restaurant.includes('id="statSales"') && restaurant.includes("statSales').textContent=money(orders.filter(o=>o.restaurant===selectedRestaurant).reduce((sum,o)=>sum+total(o),0))")],
 
   ["Preview homepage and restaurant workspace link to customer restaurant journey", entry.includes('href="restaurants.html"') && restaurant.includes('href="restaurants.html"')],
   ["Restaurant demo is clearly isolated from live backend", /وضع تجريبي فقط/.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant) && /لم يتم إرساله إلى أي خادم/.test(restaurant)],
