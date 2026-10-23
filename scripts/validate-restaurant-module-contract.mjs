@@ -156,6 +156,16 @@ assert.match(moduleSource, /let creatingRestaurantOrder=false;/,
   'restaurant order creation must track an in-flight submission');
 assert.match(moduleSource, /if\(creatingRestaurantOrder\)return;/,
   'a second order submission must be ignored while the first is in progress');
+assert.match(moduleSource, /function pendingRestaurantOrderKey\(m\)/,
+  'pending order retries must be scoped to the authenticated user, tenant, business, and branch');
+assert.match(moduleSource, /function savePendingRestaurantOrder\(m,payload\)/,
+  'order retry data must be persisted before the request can time out');
+assert.match(moduleSource, /const \{orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata\}=payload/,
+  'session retry storage must omit customer contact/name fields');
+assert.match(moduleSource, /let payload=readPendingRestaurantOrder\(m\)/,
+  'a retry must restore the previous logical order instead of generating a new idempotency key');
+assert.match(moduleSource, /savePendingRestaurantOrder\(m,payload\);\s*const r=await invokeMntyFunction\('order-create',payload\);\s*clearPendingRestaurantOrder\(m\);/,
+  'pending idempotency state must be saved before submission and cleared only after confirmed success');
 assert.match(moduleSource, /trigger\.disabled=true;trigger\.textContent='جارٍ تجهيز الطلب…'/,
   'the order creation control must visibly disable while catalog/order requests are pending');
 assert.match(moduleSource, /finally\{\s*creatingRestaurantOrder=false;\s*if\(trigger\?\.isConnected\)\{trigger\.disabled=false;trigger\.textContent=originalLabel;\}/,
