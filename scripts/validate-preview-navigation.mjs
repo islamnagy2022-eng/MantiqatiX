@@ -197,6 +197,24 @@ checks.push(["Restaurant demo checkout filters the current restaurant cart befor
   return declaration>=0&&emptyCheck>declaration&&!handler.includes("if(!cart.length){alert('أضف صنفًا للسلة أولًا')");
 })()]);
 
+
+checks.push(["Restaurant demo checkout marks synthetic contact fields as required and bounded", ["customer","phone","address"].every(id => new RegExp('<input[^>]*id="' + id + '"[^>]*required').test(customerOrder) && new RegExp('<input[^>]*id="' + id + '"[^>]*maxlength="[0-9]+"').test(customerOrder))]);
+checks.push(["Restaurant checkout does not persist customer contact or delivery address", (() => {
+  const start=customerOrderScript.indexOf("document.getElementById('checkout').addEventListener('submit'");
+  const end=start<0?-1:customerOrderScript.indexOf("});renderCart()",start);
+  if(start<0||end<0)return false;
+  const handler=customerOrderScript.slice(start,end);
+  return handler.includes("document.getElementById('customer').value") && handler.includes("document.getElementById('phone').value") && handler.includes("document.getElementById('address').value") && !/localStorage|sessionStorage|fetch\\s*\\(/i.test(handler) && !/customer|phone|address/i.test(sharedCart);
+})()]);
+checks.push(["Restaurant checkout clears only the selected merchant cart after demo confirmation", (() => {
+  const start=customerOrderScript.indexOf("document.getElementById('checkout').addEventListener('submit'");
+  const end=start<0?-1:customerOrderScript.indexOf("});renderCart()",start);
+  if(start<0||end<0)return false;
+  const handler=customerOrderScript.slice(start,end);
+  return handler.includes("window.MXCart.removeMerchant(key)") && !handler.includes("window.MXCart.clear()");
+})()]);
+checks.push(["Customer and operator demo catalogs remain isolated from network submission", !/\\bfetch\\s*\\(|XMLHttpRequest|createClient\\s*\\(/i.test(customerOrder) && !/\\bfetch\\s*\\(|XMLHttpRequest|createClient\\s*\\(/i.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant)]);
+
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
 if (failed.length) {
