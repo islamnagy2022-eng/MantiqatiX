@@ -30,6 +30,23 @@ const checks = [
   ["Customer restaurant ordering is local-only and does not use backend or browser persistence", /لا يوجد دفع أو إرسال للمطعم/.test(customerOrder) && !/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|createClient\s*\(/i.test(customerOrder)],
   ["Customer restaurant page JavaScript parses successfully", (() => { try { if (!customerRestaurantsScript) return false; new vm.Script(customerRestaurantsScript); return true; } catch (error) { console.error("Customer restaurants JavaScript syntax error:", error.message); return false; } })()],
   ["Customer order page JavaScript parses successfully", (() => { try { if (!customerOrderScript) return false; new vm.Script(customerOrderScript); return true; } catch (error) { console.error("Customer order JavaScript syntax error:", error.message); return false; } })()],
+  ["Customer and operator restaurant catalogs have identical base names and prices", (() => {
+    try {
+      const customerMatch = customerOrderScript.match(/const data=(\\{[\\s\\S]*?\\});const esc=/);
+      const operatorMatch = restaurant.match(/const restaurants=(\\{[\\s\\S]*?\\});\\nconst allItems=/);
+      if (!customerMatch || !operatorMatch) return false;
+      const customer = vm.runInNewContext("(" + customerMatch[1] + ")");
+      const operator = vm.runInNewContext("(" + operatorMatch[1] + ")");
+      return ["zaeem", "gaber", "asli"].every(id => {
+        const left = customer[id]?.items;
+        const right = operator[id]?.items;
+        return Array.isArray(left) && Array.isArray(right) && left.length === right.length &&
+          left.every((item, i) => item[0] === right[i].name && Number(item[3]) === Number(right[i].price));
+      });
+    } catch (error) { console.error("Restaurant catalog parity failed:", error.message); return false; }
+  })()],
+  ["Restaurant operator sales total is calculated from the selected restaurant orders", restaurant.includes('id="statSales"') && /statSales').textContent=money\\(orders\\.filter\\(o=>o\\.restaurant===selectedRestaurant\\)\\.reduce\\(\\(sum,o\\)=>sum\\+total\\(o\\),0\\)\\)/.test(restaurant)],
+
   ["Preview homepage and restaurant workspace link to customer restaurant journey", entry.includes('href="restaurants.html"') && restaurant.includes('href="restaurants.html"')],
   ["Restaurant demo is clearly isolated from live backend", /وضع تجريبي فقط/.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant) && /لم يتم إرساله إلى أي خادم/.test(restaurant)],
   ["Restaurant demo supports multi-item orders and order-state transitions", /إنشاء طلب متعدد الأصناف/.test(restaurant) && /id="orderLines"/.test(restaurant) && /data-next/.test(restaurant) && /data-filter/.test(restaurant)],
