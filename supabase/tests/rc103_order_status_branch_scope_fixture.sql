@@ -4,9 +4,13 @@ create or replace function auth.uid()
 returns uuid
 language sql
 stable
-as $$
+as $
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
-$$;
+$;
+
+create or replace function auth.role()
+returns text language sql stable
+as $ select nullif(current_setting('request.jwt.claim.role', true), '') $;
 
 create table public.orders (
   id uuid primary key,
@@ -38,7 +42,8 @@ values
  ('30000000-0000-4000-8000-000000000001','tenant-a','20000000-0000-4000-8000-000000000001','branch-a','10000000-0000-4000-8000-000000000003','PENDING'),
  ('30000000-0000-4000-8000-000000000002','tenant-a','20000000-0000-4000-8000-000000000001','branch-b','10000000-0000-4000-8000-000000000003','PENDING'),
  ('30000000-0000-4000-8000-000000000003','tenant-a','20000000-0000-4000-8000-000000000001','branch-b','10000000-0000-4000-8000-000000000003','PENDING'),
- ('30000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000001','branch-b','10000000-0000-4000-8000-000000000003','PENDING');
+ ('30000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000001','branch-b','10000000-0000-4000-8000-000000000003','PENDING'),
+ ('30000000-0000-4000-8000-000000000005','tenant-a','20000000-0000-4000-8000-000000000001','branch-a','10000000-0000-4000-8000-000000000003','PENDING');
 
 insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
 values
