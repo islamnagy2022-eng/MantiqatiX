@@ -36,3 +36,14 @@ Related PR: https://github.com/islamnagy2022-eng/MantiqaTiX/pull/350
 2. Run the provider-services, booking/payment, module-runtime, and JavaScript syntax validators on the same checkout.
 3. Execute isolated browser tests with separate provider/customer/operator identities and verify cross-provider/tenant denial.
 4. Keep release status BLOCKED / NOT CERTIFIED until all required tests pass.
+
+
+## RC102 — Provider-service table privilege mismatch (2026-10-23)
+
+- A live read-only `information_schema.role_table_grants` query found `authenticated` had SELECT only on `public.marketing_provider_services`; INSERT/UPDATE/DELETE were absent.
+- The live policy query found `marketing_provider_services_owner_manage` is owner-scoped through `marketing_provider_profiles.owner_user_id = auth.uid()`, and public reads are limited to ACTIVE rows. Table privileges and RLS policies are separate gates; the policy alone cannot enable UI mutations without table grants.
+- Added branch-only migration `supabase/migrations/20261023020000_rc102_provider_services_owner_write_grants.sql` to grant INSERT/UPDATE/DELETE to `authenticated` while retaining the existing RLS policy as the authorization boundary. No grant was applied to production.
+- Extended `scripts/validate-provider-services-contract.mjs` to assert the intended grant and reject SQL grants to anon/public/service_role.
+- Migration Version Uniqueness passed on commit `709a6bfebe2493b9f75598f33a42be9d516709e8`; this is not the latest head and does not establish full CI success.
+- Open: exact-head CI on the latest commit, migration dry-run on an isolated development database, runtime insert/update/delete as the owning provider, and denial for a second provider account.
+- Do not merge or apply the migration until the exact-head CI and isolated RLS tests pass.
