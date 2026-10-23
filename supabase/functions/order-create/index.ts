@@ -46,12 +46,33 @@ Deno.serve(async (req: Request) => {
   }
   let body: any;
   try {
-    const rawBody = await req.text();
-    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
-      return json({ error: "REQUEST_TOO_LARGE" }, 413);
+    if (!req.body) return json({ error: "INVALID_BODY" }, 400);
+    const reader = req.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_BODY_BYTES) {
+        await reader.cancel("REQUEST_TOO_LARGE");
+        return json({ error: "REQUEST_TOO_LARGE" }, 413);
+      }
+      chunks.push(value);
     }
-    body = JSON.parse(rawBody);
-  } catch { return json({ error: "INVALID_JSON" }, 400); }
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch (error) {
+    if (error instanceof TypeError || error instanceof SyntaxError) {
+      return json({ error: "INVALID_JSON" }, 400);
+    }
+    return json({ error: "REQUEST_READ_FAILED" }, 400);
+  }
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return json({ error: "INVALID_BODY" }, 400);
   }
