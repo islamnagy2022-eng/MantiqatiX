@@ -140,7 +140,7 @@ assert.notEqual(Math.round(1.234 * 100) / 100, 1.234, 'prices with more than two
 
 assert.match(moduleSource, /async function createRestaurantOrder\(\)/,
   'restaurant order creation awaits catalog and order APIs and must be declared async');
-assert.match(moduleSource, /const catalog=await invokeMntyApi\('/api\/v1\/catalog\?/,
+assert.ok(moduleSource.includes("const catalog=await invokeMntyApi('/api/v1/catalog?"),
   'restaurant order creation must await the authoritative catalog response before asking for an item');
 assert.match(moduleSource, /const r=await invokeMntyFunction\('order-create',payload\)/,
   'restaurant order creation must await the server-authoritative order endpoint');
