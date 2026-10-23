@@ -48,6 +48,11 @@ if(files.operations.includes("sb.from('education_requests').insert")) failures.p
 if(files.operations.includes("if(r.error)rows[t]=[]")) failures.push("OPERATIONS_QUERY_ERRORS_MUST_FAIL_CLOSED");
 if(files.operations.includes(".limit(1).maybeSingle()")) failures.push("OPERATIONS_MUST_NOT_PICK_ARBITRARY_MEMBERSHIP");
 if(!files.operations.includes("اختر المؤسسة أو الفرع الصحيح")) failures.push("OPERATIONS_MEMBERSHIP_SELECTION_REQUIRED");
+if(!files.operations.includes("يلزم اختيار عضوية نشطة مرتبطة بمؤسسة محددة")) failures.push("GROCERY_MEMBERSHIP_SCOPE_FAIL_CLOSED");
+if(!files.operations.includes("q=q.eq('tenant_id',m.tenant_id).eq('business_id',m.business_id).order('name_ar'")) failures.push("GROCERY_CATALOG_TENANT_BUSINESS_SCOPE");
+if(!files.operations.includes("q=q.eq('tenant_id',m.tenant_id).in('catalog_item_id',itemIds).order('version'")) failures.push("GROCERY_PRICES_SCOPED_TO_CATALOG_ITEMS");
+if(!files.operations.includes("عرض للقراءة فقط ضمن المؤسسة والفرع المحددين")) failures.push("GROCERY_READ_ONLY_INVENTORY_ORDER_VIEW");
+if(!files.operations.includes("'سوبر ماركت':{key:'GROCERY',tabs:['overview','catalog','prices','live']")) failures.push("SUPERMARKET_ALIAS_SHARED_GROCERY_WORKSPACE");
 if(!files.operations.includes('id="op-membership-select"')||!files.operations.includes("data-op-use-membership")) failures.push("OPERATIONS_MEMBERSHIP_SELECTOR_UI_MISSING");
 if(!files.operations.includes("localStorage.setItem('MNTYActiveMembershipId',selected.id)")) failures.push("OPERATIONS_MEMBERSHIP_SELECTION_NOT_PERSISTED");
 if(!files.operations.includes("تم إيقاف تحميل بيانات المؤسسة حفاظًا على العزل")) failures.push("SCOPED_OPERATIONS_REQUIRE_ACTIVE_MEMBERSHIP");
