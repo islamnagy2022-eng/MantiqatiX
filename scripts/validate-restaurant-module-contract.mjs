@@ -161,4 +161,7 @@ assert.match(moduleSource, /trigger\.disabled=true;trigger\.textContent='جار�
 assert.match(moduleSource, /finally\{\s*creatingRestaurantOrder=false;\s*if\(trigger\?\.isConnected\)\{trigger\.disabled=false;trigger\.textContent=originalLabel;\}/,
   'order creation must restore its control after success, error, or cancellation');
 
+assert.match(moduleSource, /else if\(!closed\)\{closed=true;document\.removeEventListener\('keydown',onKey\)/,
+  'successful modal saves that remove the dialog directly must clean up the keyboard listener and restore focus');
+
 console.log('Restaurant module contract PASS');
