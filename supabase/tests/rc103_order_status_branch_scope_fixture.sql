@@ -43,7 +43,8 @@ values
 insert into public.user_memberships(id,user_id,tenant_id,business_id,branch_id,role,status)
 values
  ('membership-manager-a','10000000-0000-4000-8000-000000000001','tenant-a','20000000-0000-4000-8000-000000000001','branch-a','MANAGER','ACTIVE'),
- ('membership-owner','10000000-0000-4000-8000-000000000002','tenant-a',null,null,'OWNER','ACTIVE');
+ ('membership-owner','10000000-0000-4000-8000-000000000002','tenant-a',null,null,'OWNER','ACTIVE'),
+ ('membership-admin-other-business','10000000-0000-4000-8000-000000000004','tenant-a','20000000-0000-4000-8000-000000000002','branch-b','ADMIN','ACTIVE');
 
 insert into public.payment_intents(order_id,status)
 values ('30000000-0000-4000-8000-000000000004','SUCCEEDED');
