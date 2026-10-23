@@ -1,6 +1,6 @@
 -- RC103: enforce branch-level authorization for canonical order status changes.
--- Tenant-wide OWNER/ADMIN roles retain their existing tenant-wide behavior.
--- Operational roles must match both the order business and its exact branch.
+-- Only tenant-wide OWNER/ADMIN memberships (business_id IS NULL) retain tenant-wide access.
+-- Business-scoped operational memberships must match both the order business and exact branch.
 -- Customer cancellation of one's own order and the existing transition/payment guards remain intact.
 create or replace function public.update_order_status_backend(
   p_order_id uuid,
@@ -48,7 +48,7 @@ begin
       and m.tenant_id = p_tenant_id
       and coalesce(m.status, 'ACTIVE') = 'ACTIVE'
       and (
-        upper(m.role) in ('OWNER', 'ADMIN')
+        (upper(m.role) in ('OWNER', 'ADMIN') and m.business_id is null)
         or (
           m.business_id = v_order.business_id
           and m.branch_id is not distinct from v_order.branch_id
@@ -60,10 +60,12 @@ begin
     v_is_staff := v_role = any(array[
       'OWNER', 'ADMIN', 'MANAGER', 'STAFF', 'CASHIER', 'DRIVER', 'BUSINESS_OWNER', 'SERVICE_PROVIDER'
     ]);
-    v_scope_ok := v_role = any(array['OWNER', 'ADMIN'])
+    v_scope_ok := (
+        v_role = any(array['OWNER', 'ADMIN'])
+        and v_membership_business is null
+      )
       or (
-        v_role in ('MANAGER', 'STAFF', 'CASHIER', 'DRIVER', 'BUSINESS_OWNER', 'SERVICE_PROVIDER')
-        and v_membership_business = v_order.business_id
+        v_membership_business = v_order.business_id
         and v_membership_branch is not distinct from v_order.branch_id
       );
 
