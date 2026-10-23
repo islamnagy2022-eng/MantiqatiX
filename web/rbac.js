@@ -52,7 +52,7 @@
     'المستخدمون':'USERS','الطلبات والعمليات':'ORDERS','الطلبات':'ORDERS','التسويق والإعلان':'MARKETING',
     'خدمات التسويق الرقمي SMM':'MARKETING','العمولات والباقات':'FINANCE','التقارير والتحليلات':'ANALYTICS',
     'التقارير':'REPORTS','الدعم والحوكمة':'GOVERNANCE','الدعم':'SUPPORT','الإعدادات':'SETTINGS',
-    'ملف نشاطي':'PROFILE','التجارة والأزياء':'CATALOG','البقالة والسوبر ماركت':'CATALOG','المطاعم والمطابخ':'CATALOG','المطاعم':'CATALOG','كافيهات':'CATALOG',
+    'ملف نشاطي':'PROFILE','التجارة والأزياء':'CATALOG','البقالة والسوبر ماركت':'CATALOG','المطاعم والمطابخ':'CATALOG','المطاعم':'CATALOG','كافيهات':'CATALOG','سوبر ماركت':'CATALOG',
     'الخدمات المهنية':'OPERATIONS','الصيانة':'OPERATIONS','MantiGO والمزايدات':'OPERATIONS','المنظومة الطبية':'OPERATIONS'
   };
   function roleOf(role){return String(role||'CUSTOMER').trim().toUpperCase()}
