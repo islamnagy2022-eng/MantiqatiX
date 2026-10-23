@@ -25,7 +25,7 @@ Related PR: https://github.com/islamnagy2022-eng/MantiqaTiX/pull/350
 ## Verification status
 - Source inspection: DONE.
 - Static validator source update: IMPLEMENTED.
-- Latest exact-head CI: **NOT VERIFIED**. The available commit-run and combined-status queries returned no run/status for commit `084d86838ba197e7ced7c5330ca5a00c5856c997`; do not infer success from earlier runs.
+- Latest exact-head CI: **NOT VERIFIED**. The latest branch head checked after documentation updates is `9823b9b36d00b83aa0f30125195c1cac786a57f4`. The available commit-run and combined-status queries returned no run/status for this exact SHA; do not infer success from earlier runs.
 - Browser E2E with two provider accounts: NOT VERIFIED.
 - Medical booking slot-conflict E2E and separate-role status transitions: NOT VERIFIED.
 - Order status-transition E2E, paid-order cancellation/refund E2E: NOT VERIFIED.
