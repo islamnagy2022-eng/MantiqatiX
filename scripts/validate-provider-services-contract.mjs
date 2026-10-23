@@ -22,7 +22,7 @@ assert.match(ui, /Number\.isFinite\(from\).*from<0/s, "prices must be finite and
 assert.match(ui, /to<from/, "price range must reject inverted ranges");
 assert.match(ui, /const catalog=\(rows\.marketing_services\|\|\[\]\)\.filter\(s=>String\(s\.status\|\|''\)\.toUpperCase\(\)==='ACTIVE'\)/, "only active catalog services should be selectable");
 assert.match(rls, /marketing_provider_services_owner_manage[\s\S]*owner_user_id = auth\.uid\(\)/, "existing RLS must enforce provider profile ownership");
-assert.match(baseline, /No dedicated generic provider-availability\/location table/, "do not invent a generic availability table");
+assert.match(baseline, /no dedicated generic provider-availability\/location table/i, "do not invent a generic availability table");
 assert.doesNotMatch(ui, /create table|availability_slots|provider_availability/i, "UI must not introduce a new availability model");
 
 console.log("Provider services contract passed: owner checks, RLS boundary, existing schema only, validation, and confirmed server response.");
