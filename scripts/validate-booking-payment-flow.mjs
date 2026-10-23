@@ -6,6 +6,7 @@ const api=fs.readFileSync("supabase/functions/api/index.ts","utf8");
 const order=fs.readFileSync("supabase/functions/order-create/index.ts","utf8");
 const payment=fs.readFileSync("supabase/functions/payment-intent/index.ts","utf8");
 const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.ts","utf8");
+const orderStatusScope=fs.readFileSync("supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql","utf8");
 const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
 const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
 
@@ -46,6 +47,11 @@ const additionalRequired=[
   ["Order status endpoint requires bearer authentication", 'h.startsWith("Bearer ")', orderStatus],
   ["Order status endpoint rejects anonymous sessions", "data.user.is_anonymous", orderStatus],
   ["Order status mutation delegates to authoritative backend RPC", 'admin.rpc("update_order_status_backend"', orderStatus],
+  ["Order status branch-scope migration preserves authenticated identity binding", "p_user_id is distinct from auth.uid()", orderStatusScope],
+  ["Operational status updates require exact business and branch membership", "m.branch_id is not distinct from v_order.branch_id", orderStatusScope],
+  ["Tenant-wide owner/admin roles remain explicitly allowlisted", "upper(m.role) in ('OWNER', 'ADMIN')", orderStatusScope],
+  ["Customer-owned cancellation path is preserved", "v_order.customer_id = p_user_id and upper(p_new_status) = 'CANCELLED'", orderStatusScope],
+  ["Paid-order cancellation remains blocked without refund handling", "ORDER_PAID_REQUIRES_REFUND_BEFORE_CANCELLATION", orderStatusScope],
   ["Medical booking binds caller to auth.uid", "p_user_id<>auth.uid()", medicalCreate],
   ["Medical booking requires active provider", "ACTIVE_MEDICAL_PROVIDER_NOT_FOUND", medicalCreate],
   ["Medical booking requires active tenant membership", "ACTIVE_TENANT_MEMBERSHIP_REQUIRED", medicalCreate],
