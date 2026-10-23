@@ -178,7 +178,7 @@ function askOrderDetails(items){
   });
  });
 }
-async function createRestaurantOrder(){
+async async function createRestaurantOrder(){
  if(!state.user||!scope())return notify('يجب اختيار عضوية مطعم/فرع نشطة.');
  if(!canOperate('ORDERS','create'))return notify('ليس لديك صلاحية إنشاء الطلبات.','error');
  const m=scope();
