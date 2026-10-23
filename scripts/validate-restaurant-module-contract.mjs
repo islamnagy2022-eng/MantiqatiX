@@ -121,4 +121,9 @@ assert.match(moduleSource, /payload\.table_number>10000\|\|!Number\.isInteger\(p
 assert.ok(moduleSource.includes("String(payload.reserved_customer_name||'').length>150"),
   'reservation name must have a bounded length');
 
+assert.match(moduleSource, /let ordersQ=sb\.from\('orders'\)\.select\('id,tenant_id,business_id,branch_id,status,total_amount,customer_name,created_at,updated_at'\)/,
+  'restaurant order list must request only fields used by its current operational table');
+assert.doesNotMatch(moduleSource, /ordersQ=sb\.from\('orders'\)\.select\([^)]*(customer_phone|delivery_address|items_json|notes)/,
+  'restaurant order list must not fetch customer contact, delivery address, item payloads, or notes when the UI does not use them');
+
 console.log('Restaurant module contract PASS');
