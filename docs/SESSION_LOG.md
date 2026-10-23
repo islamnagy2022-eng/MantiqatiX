@@ -197,3 +197,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added source-contract assertions that require the controlled error and pre-calculation validation.
 - Exact-head CI for this source/test update is running on `8dfa86ba97c3af6980fa2974b745500b6ab38e88`; all 12 workflows were queued/pending at the first status poll. Do not claim the new head passes until all are completed successfully.
 - No production deployment, migration, payment transaction, or production data write occurred. PR #350 remains draft/unmerged; production release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — Preview 404 investigation — deployment gate is blocking publication
+
+- Confirmed the preview source files exist on `main`: `web/preview/index.html` and `web/preview/dashboard.html`. The Pages workflow publishes `./web`, so the intended routes are `/preview/` and `/preview/dashboard.html` under the project Pages base URL.
+- Read the main-branch Pages run `39742731869` for commit `c96da6959e7d66a7920164eb9e8bb6e6c5667012`. Its `validate` job failed in `npm run verify:production`; the deploy job was skipped.
+- The production gate explicitly reports missing authoritative migration sources RC425–RC432 and RC434–RC441, and says chronological replay, tenant isolation, payment/finance E2E, backup/restore, Edge Function contracts, SMM parity, and Auth security settings are not verified.
+- Therefore the current 404 is consistent with the preview route not being included in the currently published Pages artifact; it is not evidence that the preview HTML files are missing from source. Public-site HTTP fetch was inconclusive in this session, so live HTTP status is not independently confirmed.
+- Safety decision: do not bypass the production gate or publish the entire production site from a feature branch merely to restore the preview. The correct deployment fix is to restore/review the missing migration chain and clear the release gate, or provision a separately approved preview host that cannot replace production.
+- No merge, Pages deployment, production migration, or production data mutation was performed.
