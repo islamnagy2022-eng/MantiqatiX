@@ -130,14 +130,15 @@ checks.push(["Shared cart runtime normalizes tampered session data", (() => {
   let stored = JSON.stringify([
     {id:"valid-1",merchantId:"shop-a",merchantName:"A",module:"products",name:"Item",unit:25,qty:99,total:1,extras:Array(30).fill("x".repeat(120)),note:"n".repeat(300)},
     {id:"bad-price",name:"Bad",unit:-5,qty:1},
-    {id:"bad-qty",name:"Bad quantity",unit:5,qty:0}
+    {id:"bad-qty",name:"Bad quantity",unit:5,qty:0},
+    {id:"x".repeat(101),name:"Oversized identifier",unit:4,qty:1}
   ]);
   const storage = {getItem:()=>stored,setItem:(k,v)=>{stored=v;},removeItem:()=>{stored="[]";}};
   const context = {window:{},sessionStorage:storage,crypto:{randomUUID:()=>"generated-id"}};
   try {
     vm.runInNewContext(sharedCart,context);
     const rows=context.window.MXCart.list();
-    return rows.length===1 && rows[0].qty===20 && rows[0].total===500 && rows[0].extras.length===20 && rows[0].extras[0].length===80 && rows[0].note.length===100;
+    return rows.length===1 && rows[0].qty===20 && rows[0].total===500 && rows[0].extras.length===20 && rows[0].extras[0].length===80 && rows[0].note.length===100 && rows.every(row=>row.id.length<=100);
   } catch (error) { console.error("Shared cart runtime validation failed:",error.message); return false; }
 })()]);
 checks.push(["Shared cart add/update/remove enforce quantity and recompute line totals", (() => {
