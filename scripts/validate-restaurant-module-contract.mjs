@@ -158,6 +158,8 @@ assert.match(moduleSource, /if\(creatingRestaurantOrder\)return;/,
   'a second order submission must be ignored while the first is in progress');
 assert.match(moduleSource, /function pendingRestaurantOrderKey\(m\)/,
   'pending order retries must be scoped to the authenticated user, tenant, business, and branch');
+assert.match(moduleSource, /const pendingRestaurantOrderMemory=new Map\(\)/,
+  'idempotent retry state must remain available in memory if session storage is blocked');
 assert.match(moduleSource, /function savePendingRestaurantOrder\(m,payload\)/,
   'order retry data must be persisted before the request can time out');
 assert.match(moduleSource, /const \{orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata\}=payload/,
