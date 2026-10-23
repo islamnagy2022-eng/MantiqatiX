@@ -7,6 +7,7 @@ const order=fs.readFileSync("supabase/functions/order-create/index.ts","utf8");
 const payment=fs.readFileSync("supabase/functions/payment-intent/index.ts","utf8");
 const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.ts","utf8");
 const orderStatusScope=fs.readFileSync("supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql","utf8");
+const orderIdempotencyScope=fs.readFileSync("supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql","utf8");
 const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
 const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
 
@@ -29,6 +30,12 @@ const required=[
   ["Customer order sends selected branch", "branchId,clientIdempotencyKey", app],
   ["Order creation uses server-authoritative pricing", "pricing_server_authoritative: true", order],
   ["Order creation records catalog pricing authority", 'pricing_authority: "catalog_v1"', order],
+  ["Order idempotency key rejects reuse by another customer or seller scope", "IDEMPOTENCY_KEY_CONFLICT", orderIdempotencyScope],
+  ["Idempotent replay is filtered by authenticated customer", "and customer_id=p_customer_id", orderIdempotencyScope],
+  ["Idempotent replay is filtered by business", "and business_id=p_business_id", orderIdempotencyScope],
+  ["Idempotent replay is filtered by exact branch", "and branch_id is not distinct from p_branch_id", orderIdempotencyScope],
+  ["Order idempotency conflict is checked before returning a stored snapshot", "o.customer_id is distinct from p_customer_id", orderIdempotencyScope],
+  ["RC104 preserves existing RPC ACLs without grant changes", "CREATE OR REPLACE preserves the existing function identity and its ACL", orderIdempotencyScope],
   ["Payment requires authenticated user", "user.is_anonymous", payment],
   ["Payment requires pricing snapshot", "pricing_hash", payment],
   ["Payment revalidates pricing before provider call", "Authoritative pricing changed; restart payment", payment],
@@ -72,6 +79,7 @@ const customerFallbackIndex=order.indexOf("if (!targetMembership)");
 if(branchScopeIndex<0||customerFallbackIndex<0||branchScopeIndex>customerFallbackIndex) failures.push("Staff branch scope must be checked before customer fallback authorization");
 if(order.split("const branchId = body.branchId").length-1!==1) failures.push("Order creation must define branch scope exactly once before membership authorization");
 if(orderStatusScope.toLowerCase().includes("grant execute")||orderStatusScope.toLowerCase().includes("revoke execute")) failures.push("RC103 must not broaden or alter backend-only order-status RPC execution grants");
+if(orderIdempotencyScope.toLowerCase().includes("grant execute")||orderIdempotencyScope.toLowerCase().includes("revoke execute")) failures.push("RC104 must not broaden or alter backend-only order-create RPC execution grants");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
 
 if(failures.length){
