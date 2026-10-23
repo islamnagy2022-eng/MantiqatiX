@@ -1773,3 +1773,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] In this case the UI now preserves the success result and tells the user to reload to review the order, rather than encouraging a new submission.
 - [x] Added a contract regression assertion for this behavior.
 - [ ] RC107 is not certified until the exact-head CI completes. The cross-PR migration collision guard remains blocked by GitHub API installation rate limiting; it must complete successfully before merge.
+
+### RC107 — exact-head CI result — 2026-10-23
+- [x] Rechecked PR #350 at exact head `7ed49dc0ea4b6780b6b1147d0001b0e8551bbc83`: all 12 PR workflows completed successfully, including Migration Version Uniqueness, Open PR Migration Collision Guard, Migration History Immutability, Provider Services Owner Isolation, Order Idempotency Scope, Order Status Branch Scope, Approval Action Audit Atomicity, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Preview Demo Validation, and Pages validation.
+- [x] The migration collision guard completed successfully on this exact head; the prior API-rate-limit failure was transient and is not the latest result.
+- [x] Pages workflow's validation job passed; its deploy job was skipped for the pull-request event. This is CI/source validation, **not** a deployment or live-site smoke pass.
+- [ ] Browser E2E using separate real customer/provider/branch identities remains NOT VERIFIED.
+- [ ] Paymob payment/refund and finance/settlement E2E, backup/restore rehearsal, production Auth security settings, full live RLS/catalog checks, Android signed release, real-device regression, monitoring/alert and rollback drills remain open.
+- [ ] RC102–RC106 migrations remain branch-only; no production migration, production write, merge, or deployment occurred.
+- [ ] Any documentation/source commit changes the PR head and requires a fresh exact-head CI run. Keep PR #350 draft/unmerged and the global production gate **BLOCKED / NOT CERTIFIED** until all mandatory evidence and external approvals are present.
