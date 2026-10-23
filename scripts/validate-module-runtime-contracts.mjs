@@ -68,12 +68,12 @@ if(!files.operations.includes("'provider-services'")||!files.operations.includes
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 // Sensitive catalog/inventory workspaces are intentionally read-only until an approved server mutation contract exists.
 const forbiddenDirectWrites = [
-  ["catalog_items", /sb\\.from\\(['"]catalog_items['"]\\)\\.(?:insert|update|delete)\\s*\\(/],
-  ["catalog_item_prices", /sb\\.from\\(['"]catalog_item_prices['"]\\)\\.(?:insert|update|delete)\\s*\\(/],
-  ["inventory_transactions", /sb\\.from\\(['"]inventory_transactions['"]\\)\\.(?:insert|update|delete)\\s*\\(/],
-  ["fashion_products", /sb\\.from\\(['"]fashion_products['"]\\)\\.(?:insert|update|delete)\\s*\\(/],
-  ["fashion_orders", /sb\\.from\\(['"]fashion_orders['"]\\)\\.(?:insert|update|delete)\\s*\\(/],
-  ["fashion_tailor_services", /sb\\.from\\(['"]fashion_tailor_services['"]\\)\\.(?:insert|update|delete)\\s*\\(/]
+  ["catalog_items", /sb\.from\(['"]catalog_items['"]\)\.(?:insert|update|delete)\s*\(/],
+  ["catalog_item_prices", /sb\.from\(['"]catalog_item_prices['"]\)\.(?:insert|update|delete)\s*\(/],
+  ["inventory_transactions", /sb\.from\(['"]inventory_transactions['"]\)\.(?:insert|update|delete)\s*\(/],
+  ["fashion_products", /sb\.from\(['"]fashion_products['"]\)\.(?:insert|update|delete)\s*\(/],
+  ["fashion_orders", /sb\.from\(['"]fashion_orders['"]\)\.(?:insert|update|delete)\s*\(/],
+  ["fashion_tailor_services", /sb\.from\(['"]fashion_tailor_services['"]\)\.(?:insert|update|delete)\s*\(/]
 ];
 for(const [table,pattern] of forbiddenDirectWrites){
  if(pattern.test(files.operations)) failures.push("SENSITIVE_DIRECT_WRITE_FORBIDDEN:"+table);
