@@ -30,6 +30,8 @@ assert.match(ui, /async function providerServiceOwner\(providerId\)/, "mutations
 assert.match(ui, /async function saveProviderServiceAreas\(\)/, "service area editing must use existing provider profile field");
 assert.match(ui, /update\(\{service_areas:areas\}\)\.eq\('id',providerId\)\.eq\('owner_user_id',user\.id\)/, "service area writes must be constrained to owned profile");
 assert.match(ui, /if\(areas.length>50\)/, "service area input must have a bounded item count");
+assert.ok(ui.includes("new Set(raw.split(/[\\n,،]/).map(x=>x.trim()).filter(Boolean))"), "service-area normalization must trim values, split supported separators, discard blanks, and deduplicate entries");
+assert.match(ui, /areas\.some\(x=>x\.length>120\)/, "service-area entries must be length-bounded before writes");
 assert.match(ui, /\.eq\('owner_user_id',user\.id\)\.maybeSingle\(\)/, "ownership must be checked against the current authenticated user");
 assert.match(ui, /if\(!owner\)return alert\('تم رفض العملية: الحساب الحالي ليس مالك ملف مقدم الخدمة\.'\)/, "mutations must fail closed when ownership is absent");
 assert.match(ui, /\.from\('marketing_provider_services'\)\.insert\(/, "add must use existing provider-services table");
