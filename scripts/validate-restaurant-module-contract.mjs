@@ -152,4 +152,13 @@ assert.match(moduleSource, /if\(typeof onClose==='function'\)onClose\(\)/,
 assert.match(moduleSource, /\},\(\)=>resolve\(null\)\);/,
   'cancelling restaurant order details must resolve the pending promise instead of leaving the flow suspended');
 
+assert.match(moduleSource, /let creatingRestaurantOrder=false;/,
+  'restaurant order creation must track an in-flight submission');
+assert.match(moduleSource, /if\(creatingRestaurantOrder\)return;/,
+  'a second order submission must be ignored while the first is in progress');
+assert.match(moduleSource, /trigger\.disabled=true;trigger\.textContent='جارٍ تجهيز الطلب…'/,
+  'the order creation control must visibly disable while catalog/order requests are pending');
+assert.match(moduleSource, /finally\{\s*creatingRestaurantOrder=false;\s*if\(trigger\?\.isConnected\)\{trigger\.disabled=false;trigger\.textContent=originalLabel;\}/,
+  'order creation must restore its control after success, error, or cancellation');
+
 console.log('Restaurant module contract PASS');
