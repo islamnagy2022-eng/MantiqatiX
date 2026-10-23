@@ -531,10 +531,28 @@ const categoryGrid=document.getElementById('mx-category-grid');
       };
       const ux=SECTOR_UX[key]||{eyebrow:key,title:'اكتشف '+escapeHtml(label),desc:'استعرض الخدمات ومقدمي الخدمات المنشورين ثم ابدأ الطلب من المسار المتاح.',actions:[['استعرض الخدمات','الخدمات'],['اختر مقدم خدمة','مقدمو الخدمات'],['ابدأ الطلب','الطلب']]};
       const uxCards='<section class="mx-category-page__section"><div class="section-head"><div><h2>'+escapeHtml(ux.title)+'</h2><p class="muted">'+escapeHtml(ux.desc)+'</p></div></div><div class="cards">'+ux.actions.map((a,i)=>'<article class="card mx-sector-action-card"><div class="metric">'+(i+1)+'</div><h3>'+escapeHtml(a[0])+'</h3><p class="muted">'+escapeHtml(a[1])+'</p><button type="button" class="btn '+(i===0?'btn-primary':'btn-outline')+'" data-sector-action="'+i+'">'+escapeHtml(a[0])+' ←</button></article>').join('')+'</div></section>';
-      app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">'+escapeHtml(ux.eyebrow)+'</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>'+escapeHtml(ux.title)+'</h2><p>'+escapeHtml(ux.desc)+'</p></div></section>'+uxCards+'<section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات المنشورة</h2><p class="muted">نعرض الخدمات النشطة فقط من الكتالوج الفعلي.</p></div></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>مقدمو الخدمات</h2><p class="muted">تظهر الأنشطة النشطة والمنشورة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
+      app.innerHTML='<main class="mx-category-page" dir="rtl"><header class="mx-category-page__head"><button type="button" class="mx-category-back" id="mx-category-back">← الرئيسية</button><div><span class="eyebrow">'+escapeHtml(ux.eyebrow)+'</span><h1>'+escapeHtml(label)+'</h1><p>'+escapeHtml(desc)+'</p></div><button type="button" class="mx-category-account" id="mx-category-account">حسابي</button></header><section class="mx-category-page__hero"><img src="'+activityImage(key)+'" alt="'+escapeHtml(label)+'"><div><span class="mx-chip">'+escapeHtml(key)+'</span><h2>'+escapeHtml(ux.title)+'</h2><p>'+escapeHtml(ux.desc)+'</p></div></section>'+uxCards+'<section class="mx-category-page__section"><div class="section-head"><div><h2>الخدمات المنشورة</h2><p class="muted">نعرض الخدمات النشطة فقط من الكتالوج الفعلي.</p></div></div><div class="mx-category-filter"><label for="mx-category-filter-input">ابحث داخل هذا القطاع</label><div class="mx-category-filter__controls"><input id="mx-category-filter-input" type="search" maxlength="80" autocomplete="off" placeholder="اسم الخدمة أو النشاط أو المنطقة"><button type="button" class="mx-ref-outline" id="mx-category-filter-clear">مسح البحث</button></div><p class="muted" id="mx-category-filter-status" aria-live="polite">يمكنك البحث في الخدمات والأنشطة المعروضة في هذه الصفحة.</p></div><div class="mx-category-results" id="mx-category-services"><div class="empty-state">جاري التحميل…</div></div></section><section class="mx-category-page__section"><div class="section-head"><div><h2>مقدمو الخدمات</h2><p class="muted">تظهر الأنشطة النشطة والمنشورة فقط.</p></div></div><div class="mx-category-results" id="mx-category-providers"><div class="empty-state">جاري التحميل…</div></div></section></main>';
       document.getElementById('mx-category-back').onclick=()=>{try{history.pushState({},'', '#mx-home');}catch(_){};window.MXHomeLanding?.();};
       document.getElementById('mx-category-account').onclick=async()=>{if(typeof window.accountView==='function'&&window.MNTYAuthState?.authenticated)return window.accountView();if(typeof window.authView==='function')return window.authView();};
       document.querySelectorAll('[data-sector-action]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.sectorAction||0);if(i===0||i===2)document.getElementById('mx-category-services')?.scrollIntoView({behavior:'smooth',block:'start'});else document.getElementById('mx-category-providers')?.scrollIntoView({behavior:'smooth',block:'start'});});
+      const categoryFilter=document.getElementById('mx-category-filter-input');
+      const categoryFilterStatus=document.getElementById('mx-category-filter-status');
+      const applyCategoryFilter=()=>{
+        const term=String(categoryFilter?.value||'').trim().toLocaleLowerCase('ar');
+        let visible=0, total=0;
+        ['mx-category-services','mx-category-providers'].forEach(id=>{
+          const host=document.getElementById(id); if(!host)return;
+          host.querySelectorAll('.mx-category-result-card').forEach(card=>{
+            total++;
+            const matches=!term||card.textContent.toLocaleLowerCase('ar').includes(term);
+            card.hidden=!matches;
+            if(matches)visible++;
+          });
+        });
+        if(categoryFilterStatus)categoryFilterStatus.textContent=term?(visible?'عدد النتائج المطابقة: '+visible+' من '+total+' بطاقة محملة.':'لا توجد نتائج مطابقة ضمن البطاقات المحملة. جرّب كلمة أخرى أو امسح البحث.'):'يمكنك البحث في الخدمات والأنشطة المعروضة في هذه الصفحة.';
+      };
+      categoryFilter?.addEventListener('input',applyCategoryFilter);
+      document.getElementById('mx-category-filter-clear')?.addEventListener('click',()=>{if(categoryFilter)categoryFilter.value='';applyCategoryFilter();categoryFilter?.focus();});
       try{
         const sb=getClient(); if(!sb)throw new Error('تعذر الاتصال بالمنصة');
         const [sr,pr]=await Promise.all([
@@ -549,6 +567,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         se.querySelectorAll('[data-cat-service]').forEach(b=>b.onclick=()=>{const s=services.find(x=>String(x.id)===String(b.dataset.catService));if(s){document.getElementById('mx-category-services')?.scrollIntoView({behavior:'smooth'});}});
         pe.querySelectorAll('[data-cat-provider]').forEach(b=>{b.onclick=()=>{const p=providers.find(x=>String(x.id)===String(b.dataset.catProvider));if(p)openProviderProfilePage(p,label);}});
         pe.querySelectorAll('[data-cat-book]').forEach(b=>b.onclick=()=>{const id=b.dataset.catBook,n=b.dataset.catProviderName||'مقدم الخدمة';if(window.MNTYAuthState?.authenticated&&typeof openProviderCatalog==='function')return openProviderCatalog(id,n);try{localStorage.setItem('MNTYPendingProvider',JSON.stringify({businessId:id,providerName:n}));}catch(_){};goLogin();});
+        applyCategoryFilter();
       }catch(e){document.getElementById('mx-category-services').innerHTML='<div class="empty-state">تعذر تحميل الخدمات حاليًا.</div>';document.getElementById('mx-category-providers').innerHTML='<div class="empty-state">تعذر تحميل الأنشطة حاليًا.</div>';}
     };
 
