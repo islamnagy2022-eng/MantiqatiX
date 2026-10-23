@@ -1684,3 +1684,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify live database grants/policies and schema types for provider-service mutations; do not change RLS or migrations without evidence.
 - [ ] Review and test the central orders/bookings lifecycle after C4 completion.
 - Global production gate remains **BLOCKED / NOT CERTIFIED**.
+
+### C3 — Orders and bookings review after RC101 — 2026-10-23
+- [x] Static review of authenticated order-create and server-authoritative pricing/branch validation.
+- [x] Static review of authenticated order-status update delegation to the authoritative backend RPC.
+- [x] Reviewed existing medical booking/status authorization contract and existing CI invariant validator; no parallel order/booking schema added.
+- [ ] Run browser E2E: customer discovery → order create → provider status transition.
+- [ ] Run two-tenant/cross-provider isolation tests and medical booking concurrency/notification tests.
+- [ ] Run payment/refund E2E only in the approved sandbox with test fixtures; no production transactions.
+- [ ] Exact-head CI remains NOT VERIFIED; available PR workflow runs are queued/in progress on earlier head and no new run is attached to the latest head.
