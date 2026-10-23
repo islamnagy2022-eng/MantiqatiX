@@ -4,6 +4,7 @@ declare
   manager_a uuid := '10000000-0000-4000-8000-000000000001';
   owner_user uuid := '10000000-0000-4000-8000-000000000002';
   other_business_admin uuid := '10000000-0000-4000-8000-000000000004';
+  partially_scoped_owner uuid := '10000000-0000-4000-8000-000000000005';
   customer_user uuid := '10000000-0000-4000-8000-000000000003';
   tenant_key varchar := 'tenant-a';
   rejected boolean;
@@ -45,6 +46,19 @@ begin
     rejected := true;
   end;
   if not rejected then raise exception 'TEST_FAILED: business-scoped ADMIN changed an unrelated business order'; end if;
+
+  -- An OWNER membership with a branch binding is not tenant-wide.
+  perform set_config('request.jwt.claim.sub', partially_scoped_owner::text, false);
+  rejected := false;
+  begin
+    perform public.update_order_status_backend(
+      '30000000-0000-4000-8000-000000000002', tenant_key, partially_scoped_owner, 'CONFIRMED', null
+    );
+  exception when others then
+    if sqlerrm <> 'INVALID_ORDER_TRANSITION' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'TEST_FAILED: partially scoped OWNER was treated as tenant-wide'; end if;
 
   -- Tenant-wide OWNER access remains compatible with the previous contract.
   perform set_config('request.jwt.claim.sub', owner_user::text, false);
