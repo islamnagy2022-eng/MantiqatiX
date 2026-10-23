@@ -5,6 +5,7 @@ on:
       - "**"
     paths:
       - "supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql"
+      - "supabase/migrations/20261023060000_rc106_order_status_service_role_identity.sql"
       - "supabase/tests/rc103_order_status_branch_scope_*.sql"
       - "scripts/validate-booking-payment-flow.mjs"
       - ".github/workflows/order-status-branch-scope.yml"
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql"
+      - "supabase/migrations/20261023060000_rc106_order_status_service_role_identity.sql"
       - "supabase/tests/rc103_order_status_branch_scope_*.sql"
       - "scripts/validate-booking-payment-flow.mjs"
       - ".github/workflows/order-status-branch-scope.yml"
@@ -54,7 +56,9 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc103_order_status_branch_scope_fixture.sql "$pg_container:/tmp/rc103_fixture.sql"
           docker cp supabase/migrations/20261023030000_rc103_order_status_branch_scope.sql "$pg_container:/tmp/rc103_migration.sql"
+          docker cp supabase/migrations/20261023060000_rc106_order_status_service_role_identity.sql "$pg_container:/tmp/rc106_migration.sql"
           docker cp supabase/tests/rc103_order_status_branch_scope_integration.sql "$pg_container:/tmp/rc103_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc103_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc103_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc106_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc103_order_status_test -v ON_ERROR_STOP=1 -f /tmp/rc103_test.sql
