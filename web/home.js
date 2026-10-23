@@ -43,6 +43,8 @@
   const normCode = value => String(value||'').trim().toUpperCase().replace(/[^A-Z0-9_:-]+/g,'_');
   // Public sector codes may differ from backend taxonomy codes; keep the public contract stable and map only at the data boundary.
   const DATA_CATEGORY_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',FITNESS:'SPORTS',TRAVEL:'TRIPS',TECH:'ERP',FOOD:'FOOD'};
+  const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'DIGITAL',SPORTS:'FITNESS',TRIPS:'TRAVEL',ERP:'TECH'};
+  const publicCategoryCode = code => PUBLIC_CATEGORY_ALIASES[normCode(code)] || normCode(code);
   const dataCategoryCode = code => DATA_CATEGORY_ALIASES[normCode(code)] || normCode(code);
   let PUBLIC_DIRECTORY_COUNTS = null;
   let PUBLIC_DIRECTORY_TOTALS = {services:0,providers:0};
@@ -60,8 +62,8 @@
         providers:Number(providersTotalRes.count||0)
       };
       const counts={};
-      (servicesRes.data||[]).forEach(x=>{const k=normCode(x?.category_code);if(k){counts[k]??={services:0,providers:0};counts[k].services++;}});
-      (providersRes.data||[]).forEach(x=>{const k=normCode(x?.provider_kind);if(k){counts[k]??={services:0,providers:0};counts[k].providers++;}});
+      (servicesRes.data||[]).forEach(x=>{const k=publicCategoryCode(x?.category_code);if(k){counts[k]??={services:0,providers:0};counts[k].services++;}});
+      (providersRes.data||[]).forEach(x=>{const k=publicCategoryCode(x?.provider_kind);if(k){counts[k]??={services:0,providers:0};counts[k].providers++;}});
       PUBLIC_DIRECTORY_COUNTS=counts;
     } catch(_) {
       PUBLIC_DIRECTORY_COUNTS=null;
@@ -102,9 +104,9 @@
   const homeSectionEnabled = code => homeFeatureEnabled(code);
   const dynamicTaxonomy = (services,providers) => {
     const known=new Map(TAXONOMY.map(x=>[x[3],x]));
-    [...(services||[]).map(x=>x.category_code),...(providers||[]).map(x=>x.provider_kind)]
+    [...Object.keys(PUBLIC_DIRECTORY_COUNTS||{}),...(services||[]).map(x=>x.category_code),...(providers||[]).map(x=>x.provider_kind)]
       .filter(Boolean).forEach(code=>{
-        const key=normCode(code);
+        const key=publicCategoryCode(code);
         if(!known.has(key) && homeFeatureEnabled(key)){
           const label=String(code).replace(/[_-]+/g,' ').trim();
           known.set(key,['',label,'خدمات وأنشطة منشورة على المنصة',key]);
