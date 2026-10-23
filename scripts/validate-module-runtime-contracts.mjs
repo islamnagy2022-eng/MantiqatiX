@@ -84,6 +84,12 @@ const forbiddenDirectWrites = [
   ["orders", /sb\.from\(['"]orders['"]\)\.(?:insert|update|delete|upsert)\s*\(/],
   ["marketing_commission_rules", /sb\.from\(['"]marketing_commission_rules['"]\)\.(?:insert|update|delete|upsert)\s*\(/]
 ];
+const requiredSensitiveWriteGuards = ["catalog_items","catalog_item_prices","inventory_transactions","fashion_products","fashion_orders","fashion_tailor_services","chart_of_accounts","journal_entries","general_ledger","erp_purchase_orders","erp_purchase_receipts","erp_stock_transfers","warehouses","orders","marketing_commission_rules"];
+for(const table of requiredSensitiveWriteGuards){
+ const guard=forbiddenDirectWrites.find(([name])=>name===table);
+ if(!guard) failures.push("SENSITIVE_WRITE_GUARD_MISSING:"+table);
+ else if(!guard[1].test("sb.from(\u0027"+table+"\u0027).upsert(")) failures.push("SENSITIVE_WRITE_GUARD_MUST_COVER_UPSERT:"+table);
+}
 for(const [table,pattern] of forbiddenDirectWrites){
  if(pattern.test(files.operations)) failures.push("SENSITIVE_DIRECT_WRITE_FORBIDDEN:"+table);
 }
