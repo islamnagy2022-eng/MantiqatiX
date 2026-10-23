@@ -10,6 +10,10 @@ const fixture = fs.readFileSync("supabase/tests/rc102_provider_services_fixture.
 const workflow = fs.readFileSync(".github/workflows/provider-services-owner-isolation.yml", "utf8");
 
 assert.match(ui, /function providerServicesWorkspace\(d\)/, "provider services workspace must exist");
+assert.match(ui, /function filterTable\(id,label,h,rs\)/, "shared filterable table helper must exist");
+for(const id of ["marketing-provider-search","marketing-catalog-search","legal-doc-search","legal-req-search","maintenance-request-search"]) assert.ok(ui.includes('filterTable(\''+id+'''), "search UI must be wired for "+id);
+assert.match(ui, /data-generic-filter-row/, "filterable table rows must include search metadata");
+assert.match(ui, /data-generic-filter-count/, "filterable tables must expose matching result counts");
 assert.match(ui, /id="psLinkSearch"/, "provider services workspace must expose a searchable service list");
 assert.match(ui, /id="psLinkStatus"/, "provider services workspace must expose a status filter");
 assert.match(ui, /data-provider-service-row data-status=/, "provider service rows must expose safe filter metadata");
