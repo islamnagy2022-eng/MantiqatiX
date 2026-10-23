@@ -5,6 +5,10 @@ const home=fs.readFileSync("web/home.js","utf8");
 const api=fs.readFileSync("supabase/functions/api/index.ts","utf8");
 const order=fs.readFileSync("supabase/functions/order-create/index.ts","utf8");
 const payment=fs.readFileSync("supabase/functions/payment-intent/index.ts","utf8");
+const orderStatus=fs.readFileSync("supabase/functions/order-status-update/index.ts","utf8");
+const medicalBooking=fs.readFileSync("supabase/migrations/20261001003000_security_hardening_medical_status_authz.sql","utf8");
+const medicalCreate=fs.readFileSync("supabase/migrations/20260928210000_rc172_restore_medical_booking_contract.sql","utf8");
+
 
 const required=[
   ["Public provider booking requires auth", "MNTYPendingProvider", home],
@@ -35,8 +39,24 @@ const forbiddenClientOrder=[
   [/\.from\(['"]payment_intents['"]\)\.insert\(/, "Direct client payment_intent INSERT"]
 ];
 
+
+const additionalRequired=[
+  ["Order status endpoint requires bearer authentication", 'h.startsWith("Bearer ")', orderStatus],
+  ["Order status endpoint rejects anonymous sessions", "data.user.is_anonymous", orderStatus],
+  ["Order status mutation delegates to authoritative backend RPC", 'admin.rpc("update_order_status_backend"', orderStatus],
+  ["Medical booking binds caller to auth.uid", "p_user_id<>auth.uid()", medicalCreate],
+  ["Medical booking requires active provider", "ACTIVE_MEDICAL_PROVIDER_NOT_FOUND", medicalCreate],
+  ["Medical booking requires active tenant membership", "ACTIVE_TENANT_MEMBERSHIP_REQUIRED", medicalCreate],
+  ["Medical booking checks duplicate appointment identifier", "APPOINTMENT_ALREADY_EXISTS", medicalCreate],
+  ["Medical status mutation binds actor to auth.uid", "p_user_id <> v_uid", medicalBooking],
+  ["Medical status changes require active appointment membership", "ACTIVE_MEMBERSHIP_REQUIRED", medicalBooking],
+  ["Medical status changes are role-gated", "PROVIDER_STATUS_CHANGE_REQUIRED", medicalBooking],
+  ["Medical status target is allowlisted", "INVALID_MEDICAL_STATUS", medicalBooking]
+];
+
 const failures=[];
 for(const [name,marker,source] of required) if(!source.includes(marker)) failures.push(name);
+for(const [name,marker,source] of additionalRequired) if(!source.includes(marker)) failures.push(name);
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
 
 if(failures.length){
