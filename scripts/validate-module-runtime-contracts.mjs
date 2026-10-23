@@ -96,14 +96,14 @@ for(const [table,pattern] of forbiddenDirectWrites){
 // Fail closed for any new direct browser mutation unless its table is explicitly reviewed here.
 // Keep this allowlist narrow: financial, order, catalog, and inventory writes must use approved server contracts.
 const approvedDirectMutationTables = new Set(["marketing_provider_profiles","marketing_provider_services"]);
-const directMutationPattern = /sb\\.from\\(\\s*(['"])([^'"]+)\\1\\s*\\)\\s*\\.\\s*(insert|update|delete|upsert)\\s*\\(/g;
+const directMutationPattern = /sb\.from\(\s*(['"])([^'"]+)\1\s*\)\s*\.\s*(insert|update|delete|upsert)\s*\(/g;
 for(const match of files.operations.matchAll(directMutationPattern)){
  const table=match[2];
  const operation=match[3];
  if(!approvedDirectMutationTables.has(table)) failures.push("UNAPPROVED_DIRECT_BROWSER_MUTATION:"+table+":"+operation);
 }
 // Dynamic table names paired with a mutation cannot be reviewed safely by this literal allowlist.
-const dynamicMutationPattern = /sb\\.from\\(\\s*(?!['"\\x60])[^)]+\\)\\s*\\.\\s*(insert|update|delete|upsert)\\s*\\(/g;
+const dynamicMutationPattern = /sb\.from\(\s*(?!['"\x60])[^)]+\)\s*\.\s*(insert|update|delete|upsert)\s*\(/g;
 for(const match of files.operations.matchAll(dynamicMutationPattern)) failures.push("DYNAMIC_TABLE_DIRECT_MUTATION_FORBIDDEN:"+match[1]);
 // Self-check the policy itself so weakening its patterns is caught by this validator.
 if(![..."sb.from('marketing_provider_services').insert(".matchAll(directMutationPattern)].length) failures.push("DIRECT_MUTATION_ALLOWLIST_PATTERN_BROKEN");
