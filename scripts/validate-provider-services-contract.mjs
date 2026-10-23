@@ -22,7 +22,7 @@ assert.match(ui, /\.from\('marketing_provider_services'\)\.update\(/, "edit/stat
 assert.match(ui, /\.from\('marketing_provider_services'\)\.delete\(/, "remove must use existing provider-services table");
 assert.match(ui, /\.eq\('provider_id',providerId\)\.eq\('service_id',serviceId\)/, "mutations must constrain both provider and service keys");
 assert.match(ui, /if\(!result\.data\?\.length\)/, "UI must not claim success without returned server rows");
-assert.match(ui, /Number\.isFinite\(from\).*from<0/s, "prices must be finite and non-negative");
+assert.match(ui, /const validPrice=n=>n===null\|\|\(Number\.isFinite\(n\)&&n>=0&&n<=100000000&&Math\.round\(n\*100\)===n\*100\)/, "provider service prices must be finite, non-negative, capped, and limited to two decimal places");
 assert.match(ui, /to<from/, "price range must reject inverted ranges");
 assert.match(ui, /const catalog=\(rows\.marketing_services\|\|\[\]\)\.filter\(s=>String\(s\.status\|\|''\)\.toUpperCase\(\)==='ACTIVE'\)/, "only active catalog services should be selectable");
 assert.match(rls, /marketing_provider_services_owner_manage[\s\S]*owner_user_id = auth\.uid\(\)/, "existing RLS must enforce provider profile ownership");
