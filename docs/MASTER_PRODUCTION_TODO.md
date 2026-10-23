@@ -1733,3 +1733,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Pages workflow completed successfully as a workflow, but deployment was skipped for the feature PR branch; no deployment is claimed.
 - [ ] Customer checkout still creates only a local demo confirmation; it does not persist an order or send it to a restaurant. Real browser E2E, backend integration, live pricing/availability checks, and authenticated tenant-isolation tests remain open.
 - [ ] PR #350 remains draft/unmerged; RC102 migration remains branch-only. Production gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### RC101/RC102 and restaurant demo hardening — exact-head refresh — 2026-10-23
+- [x] Revalidated all 10 PR workflows on code head `1ce859e5809f3c456c8f4ad3377d83780216afdc`: Preview Demo Validation, migration version uniqueness, migration-history immutability, cross-PR migration collision guard, Provider Services Owner Isolation, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, Approval Action Audit Atomicity, and Pages validation all completed successfully.
+- [x] Preview validator now checks required/bounded synthetic checkout fields, confirms the checkout does not persist contact/address fields or submit to a backend, and verifies the shared cart can remove one restaurant without altering another seller's items.
+- [x] Shared-cart parser rejects IDs longer than 100 characters; its runtime normalization test covers oversized IDs, duplicate IDs, tampered quantities, and bounded line totals.
+- [ ] A new docs-only commit or any subsequent code commit creates a new head; rerun exact-head CI before describing the newer head as green.
+- [ ] Browser-based customer-to-restaurant order lifecycle E2E and real two-provider-account browser E2E remain unverified. Demo checkout still creates only a local confirmation and does not persist/send a real order.
+- [ ] RC102 migration remains branch-only and unapplied. No production writes, migration execution, merge, or deployment occurred. Global production gate remains **BLOCKED / NOT CERTIFIED**.
