@@ -610,3 +610,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Source contract validator updated to require the atomic RPC call. Commit: `4ed9e962a7c85baf4c87fcf0ce172f498c3b1abf`; validator follow-up: `82a5c17e588abf0d8452397a4c0a4d055c2204bb`.
 - **Important dependency:** the required RC434 + RC437 migrations are absent from `main`. This change is fail-closed and must not be deployed as a working ERP receiving feature until the full, reviewed migration chain is recovered and applied in order. RC437 notes legacy purchase orders without line items need reconciliation; do not certify receiving until that data condition is resolved.
 - Current CI is queued on `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; production deployment remains blocked. No production database or Edge Function was mutated.
+
+## RC101 update — 2026-10-23 — Provider service management
+- Implemented provider service add/edit/status/delete UI using `marketing_provider_services`, active `marketing_services`, and existing provider profiles only.
+- Implemented service-area editing through existing `marketing_provider_profiles.service_areas`; no new generic availability model was introduced.
+- Every mutation re-checks the authenticated user's ownership of the provider profile and uses normal Supabase client operations subject to existing RLS. No grants, migrations, or service-role bypasses were added.
+- Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
+- Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
+- No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
