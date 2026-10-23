@@ -38,8 +38,23 @@ Deno.serve(async (req: Request) => {
   const user = userData?.user;
   if (userError || !user || user.is_anonymous) return json({ error: "UNAUTHORIZED" }, 401);
 
+  // Bound request memory and parser work before accepting any client-controlled payload.
+  const MAX_BODY_BYTES = 256 * 1024;
+  const declaredLength = Number(req.headers.get("content-length") ?? 0);
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    return json({ error: "REQUEST_TOO_LARGE" }, 413);
+  }
   let body: any;
-  try { body = await req.json(); } catch { return json({ error: "INVALID_JSON" }, 400); }
+  try {
+    const rawBody = await req.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
+      return json({ error: "REQUEST_TOO_LARGE" }, 413);
+    }
+    body = JSON.parse(rawBody);
+  } catch { return json({ error: "INVALID_JSON" }, 400); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return json({ error: "INVALID_BODY" }, 400);
+  }
 
   const required = ["orderId", "tenantId", "businessId", "clientIdempotencyKey", "currency", "customerName", "customerPhone", "deliveryAddress", "items"];
   for (const key of required) {
@@ -48,6 +63,31 @@ Deno.serve(async (req: Request) => {
 
   if (!String(body.orderId).match(/^[0-9a-f-]{36}$/i)) return json({ error: "INVALID_ORDER_ID" }, 400);
   if (!String(body.clientIdempotencyKey).trim() || String(body.clientIdempotencyKey).length > 200) return json({ error: "INVALID_IDEMPOTENCY_KEY" }, 400);
+  if (typeof body.customerName !== "string" || !body.customerName.trim() || body.customerName.trim().length > 200) {
+    return json({ error: "INVALID_CUSTOMER_NAME" }, 400);
+  }
+  if (typeof body.customerPhone !== "string" || body.customerPhone.length > 32) {
+    return json({ error: "INVALID_CUSTOMER_PHONE" }, 400);
+  }
+  if (typeof body.deliveryAddress !== "string" || body.deliveryAddress.length > 500) {
+    return json({ error: "INVALID_DELIVERY_ADDRESS" }, 400);
+  }
+  if (body.notes !== undefined && body.notes !== null && (typeof body.notes !== "string" || body.notes.length > 2000)) {
+    return json({ error: "INVALID_ORDER_NOTES" }, 400);
+  }
+  if (body.metadata !== undefined && body.metadata !== null) {
+    if (typeof body.metadata !== "object" || Array.isArray(body.metadata)) return json({ error: "INVALID_ORDER_METADATA" }, 400);
+    const allowedMetadataKeys = new Set(["source", "catalog_authoritative"]);
+    if (Object.keys(body.metadata).some((key) => !allowedMetadataKeys.has(key))) {
+      return json({ error: "UNSUPPORTED_ORDER_METADATA" }, 400);
+    }
+    if (body.metadata.source !== undefined && (typeof body.metadata.source !== "string" || body.metadata.source.length > 40)) {
+      return json({ error: "INVALID_ORDER_METADATA" }, 400);
+    }
+    if (body.metadata.catalog_authoritative !== undefined && typeof body.metadata.catalog_authoritative !== "boolean") {
+      return json({ error: "INVALID_ORDER_METADATA" }, 400);
+    }
+  }
   if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) return json({ error: "INVALID_ITEMS" }, 400);
   if (!["EGP"].includes(String(body.currency).toUpperCase())) return json({ error: "UNSUPPORTED_CURRENCY" }, 400);
 
@@ -212,9 +252,9 @@ Deno.serve(async (req: Request) => {
     p_delivery_fee: 0,
     p_total_amount: totalAmount,
     p_currency: String(body.currency).toUpperCase(),
-    p_customer_name: String(body.customerName).trim(),
-    p_customer_phone: String(body.customerPhone).trim(),
-    p_delivery_address: String(body.deliveryAddress).trim(),
+    p_customer_name: body.customerName.trim(),
+    p_customer_phone: body.customerPhone.trim(),
+    p_delivery_address: body.deliveryAddress.trim(),
     p_items_json: authoritativeItems,
     p_notes: body.notes ?? null,
     p_metadata: {
