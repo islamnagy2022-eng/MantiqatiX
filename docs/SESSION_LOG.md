@@ -182,3 +182,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated `scripts/validate-booking-payment-flow.mjs` to enforce these source contracts.
 - CI on the preceding head passed all 12 workflows; exact-head CI for RC108 is pending/rechecking and must pass before this change is considered verified.
 - No production Edge Function deployment, database migration, order creation, payment, merge, or production data mutation occurred. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-23 — RC109 — Bounded streaming for order-create payloads
+
+- Replaced whole-body `req.text()` buffering with a streaming reader that stops once the 256 KiB limit is exceeded, cancels the request stream, and decodes UTF-8 strictly before JSON parsing.
+- Extended `scripts/validate-booking-payment-flow.mjs` to assert bounded streaming, early stop/cancellation, malformed UTF-8 rejection, duplicate/oversized selected-option rejection, and finite final totals.
+- Prior exact head `7330fd1a7014aaed15ad0c373cf140a1c7c0ae1f` passed all 12 PR workflows. RC109 changes are on a new head and require a fresh exact-head CI run.
+- No merge, production deployment, production migration, payment transaction, or production data write occurred. Release remains **BLOCKED / NOT CERTIFIED**.
