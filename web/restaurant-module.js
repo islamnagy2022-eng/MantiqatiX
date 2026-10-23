@@ -17,25 +17,30 @@ function notify(message,type='info'){
 
 let loadGeneration=0;
 let creatingRestaurantOrder=false;
+const pendingRestaurantOrderMemory=new Map();
 function pendingRestaurantOrderKey(m){
  return 'mnty:restaurant-order-pending:'+String(state.user?.id||'')+':'+String(m.tenant_id||'')+':'+String(m.business_id||'')+':'+String(m.branch_id||'');
 }
 function readPendingRestaurantOrder(m){
- try{
-  const p=JSON.parse(sessionStorage.getItem(pendingRestaurantOrderKey(m))||'null');
-  if(!p||p.tenantId!==m.tenant_id||p.businessId!==m.business_id||String(p.branchId||'')!==String(m.branch_id||'')||
-     typeof p.orderId!=='string'||typeof p.clientIdempotencyKey!=='string'||!Array.isArray(p.items)||!p.items.length)return null;
-  return p;
- }catch{return null;}
+ const key=pendingRestaurantOrderKey(m);
+ let p=pendingRestaurantOrderMemory.get(key)||null;
+ try{p=JSON.parse(sessionStorage.getItem(key)||'null')||p;}catch{}
+ if(!p||p.tenantId!==m.tenant_id||p.businessId!==m.business_id||String(p.branchId||'')!==String(m.branch_id||'')||
+    typeof p.orderId!=='string'||typeof p.clientIdempotencyKey!=='string'||!Array.isArray(p.items)||!p.items.length)return null;
+ pendingRestaurantOrderMemory.set(key,p);
+ return p;
 }
 function savePendingRestaurantOrder(m,payload){
- try{
-  const {orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata}=payload;
-  sessionStorage.setItem(pendingRestaurantOrderKey(m),JSON.stringify({orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata}));
- }catch{}
+ const key=pendingRestaurantOrderKey(m);
+ const {orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata}=payload;
+ const safePayload={orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata};
+ pendingRestaurantOrderMemory.set(key,safePayload);
+ try{sessionStorage.setItem(key,JSON.stringify(safePayload));}catch{}
 }
 function clearPendingRestaurantOrder(m){
- try{sessionStorage.removeItem(pendingRestaurantOrderKey(m));}catch{}
+ const key=pendingRestaurantOrderKey(m);
+ pendingRestaurantOrderMemory.delete(key);
+ try{sessionStorage.removeItem(key);}catch{}
 }
 let state={user:null,membership:null,memberships:[],tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
 
