@@ -59,6 +59,10 @@ const additionalRequired=[
 const failures=[];
 for(const [name,marker,source] of required) if(!source.includes(marker)) failures.push(name);
 for(const [name,marker,source] of additionalRequired) if(!source.includes(marker)) failures.push(name);
+const branchScopeIndex=order.indexOf('if (branchId) targetMembershipQuery = targetMembershipQuery.eq("branch_id", branchId);');
+const customerFallbackIndex=order.indexOf("if (!targetMembership)");
+if(branchScopeIndex<0||customerFallbackIndex<0||branchScopeIndex>customerFallbackIndex) failures.push("Staff branch scope must be checked before customer fallback authorization");
+if((order.match(/const branchId = body\\.branchId/g)||[]).length!==1) failures.push("Order creation must define branch scope exactly once before membership authorization");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
 
 if(failures.length){
