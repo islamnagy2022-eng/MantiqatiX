@@ -50,6 +50,8 @@ const additionalRequired=[
   ["Order status branch-scope migration preserves authenticated identity binding", "p_user_id is distinct from auth.uid()", orderStatusScope],
   ["Operational status updates require exact business and branch membership", "m.branch_id is not distinct from v_order.branch_id", orderStatusScope],
   ["Tenant-wide owner/admin roles remain explicitly allowlisted", "upper(m.role) in ('OWNER', 'ADMIN')", orderStatusScope],
+  ["Owner/admin tenant-wide access requires an unscoped business membership", "(upper(m.role) in ('OWNER', 'ADMIN') and m.business_id is null)", orderStatusScope],
+  ["Business-scoped owner/admin cannot bypass exact business/branch scope", "m.branch_id is not distinct from v_order.branch_id", orderStatusScope],
   ["Customer-owned cancellation path is preserved", "v_order.customer_id = p_user_id and upper(p_new_status) = 'CANCELLED'", orderStatusScope],
   ["Paid-order cancellation remains blocked without refund handling", "ORDER_PAID_REQUIRES_REFUND_BEFORE_CANCELLATION", orderStatusScope],
   ["Medical booking binds caller to auth.uid", "p_user_id<>auth.uid()", medicalCreate],
