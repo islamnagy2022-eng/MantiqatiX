@@ -100,7 +100,7 @@ assert.ok(moduleSource.includes("if(saveButton.disabled)return;saveButton.disabl
 // Menu and inventory inputs must have explicit client-side bounds and decimal precision checks.
 assert.match(moduleSource, /payload\.name_ar\.length>150\|\|!payload\.category\|\|payload\.category\.length>80\|\|payload\.description_ar\.length>2000/,
   'menu text fields must have bounded lengths');
-assert.match(moduleSource, /Math\.round\(payload\.base_price_egp\*100\)!==payload\.base_price_egp\*100/,
+assert.match(moduleSource, /Math\.round\(payload\.base_price_egp\*100\)\/100!==payload\.base_price_egp/,
   'menu price must not contain more than two decimal places');
 assert.match(moduleSource, /payload\.min_stock_alert_threshold\*1000\)!==payload\.min_stock_alert_threshold\*1000/,
   'inventory alert threshold must not contain more than three decimal places');
