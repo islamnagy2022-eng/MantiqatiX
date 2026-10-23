@@ -20,6 +20,8 @@ const required=[
   ["Order creation validates active pricing", "ACTIVE_PRICE_NOT_AVAILABLE", order],
   ["Server requires branch when active branches exist", "BRANCH_REQUIRED", order],
   ["Server validates selected branch", "BRANCH_NOT_AVAILABLE", order],
+  ["Staff order creation is authorized for the exact selected branch", 'targetMembershipQuery.eq("branch_id", branchId)', order],
+  ["Order creation resolves branch scope before membership authorization", 'const branchId = body.branchId ? String(body.branchId) : null;', order],
   ["Catalog API exposes active branches", "branches: branches ?? []", api],
   ["Customer catalog requires branch selection", "mx-catalog-branch", app],
   ["Customer order requires branch", "if(!branchId)", app],
