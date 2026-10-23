@@ -5,6 +5,7 @@ on:
       - "**"
     paths:
       - "supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql"
+      - "supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql"
       - "supabase/tests/rc104_order_idempotency_scope_*.sql"
       - "scripts/validate-booking-payment-flow.mjs"
       - ".github/workflows/order-idempotency-scope.yml"
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql"
+      - "supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql"
       - "supabase/tests/rc104_order_idempotency_scope_*.sql"
       - "scripts/validate-booking-payment-flow.mjs"
       - ".github/workflows/order-idempotency-scope.yml"
@@ -54,7 +56,9 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc104_order_idempotency_scope_fixture.sql "$pg_container:/tmp/rc104_fixture.sql"
           docker cp supabase/migrations/20261023040000_rc104_order_idempotency_scope.sql "$pg_container:/tmp/rc104_migration.sql"
+          docker cp supabase/migrations/20261023050000_rc105_order_create_service_role_identity.sql "$pg_container:/tmp/rc105_migration.sql"
           docker cp supabase/tests/rc104_order_idempotency_scope_integration.sql "$pg_container:/tmp/rc104_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc105_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc104_order_idempotency_test -v ON_ERROR_STOP=1 -f /tmp/rc104_test.sql
