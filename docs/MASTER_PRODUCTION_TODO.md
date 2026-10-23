@@ -1782,3 +1782,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Paymob payment/refund and finance/settlement E2E, backup/restore rehearsal, production Auth security settings, full live RLS/catalog checks, Android signed release, real-device regression, monitoring/alert and rollback drills remain open.
 - [ ] RC102–RC106 migrations remain branch-only; no production migration, production write, merge, or deployment occurred.
 - [ ] Any documentation/source commit changes the PR head and requires a fresh exact-head CI run. Keep PR #350 draft/unmerged and the global production gate **BLOCKED / NOT CERTIFIED** until all mandatory evidence and external approvals are present.
+
+### RC109 — Bounded streaming for order-create payloads — 2026-10-23
+- [x] Replaced full-body buffering with bounded streaming reads capped at 256 KiB; oversized streams are cancelled before additional body data is buffered.
+- [x] Strict UTF-8 decoding occurs before JSON parsing.
+- [x] Validator now checks streaming cap/cancellation, malformed UTF-8 handling, duplicate/oversized selected options, and finite final order total.
+- [x] Prior exact head `7330fd1a7014aaed15ad0c373cf140a1c7c0ae1f` passed all 12 workflows, including the cross-PR migration collision guard; this does not certify the newer RC109 head.
+- [ ] Recheck every workflow against the latest head before certifying this increment.
+- [ ] Real authenticated browser E2E, Paymob payment/refund and settlement E2E, backup/restore, Auth security settings, Android signing/device regression, and live production parity remain open.
+- No production migration, data write, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
