@@ -71,6 +71,7 @@ const branchScopeIndex=order.indexOf('if (branchId) targetMembershipQuery = targ
 const customerFallbackIndex=order.indexOf("if (!targetMembership)");
 if(branchScopeIndex<0||customerFallbackIndex<0||branchScopeIndex>customerFallbackIndex) failures.push("Staff branch scope must be checked before customer fallback authorization");
 if(order.split("const branchId = body.branchId").length-1!==1) failures.push("Order creation must define branch scope exactly once before membership authorization");
+if(/\\b(grant|revoke)\\s+execute\\b/i.test(orderStatusScope)) failures.push("RC103 must not broaden or alter backend-only order-status RPC execution grants");
 for(const [re,label] of forbiddenClientOrder) if(re.test(app)) failures.push(label);
 
 if(failures.length){
