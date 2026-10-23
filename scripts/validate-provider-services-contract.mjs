@@ -25,5 +25,5 @@ assert.match(rls, /marketing_provider_services_owner_manage[\s\S]*owner_user_id 
 assert.match(baseline, /no dedicated generic provider-availability\/location table/i, "do not invent a generic availability table");
 assert.doesNotMatch(ui, /create table|availability_slots|provider_availability/i, "UI must not introduce a new availability model");
 
-console.log("Provider services contract passed: owner checks, RLS boundary, existing schema only, validation, and confirmed server response.");
+console.log("Provider services contract passed: owner checks, RLS boundary, existing schema only, validation, and server-response guard.");
 console.log("Live two-account isolation and browser E2E remain NOT VERIFIED until executed with separate real test accounts.");
