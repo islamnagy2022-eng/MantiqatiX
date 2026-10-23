@@ -47,7 +47,7 @@ const additionalRequired=[
   ["Medical booking binds caller to auth.uid", "p_user_id<>auth.uid()", medicalCreate],
   ["Medical booking requires active provider", "ACTIVE_MEDICAL_PROVIDER_NOT_FOUND", medicalCreate],
   ["Medical booking requires active tenant membership", "ACTIVE_TENANT_MEMBERSHIP_REQUIRED", medicalCreate],
-  ["Medical booking checks duplicate appointment identifier", "APPOINTMENT_ALREADY_EXISTS", medicalCreate],
+  ["Medical booking checks duplicate appointment identifier", "APPOINTMENT_ID_ALREADY_EXISTS", medicalCreate],
   ["Medical status mutation binds actor to auth.uid", "p_user_id <> v_uid", medicalBooking],
   ["Medical status changes require active appointment membership", "ACTIVE_MEMBERSHIP_REQUIRED", medicalBooking],
   ["Medical status changes are role-gated", "PROVIDER_STATUS_CHANGE_REQUIRED", medicalBooking],
