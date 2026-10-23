@@ -10,6 +10,13 @@ const fixture = fs.readFileSync("supabase/tests/rc102_provider_services_fixture.
 const workflow = fs.readFileSync(".github/workflows/provider-services-owner-isolation.yml", "utf8");
 
 assert.match(ui, /function providerServicesWorkspace\(d\)/, "provider services workspace must exist");
+assert.match(ui, /d\.key==='MARKETING'&&tab==='provider-services'&&t==='marketing_provider_profiles'\)\{q=sb\.from\(t\)\.select\('id,owner_user_id,name_ar,name_en,slug,service_areas,status'\)\.eq\('owner_user_id',user\.id\)/,
+  "provider-services tab must query only the current user's profiles and only required profile fields");
+assert.match(ui, /d\.key==='MARKETING'&&tab==='provider-services'&&t==='marketing_services'\)\{q=sb\.from\(t\)\.select\('id,name_ar,name_en,code,status'\)\.eq\('status','ACTIVE'\)/,
+  "provider-services tab must fetch only active catalog services and required fields");
+assert.match(ui, /d\.key==='MARKETING'&&tab==='provider-services'&&t==='marketing_provider_services'\)\{const providerIds=\(rows\.marketing_provider_profiles\|\|\[\]\)\.filter\(p=>p\.owner_user_id===user\.id\)\.map\(p=>p\.id\)\.filter\(Boolean\);if\(!providerIds\.length\)\{rows\[t\]=\[\];continue\}q=sb\.from\(t\)\.select\('provider_id,service_id,service_description,pricing_from,pricing_to,currency,status'\)\.in\('provider_id',providerIds\)/,
+  "provider-service link reads must be restricted to owned profile IDs and avoid fetching unrelated columns");
+
 assert.match(ui, /\.filter\(p=>p\.owner_user_id===user\?\.id\)/, "UI must list only profiles owned by current user");
 assert.match(ui, /async function providerServiceOwner\(providerId\)/, "mutations must re-check ownership");
 assert.match(ui, /async function saveProviderServiceAreas\(\)/, "service area editing must use existing provider profile field");
