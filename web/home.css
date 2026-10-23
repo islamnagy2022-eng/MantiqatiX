@@ -4186,3 +4186,8 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
 .mx-category-filter [aria-live]{margin:8px 0 0;font-size:12px}
 .mx-category-result-card[hidden]{display:none!important}
 @media(max-width:760px){.mx-category-filter__controls{align-items:stretch;flex-direction:column}.mx-category-filter__controls button{width:100%}}
+
+.mx-category-service-details{margin:10px 0;padding:11px;border:1px solid #dbeafe;border-radius:10px;background:#f8fbff}
+.mx-category-service-details[hidden]{display:none!important}
+.mx-category-service-details p{margin:4px 0;font-size:12px;line-height:1.8;color:#344054}
+.mx-category-service-details strong{color:#10285a}
