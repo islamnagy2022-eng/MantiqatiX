@@ -208,8 +208,9 @@ jobs:
           PREVIEW_RESTAURANTS="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/restaurants.html")"
           PREVIEW_RESTAURANT_ORDER="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/restaurant-order.html?restaurant=zaeem")"
           PREVIEW_HOME="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/index.html")"
-          grep -Fq "window.location.replace('dashboard.html')" <<<"$PREVIEW_ENTRY"
-          grep -Fq 'dashboard.html' <<<"$PREVIEW_ENTRY"
+          # The preview root is the actual interactive demo homepage, not a redirect stub.
+          grep -Fq 'معاينة تفاعلية' <<<"$PREVIEW_ENTRY"
+          grep -Fq 'href="dashboard.html"' <<<"$PREVIEW_ENTRY"
           grep -Fq 'كل موديولات MantiqatiX' <<<"$PREVIEW_DASHBOARD"
           grep -Fq 'وضع تجريبي فقط' <<<"$PREVIEW_ENTRY"
           grep -Fq 'مطاعم وكافيهات' <<<"$PREVIEW_HOME"
