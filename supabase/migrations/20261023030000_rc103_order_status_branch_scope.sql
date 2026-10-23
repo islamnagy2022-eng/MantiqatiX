@@ -48,7 +48,7 @@ begin
       and m.tenant_id = p_tenant_id
       and coalesce(m.status, 'ACTIVE') = 'ACTIVE'
       and (
-        (upper(m.role) in ('OWNER', 'ADMIN') and m.business_id is null)
+        (upper(m.role) in ('OWNER', 'ADMIN') and m.business_id is null and m.branch_id is null)
         or (
           m.business_id = v_order.business_id
           and m.branch_id is not distinct from v_order.branch_id
@@ -63,6 +63,7 @@ begin
     v_scope_ok := (
         v_role = any(array['OWNER', 'ADMIN'])
         and v_membership_business is null
+        and v_membership_branch is null
       )
       or (
         v_membership_business = v_order.business_id
