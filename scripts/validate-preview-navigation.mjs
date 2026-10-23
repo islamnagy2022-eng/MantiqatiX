@@ -204,7 +204,7 @@ checks.push(["Restaurant checkout does not persist customer contact or delivery 
   const end=start<0?-1:customerOrderScript.indexOf("});renderCart()",start);
   if(start<0||end<0)return false;
   const handler=customerOrderScript.slice(start,end);
-  return handler.includes("document.getElementById('customer').value") && handler.includes("document.getElementById('phone').value") && handler.includes("document.getElementById('address').value") && !/localStorage|sessionStorage|fetch\\s*\\(/i.test(handler) && !/(?:customerName|phoneNumber|deliveryAddress|paymentToken)/i.test(sharedCart);
+  return handler.includes("document.getElementById('customer').value") && handler.includes("document.getElementById('phone').value") && handler.includes("document.getElementById('address').value") && !handler.includes("localStorage") && !handler.includes("sessionStorage") && !handler.includes("fetch(") && !/(?:customerName|phoneNumber|deliveryAddress|paymentToken)/i.test(sharedCart);
 })()]);
 checks.push(["Restaurant checkout clears only the selected merchant cart after demo confirmation", (() => {
   const start=customerOrderScript.indexOf("document.getElementById('checkout').addEventListener('submit'");
@@ -213,7 +213,7 @@ checks.push(["Restaurant checkout clears only the selected merchant cart after d
   const handler=customerOrderScript.slice(start,end);
   return handler.includes("window.MXCart.removeMerchant(key)") && !handler.includes("window.MXCart.clear()");
 })()]);
-checks.push(["Customer and operator demo catalogs remain isolated from network submission", !/\\bfetch\\s*\\(|XMLHttpRequest|createClient\\s*\\(/i.test(customerOrder) && !/\\bfetch\\s*\\(|XMLHttpRequest|createClient\\s*\\(/i.test(restaurant) && /لا يوجد اتصال بالخادم/.test(restaurant)]);
+checks.push(["Customer and operator demo catalogs remain isolated from network submission", !customerOrder.includes("fetch(") && !customerOrder.includes("XMLHttpRequest") && !customerOrder.includes("createClient(") && !restaurant.includes("fetch(") && !restaurant.includes("XMLHttpRequest") && !restaurant.includes("createClient(") && /لا يوجد اتصال بالخادم/.test(restaurant)]);
 
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) console.log(`${ok ? "PASS" : "FAIL"} ${name}`);
