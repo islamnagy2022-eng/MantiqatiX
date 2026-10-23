@@ -163,8 +163,10 @@
 
 ### متابعة موجة 2 — توسيع حواجز الكتابة الحساسة — 2026-10-24
 
-- [x] توسيع scripts/validate-module-runtime-contracts.mjs لمنع رجوع استدعاءات الكتابة المباشرة من المتصفح إلى chart_of_accounts وjournal_entries وgeneral_ledger وerp_purchase_orders وerp_purchase_receipts وerp_stock_transfers وwarehouses وorders وmarketing_commission_rules، إضافة إلى جداول الكتالوج والمخزون والأزياء التي يغطيها الحاجز السابق.
-- [x] حفظ التغيير في فرع work/module-parity-wave2-20261024 ضمن PR #352؛ الالتزام الحالي 54b9ce38684a227d0ff4a6cecc7dbb9f7ab3bc8c.
+- [x] توسيع scripts/validate-module-runtime-contracts.mjs لمنع رجوع استدعاءات الكتابة المباشرة من المتصفح إلى chart_of_accounts وjournal_entries وgeneral_ledger وerp_purchase_orders وerp_purchase_receipts وerp_stock_transfers وwarehouses وorders وmarketing_commission_rules، إضافة إلى جداول الكتالوج والمخزون والأزياء؛ وتشمل الأنماط insert/update/delete/upsert.
+- [x] حفظ التغيير في فرع work/module-parity-wave2-20261024 ضمن PR #352؛ الالتزام الحالي 54b9ce38684a227d0ff4a6cecc7dbb9f7ab3bc8c، ثم توسع الحاجز ليشمل upsert في الالتزام f64ba3b9e8462839d46ea92e3e0e289517c5f47f.
 - [ ] نتيجة CI على الالتزام الجديد لم تظهر في فحص GitHub الأخير؛ لا يُعتبر المدقق ناجحًا قبل تشغيله والتحقق من جميع workflows.
 - [!] هذا حاجز static regression للأنماط المباشرة المسماة فقط؛ لا يثبت عزل RLS ولا يغطي تلقائيًا أي كتابة ديناميكية عبر متغير جدول أو RPC. يلزم مراجعة مسارات الكتابة الديناميكية وسياسات RLS المتداخلة بشكل منفصل.
 - [ ] تبقى مراجعة RLS متعددة المؤسسات، واختبارات المتصفح، وبوابة الإنتاج BLOCKED / NOT CERTIFIED مفتوحة. لا دمج أو نشر ضمن هذه الدفعة.
+- [x] شمل حاجز الكتابة أيضًا عملية upsert للجداول الحساسة المسماة، لتقليل احتمال تجاوز منع الكتابة باستخدام upsert بدل insert/update.
+- [ ] يلزم CI على آخر رأس بعد توسيع الأنماط إلى upsert؛ لا توجد نتيجة مؤكدة حتى الآن.
