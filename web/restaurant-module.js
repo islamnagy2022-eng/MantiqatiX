@@ -17,6 +17,26 @@ function notify(message,type='info'){
 
 let loadGeneration=0;
 let creatingRestaurantOrder=false;
+function pendingRestaurantOrderKey(m){
+ return 'mnty:restaurant-order-pending:'+String(state.user?.id||'')+':'+String(m.tenant_id||'')+':'+String(m.business_id||'')+':'+String(m.branch_id||'');
+}
+function readPendingRestaurantOrder(m){
+ try{
+  const p=JSON.parse(sessionStorage.getItem(pendingRestaurantOrderKey(m))||'null');
+  if(!p||p.tenantId!==m.tenant_id||p.businessId!==m.business_id||String(p.branchId||'')!==String(m.branch_id||'')||
+     typeof p.orderId!=='string'||typeof p.clientIdempotencyKey!=='string'||!Array.isArray(p.items)||!p.items.length)return null;
+  return p;
+ }catch{return null;}
+}
+function savePendingRestaurantOrder(m,payload){
+ try{
+  const {orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata}=payload;
+  sessionStorage.setItem(pendingRestaurantOrderKey(m),JSON.stringify({orderId,tenantId,businessId,branchId,clientIdempotencyKey,currency,items,notes,metadata}));
+ }catch{}
+}
+function clearPendingRestaurantOrder(m){
+ try{sessionStorage.removeItem(pendingRestaurantOrderKey(m));}catch{}
+}
 let state={user:null,membership:null,memberships:[],tab:'dashboard',menu:[],orders:[],tables:[],inventory:[],loading:false,error:null};
 
 async function session(){
@@ -189,17 +209,26 @@ async function createRestaurantOrder(){
  if(trigger){trigger.disabled=true;trigger.textContent='جارٍ تجهيز الطلب…';}
  const m=scope();
  try{
-   const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
-   const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
-   const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
-   if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
-   const selection=await askOrderDetails(items);
-   if(!selection)return;
-   const payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   let payload=readPendingRestaurantOrder(m);
+   if(payload){
+     payload={...payload,customerName:state.user.email||'',customerPhone:'',deliveryAddress:''};
+     notify('توجد محاولة طلب سابقة غير مؤكدة — ستتم إعادة إرسالها بنفس المفتاح لمنع إنشاء طلب مكرر.');
+   }else{
+     const q=new URLSearchParams({tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,limit:'100'});
+     const catalog=await invokeMntyApi('/api/v1/catalog?'+q.toString());
+     const items=(catalog?.items||[]).filter(x=>String(x.status).toUpperCase()==='ACTIVE');
+     if(!items.length)return notify('لا توجد أصناف من الكتالوج التشغيلي متاحة حالياً.');
+     const selection=await askOrderDetails(items);
+     if(!selection)return;
+     payload={orderId:crypto.randomUUID(),tenantId:m.tenant_id,businessId:m.business_id,branchId:m.branch_id,clientIdempotencyKey:'MNTY-REST-'+crypto.randomUUID(),currency:'EGP',customerName:state.user.email||'',customerPhone:'',deliveryAddress:'',items:[{catalogItemId:selection.item.id,quantity:selection.quantity,selectedOptionIds:[]}],notes:'',metadata:{source:'RESTAURANTS',catalog_authoritative:true}};
+   }
+   // Persist only non-PII retry data before the request so a timeout/reload reuses the same key.
+   savePendingRestaurantOrder(m,payload);
    const r=await invokeMntyFunction('order-create',payload);
+   clearPendingRestaurantOrder(m);
    notify('تم إنشاء الطلب '+(r?.id||payload.orderId)+' من الكتالوج المركزي. الإجمالي محسوب خادميًا.');
    await load();
- }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ'),'error')}
+ }catch(e){notify('تعذر إنشاء الطلب: '+(e?.message||'خطأ')+' — يمكنك إعادة المحاولة بنفس الطلب.','error')}
  finally{
    creatingRestaurantOrder=false;
    if(trigger?.isConnected){trigger.disabled=false;trigger.textContent=originalLabel;}
