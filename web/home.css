@@ -4175,3 +4175,14 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
 .mx-ref-digital-workspace__mock>small{color:#667085;font-size:11px}
 @media(max-width:760px){.mx-ref-digital-workspace{grid-template-columns:1fr;gap:18px;margin:20px 0;padding:19px}.mx-ref-digital-workspace__visual{min-height:205px;grid-row:1}.mx-ref-digital-workspace__features{grid-template-columns:1fr;gap:8px}.mx-ref-digital-workspace__features article{min-height:0}.mx-ref-digital-workspace #mx-open-digital-editor{width:100%}}
 @media(prefers-reduced-motion:reduce){.mx-ref-digital-workspace #mx-open-digital-editor{transition:none}}
+
+/* Public sector directory search — responsive and keyboard accessible */
+.mx-category-filter{margin:0 0 16px;padding:14px;border:1px solid #e1e7ef;border-radius:14px;background:#f8fafc}
+.mx-category-filter label{display:block;margin-bottom:7px;color:#10285a;font-weight:800;font-size:13px}
+.mx-category-filter__controls{display:flex;gap:8px;align-items:center}
+.mx-category-filter__controls input{flex:1;min-width:0;width:100%;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:11px 12px;color:#10285a;font:inherit}
+.mx-category-filter__controls input:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+.mx-category-filter__controls button{white-space:nowrap}
+.mx-category-filter [aria-live]{margin:8px 0 0;font-size:12px}
+.mx-category-result-card[hidden]{display:none!important}
+@media(max-width:760px){.mx-category-filter__controls{align-items:stretch;flex-direction:column}.mx-category-filter__controls button{width:100%}}
