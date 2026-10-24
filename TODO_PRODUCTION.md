@@ -525,3 +525,11 @@
 - Updated `.github/workflows/marketing-campaign-backend.yml` to run RC453 fixture/migration/tests, then RC457 migration/integration, then RC458 migration/integration. Added RC457 files to workflow path filters and added static source guards for the RC457 test contract.
 - [ ] Await CI on the new head before marking RC457 behavioral coverage passed. Previous RC453/RC458 green results apply to the prior code head only.
 - Production remains **BLOCKED / NOT CERTIFIED**; no merge or production migration was performed.
+
+
+## RC457 integration verification closed — 2026-10-24
+- [x] Fixed the RC457 PostgreSQL assertion to qualify the audit result column and corrected the lifecycle validator's JavaScript regular expressions after the first run exposed both issues.
+- [x] Latest verified code head `951183e686ce3d221a950e875063dc034c5b3f18`: all 10 PR workflows completed successfully. Marketing Campaign Backend PostgreSQL 16 logs explicitly report `RC453 marketing campaign and partner workflow integration: PASS`, `RC457 marketing lead lifecycle integration: PASS`, and `RC458 scoped marketing partner directory integration: PASS`.
+- [x] Production verification syntax check passed on the latest head; web deploy job was skipped by the PR guard.
+- [ ] Live target-Supabase parity, final end-to-end acceptance, recovery/restore evidence, and explicit release authorization remain outstanding. Do not merge/apply migrations to production on the basis of isolated CI alone.
+- PR #373 remains draft/open and PR #372 remains a dependency for historical migration restoration. Production remains **BLOCKED / NOT CERTIFIED**.
