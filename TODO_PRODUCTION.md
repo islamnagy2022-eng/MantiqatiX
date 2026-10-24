@@ -13,7 +13,7 @@
 - [ ] API/Edge Functions/integrations. **NOT VERIFIED — external runtime test pending.**
 - [ ] Website/Admin/Owner/Manager/Employee/Customer E2E. **NOT VERIFIED — requires real test accounts and external browser.**
 - [🟡] Finance backend controls inspected (payment/refund/settlement/order pricing/idempotency); actual provider/payment E2E remains NOT VERIFIED.
-- [ ] CRM + Marketing E2E.
+- [ ] CRM + Marketing E2E على بيئة الهدف — اختبارات PostgreSQL المعزولة وCI نجحت على PR #373، لكن اختبار المتصفح بحسابات متعددة وبيانات مشروع الهدف لم يُنفذ بعد.
 - [ ] Regression كامل.
 - [ ] Backup/Restore/DR test. **NOT VERIFIED — restore evidence not yet produced.**
 - [ ] Monitoring/alerts/logging.
@@ -38,9 +38,9 @@
 ## P1 — Marketing & Advertising
 - [x] Live counts حيث تتوفر بيانات فعلية.
 - [x] إنشاء marketing lead فعلي عبر RLS.
-- [🟡] قائمة leads + التفاصيل + lifecycle — أضيف RC457 RPC محدود وربطت واجهة التفاصيل بإجراءات الحالة؛ لا توجد UPDATE policy عامة مقصودة. الميزة IMPLEMENTED — NOT VERIFIED حتى اجتياز CI والتحقق النهائي.
+- [🟢 CI] قائمة leads + التفاصيل + lifecycle — RC457 RPC محدود وواجهة التفاصيل بإجراءات الحالة؛ اختبار PostgreSQL المعزول نجح على PR #373 الحالي، ويغطي الانتقالات والتدقيق وidempotency والتعارضات ومنع انتحال actor والعزل بين الأعمال والصلاحيات. **Runtime على مشروع Supabase المستهدف وE2E ما زالا NOT VERIFIED**؛ لا توجد UPDATE policy عامة مقصودة.
 - [ ] مقدمو خدمات التسويق: profiles/services — profiles قراءة فعلية في CRM، والخدمات التفصيلية ما زالت متبقية.
-- [ ] marketing projects + participants.
+- [🟡 CI] marketing campaigns + participants/invitations — مساحة الحملات ودعوات الشركاء مربوطة بـRPCs معزولة النطاق؛ RC453/RC457/RC458 PostgreSQL integration tests نجحت في CI على PR #373. هذا لا يثبت تشغيلها على مشروع Supabase المستهدف ولا إطلاق إعلانات خارجية.
 - [ ] provider subscriptions.
 - [ ] commission rules.
 - [ ] advertisements + ad_spaces.
