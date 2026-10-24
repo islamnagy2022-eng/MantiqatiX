@@ -256,3 +256,9 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Commits: `6c6f22445a4511575c1dbbcb5c14e5917357f6f0` and `1688b626c9b15cfaabc0b77ecb3c151fb303e011`.
 - The source guard and migration payload shape were inspected. **The new guard has not yet been exercised by CI or an end-to-end webhook replay test.**
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Isolated unit check — exact-cent helpers
+
+- Ran a local Node.js isolated test against a copy of the current shared helper implementation from this branch: **15 assertions passed**, covering exact cents, numeric strings, ±1-cent mismatches, fractional cents, zero/negative/NaN values, unsafe integers, and exact order-price equality.
+- This is **not** a full checkout test, not a run of the repository's full validation script, and not a replacement for CI on the latest commit. The later payment-intent and subscription-webhook edits still require exact-head CI and integration verification.
