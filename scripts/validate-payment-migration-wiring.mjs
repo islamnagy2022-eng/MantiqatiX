@@ -51,6 +51,7 @@ assert.ok(mantigoIntent.includes('String(ledger.payment_status)==="PENDING"') &&
 
 assert.ok(paymentIntent.includes("provider_order_id: providerOrderId"), "normal payment intent must persist Paymob order correlation");
 assert.ok(paymentIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "ambiguous Paymob creation outcomes must fail closed for reconciliation");
+assert.ok(paymentIntent.includes('.select("id").maybeSingle()') && paymentIntent.includes('updateError?.code ?? "COMPARE_AND_SET_NO_ROW"') && paymentIntent.includes("PAYMENT_INTENT_REQUIRES_RECONCILIATION"), "normal payment must detect a zero-row provider intent persistence race and fail closed");
 assert.ok(paymentIntent.includes("[400, 401, 403, 404, 422].includes(response.status)") && paymentIntent.includes("!providerIntentId && !providerClientSecret && !providerOrderId"), "normal payment may mark FAILED only for explicit identifier-free provider rejections");
 assert.ok(digitalIntent.includes("[400,401,403,404,422].includes(providerResponseStatus)") && digitalIntent.includes("!providerIntentId&&!providerClientSecret&&!providerOrderId"), "digital-page payment may release a claim only for explicit identifier-free provider rejections");
 assert.ok(paymentIntent.includes('from "../_shared/paymob-intent-correlation.mjs"'), "normal payment provider response must use the shared Paymob correlation guard");
