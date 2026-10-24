@@ -90,10 +90,18 @@ BEGIN
       v_cross_businesses,v_cross_orders,v_cross_payments,v_cross_onboarding;
   END IF;
 
-  UPDATE public.orders SET customer_name='CROSS_TENANT_WRITE_BLOCKED_A' WHERE id='40000000-0000-4000-8000-000000000002';
-  GET DIAGNOSTICS v_cross_order_updates = ROW_COUNT;
-  UPDATE public.payment_intents SET status='SUCCEEDED' WHERE id='S05-TEST-PI-B';
-  GET DIAGNOSTICS v_cross_payment_updates = ROW_COUNT;
+  BEGIN
+    UPDATE public.orders SET customer_name='CROSS_TENANT_WRITE_BLOCKED_A' WHERE id='40000000-0000-4000-8000-000000000002';
+    GET DIAGNOSTICS v_cross_order_updates = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_cross_order_updates := 0;
+  END;
+  BEGIN
+    UPDATE public.payment_intents SET status='SUCCEEDED' WHERE id='S05-TEST-PI-B';
+    GET DIAGNOSTICS v_cross_payment_updates = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_cross_payment_updates := 0;
+  END;
   IF v_cross_order_updates<>0 OR v_cross_payment_updates<>0 THEN
     RAISE EXCEPTION 'CROSS_TENANT_WRITE_FROM_A: orders=%, payment_intents=%',v_cross_order_updates,v_cross_payment_updates;
   END IF;
@@ -136,10 +144,18 @@ BEGIN
       v_cross_businesses,v_cross_orders,v_cross_payments,v_cross_onboarding;
   END IF;
 
-  UPDATE public.orders SET customer_name='CROSS_TENANT_WRITE_BLOCKED_B' WHERE id='40000000-0000-4000-8000-000000000001';
-  GET DIAGNOSTICS v_cross_order_updates = ROW_COUNT;
-  UPDATE public.payment_intents SET status='SUCCEEDED' WHERE id='S05-TEST-PI-A';
-  GET DIAGNOSTICS v_cross_payment_updates = ROW_COUNT;
+  BEGIN
+    UPDATE public.orders SET customer_name='CROSS_TENANT_WRITE_BLOCKED_B' WHERE id='40000000-0000-4000-8000-000000000001';
+    GET DIAGNOSTICS v_cross_order_updates = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_cross_order_updates := 0;
+  END;
+  BEGIN
+    UPDATE public.payment_intents SET status='SUCCEEDED' WHERE id='S05-TEST-PI-A';
+    GET DIAGNOSTICS v_cross_payment_updates = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege THEN
+    v_cross_payment_updates := 0;
+  END;
   IF v_cross_order_updates<>0 OR v_cross_payment_updates<>0 THEN
     RAISE EXCEPTION 'CROSS_TENANT_WRITE_FROM_B: orders=%, payment_intents=%',v_cross_order_updates,v_cross_payment_updates;
   END IF;
