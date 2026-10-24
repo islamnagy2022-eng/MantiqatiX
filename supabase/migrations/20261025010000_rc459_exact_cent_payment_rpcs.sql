@@ -1,7 +1,9 @@
--- RC459: exact-cent enforcement at the authoritative Paymob payment RPC boundary.
--- Forward-only hardening: historical RC425-RC431 migration files are intentionally unchanged.
+-- RC459: exact-cent enforcement at authoritative payment-intent and Paymob callback RPC boundaries.
+-- Forward-only hardening: historical RC200 and RC425-RC431 migration files are intentionally unchanged.
 -- All Paymob webhook amount values are derived from provider integer cents; compare numeric amounts
 -- exactly and reject any fractional-cent value rather than tolerating a one-cent discrepancy.
+-- Payment-intent creation also requires both stored order totals to agree exactly and rejects stale
+-- idempotency records with mismatched amount, currency, or pricing snapshot.
 create or replace function public.process_verified_mantigo_payment_backend(
   p_ledger_id text,
   p_external_event_id text,
