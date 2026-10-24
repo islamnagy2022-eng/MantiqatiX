@@ -77,6 +77,7 @@ for(const [tabName,notice] of marketingFinancialReadOnlyContracts){
  if(!marketingSource.includes("if(tab==='"+tabName+"')return shell(d,tabs(d)+'<div class=\"notice\">"+notice))
   failures.push("MARKETING_"+tabName.toUpperCase()+"_READ_ONLY_NOTICE_MISSING");
 }
+if(/\.from\(\s*['"](?:marketing_projects|marketing_plans|marketing_provider_subscriptions|marketing_project_participants|marketing_commission_rules)['"]\s*\)\s*\.\s*(?:insert|update|upsert|delete)\s*\(/.test(marketingSource)) failures.push("MARKETING_FINANCIAL_DIRECT_WRITE_FORBIDDEN");
 for(const [code,owner,tables] of modules){
  const source=files[owner];
  const catalogEntry=catalog.includes("code:'"+code+"'");
