@@ -5,6 +5,7 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const app = read("web/app.js");
 const operations = read("web/operations-modules.js");
 const campaignMigration = read("supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql");
+const partnerDirectoryMigration = read("supabase/migrations/20261024210000_rc458_marketing_partner_directory_backend.sql");
 const createFunction = read("supabase/functions/marketing-lead-create/index.ts");
 const scopeMigration = read("supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql");
 const contract = read("docs/engineering/CRM_MARKETING_LEAD_LIFECYCLE_CONTRACT.md");
@@ -76,6 +77,22 @@ assert.match(operations, /'campaigns','invitations','projects'/,
   "marketing navigation must keep the campaign invitation workspace wired");
 assert.match(operations, /function campaignInvitationsWorkspace[\s\S]*?data-mi-respond="ACCEPTED"[\s\S]*?data-mi-respond="DECLINED"/,
   "verified provider owners must have explicit accept and decline actions for pending invitations");
+assert.match(operations, /sb\.rpc\('list_marketing_partner_directory_backend'/,
+  "cross-business partner discovery must use the scoped backend directory RPC");
+assert.match(operations, /rows\.marketing_partner_directory/,
+  "invitation UI must use the backend directory rather than broadening provider-profile reads");
+assert.match(partnerDirectoryMigration, /security definer[\s\S]*?set search_path = ''/,
+  "partner directory RPC must be SECURITY DEFINER with an empty search_path");
+assert.match(partnerDirectoryMigration, /public\.mnty_can_manage_marketing_business\(p_business_id\)/,
+  "partner directory must require a manager-authorized business scope");
+assert.match(partnerDirectoryMigration, /p\.status = 'ACTIVE'[\s\S]*?p\.is_verified is true[\s\S]*?p\.provider_kind in \('PARTNER_COMPANY', 'FREELANCER'\)/,
+  "directory must return only active, verified eligible partner types");
+assert.doesNotMatch(partnerDirectoryMigration, /owner_user_id\s+text|email|phone|business_id\s+uuid/,
+  "partner directory must not expose owner identity, contact details, or business identifiers");
+assert.match(partnerDirectoryMigration, /revoke all on function public\.list_marketing_partner_directory_backend[\s\S]*?from public, anon/,
+  "partner directory must not be executable by public or anonymous users");
+assert.match(partnerDirectoryMigration, /grant execute on function public\.list_marketing_partner_directory_backend[\s\S]*?to authenticated/,
+  "partner directory must be available only to authenticated callers after backend scope checks");
 assert.match(operations, /sb\.rpc\('invite_marketing_campaign_partner_backend'/,
   "partner invitations must use the server-authoritative invite RPC");
 assert.match(operations, /sb\.rpc\('respond_marketing_campaign_invitation_backend'/,
