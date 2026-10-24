@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const URL=Deno.env.get("SUPABASE_URL")??"";
 const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -46,20 +47,36 @@ Deno.serve(async req=>{
  if(!row)return json({error:"PAYMENT_CLAIM_FAILED"},500);
  if(row.claim_status==="EXISTING")return json({orderId:row.id,status:row.payment_status,provider:"PAYMOB",clientSecret:null,checkoutUrl:null},200);
  if(row.claim_status==="IN_PROGRESS")return json({error:"PAYMENT_INTENT_IN_PROGRESS"},409);
- const release=async()=>{await userClient.rpc("release_digital_page_payment_intent_claim_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken});};
+ const release=async()=>{const {data,error}=await userClient.rpc("release_digital_page_payment_intent_claim_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken});return !error&&data===true;};
  const amount=Number(row.amount);
  if(!Number.isFinite(amount)||amount<=0){await release();return json({error:"INVALID_AMOUNT"},409);}
  const amountCents=Math.round(amount*100);
+ if(!isValidPaymobAmountCents(amount,amountCents)){const released=await release();return json({error:released?"INVALID_AMOUNT":"PAYMENT_REJECTION_REQUIRES_RECONCILIATION"},409);}
  const payload={amount:amountCents,currency:String(row.currency||"EGP").toUpperCase(),payment_methods:[Number(PAYMOB_INTEGRATION_ID)],items:[{name:row.title,amount:amountCents,description:"MantiqaTix "+row.page_type+" page",quantity:1}],billing_data:{apartment:"NA",first_name:String(user.user_metadata?.full_name||email).split(" ")[0]||"Customer",last_name:"MantiqaTix",street:"NA",building:"NA",phone_number:phone,city:"NA",country:"EG",email,floor:"NA",state:"NA"},special_reference:row.id,expiration:3600,notification_url:CALLBACK};
  let p:Record<string,unknown>={};
+ let providerResponseStatus=0;
  try{
    const res=await fetch(PAYMOB_BASE_URL.replace(/\/$/,"")+"/v1/intention/",{method:"POST",headers:{"Authorization":"Token "+PAYMOB_SECRET_KEY,"Content-Type":"application/json"},body:JSON.stringify(payload)});
-   p=await res.json().catch(()=>({}));
-   if(!res.ok||!p?.id||!p?.client_secret){await release();return json({error:"PAYMENT_PROVIDER_REJECTED"},502);}
- }catch{await release();return json({error:"PAYMENT_PROVIDER_UNAVAILABLE"},502);}
- const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:String(p.id)});
- if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
- const clientSecret=String(p.client_secret);
+   providerResponseStatus=res.status;
+   p=await res.json().catch(()=>({})) as Record<string,unknown>;
+   const providerIntentId=String(p.id??"");
+   const providerClientSecret=String(p.client_secret??"");
+   const providerOrderId=String(p.intention_order_id??p.order_id??"");
+   if(!res.ok&&[400,401,403,404,422].includes(providerResponseStatus)&&!providerIntentId&&!providerClientSecret&&!providerOrderId){
+     const released=await release();
+     if(!released)return json({error:"PAYMENT_REJECTION_REQUIRES_RECONCILIATION"},500);
+     return json({error:"PAYMENT_PROVIDER_REJECTED"},502);
+   }
+   if(!res.ok||!providerIntentId||!providerClientSecret||!providerOrderId){
+     return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN"},502);
+   }
+   if(!matchesPaymobIntention({provider:p,amountCents,currency:String(row.currency||"EGP").toUpperCase(),reference:orderId})){
+     return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH"},502);
+   }
+   const {data:finalized,error:fe}=await userClient.rpc("finalize_digital_page_payment_intent_backend",{p_order_id:orderId,p_user_id:user.id,p_claim_token:claimToken,p_provider_intent_id:providerIntentId,p_provider_order_id:providerOrderId});
+   if(fe||finalized!==true)return json({error:"PAYMENT_PERSISTENCE_FAILED"},500);
+   const clientSecret=providerClientSecret;
  const checkoutUrl=PAYMOB_PUBLIC_KEY?(PAYMOB_BASE_URL.replace(/\/$/,"")+"/unifiedcheckout/?publicKey="+encodeURIComponent(PAYMOB_PUBLIC_KEY)+"&clientSecret="+encodeURIComponent(clientSecret)):null;
  return json({orderId:row.id,status:"PENDING",provider:"PAYMOB",clientSecret,checkoutUrl,amount,currency:row.currency});
+ }catch{return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN"},502);}
 });
