@@ -379,3 +379,13 @@ All Supabase production queries were read-only. No production migrations, table 
 3. Resolve customer-registration RPC behavior through a reviewed design decision and isolated tests; do not bulk-sync live and repository source.
 4. Keep SMM launch deferred until a separate approved launch change; source parity is not launch approval.
 5. Complete remaining production E2E gates in `docs/MASTER_PRODUCTION_TODO.md`, including authenticated cross-tenant browser flows and authorized Paymob/settlement tests.
+
+
+## 2026-10-24 — CRM lead lifecycle source integration (RC457)
+- Added CRM detail-drawer actions for the allowed next lead statuses; internal management actions are shown only when the record belongs to the active business selected in the session.
+- Customer detail reads remain owner-scoped; internal lead detail reads add a business filter. RLS and the server-side RPC remain authoritative.
+- UI status updates call `transition_marketing_lead_backend` with expected/current state, desired state, actor identity, and a fresh request UUID. The RPC independently checks the actor against `auth.uid()`, membership/business scope, state transitions, row locking, and atomic audit logging.
+- Added static CI guards for direct browser writes, scope filtering, RPC arguments, and safe conflict/forbidden handling.
+- Exact-head CI was queued after the latest source/documentation commit; results are pending. This is not final release testing.
+- RC457 is source-only and has not been applied to production. No production data or configuration was changed.
+- Status: **IMPLEMENTED — NOT VERIFIED**. The comprehensive real-world acceptance campaign remains deferred to the final stage per user instruction. Production remains **BLOCKED / NOT CERTIFIED**.
