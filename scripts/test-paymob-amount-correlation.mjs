@@ -21,6 +21,7 @@ assert.equal(matchesPaymobEventOutcome("FAILED", true), false, "success must con
 assert.equal(matchesPaymobEventOutcome("PROCESSED", true), true, "replayed success outcome must be idempotent");
 assert.equal(matchesPaymobEventOutcome("PROCESSED", false), false, "failure must conflict with a stored success");
 assert.equal(matchesPaymobEventOutcome("", true), false, "unknown stored outcome must fail closed");
+assert.equal(matchesPaymobEventOutcome("CANCELLED", true), false, "unrecognized stored status must fail closed");
 assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_FAILURE", false), true, "same subscription failure type may replay");
 assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_FAILURE", true), false, "subscription success must conflict with stored failure");
 assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_SUCCESS", true), true, "same subscription success type may replay");
