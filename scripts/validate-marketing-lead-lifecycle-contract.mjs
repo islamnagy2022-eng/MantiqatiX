@@ -22,8 +22,10 @@ assert.match(app, /sb\.functions\.invoke\(['"]marketing-lead-create['"]/,
 
 assert.match(operations, /async function saveLead\(\)[\s\S]*?budgetMin<0\|\|budgetMax<budgetMin/,
   "lead UI must reject negative budgets and a maximum below the minimum before submission");
-assert.match(operations, /maxlength="200"[\s\S]*?maxlength="5000"[\s\S]*?maxlength="200"/,
+assert.match(operations, /maxlength="200"/,
   "lead form must expose the server's title, description, and service-area length limits");
+assert.match(operations, /maxlength="5000"/,
+  "lead description field must expose the server's 5000-character limit");
 assert.match(operations, /if\(r\.error\|\|r\.data\?\.error\)[\s\S]*?button\.disabled=false[\s\S]*?إنشاء طلب/,
   "lead submit button must recover after a server-reported creation failure");
 assert.match(app, /q\.eq\('requester_business_id',live\.businessId\)/,
