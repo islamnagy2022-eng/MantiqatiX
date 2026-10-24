@@ -132,7 +132,7 @@ for (const rpc of [
   const end = start < 0 ? -1 : rc459.indexOf("$function$;", start);
   assert.ok(start >= 0 && end > start, rpc + " must have a complete RC459 function body");
   const body = rc459.slice(start, end);
-  assert.match(body, /security definer[\\s\\S]*?set search_path = ''/i, rpc + " must remain SECURITY DEFINER with an empty search_path");
+  assert.ok(body.toLowerCase().includes("security definer") && body.toLowerCase().includes("set search_path = ''"), rpc + " must remain SECURITY DEFINER with an empty search_path");
 }
 assert.ok(rc459.includes("v_payload_amount is distinct from p_amount") && rc459.includes("round(p_amount, 2)"), "RC459 must reject fractional-cent MantiGo payload values");
 assert.ok(rc459.includes("p_provider_confirmed_amount is distinct from round(p_provider_confirmed_amount, 2)"), "RC459 must reject fractional-cent provider-confirmed values");
@@ -147,6 +147,6 @@ assert.ok(intentRpc.includes("v_existing.amount is distinct from v_order.total_a
 assert.ok(intentRpc.includes("v_order.currency is null or upper(coalesce(p_currency,'')) is distinct from upper(v_order.currency)") && intentRpc.includes("v_existing.pricing_hash is distinct from v_order.pricing_hash"), "RC459 payment intent creation must fail closed on null currency and pricing replay mismatch");
 
 
-assert.doesNotMatch(rc459, /abs\\([^)]*(?:amount|gross_amount)[^)]*\\)\\s*>\\s*0\\.01/i, "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
+assert.ok(!rc459.split("\n").some(line => /abs\(/.test(line) && /amount|gross_amount/i.test(line) && />\s*0\.01/i.test(line)), "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
 
 console.log("RC425-RC459 payment migration wiring contract: PASS");
