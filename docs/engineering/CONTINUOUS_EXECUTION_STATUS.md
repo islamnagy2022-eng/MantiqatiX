@@ -405,3 +405,11 @@ All Supabase production queries were read-only. No production migrations, table 
 - The interface explicitly states that campaign creation is internal planning and does not launch external ads. Direct browser mutations of campaign tables are not used.
 - Added static source assertions for campaign scope, RPC use, and table privilege boundaries. Exact-head CI and runtime behavior are not yet certified.
 - Status: **SOURCE INTEGRATED — NOT VERIFIED**. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Marketing partner collaboration source integration
+- Added a partner invitations workspace within the existing marketing module, using the existing `marketing_campaign_participants` schema and RLS policy rather than creating duplicate tables.
+- Campaign managers invite eligible verified partners through `invite_marketing_campaign_partner_backend`; invited provider owners can accept or decline through `respond_marketing_campaign_invitation_backend`.
+- Participant reads intentionally rely on the existing row-level policy to allow both the owning campaign business and the invited provider owner to see only authorized rows. UI checks are not treated as the security boundary.
+- Added static assertions for invitation/response RPC usage and provider ownership checks. Exact-head CI and runtime behavior remain **NOT VERIFIED**.
+- No payment, settlement, or external advertising action is performed. Production remains **BLOCKED / NOT CERTIFIED**.
