@@ -288,3 +288,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Commits: `dd15109f7f37d55702b41bd0f77a9aad7ffd645b` and `73c522ca8c27a60037d120b62801796d537e339c`.
 - **Configuration dependency:** verify `PAYMOB_INTEGRATION_ID` is present and matches the production Paymob integration before any deployment. No environment configuration was changed by this work.
 - **Verification:** the change is source-reviewed; exact-head CI is pending and no real provider callback was executed.
+
+
+### Testability follow-up — Paymob replay outcome helpers
+
+- Extracted pure helpers `matchesPaymobEventOutcome` and `matchesPaymobSubscriptionEventType` into the shared correlation module so replay outcome logic can be tested independently of the Edge Function runtime.
+- Added 9 assertions for same-outcome idempotency, contradictory success/failure outcomes, and unknown stored status; updated source wiring assertions to enforce helper usage and the required `PAYMOB_INTEGRATION_ID` check.
+- Commits: `f74bde1877de0d2e0e0e63c994b407e40661a0e9`, `6c86e7485ffacc08c6a9193591cb6aa153079a48`, `3c0aa5c970915c57d81f1b2e01a3216c082b1ded`, `0d74ab471ac6be291dc5bf066d72439dc843f96f`, `82fd11c27b5c1bf69fea1700b3b40f74955b06c3`, and `72aa202b21eaad5b5e4fd15139ff2588b9987cb2`.
+- **CI state at log time:** the latest workflow runs for commit `72aa202b21eaad5b5e4fd15139ff2588b9987cb2` were queued; no final results are claimed for the new tests.
