@@ -303,3 +303,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Ran a local Node.js test using a copied implementation of the current shared helper logic: **24 assertions passed** for exact-cent matching, one-cent mismatches, invalid amounts, order-price equality, same-outcome replay, contradictory success/failure callbacks, unknown stored statuses, and subscription event-type conflicts.
 - This verifies the pure helper logic in isolation only. It is **not** a full repository checkout test, not the complete source-wiring validator, and not CI or a live Paymob callback test.
 - The helper now fails closed unless generic payment-event status is exactly `PROCESSED` for a successful callback or `FAILED` for a failed callback; unknown statuses do not qualify as idempotent success.
+
+
+### Final follow-up in this pass — fail-closed status and release TODO
+
+- Tightened `matchesPaymobEventOutcome` to accept only `PROCESSED` for a successful replay or `FAILED` for a failed replay. Unknown/empty statuses now fail closed. Added a test for an unrecognized `CANCELLED` status.
+- Updated `TODO_PRODUCTION.md` with the new Paymob hardening gate, exact-head CI/runtime caveats, and the requirement to verify `PAYMOB_INTEGRATION_ID` in the target Edge Function environment before deployment.
+- Commits: `0c5315948364ccde4b866920d5166f9b7a63ef3e`, `f1fbd3b7174db26b2b14e26ede64c28b2e405c58`, `dd14d93932efb48266303682ca65aded60b8e16e`.
+- **CI status:** RC425, RC431, migration replay/uniqueness/immutability, and other checks for recent heads were still queued at the last poll; there is no exact-head green result yet. Do not infer a pass from the earlier successful run on a different commit.
+- **Release remains BLOCKED / NOT CERTIFIED.**
