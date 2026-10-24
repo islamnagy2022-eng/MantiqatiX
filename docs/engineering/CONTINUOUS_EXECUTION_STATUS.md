@@ -435,3 +435,12 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 
 
 - Follow-up UX fix: provider invitation views now resolve campaign names only for campaign IDs found in the signed-in provider's own RLS-visible invitations, requesting only `id,title,status`. Static contract checks enforce this bounded query. CI at code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` passed all nine PR workflows; no production deployment occurred.
+
+
+## 2026-10-24 — RC458 behavioral PostgreSQL integration now verified
+- Added an isolated PostgreSQL 16 integration test for the cross-business partner directory. It verifies eligible cross-business profiles are returned while unverified and same-business profiles are excluded; search and result limits work; actor spoofing, cross-business manager access, and overlong search are rejected; and anon/authenticated RPC execute grants are correct.
+- The CI workflow now applies the RC453 fixture/migration and existing lifecycle integration first, then applies RC458 and runs the new RC458 integration assertions.
+- Exact current PR #373 head `b58eac839f7fb2cad814c63795ca1dfde9ee73b3`: all 10 workflows passed, including the PostgreSQL integration job, whose output explicitly reports `RC458 scoped marketing partner directory integration: PASS`.
+- PR #372 head `5a6def775558b1415db53c06d0584ea4cf5738b5`: all 11 workflows passed, including the isolated forward migration chain replay from the captured production-schema checkpoint.
+- The web workflow's validation passed but its deploy job was skipped by the pull-request guard. No production deployment or migration was performed.
+- This closes the RC458 isolated CI integration gap only; it does not establish production project parity, live end-to-end acceptance, or disaster-recovery readiness. Both PRs remain open/draft and unmerged. Production remains **BLOCKED / NOT CERTIFIED**.
