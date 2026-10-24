@@ -79,6 +79,8 @@ assert.match(operations, /function campaignInvitationsWorkspace[\s\S]*?data-mi-r
   "verified provider owners must have explicit accept and decline actions for pending invitations");
 assert.match(operations, /sb\.rpc\('list_marketing_partner_directory_backend'/,
   "cross-business partner discovery must use the scoped backend directory RPC");
+assert.match(operations, /data-op-tab[\s\S]*?tab==='invitations'[\s\S]*?list_marketing_partner_directory_backend/,
+  "opening the invitations tab must load the scoped directory even after initial module load");
 assert.match(operations, /rows\.marketing_partner_directory/,
   "invitation UI must use the backend directory rather than broadening provider-profile reads");
 assert.match(operations, /async function searchMarketingPartnerDirectory[\s\S]*?p_search:marketingPartnerSearch\|\|null[\s\S]*?p_limit:50/,
