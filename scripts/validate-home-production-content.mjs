@@ -37,6 +37,10 @@ for(const [needle,label] of [
   ["card.textContent.toLocaleLowerCase('ar').includes(term)","sector search must filter visible service/provider cards locally"],
   ["applyCategoryFilter();","sector results must be filtered after loading"]
 ]) if(!home.includes(needle)) throw new Error("FAIL: "+label+" ("+needle+")");
+if(!home.includes('id="mx-profile-sector-services"')) throw new Error("FAIL: public provider profiles must load sector service catalog");
+if(!home.includes(".from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').eq('category_code',categoryCode)")) throw new Error("FAIL: provider profile catalog must use active public sector services only");
+if(!home.includes("لا تعني بالضرورة أن النشاط يقدم كل خدمة")) throw new Error("FAIL: public sector catalog must not imply unverified provider-service relationships");
+if(!home.includes(".limit(12)")) throw new Error("FAIL: provider profile sector catalog must remain bounded");
 if(!home.includes('class="mx-category-service-details" hidden')) throw new Error("FAIL: public service cards must expose expandable service details");
 if(!home.includes("b.setAttribute('aria-expanded',expanded?'true':'false')")) throw new Error("FAIL: expandable service details must expose their state accessibly");
 if(!css.includes(".mx-category-service-details[hidden]{display:none!important}")) throw new Error("FAIL: expandable service details must respect their hidden state");
