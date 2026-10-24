@@ -38,6 +38,7 @@ for(const [needle,label] of [
   ["applyCategoryFilter();","sector results must be filtered after loading"]
 ]) if(!home.includes(needle)) throw new Error("FAIL: "+label+" ("+needle+")");
 if(!home.includes("history.pushState({provider:providerKey},'', '#provider/'+encodeURIComponent(providerKey))")) throw new Error("FAIL: public provider profile must preserve a shareable route and browser back navigation");
+if(!home.includes("i===1?'عرض مقدمي الخدمات ←':'عرض الخدمات المنشورة ←'")) throw new Error("FAIL: sector CTA labels must match their actual navigation targets");
 if(!home.includes('id="mx-profile-sector-services"')) throw new Error("FAIL: public provider profiles must load sector service catalog");
 if(!home.includes(".from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').eq('category_code',categoryCode)")) throw new Error("FAIL: provider profile catalog must use active public sector services only");
 if(!home.includes("لا تعني بالضرورة أن النشاط يقدم كل خدمة")) throw new Error("FAIL: public sector catalog must not imply unverified provider-service relationships");
