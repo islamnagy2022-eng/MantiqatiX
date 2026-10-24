@@ -279,3 +279,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added source-contract assertions for both conflict guards.
 - Commits: `40f500fc92a2813b9ce30d59c665b563f28ca194`, `7b6d2b035842f2328e39015ba16dd9c890a26519`, `641e48b4d07bd6198706d9aee5410c0df8617104`, and `66f43c0021677a7688a9d6d15bc62bffdafea5dd`.
 - **Verification status:** source guard assertions are added but have not yet run in CI on these exact commits. No provider callback integration test has been executed for these two new conflict paths.
+
+
+### Follow-up — Paymob integration identity binding
+
+- Added a required `PAYMOB_INTEGRATION_ID` configuration to the webhook. The callback now fails closed with `503 PAYMENT_CALLBACK_NOT_CONFIGURED` if either the HMAC secret or expected integration ID is absent, and rejects a validly signed callback whose `integration_id` differs from the configured integration.
+- Added a source-contract assertion that the integration identity check follows HMAC verification.
+- Commits: `dd15109f7f37d55702b41bd0f77a9aad7ffd645b` and `73c522ca8c27a60037d120b62801796d537e339c`.
+- **Configuration dependency:** verify `PAYMOB_INTEGRATION_ID` is present and matches the production Paymob integration before any deployment. No environment configuration was changed by this work.
+- **Verification:** the change is source-reviewed; exact-head CI is pending and no real provider callback was executed.
