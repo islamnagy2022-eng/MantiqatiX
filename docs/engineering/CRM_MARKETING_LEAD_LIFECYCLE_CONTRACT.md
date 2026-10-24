@@ -138,3 +138,7 @@ Before writing the lifecycle migration/RPC, record the canonical status values, 
 - Added source-level CI assertions for the UI/RPC contract and the ownership/business boundary. This is a static guard, not a runtime or adversarial security test.
 - The migration is still source-only and has not been applied to production. Until the RC457 migration is approved and applied through the authorized release process, the new UI action must not be considered production-operational.
 - Classification: **IMPLEMENTED — NOT VERIFIED**. Comprehensive acceptance remains deferred to the final development/verification stage. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### UI source review follow-up — active-business identity projection
+A source review found that the CRM lead list query filtered manager results by `requester_business_id` but did not select that field, so the detail drawer could not reliably recognize a row as belonging to the selected business and therefore would not expose authorized lifecycle actions. The projection now includes `requester_business_id`, and the static guard asserts that the field remains selected. This was a source-level correctness fix; runtime behavior remains NOT VERIFIED.
