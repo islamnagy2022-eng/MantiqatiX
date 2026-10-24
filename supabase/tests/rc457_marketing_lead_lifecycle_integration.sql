@@ -85,17 +85,19 @@ begin
   begin
     perform public.transition_marketing_lead_backend(manager_b,lead_a,'CONTACT_ATTEMPTED','CONTACTED','60000000-0000-4000-8000-000000000005');
   exception when others then
-    if sqlerrm='LEAD_NOT_FOUND_OR_FORBIDDEN' then rejected:=true; else raise; end if;
+    if sqlerrm='ACTOR_MISMATCH' then rejected:=true; else raise; end if;
   end;
-  if not rejected then raise exception 'cross-business manager changed another business lead'; end if;
+  if not rejected then raise exception 'actor spoofing was accepted'; end if;
 
+  perform set_config('request.jwt.claim.sub', manager_b::text, false);
+  perform set_config('request.jwt.claims', pg_catalog.jsonb_build_object('sub',manager_b::text,'is_anonymous',false)::text, false);
   rejected:=false;
   begin
-    perform public.transition_marketing_lead_backend(manager_b,lead_b,'OPEN','CONTACT_ATTEMPTED','60000000-0000-4000-8000-000000000006');
+    perform public.transition_marketing_lead_backend(manager_b,lead_a,'CONTACT_ATTEMPTED','CONTACTED','60000000-0000-4000-8000-000000000006');
   exception when others then
     if sqlerrm='LEAD_NOT_FOUND_OR_FORBIDDEN' then rejected:=true; else raise; end if;
   end;
-  if not rejected then raise exception 'manager B changed own lead while claiming manager A actor'; end if;
+  if not rejected then raise exception 'cross-business manager changed another business lead'; end if;
 
   perform set_config('request.jwt.claim.sub','',false);
   perform set_config('request.jwt.claims','{}',false);
