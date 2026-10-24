@@ -517,3 +517,11 @@
 - [x] PR #372 current head `5a6def775558b1415db53c06d0584ea4cf5738b5`: all 11 workflows passed, including the isolated forward migration chain replay from the production schema checkpoint.
 - [ ] This is isolated CI runtime evidence, not proof that the target Supabase production project has the same schema/data or that a production rollout was applied. Confirm the intended release target, recovery/restore evidence, and obtain explicit release authorization before applying migrations.
 - Production remains **BLOCKED / NOT CERTIFIED**. Both PRs remain open/draft and unmerged.
+
+
+## RC457 lifecycle behavioral coverage — 2026-10-24
+- Added `supabase/tests/rc457_marketing_lead_lifecycle_integration.sql` for disposable PostgreSQL coverage of valid status persistence, scoped audit metadata, idempotent replay without duplicate audit, idempotency-key conflicts, stale expected state, disallowed/unknown status, actor spoofing, cross-business isolation, missing authentication, and RPC execute grants.
+- Extended the shared RC453 disposable fixture with only the minimal `marketing_leads` table/records needed for the RC457 test. This fixture change is test-only; it is not a production schema change.
+- Updated `.github/workflows/marketing-campaign-backend.yml` to run RC453 fixture/migration/tests, then RC457 migration/integration, then RC458 migration/integration. Added RC457 files to workflow path filters and added static source guards for the RC457 test contract.
+- [ ] Await CI on the new head before marking RC457 behavioral coverage passed. Previous RC453/RC458 green results apply to the prior code head only.
+- Production remains **BLOCKED / NOT CERTIFIED**; no merge or production migration was performed.
