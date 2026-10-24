@@ -6,6 +6,7 @@ const webhook = read("supabase/functions/paymob-webhook/index.ts");
 const paymentIntent = read("supabase/functions/payment-intent/index.ts");
 const digitalIntent = read("supabase/functions/digital-page-payment-intent/index.ts");
 const subscriptionIntent = read("supabase/functions/subscription-payment-intent/index.ts");
+const mantigoIntent = read("supabase/functions/mantigo-payment-intent/index.ts");
 const rc425 = read("supabase/migrations/20261009120000_rc425_atomic_mantigo_paymob_payment.sql");
 const rc426 = read("supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql");
 const rc428 = read("supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql");
@@ -37,6 +38,14 @@ for (const field of ["p_ledger_id:mantigo.id", "p_external_event_id:eventId", "p
 assert.doesNotMatch(mantigoBlock, /from\("payment_provider_events"\)\.insert/, "MantiGo provider event must not be inserted outside the atomic RPC");
 assert.doesNotMatch(mantigoBlock, /from\("mantigo_financial_ledger"\)\.update/, "MantiGo ledger must not be updated outside the atomic RPC");
 assert.doesNotMatch(mantigoBlock, /from\("notifications"\)\.insert/, "MantiGo notification must not be inserted outside the atomic RPC");
+
+assert.ok(mantigoIntent.includes('from "../_shared/paymob-intent-correlation.mjs"'), "MantiGo payment intent must use shared Paymob correlation checks");
+assert.ok(mantigoIntent.includes("isValidPaymobAmountCents(amount,amountCents)"), "MantiGo payment must reject fractional-cent amounts before provider I/O");
+assert.ok(mantigoIntent.includes("PAYMENT_INTENT_REQUIRES_RECONCILIATION"), "MantiGo ambiguous provider outcomes must fail closed and block blind retries");
+assert.ok(mantigoIntent.includes("matchesPaymobIntention({provider,amountCents,currency,reference:ledger.id})"), "MantiGo provider intention must be bound to exact amount/currency/ledger reference");
+assert.ok(mantigoIntent.includes("paymob_intention_order_id:providerOrderId"), "MantiGo must persist the verified provider order ID");
+assert.ok(mantigoIntent.includes('.eq("payment_status","REQUIRED").select("id").maybeSingle()') && mantigoIntent.includes("if(updateError||!updated)"), "MantiGo must detect a lost compare-and-set persistence race");
+assert.ok(mantigoIntent.includes('String(ledger.payment_status)==="PENDING"') && mantigoIntent.includes("PAYMENT_INTENT_REQUIRES_RECONCILIATION"), "MantiGo must not create duplicate provider intentions from an unresolved pending state");
 
 assert.ok(paymentIntent.includes("provider_order_id: providerOrderId"), "normal payment intent must persist Paymob order correlation");
 assert.ok(paymentIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "ambiguous Paymob creation outcomes must fail closed for reconciliation");

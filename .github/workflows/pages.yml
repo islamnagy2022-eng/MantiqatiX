@@ -83,6 +83,7 @@ jobs:
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-module-runtime-contracts.mjs
           node scripts/validate-provider-services-contract.mjs
+          node scripts/validate-marketing-lead-lifecycle-contract.mjs
           node scripts/validate-restaurant-module-contract.mjs
           node scripts/validate-sensitive-module-writes.mjs
           node scripts/validate-home-sponsored-ads.mjs
