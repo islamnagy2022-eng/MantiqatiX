@@ -76,7 +76,7 @@ begin
     raise exception 'MANTIGO_PAYMENT_PROVIDER_MISMATCH';
   end if;
   if v_ledger.gross_amount is distinct from p_amount or v_ledger.gross_amount is distinct from round(v_ledger.gross_amount, 2)
-     or upper(v_ledger.currency) <> upper(p_currency) then
+     or v_ledger.currency is null or upper(v_ledger.currency) is distinct from upper(p_currency) then
     raise exception 'MANTIGO_AMOUNT_CURRENCY_MISMATCH';
   end if;
 
@@ -639,7 +639,7 @@ begin
   if v_order.amount is distinct from round(v_order.amount, 2)
      or p_amount is distinct from round(p_amount, 2)
      or v_order.amount is distinct from p_amount
-     or upper(v_order.currency) <> upper(p_currency) then
+     or v_order.currency is null or upper(v_order.currency) is distinct from upper(p_currency) then
     raise exception 'DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH';
   end if;
 
