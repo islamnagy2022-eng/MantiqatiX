@@ -1,6 +1,6 @@
 # CRM / Marketing Lead Lifecycle — Implementation Contract
 
-Status: DESIGN BASELINE — NOT IMPLEMENTED, NOT VERIFIED
+Status: BACKEND SOURCE IMPLEMENTED — UI INTEGRATION PENDING — NOT VERIFIED
 Scope: define the safe contract for internal marketing teams to manage leads without weakening customer ownership or tenant isolation.
 Release rule: this document is not approval to deploy, alter production grants, or run real-world acceptance tests. The comprehensive acceptance campaign remains deferred until module development and integration are complete.
 
@@ -98,7 +98,7 @@ Use isolated test accounts and non-production fixtures wherever possible. Any pr
 
 ## 8. Completion criteria
 
-This contract is complete as a design baseline only. Do not mark the lifecycle feature implemented until source changes, an exact-head CI result, authorization review, and the deferred final acceptance evidence are separately recorded.
+This contract began as a design baseline. RC457 now stages a backend transition RPC and audit/idempotency guard in the feature branch, but the UI is not yet wired and no database execution or final acceptance evidence has been produced. Keep the lifecycle feature NOT VERIFIED.
 
 
 ## 9. Source review findings — 2026-10-24
@@ -116,3 +116,14 @@ The current repository source was inspected after this contract was drafted:
 ### Next implementation gate
 
 Before writing the lifecycle migration/RPC, record the canonical status values, the exact approved transition graph, the meaning of platform vs tenant-level roles, the required audit-log fields, and whether lead notes contain personal data. Then implement a forward-only migration and a narrowly scoped backend mutation. The migration must be checked for version collisions against every open PR before it is proposed. No production migration is authorized by this design note.
+
+
+## 10. RC457 backend implementation — 2026-10-24
+
+- Added forward-only source migration `20261024193000_rc457_marketing_lead_lifecycle_backend.sql` on the feature branch. It creates a narrowly scoped `transition_marketing_lead_backend` RPC and an idempotency uniqueness guard in the existing canonical `audit_logs` store; it does not add direct browser UPDATE grants or a broad RLS policy.
+- The RPC requires an authenticated non-anonymous actor, rejects actor spoofing, locks the lead row, requires an active authorized business scope through `mnty_can_manage_marketing_business`, checks the expected current status, allowlists transitions, writes status + audit atomically, and handles request retries using a caller-provided request UUID.
+- The initial vocabulary `OPEN` is preserved. `NEW` is explicitly treated as a known legacy state from the disposable fixture only when the caller supplies it as the expected status; it is not rewritten automatically. The production schema/status inventory still needs confirmation during final acceptance.
+- No free-text note field is introduced, avoiding a new PII storage path. The audit entry stores only status values and request correlation ID.
+- The production migration source gate and its companion static contract were extended to require RC457 in chronological timestamp order. The production ledger is not updated, no migration was applied, and the release gate must remain BLOCKED until the full ordered migration plan is reconciled.
+- Remaining development work: wire the existing CRM lead-detail/list UI to the RPC with a fresh request UUID per user action, render loading/success/permission/conflict/error states, add source-level guards for the RPC/UI boundary, and update the TODO/continuity records.
+- Verification classification: **IMPLEMENTED — NOT VERIFIED**. Comprehensive runtime acceptance remains deferred until development and integration are complete.
