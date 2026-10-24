@@ -70,6 +70,8 @@ DECLARE
   v_cross_payments bigint;
   v_own_onboarding bigint;
   v_cross_onboarding bigint;
+  v_cross_order_updates bigint;
+  v_cross_payment_updates bigint;
 BEGIN
   SELECT count(*) INTO v_own_businesses FROM public.businesses WHERE tenant_id='MNTY-TEST-A' AND NOT (status='ACTIVE' AND coalesce(settings->>'showcase','false')='true');
   SELECT count(*) INTO v_cross_businesses FROM public.businesses WHERE tenant_id='MNTY-TEST-B' AND NOT (status='ACTIVE' AND coalesce(settings->>'showcase','false')='true');
@@ -87,6 +89,15 @@ BEGIN
     RAISE EXCEPTION 'CROSS_TENANT_VISIBILITY_FROM_A: businesses=%, orders=%, payments=%, onboarding=%',
       v_cross_businesses,v_cross_orders,v_cross_payments,v_cross_onboarding;
   END IF;
+
+  UPDATE public.orders SET customer_name='CROSS_TENANT_WRITE_BLOCKED_A' WHERE id='40000000-0000-4000-8000-000000000002';
+  GET DIAGNOSTICS v_cross_order_updates = ROW_COUNT;
+  UPDATE public.payment_intents SET status='SUCCEEDED' WHERE id='S05-TEST-PI-B';
+  GET DIAGNOSTICS v_cross_payment_updates = ROW_COUNT;
+  IF v_cross_order_updates<>0 OR v_cross_payment_updates<>0 THEN
+    RAISE EXCEPTION 'CROSS_TENANT_WRITE_FROM_A: orders=%, payment_intents=%',v_cross_order_updates,v_cross_payment_updates;
+  END IF;
+  RAISE NOTICE 'PASS: Tenant A cannot update Tenant B orders or payment intents';
   RAISE NOTICE 'PASS: Tenant A can read its own rows and cannot read private Tenant B rows';
 END;
 $tenant_a$;
@@ -105,6 +116,8 @@ DECLARE
   v_cross_payments bigint;
   v_own_onboarding bigint;
   v_cross_onboarding bigint;
+  v_cross_order_updates bigint;
+  v_cross_payment_updates bigint;
 BEGIN
   SELECT count(*) INTO v_own_businesses FROM public.businesses WHERE tenant_id='MNTY-TEST-B' AND NOT (status='ACTIVE' AND coalesce(settings->>'showcase','false')='true');
   SELECT count(*) INTO v_cross_businesses FROM public.businesses WHERE tenant_id='MNTY-TEST-A' AND NOT (status='ACTIVE' AND coalesce(settings->>'showcase','false')='true');
@@ -122,6 +135,15 @@ BEGIN
     RAISE EXCEPTION 'CROSS_TENANT_VISIBILITY_FROM_B: businesses=%, orders=%, payments=%, onboarding=%',
       v_cross_businesses,v_cross_orders,v_cross_payments,v_cross_onboarding;
   END IF;
+
+  UPDATE public.orders SET customer_name='CROSS_TENANT_WRITE_BLOCKED_B' WHERE id='40000000-0000-4000-8000-000000000001';
+  GET DIAGNOSTICS v_cross_order_updates = ROW_COUNT;
+  UPDATE public.payment_intents SET status='SUCCEEDED' WHERE id='S05-TEST-PI-A';
+  GET DIAGNOSTICS v_cross_payment_updates = ROW_COUNT;
+  IF v_cross_order_updates<>0 OR v_cross_payment_updates<>0 THEN
+    RAISE EXCEPTION 'CROSS_TENANT_WRITE_FROM_B: orders=%, payment_intents=%',v_cross_order_updates,v_cross_payment_updates;
+  END IF;
+  RAISE NOTICE 'PASS: Tenant B cannot update Tenant A orders or payment intents';
   RAISE NOTICE 'PASS: Tenant B can read its own rows and cannot read private Tenant A rows';
 END;
 $tenant_b$;
