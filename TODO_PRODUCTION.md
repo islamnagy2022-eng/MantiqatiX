@@ -533,3 +533,11 @@
 - [x] Production verification syntax check passed on the latest head; web deploy job was skipped by the PR guard.
 - [ ] Live target-Supabase parity, final end-to-end acceptance, recovery/restore evidence, and explicit release authorization remain outstanding. Do not merge/apply migrations to production on the basis of isolated CI alone.
 - PR #373 remains draft/open and PR #372 remains a dependency for historical migration restoration. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Marketing financial configuration safety guard — 2026-10-24
+- [x] Marked marketing plans, provider subscriptions, project participants, and commission rules as explicitly read-only in the current operations workspace. These views do not offer direct browser mutations to pricing, subscription state, participant allocation, or commission rules.
+- [x] Extended `scripts/validate-module-runtime-contracts.mjs` to fail if any of the four tabs loses its read-only safety notice.
+- [x] Exact head `8701f54daf029ab53fa45f3d1f4616521f0a9a2d`: GitHub Actions checks completed successfully for all required validation and integration jobs visible on the commit; deployment jobs were skipped by the pull-request guard.
+- [ ] Do not enable writes until schema/RLS contracts and backend lifecycle RPCs with authorization, audit history, idempotency, and financial reconciliation tests are implemented and verified.
+- Production remains **BLOCKED / NOT CERTIFIED**. No production deployment, migration, or financial operation was performed.
