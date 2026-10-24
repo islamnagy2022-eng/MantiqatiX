@@ -430,3 +430,5 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - Updated the invitation UI to use this scoped RPC and kept response actions owner-scoped. Added static contract assertions and included RC458 in both release migration manifests after RC457.
 - Latest observed code head before documentation updates: `2b3344e476068521769bfb4a072c9f3c8c47ad64`; no exact-head workflow runs were returned at that point. Treat runtime behavior and CI as NOT VERIFIED until fresh results arrive.
 - No production migration, live payment, or external ad launch was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+- Follow-up: added partner-name search to the invitation workspace; the input is capped at 80 characters and the RPC clamps results to 1–50 records. Exact-head CI was not returned for `67eac802feedb4339608853b85f17f9738ae42b9`, so do not treat the latest RC458 changes as verified.
