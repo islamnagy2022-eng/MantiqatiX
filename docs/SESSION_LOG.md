@@ -296,3 +296,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added 9 assertions for same-outcome idempotency, contradictory success/failure outcomes, and unknown stored status; updated source wiring assertions to enforce helper usage and the required `PAYMOB_INTEGRATION_ID` check.
 - Commits: `f74bde1877de0d2e0e0e63c994b407e40661a0e9`, `6c86e7485ffacc08c6a9193591cb6aa153079a48`, `3c0aa5c970915c57d81f1b2e01a3216c082b1ded`, `0d74ab471ac6be291dc5bf066d72439dc843f96f`, `82fd11c27b5c1bf69fea1700b3b40f74955b06c3`, and `72aa202b21eaad5b5e4fd15139ff2588b9987cb2`.
 - **CI state at log time:** the latest workflow runs for commit `72aa202b21eaad5b5e4fd15139ff2588b9987cb2` were queued; no final results are claimed for the new tests.
+
+
+### Local isolated verification — replay outcome helpers
+
+- Ran a local Node.js test using a copied implementation of the current shared helper logic: **24 assertions passed** for exact-cent matching, one-cent mismatches, invalid amounts, order-price equality, same-outcome replay, contradictory success/failure callbacks, unknown stored statuses, and subscription event-type conflicts.
+- This verifies the pure helper logic in isolation only. It is **not** a full repository checkout test, not the complete source-wiring validator, and not CI or a live Paymob callback test.
+- The helper now fails closed unless generic payment-event status is exactly `PROCESSED` for a successful callback or `FAILED` for a failed callback; unknown statuses do not qualify as idempotent success.
