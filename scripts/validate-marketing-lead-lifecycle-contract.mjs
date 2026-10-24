@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 const read = (path) => fs.readFileSync(path, "utf8");
 const app = read("web/app.js");
 const operations = read("web/operations-modules.js");
+const leadCreateUi = operations.slice(operations.indexOf("function leadForm()"), operations.indexOf("function educationWorkspace()"));
 const campaignMigration = read("supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql");
 const leadLifecycleMigration = read("supabase/migrations/20261024193000_rc457_marketing_lead_lifecycle_backend.sql");
 const partnerDirectoryMigration = read("supabase/migrations/20261024210000_rc458_marketing_partner_directory_backend.sql");
@@ -20,13 +21,13 @@ assert.doesNotMatch(
 assert.match(app, /sb\.functions\.invoke\(['"]marketing-lead-create['"]/,
   "lead creation must continue through the protected Edge Function");
 
-assert.match(operations, /async function saveLead\(\)[\s\S]*?budgetMin<0\|\|budgetMax<budgetMin/,
+assert.match(leadCreateUi, /async function saveLead\(\)[\s\S]*?budgetMin<0\|\|budgetMax<budgetMin/,
   "lead UI must reject negative budgets and a maximum below the minimum before submission");
-assert.match(operations, /maxlength="200"/,
+assert.equal((leadCreateUi.match(/maxlength="200"/g) || []).length, 2,
   "lead form must expose the server's title, description, and service-area length limits");
-assert.match(operations, /maxlength="5000"/,
+assert.match(leadCreateUi, /maxlength="5000"/,
   "lead description field must expose the server's 5000-character limit");
-assert.match(operations, /if\(r\.error\|\|r\.data\?\.error\)[\s\S]*?button\.disabled=false[\s\S]*?إنشاء طلب/,
+assert.match(leadCreateUi, /if\(r\.error\|\|r\.data\?\.error\)[\s\S]*?button\.disabled=false[\s\S]*?إنشاء طلب/,
   "lead submit button must recover after a server-reported creation failure");
 assert.match(app, /q\.eq\('requester_business_id',live\.businessId\)/,
   "internal CRM lead list must filter by active business");
