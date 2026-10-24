@@ -421,3 +421,12 @@
 - [🟢] Public footer dead-end links fixed: About, Terms and Privacy now open real in-app information dialogs instead of `href="#"` no-op anchors.
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
+
+ 
+## 2026-10-24 — CRM lead lifecycle UI/backend integration (RC457)
+- [x] Added the CRM detail-drawer lifecycle actions using the server-authoritative `transition_marketing_lead_backend` RPC; actions are limited to the selected active business and source-defined allowed transitions.
+- [x] Customer lead details remain requester-owner scoped; internal staff detail reads add an active-business filter. RLS/server-side membership checks remain authoritative.
+- [x] Added safe UI handling for conflict/forbidden/invalid transition/idempotency/generic errors and refresh only after server-confirmed status.
+- [x] Added static source guards for the lifecycle UI/RPC boundary.
+- [ ] Runtime migration/RPC and adversarial role/tenant E2E remain deferred until the final comprehensive verification stage by user instruction. RC457 has not been applied to production.
+- Status: **IMPLEMENTED — NOT VERIFIED**. Production release remains **BLOCKED / NOT CERTIFIED**.
