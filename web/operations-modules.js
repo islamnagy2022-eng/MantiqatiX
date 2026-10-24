@@ -297,8 +297,25 @@ function editProviderService(providerId,serviceId){
  providerServiceEdit={...row,provider_id:profile.id};render();
 }
 
-function leadForm(){return '<div class="card" style="margin:16px 0"><h3>طلب خدمة تسويق</h3><div class="grid-2"><input id="mlTitle" class="input" placeholder="عنوان الطلب"><input id="mlArea" class="input" placeholder="نطاق الخدمة"><input id="mlMin" class="input" type="number" min="0" placeholder="الميزانية من"><input id="mlMax" class="input" type="number" min="0" placeholder="الميزانية إلى"><textarea id="mlDesc" class="input" placeholder="تفاصيل الطلب"></textarea></div><button class="btn btn-primary" id="save-lead">إنشاء طلب</button></div>'}
-async function saveLead(){const p={title:document.getElementById('mlTitle').value.trim(),description:document.getElementById('mlDesc').value.trim(),budget_min:Number(document.getElementById('mlMin').value)||0,budget_max:Number(document.getElementById('mlMax').value)||0,required_services:[],service_area:document.getElementById('mlArea').value.trim()};if(!p.title||!p.description)return alert('أكمل عنوان الطلب والتفاصيل.');if(scope()?.business_id)p.business_id=scope().business_id;const r=await sb.functions.invoke('marketing-lead-create',{body:p});if(r.error||r.data?.error)return alert(r.data?.error||r.error?.message||'تعذر إنشاء طلب التسويق.');await load(defs[current])}
+function leadForm(){return '<div class="card" style="margin:16px 0"><h3>طلب خدمة تسويق</h3><div class="grid-2"><input id="mlTitle" class="input" maxlength="200" placeholder="عنوان الطلب"><input id="mlArea" class="input" maxlength="200" placeholder="نطاق الخدمة"><input id="mlMin" class="input" type="number" min="0" step="0.01" placeholder="الميزانية من"><input id="mlMax" class="input" type="number" min="0" step="0.01" placeholder="الميزانية إلى"><textarea id="mlDesc" class="input" maxlength="5000" placeholder="تفاصيل الطلب"></textarea></div><button class="btn btn-primary" id="save-lead">إنشاء طلب</button></div>'}
+async function saveLead(){
+ const titleInput=document.getElementById('mlTitle'),descriptionInput=document.getElementById('mlDesc'),minInput=document.getElementById('mlMin'),maxInput=document.getElementById('mlMax'),areaInput=document.getElementById('mlArea');
+ const title=titleInput?.value.trim()||'',description=descriptionInput?.value.trim()||'',serviceArea=areaInput?.value.trim()||'';
+ const budgetMinRaw=minInput?.value.trim()||'',budgetMaxRaw=maxInput?.value.trim()||'';
+ const budgetMin=budgetMinRaw===''?0:Number(budgetMinRaw),budgetMax=budgetMaxRaw===''?0:Number(budgetMaxRaw);
+ if(!title||!description)return alert('أكمل عنوان الطلب والتفاصيل.');
+ if(title.length>200||description.length>5000||serviceArea.length>200)return alert('تجاوز أحد الحقول الحد المسموح به.');
+ if(!Number.isFinite(budgetMin)||!Number.isFinite(budgetMax)||budgetMin<0||budgetMax<budgetMin)return alert('راجع الميزانية؛ يجب أن تكون أرقامًا غير سالبة وأن تكون الميزانية القصوى أكبر من أو تساوي الدنيا.');
+ const p={title,description,budget_min:budgetMin,budget_max:budgetMax,required_services:[],service_area:serviceArea};
+ if(scope()?.business_id)p.business_id=scope().business_id;
+ const button=document.getElementById('save-lead');if(button){button.disabled=true;button.textContent='جارٍ إرسال الطلب…'}
+ try{
+  const r=await sb.functions.invoke('marketing-lead-create',{body:p});
+  if(r.error||r.data?.error){if(button){button.disabled=false;button.textContent='إنشاء طلب'}return alert(r.data?.error||r.error?.message||'تعذر إنشاء طلب التسويق.')}
+  alert('تم إرسال طلب التسويق بنجاح.');
+  await load(defs[current]);
+ }catch(e){if(button){button.disabled=false;button.textContent='إنشاء طلب'}alert('تعذر إرسال طلب التسويق. تحقق من الاتصال ثم حاول مرة أخرى.')}
+}
 
 
 function educationWorkspace(){
