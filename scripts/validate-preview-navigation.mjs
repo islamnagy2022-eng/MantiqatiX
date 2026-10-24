@@ -121,6 +121,7 @@ checks.push(["Project profile page supports per-project logo and cover previews"
 checks.push(["Service card image is the clickable project entry point", entry.includes('class="card-visual" type="button" data-project=') && !entry.includes('class="btn ghost" type="button" data-details=')]);
 
 
+checks.push(["Central cart quantity and delete controls announce the item name", cartPage.includes('aria-label="تقليل كمية \'+esc(x.name)+\'"') && cartPage.includes('aria-label="زيادة كمية \'+esc(x.name)+\'"') && cartPage.includes('aria-label="حذف \'+esc(x.name)+\'"')]);
 checks.push(["Central cart page groups items by seller and supports quantity updates", cartPage.includes("groups=new Map()") && cartPage.includes("data-inc") && cartPage.includes("data-del") && cartPage.includes("window.MXCart.total()")]);
 checks.push(["Restaurant ordering uses the shared cart module", customerOrder.includes('src="shared-cart.js"') && customerOrder.includes("window.MXCart.add") && customerOrder.includes("window.MXCart.removeMerchant(key)")]);
 checks.push(["Shared cart storage schema excludes customer and payment fields", sharedCart.includes("mantiqatix.demo.cart.v1") && sharedCart.includes("sessionStorage") && !sharedCart.includes("customerName") && !sharedCart.includes("phoneNumber") && !sharedCart.includes("paymentToken")]);
