@@ -43,4 +43,20 @@ assert.match(contract, /writes\s*.OPEN.[\s\S]*?fixture\s*uses\s*.NEW./i,
 assert.match(contract, /BLOCKED\s*\/\s*NOT CERTIFIED/,
   "release must remain blocked pending final evidence");
 
+
+const appLifecycle = app.slice(app.indexOf("const LEAD_NEXT_STATUSES="), app.indexOf("const ORDER_STAFF_ROLES="));
+assert.ok(appLifecycle.length > 0, "lead lifecycle UI contract must exist before order helpers");
+assert.match(appLifecycle, /sb\.rpc\(['"]transition_marketing_lead_backend['"]/,
+  "status changes must call the server-authoritative lifecycle RPC");
+assert.match(appLifecycle, /p_actor:\s*user\.id[\s\S]*?p_expected_status:\s*expected[\s\S]*?p_new_status:\s*next[\s\S]*?p_request_id:\s*crypto\.randomUUID\(\)/,
+  "lifecycle RPC must pass actor, expected state, next state, and a fresh idempotency key");
+assert.match(appLifecycle, /requester_business_id',live\.businessId/,
+  "internal lead detail reads must be constrained to the active business");
+assert.match(appLifecycle, /requester_user_id',user\.id/,
+  "customer lead detail reads must remain owner-scoped");
+assert.match(appLifecycle, /LEAD_STATUS_CONFLICT/,
+  "the UI must present a safe concurrency-conflict path");
+assert.match(appLifecycle, /LEAD_NOT_FOUND_OR_FORBIDDEN/,
+  "the UI must avoid exposing cross-scope lead existence");
+
 console.log("Marketing lead lifecycle safety contract: PASS (static source guard only)");
