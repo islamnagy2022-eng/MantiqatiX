@@ -25,11 +25,11 @@ begin
     raise exception 'lead transition audit was not written exactly once';
   end if;
   if not exists (
-    select 1 from public.audit_logs
+    select 1 from public.audit_logs a
     where entity_type='MARKETING_LEAD' and entity_id=lead_a::text
       and action='MARKETING_LEAD_STATUS_CHANGED'
       and tenant_id='TENANT-A' and organization_id='ORG-A' and business_id=business_a
-      and actor_user_id=manager_a and result='SUCCESS'
+      and actor_user_id=manager_a and a.result='SUCCESS'
       and old_values->>'status'='OPEN'
       and new_values->>'status'='CONTACT_ATTEMPTED'
       and new_values->>'request_id'=request_a::text
