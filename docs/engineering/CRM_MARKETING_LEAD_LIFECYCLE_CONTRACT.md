@@ -142,3 +142,10 @@ Before writing the lifecycle migration/RPC, record the canonical status values, 
 
 ### UI source review follow-up — active-business identity projection
 A source review found that the CRM lead list query filtered manager results by `requester_business_id` but did not select that field, so the detail drawer could not reliably recognize a row as belonging to the selected business and therefore would not expose authorized lifecycle actions. The projection now includes `requester_business_id`, and the static guard asserts that the field remains selected. This was a source-level correctness fix; runtime behavior remains NOT VERIFIED.
+
+
+## Cross-business partner discovery (RC458)
+- The invitation picker must not widen direct SELECT access to `marketing_provider_profiles` across business boundaries.
+- It uses `list_marketing_partner_directory_backend`, which verifies the authenticated actor and `mnty_can_manage_marketing_business(p_business_id)`, and returns at most 50 minimal directory records for active, verified `PARTNER_COMPANY` / `FREELANCER` profiles outside the selected business.
+- The directory does not return owner IDs, contact details, or business IDs. Invitation creation is still revalidated by `invite_marketing_campaign_partner_backend`; response actions remain limited to the invited provider owner and are independently validated by `respond_marketing_campaign_invitation_backend`.
+- RC458 is a forward-only source migration. Static guards do not replace runtime RLS/RPC, tenant-isolation, or release-chain acceptance. Production remains **BLOCKED / NOT CERTIFIED** until those checks are evidenced.
