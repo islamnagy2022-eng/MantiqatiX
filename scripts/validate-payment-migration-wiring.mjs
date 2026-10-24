@@ -95,6 +95,7 @@ assert.ok(webhook.includes('import { matchesPaymobAmountCents } from "../_shared
 assert.doesNotMatch(webhook, /Math\.abs\(Number\((?:sub\.amount|digital\.amount|mantigo\.gross_amount|intent\.amount)\)-amount\)>0\.01/, "Paymob webhook correlation must not allow a one-cent amount discrepancy");
 assert.ok(webhook.includes('select("id,payment_intent_id")') && webhook.includes("PAYMENT_EVENT_INTENT_MISMATCH") && webhook.includes('String(existing.payment_intent_id??"")!==String(intent.id)'), "normal-payment webhook replay must not be acknowledged against a different payment intent");
 assert.ok(webhook.includes("existingIntentId!==String(sub.id)||existingOrderId!==paymobOrderId||existingTransactionId!==value(obj.id)") && webhook.includes("SUBSCRIPTION_EVENT_CORRELATION_MISMATCH"), "subscription webhook replay must match original intent, provider order, and transaction");
+assert.ok(webhook.includes('select("id,event_type,raw_payload")') && webhook.includes('expectedEventType=success?"SUBSCRIPTION_SUCCESS":"SUBSCRIPTION_FAILURE"') && webhook.includes("SUBSCRIPTION_EVENT_TYPE_CONFLICT"), "subscription webhook replay must reject conflicting success/failure event types");
 assert.ok(subscriptionIntent.includes("client_secret_ciphertext"), "subscription checkout secret persistence must use ciphertext fields");
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events enable row level security;/);
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events force row level security;/);
