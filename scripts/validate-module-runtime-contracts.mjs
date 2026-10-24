@@ -67,6 +67,7 @@ if(!files.operations.includes("sb.rpc('create_education_request_backend'")) fail
 if(!files.operations.includes("'provider-services'")||!files.operations.includes("rows.marketing_provider_services")) failures.push("MARKETING_PROVIDER_SERVICES_VIEW_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
 const marketingFinancialReadOnlyContracts=[
+ ["projects","ملخصات المشروعات والقيم والعمولات معروضة للقراءة فقط"],
  ["plans","الخطط معروضة للقراءة فقط حاليًا"],
  ["subscriptions","الاشتراكات معروضة للقراءة فقط"],
  ["participants","مشاركات المشروعات للقراءة فقط"],
