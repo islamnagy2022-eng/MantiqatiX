@@ -312,3 +312,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Commits: `0c5315948364ccde4b866920d5166f9b7a63ef3e`, `f1fbd3b7174db26b2b14e26ede64c28b2e405c58`, `dd14d93932efb48266303682ca65aded60b8e16e`.
 - **CI status:** RC425, RC431, migration replay/uniqueness/immutability, and other checks for recent heads were still queued at the last poll; there is no exact-head green result yet. Do not infer a pass from the earlier successful run on a different commit.
 - **Release remains BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-25 — Subscription webhook replay correlation correction
+
+- [x] Source review found that the subscription replay guard read `subscription_payment_intent_id` and `provider_transaction_id` from stored `raw_payload`, while the payload writer previously persisted only `merchant_order_id` and `transaction_id`. That mismatch could cause a legitimate duplicate callback to return a correlation conflict rather than an idempotent acknowledgement.
+- [x] Updated the subscription payload writer to persist the explicit correlation keys expected by the replay guard.
+- [x] Added a source-contract assertion requiring the writer and replay reader to agree on those keys.
+- [x] Preserved backward compatibility with previously stored payloads by falling back to the original `merchant_order_id` and `transaction_id` keys; added a source-contract assertion for that fallback.
+- [ ] Exact-head CI for the updated PR head must complete before this correction is considered verified. Source inspection only; no live webhook or production payment was run.
+- Production remains **BLOCKED / NOT CERTIFIED**.
