@@ -70,7 +70,7 @@ assert.match(createFunction, /origin_not_allowed/,
   "lead creation must reject origins outside its allowlist");
 assert.match(createFunction, /membershipError\) return json\(\{ error: "membership_lookup_failed" \}, 500\)/,
   "membership lookup failures must fail closed rather than create a lead");
-assert.match(createFunction, /requiredServices\.length > 10[\s\S]*?requiredServices\.some\(x => x\.length > 80\)/,
+assert.match(createFunction, /requiredServices\.length > 10[\s\S]*?requiredServices\.some\(x => typeof x !== "string" \|\| x\.length > 80\)/,
   "lead creation must bound service-array size and each service label");
 assert.match(createFunction, /currency:\s*"EGP"/,
   "lead creation currency must remain explicit and server-controlled");
