@@ -243,10 +243,15 @@ begin
     raise exception 'PRICING_BINDING_MISMATCH';
   end if;
   if v_order.total is null
+     or v_order.total_amount is null
+     or v_order.total_amount is distinct from round(v_order.total_amount, 2)
+     or v_order.total_amount is distinct from v_order.total
      or v_intent.amount is null
      or v_intent.amount is distinct from v_order.total
+     or v_intent.amount is distinct from v_order.total_amount
      or v_order.total is distinct from round(v_order.total, 2)
      or p_provider_confirmed_amount is distinct from v_order.total
+     or p_provider_confirmed_amount is distinct from v_order.total_amount
      or p_provider_confirmed_amount is distinct from round(p_provider_confirmed_amount, 2)
      or upper(v_intent.currency::text) is distinct from upper(v_order.currency::text)
      or upper(p_provider_confirmed_currency) is distinct from upper(v_order.currency::text) then
