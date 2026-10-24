@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -11,6 +12,7 @@ const admin=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,a
 const allowedOrigin="https://islamnagy2022-eng.github.io";
 const headers={"Access-Control-Allow-Origin":allowedOrigin,"Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Vary":"Origin"};
 const json=(body:unknown,status=200,id?:string)=>new Response(JSON.stringify(body),{status,headers:{...headers,"Content-Type":"application/json","Cache-Control":"no-store",...(id?{"X-Request-Id":id}:{})}});
+
 Deno.serve(async req=>{
  const requestId=crypto.randomUUID();
  try{
@@ -35,14 +37,19 @@ Deno.serve(async req=>{
   if(!["REQUIRED","PENDING"].includes(String(ledger.payment_status)))return json({error:"RIDE_NOT_PAYABLE",paymentStatus:ledger.payment_status},409,requestId);
 
   const metadata=(ledger.metadata&&typeof ledger.metadata==="object"?ledger.metadata:{}) as Record<string,unknown>;
-  if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret){
+  if(ledger.provider==="PAYMOB"&&ledger.provider_intent_id&&metadata.paymob_client_secret&&metadata.paymob_intention_order_id){
     return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount:Number(ledger.gross_amount),currency:String(ledger.currency).toUpperCase(),clientSecret:String(metadata.paymob_client_secret),checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(String(metadata.paymob_client_secret))}`:null,requestId},200,requestId);
+  }
+  // Never create a second provider intention when a prior attempt may have reached Paymob.
+  if(String(ledger.payment_status)==="PENDING"||ledger.provider==="PAYMOB"||ledger.provider_intent_id){
+    return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},409,requestId);
   }
 
   const amount=Number(ledger.gross_amount);
   const currency=String(ledger.currency||"EGP").toUpperCase();
   if(!Number.isFinite(amount)||amount<=0)return json({error:"INVALID_FARE"},409,requestId);
   const amountCents=Math.round(amount*100);
+  if(!isValidPaymobAmountCents(amount,amountCents))return json({error:"PAYMENT_AMOUNT_PRECISION_INVALID",requestId},409,requestId);
   const name=String(user.user_metadata?.full_name??user.email?.split("@")[0]??"Customer");
   const parts=name.trim().split(/\s+/);
   const firstName=parts[0]||"Customer";
@@ -53,32 +60,51 @@ Deno.serve(async req=>{
   const city=String(user.user_metadata?.city??"NA").trim()||"NA";
   const state=String(user.user_metadata?.state??city).trim()||"NA";
 
-  const providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
-    method:"POST",
-    headers:{"Authorization":`Token ${PAYMOB_SECRET_KEY}`,"Content-Type":"application/json"},
-    body:JSON.stringify({
-      amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],
-      items:[{name:"MantiGO Ride",amount:amountCents,description:`MantiGO ride ${rideId}`,quantity:1}],
-      billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
-      special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
-    })
-  });
-  const provider=await providerResponse.json().catch(()=>({})) as Record<string,unknown>;
-  const clientSecret=String(provider.client_secret??"");
-  const providerIntentId=String(provider.id??"");
-  if(!providerResponse.ok||!clientSecret||!providerIntentId){
-    console.error(JSON.stringify({requestId,stage:"paymob_intention",httpStatus:providerResponse.status}));
-    return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT"},502,requestId);
+  let providerResponse:Response;
+  let provider:Record<string,unknown>={};
+  try{
+    providerResponse=await fetch("https://accept.paymob.com/v1/intention/",{
+      method:"POST",
+      headers:{"Authorization":`Token ${PAYMOB_SECRET_KEY}`,"Content-Type":"application/json"},
+      body:JSON.stringify({
+        amount:amountCents,currency,payment_methods:[Number(PAYMOB_INTEGRATION_ID)],
+        items:[{name:"MantiGO Ride",amount:amountCents,description:`MantiGO ride ${rideId}`,quantity:1}],
+        billing_data:{apartment:"NA",first_name:firstName,last_name:lastName,street:"NA",building:"NA",phone_number:phone,city,country:"EG",email,floor:"NA",state},
+        special_reference:ledger.id,expiration:3600,notification_url:PAYMOB_CALLBACK_URL
+      })
+    });
+    provider=await providerResponse.json().catch(()=>({})) as Record<string,unknown>;
+  }catch{
+    const {error:holdError}=await admin.from("mantigo_financial_ledger")
+      .update({provider:"PAYMOB",payment_status:"PENDING",updated_at:new Date().toISOString()})
+      .eq("id",ledger.id).eq("payment_status","REQUIRED");
+    if(holdError)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},500,requestId);
+    return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",requestId},502,requestId);
   }
 
-  const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:provider.intention_order_id??null,paymob_payment_methods:provider.payment_methods??null};
-  const {error:updateError}=await admin.from("mantigo_financial_ledger").update({
+  const clientSecret=String(provider.client_secret??"");
+  const providerIntentId=String(provider.id??"");
+  const providerOrderId=String(provider.intention_order_id??provider.order_id??"");
+  if(!providerResponse.ok&&[400,401,403,404,422].includes(providerResponse.status)&&!providerIntentId&&!clientSecret&&!providerOrderId){
+    console.error(JSON.stringify({requestId,stage:"paymob_intention",httpStatus:providerResponse.status}));
+    return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT",requestId},502,requestId);
+  }
+  if(!providerResponse.ok||!matchesPaymobIntention({provider,amountCents,currency,reference:ledger.id})){
+    const {error:holdError}=await admin.from("mantigo_financial_ledger")
+      .update({provider:"PAYMOB",payment_status:"PENDING",updated_at:new Date().toISOString()})
+      .eq("id",ledger.id).eq("payment_status","REQUIRED");
+    if(holdError)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},500,requestId);
+    return json({error:providerResponse.ok?"PAYMENT_PROVIDER_INTENT_MISMATCH":"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",requestId},502,requestId);
+  }
+
+  const nextMetadata={...metadata,paymob_client_secret:clientSecret,paymob_intention_order_id:providerOrderId,paymob_payment_methods:provider.payment_methods??null};
+  const {data:updated,error:updateError}=await admin.from("mantigo_financial_ledger").update({
     provider:"PAYMOB",provider_intent_id:providerIntentId,payment_method:"CARD",payment_status:"PENDING",metadata:nextMetadata,updated_at:new Date().toISOString()
-  }).eq("id",ledger.id).eq("payment_status","REQUIRED");
-  if(updateError)return json({error:"PAYMENT_INTENT_PERSISTENCE_FAILED"},500,requestId);
+  }).eq("id",ledger.id).eq("payment_status","REQUIRED").select("id").maybeSingle();
+  if(updateError||!updated)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},409,requestId);
   return json({id:ledger.id,provider:"PAYMOB",status:"PENDING",amount,currency,clientSecret,checkoutUrl:PAYMOB_PUBLIC_KEY?`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(PAYMOB_PUBLIC_KEY)}&clientSecret=${encodeURIComponent(clientSecret)}`:null,requestId},200,requestId);
  }catch(error){
   console.error(JSON.stringify({requestId,error:String(error)}));
-  return json({error:"MANTIGO_PAYMENT_INTENT_FAILED"},500,requestId);
+  return json({error:"MANTIGO_PAYMENT_INTENT_FAILED",requestId},500,requestId);
  }
 });
