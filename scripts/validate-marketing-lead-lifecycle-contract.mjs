@@ -140,4 +140,21 @@ assert.match(campaignMigration, /revoke all on table public\.marketing_campaigns
   "campaign table writes must not be granted directly to browser roles");
 assert.match(campaignMigration, /grant execute on function public\.create_marketing_campaign_backend[\s\S]*?to authenticated/,
   "authenticated users must execute only the scoped campaign RPC");
+
+const directoryIntegration = read("supabase/tests/rc458_marketing_partner_directory_integration.sql");
+const campaignFixture = read("supabase/tests/rc453_marketing_campaign_fixture.sql");
+const campaignWorkflow = read(".github/workflows/marketing-campaign-backend.yml");
+assert.match(campaignFixture, /name_en text/,
+  "the disposable provider fixture must include the English display name used by RC458");
+assert.match(directoryIntegration, /result_count <> 2[\s\S]*?unverified profile leaked[\s\S]*?same-business profile leaked/,
+  "RC458 integration must verify eligibility and same-business exclusion");
+assert.match(directoryIntegration, /ACTOR_MISMATCH[\s\S]*?MARKETING_BUSINESS_SCOPE_REQUIRED[\s\S]*?MARKETING_PARTNER_SEARCH_TOO_LONG/,
+  "RC458 integration must verify actor, business-scope, and search-length rejection paths");
+assert.match(directoryIntegration, /has_function_privilege\('anon'[\s\S]*?has_function_privilege\('authenticated'/,
+  "RC458 integration must verify RPC execution grants");
+assert.match(campaignWorkflow, /20261024210000_rc458_marketing_partner_directory_backend\.sql[\s\S]*?rc458_marketing_partner_directory_integration\.sql/,
+  "PostgreSQL workflow must include the RC458 migration and behavioral integration test");
+assert.match(campaignWorkflow, /rc453_migration\.sql[\s\S]*?rc453_test\.sql[\s\S]*?rc458_migration\.sql[\s\S]*?rc458_test\.sql/,
+  "PostgreSQL workflow must run the prerequisite campaign migration/tests before RC458");
+
 console.log("Marketing lead lifecycle + campaign workspace safety contracts: PASS (static source guard only)");
