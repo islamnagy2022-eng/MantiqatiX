@@ -433,3 +433,11 @@
 - [ ] These CI results do not certify the live production database or provider flows. Production migration ledger remains unreconciled beyond RC424; backup/PITR and restore rehearsal, managed Auth leaked-password protection, live Edge Function parity, authorized Paymob/finance E2E, browser/device E2E, monitoring/alert and rollback drills remain open.
 - [ ] Keep the release manifest `BLOCKED` / `NOT CERTIFIED`. No production migration, Edge Function deployment, Auth/grant/RLS change, real payment, or financial data mutation was performed.
 
+## 2026-10-24 — قرار تأجيل الاختبارات الفعلية الشاملة إلى نهاية التطوير
+
+- [x] تم اعتماد توجيه المشروع: تأجيل حملة الاختبارات الفعلية الشاملة لكل الموديولات إلى آخر مرحلة بعد اكتمال التطوير وتجميد مرشح الإصدار.
+- [x] حتى موعد الحملة النهائية، تكون الأولوية لاستكمال الواجهات والوظائف والتكاملات والتوثيق ومراجعة الكود، مع عدم إعلان أي ميزة أو بوابة إطلاق VERIFIED لمجرد اكتمال التطوير.
+- [ ] لا تبدأ الآن اختبارات E2E الفعلية الشاملة أو معاملات Paymob الحقيقية أو اختبارات الاستعادة/التراجع الإنتاجية. تُنفّذ لاحقاً ضمن خطة اختبار نهائية معتمدة، وفي بيئات معزولة/ sandbox حيثما أمكن، وبعد تحقق النسخ الاحتياطي وصلاحية الاستعادة والحصول على أي موافقات لازمة.
+- [ ] احتفظ بالاختبارات الآلية الحالية التي تعمل كجزء من CI كأدلة تطوير منفصلة؛ نجاحها لا يعني أن حملة الاختبارات النهائية قد نُفذت.
+- [ ] في نهاية التطوير، نفّذ حملة موحدة تغطي: المصادقة والجلسات والأدوار، عزل المستأجرين وRLS، جميع تدفقات الموديولات، الطلبات والمخزون والحسابات والمحافظ والمدفوعات وwebhooks والتسويات، SMM، الإشعارات والأتمتة، الأداء وإمكانية الوصول، Android/المتصفحات والأجهزة، النسخ الاحتياطي والاستعادة، المراقبة والتنبيه والتراجع، ثم إصلاح العيوب وإعادة الاختبار وتوثيق الأدلة.
+- [ ] تظل بوابة الإنتاج `BLOCKED / NOT CERTIFIED` حتى تنجح حملة الاختبارات النهائية وتُغلق كل بوابة بدليل قابل للمراجعة. هذا القرار يؤجل الاختبارات الشاملة ولا يحول الاختبارات غير المنفذة إلى PASS.
