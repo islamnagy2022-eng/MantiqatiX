@@ -66,6 +66,16 @@ if(!files.operations.includes("لم نعرضها كأنها فارغة")) failur
 if(!files.operations.includes("sb.rpc('create_education_request_backend'")) failures.push("EDUCATION_BACKEND_RPC_MISSING");
 if(!files.operations.includes("'provider-services'")||!files.operations.includes("rows.marketing_provider_services")) failures.push("MARKETING_PROVIDER_SERVICES_VIEW_MISSING");
 for(const required of ["plans","subscriptions","participants","commissions"]){if(!marketingSource.includes("data-op-tab=\""+required+"\"")&&!marketingSource.includes("'"+required+"'")) failures.push("MARKETING_TAB_"+required.toUpperCase());}
+const marketingFinancialReadOnlyContracts=[
+ ["plans","الخطط معروضة للقراءة فقط حاليًا"],
+ ["subscriptions","الاشتراكات معروضة للقراءة فقط"],
+ ["participants","مشاركات المشروعات للقراءة فقط"],
+ ["commissions","قواعد العمولات للعرض فقط"]
+];
+for(const [tabName,notice] of marketingFinancialReadOnlyContracts){
+ if(!marketingSource.includes("if(tab==='"+tabName+"')return shell(d,tabs(d)+'<div class=\"notice\">"+notice))
+  failures.push("MARKETING_"+tabName.toUpperCase()+"_READ_ONLY_NOTICE_MISSING");
+}
 for(const [code,owner,tables] of modules){
  const source=files[owner];
  const catalogEntry=catalog.includes("code:'"+code+"'");
