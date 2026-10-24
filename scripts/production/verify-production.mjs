@@ -47,6 +47,12 @@ const requiredReleaseMigrations=[
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261014230000_rc525_digital_page_product_platform_admin_scope.sql",
+  "20261023020000_rc102_provider_services_owner_write_grants.sql",
+  "20261023030000_rc103_order_status_branch_scope.sql",
+  "20261023040000_rc104_order_idempotency_scope.sql",
+  "20261023050000_rc105_order_create_service_role_identity.sql",
+  "20261023060000_rc106_order_status_service_role_identity.sql",
   "20261024193000_rc457_marketing_lead_lifecycle_backend.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
