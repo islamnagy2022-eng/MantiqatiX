@@ -558,3 +558,5 @@
 - [ ] Require exact-head CI, chronological disposable Supabase migration replay, and final payment integration tests before marking verified.
 - [ ] Apply only through approved release migration process after live target reconciliation and recovery evidence.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] RC459 regular-order payment-failure RPC also binds both persisted order totals (`total` and `total_amount`) exactly to each other, the payment intent, and provider-confirmed amount.
