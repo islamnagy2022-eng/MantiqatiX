@@ -22,7 +22,7 @@ const customerRestaurantsScript = customerRestaurants.match(/<script>([\s\S]*?)<
 const customerOrderScript = customerOrder.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 
 const checks = [
-  ["Central cart controls name the affected item for assistive technology", cartPage.includes('aria-label="تقليل كمية \' + esc(x.name) + \'"') && cartPage.includes('aria-label="زيادة كمية \' + esc(x.name) + \'"') && cartPage.includes('aria-label="حذف \' + esc(x.name) + \' من السلة"')],
+  ["Central cart controls name the affected item for assistive technology", cartPage.includes("aria-label=\"تقليل كمية '+esc(x.name)+'\"") && cartPage.includes("aria-label=\"زيادة كمية '+esc(x.name)+'\"") && cartPage.includes("aria-label=\"حذف '+esc(x.name)+' من السلة\"")],
 
   ["Restaurant and cafe category opens customer restaurant discovery", entry.includes("if(selected==='FOOD'){window.location.href='restaurants.html';return;}")],
   ["Customer restaurant page lists the three requested demo restaurants", ["مطعم الزعيم", "مطعم أولاد جابر", "الأصلي", "بركة السبع"].every(x => customerRestaurants.includes(x))],
