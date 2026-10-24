@@ -46,6 +46,8 @@ assert.match(createFunction, /title\.length > 200[\s\S]*?description\.length > 5
   "lead creation backend must enforce the published text-field length limits");
 assert.match(createFunction, /!Number\.isFinite\(budgetMin\)[\s\S]*?budgetMin < 0 \|\| budgetMax < budgetMin/,
   "lead creation backend must reject invalid, negative, or inverted budgets");
+assert.match(createFunction, /typeof body\.budget_min === "number"[\s\S]*?typeof body\.budget_max === "number"/,
+  "budget JSON fields must be numeric types rather than coercible booleans or strings");
 assert.match(createFunction, /auth\.getUser\(token\)[\s\S]*?actor\.is_anonymous/,
   "lead creation must authenticate the token and reject anonymous users");
 assert.match(createFunction, /businessIds\.includes\(requestedBusinessId\)[\s\S]*?business_selection_required/,
