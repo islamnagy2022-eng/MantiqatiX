@@ -541,3 +541,9 @@
 - [x] Exact head `8701f54daf029ab53fa45f3d1f4616521f0a9a2d`: GitHub Actions checks completed successfully for all required validation and integration jobs visible on the commit; deployment jobs were skipped by the pull-request guard.
 - [ ] Do not enable writes until schema/RLS contracts and backend lifecycle RPCs with authorization, audit history, idempotency, and financial reconciliation tests are implemented and verified.
 - Production remains **BLOCKED / NOT CERTIFIED**. No production deployment, migration, or financial operation was performed.
+
+
+## Marketing financial mutation design gate — 2026-10-24
+- [x] Added `docs/engineering/MARKETING_FINANCIAL_MUTATION_CONTRACT.md` defining server-authoritative authorization, idempotency, audit atomicity, version/concurrency controls, operation-specific rules, and required adversarial tests for plans, subscriptions, project allocations, and commission rules.
+- [ ] This is a design contract, not an implementation or production verification. Keep the related workspace tabs read-only until the canonical schema/policies are reviewed and every applicable acceptance gate passes.
+- Production remains **BLOCKED / NOT CERTIFIED**.
