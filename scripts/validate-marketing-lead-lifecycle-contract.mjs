@@ -72,6 +72,10 @@ assert.match(operations, /sb\.rpc\('create_marketing_campaign_backend'/,
   "campaign creation must use the server-authoritative creation RPC");
 assert.match(operations, /sb\.rpc\('update_marketing_campaign_status_backend'/,
   "campaign status changes must use the server-authoritative status RPC");
+assert.match(operations, /'campaigns','invitations','projects'/,
+  "marketing navigation must keep the campaign invitation workspace wired");
+assert.match(operations, /function campaignInvitationsWorkspace[\s\S]*?data-mi-respond="ACCEPTED"[\s\S]*?data-mi-respond="DECLINED"/,
+  "verified provider owners must have explicit accept and decline actions for pending invitations");
 assert.match(operations, /sb\.rpc\('invite_marketing_campaign_partner_backend'/,
   "partner invitations must use the server-authoritative invite RPC");
 assert.match(operations, /sb\.rpc\('respond_marketing_campaign_invitation_backend'/,
