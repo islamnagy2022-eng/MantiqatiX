@@ -58,6 +58,8 @@ assert.match(createFunction, /req\.method !== "POST"[\s\S]*?method_not_allowed/,
   "lead creation must reject non-POST requests");
 assert.match(createFunction, /maxBodyBytes = 20000[\s\S]*?payload_too_large[\s\S]*?invalid_json/,
   "lead creation must cap request bodies and reject malformed JSON");
+assert.match(createFunction, /new TextEncoder\(\)\.encode\(raw\)\.byteLength > maxBodyBytes/,
+  "request size enforcement must count UTF-8 bytes, not JavaScript characters");
 assert.match(createFunction, /allowedOrigin = "https:\/\/islamnagy2022-eng\.github\.io"/,
   "lead creation must keep its explicit origin allowlist");
 assert.match(createFunction, /origin_not_allowed/,
