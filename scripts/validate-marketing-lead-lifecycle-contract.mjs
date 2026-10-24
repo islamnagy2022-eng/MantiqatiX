@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const app = read("web/app.js");
+const operations = read("web/operations-modules.js");
+const campaignMigration = read("supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql");
 const createFunction = read("supabase/functions/marketing-lead-create/index.ts");
 const scopeMigration = read("supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql");
 const contract = read("docs/engineering/CRM_MARKETING_LEAD_LIFECYCLE_CONTRACT.md");
@@ -61,4 +63,30 @@ assert.match(appLifecycle, /LEAD_STATUS_CONFLICT/,
 assert.match(appLifecycle, /LEAD_NOT_FOUND_OR_FORBIDDEN/,
   "the UI must avoid exposing cross-scope lead existence");
 
-console.log("Marketing lead lifecycle safety contract: PASS (static source guard only)");
+// Marketing campaign UI must use the migration's server-authoritative RPCs and exact business scope.
+assert.match(operations, /'campaigns','projects'/,
+  "marketing workspace must expose the campaigns tab");
+assert.match(operations, /t==='marketing_campaigns'[\s\S]*?q=q\.eq\('business_id',membership\.business_id\)/,
+  "campaign reads must be scoped to the selected business");
+assert.match(operations, /sb\.rpc\('create_marketing_campaign_backend'/,
+  "campaign creation must use the server-authoritative creation RPC");
+assert.match(operations, /sb\.rpc\('update_marketing_campaign_status_backend'/,
+  "campaign status changes must use the server-authoritative status RPC");
+assert.match(operations, /p_actor:user\.id[\s\S]*?p_business_id:membership\.business_id/,
+  "campaign creation must pass the current actor and selected business for server validation");
+assert.match(operations, /const canManage=Boolean[\s\S]*?membership\?\.business_id[\s\S]*?BUSINESS_OWNER/,
+  "campaign management actions must be limited in the UI to an authenticated business manager");
+assert.doesNotMatch(
+  operations,
+  /\.from\(\s*["']marketing_campaigns["']\s*\)\s*\.\s*(?:insert|update|upsert|delete)\s*\(/,
+  "campaign mutations must not bypass the backend RPC boundary"
+);
+assert.match(campaignMigration, /create or replace function public\.create_marketing_campaign_backend/,
+  "campaign creation RPC must exist in the forward migration");
+assert.match(campaignMigration, /create or replace function public\.update_marketing_campaign_status_backend/,
+  "campaign status RPC must exist in the forward migration");
+assert.match(campaignMigration, /revoke all on table public\.marketing_campaigns, public\.marketing_campaign_participants from anon, authenticated/,
+  "campaign table writes must not be granted directly to browser roles");
+assert.match(campaignMigration, /grant execute on function public\.create_marketing_campaign_backend[\s\S]*?to authenticated/,
+  "authenticated users must execute only the scoped campaign RPC");
+console.log("Marketing lead lifecycle + campaign workspace safety contracts: PASS (static source guard only)");
