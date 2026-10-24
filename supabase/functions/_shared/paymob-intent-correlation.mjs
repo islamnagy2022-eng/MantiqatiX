@@ -46,3 +46,13 @@ export function matchesCurrencyAmounts(leftAmount, rightAmount) {
     Math.abs(right * 100 - rightCents) < 0.000001 &&
     leftCents === rightCents;
 }
+
+export function matchesPaymobEventOutcome(storedStatus, callbackSuccess) {
+  return String(storedStatus ?? "").toUpperCase() === "FAILED" ? callbackSuccess === false :
+    String(storedStatus ?? "").toUpperCase() !== "" && callbackSuccess === true;
+}
+
+export function matchesPaymobSubscriptionEventType(storedEventType, callbackSuccess) {
+  const expected = callbackSuccess ? "SUBSCRIPTION_SUCCESS" : "SUBSCRIPTION_FAILURE";
+  return String(storedEventType ?? "") === expected;
+}
