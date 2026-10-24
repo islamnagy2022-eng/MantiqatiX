@@ -397,3 +397,11 @@ All Supabase production queries were read-only. No production migrations, table 
 - [ ] This workflow snapshot is not a full acceptance campaign and does not certify runtime RPC/migration behavior or production deployment. PR #373 remains open/draft; RC457 remains unapplied to production.
 - [ ] Remaining development items: reconcile actual deployed lead status vocabulary against ordered migration/schema sources; implement/reuse interaction history and follow-up task/owner flows only after schema discovery; finish the remaining marketing-provider/services/campaign participant gaps.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Marketing campaign workspace source integration
+- Added a campaigns tab to the existing marketing operations workspace without replacing the current module or schema.
+- Campaign reads are filtered by selected `business_id`; create and status transitions use the existing RC453 server-authoritative RPCs with actor identity supplied from the session and checked again by the backend.
+- The interface explicitly states that campaign creation is internal planning and does not launch external ads. Direct browser mutations of campaign tables are not used.
+- Added static source assertions for campaign scope, RPC use, and table privilege boundaries. Exact-head CI and runtime behavior are not yet certified.
+- Status: **SOURCE INTEGRATED — NOT VERIFIED**. Production remains **BLOCKED / NOT CERTIFIED**.
