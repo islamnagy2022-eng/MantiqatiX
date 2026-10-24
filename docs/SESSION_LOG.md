@@ -322,3 +322,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Preserved backward compatibility with previously stored payloads by falling back to the original `merchant_order_id` and `transaction_id` keys; added a source-contract assertion for that fallback.
 - [ ] Exact-head CI for the updated PR head must complete before this correction is considered verified. Source inspection only; no live webhook or production payment was run.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — RC459 exact-cent payment RPC hardening
+
+- [x] Source review found that historical RC425, RC428, RC429, RC430 and RC431 RPC definitions retained a SQL-side tolerance of `0.01` in one or more amount comparisons. The Edge Function performs exact-cent checks, but the authoritative service-role RPCs should independently reject mismatches instead of relying on one caller.
+- [x] Added forward-only migration `20261025010000_rc459_exact_cent_payment_rpcs.sql`, replacing the five authoritative Paymob RPC definitions without editing historical migrations.
+- [x] RC459 requires exact numeric equality between provider-confirmed amount, persisted intent/order/ledger amount and (for MantiGo) payload amount; it rejects fractional-cent persisted/provider values.
+- [x] Added RC459 checks to `scripts/validate-payment-migration-wiring.mjs` and the production verifier's required source migration list.
+- [ ] Exact-head CI and chronological forward migration replay must pass before considering RC459 verified. No production migration was applied and no real payment was triggered.
+- Production remains **BLOCKED / NOT CERTIFIED**.
