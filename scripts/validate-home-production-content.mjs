@@ -36,6 +36,8 @@ if(!home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: modul
 if(!home.includes('href="preview/dashboard.html" class="mx-ref-smm"') || !home.includes("معاينة جميع الموديولات")) throw new Error("FAIL: primary navigation must expose the all-module tour instead of a development-only placeholder");
 
 if(!home.includes('href="preview/index.html"')) throw new Error("FAIL: module tour must link to the interactive demo home");
+if(!home.includes('href="preview/restaurants.html">جرّب مساحة المطاعم والكافيهات</a>')) throw new Error("FAIL: public homepage must provide a direct entry to the restaurant/cafe demo");
+
 if(!home.includes("لا تنشئ طلبات أو مدفوعات حقيقية")) throw new Error("FAIL: module preview must clearly disclose its demo-only boundary");
 if(!css.includes(".mx-public-module-hub") || !css.includes("@media(max-width:760px){.mx-public-module-hub")) throw new Error("FAIL: public module tour must have responsive styles");
 for(const [needle,label] of [
