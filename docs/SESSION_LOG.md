@@ -206,3 +206,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Therefore the current 404 is consistent with the preview route not being included in the currently published Pages artifact; it is not evidence that the preview HTML files are missing from source. Public-site HTTP fetch was inconclusive in this session, so live HTTP status is not independently confirmed.
 - Safety decision: do not bypass the production gate or publish the entire production site from a feature branch merely to restore the preview. The correct deployment fix is to restore/review the missing migration chain and clear the release gate, or provision a separately approved preview host that cannot replace production.
 - No merge, Pages deployment, production migration, or production data mutation was performed.
+
+## 2026-10-24 — Paymob correlation helper runtime safety and checkout reconciliation
+
+- [x] Converted `supabase/functions/_shared/paymob-intent-correlation.mjs` to valid plain JavaScript; removed TypeScript-only annotations from the `.mjs` module.
+- [x] Added `scripts/test-paymob-intent-correlation.mjs` covering exact-cent validation and fail-closed amount/currency/reference/provider-ID/client-secret checks.
+- [x] Added the correlation tests to the RC431 payment integration workflow so changes to the helper or its tests trigger the test job.
+- [x] Local Node syntax check and correlation tests passed in the working environment.
+- [x] Subscription checkout encryption failure now retains the already-correlated Paymob intention/order IDs and marks the intent `RECONCILIATION_REQUIRED`, preserving operational traceability without exposing the checkout secret.
+- [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
+- [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
+- [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
