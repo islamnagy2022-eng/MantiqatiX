@@ -11,6 +11,7 @@ on:
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "supabase/tests/rc458_marketing_partner_directory_integration.sql"
       - "scripts/validate-marketing-campaign-backend.mjs"
+      - "scripts/validate-marketing-lead-lifecycle-contract.mjs"
       - ".github/workflows/marketing-campaign-backend.yml"
   pull_request:
     branches: [main]
@@ -22,6 +23,7 @@ on:
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "supabase/tests/rc458_marketing_partner_directory_integration.sql"
       - "scripts/validate-marketing-campaign-backend.mjs"
+      - "scripts/validate-marketing-lead-lifecycle-contract.mjs"
       - ".github/workflows/marketing-campaign-backend.yml"
 permissions:
   contents: read
