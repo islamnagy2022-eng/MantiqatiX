@@ -482,6 +482,6 @@
 - [x] Fixed the partner invitation handler so business managers may invite other eligible verified partner profiles; it no longer incorrectly requires the invitee profile to belong to the manager. The separate response handler still requires the signed-in user to own the verified provider profile.
 - [x] Strengthened the static validator to assert this separation of invite authority and response ownership.
 - [x] Added RC457 to the production migration verifier and migration-chain contract while preserving the restored 34-source dependency chain plus the new forward-only RC457 migration.
-- [ ] Exact-head CI is running for commit `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d`; do not treat queued checks as passed.
+- [ ] The last code head `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d` had the invitation and validator fixes; subsequent documentation commits produced head `03d7429c8873cdd02f350bcbfd705f44e0bf9386`, for which no exact-head PR workflow runs were returned. Re-run/obtain CI on the latest head before claiming verification.
 - [ ] PR #373 targets main and depends on the historical migration source restoration in PR #372. Both remain unmerged; runtime RLS/RPC tests and release evidence are still required.
 - Production remains **BLOCKED / NOT CERTIFIED**.
