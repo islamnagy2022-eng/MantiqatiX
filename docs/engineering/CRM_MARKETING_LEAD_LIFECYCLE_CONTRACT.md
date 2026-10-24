@@ -1,6 +1,6 @@
 # CRM / Marketing Lead Lifecycle — Implementation Contract
 
-Status: BACKEND + UI SOURCE INTEGRATED — NOT VERIFIED
+Status: SOURCE + ISOLATED POSTGRESQL INTEGRATION VERIFIED ON PR #373; TARGET RUNTIME NOT VERIFIED
 Scope: define the safe contract for internal marketing teams to manage leads without weakening customer ownership or tenant isolation.
 Release rule: this document is not approval to deploy, alter production grants, or run real-world acceptance tests. The comprehensive acceptance campaign remains deferred until module development and integration are complete.
 
@@ -12,7 +12,7 @@ The RC102 G8 baseline documents `marketing_leads` as:
 
 This is an owner-scoped customer-lead boundary. It does not, by itself, authorize internal marketing staff to read or update every lead. Do not add a broad authenticated SELECT/UPDATE policy to make an internal CRM screen work.
 
-The project TODO also records that lead details are currently read-only and that lifecycle updates remain unfinished because no suitable UPDATE policy is currently available.
+The implementation now uses the RC457 server-authoritative transition RPC and does not add a broad UPDATE policy. The isolated PostgreSQL integration test passed on PR #373, covering allowed transitions, audit atomicity, idempotency, stale-state conflicts, actor spoofing, cross-business denial, authentication, and execute grants. This does not prove behavior against the target Supabase project or complete browser E2E acceptance.
 
 ## 2. Required product behavior
 
