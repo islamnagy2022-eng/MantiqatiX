@@ -217,3 +217,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-25 — Paymob webhook exact-cent correlation hardening
+
+- **Scope:** PR #373 feature branch; no production environment or real payment operation was touched.
+- **Finding:** the Paymob webhook previously compared provider amount using a tolerance of `> 0.01`, which could accept a one-cent discrepancy. The RC425 payment-wiring CI also exposed a stale assertion: the normal payment intent path contains four guarded hold/rejection branches, while the validator expected three.
+- **Changes committed:** shared `matchesPaymobAmountCents` helper in `supabase/functions/_shared/paymob-intent-correlation.mjs`; all four webhook payment families now use exact integer-cent matching; added `scripts/test-paymob-amount-correlation.mjs` with matching, one-cent mismatch, fractional-cent, invalid, and unsafe-integer cases; wired that test into `.github/workflows/rc425-mantigo-paymob-atomicity.yml`; updated `scripts/validate-payment-migration-wiring.mjs` to assert the shared helper and correct the guarded-branch count.
+- **Commits:** `1e866f1854dcca31742bea4cf2f5fe68d9979113` (initial webhook exact-cent guard); `35a5ba2bb88bee705f1f9db3cfa3e37167b2a3b2` (initial contract assertion); `87aaea755230519bc0f8413a31aa71b09420dfe0` (correct guarded-branch count); `3f6b366f2e1b89c54fef7d91a644d916d546a62a` (shared helper); `5f91b796379eec003f5e3f3dc54127b0c1bbcedc` (webhook uses shared helper); `0543c3079a0ba87f524af088e4c868e65d23ccc3` (unit tests); `45e0fa95d950d642847d1b308fbf54f4b15f8b76` (CI test wiring); `ef91d2aef65b62e58e2ec74fae915c0d6ca74e41` (shared-helper assertion); `34450cf5debb7ec6935fa2ac1da819b04bebad03` (validator regex escaping).
+- **Observed CI:** the earlier run `40135358301` failed at `Validate Paymob atomicity source wiring`; its log specifically reported the stale assertion `normal payment ambiguous holds and explicit provider rejection must fail closed on zero-row races`. The expected count was corrected from three to four. A new exact-head run set for `34450cf5debb7ec6935fa2ac1da819b04bebad03` was queued at the time of this entry; its final outcomes are **PENDING / NOT YET VERIFIED**.
+- **Not performed:** no local execution is claimed; no Paymob Sandbox, target Supabase runtime, browser E2E, production migration, deployment, PR merge, or live payment was performed.
+- **Next action:** inspect exact-head CI completion and logs; fix any remaining failures before proceeding with payment/webhook runtime acceptance.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
