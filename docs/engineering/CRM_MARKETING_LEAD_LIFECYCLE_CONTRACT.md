@@ -151,3 +151,12 @@ A source review found that the CRM lead list query filtered manager results by `
 - RC458 is a forward-only source migration. Static guards do not replace runtime RLS/RPC, tenant-isolation, or release-chain acceptance. Production remains **BLOCKED / NOT CERTIFIED** until those checks are evidenced.
 
 - The invitation workspace supports a search term of up to 80 characters and requests at most 50 results; the backend independently enforces both bounds. A search result is only a discovery aid: the invite RPC rechecks eligibility and business authority before creating an invitation.
+
+
+## 12. Exact-head CI and release-gate evidence — 2026-10-24
+
+- Evidence source: PR #373 head `75fe488bbe6cc73be50691f547dd785103ecfdb0`; workflow run IDs are recorded below so this snapshot is auditable.
+- All 10 PR-triggered workflows completed successfully on that head: migration collision guard (`40123602279`), module professionalization (`40123602244`), marketing workspace contract (`40123602425`), migration version uniqueness (`40123602271`), migration history immutability (`40123602281`), web validation (`40123602254`), approval audit atomicity (`40123602245`), backend-only module boundary (`40123602253`), marketing campaign backend (`40123602275`), and MantiGO privacy boundary (`40123602252`).
+- The web validation job generated a source-contract report but did not deploy: `validate` succeeded, while `validate_public_only` and `deploy` were skipped for this PR event.
+- The exact-head production verifier still reports `PRODUCTION_GATE=BLOCKED`: the PR tree is missing the 16 RC425–RC441 migration source files restored in PR #372; the live reconciliation manifest still records `required_release_migrations_applied=false`, `chronological_replay=NOT RUN`, and tenant isolation, payment/finance E2E, backup/restore, Edge Function parity, SMM parity, and Auth security settings as `NOT VERIFIED`.
+- These are source/isolated-CI findings only. They do not certify target Supabase runtime, production parity, external ad delivery, or disaster recovery. Keep the release gate blocked until post-dependency CI and authorized runtime evidence are complete.
