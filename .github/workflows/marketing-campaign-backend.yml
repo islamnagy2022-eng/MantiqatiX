@@ -16,6 +16,8 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/20261010220000_rc453_marketing_campaign_backend.sql"
+      - "supabase/migrations/20261024193000_rc457_marketing_lead_lifecycle_backend.sql"
+      - "supabase/tests/rc457_marketing_lead_lifecycle_integration.sql"
       - "supabase/migrations/20261024210000_rc458_marketing_partner_directory_backend.sql"
       - "supabase/tests/rc453_marketing_campaign_*.sql"
       - "supabase/tests/rc458_marketing_partner_directory_integration.sql"
