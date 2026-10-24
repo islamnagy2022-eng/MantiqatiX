@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
+import { isValidPaymobAmountCents, matchesPaymobIntention, matchesCurrencyAmounts } from "../_shared/paymob-intent-correlation.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -86,8 +86,8 @@ Deno.serve(async (req) => {
   const amount = Number(intent.amount ?? order.total);
   const pricingVersion = Number(intent.pricing_version ?? order.pricing_version);
   const pricingHash = String(intent.pricing_hash ?? order.pricing_hash);
-  if (!Number.isFinite(amount) || amount <= 0 || Math.abs(amount - Number(order.total_amount)) > 0.01 ||
-      Math.abs(amount - Number(order.total)) > 0.01 || pricingHash !== String(order.pricing_hash) ||
+  if (!Number.isFinite(amount) || amount <= 0 || !matchesCurrencyAmounts(amount, order.total_amount) ||
+      !matchesCurrencyAmounts(amount, order.total) || pricingHash !== String(order.pricing_hash) ||
       pricingVersion !== Number(order.pricing_version)) {
     return json({ error: "Authoritative pricing changed; restart payment", requestId }, 409, requestId);
   }
