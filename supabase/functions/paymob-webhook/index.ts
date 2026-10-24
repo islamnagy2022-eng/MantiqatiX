@@ -19,6 +19,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const {data:subByOrder}=subByRef?{data:null}:await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const sub=subByRef??subByOrder
  if(sub){
+   if(!paymobOrderId||String(sub.provider_order_id??"")!==paymobOrderId)return json({error:"SUBSCRIPTION_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
    if(Math.abs(Number(sub.amount)-amount)>0.01||String(sub.currency).toUpperCase()!==currency)return json({error:"SUBSCRIPTION_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
    const {data:existing}=await admin.from("payment_provider_events").select("id").eq("provider","PAYMOB").eq("external_event_id",eventId).maybeSingle();if(existing)return json({ok:true,idempotent:true,requestId},200,requestId)
     const subscriptionPayload={provider:"PAYMOB",transaction_id:value(obj.id),merchant_order_id:sub.id,provider_order_id:paymobOrderId,currency,success:success?"true":"false",amount_cents:value(obj.amount_cents)};
@@ -29,6 +30,7 @@ Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.r
  const {data:digitalByOrder}=digitalByRef?{data:null}:await admin.from("digital_page_orders").select("id,user_id,amount,currency,payment_status,provider_order_id").eq("provider","PAYMOB").eq("provider_order_id",paymobOrderId).maybeSingle()
  const digital=digitalByRef??digitalByOrder
  if(digital){
+   if(!paymobOrderId||String(digital.provider_order_id??"")!==paymobOrderId)return json({error:"DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH",requestId},409,requestId)
    if(Math.abs(Number(digital.amount)-amount)>0.01||String(digital.currency).toUpperCase()!==currency)return json({error:"DIGITAL_PAGE_AMOUNT_CURRENCY_MISMATCH",requestId},409,requestId)
    const {data:processedDigital,error:processError}=await admin.rpc("process_verified_digital_page_payment_backend",{
      p_order_id:digital.id,
