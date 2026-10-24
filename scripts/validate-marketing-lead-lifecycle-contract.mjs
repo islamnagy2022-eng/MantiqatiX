@@ -41,6 +41,15 @@ assert.match(createFunction, /status:\s*["']OPEN["']/,
 assert.match(createFunction, /\.from\(["']marketing_leads["']\)\s*\.insert\(lead\)/,
   "the protected backend remains the lead creation path");
 
+assert.match(createFunction, /title\.length > 200[\s\S]*?description\.length > 5000[\s\S]*?serviceArea\.length > 200/,
+  "lead creation backend must enforce the published text-field length limits");
+assert.match(createFunction, /!Number\.isFinite\(budgetMin\)[\s\S]*?budgetMin < 0 \|\| budgetMax < budgetMin/,
+  "lead creation backend must reject invalid, negative, or inverted budgets");
+assert.match(createFunction, /auth\.getUser\(token\)[\s\S]*?actor\.is_anonymous/,
+  "lead creation must authenticate the token and reject anonymous users");
+assert.match(createFunction, /businessIds\.includes\(requestedBusinessId\)[\s\S]*?business_selection_required/,
+  "lead creation must enforce active business membership and explicit selection when ambiguous");
+
 // CRM manager reads must bind membership to tenant/business scope.
 assert.match(scopeMigration, /um\.tenant_id\s*=\s*b\.tenant_id/,
   "CRM manager policy must enforce tenant equality");
