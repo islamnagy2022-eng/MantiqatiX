@@ -112,7 +112,8 @@ for (const [label, rpc] of [
   ["RC459 regular payment failure", "process_verified_provider_payment_failure"],
   ["RC459 subscription failure", "process_verified_subscription_payment_failure"],
   ["RC459 subscription success", "process_verified_subscription_payment_backend"],
-  ["RC459 digital page", "process_verified_digital_page_payment_backend"]
+  ["RC459 digital page", "process_verified_digital_page_payment_backend"],
+  ["RC459 payment intent creation", "create_payment_intent_backend"]
 ]) assert.ok(rc459.includes("create or replace function public." + rpc), label + " must override the authoritative RPC with exact-cent validation");
 assert.ok(rc459.includes("v_payload_amount is distinct from p_amount") && rc459.includes("v_ledger.gross_amount is distinct from p_amount"), "RC459 MantiGo RPC must reject any payload/ledger amount mismatch");
 assert.ok(rc459.includes("v_intent.amount is distinct from v_order.total") && rc459.includes("p_provider_confirmed_amount is distinct from v_order.total"), "RC459 provider failure RPC must require exact order and provider amount equality");
@@ -135,6 +136,14 @@ for (const rpc of [
 }
 assert.ok(rc459.includes("v_payload_amount is distinct from p_amount") && rc459.includes("round(p_amount, 2)"), "RC459 must reject fractional-cent MantiGo payload values");
 assert.ok(rc459.includes("p_provider_confirmed_amount is distinct from round(p_provider_confirmed_amount, 2)"), "RC459 must reject fractional-cent provider-confirmed values");
+
+const intentRpcStart = rc459.indexOf("create or replace function public.create_payment_intent_backend");
+const intentRpcEnd = intentRpcStart < 0 ? -1 : rc459.indexOf("$function$;", intentRpcStart);
+assert.ok(intentRpcStart >= 0 && intentRpcEnd > intentRpcStart, "RC459 payment intent creation RPC must have a complete override body");
+const intentRpc = rc459.slice(intentRpcStart, intentRpcEnd);
+assert.ok(intentRpc.includes("p_amount is distinct from v_order.total_amount") && intentRpc.includes("p_amount is distinct from v_order.total"), "RC459 payment intent creation must require exact equality with both persisted order totals");
+assert.ok(intentRpc.includes("v_existing.amount is distinct from v_order.total_amount") && intentRpc.includes("set search_path = public, pg_temp"), "RC459 idempotency replay must compare exact persisted amount and preserve RC336 search_path hardening");
+
 
 assert.doesNotMatch(rc459, /abs\\([^)]*(?:amount|gross_amount)[^)]*\\)\\s*>\\s*0\\.01/i, "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
 
