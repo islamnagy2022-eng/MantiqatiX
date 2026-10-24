@@ -51,6 +51,22 @@ assert.match(createFunction, /auth\.getUser\(token\)[\s\S]*?actor\.is_anonymous/
 assert.match(createFunction, /businessIds\.includes\(requestedBusinessId\)[\s\S]*?business_selection_required/,
   "lead creation must enforce active business membership and explicit selection when ambiguous");
 
+// Edge Function perimeter and failure paths: static guards only, not deployed-runtime evidence.
+assert.match(createFunction, /req\.method !== "POST"[\s\S]*?method_not_allowed/,
+  "lead creation must reject non-POST requests");
+assert.match(createFunction, /maxBodyBytes = 20000[\s\S]*?payload_too_large[\s\S]*?invalid_json/,
+  "lead creation must cap request bodies and reject malformed JSON");
+assert.match(createFunction, /Origin[\s\S]*?origin_not_allowed[\s\S]*?Access-Control-Allow-Origin/,
+  "lead creation must keep its explicit origin allowlist");
+assert.match(createFunction, /membershipError\) return json\(\{ error: "membership_lookup_failed" \}, 500\)/,
+  "membership lookup failures must fail closed rather than create a lead");
+assert.match(createFunction, /requiredServices\.length > 10[\s\S]*?requiredServices\.some\(x => x\.length > 80\)/,
+  "lead creation must bound service-array size and each service label");
+assert.match(createFunction, /currency:\s*"EGP"/,
+  "lead creation currency must remain explicit and server-controlled");
+assert.match(createFunction, /requester_business_id:\s*businessId[\s\S]*?requester_user_id:\s*actor\.id/,
+  "lead ownership must use the resolved authorized business and verified actor");
+
 // CRM manager reads must bind membership to tenant/business scope.
 assert.match(scopeMigration, /um\.tenant_id\s*=\s*b\.tenant_id/,
   "CRM manager policy must enforce tenant equality");
