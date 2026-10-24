@@ -19,6 +19,7 @@ Deno.serve(async req=>{
   const {data:{user},error:userError}=await admin.auth.getUser(auth.slice(7)); if(userError||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401,requestId);
   if(!secretKey||!publicKey||!integrationId)return json({error:"PAYMENT_PROVIDER_NOT_CONFIGURED",requestId},503,requestId);
   if(!checkoutKeySecret)return json({error:"CHECKOUT_SECRET_ENCRYPTION_NOT_CONFIGURED",requestId},503,requestId);
+  try{await checkoutCryptoKey();}catch{return json({error:"CHECKOUT_SECRET_ENCRYPTION_KEY_INVALID",requestId},503,requestId);}
   const body=await req.json().catch(()=>null) as Record<string,unknown>|null; if(!body)return json({error:"INVALID_JSON"},400,requestId);
   const businessId=String(body.businessId??""); const tierCode=String(body.tierCode??"").trim().toUpperCase(); const billingCycle=String(body.billingCycle??"").trim().toUpperCase(); const sector=String(body.sector??"").trim(); const idempotencyKey=String(body.idempotencyKey??"").trim();
   if(!businessId||!tierCode||!["MONTHLY","ANNUAL"].includes(billingCycle)||!idempotencyKey)return json({error:"INVALID_REQUEST"},400,requestId);
