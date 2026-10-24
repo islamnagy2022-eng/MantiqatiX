@@ -760,7 +760,7 @@ begin
      or v_order.total is distinct from round(v_order.total,2)
      or p_amount is distinct from v_order.total_amount
      or p_amount is distinct from v_order.total then raise exception 'INVALID_AMOUNT'; end if;
-  if upper(coalesce(p_currency,''))<>upper(v_order.currency) then raise exception 'INVALID_CURRENCY'; end if;
+  if v_order.currency is null or upper(coalesce(p_currency,'')) is distinct from upper(v_order.currency) then raise exception 'INVALID_CURRENCY'; end if;
   if p_provider is null or length(trim(p_provider))=0 then raise exception 'INVALID_PROVIDER'; end if;
   if p_payment_method is null or length(trim(p_payment_method))=0 then raise exception 'INVALID_PAYMENT_METHOD'; end if;
   if p_idempotency_key is null or length(trim(p_idempotency_key))=0 or length(p_idempotency_key)>200 then raise exception 'INVALID_IDEMPOTENCY_KEY'; end if;
@@ -774,8 +774,9 @@ begin
     if v_existing.order_id<>p_order_id
        or v_existing.amount is distinct from v_order.total_amount
        or v_existing.amount is distinct from round(v_existing.amount,2)
-       or upper(v_existing.currency)<>upper(v_order.currency)
-       or v_existing.pricing_hash<>v_order.pricing_hash
+       or v_existing.currency is null or v_order.currency is null
+       or upper(v_existing.currency) is distinct from upper(v_order.currency)
+       or v_existing.pricing_hash is distinct from v_order.pricing_hash
     then raise exception 'IDEMPOTENCY_CONFLICT'; end if;
 
     return jsonb_build_object(
