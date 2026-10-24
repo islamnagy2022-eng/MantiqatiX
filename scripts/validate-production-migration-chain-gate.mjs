@@ -33,9 +33,15 @@ const required = [
   "20261010210000_rc452_marketing_crm_tenant_scope.sql",
   "20261010220000_rc453_marketing_campaign_backend.sql",
   "20261011010000_rc456_smm_service_role_access_boundary.sql",
+  "20261014230000_rc525_digital_page_product_platform_admin_scope.sql",
+  "20261023020000_rc102_provider_services_owner_write_grants.sql",
+  "20261023030000_rc103_order_status_branch_scope.sql",
+  "20261023040000_rc104_order_idempotency_scope.sql",
+  "20261023050000_rc105_order_create_service_role_identity.sql",
+  "20261023060000_rc106_order_status_service_role_identity.sql",
   "20261024193000_rc457_marketing_lead_lifecycle_backend.sql"
 ];
-assert.equal(required.length, 29, "release gate must track the complete 29-file migration source set");
+assert.equal(required.length, 35, "release gate must track every known post-RC424 migration source including RC457");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
