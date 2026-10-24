@@ -229,3 +229,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** no local execution is claimed; no Paymob Sandbox, target Supabase runtime, browser E2E, production migration, deployment, PR merge, or live payment was performed.
 - **Next action:** inspect exact-head CI completion and logs; fix any remaining failures before proceeding with payment/webhook runtime acceptance.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+### Follow-up — exact-cent order pricing check
+
+- Reviewed the normal payment-intent creation path and found it still compared the intent amount to `order.total_amount` and `order.total` with a `> 0.01` tolerance. This could allow a one-cent pricing mismatch before the provider request even though the webhook was hardened.
+- Added `matchesCurrencyAmounts` to `supabase/functions/_shared/paymob-intent-correlation.mjs` and replaced both tolerant comparisons in `supabase/functions/payment-intent/index.ts` with exact-cent equality. Zero, invalid, and fractional-cent amounts fail closed.
+- Extended `scripts/test-paymob-amount-correlation.mjs` with exact match, numeric-string, one-cent mismatch, fractional-cent, and zero cases. Extended `scripts/validate-payment-migration-wiring.mjs` to enforce this contract and forbid the old tolerance.
+- Follow-up commits: `81e08332da4ae495717c0eb437e18c14f1168611`, `8dad9a4a73199649568606eea4cedcf120bafe5f`, `993373b2588181b6b1d523c44e6d47967b1b27cc`, `92a3b2e950337712758b4a17ec4adb6b075b3311`, and `d8d815ad7df8c40d7e4d56e1cb9b0f41496060dc`.
+- **Verification caveat:** GitHub Actions runs were available for the earlier commit `34450cf5debb7ec6935fa2ac1da819b04bebad03`, but no PR-triggered run was returned for the latest commit `92a3b2e950337712758b4a17ec4adb6b075b3311`. Therefore the new exact-cent order pricing assertions and tests are **NOT VERIFIED by CI yet**. Do not infer success from source inspection.
+- **Release state remains BLOCKED / NOT CERTIFIED.**
