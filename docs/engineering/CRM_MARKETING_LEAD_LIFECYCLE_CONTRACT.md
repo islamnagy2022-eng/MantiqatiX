@@ -99,3 +99,18 @@ Use isolated test accounts and non-production fixtures wherever possible. Any pr
 ## 8. Completion criteria
 
 This contract is complete as a design baseline only. Do not mark the lifecycle feature implemented until source changes, an exact-head CI result, authorization review, and the deferred final acceptance evidence are separately recorded.
+
+
+## 9. Source review findings — 2026-10-24
+
+The current repository source was inspected after this contract was drafted:
+
+- The RC452 migration scopes CRM lead/provider reads to an active membership's tenant/business, with a separate explicit platform-wide SUPER_ADMIN/full-control path. Preserve this boundary; do not replace it with a broad role-only policy.
+- The `marketing-lead-create` Edge Function derives `requester_user_id` from the validated JWT actor, checks active memberships for the requested business, applies payload limits, and inserts through the service-role client. The function is a create path only; it does not implement lifecycle transitions.
+- RC453 establishes the adjacent campaign pattern: server-side actor matching, a shared business-scope helper, row locking, allowlisted status transitions, audit-log writes, and explicit execute grants. Reuse the pattern only after confirming the lead table's actual schema and role semantics; do not copy campaign rules blindly.
+- A status vocabulary discrepancy appears in the available source evidence: the lead-create function writes `OPEN`, while the RC452 disposable integration fixture uses `NEW`. This is not proof of a production defect, but it must be reconciled against the actual migration/schema and all UI consumers before defining a transition allowlist. Never silently normalize existing values.
+- The existing RC102 baseline documents owner-scoped lead reads; later RC452 source adds business-scoped CRM manager and assigned-provider reads. These are different historical checkpoints, so the effective policy must be determined from the ordered migration chain, not inferred from one document in isolation.
+
+### Next implementation gate
+
+Before writing the lifecycle migration/RPC, record the canonical status values, the exact approved transition graph, the meaning of platform vs tenant-level roles, the required audit-log fields, and whether lead notes contain personal data. Then implement a forward-only migration and a narrowly scoped backend mutation. The migration must be checked for version collisions against every open PR before it is proposed. No production migration is authorized by this design note.
