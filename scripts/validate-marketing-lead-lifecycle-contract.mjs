@@ -64,7 +64,7 @@ assert.match(appLifecycle, /LEAD_NOT_FOUND_OR_FORBIDDEN/,
   "the UI must avoid exposing cross-scope lead existence");
 
 // Marketing campaign UI must use the migration's server-authoritative RPCs and exact business scope.
-assert.match(operations, /'campaigns','projects'/,
+assert.match(operations, /'campaigns','invitations','projects'/,
   "marketing workspace must expose the campaigns tab");
 assert.match(operations, /t==='marketing_campaigns'[\s\S]*?q=q\.eq\('business_id',membership\.business_id\)/,
   "campaign reads must be scoped to the selected business");
