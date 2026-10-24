@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { matchesPaymobAmountCents, matchesCurrencyAmounts } from "../supabase/functions/_shared/paymob-intent-correlation.mjs";
+import { matchesPaymobAmountCents, matchesCurrencyAmounts, matchesPaymobEventOutcome, matchesPaymobSubscriptionEventType } from "../supabase/functions/_shared/paymob-intent-correlation.mjs";
 
 assert.equal(matchesPaymobAmountCents(10.25, 1025), true, "exact cents should pass");
 assert.equal(matchesPaymobAmountCents("10.25", 1025), true, "database numeric strings should pass");
@@ -16,5 +16,14 @@ assert.equal(matchesCurrencyAmounts("10.25", 10.25), true, "numeric database str
 assert.equal(matchesCurrencyAmounts(10.25, 10.26), false, "one-cent order price mismatch must fail");
 assert.equal(matchesCurrencyAmounts(10.255, 10.26), false, "fractional-cent order amount must fail");
 assert.equal(matchesCurrencyAmounts(0, 0), false, "zero currency amounts must fail");
+assert.equal(matchesPaymobEventOutcome("FAILED", false), true, "replayed failure outcome must be idempotent");
+assert.equal(matchesPaymobEventOutcome("FAILED", true), false, "success must conflict with a stored failure");
+assert.equal(matchesPaymobEventOutcome("PROCESSED", true), true, "replayed success outcome must be idempotent");
+assert.equal(matchesPaymobEventOutcome("PROCESSED", false), false, "failure must conflict with a stored success");
+assert.equal(matchesPaymobEventOutcome("", true), false, "unknown stored outcome must fail closed");
+assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_FAILURE", false), true, "same subscription failure type may replay");
+assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_FAILURE", true), false, "subscription success must conflict with stored failure");
+assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_SUCCESS", true), true, "same subscription success type may replay");
+assert.equal(matchesPaymobSubscriptionEventType("SUBSCRIPTION_SUCCESS", false), false, "subscription failure must conflict with stored success");
 
 console.log("Paymob amount correlation tests PASS: exact cents and fail-closed invalid/mismatched amounts.");
