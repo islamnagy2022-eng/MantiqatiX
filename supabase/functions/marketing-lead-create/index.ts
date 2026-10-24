@@ -42,23 +42,28 @@ Deno.serve(async (req: Request) => {
   if (!body || Array.isArray(body) || typeof body !== "object") return json({ error: "invalid_body" }, 400);
 
   const requestedBusinessId = String(body.business_id || "").trim() || null;
-  const title = String(body.title || "").trim();
-  const description = String(body.description || "").trim();
-  const serviceArea = String(body.service_area || "").trim();
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const description = typeof body.description === "string" ? body.description.trim() : "";
+  const serviceArea = body.service_area == null
+    ? ""
+    : typeof body.service_area === "string" ? body.service_area.trim() : null;
   const budgetMin = body.budget_min == null || body.budget_min === ""
     ? 0
     : typeof body.budget_min === "number" ? body.budget_min : Number.NaN;
   const budgetMax = body.budget_max == null || body.budget_max === ""
     ? 0
     : typeof body.budget_max === "number" ? body.budget_max : Number.NaN;
+  if (body.required_services != null && !Array.isArray(body.required_services)) {
+    return json({ error: "invalid_required_services" }, 400);
+  }
   const requiredServices = Array.isArray(body.required_services)
-    ? body.required_services.map(x => String(x || "").trim()).filter(Boolean)
+    ? body.required_services.map(x => typeof x === "string" ? x.trim() : null)
     : [];
 
   if (!title || title.length > 200) return json({ error: "invalid_title" }, 400);
   if (!description || description.length > 5000) return json({ error: "invalid_description" }, 400);
-  if (serviceArea.length > 200) return json({ error: "invalid_service_area" }, 400);
-  if (requiredServices.length > 10 || requiredServices.some(x => x.length > 80)) return json({ error: "invalid_required_services" }, 400);
+  if (serviceArea === null || serviceArea.length > 200) return json({ error: "invalid_service_area" }, 400);
+  if (requiredServices.length > 10 || requiredServices.some(x => typeof x !== "string" || x.length > 80)) return json({ error: "invalid_required_services" }, 400);
   if (!Number.isFinite(budgetMin) || !Number.isFinite(budgetMax) || budgetMin < 0 || budgetMax < budgetMin) {
     return json({ error: "invalid_budget" }, 400);
   }
