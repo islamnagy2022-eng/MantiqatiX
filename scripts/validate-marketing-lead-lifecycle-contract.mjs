@@ -89,6 +89,16 @@ assert.match(partnerDirectoryMigration, /security definer[\s\S]*?set search_path
   "partner directory RPC must be SECURITY DEFINER with an empty search_path");
 assert.match(partnerDirectoryMigration, /public\.mnty_can_manage_marketing_business\(p_business_id\)/,
   "partner directory must require a manager-authorized business scope");
+assert.match(partnerDirectoryMigration, /p_actor is distinct from auth\.uid\(\)/,
+  "partner directory must bind the supplied actor to the authenticated user");
+assert.match(partnerDirectoryMigration, /auth\.jwt\(\)[\s\S]*?is_anonymous/,
+  "partner directory must reject anonymous sessions");
+assert.match(partnerDirectoryMigration, /least\(greatest\(coalesce\(p_limit, 50\), 1\), 50\)/,
+  "partner directory must clamp caller-supplied result limits to 1–50");
+assert.match(partnerDirectoryMigration, /pg_catalog\.length\(v_search\) > 80/,
+  "partner directory must enforce the bounded search term server-side");
+assert.doesNotMatch(partnerDirectoryMigration, /grant\s+select\s+on\s+table\s+public\.marketing_provider_profiles/i,
+  "directory migration must not widen direct provider-profile table access");
 assert.match(partnerDirectoryMigration, /p\.status = 'ACTIVE'[\s\S]*?p\.is_verified is true[\s\S]*?p\.provider_kind in \('PARTNER_COMPANY', 'FREELANCER'\)/,
   "directory must return only active, verified eligible partner types");
 const directoryReturnColumns = partnerDirectoryMigration.match(/returns table\s*\(([\s\S]*?)\)\s*language/i)?.[1] || "";
