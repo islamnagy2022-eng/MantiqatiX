@@ -422,3 +422,11 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - Reconciled RC457 with the production source verifier and chronological migration-chain contract; the expected source chain includes RC457 after the restored RC425–RC441 family and the RC525/RC102–RC106 source set.
 - The last code head `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d` includes the invitation fix and validator guard. The documentation-only head `03d7429c8873cdd02f350bcbfd705f44e0bf9386` has no returned exact-head PR workflow runs, so the earlier marketing contract pass is not treated as current-head verification.
 - PR #373 targets main and depends on the historical migration source restoration in PR #372; it remains open/draft. No production migration, live payment, or deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — RC458 scoped partner directory
+- Found a functional boundary issue: the existing RLS policy intentionally prevents a business manager from reading arbitrary cross-business provider profiles, so the invitation picker could not safely discover external partners by querying the table.
+- Added RC458: `list_marketing_partner_directory_backend` is SECURITY DEFINER with an empty search_path, validates actor identity and manager authority for the selected business, limits search and result count, and returns only provider ID/name/slug/type for active verified partner companies/freelancers. No owner IDs, contact details, or business IDs are returned; the underlying provider-profile RLS policy was not broadened.
+- Updated the invitation UI to use this scoped RPC and kept response actions owner-scoped. Added static contract assertions and included RC458 in both release migration manifests after RC457.
+- Latest observed code head before documentation updates: `2b3344e476068521769bfb4a072c9f3c8c47ad64`; no exact-head workflow runs were returned at that point. Treat runtime behavior and CI as NOT VERIFIED until fresh results arrive.
+- No production migration, live payment, or external ad launch was performed. Production remains **BLOCKED / NOT CERTIFIED**.
