@@ -215,6 +215,7 @@ checks.push(["Restaurant checkout clears only the selected merchant cart after d
   return handler.includes("window.MXCart.removeMerchant(key)") && !handler.includes("window.MXCart.clear()");
 })()]);
 checks.push(["Restaurant demo checkout blocks duplicate submissions and disables confirmation after first success", (() => { const start=customerOrderScript.indexOf("document.getElementById('checkout').addEventListener('submit'"); const end=start<0?-1:customerOrderScript.indexOf("});renderCart()",start); if(start<0||end<0)return false; const handler=customerOrderScript.slice(start,end); return handler.includes("if(checkoutComplete)") && handler.includes("checkoutComplete=true") && handler.includes("submitButton.disabled=true") && handler.includes("window.MXCart.removeMerchant(key)"); })()]);
+checks.push(["Restaurant demo checkout can be safely restarted after confirmation", customerOrder.includes('id="restartDemo"') && customerOrder.includes("checkoutComplete=false") && customerOrder.includes("document.getElementById('checkout').reset()") && customerOrder.includes("submitButton.disabled=false") && customerOrder.includes("document.getElementById('customer').focus()")]);
 checks.push(["Customer and operator demo catalogs remain isolated from network submission", !customerOrder.includes("fetch(") && !customerOrder.includes("XMLHttpRequest") && !customerOrder.includes("createClient(") && !restaurant.includes("fetch(") && !restaurant.includes("XMLHttpRequest") && !restaurant.includes("createClient(") && /لا يوجد اتصال بالخادم/.test(restaurant)]);
 
 
