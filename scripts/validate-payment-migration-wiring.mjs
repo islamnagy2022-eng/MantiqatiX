@@ -144,6 +144,8 @@ const intentRpc = rc459.slice(intentRpcStart, intentRpcEnd);
 assert.ok(intentRpc.includes("p_amount is distinct from v_order.total_amount") && intentRpc.includes("p_amount is distinct from v_order.total"), "RC459 payment intent creation must require exact equality with both persisted order totals");
 assert.ok(intentRpc.includes("v_existing.amount is distinct from v_order.total_amount") && intentRpc.includes("set search_path = public, pg_temp"), "RC459 idempotency replay must compare exact persisted amount and preserve RC336 search_path hardening");
 
+assert.ok(intentRpc.includes("v_order.currency is null or upper(coalesce(p_currency,'')) is distinct from upper(v_order.currency)") && intentRpc.includes("v_existing.pricing_hash is distinct from v_order.pricing_hash"), "RC459 payment intent creation must fail closed on null currency and pricing replay mismatch");
+
 
 assert.doesNotMatch(rc459, /abs\\([^)]*(?:amount|gross_amount)[^)]*\\)\\s*>\\s*0\\.01/i, "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
 
