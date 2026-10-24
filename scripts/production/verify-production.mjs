@@ -54,7 +54,8 @@ const requiredReleaseMigrations=[
   "20261023050000_rc105_order_create_service_role_identity.sql",
   "20261023060000_rc106_order_status_service_role_identity.sql",
   "20261024193000_rc457_marketing_lead_lifecycle_backend.sql",
-  "20261024210000_rc458_marketing_partner_directory_backend.sql"
+  "20261024210000_rc458_marketing_partner_directory_backend.sql",
+  "20261025010000_rc459_exact_cent_payment_rpcs.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
