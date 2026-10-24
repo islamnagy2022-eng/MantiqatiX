@@ -124,7 +124,7 @@ async function inviteMarketingCampaignPartner(){
  const campaignId=document.getElementById('miCampaign')?.value,providerId=document.getElementById('miProvider')?.value;
  const role=document.getElementById('miRole')?.value,allocation=Number(document.getElementById('miAllocation')?.value),value=Number(document.getElementById('miValue')?.value);
  const campaign=(rows.marketing_campaigns||[]).find(x=>String(x.id)===String(campaignId)&&String(x.business_id)===String(membership.business_id));
- const provider=(rows.marketing_provider_profiles||[]).find(x=>String(x.id)===String(providerId)&&x.owner_user_id===user.id&&String(x.status).toUpperCase()==='ACTIVE'&&x.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(x.provider_kind||'').toUpperCase()));
+ const provider=(rows.marketing_provider_profiles||[]).find(x=>String(x.id)===String(providerId)&&String(x.status).toUpperCase()==='ACTIVE'&&x.is_verified===true&&['PARTNER_COMPANY','FREELANCER'].includes(String(x.provider_kind||'').toUpperCase())&&String(x.business_id||'')!==String(membership.business_id));
  if(!campaign||!provider)return alert('اختر حملة متاحة وشريكا موثقا مؤهلا.');
  if(!['DRAFT','PLANNED','IN_REVIEW'].includes(String(campaign.status||'').toUpperCase()))return alert('الحملة لا تقبل دعوات جديدة في حالتها الحالية.');
  if(!Number.isFinite(allocation)||allocation<0||allocation>100||!Number.isFinite(value)||value<0||value>1000000000)return alert('راجع نسبة التخصيص والقيمة المتفق عليها.');
