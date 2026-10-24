@@ -8,6 +8,8 @@ on:
       - "supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql"
       - "supabase/tests/rc431_digital_page_payment_fixture.sql"
       - "supabase/tests/rc431_digital_page_payment_integration.sql"
+      - "supabase/functions/_shared/paymob-intent-correlation.mjs"
+      - "scripts/test-paymob-intent-correlation.mjs"
       - ".github/workflows/rc431-digital-page-payment-integration.yml"
   pull_request:
     branches:
@@ -16,6 +18,8 @@ on:
       - "supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql"
       - "supabase/tests/rc431_digital_page_payment_fixture.sql"
       - "supabase/tests/rc431_digital_page_payment_integration.sql"
+      - "supabase/functions/_shared/paymob-intent-correlation.mjs"
+      - "scripts/test-paymob-intent-correlation.mjs"
       - ".github/workflows/rc431-digital-page-payment-integration.yml"
 
 permissions:
@@ -40,6 +44,8 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+      - name: Test Paymob intention correlation and fail-closed validation
+        run: node scripts/test-paymob-intent-correlation.mjs
       - name: Create Supabase role stand-ins in disposable PostgreSQL
         shell: bash
         run: |
