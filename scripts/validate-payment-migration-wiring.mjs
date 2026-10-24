@@ -15,6 +15,7 @@ const rc430 = read("supabase/migrations/20261009170000_rc430_atomic_subscription
 const rc431 = read("supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql");
 const rc435 = read("supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql");
 const rc439 = read("supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql");
+const rc459 = read("supabase/migrations/20261025010000_rc459_exact_cent_payment_rpcs.sql");
 
 const mStart = webhook.indexOf('const {data:mantigo}=await admin.from("mantigo_financial_ledger")');
 const mEnd = webhook.indexOf('const {data:intentByRef}=await admin.from("payment_intents")', mStart);
@@ -105,4 +106,18 @@ assert.match(rc425, /alter table public\.mantigo_payment_provider_events enable 
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events force row level security;/);
 assert.match(rc425, /set search_path = ''/);
 assert.match(rc425, /grant execute on function public\.process_verified_mantigo_payment_backend[\s\S]*to service_role;/);
-console.log("RC425-RC439 payment migration wiring contract: PASS");
+
+for (const [label, rpc] of [
+  ["RC459 MantiGo", "process_verified_mantigo_payment_backend"],
+  ["RC459 regular payment failure", "process_verified_provider_payment_failure"],
+  ["RC459 subscription failure", "process_verified_subscription_payment_failure"],
+  ["RC459 subscription success", "process_verified_subscription_payment_backend"],
+  ["RC459 digital page", "process_verified_digital_page_payment_backend"]
+]) assert.ok(rc459.includes("create or replace function public." + rpc), label + " must override the authoritative RPC with exact-cent validation");
+assert.ok(rc459.includes("v_payload_amount is distinct from p_amount") && rc459.includes("v_ledger.gross_amount is distinct from p_amount"), "RC459 MantiGo RPC must reject any payload/ledger amount mismatch");
+assert.ok(rc459.includes("v_intent.amount is distinct from v_order.total") && rc459.includes("p_provider_confirmed_amount is distinct from v_order.total"), "RC459 provider failure RPC must require exact order and provider amount equality");
+assert.ok(rc459.includes("v_intent.amount is distinct from p_provider_confirmed_amount") && rc459.includes("v.amount is distinct from p_provider_confirmed_amount"), "RC459 subscription RPCs must compare persisted and provider amounts exactly");
+assert.ok(rc459.includes("v_order.amount is distinct from p_amount"), "RC459 digital-page RPC must compare persisted and provider amounts exactly");
+assert.doesNotMatch(rc459, /abs\\([^)]*(?:amount|gross_amount)[^)]*\\)\\s*>\\s*0\\.01/i, "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
+
+console.log("RC425-RC459 payment migration wiring contract: PASS");
