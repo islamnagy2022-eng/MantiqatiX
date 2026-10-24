@@ -45,8 +45,12 @@ Deno.serve(async (req: Request) => {
   const title = String(body.title || "").trim();
   const description = String(body.description || "").trim();
   const serviceArea = String(body.service_area || "").trim();
-  const budgetMin = Number(body.budget_min || 0);
-  const budgetMax = Number(body.budget_max || 0);
+  const budgetMin = body.budget_min == null || body.budget_min === ""
+    ? 0
+    : typeof body.budget_min === "number" ? body.budget_min : Number.NaN;
+  const budgetMax = body.budget_max == null || body.budget_max === ""
+    ? 0
+    : typeof body.budget_max === "number" ? body.budget_max : Number.NaN;
   const requiredServices = Array.isArray(body.required_services)
     ? body.required_services.map(x => String(x || "").trim()).filter(Boolean)
     : [];
