@@ -56,3 +56,17 @@ insert into public.marketing_provider_profiles(id,business_id,owner_user_id,prov
 ('40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000015','PARTNER_COMPANY','Verified Partner B','Verified Partner B English','partner-b','ACTIVE',true),
 ('40000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000017','PARTNER_COMPANY','Unverified Partner','Unverified Partner','partner-unverified','ACTIVE',false),
 ('40000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000018','FREELANCER','Verified Freelancer C','Verified Freelancer C','freelancer-c','ACTIVE',true);
+
+-- Minimal disposable lead table for the RC457 lifecycle integration test.
+-- Production schema remains untouched by this test fixture.
+create table public.marketing_leads(
+ id uuid primary key,
+ requester_business_id uuid,
+ requester_user_id uuid,
+ status text not null,
+ created_at timestamptz not null default now()
+);
+grant select on public.marketing_leads to authenticated;
+insert into public.marketing_leads(id,requester_business_id,requester_user_id,status) values
+('50000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000011','OPEN'),
+('50000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000002','30000000-0000-4000-8000-000000000012','OPEN');
