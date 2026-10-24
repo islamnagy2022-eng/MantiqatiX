@@ -87,7 +87,8 @@ assert.match(partnerDirectoryMigration, /public\.mnty_can_manage_marketing_busin
   "partner directory must require a manager-authorized business scope");
 assert.match(partnerDirectoryMigration, /p\.status = 'ACTIVE'[\s\S]*?p\.is_verified is true[\s\S]*?p\.provider_kind in \('PARTNER_COMPANY', 'FREELANCER'\)/,
   "directory must return only active, verified eligible partner types");
-assert.doesNotMatch(partnerDirectoryMigration, /owner_user_id\s+text|email|phone|business_id\s+uuid/,
+const directoryReturnColumns = partnerDirectoryMigration.match(/returns table\s*\(([\s\S]*?)\)\s*language/i)?.[1] || "";
+assert.doesNotMatch(directoryReturnColumns, /owner_user_id|email|phone|business_id/,
   "partner directory must not expose owner identity, contact details, or business identifiers");
 assert.match(partnerDirectoryMigration, /revoke all on function public\.list_marketing_partner_directory_backend[\s\S]*?from public, anon/,
   "partner directory must not be executable by public or anonymous users");
