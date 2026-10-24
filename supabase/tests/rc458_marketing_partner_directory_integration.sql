@@ -1,14 +1,6 @@
 -- RC458 behavioral integration test. Run only in disposable PostgreSQL.
 -- The shared RC453 fixture models memberships and provider profiles; the campaign migration
 -- supplies the authoritative manager-scope helper used by the directory.
-alter table public.marketing_provider_profiles add column name_en text;
-update public.marketing_provider_profiles
-set name_en = case slug
-  when 'partner-b' then 'Verified Partner B English'
-  when 'partner-unverified' then 'Unverified Partner'
-  when 'freelancer-c' then 'Verified Freelancer C'
-  else name_ar
-end;
 insert into public.marketing_provider_profiles
   (id,business_id,owner_user_id,provider_kind,name_ar,name_en,slug,status,is_verified)
 values
