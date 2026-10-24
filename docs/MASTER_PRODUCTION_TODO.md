@@ -1833,7 +1833,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] ربط تسميات حقول بيانات الاختبار بمعرّفات الحقول، بما فيها الاسم والهاتف والعنوان والملاحظات والكمية.
 - [x] تسمية زر خيارات الحجم والإضافات باسم الصنف المستهدف.
 - [x] إضافة فحوص رجوعية لهذه التعاقدات في `scripts/validate-preview-navigation.mjs`.
-- [ ] نتائج CI على رأس الفرع الحالي: بانتظار اكتمال workflows.
+- [x] اكتملت فحوص CI على رأس الكود `a07cbae9c13a5a592d313b3907222d62f3ad44a7`: Preview Demo Validation وBackend-only Module Boundary وModule Professionalization Validation وMantiGO Open Ride Privacy Boundary نجحت؛ تحقق Pages نجح مع تخطي النشر كما هو متوقع لفرع PR. أي التزام لاحق يتطلب إعادة التحقق على الرأس الجديد.
 - [ ] اختبار يدوي بلوحة المفاتيح وقارئ شاشة على متصفح فعلي: NOT VERIFIED.
 - [x] نطاق التغيير واجهة المعاينة التجريبية والمدقق والتوثيق فقط؛ لا تغييرات backend أو قاعدة بيانات أو مدفوعات.
 - [ ] لم يتم الدمج أو النشر؛ حالة الإطلاق الكامل **BLOCKED / NOT CERTIFIED**.
