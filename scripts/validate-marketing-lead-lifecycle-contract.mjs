@@ -72,6 +72,12 @@ assert.match(operations, /sb\.rpc\('create_marketing_campaign_backend'/,
   "campaign creation must use the server-authoritative creation RPC");
 assert.match(operations, /sb\.rpc\('update_marketing_campaign_status_backend'/,
   "campaign status changes must use the server-authoritative status RPC");
+assert.match(operations, /sb\.rpc\('invite_marketing_campaign_partner_backend'/,
+  "partner invitations must use the server-authoritative invite RPC");
+assert.match(operations, /sb\.rpc\('respond_marketing_campaign_invitation_backend'/,
+  "partner responses must use the server-authoritative invitation response RPC");
+assert.match(operations, /owner_user_id===user\.id[\s\S]*?is_verified===true/,
+  "partner invitation response controls must be limited to verified provider profiles owned by the signed-in user");
 assert.match(operations, /p_actor:user\.id[\s\S]*?p_business_id:membership\.business_id/,
   "campaign creation must pass the current actor and selected business for server validation");
 assert.match(operations, /const canManage=Boolean[\s\S]*?membership\?\.business_id[\s\S]*?BUSINESS_OWNER/,
