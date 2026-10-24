@@ -119,6 +119,23 @@ assert.ok(rc459.includes("v_intent.amount is distinct from v_order.total") && rc
 assert.ok(rc459.includes("v_intent.amount is distinct from p_provider_confirmed_amount") && rc459.includes("v.amount is distinct from p_provider_confirmed_amount"), "RC459 subscription RPCs must compare persisted and provider amounts exactly");
 assert.ok(rc459.includes("v_order.amount is distinct from p_amount"), "RC459 digital-page RPC must compare persisted and provider amounts exactly");
 assert.ok(rc459.includes("v_ledger.currency is null or upper(v_ledger.currency) is distinct from upper(p_currency)") && rc459.includes("v_order.currency is null or upper(v_order.currency) is distinct from upper(p_currency)"), "RC459 MantiGo and digital-page RPCs must fail closed on missing or mismatched persisted currency");
+
+for (const rpc of [
+  "process_verified_mantigo_payment_backend",
+  "process_verified_provider_payment_failure",
+  "process_verified_subscription_payment_failure",
+  "process_verified_subscription_payment_backend",
+  "process_verified_digital_page_payment_backend"
+]) {
+  const start = rc459.indexOf("create or replace function public." + rpc);
+  const end = start < 0 ? -1 : rc459.indexOf("$function$;", start);
+  assert.ok(start >= 0 && end > start, rpc + " must have a complete RC459 function body");
+  const body = rc459.slice(start, end);
+  assert.match(body, /security definer[\\s\\S]*?set search_path = ''/i, rpc + " must remain SECURITY DEFINER with an empty search_path");
+}
+assert.ok(rc459.includes("v_payload_amount is distinct from p_amount") && rc459.includes("round(p_amount, 2)"), "RC459 must reject fractional-cent MantiGo payload values");
+assert.ok(rc459.includes("p_provider_confirmed_amount is distinct from round(p_provider_confirmed_amount, 2)"), "RC459 must reject fractional-cent provider-confirmed values");
+
 assert.doesNotMatch(rc459, /abs\\([^)]*(?:amount|gross_amount)[^)]*\\)\\s*>\\s*0\\.01/i, "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
 
 console.log("RC425-RC459 payment migration wiring contract: PASS");
