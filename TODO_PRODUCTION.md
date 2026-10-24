@@ -482,7 +482,8 @@
 - [x] Fixed the partner invitation handler so business managers may invite other eligible verified partner profiles; it no longer incorrectly requires the invitee profile to belong to the manager. The separate response handler still requires the signed-in user to own the verified provider profile.
 - [x] Strengthened the static validator to assert this separation of invite authority and response ownership.
 - [x] Added RC457 to the production migration verifier and migration-chain contract while preserving the restored 34-source dependency chain plus the new forward-only RC457 migration.
-- [ ] The last code head `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d` had the invitation and validator fixes; subsequent documentation commits produced head `03d7429c8873cdd02f350bcbfd705f44e0bf9386`, for which no exact-head PR workflow runs were returned. Re-run/obtain CI on the latest head before claiming verification.
+- [x] Exact-head PR checks passed for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda`: Marketing Workspace Contract, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, Backend-only Module Boundary, Module Professionalization Validation, Approval Action Audit Atomicity, and MantiGO Open Ride Privacy Boundary. `Deploy MantiqatiX Web` workflow passed its validation job but skipped deployment because this is a pull request.
+- [ ] These checks are CI/structural contracts, not a production certification or proof that RC457/RC458 have been applied. Runtime validation against the intended Supabase release target and approved migration rollout remain outstanding.
 - [ ] PR #373 targets main and depends on the historical migration source restoration in PR #372. Both remain unmerged; runtime RLS/RPC tests and release evidence are still required.
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
@@ -497,3 +498,11 @@
 
 - [x] Added a bounded partner search input (80-character maximum) backed by the same scoped RPC, with a maximum of 50 directory results per request.
 - [ ] GitHub did not return PR workflow runs for the latest code head `67eac802feedb4339608853b85f17f9738ae42b9`; the new RC458/UI changes remain unverified by exact-head CI.
+
+
+## 2026-10-24 — RC458 invitation directory metadata and CI result
+- [x] Invitation directory now uses the scoped backend RPC rather than reading cross-business provider profiles directly.
+- [x] Provider invitation list retrieves only `id,title,status` for campaign IDs referenced by that provider's own RLS-visible active invitations; no broad campaign query or RLS relaxation was introduced.
+- [x] Added static contract checks for this ownership-derived ID set and minimal campaign projection.
+- [x] CI for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` completed all nine PR workflows successfully. Production deployment was skipped by the workflow's pull-request guard.
+- Production remains **BLOCKED / NOT CERTIFIED**; no migration has been applied to production.
