@@ -80,8 +80,11 @@ assert.match(operations, /sb\.rpc\('invite_marketing_campaign_partner_backend'/,
   "partner invitations must use the server-authoritative invite RPC");
 assert.match(operations, /sb\.rpc\('respond_marketing_campaign_invitation_backend'/,
   "partner responses must use the server-authoritative invitation response RPC");
-assert.match(operations, /owner_user_id===user\.id[\s\S]*?is_verified===true/,
+assert.match(operations, /function respondMarketingCampaignInvitation[\s\S]*?owner_user_id===user\.id[\s\S]*?is_verified===true/,
   "partner invitation response controls must be limited to verified provider profiles owned by the signed-in user");
+const inviteHandler = operations.slice(operations.indexOf("async function inviteMarketingCampaignPartner"), operations.indexOf("function campaignWorkspace"));
+assert.doesNotMatch(inviteHandler, /owner_user_id===user\.id/,
+  "managers must be able to invite eligible partner profiles owned by other users");
 assert.match(operations, /p_actor:user\.id[\s\S]*?p_business_id:membership\.business_id/,
   "campaign creation must pass the current actor and selected business for server validation");
 assert.match(operations, /const canManage=Boolean[\s\S]*?membership\?\.business_id[\s\S]*?BUSINESS_OWNER/,
