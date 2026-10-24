@@ -31,6 +31,11 @@ if(!home.includes("const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'D
 if(!home.includes("publicCategoryCode(x?.category_code)")) throw new Error("FAIL: live service counts must use canonical public sector codes");
 if(!home.includes("publicCategoryCode(x?.provider_kind)")) throw new Error("FAIL: live provider counts must use canonical public sector codes");
 if(!home.includes("Object.keys(PUBLIC_DIRECTORY_COUNTS||{})")) throw new Error("FAIL: public sector directory must include all discovered live sector codes");
+if(!home.includes('id="mx-module-hub"')) throw new Error("FAIL: public homepage must expose a full module tour");
+if(!home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: module tour must link to the all-module demo dashboard");
+if(!home.includes('href="preview/index.html"')) throw new Error("FAIL: module tour must link to the interactive demo home");
+if(!home.includes("لا تنشئ طلبات أو مدفوعات حقيقية")) throw new Error("FAIL: module preview must clearly disclose its demo-only boundary");
+if(!css.includes(".mx-public-module-hub") || !css.includes("@media(max-width:760px){.mx-public-module-hub")) throw new Error("FAIL: public module tour must have responsive styles");
 for(const [needle,label] of [
   ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
   ['id="mx-category-filter-clear"',"sector search must provide a clear action"],
