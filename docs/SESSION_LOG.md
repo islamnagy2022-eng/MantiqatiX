@@ -262,3 +262,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 - Ran a local Node.js isolated test against a copy of the current shared helper implementation from this branch: **15 assertions passed**, covering exact cents, numeric strings, ±1-cent mismatches, fractional cents, zero/negative/NaN values, unsafe integers, and exact order-price equality.
 - This is **not** a full checkout test, not a run of the repository's full validation script, and not a replacement for CI on the latest commit. The later payment-intent and subscription-webhook edits still require exact-head CI and integration verification.
+
+
+### Follow-up — complete subscription replay correlation
+
+- Tightened the subscription duplicate-event fast path once more: an existing provider event is acknowledged only when the stored subscription intent ID, provider order ID, and provider transaction ID all match the current verified callback. Any mismatch returns `409 SUBSCRIPTION_EVENT_CORRELATION_MISMATCH`.
+- Updated the source-contract assertion to require all three correlations.
+- Commits: `460a279de8ad0fc6b48f8aaf99cdd1d495dd51d9` and `4fa4d6724e47f0bc00f4a54f5844800b6f0457e9`.
+- The update is source-reviewed but still **NOT VERIFIED by exact-head CI or a provider callback replay integration test**.
