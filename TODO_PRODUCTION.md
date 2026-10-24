@@ -560,3 +560,12 @@
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
 - [x] RC459 regular-order payment-failure RPC also binds both persisted order totals (`total` and `total_amount`) exactly to each other, the payment intent, and provider-confirmed amount.
+
+
+## RC459 follow-up: latest production verification evidence (2026-10-24)
+- [x] Reviewed the `production-verification-40137154865-1` artifact from the PR validation run. Source-contract checks: 24 PASS, 0 FAIL; the production gate is still BLOCKED.
+- [x] Confirmed the artifact records an isolated chronological migration replay and limited synthetic tenant-isolation tests as PASS in an earlier CI run; this does not prove the current RC459 migration has been applied to the target production database.
+- [ ] Resolve the cross-PR migration-collision guard result. Its previous failure was caused by GitHub API rate limiting (403), not a reported migration collision; a retry was started and its final outcome must be checked.
+- [ ] Verify live migration-ledger reconciliation and that all required release migrations are applied to the intended Supabase project.
+- [ ] Complete payment/finance E2E, Edge Function runtime contracts, SMM gateway parity, Auth/security configuration review, and a documented backup/restore rehearsal.
+- [ ] Keep release gate BLOCKED until all required evidence is current, target-specific, and reviewed.
