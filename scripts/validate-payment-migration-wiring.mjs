@@ -59,6 +59,8 @@ assert.ok(digitalIntent.includes("[400,401,403,404,422].includes(providerRespons
 assert.ok(paymentIntent.includes('from "../_shared/paymob-intent-correlation.mjs"'), "normal payment provider response must use the shared Paymob correlation guard");
 assert.ok(paymentIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH"), "normal payment provider mismatch must fail closed");
 assert.ok(paymentIntent.indexOf("isValidPaymobAmountCents(amount, amountCents)") < paymentIntent.indexOf('fetch("https://accept.paymob.com/v1/intention/"'), "normal payment amount precision must be checked before provider network I/O");
+assert.ok(paymentIntent.includes("matchesCurrencyAmounts(amount, order.total_amount)") && paymentIntent.includes("matchesCurrencyAmounts(amount, order.total)") && paymentIntent.includes("matchesCurrencyAmounts } from"), "normal payment order pricing must match exactly to the cent");
+assert.doesNotMatch(paymentIntent, /Math\.abs\(amount - Number\(order\.total(?:_amount)?\)\) > 0\.01/, "normal payment pricing must not tolerate a one-cent mismatch");
 assert.ok(paymentIntent.indexOf("const providerCorrelationMatches = matchesPaymobIntention({") >= 0 && paymentIntent.indexOf("const providerCorrelationMatches = matchesPaymobIntention({") < paymentIntent.indexOf('admin.from("payment_intents").update({'), "normal payment response correlation must precede provider ID persistence");
 assert.ok(digitalIntent.includes("p_provider_order_id:providerOrderId"), "digital-page intent finalization must persist provider order correlation");
 assert.ok(digitalIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "digital-page provider ambiguity must not be blindly retried");
