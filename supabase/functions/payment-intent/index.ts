@@ -151,16 +151,16 @@ Deno.serve(async (req) => {
     return json({ error: "PAYMENT_PROVIDER_INTENT_MISMATCH", requestId }, 502, requestId);
   }
 
-  const { error: updateError } = await admin.from("payment_intents").update({
+  const { data: persisted, error: updateError } = await admin.from("payment_intents").update({
     provider_intent_id: providerIntentId,
     provider_order_id: providerOrderId,
     status: "PENDING",
     updated_at: new Date().toISOString()
-  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion).eq("status", "CREATED");
+  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion).eq("status", "CREATED").select("id").maybeSingle();
 
-  if (updateError) {
-    console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError.code }));
-    return json({ error: "Payment intent persistence failed", requestId }, 500, requestId);
+  if (updateError || !persisted) {
+    console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError?.code ?? "COMPARE_AND_SET_NO_ROW" }));
+    return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
   }
 
   return json({ id: paymentIntentId, provider: "PAYMOB", status: "PENDING", amount, currency: String(order.currency).toUpperCase(),
