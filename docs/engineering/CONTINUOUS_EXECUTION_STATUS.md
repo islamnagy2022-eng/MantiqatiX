@@ -380,6 +380,10 @@ All Supabase production queries were read-only. No production migrations, table 
 4. Keep SMM launch deferred until a separate approved launch change; source parity is not launch approval.
 5. Complete remaining production E2E gates in `docs/MASTER_PRODUCTION_TODO.md`, including authenticated cross-tenant browser flows and authorized Paymob/settlement tests.
 
+## 2026-10-24 — Final verification campaign deferred
+
+The project instruction is to defer the comprehensive real-world acceptance campaign until all module development and integration work is complete and the release candidate is frozen. Continue engineering, source review, documentation, and existing development CI checks; do not represent CI as final acceptance. Do not start full browser/device E2E, real Paymob/financial transactions, production restore/rollback drills, or live production changes during this build phase. At the final gate, execute a documented end-to-end matrix across auth/RLS/tenant isolation, every module, finance/payments/webhooks/settlements, SMM, notifications, performance/accessibility, supported browsers/devices/Android, backup/restore, monitoring/alerts, and rollback. Use sandbox and isolated environments wherever possible, require explicit authorization for any real-money or production-impacting action, capture reproducible evidence, fix failures, and rerun affected suites. Until every mandatory gate has evidence, release remains **BLOCKED / NOT CERTIFIED**.
+
 
 ## 2026-10-24 — CRM lead lifecycle source integration (RC457)
 - Added CRM detail-drawer actions for the allowed next lead statuses; internal management actions are shown only when the record belongs to the active business selected in the session.
@@ -389,15 +393,6 @@ All Supabase production queries were read-only. No production migrations, table 
 - Exact-head CI was queued after the latest source/documentation commit; results are pending. This is not final release testing.
 - RC457 is source-only and has not been applied to production. No production data or configuration was changed.
 - Status: **IMPLEMENTED — NOT VERIFIED**. The comprehensive real-world acceptance campaign remains deferred to the final stage per user instruction. Production remains **BLOCKED / NOT CERTIFIED**.
-
-
-## 2026-10-24 — RC457 exact-head CI refresh
-- [x] Re-queried GitHub Actions for feature head `b2f0b8b618982427561cf5568dc0f83d17dbd91d`; 9 returned PR workflows completed successfully: Module Professionalization Validation, Migration History Immutability, Marketing Workspace Contract, Migration Version Uniqueness, MantiGO Open Ride Privacy Boundary, Deploy MantiqatiX Web workflow, Open PR Migration Collision Guard, Approval Action Audit Atomicity, and Backend-only Module Boundary.
-- [x] Static lifecycle guard is included in `.github/workflows/pages.yml` and checks that browser code does not directly mutate `marketing_leads`, the UI calls the backend RPC, customer reads stay owner-scoped, internal reads are business-scoped, and safe conflict/forbidden paths remain present.
-- [ ] This workflow snapshot is not a full acceptance campaign and does not certify runtime RPC/migration behavior or production deployment. PR #373 remains open/draft; RC457 remains unapplied to production.
-- [ ] Remaining development items: reconcile actual deployed lead status vocabulary against ordered migration/schema sources; implement/reuse interaction history and follow-up task/owner flows only after schema discovery; finish the remaining marketing-provider/services/campaign participant gaps.
-- Release remains **BLOCKED / NOT CERTIFIED**.
-
 
 ## 2026-10-24 — Marketing campaign workspace source integration
 - Added a campaigns tab to the existing marketing operations workspace without replacing the current module or schema.
@@ -413,3 +408,9 @@ All Supabase production queries were read-only. No production migrations, table 
 - Participant reads intentionally rely on the existing row-level policy to allow both the owning campaign business and the invited provider owner to see only authorized rows. UI checks are not treated as the security boundary.
 - Added static assertions for invitation/response RPC usage and provider ownership checks. Exact-head CI and runtime behavior remain **NOT VERIFIED**.
 - No payment, settlement, or external advertising action is performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-24 — Stacked release path and CI correction
+- PR #373 is stacked on PR #372 so the RC457 lifecycle migration and marketing UI are evaluated alongside the restored migration source chain.
+- The prior exact-head web validation failed because a static assertion did not include the new invitations tab. The assertion was corrected and a new exact-head run is underway.
+- The required migration verifier now carries RC457 after the later timestamped RC525 and RC102–RC106 sources, preserving chronological order.
+- These source changes do not prove live database migration parity or runtime behavior. Production remains **BLOCKED / NOT CERTIFIED**.
