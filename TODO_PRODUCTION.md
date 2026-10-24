@@ -476,3 +476,12 @@
 - [x] Extended static source guards for both RPC paths and provider ownership checks.
 - [ ] Exact-head CI and runtime RLS/RPC acceptance remain pending; no financial transfer or external ad launch is triggered by these actions.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Marketing partner invitation fix and RC457 gate alignment
+- [x] Fixed the partner invitation handler so business managers may invite other eligible verified partner profiles; it no longer incorrectly requires the invitee profile to belong to the manager. The separate response handler still requires the signed-in user to own the verified provider profile.
+- [x] Strengthened the static validator to assert this separation of invite authority and response ownership.
+- [x] Added RC457 to the production migration verifier and migration-chain contract while preserving the restored 34-source dependency chain plus the new forward-only RC457 migration.
+- [ ] Exact-head CI is running for commit `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d`; do not treat queued checks as passed.
+- [ ] PR #373 is stacked on PR #372 because the historical migration sources are required. Both remain unmerged; runtime RLS/RPC tests and release evidence are still required.
+- Production remains **BLOCKED / NOT CERTIFIED**.
