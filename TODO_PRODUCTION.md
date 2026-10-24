@@ -447,3 +447,12 @@
 - [x] Extended the marketing static validator to assert RPC boundaries, business scoping, and the existing migration's table grants.
 - [ ] Exact-head CI must pass for the campaign workspace and validator changes. Runtime campaign RPC/RLS and cross-tenant acceptance remain for the final verification stage.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Marketing partner collaboration source integration
+- [x] Added a partner invitations workspace for campaigns, scoped through the existing campaign participant RLS policy so campaign managers see their business records and provider owners can see their own invitations.
+- [x] Campaign managers can invite an active, verified partner-company/freelancer profile with a role, allocation percentage, and agreed value through `invite_marketing_campaign_partner_backend`.
+- [x] Verified provider owners can accept or decline their own pending invitations through `respond_marketing_campaign_invitation_backend`; UI ownership checks are supplemental and the backend remains authoritative.
+- [x] Extended static source guards for both RPC paths and provider ownership checks.
+- [ ] Exact-head CI and runtime RLS/RPC acceptance remain pending; no financial transfer or external ad launch is triggered by these actions.
+- Production remains **BLOCKED / NOT CERTIFIED**.
