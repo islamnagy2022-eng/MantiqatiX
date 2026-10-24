@@ -38,7 +38,7 @@
 ## P1 — Marketing & Advertising
 - [x] Live counts حيث تتوفر بيانات فعلية.
 - [x] إنشاء marketing lead فعلي عبر RLS.
-- [🟡] قائمة leads + التفاصيل + lifecycle — أضيفت تفاصيل Lead للقراءة وفق RLS في commit `9cbae8375ab39c835b7d3ff92c0c8bef49204064`؛ lifecycle والتحديثات ما زالت متبقية لأن `marketing_leads` لا يملك حاليًا UPDATE policy للمستخدم.
+- [🟡] قائمة leads + التفاصيل + lifecycle — تفاصيل القراءة موجودة؛ أُضيف RC457 RPC خلفي محدود وربطت واجهة التفاصيل بإجراءات الحالة على الفرع `feat/crm-marketing-lead-lifecycle-contract`. لا توجد UPDATE policy عامة مقصودة؛ ترحيل RC457 غير مطبق إنتاجيًا والميزة **IMPLEMENTED — NOT VERIFIED** حتى التحقق النهائي.
 - [ ] مقدمو خدمات التسويق: profiles/services — profiles قراءة فعلية في CRM، والخدمات التفصيلية ما زالت متبقية.
 - [ ] marketing projects + participants.
 - [ ] provider subscriptions.
@@ -51,7 +51,7 @@
 ## P1 — CRM
 - [ ] العملاء الحقيقيون.
 - [x] leads — عرض بيانات فعلية ضمن CRM.
-- [ ] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention/retargeting — يحتاج نموذج أحداث/صلاحيات UPDATE موثق قبل التنفيذ.
+- [🟡] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention — RC457 يضيف انتقالات ذرية مسجلة في `audit_logs` وواجهة CRM متصلة بالـRPC على فرع التطوير؛ نموذج retargeting/interaction tasks ما زال غير مكتمل، والاختبارات النهائية مؤجلة.
 - [ ] سجل التفاعلات.
 - [ ] مهام المتابعة والمسؤول.
 - [x] ربط CRM بالطلبات والخدمات.
