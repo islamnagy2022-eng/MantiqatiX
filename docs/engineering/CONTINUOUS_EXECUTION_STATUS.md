@@ -451,3 +451,11 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - CI order is now RC453 fixture + migration/tests → RC457 migration + lifecycle integration → RC458 migration + partner-directory integration. The fixture extension is isolated test setup only.
 - CI for the latest commit is pending/not yet observed; do not claim the new RC457 test passed until the latest head's PostgreSQL job is green. Prior successful CI refers to earlier head.
 - No deployment or production migration was executed. PR #372 and #373 remain unmerged; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 behavioral integration verified — 2026-10-24
+- The first PostgreSQL run found an ambiguous `result` reference in the test assertion; the production verification workflow also caught over-escaped regular expressions in the new static validator. Both issues were fixed.
+- Latest verified PR #373 head `951183e686ce3d221a950e875063dc034c5b3f18`: all 10 workflows completed successfully.
+- Marketing Campaign Backend PostgreSQL 16 output explicitly reports RC453, RC457 lifecycle, and RC458 partner-directory integration PASS. The production verification syntax check also passed.
+- The web deploy job remains skipped by the pull-request guard. No production deploy or production migration was performed.
+- Remaining release blockers: target Supabase schema/runtime parity, final E2E acceptance, disaster-recovery/restore evidence, and explicit release authorization. Both PRs remain open/draft; production remains **BLOCKED / NOT CERTIFIED**.
