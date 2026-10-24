@@ -1,0 +1,95 @@
+name: Forward Migration Chain Replay from Production Schema Checkpoint
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - "scripts/verify-tenant-isolation.sql"
+      - ".github/workflows/forward-migration-chain-replay.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/baselines/production_schema_snapshot.sql"
+      - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
+      - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
+      - "scripts/verify-tenant-isolation.sql"
+      - ".github/workflows/forward-migration-chain-replay.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay-forward-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout candidate source
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate captured checkpoint and static schema inventory
+        run: node scripts/tests/production-schema-baseline-static-audit.mjs
+
+      - name: Start isolated Supabase instance with no repository migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_dir="$(mktemp -d)"
+          echo "MNTY_REPLAY_TEST_DIR=$test_dir" >> "$GITHUB_ENV"
+          cd "$test_dir"
+          supabase init
+          supabase start -x studio,edge-runtime,logflare,vector
+
+      - name: Restore checkpoint and apply every later migration in timestamp order
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_url="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
+          test -n "$db_url"
+          checkpoint="$(node -e 'const m=require("./supabase/tests/baselines/production_schema_snapshot.manifest.json"); process.stdout.write(m.last_applied_migration_version)')"
+          [[ "$checkpoint" =~ ^[0-9]{14}$ ]]
+          echo "BASELINE_CHECKPOINT=$checkpoint"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_schema_snapshot.sql
+
+          migration_count=0
+          while IFS= read -r migration; do
+            filename="$(basename "$migration")"
+            version="${filename%%_*}"
+            [[ "$version" =~ ^[0-9]{14}$ ]] || { echo "Invalid migration version: $filename" >&2; exit 1; }
+            if [[ "$version" > "$checkpoint" ]]; then
+              echo "REPLAY_MIGRATION=$filename"
+              psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
+              migration_count=$((migration_count + 1))
+            fi
+          done < <(find supabase/migrations -maxdepth 1 -type f -name '*.sql' -print | sort)
+
+          test "$migration_count" -gt 0
+          echo "FORWARD_MIGRATIONS_APPLIED=$migration_count"
+
+          psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
+
+      - name: Stop isolated Supabase instance
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${MNTY_REPLAY_TEST_DIR:-}" ] && [ -d "$MNTY_REPLAY_TEST_DIR" ]; then
+            cd "$MNTY_REPLAY_TEST_DIR"
+            supabase stop --no-backup || true
+          fi

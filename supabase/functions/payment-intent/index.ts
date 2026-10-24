@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -92,6 +93,8 @@ Deno.serve(async (req) => {
   }
 
   const amountCents = Math.round(amount * 100);
+  if (!isValidPaymobAmountCents(amount, amountCents)) return json({ error: "PAYMENT_AMOUNT_PRECISION_INVALID", requestId }, 409, requestId);
+  if (String(intent.status ?? "").toUpperCase() !== "CREATED") return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 409, requestId);
   const phone = String(order.customer_phone ?? user.phone ?? "").trim();
   const email = String(user.email ?? "").trim();
   if (!phone || !email) return json({ error: "CUSTOMER_BILLING_CONTACT_REQUIRED", requestId }, 422, requestId);
@@ -108,19 +111,52 @@ Deno.serve(async (req) => {
     special_reference: paymentIntentId, expiration: 3600, notification_url: PAYMOB_CALLBACK_URL
   };
 
-  const response = await fetch("https://accept.paymob.com/v1/intention/", {
-    method: "POST", headers: { "Authorization": `Token ${PAYMOB_SECRET_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify(paymobPayload)
+  let response: Response;
+  let provider: Record<string, unknown> = {};
+  try {
+    response = await fetch("https://accept.paymob.com/v1/intention/", {
+      method: "POST",
+      headers: { "Authorization": `Token ${PAYMOB_SECRET_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify(paymobPayload)
+    });
+    provider = await response.json().catch(() => ({})) as Record<string, unknown>;
+  } catch {
+    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 502, requestId);
+  }
+
+  const providerIntentId = String(provider.id ?? "");
+  const providerClientSecret = String(provider.client_secret ?? "");
+  const providerOrderId = String(provider.intention_order_id ?? provider.order_id ?? "");
+  if (!response.ok && [400, 401, 403, 404, 422].includes(response.status) &&
+      !providerIntentId && !providerClientSecret && !providerOrderId) {
+    const { error: failError } = await setPaymentIntentStatus(paymentIntentId, "FAILED");
+    if (failError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    return json({ error: "PAYMENT_PROVIDER_REJECTED", requestId }, 502, requestId);
+  }
+
+  if (!response.ok || !providerIntentId || !providerClientSecret || !providerOrderId) {
+    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 502, requestId);
+  }
+
+  const providerCorrelationMatches = matchesPaymobIntention({
+    provider, amountCents, currency: String(order.currency || "EGP").toUpperCase(), reference: paymentIntentId
   });
-  const provider = await response.json().catch(() => ({}));
-  if (!response.ok || !provider?.id || !provider?.client_secret) {
-    await admin.from("payment_intents").update({ status: "FAILED", updated_at: new Date().toISOString() }).eq("id", paymentIntentId);
-    console.error(JSON.stringify({ requestId, stage: "paymob_intention", httpStatus: response.status }));
-    return json({ error: "Payment provider rejected the payment intent", requestId }, 502, requestId);
+  if (!providerCorrelationMatches) {
+    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    return json({ error: "PAYMENT_PROVIDER_INTENT_MISMATCH", requestId }, 502, requestId);
   }
 
   const { error: updateError } = await admin.from("payment_intents").update({
-    provider_intent_id: String(provider.id), status: "PENDING", updated_at: new Date().toISOString()
-  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion);
+    provider_intent_id: providerIntentId,
+    provider_order_id: providerOrderId,
+    status: "PENDING",
+    updated_at: new Date().toISOString()
+  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion).eq("status", "CREATED");
 
   if (updateError) {
     console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError.code }));
@@ -128,5 +164,10 @@ Deno.serve(async (req) => {
   }
 
   return json({ id: paymentIntentId, provider: "PAYMOB", status: "PENDING", amount, currency: String(order.currency).toUpperCase(),
-    pricingVersion, pricingHash, pricingAuthority: String(order.pricing_authority), clientSecret: String(provider.client_secret), requestId }, 200, requestId);
+    pricingVersion, pricingHash, pricingAuthority: String(order.pricing_authority), clientSecret: providerClientSecret, requestId }, 200, requestId);
 });
+
+async function setPaymentIntentStatus(paymentIntentId: string, status: string) {
+  return await admin.from("payment_intents").update({ status, updated_at: new Date().toISOString() })
+    .eq("id", paymentIntentId).eq("status", "CREATED");
+}
