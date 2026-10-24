@@ -75,10 +75,10 @@ Deno.serve(async req=>{
     });
     provider=await providerResponse.json().catch(()=>({})) as Record<string,unknown>;
   }catch{
-    const {error:holdError}=await admin.from("mantigo_financial_ledger")
+    const {data:held,error:holdError}=await admin.from("mantigo_financial_ledger")
       .update({provider:"PAYMOB",payment_status:"PENDING",updated_at:new Date().toISOString()})
-      .eq("id",ledger.id).eq("payment_status","REQUIRED");
-    if(holdError)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},500,requestId);
+      .eq("id",ledger.id).eq("payment_status","REQUIRED").select("id").maybeSingle();
+    if(holdError||!held)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},409,requestId);
     return json({error:"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",requestId},502,requestId);
   }
 
@@ -90,10 +90,10 @@ Deno.serve(async req=>{
     return json({error:"PAYMENT_PROVIDER_REJECTED_INTENT",requestId},502,requestId);
   }
   if(!providerResponse.ok||!matchesPaymobIntention({provider,amountCents,currency,reference:ledger.id})){
-    const {error:holdError}=await admin.from("mantigo_financial_ledger")
+    const {data:held,error:holdError}=await admin.from("mantigo_financial_ledger")
       .update({provider:"PAYMOB",payment_status:"PENDING",updated_at:new Date().toISOString()})
-      .eq("id",ledger.id).eq("payment_status","REQUIRED");
-    if(holdError)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},500,requestId);
+      .eq("id",ledger.id).eq("payment_status","REQUIRED").select("id").maybeSingle();
+    if(holdError||!held)return json({error:"PAYMENT_INTENT_REQUIRES_RECONCILIATION",requestId},409,requestId);
     return json({error:providerResponse.ok?"PAYMENT_PROVIDER_INTENT_MISMATCH":"PAYMENT_PROVIDER_OUTCOME_UNKNOWN",requestId},502,requestId);
   }
 
