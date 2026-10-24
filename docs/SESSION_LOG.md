@@ -332,3 +332,5 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Added RC459 checks to `scripts/validate-payment-migration-wiring.mjs` and the production verifier's required source migration list.
 - [ ] Exact-head CI and chronological forward migration replay must pass before considering RC459 verified. No production migration was applied and no real payment was triggered.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Follow-up review hardened the regular-order provider-failure callback to require `orders.total` and `orders.total_amount` to be non-null, exact-cent values equal to one another, and equal to both the persisted payment-intent amount and provider-confirmed amount. Added a corresponding source-contract assertion.
