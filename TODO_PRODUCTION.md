@@ -497,7 +497,7 @@
 - Production remains **BLOCKED / NOT CERTIFIED**.
 
 - [x] Added a bounded partner search input (80-character maximum) backed by the same scoped RPC, with a maximum of 50 directory results per request.
-- [ ] GitHub did not return PR workflow runs for the latest code head `67eac802feedb4339608853b85f17f9738ae42b9`; the new RC458/UI changes remain unverified by exact-head CI.
+- [x] The later code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` received successful results for all nine PR workflows. Later commits on this branch updated only release notes and PR metadata; no application code changed after that CI head.
 
 
 ## 2026-10-24 — RC458 invitation directory metadata and CI result
