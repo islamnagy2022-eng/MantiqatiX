@@ -33,7 +33,7 @@ assert.match(scopeMigration, /platform_admin\.tenant_id\s*=\s*'MNTY-PLATFORM'[\s
   "platform-wide access must require explicit platform full-control membership");
 
 // The OPEN vs NEW discrepancy remains a blocker; do not silently normalize legacy values.
-assert.match(contract, /writes\s*OPEN[\s\S]*?fixture\s*uses\s*NEW/i,
+assert.match(contract, /writes\s*.OPEN.[\s\S]*?fixture\s*uses\s*.NEW./i,
   "contract must retain the OPEN vs NEW status discrepancy until reconciled");
 assert.match(contract, /BLOCKED\s*\/\s*NOT CERTIFIED/,
   "release must remain blocked pending final evidence");
