@@ -552,8 +552,8 @@
 
 ## RC459 — Exact-cent payment RPC authority
 
-- [x] Added forward-only migration `20261025010000_rc459_exact_cent_payment_rpcs.sql` to harden MantiGo, regular payment failure, subscription success/failure, and digital-page payment RPCs against one-cent and fractional-cent mismatches.
-- [x] Preserved historical RC425–RC431 migration files; RC459 replaces the authoritative function definitions forward-only.
+- [x] Added forward-only migration `20261025010000_rc459_exact_cent_payment_rpcs.sql` to harden payment-intent creation plus MantiGo, regular payment failure, subscription success/failure, and digital-page payment RPCs against one-cent and fractional-cent mismatches, including disagreement between the two persisted order totals and stale idempotency records.
+- [x] Preserved historical RC425–RC431 migration files; RC459 replaces the authoritative function definitions forward-only, preserving the latest RC336 search_path setting for payment-intent creation.
 - [x] Added static wiring assertions and included RC459 in the production verifier's required migration source list.
 - [ ] Require exact-head CI, chronological disposable Supabase migration replay, and final payment integration tests before marking verified.
 - [ ] Apply only through approved release migration process after live target reconciliation and recovery evidence.
