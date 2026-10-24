@@ -25,3 +25,12 @@ export function matchesPaymobIntention(input) {
     reference === input.reference && providerId.length > 0 &&
     orderId.length > 0 && clientSecret.length > 0;
 }
+
+export function matchesPaymobAmountCents(expectedAmount, providerAmountCents) {
+  const expected = Number(expectedAmount);
+  const cents = Number(providerAmountCents);
+  if (!Number.isFinite(expected) || expected <= 0 || !Number.isSafeInteger(cents) || cents <= 0) return false;
+  const scaled = expected * 100;
+  const rounded = Math.round(scaled);
+  return Number.isSafeInteger(rounded) && Math.abs(scaled - rounded) < 0.000001 && rounded === cents;
+}
