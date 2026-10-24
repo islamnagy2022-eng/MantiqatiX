@@ -494,3 +494,6 @@
 - [x] Extended static source guards for manager scope, active/verified partner filtering, empty search_path, authenticated-only execute grants, and the directory's minimal return columns.
 - [ ] Runtime RLS/RPC tests and exact-head CI are still required. No production migration has been applied.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Added a bounded partner search input (80-character maximum) backed by the same scoped RPC, with a maximum of 50 directory results per request.
+- [ ] GitHub did not return PR workflow runs for the latest code head `67eac802feedb4339608853b85f17f9738ae42b9`; the new RC458/UI changes remain unverified by exact-head CI.
