@@ -247,3 +247,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The **RC431 Digital Page Payment Binding Integration** job also completed **SUCCESS** on that same CI run set.
 - The forward migration chain replay remained **IN PROGRESS** at this check; migration version uniqueness, migration immutability, marketing campaign integration, and some other jobs were still queued.
 - This success validates the RC425 workflow at commit `34450cf5debb7ec6935fa2ac1da819b04bebad03`, not the later order-pricing commits `8dad9a4a73199649568606eea4cedcf120bafe5f` / `92a3b2e950337712758b4a17ec4adb6b075b3311`. The later changes remain **NOT VERIFIED by CI** because no workflow run was returned for those exact SHAs.
+
+
+### Follow-up — subscription webhook replay binding
+
+- Source review found the subscription branch in `paymob-webhook` acknowledged an existing `external_event_id` as idempotent without checking which subscription payment intent owned that event. The RC429/RC430 RPCs already bind duplicate events to `subscription_payment_intent_id`, `provider_order_id`, and `provider_transaction_id`, but the early webhook return could bypass those checks.
+- Changed the early replay check to read `raw_payload` and return `409 SUBSCRIPTION_EVENT_INTENT_MISMATCH` if the stored subscription intent differs from the currently matched intent. Added a source-contract assertion in `scripts/validate-payment-migration-wiring.mjs`.
+- Commits: `6c6f22445a4511575c1dbbcb5c14e5917357f6f0` and `1688b626c9b15cfaabc0b77ecb3c151fb303e011`.
+- The source guard and migration payload shape were inspected. **The new guard has not yet been exercised by CI or an end-to-end webhook replay test.**
+- Production remains **BLOCKED / NOT CERTIFIED**.
