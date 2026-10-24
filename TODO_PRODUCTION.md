@@ -38,7 +38,7 @@
 ## P1 — Marketing & Advertising
 - [x] Live counts حيث تتوفر بيانات فعلية.
 - [x] إنشاء marketing lead فعلي عبر RLS.
-- [🟡] قائمة leads + التفاصيل + lifecycle — تفاصيل القراءة موجودة؛ أُضيف RC457 RPC خلفي محدود وربطت واجهة التفاصيل بإجراءات الحالة على الفرع `feat/crm-marketing-lead-lifecycle-contract`. لا توجد UPDATE policy عامة مقصودة؛ ترحيل RC457 غير مطبق إنتاجيًا والميزة **IMPLEMENTED — NOT VERIFIED** حتى التحقق النهائي.
+- [🟡] قائمة leads + التفاصيل + lifecycle — أضيف RC457 RPC محدود وربطت واجهة التفاصيل بإجراءات الحالة؛ لا توجد UPDATE policy عامة مقصودة. الميزة IMPLEMENTED — NOT VERIFIED حتى اجتياز CI والتحقق النهائي.
 - [ ] مقدمو خدمات التسويق: profiles/services — profiles قراءة فعلية في CRM، والخدمات التفصيلية ما زالت متبقية.
 - [ ] marketing projects + participants.
 - [ ] provider subscriptions.
@@ -51,7 +51,7 @@
 ## P1 — CRM
 - [ ] العملاء الحقيقيون.
 - [x] leads — عرض بيانات فعلية ضمن CRM.
-- [🟡] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention — RC457 يضيف انتقالات ذرية مسجلة في `audit_logs` وواجهة CRM متصلة بالـRPC على فرع التطوير؛ نموذج retargeting/interaction tasks ما زال غير مكتمل، والاختبارات النهائية مؤجلة.
+- [🟡] lifecycle: acquisition/qualification/contact/follow-up/offer/conversion/retention — RC457 يضيف انتقالات ذرية مسجلة في `audit_logs` وواجهة CRM متصلة بالـRPC؛ سجل التفاعلات ومهام المتابعة/المسؤول وretargeting ما زالت غير مكتملة.
 - [ ] سجل التفاعلات.
 - [ ] مهام المتابعة والمسؤول.
 - [x] ربط CRM بالطلبات والخدمات.
@@ -422,7 +422,27 @@
 - [🟢] Dialog accessibility implemented: `role="dialog"`, `aria-modal`, labelled heading, Escape close, backdrop close and initial focus.
 - [🟡] CI for RC314 remains pending/in progress at documentation time; no production gate was marked closed from this UI change alone.
 
- 
+## 2026-10-24 — PR #372 exact-head verification checkpoint
+
+- [x] Exact-head commit `d4ee010a6835caec74fdb04c211edd6f1719b609`: chronological forward migration replay succeeded in disposable Supabase/PostgreSQL, applying 35 forward migrations after the captured production schema checkpoint.
+- [x] The replay then ran the synthetic two-tenant fixture and passed both read-isolation and cross-tenant UPDATE-denial assertions for orders and payment intents in both directions; the test transaction ended with ROLLBACK.
+- [x] RC431 Paymob intention-correlation / payment-integrity PostgreSQL workflow passed, including fail-closed correlation tests.
+- [x] RC425 MantiGo/Paymob atomicity workflow passed, including checkout-secret crypto and source-wiring checks.
+- [x] Migration history immutability, migration-version uniqueness, open-PR migration collision guard, MantiGO open-ride privacy, backend-only module boundary, and module professionalization validation workflows were reported successful for this exact head.
+- [x] Web validation workflow passed. Its `deploy` job was skipped for this PR run; this checkpoint does not represent a Pages or production deployment.
+- [ ] These CI results do not certify the live production database or provider flows. Production migration ledger remains unreconciled beyond RC424; backup/PITR and restore rehearsal, managed Auth leaked-password protection, live Edge Function parity, authorized Paymob/finance E2E, browser/device E2E, monitoring/alert and rollback drills remain open.
+- [ ] Keep the release manifest `BLOCKED` / `NOT CERTIFIED`. No production migration, Edge Function deployment, Auth/grant/RLS change, real payment, or financial data mutation was performed.
+
+## 2026-10-24 — قرار تأجيل الاختبارات الفعلية الشاملة إلى نهاية التطوير
+
+- [x] تم اعتماد توجيه المشروع: تأجيل حملة الاختبارات الفعلية الشاملة لكل الموديولات إلى آخر مرحلة بعد اكتمال التطوير وتجميد مرشح الإصدار.
+- [x] حتى موعد الحملة النهائية، تكون الأولوية لاستكمال الواجهات والوظائف والتكاملات والتوثيق ومراجعة الكود، مع عدم إعلان أي ميزة أو بوابة إطلاق VERIFIED لمجرد اكتمال التطوير.
+- [ ] لا تبدأ الآن اختبارات E2E الفعلية الشاملة أو معاملات Paymob الحقيقية أو اختبارات الاستعادة/التراجع الإنتاجية. تُنفّذ لاحقاً ضمن خطة اختبار نهائية معتمدة، وفي بيئات معزولة/ sandbox حيثما أمكن، وبعد تحقق النسخ الاحتياطي وصلاحية الاستعادة والحصول على أي موافقات لازمة.
+- [ ] احتفظ بالاختبارات الآلية الحالية التي تعمل كجزء من CI كأدلة تطوير منفصلة؛ نجاحها لا يعني أن حملة الاختبارات النهائية قد نُفذت.
+- [ ] في نهاية التطوير، نفّذ حملة موحدة تغطي: المصادقة والجلسات والأدوار، عزل المستأجرين وRLS، جميع تدفقات الموديولات، الطلبات والمخزون والحسابات والمحافظ والمدفوعات وwebhooks والتسويات، SMM، الإشعارات والأتمتة، الأداء وإمكانية الوصول، Android/المتصفحات والأجهزة، النسخ الاحتياطي والاستعادة، المراقبة والتنبيه والتراجع، ثم إصلاح العيوب وإعادة الاختبار وتوثيق الأدلة.
+- [ ] تظل بوابة الإنتاج `BLOCKED / NOT CERTIFIED` حتى تنجح حملة الاختبارات النهائية وتُغلق كل بوابة بدليل قابل للمراجعة. هذا القرار يؤجل الاختبارات الشاملة ولا يحول الاختبارات غير المنفذة إلى PASS.
+
+
 ## 2026-10-24 — CRM lead lifecycle UI/backend integration (RC457)
 - [x] Added the CRM detail-drawer lifecycle actions using the server-authoritative `transition_marketing_lead_backend` RPC; actions are limited to the selected active business and source-defined allowed transitions.
 - [x] Customer lead details remain requester-owner scoped; internal staff detail reads add an active-business filter. RLS/server-side membership checks remain authoritative.
