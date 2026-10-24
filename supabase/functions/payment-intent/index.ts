@@ -121,8 +121,8 @@ Deno.serve(async (req) => {
     });
     provider = await response.json().catch(() => ({})) as Record<string, unknown>;
   } catch {
-    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
-    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: held, error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError || !held) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 502, requestId);
   }
 
@@ -131,14 +131,14 @@ Deno.serve(async (req) => {
   const providerOrderId = String(provider.intention_order_id ?? provider.order_id ?? "");
   if (!response.ok && [400, 401, 403, 404, 422].includes(response.status) &&
       !providerIntentId && !providerClientSecret && !providerOrderId) {
-    const { error: failError } = await setPaymentIntentStatus(paymentIntentId, "FAILED");
-    if (failError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: failed, error: failError } = await setPaymentIntentStatus(paymentIntentId, "FAILED");
+    if (failError || !failed) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_REJECTED", requestId }, 502, requestId);
   }
 
   if (!response.ok || !providerIntentId || !providerClientSecret || !providerOrderId) {
-    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
-    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: held, error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError || !held) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 502, requestId);
   }
 
@@ -146,8 +146,8 @@ Deno.serve(async (req) => {
     provider, amountCents, currency: String(order.currency || "EGP").toUpperCase(), reference: paymentIntentId
   });
   if (!providerCorrelationMatches) {
-    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
-    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: held, error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError || !held) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_INTENT_MISMATCH", requestId }, 502, requestId);
   }
 
@@ -169,5 +169,5 @@ Deno.serve(async (req) => {
 
 async function setPaymentIntentStatus(paymentIntentId: string, status: string) {
   return await admin.from("payment_intents").update({ status, updated_at: new Date().toISOString() })
-    .eq("id", paymentIntentId).eq("status", "CREATED");
+    .eq("id", paymentIntentId).eq("status", "CREATED").select("id").maybeSingle();
 }
