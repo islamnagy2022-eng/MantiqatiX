@@ -1,6 +1,6 @@
 # CRM / Marketing Lead Lifecycle — Implementation Contract
 
-Status: BACKEND SOURCE IMPLEMENTED — UI INTEGRATION PENDING — NOT VERIFIED
+Status: BACKEND + UI SOURCE INTEGRATED — NOT VERIFIED
 Scope: define the safe contract for internal marketing teams to manage leads without weakening customer ownership or tenant isolation.
 Release rule: this document is not approval to deploy, alter production grants, or run real-world acceptance tests. The comprehensive acceptance campaign remains deferred until module development and integration are complete.
 
@@ -127,3 +127,14 @@ Before writing the lifecycle migration/RPC, record the canonical status values, 
 - The production migration source gate and its companion static contract were extended to require RC457 in chronological timestamp order. The production ledger is not updated, no migration was applied, and the release gate must remain BLOCKED until the full ordered migration plan is reconciled.
 - Remaining development work: wire the existing CRM lead-detail/list UI to the RPC with a fresh request UUID per user action, render loading/success/permission/conflict/error states, add source-level guards for the RPC/UI boundary, and update the TODO/continuity records.
 - Verification classification: **IMPLEMENTED — NOT VERIFIED**. Comprehensive runtime acceptance remains deferred until development and integration are complete.
+
+
+## 11. RC457 UI integration — 2026-10-24
+
+- The CRM lead detail drawer now offers only the next status transitions defined in the source contract, and only for internal management roles when the lead's `requester_business_id` matches the active business selected in the session.
+- Internal lead detail reads add an active-business filter; customer detail reads remain requester-owner scoped. Database RLS remains authoritative.
+- Status changes call `transition_marketing_lead_backend` with the current expected status, the selected next status, the authenticated user ID (which the RPC independently matches to `auth.uid()`), and a fresh request UUID.
+- The UI handles conflict, invalid transition, forbidden/not-found, idempotency conflict, and generic failure without claiming success until the RPC confirms the requested status. It refreshes the workspace after a confirmed transition.
+- Added source-level CI assertions for the UI/RPC contract and the ownership/business boundary. This is a static guard, not a runtime or adversarial security test.
+- The migration is still source-only and has not been applied to production. Until the RC457 migration is approved and applied through the authorized release process, the new UI action must not be considered production-operational.
+- Classification: **IMPLEMENTED — NOT VERIFIED**. Comprehensive acceptance remains deferred to the final development/verification stage. Production remains **BLOCKED / NOT CERTIFIED**.
