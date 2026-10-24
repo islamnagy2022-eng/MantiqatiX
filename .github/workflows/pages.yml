@@ -141,10 +141,62 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -q "branches: branches ?? \[\]" supabase/functions/api/index.ts
 
+  # This narrow path publishes only reviewed public-shell changes when the
+  # broader production certification gate is still blocked. It cannot publish
+  # backend, schema, auth, finance, payment, or workflow changes.
+  validate_public_only:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout full history for exact push diff
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Require public-shell-only changed paths
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" > /tmp/changed-files.txt
+          test -s /tmp/changed-files.txt
+          cat /tmp/changed-files.txt
+          while IFS= read -r path; do
+            case "$path" in
+              web/home.js|web/home.css|web/index.html|web/sw.js|scripts/validate-home-production-content.mjs|scripts/validate-sector-rendering.mjs|scripts/validate-marketing-campaign-ui.mjs) ;;
+              *) echo "Refusing public-only deployment because this path is outside the allowlist: $path"; exit 1 ;;
+            esac
+          done < /tmp/changed-files.txt
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install web runtime dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Vendor Supabase browser SDK
+        run: |
+          mkdir -p web/vendor
+          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
+          test -s web/vendor/supabase.js
+      - name: Validate public-shell-only release
+        run: |
+          set -euo pipefail
+          node --check web/home.js
+          node scripts/validate-home-production-content.mjs
+          node scripts/validate-sector-rendering.mjs
+          node scripts/validate-marketing-campaign-ui.mjs
+          node scripts/validate-public-web-secrets.mjs
+          node scripts/validate-web-config.mjs
+          node scripts/validate-web-assets.mjs
+          echo "PUBLIC_SHELL_RELEASE=PASS"
+          echo "This gate does not certify backend, auth, database, payment, or financial production readiness."
+
   deploy:
     # Never publish a feature branch by manually dispatching the production Pages workflow.
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: validate
+    needs: [validate, validate_public_only]
+    if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (needs.validate.result == 'success' || needs.validate_public_only.result == 'success')
     timeout-minutes: 10
     environment:
       name: github-pages
@@ -201,6 +253,11 @@ jobs:
           grep -Fq "mnty-customer-registration" <<<"$APP_JS"
           grep -Fq "tenant_id:'MNTY-PLATFORM'" <<<"$APP_JS"
           grep -Fq "openPlatform" <<<"$HOME_JS"
+          grep -Fq "mx-category-filter-input" <<<"$HOME_JS"
+          grep -Fq "mx-category-service-details" <<<"$HOME_JS"
+          grep -Fq "PUBLIC_CATEGORY_ALIASES" <<<"$HOME_JS"
+          grep -Fq "home.js?v=rc404-public-sector-details" "$TMP_PAGE"
+          grep -Fq "home.css?v=rc399-public-sector-details" "$TMP_PAGE"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"$CONFIG_JS"
           grep -Fq "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'" <<<"$CONFIG_JS"
           PREVIEW_ENTRY="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/")"
