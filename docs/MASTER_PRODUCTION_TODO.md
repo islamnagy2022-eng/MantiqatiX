@@ -1812,3 +1812,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] نجحت فحوص Marketing Workspace Contract وProduction Health Monitor على نفس الالتزام.
 - [ ] فشل production verification engine العام ما زال يمنع اعتماد إطلاق backend والعمليات الحساسة؛ نجاح نشر الواجهة لا يعني اعتماد كل الموديولات تشغيليًا.
 - [ ] مواصلة بناء وتوحيد الصفحات والمسارات العامة لكل موديول، ثم تنفيذ اختبارات E2E والأمن والتعافي قبل اعتماد الإطلاق الكامل.
+
+### RC455 — تحسين الوصول بلوحة المفاتيح في تخصيص طلب المطعم — 2026-10-24
+- [x] دمج PR #361 في main لتوسيع بوابة النشر المحدود بشكل ضيق: السماح فقط بملف واجهة طلب المطعم التجريبية ومدققها، مع تشغيل `validate-preview-navigation.mjs` ضمن البوابة؛ لم تُفتح البوابة لتغييرات backend أو قواعد البيانات أو المدفوعات.
+- [x] دمج PR #362 في main بالالتزام `dfbdc27dcc3acb9ff803543b93dadd0a9385182c`.
+- [x] تحسين نافذة تخصيص الوجبة: دعم Escape، حصر تنقل Tab داخل النافذة، نقل التركيز للنافذة عند فتحها وإعادته إلى زر الصنف بعد إغلاقها، قفل تمرير الخلفية واستعادته، وإغلاق النافذة عند الضغط على الخلفية.
+- [x] نجحت Preview Demo Validation على الالتزام الجديد: workflow run https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/40045562940.
+- [x] نجحت بوابة validate_public_only ونجح job النشر والتحقق الحي ضمن Deploy MantiqatiX Web: https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/40045563020.
+- [x] نجح نشر مسار المعاينة: https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/40045563014.
+- [x] نجحت فحوص Backend-only Module Boundary وModule Professionalization Validation وMantiGO Open Ride Privacy Boundary على الالتزام نفسه.
+- [ ] مهمة Production verification engine الشاملة ما زالت تُبقي `PRODUCTION_GATE=BLOCKED`. نجاح نشر الواجهة العامة لا يثبت جاهزية backend أو جميع الموديولات للإنتاج.
+- [ ] استمرار استكمال واجهات المطاعم ورحلة العميل ومقدم الخدمة، واختبار حالات الخطأ وإعادة المحاولة وحالات الشبكة على واجهة الطلب الحقيقية، مع عدم اعتبار تجربة الطلب التجريبية نظام طلبات إنتاجيًا.
+- [ ] ما زالت اختبارات E2E بهويات حقيقية متعددة الأدوار، واختبارات Paymob/refund والتسويات، ومراجعة RLS/Security Advisor، وتدريب النسخ الاحتياطي والاستعادة، واختبارات Android الموقعة وعلى أجهزة حقيقية، ومراقبة/تنبيه/تراجع الإنتاج غير مغلقة.
+- لا تغييرات على قاعدة بيانات الإنتاج أو معاملات مالية حقيقية في هذا الإصدار. حالة الإطلاق الكامل: **BLOCKED / NOT CERTIFIED**.
