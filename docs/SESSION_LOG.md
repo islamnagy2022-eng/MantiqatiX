@@ -239,3 +239,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Follow-up commits: `81e08332da4ae495717c0eb437e18c14f1168611`, `8dad9a4a73199649568606eea4cedcf120bafe5f`, `993373b2588181b6b1d523c44e6d47967b1b27cc`, `92a3b2e950337712758b4a17ec4adb6b075b3311`, and `d8d815ad7df8c40d7e4d56e1cb9b0f41496060dc`.
 - **Verification caveat:** GitHub Actions runs were available for the earlier commit `34450cf5debb7ec6935fa2ac1da819b04bebad03`, but no PR-triggered run was returned for the latest commit `92a3b2e950337712758b4a17ec4adb6b075b3311`. Therefore the new exact-cent order pricing assertions and tests are **NOT VERIFIED by CI yet**. Do not infer success from source inspection.
 - **Release state remains BLOCKED / NOT CERTIFIED.**
+
+
+### CI update — 2026-10-25
+
+- The previously queued **RC425 MantiGo Paymob Atomicity** job for commit `34450cf5debb7ec6935fa2ac1da819b04bebad03` subsequently completed **SUCCESS**.
+- The **RC431 Digital Page Payment Binding Integration** job also completed **SUCCESS** on that same CI run set.
+- The forward migration chain replay remained **IN PROGRESS** at this check; migration version uniqueness, migration immutability, marketing campaign integration, and some other jobs were still queued.
+- This success validates the RC425 workflow at commit `34450cf5debb7ec6935fa2ac1da819b04bebad03`, not the later order-pricing commits `8dad9a4a73199649568606eea4cedcf120bafe5f` / `92a3b2e950337712758b4a17ec4adb6b075b3311`. The later changes remain **NOT VERIFIED by CI** because no workflow run was returned for those exact SHAs.
