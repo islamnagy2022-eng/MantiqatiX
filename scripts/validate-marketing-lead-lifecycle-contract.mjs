@@ -160,17 +160,17 @@ assert.match(campaignWorkflow, /rc453_migration\.sql[\s\S]*?rc453_test\.sql[\s\S
 
 
 const leadLifecycleIntegration = read("supabase/tests/rc457_marketing_lead_lifecycle_integration.sql");
-assert.match(leadLifecycleMigration, /create or replace function public\\.transition_marketing_lead_backend/,
+assert.match(leadLifecycleMigration, /create or replace function public\.transition_marketing_lead_backend/,
   "RC457 server-authoritative lead transition RPC must exist");
-assert.match(leadLifecycleMigration, /for update[\\s\\S]*?mnty_can_manage_marketing_business[\\s\\S]*?LEAD_STATUS_CONFLICT/,
+assert.match(leadLifecycleMigration, /for update[\s\S]*?mnty_can_manage_marketing_business[\s\S]*?LEAD_STATUS_CONFLICT/,
   "RC457 must lock the lead row and enforce business scope and expected-state concurrency");
-assert.match(leadLifecycleMigration, /audit_logs_marketing_lead_lifecycle_request_uq[\\s\\S]*?request_id/,
+assert.match(leadLifecycleMigration, /audit_logs_marketing_lead_lifecycle_request_uq[\s\S]*?request_id/,
   "RC457 must protect request idempotency in the audit store");
-assert.match(leadLifecycleIntegration, /identical lifecycle replay[\\s\\S]*?stale expected status[\\s\\S]*?disallowed lifecycle transition[\\s\\S]*?cross-business manager[\\s\\S]*?AUTH_REQUIRED/,
+assert.match(leadLifecycleIntegration, /identical lifecycle replay[\s\S]*?stale expected status[\s\S]*?disallowed lifecycle transition[\s\S]*?cross-business manager[\s\S]*?AUTH_REQUIRED/,
   "RC457 PostgreSQL integration must cover replay, stale state, invalid transition, cross-business isolation, and missing auth");
-assert.match(campaignWorkflow, /20261024193000_rc457_marketing_lead_lifecycle_backend\\.sql[\\s\\S]*?rc457_marketing_lead_lifecycle_integration\\.sql/,
+assert.match(campaignWorkflow, /20261024193000_rc457_marketing_lead_lifecycle_backend\.sql[\s\S]*?rc457_marketing_lead_lifecycle_integration\.sql/,
   "PostgreSQL workflow must include the RC457 migration and behavioral test");
-assert.match(campaignWorkflow, /rc453_test\\.sql[\\s\\S]*?rc457_migration\\.sql[\\s\\S]*?rc457_test\\.sql[\\s\\S]*?rc458_migration\\.sql/,
+assert.match(campaignWorkflow, /rc453_test\.sql[\s\S]*?rc457_migration\.sql[\s\S]*?rc457_test\.sql[\s\S]*?rc458_migration\.sql/,
   "PostgreSQL integration order must apply RC453 then RC457 then RC458");
 
 console.log("Marketing lead lifecycle + campaign workspace safety contracts: PASS (static source guard only)");
