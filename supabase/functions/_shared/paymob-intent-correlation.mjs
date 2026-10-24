@@ -1,19 +1,14 @@
 // Fail-closed correlation checks for Paymob intention creation responses.
-const record = (value: unknown): Record<string, unknown> =>
-  value !== null && typeof value === "object" ? value as Record<string, unknown> : {};
+const record = (value) =>
+  value !== null && typeof value === "object" ? value : {};
 
-export function isValidPaymobAmountCents(amount: number, amountCents: number): boolean {
+export function isValidPaymobAmountCents(amount, amountCents) {
   return Number.isFinite(amount) && amount > 0 &&
     Number.isSafeInteger(amountCents) && amountCents > 0 &&
     Math.abs(amount * 100 - amountCents) < 0.000001;
 }
 
-export function matchesPaymobIntention(input: {
-  provider: Record<string, unknown>;
-  amountCents: number;
-  currency: string;
-  reference: string;
-}): boolean {
+export function matchesPaymobIntention(input) {
   const provider = record(input.provider);
   const detail = record(provider.intention_detail);
   const extras = record(provider.extras);
