@@ -77,6 +77,10 @@ assert.match(operations, /'campaigns','invitations','projects'/,
   "marketing navigation must keep the campaign invitation workspace wired");
 assert.match(operations, /function campaignInvitationsWorkspace[\s\S]*?data-mi-respond="ACCEPTED"[\s\S]*?data-mi-respond="DECLINED"/,
   "verified provider owners must have explicit accept and decline actions for pending invitations");
+assert.match(operations, /const ownProviderIds=new Set[\s\S]*?invitedCampaignIds=[\s\S]*?p\.provider_id[\s\S]*?\.slice\(0,50\)/,
+  "provider campaign metadata lookup must be derived only from the signed-in user's own invitations and remain bounded");
+assert.match(operations, /from\('marketing_campaigns'\)\.select\('id,title,status'\)\.in\('id',invitedCampaignIds\)/,
+  "provider invitation details must fetch only minimal campaign metadata for already-authorized invitation IDs");
 assert.match(operations, /sb\.rpc\('list_marketing_partner_directory_backend'/,
   "cross-business partner discovery must use the scoped backend directory RPC");
 assert.match(operations, /data-op-tab[\s\S]*?tab==='invitations'[\s\S]*?list_marketing_partner_directory_backend/,
