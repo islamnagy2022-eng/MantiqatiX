@@ -48,8 +48,8 @@ export function matchesCurrencyAmounts(leftAmount, rightAmount) {
 }
 
 export function matchesPaymobEventOutcome(storedStatus, callbackSuccess) {
-  return String(storedStatus ?? "").toUpperCase() === "FAILED" ? callbackSuccess === false :
-    String(storedStatus ?? "").toUpperCase() !== "" && callbackSuccess === true;
+  const status = String(storedStatus ?? "").toUpperCase();
+  return callbackSuccess === true ? status === "PROCESSED" : status === "FAILED";
 }
 
 export function matchesPaymobSubscriptionEventType(storedEventType, callbackSuccess) {
