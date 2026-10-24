@@ -1,16 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
+import { encryptCheckoutSecret, decryptCheckoutSecret } from "../_shared/checkout-secret-crypto.mjs";
 const url=Deno.env.get("SUPABASE_URL")??""; const serviceRole=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??""; const secretKey=Deno.env.get("PAYMOB_SECRET_KEY")??""; const publicKey=Deno.env.get("PAYMOB_PUBLIC_KEY")??""; const integrationId=Deno.env.get("PAYMOB_INTEGRATION_ID")??"";
 const admin=createClient(url,serviceRole,{auth:{persistSession:false,autoRefreshToken:false}});
 const json=(body:unknown,status=200,requestId?:string)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store",...(requestId?{"X-Request-Id":requestId}:{})}});
-const checkoutKeyVersion="V1";
+const checkoutKeyVersion="v1";
 const checkoutKeySecret=Deno.env.get("PAYMOB_CHECKOUT_ENCRYPTION_KEY_V1")??"";
 const decodeBase64=(v:string)=>Uint8Array.from(atob(v),c=>c.charCodeAt(0));
-const encodeBase64=(v:ArrayBuffer|Uint8Array)=>{const bytes=v instanceof Uint8Array?v:new Uint8Array(v);let binary="";for(const b of bytes)binary+=String.fromCharCode(b);return btoa(binary);};
 async function checkoutCryptoKey(){if(!checkoutKeySecret)throw new Error("CHECKOUT_ENCRYPTION_KEY_MISSING");const raw=decodeBase64(checkoutKeySecret);if(raw.length!==32)throw new Error("CHECKOUT_ENCRYPTION_KEY_INVALID");return crypto.subtle.importKey("raw",raw,{name:"AES-GCM"},false,["encrypt","decrypt"]);}
-async function encryptCheckoutSecretPayload(secret:string){const key=await checkoutCryptoKey();const iv=crypto.getRandomValues(new Uint8Array(12));const additionalData=new TextEncoder().encode("MantiqaTix:PaymobCheckout:"+checkoutKeyVersion);const ciphertext=await crypto.subtle.encrypt({name:"AES-GCM",iv,additionalData},key,new TextEncoder().encode(secret));return {ciphertext:encodeBase64(ciphertext),iv:encodeBase64(iv),keyVersion:checkoutKeyVersion};}
-async function decryptCheckoutSecretPayload(ciphertext:string,ivText:string,keyVersion:string){if(keyVersion!==checkoutKeyVersion)throw new Error("CHECKOUT_ENCRYPTION_KEY_VERSION_UNAVAILABLE");const key=await checkoutCryptoKey();const plaintext=await crypto.subtle.decrypt({name:"AES-GCM",iv:decodeBase64(ivText),additionalData:new TextEncoder().encode("MantiqaTix:PaymobCheckout:"+keyVersion)},key,decodeBase64(ciphertext));return new TextDecoder().decode(plaintext);}
+async function encryptCheckoutSecretPayload(secret:string,intentId:string,businessId:string){const key=await checkoutCryptoKey();return encryptCheckoutSecret(secret,{key,version:checkoutKeyVersion,intentId,businessId});}
+async function decryptCheckoutSecretPayload(intent:Record<string,unknown>){const key=await checkoutCryptoKey();return decryptCheckoutSecret(intent,{key});}
 Deno.serve(async req=>{
  const requestId=req.headers.get("x-request-id")||crypto.randomUUID();
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405,requestId);
@@ -34,7 +34,7 @@ Deno.serve(async req=>{
   if(claim.claimed!==true){
     if(claimedIntent.provider_intent_id&&claimedIntent.provider_order_id&&claimedIntent.client_secret_ciphertext&&claimedIntent.client_secret_iv&&claimedIntent.client_secret_key_version){
       try{
-        const clientSecret=await decryptCheckoutSecretPayload(String(claimedIntent.client_secret_ciphertext),String(claimedIntent.client_secret_iv),String(claimedIntent.client_secret_key_version));
+        const clientSecret=await decryptCheckoutSecretPayload(claimedIntent);
         const checkoutUrl=`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(publicKey)}&clientSecret=${encodeURIComponent(clientSecret)}`;
         return json({paymentIntent:claimedIntent,clientSecret,checkoutUrl,requestId},200,requestId);
       }catch{return json({error:"CHECKOUT_RECOVERY_UNAVAILABLE",requestId},503,requestId);}
@@ -65,9 +65,9 @@ Deno.serve(async req=>{
     await admin.from("subscription_payment_intents").update({provider_creation_state:"RECONCILIATION_REQUIRED",updated_at:new Date().toISOString()}).eq("id",claimedIntent.id).eq("provider_creation_state","CLAIMED");
     return json({error:"PAYMENT_PROVIDER_INTENT_MISMATCH",requestId},502,requestId);
   }
-  let encrypted:{ciphertext:string;iv:string;keyVersion:string};
-  try{encrypted=await encryptCheckoutSecretPayload(clientSecret);}catch(e){await admin.from("subscription_payment_intents").update({provider_creation_state:"RECONCILIATION_REQUIRED",updated_at:new Date().toISOString()}).eq("id",claimedIntent.id).eq("provider_creation_state","CLAIMED");console.error(JSON.stringify({requestId,stage:"encrypt_checkout_secret",error:e instanceof Error?e.message:"UNKNOWN"}));return json({error:"CHECKOUT_SECRET_ENCRYPTION_FAILED",requestId},503,requestId);}
-  const { data: updated, error: updateError } = await admin.from("subscription_payment_intents").update({status:"PENDING",provider_intent_id:providerIntentId,provider_order_id:providerOrderId,provider_creation_state: "CORRELATED",client_secret_ciphertext:encrypted.ciphertext,client_secret_iv:encrypted.iv,client_secret_key_version:encrypted.keyVersion,updated_at:new Date().toISOString()}).eq("id",claimedIntent.id).eq("provider_creation_state","CLAIMED").select().single();
+  let encrypted:{client_secret_ciphertext:string;client_secret_iv:string;client_secret_key_version:string};
+  try{encrypted=await encryptCheckoutSecretPayload(clientSecret,String(claimedIntent.id),String(claimedIntent.business_id));}catch(e){await admin.from("subscription_payment_intents").update({provider_creation_state:"RECONCILIATION_REQUIRED",updated_at:new Date().toISOString()}).eq("id",claimedIntent.id).eq("provider_creation_state","CLAIMED");console.error(JSON.stringify({requestId,stage:"encrypt_checkout_secret",error:e instanceof Error?e.message:"UNKNOWN"}));return json({error:"CHECKOUT_SECRET_ENCRYPTION_FAILED",requestId},503,requestId);}
+  const { data: updated, error: updateError } = await admin.from("subscription_payment_intents").update({status:"PENDING",provider_intent_id:providerIntentId,provider_order_id:providerOrderId,provider_creation_state: "CORRELATED",client_secret_ciphertext:encrypted.client_secret_ciphertext,client_secret_iv:encrypted.client_secret_iv,client_secret_key_version:encrypted.client_secret_key_version,updated_at:new Date().toISOString()}).eq("id",claimedIntent.id).eq("provider_creation_state","CLAIMED").select().single();
   if(updateError||!updated){console.error(JSON.stringify({requestId,stage:"persist_provider_intent",code:updateError?.code}));return json({error:"SUBSCRIPTION_PAYMENT_PERSISTENCE_FAILED",requestId},500,requestId);}
   const checkoutUrl=`https://accept.paymob.com/unifiedcheckout/?publicKey=${encodeURIComponent(publicKey)}&clientSecret=${encodeURIComponent(clientSecret)}`;
   return json({paymentIntent:updated,clientSecret,checkoutUrl,requestId},200,requestId);
