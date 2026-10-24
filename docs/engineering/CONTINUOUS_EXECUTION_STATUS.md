@@ -431,7 +431,7 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - CI verification for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` completed all nine PR workflows successfully, including the marketing workspace contract and migration chain gate for 36 required source migrations. The Pages workflow validated the build and explicitly skipped deployment for this pull request. This is structural/CI evidence only; runtime testing against the release Supabase target and production migration rollout are still NOT VERIFIED.
 - No production migration, live payment, or external ad launch was performed. Production remains **BLOCKED / NOT CERTIFIED**.
 
-- Follow-up: added partner-name search to the invitation workspace; the input is capped at 80 characters and the RPC clamps results to 1–50 records. Exact-head CI was not returned for `67eac802feedb4339608853b85f17f9738ae42b9`, so do not treat the latest RC458 changes as verified.
+- Follow-up: added partner-name search to the invitation workspace; the input is capped at 80 characters and the RPC clamps results to 1–50 records. Subsequent CI for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` passed all nine PR workflows. Only documentation/PR-description changes followed that code head; runtime Supabase validation and production application remain outstanding.
 
 
 - Follow-up UX fix: provider invitation views now resolve campaign names only for campaign IDs found in the signed-in provider's own RLS-visible invitations, requesting only `id,title,status`. Static contract checks enforce this bounded query. CI at code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` passed all nine PR workflows; no production deployment occurred.
