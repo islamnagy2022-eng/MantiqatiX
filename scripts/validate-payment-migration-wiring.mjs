@@ -45,6 +45,8 @@ assert.ok(mantigoIntent.includes("PAYMENT_INTENT_REQUIRES_RECONCILIATION"), "Man
 assert.ok(mantigoIntent.includes("matchesPaymobIntention({provider,amountCents,currency,reference:ledger.id})"), "MantiGo provider intention must be bound to exact amount/currency/ledger reference");
 assert.ok(mantigoIntent.includes("paymob_intention_order_id:providerOrderId"), "MantiGo must persist the verified provider order ID");
 assert.ok(mantigoIntent.includes('.eq("payment_status","REQUIRED").select("id").maybeSingle()') && mantigoIntent.includes("if(updateError||!updated)"), "MantiGo must detect a lost compare-and-set persistence race");
+assert.equal((mantigoIntent.match(/\.eq\("payment_status","REQUIRED"\)\.select\("id"\)\.maybeSingle\(\)/g)||[]).length,3,"MantiGo success persistence and both ambiguous-outcome holds must use compare-and-set row confirmation");
+assert.ok((mantigoIntent.match(/if\(holdError\|\|!held\)/g)||[]).length===2,"MantiGo ambiguous-outcome holds must detect a zero-row compare-and-set race");
 assert.ok(mantigoIntent.includes('String(ledger.payment_status)==="PENDING"') && mantigoIntent.includes("PAYMENT_INTENT_REQUIRES_RECONCILIATION"), "MantiGo must not create duplicate provider intentions from an unresolved pending state");
 
 assert.ok(paymentIntent.includes("provider_order_id: providerOrderId"), "normal payment intent must persist Paymob order correlation");
