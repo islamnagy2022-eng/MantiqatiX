@@ -430,3 +430,11 @@
 - [x] Added static source guards for the lifecycle UI/RPC boundary.
 - [ ] Runtime migration/RPC and adversarial role/tenant E2E remain deferred until the final comprehensive verification stage by user instruction. RC457 has not been applied to production.
 - Status: **IMPLEMENTED — NOT VERIFIED**. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — RC457 exact-head CI refresh
+- [x] GitHub Actions query for feature head `b2f0b8b618982427561cf5568dc0f83d17dbd91d` returned 9 completed successful PR workflows, including Marketing Workspace Contract, Migration Version Uniqueness, Migration History Immutability, Open PR Migration Collision Guard, and Backend-only Module Boundary.
+- [x] Static validator `scripts/validate-marketing-lead-lifecycle-contract.mjs` is wired into the Pages validation workflow.
+- [ ] This is source/CI evidence only. It does not verify live RPC behavior, deployed migration parity, adversarial tenant isolation, or full production readiness. PR #373 remains draft/open; RC457 is not applied to production.
+- [ ] Continue implementation in a consolidated CRM/marketing batch: reconcile status vocabulary with the ordered schema/migration chain, then inspect existing interaction/audit/task structures before adding functionality; finish provider services and campaign collaboration gaps.
+- Release remains **BLOCKED / NOT CERTIFIED**.
