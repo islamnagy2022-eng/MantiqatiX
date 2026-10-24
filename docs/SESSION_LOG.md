@@ -270,3 +270,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated the source-contract assertion to require all three correlations.
 - Commits: `460a279de8ad0fc6b48f8aaf99cdd1d495dd51d9` and `4fa4d6724e47f0bc00f4a54f5844800b6f0457e9`.
 - The update is source-reviewed but still **NOT VERIFIED by exact-head CI or a provider callback replay integration test**.
+
+
+### Follow-up — reject contradictory webhook outcomes
+
+- Further review found that the duplicate-event fast paths could treat a previously stored subscription failure as a successful idempotent replay when the same provider transaction later arrived with a different success/failure outcome. Added a check requiring the stored subscription event type to match the verified callback outcome; conflicts return `409 SUBSCRIPTION_EVENT_TYPE_CONFLICT`.
+- Found the equivalent risk in the normal payment-intent branch: duplicate lookup checked only payment-intent ownership and could acknowledge a contradictory success/failure callback. It now also checks stored event status and returns `409 PAYMENT_EVENT_OUTCOME_CONFLICT` when the recorded outcome contradicts the callback.
+- Added source-contract assertions for both conflict guards.
+- Commits: `40f500fc92a2813b9ce30d59c665b563f28ca194`, `7b6d2b035842f2328e39015ba16dd9c890a26519`, `641e48b4d07bd6198706d9aee5410c0df8617104`, and `66f43c0021677a7688a9d6d15bc62bffdafea5dd`.
+- **Verification status:** source guard assertions are added but have not yet run in CI on these exact commits. No provider callback integration test has been executed for these two new conflict paths.
