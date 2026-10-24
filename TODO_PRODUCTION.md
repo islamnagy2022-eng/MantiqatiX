@@ -506,3 +506,14 @@
 - [x] Added static contract checks for this ownership-derived ID set and minimal campaign projection.
 - [x] CI for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` completed all nine PR workflows successfully. Production deployment was skipped by the workflow's pull-request guard.
 - Production remains **BLOCKED / NOT CERTIFIED**; no migration has been applied to production.
+
+
+## 2026-10-24 — RC458 PostgreSQL runtime integration verified on PR branch
+- [x] Added `supabase/tests/rc458_marketing_partner_directory_integration.sql` covering eligible cross-business profiles, unverified/same-business exclusion, search filtering, result cap, actor spoofing, manager business scope, overlong search rejection, and anon/authenticated EXECUTE grants.
+- [x] Extended the disposable RC453 campaign fixture with `name_en` and kept the test isolated to a temporary PostgreSQL 16 service.
+- [x] Updated `.github/workflows/marketing-campaign-backend.yml` to apply the prerequisite RC453 fixture/migration/tests and then RC458 plus the new behavioral integration test; PR path filters include both RC458 files.
+- [x] Added static guards that ensure the behavioral test remains wired to the PostgreSQL workflow and checks the expected authorization boundaries.
+- [x] Exact current PR #373 head `b58eac839f7fb2cad814c63795ca1dfde9ee73b3`: all 10 workflows passed. The PostgreSQL job output explicitly reports `RC453 marketing campaign and partner workflow integration: PASS` and `RC458 scoped marketing partner directory integration: PASS`.
+- [x] PR #372 current head `5a6def775558b1415db53c06d0584ea4cf5738b5`: all 11 workflows passed, including the isolated forward migration chain replay from the production schema checkpoint.
+- [ ] This is isolated CI runtime evidence, not proof that the target Supabase production project has the same schema/data or that a production rollout was applied. Confirm the intended release target, recovery/restore evidence, and obtain explicit release authorization before applying migrations.
+- Production remains **BLOCKED / NOT CERTIFIED**. Both PRs remain open/draft and unmerged.
