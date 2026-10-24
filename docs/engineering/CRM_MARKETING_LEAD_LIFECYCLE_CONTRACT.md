@@ -111,6 +111,8 @@ The current repository source was inspected after this contract was drafted:
 - A status vocabulary discrepancy appears in the available source evidence: the lead-create function writes `OPEN`, while the RC452 disposable integration fixture uses `NEW`. This is not proof of a production defect, but it must be reconciled against the actual migration/schema and all UI consumers before defining a transition allowlist. Never silently normalize existing values.
 - The existing RC102 baseline documents owner-scoped lead reads; later RC452 source adds business-scoped CRM manager and assigned-provider reads. These are different historical checkpoints, so the effective policy must be determined from the ordered migration chain, not inferred from one document in isolation.
 
+- The internal CRM lead list in `web/app.js` now adds an active-business filter for internal business-management roles when `live.businessId` is selected. Customer-facing owner-scoped reads remain governed by RLS. This is defense-in-depth for the UI and does not replace database authorization. The change is classified **IMPLEMENTED — NOT VERIFIED** until exact-head CI/source review is recorded.
+
 ### Next implementation gate
 
 Before writing the lifecycle migration/RPC, record the canonical status values, the exact approved transition graph, the meaning of platform vs tenant-level roles, the required audit-log fields, and whether lead notes contain personal data. Then implement a forward-only migration and a narrowly scoped backend mutation. The migration must be checked for version collisions against every open PR before it is proposed. No production migration is authorized by this design note.
