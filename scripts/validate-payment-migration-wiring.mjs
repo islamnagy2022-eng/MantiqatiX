@@ -58,6 +58,8 @@ assert.ok(subscriptionIntent.includes('from "../_shared/paymob-intent-correlatio
 assert.ok(subscriptionIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH"), "subscription provider mismatch must fail closed for reconciliation");
 assert.ok(subscriptionIntent.indexOf("if (!matchesPaymobIntention({") >= 0 && subscriptionIntent.indexOf("if (!matchesPaymobIntention({") < subscriptionIntent.indexOf("const { data: updated, error: updateError }"), "subscription amount/currency/reference must be verified before provider IDs and checkout secret are persisted");
 assert.ok(subscriptionIntent.includes("provider_creation_state: \"CORRELATED\""), "subscription provider correlation state must be persisted");
+assert.ok(subscriptionIntent.includes("stage:\"encrypt_checkout_secret\"") && subscriptionIntent.includes("provider_creation_state:\"RECONCILIATION_REQUIRED\""), "checkout encryption failure must enter reconciliation state");
+assert.ok(subscriptionIntent.includes("provider_intent_id:providerIntentId,provider_order_id:providerOrderId,provider_creation_state:\"RECONCILIATION_REQUIRED\""), "checkout encryption failure must retain provider correlation identifiers for reconciliation");
 
 for (const [label, source, rpc] of [
   ["RC425", rc425, "process_verified_mantigo_payment_backend"],
