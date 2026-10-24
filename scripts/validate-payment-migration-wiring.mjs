@@ -118,6 +118,7 @@ assert.ok(rc459.includes("v_payload_amount is distinct from p_amount") && rc459.
 assert.ok(rc459.includes("v_intent.amount is distinct from v_order.total") && rc459.includes("p_provider_confirmed_amount is distinct from v_order.total"), "RC459 provider failure RPC must require exact order and provider amount equality");
 assert.ok(rc459.includes("v_intent.amount is distinct from p_provider_confirmed_amount") && rc459.includes("v.amount is distinct from p_provider_confirmed_amount"), "RC459 subscription RPCs must compare persisted and provider amounts exactly");
 assert.ok(rc459.includes("v_order.amount is distinct from p_amount"), "RC459 digital-page RPC must compare persisted and provider amounts exactly");
+assert.ok(rc459.includes("v_ledger.currency is null or upper(v_ledger.currency) is distinct from upper(p_currency)") && rc459.includes("v_order.currency is null or upper(v_order.currency) is distinct from upper(p_currency)"), "RC459 MantiGo and digital-page RPCs must fail closed on missing or mismatched persisted currency");
 assert.doesNotMatch(rc459, /abs\\([^)]*(?:amount|gross_amount)[^)]*\\)\\s*>\\s*0\\.01/i, "RC459 must not preserve one-cent tolerance in authoritative payment RPCs");
 
 console.log("RC425-RC459 payment migration wiring contract: PASS");
