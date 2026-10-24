@@ -421,4 +421,4 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - Tightened the source validator so the invite and response handlers are tested independently.
 - Reconciled RC457 with the production source verifier and chronological migration-chain contract; the expected source chain includes RC457 after the restored RC425–RC441 family and the RC525/RC102–RC106 source set.
 - Exact-head checks for `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d` are queued/in progress. The previous head's marketing contract passed after its tab assertion correction; do not carry that result forward to the new head.
-- PR #373 is stacked on PR #372 and remains open/draft. No production migration, live payment, or deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+- PR #373 targets main and depends on the historical migration source restoration in PR #372; it remains open/draft. No production migration, live payment, or deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
