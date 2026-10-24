@@ -81,6 +81,10 @@ assert.match(operations, /sb\.rpc\('list_marketing_partner_directory_backend'/,
   "cross-business partner discovery must use the scoped backend directory RPC");
 assert.match(operations, /rows\.marketing_partner_directory/,
   "invitation UI must use the backend directory rather than broadening provider-profile reads");
+assert.match(operations, /async function searchMarketingPartnerDirectory[\s\S]*?p_search:marketingPartnerSearch\|\|null[\s\S]*?p_limit:50/,
+  "partner search must use the scoped RPC and enforce a bounded result count");
+assert.match(operations, /query\.length>80/,
+  "partner search input must enforce the server's 80-character limit");
 assert.match(partnerDirectoryMigration, /security definer[\s\S]*?set search_path = ''/,
   "partner directory RPC must be SECURITY DEFINER with an empty search_path");
 assert.match(partnerDirectoryMigration, /public\.mnty_can_manage_marketing_business\(p_business_id\)/,
