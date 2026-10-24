@@ -13,6 +13,7 @@
 - [ ] API/Edge Functions/integrations. **NOT VERIFIED — external runtime test pending.**
 - [ ] Website/Admin/Owner/Manager/Employee/Customer E2E. **NOT VERIFIED — requires real test accounts and external browser.**
 - [🟡] Finance backend controls inspected (payment/refund/settlement/order pricing/idempotency); actual provider/payment E2E remains NOT VERIFIED.
+- [🟡] Paymob callback hardening: exact-cent amount checks, order-price exact-cent checks, HMAC plus configured `PAYMOB_INTEGRATION_ID` binding, and replay outcome conflict guards are implemented on PR #373. Isolated helper assertions passed locally; exact-head CI and provider callback integration remain NOT VERIFIED. Confirm the target Edge Function secret `PAYMOB_INTEGRATION_ID` exists and matches the configured Paymob integration before deployment.
 - [ ] CRM + Marketing E2E على بيئة الهدف — اختبارات PostgreSQL المعزولة وCI نجحت على PR #373، لكن اختبار المتصفح بحسابات متعددة وبيانات مشروع الهدف لم يُنفذ بعد.
 - [ ] Regression كامل.
 - [ ] Backup/Restore/DR test. **NOT VERIFIED — restore evidence not yet produced.**
