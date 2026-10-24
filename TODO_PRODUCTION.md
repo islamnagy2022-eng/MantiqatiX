@@ -483,5 +483,5 @@
 - [x] Strengthened the static validator to assert this separation of invite authority and response ownership.
 - [x] Added RC457 to the production migration verifier and migration-chain contract while preserving the restored 34-source dependency chain plus the new forward-only RC457 migration.
 - [ ] Exact-head CI is running for commit `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d`; do not treat queued checks as passed.
-- [ ] PR #373 is stacked on PR #372 because the historical migration sources are required. Both remain unmerged; runtime RLS/RPC tests and release evidence are still required.
+- [ ] PR #373 targets main and depends on the historical migration source restoration in PR #372. Both remain unmerged; runtime RLS/RPC tests and release evidence are still required.
 - Production remains **BLOCKED / NOT CERTIFIED**.
