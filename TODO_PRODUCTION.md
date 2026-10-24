@@ -548,3 +548,13 @@
 - [x] Added `docs/engineering/MARKETING_FINANCIAL_MUTATION_CONTRACT.md` defining server-authoritative authorization, idempotency, audit atomicity, version/concurrency controls, operation-specific rules, and required adversarial tests for plans, subscriptions, project allocations, and commission rules.
 - [ ] This is a design contract, not an implementation or production verification. Keep the related workspace tabs read-only until the canonical schema/policies are reviewed and every applicable acceptance gate passes.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC459 — Exact-cent payment RPC authority
+
+- [x] Added forward-only migration `20261025010000_rc459_exact_cent_payment_rpcs.sql` to harden MantiGo, regular payment failure, subscription success/failure, and digital-page payment RPCs against one-cent and fractional-cent mismatches.
+- [x] Preserved historical RC425–RC431 migration files; RC459 replaces the authoritative function definitions forward-only.
+- [x] Added static wiring assertions and included RC459 in the production verifier's required migration source list.
+- [ ] Require exact-head CI, chronological disposable Supabase migration replay, and final payment integration tests before marking verified.
+- [ ] Apply only through approved release migration process after live target reconciliation and recovery evidence.
+- Production remains **BLOCKED / NOT CERTIFIED**.
