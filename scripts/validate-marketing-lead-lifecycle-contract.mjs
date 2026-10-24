@@ -16,6 +16,9 @@ assert.doesNotMatch(
 assert.match(app, /sb\.functions\.invoke\(['"]marketing-lead-create['"]/,
   "lead creation must continue through the protected Edge Function");
 
+assert.match(app, /if\\(live\\.businessId&&\\['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'\\]\\.includes\\(String\\(live\\.role\\|\\|''\\)\\.toUpperCase\\(\\)\\)\\)q\\.eq\\('requester_business_id',live\\.businessId\\)/,
+  "internal CRM lead list must be filtered to the active business when a business context is selected");
+
 // Creation derives ownership from the authenticated JWT and currently uses OPEN as its initial status.
 assert.match(createFunction, /requester_user_id:\s*actor\.id/,
   "lead requester identity must be derived from the validated JWT actor");
