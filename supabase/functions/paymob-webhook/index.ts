@@ -3,6 +3,7 @@ import { matchesPaymobAmountCents } from "../_shared/paymob-intent-correlation.m
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??""
 const SERVICE_ROLE=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??""
 const HMAC_SECRET=Deno.env.get("PAYMOB_HMAC_SECRET")??""
+const PAYMOB_INTEGRATION_ID=Deno.env.get("PAYMOB_INTEGRATION_ID")??""
 const admin=createClient(SUPABASE_URL,SERVICE_ROLE,{auth:{persistSession:false,autoRefreshToken:false}})
 const json=(body:unknown,status=200,requestId="")=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store","X-Request-Id":requestId}})
 const value=(v:unknown)=>v===null||v===undefined?"":typeof v==="boolean"?(v?"true":"false"):String(v)
@@ -10,10 +11,11 @@ async function hmacSha512Hex(secret:string,input:string){const key=await crypto.
 function safeEqual(a:string,b:string){if(a.length!==b.length)return false;let d=0;for(let i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0}
 async function verify(obj:Record<string,unknown>,order:Record<string,unknown>,source:Record<string,unknown>,supplied:string){if(!HMAC_SECRET||!supplied)return false;const plain=[obj.amount_cents,obj.created_at,obj.currency,obj.error_occured,obj.has_parent_transaction,obj.id,obj.integration_id,obj.is_3d_secure,obj.is_auth,obj.is_capture,obj.is_refunded,obj.is_standalone_payment,obj.is_voided,order.id,obj.owner,obj.pending,source.pan,source.sub_type,source.type,obj.success].map(value).join("");return safeEqual((await hmacSha512Hex(HMAC_SECRET,plain)).toLowerCase(),supplied.toLowerCase())}
 Deno.serve(async req=>{const requestId=req.headers.get("x-request-id")||crypto.randomUUID();try{
- if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED",requestId},405,requestId);if(!HMAC_SECRET)return json({error:"PAYMENT_CALLBACK_NOT_CONFIGURED",requestId},503,requestId)
+ if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED",requestId},405,requestId);if(!HMAC_SECRET||!PAYMOB_INTEGRATION_ID)return json({error:"PAYMENT_CALLBACK_NOT_CONFIGURED",requestId},503,requestId)
  const raw=await req.json().catch(()=>null) as Record<string,unknown>|null;if(!raw)return json({error:"INVALID_JSON",requestId},400,requestId)
  const obj=(raw.obj&&typeof raw.obj==="object"?raw.obj:raw) as Record<string,unknown>;const order=(obj.order&&typeof obj.order==="object"?obj.order:{}) as Record<string,unknown>;const source=(obj.source_data&&typeof obj.source_data==="object"?obj.source_data:{}) as Record<string,unknown>
  if(!(await verify(obj,order,source,value(raw.hmac??obj.hmac))))return json({error:"INVALID_PROVIDER_SIGNATURE",requestId},401,requestId)
+ if(value(obj.integration_id)!==PAYMOB_INTEGRATION_ID)return json({error:"UNEXPECTED_PROVIDER_INTEGRATION",requestId},401,requestId)
  const eventId=`paymob:${value(obj.id)}`;const merchantRef=value(order.merchant_order_id);const paymobOrderId=value(order.id);const amount=Number(obj.amount_cents??0)/100;const currency=value(obj.currency).toUpperCase();const success=obj.success===true||value(obj.success).toLowerCase()==="true"
  if(!value(obj.id)||amount<=0||!currency||!Number.isFinite(amount))return json({error:"INVALID_PROVIDER_EVENT",requestId},400,requestId)
  const {data:subByRef}=await admin.from("subscription_payment_intents").select("id,business_id,amount,currency,status,provider_order_id").eq("provider","PAYMOB").eq("id",merchantRef).maybeSingle()
