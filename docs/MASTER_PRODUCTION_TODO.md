@@ -1791,3 +1791,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Recheck every workflow against the latest head before certifying this increment.
 - [ ] Real authenticated browser E2E, Paymob payment/refund and settlement E2E, backup/restore, Auth security settings, Android signing/device regression, and live production parity remain open.
 - No production migration, data write, merge, or deployment occurred. Global release remains **BLOCKED / NOT CERTIFIED**.
+
+### RC453 — نشر تحسين تجربة الزائر العامة — 2026-10-24
+- [x] نُشر تحديث الواجهة العامة على main في commit b7dfde227a8e24e944165828e62c6a3f1c1b08e9 بعد دمج PR #353 لتحسين التصفح العام للقطاعات.
+- [x] أضيف بحث عربي داخل صفحة القطاع على الخدمات ومقدمي الخدمات المحمّلين، وزر مسح البحث ورسالة نتائج، وتفاصيل قابلة للفتح والإغلاق في بطاقات الخدمات.
+- [x] توحيد رموز القطاعات العامة مع رموز الكتالوج الخلفي وإظهار القطاعات الحية المكتشفة؛ وتحديث أصول الصفحة وService Worker cache.
+- [x] نجح مسار التحقق المحدود للواجهة العامة على commit الإنتاج: validate_public_only=success.
+- [x] اكتمل نشر GitHub Pages والتحقق الحي من الأصول والصفحات في job deploy=success ضمن workflow run https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/40042903267.
+- [x] نجح Production Health Monitor على نفس commit.
+- [ ] نتيجة workflow العامة ما زالت failure لأن Production verification engine أبقى PRODUCTION_GATE=BLOCKED للأجزاء الخلفية والعمليات الحساسة؛ هذا لا يلغي نجاح نشر الواجهة العامة ولا يثبت جاهزية كل الموديولات للإنتاج.
+- [ ] استكمال بناء صفحات ومسارات جميع الموديولات وتجربة التصفح بينها، ثم اختبارات E2E متعددة الأدوار ومراجعة الأمن والتعافي قبل اعتماد الإطلاق الكامل.
+- لا توجد تغييرات على قاعدة بيانات الإنتاج أو عمليات مالية في هذا الإصدار. حالة الإطلاق الكامل: BLOCKED / NOT CERTIFIED.
