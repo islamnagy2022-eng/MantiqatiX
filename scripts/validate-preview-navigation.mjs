@@ -11,6 +11,7 @@ const loginScript = login.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const dashboardScript = dashboard.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const entryScript = entry.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
 const home = fs.readFileSync("web/index.html", "utf8");
+const notFound = fs.readFileSync("web/404.html", "utf8");
 const pages = fs.readFileSync(".github/workflows/pages.yml", "utf8");
 const sw = fs.readFileSync("web/sw.js", "utf8");
 
@@ -68,6 +69,10 @@ const checks = [
   ["Demo catalog includes platform modules across domains", /id:'marketing'/.test(dashboard) && /id:'orders'/.test(dashboard) && /id:'accounting'/.test(dashboard) && /id:'security'/.test(dashboard) && /id:'settings'/.test(dashboard)],
   ["Demo workspaces support local record creation and filtering", /recordForm/.test(dashboard) && /recordSearch/.test(dashboard) && /data\[current\.id\]\.unshift/.test(dashboard)],
   ["Published homepage exists in the Pages artifact root", fs.existsSync("web/index.html")],
+  ["GitHub Pages 404 recovery page exists and uses Arabic RTL", /<html lang="ar" dir="rtl">/.test(notFound) && /<div class="code">404<\/div>/.test(notFound)],
+  ["404 recovery links use the canonical case-sensitive project base path", notFound.includes('href="/MantiqatiX/preview/"') && notFound.includes('href="/MantiqatiX/preview/dashboard.html"') && notFound.includes('href="/MantiqatiX/"') && !notFound.includes('href="./preview/')],
+  ["Pages 404 recovery page links to preview home, module dashboard, and root", notFound.includes('href="/MantiqatiX/preview/"') && notFound.includes('href="/MantiqatiX/preview/dashboard.html"') && notFound.includes('href="/MantiqatiX/"')],
+  ["Pages 404 recovery page is Arabic RTL and provides explicit recovery actions", /<html lang="ar" dir="rtl">/.test(notFound) && notFound.includes("الصفحة غير موجودة") && notFound.includes('aria-label="روابط الاستعادة"')],
   ["Homepage has a visible boot failure fallback", /تعذر تحميل واجهة المنصة/.test(home)],
   ["Homepage keeps Supabase failure in public mode", /public mode remains open/.test(home)],
   ["Pages artifact publishes web/ as the site root", /path:\s*\.\/web/.test(pages)],
