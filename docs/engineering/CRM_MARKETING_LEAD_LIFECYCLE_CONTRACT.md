@@ -160,3 +160,21 @@ A source review found that the CRM lead list query filtered manager results by `
 - The web validation job generated a source-contract report but did not deploy: `validate` succeeded, while `validate_public_only` and `deploy` were skipped for this PR event.
 - The exact-head production verifier still reports `PRODUCTION_GATE=BLOCKED`: the PR tree is missing the 16 RC425–RC441 migration source files restored in PR #372; the live reconciliation manifest still records `required_release_migrations_applied=false`, `chronological_replay=NOT RUN`, and tenant isolation, payment/finance E2E, backup/restore, Edge Function parity, SMM parity, and Auth security settings as `NOT VERIFIED`.
 - These are source/isolated-CI findings only. They do not certify target Supabase runtime, production parity, external ad delivery, or disaster recovery. Keep the release gate blocked until post-dependency CI and authorized runtime evidence are complete.
+
+
+## 13. Follow-up exact-head CI result — 2026-10-24
+
+For commit `0e8da7e04b10991a77d5dee9e9dbe54f0cb55dd0`, the initially queued PR checks subsequently completed. All 10 workflow runs concluded successfully:
+
+- Marketing campaign backend: run `40124940805` — validation and isolated PostgreSQL job both passed.
+- Module professionalization: run `40124940821` — source validation, targeted-ad search-path integration, and matrimony privacy PostgreSQL tests passed.
+- Open PR migration collision guard: run `40124940767` — passed.
+- Migration version uniqueness: run `40124940770` — passed.
+- Migration history immutability: run `40124940744` — passed.
+- Marketing workspace contract: run `40124940794` — passed.
+- Approval action audit atomicity: run `40124940842` — passed.
+- Backend-only module boundary: run `40124940752` — passed.
+- MantiGO open-ride privacy boundary: run `40124940748` — passed.
+- Web validation workflow: run `40124940847` — validation passed; `validate_public_only` and `deploy` were skipped because this was a PR run.
+
+This completes the source/isolated-CI checks for that commit, not the live acceptance gate. The commit is now the previous head because this note is a new source change; its checks must run independently. The production migration chain remains blocked until the restored migration dependency is integrated and actual target-runtime/recovery evidence is recorded.
