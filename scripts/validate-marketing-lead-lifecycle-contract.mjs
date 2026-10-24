@@ -20,6 +20,12 @@ assert.doesNotMatch(
 assert.match(app, /sb\.functions\.invoke\(['"]marketing-lead-create['"]/,
   "lead creation must continue through the protected Edge Function");
 
+assert.match(operations, /async function saveLead\(\)[\s\S]*?budgetMin<0\|\|budgetMax<budgetMin/,
+  "lead UI must reject negative budgets and a maximum below the minimum before submission");
+assert.match(operations, /maxlength="200"[\s\S]*?maxlength="5000"[\s\S]*?maxlength="200"/,
+  "lead form must expose the server's title, description, and service-area length limits");
+assert.match(operations, /if\(r\.error\|\|r\.data\?\.error\)[\s\S]*?button\.disabled=false[\s\S]*?إنشاء طلب/,
+  "lead submit button must recover after a server-reported creation failure");
 assert.match(app, /q\.eq\('requester_business_id',live\.businessId\)/,
   "internal CRM lead list must filter by active business");
 assert.match(app, /live\.businessId&&\['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'\]\.includes\(String\(live\.role\|\|''\)\.toUpperCase\(\)\)/,
