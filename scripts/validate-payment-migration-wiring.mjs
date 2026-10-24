@@ -50,7 +50,7 @@ assert.ok(digitalIntent.includes("p_provider_order_id:providerOrderId"), "digita
 assert.ok(digitalIntent.includes("PAYMENT_PROVIDER_OUTCOME_UNKNOWN"), "digital-page provider ambiguity must not be blindly retried");
 assert.ok(digitalIntent.includes('from "../_shared/paymob-intent-correlation.mjs"') && digitalIntent.includes("PAYMENT_PROVIDER_INTENT_MISMATCH"), "digital-page Paymob response must be correlated and mismatches must fail closed");
 assert.ok(digitalIntent.indexOf("isValidPaymobAmountCents(amount,amountCents)") < digitalIntent.indexOf('"/v1/intention/"'), "digital-page exact-cent validation must run before provider network I/O");
-assert.ok(digitalIntent.indexOf("if(!matchesPaymobIntention(") >= 0 && digitalIntent.indexOf("if(!matchesPaymobIntention(") < digitalIntent.indexOf('admin.rpc("finalize_digital_page_payment_intent_backend"'), "digital-page response correlation must precede trusted finalization");
+assert.ok(digitalIntent.indexOf("if(!matchesPaymobIntention(") >= 0 && digitalIntent.indexOf("if(!matchesPaymobIntention(") < digitalIntent.indexOf('userClient.rpc("finalize_digital_page_payment_intent_backend"'), "digital-page response correlation must precede trusted finalization");
 assert.ok(digitalIntent.includes("return !error&&data===true") && digitalIntent.includes("PAYMENT_REJECTION_REQUIRES_RECONCILIATION"), "digital-page claim release must be verified and fail closed if it fails");
 assert.ok(subscriptionIntent.includes('rpc("create_subscription_payment_intent_claimable_backend"'), "subscription flow must use the claimable intent RPC");
 assert.ok(subscriptionIntent.includes('rpc("claim_subscription_provider_intent_creation_backend"'), "subscription provider creation must be claimed atomically");
