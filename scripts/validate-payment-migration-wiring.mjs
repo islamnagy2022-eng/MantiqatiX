@@ -22,6 +22,7 @@ assert.ok(mStart >= 0 && mEnd > mStart, "MantiGo Paymob block must have explicit
 const mantigoBlock = webhook.slice(mStart, mEnd);
 const signatureCheck = webhook.indexOf("verify(obj,order,source,value(raw.hmac??obj.hmac))");
 assert.ok(signatureCheck >= 0 && signatureCheck < mStart, "Paymob HMAC verification must happen before payment processing");
+assert.ok(webhook.includes('Deno.env.get("PAYMOB_INTEGRATION_ID")') && webhook.includes("UNEXPECTED_PROVIDER_INTEGRATION") && webhook.indexOf("UNEXPECTED_PROVIDER_INTEGRATION") > signatureCheck, "Paymob callback must be bound to the configured integration after HMAC verification");
 
 for (const [rpc, file] of [
   ["process_verified_mantigo_payment_backend", mantigoBlock],
