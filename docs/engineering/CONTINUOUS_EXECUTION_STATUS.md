@@ -389,3 +389,11 @@ All Supabase production queries were read-only. No production migrations, table 
 - Exact-head CI was queued after the latest source/documentation commit; results are pending. This is not final release testing.
 - RC457 is source-only and has not been applied to production. No production data or configuration was changed.
 - Status: **IMPLEMENTED — NOT VERIFIED**. The comprehensive real-world acceptance campaign remains deferred to the final stage per user instruction. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — RC457 exact-head CI refresh
+- [x] Re-queried GitHub Actions for feature head `b2f0b8b618982427561cf5568dc0f83d17dbd91d`; 9 returned PR workflows completed successfully: Module Professionalization Validation, Migration History Immutability, Marketing Workspace Contract, Migration Version Uniqueness, MantiGO Open Ride Privacy Boundary, Deploy MantiqatiX Web workflow, Open PR Migration Collision Guard, Approval Action Audit Atomicity, and Backend-only Module Boundary.
+- [x] Static lifecycle guard is included in `.github/workflows/pages.yml` and checks that browser code does not directly mutate `marketing_leads`, the UI calls the backend RPC, customer reads stay owner-scoped, internal reads are business-scoped, and safe conflict/forbidden paths remain present.
+- [ ] This workflow snapshot is not a full acceptance campaign and does not certify runtime RPC/migration behavior or production deployment. PR #373 remains open/draft; RC457 remains unapplied to production.
+- [ ] Remaining development items: reconcile actual deployed lead status vocabulary against ordered migration/schema sources; implement/reuse interaction history and follow-up task/owner flows only after schema discovery; finish the remaining marketing-provider/services/campaign participant gaps.
+- Release remains **BLOCKED / NOT CERTIFIED**.
