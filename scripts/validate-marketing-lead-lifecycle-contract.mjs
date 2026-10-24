@@ -50,6 +50,8 @@ assert.match(appLifecycle, /sb\.rpc\(['"]transition_marketing_lead_backend['"]/,
   "status changes must call the server-authoritative lifecycle RPC");
 assert.match(appLifecycle, /p_actor:\s*user\.id[\s\S]*?p_expected_status:\s*expected[\s\S]*?p_new_status:\s*next[\s\S]*?p_request_id:\s*crypto\.randomUUID\(\)/,
   "lifecycle RPC must pass actor, expected state, next state, and a fresh idempotency key");
+assert.match(app, /marketing_leads[\s\S]*?requester_business_id,created_at/,
+  "lead list must retain the business scope needed for authorized lifecycle actions");
 assert.match(appLifecycle, /requester_business_id',live\.businessId/,
   "internal lead detail reads must be constrained to the active business");
 assert.match(appLifecycle, /requester_user_id',user\.id/,
