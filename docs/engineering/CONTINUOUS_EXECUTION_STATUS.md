@@ -444,3 +444,10 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - PR #372 head `5a6def775558b1415db53c06d0584ea4cf5738b5`: all 11 workflows passed, including the isolated forward migration chain replay from the captured production-schema checkpoint.
 - The web workflow's validation passed but its deploy job was skipped by the pull-request guard. No production deployment or migration was performed.
 - This closes the RC458 isolated CI integration gap only; it does not establish production project parity, live end-to-end acceptance, or disaster-recovery readiness. Both PRs remain open/draft and unmerged. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 behavioral test added — 2026-10-24
+- Added a disposable PostgreSQL integration test for the RC457 marketing-lead lifecycle RPC, covering successful transition and audit scope, safe idempotent replay, request-key conflict, stale-state conflict, disallowed/invalid transitions, actor spoofing, cross-business denial, missing auth, and grants.
+- CI order is now RC453 fixture + migration/tests → RC457 migration + lifecycle integration → RC458 migration + partner-directory integration. The fixture extension is isolated test setup only.
+- CI for the latest commit is pending/not yet observed; do not claim the new RC457 test passed until the latest head's PostgreSQL job is green. Prior successful CI refers to earlier head.
+- No deployment or production migration was executed. PR #372 and #373 remain unmerged; production remains **BLOCKED / NOT CERTIFIED**.
