@@ -44,6 +44,10 @@ assert.match(createFunction, /\.from\(["']marketing_leads["']\)\s*\.insert\(lead
 
 assert.match(createFunction, /title\.length > 200[\s\S]*?description\.length > 5000[\s\S]*?serviceArea\.length > 200/,
   "lead creation backend must enforce the published text-field length limits");
+assert.match(createFunction, /typeof body\.title === "string"[\s\S]*?typeof body\.description === "string"[\s\S]*?typeof body\.service_area === "string"/,
+  "lead text fields must reject non-string JSON values instead of coercing them");
+assert.match(createFunction, /body\.required_services != null && !Array\.isArray\(body\.required_services\)[\s\S]*?typeof x !== "string"/,
+  "service requirements must be a bounded array of strings, not coerced arbitrary JSON values");
 assert.match(createFunction, /!Number\.isFinite\(budgetMin\)[\s\S]*?budgetMin < 0 \|\| budgetMax < budgetMin/,
   "lead creation backend must reject invalid, negative, or inverted budgets");
 assert.match(createFunction, /typeof body\.budget_min === "number"[\s\S]*?typeof body\.budget_max === "number"/,
