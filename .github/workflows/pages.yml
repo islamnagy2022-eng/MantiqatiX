@@ -194,7 +194,6 @@ jobs:
 
   deploy:
     # Never publish a feature branch by manually dispatching the production Pages workflow.
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [validate, validate_public_only]
     if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (needs.validate.result == 'success' || needs.validate_public_only.result == 'success')
     timeout-minutes: 10
