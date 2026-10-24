@@ -485,3 +485,12 @@
 - [ ] The last code head `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d` had the invitation and validator fixes; subsequent documentation commits produced head `03d7429c8873cdd02f350bcbfd705f44e0bf9386`, for which no exact-head PR workflow runs were returned. Re-run/obtain CI on the latest head before claiming verification.
 - [ ] PR #373 targets main and depends on the historical migration source restoration in PR #372. Both remain unmerged; runtime RLS/RPC tests and release evidence are still required.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Cross-business partner directory (RC458)
+- [x] Added forward-only migration `20261024210000_rc458_marketing_partner_directory_backend.sql` with a scoped, authenticated RPC for searching active, verified marketing partners.
+- [x] Kept the existing provider-profile RLS policy intact; the invitation picker now uses the RPC's minimal directory fields instead of relying on cross-business profile reads.
+- [x] Added RC458 to the production verifier and chronological migration-chain contract (36 required source migrations now tracked).
+- [x] Extended static source guards for manager scope, active/verified partner filtering, empty search_path, authenticated-only execute grants, and the directory's minimal return columns.
+- [ ] Runtime RLS/RPC tests and exact-head CI are still required. No production migration has been applied.
+- Production remains **BLOCKED / NOT CERTIFIED**.
