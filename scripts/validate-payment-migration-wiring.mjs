@@ -89,6 +89,7 @@ assert.ok(subscriptionIntent.includes("encryptCheckoutSecretPayload"), "subscrip
 assert.ok(subscriptionIntent.includes("PAYMOB_CHECKOUT_ENCRYPTION_KEY_"), "subscription checkout encryption key must come from server-side secrets");
 assert.ok(subscriptionIntent.indexOf("try{await checkoutCryptoKey();}") >= 0 && subscriptionIntent.indexOf("try{await checkoutCryptoKey();}") < subscriptionIntent.indexOf('rpc("create_subscription_payment_intent_claimable_backend"'), "subscription encryption key material must be validated before intent creation or provider network I/O");
 assert.ok(webhook.includes("SUBSCRIPTION_PROVIDER_ORDER_MISMATCH") && webhook.includes("DIGITAL_PAGE_PROVIDER_ORDER_MISMATCH"), "subscription and digital-page webhooks must enforce exact Paymob provider-order binding");
+assert.ok(webhook.includes('select("id,payment_intent_id")') && webhook.includes("PAYMENT_EVENT_INTENT_MISMATCH") && webhook.includes('String(existing.payment_intent_id??"")!==String(intent.id)'), "normal-payment webhook replay must not be acknowledged against a different payment intent");
 assert.ok(subscriptionIntent.includes("client_secret_ciphertext"), "subscription checkout secret persistence must use ciphertext fields");
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events enable row level security;/);
 assert.match(rc425, /alter table public\.mantigo_payment_provider_events force row level security;/);
