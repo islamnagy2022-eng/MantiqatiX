@@ -438,3 +438,12 @@
 - [ ] This is source/CI evidence only. It does not verify live RPC behavior, deployed migration parity, adversarial tenant isolation, or full production readiness. PR #373 remains draft/open; RC457 is not applied to production.
 - [ ] Continue implementation in a consolidated CRM/marketing batch: reconcile status vocabulary with the ordered schema/migration chain, then inspect existing interaction/audit/task structures before adding functionality; finish provider services and campaign collaboration gaps.
 - Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Marketing campaign workspace source integration
+- [x] Added a dedicated `campaigns` tab to the existing marketing workspace, with campaigns read filtered to the selected active business.
+- [x] Campaign creation calls `create_marketing_campaign_backend` with the current actor, selected business, allowlisted objective/channel values, dates, budget, and a fresh idempotency key. It remains an internal planning action and does not publish ads to external platforms.
+- [x] Campaign lifecycle actions call `update_marketing_campaign_status_backend`; direct browser writes to campaign tables are not used. UI management controls are hidden for roles outside the local manager allowlist, while backend authorization remains authoritative.
+- [x] Extended the marketing static validator to assert RPC boundaries, business scoping, and the existing migration's table grants.
+- [ ] Exact-head CI must pass for the campaign workspace and validator changes. Runtime campaign RPC/RLS and cross-tenant acceptance remain for the final verification stage.
+- Production remains **BLOCKED / NOT CERTIFIED**.
