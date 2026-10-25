@@ -1984,3 +1984,22 @@ Create an auditable matrix from the actual repository/module registry: module an
 
 
 - RC570 hardening addendum: branch binding is now stored in the private RLS-protected digital_page_menu_branch_bindings table, not in public section JSON, so tenant/business/branch identifiers are not exposed to anonymous menu visitors. Exact-head verification remains pending.
+
+
+## Shared catalog engine + sector adapters + subscription reminders (2026-10-25)
+
+**Product requirement:** Implement common behavior once as a shared engine; adapt existing sectors through explicit profiles/adapters without erasing sector-specific behavior. Starting sector examples: restaurants/cafés, pharmacies, doctors/clinics, hospitals, labs/radiology, companies/service providers, shops/grocery/fashion. SMM remains separate.
+
+- [ ] Audit actual routes, sector registry, canonical data sources, RPCs/Edge Functions, dashboards, permissions, and subscription lifecycle for each sector.
+- [ ] Define and implement shared engine for public profile/catalog, item/service cards, WhatsApp handoff, owner dashboard, safe rendering, feature status labels, and shared tests.
+- [ ] Integrate each applicable sector via adapter; do not create duplicate catalogs or bypass existing canonical restaurant menu, inventory, booking, medical, pharmacy, company, or order workflows.
+- [ ] Preserve sector-specific fields and constraints. Pharmacy/medical/hospital/lab flows require safety/privacy/operational review and must not be reduced to a generic sales CTA.
+- [ ] Update customer/business/admin dashboards with real page/catalog status and clear feature readiness; incomplete features show «تحت الإنشاء» and unsupported actions are disabled and backend-blocked.
+- [ ] Show subscription state, authoritative end date/remaining days, pending manual review, expires soon, and expired state in the relevant dashboard.
+- [ ] Add idempotent 7-day, 3-day, 1-day and expiry notifications using existing delivery infrastructure only after verifying scheduler and recipient scope. If scheduling cannot be verified, do not claim push/email delivery; dashboard-only warnings must be explicit.
+- [ ] Test subscription expiration/publication enforcement, renewal flow, duplicate/missed reminder runs, membership revocation and tenant isolation.
+- [ ] Run cross-sector RLS/browser/mobile/accessibility and regression tests before unblocking release.
+
+Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261025.md.
+
+**Current status:** Architecture recorded; not yet implemented across all sectors. The previously observed isolated forward migration replay passed for run 40220698846 at its tested commit. A new CI batch is queued for current branch head 0e91b9eda11bcc205a57adfa207786ed6eb9165b; re-check those exact-head results before treating them as passed. PR #374 remains draft/unmerged and production remains BLOCKED / NOT CERTIFIED.
