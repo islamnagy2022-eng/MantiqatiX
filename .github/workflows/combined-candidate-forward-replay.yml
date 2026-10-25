@@ -1,6 +1,15 @@
 name: Combined Candidate Forward Migration Replay
 
 on:
+  push:
+    branches: ["feat/digital-page-self-service-20261025"]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/baselines/**"
+      - "supabase/tests/rc571_menu_scope_bypass.sql"
+      - "scripts/verify-tenant-isolation.sql"
+      - "scripts/verify-digital-page-self-service-rls.sql"
+      - ".github/workflows/combined-candidate-forward-replay.yml"
   pull_request:
     branches: ["main"]
     paths:
@@ -17,7 +26,7 @@ permissions:
 
 jobs:
   combined-forward-replay:
-    if: github.event.pull_request.number == 374
+    if: (github.event_name == 'pull_request' && github.event.pull_request.number == 374) || (github.event_name == 'push' && github.ref_name == 'feat/digital-page-self-service-20261025')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
