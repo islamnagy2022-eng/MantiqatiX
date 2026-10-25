@@ -2003,3 +2003,16 @@ Create an auditable matrix from the actual repository/module registry: module an
 Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261025.md.
 
 **Current status:** Architecture recorded; not yet implemented across all sectors. The previously observed isolated forward migration replay passed for run 40220698846 at its tested commit. A new CI batch is queued for current branch head 0e91b9eda11bcc205a57adfa207786ed6eb9165b; re-check those exact-head results before treating them as passed. PR #374 remains draft/unmerged and production remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest execution batch — shared engine bootstrap + subscription dashboard milestones (2026-10-25)
+
+- [x] Shared catalog engine is now loaded by the main platform bootstrap before app/dashboard modules; the engine remains UI-only and does not authorize operations.
+- [x] PWA service-worker cache version entries aligned with the shared engine and app script versions.
+- [x] Main dashboard launch-scope panel links directly to the existing public marketing-services page and labels the WhatsApp inquiry path as available.
+- [x] Subscription reminder panel distinguishes 7-day, 3-day, 1-day and expired states based on the recorded paid timestamp and product duration; reminder is display-only and does not grant/revoke entitlements.
+- [x] Static validator extended to check global engine load order, cache versions, reminder milestones and marketing page status.
+- [ ] Wait for exact-head CI after the latest source edits; current PR checks are queued.
+- [ ] Finish the actual per-sector adapter wiring and verified route/module inventory. The engine profiles do not prove that every sector is integrated.
+- [ ] Scheduled push/email reminders remain NOT VERIFIED; current reminders are shown in the dashboard/notification center when the user opens the platform. Do not claim background notifications until scheduler, deduplication, delivery and tenant-isolation tests pass.
+- [ ] Browser/mobile E2E, authenticated multi-user RLS, and production-like checks remain mandatory. No merge or production deployment has occurred.
