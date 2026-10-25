@@ -34,7 +34,7 @@
   async function loadOrders() {
     const { data, error } = await sb.from('digital_page_orders')
       .select('id,title,page_type,payment_status,fulfillment_status,created_at')
-      .eq('user_id', user.id).eq('page_type', 'MENU').eq('payment_status', 'PAID')
+      .eq('user_id', user.id).in('page_type', ['PORTFOLIO','MENU']).eq('payment_status', 'PAID')
       .in('fulfillment_status', ['REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED'])
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -43,7 +43,7 @@
     sel.replaceChildren(new Option('اختر اشتراكًا مدفوعًا', ''));
     for (const o of orders) sel.add(new Option(o.title + ' · ' + o.fulfillment_status, o.id));
     if (!orders.length) {
-      $('auth').textContent = 'لا يوجد اشتراك Menu مدفوع متاح لهذا الحساب حتى الآن. اشترك أولًا لتفعيل صفحة المنتجات.';
+      $('auth').textContent = 'لا يوجد اشتراك صفحات رقمية مدفوع متاح لهذا الحساب حتى الآن. اشترك أولًا لتفعيل صفحة المنتجات.';
       $('page-form').querySelectorAll('input,textarea,select,button').forEach(x => x.disabled = true);
     }
   }
@@ -147,12 +147,14 @@
     try {
       const orderId = $('order').value;
       if (!orderId) throw new Error('اختر اشتراكًا مدفوعًا أولًا.');
+      const selectedOrder = orders.find(o => o.id === orderId);
+      if (!currentPage && !selectedOrder) throw new Error('الاشتراك المحدد غير متاح.');
       const number = $('whatsapp').value.replace(/\D/g, '');
       if (!/^[0-9]{8,15}$/.test(number)) throw new Error('رقم واتساب غير صحيح. اكتب الرقم الدولي أرقامًا فقط.');
       const slug = $('slug').value.trim();
       if (!/^[A-Za-z0-9-]{2,80}$/.test(slug)) throw new Error('الرابط المختصر يجب أن يتكون من حروف إنجليزية وأرقام وشرطة فقط.');
       const values = {
-        page_type: 'MENU', title: $('title').value.trim(), slug,
+        page_type: currentPage?.page_type || selectedOrder.page_type, title: $('title').value.trim(), slug,
         description: $('description').value.trim() || null, whatsapp_number: number,
         updated_by: user.id, status: currentPage?.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'
       };
