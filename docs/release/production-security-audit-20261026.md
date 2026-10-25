@@ -26,6 +26,15 @@ A read-only catalog query found **36 public SECURITY DEFINER functions** executa
 
 The anonymous-executable `get_mnty_targeted_advertisements` may be an intentional public read path. Do not revoke it without reviewing the public advertisement contract.
 
+### API Edge Function follow-up
+
+Read-only inspection of the active `api` Edge Function found two additional issues in authenticated routes:
+
+- The catalog route interpolated caller-provided `branchId` into a PostgREST `.or()` expression and did not first verify that the branch belonged to the selected active business. It also returned price overrides for other branches of the same business when a branch-specific catalog was requested.
+- The cash-on-delivery payment-intent route used `upsert` on `tenant_id,idempotency_key`, allowing reuse of a key for a different order/payment identity to overwrite the existing intent instead of rejecting the conflict.
+
+A separate draft fix is available in [PR #375](https://github.com/islamnagy2022-eng/MantiqatiX/pull/375). It replaces interpolated branch filters with exact database filters, returns shared prices plus only the selected branch's overrides, and changes payment-intent creation to insert-only with immutable identity checks and race-safe replay. Its initial Pages CI validation caught an overly strict static assertion; that assertion was corrected and exact-head validation is pending again. The patch has not been deployed, and authenticated branch-isolation/concurrency tests are still required.
+
 ### Migration checkpoint
 
 The recorded production migration ledger remains at `20261008222845 / rc424_atomic_digital_page_payment_webhook`. The new digital-page/menu candidate migrations are not applied to production. The deployment job is skipped while PR #374 remains draft.
