@@ -1847,3 +1847,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] RC563–RC566 are not present in this feature branch's migrations directory; reconcile those separate open migration candidates against the target branch before merge.
 - [ ] Authenticated multi-user RLS integration tests and browser E2E for create/edit/delete products, slug collision, WhatsApp CTA, subscription expiry and publication lifecycle remain NOT VERIFIED.
 - [ ] Feature branch is not deployed; no production migration applied. Global production release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC567 security review follow-up — 2026-10-25
+- [x] Hardened the ownership-scope invariant: customer-owned pages cannot simultaneously carry legacy business/provider ownership; legacy business/provider rows are not forced into a stricter historical shape.
+- [x] Hardened the update trigger so ownership scope and subscription binding cannot be changed by a non-platform-admin for any page type, preventing conversion of a legacy business/provider page into a customer page.
+- [x] Added source-contract assertions for the ownership invariant and immutable binding guard.
+- [ ] Re-run exact-head CI and isolated forward migration replay after these latest SQL/test changes.
+- [ ] Authenticated multi-user RLS integration and browser E2E remain NOT VERIFIED. No production migration/deployment; release remains BLOCKED / NOT CERTIFIED.
