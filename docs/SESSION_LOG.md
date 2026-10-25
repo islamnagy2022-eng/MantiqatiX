@@ -292,3 +292,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Documentation action:** recorded the scope and test/release gates in docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md on the active feature branch.
 - **Not yet done:** full module inventory, cross-module implementation, RLS/browser E2E, and regression testing. This documentation change is not proof of feature coverage.
 - **Production impact:** no production migration, merge, deployment, Paymob transaction, or production data mutation. PR #374 remains draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Dashboard updates and subscription-expiry reminders
+
+- User request: update role-specific dashboards to reflect the first-launch scope and add subscription-date alerts.
+- Implemented in source: shared dashboard/notification-center reminder panel for digital-page subscriptions, with 30-day notice, stronger warning within 7 days, expiry state, and a WhatsApp support handoff.
+- Safety: if the paid timestamp or product duration is missing, show an unknown-date notice instead of guessing. Reminder data is queried for the signed-in user only.
+- Database source change: new migration 20261025203000_digital_page_subscription_expiry_reminders.sql sets paid_at on a transition to PAID; it is not applied to production.
+- Validation: added scripts/validate-subscription-reminders.mjs to the web CI workflow.
+- Not yet verified: exact-head CI, isolated migration replay/collision guard, browser E2E, and webhook/manual-activation regression. Dashboard reminders are on-visit only; scheduled push/email delivery remains future work.
+- Production impact: no production migration/deployment or merge. PR #374 remains open; global release remains BLOCKED / NOT CERTIFIED.
