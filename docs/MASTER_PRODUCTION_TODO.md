@@ -1838,3 +1838,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify the owner entry point from the MantiqatiX app navigation.
 - [ ] Apply migration only through approved migration pipeline after all checks pass; do not run against production directly from this branch.
 - [ ] End-to-end browser test and deployed-site smoke remain NOT VERIFIED.
+
+
+## RC567 verification update — 2026-10-25
+- [x] Current-head CI for commit 72a1aba37ebf1a9621a684f4e05e4011e68b9e84: Pages validation, migration uniqueness/history guards, migration collision guard, and related module boundary checks passed.
+- [x] Forward migration replay from the captured production schema checkpoint passed in isolated Supabase/PostgreSQL CI: run https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40214074970.
+- [x] Homepage entry point routes authenticated users to the self-service editor at source level.
+- [ ] RC563–RC566 are not present in this feature branch's migrations directory; reconcile those separate open migration candidates against the target branch before merge.
+- [ ] Authenticated multi-user RLS integration tests and browser E2E for create/edit/delete products, slug collision, WhatsApp CTA, subscription expiry and publication lifecycle remain NOT VERIFIED.
+- [ ] Feature branch is not deployed; no production migration applied. Global production release remains BLOCKED / NOT CERTIFIED.
