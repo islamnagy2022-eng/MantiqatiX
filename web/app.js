@@ -97,9 +97,9 @@ let current='الرئيسية', query='', user=null, deferredInstallPrompt=null,
 const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},marketingCampaigns:[],marketingCampaignParticipants:[],marketingCampaignProviders:[],marketingCampaignErrors:[],marketingCampaignUnavailable:false,marketingCampaignUnavailableReason:null,myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 function subscriptionReminderPanel(){
+ if(live.flags.digitalPageSubscriptionDataUnavailable)return '<section class="card" role="status" style="margin-bottom:16px;border-inline-start:4px solid #d97706"><h3>تعذر التحقق من موعد الاشتراك</h3><p>لم نتمكن من تحميل بيانات الاشتراك ومدته حاليًا. لن نفترض تاريخ انتهاء غير مؤكد؛ حاول تحديث الصفحة أو تواصل مع الدعم.</p></section>';
  const paid=(live.records.digitalPageOrders||[]).filter(o=>String(o.payment_status||'').toUpperCase()==='PAID');
  if(!paid.length)return '';
- if(live.flags.digitalPageSubscriptionDataUnavailable)return '<section class="card" role="status" style="margin-bottom:16px;border-inline-start:4px solid #d97706"><h3>تعذر التحقق من موعد الاشتراك</h3><p>لم نتمكن من تحميل بيانات مدة الاشتراك حاليًا. لن نفترض تاريخ انتهاء غير مؤكد؛ حاول تحديث الصفحة أو تواصل مع الدعم.</p></section>';
  const products=new Map((live.records.digitalPageProducts||[]).map(p=>[String(p.id),p]));
  const now=Date.now();
  const reminders=paid.map(o=>{
