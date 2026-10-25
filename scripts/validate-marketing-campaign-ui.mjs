@@ -38,9 +38,9 @@ assert.match(app, /طلبات وخدمات SMM/, "enterprise home must expose SM
 assert.match(app, /لا يوجد نشر خارجي تلقائي/, "UI must not claim external ad publication");
 assert.match(index, /app\.js\?v=launch-paymob-gate-1/, "browser cache key must be refreshed");
 const sw = fs.readFileSync("web/sw.js", "utf8");
-assert.match(sw, /const CACHE='mnty-web-v136-launch'/, "PWA cache must be versioned for the new shell");
+assert.match(sw, /const CACHE='mnty-web-v138-catalog-experience-engine'/, "PWA cache must be versioned for the new shell");
 assert.match(sw, /app\.js\?v=launch-paymob-gate-1/, "service worker must precache the exact versioned app entrypoint");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=mnty-web-v136-launch/, "service worker registration cache key must be refreshed");
+assert.match(index, /sw\.js\?v=mnty-web-v138-catalog-experience-engine/, "service worker registration cache key must be refreshed");
 
 console.log("Marketing workspace contract: PASS (32 assertions)");
