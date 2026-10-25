@@ -19,7 +19,7 @@ end $$;
 
 alter table public.digital_pages
   add constraint digital_pages_owner_scope_check
-  check (pg_catalog.num_nonnulls(owner_user_id, business_id, provider_profile_id) = 1);
+  check ((owner_user_id is null or (business_id is null and provider_profile_id is null)) and (owner_user_id is not null or business_id is not null or provider_profile_id is not null));
 
 alter table public.digital_pages
   add constraint digital_pages_whatsapp_format_check
