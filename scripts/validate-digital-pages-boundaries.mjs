@@ -60,13 +60,13 @@ for (const [src,marker,label] of [
 if (!publicPage.includes('اطلب المنتج عبر واتساب') || !publicPage.includes("MNTYCatalogExperience?.buildInquiry('FOOD',pagePhone,")) throw new Error('Product order CTA must use the shared FOOD adapter and encoded product details');
 
 for (const [marker,label] of [
-  ["const esc=v=>String(v??'').replace(/[&<>","public catalog content must be HTML-escaped"],
-  ["const safeImage=v=>","public product images must use HTTPS only"],
-  ["i.test(s)?s:''}","non-HTTPS product image URLs must be rejected"],
-  ["noopener noreferrer","external WhatsApp links must prevent opener access"],
-  ["loading:\\'lazy\\'","product images must load lazily"],
-  ["eq('slug',slug).eq('status','PUBLISHED')","public page lookup must be slug-scoped and published-only"],
-  ["eq('page_id',p.id).eq('active',true)","public catalog sections must be active and page-scoped"]
+  ["const esc=v=>String(v??'').replace(", "public catalog content must be HTML-escaped"],
+  ["const safeImage=v=>", "public product images must be HTTPS only"],
+  ["i.test(s)?s:''}", "non-HTTPS product image URLs must be rejected"],
+  ["noopener noreferrer", "external WhatsApp links must prevent opener access"],
+  ["loading", "product images must load lazily"],
+  ["eq('slug',slug).eq('status','PUBLISHED')", "public page lookup must be slug-scoped and published-only"],
+  ["eq('page_id',p.id).eq('active',true)", "public catalog sections must be active and page-scoped"]
 ]) if(!publicPage.includes(marker)) throw new Error('Public catalog security boundary missing: '+label);
 
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
