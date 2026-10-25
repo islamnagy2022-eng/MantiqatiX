@@ -202,3 +202,41 @@ grant execute on function public.mnty_admin_activate_digital_page_subscription(u
 
 comment on function public.mnty_admin_activate_digital_page_subscription(uuid, text, text) is
   'Platform-admin-only manual activation for PORTFOLIO and business-scoped MENU subscriptions after independent external payment verification; records an audit row and does not collect funds.';
+
+
+-- Order-backed personal pages and self-service business MENU pages must stop being public at expiry.
+-- Legacy business/provider pages without a self-service MENU order keep their existing public contract.
+drop policy if exists digital_pages_public_read on public.digital_pages;
+create policy digital_pages_public_read
+on public.digital_pages
+for select to anon, authenticated
+using (
+  status = 'PUBLISHED'
+  and (
+    (
+      owner_user_id is null
+      and not (page_type = 'MENU' and business_id is not null and digital_page_order_id is not null)
+    )
+    or public.digital_page_public_subscription_active(digital_page_order_id)
+  )
+);
+
+drop policy if exists digital_page_sections_public_read on public.digital_page_sections;
+create policy digital_page_sections_public_read
+on public.digital_page_sections
+for select to anon, authenticated
+using (
+  active = true
+  and exists (
+    select 1 from public.digital_pages p
+    where p.id = digital_page_sections.page_id
+      and p.status = 'PUBLISHED'
+      and (
+        (
+          p.owner_user_id is null
+          and not (p.page_type = 'MENU' and p.business_id is not null and p.digital_page_order_id is not null)
+        )
+        or public.digital_page_public_subscription_active(p.digital_page_order_id)
+      )
+  )
+);
