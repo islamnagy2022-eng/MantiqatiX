@@ -4,6 +4,50 @@ alter table public.digital_pages
   add column if not exists owner_user_id uuid references auth.users(id) on delete cascade,
   add column if not exists whatsapp_number text;
 
+-- Record the first successful payment timestamp immutably so checkout time does not consume the paid term.
+alter table public.digital_page_orders
+  add column if not exists paid_at timestamptz;
+
+-- Backfill legacy paid orders conservatively; already-published pages use their immutable first publication time.
+update public.digital_page_orders o
+set paid_at = coalesce(
+  (select p.published_at from public.digital_pages p
+   where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id),
+  o.updated_at,
+  o.created_at
+)
+where o.payment_status='PAID' and o.paid_at is null;
+
+create or replace function public.digital_page_orders_paid_at_guard()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if tg_op = 'INSERT' then
+    if new.payment_status = 'PAID' then
+      new.paid_at := pg_catalog.now();
+    else
+      new.paid_at := null;
+    end if;
+  elsif old.paid_at is not null then
+    new.paid_at := old.paid_at;
+  elsif old.payment_status is distinct from 'PAID' and new.payment_status = 'PAID' then
+    new.paid_at := pg_catalog.now();
+  elsif new.payment_status = 'PAID' then
+    new.paid_at := coalesce(new.paid_at, pg_catalog.now());
+  else
+    new.paid_at := null;
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists trg_digital_page_orders_paid_at_guard on public.digital_page_orders;
+create trigger trg_digital_page_orders_paid_at_guard
+before insert or update of payment_status, paid_at on public.digital_page_orders
+for each row execute function public.digital_page_orders_paid_at_guard();
+
 -- Replace only the original table-level ownership check from RC248.
 alter table public.digital_pages
   drop constraint if exists digital_pages_check;
@@ -33,7 +77,7 @@ as $$
       and o.user_id=(select auth.uid())
       and o.payment_status='PAID'
       and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
-      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.created_at) + pg_catalog.make_interval(days => greatest(
+      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.paid_at, o.created_at) + pg_catalog.make_interval(days => greatest(
         1,
         coalesce(
           case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
@@ -59,7 +103,7 @@ as $$
     where o.id=p_order_id
       and o.payment_status='PAID'
       and o.fulfillment_status='PUBLISHED'
-      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.created_at) + pg_catalog.make_interval(days => greatest(
+      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.paid_at, o.created_at) + pg_catalog.make_interval(days => greatest(
         1,
         coalesce(
           case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
