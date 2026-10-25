@@ -16,7 +16,7 @@ assert.match(home,/صفحة الخدمات التسويقية مؤجلة/);
 assert.match(home,/خدمات التسويق — تحت الإنشاء/);
 assert.match(home,/الإعلانات الممولة مؤجلة لما بعد الإطلاق الأول/);
 assert.match(home,/querySelectorAll\('#mx-growth-ads,#mx-ad-book,#mx-ad-cta,#mx-ad-plans,\[data-ad-plan\]'\)/,'all public sponsored-ad purchase controls must be disabled');
-assert.match(sw,/const CACHE='mnty-web-v\\d+[^']*';/,'PWA cache must use an explicit versioned cache key');
+assert.match(sw,/const CACHE='mnty-web-v[0-9]+[^']*';/,'PWA cache must use an explicit versioned cache key');
 assert.doesNotMatch(sw,/const CACHE='mnty-web-v140-catalog-first';/,'PWA cache must not regress to the obsolete catalog-first cache version');
 assert.doesNotMatch(sw,/\.\/marketing-services\.html|\.\/marketing-services\.css|\.\/marketing-services\.js/,'deferred marketing page assets must not be precached');
 console.log('Deferred marketing services contract: PASS');
