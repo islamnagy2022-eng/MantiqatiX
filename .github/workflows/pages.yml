@@ -315,5 +315,6 @@ jobs:
           grep -Fq 'noindex,nofollow' <<<"$MARKETING_SERVICES_HTML"
           ! grep -Fq 'id="request-form"' <<<"$MARKETING_SERVICES_HTML"
           ! grep -Fq 'marketing-services.js' <<<"$MARKETING_SERVICES_HTML"
-          grep -Fq 'marketing-services.html' <<<"$APP_JS" || grep -Fq 'marketing-services.html' <<<"$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}home.js")"
+          ! grep -Fq 'href="marketing-services.html"' <<<"$APP_JS"
+          ! grep -Fq 'href="marketing-services.html"' <<<"$HOME_JS"
           echo "Production smoke verification passed for $PAGE_URL"
