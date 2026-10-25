@@ -49,6 +49,7 @@ jobs:
           node --check web/provider-onboarding-module.js
           node --check web/reverse-bidding-module.js
           node --check web/restaurant-module.js
+          node --check web/catalog-experience-engine.js
           node --check web/digital-page-self-service.js
           node --check web/digital-page-editor.js
           node --check web/digital-page.js
@@ -83,6 +84,7 @@ jobs:
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/validate-digital-page-manual-activation.mjs
           node scripts/validate-digital-page-menu-subscription.mjs
+          node scripts/validate-catalog-experience-engine.mjs
           node scripts/validate-subscription-reminders.mjs
           node scripts/validate-paymob-launch-gate.mjs
           node scripts/validate-marketing-services-page.mjs
@@ -122,7 +124,9 @@ jobs:
           test -f web/digital-page-editor.css
           test -f web/digital-page-self-service.html
           test -f web/digital-page-self-service.css
+          test -f web/catalog-experience-engine.js
           test -f web/digital-page-self-service.js
+          test -f scripts/validate-catalog-experience-engine.mjs
           test -f web/marketing-services.html
           test -f web/marketing-services.css
           test -f web/marketing-services.js
