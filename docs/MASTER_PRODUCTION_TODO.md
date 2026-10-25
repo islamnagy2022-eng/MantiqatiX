@@ -1898,7 +1898,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 ## Explicitly deferred until after launch
 - New accounting/ledger/settlement logic and commissions for this new WhatsApp-first catalog flow. Do not remove or disable existing finance/accounting functionality used by other platform flows.
 - Sponsored ads: ad inventory, paid promotion checkout, ad spend collection, campaign delivery/billing tied to payment. Existing ad-related code is not automatically approved for this launch scope; don't expose paid-ad purchase/activation in the new customer-facing flow.
-- Paymob collection for these new public page/catalog requests. No card-payment UI, payment-intent creation, or claim of paid status in this flow. Existing Paymob integration for other already-supported platform flows must remain untouched.
+- All new Paymob checkout/payment-intent creation is deferred for the first launch across all modules. Keep source code and historical payment records, and retain webhook processing for reconciliation of already-created intents; block new checkout entry points and new intent creation until a later approved release.
 - Automated financial settlement, commission calculation, or wallet transfers for WhatsApp-originated requests.
 
 ## Required module inventory before implementation
