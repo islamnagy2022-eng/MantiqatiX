@@ -8,8 +8,8 @@ assert.match(sql, /if new\.page_type <> 'MENU' then\s+return new;\s+end if;/i,
   'non-MENU pages should not enter the MENU guard');
 assert.match(sql, /if new\.digital_page_order_id is not null and new\.business_id is null then\s+raise exception 'DIGITAL_PAGE_MENU_BUSINESS_REQUIRED';/i,
   'order-backed MENU must reject missing business scope');
-assert.match(sql, /if new\.digital_page_order_id is null then\s+return new;\s+end if;/i,
-  'legacy non-order-backed MENU rows must preserve their existing creation path');
+assert.match(sql, /if new\.digital_page_order_id is null then\s+if new\.business_id is not null then\s+raise exception 'DIGITAL_PAGE_MENU_ORDER_REQUIRED';\s+end if;\s+return new;\s+end if;/i,
+  'business-bound MENU rows must keep the order requirement while non-business legacy rows retain the early return');
 assert.match(sql, /v_order\.target_business_id is distinct from new\.business_id/i,
   'order business must match the page business');
 assert.match(sql, /digital_page_subscription_active\(v_order\.id, v_actor\)/i,
