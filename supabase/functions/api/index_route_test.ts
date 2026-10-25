@@ -1,0 +1,144 @@
+import { createApiHandler } from "./index.ts";
+
+type Row = Record<string, unknown>;
+type QueryState = {
+  table: string;
+  filters: Array<{ op: string; column: string; value: unknown }>;
+  payload?: unknown;
+};
+
+class FakeQuery {
+  state: QueryState;
+  db: FakeDatabase;
+  constructor(table: string, db: FakeDatabase) {
+    this.state = { table, filters: [] };
+    this.db = db;
+  }
+  select(_columns?: string) { return this; }
+  eq(column: string, value: unknown) { this.state.filters.push({ op: "eq", column, value }); return this; }
+  is(column: string, value: unknown) { this.state.filters.push({ op: "is", column, value }); return this; }
+  in(column: string, value: unknown) { this.state.filters.push({ op: "in", column, value }); return this; }
+  lte(column: string, value: unknown) { this.state.filters.push({ op: "lte", column, value }); return this; }
+  or(value: string) { this.state.filters.push({ op: "or", column: "", value }); return this; }
+  order(_column: string, _options?: unknown) { return this; }
+  limit(_count: number) { return this; }
+  insert(payload: unknown) { this.state.payload = payload; return this; }
+  single() { return Promise.resolve(this.db.resolve(this.state, "single")); }
+  maybeSingle() { return Promise.resolve(this.db.resolve(this.state, "single")); }
+  then(resolve: (value: unknown) => unknown, reject?: (reason: unknown) => unknown) {
+    return Promise.resolve(this.db.resolve(this.state, "many")).then(resolve, reject);
+  }
+}
+
+class FakeDatabase {
+  mode: "catalog" | "payments";
+  existingIntent: Row | null;
+  queryLog: QueryState[] = [];
+  constructor(mode: "catalog" | "payments", existingIntent: Row | null = null) {
+    this.mode = mode;
+    this.existingIntent = existingIntent;
+  }
+  from(table: string) { return new FakeQuery(table, this); }
+  async rpc(_name: string, _args: unknown) { return { data: {}, error: null }; }
+  auth = { getUser: async (_token: string) => ({ data: { user: { id: "user-a", is_anonymous: false } }, error: null }) };
+
+  resolve(state: QueryState, cardinality: "single" | "many") {
+    this.queryLog.push({ ...state, filters: [...state.filters] });
+    const value = (column: string) => state.filters.find((f) => f.op === "eq" && f.column === column)?.value;
+    const isNull = (column: string) => state.filters.some((f) => f.op === "is" && f.column === column && f.value === null);
+    let rows: Row[] = [];
+    if (state.table === "businesses") {
+      rows = [{ id: "business-a", tenant_id: "tenant-a", status: "ACTIVE" }];
+    } else if (state.table === "user_memberships") {
+      rows = [{ id: "membership-a", role: "CUSTOMER", permissions: [], business_id: null }];
+    } else if (state.table === "marketing_provider_profiles") {
+      rows = [{ id: "provider-a" }];
+    } else if (state.table === "branches") {
+      rows = [{ id: "branch-a", business_id: "business-a", name: "Branch A", code: "A", status: "ACTIVE", address: "", phone: "" }];
+      if (value("id") === "branch-b") rows = [];
+    } else if (state.table === "catalog_items") {
+      if (isNull("branch_id")) rows = [{ id: "item-shared", tenant_id: "tenant-a", business_id: "business-a", branch_id: null, name_ar: "مشترك", status: "ACTIVE" }];
+      else if (value("branch_id") === "branch-a") rows = [{ id: "item-a", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-a", name_ar: "فرع أ", status: "ACTIVE" }];
+      else rows = [];
+    } else if (state.table === "catalog_item_prices") {
+      if (isNull("branch_id")) rows = [{ id: "price-shared", catalog_item_id: "item-shared", branch_id: null, currency: "EGP", unit_price: 10, version: 1, status: "ACTIVE" }];
+      else if (value("branch_id") === "branch-a") rows = [{ id: "price-a", catalog_item_id: "item-a", branch_id: "branch-a", currency: "EGP", unit_price: 12, version: 1, status: "ACTIVE" }];
+      else if (value("branch_id") === "branch-b") rows = [{ id: "price-b", catalog_item_id: "item-a", branch_id: "branch-b", currency: "EGP", unit_price: 99, version: 1, status: "ACTIVE" }];
+    } else if (state.table === "catalog_item_options") {
+      rows = [];
+    } else if (state.table === "orders" && this.mode === "payments") {
+      rows = [{ id: "order-a", tenant_id: "tenant-a", total: 125.5, currency: "EGP", customer_id: "user-a" }];
+    } else if (state.table === "tenant_payment_methods") {
+      rows = [{ id: "method-a" }];
+    } else if (state.table === "payment_intents") {
+      rows = this.existingIntent ? [this.existingIntent] : [];
+    }
+    const selected = rows.filter((row) => state.filters.every((filter) => {
+      if (filter.op === "eq") return String(row[filter.column] ?? "") === String(filter.value ?? "");
+      if (filter.op === "is") return filter.value === null ? row[filter.column] == null : row[filter.column] === filter.value;
+      if (filter.op === "in") return Array.isArray(filter.value) && filter.value.some((v) => String(v) === String(row[filter.column]));
+      if (filter.op === "lte") return String(row[filter.column] ?? "") <= String(filter.value);
+      return true;
+    }));
+    if (cardinality === "single") return { data: selected[0] ?? null, error: null };
+    return { data: selected, error: null };
+  }
+}
+
+function makeHandler(db: FakeDatabase) {
+  return createApiHandler({
+    createClientFn: () => db,
+    env: { get: (name: string) => name === "SUPABASE_URL" ? "https://example.supabase.co" : "test-service-role" },
+  });
+}
+
+function request(path: string, method = "GET", body?: unknown) {
+  return new Request(`https://api.test${path}`, {
+    method,
+    headers: {
+      Origin: "https://islamnagy2022-eng.github.io",
+      Authorization: "Bearer test-token",
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+}
+
+Deno.test("catalog route returns shared and selected-branch prices only", async () => {
+  const db = new FakeDatabase("catalog");
+  const response = await makeHandler(db)(request("/api/v1/catalog?businessId=business-a&branchId=branch-a"));
+  const body = await response.json();
+  if (response.status !== 200) throw new Error(`expected 200, got ${response.status}: ${JSON.stringify(body)}`);
+  const priceIds = body.prices.map((price: Row) => price.id).sort();
+  if (priceIds.join(",") !== "price-a,price-shared") throw new Error(`unexpected price IDs: ${priceIds.join(",")}`);
+  if (priceIds.includes("price-b")) throw new Error("cross-branch price override leaked into catalog response");
+  const branchFilters = db.queryLog.filter((q) => q.table === "catalog_item_prices").flatMap((q) => q.filters);
+  if (!branchFilters.some((f) => f.op === "is" && f.column === "branch_id" && f.value === null)) throw new Error("shared-price query did not use IS NULL");
+  if (!branchFilters.some((f) => f.op === "eq" && f.column === "branch_id" && f.value === "branch-a")) throw new Error("branch-price query did not use exact selected-branch equality");
+});
+
+Deno.test("catalog route rejects a branch not owned by the selected business", async () => {
+  const db = new FakeDatabase("catalog");
+  const response = await makeHandler(db)(request("/api/v1/catalog?businessId=business-a&branchId=branch-b"));
+  if (response.status !== 404) throw new Error(`expected 404 for cross-business branch, got ${response.status}`);
+});
+
+Deno.test("payment-intent route replays the same identity but rejects a key bound to another order", async () => {
+  const intent: Row = {
+    id: "intent-a", tenant_id: "tenant-a", order_id: "order-a", amount: 125.5, currency: "EGP",
+    status: "CREATED", provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", idempotency_key: "key-a",
+  };
+  const replayDb = new FakeDatabase("payments", intent);
+  const replay = await makeHandler(replayDb)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-a", provider: "CASH_ON_DELIVERY", idempotencyKey: "key-a",
+  }));
+  const replayBody = await replay.json();
+  if (replay.status !== 200 || replayBody.idempotent !== true) throw new Error("same-identity idempotent replay was not returned");
+
+  const conflictDb = new FakeDatabase("payments", { ...intent, order_id: "another-order" });
+  const conflict = await makeHandler(conflictDb)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-a", provider: "CASH_ON_DELIVERY", idempotencyKey: "key-a",
+  }));
+  const conflictBody = await conflict.json();
+  if (conflict.status !== 409 || conflictBody.error !== "IDEMPOTENCY_CONFLICT") throw new Error("reusing a key for another order must return 409");
+});
