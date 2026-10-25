@@ -76,3 +76,14 @@
 - التحقق من المصدر أكد تطابق مفاتيح cache وإصدارات ملفات الخدمة الذاتية ووجود مدققات L1 وdigital-page boundaries داخل workflow. هذا تحقق مصدر فقط، وليس نجاح تشغيل GitHub Actions أو اختبار متصفح.
 - أحدث PR head عند آخر قراءة: `08b132dbafe659de418adec46b8d25c472e1e20d`. PR #374 ما زال draft/open وغير مدمج. لا يوجد تصريح بإطلاق إنتاجي أو تطبيق ترحيلات قاعدة البيانات.
 - بوابة L1 ما زالت بانتظار CI وsmoke test منشور. L2/L3 ما زالتا PARTIAL إلى أن تُختبر الملكية وRLS وCRUD فعليًا بمستخدمين من جهتين مختلفتين.
+
+
+## Read-only production schema audit — 2026-10-25
+
+Supabase production project `moyhiluyhjsujhwlyeuu` was inspected read-only; no DDL, migration, or data changes were made.
+
+- Latest recorded production migration is `20261008222845 / rc424_atomic_digital_page_payment_webhook`.
+- Existing `digital_pages`, `digital_page_orders`, `digital_page_products`, `digital_page_sections`, and `restaurant_menu_items` have RLS enabled.
+- Production schema does not yet contain the candidate self-service fields `digital_pages.owner_user_id`, `digital_pages.whatsapp_number`, `digital_page_orders.paid_at`, or `restaurant_menu_items.image_url`; the private `digital_page_menu_branch_bindings` table is also absent.
+- Therefore the self-service UI is NOT compatible with production schema until the candidate migrations are safely reconciled, replayed against a production-equivalent checkpoint, and approved. Do not deploy the self-service HTML/JS alone and do not apply RC567–RC570 directly to production.
+- The known candidate-chain note requiring RC563–RC566 ordering reconciliation remains open. Preserve all existing production tables/data and all historical migrations; fix forward only after dependencies are resolved.
