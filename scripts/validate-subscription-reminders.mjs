@@ -22,6 +22,9 @@ assert.match(migration, /new\.paid_at := pg_catalog\.now\(\)/i, 'paid timestamp 
 assert.match(migration, /digital_page_orders_paid_at_guard/i, 'paid timestamp guard trigger must be installed');
 assert.match(migration, /where o\.payment_status='PAID' and o\.paid_at is null/i, 'legacy paid orders must receive a conservative backfill');
 
+assert.match(app, /function genericPage\(title,desc,items\)/, 'generic dashboard routes must identify placeholder workspaces');
+assert.match(app, /الوظائف غير المكتملة تحت الإنشاء/, 'generic dashboard must visibly label unfinished functionality');
+assert.match(app, /طبقة البيانات — تحت الإنشاء/, 'generic data sections must not claim readiness');
 assert.match(app, /function launchScopePanel\(\)/, 'dashboard must disclose launch-scope status');
 assert.match(app, /الإعلانات الممولة[\s\S]{0,300}تحت الإنشاء/, 'deferred sponsored ads must be labeled under construction');
 assert.match(app, /خدمات التسويق الرقمي SMM[\s\S]{0,300}مديول مستقل/, 'SMM must remain a separate module');
