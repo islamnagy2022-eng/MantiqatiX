@@ -60,7 +60,7 @@ serve(async (req) => {
   if (req.method === "GET" && path === "/api/v1/catalog") {
     const requestedTenantId = url.searchParams.get("tenantId");
     const businessId = url.searchParams.get("businessId");
-    const branchId = url.searchParams.get("branchId");
+    const branchId = url.searchParams.get("branchId")?.trim() || null;
     const parsedLimit = Number(url.searchParams.get("limit") ?? "100");
     const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), 100);
     if (!businessId) return json({ error: "businessId is required" }, 400);
@@ -91,6 +91,18 @@ serve(async (req) => {
       .order("name", { ascending: true }).limit(100);
     if (branchesError) return json({ error: "Failed to load branches" }, 500);
 
+    // A branch filter is interpolated into a PostgREST OR expression below.
+    // Restrict its syntax and prove that it is an active branch of this business first.
+    if (branchId) {
+      if (!/^[A-Za-z0-9_-]{1,128}$/.test(branchId)) {
+        return json({ error: "Invalid branchId" }, 400);
+      }
+      const { data: selectedBranch, error: selectedBranchError } = await supabaseAdmin.from("branches")
+        .select("id").eq("id", branchId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+      if (selectedBranchError) return json({ error: "Failed to validate branch" }, 500);
+      if (!selectedBranch) return json({ error: "Branch not available for this business" }, 404);
+    }
+
     let itemQuery = supabaseAdmin.from("catalog_items")
       .select("id,tenant_id,business_id,branch_id,legacy_ref,item_type,name_ar,name_en,description,sku,status,tax_rate,metadata")
       .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
@@ -103,12 +115,15 @@ serve(async (req) => {
     if (!ids.length) return json({ tenantId, businessId, branchId: branchId ?? null, items: [], prices: [], options: [] });
 
     const nowIso = new Date().toISOString();
+    let priceQuery = supabaseAdmin.from("catalog_item_prices")
+      .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
+      .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
+      .lte("effective_from", nowIso).or(`effective_to.is.null,effective_to.gte.${nowIso}`);
+    // Never return another branch's override when a specific branch was requested.
+    if (branchId) priceQuery = priceQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+
     const [pricesRes, optionsRes] = await Promise.all([
-      supabaseAdmin.from("catalog_item_prices")
-        .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
-        .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
-        .lte("effective_from", nowIso).or(`effective_to.is.null,effective_to.gte.${nowIso}`)
-        .order("version", { ascending: false }),
+      priceQuery.order("version", { ascending: false }),
       supabaseAdmin.from("catalog_item_options")
         .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
         .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
@@ -203,7 +218,10 @@ serve(async (req) => {
     if (!body) return json({ error: "Invalid JSON body" }, 400)
     const { orderId, provider, idempotencyKey } = body
     if (provider !== "CASH_ON_DELIVERY") return json({ error: "Only CASH_ON_DELIVERY is enabled in production" }, 400)
-    if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
+    const normalizedIdempotencyKey = String(idempotencyKey ?? "").trim()
+    if (!orderId || !normalizedIdempotencyKey || normalizedIdempotencyKey.length > 200) {
+      return json({ error: "orderId and idempotencyKey are required" }, 400)
+    }
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
       .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
@@ -226,6 +244,21 @@ serve(async (req) => {
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
+    const matchesIdempotentIntent = (intent: Record<string, unknown>) =>
+      String(intent.order_id) === String(order.id) &&
+      Math.abs(Number(intent.amount) - Number(order.total)) <= 0.01 &&
+      String(intent.currency ?? "").toUpperCase() === String(order.currency ?? "").toUpperCase() &&
+      String(intent.provider) === "CASH_ON_DELIVERY" &&
+      String(intent.payment_method) === "CASH_ON_DELIVERY"
+
+    const { data: existingIntent, error: existingIntentError } = await supabaseAdmin.from("payment_intents")
+      .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+    if (existingIntentError) return json({ error: "Failed to validate payment idempotency" }, 500)
+    if (existingIntent) {
+      if (!matchesIdempotentIntent(existingIntent)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
+      return json({ ...existingIntent, idempotent: true })
+    }
+
     const newIntent = {
       id: crypto.randomUUID(),
       tenant_id: order.tenant_id,
@@ -235,12 +268,20 @@ serve(async (req) => {
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
       payment_method: "CASH_ON_DELIVERY",
-      idempotency_key: String(idempotencyKey),
+      idempotency_key: normalizedIdempotencyKey,
     }
     const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
-    return json(data)
+      .insert(newIntent).select().single()
+    if (error) {
+      // A concurrent request may have won the unique-key race. Return it only if the
+      // full immutable payment identity matches; never overwrite it with another order.
+      const { data: racedIntent, error: racedIntentError } = await supabaseAdmin.from("payment_intents")
+        .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+      if (racedIntentError || !racedIntent) return json({ error: "Failed to create payment intent" }, 500)
+      if (!matchesIdempotentIntent(racedIntent)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
+      return json({ ...racedIntent, idempotent: true })
+    }
+    return json({ ...data, idempotent: false }, 201)
   }
 
   const paymentIntentMatch = path.match(/^\/api\/v1\/payments\/intents\/([^/]+)$/)
