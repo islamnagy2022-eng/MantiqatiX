@@ -250,22 +250,6 @@
     renderItems();
     message('تم حفظ المنتجات والأسعار.');
   }
-  $('new-page').addEventListener('click', () => {
-    currentPage = null;
-    menuSection = null;
-    items = [];
-    editIndex = -1;
-    $('page-form').reset();
-    $('products-panel').hidden = true;
-    $('product-form').reset();
-    $('product-form').querySelector('button[type=submit]').textContent = 'إضافة المنتج';
-    const sel = $('order');
-    sel.replaceChildren(new Option('اختر اشتراكًا مدفوعًا غير مستخدم', ''));
-    for (const o of orders) sel.add(new Option(o.title + ' · ' + o.fulfillment_status, o.id));
-    renderItems();
-    message(orders.length ? 'اختر اشتراكًا متاحًا لإنشاء صفحة جديدة.' : 'لا يوجد اشتراك غير مستخدم. اشترك في صفحة رقمية إضافية أولًا.', !orders.length);
-    $('title').focus();
-  });
   $('page-form').addEventListener('submit', async e => {
     e.preventDefault();
     try {
