@@ -316,3 +316,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added/updated CI checks for marketing page assets, WhatsApp contract, deferred ads, PWA cache, and public deployment smoke.
 - Latest source head before this log update: c6152b2a9514e6107982c02ae575d5c40d152811. Latest-head CI/replay remains pending; no runtime E2E or production deployment is claimed.
 - No production migration, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — RC570 candidate: restaurant menu to WhatsApp public catalog
+
+- Added candidate migration 20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql with optional HTTPS-only restaurant_menu_items.image_url.
+- Updated the restaurant/café menu editor to store/show image URLs and added a guarded sync action that takes available canonical items from the selected branch into the existing published digital MENU page. The action requires catalog update RBAC, a published business MENU page, and an active subscription; it refuses to replace a section already bound to another branch.
+- Updated public digital MENU rendering to show category labels and include item/category/displayed price/page URL in WhatsApp order text, with quantity/availability confirmation requested. No Paymob collection or paid-order claim is introduced in this path.
+- Added scripts/validate-restaurant-menu-whatsapp-sync.mjs to Pages CI and extended scripts/test-digital-page-runtime.mjs to cover category rendering. Updated restaurant and public page cache asset versions.
+- Exact-head CI and forward migration replay have not yet been verified. Authenticated multi-user RLS, browser E2E, expiry lifecycle, and deployed preview smoke remain required.
+- No merge, production migration, or deployment. PR #374 remains draft/unmerged and release remains BLOCKED / NOT CERTIFIED.
