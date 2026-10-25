@@ -48,9 +48,15 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     id: tenantId, name: "API integration disposable tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
   }));
   requireOk("insert businesses", await admin.from("businesses").insert([
-    { id: businessA, tenant_id: tenantId, name: "API integration business A", code: `APIITA-${suffix}`, status: "ACTIVE" },
-    { id: businessB, tenant_id: tenantId, name: "API integration business B", code: `APIITB-${suffix}`, status: "ACTIVE" },
+    { id: businessA, tenant_id: tenantId, name: "API integration business A", code: `APIITA-${suffix}`, status: "INACTIVE" },
+    { id: businessB, tenant_id: tenantId, name: "API integration business B", code: `APIITB-${suffix}`, status: "INACTIVE" },
   ]));
+  requireOk("insert business owner memberships", await admin.from("user_memberships").insert([
+    { id: `api-it-owner-a-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessA, role: "BUSINESS_OWNER", permissions: [], status: "ACTIVE" },
+    { id: `api-it-owner-b-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessB, role: "BUSINESS_OWNER", permissions: [], status: "ACTIVE" },
+  ]));
+  requireOk("activate business A", await admin.from("businesses").update({ status: "ACTIVE" }).eq("id", businessA));
+  requireOk("activate business B", await admin.from("businesses").update({ status: "ACTIVE" }).eq("id", businessB));
   requireOk("insert branches", await admin.from("branches").insert([
     { id: branchA, tenant_id: tenantId, business_id: businessA, name: "Branch A", code: `A-${suffix}`, status: "ACTIVE" },
     { id: branchB, tenant_id: tenantId, business_id: businessB, name: "Branch B", code: `B-${suffix}`, status: "ACTIVE" },
