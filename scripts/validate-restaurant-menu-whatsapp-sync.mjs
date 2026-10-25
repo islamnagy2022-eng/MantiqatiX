@@ -17,7 +17,7 @@ assert.match(migration, /alter table public\.digital_page_menu_branch_bindings e
 assert.match(migration, /revoke all on public\.digital_page_menu_branch_bindings from public, anon, authenticated/, 'branch binding must not be directly accessible without RLS-authorized grants');
 assert.match(migration, /digital_page_menu_branch_binding_immutable/, 'branch identity must be immutable after binding');
 assert.match(migration, /digital_page_menu_branch_binding_scope_guard/, 'private branch binding must validate the page and subscription order');
-assert.match(migration, /v_order\.target_business_id is distinct from new\.business_id/, 'menu binding must match the subscription business');
+assert.match(migration, /v_order\.target_business_id::text is distinct from new\.business_id::text/, 'menu binding must match the subscription business across existing ID representations');
 assert.match(migration, /new\.updated_by is distinct from auth\.uid\(\)/, 'menu binding audit actor must match the authenticated caller');
 assert.match(migration, /digital_page_public_subscription_active\(o\.id\)/, 'expired/unpublished subscriptions must block menu section writes server-side');
 assert.match(migration, /digital_page_sections as restrictive/, 'menu section writes must be restricted by the private branch binding');
@@ -48,7 +48,7 @@ assert.match(publicPage, /safeImage\(x\.image_url\)/, 'public menu must accept o
 assert.match(publicPage, /الكمية المطلوبة: أرجو التواصل لتأكيد الكمية والتفاصيل/, 'WhatsApp order must ask business to confirm quantity/details');
 assert.match(html, /digital-page\.js\?v=rc570/, 'public page must request the refreshed script');
 assert.match(index, /restaurant-module\.js\?v=rc570/, 'main app must request the refreshed restaurant module');
-assert.match(sw, /mnty-web-v137-restaurant-menu-wa/, 'PWA cache must be invalidated for menu sync release');
+assert.match(sw, /const CACHE='mnty-web-v142-https-images'/, 'PWA cache must use the current versioned release key');
 assert.match(sw, /restaurant-module\.js\?v=rc570/, 'PWA must precache the refreshed restaurant module');
 
 console.log('Restaurant canonical menu → published digital MENU → WhatsApp contract: PASS (static contract only; authenticated RLS/browser E2E and production deploy remain required).');
