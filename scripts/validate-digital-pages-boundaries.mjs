@@ -37,7 +37,7 @@ for(const [src,marker,label] of [
 const selfServiceHtml=fs.readFileSync('web/digital-page-self-service.html','utf8');
 for (const [src,marker,label] of [
   [selfService,"const supportPhone = '201010171770'","temporary subscription request goes to the official WhatsApp support channel"],
-  [selfService,"طلب الاشتراك والتفعيل يتمان عبر واتساب مؤقتًا دون دفع إلكتروني","self-service subscriptions do not collect online payments"],
+  [selfService,"لن يتم تحصيل أي دفع إلكتروني من هذه الصفحة حاليًا","self-service subscriptions do not collect online payments"],
   [selfService,"$('new-page-secondary')?.addEventListener('click', startNewPage)","secondary create-page action is wired"],
   [selfServiceHtml,'id="new-page-secondary"',"secondary create-page button has unique id"],
   [selfServiceMigration,"owner_user_id=(select auth.uid())\n  )","customer can still see their own page after subscription expiry"],
