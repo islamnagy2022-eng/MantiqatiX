@@ -131,9 +131,18 @@ as $
     and p_actor = auth.uid()
     and (
       coalesce(public.mnty_can_platform_admin(), false)
-      or not exists (
-        select 1 from public.digital_page_menu_branch_bindings b
-        where b.page_id = p_page_id
+      or (
+        not exists (
+          select 1 from public.digital_page_menu_branch_bindings b
+          where b.page_id = p_page_id
+        )
+        and exists (
+          select 1
+          from public.digital_pages p
+          left join public.digital_page_orders o on o.id = p.digital_page_order_id
+          where p.id = p_page_id
+            and (p.digital_page_order_id is null or o.user_id = p_actor)
+        )
       )
       or exists (
         select 1
