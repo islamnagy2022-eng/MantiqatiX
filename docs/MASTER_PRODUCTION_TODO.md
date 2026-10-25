@@ -2204,3 +2204,14 @@ This is an evidence checkpoint, not a release approval. Supabase production proj
 - Live `public.mnty_can_platform_admin()` currently delegates to `public.mnty_can('admin', NULL, NULL, NULL)`. The live `mnty_can` role mapping includes tenant `OWNER` in the `admin` permission list. This is a platform-scope authorization concern, not merely a lint warning. RC441 in PR #282 replaces the broad delegation with an explicit active `MNTY-PLATFORM` `SUPER_ADMIN` + `scope=PLATFORM` + `full_control=true` check. Require the complete RC441→RC449→RC462→RC565 behavioral chain and a non-platform tenant-owner denial test before production approval.
 - Live `get_mnty_targeted_advertisements` is anon-executable and has `search_path=public, pg_temp`. The product may need anonymous ad discovery, so preserve that access contract unless product review says otherwise. RC451 is the targeted candidate that changes only the function search path to empty and intentionally preserves grants; it is not recorded as applied in production. Verify RC451 in the combined replay and confirm public response fields do not expose private advertiser/customer data.
 - RC440's source loops over exposed SECURITY DEFINER functions whose function-level configuration is exactly `search_path=public`; the current production inventory shows 22 in that group and 18 with `search_path=public, pg_temp`. Do not assume RC440 addresses every warning or every function: verify its affected signatures and follow with function-specific authorization/search-path tests.
+
+
+## RC572 — platform-admin scope guard — 2026-10-26
+
+- [x] Added forward-only correction `20261025233000_rc572_platform_admin_scope_guard.sql` to require an active `SUPER_ADMIN` membership with explicit `scope=PLATFORM` and `full_control=true`.
+- [x] Added disposable PostgreSQL regression `supabase/tests/rc572_platform_admin_scope.sql` and wired it into the production-checkpoint forward replay workflow.
+- [x] Read-only production role matrix observed two explicit platform SUPER_ADMIN memberships; tenant OWNER and ADMIN memberships had no platform scope/full-control flags. No production data was changed.
+- [ ] Exact-head forward migration replay and RC572 SQL regression are still pending; do not mark the fix verified until GitHub Actions completes and the log confirms the test passed.
+- [ ] PR #374 remains draft/open with 61 changed files. Scope review/splitting remains outstanding; the new security fix is required for RC568/RC569 admin-only activation.
+- [ ] PR #375 payment idempotency migration is sequenced as RC573 and must not merge before PR #374/RC572. No merge or production deployment has occurred.
+- Global release remains **BLOCKED / NOT CERTIFIED**.
