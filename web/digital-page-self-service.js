@@ -222,6 +222,7 @@
   }
   async function choosePage(p) {
     currentPage = p;
+    configureProductEditor();
     if (p.digital_page_order_id && !$('order').querySelector('option[value="' + p.digital_page_order_id + '"]')) {
       const { data: order } = await sb.from('digital_page_orders').select('id,title,page_type,payment_status,fulfillment_status,created_at').eq('id', p.digital_page_order_id).maybeSingle();
       if (order) $('order').add(new Option(order.title + ' · ' + order.fulfillment_status, order.id));
@@ -235,6 +236,13 @@
     $('products-panel').hidden = false;
     await loadMenuSection();
     message('تم تحميل الصفحة. عدّل البيانات أو أضف المنتجات ثم احفظ.');
+  }
+  function configureProductEditor() {
+    const menuMode = currentPage?.page_type === 'MENU';
+    const notice = $('menu-canonical-notice');
+    const form = $('product-form');
+    if (notice) notice.hidden = !menuMode;
+    if (form) form.hidden = menuMode;
   }
   async function loadMenuSection() {
     const { data, error } = await sb.from('digital_page_sections')
@@ -254,24 +262,29 @@
       const row = node('article', undefined, 'product-row');
       const details = node('div');
       details.append(node('strong', item.name || 'منتج بدون اسم'));
-      details.append(node('p', (item.description || '') + (item.description ? ' · ' : '') + Number(item.price || 0).toLocaleString('ar-EG') + ' ج.م'));
+      details.append(node('p', (item.category ? item.category + ' · ' : '') + (item.description || '') + (item.description ? ' · ' : '') + Number(item.price || 0).toLocaleString('ar-EG') + ' ج.م'));
       if (item.image_url) details.append(node('p', 'توجد صورة مرتبطة بالمنتج', 'hint'));
-      const edit = node('button', 'تعديل'); edit.type = 'button';
-      edit.addEventListener('click', () => {
-        editIndex = i;
-        $('product-name').value = item.name || '';
-        $('product-price').value = item.price ?? '';
-        $('product-description').value = item.description || '';
-        $('product-image').value = item.image_url || '';
-        $('product-form').querySelector('button[type=submit]').textContent = 'حفظ تعديل المنتج';
-        $('product-name').focus();
-      });
-      const del = node('button', 'حذف'); del.type = 'button'; del.className = 'danger';
-      del.addEventListener('click', async () => {
-        const next = items.filter((_, idx) => idx !== i);
-        await saveItems(next);
-      });
-      row.append(details, edit, del); box.append(row);
+      if (currentPage?.page_type === 'MENU') {
+        row.append(details, node('span', 'يتم التحديث من مديول المطاعم', 'hint'));
+      } else {
+        const edit = node('button', 'تعديل'); edit.type = 'button';
+        edit.addEventListener('click', () => {
+          editIndex = i;
+          $('product-name').value = item.name || '';
+          $('product-price').value = item.price ?? '';
+          $('product-description').value = item.description || '';
+          $('product-image').value = item.image_url || '';
+          $('product-form').querySelector('button[type=submit]').textContent = 'حفظ تعديل المنتج';
+          $('product-name').focus();
+        });
+        const del = node('button', 'حذف'); del.type = 'button'; del.className = 'danger';
+        del.addEventListener('click', async () => {
+          const next = items.filter((_, idx) => idx !== i);
+          await saveItems(next);
+        });
+        row.append(details, edit, del);
+      }
+      box.append(row);
     });
   }
   async function saveItems(nextItems) {
@@ -325,6 +338,7 @@
         if (error) throw error;
         currentPage = data;
         $('products-panel').hidden = false;
+        configureProductEditor();
         items = []; menuSection = null;
       }
       await loadPages();
@@ -337,6 +351,7 @@
     e.preventDefault();
     try {
       if (!currentPage) throw new Error('احفظ بيانات الصفحة أولًا.');
+      if (currentPage.page_type === 'MENU') throw new Error('منيو المطعم تُدار من مديول المطاعم لتجنب تكرار المنتجات.');
       const name = $('product-name').value.trim();
       const price = Number($('product-price').value);
       if (!name || !Number.isFinite(price) || price < 0) throw new Error('راجع اسم المنتج والسعر.');
@@ -361,6 +376,7 @@
     $('page-form').reset();
     $('order').disabled = false;
     $('products-panel').hidden = true;
+    configureProductEditor();
     $('product-form').reset();
     $('product-form').querySelector('button[type=submit]').textContent = 'إضافة المنتج';
     renderItems();
