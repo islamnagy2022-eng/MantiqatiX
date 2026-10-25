@@ -33,9 +33,8 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   }
   const token = signedIn.data.session.access_token;
 
-  // Seed synthetic businesses inactive, establish the owner membership, and pass
-  // the real legal activation gate using clearly marked test-only consent fixtures.
-  // The whole test runs only against a local disposable Supabase instance.
+  // These fixtures are deliberately disposable and explicitly test-labelled.
+  // Never disable the business legal-owner guard to make test setup pass.
   const tenantId = `api-it-${suffix}`;
   const businessAId = crypto.randomUUID();
   const businessBId = crypto.randomUUID();
@@ -50,21 +49,35 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   requireOk("insert disposable tenant", await admin.from("tenants").insert({
     id: tenantId, name: "API route integration test tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
   }));
-  const insertedBusinesses = requireOk("insert inactive disposable businesses", await admin.from("businesses").insert([
-    { id: businessAId, tenant_id: tenantId, name: "API Test Business A", code: `APIITA-${suffix}`, status: "INACTIVE", settings: { test_fixture: true, sector: "FOOD" } },
-    { id: businessBId, tenant_id: tenantId, name: "API Test Business B", code: `APIITB-${suffix}`, status: "INACTIVE", settings: { test_fixture: true, sector: "HEALTH" } },
-  ]).select("id,tenant_id,code,status"));
+
+  // The legal-owner trigger validates the owner at INSERT time. INACTIVE is not
+  // an exemption, so seed the required identity on the original insert instead
+  // of creating an invalid row and attempting to attach an owner later.
+  const insertedBusinesses = requireOk("insert disposable businesses with owner binding", await admin.from("businesses").insert([
+    {
+      id: businessAId, tenant_id: tenantId, name: "API Test Business A", code: `APIITA-${suffix}`,
+      status: "INACTIVE", owner_user_id: userId,
+      settings: { test_fixture: true, sector: "FOOD", simulated_legal_fixture: true },
+    },
+    {
+      id: businessBId, tenant_id: tenantId, name: "API Test Business B", code: `APIITB-${suffix}`,
+      status: "INACTIVE", owner_user_id: userId,
+      settings: { test_fixture: true, sector: "HEALTH", simulated_legal_fixture: true },
+    },
+  ]).select("id,tenant_id,code,status,owner_user_id"));
   const businessA = insertedBusinesses.find((business: { id: string }) => business.id === businessAId);
   const businessB = insertedBusinesses.find((business: { id: string }) => business.id === businessBId);
-  if (!businessA || !businessB) throw new Error("failed to read back disposable businesses");
+  if (!businessA || !businessB || businessA.owner_user_id !== userId || businessB.owner_user_id !== userId) {
+    throw new Error("failed to read back disposable businesses with their test owner binding");
+  }
 
   requireOk("insert test owner memberships", await admin.from("user_memberships").insert([
     { id: `api-it-owner-a-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessAId, role: "OWNER", permissions: [], status: "ACTIVE" },
     { id: `api-it-owner-b-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessBId, role: "OWNER", permissions: [], status: "ACTIVE" },
   ]));
 
-  // Seed only synthetic, explicitly labelled consents for the disposable test user.
-  // This exercises the existing legal gate rather than disabling or bypassing it.
+  // Seed synthetic, explicitly labelled consent records to satisfy published
+  // legal requirements. This does not disable the real legal gate.
   for (const business of [businessA, businessB]) {
     for (const actionKey of ["BUSINESS_ACTIVATION", "BUSINESS_TRANSACTION"]) {
       const requirementsResult = await admin.from("legal_requirements")
