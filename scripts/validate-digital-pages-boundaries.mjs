@@ -58,6 +58,17 @@ for (const [src,marker,label] of [
   [adminEditorHtml,'id="manual-activation-panel"',"admin activation panel exists"]
 ]) if(!src.includes(marker)) throw new Error('Manual activation boundary marker missing: '+label);
 if (!publicPage.includes('اطلب المنتج عبر واتساب') || !publicPage.includes("MNTYCatalogExperience?.buildInquiry('FOOD',pagePhone,")) throw new Error('Product order CTA must use the shared FOOD adapter and encoded product details');
+
+for (const [marker,label] of [
+  ["const esc=v=>String(v??'').replace(/[&<>\\\"]/g,c=>", "public catalog content must be HTML-escaped"],
+  ["const safeImage=v=>{const s=String(v||'').trim();return /^https:\\/\\//i.test(s)?s:''}", "public product images must use HTTPS only"],
+  ["if(s.status)","public page lookup must require PUBLISHED status"],
+  ["rel=\\"noopener noreferrer\\"","external WhatsApp links must prevent opener access"],
+  ["loading=\\"lazy\\"","product images must load lazily"],
+  ["eq('slug',slug).eq('status','PUBLISHED')","public page lookup must be slug-scoped and published-only"],
+  ["eq('page_id',p.id).eq('active',true)","public catalog sections must be active and page-scoped"]
+]) if(!publicPage.includes(marker)) throw new Error('Public catalog security boundary missing: '+label);
+
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
 if ((selfServiceMigration.match(/coalesce\(o\.paid_at, \(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
 if (!selfServiceMigration.includes('digital_page_orders_paid_at_guard') || !selfServiceMigration.includes('new.paid_at := pg_catalog.now()')) throw new Error('Subscription duration must start on first successful payment and paid_at must be immutable');
