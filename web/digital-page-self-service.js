@@ -25,7 +25,8 @@
     if (error) throw error;
     user = data.session?.user || null;
     if (!user) {
-      $('auth').textContent = 'سجل الدخول إلى MantiqatiX أولًا حتى نعرض اشتراكك وصفحاتك.';
+      $('auth').replaceChildren(node('p', 'سجل الدخول إلى MantiqatiX أولًا حتى نعرض اشتراكك وصفحاتك.'));
+      const login = node('a', 'العودة إلى MantiqatiX لتسجيل الدخول'); login.href = 'index.html'; $('auth').append(login);
       return;
     }
     $('auth').textContent = 'تم تسجيل الدخول. يتم تحميل الاشتراكات والصفحات المرتبطة بحسابك.';
