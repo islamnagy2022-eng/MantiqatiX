@@ -305,7 +305,7 @@
       $('product-form').querySelector('button[type=submit]').textContent = 'إضافة المنتج';
     } catch (err) { message(err.message || 'تعذر حفظ المنتج.', true); }
   });
-  $('new-page')?.addEventListener('click', async () => {
+  async function startNewPage() {
     currentPage = null;
     menuSection = null;
     items = [];
@@ -318,9 +318,12 @@
     renderItems();
     try {
       await loadOrders();
-      message(orders.length ? 'اختر اشتراكًا غير مستخدم لإنشاء صفحة جديدة.' : 'لا يوجد اشتراك متاح لإنشاء صفحة جديدة. اشترك في باقة أخرى أولًا.');
+      message(orders.length ? 'اختر اشتراكًا غير مستخدم لإنشاء صفحة جديدة.' : 'لا يوجد اشتراك متاح لإنشاء صفحة جديدة. اشترك في باقة أخرى أولًا.', !orders.length);
+      $('title').focus();
     } catch (e) { message(e.message || 'تعذر تحميل الاشتراكات.', true); }
-  });
+  }
+  $('new-page')?.addEventListener('click', startNewPage);
+  $('new-page-secondary')?.addEventListener('click', startNewPage);
   $('refresh-subscriptions')?.addEventListener('click', async () => {
     try { await loadPages(); await loadOrders(); message('تم تحديث حالة الاشتراك والصفحات.'); }
     catch (e) { message(e.message || 'تعذر تحديث الاشتراك.', true); }
