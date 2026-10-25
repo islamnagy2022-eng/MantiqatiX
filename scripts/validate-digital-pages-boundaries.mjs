@@ -21,8 +21,6 @@ for(const [src,marker,label] of [
  [selfService,"digital_page_orders","customer page requires paid order"],
  [selfService,"whatsapp_number","customer WhatsApp contact field"],
  [selfService,"saveItems","customer product and price management"],
- [selfService,"digital-page-order-create","customer subscription order creation"],
- [selfService,"digital-page-payment-intent","customer checkout integration"],
  [selfService,"loadSubscriptionProducts","customer package listing"],
  [adminEditor,"kind==='CUSTOMER'","admin editor customer ownership support"],
  [adminEditor,"fulfill_digital_page_publish","admin publication gate retained"],
@@ -38,15 +36,16 @@ for(const [src,marker,label] of [
 ]) if(!src.includes(marker)) throw new Error('Digital page self-service marker missing: '+label);
 const selfServiceHtml=fs.readFileSync('web/digital-page-self-service.html','utf8');
 for (const [src,marker,label] of [
-  [selfService,'pendingCheckoutOrders.set(productId, order.id)','checkout order correlation retained until confirmation'],
-  [selfService,'pendingCheckoutOrders.delete(productId)','pending checkout key lifecycle cleanup'],
-  [selfService,"checkoutWindow.location.replace(payment.checkoutUrl);\n        return;","checkout idempotency key is not cleared before payment confirmation"],
+  [selfService,"const supportPhone = '201010171770'","temporary subscription request goes to the official WhatsApp support channel"],
+  [selfService,"طلب الاشتراك والتفعيل يتمان عبر واتساب مؤقتًا دون دفع إلكتروني","self-service subscriptions do not collect online payments"],
   [selfService,"$('new-page-secondary')?.addEventListener('click', startNewPage)","secondary create-page action is wired"],
   [selfServiceHtml,'id="new-page-secondary"',"secondary create-page button has unique id"],
   [selfServiceMigration,"owner_user_id=(select auth.uid())\n  )","customer can still see their own page after subscription expiry"],
   [selfServiceMigration,"public.digital_page_public_subscription_active(p.digital_page_order_id)","public rendering is gated by subscription validity"]
 ]) if(!src.includes(marker)) throw new Error('Digital page regression marker missing: '+label);
 if ((selfServiceHtml.match(/id="new-page"/g)||[]).length !== 1) throw new Error('Duplicate create-page button id detected');
+if (/digital-page-payment-intent|digital-page-order-create|checkoutUrl|pendingCheckoutOrders|pendingCheckoutKeys/.test(selfService)) throw new Error('Self-service subscriptions must remain WhatsApp-only temporarily');
+if (!publicPage.includes('اطلب المنتج عبر واتساب') || !publicPage.includes('encodeURIComponent(productMessage)')) throw new Error('Product order CTA must open WhatsApp with encoded product details');
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
 if ((selfServiceMigration.match(/coalesce\(o\.paid_at, \(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
 if (!selfServiceMigration.includes('digital_page_orders_paid_at_guard') || !selfServiceMigration.includes('new.paid_at := pg_catalog.now()')) throw new Error('Subscription duration must start on first successful payment and paid_at must be immutable');
