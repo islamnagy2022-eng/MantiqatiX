@@ -195,8 +195,9 @@
         items = []; menuSection = null;
       }
       await loadPages();
+      await loadOrders();
       renderPages();
-      message('تم حفظ بيانات الصفحة كمسودة. بعد مراجعة الاشتراك واعتماد النشر سيصبح الرابط متاحًا للجميع.');
+      message(currentPage.status === 'PUBLISHED' ? 'تم حفظ تعديلات الصفحة المنشورة.' : 'تم حفظ بيانات الصفحة كمسودة. بعد مراجعة الاشتراك واعتماد النشر سيصبح الرابط متاحًا للجميع.');
     } catch (err) { message(err.message || 'تعذر حفظ الصفحة.', true); }
   });
   $('product-form').addEventListener('submit', async e => {
