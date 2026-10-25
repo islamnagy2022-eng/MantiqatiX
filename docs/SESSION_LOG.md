@@ -411,3 +411,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Follow-up commits: `669e7010f0b04db5c7219feb5b400930e19636be`, `7c30b3bab2d7bee52cad33798a892a48075c51ef`, `27b0355e3527b51862e27966e4c746ca6607f536`, `2bbf923549e596ab62f52843d1ff4a3fde956cdb`.
 - The new assertions are source-contract checks only; they have not yet been proven by a successful CI run. Latest observed workflow run set remained queued on an earlier head, and no exact-head green run was returned for `2bbf923549e596ab62f52843d1ff4a3fde956cdb` at documentation time.
 - No production deploy, merge, or production database migration was performed. PR #374 remains draft/open; release remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, forward migration replay, RLS/tenant isolation and browser smoke verification.
+
+
+## 2026-10-25 — MVP subscription-tier presentation
+
+- The customer self-service page now displays feature labels from each active `digital_page_products.features` value (array or object) as DOM text, capped at 12 visible items, alongside the existing database-defined name, duration, and price. No feature values are injected as HTML.
+- Added tier feature-list styling and refreshed the PWA cache to `mnty-web-v141-catalog-tiers`; updated the public-shell workflow and cache contract validator to the new key.
+- This is the tier-selection/presentation slice only. It does not claim per-tier feature quotas are enforced across all backend operations; server-side entitlement/limit enforcement remains a separate release requirement.
+- Relevant commits: `6e2bd1f3e5776f790ab04334023251bd410e9530`, `bc426b8b36de153a4cf4fda2f203e144cf546cd3`, `7c9ee4d34f7f7a3b093927ea7bbd3e6d02e07957`, `fd7efa88cd0049c3ad0310e53b4de79610f53bde`, `2f013f12131c08588c48e7fbc26c4313df74bd98`, `99a52a2f2035d76aec99462422d51f51aa21b76f`, `ac54976f04802186ab594c2a4afa3952e041302d`, `97fd8444bac05940cfc783d054f9f3b51b550052`.
+- Exact-head CI still has no returned workflow results; existing observed jobs are queued/cancelled. No production deploy, merge, or migration occurred. PR #374 remains draft/open and production remains **BLOCKED / NOT CERTIFIED**.
