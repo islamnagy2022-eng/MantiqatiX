@@ -231,7 +231,14 @@ async function syncRestaurantMenuToDigitalPage(){
   if(saved.error)throw saved.error;
   if(!saved.data)throw new Error('لم يتم حفظ تحديث المنيو داخل نطاق الصفحة');
   const publicUrl=new URL('digital-page.html?slug='+encodeURIComponent(page.slug),location.href).href;
-  notify('تم تحديث المنيو المنشورة بعدد '+available.length+' صنف. رابط العملاء: '+publicUrl);
+  const actionBar=document.querySelector('.workspace-section .action-bar');
+  let openLink=document.getElementById('rest-open-menu-page');
+  if(!openLink&&actionBar){
+   openLink=document.createElement('a');openLink.id='rest-open-menu-page';openLink.className='btn btn-outline';
+   openLink.target='_blank';openLink.rel='noopener noreferrer';openLink.textContent='فتح رابط المنيو المنشورة';actionBar.appendChild(openLink);
+  }
+  if(openLink)openLink.href=publicUrl;
+  notify('تم تحديث المنيو المنشورة بعدد '+available.length+' صنف. يمكنك فتح الرابط ومشاركته مع العملاء.');
  }catch(e){
   notify('لم يتم تحديث المنيو الرقمية: '+(e?.message||'خطأ غير معروف')+'. لم نغيّر حالة النشر أو الاشتراك.','error');
  }
