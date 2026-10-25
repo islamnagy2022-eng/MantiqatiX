@@ -14,6 +14,11 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!url || !serviceRoleKey || !anonKey) throw new Error("Disposable Supabase credentials are missing");
 
+  const parsedUrl = new URL(url);
+  if (!["127.0.0.1", "localhost", "::1"].includes(parsedUrl.hostname)) {
+    throw new Error(`refusing to seed non-local Supabase host: ${parsedUrl.hostname}`);
+  }
+
   const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const suffix = crypto.randomUUID();
