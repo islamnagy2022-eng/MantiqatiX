@@ -189,7 +189,7 @@ async function syncRestaurantMenuToDigitalPage(){
   if(!page)return notify('لا توجد منيو رقمية منشورة لهذا النشاط بعد. افتح «إدارة رابط المنيو الرقمية» لإنشاء الصفحة واستكمال اعتمادها.','error');
   const pagePhone=String(page.whatsapp_number||'').replace(/\D/g,'');
   if(!/^[0-9]{8,15}$/.test(pagePhone))return notify('اضبط رقم واتساب بصيغة دولية صحيحة في إدارة المنيو قبل نشر الأصناف للعملاء.','error');
-  const entitlement=await sb.rpc('digital_page_subscription_active',{p_order_id:page.digital_page_order_id,p_user_id:state.user.id});
+  const entitlement=await sb.rpc('digital_page_public_subscription_active',{p_order_id:page.digital_page_order_id});
   if(entitlement.error)throw entitlement.error;
   if(entitlement.data!==true)return notify('اشتراك المنيو غير نشط أو انتهى؛ لم يتم تحديث الصفحة العامة.','error');
   const available=(state.menu||[]).filter(x=>x.is_available===true).map(x=>({
