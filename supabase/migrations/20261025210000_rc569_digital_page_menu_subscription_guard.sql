@@ -3,7 +3,7 @@
 create or replace function public.digital_page_business_menu_insert_guard()
 returns trigger
 language plpgsql
-security invoker
+security definer
 set search_path = pg_catalog, public
 as $$
 declare
