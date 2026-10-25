@@ -62,7 +62,6 @@ if (!publicPage.includes('اطلب المنتج عبر واتساب') || !public
 for (const [marker,label] of [
   ["const esc=v=>String(v??'').replace(/[&<>\\\"]/g,c=>", "public catalog content must be HTML-escaped"],
   ["const safeImage=v=>{const s=String(v||'').trim();return /^https:\\/\\//i.test(s)?s:''}", "public product images must use HTTPS only"],
-  ["if(s.status)","public page lookup must require PUBLISHED status"],
   ["rel=\\"noopener noreferrer\\"","external WhatsApp links must prevent opener access"],
   ["loading=\\"lazy\\"","product images must load lazily"],
   ["eq('slug',slug).eq('status','PUBLISHED')","public page lookup must be slug-scoped and published-only"],
