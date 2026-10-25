@@ -1869,3 +1869,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Execute cross-user RLS tests, including expired subscription visibility and product-section writes.
 - [ ] Verify renewal/rebinding behavior for an expired page; current UI supports a new page for a new subscription, but preserving an expired page's same URL needs a dedicated renewal flow.
 - [ ] Do not merge/apply/deploy until the above checks pass; production remains BLOCKED / NOT CERTIFIED.
+
+
+
+## RC567 temporary WhatsApp-only mode — 2026-10-25
+
+- [x] Replace self-service subscription checkout with a WhatsApp support request; no card/Vodafone Cash payment is collected by this flow.
+- [x] Add product-level WhatsApp order link with encoded product name, displayed price, page URL, and quantity-confirmation request.
+- [x] Align static boundary validator and web deployment smoke contract with the temporary WhatsApp-only behavior.
+- [x] Latest observed web validation passed after fixing a stale expected-copy marker; PR deploy steps were skipped, so this is not a deployment.
+- [ ] Confirm exact-head forward migration replay and migration collision guard results.
+- [ ] Verify the manual support/admin subscription activation workflow; ensure no UI path marks an order paid.
+- [ ] Run authenticated multi-user RLS integration and browser E2E for owner isolation, product CRUD, WhatsApp links, expiry, slug collisions, and publication lifecycle.
+- [ ] Keep PR #374 draft/open and production release BLOCKED / NOT CERTIFIED until all gates pass. No production migration or deployment.
