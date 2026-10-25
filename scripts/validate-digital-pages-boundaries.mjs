@@ -24,6 +24,8 @@ for(const [src,marker,label] of [
  [selfService,"whatsapp_number","customer WhatsApp contact field"],
  [selfService,"saveItems","customer product and price management"],
  [selfService,"loadSubscriptionProducts","customer package listing"],
+ [selfService,"function productFeatureLabels(features)","subscription tiers derive feature labels from database-defined package features"],
+ [selfService,"subscription-features","subscription package features are displayed as text, not injected HTML"],
  [adminEditor,"kind==='CUSTOMER'","admin editor customer ownership support"],
  [adminEditor,"fulfill_digital_page_publish","admin publication gate retained"],
  [publicPage,"https://wa.me/","public WhatsApp contact CTA"],
