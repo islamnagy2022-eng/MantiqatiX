@@ -65,10 +65,10 @@ assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backu
 assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
 assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
 assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
-assert.match(source, /reconciliation\\.digital_page_dependency_reconciliation==="PASS"/, "RC563–RC566 dependency reconciliation must pass");
-assert.match(source, /reconciliation\\.security_definer_authorization_review==="PASS"/, "SECURITY DEFINER authorization review must pass");
-assert.match(source, /reconciliation\\.authenticated_browser_e2e==="PASS"/, "authenticated browser E2E must pass");
-assert.match(source, /reconciliation\\.production_deploy_rollback_smoke==="PASS"/, "production deploy and rollback smoke must pass");
+assert.match(source, /reconciliation\.digital_page_dependency_reconciliation==="PASS"/, "RC563–RC566 dependency reconciliation must pass");
+assert.match(source, /reconciliation\.security_definer_authorization_review==="PASS"/, "SECURITY DEFINER authorization review must pass");
+assert.match(source, /reconciliation\.authenticated_browser_e2e==="PASS"/, "authenticated browser E2E must pass");
+assert.match(source, /reconciliation\.production_deploy_rollback_smoke==="PASS"/, "production deploy and rollback smoke must pass");
 const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql", "utf8");
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
