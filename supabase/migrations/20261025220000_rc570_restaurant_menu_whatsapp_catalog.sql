@@ -101,8 +101,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, public
-as $
-begin
+as $body$1begin
   if new.page_id is distinct from old.page_id
      or new.tenant_id is distinct from old.tenant_id
      or new.business_id is distinct from old.business_id
@@ -111,7 +110,7 @@ begin
   end if;
   return new;
 end;
-$;
+$body$;
 drop trigger if exists trg_digital_page_menu_branch_binding_immutable on public.digital_page_menu_branch_bindings;
 create trigger trg_digital_page_menu_branch_binding_immutable
 before update on public.digital_page_menu_branch_bindings
@@ -123,8 +122,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, public
-as $
-declare
+as $body$1declare
   v_page public.digital_pages%rowtype;
   v_order public.digital_page_orders%rowtype;
 begin
@@ -148,7 +146,7 @@ begin
   end if;
   return new;
 end;
-$;
+$body$;
 drop trigger if exists trg_digital_page_menu_branch_binding_scope_guard on public.digital_page_menu_branch_bindings;
 create trigger trg_digital_page_menu_branch_binding_scope_guard
 before insert or update on public.digital_page_menu_branch_bindings
@@ -163,8 +161,7 @@ language sql
 stable
 security definer
 set search_path = pg_catalog, public
-as $
-  select p_actor is not null
+as $body$1  select p_actor is not null
     and p_actor = auth.uid()
     and exists (
       select 1
@@ -208,7 +205,7 @@ as $
         where b.page_id = p_page_id
       )
     );
-$;
+$body$;
 revoke all on function public.digital_page_menu_section_write_allowed(uuid, uuid) from public, anon;
 grant execute on function public.digital_page_menu_section_write_allowed(uuid, uuid) to authenticated;
 
