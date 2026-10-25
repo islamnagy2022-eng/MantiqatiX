@@ -627,3 +627,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Candidate migration: `20261025193000_rc567_digital_page_self_service.sql`; not applied to any Supabase project.
 - Important: existing page publishing remains behind the paid fulfillment/platform-admin flow. The new branch must be tested against the pending RC563–RC566 migration candidates before merge.
 - No main merge, production database mutation, or deployment has occurred. Keep global production release BLOCKED / NOT CERTIFIED until CI, disposable migration replay, RLS integration, and browser E2E pass.
+
+
+### RC567 checkout/admin follow-up — 2026-10-25
+
+- The customer UI now lists active PORTFOLIO packages, creates an order with the existing server-side order function, and starts payment through the existing payment-intent function.
+- The customer can refresh subscription status and create a page per unused active subscription. The page editor remains owner-scoped and stores product entries in the existing MENU section data.
+- The admin editor now supports customer-owned pages and the owner's WhatsApp number. A platform-admin-only read policy lets admins list paid customer orders to use the existing `fulfill_digital_page_publish` RPC; owner order reads remain private.
+- Deployment smoke checks now include the customer self-service assets.
+- Exact-head CI is pending. No production schema application, merge, or deployment has happened.
+- Remaining release gates: exact-head migration replay/CI, Paymob sandbox checkout and webhook E2E, admin publish E2E, cross-user RLS tests, and an explicit renewal flow if the same public URL must be preserved after subscription expiry.
