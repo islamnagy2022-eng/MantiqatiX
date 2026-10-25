@@ -273,3 +273,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Both owner authorization and public rendering now anchor expiry to `paid_at` first; legacy publication/creation timestamps remain fallback paths. This avoids draft edits or later order updates extending the subscription.
 - Added regression assertions for the paid-at trigger and both expiry gates. The digital-page boundary validator passes against the latest branch source (9 files checked).
 - The updated branch's forward migration replay and CI were restarted; results for the exact latest head are still pending. Do not treat the previous replay success as validation of this new `paid_at` change.
+
+## 2026-10-25 — Temporary WhatsApp-only handoff and CI repair
+
+- User decision: temporarily disable online card/Vodafone Cash collection for this customer self-service digital-page flow. Other MantiqatiX payment modules remain unchanged.
+- Subscription package action now prepares a WhatsApp request to the support channel with package, displayed price, duration, account email, and account ID; this UI does not create a paid order or mark payment as complete.
+- Public catalog product cards now include an owner-WhatsApp order link with encoded product name, listed price, page URL, and a request to confirm quantity.
+- Updated the deployment smoke contract and static boundary validator to enforce the WhatsApp-only subscription UI and product-order CTA. The first exact-head web validation exposed a stale expected-copy marker; that marker was aligned and the latest Deploy MantiqatiX Web validation job then passed. Its public-only/deploy jobs were skipped for this PR, so no deployment occurred.
+- Latest known head at time of this note: `f00d5921c16270e883091c5dadacf26333eb65f2`. Migration forward-chain replay and cross-PR migration collision checks were still running when last checked. Keep PR #374 draft/open; do not merge or deploy until exact-head checks, RLS integration, browser E2E, and manual activation flow are verified. Production remains BLOCKED / NOT CERTIFIED.
