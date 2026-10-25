@@ -109,4 +109,4 @@ using (
 );
 
 comment on function public.digital_page_business_menu_insert_guard() is
-  'RC571: validates all order-backed MENU pages; rejects missing business scope; requires an order for business-bound MENU rows; preserves non-business legacy MENU rows.';
+  'RC571: validates all order-backed MENU pages; rejects missing business scope; requires an order for business-bound MENU rows; preserves the existing public-read contract for legacy pages while keeping business-bound MENU inserts order-backed.';
