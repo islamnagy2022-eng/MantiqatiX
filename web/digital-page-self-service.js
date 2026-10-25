@@ -199,6 +199,54 @@
     }
     pages = [...(own.data || []), ...businessPages].filter((p, i, all) => all.findIndex(x => x.id === p.id) === i);
     renderPages();
+    await loadSubscriptionReminders();
+  }
+  async function loadSubscriptionReminders() {
+    const panel = $('subscription-reminders');
+    const list = $('subscription-reminder-list');
+    if (!panel || !list) return;
+    panel.hidden = false;
+    list.replaceChildren(node('p', 'جارٍ التحقق من مواعيد الاشتراك…', 'hint'));
+    try {
+      const { data, error } = await sb.from('digital_page_orders')
+        .select('id,title,page_type,payment_status,fulfillment_status,paid_at,created_at,metadata,product:digital_page_products(duration_days)')
+        .eq('user_id', user.id).eq('payment_status', 'PAID')
+        .in('fulfillment_status', ['REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED'])
+        .order('created_at', { ascending: false }).limit(100);
+      if (error) throw error;
+      list.replaceChildren();
+      const engine = window.MNTYCatalogExperience;
+      if (!engine) throw new Error('CATALOG_EXPERIENCE_ENGINE_UNAVAILABLE');
+      if (!data?.length) {
+        list.append(node('p', 'لا توجد اشتراكات مدفوعة تحتاج إلى تنبيه حاليًا.', 'hint'));
+        return;
+      }
+      let shown = 0;
+      for (const order of data) {
+        const product = Array.isArray(order.product) ? order.product[0] : order.product;
+        const metaDays = Number(order.metadata?.duration_days);
+        const durationDays = Number.isFinite(metaDays) && metaDays > 0 ? metaDays : Number(product?.duration_days || 365);
+        const view = engine.subscriptionDisplay({ paymentStatus: order.payment_status, paidAt: order.paid_at, durationDays });
+        const { data: active, error: activeError } = await sb.rpc('digital_page_subscription_active', { p_order_id: order.id, p_user_id: user.id });
+        const card = node('article', undefined, 'page-row');
+        card.append(node('strong', order.title || (order.page_type === 'MENU' ? 'اشتراك منيو' : 'اشتراك صفحة')));
+        if (activeError || active !== true) {
+          card.append(node('p', 'الاشتراك غير نشط أو يحتاج إلى مراجعة. تحقق من التجديد أو تواصل مع الدعم.', 'hint'));
+        } else {
+          const endDate = view.endsAt ? new Date(view.endsAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+          const label = view.state === 'EXPIRING' ? 'تنبيه: الاشتراك على وشك الانتهاء' : 'الاشتراك ساري';
+          card.append(node('p', label + (view.daysRemaining != null ? ' · متبقي ' + Math.max(0, view.daysRemaining).toLocaleString('ar-EG') + ' يوم' : '') + (endDate ? ' · تاريخ الانتهاء المتوقع ' + endDate : ''), view.state === 'EXPIRING' ? 'status' : 'hint'));
+        }
+        const renew = node('a', 'الاستفسار عن التجديد عبر واتساب');
+        renew.href = engine.whatsappUrl('201010171770', 'أريد الاستفسار عن تجديد الاشتراك. رقم الطلب: ' + order.id + ' · النوع: ' + (order.page_type === 'MENU' ? 'منيو' : 'صفحة تسويقية') + ' · الاسم: ' + String(order.title || '').slice(0,120));
+        renew.target = '_blank'; renew.rel = 'noopener noreferrer';
+        if (renew.href) card.append(renew);
+        list.append(card); shown++;
+      }
+      if (!shown) list.append(node('p', 'لا توجد اشتراكات تحتاج إلى تنبيه حاليًا.', 'hint'));
+    } catch (error) {
+      list.replaceChildren(node('p', 'تعذر التحقق من مواعيد الاشتراك الآن. لم نعتبر أي اشتراك مجددًا أو نشطًا تلقائيًا؛ حاول التحديث لاحقًا.', 'hint'));
+    }
   }
   function renderPages() {
     const box = $('pages');
