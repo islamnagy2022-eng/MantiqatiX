@@ -201,9 +201,10 @@ async function syncRestaurantMenuToDigitalPage(){
   })).filter(x=>x.name&&Number.isFinite(x.price)&&x.price>=0);
   if(!available.length)return notify('لا توجد أصناف متاحة صالحة للنشر. فعّل الأصناف وأعد المحاولة.','error');
   const sectionResult=await sb.from('digital_page_sections')
-   .select('id').eq('page_id',page.id).eq('section_type','MENU')
+   .select('id,data').eq('page_id',page.id).eq('section_type','MENU')
    .order('sort_order',{ascending:true}).limit(1).maybeSingle();
   if(sectionResult.error)throw sectionResult.error;
+  if(sectionResult.data?.data?.branch_id&&String(sectionResult.data.data.branch_id)!==String(s.branch_id))return notify('رابط المنيو مرتبط بفرع آخر. تم منع استبدال قائمة فرع بفرع مختلف؛ دعم الفروع المتعددة في رابط واحد يحتاج استكمالًا منفصلًا.','error');
   const payload={title:'المنيو والأسعار',content:'قائمة محدثة من أصناف فرع النشاط. الطلب والتأكيد عبر واتساب.',data:{source:'restaurant_menu_items',tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,items:available},sort_order:0,active:true};
   let saved;
   if(sectionResult.data){
