@@ -214,10 +214,6 @@ async function syncRestaurantMenuToDigitalPage(){
    const bindingInsert=await sb.from('digital_page_menu_branch_bindings').insert({page_id:page.id,tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,updated_by:state.user.id}).select('page_id').maybeSingle();
    if(bindingInsert.error)throw bindingInsert.error;
    if(!bindingInsert.data)throw new Error('تعذر تثبيت نطاق الفرع الخاص بالمنيو');
-  }else{
-   const bindingUpdate=await sb.from('digital_page_menu_branch_bindings').update({updated_by:state.user.id,updated_at:new Date().toISOString()}).eq('page_id',page.id).select('page_id').maybeSingle();
-   if(bindingUpdate.error)throw bindingUpdate.error;
-   if(!bindingUpdate.data)throw new Error('تعذر التحقق من نطاق الفرع الخاص بالمنيو');
   }
   const sectionResult=await sb.from('digital_page_sections')
    .select('id').eq('page_id',page.id).eq('section_type','MENU')
