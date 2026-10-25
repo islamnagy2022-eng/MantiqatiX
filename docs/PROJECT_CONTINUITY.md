@@ -637,3 +637,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Deployment smoke checks now include the customer self-service assets.
 - Exact-head CI is pending. No production schema application, merge, or deployment has happened.
 - Remaining release gates: exact-head migration replay/CI, Paymob sandbox checkout and webhook E2E, admin publish E2E, cross-user RLS tests, and an explicit renewal flow if the same public URL must be preserved after subscription expiry.
+
+
+
+## 2026-10-25 — Temporary WhatsApp-only mode for RC567
+
+- Supersedes the earlier checkout-integration plan for the self-service digital-page flow only: subscription requests go to WhatsApp support; product purchase inquiries go to the page owner's WhatsApp. No online card/Vodafone Cash payment is collected by this flow. Other platform payment integrations are unchanged.
+- Subscription WhatsApp message includes package, listed price, duration, account email, and account ID. Support must verify and activate the subscription through an approved admin process; the UI must never mark an order paid.
+- Public product CTA pre-fills product name, displayed price, page URL, and quantity-confirmation request.
+- Exact-head Deploy MantiqatiX Web validation passed after repairing a stale validator/deployment-smoke expected-copy marker; deployment steps were skipped because the change is still in a PR. Migration replay and collision guard were still in progress at last poll.
+- Current branch `feat/digital-page-self-service-20261025`, PR #374, latest known head `f00d5921c16270e883091c5dadacf26333eb65f2`. Remains draft and unmerged. No production migration/deployment. RLS multi-user tests, browser E2E, and manual subscription activation workflow are not verified. Release remains BLOCKED / NOT CERTIFIED.
