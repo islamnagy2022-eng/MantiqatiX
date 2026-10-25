@@ -329,3 +329,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - RC570 follow-up security hardening: moved branch ownership binding out of public digital_page_sections.data into digital_page_menu_branch_bindings with RLS and no anonymous grants. Public menu JSON now contains only catalog display fields. Exact-head CI/replay still pending.
+
+
+## 2026-10-25 — Shared engine bootstrap and subscription dashboard milestones
+
+- Loaded the shared catalog experience engine before the main dashboard/module runtime and aligned the service-worker precache versions.
+- Corrected the dashboard launch-scope panel to link to the existing company marketing-services page and describe its WhatsApp inquiry route as available.
+- Added distinct dashboard urgency styling for subscription expiry at 7 days, 3 days, 1 day and expired, based on paid timestamp and product duration. This is in-app display only; scheduled push/email reminders are not yet verified.
+- Added static assertions for engine bootstrap order, cache versions, expiry milestones and marketing page status.
+- Latest head at the time of logging: 1972b3b25467de363dd7d6bbdf92a21b379907e9. CI checks were queued. Cross-sector adapter integration, multi-user RLS, browser/mobile E2E and production deployment remain open. No production migration, merge, or deployment occurred.
