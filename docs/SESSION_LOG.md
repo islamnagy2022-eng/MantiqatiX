@@ -254,3 +254,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added regression source-contract assertions for checkout idempotency, the create-page control, owner visibility after expiry, and public subscription gating.
 - Latest source-level JS syntax checks passed. GitHub combined status currently returns no checks for the newest commit, so CI and isolated migration replay remain NOT VERIFIED.
 - PR #374 remains DRAFT / unmerged. No production migration, payment, or deployment was performed. Reconcile RC563–RC566 candidates, then run exact-head CI, disposable migration replay, RLS multi-user tests, and browser E2E before merge.
+
+
+## 2026-10-25 — RC567 source-contract recheck
+
+- Re-ran the digital-page boundary validator against the exact current branch sources using a controlled in-memory file shim: PASS (9 source files checked).
+- Re-ran the public digital-page runtime scenarios with the current renderer and the test's controlled Supabase/document mocks: PASS for missing slug, unpublished/missing page, published MENU rendering, WhatsApp CTA, and HTML escaping.
+- Re-ran syntax compilation of `web/digital-page-self-service.js`, `web/digital-page-editor.js`, `web/digital-page.js`, and `web/home.js`: PASS.
+- GitHub Actions runs for forward migration replay, migration collision checks, migration-history immutability, migration-version uniqueness, and Pages validation remain queued at the latest poll. Therefore these source-level checks are not a substitute for GitHub CI or disposable PostgreSQL migration replay.
+- PR #374 remains DRAFT and unmerged. Keep the production release blocked until the RC563–RC566 migration order is reconciled and CI, database replay, multi-account RLS isolation, and browser E2E are independently verified.
