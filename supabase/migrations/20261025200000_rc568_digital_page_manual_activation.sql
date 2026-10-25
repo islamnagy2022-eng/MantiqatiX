@@ -30,7 +30,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = pg_catalog, public
-as $
+as $$
 declare
   v_result jsonb;
 begin
@@ -65,7 +65,7 @@ begin
 
   return v_result;
 end;
-$;
+$$;
 
 revoke all on function public.mnty_admin_list_pending_digital_page_subscriptions() from public, anon;
 grant execute on function public.mnty_admin_list_pending_digital_page_subscriptions() to authenticated;
