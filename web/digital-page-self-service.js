@@ -6,6 +6,7 @@
   const $ = id => document.getElementById(id);
   let user = null, orders = [], products = [], pages = [], currentPage = null, menuSection = null, items = [], editIndex = -1;
   const pendingCheckoutKeys = new Map();
+  const pendingCheckoutOrders = new Map();
 
   function message(text, bad = false) {
     $('status').textContent = text || '';
@@ -110,6 +111,16 @@
       if (!checkoutWindow) throw new Error('اسمح بفتح نافذة الدفع من المتصفح ثم اضغط اشتراك مرة أخرى.');
       button.disabled = true;
       message('جارٍ إنشاء طلب الاشتراك وتجهيز الدفع الآمن…');
+      const previousOrderId = pendingCheckoutOrders.get(productId);
+      if (previousOrderId) {
+        const { data: previousOrder, error: previousOrderError } = await sb.from('digital_page_orders')
+          .select('id,payment_status').eq('id', previousOrderId).eq('user_id', user.id).maybeSingle();
+        if (previousOrderError) throw previousOrderError;
+        if (previousOrder?.payment_status === 'PAID') {
+          pendingCheckoutKeys.delete(productId);
+          pendingCheckoutOrders.delete(productId);
+        }
+      }
       const key = pendingCheckoutKeys.get(productId) || ('pagall-' + user.id + '-' + productId + '-' + crypto.randomUUID());
       pendingCheckoutKeys.set(productId, key);
       const { data: orderResult, error: orderError } = await sb.functions.invoke('digital-page-order-create', {
@@ -123,6 +134,7 @@
       if (orderError) throw new Error('تعذر إنشاء طلب الاشتراك. ' + (orderResult?.error || orderError.message || 'حاول مرة أخرى.'));
       const order = orderResult?.order;
       if (!order?.id) throw new Error('لم يتم استلام رقم طلب الاشتراك.');
+      pendingCheckoutOrders.set(productId, order.id);
       const { data: payment, error: paymentError } = await sb.functions.invoke('digital-page-payment-intent', {
         body: { orderId: order.id, idempotencyKey: key }
       });
@@ -130,12 +142,12 @@
       if (payment?.checkoutUrl) {
         message('تم تجهيز الدفع الآمن. أكمل الدفع في النافذة الجديدة ثم ارجع إلى هنا لتحديث حالة الاشتراك.');
         checkoutWindow.location.replace(payment.checkoutUrl);
-        pendingCheckoutKeys.delete(productId);
         return;
       }
       checkoutWindow.close();
       if (payment?.status === 'PAID') {
         pendingCheckoutKeys.delete(productId);
+        pendingCheckoutOrders.delete(productId);
         await loadOrders();
         message('الاشتراك مدفوع بالفعل. حدّث القائمة وابدأ إنشاء صفحتك.');
         return;
@@ -325,8 +337,20 @@
   $('new-page')?.addEventListener('click', startNewPage);
   $('new-page-secondary')?.addEventListener('click', startNewPage);
   $('refresh-subscriptions')?.addEventListener('click', async () => {
-    try { await loadPages(); await loadOrders(); message('تم تحديث حالة الاشتراك والصفحات.'); }
-    catch (e) { message(e.message || 'تعذر تحديث الاشتراك.', true); }
+    try {
+      for (const [productId, orderId] of pendingCheckoutOrders) {
+        const { data: order, error } = await sb.from('digital_page_orders')
+          .select('id,payment_status').eq('id', orderId).eq('user_id', user.id).maybeSingle();
+        if (error) throw error;
+        if (order?.payment_status === 'PAID') {
+          pendingCheckoutKeys.delete(productId);
+          pendingCheckoutOrders.delete(productId);
+        }
+      }
+      await loadPages();
+      await loadOrders();
+      message('تم تحديث حالة الاشتراك والصفحات.');
+    } catch (e) { message(e.message || 'تعذر تحديث الاشتراك.', true); }
   });
   start().catch(e => message(e.message || 'تعذر تحميل صفحة الإدارة.', true));
 })();
