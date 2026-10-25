@@ -338,3 +338,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added distinct dashboard urgency styling for subscription expiry at 7 days, 3 days, 1 day and expired, based on paid timestamp and product duration. This is in-app display only; scheduled push/email reminders are not yet verified.
 - Added static assertions for engine bootstrap order, cache versions, expiry milestones and marketing page status.
 - Latest head at the time of logging: 1972b3b25467de363dd7d6bbdf92a21b379907e9. CI checks were queued. Cross-sector adapter integration, multi-user RLS, browser/mobile E2E and production deployment remain open. No production migration, merge, or deployment occurred.
+
+
+## 2026-10-25 — Shared catalog engine, dashboard and subscription reminder requirements
+
+- User wants one reusable engine for all similar service/menu/product modules, with sector-specific differences, rather than repeating implementation per module. Examples include restaurants, cafés, pharmacies, doctors, hospitals, companies and stores.
+- User also wants dashboard updates and subscription-date reminders. Planned reminder thresholds: 14, 7, 3 and 1 day before expiry, plus expiry notification, idempotently and using server/database truth. Initial notification channel can be in-app; email/push are not claimed without configuration and E2E verification.
+- Repository inspection found web/module-blueprints.js is a workspace/blueprint UI, not proof of a complete shared catalog engine. web/sector-modules.js and web/operations-modules.js currently show different module-specific data contracts; canonical adapters and inventory are required.
+- Scope recorded in docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md. SMM remains separate.
+- Planning estimate: narrow MVP 2–4 weeks if current data contracts and test environment are usable; full hardening may take longer. Estimate is not a commitment.
+- Current production gate: migration replay succeeded on prior exact head 3c4d57a61db6ee2080c574de0b6e887017baab7a, but newer documentation commits advanced the branch to 0d15d65c3757da6732d8a09a53f920cc6d9b4733 and new workflows are queued. PR #374 remains draft/open/unmerged; no production deployment. Multi-user RLS and browser E2E remain NOT VERIFIED.
