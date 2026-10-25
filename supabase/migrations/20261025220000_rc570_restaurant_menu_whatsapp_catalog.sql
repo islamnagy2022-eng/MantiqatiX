@@ -44,8 +44,8 @@ using (
   or exists (
     select 1 from public.user_memberships m
     where m.user_id = auth.uid()
-      and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
-      and m.business_id = digital_page_menu_branch_bindings.business_id
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
       and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
@@ -60,8 +60,8 @@ with check (
   or exists (
     select 1 from public.user_memberships m
     where m.user_id = auth.uid()
-      and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
-      and m.business_id = digital_page_menu_branch_bindings.business_id
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
       and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
@@ -76,8 +76,8 @@ using (
   or exists (
     select 1 from public.user_memberships m
     where m.user_id = auth.uid()
-      and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
-      and m.business_id = digital_page_menu_branch_bindings.business_id
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
       and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
@@ -88,8 +88,8 @@ with check (
   or exists (
     select 1 from public.user_memberships m
     where m.user_id = auth.uid()
-      and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
-      and m.business_id = digital_page_menu_branch_bindings.business_id
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
       and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
@@ -101,7 +101,8 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, public
-as $body$1begin
+as $body$
+begin
   if new.page_id is distinct from old.page_id
      or new.tenant_id is distinct from old.tenant_id
      or new.business_id is distinct from old.business_id
@@ -122,7 +123,8 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = pg_catalog, public
-as $body$1declare
+as $body$
+declare
   v_page public.digital_pages%rowtype;
   v_order public.digital_page_orders%rowtype;
 begin
@@ -130,14 +132,14 @@ begin
     raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ACTOR_INVALID';
   end if;
   select * into v_page from public.digital_pages where id = new.page_id;
-  if not found or v_page.page_type <> 'MENU' or v_page.business_id is distinct from new.business_id then
+  if not found or v_page.page_type <> 'MENU' or v_page.business_id::text is distinct from new.business_id::text then
     raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_PAGE_SCOPE_INVALID';
   end if;
   if v_page.digital_page_order_id is not null then
     select * into v_order from public.digital_page_orders where id = v_page.digital_page_order_id;
     if not found
        or v_order.page_type <> 'MENU'
-       or v_order.target_business_id is distinct from new.business_id
+       or v_order.target_business_id::text is distinct from new.business_id::text
        or v_order.payment_status <> 'PAID'
        or not coalesce(public.digital_page_public_subscription_active(v_order.id), false) then
       raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ORDER_SCOPE_INVALID';
@@ -160,7 +162,8 @@ language sql
 stable
 security definer
 set search_path = pg_catalog, public
-as $body$1  select p_actor is not null
+as $body$
+  select p_actor is not null
     and p_actor = auth.uid()
     and exists (
       select 1
@@ -194,8 +197,8 @@ as $body$1  select p_actor is not null
         from public.digital_page_menu_branch_bindings b
         join public.user_memberships m
           on m.user_id = p_actor
-         and m.tenant_id = b.tenant_id
-         and m.business_id = b.business_id
+         and m.tenant_id::text = b.tenant_id::text
+         and m.business_id::text = b.business_id::text
          and m.branch_id::text = b.branch_id::text
          and m.status = 'ACTIVE'
          and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
