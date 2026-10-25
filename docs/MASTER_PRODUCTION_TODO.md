@@ -2073,3 +2073,6 @@ Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261
 - [ ] Wait for exact-head web validation, migration collision, migration immutability, and module-boundary checks; fix any newly exposed failures.
 - [ ] Apply the shared rendering adapter to every eligible existing service/menu/product module only after module-by-module data-contract and privacy review; current helper + public MENU integration do not prove cross-module completion.
 - [ ] Authenticated owner-isolation and browser E2E remain required. Production release stays BLOCKED / NOT CERTIFIED.
+
+
+- [x] Shared renderer defaults only FOOD and company MARKETING adapters to READY; all other sector adapters remain visibly UNDER_CONSTRUCTION until their canonical data/permission contracts are integrated and tested.
