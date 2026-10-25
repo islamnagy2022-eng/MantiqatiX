@@ -77,6 +77,7 @@ jobs:
           node scripts/validate-production-migration-chain-gate.mjs
           node scripts/validate-finance-boundaries.mjs
           node scripts/validate-api-catalog-price-idempotency.mjs
+          node scripts/test-api-runtime-contracts.mjs
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs
