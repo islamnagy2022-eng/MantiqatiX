@@ -5,6 +5,7 @@ const migration = fs.readFileSync(
   'utf8'
 );
 const editor = fs.readFileSync('web/digital-page-editor.js', 'utf8');
+const menuMigration = fs.readFileSync('supabase/migrations/20261025210000_rc569_digital_page_menu_subscription_guard.sql', 'utf8');
 const editorHtml = fs.readFileSync('web/digital-page-editor.html', 'utf8');
 
 function requireCheck(condition, message) {
@@ -39,5 +40,17 @@ requireCheck(/grant execute on function public\.mnty_admin_activate_digital_page
 requireCheck(/mnty_admin_list_pending_digital_page_subscriptions/.test(editor) && /mnty_admin_activate_digital_page_subscription/.test(editor), 'admin UI uses protected RPCs rather than direct paid-state writes');
 requireCheck(/مرجع التحويل بعد التحقق/.test(editor) && /هل تحققت بنفسك من استلام المبلغ/.test(editor), 'admin UI requires a reference and explicit verification confirmation');
 requireCheck(/id="manual-activation-panel"/.test(editorHtml), 'admin activation panel exists');
+requireCheck(/page_type = 'PORTFOLIO'[\s\S]*?payment_status = 'PENDING'[\s\S]*?limit 50/i.test(listFn), 'original RC568 queue remains bounded and unchanged');
+const menuListFn = menuMigration.match(/create or replace function public\.mnty_admin_list_pending_digital_page_subscriptions\(\)[\s\S]*?\n\$\$;/i)?.[0];
+const menuActivateFn = menuMigration.match(/create or replace function public\.mnty_admin_activate_digital_page_subscription\([\s\S]*?\n\$\$;/i)?.[0];
+requireCheck(Boolean(menuListFn) && /'PORTFOLIO','MENU'/.test(menuListFn), 'RC569 admin queue supports both portfolio and menu requests');
+requireCheck(Boolean(menuActivateFn) && /v_order\.page_type not in \('PORTFOLIO','MENU'\)/.test(menuActivateFn), 'RC569 activation supports only known digital-page types');
+requireCheck(/DIGITAL_PAGE_MENU_BUSINESS_SCOPE_INVALID/.test(menuActivateFn), 'MENU activation requires a business-bound order and active owner membership');
+requireCheck(/v_order\.target_business_id is null/.test(menuActivateFn), 'MENU activation rejects missing business scope');
+requireCheck(/create or replace function public\.digital_page_business_menu_insert_guard\(\)/.test(menuMigration), 'MENU page creation has a database-level ownership guard');
+requireCheck(/v_order\.target_business_id is distinct from new\.business_id/.test(menuMigration), 'MENU page business must match the paid order business');
+requireCheck(/digital_page_subscription_active\(v_order\.id, v_actor\)/.test(menuMigration), 'MENU page creation rejects expired subscription entitlements');
+requireCheck(/o\.page_type==='MENU'\?'نوع الطلب: منيو'/.test(editor), 'admin UI identifies menu subscription requests');
+
 
 console.log('Digital-page manual activation security contract: PASS (source-level checks only; not a substitute for authenticated runtime E2E).');
