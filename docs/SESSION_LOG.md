@@ -395,3 +395,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Updated cache contract checks to match `app.js?v=catalog-first-1` and `mnty-web-v140-catalog-first`; current source-level cross-file checks confirm the references agree.
 - Latest source commits: `939ba00b2c58142a017b5bc71b04655203219e33`, `7577cf748e35c8a92da3c564e37e1fb1328af726`, `94a7bb6ed045cfb0cff829abf90c1a54b7747963`, `664a7e37a2b95714f6462a889f816b0e774e210c`, `255cb8a79b87830841675844a6c2bc4bd9be5737`.
 - CI evidence is still insufficient: observed workflow runs remain queued on an earlier PR head and the PR Pages deployment job was cancelled. No exact-head passing result, merge, production migration, or production deployment is claimed. Keep PR #374 draft/open and release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — CI stale-head diagnosis and cache smoke hardening
+
+- Inspected failed Pages validation job `121281643287` from run `40230718461`. Its checked-out PR merge ref was `af6edecffe50bc14ebe490cd5945ea9da88b4036`, built from the earlier commit `2992ac9621c6979030bbe00f4aa3a3d6494dddc5`; it failed because that stale snapshot still expected PWA cache `mnty-web-v139-catalog-experience-engine` while the catalog-first source had moved to v140. This failure does not establish the result for the newer head, but the newer head also has not been proven green yet.
+- Added explicit deployment-smoke checks that the published HTML references `app.js?v=catalog-first-1` and `sw.js?v=mnty-web-v140-catalog-first`, commit `dc1f9108e6fd4f3e5a9d6b0be89d98f14782b06c`.
+- Latest PR head at time of writing: `dc1f9108e6fd4f3e5a9d6b0be89d98f14782b06c`. The available workflow-run query has not returned exact-head checks yet. Forward migration replay remains queued on the older observed run; no result is inferred from queued state.
+- No production deploy or migration occurred. PR #374 remains draft/open; release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, ordered replay, RLS/tenant-isolation, browser E2E, and deployment smoke are verified.
