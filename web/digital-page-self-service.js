@@ -43,7 +43,14 @@
     const sel = $('order');
     sel.replaceChildren(new Option('اختر اشتراكًا مدفوعًا', ''));
     for (const o of orders) sel.add(new Option(o.title + ' · ' + o.fulfillment_status, o.id));
-    if (!orders.length) {
+    if (currentPage?.digital_page_order_id && !sel.querySelector('option[value="' + currentPage.digital_page_order_id + '"]')) {
+      const { data: currentOrder } = await sb.from('digital_page_orders')
+        .select('id,title,page_type,payment_status,fulfillment_status,created_at')
+        .eq('id', currentPage.digital_page_order_id).maybeSingle();
+      if (currentOrder) sel.add(new Option(currentOrder.title + ' · ' + currentOrder.fulfillment_status, currentOrder.id));
+      sel.value = currentPage.digital_page_order_id;
+    }
+    if (!orders.length && !pages.length) {
       $('auth').textContent = 'لا يوجد اشتراك صفحات رقمية مدفوع متاح لهذا الحساب حتى الآن. اشترك أولًا لتفعيل صفحة المنتجات.';
       $('page-form').querySelectorAll('input,textarea,select,button').forEach(x => x.disabled = true);
     }
