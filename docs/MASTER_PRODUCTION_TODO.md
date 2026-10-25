@@ -1825,3 +1825,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] استمرار استكمال واجهات المطاعم ورحلة العميل ومقدم الخدمة، واختبار حالات الخطأ وإعادة المحاولة وحالات الشبكة على واجهة الطلب الحقيقية، مع عدم اعتبار تجربة الطلب التجريبية نظام طلبات إنتاجيًا.
 - [ ] ما زالت اختبارات E2E بهويات حقيقية متعددة الأدوار، واختبارات Paymob/refund والتسويات، ومراجعة RLS/Security Advisor، وتدريب النسخ الاحتياطي والاستعادة، واختبارات Android الموقعة وعلى أجهزة حقيقية، ومراقبة/تنبيه/تراجع الإنتاج غير مغلقة.
 - لا تغييرات على قاعدة بيانات الإنتاج أو معاملات مالية حقيقية في هذا الإصدار. حالة الإطلاق الكامل: **BLOCKED / NOT CERTIFIED**.
+
+
+## PR #375 — API catalog scope and payment idempotency — 2026-10-26
+
+- [x] Reconciled the stale branch-length validator with the actual normalized/non-empty branch ID guard; exact-head CI passed after the correction.
+- [x] Added an injectable handler seam and route behavior tests for shared + selected-branch price visibility, rejection of a branch outside the selected business, idempotent replay/conflict, and a simulated unique-key race. On code head `54b2fafa837755630485fb00e4c12e4488827744`, Pages validation reported **4 route tests passed / 0 failed** and helper/static API contracts passed.
+- [x] Hardened payment-intent identity matching against null/empty order IDs, amounts, currencies, providers, and payment methods.
+- [ ] **NOT VERIFIED:** real Supabase/PostgreSQL API integration, concurrent HTTP calls against a real unique constraint, actual cross-business/branch data isolation using separate authenticated accounts, and browser E2E. Current route tests inject a fake Supabase client; do not treat them as database integration evidence.
+- [ ] Deno route test uses `--no-check` because the current repository dependency setup lacks a transitive `npm:@types/node` type reference. Runtime test passes; type-check evidence remains open.
+- [ ] PR #375 remains draft/open. No merge, production database change, or deployment. Release gate remains **BLOCKED / NOT CERTIFIED**.
+- Next: add a disposable Supabase/PostgreSQL fixture and exercise the route against it, including actual unique-key race handling, before considering merge.
