@@ -52,6 +52,30 @@ $$;
 revoke all on function public.digital_page_subscription_active(uuid,uuid) from public, anon;
 grant execute on function public.digital_page_subscription_active(uuid,uuid) to authenticated;
 
+-- Public visitors can only see a customer-owned page while its paid subscription is published and unexpired.
+-- This boolean-only SECURITY DEFINER helper exposes no order/customer fields.
+create or replace function public.digital_page_public_subscription_active(p_order_id uuid)
+returns boolean
+language sql stable security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.digital_page_orders o
+    where o.id=p_order_id and o.payment_status='PAID'
+      and o.fulfillment_status='PUBLISHED'
+      and o.created_at + pg_catalog.make_interval(days => pg_catalog.greatest(
+        1,
+        case
+          when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
+            then (o.metadata->>'duration_days')::integer
+          else 365
+        end
+      )) > pg_catalog.now()
+  );
+$$;
+revoke all on function public.digital_page_public_subscription_active(uuid) from public;
+grant execute on function public.digital_page_public_subscription_active(uuid) to anon, authenticated;
+
 -- Keep existing business/provider ownership, and add a user-owned page path.
 drop policy if exists digital_pages_owner_select on public.digital_pages;
 create policy digital_pages_owner_select on public.digital_pages
@@ -188,5 +212,32 @@ with check (
         where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
       ))
     )
+  )
+);
+
+
+-- Enforce subscription expiry on public page and section reads for standalone customer pages.
+drop policy if exists digital_pages_public_read on public.digital_pages;
+create policy digital_pages_public_read on public.digital_pages
+for select to anon, authenticated
+using (
+  status='PUBLISHED'
+  and (
+    owner_user_id is null
+    or public.digital_page_public_subscription_active(digital_page_order_id)
+  )
+);
+
+drop policy if exists digital_page_sections_public_read on public.digital_page_sections;
+create policy digital_page_sections_public_read on public.digital_page_sections
+for select to anon, authenticated
+using (
+  active=true and exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and p.status='PUBLISHED'
+      and (
+        p.owner_user_id is null
+        or public.digital_page_public_subscription_active(p.digital_page_order_id)
+      )
   )
 );
