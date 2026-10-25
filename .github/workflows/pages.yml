@@ -291,5 +291,7 @@ jobs:
           grep -Fq 'fulfill_digital_page_publish' <<<"$DIGITAL_EDITOR_JS"
           grep -Fq 'digital-page-editor.js' <<<"$DIGITAL_EDITOR_HTML"
           grep -Fq 'digital-page-self-service.js' <<<"$DIGITAL_SELF_SERVICE_HTML"
-          grep -Fq 'digital-page-payment-intent' <<<"$DIGITAL_SELF_SERVICE_JS"
+          grep -Fq 'طلب الاشتراك والتفعيل يتمان عبر واتساب مؤقتًا دون دفع إلكتروني' <<<"$DIGITAL_SELF_SERVICE_JS"
+          ! grep -Eq 'digital-page-payment-intent|digital-page-order-create|checkoutUrl' <<<"$DIGITAL_SELF_SERVICE_JS"
+          grep -Fq 'اطلب المنتج عبر واتساب' <<<"$DIGITAL_PAGE_JS"
           echo "Production smoke verification passed for $PAGE_URL"
