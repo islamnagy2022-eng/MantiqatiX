@@ -90,6 +90,25 @@
     products = (data || []).filter(p => p.page_type === 'PORTFOLIO' || (p.page_type === 'MENU' && businesses.length > 0));
     renderSubscriptionProducts();
   }
+  function productFeatureLabels(features) {
+    let value = features;
+    if (typeof value === 'string') {
+      try { value = JSON.parse(value); } catch (_) { value = [value]; }
+    }
+    if (Array.isArray(value)) {
+      return value.map(item => {
+        if (typeof item === 'string' || typeof item === 'number') return String(item).trim();
+        if (item && typeof item === 'object') return String(item.label || item.name || item.title || '').trim();
+        return '';
+      }).filter(Boolean).slice(0, 12);
+    }
+    if (value && typeof value === 'object') {
+      return Object.entries(value).filter(([, enabled]) => enabled !== false && enabled != null && enabled !== '')
+        .map(([key, enabled]) => enabled === true ? key : (typeof enabled === 'string' || typeof enabled === 'number' ? key + ': ' + enabled : ''))
+        .filter(Boolean).slice(0, 12);
+    }
+    return [];
+  }
   function renderSubscriptionProducts() {
     const box = $('subscription-products');
     box.replaceChildren();
@@ -102,6 +121,12 @@
       const card = node('article', undefined, 'subscription-card');
       card.append(node('h3', product.name_ar));
       card.append(node('p', product.description_ar || (product.page_type === 'MENU' ? 'منيو رقمية مرتبطة بنشاطك' : 'صفحة تسويقية مستقلة قابلة للمشاركة')));
+      const featureLabels = productFeatureLabels(product.features);
+      if (featureLabels.length) {
+        const featureList = node('ul', undefined, 'subscription-features');
+        featureLabels.forEach(label => featureList.append(node('li', label)));
+        card.append(featureList);
+      }
       let businessSelect = null;
       if (product.page_type === 'MENU') {
         businessSelect = node('select');
