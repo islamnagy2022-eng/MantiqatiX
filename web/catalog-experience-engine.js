@@ -126,6 +126,10 @@
     SUPERMARKET: 'GROCERY', STORES: 'GROCERY', PROVIDERS: 'COMPANIES'
   });
 
+  // Only adapters already connected to a verified public request path may default to READY.
+  // All other sectors remain visibly under construction for this shared catalog experience until integrated and tested.
+  const ADAPTER_STATUS = Object.freeze({ FOOD: 'READY', MARKETING: 'READY' });
+
   function profileFor(code) {
     const raw = String(code || '').trim().toUpperCase();
     const registry = root.MX_SECTOR_REGISTRY;
@@ -170,7 +174,7 @@
     const p = profileFor(profileCode);
     const x = item || {};
     const opts = options || {};
-    const statusCode = opts.status || 'READY';
+    const statusCode = opts.status || ADAPTER_STATUS[p ? p.code : ''] || 'UNDER_CONSTRUCTION';
     const status = statusFor(statusCode);
     if (!p) {
       return '<article class="mnty-catalog-item">' + renderStatus('NOT_VERIFIED') +
@@ -237,6 +241,7 @@
     version: '1.0.0',
     profiles: PROFILES,
     statuses: STATUS,
+    adapterStatus: ADAPTER_STATUS,
     escapeHtml,
     profileFor,
     statusFor,
