@@ -29,6 +29,7 @@ assert.match(restaurant, /function syncRestaurantMenuToDigitalPage\(\)/, 'restau
 assert.match(restaurant, /canOperate\('CATALOG','update'\)/, 'menu sync must use shared RBAC');
 assert.match(restaurant, /eq\('business_id',s\.business_id\)\.eq\('status','PUBLISHED'\)/, 'sync must target a published menu page for the active business');
 assert.match(restaurant, /digital_page_subscription_active/, 'sync must verify active subscription');
+assert.match(restaurant, /test\(pagePhone\)/, 'sync must require a valid WhatsApp contact number');
 assert.match(restaurant, /filter\(x=>x\.is_available===true\)/, 'only available products may be published');
 assert.match(restaurant, /from\('digital_page_menu_branch_bindings'\)/, 'sync must enforce private branch binding');
 assert.match(restaurant, /branch_id:s\.branch_id/, 'private branch binding must use the explicitly selected branch');
