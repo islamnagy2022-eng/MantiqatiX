@@ -29,7 +29,8 @@
     }
     $('auth').textContent = 'تم تسجيل الدخول. يتم تحميل الاشتراكات والصفحات المرتبطة بحسابك.';
     $('app').hidden = false;
-    await Promise.all([loadOrders(), loadPages()]);
+    await loadPages();
+    await loadOrders();
   }
   async function loadOrders() {
     const { data, error } = await sb.from('digital_page_orders')
@@ -38,7 +39,7 @@
       .in('fulfillment_status', ['REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED'])
       .order('created_at', { ascending: false });
     if (error) throw error;
-    orders = data || [];
+    orders = (data || []).filter(o => !pages.some(p => p.digital_page_order_id === o.id));
     const sel = $('order');
     sel.replaceChildren(new Option('اختر اشتراكًا مدفوعًا', ''));
     for (const o of orders) sel.add(new Option(o.title + ' · ' + o.fulfillment_status, o.id));
@@ -76,6 +77,10 @@
   }
   async function choosePage(p) {
     currentPage = p;
+    if (p.digital_page_order_id && !$('order').querySelector('option[value="' + p.digital_page_order_id + '"]')) {
+      const { data: order } = await sb.from('digital_page_orders').select('id,title,page_type,payment_status,fulfillment_status,created_at').eq('id', p.digital_page_order_id).maybeSingle();
+      if (order) $('order').add(new Option(order.title + ' · ' + order.fulfillment_status, order.id));
+    }
     $('order').value = p.digital_page_order_id || '';
     $('title').value = p.title || '';
     $('slug').value = p.slug || '';
@@ -142,6 +147,22 @@
     renderItems();
     message('تم حفظ المنتجات والأسعار.');
   }
+  $('new-page').addEventListener('click', () => {
+    currentPage = null;
+    menuSection = null;
+    items = [];
+    editIndex = -1;
+    $('page-form').reset();
+    $('products-panel').hidden = true;
+    $('product-form').reset();
+    $('product-form').querySelector('button[type=submit]').textContent = 'إضافة المنتج';
+    const sel = $('order');
+    sel.replaceChildren(new Option('اختر اشتراكًا مدفوعًا غير مستخدم', ''));
+    for (const o of orders) sel.add(new Option(o.title + ' · ' + o.fulfillment_status, o.id));
+    renderItems();
+    message(orders.length ? 'اختر اشتراكًا متاحًا لإنشاء صفحة جديدة.' : 'لا يوجد اشتراك غير مستخدم. اشترك في صفحة رقمية إضافية أولًا.', !orders.length);
+    $('title').focus();
+  });
   $('page-form').addEventListener('submit', async e => {
     e.preventDefault();
     try {
