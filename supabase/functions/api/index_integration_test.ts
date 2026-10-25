@@ -89,7 +89,7 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   const catalogBody = await catalogResponse.json();
   if (catalogResponse.status !== 200) throw new Error(`catalog request failed: ${catalogResponse.status} ${JSON.stringify(catalogBody)}`);
   const priceIds = (catalogBody.prices ?? []).map((price: { id: string }) => price.id);
-  const allPrices = requireOk("read fixture prices", await admin.from("catalog_item_prices").select("id").eq("tenant_id", tenantId));
+  const allPrices = requireOk("read fixture prices", await admin.from("catalog_item_prices").select("id,branch_id,catalog_item_id").eq("tenant_id", tenantId));
   const branchBPriceId = allPrices.find((row: { id: string; branch_id: string | null }) => row.branch_id === branchB)?.id;
   if (!priceIds.some((id: string) => allPrices.some((row: { id: string; catalog_item_id: string }) => row.id === id && row.catalog_item_id === sharedItemId))) {
     throw new Error("catalog response omitted shared branch-independent price");
