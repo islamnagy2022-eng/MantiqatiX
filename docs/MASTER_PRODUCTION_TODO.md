@@ -1915,3 +1915,27 @@ Create an auditable matrix from the actual repository/module registry: module an
 - [ ] Existing finance, commissions, sponsored ads, and Paymob flows outside this scope show no regressions.
 
 **Current status:** DECISION RECORDED — NOT IMPLEMENTED ACROSS ALL MODULES / NOT VERIFIED. PR #374 only addresses the digital-page self-service slice. No merge, production migration, or deployment is authorized by this scope note. Global release remains BLOCKED / NOT CERTIFIED until the release gates are evidenced.
+
+
+## Addendum — SMM is a separate digital-services sales module + honest under-construction states (2026-10-25)
+
+### SMM module boundary
+- SMM (Social Media Marketing / digital services) remains a **separate module** from the WhatsApp-first public catalog/page pattern used by service, menu, and product modules.
+- Preserve the existing SMM module implementation and its already-built digital-service selling capabilities. Do not fold SMM into the general catalog or rewrite it as a restaurant/service-provider menu.
+- Continue unfinished SMM functionality in a later phase after the first launch. For the initial launch, expose only capabilities that are implemented and verified; any unfinished SMM workflow must be visibly labeled **"تحت الإنشاء"** and must not imply that it is usable.
+- Keep SMM payment, provider gateway execution, campaign spend, refunds, balances, and settlement behavior behind the existing safety gates. Deferring Paymob for the new WhatsApp-first catalog flow does not authorize weakening or bypassing SMM's own payment/provider safety contracts.
+
+### Platform-wide unfinished-feature UX
+- Every module/page/action that is not complete for the currently released scope must show a clear Arabic **"تحت الإنشاء"** label when opened or visited, near the title/entry point and before a user attempts the unfinished action.
+- Do not label a whole module "تحت الإنشاء" if verified features within it are available; label the specific unfinished tab, card, section, route, or action, while preserving usable completed functionality.
+- Hide or disable unavailable actions so users cannot submit requests, spend money, create paid campaigns, or enter an incomplete workflow by mistake. Explain briefly that the feature is not available yet.
+- Mark as complete only after implementation and relevant tests have passed. A decorative label alone is not a security control; backend endpoints must still enforce authorization and reject unsupported operations.
+- Add a repository inventory of user-visible routes, module tabs, cards, and actions with status: READY / UNDER CONSTRUCTION / BLOCKED / NOT VERIFIED. Verify labels and disabled behavior in mobile/browser E2E.
+- Avoid misleading availability claims. If a route is present but its backend, permissions, or lifecycle is not verified, display **"تحت الإنشاء"** until its release gate passes.
+
+### Acceptance gates
+- [ ] SMM appears as a separate module and its existing digital-services sale flow remains intact.
+- [ ] SMM's incomplete features are explicitly marked "تحت الإنشاء" and cannot trigger unsafe/unsupported provider/payment actions.
+- [ ] All other unfinished user-visible module features display the same status consistently.
+- [ ] A user-facing route/action inventory exists and is tested.
+- [ ] Existing SMM, payments, finance, and WhatsApp-first catalog flows have regression coverage.
