@@ -50,25 +50,18 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     id: tenantId, name: "API route integration test tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
   }));
 
-  // The legal-owner trigger validates the owner at INSERT time. INACTIVE is not
-  // an exemption, so seed the required identity on the original insert instead
-  // of creating an invalid row and attempting to attach an owner later.
-  const insertedBusinesses = requireOk("insert disposable businesses with owner binding", await admin.from("businesses").insert([
-    {
-      id: businessAId, tenant_id: tenantId, name: "API Test Business A", code: `APIITA-${suffix}`,
-      status: "INACTIVE", owner_user_id: userId,
-      settings: { test_fixture: true, sector: "FOOD", simulated_legal_fixture: true },
-    },
-    {
-      id: businessBId, tenant_id: tenantId, name: "API Test Business B", code: `APIITB-${suffix}`,
-      status: "INACTIVE", owner_user_id: userId,
-      settings: { test_fixture: true, sector: "HEALTH", simulated_legal_fixture: true },
-    },
-  ]).select("id,tenant_id,code,status,owner_user_id"));
+  // The legal trigger is declared BEFORE INSERT OR UPDATE OF status, but its
+  // body only resolves the owner when the new business status is ACTIVE.
+  // Insert inactive synthetic businesses using the real schema, then create
+  // owner memberships before asking the database to activate either business.
+  const insertedBusinesses = requireOk("insert inactive disposable businesses", await admin.from("businesses").insert([
+    { id: businessAId, tenant_id: tenantId, name: "API Test Business A", code: `APIITA-${suffix}`, status: "INACTIVE", settings: { test_fixture: true, sector: "FOOD" } },
+    { id: businessBId, tenant_id: tenantId, name: "API Test Business B", code: `APIITB-${suffix}`, status: "INACTIVE", settings: { test_fixture: true, sector: "HEALTH" } },
+  ]).select("id,tenant_id,code,status"));
   const businessA = insertedBusinesses.find((business: { id: string }) => business.id === businessAId);
   const businessB = insertedBusinesses.find((business: { id: string }) => business.id === businessBId);
-  if (!businessA || !businessB || businessA.owner_user_id !== userId || businessB.owner_user_id !== userId) {
-    throw new Error("failed to read back disposable businesses with their test owner binding");
+  if (!businessA || !businessB || businessA.status !== "INACTIVE" || businessB.status !== "INACTIVE") {
+    throw new Error("failed to read back inactive disposable businesses");
   }
 
   requireOk("insert test owner memberships", await admin.from("user_memberships").insert([
