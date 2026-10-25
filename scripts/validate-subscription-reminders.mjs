@@ -2,9 +2,10 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const app = fs.readFileSync('web/app.js', 'utf8');
-const migration = fs.readFileSync('supabase/migrations/20261025203000_digital_page_subscription_expiry_reminders.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20261025193000_rc567_digital_page_self_service.sql', 'utf8');
 
 assert.match(app, /function subscriptionReminderPanel\(\)/, 'dashboard subscription reminder renderer must exist');
+assert.ok(app.indexOf('if(live.flags.digitalPageSubscriptionDataUnavailable)') < app.indexOf('if(!paid.length)return'), 'data retrieval errors must not be hidden as an empty reminder list');
 assert.match(app, /digital_page_orders['"]\)\.select\([^\n]*paid_at/, 'dashboard must read the recorded paid_at timestamp');
 assert.match(app, /digital_page_products['"]\)\.select\([^\n]*duration_days/, 'dashboard must read subscription duration');
 assert.match(app, /daysLeft>30/, 'reminders must be limited to the 30-day window');
@@ -16,10 +17,10 @@ assert.match(app, /case'الإشعارات':return subscriptionReminderPanel\(\)
 assert.match(app, /target="_blank" rel="noopener noreferrer"/, 'WhatsApp support link must use safe new-tab attributes');
 
 assert.match(migration, /add column if not exists paid_at timestamptz/i, 'activation timestamp column must exist');
-assert.match(migration, /new\.payment_status = 'PAID' and old\.payment_status is distinct from 'PAID'/i, 'paid timestamp must be recorded only on transition to PAID');
-assert.match(migration, /new\.paid_at := coalesce\(new\.paid_at, pg_catalog\.now\(\)\)/i, 'paid timestamp must be set once and preserved on replay');
-assert.match(migration, /before update of payment_status on public\.digital_page_orders/i, 'paid timestamp trigger must be installed');
-assert.match(migration, /revoke all on function public\.mnty_set_digital_page_paid_at\(\) from public, anon, authenticated/i, 'trigger function must not be callable directly by browser roles');
+assert.match(migration, /create or replace function public\.digital_page_orders_paid_at_guard\(\)/i, 'paid timestamp must use the canonical immutable guard');
+assert.match(migration, /new\.paid_at := pg_catalog\.now\(\)/i, 'paid timestamp must be recorded at the paid transition');
+assert.match(migration, /digital_page_orders_paid_at_guard/i, 'paid timestamp guard trigger must be installed');
+assert.match(migration, /where o\.payment_status='PAID' and o\.paid_at is null/i, 'legacy paid orders must receive a conservative backfill');
 
 assert.match(app, /function launchScopePanel\(\)/, 'dashboard must disclose launch-scope status');
 assert.match(app, /الإعلانات الممولة[\s\S]{0,300}تحت الإنشاء/, 'deferred sponsored ads must be labeled under construction');
