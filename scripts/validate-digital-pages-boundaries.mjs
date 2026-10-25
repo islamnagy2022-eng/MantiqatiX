@@ -48,5 +48,6 @@ for (const [src,marker,label] of [
 ]) if(!src.includes(marker)) throw new Error('Digital page regression marker missing: '+label);
 if ((selfServiceHtml.match(/id="new-page"/g)||[]).length !== 1) throw new Error('Duplicate create-page button id detected');
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
-if ((selfServiceMigration.match(/coalesce\(\(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
+if ((selfServiceMigration.match(/coalesce\(\(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.paid_at, o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
+if (!selfServiceMigration.includes('digital_page_orders_paid_at_guard') || !selfServiceMigration.includes('new.paid_at := pg_catalog.now()')) throw new Error('Subscription duration must start on first successful payment and paid_at must be immutable');
 console.log('RC424 digital pages/payment boundary validation: PASS');
