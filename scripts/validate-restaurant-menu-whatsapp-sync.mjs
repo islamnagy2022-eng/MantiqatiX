@@ -46,7 +46,7 @@ assert.match(publicPage, /x\.category\?'<p class="chip">/, 'public menu must dis
 assert.match(publicPage, /اطلب المنتج عبر واتساب/, 'public menu must provide WhatsApp product handoff');
 assert.match(publicPage, /safeImage\(x\.image_url\)/, 'public menu must accept only safe HTTPS image URLs');
 assert.match(publicPage, /الكمية المطلوبة: أرجو التواصل لتأكيد الكمية والتفاصيل/, 'WhatsApp order must ask business to confirm quantity/details');
-assert.match(html, /digital-page\.js\?v=rc570/, 'public page must request the refreshed script');
+assert.match(html, /digital-page\\.js\\?v=rc572/, 'public page must request the refreshed script');
 assert.match(index, /restaurant-module\.js\?v=rc570/, 'main app must request the refreshed restaurant module');
 assert.match(sw, /const CACHE='mnty-web-v142-https-images'/, 'PWA cache must use the current versioned release key');
 assert.match(sw, /restaurant-module\.js\?v=rc570/, 'PWA must precache the refreshed restaurant module');
