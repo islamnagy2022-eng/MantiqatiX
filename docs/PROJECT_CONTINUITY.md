@@ -721,3 +721,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Subscription expiry and entitlements must be enforced server-side; a UI warning alone is insufficient. Current WhatsApp-first renewal request must not mark an order paid without authorized independent verification.
 - Planning estimate recorded in docs/MASTER_PRODUCTION_TODO.md: 2–4 weeks for a narrow MVP if existing contracts and environments are usable; cross-sector hardening may extend it. This is not a guaranteed launch date.
 - Status: requirements recorded, broad engine/dashboard implementation not yet verified. PR #374 remains draft/unmerged. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## Execution update — shared catalog engine, dashboard status, subscription reminders, RC570 replay repair (2026-10-25)
+
+- Added reusable safe catalog item/list rendering primitives to `web/catalog-experience-engine.js`; it escapes displayed content, bounds item counts, provides explicit empty states and status badges, and only emits generic WhatsApp CTAs for profiles whose request mode explicitly allows them.
+- Tightened `buildInquiry`: generic WhatsApp inquiries no longer bypass existing booking, ride, job-application, matching, or other sector-specific workflows. The public MENU page now uses the FOOD adapter for contextual product inquiries, including the displayed price, page URL, quantity-confirmation detail, and sector-specific notice.
+- Updated module dashboard cards to avoid presenting every module as “management available” without qualification. It distinguishes company marketing services from deferred sponsored ads and marks incomplete/unverified work honestly.
+- Subscription reminder coverage currently consists of in-dashboard reminders for digital-page subscriptions (home dashboard + notification center) and the self-service page. The dashboard reads the recorded `paid_at` and duration snapshot; reminders are shown within 30 days, with stronger emphasis at 7/3/1 days and expiry. Scheduled push/email/SMS reminders are not certified as active.
+- Exact-head migration replay previously failed at RC570 due to incompatible text/UUID comparisons in branch binding policies and malformed function-body dollar quoting. Fixed the RC570 migration by normalizing comparison types to text and correcting dollar-quoted bodies. This repair is not considered validated until the exact-head forward replay succeeds.
+- CI validators were updated to match current shared-engine/PWA cache versions and the shared WhatsApp adapter contract. New exact-head checks are queued; no success is claimed yet.
+- No merge, production migration, or deployment occurred. PR #374 remains draft/unmerged; global production release remains **BLOCKED / NOT CERTIFIED**.
