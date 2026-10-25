@@ -47,4 +47,6 @@ for (const [src,marker,label] of [
   [selfServiceMigration,"public.digital_page_public_subscription_active(p.digital_page_order_id)","public rendering is gated by subscription validity"]
 ]) if(!src.includes(marker)) throw new Error('Digital page regression marker missing: '+label);
 if ((selfServiceHtml.match(/id="new-page"/g)||[]).length !== 1) throw new Error('Duplicate create-page button id detected');
+if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
+if ((selfServiceMigration.match(/coalesce\(\(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
 console.log('RC424 digital pages/payment boundary validation: PASS');
