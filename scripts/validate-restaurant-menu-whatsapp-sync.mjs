@@ -35,6 +35,7 @@ assert.match(restaurant, /branch_id:s\.branch_id/, 'private branch binding must 
 assert.match(restaurant, /data:\{source:'restaurant_menu_items',items:available\}/, 'public section JSON must not expose tenant/business/branch identifiers');
 assert.match(restaurant, /from\('digital_page_sections'\)/, 'sync must update the existing public MENU section');
 assert.match(restaurant, /rest-sync-menu-page/, 'restaurant menu screen must expose the sync action');
+assert.match(restaurant, /rest-open-menu-page/, 'successful sync must expose a shareable public menu link');
 assert.match(selfService, /function configureProductEditor\(\)/, 'self-service editor must distinguish MENU source-of-truth behavior');
 assert.match(selfService, /if \(currentPage\.page_type === 'MENU'\) throw new Error\('منيو المطعم تُدار من مديول المطاعم/, 'restaurant menu must not create a conflicting second product catalog');
 assert.match(selfServiceHtml, /id="menu-canonical-notice"/, 'menu owner must be told to manage canonical products in restaurant module');
