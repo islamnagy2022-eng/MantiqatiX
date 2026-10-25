@@ -10,7 +10,13 @@ const corsHeaders = {
   "Vary": "Origin",
 }
 
-serve(async (req) => {
+export function createApiHandler(deps: {
+  createClientFn?: (...args: any[]) => any;
+  env?: { get(name: string): string | undefined };
+} = {}) {
+  const createClientFn = deps.createClientFn ?? createClient;
+  const env = deps.env ?? Deno.env;
+  return async (req: Request) => {
   const origin = req.headers.get("Origin")
   if (req.method === "OPTIONS") {
     if (origin && origin !== allowedOrigin) {
@@ -33,9 +39,9 @@ serve(async (req) => {
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401)
   const token = authHeader.slice(7)
 
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+  const supabaseAdmin = createClientFn(
+    env.get("SUPABASE_URL") ?? "",
+    env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
 
@@ -355,4 +361,7 @@ serve(async (req) => {
   }
 
   return json({ error: "Not Found" }, 404)
-})
+  }
+}
+
+if (import.meta.main) serve(createApiHandler())
