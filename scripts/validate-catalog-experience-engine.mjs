@@ -49,9 +49,9 @@ assert.match(digitalJs, /تعذر التحقق من مواعيد الاشترا�
 assert.match(marketingHtml, /<meta name="robots" content="noindex,nofollow">/, 'deferred marketing-services page must stay out of search until its release gate passes');
 assert.match(marketingHtml, /href="digital-page-self-service\.html"/, 'deferred marketing page must direct visitors to the currently targeted catalog feature');
 assert.doesNotMatch(marketingHtml, /catalog-experience-engine\.js|marketing-services\.js/, 'deferred marketing page must not load inactive runtime code');
-assert.match(index, /load\('catalog-experience-engine\.js\?v=launch-catalog-engine-3'\);\s*await load\('app\.js\?v=launch-catalog-engine-3'\);/, 'load shared engine before dashboard/module runtime');
+assert.match(index, /await load\('catalog-experience-engine\.js\?v=launch-catalog-engine-3'\);\s*await load\('app\.js\?v=catalog-first-1'\);/, 'load shared engine before dashboard/module runtime');
 assert.match(sw, /catalog-experience-engine\.js\?v=launch-catalog-engine-3/);
-assert.match(sw, /app\.js\?v=launch-catalog-engine-3/);
+assert.match(sw, /app\.js\?v=catalog-first-1/);
 assert.match(sectors, /CANONICAL_SECTORS/);
 assert.match(sectorModules, /function shell\(d,body\)/);
 assert.match(operationsModules, /const defs=/);
