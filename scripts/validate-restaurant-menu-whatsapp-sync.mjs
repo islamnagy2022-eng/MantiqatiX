@@ -12,6 +12,9 @@ const sw = fs.readFileSync('web/sw.js', 'utf8');
 
 assert.match(migration, /add column if not exists image_url text/i, 'restaurant catalog must support optional product images');
 assert.match(migration, /restaurant_menu_items_image_url_https_check/, 'product image URLs must be constrained to HTTPS');
+assert.match(migration, /create table if not exists public\.digital_page_menu_branch_bindings/, 'branch binding must live in a private table');
+assert.match(migration, /alter table public\.digital_page_menu_branch_bindings enable row level security/, 'private branch binding must enable RLS');
+assert.match(migration, /revoke all on public\.digital_page_menu_branch_bindings from public, anon, authenticated/, 'branch binding must not be directly accessible without RLS-authorized grants');
 assert.match(restaurant, /select\('id,name_ar,description_ar,base_price_egp,category,is_available,is_popular,image_url'\)/, 'restaurant editor must read canonical menu image URLs');
 assert.match(restaurant, /field\('image','رابط صورة المنتج \(HTTPS\)'/, 'restaurant editor must expose the optional image field');
 assert.match(restaurant, /image_url:imageUrl\|\|null/, 'restaurant editor must save image URL into canonical menu item');
@@ -20,7 +23,9 @@ assert.match(restaurant, /canOperate\('CATALOG','update'\)/, 'menu sync must use
 assert.match(restaurant, /eq\('business_id',s\.business_id\)\.eq\('status','PUBLISHED'\)/, 'sync must target a published menu page for the active business');
 assert.match(restaurant, /digital_page_subscription_active/, 'sync must verify active subscription');
 assert.match(restaurant, /filter\(x=>x\.is_available===true\)/, 'only available products may be published');
-assert.match(restaurant, /branch_id:s\.branch_id/, 'sync snapshot must record the explicitly selected branch');
+assert.match(restaurant, /from\('digital_page_menu_branch_bindings'\)/, 'sync must enforce private branch binding');
+assert.match(restaurant, /branch_id:s\.branch_id/, 'private branch binding must use the explicitly selected branch');
+assert.match(restaurant, /data:\{source:'restaurant_menu_items',items:available\}/, 'public section JSON must not expose tenant/business/branch identifiers');
 assert.match(restaurant, /from\('digital_page_sections'\)/, 'sync must update the existing public MENU section');
 assert.match(restaurant, /rest-sync-menu-page/, 'restaurant menu screen must expose the sync action');
 assert.match(selfService, /function configureProductEditor\(\)/, 'self-service editor must distinguish MENU source-of-truth behavior');
