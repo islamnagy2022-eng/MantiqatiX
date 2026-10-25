@@ -82,6 +82,42 @@ $$;
 revoke all on function public.digital_page_public_subscription_active(uuid) from public;
 grant execute on function public.digital_page_public_subscription_active(uuid) to anon, authenticated;
 
+-- Customer editing must not bypass the existing platform-admin publication gate or transfer a page between subscriptions.
+create or replace function public.digital_page_customer_update_guard()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public
+as $
+begin
+  if old.owner_user_id is not null then
+    if new.owner_user_id is distinct from old.owner_user_id
+       or new.digital_page_order_id is distinct from old.digital_page_order_id then
+      if not coalesce(public.mnty_can_platform_admin(), false) then
+        raise exception 'DIGITAL_PAGE_SUBSCRIPTION_BINDING_IMMUTABLE';
+      end if;
+    end if;
+    if new.status is distinct from old.status
+       and not coalesce(public.mnty_can_platform_admin(), false) then
+      raise exception 'DIGITAL_PAGE_PUBLISH_ADMIN_REQUIRED';
+    end if;
+    if not exists (
+      select 1 from public.digital_page_orders o
+      where o.id=new.digital_page_order_id
+        and o.user_id=new.owner_user_id
+        and o.page_type=new.page_type
+    ) then
+      raise exception 'DIGITAL_PAGE_ORDER_TYPE_MISMATCH';
+    end if;
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists trg_digital_page_customer_update_guard on public.digital_pages;
+create trigger trg_digital_page_customer_update_guard
+before update on public.digital_pages
+for each row execute function public.digital_page_customer_update_guard();
+
 -- Public pages and sections are visible only when published and (for standalone customer pages) subscription is active.
 drop policy if exists digital_pages_public_read on public.digital_pages;
 create policy digital_pages_public_read on public.digital_pages
