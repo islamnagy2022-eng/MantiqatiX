@@ -56,7 +56,8 @@ const requiredReleaseMigrations=[
   "20261025193000_rc567_digital_page_self_service.sql",
   "20261025200000_rc568_digital_page_manual_activation.sql",
   "20261025210000_rc569_digital_page_menu_subscription_guard.sql",
-  "20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql"
+  "20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql",
+  "20261025230000_rc571_digital_page_menu_scope_bypass_fix.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
