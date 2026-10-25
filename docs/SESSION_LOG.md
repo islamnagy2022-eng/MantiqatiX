@@ -357,3 +357,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Inspected exact-head CI run 40227854710: forward migration replay failed in RC570 because a branch membership identifier (`character varying`) was compared directly with a UUID binding. Updated five comparisons in RC570 to compare text representations exactly; commit `c3a2fef8386c3c89a67c54759108ff70c947a86e`.
 - The same CI snapshot showed the production security validator failing an assertion expecting a previous membership lookup pattern. This remains unresolved pending source review; do not assume it is a harmless stale assertion until its intended invariant is verified.
 - Rerun evidence is not available yet for the new commit. Exact-head CI, ordered migration replay, tenant isolation and browser E2E remain required. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Shared catalog engine and release-blocking RC570 repair
+
+- Added shared catalog rendering APIs to `web/catalog-experience-engine.js` with escaped output, bounded rendering, explicit empty/status states, and request-mode-specific CTA rules.
+- Public MENU product inquiries now use the shared FOOD adapter and include item name, displayed price, page URL, category, and quantity-confirmation detail. Generic WhatsApp helper now refuses to bypass existing booking, ride, job, and matching flows.
+- Updated module dashboard labels so module cards do not equate role-based management access with release readiness. Subscription reminder panels remain in the home dashboard, notification center, and digital-page self-service view; scheduled push/email/SMS reminders are not certified.
+- Found a real forward-replay failure in RC570: `operator does not exist: character varying = uuid` in branch binding policies, plus malformed `$body$1...` function delimiters in the same candidate migration. Fixed cross-type comparisons by explicit text normalization and repaired the dollar-quoted bodies; added source-level regression assertions.
+- Updated stale CI contracts for the shared-engine asset versions and the shared WhatsApp adapter. Exact-head CI/replay evidence is still pending after the fixes.
+- No production migration, deployment, or merge. PR #374 remains draft/open. Release remains **BLOCKED / NOT CERTIFIED**.
