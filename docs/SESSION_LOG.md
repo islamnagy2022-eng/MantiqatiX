@@ -229,3 +229,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Validation updates:** Pages workflow checks the new self-service JS and assets; `scripts/validate-digital-pages-boundaries.mjs` checks the owner/paid-order/WhatsApp boundaries. CI result still pending.
 - **Open risks / required verification:** run SQL migration replay and RLS integration tests on a disposable database; review migration ordering because RC563–RC566 are separate open candidates; verify self-service JS syntax, create/edit/list pages, product add/edit/delete, slug collision, WhatsApp rendering, and paid/unpaid cross-user isolation. Confirm how the existing fulfillment admin publishes newly created pages. No production data/configuration mutation was performed.
 - **Release state:** BLOCKED / NOT CERTIFIED; no claim of live deployment or production readiness.
+
+
+## 2026-10-25 — RC567 follow-up: checkout and admin publishing path
+
+- Added subscription package cards using active `PORTFOLIO` products and integrated the existing `digital-page-order-create` and `digital-page-payment-intent` Edge Functions; payment remains server-priced and idempotency-keyed.
+- Added refreshable subscription state, active-subscription checks, and the ability to create a separate page for each unused active subscription.
+- Fixed editor control enablement after checkout/refresh and added a login return link for direct editor visits.
+- Integrated standalone customer pages into the existing admin editor: customer owner option, WhatsApp field, and all-paid-order selection. Added a dedicated RLS select policy allowing platform admins to review customer orders while retaining the owner-only read policy for customers.
+- Updated deployment smoke checks to verify the self-service assets and checkout integration, and static boundary checks for checkout and admin publishing.
+- Exact-head CI was triggered for the latest branch head; migration replay, migration uniqueness/collision checks, and web validation are pending at the time of this note.
+- Still required: review CI results for the exact head; test Paymob checkout/webhook reconciliation with a sandbox order; test admin fulfillment/publishing and public WhatsApp CTA; test paid/unpaid and cross-user RLS on a disposable database. No production migration or deployment performed.
+- **Release state:** BLOCKED / NOT CERTIFIED.
