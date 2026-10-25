@@ -23,6 +23,7 @@ on:
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "scripts/verify-digital-page-self-service-rls.sql"
+      - "supabase/tests/rc571_menu_scope_bypass.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
 
 permissions:
