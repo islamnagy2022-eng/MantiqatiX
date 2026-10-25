@@ -10,6 +10,8 @@ assert.match(html,/noindex,nofollow/);
 assert.match(html,/صفحات الكتالوج/);
 assert.doesNotMatch(html,/id="request-form"|data-wa-general|marketing-services\.js/);
 assert.doesNotMatch(home,/href="marketing-services\.html"/,'homepage must not advertise the deferred marketing services page');
+assert.doesNotMatch(app,/href="marketing-services\.html"/,'authenticated dashboard must not advertise the deferred marketing services page');
+assert.match(app,/صفحة الخدمات التسويقية مؤجلة/,'dashboard must label the marketing page as deferred');
 assert.match(home,/صفحة الخدمات التسويقية مؤجلة/);
 assert.match(home,/خدمات التسويق — تحت الإنشاء/);
 assert.match(home,/الإعلانات الممولة مؤجلة لما بعد الإطلاق الأول/);
