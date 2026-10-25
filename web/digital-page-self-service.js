@@ -154,7 +154,7 @@
       const values = {
         page_type: 'MENU', title: $('title').value.trim(), slug,
         description: $('description').value.trim() || null, whatsapp_number: number,
-        updated_by: user.id, status: 'DRAFT'
+        updated_by: user.id, status: currentPage?.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'
       };
       if (currentPage) {
         const { data, error } = await sb.from('digital_pages').update(values)
