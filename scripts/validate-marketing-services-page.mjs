@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const html=fs.readFileSync('web/marketing-services.html','utf8');
 const home=fs.readFileSync('web/home.js','utf8');
+const app=fs.readFileSync('web/app.js','utf8');
 const sw=fs.readFileSync('web/sw.js','utf8');
 assert.match(html,/<html lang="ar" dir="rtl">/);
 assert.match(html,/الخدمات التسويقية تحت الإنشاء/);
