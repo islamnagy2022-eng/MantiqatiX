@@ -37,8 +37,8 @@ const checks = [
   ['app consumes canonical sector registry', app.includes('window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS') && app.includes('const SECTOR_PRESENTATION=')],
   ['app sectors carry canonical code + backend code', app.includes("return [p[0],p[1],p[2],s.code,s.backend];")],
   ['unsupported sectors do not claim an unrelated workspace', app.includes("return map[name]||'المجالات والخدمات';") && app.includes("const operational=Boolean(sectorMap[s[1]]);")],
-  ['service worker cache version v139', sw.includes("const CACHE='mnty-web-v139-catalog-experience-engine'")],
-  ['service worker precaches versioned app entrypoint', sw.includes("./app.js?v=launch-catalog-engine-3")],
+  ['service worker cache is versioned for the current release', /const CACHE='mnty-web-v142-https-images'/.test(sw)],
+  ['service worker precaches the current versioned app entrypoint', sw.includes("./app.js?v=catalog-first-1")],
   ['service worker precaches versioned Supabase SDK', sw.includes("./vendor/supabase.js?v=supabase21172")],
 ];
 
