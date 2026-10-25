@@ -5,8 +5,6 @@
   });
   const $ = id => document.getElementById(id);
   let user = null, orders = [], products = [], pages = [], currentPage = null, menuSection = null, items = [], editIndex = -1;
-  const pendingCheckoutKeys = new Map();
-  const pendingCheckoutOrders = new Map();
 
   function message(text, bad = false) {
     $('status').textContent = text || '';
@@ -106,7 +104,7 @@
       const session = sessionData.session;
       if (!session?.access_token) throw new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');
       if (!session.user?.email || !session.user?.phone) {
-        throw new Error('للدفع الإلكتروني يلزم أن يكون البريد الإلكتروني ورقم الهاتف موجودين في حسابك.');
+        throw new Error('لإتمام التفعيل تواصل مع فريق الدعم عبر واتساب.');
       }
       if (!checkoutWindow) throw new Error('اسمح بفتح نافذة الدفع من المتصفح ثم اضغط اشتراك مرة أخرى.');
       button.disabled = true;
@@ -264,7 +262,7 @@
     e.preventDefault();
     try {
       const orderId = $('order').value;
-      if (!orderId) throw new Error('اختر اشتراكًا مدفوعًا أولًا.');
+      if (!orderId) throw new Error('تواصل مع الدعم عبر واتساب لتفعيل الاشتراك أولًا.');
       const selectedOrder = orders.find(o => o.id === orderId);
       if (!currentPage && !selectedOrder) throw new Error('الاشتراك المحدد غير متاح.');
       const number = $('whatsapp').value.replace(/\D/g, '');
@@ -338,19 +336,10 @@
   $('new-page-secondary')?.addEventListener('click', startNewPage);
   $('refresh-subscriptions')?.addEventListener('click', async () => {
     try {
-      for (const [productId, orderId] of pendingCheckoutOrders) {
-        const { data: order, error } = await sb.from('digital_page_orders')
-          .select('id,payment_status').eq('id', orderId).eq('user_id', user.id).maybeSingle();
-        if (error) throw error;
-        if (order?.payment_status === 'PAID') {
-          pendingCheckoutKeys.delete(productId);
-          pendingCheckoutOrders.delete(productId);
-        }
-      }
       await loadPages();
       await loadOrders();
-      message('تم تحديث حالة الاشتراك والصفحات.');
-    } catch (e) { message(e.message || 'تعذر تحديث الاشتراك.', true); }
+      message('تم تحديث الاشتراكات والصفحات. طلب التفعيل يتم عبر واتساب مؤقتًا.');
+    } catch (e) { message(e.message || 'تعذر تحديث الاشتراكات.', true); }
   });
   start().catch(e => message(e.message || 'تعذر تحميل صفحة الإدارة.', true));
 })();
