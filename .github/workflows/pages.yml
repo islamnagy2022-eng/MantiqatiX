@@ -292,6 +292,8 @@ jobs:
           grep -Fq 'digital-page-editor.js' <<<"$DIGITAL_EDITOR_HTML"
           grep -Fq 'digital-page-self-service.js' <<<"$DIGITAL_SELF_SERVICE_HTML"
           grep -Fq 'لن يتم تحصيل أي دفع إلكتروني من هذه الصفحة حاليًا' <<<"$DIGITAL_SELF_SERVICE_JS"
-          ! grep -Eq 'digital-page-payment-intent|digital-page-order-create|checkoutUrl' <<<"$DIGITAL_SELF_SERVICE_JS"
+          ! grep -Eq 'digital-page-payment-intent|checkoutUrl' <<<"$DIGITAL_SELF_SERVICE_JS"
+          grep -Fq "sb.functions.invoke('digital-page-order-create'" <<<"$DIGITAL_SELF_SERVICE_JS"
+          grep -Fq 'mnty_admin_activate_digital_page_subscription' supabase/migrations/20261025200000_rc568_digital_page_manual_activation.sql
           grep -Fq 'اطلب المنتج عبر واتساب' <<<"$DIGITAL_PAGE_JS"
           echo "Production smoke verification passed for $PAGE_URL"
