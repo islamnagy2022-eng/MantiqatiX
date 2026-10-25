@@ -166,6 +166,20 @@ set search_path = pg_catalog, public
 as $
   select p_actor is not null
     and p_actor = auth.uid()
+    and exists (
+      select 1
+      from public.digital_pages p
+      left join public.digital_page_orders o on o.id = p.digital_page_order_id
+      where p.id = p_page_id
+        and (
+          p.digital_page_order_id is null
+          or (
+            o.id is not null
+            and o.payment_status = 'PAID'
+            and coalesce(public.digital_page_subscription_active(o.id, o.user_id), false)
+          )
+        )
+    )
     and (
       coalesce(public.mnty_can_platform_admin(), false)
       or (
