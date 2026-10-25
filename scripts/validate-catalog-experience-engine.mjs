@@ -11,6 +11,7 @@ const marketingJs = fs.readFileSync('web/marketing-services.js', 'utf8');
 const smmHtml = fs.readFileSync('web/smm.html', 'utf8');
 const app = fs.readFileSync('web/app.js', 'utf8');
 const index = fs.readFileSync('web/index.html', 'utf8');
+const sw = fs.readFileSync('web/sw.js', 'utf8');
 const sectors = fs.readFileSync('web/sector-registry.js', 'utf8');
 const sectorModules = fs.readFileSync('web/sector-modules.js', 'utf8');
 const operationsModules = fs.readFileSync('web/operations-modules.js', 'utf8');
@@ -33,6 +34,8 @@ assert.match(digitalJs, /تعذر التحقق من مواعيد الاشترا�
 assert.match(marketingHtml, /catalog-experience-engine\.js/);
 assert.match(marketingJs, /MNTYCatalogExperience\?\.whatsappUrl/);
 assert.match(index, /load\('catalog-experience-engine\.js\?v=launch-catalog-engine-2'\);\s*await load\('app\.js\?v=launch-catalog-engine-2'\);/, 'load shared engine before dashboard/module runtime');
+assert.match(sw, /catalog-experience-engine\.js\?v=launch-catalog-engine-2/);
+assert.match(sw, /app\.js\?v=launch-catalog-engine-2/);
 assert.match(sectors, /CANONICAL_SECTORS/);
 assert.match(sectorModules, /function shell\(d,body\)/);
 assert.match(operationsModules, /const defs=/);
