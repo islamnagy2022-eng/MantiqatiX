@@ -106,7 +106,10 @@ function subscriptionReminderPanel(){
   const product=products.get(String(o.product_id));
   const duration=Number(product?.duration_days);
   const paidAt=o.paid_at;
-  if(!paidAt||!Number.isFinite(duration)||duration<=0)return null;
+  if(!paidAt||!Number.isFinite(duration)||duration<=0){
+   const message='مرحبًا دعم MantiqatiX، أحتاج تأكيد تاريخ انتهاء اشتراكي. الخدمة: '+String(o.title||product?.name_ar||o.page_type||'اشتراك رقمي')+'، رقم الطلب: '+String(o.id)+'.';
+   return {id:String(o.id),title:String(o.title||product?.name_ar||'اشتراك رقمي'),timing:'تاريخ الانتهاء غير محدد في البيانات الحالية',state:'unknown',expiry:null,href:'https://wa.me/201010171770?text='+encodeURIComponent(message)};
+  }
   const start=new Date(paidAt);
   if(!Number.isFinite(start.getTime()))return null;
   const expiry=new Date(start.getTime()+duration*86400000);
@@ -116,9 +119,9 @@ function subscriptionReminderPanel(){
   const timing=daysLeft<0?'انتهى الاشتراك منذ '+Math.abs(daysLeft)+' يوم':daysLeft===0?'ينتهي الاشتراك اليوم':daysLeft===1?'ينتهي الاشتراك خلال يوم واحد':'متبقي '+daysLeft+' يومًا على انتهاء الاشتراك';
   const message='مرحبًا دعم MantiqatiX، أحتاج مراجعة/تجديد الاشتراك. الخدمة: '+String(o.title||product?.name_ar||o.page_type||'اشتراك رقمي')+'، رقم الطلب: '+String(o.id)+'، الحالة: '+timing+'.';
   return {id:String(o.id),title:String(o.title||product?.name_ar||'اشتراك رقمي'),timing,state,expiry,href:'https://wa.me/201010171770?text='+encodeURIComponent(message)};
- }).filter(Boolean).sort((a,b)=>a.expiry-b.expiry);
+ }).filter(Boolean).sort((a,b)=>(a.expiry?.getTime()??Number.MAX_SAFE_INTEGER)-(b.expiry?.getTime()??Number.MAX_SAFE_INTEGER));
  if(!reminders.length)return '';
- return '<section class="card mx-subscription-reminders" aria-labelledby="mx-subscription-reminders-title" style="margin-bottom:16px"><div class="section-head"><div><span class="eyebrow">SUBSCRIPTION STATUS</span><h2 id="mx-subscription-reminders-title">تنبيهات مواعيد الاشتراك</h2><p class="muted">تظهر التنبيهات قبل الانتهاء بـ 30 يومًا، وتزداد أهميتها خلال آخر 7 أيام، وتوضح الاشتراكات المنتهية.</p></div><span class="count">'+reminders.length+' تنبيه</span></div><div class="mx-subscription-reminder-list">'+reminders.map(r=>'<article class="mx-subscription-reminder '+r.state+'" style="padding:12px;margin:8px 0;border:1px solid var(--border,#e5e7eb);border-inline-start:4px solid '+(r.state==='expired'||r.state==='critical'?'#dc2626':r.state==='warning'?'#d97706':'#2563eb')+';border-radius:10px"><div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap"><strong>'+esc(r.title)+'</strong><span class="status">'+esc(r.timing)+'</span></div><small class="muted">موعد الانتهاء المتوقع: '+esc(r.expiry.toLocaleDateString('ar-EG'))+'</small><div style="margin-top:8px"><a class="btn btn-outline" href="'+esc(r.href)+'" target="_blank" rel="noopener noreferrer">مراجعة التجديد عبر واتساب</a></div></article>').join('')+'</div></section>';
+ return '<section class="card mx-subscription-reminders" aria-labelledby="mx-subscription-reminders-title" style="margin-bottom:16px"><div class="section-head"><div><span class="eyebrow">SUBSCRIPTION STATUS</span><h2 id="mx-subscription-reminders-title">تنبيهات مواعيد الاشتراك</h2><p class="muted">تظهر التنبيهات قبل الانتهاء بـ 30 يومًا، وتزداد أهميتها خلال آخر 7 أيام، وتوضح الاشتراكات المنتهية.</p></div><span class="count">'+reminders.length+' تنبيه</span></div><div class="mx-subscription-reminder-list">'+reminders.map(r=>'<article class="mx-subscription-reminder '+r.state+'" style="padding:12px;margin:8px 0;border:1px solid var(--border,#e5e7eb);border-inline-start:4px solid '+(r.state==='expired'||r.state==='critical'?'#dc2626':r.state==='warning'?'#d97706':'#2563eb')+';border-radius:10px"><div class="row" style="justify-content:space-between;gap:12px;flex-wrap:wrap"><strong>'+esc(r.title)+'</strong><span class="status">'+esc(r.timing)+'</span></div>'+(r.expiry?'<small class="muted">موعد الانتهاء المتوقع: '+esc(r.expiry.toLocaleDateString('ar-EG'))+'</small>':'<small class="muted">نحتاج تأكيد تاريخ بداية الاشتراك ومدة الباقة قبل حساب الموعد</small>')+'<div style="margin-top:8px"><a class="btn btn-outline" href="'+esc(r.href)+'" target="_blank" rel="noopener noreferrer">مراجعة الاشتراك عبر واتساب</a></div></article>').join('')+'</div></section>';
 }
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
 async function loadLiveData(){
