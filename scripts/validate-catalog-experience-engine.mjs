@@ -10,7 +10,7 @@ const smmHtml = fs.readFileSync('web/smm.html', 'utf8');
 const app = fs.readFileSync('web/app.js', 'utf8');
 
 for (const code of ['FOOD','PHARMACY','HEALTH','DENTAL','MEDICAL','HOSPITAL','LABS','RADIOLOGY','COMPANIES','FREELANCER','MAINTENANCE','GROCERY','FASHION','MARKETING']) {
-  assert.match(engine, new RegExp(code + ': Object\\.freeze'), 'missing sector adapter profile ' + code);
+  assert.ok(engine.includes("'" + code + "': Object.freeze"), 'missing sector adapter profile ' + code);
 }
 assert.match(engine, /function escapeHtml/);
 assert.match(engine, /encodeURIComponent/);
