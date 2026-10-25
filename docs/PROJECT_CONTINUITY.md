@@ -751,3 +751,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Bumped the app script URL to `app.js?v=catalog-first-1`; bumped the service-worker registration/cache contract to `mnty-web-v140-catalog-first` and aligned the marketing workspace validator.
 - Additional commits: `939ba00b2c58142a017b5bc71b04655203219e33` (dashboard), `7577cf748e35c8a92da3c564e37e1fb1328af726` (smoke), `94a6404f13ee7f8fcac50912571f22024bc8b269` / `94a7bb6ed045cfb0cff829abf90c1a54b7747963` (cache refs), `664a7e37a2b95714f6462a889f816b0e774e210c` (workspace validator), `255cb8a79b87830841675844a6c2bc4bd9be5737` (dashboard deferral assertion).
 - Validation has not yet completed: latest observed PR checks are queued and the PR deployment job was cancelled as expected for a draft/PR event. This is not a production deploy. No merge or production migration occurred; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Dashboard deferral and final cache validator alignment
+
+- Removed the authenticated dashboard's active marketing-services link and replaced it with a visible “تحت الإنشاء” status. No public or authenticated UI should promote that page during the catalog-first release.
+- Updated the release smoke check to assert the deferred page placeholder and absence of marketing inquiry form/script, and to ensure neither homepage nor dashboard links to the deferred page.
+- Updated cache contract checks to match `app.js?v=catalog-first-1` and `mnty-web-v140-catalog-first`; current source-level cross-file checks confirm the references agree.
+- Latest source commits: `939ba00b2c58142a017b5bc71b04655203219e33`, `7577cf748e35c8a92da3c564e37e1fb1328af726`, `94a7bb6ed045cfb0cff829abf90c1a54b7747963`, `664a7e37a2b95714f6462a889f816b0e774e210c`, `255cb8a79b87830841675844a6c2bc4bd9be5737`.
+- CI evidence is still insufficient: observed workflow runs remain queued on an earlier PR head and the PR Pages deployment job was cancelled. No exact-head passing result, merge, production migration, or production deployment is claimed. Keep PR #374 draft/open and release **BLOCKED / NOT CERTIFIED**.
