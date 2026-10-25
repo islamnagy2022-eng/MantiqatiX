@@ -93,6 +93,7 @@
   function renderSubscriptionProducts() {
     const box = $('subscription-products');
     box.replaceChildren();
+    if (businessesUnavailable) box.append(node('p', 'تعذر التحقق من الأنشطة المرتبطة بالحساب؛ تم إخفاء باقات المنيو مؤقتًا حفاظًا على عزل الملكية.', 'hint'));
     if (!products.length) {
       box.append(node('p', 'لا توجد باقات متاحة حاليًا. حاول لاحقًا أو تواصل مع الدعم.'));
       return;
@@ -104,10 +105,13 @@
       let businessSelect = null;
       if (product.page_type === 'MENU') {
         businessSelect = node('select');
+        businessSelect.id = 'digital-menu-business-' + product.id;
         businessSelect.setAttribute('aria-label', 'النشاط الذي ستنشأ له المنيو');
         businessSelect.add(new Option('اختر النشاط', ''));
         businesses.forEach(b => businessSelect.add(new Option(b.name || b.code || b.id, b.id)));
-        card.append(node('label', 'النشاط المرتبط بالمنيو'));
+        const businessLabel = node('label', 'النشاط المرتبط بالمنيو');
+        businessLabel.htmlFor = businessSelect.id;
+        card.append(businessLabel);
         card.append(businessSelect);
       }
       const duration = Number(product.duration_days || 365);
