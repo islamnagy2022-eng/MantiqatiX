@@ -5,8 +5,8 @@ const source = readFileSync("supabase/functions/api/index.ts", "utf8");
 
 assert.match(source, /const branchId = url\.searchParams\.get\("branchId"\)\?\.trim\(\) \|\| null;/,
   "catalog branchId must normalize blank query values");
-assert.match(source, /if \(!\/\^\[A-Za-z0-9_-\]\{1,128\}\$\/\.test\(branchId\)\)/,
-  "branchId must be syntax-validated before it can affect filters");
+assert.match(source, /if \(branchId\.length > 128\)/,
+  "branchId length must be bounded before database lookup");
 assert.match(source, /\.eq\("id", branchId\)\.eq\("business_id", businessId\)\.eq\("status", "ACTIVE"\)\.maybeSingle\(\)/,
   "requested branch must be an active branch of the selected business");
 assert.match(source, /buildPriceQuery\(\)\.is\("branch_id", null\)/,
@@ -15,6 +15,8 @@ assert.match(source, /buildPriceQuery\(\)\.eq\("branch_id", branchId\)/,
   "branch-specific catalog responses must include only the selected branch overrides");
 assert.doesNotMatch(source, /\.or\(\x60branch_id\.is\.null,branch_id\.eq\.\$\{branchId\}\x60\)/,
   "untrusted branch IDs must not be interpolated into a PostgREST OR filter");
+assert.doesNotMatch(source, /itemQuery\.or\(\x60branch_id\.is\.null,branch_id\.eq\.\$\{branchId\}\x60\)/,
+  "catalog item branch filtering must use exact database filters");
 
 assert.match(source, /const normalizedIdempotencyKey = String\(idempotencyKey \?\? ""\)\.trim\(\)/,
   "payment idempotency keys must be trimmed and validated");
