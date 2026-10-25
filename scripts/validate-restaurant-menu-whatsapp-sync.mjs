@@ -19,6 +19,7 @@ assert.match(migration, /digital_page_menu_branch_binding_immutable/, 'branch id
 assert.match(migration, /digital_page_menu_branch_binding_scope_guard/, 'private branch binding must validate the page and subscription order');
 assert.match(migration, /v_order\.user_id is distinct from new\.updated_by/, 'menu binding actor must match the subscription owner');
 assert.match(migration, /new\.updated_by is distinct from auth\.uid\(\)/, 'menu binding audit actor must match the authenticated caller');
+assert.match(migration, /digital_page_subscription_active\(o\.id, o\.user_id\)/, 'expired subscriptions must block menu section writes server-side');
 assert.match(migration, /digital_page_sections as restrictive/, 'menu section writes must be restricted by the private branch binding');
 assert.match(migration, /o\.user_id = p_actor/, 'unbound subscription menu sections must remain scoped to the subscriber');
 assert.match(restaurant, /select\('id,name_ar,description_ar,base_price_egp,category,is_available,is_popular,image_url'\)/, 'restaurant editor must read canonical menu image URLs');
