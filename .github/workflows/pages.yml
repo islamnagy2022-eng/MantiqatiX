@@ -99,6 +99,7 @@ jobs:
           node scripts/validate-sensitive-module-writes.mjs
           node scripts/validate-home-sponsored-ads.mjs
           node scripts/validate-home-production-content.mjs
+          node scripts/validate-layer-l1-homepage.mjs
       - name: Upload verification evidence
         if: always()
         uses: actions/upload-artifact@v4
