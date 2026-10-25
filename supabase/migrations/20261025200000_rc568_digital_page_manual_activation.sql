@@ -25,6 +25,51 @@ create policy digital_page_manual_activation_audit_admin_read
 revoke all on public.digital_page_manual_activation_audit from anon, authenticated;
 grant select on public.digital_page_manual_activation_audit to authenticated;
 
+create or replace function public.mnty_admin_list_pending_digital_page_subscriptions()
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $
+declare
+  v_result jsonb;
+begin
+  if auth.uid() is null or not coalesce(public.mnty_can_platform_admin(), false) then
+    raise exception 'PLATFORM_ADMIN_REQUIRED';
+  end if;
+
+  select coalesce(
+    pg_catalog.jsonb_agg(
+      pg_catalog.jsonb_build_object(
+        'id', o.id,
+        'user_id', o.user_id,
+        'product_id', o.product_id,
+        'title', o.title,
+        'amount', o.amount,
+        'currency', o.currency,
+        'created_at', o.created_at,
+        'payment_status', o.payment_status
+      ) order by o.created_at desc
+    ),
+    '[]'::jsonb
+  )
+  into v_result
+  from (
+    select id, user_id, product_id, title, amount, currency, created_at, payment_status
+      from public.digital_page_orders
+     where page_type = 'PORTFOLIO'
+       and payment_status = 'PENDING'
+     order by created_at desc
+     limit 50
+  ) o;
+
+  return v_result;
+end;
+$;
+
+revoke all on function public.mnty_admin_list_pending_digital_page_subscriptions() from public, anon;
+grant execute on function public.mnty_admin_list_pending_digital_page_subscriptions() to authenticated;
+
 create or replace function public.mnty_admin_activate_digital_page_subscription(
   p_order_id uuid,
   p_payment_reference text,
