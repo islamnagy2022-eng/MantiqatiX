@@ -79,7 +79,7 @@ drop policy if exists digital_pages_owner_update_draft on public.digital_pages;
 create policy digital_pages_owner_update_draft on public.digital_pages
 for update to authenticated
 using (
-  status <> 'PUBLISHED' and (
+  (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED')) and (
     (owner_user_id=(select auth.uid()) and exists (
       select 1 from public.digital_page_orders o
       where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
@@ -98,7 +98,7 @@ using (
   )
 )
 with check (
-  updated_by=(select auth.uid()) and status <> 'PUBLISHED'
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
   and (
     (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
       and whatsapp_number is not null and exists (
