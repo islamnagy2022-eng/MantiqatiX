@@ -3,6 +3,8 @@ import fs from 'node:fs';
 
 const restaurant = fs.readFileSync('web/restaurant-module.js', 'utf8');
 const publicPage = fs.readFileSync('web/digital-page.js', 'utf8');
+const selfService = fs.readFileSync('web/digital-page-self-service.js', 'utf8');
+const selfServiceHtml = fs.readFileSync('web/digital-page-self-service.html', 'utf8');
 const migration = fs.readFileSync('supabase/migrations/20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql', 'utf8');
 const html = fs.readFileSync('web/digital-page.html', 'utf8');
 const index = fs.readFileSync('web/index.html', 'utf8');
@@ -21,6 +23,9 @@ assert.match(restaurant, /filter\(x=>x\.is_available===true\)/, 'only available 
 assert.match(restaurant, /branch_id:s\.branch_id/, 'sync snapshot must record the explicitly selected branch');
 assert.match(restaurant, /from\('digital_page_sections'\)/, 'sync must update the existing public MENU section');
 assert.match(restaurant, /rest-sync-menu-page/, 'restaurant menu screen must expose the sync action');
+assert.match(selfService, /function configureProductEditor\(\)/, 'self-service editor must distinguish MENU source-of-truth behavior');
+assert.match(selfService, /if \(currentPage\.page_type === 'MENU'\) throw new Error\('منيو المطعم تُدار من مديول المطاعم/, 'restaurant menu must not create a conflicting second product catalog');
+assert.match(selfServiceHtml, /id="menu-canonical-notice"/, 'menu owner must be told to manage canonical products in restaurant module');
 assert.match(restaurant, /digital-page-self-service\.html/, 'restaurant menu screen must link to menu page management');
 assert.match(publicPage, /x\.category\?'<p class="chip">/, 'public menu must display product category');
 assert.match(publicPage, /اطلب المنتج عبر واتساب/, 'public menu must provide WhatsApp product handoff');
