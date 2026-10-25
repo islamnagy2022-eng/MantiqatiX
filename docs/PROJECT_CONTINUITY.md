@@ -689,3 +689,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Fixed the stale RBAC workspace validator that failed on an obsolete dashboard-route marker.
 - Latest source head before this documentation update: c6152b2a9514e6107982c02ae575d5c40d152811. CI for the latest code is pending; do not infer passing checks from older heads.
 - Still NOT VERIFIED: full migration replay at the latest head, authenticated multi-user RLS, browser E2E, subscription manual-reference review, and production deployment smoke. No production merge/migration/deploy occurred. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC570 restaurant menu integration — 2026-10-25
+
+- Candidate code adds an HTTPS-only optional menu image field to restaurant_menu_items and a restaurant/café menu action to sync available items from the selected branch into the existing published digital MENU page.
+- Sync is allowed only through shared catalog RBAC, a published page for the active business, and a positive digital_page_subscription_active check. It records the branch in the MENU section and refuses to overwrite a section already bound to a different branch.
+- Public digital-page.js now displays category labels and continues to use safe HTTPS images plus WhatsApp-only product handoff. The message includes the displayed price and asks the business to confirm quantity/details; it does not create a paid order.
+- Added scripts/validate-restaurant-menu-whatsapp-sync.mjs, wired into Pages CI; updated restaurant source-contract and digital page runtime tests; advanced asset/PWA cache versions.
+- Status: source implementation added on PR #374, not yet certified. Exact-head CI/replay, authenticated RLS, browser E2E, deployed smoke, and production migration/deploy remain outstanding. Keep production release BLOCKED / NOT CERTIFIED.
