@@ -36,4 +36,15 @@ for(const [src,marker,label] of [
  [selfServiceMigration,"new.provider_profile_id is distinct from old.provider_profile_id","provider ownership binding is immutable"],
  [selfServiceMigration,"DIGITAL_PAGE_SUBSCRIPTION_BINDING_IMMUTABLE","ownership and subscription transfer protection"]
 ]) if(!src.includes(marker)) throw new Error('Digital page self-service marker missing: '+label);
+const selfServiceHtml=fs.readFileSync('web/digital-page-self-service.html','utf8');
+for (const [src,marker,label] of [
+  [selfService,'pendingCheckoutOrders.set(productId, order.id)','checkout order correlation retained until confirmation'],
+  [selfService,'pendingCheckoutOrders.delete(productId)','pending checkout key lifecycle cleanup'],
+  [selfService,"checkoutWindow.location.replace(payment.checkoutUrl);\n        return;","checkout idempotency key is not cleared before payment confirmation"],
+  [selfService,"$('new-page-secondary')?.addEventListener('click', startNewPage)","secondary create-page action is wired"],
+  [selfServiceHtml,'id="new-page-secondary"',"secondary create-page button has unique id"],
+  [selfServiceMigration,"owner_user_id=(select auth.uid())\n  )","customer can still see their own page after subscription expiry"],
+  [selfServiceMigration,"public.digital_page_public_subscription_active(p.digital_page_order_id)","public rendering is gated by subscription validity"]
+]) if(!src.includes(marker)) throw new Error('Digital page regression marker missing: '+label);
+if ((selfServiceHtml.match(/id="new-page"/g)||[]).length !== 1) throw new Error('Duplicate create-page button id detected');
 console.log('RC424 digital pages/payment boundary validation: PASS');
