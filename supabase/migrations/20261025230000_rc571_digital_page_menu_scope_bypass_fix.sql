@@ -76,8 +76,8 @@ using (
   status = 'PUBLISHED'
   and (
     (
-      digital_page_order_id is null
-      and owner_user_id is null
+      owner_user_id is null
+      and not (page_type = 'MENU' and digital_page_order_id is not null)
     )
     or public.digital_page_public_subscription_active(digital_page_order_id)
   )
@@ -95,8 +95,8 @@ using (
       and p.status = 'PUBLISHED'
       and (
         (
-          p.digital_page_order_id is null
-          and p.owner_user_id is null
+          p.owner_user_id is null
+          and not (p.page_type = 'MENU' and p.digital_page_order_id is not null)
         )
         or public.digital_page_public_subscription_active(p.digital_page_order_id)
       )
