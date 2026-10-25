@@ -17,7 +17,7 @@ assert.match(migration, /alter table public\.digital_page_menu_branch_bindings e
 assert.match(migration, /revoke all on public\.digital_page_menu_branch_bindings from public, anon, authenticated/, 'branch binding must not be directly accessible without RLS-authorized grants');
 assert.match(migration, /digital_page_menu_branch_binding_immutable/, 'branch identity must be immutable after binding');
 assert.match(migration, /digital_page_menu_branch_binding_scope_guard/, 'private branch binding must validate the page and subscription order');
-assert.match(migration, /v_order\.user_id is distinct from new\.updated_by/, 'menu binding actor must match the subscription owner');
+assert.match(migration, /v_order\.target_business_id is distinct from new\.business_id/, 'menu binding must match the subscription business');
 assert.match(migration, /new\.updated_by is distinct from auth\.uid\(\)/, 'menu binding audit actor must match the authenticated caller');
 assert.match(migration, /digital_page_public_subscription_active\(o\.id\)/, 'expired/unpublished subscriptions must block menu section writes server-side');
 assert.match(migration, /digital_page_sections as restrictive/, 'menu section writes must be restricted by the private branch binding');
@@ -28,7 +28,7 @@ assert.match(restaurant, /image_url:imageUrl\|\|null/, 'restaurant editor must s
 assert.match(restaurant, /function syncRestaurantMenuToDigitalPage\(\)/, 'restaurant menu must have a canonical-to-public-page sync action');
 assert.match(restaurant, /canOperate\('CATALOG','update'\)/, 'menu sync must use shared RBAC');
 assert.match(restaurant, /eq\('business_id',s\.business_id\)\.eq\('status','PUBLISHED'\)/, 'sync must target a published menu page for the active business');
-assert.match(restaurant, /digital_page_subscription_active/, 'sync must verify active subscription');
+assert.match(restaurant, /digital_page_public_subscription_active/, 'sync must verify active published subscription');
 assert.match(restaurant, /test\(pagePhone\)/, 'sync must require a valid WhatsApp contact number');
 assert.match(restaurant, /filter\(x=>x\.is_available===true\)/, 'only available products may be published');
 assert.match(restaurant, /from\('digital_page_menu_branch_bindings'\)/, 'sync must enforce private branch binding');
