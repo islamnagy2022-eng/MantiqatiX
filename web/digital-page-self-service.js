@@ -91,13 +91,12 @@
       card.append(node('strong', Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'), 'subscription-price'));
       const buy = node('button', 'اشترك الآن');
       buy.type = 'button';
-      buy.addEventListener('click', () => subscribeToPackage(product.id, buy));
+      buy.addEventListener('click', () => { const checkoutWindow = window.open('about:blank', '_blank'); subscribeToPackage(product.id, buy, checkoutWindow); });
       card.append(buy);
       box.append(card);
     }
   }
-  async function subscribeToPackage(productId, button) {
-    let checkoutWindow = null;
+  async function subscribeToPackage(productId, button, checkoutWindow) {
     try {
       const product = products.find(p => p.id === productId);
       if (!product) throw new Error('الباقة لم تعد متاحة. حدّث الصفحة وحاول مرة أخرى.');
@@ -108,7 +107,6 @@
       if (!session.user?.email || !session.user?.phone) {
         throw new Error('للدفع الإلكتروني يلزم أن يكون البريد الإلكتروني ورقم الهاتف موجودين في حسابك.');
       }
-      checkoutWindow = window.open('about:blank', '_blank');
       if (!checkoutWindow) throw new Error('اسمح بفتح نافذة الدفع من المتصفح ثم اضغط اشتراك مرة أخرى.');
       button.disabled = true;
       message('جارٍ إنشاء طلب الاشتراك وتجهيز الدفع الآمن…');
