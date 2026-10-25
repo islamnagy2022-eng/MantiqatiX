@@ -22,7 +22,7 @@ create or replace function public.digital_page_orders_paid_at_guard()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 begin
   if tg_op = 'INSERT' then
     if new.payment_status = 'PAID' then
