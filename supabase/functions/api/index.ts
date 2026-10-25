@@ -188,7 +188,8 @@ export function createApiHandler(deps: {
     const required = ["orderId","tenantId","businessId","branchId","clientIdempotencyKey","items"]
     if (required.some((k) => body[k] == null || body[k] === "")) return json({ error: "Missing required order fields" }, 400)
     if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
-    if (String(body.clientIdempotencyKey).length > 128) return json({ error: "Invalid idempotency key" }, 400)
+    const normalizedOrderIdempotencyKey = String(body.clientIdempotencyKey ?? "").trim()
+    if (!normalizedOrderIdempotencyKey || normalizedOrderIdempotencyKey.length > 128) return json({ error: "Invalid idempotency key" }, 400)
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
       .select("id,tenant_id,status").eq("id", String(body.businessId)).single()
@@ -216,7 +217,7 @@ export function createApiHandler(deps: {
       p_business_id: String(body.businessId),
       p_branch_id: body.branchId == null ? null : String(body.branchId),
       p_customer_id: user.id,
-      p_client_idempotency_key: String(body.clientIdempotencyKey),
+      p_client_idempotency_key: normalizedOrderIdempotencyKey,
       p_subtotal: 0,
       p_discount: 0,
       p_tax: 0,
