@@ -82,6 +82,7 @@ jobs:
           node scripts/validate-finance-boundaries.mjs
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/validate-digital-page-manual-activation.mjs
+          node scripts/validate-digital-page-menu-subscription.mjs
           node scripts/validate-subscription-reminders.mjs
           node scripts/validate-paymob-launch-gate.mjs
           node scripts/validate-marketing-services-page.mjs
