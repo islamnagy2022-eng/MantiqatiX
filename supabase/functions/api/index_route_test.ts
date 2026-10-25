@@ -180,3 +180,24 @@ Deno.test("payment-intent route safely rereads a concurrent idempotency-key winn
     throw new Error("concurrent key winner with a different order must be rejected");
   }
 });
+
+
+Deno.test("order and payment routes reject idempotency keys longer than database varchar(128)", async () => {
+  const db = new FakeDatabase("payments");
+  const tooLong = "k".repeat(129);
+  const paymentResponse = await makeHandler(db)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-a", provider: "CASH_ON_DELIVERY", idempotencyKey: tooLong,
+  }));
+  if (paymentResponse.status !== 400) throw new Error(`payment key >128 should return 400, got ${paymentResponse.status}`);
+
+  const orderResponse = await makeHandler(db)(request("/api/v1/orders", "POST", {
+    orderId: "00000000-0000-4000-8000-000000000001",
+    tenantId: "tenant-a",
+    businessId: "00000000-0000-4000-8000-000000000002",
+    branchId: "branch-a",
+    clientIdempotencyKey: tooLong,
+    items: [{ catalogItemId: "item-a", quantity: 1 }],
+  }));
+  if (orderResponse.status !== 400) throw new Error(`order key >128 should return 400, got ${orderResponse.status}`);
+  if (db.queryLog.length !== 0) throw new Error("oversized idempotency keys must be rejected before database queries");
+});
