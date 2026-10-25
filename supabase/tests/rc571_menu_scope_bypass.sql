@@ -19,6 +19,9 @@ begin
   if position('new.digital_page_order_id is null' in lower(v_guard)) = 0 then
     raise exception 'RC571_REGRESSION: legacy non-order-backed MENU path is not explicitly preserved';
   end if;
+  if position('DIGITAL_PAGE_MENU_ORDER_REQUIRED' in v_guard) = 0 then
+    raise exception 'RC571_REGRESSION: business-bound MENU without an order must be rejected';
+  end if;
   if position('v_order.target_business_id is distinct from new.business_id' in v_guard) = 0 then
     raise exception 'RC571_REGRESSION: order/page business binding is missing';
   end if;
