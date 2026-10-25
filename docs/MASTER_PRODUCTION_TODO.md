@@ -1882,3 +1882,36 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify the manual support/admin subscription activation workflow; ensure no UI path marks an order paid.
 - [ ] Run authenticated multi-user RLS integration and browser E2E for owner isolation, product CRUD, WhatsApp links, expiry, slug collisions, and publication lifecycle.
 - [ ] Keep PR #374 draft/open and production release BLOCKED / NOT CERTIFIED until all gates pass. No production migration or deployment.
+
+
+# Launch scope decision — WhatsApp-first public service/catalog experience (2026-10-25)
+
+**Decision from product owner:** For the first public launch, standardize customer-facing modules that display services, menus, or products around a simple owner-managed public page/catalog and WhatsApp contact/order handoff. Defer accounting/commissions, sponsored-ad buying/serving, and Paymob payment collection until after launch. The Marketing area is the company's own marketing/services page and lead intake—not the sponsored-ad system.
+
+## In-scope for first launch
+- Apply the same presentation pattern to every applicable existing module that exposes a service list, provider services, restaurant/café menu, shop/grocery/pharmacy catalog, or other product listing. Reuse each module's existing data and permissions; do not fork or duplicate the marketplace/business records.
+- Business/provider owner can manage only their own permitted page/catalog entries: title/name, description where supported, image where supported, price where applicable, availability/publication state where supported, and contact WhatsApp number.
+- Public/customer view displays the relevant services/menu/products and sends the customer to WhatsApp with contextual prefilled details (item/service, displayed price where applicable, public page URL, and a request to confirm quantity/availability). The displayed price is informational until validated by the business; never imply an online payment or confirmed order unless the existing order workflow actually confirms it.
+- Keep a clear owner/business boundary, existing RBAC/RLS, safe output escaping, slug uniqueness, input validation, rate limits where relevant, audit trail for privileged actions, and mobile-responsive/accessibility checks.
+- Marketing module: a public-facing page describing MantiqatiX/company marketing services and a WhatsApp CTA for inquiries/service requests. Capture a lead only through an existing approved lead path if available; otherwise WhatsApp is the handoff. Keep internal agency workspace/campaign/project management separate from the public service page.
+
+## Explicitly deferred until after launch
+- New accounting/ledger/settlement logic and commissions for this new WhatsApp-first catalog flow. Do not remove or disable existing finance/accounting functionality used by other platform flows.
+- Sponsored ads: ad inventory, paid promotion checkout, ad spend collection, campaign delivery/billing tied to payment. Existing ad-related code is not automatically approved for this launch scope; don't expose paid-ad purchase/activation in the new customer-facing flow.
+- Paymob collection for these new public page/catalog requests. No card-payment UI, payment-intent creation, or claim of paid status in this flow. Existing Paymob integration for other already-supported platform flows must remain untouched.
+- Automated financial settlement, commission calculation, or wallet transfers for WhatsApp-originated requests.
+
+## Required module inventory before implementation
+Create an auditable matrix from the actual repository/module registry: module and route; entity/table/RPC/Edge Function source of truth; public display; owner CRUD; current checkout/booking behavior; WhatsApp handoff support; RLS/RBAC tests; launch status; known dependencies. Include only modules that genuinely display services, menus, or products. Preserve specialized safety-critical or regulated workflows; adapt their contact CTA only where it does not bypass required clinical, legal, booking, or operational controls.
+
+## Release gates for this scope
+- [ ] Inventory all applicable existing modules; prove no relevant service/menu/product display module was missed.
+- [ ] Shared behavior is implemented without duplicating canonical catalog/business records or changing unrelated module contracts.
+- [ ] Authenticated owner-isolation tests and public-page data exposure tests pass for each module pattern.
+- [ ] WhatsApp links are correct, URL-encoded, and contain no secrets/PII beyond customer-entered request details; prices and item identifiers are revalidated server-side wherever a platform order is created.
+- [ ] No Paymob payment or sponsored-ad purchase path is reachable from this launch flow.
+- [ ] Marketing company-services page and WhatsApp lead handoff are tested independently from paid advertising/campaign billing.
+- [ ] Mobile/browser E2E, accessibility smoke, and exact-head CI pass.
+- [ ] Existing finance, commissions, sponsored ads, and Paymob flows outside this scope show no regressions.
+
+**Current status:** DECISION RECORDED — NOT IMPLEMENTED ACROSS ALL MODULES / NOT VERIFIED. PR #374 only addresses the digital-page self-service slice. No merge, production migration, or deployment is authorized by this scope note. Global release remains BLOCKED / NOT CERTIFIED until the release gates are evidenced.
