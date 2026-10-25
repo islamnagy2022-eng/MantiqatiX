@@ -60,7 +60,9 @@ assert.match(app, /daysLeft<=3\?'urgent'/, '3-day expiry milestone must be highl
 assert.match(app, /daysLeft<=1\?'critical'/, '1-day expiry milestone must be highlighted');
 assert.match(app, /خدمات الشركة العامة','تحت الإنشاء/, 'dashboard must keep the unreleased public marketing service clearly marked under construction');
 assert.match(app, /case'الإشعارات':return subscriptionReminderPanel\(\)/);
-assert.match(smmHtml, /smm\.js/);
+assert.match(smmHtml, /<meta name="robots" content="noindex,follow">/, 'deferred SMM landing page must not be indexed as a released service');
+assert.match(smmHtml, /قيد التطوير — خارج نطاق الإطلاق الأول/);
+assert.doesNotMatch(smmHtml, /smm\.js|payment-intent|paymob/i, 'deferred SMM landing page must not load runtime or payment operations');
 assert.doesNotMatch(engine, /smm-gateway|payment-intent|paymob/i, 'shared public catalog engine must not execute SMM or payment operations');
 
 const runtime = { console, Date, URL, encodeURIComponent };
