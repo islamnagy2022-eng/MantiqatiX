@@ -6,6 +6,7 @@ const atomicPayment=fs.readFileSync('supabase/migrations/20261009010000_rc424_at
 const selfService=fs.readFileSync('web/digital-page-self-service.js','utf8');
 const publicPage=fs.readFileSync('web/digital-page.js','utf8');
 const selfServiceMigration=fs.readFileSync('supabase/migrations/20261025193000_rc567_digital_page_self_service.sql','utf8');
+const adminEditor=fs.readFileSync('web/digital-page-editor.js','utf8');
 for(const [src,marker,label] of [
  [order,'admin.auth.getUser','authenticated order creation'],[order,'idempotencyKey','order idempotency'],[order,'digital_page_products','server product pricing'],[order,'BUSINESS_SCOPE_FORBIDDEN','business scope check'],
  [payment,'p_user_id:user.id','authenticated order ownership binding'],[payment,'provider_intent_id','duplicate payment-intent guard'],[payment,'p_provider_intent_id:providerIntentId','provider correlation finalization'],
@@ -20,9 +21,15 @@ for(const [src,marker,label] of [
  [selfService,"digital_page_orders","customer page requires paid order"],
  [selfService,"whatsapp_number","customer WhatsApp contact field"],
  [selfService,"saveItems","customer product and price management"],
+ [selfService,"digital-page-order-create","customer subscription order creation"],
+ [selfService,"digital-page-payment-intent","customer checkout integration"],
+ [selfService,"loadSubscriptionProducts","customer package listing"],
+ [adminEditor,"kind==='CUSTOMER'","admin editor customer ownership support"],
+ [adminEditor,"fulfill_digital_page_publish","admin publication gate retained"],
  [publicPage,"https://wa.me/","public WhatsApp contact CTA"],
  [selfServiceMigration,"owner_user_id","isolated customer page ownership"],
  [selfServiceMigration,"digital_page_subscription_active","paid subscription authorization"],
+ [selfServiceMigration,"digital_page_orders_admin_read","admin paid-order review access"],
  [selfServiceMigration,"digital_page_public_subscription_active","public page subscription expiry gate"],
  [selfServiceMigration,"owner_user_id is null or (business_id is null and provider_profile_id is null)","customer ownership cannot overlap legacy scopes"],
  [selfServiceMigration,"new.business_id is distinct from old.business_id","business ownership binding is immutable"],
