@@ -265,3 +265,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR #374 remains DRAFT and unmerged. Keep the production release blocked until the RC563–RC566 migration order is reconciled and CI, database replay, multi-account RLS isolation, and browser E2E are independently verified.
 
 - Security/logic correction during continued review: both owner and public subscription-expiry predicates now use `published_at` when available, otherwise the order's stable `created_at`; editing a draft no longer resets expiry through mutable `updated_at`. Added regression assertions for both expiry gates. This is source-level evidence only until CI and isolated migration replay finish.
+
+
+## 2026-10-25 — Paid-term start hardening (RC567)
+
+- Continued review found that anchoring expiry to order creation would consume subscription days while payment checkout is pending. RC567 now adds `digital_page_orders.paid_at`, backfills existing PAID orders conservatively, and uses a trigger to set the first successful-payment timestamp and preserve it on later edits/status updates.
+- Both owner authorization and public rendering now anchor expiry to `paid_at` first; legacy publication/creation timestamps remain fallback paths. This avoids draft edits or later order updates extending the subscription.
+- Added regression assertions for the paid-at trigger and both expiry gates. The digital-page boundary validator passes against the latest branch source (9 files checked).
+- The updated branch's forward migration replay and CI were restarted; results for the exact latest head are still pending. Do not treat the previous replay success as validation of this new `paid_at` change.
