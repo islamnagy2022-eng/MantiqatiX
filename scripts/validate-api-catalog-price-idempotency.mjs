@@ -8,6 +8,10 @@ assert.match(source, /normalizeBranchId\(url\.searchParams\.get\("branchId"\)\)/
   "catalog route must use tested branch normalization");
 assert.match(source, /if \(branchId && branchId\.length > 128\)/,
   "non-empty branchId length must be bounded before database lookup");
+assert.match(source, /String\(body\.clientIdempotencyKey\)\.length > 128/,
+  "order idempotency key must respect the database varchar(128) limit");
+assert.match(source, /normalizedIdempotencyKey\.length > 128/,
+  "payment idempotency key must respect the database varchar(128) limit");
 assert.match(source, /\.eq\("id", branchId\)\.eq\("business_id", businessId\)\.eq\("status", "ACTIVE"\)\.maybeSingle\(\)/,
   "requested branch must be an active branch of the selected business");
 assert.match(source, /buildPriceQuery\(\)\.is\("branch_id", null\)/,
