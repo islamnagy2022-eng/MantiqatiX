@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0"
+import { normalizeBranchId, matchesIdempotentIntent } from "./contracts.mjs"
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io"
 const corsHeaders = {
@@ -60,7 +61,7 @@ serve(async (req) => {
   if (req.method === "GET" && path === "/api/v1/catalog") {
     const requestedTenantId = url.searchParams.get("tenantId");
     const businessId = url.searchParams.get("businessId");
-    const branchId = url.searchParams.get("branchId")?.trim() || null;
+    const branchId = normalizeBranchId(url.searchParams.get("branchId"));
     const parsedLimit = Number(url.searchParams.get("limit") ?? "100");
     const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), 100);
     if (!businessId) return json({ error: "businessId is required" }, 400);
@@ -277,18 +278,11 @@ serve(async (req) => {
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
 
-    const matchesIdempotentIntent = (intent: Record<string, unknown>) =>
-      String(intent.order_id) === String(order.id) &&
-      Math.abs(Number(intent.amount) - Number(order.total)) <= 0.01 &&
-      String(intent.currency ?? "").toUpperCase() === String(order.currency ?? "").toUpperCase() &&
-      String(intent.provider) === "CASH_ON_DELIVERY" &&
-      String(intent.payment_method) === "CASH_ON_DELIVERY"
-
     const { data: existingIntent, error: existingIntentError } = await supabaseAdmin.from("payment_intents")
       .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
     if (existingIntentError) return json({ error: "Failed to validate payment idempotency" }, 500)
     if (existingIntent) {
-      if (!matchesIdempotentIntent(existingIntent)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
+      if (!matchesIdempotentIntent(existingIntent, order)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
       return json({ ...existingIntent, idempotent: true })
     }
 
@@ -311,7 +305,7 @@ serve(async (req) => {
       const { data: racedIntent, error: racedIntentError } = await supabaseAdmin.from("payment_intents")
         .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
       if (racedIntentError || !racedIntent) return json({ error: "Failed to create payment intent" }, 500)
-      if (!matchesIdempotentIntent(racedIntent)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
+      if (!matchesIdempotentIntent(racedIntent, order)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
       return json({ ...racedIntent, idempotent: true })
     }
     return json({ ...data, idempotent: false }, 201)
