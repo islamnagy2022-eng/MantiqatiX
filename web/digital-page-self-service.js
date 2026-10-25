@@ -91,7 +91,7 @@
       card.append(node('strong', Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'), 'subscription-price'));
       const buy = node('button', 'اشترك الآن');
       buy.type = 'button';
-      buy.addEventListener('click', () => { const checkoutWindow = window.open('about:blank', '_blank'); subscribeToPackage(product.id, buy, checkoutWindow); });
+      buy.addEventListener('click', () => { const checkoutWindow = window.open('about:blank', '_blank'); if (checkoutWindow) checkoutWindow.opener = null; subscribeToPackage(product.id, buy, checkoutWindow); });
       card.append(buy);
       box.append(card);
     }
