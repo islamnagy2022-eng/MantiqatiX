@@ -2152,3 +2152,13 @@ Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261
 - Commit إضافة مدقق L1: `28a93158229256f2dfc94bd8885251997a0c0a74`.
 - Commit ربط مدقق L1 بالـ workflow: `4d300a98ef6f4b45abcdbab1f0169db647a209c7`.
 - هذا تغيير في بوابة CI؛ لم يتم نشر إنتاجي أو دمج PR أو تطبيق migrations إنتاجية نتيجة له.
+
+
+## متابعة التنفيذ الفعلي — كتالوج L2/L3 — 2026-10-25
+
+- تم تعديل `web/digital-page-self-service.js` لرفض رابط صورة المنتج إن لم يبدأ بـ HTTPS أو تجاوز 2048 حرفًا. لا يعتمد عرض الصورة العامة على هذا الفحص وحده؛ `web/digital-page.js` لديه مرشح عرض يرفض الروابط غير HTTPS.
+- تمت إضافة عقد اختبار إلى `scripts/validate-digital-pages-boundaries.mjs` للتحقق من وجود رسالة/شرط HTTPS.
+- تم تحديث مرجع سكربت الخدمة الذاتية إلى `rc574` وتحديث PWA cache إلى `mnty-web-v142-https-images` مع مواءمة التسجيل وفحص CI ومدقق عقد الكاش.
+- التحقق من المصدر أكد تطابق مفاتيح cache وإصدارات ملفات الخدمة الذاتية ووجود مدققات L1 وdigital-page boundaries داخل workflow. هذا تحقق مصدر فقط، وليس نجاح تشغيل GitHub Actions أو اختبار متصفح.
+- أحدث PR head عند آخر قراءة: `08b132dbafe659de418adec46b8d25c472e1e20d`. PR #374 ما زال draft/open وغير مدمج. لا يوجد تصريح بإطلاق إنتاجي أو تطبيق ترحيلات قاعدة البيانات.
+- بوابة L1 ما زالت بانتظار CI وsmoke test منشور. L2/L3 ما زالتا PARTIAL إلى أن تُختبر الملكية وRLS وCRUD فعليًا بمستخدمين من جهتين مختلفتين.
