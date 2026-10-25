@@ -33,14 +33,47 @@ create table if not exists public.digital_page_menu_branch_bindings (
 
 alter table public.digital_page_menu_branch_bindings enable row level security;
 revoke all on public.digital_page_menu_branch_bindings from public, anon, authenticated;
-grant select, insert, update, delete on public.digital_page_menu_branch_bindings to authenticated;
+grant select, insert, update on public.digital_page_menu_branch_bindings to authenticated;
 
-drop policy if exists digital_page_menu_branch_bindings_owner_manage on public.digital_page_menu_branch_bindings;
-create policy digital_page_menu_branch_bindings_owner_manage
+drop policy if exists digital_page_menu_branch_bindings_owner_read on public.digital_page_menu_branch_bindings;
+create policy digital_page_menu_branch_bindings_owner_read
 on public.digital_page_menu_branch_bindings
-for all to authenticated
+for select to authenticated
 using (
-  exists (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
+      and m.business_id = digital_page_menu_branch_bindings.business_id
+      and m.branch_id = digital_page_menu_branch_bindings.branch_id
+      and m.status = 'ACTIVE'
+      and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+  )
+);
+drop policy if exists digital_page_menu_branch_bindings_owner_insert on public.digital_page_menu_branch_bindings;
+create policy digital_page_menu_branch_bindings_owner_insert
+on public.digital_page_menu_branch_bindings
+for insert to authenticated
+with check (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
+      and m.business_id = digital_page_menu_branch_bindings.business_id
+      and m.branch_id = digital_page_menu_branch_bindings.branch_id
+      and m.status = 'ACTIVE'
+      and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+  )
+);
+drop policy if exists digital_page_menu_branch_bindings_owner_update on public.digital_page_menu_branch_bindings;
+create policy digital_page_menu_branch_bindings_owner_update
+on public.digital_page_menu_branch_bindings
+for update to authenticated
+using (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
     select 1 from public.user_memberships m
     where m.user_id = auth.uid()
       and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
@@ -51,7 +84,8 @@ using (
   )
 )
 with check (
-  exists (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
     select 1 from public.user_memberships m
     where m.user_id = auth.uid()
       and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
@@ -60,6 +94,91 @@ with check (
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
+);
+
+create or replace function public.digital_page_menu_branch_binding_immutable()
+returns trigger
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $
+begin
+  if new.page_id is distinct from old.page_id
+     or new.tenant_id is distinct from old.tenant_id
+     or new.business_id is distinct from old.business_id
+     or new.branch_id is distinct from old.branch_id then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_IMMUTABLE';
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists trg_digital_page_menu_branch_binding_immutable on public.digital_page_menu_branch_bindings;
+create trigger trg_digital_page_menu_branch_binding_immutable
+before update on public.digital_page_menu_branch_bindings
+for each row execute function public.digital_page_menu_branch_binding_immutable();
+revoke all on function public.digital_page_menu_branch_binding_immutable() from public, anon, authenticated;
+
+-- This SECURITY DEFINER predicate reads the private binding even when another branch's RLS hides it.
+-- It is used only as a restrictive write policy; public readers can still read published MENU sections.
+create or replace function public.digital_page_menu_section_write_allowed(p_page_id uuid, p_actor uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog, public
+as $
+  select p_actor is not null
+    and p_actor = auth.uid()
+    and (
+      coalesce(public.mnty_can_platform_admin(), false)
+      or not exists (
+        select 1 from public.digital_page_menu_branch_bindings b
+        where b.page_id = p_page_id
+      )
+      or exists (
+        select 1
+        from public.digital_page_menu_branch_bindings b
+        join public.user_memberships m
+          on m.user_id = p_actor
+         and m.tenant_id = b.tenant_id
+         and m.business_id = b.business_id
+         and m.branch_id = b.branch_id
+         and m.status = 'ACTIVE'
+         and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+        where b.page_id = p_page_id
+      )
+    );
+$;
+revoke all on function public.digital_page_menu_section_write_allowed(uuid, uuid) from public, anon;
+grant execute on function public.digital_page_menu_section_write_allowed(uuid, uuid) to authenticated;
+
+drop policy if exists digital_page_sections_menu_binding_insert on public.digital_page_sections;
+create policy digital_page_sections_menu_binding_insert
+on public.digital_page_sections as restrictive
+for insert to authenticated
+with check (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+);
+drop policy if exists digital_page_sections_menu_binding_update on public.digital_page_sections;
+create policy digital_page_sections_menu_binding_update
+on public.digital_page_sections as restrictive
+for update to authenticated
+using (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+)
+with check (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+);
+drop policy if exists digital_page_sections_menu_binding_delete on public.digital_page_sections;
+create policy digital_page_sections_menu_binding_delete
+on public.digital_page_sections as restrictive
+for delete to authenticated
+using (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
 );
 
 comment on table public.digital_page_menu_branch_bindings is
