@@ -23,6 +23,10 @@ for(const [src,marker,label] of [
  [publicPage,"https://wa.me/","public WhatsApp contact CTA"],
  [selfServiceMigration,"owner_user_id","isolated customer page ownership"],
  [selfServiceMigration,"digital_page_subscription_active","paid subscription authorization"],
- [selfServiceMigration,"digital_page_public_subscription_active","public page subscription expiry gate"]
+ [selfServiceMigration,"digital_page_public_subscription_active","public page subscription expiry gate"],
+ [selfServiceMigration,"pg_catalog.num_nonnulls(owner_user_id, business_id, provider_profile_id) = 1","exactly one digital-page ownership scope"],
+ [selfServiceMigration,"new.business_id is distinct from old.business_id","business ownership binding is immutable"],
+ [selfServiceMigration,"new.provider_profile_id is distinct from old.provider_profile_id","provider ownership binding is immutable"],
+ [selfServiceMigration,"DIGITAL_PAGE_SUBSCRIPTION_BINDING_IMMUTABLE","ownership and subscription transfer protection"]
 ]) if(!src.includes(marker)) throw new Error('Digital page self-service marker missing: '+label);
 console.log('RC424 digital pages/payment boundary validation: PASS');
