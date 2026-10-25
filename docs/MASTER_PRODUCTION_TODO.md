@@ -1838,7 +1838,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Next: add a disposable Supabase/PostgreSQL fixture and exercise the route against it, including actual unique-key race handling, before considering merge.
 
 
-## RC572 — payment intent idempotency database constraint — 2026-10-26
+## RC573 — payment intent idempotency database constraint — 2026-10-26
 
 - [x] Added forward-only candidate migration `20261026030000_rc572_payment_intent_tenant_idempotency.sql`.
 - [x] Migration refuses to proceed if historical duplicate `(tenant_id, idempotency_key)` pairs exist; it does not delete or rewrite payment history.
