@@ -87,7 +87,7 @@ assert.match(published.html, /تواصل واطلب عبر واتساب/);
 assert.match(published.html, /اطلب المنتج عبر واتساب/);
 assert.match(published.html, /Tea/);
 assert.match(published.html, /30%20EGP/);
-assert.match(published.html, /wa\\.me\\/201010171770\\?text=/);
+assert.ok(published.html.includes('wa.me/201010171770?text='));
 assert.match(published.html, /Drinks/);
 assert.match(published.html, /30/);
 assert.match(published.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
