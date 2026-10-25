@@ -33,56 +33,57 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   }
   const token = signedIn.data.session.access_token;
 
-  const tenantId = `api-it-${suffix}`;
-  const businessA = crypto.randomUUID();
-  const businessB = crypto.randomUUID();
+  // Reuse the official, already-active disposable-chain showcase businesses.
+  // This avoids bypassing the legal business-activation gate in test setup.
+  const tenantId = "MNTY-PLATFORM";
+  const businessAResult = await admin.from("businesses").select("id,tenant_id,code,status").eq("code", "MNTY-FOOD").single();
+  const businessBResult = await admin.from("businesses").select("id,tenant_id,code,status").eq("code", "MNTY-HEALTH").single();
+  const businessA = requireOk("read existing active showcase business A", businessAResult);
+  const businessB = requireOk("read existing active showcase business B", businessBResult);
+  if (!businessA || !businessB || businessA.status !== "ACTIVE" || businessB.status !== "ACTIVE") {
+    throw new Error("required active showcase businesses are missing from disposable migration replay");
+  }
+  if (businessA.tenant_id !== tenantId || businessB.tenant_id !== tenantId) {
+    throw new Error("showcase business tenant differs from expected platform tenant");
+  }
+
   const branchA = `api-branch-a-${suffix}`;
   const branchB = `api-branch-b-${suffix}`;
-  const providerId = crypto.randomUUID();
+  const crossBusinessBranch = `api-cross-${suffix}`;
   const sharedItemId = crypto.randomUUID();
   const branchItemId = crypto.randomUUID();
   const orderA = crypto.randomUUID();
   const orderB = crypto.randomUUID();
 
-  requireOk("insert tenant", await admin.from("tenants").insert({
-    id: tenantId, name: "API integration disposable tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
-  }));
-  requireOk("insert businesses", await admin.from("businesses").insert([
-    { id: businessA, tenant_id: tenantId, name: "API integration business A", code: `APIITA-${suffix}`, status: "INACTIVE" },
-    { id: businessB, tenant_id: tenantId, name: "API integration business B", code: `APIITB-${suffix}`, status: "INACTIVE" },
-  ]));
-  requireOk("insert business owner memberships", await admin.from("user_memberships").insert([
-    { id: `api-it-owner-a-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessA, role: "BUSINESS_OWNER", permissions: [], status: "ACTIVE" },
-    { id: `api-it-owner-b-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessB, role: "BUSINESS_OWNER", permissions: [], status: "ACTIVE" },
-  ]));
-  requireOk("activate business A", await admin.from("businesses").update({ status: "ACTIVE" }).eq("id", businessA));
-  requireOk("activate business B", await admin.from("businesses").update({ status: "ACTIVE" }).eq("id", businessB));
-  requireOk("insert branches", await admin.from("branches").insert([
-    { id: branchA, tenant_id: tenantId, business_id: businessA, name: "Branch A", code: `A-${suffix}`, status: "ACTIVE" },
-    { id: branchB, tenant_id: tenantId, business_id: businessB, name: "Branch B", code: `B-${suffix}`, status: "ACTIVE" },
-  ]));
-  requireOk("insert customer membership", await admin.from("user_memberships").insert({
+  requireOk("insert test customer membership", await admin.from("user_memberships").insert({
     id: `api-it-member-${suffix}`, user_id: userId, tenant_id: tenantId, role: "CUSTOMER", permissions: [], status: "ACTIVE",
   }));
-  requireOk("insert provider profile", await admin.from("marketing_provider_profiles").insert({
-    id: providerId, provider_kind: "OFFICIAL", business_id: businessA, owner_user_id: userId,
-    name_ar: "مزود اختبار التكامل", slug: `api-it-${suffix}`, status: "ACTIVE", is_verified: true,
-  }));
-  requireOk("insert catalog items", await admin.from("catalog_items").insert([
-    { id: sharedItemId, tenant_id: tenantId, business_id: businessA, branch_id: null, name_ar: "منتج مشترك", status: "ACTIVE" },
-    { id: branchItemId, tenant_id: tenantId, business_id: businessA, branch_id: branchA, name_ar: "منتج فرع أ", status: "ACTIVE" },
+  requireOk("insert disposable catalog branches", await admin.from("branches").insert([
+    { id: branchA, tenant_id: tenantId, business_id: businessA.id, name: "API Test Branch A", code: `API-A-${suffix}`, status: "ACTIVE" },
+    { id: branchB, tenant_id: tenantId, business_id: businessA.id, name: "API Test Branch B", code: `API-B-${suffix}`, status: "ACTIVE" },
+    { id: crossBusinessBranch, tenant_id: tenantId, business_id: businessB.id, name: "API Cross Business Branch", code: `API-X-${suffix}`, status: "ACTIVE" },
   ]));
-  requireOk("insert catalog prices", await admin.from("catalog_item_prices").insert([
+  requireOk("insert disposable catalog items", await admin.from("catalog_items").insert([
+    { id: sharedItemId, tenant_id: tenantId, business_id: businessA.id, branch_id: null, name_ar: `API shared ${suffix}`, status: "ACTIVE" },
+    { id: branchItemId, tenant_id: tenantId, business_id: businessA.id, branch_id: branchA, name_ar: `API branch ${suffix}`, status: "ACTIVE" },
+  ]));
+  requireOk("insert disposable catalog prices", await admin.from("catalog_item_prices").insert([
     { id: crypto.randomUUID(), tenant_id: tenantId, catalog_item_id: sharedItemId, branch_id: null, currency: "EGP", unit_price: 10, version: 1, status: "ACTIVE" },
     { id: crypto.randomUUID(), tenant_id: tenantId, catalog_item_id: branchItemId, branch_id: branchA, currency: "EGP", unit_price: 12, version: 1, status: "ACTIVE" },
     { id: crypto.randomUUID(), tenant_id: tenantId, catalog_item_id: branchItemId, branch_id: branchB, currency: "EGP", unit_price: 99, version: 1, status: "ACTIVE" },
   ]));
-  requireOk("enable cash payment", await admin.from("tenant_payment_methods").insert({
-    tenant_id: tenantId, provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", is_enabled: true,
-  }));
-  requireOk("insert orders", await admin.from("orders").insert([
-    { id: orderA, tenant_id: tenantId, business_id: businessA, branch_id: branchA, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
-    { id: orderB, tenant_id: tenantId, business_id: businessB, branch_id: branchB, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
+
+  const configuredMethod = await admin.from("tenant_payment_methods").select("id")
+    .eq("tenant_id", tenantId).eq("provider", "CASH_ON_DELIVERY")
+    .eq("payment_method", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle();
+  if (!configuredMethod.data) {
+    requireOk("enable disposable COD payment method", await admin.from("tenant_payment_methods").insert({
+      tenant_id: tenantId, provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", is_enabled: true,
+    }));
+  }
+  requireOk("insert disposable orders", await admin.from("orders").insert([
+    { id: orderA, tenant_id: tenantId, business_id: businessA.id, branch_id: branchA, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
+    { id: orderB, tenant_id: tenantId, business_id: businessB.id, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
   ]));
 
   const handler = createApiHandler();
@@ -96,11 +97,11 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   }));
 
-  const catalogResponse = await send(`/api/v1/catalog?businessId=${businessA}&branchId=${encodeURIComponent(branchA)}`);
+  const catalogResponse = await send(`/api/v1/catalog?businessId=${businessA.id}&branchId=${encodeURIComponent(branchA)}`);
   const catalogBody = await catalogResponse.json();
   if (catalogResponse.status !== 200) throw new Error(`catalog request failed: ${catalogResponse.status} ${JSON.stringify(catalogBody)}`);
   const priceIds = (catalogBody.prices ?? []).map((price: { id: string }) => price.id);
-  const allPrices = requireOk("read fixture prices", await admin.from("catalog_item_prices").select("id,branch_id,catalog_item_id").eq("tenant_id", tenantId));
+  const allPrices = requireOk("read fixture prices", await admin.from("catalog_item_prices").select("id,branch_id,catalog_item_id").eq("tenant_id", tenantId).in("catalog_item_id", [sharedItemId, branchItemId]));
   const branchBPriceId = allPrices.find((row: { id: string; branch_id: string | null }) => row.branch_id === branchB)?.id;
   if (!priceIds.some((id: string) => allPrices.some((row: { id: string; catalog_item_id: string }) => row.id === id && row.catalog_item_id === sharedItemId))) {
     throw new Error("catalog response omitted shared branch-independent price");
@@ -109,8 +110,8 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     throw new Error(`catalog response leaked or omitted branch prices: ${priceIds.join(",")}`);
   }
 
-  const crossBusinessBranch = await send(`/api/v1/catalog?businessId=${businessA}&branchId=${encodeURIComponent(branchB)}`);
-  if (crossBusinessBranch.status !== 404) throw new Error(`cross-business branch must be rejected, got ${crossBusinessBranch.status}`);
+  const crossBusinessResponse = await send(`/api/v1/catalog?businessId=${businessA.id}&branchId=${encodeURIComponent(crossBusinessBranch)}`);
+  if (crossBusinessResponse.status !== 404) throw new Error(`cross-business branch must be rejected, got ${crossBusinessResponse.status}`);
 
   const concurrentSameKey = `same-${suffix}`;
   const sameKeyResponses = await Promise.all([
