@@ -91,6 +91,17 @@
       source: 'fashion-canonical', preserve: ['sizes', 'variants', 'tailoring', 'inventory', 'returns'],
       notice: 'أكد المقاس والتوافر وسياسة الاستبدال مع المتجر.'
     }),
+    REAL_ESTATE: Object.freeze({ code: 'REAL_ESTATE', label: 'العقارات', noun: 'عقار أو خدمة عقارية', priceMode: 'QUOTE', requestMode: 'EXISTING_LISTING_FLOW', source: 'real-estate-canonical', preserve: ['listing-ownership', 'location-privacy', 'viewings', 'contracts'], notice: 'الاستفسار لا يمثل حجزًا أو اتفاقًا ملزمًا؛ تحقق من بيانات العقار والجهة المعلنة.' }),
+    AUTO: Object.freeze({ code: 'AUTO', label: 'السيارات والنقل', noun: 'سيارة أو خدمة', priceMode: 'QUOTE', requestMode: 'EXISTING_LISTING_FLOW', source: 'auto-canonical', preserve: ['vehicle-details', 'availability', 'inspection', 'transport-safety'], notice: 'السعر والحالة والتوافر تحتاج إلى تأكيد من مقدم الخدمة.' }),
+    VETERINARY: Object.freeze({ code: 'VETERINARY', label: 'الخدمات البيطرية', noun: 'خدمة بيطرية', priceMode: 'QUOTE', requestMode: 'EXISTING_BOOKING_FLOW', source: 'veterinary-canonical', preserve: ['professional-credentials', 'appointments', 'animal-health-privacy'], notice: 'المعلومات المنشورة لا تغني عن تقييم الطبيب البيطري.' }),
+    EDUCATION: Object.freeze({ code: 'EDUCATION', label: 'التعليم والتدريب', noun: 'خدمة تعليمية', priceMode: 'QUOTE', requestMode: 'EXISTING_BOOKING_FLOW', source: 'education-canonical', preserve: ['institution-verification', 'enrollment', 'learner-privacy'], notice: 'تأكيد المواعيد والاشتراك يتم وفق إجراءات المؤسسة التعليمية.' }),
+    ERP: Object.freeze({ code: 'ERP', label: 'البرمجيات والخدمات الرقمية', noun: 'خدمة رقمية أو تقنية', priceMode: 'QUOTE', requestMode: 'WHATSAPP', source: 'erp-canonical', preserve: ['contracts', 'license-terms', 'technical-scope', 'existing-payment-controls'], notice: 'طلب التواصل لا يمثل ترخيصًا أو عقدًا أو إثبات دفع.' }),
+    ACCOUNTING: Object.freeze({ code: 'ACCOUNTING', label: 'الخدمات المحاسبية', noun: 'خدمة محاسبية', priceMode: 'QUOTE', requestMode: 'WHATSAPP', source: 'accounting-canonical', preserve: ['confidentiality', 'engagement-scope', 'professional-review'], notice: 'لا ترسل بيانات مالية أو مستندات حساسة عبر رسالة عامة.' }),
+    LEGAL: Object.freeze({ code: 'LEGAL', label: 'الخدمات القانونية', noun: 'خدمة قانونية', priceMode: 'QUOTE', requestMode: 'WHATSAPP', source: 'legal-canonical', preserve: ['confidentiality', 'engagement-scope', 'document-access-controls'], notice: 'رسالة الاستفسار لا تنشئ علاقة توكيل أو التزامًا قانونيًا.' }),
+    SPORTS: Object.freeze({ code: 'SPORTS', label: 'الرياضة واللياقة', noun: 'خدمة رياضية', priceMode: 'QUOTE', requestMode: 'EXISTING_BOOKING_FLOW', source: 'sports-canonical', preserve: ['coach-credentials', 'class-capacity', 'booking'], notice: 'تحقق من المواعيد والتوافر وشروط الاشتراك لدى مقدم الخدمة.' }),
+    TRIPS: Object.freeze({ code: 'TRIPS', label: 'السفر والرحلات', noun: 'رحلة أو خدمة سفر', priceMode: 'QUOTE', requestMode: 'EXISTING_BOOKING_FLOW', source: 'trips-canonical', preserve: ['availability', 'traveler-data', 'booking-confirmation', 'cancellation-policy'], notice: 'الاستفسار لا يمثل حجزًا مؤكدًا أو تذكرة صادرة.' }),
+    MANTIGO: Object.freeze({ code: 'MANTIGO', label: 'MantiGO والنقل عند الطلب', noun: 'رحلة', priceMode: 'DYNAMIC', requestMode: 'EXISTING_RIDE_FLOW', source: 'mantigo-canonical', preserve: ['dispatch', 'driver-matching', 'live-status', 'fare-calculation', 'safety'], notice: 'استخدم تدفق الرحلة المعتمد؛ لا يتم إنشاء رحلة من كتالوج عام.' }),
+    FACTORIES: Object.freeze({ code: 'FACTORIES', label: 'المصانع والموردون', noun: 'منتج أو خدمة توريد', priceMode: 'QUOTE', requestMode: 'WHATSAPP', source: 'supplier-canonical', preserve: ['bulk-quantity', 'stock', 'purchase-orders', 'receiving', 'contracts'], notice: 'طلب الاستفسار لا يمثل أمر شراء أو تأكيد مخزون.' }),
     MARKETING: Object.freeze({
       code: 'MARKETING', label: 'خدمات MantiqatiX التسويقية', noun: 'خدمة تسويق',
       priceMode: 'QUOTE', requestMode: 'WHATSAPP',
@@ -105,8 +116,19 @@
     })[ch]);
   }
 
+  const PROFILE_ALIASES = Object.freeze({
+    EDU: 'EDUCATION', DIGITAL: 'MARKETING', TECH: 'ERP', FITNESS: 'SPORTS',
+    TRAVEL: 'TRIPS', FOOD_SERVICE: 'FOOD', RESTAURANTS: 'FOOD', CAFES: 'FOOD',
+    CLINICS: 'HEALTH', DOCTORS: 'HEALTH', PHARMACIES: 'PHARMACY',
+    SUPERMARKET: 'GROCERY', STORES: 'GROCERY', PROVIDERS: 'COMPANIES'
+  });
+
   function profileFor(code) {
-    return PROFILES[String(code || '').trim().toUpperCase()] || null;
+    const raw = String(code || '').trim().toUpperCase();
+    const registry = root.MX_SECTOR_REGISTRY;
+    const normalized = registry && registry.PUBLIC_TO_BACKEND_SECTOR && registry.PUBLIC_TO_BACKEND_SECTOR[raw] || raw;
+    const alias = PROFILE_ALIASES[raw] || PROFILE_ALIASES[normalized] || normalized;
+    return PROFILES[alias] || null;
   }
 
   function statusFor(code) {
