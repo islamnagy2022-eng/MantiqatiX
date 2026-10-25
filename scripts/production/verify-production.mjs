@@ -52,7 +52,11 @@ const requiredReleaseMigrations=[
   "20261023030000_rc103_order_status_branch_scope.sql",
   "20261023040000_rc104_order_idempotency_scope.sql",
   "20261023050000_rc105_order_create_service_role_identity.sql",
-  "20261023060000_rc106_order_status_service_role_identity.sql"
+  "20261023060000_rc106_order_status_service_role_identity.sql",
+  "20261025193000_rc567_digital_page_self_service.sql",
+  "20261025200000_rc568_digital_page_manual_activation.sql",
+  "20261025210000_rc569_digital_page_menu_subscription_guard.sql",
+  "20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
