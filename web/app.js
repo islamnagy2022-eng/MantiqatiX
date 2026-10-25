@@ -130,7 +130,7 @@ function launchScopePanel(){
  '<article class="card"><strong>الخدمات والمنيو والمنتجات عبر واتساب</strong><p class="muted">تعميم النمط على جميع المديولات المستهدفة: قيد التنفيذ.</p><span class="status">تحت الإنشاء — التعميم لم يكتمل</span></article>'+
  '<article class="card"><strong>صفحة تسويق الشركة وخدماتها</strong><p class="muted">صفحة عامة مستقلة عن مساحة إدارة التسويق.</p><span class="status">تحت الإنشاء</span></article>'+
  '<article class="card"><strong>الإعلانات الممولة وشراء الحملات</strong><p class="muted">مؤجلة لما بعد الإطلاق الأول.</p><span class="status">تحت الإنشاء</span></article>'+
- '<article class="card"><strong>حسابات وعمولات طلبات واتساب وPaymob لهذا المسار</strong><p class="muted">لا يشمل ذلك تعطيل الأنظمة الحالية التي تعتمد عليها مديولات أخرى.</p><span class="status">تحت الإنشاء</span></article>'+
+ '<article class="card"><strong>الحسابات والعمولات وطرق الدفع عبر Paymob</strong><p class="muted">مؤجلة لما بعد الإطلاق الأول. لن تتاح عمليات تحصيل Paymob من واجهات الإطلاق، مع إبقاء الكود والسجلات التاريخية دون حذف.</p><span class="status">تحت الإنشاء</span></article>'+
  '<article class="card"><strong>خدمات التسويق الرقمي SMM</strong><p class="muted">مديول مستقل لبيع الخدمات الرقمية الموجودة، واستكمال الوظائف الناقصة في مرحلة لاحقة.</p><span class="status">الوظائف غير المكتملة: تحت الإنشاء</span></article>'+
  '</div></section>';
 }
@@ -1852,38 +1852,8 @@ window.walletView=walletView;
 
 async function openDigitalPageOrderModal(pageType,targetBusinessId=null){
  const type=String(pageType||'PORTFOLIO').toUpperCase();
- if(!['PORTFOLIO','MENU'].includes(type))return;
- const {data:products,error}=await sb.from('digital_page_products').select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features').eq('page_type',type).eq('active',true).order('price',{ascending:true});
- if(error)return showToast('تعذر تحميل باقات الصفحة: '+error.message,'error');
- const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(7,27,56,.58);display:grid;place-items:center;padding:12px;backdrop-filter:blur(8px)';overlay.innerHTML='<div class="mx-modal-card" dir="rtl" style="width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border:1px solid #eadfc9;border-radius:22px;padding:20px;box-shadow:0 24px 70px rgba(16,24,40,.24)"><div class="section-head"><div><span class="eyebrow">'+(type==='PORTFOLIO'?'PORTFOLIO PAGE':'MENU PAGE')+'</span><h2>طلب صفحة '+(type==='PORTFOLIO'?'Portfolio شخصية':'Menu للنشاط')+'</h2><p class="muted">اختر الباقة، وسيتم إنشاء طلب مملوك لحسابك بسعر مثبت من الخادم.</p></div><button type="button" class="text-btn" id="dp-close">إغلاق</button></div><div class="grid2" id="dp-products"></div><label class="field"><span>عنوان الصفحة *</span><input id="dp-title" maxlength="180" required placeholder="'+(type==='PORTFOLIO'?'اسمك أو اسم علامتك الشخصية':'اسم النشاط أو القائمة')+'"></label><div class="action-bar"><button type="button" class="btn btn-primary" id="dp-submit">إنشاء طلب مدفوع</button><button type="button" class="btn btn-outline" id="dp-cancel">إلغاء</button></div></div>';
- document.body.appendChild(overlay);
- const box=overlay.querySelector('#dp-products');let selected=products?.[0]?.id||'';
- box.innerHTML=(products||[]).map(p=>'<button type="button" class="card dp-product '+(p.id===selected?'active':'')+'" style="width:100%;text-align:right;cursor:pointer;border:1px solid #e3e8f1;padding:14px;border-radius:15px;background:#fff;font-family:inherit;display:grid;gap:5px" data-product="'+esc(p.id)+'"><b>'+esc(p.name_ar)+'</b><strong>'+esc(Number(p.price).toFixed(2))+' '+esc(p.currency)+'</strong><small>'+esc(p.description_ar||'')+'</small><small>مدة الخدمة: '+esc(p.duration_days||'—')+' يوم</small></button>').join('')||'<div class="empty-state">لا توجد باقات منشورة حاليًا.</div>';
- box.querySelectorAll('[data-product]').forEach(b=>b.onclick=()=>{selected=b.dataset.product;box.querySelectorAll('[data-product]').forEach(x=>x.classList.toggle('active',x===b))});
- const close=()=>overlay.remove();overlay.querySelector('#dp-close').onclick=close;overlay.querySelector('#dp-cancel').onclick=close;
- overlay.querySelector('#dp-submit').onclick=async()=>{
-   const title=overlay.querySelector('#dp-title')?.value?.trim();if(!title||!selected)return showToast('اختر الباقة واكتب عنوان الصفحة.','error');
-   const idem=crypto.randomUUID();const btn=overlay.querySelector('#dp-submit');btn.disabled=true;btn.textContent='جارٍ إنشاء الطلب...';
-   try{
-     const {data,error}=await sb.functions.invoke('digital-page-order-create',{body:{productId:selected,pageType:type,title,targetBusinessId,idempotencyKey:idem}});
-     if(error||data?.error)throw new Error(data?.error||error?.message||'تعذر إنشاء الطلب');
-     const orderId=data?.order?.id;
-     if(!orderId)throw new Error('تم إنشاء الطلب دون رقم طلب صالح');
-     const paymentIdem=crypto.randomUUID();
-     const payment=await sb.functions.invoke('digital-page-payment-intent',{body:{orderId,idempotencyKey:paymentIdem}});
-     if(payment.error||payment.data?.error)throw new Error(payment.data?.error||payment.error?.message||'تعذر بدء الدفع');
-     const checkoutUrl=String(payment.data?.checkoutUrl||'');
-     close();
-     if(checkoutUrl){
-       showToast('تم تجهيز الدفع. سيتم تحويلك الآن إلى بوابة الدفع الآمنة.','success');
-       window.setTimeout(()=>{window.location.assign(checkoutUrl)},350);
-       return;
-     }
-     showToast('تم إنشاء الطلب وتجهيز نية الدفع، لكن رابط الدفع غير متاح حاليًا. راجع إعدادات بوابة الدفع قبل الإطلاق.','error');
-     await accountView();
-   }catch(e){btn.disabled=false;btn.textContent='إنشاء طلب مدفوع';showToast(e?.message||'تعذر إنشاء الطلب','error')}
- };
- overlay.querySelector('#dp-title')?.focus();
+ if(type==='PORTFOLIO'){window.location.href='digital-page-self-service.html';return;}
+ return showToast('شراء Menu مدفوعة — تحت الإنشاء حتى اكتمال مسار التفعيل الآمن.','error');
 }
 window.openDigitalPageOrderModal=openDigitalPageOrderModal;
 
@@ -1947,13 +1917,13 @@ async function accountView(){
  const profileAvatar=profileMeta.avatar_url||profileMeta.picture||'';
  const portfolioProducts=digitalProducts.filter(x=>x.page_type==='PORTFOLIO');
  const menuProducts=digitalProducts.filter(x=>x.page_type==='MENU');
- const commercialHtml='<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">DIGITAL SERVICES</span><h3>صفحات مدفوعة من حسابي</h3><p class="muted">اطلب Portfolio شخصية أو Menu للنشاط. السعر يثبت من الخادم ولا يتم النشر تلقائيًا بمجرد الدفع.</p></div></div><div class="action-bar">'+(portfolioProducts.length?'<button class="btn btn-primary" id="account-buy-portfolio" style="width:auto">طلب Portfolio مدفوعة</button>':'')+(providerProfile&&providerProfile.business_id&&menuProducts.length?'<button class="btn btn-outline" id="account-buy-menu" style="width:auto">طلب Menu للنشاط</button>':'')+'</div>'+(!providerProfile&&menuProducts.length?'<p class="muted">لطلب Menu، أكمل تسجيل نشاطك أولًا واعتمد النشاط.</p>':'')+(digitalOrders.length?'<div class="request-list" style="margin-top:12px">'+digitalOrders.slice(0,8).map(o=>'<div class="request-row"><span>'+esc(o.title)+' · '+esc(o.page_type==='PORTFOLIO'?'Portfolio':'Menu')+'</span><b>'+esc(o.payment_status==='PAID'?(o.fulfillment_status==='PUBLISHED'?'منشور':'مدفوع'):o.payment_status==='PENDING'?'بانتظار الدفع':o.payment_status==='FAILED'?'فشل الدفع':'غير مكتمل')+'</b></div>').join('')+'</div>':'<p class="muted" style="margin-top:12px">لا توجد طلبات صفحات رقمية حتى الآن.</p>')+'</section>';
+ const commercialHtml='<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">DIGITAL SERVICES</span><h3>صفحات مدفوعة من حسابي</h3><p class="muted">اطلب Portfolio شخصية أو Menu للنشاط. السعر يثبت من الخادم ولا يتم النشر تلقائيًا بمجرد الدفع.</p></div></div><div class="action-bar">'+(portfolioProducts.length?'<button class="btn btn-primary" id="account-buy-portfolio" style="width:auto">إدارة صفحتي وطلب الاشتراك عبر واتساب</button>':'')+(providerProfile&&providerProfile.business_id&&menuProducts.length?'<button class="btn btn-outline" id="account-buy-menu" style="width:auto" disabled aria-disabled="true">Menu مدفوعة — تحت الإنشاء</button>':'')+'</div>'+(!providerProfile&&menuProducts.length?'<p class="muted">لطلب Menu، أكمل تسجيل نشاطك أولًا واعتمد النشاط.</p>':'')+(digitalOrders.length?'<div class="request-list" style="margin-top:12px">'+digitalOrders.slice(0,8).map(o=>'<div class="request-row"><span>'+esc(o.title)+' · '+esc(o.page_type==='PORTFOLIO'?'Portfolio':'Menu')+'</span><b>'+esc(o.payment_status==='PAID'?(o.fulfillment_status==='PUBLISHED'?'منشور':'مدفوع'):o.payment_status==='PENDING'?'بانتظار مراجعة الدعم عبر واتساب':o.payment_status==='FAILED'?'فشل الدفع':'غير مكتمل')+'</b></div>').join('')+'</div>':'<p class="muted" style="margin-top:12px">لا توجد طلبات صفحات رقمية حتى الآن.</p>')+'</section>';
  const profileCard='<section class="mx-profile-card mx-profile-card--account">'+(profileAvatar?'<img class="mx-profile-card__avatar-img" src="'+esc(profileAvatar)+'" alt="صورة الملف الشخصي">':'<div class="mx-profile-card__avatar">'+esc(profileName.slice(0,1).toUpperCase())+'</div>')+'<div class="mx-profile-card__body"><span class="eyebrow">PROFILE</span><h2>'+esc(profileName)+'</h2><p>'+esc(user?.email||'—')+'</p><small><i></i> الحساب مسجل الدخول</small></div></section>';
  const activityCard=providerProfile?'<section class="mx-profile-card mx-profile-card--activity"><div class="mx-profile-card__avatar">'+esc((providerProfile.name_ar||providerProfile.name_en||'نشاط').slice(0,1))+'</div><div class="mx-profile-card__body"><span class="eyebrow">ACTIVITY PROFILE</span><h2>'+esc(providerProfile.name_ar||providerProfile.name_en||'النشاط')+'</h2><p>'+esc(roleLabel(providerProfile.provider_kind||'SERVICE_PROVIDER'))+'</p><small>'+(providerProfile.is_verified?'✓ نشاط موثق':'نشاط منشور')+'</small></div></section>':'<section class="mx-profile-card mx-profile-card--activity"><div class="mx-profile-card__avatar">＋</div><div class="mx-profile-card__body"><span class="eyebrow">ACTIVITY PROFILE</span><h2>ملف النشاط</h2><p>أنشئ أو أكمل ملف نشاطك لعرض الخدمات والتخصصات.</p><button class="text-btn" id="profile-provider-start">استكمال ملف النشاط ←</button></div></section>';
  document.getElementById('app').innerHTML='<main class="auth"><section class="auth-card mx-account-card"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><div class="mx-account-heading"><div><span class="eyebrow">ACCOUNT CENTER</span><h1>حسابي ومساحات العمل</h1><p>كل نشاط يظهر في بطاقة مستقلة موضحًا <b>المالك، اسم النشاط، القسم والفرع</b>.</p></div><span class="mx-account-count">'+memberships.length+' عضوية</span></div>'+accountStatusPanel()+profileCard+activityCard+'<h3 class="mx-account-section-title">مساحات العمل والعضويات</h3>'+membershipRows+'<h3>طلبات العضوية الإضافية</h3>'+requestRows+onboardingHtml+'<div class="action-bar">'+requestButtons+'</div>'+privilegedNote+'<div class="action-bar"><button class="btn btn-primary" id="account-home">العودة للرئيسية</button><button class="btn btn-outline" id="account-logout">تسجيل الخروج</button></div>'+commercialHtml+'</section></main>';
  document.getElementById('profile-provider-start')?.addEventListener('click',()=>typeof providerOnboardingView==='function'?providerOnboardingView():showToast('مسار تسجيل النشاط غير متاح حاليًا.','error'));
- document.getElementById('account-buy-portfolio')?.addEventListener('click',()=>openDigitalPageOrderModal('PORTFOLIO'));
- document.getElementById('account-buy-menu')?.addEventListener('click',()=>openDigitalPageOrderModal('MENU',providerProfile?.business_id||null));
+ document.getElementById('account-buy-portfolio')?.addEventListener('click',()=>{window.location.href='digital-page-self-service.html'});
+ document.getElementById('account-buy-menu')?.addEventListener('click',()=>showToast('شراء Menu مدفوعة — تحت الإنشاء حتى اعتماد مسار واتساب والتفعيل.','error'));
  document.getElementById('account-home').onclick=()=>{window.MXHomeLanding?MXHomeLanding():landingView()};
  document.getElementById('account-logout').onclick=logout;
  document.querySelectorAll('[data-membership-open]').forEach(btn=>btn.addEventListener('click',async()=>{
