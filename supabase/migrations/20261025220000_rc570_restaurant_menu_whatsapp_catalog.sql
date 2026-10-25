@@ -173,7 +173,7 @@ as $body$1  select p_actor is not null
           or (
             o.id is not null
             and o.payment_status = 'PAID'
-            and coalesce(public.digital_page_subscription_active(o.id, o.user_id), false)
+            and coalesce(public.digital_page_public_subscription_active(o.id), false)
           )
         )
     )
