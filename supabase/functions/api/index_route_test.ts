@@ -33,10 +33,12 @@ class FakeQuery {
 class FakeDatabase {
   mode: "catalog" | "payments";
   existingIntent: Row | null;
+  raceOnInsert: Row | null;
   queryLog: QueryState[] = [];
-  constructor(mode: "catalog" | "payments", existingIntent: Row | null = null) {
+  constructor(mode: "catalog" | "payments", existingIntent: Row | null = null, raceOnInsert: Row | null = null) {
     this.mode = mode;
     this.existingIntent = existingIntent;
+    this.raceOnInsert = raceOnInsert;
   }
   from(table: string) { return new FakeQuery(table, this); }
   async rpc(_name: string, _args: unknown) { return { data: {}, error: null }; }
@@ -44,6 +46,17 @@ class FakeDatabase {
 
   resolve(state: QueryState, cardinality: "single" | "many") {
     this.queryLog.push({ ...state, filters: [...state.filters] });
+    if (state.table === "payment_intents" && state.payload !== undefined) {
+      if (this.raceOnInsert) {
+        const raced = this.raceOnInsert;
+        this.raceOnInsert = null;
+        this.existingIntent = raced;
+        return { data: null, error: { code: "23505" } };
+      }
+      const inserted = state.payload as Row;
+      this.existingIntent = inserted;
+      return { data: inserted, error: null };
+    }
     const value = (column: string) => state.filters.find((f) => f.op === "eq" && f.column === column)?.value;
     const isNull = (column: string) => state.filters.some((f) => f.op === "is" && f.column === column && f.value === null);
     let rows: Row[] = [];
@@ -141,4 +154,29 @@ Deno.test("payment-intent route replays the same identity but rejects a key boun
   }));
   const conflictBody = await conflict.json();
   if (conflict.status !== 409 || conflictBody.error !== "IDEMPOTENCY_CONFLICT") throw new Error("reusing a key for another order must return 409");
+});
+
+
+Deno.test("payment-intent route safely rereads a concurrent idempotency-key winner", async () => {
+  const winner: Row = {
+    id: "intent-winner", tenant_id: "tenant-a", order_id: "order-a", amount: 125.5, currency: "EGP",
+    status: "CREATED", provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", idempotency_key: "key-race",
+  };
+  const db = new FakeDatabase("payments", null, winner);
+  const response = await makeHandler(db)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-a", provider: "CASH_ON_DELIVERY", idempotencyKey: "key-race",
+  }));
+  const body = await response.json();
+  if (response.status !== 200 || body.id !== "intent-winner" || body.idempotent !== true) {
+    throw new Error("concurrent unique-key winner was not reread and returned safely");
+  }
+
+  const conflictingDb = new FakeDatabase("payments", null, { ...winner, order_id: "other-order" });
+  const conflictingResponse = await makeHandler(conflictingDb)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-a", provider: "CASH_ON_DELIVERY", idempotencyKey: "key-race",
+  }));
+  const conflictingBody = await conflictingResponse.json();
+  if (conflictingResponse.status !== 409 || conflictingBody.error !== "IDEMPOTENCY_CONFLICT") {
+    throw new Error("concurrent key winner with a different order must be rejected");
+  }
 });
