@@ -50,4 +50,5 @@ if ((selfServiceHtml.match(/id="new-page"/g)||[]).length !== 1) throw new Error(
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
 if ((selfServiceMigration.match(/coalesce\(o\.paid_at, \(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
 if (!selfServiceMigration.includes('digital_page_orders_paid_at_guard') || !selfServiceMigration.includes('new.paid_at := pg_catalog.now()')) throw new Error('Subscription duration must start on first successful payment and paid_at must be immutable');
+if (!/create or replace function public\.digital_page_orders_paid_at_guard\(\)[\s\S]*?as \$\$[\s\S]*?end;\n\$\$;/i.test(selfServiceMigration)) throw new Error('paid_at trigger function must use a valid dollar-quoted PL/pgSQL body');
 console.log('RC424 digital pages/payment boundary validation: PASS');
