@@ -184,11 +184,9 @@ as $body$1  select p_actor is not null
           where b.page_id = p_page_id
         )
         and exists (
-          select 1
-          from public.digital_pages p
-          left join public.digital_page_orders o on o.id = p.digital_page_order_id
+          select 1 from public.digital_pages p
           where p.id = p_page_id
-            and (p.digital_page_order_id is null or o.user_id = p_actor)
+            and p.digital_page_order_id is null
         )
       )
       or exists (
