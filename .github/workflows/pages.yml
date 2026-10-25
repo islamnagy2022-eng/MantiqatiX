@@ -52,6 +52,7 @@ jobs:
           node --check web/digital-page-self-service.js
           node --check web/digital-page-editor.js
           node --check web/digital-page.js
+          node --check web/marketing-services.js
           ! grep -REq 'customer@example\\.com|\\+201000000000' supabase/functions --include='*.ts'
           node --check web/sector-modules.js
           node --check web/operations-modules.js
@@ -82,6 +83,7 @@ jobs:
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/validate-digital-page-manual-activation.mjs
           node scripts/validate-subscription-reminders.mjs
+          node scripts/validate-marketing-services-page.mjs
           node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
@@ -118,6 +120,9 @@ jobs:
           test -f web/digital-page-self-service.html
           test -f web/digital-page-self-service.css
           test -f web/digital-page-self-service.js
+          test -f web/marketing-services.html
+          test -f web/marketing-services.css
+          test -f web/marketing-services.js
           test -f web/digital-page-editor.js
           for asset in web/assets/activity/*.svg; do test -f "$asset"; done
           for asset in web/assets/activities/*.svg; do test -f "$asset"; done
@@ -247,7 +252,7 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js digital-page-self-service.html digital-page-self-service.css digital-page-self-service.js; do
+          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js digital-page-self-service.html digital-page-self-service.css digital-page-self-service.js marketing-services.html marketing-services.css marketing-services.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
@@ -259,6 +264,8 @@ jobs:
           DIGITAL_EDITOR_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.js")"
           DIGITAL_SELF_SERVICE_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-self-service.html")"
           DIGITAL_SELF_SERVICE_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-self-service.js")"
+          MARKETING_SERVICES_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}marketing-services.html")"
+          MARKETING_SERVICES_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}marketing-services.js")"
           grep -Fq 'id="go-public-home"' <<<"$APP_JS"
           grep -Fq "mnty-customer-registration" <<<"$APP_JS"
           grep -Fq "tenant_id:'MNTY-PLATFORM'" <<<"$APP_JS"
@@ -298,4 +305,8 @@ jobs:
           grep -Fq "sb.functions.invoke('digital-page-order-create'" <<<"$DIGITAL_SELF_SERVICE_JS"
           grep -Fq 'mnty_admin_activate_digital_page_subscription' supabase/migrations/20261025200000_rc568_digital_page_manual_activation.sql
           grep -Fq 'اطلب المنتج عبر واتساب' <<<"$DIGITAL_PAGE_JS"
+          grep -Fq 'خدماتنا التسويقية' <<<"$MARKETING_SERVICES_HTML"
+          grep -Fq 'id="request-form"' <<<"$MARKETING_SERVICES_HTML"
+          grep -Fq 'window.MNTY_SUPPORT' <<<"$MARKETING_SERVICES_JS"
+          grep -Fq 'marketing-services.html' <<<"$APP_JS" || grep -Fq 'marketing-services.html' <<<"$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}home.js")"
           echo "Production smoke verification passed for $PAGE_URL"
