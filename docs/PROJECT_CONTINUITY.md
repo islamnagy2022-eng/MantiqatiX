@@ -647,3 +647,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Public product CTA pre-fills product name, displayed price, page URL, and quantity-confirmation request.
 - Exact-head Deploy MantiqatiX Web validation passed after repairing a stale validator/deployment-smoke expected-copy marker; deployment steps were skipped because the change is still in a PR. Migration replay and collision guard were still in progress at last poll.
 - Current branch `feat/digital-page-self-service-20261025`, PR #374, latest known head `f00d5921c16270e883091c5dadacf26333eb65f2`. Remains draft and unmerged. No production migration/deployment. RLS multi-user tests, browser E2E, and manual subscription activation workflow are not verified. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Product-owner decision — WhatsApp-first launch scope (2026-10-25)
+
+- The requested first-launch experience applies to all existing customer-facing modules that display services, menus, or products, not only the digital-page slice. Build an evidence-based module inventory before claiming coverage; reuse existing module data/contracts and permissions rather than creating parallel catalogs.
+- Public users browse the relevant service/menu/product listing and contact/order-request via WhatsApp with contextual item/service details and the page URL. Owner-facing CRUD remains isolated to the owner/business and must preserve current RBAC/RLS and validation.
+- Defer until after launch: accounting/commission logic for this new flow; sponsored-ad purchase/delivery/billing; Paymob collection for these WhatsApp-first requests. Do not remove or disable finance/payment functionality required by other existing platform flows.
+- The Marketing area should provide a public company-services/marketing page and route service inquiries to WhatsApp. Keep that separate from sponsored advertising and from the existing internal marketing-agency workspace.
+- Regulated/specialized modules must retain their existing required workflows; do not bypass safety/operational controls just to make every CTA a WhatsApp link.
+- Durable scope checklist added to docs/MASTER_PRODUCTION_TODO.md under “Launch scope decision — WhatsApp-first public service/catalog experience”.
+- This is a product scope decision, not evidence of implementation across all modules. PR #374 remains a partial digital-page implementation. No production merge/deploy or database migration is authorized. Release stays BLOCKED / NOT CERTIFIED.
