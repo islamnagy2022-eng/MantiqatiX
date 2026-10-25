@@ -403,3 +403,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added explicit deployment-smoke checks that the published HTML references `app.js?v=catalog-first-1` and `sw.js?v=mnty-web-v140-catalog-first`, commit `dc1f9108e6fd4f3e5a9d6b0be89d98f14782b06c`.
 - Latest PR head at time of writing: `dc1f9108e6fd4f3e5a9d6b0be89d98f14782b06c`. The available workflow-run query has not returned exact-head checks yet. Forward migration replay remains queued on the older observed run; no result is inferred from queued state.
 - No production deploy or migration occurred. PR #374 remains draft/open; release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, ordered replay, RLS/tenant-isolation, browser E2E, and deployment smoke are verified.
+
+
+## 2026-10-25 — Public catalog security contract expansion
+
+- Extended `scripts/validate-digital-pages-boundaries.mjs` with source assertions for the public catalog renderer: HTML escaping, HTTPS-only product image URLs, external-link opener protection, lazy image loading, slug + PUBLISHED page lookup, and active/page-scoped section reads.
+- Follow-up commits: `669e7010f0b04db5c7219feb5b400930e19636be`, `7c30b3bab2d7bee52cad33798a892a48075c51ef`, `27b0355e3527b51862e27966e4c746ca6607f536`, `2bbf923549e596ab62f52843d1ff4a3fde956cdb`.
+- The new assertions are source-contract checks only; they have not yet been proven by a successful CI run. Latest observed workflow run set remained queued on an earlier head, and no exact-head green run was returned for `2bbf923549e596ab62f52843d1ff4a3fde956cdb` at documentation time.
+- No production deploy, merge, or production database migration was performed. PR #374 remains draft/open; release remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, forward migration replay, RLS/tenant isolation and browser smoke verification.
