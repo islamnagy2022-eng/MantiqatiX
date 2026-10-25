@@ -90,7 +90,7 @@
       card.append(node('strong', Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'), 'subscription-price'));
       const buy = node('button', 'اشترك الآن');
       buy.type = 'button';
-      buy.addEventListener('click', () => { const whatsappWindow = window.open('about:blank', '_blank'); if (whatsappWindow) whatsappWindow.opener = null; subscribeToPackage(product.id, buy, whatsappWindow); });
+      buy.addEventListener('click', () => { buy.disabled = true; const whatsappWindow = window.open('about:blank', '_blank'); if (whatsappWindow) whatsappWindow.opener = null; subscribeToPackage(product.id, buy, whatsappWindow); });
       card.append(buy);
       box.append(card);
     }
