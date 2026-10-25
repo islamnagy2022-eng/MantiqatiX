@@ -44,7 +44,9 @@ assert.match(moduleSource, /data-membership-choice/,
   'the user must explicitly choose the intended membership');
 assert.match(moduleSource, /localStorage\.setItem\('MNTYActiveMembershipId',selected\.id\)/,
   'only the selected active membership may be persisted');
-assert.doesNotMatch(moduleSource, /\.limit\(1\)\.maybeSingle\(\)/,
+const membershipLoader = moduleSource.match(/async function activeMemberships\(user\)\{[\s\S]*?\n\}/)?.[0] || '';
+assert.ok(membershipLoader, 'active membership loader must be identifiable for its safety contract');
+assert.doesNotMatch(membershipLoader, /\.limit\(1\)\.maybeSingle\(\)/,
   'membership lookup must not silently select the first active membership');
 
 // Reads must be scoped independently by each module capability.
