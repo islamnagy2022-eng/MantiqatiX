@@ -61,7 +61,7 @@
     const canManage = orders.length > 0 || !!currentPage;
     $('page-form').querySelectorAll('input,textarea,select,button').forEach(x => x.disabled = !canManage);
     $('order').disabled = !!currentPage || !orders.length;
-    $('new-page').disabled = !orders.length;
+    $('new-page').disabled = !orders.some(o => !pages.some(p => p.digital_page_order_id === o.id));
     if (!canManage) {
       $('auth').textContent = 'لا يوجد اشتراك صفحات مدفوع متاح لهذا الحساب حتى الآن. اختر باقة من الأعلى لتفعيل صفحة المنتجات.';
     }
