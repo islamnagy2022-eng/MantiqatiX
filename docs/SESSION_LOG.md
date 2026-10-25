@@ -217,3 +217,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-25 — Digital Page customer self-service proposal (RC567 candidate)
+
+- **User decision:** Make the lightweight marketing page a part of MantiqatiX but isolated from the other business modules for now. A subscribed customer should manage one page, add/edit products and prices, and set their own WhatsApp number. Public link is for self-promotion.
+- **Repository baseline reviewed:** existing `digital_pages`, `digital_page_sections`, `digital_page_orders`, `digital_page_products`, `web/digital-page.html`, and authenticated `web/digital-page-editor.*` already exist. Existing publishing uses paid fulfillment and a platform-admin gate; preserve that boundary.
+- **Branch created:** `feat/digital-page-self-service-20261025`, based on `main`. No merge or production deployment performed.
+- **Source added:** isolated `web/digital-page-self-service.html/.js/.css`; owner can edit page details, WhatsApp number, and menu items/prices through the existing `digital_page_sections` data model. Public renderer now displays product images when HTTPS URLs are supplied and a WhatsApp CTA using the page owner's number.
+- **Migration candidate added:** `supabase/migrations/20261025193000_rc567_digital_page_self_service.sql`. Adds `owner_user_id` and `whatsapp_number`, allows paid-order owners to manage their own isolated page, and extends section RLS while preserving legacy business/provider access. This is source-only and NOT applied to Supabase.
+- **Validation updates:** Pages workflow checks the new self-service JS and assets; `scripts/validate-digital-pages-boundaries.mjs` checks the owner/paid-order/WhatsApp boundaries. CI result still pending.
+- **Open risks / required verification:** run SQL migration replay and RLS integration tests on a disposable database; review migration ordering because RC563–RC566 are separate open candidates; verify self-service JS syntax, create/edit/list pages, product add/edit/delete, slug collision, WhatsApp rendering, and paid/unpaid cross-user isolation. Confirm how the existing fulfillment admin publishes newly created pages. No production data/configuration mutation was performed.
+- **Release state:** BLOCKED / NOT CERTIFIED; no claim of live deployment or production readiness.
