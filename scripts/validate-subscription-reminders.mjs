@@ -21,4 +21,9 @@ assert.match(migration, /new\.paid_at := coalesce\(new\.paid_at, pg_catalog\.now
 assert.match(migration, /before update of payment_status on public\.digital_page_orders/i, 'paid timestamp trigger must be installed');
 assert.match(migration, /revoke all on function public\.mnty_set_digital_page_paid_at\(\) from public, anon, authenticated/i, 'trigger function must not be callable directly by browser roles');
 
-console.log('Subscription reminder source contract: PASS');
+assert.match(app, /function launchScopePanel\(\)/, 'dashboard must disclose launch-scope status');
+assert.match(app, /الإعلانات الممولة[\s\S]{0,300}تحت الإنشاء/, 'deferred sponsored ads must be labeled under construction');
+assert.match(app, /خدمات التسويق الرقمي SMM[\s\S]{0,300}مديول مستقل/, 'SMM must remain a separate module');
+assert.match(app, /عمولات طلبات واتساب[\s\S]{0,300}تحت الإنشاء/, 'new WhatsApp commissions must remain deferred');
+
+console.log('Subscription reminder and launch-scope source contract: PASS');
