@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const source = readFileSync("supabase/functions/api/index.ts", "utf8");
 const contracts = readFileSync("supabase/functions/api/contracts.mjs", "utf8");
+const idempotencyMigration = readFileSync("supabase/migrations/20261026030000_rc572_payment_intent_tenant_idempotency.sql", "utf8");
 
 assert.match(source, /normalizeBranchId\(url\.searchParams\.get\("branchId"\)\)/,
   "catalog route must use tested branch normalization");
@@ -30,6 +31,10 @@ assert.match(source, /IDEMPOTENCY_CONFLICT/,
   "reusing a key for a different payment identity must fail closed");
 assert.doesNotMatch(source, /\.upsert\(newIntent,\s*\{\s*onConflict:\s*"tenant_id,idempotency_key"/,
   "payment idempotency must not overwrite an existing intent on conflict");
+assert.match(idempotencyMigration, /group by tenant_id, idempotency_key\s+having count\(\*\) > 1/i,
+  "RC572 must fail closed when historical duplicate payment keys exist");
+assert.match(idempotencyMigration, /create unique index if not exists uq_payment_intents_tenant_idempotency\s+on public\.payment_intents \(tenant_id, idempotency_key\)/i,
+  "RC572 must enforce tenant-scoped idempotency in PostgreSQL");
 assert.match(contracts, /Math\.abs\(amount - expectedAmount\) <= 0\.01/,
   "runtime helper must validate amount identity");
 assert.match(contracts, /intent\.order_id/,
