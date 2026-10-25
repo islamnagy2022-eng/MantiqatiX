@@ -14,7 +14,7 @@ on:
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
       - ".github/workflows/mantigo-platform-admin-scope.yml"
   push:
-    branches: [main]
+    branches: [main, "fix/mantigo-financial-report-columns-20261017"]
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
