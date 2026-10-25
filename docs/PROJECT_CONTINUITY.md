@@ -698,3 +698,6 @@ This status is intentional and must remain until the open gates above are indepe
 - Public digital-page.js now displays category labels and continues to use safe HTTPS images plus WhatsApp-only product handoff. The message includes the displayed price and asks the business to confirm quantity/details; it does not create a paid order.
 - Added scripts/validate-restaurant-menu-whatsapp-sync.mjs, wired into Pages CI; updated restaurant source-contract and digital page runtime tests; advanced asset/PWA cache versions.
 - Status: source implementation added on PR #374, not yet certified. Exact-head CI/replay, authenticated RLS, browser E2E, deployed smoke, and production migration/deploy remain outstanding. Keep production release BLOCKED / NOT CERTIFIED.
+
+
+- RC570 hardening: branch-to-menu binding is stored in a separate authenticated RLS-protected table and is omitted from public MENU section JSON. This prevents public exposure of internal tenant/business/branch IDs and blocks cross-branch overwrite. This change is unverified until exact-head CI and authenticated E2E pass.
