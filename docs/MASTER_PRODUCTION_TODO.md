@@ -1981,3 +1981,6 @@ Create an auditable matrix from the actual repository/module registry: module an
 - [ ] Run authenticated multi-user RLS integration and browser E2E for restaurant owner, non-owner, public anonymous viewer, product CRUD, image safety, branch isolation, published page sync, expired subscription, and WhatsApp handoff.
 - [ ] Verify subscription reminder UI and admin activation/publishing lifecycle together on the deployed preview.
 - [ ] Production migration/deploy NOT DONE. PR #374 remains draft/open. Do not claim restaurants are launched until the gates above pass and production deployment smoke succeeds.
+
+
+- RC570 hardening addendum: branch binding is now stored in the private RLS-protected digital_page_menu_branch_bindings table, not in public section JSON, so tenant/business/branch identifiers are not exposed to anonymous menu visitors. Exact-head verification remains pending.
