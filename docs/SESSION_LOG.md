@@ -281,3 +281,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Public catalog product cards now include an owner-WhatsApp order link with encoded product name, listed price, page URL, and a request to confirm quantity.
 - Updated the deployment smoke contract and static boundary validator to enforce the WhatsApp-only subscription UI and product-order CTA. The first exact-head web validation exposed a stale expected-copy marker; that marker was aligned and the latest Deploy MantiqatiX Web validation job then passed. Its public-only/deploy jobs were skipped for this PR, so no deployment occurred.
 - Latest known head at time of this note: `f00d5921c16270e883091c5dadacf26333eb65f2`. Migration forward-chain replay and cross-PR migration collision checks were still running when last checked. Keep PR #374 draft/open; do not merge or deploy until exact-head checks, RLS integration, browser E2E, and manual activation flow are verified. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Product decision: WhatsApp-first service/menu/product modules
+
+- **User decision:** Expand the WhatsApp-first public page/catalog pattern beyond the digital-page slice to every applicable existing module that displays services, menus, or products.
+- **First-launch behavior:** owners manage their own permitted catalog/page data; customers browse and hand off requests through WhatsApp with contextual item/service details. Reuse canonical module records and preserve existing authorization, validation, and specialized operational controls.
+- **Deferred until after launch:** accounting/commissions for this new flow; sponsored-ad purchase/delivery/billing; Paymob collection for these new WhatsApp-first requests. Existing finance and Paymob flows used elsewhere in the platform are not to be removed or changed as a side effect.
+- **Marketing area:** public page describing the company's marketing services, with WhatsApp service-request/inquiry CTA. Keep separate from sponsored ads and the internal agency workspace.
+- **Documentation action:** recorded the scope and test/release gates in docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md on the active feature branch.
+- **Not yet done:** full module inventory, cross-module implementation, RLS/browser E2E, and regression testing. This documentation change is not proof of feature coverage.
+- **Production impact:** no production migration, merge, deployment, Paymob transaction, or production data mutation. PR #374 remains draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
