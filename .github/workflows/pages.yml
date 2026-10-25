@@ -50,6 +50,8 @@ jobs:
           node --check web/reverse-bidding-module.js
           node --check web/restaurant-module.js
           node --check web/digital-page-self-service.js
+          node --check web/digital-page-editor.js
+          node --check web/digital-page.js
           ! grep -REq 'customer@example\\.com|\\+201000000000' supabase/functions --include='*.ts'
           node --check web/sector-modules.js
           node --check web/operations-modules.js
@@ -243,7 +245,7 @@ jobs:
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
           grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
+          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js digital-page-self-service.html digital-page-self-service.css digital-page-self-service.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
           done
           APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
@@ -253,6 +255,8 @@ jobs:
           DIGITAL_PAGE_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page.js")"
           DIGITAL_EDITOR_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.html")"
           DIGITAL_EDITOR_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.js")"
+          DIGITAL_SELF_SERVICE_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-self-service.html")"
+          DIGITAL_SELF_SERVICE_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-self-service.js")"
           grep -Fq 'id="go-public-home"' <<<"$APP_JS"
           grep -Fq "mnty-customer-registration" <<<"$APP_JS"
           grep -Fq "tenant_id:'MNTY-PLATFORM'" <<<"$APP_JS"
@@ -286,4 +290,6 @@ jobs:
           grep -Fq "eq('status','PUBLISHED')" <<<"$DIGITAL_PAGE_JS"
           grep -Fq 'fulfill_digital_page_publish' <<<"$DIGITAL_EDITOR_JS"
           grep -Fq 'digital-page-editor.js' <<<"$DIGITAL_EDITOR_HTML"
+          grep -Fq 'digital-page-self-service.js' <<<"$DIGITAL_SELF_SERVICE_HTML"
+          grep -Fq 'digital-page-payment-intent' <<<"$DIGITAL_SELF_SERVICE_JS"
           echo "Production smoke verification passed for $PAGE_URL"
