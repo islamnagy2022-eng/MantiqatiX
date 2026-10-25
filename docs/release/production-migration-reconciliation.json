@@ -18,6 +18,10 @@
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
+  "digital_page_dependency_reconciliation": "NOT VERIFIED",
+  "security_definer_authorization_review": "NOT VERIFIED",
+  "authenticated_browser_e2e": "NOT VERIFIED",
+  "production_deploy_rollback_smoke": "NOT VERIFIED",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
     "ledger_name": "rc424_atomic_digital_page_payment_webhook",
