@@ -677,3 +677,15 @@ This status is intentional and must remain until the open gates above are indepe
 - New static contract: scripts/validate-subscription-reminders.mjs, wired into .github/workflows/pages.yml.
 - Dashboard notices currently appear when the user opens/refreshes the app. Scheduled push/email reminders are not implemented and require a separate server-side scheduler design.
 - Exact-head CI, migration replay, collision checks, and browser E2E must pass before merge. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## Latest launch work — marketing page, deferred ads, subscription reminders (2026-10-25)
+
+- Added a public company marketing page in web/marketing-services.html with responsive CSS and WhatsApp service-request handoff. Main public desktop/mobile navigation links to it.
+- Public sponsored-ad sections and purchase/booking entry points now show “تحت الإنشاء” and are disabled for the first launch. This does not remove existing payment/finance functionality for unrelated modules.
+- PWA cache advanced to mnty-web-v136-launch and now precaches the marketing-services and digital-page assets.
+- Dashboard home and notification center render subscription reminders using the canonical paid_at timestamp and product duration. Reminders begin within 30 days, become urgent within 7 days, show expired orders, and fail visibly when timing data cannot be verified.
+- Removed a redundant candidate paid_at migration because RC567 already contains the immutable timestamp guard and conservative legacy backfill.
+- Fixed the stale RBAC workspace validator that failed on an obsolete dashboard-route marker.
+- Latest source head before this documentation update: c6152b2a9514e6107982c02ae575d5c40d152811. CI for the latest code is pending; do not infer passing checks from older heads.
+- Still NOT VERIFIED: full migration replay at the latest head, authenticated multi-user RLS, browser E2E, subscription manual-reference review, and production deployment smoke. No production merge/migration/deploy occurred. Release remains BLOCKED / NOT CERTIFIED.
