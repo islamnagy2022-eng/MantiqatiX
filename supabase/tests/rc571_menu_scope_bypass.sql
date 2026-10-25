@@ -31,7 +31,7 @@ begin
 
   if v_page_policy is null
      or position('digital_page_public_subscription_active' in v_page_policy) = 0
-     or position('digital_page_order_id IS NOT NULL' in upper(v_page_policy)) = 0 then
+     or position('DIGITAL_PAGE_ORDER_ID IS NOT NULL' in upper(v_page_policy)) = 0 then
     raise exception 'RC571_REGRESSION: public digital page policy does not gate order-backed MENU rows';
   end if;
 
