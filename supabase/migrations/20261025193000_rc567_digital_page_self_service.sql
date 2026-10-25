@@ -22,8 +22,7 @@ create or replace function public.digital_page_orders_paid_at_guard()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
-begin
+as $$begin
   if tg_op = 'INSERT' then
     if new.payment_status = 'PAID' then
       new.paid_at := pg_catalog.now();
@@ -41,7 +40,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists trg_digital_page_orders_paid_at_guard on public.digital_page_orders;
 create trigger trg_digital_page_orders_paid_at_guard
