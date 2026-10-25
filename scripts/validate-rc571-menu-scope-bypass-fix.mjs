@@ -14,7 +14,7 @@ assert.match(sql, /v_order\.target_business_id is distinct from new\.business_id
   'order business must match the page business');
 assert.match(sql, /digital_page_subscription_active\(v_order\.id, v_actor\)/i,
   'order-backed MENU creation must require an active entitlement');
-assert.match(sql, /owner_user_id is null\\s+and not \\(page_type = 'MENU' and digital_page_order_id is not null\\)/i,
+assert.match(sql, /owner_user_id is null\s+and not \(page_type = 'MENU' and digital_page_order_id is not null\)/i,
   'legacy public-read behavior must remain unchanged while order-backed MENU rows are gated');
 assert.match(sql, /public\.digital_page_public_subscription_active\(digital_page_order_id\)/i,
   'order-backed public page reads must pass the subscription gate');
