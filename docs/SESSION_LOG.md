@@ -303,3 +303,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Validation: added scripts/validate-subscription-reminders.mjs to the web CI workflow.
 - Not yet verified: exact-head CI, isolated migration replay/collision guard, browser E2E, and webhook/manual-activation regression. Dashboard reminders are on-visit only; scheduled push/email delivery remains future work.
 - Production impact: no production migration/deployment or merge. PR #374 remains open; global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Launch hardening: marketing services, ad deferral, subscription reminders
+
+- Added public company marketing services page (HTML/CSS/JS) with responsive service cards and WhatsApp handoff; added desktop/mobile homepage links and source-contract validation.
+- Deferred public sponsored-ad booking/plan purchase for the first launch: ad surfaces now say “تحت الإنشاء”, public purchase controls are disabled, and the section links to available company marketing services instead.
+- Refreshed the PWA cache and precache list for marketing services and digital-page assets.
+- Dashboard home and notification center show subscription reminders from the user's paid digital-page orders using the canonical paid_at timestamp and product duration; unknown timing is not treated as healthy.
+- Fixed a stale RBAC validator marker that failed against the current dashboard routing and corrected reminder data-error handling so a failed read is not silently rendered as an empty list.
+- Removed the redundant unmerged paid_at candidate migration because RC567 already provides the canonical immutable paid_at guard and conservative backfill; updated the reminder validator accordingly.
+- Added/updated CI checks for marketing page assets, WhatsApp contract, deferred ads, PWA cache, and public deployment smoke.
+- Latest source head before this log update: c6152b2a9514e6107982c02ae575d5c40d152811. Latest-head CI/replay remains pending; no runtime E2E or production deployment is claimed.
+- No production migration, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
