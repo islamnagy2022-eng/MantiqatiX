@@ -31,8 +31,8 @@ create index if not exists digital_pages_owner_user_idx
 -- A boolean-only helper; no order/customer fields are exposed.
 create or replace function public.digital_page_subscription_active(p_order_id uuid, p_user_id uuid)
 returns boolean
-language sql stable security invoker
-set search_path = public
+language sql stable security definer
+set search_path = ''
 as $$
   select p_user_id=(select auth.uid()) and exists (
     select 1
@@ -42,7 +42,7 @@ as $$
       and o.user_id=(select auth.uid())
       and o.payment_status='PAID'
       and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
-      and o.created_at + make_interval(days => greatest(
+      and o.created_at + pg_catalog.make_interval(days => greatest(
         1,
         coalesce(
           case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
@@ -50,7 +50,7 @@ as $$
           prod.duration_days,
           365
         )
-      )) > now()
+      )) > pg_catalog.now()
   );
 $$;
 revoke all on function public.digital_page_subscription_active(uuid,uuid) from public, anon;
