@@ -1939,3 +1939,16 @@ Create an auditable matrix from the actual repository/module registry: module an
 - [ ] All other unfinished user-visible module features display the same status consistently.
 - [ ] A user-facing route/action inventory exists and is tested.
 - [ ] Existing SMM, payments, finance, and WhatsApp-first catalog flows have regression coverage.
+
+
+## Dashboard and subscription-expiry reminders — 2026-10-25
+
+- Added a shared dashboard/notification-center panel for the signed-in user's digital-page subscriptions. It reads the user's own digital_page_orders rows and active product durations, shows warnings within 30 days, stronger urgency within 7 days, and expired subscriptions.
+- If paid_at or the plan duration is missing, the UI explicitly says the expiry date cannot be confirmed and links to support; it must not invent a renewal date.
+- Added a migration trigger to record paid_at when a digital-page order transitions to PAID, including manually verified WhatsApp subscriptions. The timestamp is preserved on replay. Migration remains source-only pending isolated chain replay and release approval.
+- Added scripts/validate-subscription-reminders.mjs to the Pages validation workflow.
+- Limit: these are in-dashboard/on-visit reminders, not scheduled push/email delivery. Scheduled reminders require a separately reviewed server-side scheduler/notification path and idempotency tests.
+- [ ] Verify exact-head CI, migration chain replay, and migration collision guard.
+- [ ] Browser E2E: approaching expiry, seven-day/one-day urgency, expired subscription, unknown paid_at, cross-account isolation, and safe WhatsApp support link.
+- [ ] Verify existing Paymob success webhook and manual activation both set paid_at without regression.
+- [ ] Do not merge/deploy until remaining security/E2E release gates pass.
