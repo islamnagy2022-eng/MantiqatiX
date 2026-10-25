@@ -46,7 +46,7 @@ using (
     where m.user_id = auth.uid()
       and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
       and m.business_id = digital_page_menu_branch_bindings.business_id
-      and m.branch_id = digital_page_menu_branch_bindings.branch_id
+      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -62,7 +62,7 @@ with check (
     where m.user_id = auth.uid()
       and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
       and m.business_id = digital_page_menu_branch_bindings.business_id
-      and m.branch_id = digital_page_menu_branch_bindings.branch_id
+      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -78,7 +78,7 @@ using (
     where m.user_id = auth.uid()
       and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
       and m.business_id = digital_page_menu_branch_bindings.business_id
-      and m.branch_id = digital_page_menu_branch_bindings.branch_id
+      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -90,7 +90,7 @@ with check (
     where m.user_id = auth.uid()
       and m.tenant_id = digital_page_menu_branch_bindings.tenant_id
       and m.business_id = digital_page_menu_branch_bindings.business_id
-      and m.branch_id = digital_page_menu_branch_bindings.branch_id
+      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -196,7 +196,7 @@ as $body$1  select p_actor is not null
           on m.user_id = p_actor
          and m.tenant_id = b.tenant_id
          and m.business_id = b.business_id
-         and m.branch_id = b.branch_id
+         and m.branch_id::text = b.branch_id::text
          and m.status = 'ACTIVE'
          and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
         where b.page_id = p_page_id
