@@ -104,7 +104,7 @@ function subscriptionReminderPanel(){
  const now=Date.now();
  const reminders=paid.map(o=>{
   const product=products.get(String(o.product_id));
-  const duration=Number(product?.duration_days);
+  const duration=Number(o.metadata?.duration_days ?? product?.duration_days);
   const paidAt=o.paid_at;
   if(!paidAt||!Number.isFinite(duration)||duration<=0){
    const message='مرحبًا دعم MantiqatiX، أحتاج تأكيد تاريخ انتهاء اشتراكي. الخدمة: '+String(o.title||product?.name_ar||o.page_type||'اشتراك رقمي')+'، رقم الطلب: '+String(o.id)+'.';
@@ -225,7 +225,7 @@ try{
  live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=ordersRes.data||[];live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];
  try{
   const [digitalOrdersRes,digitalProductsRes]=await Promise.all([
-   sb.from('digital_page_orders').select('id,user_id,product_id,page_type,title,payment_status,fulfillment_status,created_at,paid_at,updated_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(50),
+   sb.from('digital_page_orders').select('id,user_id,product_id,page_type,title,payment_status,fulfillment_status,created_at,paid_at,updated_at,metadata').eq('user_id',uid).order('created_at',{ascending:false}).limit(50),
    sb.from('digital_page_products').select('id,page_type,name_ar,duration_days').eq('active',true).limit(100)
   ]);
   live.records.digitalPageOrders=digitalOrdersRes.error?[]:(digitalOrdersRes.data||[]);
