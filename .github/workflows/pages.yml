@@ -284,7 +284,7 @@ jobs:
           grep -Eq 'home\.js\?v=[A-Za-z0-9._-]+' "$TMP_PAGE"
           grep -Eq 'home\.css\?v=[A-Za-z0-9._-]+' "$TMP_PAGE"
           grep -Fq 'app.js?v=catalog-first-1' "$TMP_PAGE"
-          grep -Fq 'sw.js?v=mnty-web-v141-catalog-tiers' "$TMP_PAGE"
+          grep -Fq 'sw.js?v=mnty-web-v142-https-images' "$TMP_PAGE"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"$CONFIG_JS"
           grep -Fq "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'" <<<"$CONFIG_JS"
           PREVIEW_ENTRY="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/")"
