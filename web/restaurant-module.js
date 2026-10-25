@@ -171,7 +171,7 @@ function menuView(){
  const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
  const sync=canEdit?'<button class="btn btn-primary" id="rest-sync-menu-page">نشر / تحديث المنيو عبر واتساب</button>':'';
  const manage='<a class="btn btn-outline" href="digital-page-self-service.html" target="_blank" rel="noopener">إدارة رابط المنيو الرقمية</a>';
- return shell(isCafe()?'قائمة المشروبات والأطعمة':'قائمة الطعام',tabs()+'<div class="notice">أضف الأصناف هنا مرة واحدة. عند وجود منيو رقمية منشورة واشتراك نشط، يمكنك مزامنة الأصناف المتاحة إلى الرابط العام؛ العميل يطلب عبر واتساب ولا يتم تحصيل Paymob في هذا المسار.</div><div class="action-bar">'+add+sync+manage+'</div>'+
+ return shell(isCafe()?'قائمة المشروبات والأطعمة':'قائمة الطعام',tabs()+'<div class="notice">أضف الأصناف هنا مرة واحدة. عند وجود منيو رقمية منشورة واشتراك نشط، يمكنك مزامنة الأصناف المتاحة إلى الرابط العام؛ العميل يطلب عبر واتساب ولا يتم تحصيل Paymob في هذا المسار. ربط عدة فروع في رابط واحد: تحت الإنشاء.</div><div class="action-bar">'+add+sync+manage+'</div>'+
  '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>الصورة</th><th>إجراء</th></tr></thead><tbody>'+
  (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(x.image_url?'<a href="'+esc(x.image_url)+'" target="_blank" rel="noopener">عرض الصورة</a>':'—')+'</td><td>'+(canEdit?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
@@ -209,7 +209,7 @@ async function syncRestaurantMenuToDigitalPage(){
     String(bindingResult.data.tenant_id)!==String(s.tenant_id)||
     String(bindingResult.data.business_id)!==String(s.business_id)||
     String(bindingResult.data.branch_id)!==String(s.branch_id)
-  ))return notify('رابط المنيو مرتبط بفرع آخر. تم منع استبدال قائمة فرع بفرع مختلف؛ دعم الفروع المتعددة في رابط واحد يحتاج استكمالًا منفصلًا.','error');
+  ))return notify('رابط المنيو مرتبط بفرع آخر. تم منع استبدال قائمة فرع بفرع مختلف؛ دعم الفروع المتعددة في رابط واحد تحت الإنشاء.','error');
   if(!bindingResult.data){
    const bindingInsert=await sb.from('digital_page_menu_branch_bindings').insert({page_id:page.id,tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,updated_by:state.user.id}).select('page_id').maybeSingle();
    if(bindingInsert.error)throw bindingInsert.error;
