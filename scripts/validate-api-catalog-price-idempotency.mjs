@@ -6,8 +6,8 @@ const contracts = readFileSync("supabase/functions/api/contracts.mjs", "utf8");
 
 assert.match(source, /normalizeBranchId\(url\.searchParams\.get\("branchId"\)\)/,
   "catalog route must use tested branch normalization");
-assert.match(source, /if \(branchId\.length > 128\)/,
-  "branchId length must be bounded before database lookup");
+assert.match(source, /if \(branchId && branchId\.length > 128\)/,
+  "non-empty branchId length must be bounded before database lookup");
 assert.match(source, /\.eq\("id", branchId\)\.eq\("business_id", businessId\)\.eq\("status", "ACTIVE"\)\.maybeSingle\(\)/,
   "requested branch must be an active branch of the selected business");
 assert.match(source, /buildPriceQuery\(\)\.is\("branch_id", null\)/,
