@@ -82,7 +82,7 @@ jobs:
           node scripts/validate-finance-boundaries.mjs
           node scripts/validate-api-catalog-price-idempotency.mjs
           node scripts/test-api-runtime-contracts.mjs
-          deno test --no-check --allow-env --allow-net supabase/functions/api/index_route_test.ts
+          deno test --node-modules-dir=auto --allow-env --allow-net supabase/functions/api/index_route_test.ts
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs
