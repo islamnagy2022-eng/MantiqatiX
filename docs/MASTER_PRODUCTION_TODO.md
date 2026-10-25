@@ -1836,3 +1836,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Resolved the Deno type-reference issue by declaring `@types/node` and running Deno with `--node-modules-dir=auto`; on head `536013914715a7e855406ff38614c0b47f43bd72`, Pages CI type-checked and ran the route test module successfully (4 passed / 0 failed).
 - [ ] PR #375 remains draft/open. No merge, production database change, or deployment. Release gate remains **BLOCKED / NOT CERTIFIED**.
 - Next: add a disposable Supabase/PostgreSQL fixture and exercise the route against it, including actual unique-key race handling, before considering merge.
+
+
+## RC572 — payment intent idempotency database constraint — 2026-10-26
+
+- [x] Added forward-only candidate migration `20261026030000_rc572_payment_intent_tenant_idempotency.sql`.
+- [x] Migration refuses to proceed if historical duplicate `(tenant_id, idempotency_key)` pairs exist; it does not delete or rewrite payment history.
+- [x] Added source-contract assertions that require the duplicate guard and unique index.
+- [ ] **CI PENDING:** disposable production-checkpoint migration replay and API integration test must pass on the latest PR #375 head before this migration is considered validated.
+- [ ] **Production data check pending:** candidate migration will fail closed if duplicates exist; production must be checked read-only before any separately approved deployment.
+- Evidence basis: the captured production schema baseline showed no unique index on `payment_intents(tenant_id, idempotency_key)`, despite the API route's concurrent-race handling relying on a database uniqueness violation. This is a genuine integrity gap, not just a test issue.
+- No production DDL/DML, merge, or deployment was performed. Release remains **BLOCKED / NOT CERTIFIED**.
