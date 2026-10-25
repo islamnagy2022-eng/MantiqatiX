@@ -19,7 +19,7 @@ end $$;
 
 alter table public.digital_pages
   add constraint digital_pages_owner_scope_check
-  check (owner_user_id is not null or business_id is not null or provider_profile_id is not null);
+  check (pg_catalog.num_nonnulls(owner_user_id, business_id, provider_profile_id) = 1);
 
 alter table public.digital_pages
   add constraint digital_pages_whatsapp_format_check
@@ -90,13 +90,17 @@ security invoker
 set search_path = public
 as $$
 begin
-  if old.owner_user_id is not null then
-    if new.owner_user_id is distinct from old.owner_user_id
-       or new.digital_page_order_id is distinct from old.digital_page_order_id then
-      if not coalesce(public.mnty_can_platform_admin(), false) then
-        raise exception 'DIGITAL_PAGE_SUBSCRIPTION_BINDING_IMMUTABLE';
-      end if;
+  -- Ownership scope and subscription binding are immutable for every page type.
+  -- This prevents a legacy business/provider page being converted into a customer-owned page.
+  if new.owner_user_id is distinct from old.owner_user_id
+     or new.business_id is distinct from old.business_id
+     or new.provider_profile_id is distinct from old.provider_profile_id
+     or new.digital_page_order_id is distinct from old.digital_page_order_id then
+    if not coalesce(public.mnty_can_platform_admin(), false) then
+      raise exception 'DIGITAL_PAGE_SUBSCRIPTION_BINDING_IMMUTABLE';
     end if;
+  end if;
+  if old.owner_user_id is not null then
     if new.status is distinct from old.status
        and not coalesce(public.mnty_can_platform_admin(), false) then
       raise exception 'DIGITAL_PAGE_PUBLISH_ADMIN_REQUIRED';
