@@ -1855,3 +1855,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added source-contract assertions for the ownership invariant and immutable binding guard.
 - [ ] Re-run exact-head CI and isolated forward migration replay after these latest SQL/test changes.
 - [ ] Authenticated multi-user RLS integration and browser E2E remain NOT VERIFIED. No production migration/deployment; release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC567 follow-up — checkout/admin workflow
+
+- [x] Add package selection and checkout invocation through the existing order-create/payment-intent Edge Functions.
+- [x] Add active-subscription refresh and multiple-page creation per unused paid subscription.
+- [x] Make the existing admin editor recognize standalone customer-owned pages and owner WhatsApp numbers.
+- [x] Add platform-admin-only order SELECT policy for paid-order review; retain owner-only customer reads.
+- [x] Add public deployment smoke checks for the self-service page assets and checkout integration.
+- [ ] Confirm exact-head CI and migration replay after these follow-up changes.
+- [ ] Execute Paymob sandbox payment + webhook reconciliation and admin fulfillment publish E2E.
+- [ ] Execute cross-user RLS tests, including expired subscription visibility and product-section writes.
+- [ ] Verify renewal/rebinding behavior for an expired page; current UI supports a new page for a new subscription, but preserving an expired page's same URL needs a dedicated renewal flow.
+- [ ] Do not merge/apply/deploy until the above checks pass; production remains BLOCKED / NOT CERTIFIED.
