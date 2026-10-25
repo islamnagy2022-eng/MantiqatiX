@@ -17,7 +17,7 @@ const sectors = fs.readFileSync('web/sector-registry.js', 'utf8');
 const sectorModules = fs.readFileSync('web/sector-modules.js', 'utf8');
 const operationsModules = fs.readFileSync('web/operations-modules.js', 'utf8');
 
-for (const code of ['FOOD','PHARMACY','HEALTH','DENTAL','MEDICAL','HOSPITAL','LABS','RADIOLOGY','COMPANIES','FREELANCER','MAINTENANCE','GROCERY','FASHION','MARKETING','REAL_ESTATE','AUTO','VETERINARY','EDUCATION','ERP','ACCOUNTING','LEGAL','SPORTS','TRIPS','MANTIGO','FACTORIES']) {
+for (const code of ['FOOD','PHARMACY','HEALTH','DENTAL','MEDICAL','HOSPITAL','LABS','RADIOLOGY','COMPANIES','FREELANCER','MAINTENANCE','GROCERY','FASHION','MARKETING','REAL_ESTATE','AUTO','VETERINARY','EDUCATION','ERP','ACCOUNTING','LEGAL','SPORTS','TRIPS','MANTIGO','FACTORIES','JOBS','MATRIMONY','USED_ITEMS']) {
   assert.ok(engine.includes(code + ': Object.freeze') || engine.includes("'" + code + "': Object.freeze"), 'missing sector adapter profile ' + code);
 }
 assert.match(engine, /function profileFor/);
@@ -60,6 +60,9 @@ vm.createContext(runtime);
 vm.runInContext(sectors, runtime, { filename: 'web/sector-registry.js' });
 vm.runInContext(engine, runtime, { filename: 'web/catalog-experience-engine.js' });
 const shared = runtime.MNTYCatalogExperience;
+for (const sector of runtime.MX_SECTOR_REGISTRY.CANONICAL_SECTORS) {
+  assert.ok(shared.profileFor(sector.code), 'canonical sector missing shared adapter: ' + sector.code);
+}
 assert.equal(shared.profileFor('FOOD').code, 'FOOD');
 assert.equal(shared.profileFor('DIGITAL').code, 'MARKETING');
 assert.equal(shared.profileFor('EDU').code, 'EDUCATION');
