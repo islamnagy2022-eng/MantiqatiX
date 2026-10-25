@@ -2173,3 +2173,28 @@ Supabase production project `moyhiluyhjsujhwlyeuu` was inspected read-only; no D
 - Production schema does not yet contain the candidate self-service fields `digital_pages.owner_user_id`, `digital_pages.whatsapp_number`, `digital_page_orders.paid_at`, or `restaurant_menu_items.image_url`; the private `digital_page_menu_branch_bindings` table is also absent.
 - Therefore the self-service UI is NOT compatible with production schema until the candidate migrations are safely reconciled, replayed against a production-equivalent checkpoint, and approved. Do not deploy the self-service HTML/JS alone and do not apply RC567–RC570 directly to production.
 - The known candidate-chain note requiring RC563–RC566 ordering reconciliation remains open. Preserve all existing production tables/data and all historical migrations; fix forward only after dependencies are resolved.
+
+
+## 2026-10-26 — Read-only production release-gate reassessment
+
+This is an evidence checkpoint, not a release approval. Supabase production project `moyhiluyhjsujhwlyeuu` was queried read-only. No production SQL writes, migrations, function deployments, GitHub merge, or website deployment were performed.
+
+### Confirmed evidence
+- Production project status is `ACTIVE_HEALTHY`; its migration ledger still ends at `20261008222845 / rc424_atomic_digital_page_payment_webhook`. The candidate self-service schema is not applied to production.
+- Production inventory reports 128/128 public base tables with RLS enabled; 105/128 have FORCE RLS. This does not by itself prove that each policy is correct.
+- Exact-head PR #374 forward replay run `40236380572` completed successfully on `753172e20120a5240aeccc9dd67278476532e55f`: 39 forward migrations applied in a disposable Supabase environment, tenant isolation tests passed, and the digital-page RLS fixture passed both owners' own-page/section updates while denying cross-owner reads/writes. This is isolated replay evidence, not production migration or browser E2E.
+- The latest PR #374 CI query returned 11 workflow runs, all completed successfully. The Pages workflow's `deploy` job was skipped for the pull-request event; no production deploy is claimed.
+- Supabase Security Advisor observation at `2026-10-25T21:41:43Z`: one RLS-enabled table without policies (`digital_page_payment_events`), one anon-executable SECURITY DEFINER function (`get_mnty_targeted_advertisements`), and 40 authenticated-executable SECURITY DEFINER functions. These are review findings, not proof that all 42 functions are exploitable. The public ad RPC needs an explicit intended-public contract and input/output review; the other functions require individual actor/role/tenant-boundary review.
+- The current live function inventory groups 22 exposed SECURITY DEFINER functions with `search_path=public` and 18 with `search_path=public, pg_temp`. This inventory needs function-by-function review and targeted hardening; do not blanket-revoke required RPCs or treat a source-level marker as proof of runtime authorization.
+- Production grant inspection for `digital_page_payment_events` showed direct SELECT/INSERT/UPDATE/DELETE grants only for `postgres`; `service_role` has REFERENCES/TRIGGER/TRUNCATE but no direct DML grants. Verify the deployed SECURITY DEFINER payment-processing path and its owner/privileges before considering this backend-only table gate closed.
+- The inspected anonymous-role policies include public-facing SELECT predicates and explicit-deny policies; the advisor warnings must be triaged by table and policy rather than broadly removed.
+
+### Dependency and operational blockers
+- PR #374 remains draft/open/unmerged. PR #86 (RC563 catalog service-role boundary) and PR #282 (recovered RC425–RC441 sources, RC441 platform-admin scope and RC565 financial-report fix) also remain draft/open and report non-mergeable status. Their migration ordering and full chronological replay must be reconciled on one candidate chain before release.
+- The historical creation provenance for `public.counter_offer_indrive_bid(uuid,uuid,numeric)` remains an identified clean-replay blocker in the PR #282 release notes. Do not stub the function or skip its revoke migration.
+- Authenticated browser E2E remains unverified: OTP/session lifecycle, two-owner CRUD, public publication, slug collisions, WhatsApp action, subscription expiry, admin manual activation, and MENU business membership.
+- Paymob production E2E, financial reconciliation/settlement, backup restore drill, rollback verification, production HTTP smoke for the new release, and end-user responsive/accessibility checks remain outstanding.
+- Leaked-password protection remains a dashboard/owner action; the available Supabase management tools do not expose a safe way to certify that setting from this audit.
+
+### Release decision
+**BLOCKED / NOT CERTIFIED.** Do not merge PR #374, apply RC567–RC570 to production, or publish the new self-service UI independently of its schema and authorization dependencies. Next steps: reconcile migration provenance and PR conflicts, run the full combined chronological replay, finish the targeted SECURITY DEFINER and grant review, obtain the owner-side Auth setting confirmation, then execute authenticated browser E2E and deployment/rollback smoke tests. Only after all P0 gates pass should the production deployment workflow be run.
