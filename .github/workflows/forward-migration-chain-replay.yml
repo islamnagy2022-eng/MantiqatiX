@@ -10,6 +10,7 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
+      - "scripts/verify-digital-page-self-service-rls.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -84,6 +85,7 @@ jobs:
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f scripts/verify-digital-page-self-service-rls.sql
 
       - name: Stop isolated Supabase instance
         if: always()
