@@ -2086,3 +2086,12 @@ Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261
 - Updated the marketing page source-contract validator and GitHub Pages deployment smoke assertions to require the deferred placeholder and reject the old request form. Updated the catalog module matrix accordingly.
 - Source commits: `e76c6a12e1ed43fe7a5fb084c895a4f3d5c27ae9` (homepage), `668ea9383ecceac417d80be99764d7224257bdfc` (placeholder), `cc4f03560c40705fa5d098c31e0edf9c6f6c5cd7` (validator), `92156626c55f57cfbde859e964fbaec2236971b5` (PWA), `5d1641d0ce8fefe2662ca0460f09c63c22ca20b6` (matrix), `2992ac9621c6979030bbe00f4aa3a3d6494dddc5` (deployment smoke).
 - Verification status at documentation time: exact-head Actions and forward migration replay are queued; do not infer success. No merge, production migration, or deployment occurred. PR #374 remains draft/open and release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Final catalog-first UI and cache alignment follow-up
+
+- Also removed the active marketing-services link from the authenticated dashboard module card; it now says `تحت الإنشاء` and explains the deferral.
+- Updated Pages deployment smoke to check that the marketing-services page is an unindexed placeholder with no request form and that neither public homepage nor authenticated dashboard links to it.
+- Bumped the app script URL to `app.js?v=catalog-first-1`; bumped the service-worker registration/cache contract to `mnty-web-v140-catalog-first` and aligned the marketing workspace validator.
+- Additional commits: `939ba00b2c58142a017b5bc71b04655203219e33` (dashboard), `7577cf748e35c8a92da3c564e37e1fb1328af726` (smoke), `94a6404f13ee7f8fcac50912571f22024bc8b269` / `94a7bb6ed045cfb0cff829abf90c1a54b7747963` (cache refs), `664a7e37a2b95714f6462a889f816b0e774e210c` (workspace validator), `255cb8a79b87830841675844a6c2bc4bd9be5737` (dashboard deferral assertion).
+- Validation has not yet completed: latest observed PR checks are queued and the PR deployment job was cancelled as expected for a draft/PR event. This is not a production deploy. No merge or production migration occurred; release remains **BLOCKED / NOT CERTIFIED**.
