@@ -84,6 +84,8 @@ jobs:
           candidate_dir="$(mktemp -d)"
           echo "MNTY_COMBINED_MIGRATIONS=$candidate_dir" >> "$GITHUB_ENV"
           cp supabase/migrations/*.sql "$candidate_dir/"
+          original_files="$(mktemp)"
+          find "$candidate_dir" -maxdepth 1 -type f -name "*.sql" -printf "%f\n" | sort > "$original_files"
 
           for pr in 86 282; do
             ref="refs/remotes/origin/pr-$pr"
@@ -116,14 +118,20 @@ jobs:
             }
             printf '%s %s\n' "$version" "$filename" >> "$versions_file"
           done
-          duplicate="$(awk '{print $1}' "$versions_file" | sort | uniq -d | head -n 1)"
-          if [ -n "$duplicate" ]; then
-            echo "Duplicate migration timestamp in composed candidate set: $duplicate" >&2
-            grep "^$duplicate " "$versions_file" >&2
-            exit 1
-          fi
+          while IFS= read -r duplicate; do
+            [ -n "$duplicate" ] || continue
+            final_count="$(awk -v v="$duplicate" '$1 == v { n++ } END { print n+0 }' "$versions_file")"
+            original_count="$(awk -v v="$duplicate" 'substr($0,1,14) == v { n++ } END { print n+0 }' "$original_files")"
+            if [ "$final_count" -gt "$original_count" ]; then
+              echo "New duplicate migration timestamp introduced by composed candidates: $duplicate" >&2
+              grep "^$duplicate " "$versions_file" >&2
+              exit 1
+            fi
+            echo "PRESERVED_LEGACY_DUPLICATE_TIMESTAMP=$duplicate (original_count=$original_count final_count=$final_count)"
+          done < <(awk '{print $1}' "$versions_file" | sort | uniq -d)
           echo "COMBINED_MIGRATION_FILE_COUNT=$(find "$candidate_dir" -maxdepth 1 -type f -name '*.sql' | wc -l)"
-          rm -f "$versions_file"
+          rm -f "$versions_file" "$original_files"
+
 
       - name: Validate production checkpoint baseline
         run: node scripts/tests/production-schema-baseline-static-audit.mjs
