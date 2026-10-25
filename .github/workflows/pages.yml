@@ -93,6 +93,7 @@ jobs:
           node scripts/validate-module-runtime-contracts.mjs
           node scripts/validate-provider-services-contract.mjs
           node scripts/validate-restaurant-module-contract.mjs
+          node scripts/validate-restaurant-menu-whatsapp-sync.mjs
           node scripts/validate-sensitive-module-writes.mjs
           node scripts/validate-home-sponsored-ads.mjs
           node scripts/validate-home-production-content.mjs
