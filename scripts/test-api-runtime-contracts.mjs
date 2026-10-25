@@ -19,5 +19,9 @@ assert.equal(matchesIdempotentIntent({ ...intent, provider: "PAYMOB" }, order), 
 assert.equal(matchesIdempotentIntent({ ...intent, payment_method: "CARD" }, order), false);
 assert.equal(matchesIdempotentIntent({ ...intent, amount: "NaN" }, order), false);
 assert.equal(matchesIdempotentIntent(null, order), false);
+assert.equal(matchesIdempotentIntent({ ...intent, amount: null }, { ...order, total: 0 }), false);
+assert.equal(matchesIdempotentIntent({ ...intent, order_id: null }, { ...order, id: null }), false);
+assert.equal(matchesIdempotentIntent({ ...intent, currency: "" }, { ...order, currency: "" }), false);
+assert.equal(matchesIdempotentIntent({ ...intent, payment_method: "" }, order), false);
 
 console.log("API runtime identity contract tests: PASS");
