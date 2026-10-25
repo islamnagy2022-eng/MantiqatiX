@@ -128,6 +128,9 @@ declare
   v_page public.digital_pages%rowtype;
   v_order public.digital_page_orders%rowtype;
 begin
+  if new.updated_by is distinct from auth.uid() then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ACTOR_INVALID';
+  end if;
   select * into v_page from public.digital_pages where id = new.page_id;
   if not found or v_page.page_type <> 'MENU' or v_page.business_id is distinct from new.business_id then
     raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_PAGE_SCOPE_INVALID';
