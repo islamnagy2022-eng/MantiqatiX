@@ -1967,3 +1967,17 @@ Create an auditable matrix from the actual repository/module registry: module an
 - [ ] Wait for exact-head CI and isolated migration replay after the latest page/PWA/reminder changes.
 - [ ] Run authenticated multi-user RLS integration and browser E2E; verify actual WhatsApp handoff, owner isolation, subscription expiry/activation, and mobile layout.
 - [ ] Confirm production migration order/dependencies before merge; no production migration or deployment is authorized yet. Release remains BLOCKED / NOT CERTIFIED.
+
+
+## RC570 — Restaurant menu → public digital MENU → WhatsApp (2026-10-25)
+
+- [x] Added optional HTTPS image_url to restaurant_menu_items in candidate migration 20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql with a database constraint.
+- [x] Restaurant/café menu editor exposes product image URL and keeps canonical item fields, pricing precision checks, branch scope, and shared RBAC.
+- [x] Added guarded “نشر / تحديث المنيو عبر واتساب” action: it targets a published MENU page for the selected business, requires active subscription, exports only available menu items from the selected branch, and writes the existing public MENU section.
+- [x] Added fail-closed guard preventing a menu section already bound to one branch from being overwritten by another branch.
+- [x] Public digital MENU displays categories and product images and prepares a WhatsApp message with item, category, listed price, page URL, and quantity/availability confirmation request.
+- [x] Added static integration validator and expanded public renderer test; cache/asset versions advanced to RC570.
+- [ ] Run exact-head CI including migration uniqueness/history/collision and full forward migration replay.
+- [ ] Run authenticated multi-user RLS integration and browser E2E for restaurant owner, non-owner, public anonymous viewer, product CRUD, image safety, branch isolation, published page sync, expired subscription, and WhatsApp handoff.
+- [ ] Verify subscription reminder UI and admin activation/publishing lifecycle together on the deployed preview.
+- [ ] Production migration/deploy NOT DONE. PR #374 remains draft/open. Do not claim restaurants are launched until the gates above pass and production deployment smoke succeeds.
