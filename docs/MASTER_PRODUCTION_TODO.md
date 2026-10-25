@@ -1952,3 +1952,18 @@ Create an auditable matrix from the actual repository/module registry: module an
 - [ ] Browser E2E: approaching expiry, seven-day/one-day urgency, expired subscription, unknown paid_at, cross-account isolation, and safe WhatsApp support link.
 - [ ] Verify existing Paymob success webhook and manual activation both set paid_at without regression.
 - [ ] Do not merge/deploy until remaining security/E2E release gates pass.
+
+
+## Launch implementation update — dashboard reminders, marketing page, and deferred ads (2026-10-25)
+
+- [x] Added a public company marketing services page at web/marketing-services.html with responsive layout, service cards, and WhatsApp-only request handoff using the configured support number.
+- [x] Linked the company marketing page from desktop/mobile public navigation.
+- [x] Replaced public sponsored-ad promotion/booking surfaces with an explicit “تحت الإنشاء” status for the first launch; ad plan/booking buttons are disabled. Existing internal/other-module financial functionality is not removed.
+- [x] Bumped the PWA cache and included the new marketing page and digital-page assets in the app shell.
+- [x] Added a source-contract validator and public deployment smoke checks for the marketing page.
+- [x] Added dashboard and notification-center subscription reminders based on the recorded paid_at timestamp and product duration; reminders cover the 30-day window, urgent last 7 days, and expired subscriptions. Missing/unavailable dates are not treated as healthy.
+- [x] Removed a redundant candidate migration that duplicated the paid_at trigger already provided by RC567; reminder validation now checks the canonical RC567 immutable paid-at guard.
+- [x] Fixed the RBAC workspace source validator to match the current dashboard routing contract after the previous CI run failed on an obsolete marker.
+- [ ] Wait for exact-head CI and isolated migration replay after the latest page/PWA/reminder changes.
+- [ ] Run authenticated multi-user RLS integration and browser E2E; verify actual WhatsApp handoff, owner isolation, subscription expiry/activation, and mobile layout.
+- [ ] Confirm production migration order/dependencies before merge; no production migration or deployment is authorized yet. Release remains BLOCKED / NOT CERTIFIED.
