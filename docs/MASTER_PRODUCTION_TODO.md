@@ -1825,3 +1825,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] استمرار استكمال واجهات المطاعم ورحلة العميل ومقدم الخدمة، واختبار حالات الخطأ وإعادة المحاولة وحالات الشبكة على واجهة الطلب الحقيقية، مع عدم اعتبار تجربة الطلب التجريبية نظام طلبات إنتاجيًا.
 - [ ] ما زالت اختبارات E2E بهويات حقيقية متعددة الأدوار، واختبارات Paymob/refund والتسويات، ومراجعة RLS/Security Advisor، وتدريب النسخ الاحتياطي والاستعادة، واختبارات Android الموقعة وعلى أجهزة حقيقية، ومراقبة/تنبيه/تراجع الإنتاج غير مغلقة.
 - لا تغييرات على قاعدة بيانات الإنتاج أو معاملات مالية حقيقية في هذا الإصدار. حالة الإطلاق الكامل: **BLOCKED / NOT CERTIFIED**.
+
+
+## RC567 candidate — Customer self-service digital marketing page — 2026-10-25
+
+- [x] Add isolated customer-facing page editor source (page details, WhatsApp contact, product list and prices).
+- [x] Extend public renderer with the page owner's WhatsApp CTA and optional HTTPS product images.
+- [x] Add owner/paid-order authorization and product-section RLS migration candidate.
+- [x] Add CI static checks for the new files and boundary markers.
+- [ ] Resolve migration ordering against open RC563–RC566 candidates; run ordered disposable PostgreSQL migration replay.
+- [ ] Add/execute integration tests for paid/unpaid users, cross-account page isolation, product CRUD, WhatsApp rendering, slug collisions, and publication lifecycle.
+- [ ] Verify the owner entry point from the MantiqatiX app navigation.
+- [ ] Apply migration only through approved migration pipeline after all checks pass; do not run against production directly from this branch.
+- [ ] End-to-end browser test and deployed-site smoke remain NOT VERIFIED.
