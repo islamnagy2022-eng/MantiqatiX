@@ -113,10 +113,12 @@ function subscriptionReminderPanel(){
   const start=new Date(paidAt);
   if(!Number.isFinite(start.getTime()))return null;
   const expiry=new Date(start.getTime()+duration*86400000);
-  const daysLeft=Math.ceil((expiry.getTime()-now)/86400000);
+  const msLeft=expiry.getTime()-now;
+  const daysLeft=Math.ceil(msLeft/86400000);
   if(daysLeft>30)return null;
-  const state=daysLeft<0?'expired':daysLeft<=1?'critical':daysLeft<=7?'warning':'upcoming';
-  const timing=daysLeft<0?'انتهى الاشتراك منذ '+Math.abs(daysLeft)+' يوم':daysLeft===0?'ينتهي الاشتراك اليوم':daysLeft===1?'ينتهي الاشتراك خلال يوم واحد':'متبقي '+daysLeft+' يومًا على انتهاء الاشتراك';
+  const state=msLeft<=0?'expired':daysLeft<=1?'critical':daysLeft<=7?'warning':'upcoming';
+  const daysPast=Math.floor((now-expiry.getTime())/86400000);
+  const timing=msLeft<=0?(daysPast<1?'انتهى الاشتراك اليوم':'انتهى الاشتراك منذ '+daysPast+' يوم'):daysLeft===0?'ينتهي الاشتراك اليوم':daysLeft===1?'ينتهي الاشتراك خلال يوم واحد':'متبقي '+daysLeft+' يومًا على انتهاء الاشتراك';
   const message='مرحبًا دعم MantiqatiX، أحتاج مراجعة/تجديد الاشتراك. الخدمة: '+String(o.title||product?.name_ar||o.page_type||'اشتراك رقمي')+'، رقم الطلب: '+String(o.id)+'، الحالة: '+timing+'.';
   return {id:String(o.id),title:String(o.title||product?.name_ar||'اشتراك رقمي'),timing,state,expiry,href:'https://wa.me/201010171770?text='+encodeURIComponent(message)};
  }).filter(Boolean).sort((a,b)=>(a.expiry?.getTime()??Number.MAX_SAFE_INTEGER)-(b.expiry?.getTime()??Number.MAX_SAFE_INTEGER));
