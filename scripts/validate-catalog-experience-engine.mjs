@@ -33,6 +33,11 @@ assert.match(engine, /requestMode: 'INFORMATION_ONLY'/, 'high-risk sector may us
 assert.match(engine, /preserve: \['pharmacist-review', 'prescription-controls', 'regulated-products'\]/);
 assert.match(engine, /preserve: \['departments', 'emergency-routing', 'patient-privacy', 'institutional-workflow'\]/);
 assert.match(engine, /function subscriptionDisplay/);
+const restaurantMenuMigration = fs.readFileSync('supabase/migrations/20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql', 'utf8');
+assert.doesNotMatch(restaurantMenuMigration, /\$body\$1(?:begin|declare|\s+select)/, 'restaurant menu migration must use valid dollar-quoted function bodies');
+assert.match(restaurantMenuMigration, /m\.business_id::text = digital_page_menu_branch_bindings\.business_id::text/, 'branch binding policy must normalize existing business ID types');
+assert.match(restaurantMenuMigration, /m\.business_id::text = b\.business_id::text/, 'private binding predicate must compare compatible business ID types');
+
 assert.match(engine, /function renderCatalogItem/);
 assert.match(engine, /function renderCatalog\(/);
 assert.match(engine, /rows\.slice\(0, 200\)/, 'shared renderer must bound item count');
