@@ -57,9 +57,12 @@
       if (currentOrder) sel.add(new Option(currentOrder.title + ' · ' + currentOrder.fulfillment_status, currentOrder.id));
       sel.value = currentPage.digital_page_order_id;
     }
-    if (!orders.length && !pages.length) {
+    const canManage = orders.length > 0 || !!currentPage;
+    $('page-form').querySelectorAll('input,textarea,select,button').forEach(x => x.disabled = !canManage);
+    $('order').disabled = !!currentPage || !orders.length;
+    $('new-page').disabled = !orders.length;
+    if (!canManage) {
       $('auth').textContent = 'لا يوجد اشتراك صفحات مدفوع متاح لهذا الحساب حتى الآن. اختر باقة من الأعلى لتفعيل صفحة المنتجات.';
-      $('page-form').querySelectorAll('input,textarea,select,button').forEach(x => x.disabled = true);
     }
   }
   async function loadSubscriptionProducts() {
@@ -180,6 +183,7 @@
       if (order) $('order').add(new Option(order.title + ' · ' + order.fulfillment_status, order.id));
     }
     $('order').value = p.digital_page_order_id || '';
+    $('order').disabled = true;
     $('title').value = p.title || '';
     $('slug').value = p.slug || '';
     $('description').value = p.description || '';
@@ -317,6 +321,22 @@
       $('product-form').reset();
       $('product-form').querySelector('button[type=submit]').textContent = 'إضافة المنتج';
     } catch (err) { message(err.message || 'تعذر حفظ المنتج.', true); }
+  });
+  $('new-page')?.addEventListener('click', async () => {
+    currentPage = null;
+    menuSection = null;
+    items = [];
+    editIndex = -1;
+    $('page-form').reset();
+    $('order').disabled = false;
+    $('products-panel').hidden = true;
+    $('product-form').reset();
+    $('product-form').querySelector('button[type=submit]').textContent = 'إضافة المنتج';
+    renderItems();
+    try {
+      await loadOrders();
+      message(orders.length ? 'اختر اشتراكًا غير مستخدم لإنشاء صفحة جديدة.' : 'لا يوجد اشتراك متاح لإنشاء صفحة جديدة. اشترك في باقة أخرى أولًا.');
+    } catch (e) { message(e.message || 'تعذر تحميل الاشتراكات.', true); }
   });
   $('refresh-subscriptions')?.addEventListener('click', async () => {
     try { await loadPages(); await loadOrders(); message('تم تحديث حالة الاشتراك والصفحات.'); }
