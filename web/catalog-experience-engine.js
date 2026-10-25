@@ -153,7 +153,7 @@
 
   function buildInquiry(profileCode, phone, item, pageUrl) {
     const p = profileFor(profileCode);
-    if (!p || p.requestMode === 'INFORMATION_ONLY') return null;
+    if (!p || !['WHATSAPP', 'WHATSAPP_INFORMATION_ONLY'].includes(p.requestMode)) return null;
     const name = String(item && (item.name || item.title) || '').trim().slice(0, 160);
     const price = String(item && item.price != null ? item.price : '').trim().slice(0, 40);
     const lines = [
