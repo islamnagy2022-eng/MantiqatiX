@@ -134,7 +134,7 @@
         'معرّف الحساب: ' + user.id,
         'حالة الطلب الحالية: ' + String(order.payment_status || 'PENDING'),
         'يرجى مراجعة الطلب وتأكيد طريقة الدفع والتفعيل. لن يتم تفعيل الاشتراك قبل المراجعة الإدارية.'
-      ].join('\\n');
+      ].join('\n');
       const whatsappUrl = 'https://wa.me/' + supportPhone + '?text=' + encodeURIComponent(messageText);
       whatsappWindow.location.replace(whatsappUrl);
       message('تم إنشاء طلب غير مدفوع وتجهيز رسالة واتساب للدعم. لن يتم تفعيل الاشتراك تلقائيًا.');
