@@ -50,9 +50,9 @@ class FakeDatabase {
     if (state.table === "businesses") {
       rows = [{ id: "business-a", tenant_id: "tenant-a", status: "ACTIVE" }];
     } else if (state.table === "user_memberships") {
-      rows = [{ id: "membership-a", role: "CUSTOMER", permissions: [], business_id: null }];
+      rows = [{ id: "membership-a", user_id: "user-a", tenant_id: "tenant-a", status: "ACTIVE", role: "CUSTOMER", permissions: [], business_id: null }];
     } else if (state.table === "marketing_provider_profiles") {
-      rows = [{ id: "provider-a" }];
+      rows = [{ id: "provider-a", business_id: "business-a", status: "ACTIVE" }];
     } else if (state.table === "branches") {
       rows = [{ id: "branch-a", business_id: "business-a", name: "Branch A", code: "A", status: "ACTIVE", address: "", phone: "" }];
       if (value("id") === "branch-b") rows = [];
@@ -61,15 +61,15 @@ class FakeDatabase {
       else if (value("branch_id") === "branch-a") rows = [{ id: "item-a", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-a", name_ar: "فرع أ", status: "ACTIVE" }];
       else rows = [];
     } else if (state.table === "catalog_item_prices") {
-      if (isNull("branch_id")) rows = [{ id: "price-shared", catalog_item_id: "item-shared", branch_id: null, currency: "EGP", unit_price: 10, version: 1, status: "ACTIVE" }];
-      else if (value("branch_id") === "branch-a") rows = [{ id: "price-a", catalog_item_id: "item-a", branch_id: "branch-a", currency: "EGP", unit_price: 12, version: 1, status: "ACTIVE" }];
-      else if (value("branch_id") === "branch-b") rows = [{ id: "price-b", catalog_item_id: "item-a", branch_id: "branch-b", currency: "EGP", unit_price: 99, version: 1, status: "ACTIVE" }];
+      if (isNull("branch_id")) rows = [{ id: "price-shared", tenant_id: "tenant-a", catalog_item_id: "item-shared", branch_id: null, currency: "EGP", unit_price: 10, version: 1, status: "ACTIVE" }];
+      else if (value("branch_id") === "branch-a") rows = [{ id: "price-a", tenant_id: "tenant-a", catalog_item_id: "item-a", branch_id: "branch-a", currency: "EGP", unit_price: 12, version: 1, status: "ACTIVE" }];
+      else if (value("branch_id") === "branch-b") rows = [{ id: "price-b", tenant_id: "tenant-a", catalog_item_id: "item-a", branch_id: "branch-b", currency: "EGP", unit_price: 99, version: 1, status: "ACTIVE" }];
     } else if (state.table === "catalog_item_options") {
       rows = [];
     } else if (state.table === "orders" && this.mode === "payments") {
       rows = [{ id: "order-a", tenant_id: "tenant-a", total: 125.5, currency: "EGP", customer_id: "user-a" }];
     } else if (state.table === "tenant_payment_methods") {
-      rows = [{ id: "method-a" }];
+      rows = [{ id: "method-a", tenant_id: "tenant-a", payment_method: "CASH_ON_DELIVERY", provider: "CASH_ON_DELIVERY", is_enabled: true }];
     } else if (state.table === "payment_intents") {
       rows = this.existingIntent ? [this.existingIntent] : [];
     }
