@@ -20,6 +20,12 @@ for(const [src,marker,label] of [
 if(/customer@example\.com|\+201000000000/.test(payment)) throw new Error('Fake payment billing fallback detected');
 if(webhook.includes('from(\"digital_page_payment_events\").insert') || webhook.includes('from(\"digital_page_orders\").update')) throw new Error('Digital-page webhook must use the atomic database payment processor');
 for(const [src,marker,label] of [
+ [selfService,".eq('owner_user_id', user.id)","L2 customer-owned page reads must be explicitly user-scoped"],
+ [selfService,".in('business_id', businesses.map(b => b.id))","L2 business page reads must be restricted to active owned businesses"],
+ [selfService,"owner_user_id: selectedOrder.page_type === 'MENU' ? null : user.id","L2 personal page ownership must derive from the authenticated user"],
+ [selfService,"business_id: selectedOrder.page_type === 'MENU' ? selectedOrder.target_business_id : null","L2 menu ownership must derive from the server-created order scope"],
+ [selfService,"await sb.rpc('digital_page_subscription_active'","L3 page creation must validate active paid entitlement through the database function"],
+ [publicPage,"const safeImage=v=>{const s=String(v||'').trim();return /^https:\\/\\//i.test(s)?s:''}","public catalog renderer must suppress non-HTTPS product images"],
  [selfService,"digital_page_orders","customer page requires paid order"],
  [selfService,"whatsapp_number","customer WhatsApp contact field"],
  [selfService,"saveItems","customer product and price management"],
