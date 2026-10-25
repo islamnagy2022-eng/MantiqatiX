@@ -57,7 +57,7 @@ for (const [src,marker,label] of [
   [adminEditor,"mnty_admin_activate_digital_page_subscription","admin editor invokes the protected activation RPC"],
   [adminEditorHtml,'id="manual-activation-panel"',"admin activation panel exists"]
 ]) if(!src.includes(marker)) throw new Error('Manual activation boundary marker missing: '+label);
-if (!publicPage.includes('اطلب المنتج عبر واتساب') || !publicPage.includes('MNTYCatalogExperience?.whatsappUrl(pagePhone,productMessage)')) throw new Error('Product order CTA must use the shared WhatsApp helper with encoded product details');
+if (!publicPage.includes('اطلب المنتج عبر واتساب') || !publicPage.includes("MNTYCatalogExperience?.buildInquiry('FOOD',pagePhone,")) throw new Error('Product order CTA must use the shared FOOD adapter and encoded product details');
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
 if ((selfServiceMigration.match(/coalesce\(o\.paid_at, \(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
 if (!selfServiceMigration.includes('digital_page_orders_paid_at_guard') || !selfServiceMigration.includes('new.paid_at := pg_catalog.now()')) throw new Error('Subscription duration must start on first successful payment and paid_at must be immutable');
