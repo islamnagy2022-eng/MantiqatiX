@@ -65,6 +65,8 @@ serve(async (req) => {
     const parsedLimit = Number(url.searchParams.get("limit") ?? "100");
     const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), 100);
     if (!businessId) return json({ error: "businessId is required" }, 400);
+    // Reject oversized caller-controlled identifiers before any database queries.
+    if (branchId && branchId.length > 128) return json({ error: "Invalid branchId" }, 400);
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
       .select("id,tenant_id,status").eq("id", businessId).single();
@@ -95,7 +97,6 @@ serve(async (req) => {
     // Validate the selected branch against the active business. Use exact .eq()
     // filters below; never interpolate a caller-supplied ID into PostgREST filter syntax.
     if (branchId) {
-      if (branchId.length > 128) return json({ error: "Invalid branchId" }, 400);
       const { data: selectedBranch, error: selectedBranchError } = await supabaseAdmin.from("branches")
         .select("id").eq("id", branchId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
       if (selectedBranchError) return json({ error: "Failed to validate branch" }, 500);
