@@ -148,6 +148,13 @@ using (
   )
 );
 
+-- Platform admins need to review paid customer orders before publishing their pages.
+-- Customer rows remain private under the existing owner-read policy.
+drop policy if exists digital_page_orders_admin_read on public.digital_page_orders;
+create policy digital_page_orders_admin_read on public.digital_page_orders
+for select to authenticated
+using ((select public.mnty_can_platform_admin()));
+
 -- Keep existing business/provider ownership and add the paid customer-owned path.
 drop policy if exists digital_pages_owner_select on public.digital_pages;
 create policy digital_pages_owner_select on public.digital_pages
