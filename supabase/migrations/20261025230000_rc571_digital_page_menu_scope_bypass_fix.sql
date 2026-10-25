@@ -22,8 +22,13 @@ begin
     raise exception 'DIGITAL_PAGE_MENU_BUSINESS_REQUIRED';
   end if;
 
-  -- Preserve existing legacy business/provider MENU creation when it is not order-backed.
+  -- Keep the pre-RC571 behavior for business-bound MENU rows: they must be
+  -- backed by a self-service order. Only non-business legacy MENU rows retain
+  -- the old early-return path.
   if new.digital_page_order_id is null then
+    if new.business_id is not null then
+      raise exception 'DIGITAL_PAGE_MENU_ORDER_REQUIRED';
+    end if;
     return new;
   end if;
 
@@ -104,4 +109,4 @@ using (
 );
 
 comment on function public.digital_page_business_menu_insert_guard() is
-  'RC571: validates all order-backed MENU pages; rejects missing business scope; preserves legacy non-order-backed pages.';
+  'RC571: validates all order-backed MENU pages; rejects missing business scope; requires an order for business-bound MENU rows; preserves non-business legacy MENU rows.';
