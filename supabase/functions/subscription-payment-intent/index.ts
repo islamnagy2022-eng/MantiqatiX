@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+const PAYMOB_CHECKOUT_ENABLED=false; // First-launch gate: enable only in a later approved release.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
 import { encryptCheckoutSecret, decryptCheckoutSecret } from "../_shared/checkout-secret-crypto.mjs";
@@ -14,6 +15,7 @@ async function decryptCheckoutSecretPayload(intent:Record<string,unknown>){const
 Deno.serve(async req=>{
  const requestId=req.headers.get("x-request-id")||crypto.randomUUID();
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405,requestId);
+ if(!PAYMOB_CHECKOUT_ENABLED)return json({error:"PAYMOB_CHECKOUT_UNDER_CONSTRUCTION",requestId},503,requestId);
  const auth=req.headers.get("Authorization")??""; if(!auth.startsWith("Bearer "))return json({error:"AUTH_REQUIRED"},401,requestId);
  try{
   const {data:{user},error:userError}=await admin.auth.getUser(auth.slice(7)); if(userError||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401,requestId);
