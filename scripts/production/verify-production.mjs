@@ -85,6 +85,10 @@ const liveReconciliationVerified=Boolean(
   reconciliation.edge_function_contracts==="PASS" &&
   reconciliation.smm_gateway_parity==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
+  reconciliation.digital_page_dependency_reconciliation==="PASS" &&
+  reconciliation.security_definer_authorization_review==="PASS" &&
+  reconciliation.authenticated_browser_e2e==="PASS" &&
+  reconciliation.production_deploy_rollback_smoke==="PASS" &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
 );
