@@ -165,6 +165,55 @@
     return whatsappUrl(phone, lines.join('\n'));
   }
 
+  function renderCatalogItem(profileCode, item, options) {
+    const p = profileFor(profileCode);
+    const x = item || {};
+    const opts = options || {};
+    const statusCode = opts.status || 'READY';
+    const status = statusFor(statusCode);
+    if (!p) {
+      return '<article class="mnty-catalog-item">' + renderStatus('NOT_VERIFIED') +
+        '<p>هذا القسم غير متاح حتى اكتمال التحقق من إعداداته.</p></article>';
+    }
+    const name = String(x.name || x.title || 'عنصر بدون اسم').trim().slice(0, 160);
+    const description = String(x.description || '').trim().slice(0, 600);
+    const category = String(x.category || '').trim().slice(0, 80);
+    const image = /^https:\/\//i.test(String(x.imageUrl || x.image_url || '')) ? String(x.imageUrl || x.image_url) : '';
+    const price = x.price != null && p.priceMode !== 'HIDDEN'
+      ? '<p class="mnty-catalog-price">' + escapeHtml((p.priceMode === 'STARTING_FROM' ? 'يبدأ من ' : '') + String(x.price).slice(0, 40) + (x.currency ? ' ' + String(x.currency).slice(0, 8) : '')) + '</p>'
+      : '';
+    let action = '';
+    if (!status.enabled) {
+      action = renderStatus(statusCode);
+    } else if (p.requestMode === 'WHATSAPP' || p.requestMode === 'WHATSAPP_INFORMATION_ONLY') {
+      const href = buildInquiry(profileCode, opts.phone, x, opts.pageUrl);
+      action = href
+        ? '<a class="mnty-catalog-inquiry" href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">استفسر عبر واتساب</a>'
+        : '<span class="mnty-catalog-action-disabled">التواصل غير متاح حاليًا</span>';
+    } else if (p.requestMode === 'INFORMATION_ONLY') {
+      action = '<span class="mnty-catalog-information-only">للاطلاع والمعلومات فقط</span>';
+    } else {
+      action = '<span class="mnty-catalog-existing-flow">يتم الطلب أو الحجز عبر المسار المعتمد لهذا القطاع</span>';
+    }
+    return '<article class="mnty-catalog-item">' +
+      (image ? '<img loading="lazy" src="' + escapeHtml(image) + '" alt="' + escapeHtml(name) + '">' : '') +
+      '<h3>' + escapeHtml(name) + '</h3>' +
+      (category ? '<p class="mnty-catalog-category">' + escapeHtml(category) + '</p>' : '') +
+      (description ? '<p class="mnty-catalog-description">' + escapeHtml(description) + '</p>' : '') +
+      price + action + '<p class="mnty-catalog-notice">' + escapeHtml(p.notice) + '</p></article>';
+  }
+
+  function renderCatalog(profileCode, items, options) {
+    const p = profileFor(profileCode);
+    if (!p) return '<section class="mnty-catalog-grid">' + renderStatus('NOT_VERIFIED') +
+      '<p>الكتالوج غير متاح حتى اكتمال التحقق.</p></section>';
+    const rows = Array.isArray(items) ? items : [];
+    if (!rows.length) return '<section class="mnty-catalog-empty">' +
+      escapeHtml((options && options.emptyMessage) || 'لا توجد عناصر منشورة حاليًا.') + '</section>';
+    return '<section class="mnty-catalog-grid" data-sector="' + escapeHtml(p.code) + '">' +
+      rows.slice(0, 200).map(item => renderCatalogItem(profileCode, item, options)).join('') + '</section>';
+  }
+
   // Presentation-only estimate. Never use this function to grant access or publish a page.
   function subscriptionDisplay(input, nowValue) {
     const x = input || {};
@@ -193,6 +242,8 @@
     renderStatus,
     whatsappUrl,
     buildInquiry,
+    renderCatalogItem,
+    renderCatalog,
     subscriptionDisplay
   });
 })(typeof window !== 'undefined' ? window : globalThis);
