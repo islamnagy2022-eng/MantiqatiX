@@ -90,70 +90,33 @@
       card.append(node('strong', Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'), 'subscription-price'));
       const buy = node('button', 'اشترك الآن');
       buy.type = 'button';
-      buy.addEventListener('click', () => { const checkoutWindow = window.open('about:blank', '_blank'); if (checkoutWindow) checkoutWindow.opener = null; subscribeToPackage(product.id, buy, checkoutWindow); });
+      buy.addEventListener('click', () => subscribeToPackage(product.id, buy));
       card.append(buy);
       box.append(card);
     }
   }
-  async function subscribeToPackage(productId, button, checkoutWindow) {
+  async function subscribeToPackage(productId, button) {
     try {
       const product = products.find(p => p.id === productId);
       if (!product) throw new Error('الباقة لم تعد متاحة. حدّث الصفحة وحاول مرة أخرى.');
       const { data: sessionData, error: sessionError } = await sb.auth.getSession();
       if (sessionError) throw sessionError;
-      const session = sessionData.session;
-      if (!session?.access_token) throw new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');
-      if (!session.user?.email || !session.user?.phone) {
-        throw new Error('لإتمام التفعيل تواصل مع فريق الدعم عبر واتساب.');
-      }
-      if (!checkoutWindow) throw new Error('اسمح بفتح نافذة الدفع من المتصفح ثم اضغط اشتراك مرة أخرى.');
-      button.disabled = true;
-      message('جارٍ إنشاء طلب الاشتراك وتجهيز الدفع الآمن…');
-      const previousOrderId = pendingCheckoutOrders.get(productId);
-      if (previousOrderId) {
-        const { data: previousOrder, error: previousOrderError } = await sb.from('digital_page_orders')
-          .select('id,payment_status').eq('id', previousOrderId).eq('user_id', user.id).maybeSingle();
-        if (previousOrderError) throw previousOrderError;
-        if (previousOrder?.payment_status === 'PAID') {
-          pendingCheckoutKeys.delete(productId);
-          pendingCheckoutOrders.delete(productId);
-        }
-      }
-      const key = pendingCheckoutKeys.get(productId) || ('pagall-' + user.id + '-' + productId + '-' + crypto.randomUUID());
-      pendingCheckoutKeys.set(productId, key);
-      const { data: orderResult, error: orderError } = await sb.functions.invoke('digital-page-order-create', {
-        body: {
-          productId: product.id,
-          pageType: 'PORTFOLIO',
-          title: 'صفحة تسويقية - ' + product.name_ar,
-          idempotencyKey: key
-        }
-      });
-      if (orderError) throw new Error('تعذر إنشاء طلب الاشتراك. ' + (orderResult?.error || orderError.message || 'حاول مرة أخرى.'));
-      const order = orderResult?.order;
-      if (!order?.id) throw new Error('لم يتم استلام رقم طلب الاشتراك.');
-      pendingCheckoutOrders.set(productId, order.id);
-      const { data: payment, error: paymentError } = await sb.functions.invoke('digital-page-payment-intent', {
-        body: { orderId: order.id, idempotencyKey: key }
-      });
-      if (paymentError) throw new Error('تم إنشاء طلب الاشتراك لكن تعذر تجهيز الدفع. ' + (payment?.error || paymentError.message || 'تواصل مع الدعم قبل تكرار الدفع.'));
-      if (payment?.checkoutUrl) {
-        message('تم تجهيز الدفع الآمن. أكمل الدفع في النافذة الجديدة ثم ارجع إلى هنا لتحديث حالة الاشتراك.');
-        checkoutWindow.location.replace(payment.checkoutUrl);
-        return;
-      }
-      checkoutWindow.close();
-      if (payment?.status === 'PAID') {
-        pendingCheckoutKeys.delete(productId);
-        pendingCheckoutOrders.delete(productId);
-        await loadOrders();
-        message('الاشتراك مدفوع بالفعل. حدّث القائمة وابدأ إنشاء صفحتك.');
-        return;
-      }
-      throw new Error('لم يرجع مزود الدفع رابطًا صالحًا. لا تعاود الدفع قبل تحديث حالة الطلب أو التواصل مع الدعم.');
+      if (!sessionData.session?.user) throw new Error('سجّل الدخول مرة أخرى ثم حاول.');
+      const supportPhone = '201010171770';
+      const messageText = [
+        'طلب اشتراك صفحة تسويقية على MantiqatiX',
+        'الباقة: ' + product.name_ar,
+        'السعر المعروض: ' + Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'),
+        'المدة: ' + Number(product.duration_days || 365) + ' يوم',
+        'البريد: ' + (sessionData.session.user.email || 'غير متاح'),
+        'معرّف الحساب: ' + sessionData.session.user.id,
+        'أرجو تأكيد الاشتراك وطريقة التفعيل.'
+      ].join('\\n');
+      const whatsappUrl = 'https://wa.me/' + supportPhone + '?text=' + encodeURIComponent(messageText);
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      message('تم تجهيز رسالة واتساب لطلب الاشتراك. لن يتم تحصيل أي دفع إلكتروني من هذه الصفحة حاليًا.');
     } catch (err) {
-      if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
-      message(err.message || 'تعذر بدء الاشتراك.', true);
+      message(err.message || 'تعذر تجهيز طلب الاشتراك عبر واتساب.', true);
     } finally {
       button.disabled = false;
     }
