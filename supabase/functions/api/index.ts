@@ -91,27 +91,37 @@ serve(async (req) => {
       .order("name", { ascending: true }).limit(100);
     if (branchesError) return json({ error: "Failed to load branches" }, 500);
 
-    // A branch filter is interpolated into a PostgREST OR expression below.
-    // Restrict its syntax and prove that it is an active branch of this business first.
+    // Validate the selected branch against the active business. Use exact .eq()
+    // filters below; never interpolate a caller-supplied ID into PostgREST filter syntax.
     if (branchId) {
-      if (!/^[A-Za-z0-9_-]{1,128}$/.test(branchId)) {
-        return json({ error: "Invalid branchId" }, 400);
-      }
+      if (branchId.length > 128) return json({ error: "Invalid branchId" }, 400);
       const { data: selectedBranch, error: selectedBranchError } = await supabaseAdmin.from("branches")
         .select("id").eq("id", branchId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
       if (selectedBranchError) return json({ error: "Failed to validate branch" }, 500);
       if (!selectedBranch) return json({ error: "Branch not available for this business" }, 404);
     }
 
-    let itemQuery = supabaseAdmin.from("catalog_items")
+    const buildItemQuery = () => supabaseAdmin.from("catalog_items")
       .select("id,tenant_id,business_id,branch_id,legacy_ref,item_type,name_ar,name_en,description,sku,status,tax_rate,metadata")
       .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
       .order("name_ar", { ascending: true }).limit(limit);
-    if (branchId) itemQuery = itemQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
-    const { data: items, error: itemError } = await itemQuery;
-    if (itemError) return json({ error: "Failed to load catalog" }, 500);
+    let items: any[] = [];
+    if (branchId) {
+      const [sharedItemsRes, branchItemsRes] = await Promise.all([
+        buildItemQuery().is("branch_id", null),
+        buildItemQuery().eq("branch_id", branchId)
+      ]);
+      if (sharedItemsRes.error || branchItemsRes.error) return json({ error: "Failed to load catalog" }, 500);
+      items = [...(sharedItemsRes.data ?? []), ...(branchItemsRes.data ?? [])]
+        .sort((a, b) => String(a.name_ar ?? "").localeCompare(String(b.name_ar ?? "")))
+        .slice(0, limit);
+    } else {
+      const { data, error } = await buildItemQuery();
+      if (error) return json({ error: "Failed to load catalog" }, 500);
+      items = data ?? [];
+    }
 
-    const ids = (items ?? []).map((x: any) => x.id);
+    const ids = items.map((x: any) => x.id);
     if (!ids.length) return json({ tenantId, businessId, branchId: branchId ?? null, items: [], prices: [], options: [] });
 
     const nowIso = new Date().toISOString();
