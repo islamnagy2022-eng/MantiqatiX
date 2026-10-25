@@ -92,6 +92,8 @@ assert.equal(shared.whatsappUrl('123', 'test'), null);
 const wa = shared.whatsappUrl('+20 100 000 0000', 'طلب صنف & تفاصيل');
 assert.ok(wa.startsWith('https://wa.me/201000000000?text='));
 assert.ok(wa.includes(encodeURIComponent('طلب صنف & تفاصيل')));
+const inquiryWithDetails = shared.buildInquiry('FOOD', '201010171770', {name:'شاي', price:'30 EGP', details:'الكمية المطلوبة: 2'}, 'https://example.invalid/menu');
+assert.ok(inquiryWithDetails.includes(encodeURIComponent('الكمية المطلوبة: 2')), 'shared inquiry must include bounded contextual request details');
 const expiry = shared.subscriptionDisplay({ paymentStatus: 'PAID', paidAt: '2026-01-01T00:00:00.000Z', durationDays: 30 }, Date.parse('2026-01-25T00:00:00.000Z'));
 assert.equal(expiry.state, 'EXPIRING');
 assert.equal(expiry.daysRemaining, 6);
