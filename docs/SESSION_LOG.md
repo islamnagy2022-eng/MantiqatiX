@@ -326,3 +326,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added scripts/validate-restaurant-menu-whatsapp-sync.mjs to Pages CI and extended scripts/test-digital-page-runtime.mjs to cover category rendering. Updated restaurant and public page cache asset versions.
 - Exact-head CI and forward migration replay have not yet been verified. Authenticated multi-user RLS, browser E2E, expiry lifecycle, and deployed preview smoke remain required.
 - No merge, production migration, or deployment. PR #374 remains draft/unmerged and release remains BLOCKED / NOT CERTIFIED.
+
+
+- RC570 follow-up security hardening: moved branch ownership binding out of public digital_page_sections.data into digital_page_menu_branch_bindings with RLS and no anonymous grants. Public menu JSON now contains only catalog display fields. Exact-head CI/replay still pending.
