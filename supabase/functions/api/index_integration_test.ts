@@ -81,6 +81,53 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
       tenant_id: tenantId, provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", is_enabled: true,
     }));
   }
+  // The disposable auth identity and its explicit TEST_FIXTURE consent records are
+  // synthetic CI data only. Never use this helper against a remote/non-local project.
+  const requirementsResult = await admin.from("legal_requirements")
+    .select("document_type").eq("action_key", "BUSINESS_TRANSACTION")
+    .eq("enabled", true).eq("required", true);
+  const requirements = requireOk("read required business-transaction legal documents", requirementsResult) ?? [];
+  const consentActors: Array<{ userId: string; role: string; businessId: string }> = [];
+  for (const business of [businessA, businessB]) {
+    const ownerResult = await admin.from("user_memberships")
+      .select("user_id,role").eq("business_id", business.id).eq("status", "ACTIVE")
+      .in("role", ["OWNER", "BUSINESS_OWNER"]).limit(1).maybeSingle();
+    const owner = requireOk(`read legal owner for ${business.code}`, ownerResult);
+    if (owner?.user_id) consentActors.push({ userId: owner.user_id, role: String(owner.role).toUpperCase(), businessId: business.id });
+    consentActors.push({ userId, role: "CUSTOMER", businessId: business.id });
+  }
+  for (const actor of consentActors) {
+    for (const requirement of requirements) {
+      const versionResult = await admin.rpc("legal_effective_version", {
+        p_document_type: requirement.document_type,
+        p_audience: actor.role,
+        p_business_id: actor.businessId,
+      });
+      if (versionResult.error) throw new Error(`resolve legal version ${requirement.document_type}: ${versionResult.error.message}`);
+      const version = Array.isArray(versionResult.data) ? versionResult.data[0] : versionResult.data;
+      if (!version?.document_id || !version?.version_id || !version?.content_hash) {
+        throw new Error(`required legal document is not published for test actor ${actor.role}: ${requirement.document_type}`);
+      }
+      const existingConsent = await admin.from("user_consents").select("id")
+        .eq("user_id", actor.userId).eq("document_id", version.document_id)
+        .eq("document_version_id", version.version_id).eq("consent_status", "ACCEPTED")
+        .eq("content_hash", version.content_hash).limit(1).maybeSingle();
+      if (existingConsent.error) throw new Error(`read legal fixture consent: ${existingConsent.error.message}`);
+      if (!existingConsent.data) {
+        requireOk("insert explicitly synthetic test-only legal consent", await admin.from("user_consents").insert({
+          user_id: actor.userId,
+          account_type: actor.role,
+          document_id: version.document_id,
+          document_version_id: version.version_id,
+          consent_status: "ACCEPTED",
+          content_hash: version.content_hash,
+          source: "TEST_FIXTURE",
+          metadata: { test_fixture: true, simulated_acceptance: true, test_run: suffix },
+        }));
+      }
+    }
+  }
+
   requireOk("insert disposable orders", await admin.from("orders").insert([
     { id: orderA, tenant_id: tenantId, business_id: businessA.id, branch_id: branchA, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
     { id: orderB, tenant_id: tenantId, business_id: businessB.id, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
