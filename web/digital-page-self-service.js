@@ -428,10 +428,14 @@
       const name = $('product-name').value.trim();
       const price = Number($('product-price').value);
       if (!name || !Number.isFinite(price) || price < 0) throw new Error('راجع اسم المنتج والسعر.');
+      const rawImageUrl = $('product-image').value.trim();
+      if (rawImageUrl && (!/^https:\/\//i.test(rawImageUrl) || rawImageUrl.length > 2048)) {
+        throw new Error('رابط الصورة يجب أن يبدأ بـ HTTPS وألا يتجاوز 2048 حرفًا.');
+      }
       const item = {
         name, price, currency: 'EGP',
         description: $('product-description').value.trim(),
-        image_url: $('product-image').value.trim() || null
+        image_url: rawImageUrl || null
       };
       const next = [...items];
       if (editIndex >= 0) next[editIndex] = item; else next.push(item);
