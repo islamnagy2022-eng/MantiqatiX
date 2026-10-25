@@ -24,7 +24,7 @@ for(const [src,marker,label] of [
  [selfServiceMigration,"owner_user_id","isolated customer page ownership"],
  [selfServiceMigration,"digital_page_subscription_active","paid subscription authorization"],
  [selfServiceMigration,"digital_page_public_subscription_active","public page subscription expiry gate"],
- [selfServiceMigration,"pg_catalog.num_nonnulls(owner_user_id, business_id, provider_profile_id) = 1","exactly one digital-page ownership scope"],
+ [selfServiceMigration,"owner_user_id is null or (business_id is null and provider_profile_id is null)","customer ownership cannot overlap legacy scopes"],
  [selfServiceMigration,"new.business_id is distinct from old.business_id","business ownership binding is immutable"],
  [selfServiceMigration,"new.provider_profile_id is distinct from old.provider_profile_id","provider ownership binding is immutable"],
  [selfServiceMigration,"DIGITAL_PAGE_SUBSCRIPTION_BINDING_IMMUTABLE","ownership and subscription transfer protection"]
