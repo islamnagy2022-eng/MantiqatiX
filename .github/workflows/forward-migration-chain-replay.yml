@@ -10,6 +10,8 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
+      - "supabase/functions/api/**"
+      - "package.json"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -20,6 +22,8 @@ on:
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
+      - "supabase/functions/api/**"
+      - "package.json"
       - ".github/workflows/forward-migration-chain-replay.yml"
 
 permissions:
@@ -42,6 +46,10 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: latest
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
 
       - name: Validate captured checkpoint and static schema inventory
         run: node scripts/tests/production-schema-baseline-static-audit.mjs
@@ -84,6 +92,24 @@ jobs:
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
+
+      - name: Export disposable Supabase API credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          status_env="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env)"
+          api_url="$(printf '%s\n' "$status_env" | sed -n 's/^API_URL="\(.*\)"$/\1/p')"
+          anon_key="$(printf '%s\n' "$status_env" | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
+          service_role_key="$(printf '%s\n' "$status_env" | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')"
+          test -n "$api_url" && test -n "$anon_key" && test -n "$service_role_key"
+          {
+            printf 'SUPABASE_URL=%s\n' "$api_url"
+            printf 'SUPABASE_ANON_KEY=%s\n' "$anon_key"
+            printf 'SUPABASE_SERVICE_ROLE_KEY=%s\n' "$service_role_key"
+          } >> "$GITHUB_ENV"
+
+      - name: Test API routes against disposable Supabase
+        run: deno test --node-modules-dir=auto --allow-env --allow-net supabase/functions/api/index_integration_test.ts
 
       - name: Stop isolated Supabase instance
         if: always()
