@@ -82,7 +82,7 @@ begin
         'product_id', o.product_id,
         'page_type', o.page_type,
         'target_business_id', o.target_business_id,
-        'business_name', b.name,
+        'business_name', o.business_name,
         'title', o.title,
         'amount', o.amount,
         'currency', o.currency,
@@ -93,12 +93,15 @@ begin
     '[]'::jsonb
   )
   into v_result
-  from public.digital_page_orders o
-  left join public.businesses b on b.id = o.target_business_id
-  where o.page_type = any(array['PORTFOLIO','MENU'])
-    and o.payment_status = 'PENDING'
-  order by o.created_at desc
-  limit 50;
+  from (
+    select o.*, b.name as business_name
+    from public.digital_page_orders o
+    left join public.businesses b on b.id = o.target_business_id
+    where o.page_type = any(array['PORTFOLIO','MENU'])
+      and o.payment_status = 'PENDING'
+    order by o.created_at desc
+    limit 50
+  ) o;
 
   return v_result;
 end;
