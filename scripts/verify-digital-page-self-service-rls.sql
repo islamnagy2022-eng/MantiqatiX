@@ -103,7 +103,19 @@ BEGIN
     RAISE EXCEPTION 'DIGITAL_PAGE_RLS_CROSS_ACCOUNT_WRITE: pages=%, sections=%',changed_pages,changed_sections;
   END IF;
 
-  RAISE NOTICE 'PASS: user A reads own draft and section; cannot read or update user B draft/section';
+  UPDATE public.digital_pages
+     SET title='RLS Test A Updated', updated_by='20000000-0000-4000-8000-000000000001'
+   WHERE id='42000000-0000-4000-8000-000000000001';
+  GET DIAGNOSTICS changed_pages = ROW_COUNT;
+  UPDATE public.digital_page_sections
+     SET title='A section updated'
+   WHERE page_id='42000000-0000-4000-8000-000000000001';
+  GET DIAGNOSTICS changed_sections = ROW_COUNT;
+  IF changed_pages<>1 OR changed_sections<>1 THEN
+    RAISE EXCEPTION 'DIGITAL_PAGE_RLS_OWNER_A_WRITE_FAILURE: pages=%, sections=%',changed_pages,changed_sections;
+  END IF;
+
+  RAISE NOTICE 'PASS: user A reads/updates own draft and section; cannot read or update user B draft/section';
 END;
 $user_a$;
 
@@ -117,6 +129,8 @@ DECLARE
   cross_pages bigint;
   own_sections bigint;
   cross_sections bigint;
+  changed_pages bigint;
+  changed_sections bigint;
 BEGIN
   SELECT count(*) INTO own_pages FROM public.digital_pages WHERE id='42000000-0000-4000-8000-000000000002';
   SELECT count(*) INTO cross_pages FROM public.digital_pages WHERE id='42000000-0000-4000-8000-000000000001';
@@ -126,7 +140,20 @@ BEGIN
     RAISE EXCEPTION 'DIGITAL_PAGE_RLS_USER_B_SCOPE_FAILURE: own_pages=%, own_sections=%, cross_pages=%, cross_sections=%',
       own_pages,own_sections,cross_pages,cross_sections;
   END IF;
-  RAISE NOTICE 'PASS: user B reads own draft and section; cannot read user A draft/section';
+
+  UPDATE public.digital_pages
+     SET title='RLS Test B Updated', updated_by='20000000-0000-4000-8000-000000000002'
+   WHERE id='42000000-0000-4000-8000-000000000002';
+  GET DIAGNOSTICS changed_pages = ROW_COUNT;
+  UPDATE public.digital_page_sections
+     SET title='B section updated'
+   WHERE page_id='42000000-0000-4000-8000-000000000002';
+  GET DIAGNOSTICS changed_sections = ROW_COUNT;
+  IF changed_pages<>1 OR changed_sections<>1 THEN
+    RAISE EXCEPTION 'DIGITAL_PAGE_RLS_OWNER_B_WRITE_FAILURE: pages=%, sections=%',changed_pages,changed_sections;
+  END IF;
+
+  RAISE NOTICE 'PASS: user B reads/updates own draft and section; cannot read user A draft/section';
 END;
 $user_b$;
 
