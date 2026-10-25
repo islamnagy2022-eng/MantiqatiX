@@ -137,7 +137,7 @@
       ].join('\n');
       const whatsappUrl = 'https://wa.me/' + supportPhone + '?text=' + encodeURIComponent(messageText);
       whatsappWindow.location.replace(whatsappUrl);
-      message('تم إنشاء طلب غير مدفوع وتجهيز رسالة واتساب للدعم. لن يتم تفعيل الاشتراك تلقائيًا.');
+      message('تم إنشاء طلب غير مدفوع وتجهيز رسالة واتساب للدعم. لن يتم تحصيل أي دفع إلكتروني من هذه الصفحة حاليًا. لن يتم تفعيل الاشتراك تلقائيًا.');
     } catch (err) {
       if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
       message(err.message || 'تعذر تجهيز طلب الاشتراك عبر واتساب.', true);
