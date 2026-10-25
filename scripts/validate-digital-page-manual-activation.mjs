@@ -23,7 +23,7 @@ requireCheck(Boolean(activateFn), 'activation RPC body exists with valid dollar 
 requireCheck(/language plpgsql[\s\S]*?security definer[\s\S]*?set search_path = pg_catalog, public/i.test(listFn), 'list RPC is SECURITY DEFINER with fixed search_path');
 requireCheck(/auth\.uid\(\) is null or not coalesce\(public\.mnty_can_platform_admin\(\), false\)/.test(listFn), 'pending queue requires an authenticated platform admin');
 requireCheck(/page_type = 'PORTFOLIO'[\s\S]*?payment_status = 'PENDING'[\s\S]*?limit 50/i.test(listFn), 'queue returns only bounded pending PORTFOLIO orders');
-requireCheck(/auth\.uid\(\) is null or not coalesce\(public\.mnty_can_platform_admin\(\), false\)/.test(activateFn), 'activation requires an authenticated platform admin');
+requireCheck(/v_actor is null or not coalesce\(public\.mnty_can_platform_admin\(\), false\)/.test(activateFn), 'activation requires an authenticated platform admin');
 requireCheck(/p_payment_reference[\s\S]*?MANUAL_PAYMENT_REFERENCE_REQUIRED/.test(activateFn), 'activation requires a bounded external reference');
 requireCheck(/from public\.digital_page_orders[\s\S]*?where id = p_order_id\s+for update/i.test(activateFn), 'activation locks the target order row');
 requireCheck(/v_order\.page_type <> 'PORTFOLIO'/.test(activateFn), 'activation rejects non-portfolio order types');
