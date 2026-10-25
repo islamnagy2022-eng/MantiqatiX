@@ -90,12 +90,12 @@
       card.append(node('strong', Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'), 'subscription-price'));
       const buy = node('button', 'اشترك الآن');
       buy.type = 'button';
-      buy.addEventListener('click', () => subscribeToPackage(product.id, buy));
+      buy.addEventListener('click', () => { const whatsappWindow = window.open('about:blank', '_blank'); if (whatsappWindow) whatsappWindow.opener = null; subscribeToPackage(product.id, buy, whatsappWindow); });
       card.append(buy);
       box.append(card);
     }
   }
-  async function subscribeToPackage(productId, button) {
+  async function subscribeToPackage(productId, button, whatsappWindow) {
     try {
       const product = products.find(p => p.id === productId);
       if (!product) throw new Error('الباقة لم تعد متاحة. حدّث الصفحة وحاول مرة أخرى.');
@@ -112,10 +112,12 @@
         'معرّف الحساب: ' + sessionData.session.user.id,
         'أرجو تأكيد الاشتراك وطريقة التفعيل.'
       ].join('\\n');
+      if (!whatsappWindow) throw new Error('اسمح بفتح نافذة واتساب من المتصفح ثم حاول مرة أخرى.');
       const whatsappUrl = 'https://wa.me/' + supportPhone + '?text=' + encodeURIComponent(messageText);
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      whatsappWindow.location.replace(whatsappUrl);
       message('تم تجهيز رسالة واتساب لطلب الاشتراك. لن يتم تحصيل أي دفع إلكتروني من هذه الصفحة حاليًا.');
     } catch (err) {
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
       message(err.message || 'تعذر تجهيز طلب الاشتراك عبر واتساب.', true);
     } finally {
       button.disabled = false;
