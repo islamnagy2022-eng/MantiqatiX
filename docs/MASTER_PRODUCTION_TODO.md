@@ -1847,3 +1847,15 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] **Production data check pending:** candidate migration will fail closed if duplicates exist; production must be checked read-only before any separately approved deployment.
 - Evidence basis: the captured production schema baseline showed no unique index on `payment_intents(tenant_id, idempotency_key)`, despite the API route's concurrent-race handling relying on a database uniqueness violation. This is a genuine integrity gap, not just a test issue.
 - No production DDL/DML, merge, or deployment was performed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+## PR #375 — API integration fixture follow-up — 2026-10-26
+
+- [x] Inspected the failing isolated migration replay log. Run [40245222744](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/40245222744) failed in `index_integration_test.ts` while inserting the two fixture businesses with `LEGAL_BUSINESS_OWNER_REQUIRED`.
+- [x] Verified the guard in the captured production schema baseline: `trg_legal_business_activation` is `BEFORE INSERT OR UPDATE OF status`, and `legal_gate_business_activation()` requires an active `OWNER`/`BUSINESS_OWNER` membership when a business transitions to `ACTIVE`. It does not inspect an `owner_user_id` column; the captured `businesses` table has no such column.
+- [x] Corrected the integration fixture to match the actual schema and trigger lifecycle: insert synthetic businesses as `INACTIVE`, insert the owner memberships, add explicitly marked consent fixtures for published legal requirements, then activate businesses through the existing trigger. No trigger, constraint, production schema, or historical migration was weakened or changed.
+- [x] Updated existing PR #375 only; latest commit for this fix: `f93b4b38d70bbaf9fd9f42c6fdeb27d01eff7ce8`.
+- [ ] **CI PENDING:** isolated forward-migration replay and API integration test on the latest head. Run [40246587193](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40246587193) targets the corrected commit; it was observed in progress, so no result is claimed yet.
+- [ ] Earlier run [40246194412](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40246194412) on `22aefb18ddda98e827773fac918dfcbb8daf3617` failed at the same fixture insertion point; it is historical failure evidence and does not certify the corrected head.
+- [ ] Remaining API coverage before merge: real concurrent same-key and different-order HTTP requests against disposable Supabase/PostgreSQL; existing integration test currently exercises both scenarios but has yet to pass on the corrected head. Confirm tenant/branch authorization coverage and payment amount/currency/order immutability after the suite advances beyond fixture seeding.
+- Release status remains **BLOCKED / NOT CERTIFIED**. No production DDL/DML, PR merge, or deployment was performed.
+
