@@ -118,6 +118,40 @@ before update on public.digital_page_menu_branch_bindings
 for each row execute function public.digital_page_menu_branch_binding_immutable();
 revoke all on function public.digital_page_menu_branch_binding_immutable() from public, anon, authenticated;
 
+create or replace function public.digital_page_menu_branch_binding_scope_guard()
+returns trigger
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $
+declare
+  v_page public.digital_pages%rowtype;
+  v_order public.digital_page_orders%rowtype;
+begin
+  select * into v_page from public.digital_pages where id = new.page_id;
+  if not found or v_page.page_type <> 'MENU' or v_page.business_id is distinct from new.business_id then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_PAGE_SCOPE_INVALID';
+  end if;
+  if v_page.digital_page_order_id is not null then
+    select * into v_order from public.digital_page_orders where id = v_page.digital_page_order_id;
+    if not found
+       or v_order.page_type <> 'MENU'
+       or v_order.target_business_id is distinct from new.business_id
+       or v_order.user_id is distinct from new.updated_by
+       or v_order.payment_status <> 'PAID'
+       or not coalesce(public.digital_page_subscription_active(v_order.id, new.updated_by), false) then
+      raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ORDER_SCOPE_INVALID';
+    end if;
+  end if;
+  return new;
+end;
+$;
+drop trigger if exists trg_digital_page_menu_branch_binding_scope_guard on public.digital_page_menu_branch_bindings;
+create trigger trg_digital_page_menu_branch_binding_scope_guard
+before insert or update on public.digital_page_menu_branch_bindings
+for each row execute function public.digital_page_menu_branch_binding_scope_guard();
+revoke all on function public.digital_page_menu_branch_binding_scope_guard() from public, anon, authenticated;
+
 -- This SECURITY DEFINER predicate reads the private binding even when another branch's RLS hides it.
 -- It is used only as a restrictive write policy; public readers can still read published MENU sections.
 create or replace function public.digital_page_menu_section_write_allowed(p_page_id uuid, p_actor uuid)
