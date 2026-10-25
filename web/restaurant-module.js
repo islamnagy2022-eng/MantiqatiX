@@ -200,12 +200,28 @@ async function syncRestaurantMenuToDigitalPage(){
    popular:x.is_popular===true
   })).filter(x=>x.name&&Number.isFinite(x.price)&&x.price>=0);
   if(!available.length)return notify('لا توجد أصناف متاحة صالحة للنشر. فعّل الأصناف وأعد المحاولة.','error');
+  const bindingResult=await sb.from('digital_page_menu_branch_bindings')
+   .select('page_id,tenant_id,business_id,branch_id').eq('page_id',page.id).maybeSingle();
+  if(bindingResult.error)throw bindingResult.error;
+  if(bindingResult.data&&(
+    String(bindingResult.data.tenant_id)!==String(s.tenant_id)||
+    String(bindingResult.data.business_id)!==String(s.business_id)||
+    String(bindingResult.data.branch_id)!==String(s.branch_id)
+  ))return notify('رابط المنيو مرتبط بفرع آخر. تم منع استبدال قائمة فرع بفرع مختلف؛ دعم الفروع المتعددة في رابط واحد يحتاج استكمالًا منفصلًا.','error');
+  if(!bindingResult.data){
+   const bindingInsert=await sb.from('digital_page_menu_branch_bindings').insert({page_id:page.id,tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,updated_by:state.user.id}).select('page_id').maybeSingle();
+   if(bindingInsert.error)throw bindingInsert.error;
+   if(!bindingInsert.data)throw new Error('تعذر تثبيت نطاق الفرع الخاص بالمنيو');
+  }else{
+   const bindingUpdate=await sb.from('digital_page_menu_branch_bindings').update({updated_by:state.user.id,updated_at:new Date().toISOString()}).eq('page_id',page.id).select('page_id').maybeSingle();
+   if(bindingUpdate.error)throw bindingUpdate.error;
+   if(!bindingUpdate.data)throw new Error('تعذر التحقق من نطاق الفرع الخاص بالمنيو');
+  }
   const sectionResult=await sb.from('digital_page_sections')
-   .select('id,data').eq('page_id',page.id).eq('section_type','MENU')
+   .select('id').eq('page_id',page.id).eq('section_type','MENU')
    .order('sort_order',{ascending:true}).limit(1).maybeSingle();
   if(sectionResult.error)throw sectionResult.error;
-  if(sectionResult.data?.data?.branch_id&&String(sectionResult.data.data.branch_id)!==String(s.branch_id))return notify('رابط المنيو مرتبط بفرع آخر. تم منع استبدال قائمة فرع بفرع مختلف؛ دعم الفروع المتعددة في رابط واحد يحتاج استكمالًا منفصلًا.','error');
-  const payload={title:'المنيو والأسعار',content:'قائمة محدثة من أصناف فرع النشاط. الطلب والتأكيد عبر واتساب.',data:{source:'restaurant_menu_items',tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,items:available},sort_order:0,active:true};
+  const payload={title:'المنيو والأسعار',content:'قائمة محدثة من أصناف فرع النشاط. الطلب والتأكيد عبر واتساب.',data:{source:'restaurant_menu_items',items:available},sort_order:0,active:true};
   let saved;
   if(sectionResult.data){
    saved=await sb.from('digital_page_sections').update(payload).eq('id',sectionResult.data.id).select('id').maybeSingle();
