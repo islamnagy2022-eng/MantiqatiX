@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 
 const engine = fs.readFileSync('web/catalog-experience-engine.js', 'utf8');
 const digitalHtml = fs.readFileSync('web/digital-page-self-service.html', 'utf8');
@@ -52,4 +53,31 @@ assert.match(app, /case'الإشعارات':return subscriptionReminderPanel\(\)
 assert.match(smmHtml, /smm\.js/);
 assert.doesNotMatch(engine, /smm-gateway|payment-intent|paymob/i, 'shared public catalog engine must not execute SMM or payment operations');
 
-console.log('Shared catalog engine profiles + WhatsApp helper + dashboard subscription reminder source contracts: PASS');
+const runtime = { console, Date, URL, encodeURIComponent };
+runtime.window = runtime;
+runtime.globalThis = runtime;
+vm.createContext(runtime);
+vm.runInContext(sectors, runtime, { filename: 'web/sector-registry.js' });
+vm.runInContext(engine, runtime, { filename: 'web/catalog-experience-engine.js' });
+const shared = runtime.MNTYCatalogExperience;
+assert.equal(shared.profileFor('FOOD').code, 'FOOD');
+assert.equal(shared.profileFor('DIGITAL').code, 'MARKETING');
+assert.equal(shared.profileFor('EDU').code, 'EDUCATION');
+assert.equal(shared.profileFor('TECH').code, 'ERP');
+assert.equal(shared.profileFor('PHARMACY').requestMode, 'WHATSAPP');
+assert.equal(shared.profileFor('HOSPITAL').requestMode, 'INFORMATION_ONLY');
+assert.equal(shared.profileFor('MANTIGO').requestMode, 'EXISTING_RIDE_FLOW');
+assert.equal(shared.profileFor('UNKNOWN'), null);
+assert.equal(shared.statuses.UNDER_CONSTRUCTION.enabled, false);
+assert.equal(shared.statuses.NOT_VERIFIED.enabled, false);
+assert.equal(shared.whatsappUrl('123', 'test'), null);
+const wa = shared.whatsappUrl('+20 100 000 0000', 'طلب صنف & تفاصيل');
+assert.ok(wa.startsWith('https://wa.me/201000000000?text='));
+assert.ok(wa.includes(encodeURIComponent('طلب صنف & تفاصيل')));
+const expiry = shared.subscriptionDisplay({ paymentStatus: 'PAID', paidAt: '2026-01-01T00:00:00.000Z', durationDays: 30 }, Date.parse('2026-01-25T00:00:00.000Z'));
+assert.equal(expiry.state, 'EXPIRING');
+assert.equal(expiry.daysRemaining, 6);
+assert.equal(shared.subscriptionDisplay({ paymentStatus: 'PENDING', paidAt: null, durationDays: 30 }).state, 'PENDING_REVIEW');
+assert.equal(shared.subscriptionDisplay({ paymentStatus: 'PAID', paidAt: null, durationDays: 30 }).state, 'NOT_VERIFIED');
+
+console.log('Shared catalog engine profile runtime + WhatsApp helper + subscription reminder source contracts: PASS');
