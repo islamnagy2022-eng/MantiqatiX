@@ -159,6 +159,7 @@
     const lines = [
       'مرحبًا، أريد الاستفسار عن ' + p.noun + (name ? ': ' + name : ''),
       price && p.priceMode !== 'HIDDEN' ? 'السعر المعروض: ' + price + ' (يحتاج التأكيد من النشاط)' : '',
+      item && item.details ? 'تفاصيل الطلب: ' + String(item.details).trim().slice(0, 600) : '',
       pageUrl ? 'رابط الصفحة: ' + String(pageUrl).slice(0, 400) : '',
       p.notice
     ].filter(Boolean);
