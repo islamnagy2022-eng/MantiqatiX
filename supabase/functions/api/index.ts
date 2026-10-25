@@ -115,24 +115,47 @@ serve(async (req) => {
     if (!ids.length) return json({ tenantId, businessId, branchId: branchId ?? null, items: [], prices: [], options: [] });
 
     const nowIso = new Date().toISOString();
-    let priceQuery = supabaseAdmin.from("catalog_item_prices")
+    const buildPriceQuery = () => supabaseAdmin.from("catalog_item_prices")
       .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
       .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
       .lte("effective_from", nowIso).or(`effective_to.is.null,effective_to.gte.${nowIso}`);
-    // Never return another branch's override when a specific branch was requested.
-    if (branchId) priceQuery = priceQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
+    const optionsQuery = supabaseAdmin.from("catalog_item_options")
+      .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
+      .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
+      .order("name_ar", { ascending: true });
+
+    let prices: any[] = [];
+    if (branchId) {
+      // Use separate exact filters rather than interpolating an untrusted branch
+      // into a compound OR expression; only shared prices and this branch's overrides
+      // are returned for a branch-specific catalog request.
+      const [sharedPricesRes, branchPricesRes, optionsRes] = await Promise.all([
+        buildPriceQuery().is("branch_id", null).order("version", { ascending: false }),
+        buildPriceQuery().eq("branch_id", branchId).order("version", { ascending: false }),
+        optionsQuery
+      ]);
+      if (sharedPricesRes.error || branchPricesRes.error || optionsRes.error) {
+        return json({ error: "Failed to load catalog pricing" }, 500);
+      }
+      prices = [...(sharedPricesRes.data ?? []), ...(branchPricesRes.data ?? [])];
+      return json({
+        tenantId, businessId, branchId,
+        pricingAuthority: "catalog_v1",
+        branches: branches ?? [],
+        items: items ?? [],
+        prices,
+        options: optionsRes.data ?? []
+      });
+    }
 
     const [pricesRes, optionsRes] = await Promise.all([
-      priceQuery.order("version", { ascending: false }),
-      supabaseAdmin.from("catalog_item_options")
-        .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
-        .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
-        .order("name_ar", { ascending: true })
+      buildPriceQuery().order("version", { ascending: false }),
+      optionsQuery
     ]);
     if (pricesRes.error || optionsRes.error) return json({ error: "Failed to load catalog pricing" }, 500);
 
     return json({
-      tenantId, businessId, branchId: branchId ?? null,
+      tenantId, businessId, branchId: null,
       pricingAuthority: "catalog_v1",
       branches: branches ?? [],
       items: items ?? [],
