@@ -2050,3 +2050,12 @@ Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261
 - [ ] Exact-head CI, security/RLS integration, browser E2E and deployment smoke pass before production release.
 - Planning estimate only (not a commitment): a narrow MVP for the common engine, initial adapters, WhatsApp handoff and dashboard reminders may take roughly 2–4 weeks if current data contracts can be reused and required environments/credentials are available. Full cross-sector production hardening and unresolved security/integration gates may extend this; do not declare a launch date until the module inventory and test environment are confirmed.
 - Current status: PLANNED / NOT IMPLEMENTED ACROSS SECTORS / NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
+
+
+### RC570 follow-up — branch identifier type reconciliation (2026-10-25)
+- [x] Inspected the exact-head forward migration replay failure in workflow run 40227854710. PostgreSQL stopped in RC570 with `operator does not exist: character varying = uuid` while comparing restaurant membership branch IDs to the private MENU binding.
+- [x] Updated the five branch-scope comparisons in `20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql` to compare normalized text representations, preserving the same exact identifier match rather than widening access.
+- [x] Commit: `c3a2fef8386c3c89a67c54759108ff70c947a86e` on `feat/digital-page-self-service-20261025`.
+- [ ] Exact-head forward migration replay and all required CI must rerun; this source fix is not yet verified by a rerun.
+- [ ] Separate failure in the same exact-head workflow batch: production security validator reported a stale membership-selection assertion; investigate and correct only after checking the current intended behavior.
+- No production migration, deployment, payment, or production data mutation was performed. Release remains **BLOCKED / NOT CERTIFIED**.
