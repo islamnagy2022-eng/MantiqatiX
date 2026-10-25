@@ -22,9 +22,11 @@ assert.match(source, /const normalizedIdempotencyKey = String\(idempotencyKey \?
   "payment idempotency keys must be trimmed and validated");
 assert.match(source, /const matchesIdempotentIntent = \(intent: Record<string, unknown>\)/,
   "idempotency replay must compare immutable payment identity");
-for (const field of ["order_id", "amount", "currency", "provider", "payment_method"]) {
+for (const field of ["order_id", "currency", "provider", "payment_method"]) {
   assert.match(source, new RegExp(`String\\(intent\\.${field}\\)`), `idempotency comparison must include ${field}`);
 }
+assert.match(source, /Math\.abs\(Number\(intent\.amount\) - Number\(order\.total\)\) <= 0\.01/,
+  "idempotency comparison must include numeric amount equality");
 assert.match(source, /\.insert\(newIntent\)\.select\(\)\.single\(\)/,
   "new payment intents must be inserted, not overwrite an existing key");
 assert.match(source, /IDEMPOTENCY_CONFLICT/,
