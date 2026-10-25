@@ -138,9 +138,8 @@ begin
     if not found
        or v_order.page_type <> 'MENU'
        or v_order.target_business_id is distinct from new.business_id
-       or v_order.user_id is distinct from new.updated_by
        or v_order.payment_status <> 'PAID'
-       or not coalesce(public.digital_page_subscription_active(v_order.id, new.updated_by), false) then
+       or not coalesce(public.digital_page_public_subscription_active(v_order.id), false) then
       raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ORDER_SCOPE_INVALID';
     end if;
   end if;
