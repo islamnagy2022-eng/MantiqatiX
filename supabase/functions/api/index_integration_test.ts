@@ -33,20 +33,12 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   }
   const token = signedIn.data.session.access_token;
 
-  // Reuse the official, already-active disposable-chain showcase businesses.
-  // This avoids bypassing the legal business-activation gate in test setup.
-  const tenantId = "MNTY-PLATFORM";
-  const businessAResult = await admin.from("businesses").select("id,tenant_id,code,status").eq("code", "MNTY-FOOD").single();
-  const businessBResult = await admin.from("businesses").select("id,tenant_id,code,status").eq("code", "MNTY-HEALTH").single();
-  const businessA = requireOk("read existing active showcase business A", businessAResult);
-  const businessB = requireOk("read existing active showcase business B", businessBResult);
-  if (!businessA || !businessB || businessA.status !== "ACTIVE" || businessB.status !== "ACTIVE") {
-    throw new Error("required active showcase businesses are missing from disposable migration replay");
-  }
-  if (businessA.tenant_id !== tenantId || businessB.tenant_id !== tenantId) {
-    throw new Error("showcase business tenant differs from expected platform tenant");
-  }
-
+  // Seed synthetic businesses inactive, establish the owner membership, and pass
+  // the real legal activation gate using clearly marked test-only consent fixtures.
+  // The whole test runs only against a local disposable Supabase instance.
+  const tenantId = `api-it-${suffix}`;
+  const businessAId = crypto.randomUUID();
+  const businessBId = crypto.randomUUID();
   const branchA = `api-branch-a-${suffix}`;
   const branchB = `api-branch-b-${suffix}`;
   const crossBusinessBranch = `api-cross-${suffix}`;
@@ -55,17 +47,78 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   const orderA = crypto.randomUUID();
   const orderB = crypto.randomUUID();
 
-  requireOk("insert test customer membership", await admin.from("user_memberships").insert({
-    id: `api-it-member-${suffix}`, user_id: userId, tenant_id: tenantId, role: "CUSTOMER", permissions: [], status: "ACTIVE",
+  requireOk("insert disposable tenant", await admin.from("tenants").insert({
+    id: tenantId, name: "API route integration test tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
   }));
+  const insertedBusinesses = requireOk("insert inactive disposable businesses", await admin.from("businesses").insert([
+    { id: businessAId, tenant_id: tenantId, name: "API Test Business A", code: `APIITA-${suffix}`, status: "INACTIVE", settings: { test_fixture: true, sector: "FOOD" } },
+    { id: businessBId, tenant_id: tenantId, name: "API Test Business B", code: `APIITB-${suffix}`, status: "INACTIVE", settings: { test_fixture: true, sector: "HEALTH" } },
+  ]).select("id,tenant_id,code,status"));
+  const businessA = insertedBusinesses.find((business: { id: string }) => business.id === businessAId);
+  const businessB = insertedBusinesses.find((business: { id: string }) => business.id === businessBId);
+  if (!businessA || !businessB) throw new Error("failed to read back disposable businesses");
+
+  requireOk("insert test owner memberships", await admin.from("user_memberships").insert([
+    { id: `api-it-owner-a-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessAId, role: "OWNER", permissions: [], status: "ACTIVE" },
+    { id: `api-it-owner-b-${suffix}`, user_id: userId, tenant_id: tenantId, business_id: businessBId, role: "OWNER", permissions: [], status: "ACTIVE" },
+  ]));
+
+  // Seed only synthetic, explicitly labelled consents for the disposable test user.
+  // This exercises the existing legal gate rather than disabling or bypassing it.
+  for (const business of [businessA, businessB]) {
+    for (const actionKey of ["BUSINESS_ACTIVATION", "BUSINESS_TRANSACTION"]) {
+      const requirementsResult = await admin.from("legal_requirements")
+        .select("document_type").eq("action_key", actionKey)
+        .eq("enabled", true).eq("required", true);
+      const requirements = requireOk(`read legal requirements for ${actionKey}`, requirementsResult) ?? [];
+      for (const requirement of requirements) {
+        const versionResult = await admin.rpc("legal_effective_version", {
+          p_document_type: requirement.document_type,
+          p_audience: "OWNER",
+          p_business_id: business.id,
+        });
+        if (versionResult.error) throw new Error(`resolve legal version ${requirement.document_type}: ${versionResult.error.message}`);
+        const version = Array.isArray(versionResult.data) ? versionResult.data[0] : versionResult.data;
+        if (!version?.document_id || !version?.version_id || !version?.content_hash) {
+          throw new Error(`required legal document is not published for ${actionKey}: ${requirement.document_type}`);
+        }
+        const existingConsent = await admin.from("user_consents").select("id")
+          .eq("user_id", userId).eq("document_id", version.document_id)
+          .eq("document_version_id", version.version_id).eq("consent_status", "ACCEPTED")
+          .eq("content_hash", version.content_hash).limit(1).maybeSingle();
+        if (existingConsent.error) throw new Error(`read test consent: ${existingConsent.error.message}`);
+        if (!existingConsent.data) {
+          requireOk("insert synthetic test-only legal consent", await admin.from("user_consents").insert({
+            user_id: userId,
+            account_type: "OWNER",
+            document_id: version.document_id,
+            document_version_id: version.version_id,
+            consent_status: "ACCEPTED",
+            content_hash: version.content_hash,
+            source: "TEST_FIXTURE",
+            metadata: { test_fixture: true, simulated_acceptance: true, action_key: actionKey, test_run: suffix },
+          }));
+        }
+      }
+    }
+  }
+
+  requireOk("activate test business A through legal gate", await admin.from("businesses").update({ status: "ACTIVE" }).eq("id", businessAId));
+  requireOk("activate test business B through legal gate", await admin.from("businesses").update({ status: "ACTIVE" }).eq("id", businessBId));
+
+  requireOk("insert test provider profiles", await admin.from("marketing_provider_profiles").insert([
+    { provider_kind: "OFFICIAL", business_id: businessAId, owner_user_id: userId, name_ar: "API Test Provider A", slug: `api-it-a-${suffix}`, status: "ACTIVE", is_verified: true },
+    { provider_kind: "OFFICIAL", business_id: businessBId, owner_user_id: userId, name_ar: "API Test Provider B", slug: `api-it-b-${suffix}`, status: "ACTIVE", is_verified: true },
+  ]));
+
   requireOk("insert disposable catalog branches", await admin.from("branches").insert([
-    { id: branchA, tenant_id: tenantId, business_id: businessA.id, name: "API Test Branch A", code: `API-A-${suffix}`, status: "ACTIVE" },
-    { id: branchB, tenant_id: tenantId, business_id: businessA.id, name: "API Test Branch B", code: `API-B-${suffix}`, status: "ACTIVE" },
-    { id: crossBusinessBranch, tenant_id: tenantId, business_id: businessB.id, name: "API Cross Business Branch", code: `API-X-${suffix}`, status: "ACTIVE" },
+    { id: branchA, tenant_id: tenantId, business_id: businessAId, name: "API Test Branch A", code: `API-A-${suffix}`, status: "ACTIVE" },
+    { id: branchB, tenant_id: tenantId, business_id: businessAId, name: "API Test Branch B", code: `API-B-${suffix}`, status: "ACTIVE" },
+    { id: crossBusinessBranch, tenant_id: tenantId, business_id: businessBId, name: "API Cross Business Branch", code: `API-X-${suffix}`, status: "ACTIVE" },
   ]));
   requireOk("insert disposable catalog items", await admin.from("catalog_items").insert([
-    { id: sharedItemId, tenant_id: tenantId, business_id: businessA.id, branch_id: null, name_ar: `API shared ${suffix}`, status: "ACTIVE" },
-    { id: branchItemId, tenant_id: tenantId, business_id: businessA.id, branch_id: branchA, name_ar: `API branch ${suffix}`, status: "ACTIVE" },
+    { id: sharedItemId, tenant_id: tenantId, business_id: businessAId, branch_id: null, name_ar: `API shared ${suffix}`, status: "ACTIVE" },
+    { id: branchItemId, tenant_id: tenantId, business_id: businessAId, branch_id: branchA, name_ar: `API branch ${suffix}`, status: "ACTIVE" },
   ]));
   requireOk("insert disposable catalog prices", await admin.from("catalog_item_prices").insert([
     { id: crypto.randomUUID(), tenant_id: tenantId, catalog_item_id: sharedItemId, branch_id: null, currency: "EGP", unit_price: 10, version: 1, status: "ACTIVE" },
@@ -81,56 +134,9 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
       tenant_id: tenantId, provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", is_enabled: true,
     }));
   }
-  // The disposable auth identity and its explicit TEST_FIXTURE consent records are
-  // synthetic CI data only. Never use this helper against a remote/non-local project.
-  const requirementsResult = await admin.from("legal_requirements")
-    .select("document_type").eq("action_key", "BUSINESS_TRANSACTION")
-    .eq("enabled", true).eq("required", true);
-  const requirements = requireOk("read required business-transaction legal documents", requirementsResult) ?? [];
-  const consentActors: Array<{ userId: string; role: string; businessId: string }> = [];
-  for (const business of [businessA, businessB]) {
-    const ownerResult = await admin.from("user_memberships")
-      .select("user_id,role").eq("business_id", business.id).eq("status", "ACTIVE")
-      .in("role", ["OWNER", "BUSINESS_OWNER"]).limit(1).maybeSingle();
-    const owner = requireOk(`read legal owner for ${business.code}`, ownerResult);
-    if (owner?.user_id) consentActors.push({ userId: owner.user_id, role: String(owner.role).toUpperCase(), businessId: business.id });
-    consentActors.push({ userId, role: "CUSTOMER", businessId: business.id });
-  }
-  for (const actor of consentActors) {
-    for (const requirement of requirements) {
-      const versionResult = await admin.rpc("legal_effective_version", {
-        p_document_type: requirement.document_type,
-        p_audience: actor.role,
-        p_business_id: actor.businessId,
-      });
-      if (versionResult.error) throw new Error(`resolve legal version ${requirement.document_type}: ${versionResult.error.message}`);
-      const version = Array.isArray(versionResult.data) ? versionResult.data[0] : versionResult.data;
-      if (!version?.document_id || !version?.version_id || !version?.content_hash) {
-        throw new Error(`required legal document is not published for test actor ${actor.role}: ${requirement.document_type}`);
-      }
-      const existingConsent = await admin.from("user_consents").select("id")
-        .eq("user_id", actor.userId).eq("document_id", version.document_id)
-        .eq("document_version_id", version.version_id).eq("consent_status", "ACCEPTED")
-        .eq("content_hash", version.content_hash).limit(1).maybeSingle();
-      if (existingConsent.error) throw new Error(`read legal fixture consent: ${existingConsent.error.message}`);
-      if (!existingConsent.data) {
-        requireOk("insert explicitly synthetic test-only legal consent", await admin.from("user_consents").insert({
-          user_id: actor.userId,
-          account_type: actor.role,
-          document_id: version.document_id,
-          document_version_id: version.version_id,
-          consent_status: "ACCEPTED",
-          content_hash: version.content_hash,
-          source: "TEST_FIXTURE",
-          metadata: { test_fixture: true, simulated_acceptance: true, test_run: suffix },
-        }));
-      }
-    }
-  }
-
   requireOk("insert disposable orders", await admin.from("orders").insert([
-    { id: orderA, tenant_id: tenantId, business_id: businessA.id, branch_id: branchA, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
-    { id: orderB, tenant_id: tenantId, business_id: businessB.id, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
+    { id: orderA, tenant_id: tenantId, business_id: businessAId, branch_id: branchA, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
+    { id: orderB, tenant_id: tenantId, business_id: businessBId, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
   ]));
 
   const handler = createApiHandler();
@@ -144,7 +150,7 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   }));
 
-  const catalogResponse = await send(`/api/v1/catalog?businessId=${businessA.id}&branchId=${encodeURIComponent(branchA)}`);
+  const catalogResponse = await send(`/api/v1/catalog?businessId=${businessAId}&branchId=${encodeURIComponent(branchA)}`);
   const catalogBody = await catalogResponse.json();
   if (catalogResponse.status !== 200) throw new Error(`catalog request failed: ${catalogResponse.status} ${JSON.stringify(catalogBody)}`);
   const priceIds = (catalogBody.prices ?? []).map((price: { id: string }) => price.id);
@@ -157,7 +163,7 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     throw new Error(`catalog response leaked or omitted branch prices: ${priceIds.join(",")}`);
   }
 
-  const crossBusinessResponse = await send(`/api/v1/catalog?businessId=${businessA.id}&branchId=${encodeURIComponent(crossBusinessBranch)}`);
+  const crossBusinessResponse = await send(`/api/v1/catalog?businessId=${businessAId}&branchId=${encodeURIComponent(crossBusinessBranch)}`);
   if (crossBusinessResponse.status !== 404) throw new Error(`cross-business branch must be rejected, got ${crossBusinessResponse.status}`);
 
   const concurrentSameKey = `same-${suffix}`;
