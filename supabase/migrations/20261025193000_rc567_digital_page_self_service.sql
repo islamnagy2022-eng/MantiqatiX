@@ -4,18 +4,9 @@ alter table public.digital_pages
   add column if not exists owner_user_id uuid references auth.users(id) on delete cascade,
   add column if not exists whatsapp_number text;
 
-do $$
-declare c record;
-begin
-  for c in
-    select conname from pg_constraint
-    where conrelid='public.digital_pages'::regclass and contype='c'
-      and pg_get_constraintdef(oid) ilike '%business_id%'
-      and pg_get_constraintdef(oid) ilike '%provider_profile_id%'
-  loop
-    execute format('alter table public.digital_pages drop constraint %I', c.conname);
-  end loop;
-end $$;
+-- Replace only the original table-level ownership check from RC248.
+alter table public.digital_pages
+  drop constraint if exists digital_pages_check;
 
 alter table public.digital_pages
   add constraint digital_pages_owner_scope_check
