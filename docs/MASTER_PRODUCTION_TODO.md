@@ -2016,3 +2016,37 @@ Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261
 - [ ] Finish the actual per-sector adapter wiring and verified route/module inventory. The engine profiles do not prove that every sector is integrated.
 - [ ] Scheduled push/email reminders remain NOT VERIFIED; current reminders are shown in the dashboard/notification center when the user opens the platform. Do not claim background notifications until scheduler, deduplication, delivery and tenant-isolation tests pass.
 - [ ] Browser/mobile E2E, authenticated multi-user RLS, and production-like checks remain mandatory. No merge or production deployment has occurred.
+
+
+## Shared service/catalog engine and dashboard subscription reminders — implementation plan (2026-10-25)
+
+### Architecture requirement
+- Build one reusable **Service & Catalog Experience Engine** for applicable modules instead of implementing parallel versions per sector. The existing web/module-blueprints.js is currently a workspace/blueprint presentation layer; do not claim it is already the complete shared catalog engine.
+- Integrate the engine through a sector capability/configuration registry and adapters to each module's existing canonical tables/RPCs. Do not introduce a second source of truth for products, services, menus, prices, inventory, bookings, or medical workflows.
+- Common capabilities: public profile/page, service/product/menu listing, images/descriptions where supported, informational prices, publication/availability state, owner-scoped CRUD through approved backend paths, WhatsApp contact/request CTA, subscription entitlement checks, visible READY/UNDER CONSTRUCTION/BLOCKED/NOT VERIFIED status.
+- Sector adapters/capabilities:
+  - Restaurants/cafés: menu sections, menu items, options/add-ons only where existing schema supports them; table/order/kitchen workflows remain separate.
+  - Stores/grocery/fashion: product options, inventory, availability and delivery/order workflows only where existing schema supports them.
+  - Pharmacies: catalog/contact only; no unapproved prescription/diagnosis flow or claims of medicine availability; preserve regulatory/safety constraints.
+  - Doctors/clinics/hospitals: provider profile and permitted service information; appointment/availability workflow only after authorization and privacy tests; do not expose patient data publicly.
+  - Companies/service providers: service catalog, inquiry/contact and capability-specific intake.
+  - SMM: explicitly separate digital-services sales module, not a sector adapter for the general catalog.
+- Create an auditable module matrix covering sector, current route, canonical data source, read/write paths, authorization model, adapter capabilities, missing dependencies, release status and test evidence before claiming all modules are covered.
+
+### Dashboard and subscription lifecycle
+- Adapt customer/owner dashboard to show subscription package, start/end dates where authoritative, days remaining, current status, available pages/limits and next action.
+- Reminder thresholds: 14, 7, 3, and 1 day before expiry; notify on expiry and after expiry according to an explicit cooldown, without duplicate spam. Use the server/database as source of truth and idempotent notification keys.
+- Show a visible dashboard warning and renewal CTA; for the current WhatsApp-first launch path, renewal inquiry/request goes to the configured official WhatsApp contact. Do not mark renewed/paid until an authorized payment/admin process verifies it.
+- Admin dashboard: pending subscription requests, expiring/expired subscriptions, and manual-review status, restricted to authorized staff and audited.
+- Respect user notification preferences and available channels. In-app dashboard reminders can be the initial baseline; email/push delivery is not claimed unless configured and tested.
+- No client-only expiry enforcement. Server-side entitlement checks must block new page creation/editing/publishing as required by the existing subscription policy while preserving read-only access or data export where policy allows.
+
+### Acceptance and estimates
+- [ ] Inventory and agree sector adapters before implementation; no duplicate catalog records.
+- [ ] Common engine unit/contract tests and adapter contract tests pass.
+- [ ] At least one end-to-end representative flow passes per adapter class, plus regression tests for specialized sector flows.
+- [ ] Dashboard reminders are tested at boundary dates, timezone changes, duplicate delivery, renewal and expiry.
+- [ ] Subscription entitlements are enforced server-side; reminder display alone is not enforcement.
+- [ ] Exact-head CI, security/RLS integration, browser E2E and deployment smoke pass before production release.
+- Planning estimate only (not a commitment): a narrow MVP for the common engine, initial adapters, WhatsApp handoff and dashboard reminders may take roughly 2–4 weeks if current data contracts can be reused and required environments/credentials are available. Full cross-sector production hardening and unresolved security/integration gates may extend this; do not declare a launch date until the module inventory and test environment are confirmed.
+- Current status: PLANNED / NOT IMPLEMENTED ACROSS SECTORS / NOT VERIFIED. Release remains BLOCKED / NOT CERTIFIED.
