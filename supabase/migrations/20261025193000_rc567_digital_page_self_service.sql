@@ -61,6 +61,7 @@ with check (
         where o.id=digital_page_order_id and o.user_id=(select auth.uid())
           and o.page_type=digital_pages.page_type and o.payment_status='PAID'
           and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
       )
     )
     or (business_id is not null and exists (
@@ -79,7 +80,7 @@ drop policy if exists digital_pages_owner_update_draft on public.digital_pages;
 create policy digital_pages_owner_update_draft on public.digital_pages
 for update to authenticated
 using (
-  (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED')) and (
+  (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED' and po.created_at + make_interval(days => greatest(1, case when coalesce(po.metadata->>'duration_days','') ~ '^[0-9]{1,5} and (
     (owner_user_id=(select auth.uid()) and exists (
       select 1 from public.digital_page_orders o
       where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
@@ -153,6 +154,1800 @@ with check (
         where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
           and o.payment_status='PAID'
           and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      )
+    )
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_pages_owner_update_draft on public.digital_pages;
+create policy digital_pages_owner_update_draft on public.digital_pages
+for update to authenticated
+using (
+  (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED')) and (
+    (owner_user_id=(select auth.uid()) and exists (
+      select 1 from public.digital_page_orders o
+      where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+        and o.payment_status='PAID'
+        and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (po.metadata->>'duration_days')::integer else 365 end)) > now())) and (
+    (owner_user_id=(select auth.uid()) and exists (
+      select 1 from public.digital_page_orders o
+      where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+        and o.payment_status='PAID'
+        and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED' and po.created_at + make_interval(days => greatest(1, case when coalesce(po.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      )
+    )
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_pages_owner_update_draft on public.digital_pages;
+create policy digital_pages_owner_update_draft on public.digital_pages
+for update to authenticated
+using (
+  (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED')) and (
+    (owner_user_id=(select auth.uid()) and exists (
+      select 1 from public.digital_page_orders o
+      where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+        and o.payment_status='PAID'
+        and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (po.metadata->>'duration_days')::integer else 365 end)) > now()))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      )
+    )
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_pages_owner_update_draft on public.digital_pages;
+create policy digital_pages_owner_update_draft on public.digital_pages
+for update to authenticated
+using (
+  (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED' and po.created_at + make_interval(days => greatest(1, case when coalesce(po.metadata->>'duration_days','') ~ '^[0-9]{1,5} and (
+    (owner_user_id=(select auth.uid()) and exists (
+      select 1 from public.digital_page_orders o
+      where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+        and o.payment_status='PAID'
+        and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (po.metadata->>'duration_days')::integer else 365 end)) > now())) and (
+    (owner_user_id=(select auth.uid()) and exists (
+      select 1 from public.digital_page_orders o
+      where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+        and o.payment_status='PAID'
+        and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED' and po.created_at + make_interval(days => greatest(1, case when coalesce(po.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED'))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (po.metadata->>'duration_days')::integer else 365 end)) > now()))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+    ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+)
+with check (
+  updated_by=(select auth.uid()) and (status <> 'PUBLISHED' or exists (select 1 from public.digital_page_orders po where po.id=digital_pages.digital_page_order_id and po.user_id=(select auth.uid()) and po.payment_status='PAID' and po.fulfillment_status='PUBLISHED' and po.created_at + make_interval(days => greatest(1, case when coalesce(po.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (po.metadata->>'duration_days')::integer else 365 end)) > now()))
+  and (
+    (owner_user_id=(select auth.uid()) and business_id is null and provider_profile_id is null
+      and whatsapp_number is not null and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=digital_pages.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+    or (business_id is not null and exists (
+      select 1 from public.user_memberships m
+      where m.user_id=(select auth.uid()) and m.business_id=digital_pages.business_id
+        and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+    ))
+    or (provider_profile_id is not null and exists (
+      select 1 from public.marketing_provider_profiles p
+      where p.id=digital_pages.provider_profile_id and p.owner_user_id=(select auth.uid())
+    ))
+  )
+);
+
+drop policy if exists digital_page_sections_owner_manage on public.digital_page_sections;
+create policy digital_page_sections_owner_manage on public.digital_page_sections
+for all to authenticated
+using (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+)
+with check (
+  exists (
+    select 1 from public.digital_pages p
+    where p.id=digital_page_sections.page_id and (
+      (p.owner_user_id=(select auth.uid()) and exists (
+        select 1 from public.digital_page_orders o
+        where o.id=p.digital_page_order_id and o.user_id=(select auth.uid())
+          and o.payment_status='PAID'
+          and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
+          and o.created_at + make_interval(days => greatest(1, case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}
+      ))
+      or (p.business_id is not null and exists (
+        select 1 from public.user_memberships m
+        where m.user_id=(select auth.uid()) and m.business_id=p.business_id
+          and m.status='ACTIVE' and upper(coalesce(m.role,''))=any(array['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'])
+      ))
+      or (p.provider_profile_id is not null and exists (
+        select 1 from public.marketing_provider_profiles mp
+        where mp.id=p.provider_profile_id and mp.owner_user_id=(select auth.uid())
+      ))
+    )
+  )
+);
+ then (o.metadata->>'duration_days')::integer else 365 end)) > now()
       ))
       or (p.business_id is not null and exists (
         select 1 from public.user_memberships m
