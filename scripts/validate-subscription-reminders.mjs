@@ -29,6 +29,8 @@ assert.match(app, /function genericPage\(title,desc,items\)/, 'generic dashboard
 assert.match(app, /الوظائف غير المكتملة تحت الإنشاء/, 'generic dashboard must visibly label unfinished functionality');
 assert.match(app, /طبقة البيانات — تحت الإنشاء/, 'generic data sections must not claim readiness');
 assert.match(app, /function launchScopePanel\(\)/, 'dashboard must disclose launch-scope status');
+assert.match(app, /التشغيل النهائي قيد التحقق · أي وظيفة غير مكتملة تحت الإنشاء/, 'module dashboard must not claim every module is fully ready');
+assert.match(app, /خدمات الشركة متاحة · الإعلانات الممولة تحت الإنشاء/, 'module dashboard must separate company marketing services from deferred paid ads');
 assert.match(app, /الإعلانات الممولة[\s\S]{0,300}تحت الإنشاء/, 'deferred sponsored ads must be labeled under construction');
 assert.match(app, /خدمات التسويق الرقمي SMM[\s\S]{0,300}مديول مستقل/, 'SMM must remain a separate module');
 assert.match(app, /عمولات طلبات واتساب[\s\S]{0,300}تحت الإنشاء/, 'new WhatsApp commissions must remain deferred');
