@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 const engine = fs.readFileSync('web/catalog-experience-engine.js', 'utf8');
 const digitalHtml = fs.readFileSync('web/digital-page-self-service.html', 'utf8');
 const digitalJs = fs.readFileSync('web/digital-page-self-service.js', 'utf8');
+const publicPageHtml = fs.readFileSync('web/digital-page.html', 'utf8');
+const publicPageJs = fs.readFileSync('web/digital-page.js', 'utf8');
 const marketingHtml = fs.readFileSync('web/marketing-services.html', 'utf8');
 const marketingJs = fs.readFileSync('web/marketing-services.js', 'utf8');
 const smmHtml = fs.readFileSync('web/smm.html', 'utf8');
