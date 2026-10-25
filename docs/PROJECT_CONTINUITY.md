@@ -667,3 +667,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Platform-wide: every unfinished or unverified user-facing feature must visibly say **"تحت الإنشاء"** when opened/visited. Label the specific incomplete section/action rather than hiding completed features in the same module. Disable unavailable actions and enforce the restriction server-side where relevant.
 - A route/module status inventory and mobile/browser E2E verification are required. The label itself is not proof of implementation or a substitute for backend authorization.
 - Detailed acceptance criteria recorded in docs/MASTER_PRODUCTION_TODO.md. These are product requirements, not yet verified across the whole platform; no production deployment was made.
+
+
+## Dashboard subscription reminder update — 2026-10-25
+
+- web/app.js now includes the subscription reminder panel on the home dashboard and notification center. It scopes orders to the signed-in user, calculates expiry from paid_at + digital_page_products.duration_days, warns inside 30 days, raises urgency inside 7 days, and marks expired subscriptions.
+- Missing activation date or duration is surfaced as unknown and routed to support rather than fabricating an expiry date.
+- New source migration: supabase/migrations/20261025203000_digital_page_subscription_expiry_reminders.sql, recording paid_at on transition to PAID. Not applied to production.
+- New static contract: scripts/validate-subscription-reminders.mjs, wired into .github/workflows/pages.yml.
+- Dashboard notices currently appear when the user opens/refreshes the app. Scheduled push/email reminders are not implemented and require a separate server-side scheduler design.
+- Exact-head CI, migration replay, collision checks, and browser E2E must pass before merge. Release remains BLOCKED / NOT CERTIFIED.
