@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const phone=String(window.MNTY_SUPPORT?.whatsapp||'201010171770').replace(/\D/g,'');
-  const waUrl=text=>'https://wa.me/'+phone+'?text='+encodeURIComponent(text);
+  const waUrl=text=>window.MNTYCatalogExperience?.whatsappUrl(phone,text)||('https://wa.me/'+phone+'?text='+encodeURIComponent(text));
   const safeOpen=url=>{const w=window.open(url,'_blank','noopener,noreferrer');if(w)w.opener=null;};
   const general=document.querySelector('[data-wa-general]');
   if(general)general.href=waUrl('مرحبًا MantiqatiX، أريد الاستفسار عن خدمات التسويق الرقمي للشركة.');
