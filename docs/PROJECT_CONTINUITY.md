@@ -710,3 +710,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Subscription reminders now visually distinguish 7-day, 3-day, 1-day and expired states based on the paid timestamp and package duration. This is an in-app reminder; scheduled push/email delivery remains unverified.
 - Static source validator was extended for bootstrap ordering, cache alignment, reminder milestones and marketing-page status. Latest exact-head CI has not yet completed.
 - Still incomplete: evidence-based per-sector adapter inventory/integration, authenticated multi-user RLS, browser/mobile E2E, scheduled reminder delivery tests, and production deploy smoke. PR #374 remains draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
+
+
+## Shared catalog engine, sector adapters, dashboard changes and subscription reminders (2026-10-25)
+
+- Product requirement: implement one reusable engine for applicable service/menu/product modules across restaurants, cafés, pharmacies, doctors, hospitals, companies, stores and related sectors, with sector-specific adapters and preservation of each module's canonical data and workflows.
+- Do not treat web/module-blueprints.js as a complete catalog engine; current inspection shows it is a module workspace/blueprint UI. A module inventory and canonical data/authorization mapping are required before implementation.
+- SMM stays separate for digital-service sales.
+- Dashboard requirement: show subscription/package, authoritative dates, days remaining and renewal action; reminder thresholds are 14/7/3/1 days before expiry and on expiry with idempotent notifications. Initial baseline can be in-app dashboard; email/push require configured/tested delivery. Admin view should include pending manual activation and expiring/expired subscriptions under restricted access.
+- Subscription expiry and entitlements must be enforced server-side; a UI warning alone is insufficient. Current WhatsApp-first renewal request must not mark an order paid without authorized independent verification.
+- Planning estimate recorded in docs/MASTER_PRODUCTION_TODO.md: 2–4 weeks for a narrow MVP if existing contracts and environments are usable; cross-sector hardening may extend it. This is not a guaranteed launch date.
+- Status: requirements recorded, broad engine/dashboard implementation not yet verified. PR #374 remains draft/unmerged. Production remains BLOCKED / NOT CERTIFIED.
