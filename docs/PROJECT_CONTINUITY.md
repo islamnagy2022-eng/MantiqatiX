@@ -732,3 +732,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact-head migration replay previously failed at RC570 due to incompatible text/UUID comparisons in branch binding policies and malformed function-body dollar quoting. Fixed the RC570 migration by normalizing comparison types to text and correcting dollar-quoted bodies. This repair is not considered validated until the exact-head forward replay succeeds.
 - CI validators were updated to match current shared-engine/PWA cache versions and the shared WhatsApp adapter contract. New exact-head checks are queued; no success is claimed yet.
 - No merge, production migration, or deployment occurred. PR #374 remains draft/unmerged; global production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Catalog-first launch scope correction
+
+- User explicitly deferred the public marketing-services page as well as sponsored ads. The first launch scope is now limited to the digital self-service product catalog and the restaurant/café menu-to-WhatsApp catalog path.
+- Removed active marketing-services links from the public homepage and mobile drawer; marketing-services.html is now a static “تحت الإنشاء” placeholder with noindex/nofollow, no request form, and no WhatsApp submission script.
+- Updated PWA cache key to `mnty-web-v140-catalog-first` and removed deferred marketing page HTML/CSS/JS from the precache list.
+- Updated the marketing page source-contract validator and GitHub Pages deployment smoke assertions to require the deferred placeholder and reject the old request form. Updated the catalog module matrix accordingly.
+- Source commits: `e76c6a12e1ed43fe7a5fb084c895a4f3d5c27ae9` (homepage), `668ea9383ecceac417d80be99764d7224257bdfc` (placeholder), `cc4f03560c40705fa5d098c31e0edf9c6f6c5cd7` (validator), `92156626c55f57cfbde859e964fbaec2236971b5` (PWA), `5d1641d0ce8fefe2662ca0460f09c63c22ca20b6` (matrix), `2992ac9621c6979030bbe00f4aa3a3d6494dddc5` (deployment smoke).
+- Verification status at documentation time: exact-head Actions and forward migration replay are queued; do not infer success. No merge, production migration, or deployment occurred. PR #374 remains draft/open and release remains BLOCKED / NOT CERTIFIED.
