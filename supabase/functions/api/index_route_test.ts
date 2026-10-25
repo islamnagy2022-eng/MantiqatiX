@@ -200,4 +200,15 @@ Deno.test("order and payment routes reject idempotency keys longer than database
   }));
   if (orderResponse.status !== 400) throw new Error(`order key >128 should return 400, got ${orderResponse.status}`);
   if (db.queryLog.length !== 0) throw new Error("oversized idempotency keys must be rejected before database queries");
+
+  const blankKeyResponse = await makeHandler(db)(request("/api/v1/orders", "POST", {
+    orderId: "00000000-0000-4000-8000-000000000001",
+    tenantId: "tenant-a",
+    businessId: "00000000-0000-4000-8000-000000000002",
+    branchId: "branch-a",
+    clientIdempotencyKey: "   ",
+    items: [{ catalogItemId: "item-a", quantity: 1 }],
+  }));
+  if (blankKeyResponse.status !== 400) throw new Error(`blank order key should return 400, got ${blankKeyResponse.status}`);
+  if (db.queryLog.length !== 0) throw new Error("blank idempotency keys must be rejected before database queries");
 });
