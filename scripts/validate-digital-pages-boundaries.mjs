@@ -30,7 +30,7 @@ for(const [src,marker,label] of [
  [selfService,"saveItems","customer product and price management"],
  [selfService,"loadSubscriptionProducts","customer package listing"],
  [selfService,"function productFeatureLabels(features)","subscription tiers derive feature labels from database-defined package features"],
- [selfService,"رابط الصورة يجب أن يبدأ بـ HTTPS وألا يتجاوز 2048 حرفًا","customer product images must use HTTPS and a bounded URL length"],
+ [selfService,"رابط الصورة يجب أن يبدأ بـ HTTPS وألا يتجاوز 2048 حرفًا.","customer product images must use HTTPS and a bounded URL length"],
  [selfService,"subscription-features","subscription package features are displayed as text, not injected HTML"],
  [adminEditor,"kind==='CUSTOMER'","admin editor customer ownership support"],
  [adminEditor,"fulfill_digital_page_publish","admin publication gate retained"],
