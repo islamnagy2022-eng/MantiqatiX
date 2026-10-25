@@ -223,7 +223,7 @@
 <div class="mx-ref-live-info__actions"><button type="button" class="mx-ref-primary" id="mx-about-search">ابدأ البحث الآن</button><button type="button" class="mx-ref-outline" id="mx-about-add">أضف نشاطك</button></div>
 </section>
 <section class="mx-ref-digital-workspace" id="mx-digital-workspace">
-<div class="mx-ref-digital-workspace__intro"><span>مساحة نمو نشاطك</span><h2>حوّل نشاطك إلى صفحة رقمية احترافية</h2><p>اجمع نبذة نشاطك وخدماتك وأعمالك وطرق التواصل في صفحة واحدة قابلة للإدارة من حسابك.</p><div class="mx-ref-digital-workspace__features"><article><b>ملف منظم</b><span>عنوان ووصف ورابط مخصص لنشاطك.</span></article><article><b>أقسام مرنة</b><span>أضف الخدمات أو قائمة المنتجات أو معرض الأعمال.</span></article><article><b>نشر منضبط</b><span>حالة المسودة والنشر مرتبطة بصلاحيات الحساب ومتطلبات الطلب.</span></article></div><button type="button" id="mx-open-digital-editor" class="mx-ref-primary">افتح محرر الصفحات الرقمية ←</button><small>يتطلب تسجيل الدخول. لا تُنشر الصفحة تلقائيًا بمجرد حفظ المسودة.</small></div>
+<div class="mx-ref-digital-workspace__intro"><span>مساحة نمو نشاطك</span><h2>حوّل نشاطك إلى صفحة رقمية احترافية</h2><p>اجمع نبذة نشاطك وخدماتك وأعمالك وطرق التواصل في صفحة واحدة قابلة للإدارة من حسابك.</p><div class="mx-ref-digital-workspace__features"><article><b>ملف منظم</b><span>عنوان ووصف ورابط مخصص لنشاطك.</span></article><article><b>أقسام مرنة</b><span>أضف منتجاتك وأسعارك وصورك في صفحة بسيطة.</span></article><article><b>نشر منضبط</b><span>حالة المسودة والنشر مرتبطة بصلاحيات الحساب ومتطلبات الطلب.</span></article></div><button type="button" id="mx-open-digital-editor" class="mx-ref-primary">إدارة صفحتي ومنتجاتي ←</button><small>يتطلب تسجيل الدخول. لا تُنشر الصفحة تلقائيًا بمجرد حفظ المسودة.</small></div>
 <div class="mx-ref-digital-workspace__visual" aria-hidden="true"><div class="mx-ref-digital-workspace__mock"><span>MantiqatiX</span><i></i><i></i><i></i><b>صفحة نشاطك</b><small>خدمات · أعمال · تواصل</small></div></div>
 </section>
 <section class="mx-ref-live-state" aria-live="polite">
@@ -1062,7 +1062,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const sb=getClient();
         const result=await sb?.auth?.getSession?.();
         if(result?.error) throw result.error;
-        if(result?.data?.session?.user){window.location.href='digital-page-editor.html';return;}
+        if(result?.data?.session?.user){window.location.href='digital-page-self-service.html';return;}
         if(typeof window.authView==='function'){window.authView('',false,'','login');return;}
         document.getElementById('mx-login')?.click();
       }catch(_){
