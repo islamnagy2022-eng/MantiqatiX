@@ -263,3 +263,5 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Re-ran syntax compilation of `web/digital-page-self-service.js`, `web/digital-page-editor.js`, `web/digital-page.js`, and `web/home.js`: PASS.
 - GitHub Actions runs for forward migration replay, migration collision checks, migration-history immutability, migration-version uniqueness, and Pages validation remain queued at the latest poll. Therefore these source-level checks are not a substitute for GitHub CI or disposable PostgreSQL migration replay.
 - PR #374 remains DRAFT and unmerged. Keep the production release blocked until the RC563–RC566 migration order is reconciled and CI, database replay, multi-account RLS isolation, and browser E2E are independently verified.
+
+- Security/logic correction during continued review: both owner and public subscription-expiry predicates now use `published_at` when available, otherwise the order's stable `created_at`; editing a draft no longer resets expiry through mutable `updated_at`. Added regression assertions for both expiry gates. This is source-level evidence only until CI and isolated migration replay finish.
