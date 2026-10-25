@@ -16,9 +16,14 @@ const sectors = fs.readFileSync('web/sector-registry.js', 'utf8');
 const sectorModules = fs.readFileSync('web/sector-modules.js', 'utf8');
 const operationsModules = fs.readFileSync('web/operations-modules.js', 'utf8');
 
-for (const code of ['FOOD','PHARMACY','HEALTH','DENTAL','MEDICAL','HOSPITAL','LABS','RADIOLOGY','COMPANIES','FREELANCER','MAINTENANCE','GROCERY','FASHION','MARKETING']) {
-  assert.ok(engine.includes("'" + code + "': Object.freeze"), 'missing sector adapter profile ' + code);
+for (const code of ['FOOD','PHARMACY','HEALTH','DENTAL','MEDICAL','HOSPITAL','LABS','RADIOLOGY','COMPANIES','FREELANCER','MAINTENANCE','GROCERY','FASHION','MARKETING','REAL_ESTATE','AUTO','VETERINARY','EDUCATION','ERP','ACCOUNTING','LEGAL','SPORTS','TRIPS','MANTIGO','FACTORIES']) {
+  assert.ok(engine.includes(code + ': Object.freeze') || engine.includes("'" + code + "': Object.freeze"), 'missing sector adapter profile ' + code);
 }
+assert.match(engine, /function profileFor/);
+assert.match(engine, /PROFILE_ALIASES/);
+assert.match(engine, /PUBLIC_TO_BACKEND_SECTOR/);
+assert.match(engine, /requestMode: 'EXISTING_RIDE_FLOW'/);
+assert.match(engine, /requestMode: 'EXISTING_LISTING_FLOW'/);
 assert.match(engine, /function escapeHtml/);
 assert.match(engine, /encodeURIComponent/);
 assert.match(engine, /UNDER_CONSTRUCTION: \{ label: 'تحت الإنشاء'/);
