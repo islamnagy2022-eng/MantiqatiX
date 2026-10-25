@@ -12,6 +12,7 @@ on:
       - "scripts/verify-tenant-isolation.sql"
       - "scripts/verify-digital-page-self-service-rls.sql"
       - "supabase/tests/rc571_menu_scope_bypass.sql"
+      - "supabase/tests/rc572_platform_admin_scope.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -24,6 +25,7 @@ on:
       - "scripts/verify-tenant-isolation.sql"
       - "scripts/verify-digital-page-self-service-rls.sql"
       - "supabase/tests/rc571_menu_scope_bypass.sql"
+      - "supabase/tests/rc572_platform_admin_scope.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
 
 permissions:
@@ -90,6 +92,7 @@ jobs:
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f scripts/verify-digital-page-self-service-rls.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc571_menu_scope_bypass.sql
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc572_platform_admin_scope.sql
 
       - name: Stop isolated Supabase instance
         if: always()
