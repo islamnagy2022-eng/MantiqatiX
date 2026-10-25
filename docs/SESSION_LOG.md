@@ -348,3 +348,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Scope recorded in docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md. SMM remains separate.
 - Planning estimate: narrow MVP 2–4 weeks if current data contracts and test environment are usable; full hardening may take longer. Estimate is not a commitment.
 - Current production gate: migration replay succeeded on prior exact head 3c4d57a61db6ee2080c574de0b6e887017baab7a, but newer documentation commits advanced the branch to 0d15d65c3757da6732d8a09a53f920cc6d9b4733 and new workflows are queued. PR #374 remains draft/open/unmerged; no production deployment. Multi-user RLS and browser E2E remain NOT VERIFIED.
+
+
+## 2026-10-25 — RC570 replay failure investigation
+
+- Read the project continuity, master production TODO, session log, shared catalog engine plan, current PR #374 metadata and changed-file inventory before editing.
+- Current catalog engine is a UI/helper foundation, not yet wired into every sector. PR #374 remains draft/unmerged and no production migration or deployment was performed.
+- Inspected exact-head CI run 40227854710: forward migration replay failed in RC570 because a branch membership identifier (`character varying`) was compared directly with a UUID binding. Updated five comparisons in RC570 to compare text representations exactly; commit `c3a2fef8386c3c89a67c54759108ff70c947a86e`.
+- The same CI snapshot showed the production security validator failing an assertion expecting a previous membership lookup pattern. This remains unresolved pending source review; do not assume it is a harmless stale assertion until its intended invariant is verified.
+- Rerun evidence is not available yet for the new commit. Exact-head CI, ordered migration replay, tenant isolation and browser E2E remain required. Release stays **BLOCKED / NOT CERTIFIED**.
