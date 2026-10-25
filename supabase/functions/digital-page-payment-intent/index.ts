@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-const PAYMOB_CHECKOUT_ENABLED=false; // First-launch gate: enable only in a later approved release.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
+const PAYMOB_CHECKOUT_ENABLED=false; // First-launch gate: enable only in a later approved release.
 
 const URL=Deno.env.get("SUPABASE_URL")??"";
 const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
