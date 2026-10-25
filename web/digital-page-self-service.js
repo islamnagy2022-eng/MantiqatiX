@@ -101,21 +101,43 @@
       if (!product) throw new Error('الباقة لم تعد متاحة. حدّث الصفحة وحاول مرة أخرى.');
       const { data: sessionData, error: sessionError } = await sb.auth.getSession();
       if (sessionError) throw sessionError;
-      if (!sessionData.session?.user) throw new Error('سجّل الدخول مرة أخرى ثم حاول.');
+      const user = sessionData.session?.user;
+      if (!user) throw new Error('سجّل الدخول مرة أخرى ثم حاول.');
+
+      if (!whatsappWindow) throw new Error('اسمح بفتح نافذة واتساب من المتصفح ثم حاول مرة أخرى.');
+
+      let idempotencyKey = pendingSubscriptionKeys.get(productId);
+      if (!idempotencyKey) {
+        idempotencyKey = 'digital-page-wa:' + user.id + ':' + product.id + ':' + window.crypto.randomUUID();
+        pendingSubscriptionKeys.set(productId, idempotencyKey);
+      }
+      const { data: orderResult, error: orderError } = await sb.functions.invoke('digital-page-order-create', {
+        body: {
+          productId: product.id,
+          pageType: 'PORTFOLIO',
+          title: String(product.name_ar || product.name_en || 'اشتراك صفحة تسويقية').slice(0, 180),
+          idempotencyKey
+        }
+      });
+      if (orderError) throw orderError;
+      const order = orderResult?.order;
+      if (!order?.id) throw new Error('لم يتم إنشاء طلب الاشتراك. حاول مرة أخرى أو تواصل مع الدعم.');
+
       const supportPhone = '201010171770';
       const messageText = [
         'طلب اشتراك صفحة تسويقية على MantiqatiX',
-        'الباقة: ' + product.name_ar,
+        'رقم الطلب: ' + order.id,
+        'الباقة: ' + (product.name_ar || product.name_en || 'صفحة تسويقية'),
         'السعر المعروض: ' + Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'),
         'المدة: ' + Number(product.duration_days || 365) + ' يوم',
-        'البريد: ' + (sessionData.session.user.email || 'غير متاح'),
-        'معرّف الحساب: ' + sessionData.session.user.id,
-        'أرجو تأكيد الاشتراك وطريقة التفعيل.'
-      ].join('\n');
-      if (!whatsappWindow) throw new Error('اسمح بفتح نافذة واتساب من المتصفح ثم حاول مرة أخرى.');
+        'البريد: ' + (user.email || 'غير متاح'),
+        'معرّف الحساب: ' + user.id,
+        'حالة الطلب الحالية: ' + String(order.payment_status || 'PENDING'),
+        'يرجى مراجعة الطلب وتأكيد طريقة الدفع والتفعيل. لن يتم تفعيل الاشتراك قبل المراجعة الإدارية.'
+      ].join('\\n');
       const whatsappUrl = 'https://wa.me/' + supportPhone + '?text=' + encodeURIComponent(messageText);
       whatsappWindow.location.replace(whatsappUrl);
-      message('تم تجهيز رسالة واتساب لطلب الاشتراك. لن يتم تحصيل أي دفع إلكتروني من هذه الصفحة حاليًا.');
+      message('تم إنشاء طلب غير مدفوع وتجهيز رسالة واتساب للدعم. لن يتم تفعيل الاشتراك تلقائيًا.');
     } catch (err) {
       if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.close();
       message(err.message || 'تعذر تجهيز طلب الاشتراك عبر واتساب.', true);
