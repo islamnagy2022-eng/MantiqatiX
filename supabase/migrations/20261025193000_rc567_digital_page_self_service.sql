@@ -33,7 +33,7 @@ as $$
       and o.user_id=(select auth.uid())
       and o.payment_status='PAID'
       and o.fulfillment_status in ('REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED')
-      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.updated_at, o.created_at) + pg_catalog.make_interval(days => greatest(
+      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.created_at) + pg_catalog.make_interval(days => greatest(
         1,
         coalesce(
           case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
@@ -59,7 +59,7 @@ as $$
     where o.id=p_order_id
       and o.payment_status='PAID'
       and o.fulfillment_status='PUBLISHED'
-      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.updated_at, o.created_at) + pg_catalog.make_interval(days => greatest(
+      and coalesce((select p.published_at from public.digital_pages p where p.digital_page_order_id=o.id and p.owner_user_id=o.user_id), o.created_at) + pg_catalog.make_interval(days => greatest(
         1,
         coalesce(
           case when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
