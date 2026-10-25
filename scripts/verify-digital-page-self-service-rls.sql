@@ -21,7 +21,7 @@ BEGIN
      NOT EXISTS (SELECT 1 FROM auth.users WHERE id='20000000-0000-4000-8000-000000000002') THEN
     RAISE EXCEPTION 'DIGITAL_PAGE_RLS_FIXTURE_USERS_MISSING';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.digital_page_products WHERE code='PORTFOLIO_START' AND active=true) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.digital_page_products WHERE page_type='PORTFOLIO' AND active=true) THEN
     RAISE EXCEPTION 'DIGITAL_PAGE_RLS_FIXTURE_PRODUCT_MISSING';
   END IF;
 END;
@@ -39,7 +39,13 @@ FROM (VALUES
   ('41000000-0000-4000-8000-000000000002'::uuid,'20000000-0000-4000-8000-000000000002'::uuid,'RLS Test B','rls-test-b','rls-test-b-key')
 ) AS x(order_id,user_id,title,slug,idempotency_key)
 CROSS JOIN public.digital_page_products p
-WHERE p.code='PORTFOLIO_START';
+WHERE p.id = (
+  SELECT candidate.id
+  FROM public.digital_page_products candidate
+  WHERE candidate.page_type='PORTFOLIO' AND candidate.active=true
+  ORDER BY candidate.code
+  LIMIT 1
+);
 
 INSERT INTO public.digital_pages
   (id,page_type,owner_user_id,business_id,provider_profile_id,digital_page_order_id,slug,title,
