@@ -241,3 +241,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact-head CI was triggered for the latest branch head; migration replay, migration uniqueness/collision checks, and web validation are pending at the time of this note.
 - Still required: review CI results for the exact head; test Paymob checkout/webhook reconciliation with a sandbox order; test admin fulfillment/publishing and public WhatsApp CTA; test paid/unpaid and cross-user RLS on a disposable database. No production migration or deployment performed.
 - **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — RC567 customer self-service hardening continuation
+
+- Fixed the admin digital-page editor JavaScript parse error by correcting the closing brace around the unpublish handler; current editor, self-service, public renderer, and home JavaScript sources pass source-level syntax compilation.
+- Removed the duplicate create-page event listener and gave the secondary create-page button a unique ID wired to the same handler.
+- Kept the checkout idempotency key/order association until payment is confirmed, preventing a second click after opening the Paymob checkout from silently creating a duplicate pending order.
+- Narrowed the migration's ownership-check removal to the known legacy digital_pages_check constraint instead of dynamically dropping any check that mentions both ownership columns.
+- Kept expired customer pages visible to their owner while retaining the active-subscription requirement for customer edits and public rendering.
+- Updated the admin editor to preserve the PUBLISHED state when editing a published page and to offer only orders in fulfillment states accepted by the publication RPC.
+- Added regression source-contract assertions for checkout idempotency, the create-page control, owner visibility after expiry, and public subscription gating.
+- Latest source-level JS syntax checks passed. GitHub combined status currently returns no checks for the newest commit, so CI and isolated migration replay remain NOT VERIFIED.
+- PR #374 remains DRAFT / unmerged. No production migration, payment, or deployment was performed. Reconcile RC563–RC566 candidates, then run exact-head CI, disposable migration replay, RLS multi-user tests, and browser E2E before merge.
