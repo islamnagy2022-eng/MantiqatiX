@@ -76,7 +76,7 @@ const published = await render({
     sort_order: 1,
     title: 'Drinks',
     active: true,
-    data: { items: [{ name: 'Tea <img src=x>', description: 'Hot drink', price: '30', currency: 'EGP' }] },
+    data: { items: [{ name: 'Tea <img src=x>', description: 'Hot drink', price: '30', currency: 'EGP', category: 'مشروبات ساخنة' }] },
   }],
 });
 assert.equal(published.title, 'Demo menu');
@@ -86,6 +86,7 @@ assert.match(published.html, /https:\/\/wa\.me\/201010171770/);
 assert.match(published.html, /تواصل واطلب عبر واتساب/);
 assert.match(published.html, /اطلب المنتج عبر واتساب/);
 assert.match(published.html, /Tea/);
+assert.match(published.html, /مشروبات ساخنة/, 'public catalog must display synchronized product category');
 assert.match(published.html, /30%20EGP/);
 assert.ok(published.html.includes('wa.me/201010171770?text='));
 assert.match(published.html, /Drinks/);
