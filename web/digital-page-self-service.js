@@ -4,7 +4,7 @@
     auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
   });
   const $ = id => document.getElementById(id);
-  let user = null, orders = [], products = [], pages = [], currentPage = null, menuSection = null, items = [], editIndex = -1, pendingSubscriptionKeys = new Map();
+  let user = null, orders = [], products = [], pages = [], businesses = [], businessesUnavailable = false, currentPage = null, menuSection = null, items = [], editIndex = -1, pendingSubscriptionKeys = new Map();
 
   function message(text, bad = false) {
     $('status').textContent = text || '';
@@ -30,13 +30,26 @@
     }
     $('auth').textContent = 'تم تسجيل الدخول. يتم تحميل الاشتراكات والصفحات المرتبطة بحسابك.';
     $('app').hidden = false;
+    await loadOwnedBusinesses();
     await loadPages();
     await Promise.all([loadOrders(), loadSubscriptionProducts()]);
   }
+  async function loadOwnedBusinesses() {
+    businessesUnavailable = false;
+    const memberships = await sb.from('user_memberships').select('business_id,role,status')
+      .eq('user_id', user.id).eq('status', 'ACTIVE')
+      .in('role', ['OWNER','BUSINESS_OWNER','ADMIN','MANAGER']).not('business_id', 'is', null);
+    if (memberships.error) { businessesUnavailable = true; businesses = []; return; }
+    const ids = [...new Set((memberships.data || []).map(m => String(m.business_id)).filter(Boolean))];
+    if (!ids.length) { businesses = []; return; }
+    const rows = await sb.from('businesses').select('id,name,code').in('id', ids);
+    if (rows.error) { businessesUnavailable = true; businesses = []; return; }
+    businesses = rows.data || [];
+  }
   async function loadOrders() {
     const { data, error } = await sb.from('digital_page_orders')
-      .select('id,title,page_type,payment_status,fulfillment_status,created_at')
-      .eq('user_id', user.id).eq('page_type', 'PORTFOLIO').eq('payment_status', 'PAID')
+      .select('id,title,page_type,target_business_id,payment_status,fulfillment_status,created_at')
+      .eq('user_id', user.id).eq('payment_status', 'PAID')
       .in('fulfillment_status', ['REQUESTED','IN_REVIEW','IN_PROGRESS','PUBLISHED'])
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -49,7 +62,11 @@
     orders = checks.filter(Boolean).filter(o => !pages.some(p => p.digital_page_order_id === o.id));
     const sel = $('order');
     sel.replaceChildren(new Option('اختر اشتراكًا مدفوعًا', ''));
-    for (const o of orders) sel.add(new Option(o.title + ' · ' + o.fulfillment_status, o.id));
+    for (const o of orders) {
+      const business = businesses.find(b => String(b.id) === String(o.target_business_id));
+      const typeLabel = o.page_type === 'MENU' ? 'منيو' : 'صفحة شخصية';
+      sel.add(new Option(typeLabel + ' · ' + o.title + (business ? ' · ' + business.name : '') + ' · ' + o.fulfillment_status, o.id));
+    }
     if (currentPage?.digital_page_order_id && !sel.querySelector('option[value="' + currentPage.digital_page_order_id + '"]')) {
       const { data: currentOrder } = await sb.from('digital_page_orders')
         .select('id,title,page_type,payment_status,fulfillment_status,created_at')
@@ -68,10 +85,9 @@
   async function loadSubscriptionProducts() {
     const { data, error } = await sb.from('digital_page_products')
       .select('id,page_type,code,name_ar,description_ar,price,currency,duration_days,features')
-      .eq('page_type', 'PORTFOLIO').eq('active', true)
-      .order('price', { ascending: true });
+      .eq('active', true).order('price', { ascending: true });
     if (error) throw error;
-    products = data || [];
+    products = (data || []).filter(p => p.page_type === 'PORTFOLIO' || (p.page_type === 'MENU' && businesses.length > 0));
     renderSubscriptionProducts();
   }
   function renderSubscriptionProducts() {
@@ -84,18 +100,34 @@
     for (const product of products) {
       const card = node('article', undefined, 'subscription-card');
       card.append(node('h3', product.name_ar));
-      card.append(node('p', product.description_ar || 'صفحة تسويقية مستقلة قابلة للمشاركة'));
+      card.append(node('p', product.description_ar || (product.page_type === 'MENU' ? 'منيو رقمية مرتبطة بنشاطك' : 'صفحة تسويقية مستقلة قابلة للمشاركة')));
+      let businessSelect = null;
+      if (product.page_type === 'MENU') {
+        businessSelect = node('select');
+        businessSelect.setAttribute('aria-label', 'النشاط الذي ستنشأ له المنيو');
+        businessSelect.add(new Option('اختر النشاط', ''));
+        businesses.forEach(b => businessSelect.add(new Option(b.name || b.code || b.id, b.id)));
+        card.append(node('label', 'النشاط المرتبط بالمنيو'));
+        card.append(businessSelect);
+      }
       const duration = Number(product.duration_days || 365);
       card.append(node('p', duration.toLocaleString('ar-EG') + ' يوم'));
       card.append(node('strong', Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'), 'subscription-price'));
       const buy = node('button', 'اشترك الآن');
       buy.type = 'button';
-      buy.addEventListener('click', () => { buy.disabled = true; const whatsappWindow = window.open('about:blank', '_blank'); if (whatsappWindow) whatsappWindow.opener = null; subscribeToPackage(product.id, buy, whatsappWindow); });
+      buy.addEventListener('click', () => {
+        const targetBusinessId = product.page_type === 'MENU' ? (businessSelect?.value || '') : '';
+        if (product.page_type === 'MENU' && !targetBusinessId) { message('اختر النشاط المرتبط بالمنيو أولًا.', true); businessSelect?.focus(); return; }
+        buy.disabled = true;
+        const whatsappWindow = window.open('about:blank', '_blank');
+        if (whatsappWindow) whatsappWindow.opener = null;
+        subscribeToPackage(product.id, buy, whatsappWindow, targetBusinessId || null);
+      });
       card.append(buy);
       box.append(card);
     }
   }
-  async function subscribeToPackage(productId, button, whatsappWindow) {
+  async function subscribeToPackage(productId, button, whatsappWindow, targetBusinessId = null) {
     try {
       const product = products.find(p => p.id === productId);
       if (!product) throw new Error('الباقة لم تعد متاحة. حدّث الصفحة وحاول مرة أخرى.');
@@ -106,16 +138,18 @@
 
       if (!whatsappWindow) throw new Error('اسمح بفتح نافذة واتساب من المتصفح ثم حاول مرة أخرى.');
 
-      let idempotencyKey = pendingSubscriptionKeys.get(productId);
+      const subscriptionKey = product.id + ':' + (targetBusinessId || 'personal');
+      let idempotencyKey = pendingSubscriptionKeys.get(subscriptionKey);
       if (!idempotencyKey) {
-        idempotencyKey = 'digital-page-wa:' + user.id + ':' + product.id + ':' + window.crypto.randomUUID();
-        pendingSubscriptionKeys.set(productId, idempotencyKey);
+        idempotencyKey = 'digital-page-wa:' + user.id + ':' + product.id + ':' + (targetBusinessId || 'personal') + ':' + window.crypto.randomUUID();
+        pendingSubscriptionKeys.set(subscriptionKey, idempotencyKey);
       }
       const { data: orderResult, error: orderError } = await sb.functions.invoke('digital-page-order-create', {
         body: {
           productId: product.id,
-          pageType: 'PORTFOLIO',
-          title: String(product.name_ar || product.name_en || 'اشتراك صفحة تسويقية').slice(0, 180),
+          pageType: product.page_type,
+          targetBusinessId: targetBusinessId || undefined,
+          title: String(product.name_ar || product.name_en || (product.page_type === 'MENU' ? 'اشتراك منيو رقمية' : 'اشتراك صفحة تسويقية')).slice(0, 180),
           idempotencyKey
         }
       });
@@ -125,12 +159,13 @@
 
       const supportPhone = '201010171770';
       const messageText = [
-        'طلب اشتراك صفحة تسويقية على MantiqatiX',
+        product.page_type === 'MENU' ? 'طلب اشتراك منيو رقمية على MantiqatiX' : 'طلب اشتراك صفحة تسويقية على MantiqatiX',
         'رقم الطلب: ' + order.id,
         'الباقة: ' + (product.name_ar || product.name_en || 'صفحة تسويقية'),
         'السعر المعروض: ' + Number(product.price).toLocaleString('ar-EG') + ' ' + (product.currency || 'EGP'),
         'المدة: ' + Number(product.duration_days || 365) + ' يوم',
         'البريد: ' + (user.email || 'غير متاح'),
+        targetBusinessId ? 'النشاط: ' + (businesses.find(b => String(b.id) === String(targetBusinessId))?.name || targetBusinessId) : '',
         'معرّف الحساب: ' + user.id,
         'حالة الطلب الحالية: ' + String(order.payment_status || 'PENDING'),
         'يرجى مراجعة الطلب وتأكيد طريقة الدفع والتفعيل. لن يتم تفعيل الاشتراك قبل المراجعة الإدارية.'
@@ -146,11 +181,19 @@
     }
   }
   async function loadPages() {
-    const { data, error } = await sb.from('digital_pages')
-      .select('id,page_type,digital_page_order_id,slug,title,description,status,whatsapp_number,updated_at')
+    const own = await sb.from('digital_pages')
+      .select('id,page_type,owner_user_id,business_id,digital_page_order_id,slug,title,description,status,whatsapp_number,updated_at')
       .eq('owner_user_id', user.id).order('updated_at', { ascending: false });
-    if (error) throw error;
-    pages = data || [];
+    if (own.error) throw own.error;
+    let businessPages = [];
+    if (businesses.length) {
+      const owned = await sb.from('digital_pages')
+        .select('id,page_type,owner_user_id,business_id,digital_page_order_id,slug,title,description,status,whatsapp_number,updated_at')
+        .in('business_id', businesses.map(b => b.id)).order('updated_at', { ascending: false });
+      if (owned.error) throw owned.error;
+      businessPages = owned.data || [];
+    }
+    pages = [...(own.data || []), ...businessPages].filter((p, i, all) => all.findIndex(x => x.id === p.id) === i);
     renderPages();
   }
   function renderPages() {
@@ -162,7 +205,8 @@
     }
     for (const p of pages) {
       const row = node('article', undefined, 'page-row');
-      row.append(node('strong', p.title), node('p', p.slug + ' · ' + p.status));
+      const business = businesses.find(b => String(b.id) === String(p.business_id));
+      row.append(node('strong', p.title), node('p', (p.page_type === 'MENU' ? 'منيو' : 'صفحة شخصية') + ' · ' + p.slug + ' · ' + p.status + (business ? ' · ' + business.name : '')));
       const open = node('a', 'فتح الرابط');
       open.href = makeLink(p.slug); open.target = '_blank'; open.rel = 'noopener';
       const edit = node('button', 'إدارة الصفحة');
@@ -268,7 +312,10 @@
         currentPage = data;
       } else {
         const { data, error } = await sb.from('digital_pages').insert({
-          ...values, owner_user_id: user.id, business_id: null, provider_profile_id: null,
+          ...values,
+          owner_user_id: selectedOrder.page_type === 'MENU' ? null : user.id,
+          business_id: selectedOrder.page_type === 'MENU' ? selectedOrder.target_business_id : null,
+          provider_profile_id: null,
           digital_page_order_id: orderId, created_by: user.id
         }).select('id,page_type,digital_page_order_id,slug,title,description,status,whatsapp_number,updated_at').single();
         if (error) throw error;
