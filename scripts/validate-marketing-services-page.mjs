@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync('web/marketing-services.html','utf8');
+const js=fs.readFileSync('web/marketing-services.js','utf8');
+const css=fs.readFileSync('web/marketing-services.css','utf8');
+assert.match(html,/<html lang="ar" dir="rtl">/);
+assert.match(html,/خدماتنا التسويقية/);
+assert.match(html,/id="request-form"/);
+assert.match(html,/data-wa-general/);
+assert.match(html,/marketing-services\.js/);
+assert.match(js,/window\.MNTY_SUPPORT\?\.whatsapp/);
+assert.match(js,/encodeURIComponent\(text\)/);
+assert.match(js,/reportValidity\(\)/);
+assert.match(js,/safeOpen\(waUrl\(message\)\)/);
+assert.match(html,/الإعلانات الممولة[\s\S]*?تحت الإنشاء/);
+assert.doesNotMatch(js,/digital-page-payment-intent|checkoutUrl|paymob/i);
+assert.match(css,/@media\(max-width:560px\)/);
+console.log('Public marketing services page contract: PASS');
