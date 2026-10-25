@@ -9,8 +9,12 @@ assert.match(source, /normalizeBranchId\(url\.searchParams\.get\("branchId"\)\)/
   "catalog route must use tested branch normalization");
 assert.match(source, /if \(branchId && branchId\.length > 128\)/,
   "non-empty branchId length must be bounded before database lookup");
-assert.match(source, /String\(body\.clientIdempotencyKey\)\.length > 128/,
+assert.match(source, /normalizedOrderIdempotencyKey = String\(body\.clientIdempotencyKey \?\? ""\)\.trim\(\)/,
+  "order idempotency key must be trimmed and reject blank values");
+assert.match(source, /normalizedOrderIdempotencyKey\.length > 128/,
   "order idempotency key must respect the database varchar(128) limit");
+assert.match(source, /p_client_idempotency_key: normalizedOrderIdempotencyKey/,
+  "order RPC must receive the normalized idempotency key");
 assert.match(source, /normalizedIdempotencyKey\.length > 128/,
   "payment idempotency key must respect the database varchar(128) limit");
 assert.match(source, /\.eq\("id", branchId\)\.eq\("business_id", businessId\)\.eq\("status", "ACTIVE"\)\.maybeSingle\(\)/,
