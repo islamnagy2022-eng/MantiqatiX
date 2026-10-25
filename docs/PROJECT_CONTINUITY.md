@@ -701,3 +701,12 @@ This status is intentional and must remain until the open gates above are indepe
 
 
 - RC570 hardening: branch-to-menu binding is stored in a separate authenticated RLS-protected table and is omitted from public MENU section JSON. This prevents public exposure of internal tenant/business/branch IDs and blocks cross-branch overwrite. This change is unverified until exact-head CI and authenticated E2E pass.
+
+
+## Latest execution — engine bootstrap and subscription reminders (2026-10-25)
+
+- Main platform bootstrap now loads catalog-experience-engine.js before app.js; service-worker cache entries use matching versions. The shared engine remains presentation/helper logic, not an authorization source.
+- The dashboard launch-scope panel links to marketing-services.html and identifies its WhatsApp inquiry path as available.
+- Subscription reminders now visually distinguish 7-day, 3-day, 1-day and expired states based on the paid timestamp and package duration. This is an in-app reminder; scheduled push/email delivery remains unverified.
+- Static source validator was extended for bootstrap ordering, cache alignment, reminder milestones and marketing-page status. Latest exact-head CI has not yet completed.
+- Still incomplete: evidence-based per-sector adapter inventory/integration, authenticated multi-user RLS, browser/mobile E2E, scheduled reminder delivery tests, and production deploy smoke. PR #374 remains draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
