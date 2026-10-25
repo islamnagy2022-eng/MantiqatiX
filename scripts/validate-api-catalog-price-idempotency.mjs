@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 const source = readFileSync("supabase/functions/api/index.ts", "utf8");
 const contracts = readFileSync("supabase/functions/api/contracts.mjs", "utf8");
-const idempotencyMigration = readFileSync("supabase/migrations/20261026030000_rc572_payment_intent_tenant_idempotency.sql", "utf8");
+const idempotencyMigration = readFileSync("supabase/migrations/20261025234000_rc572_payment_intent_tenant_idempotency.sql", "utf8");
 
 assert.match(source, /normalizeBranchId\(url\.searchParams\.get\("branchId"\)\)/,
   "catalog route must use tested branch normalization");
