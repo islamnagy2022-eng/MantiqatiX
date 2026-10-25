@@ -2059,3 +2059,17 @@ Architecture and acceptance gates: docs/WHATSAPP_FIRST_CATALOG_ENGINE_PLAN_20261
 - [ ] Exact-head forward migration replay and all required CI must rerun; this source fix is not yet verified by a rerun.
 - [ ] Separate failure in the same exact-head workflow batch: production security validator reported a stale membership-selection assertion; investigate and correct only after checking the current intended behavior.
 - No production migration, deployment, payment, or production data mutation was performed. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 execution delta — shared engine and dashboard
+
+- [x] Add shared catalog item/list rendering primitives with HTML escaping, bounded render count, empty states, status states, and sector-specific request-mode checks.
+- [x] Route the public digital MENU product inquiry through the shared FOOD adapter; preserve displayed price, page URL, and quantity-confirmation details.
+- [x] Prevent generic WhatsApp inquiry helper from bypassing existing booking/ride/job/matching flows.
+- [x] Make module dashboard readiness wording honest; separate company marketing services from deferred sponsored advertising.
+- [x] Digital-page subscription reminders exist on the home dashboard, notification center, and digital-page self-service page; reminders are based on recorded paid timestamp and duration snapshot.
+- [ ] Scheduled push/email/SMS subscription reminders are not implemented/verified; do not claim them active.
+- [ ] Re-run exact-head full forward migration replay after RC570 type/SQL quoting repair; previous replay failed at RC570 and the repair is pending evidence.
+- [ ] Wait for exact-head web validation, migration collision, migration immutability, and module-boundary checks; fix any newly exposed failures.
+- [ ] Apply the shared rendering adapter to every eligible existing service/menu/product module only after module-by-module data-contract and privacy review; current helper + public MENU integration do not prove cross-module completion.
+- [ ] Authenticated owner-isolation and browser E2E remain required. Production release stays BLOCKED / NOT CERTIFIED.
