@@ -105,7 +105,7 @@
       const session = sessionData.session;
       if (!session?.access_token) throw new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');
       if (!session.user?.email || !session.user?.phone) {
-        throw new Error('للدفع الإلكتروني يلزم أن يكون البريد الإلكتروني ورقم الهاتف موجودين وموثقين في حسابك.');
+        throw new Error('للدفع الإلكتروني يلزم أن يكون البريد الإلكتروني ورقم الهاتف موجودين في حسابك.');
       }
       checkoutWindow = window.open('about:blank', '_blank');
       if (!checkoutWindow) throw new Error('اسمح بفتح نافذة الدفع من المتصفح ثم اضغط اشتراك مرة أخرى.');
