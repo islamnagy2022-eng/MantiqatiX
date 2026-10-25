@@ -231,7 +231,7 @@ async function syncRestaurantMenuToDigitalPage(){
   if(saved.error)throw saved.error;
   if(!saved.data)throw new Error('لم يتم حفظ تحديث المنيو داخل نطاق الصفحة');
   const publicUrl=new URL('digital-page.html?slug='+encodeURIComponent(page.slug),location.href).href;
-  const actionBar=document.querySelector('.workspace-section .action-bar');
+  const actionBar=document.getElementById('rest-sync-menu-page')?.parentElement;
   let openLink=document.getElementById('rest-open-menu-page');
   if(!openLink&&actionBar){
    openLink=document.createElement('a');openLink.id='rest-open-menu-page';openLink.className='btn btn-outline';
