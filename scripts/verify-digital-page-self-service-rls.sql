@@ -15,6 +15,15 @@
 
 BEGIN;
 
+-- The captured production-schema checkpoint intentionally has schema but not catalog seed data.
+-- Create a deterministic synthetic package inside this transaction; the final ROLLBACK removes it.
+INSERT INTO public.digital_page_products
+  (page_type,code,name_ar,description_ar,price,currency,duration_days,features,active)
+VALUES
+  ('PORTFOLIO','RLS_TEST_PORTFOLIO','RLS test package','Disposable RLS integration fixture',1,'EGP',30,'[]'::jsonb,true)
+ON CONFLICT (code) DO UPDATE
+SET active=true, page_type='PORTFOLIO', price=1, currency='EGP', duration_days=30, features='[]'::jsonb;
+
 DO $preflight$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id='20000000-0000-4000-8000-000000000001') OR
