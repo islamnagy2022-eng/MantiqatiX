@@ -2,6 +2,9 @@
 -- All rows and JWT claims are synthetic and rolled back at the end.
 begin;
 
+insert into public.tenants (id, name, code, status)
+values ('RC572-TEST', 'RC572 Disposable Security Test', 'RC572-TEST', 'ACTIVE');
+
 insert into public.user_memberships
   (id, user_id, tenant_id, role, permissions, status)
 values
