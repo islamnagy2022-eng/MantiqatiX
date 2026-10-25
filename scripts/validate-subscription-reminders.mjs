@@ -10,7 +10,8 @@ assert.match(app, /digital_page_orders['"]\)\.select\([^\n]*paid_at/, 'dashboard
 assert.match(app, /digital_page_products['"]\)\.select\([^\n]*duration_days/, 'dashboard must read subscription duration');
 assert.match(app, /daysLeft>30/, 'reminders must be limited to the 30-day window');
 assert.match(app, /daysLeft<=7/, 'near-expiry subscriptions must be marked urgent');
-assert.match(app, /daysLeft<0/, 'expired subscriptions must be identified');
+assert.match(app, /msLeft<=0\?'expired'/, 'subscriptions must be marked expired immediately after the expiry timestamp');
+assert.match(app, /daysPast<1\?'انتهى الاشتراك اليوم'/, 'recently expired subscriptions must not be misreported as still active');
 assert.match(app, /تاريخ الانتهاء غير محدد في البيانات الحالية/, 'missing dates must not be silently presented as healthy');
 assert.match(app, /case'الرئيسية':return subscriptionReminderPanel\(\)/, 'home dashboard must include subscription reminders');
 assert.match(app, /case'الإشعارات':return subscriptionReminderPanel\(\)/, 'notification center must include subscription reminders');
