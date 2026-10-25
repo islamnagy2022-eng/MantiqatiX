@@ -63,7 +63,7 @@ as $$
     select 1 from public.digital_page_orders o
     where o.id=p_order_id and o.payment_status='PAID'
       and o.fulfillment_status='PUBLISHED'
-      and o.created_at + pg_catalog.make_interval(days => pg_catalog.greatest(
+      and o.created_at + pg_catalog.make_interval(days => greatest(
         1,
         case
           when coalesce(o.metadata->>'duration_days','') ~ '^[0-9]{1,5}$'
