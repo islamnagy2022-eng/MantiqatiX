@@ -618,3 +618,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
 - Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
 - No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Digital page self-service branch update
+
+- New isolated implementation branch: `feat/digital-page-self-service-20261025`.
+- Current source candidate adds a lightweight customer self-service page editor, customer WhatsApp contact, product/price CRUD stored in the existing MENU section JSON, and public WhatsApp CTA.
+- Candidate migration: `20261025193000_rc567_digital_page_self_service.sql`; not applied to any Supabase project.
+- Important: existing page publishing remains behind the paid fulfillment/platform-admin flow. The new branch must be tested against the pending RC563–RC566 migration candidates before merge.
+- No main merge, production database mutation, or deployment has occurred. Keep global production release BLOCKED / NOT CERTIFIED until CI, disposable migration replay, RLS integration, and browser E2E pass.
