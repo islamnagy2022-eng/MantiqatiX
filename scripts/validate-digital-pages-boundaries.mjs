@@ -7,6 +7,8 @@ const selfService=fs.readFileSync('web/digital-page-self-service.js','utf8');
 const publicPage=fs.readFileSync('web/digital-page.js','utf8');
 const selfServiceMigration=fs.readFileSync('supabase/migrations/20261025193000_rc567_digital_page_self_service.sql','utf8');
 const adminEditor=fs.readFileSync('web/digital-page-editor.js','utf8');
+const adminEditorHtml=fs.readFileSync('web/digital-page-editor.html','utf8');
+const manualActivationMigration=fs.readFileSync('supabase/migrations/20261025200000_rc568_digital_page_manual_activation.sql','utf8');
 for(const [src,marker,label] of [
  [order,'admin.auth.getUser','authenticated order creation'],[order,'idempotencyKey','order idempotency'],[order,'digital_page_products','server product pricing'],[order,'BUSINESS_SCOPE_FORBIDDEN','business scope check'],
  [payment,'p_user_id:user.id','authenticated order ownership binding'],[payment,'provider_intent_id','duplicate payment-intent guard'],[payment,'p_provider_intent_id:providerIntentId','provider correlation finalization'],
@@ -44,7 +46,17 @@ for (const [src,marker,label] of [
   [selfServiceMigration,"public.digital_page_public_subscription_active(p.digital_page_order_id)","public rendering is gated by subscription validity"]
 ]) if(!src.includes(marker)) throw new Error('Digital page regression marker missing: '+label);
 if ((selfServiceHtml.match(/id="new-page"/g)||[]).length !== 1) throw new Error('Duplicate create-page button id detected');
-if (/digital-page-payment-intent|digital-page-order-create|checkoutUrl|pendingCheckoutOrders|pendingCheckoutKeys/.test(selfService)) throw new Error('Self-service subscriptions must remain WhatsApp-only temporarily');
+if (/digital-page-payment-intent|checkoutUrl|pendingCheckoutOrders|pendingCheckoutKeys/.test(selfService)) throw new Error('Self-service subscriptions must remain WhatsApp-only temporarily');
+if (!selfService.includes("sb.functions.invoke('digital-page-order-create'") || !selfService.includes("'رقم الطلب: ' + order.id")) throw new Error('WhatsApp subscription requests must create and reference a pending order without starting checkout');
+for (const [src,marker,label] of [
+  [manualActivationMigration,"digital_page_manual_activation_audit","manual activation audit persistence"],
+  [manualActivationMigration,"mnty_admin_list_pending_digital_page_subscriptions","admin-only pending order queue RPC"],
+  [manualActivationMigration,"mnty_admin_activate_digital_page_subscription","admin-only manual activation RPC"],
+  [manualActivationMigration,"PLATFORM_ADMIN_REQUIRED","manual activation admin authorization"],
+  [adminEditor,"mnty_admin_list_pending_digital_page_subscriptions","admin editor loads the protected activation queue"],
+  [adminEditor,"mnty_admin_activate_digital_page_subscription","admin editor invokes the protected activation RPC"],
+  [adminEditorHtml,'id="manual-activation-panel"',"admin activation panel exists"]
+]) if(!src.includes(marker)) throw new Error('Manual activation boundary marker missing: '+label);
 if (!publicPage.includes('اطلب المنتج عبر واتساب') || !publicPage.includes('encodeURIComponent(productMessage)')) throw new Error('Product order CTA must open WhatsApp with encoded product details');
 if (selfServiceMigration.includes('), o.updated_at, o.created_at)')) throw new Error('Editing a draft must not extend subscription expiry');
 if ((selfServiceMigration.match(/coalesce\(o\.paid_at, \(select p\.published_at from public\.digital_pages p where p\.digital_page_order_id=o\.id and p\.owner_user_id=o\.user_id\), o\.created_at\)/g)||[]).length !== 2) throw new Error('Both owner and public expiry gates must use a stable subscription start timestamp');
