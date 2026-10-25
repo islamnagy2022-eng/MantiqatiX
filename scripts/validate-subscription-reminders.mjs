@@ -8,6 +8,8 @@ assert.match(app, /function subscriptionReminderPanel\(\)/, 'dashboard subscript
 assert.ok(app.indexOf('if(live.flags.digitalPageSubscriptionDataUnavailable)') < app.indexOf('if(!paid.length)return'), 'data retrieval errors must not be hidden as an empty reminder list');
 assert.match(app, /digital_page_orders['"]\)\.select\([^\n]*paid_at/, 'dashboard must read the recorded paid_at timestamp');
 assert.match(app, /digital_page_products['"]\)\.select\([^\n]*duration_days/, 'dashboard must read subscription duration');
+assert.match(app, /o\.metadata\?\.duration_days \?\? product\?\.duration_days/, 'reminder duration must prefer the duration snapshot recorded when the order was created');
+assert.match(app, /paid_at,updated_at,metadata/, 'dashboard must load the purchased duration snapshot with the paid timestamp');
 assert.match(app, /daysLeft>30/, 'reminders must be limited to the 30-day window');
 assert.match(app, /daysLeft<=7/, 'near-expiry subscriptions must be marked urgent');
 assert.match(app, /msLeft<=0\?'expired'/, 'subscriptions must be marked expired immediately after the expiry timestamp');
