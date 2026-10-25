@@ -42,3 +42,4 @@ end;
 $$;
 
 rollback;
+\echo 'RC572 platform-admin scope regression: PASS'
