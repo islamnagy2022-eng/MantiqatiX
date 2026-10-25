@@ -88,7 +88,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = public
-as $
+as $$
 begin
   if old.owner_user_id is not null then
     if new.owner_user_id is distinct from old.owner_user_id
@@ -112,7 +112,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 drop trigger if exists trg_digital_page_customer_update_guard on public.digital_pages;
 create trigger trg_digital_page_customer_update_guard
 before update on public.digital_pages
