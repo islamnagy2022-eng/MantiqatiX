@@ -658,3 +658,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Regulated/specialized modules must retain their existing required workflows; do not bypass safety/operational controls just to make every CTA a WhatsApp link.
 - Durable scope checklist added to docs/MASTER_PRODUCTION_TODO.md under “Launch scope decision — WhatsApp-first public service/catalog experience”.
 - This is a product scope decision, not evidence of implementation across all modules. PR #374 remains a partial digital-page implementation. No production merge/deploy or database migration is authorized. Release stays BLOCKED / NOT CERTIFIED.
+
+
+## SMM separation + under-construction UX decision (2026-10-25)
+
+- SMM remains a separate module for selling digital services, preserving existing implementation and capabilities already built. It is not merged into the general WhatsApp-first service/menu/product catalog.
+- Continue unfinished SMM capabilities in a later phase. Only implemented and verified SMM functionality may be presented as available; incomplete tabs/actions must show **"تحت الإنشاء"** and must not initiate unsafe payment/provider operations.
+- Platform-wide: every unfinished or unverified user-facing feature must visibly say **"تحت الإنشاء"** when opened/visited. Label the specific incomplete section/action rather than hiding completed features in the same module. Disable unavailable actions and enforce the restriction server-side where relevant.
+- A route/module status inventory and mobile/browser E2E verification are required. The label itself is not proof of implementation or a substitute for backend authorization.
+- Detailed acceptance criteria recorded in docs/MASTER_PRODUCTION_TODO.md. These are product requirements, not yet verified across the whole platform; no production deployment was made.
