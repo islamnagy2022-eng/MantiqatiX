@@ -162,7 +162,6 @@ for select to authenticated
 using (
   (
     owner_user_id=(select auth.uid())
-    and public.digital_page_subscription_active(digital_page_order_id,(select auth.uid()))
   )
   or (business_id is not null and exists (
     select 1 from public.user_memberships m
