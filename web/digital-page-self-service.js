@@ -111,7 +111,7 @@
         'البريد: ' + (sessionData.session.user.email || 'غير متاح'),
         'معرّف الحساب: ' + sessionData.session.user.id,
         'أرجو تأكيد الاشتراك وطريقة التفعيل.'
-      ].join('\\n');
+      ].join('\n');
       if (!whatsappWindow) throw new Error('اسمح بفتح نافذة واتساب من المتصفح ثم حاول مرة أخرى.');
       const whatsappUrl = 'https://wa.me/' + supportPhone + '?text=' + encodeURIComponent(messageText);
       whatsappWindow.location.replace(whatsappUrl);
