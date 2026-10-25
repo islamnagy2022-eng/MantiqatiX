@@ -21,7 +21,7 @@ assert.match(migration, /v_order\.target_business_id is distinct from new\.busin
 assert.match(migration, /new\.updated_by is distinct from auth\.uid\(\)/, 'menu binding audit actor must match the authenticated caller');
 assert.match(migration, /digital_page_public_subscription_active\(o\.id\)/, 'expired/unpublished subscriptions must block menu section writes server-side');
 assert.match(migration, /digital_page_sections as restrictive/, 'menu section writes must be restricted by the private branch binding');
-assert.match(migration, /o\.user_id = p_actor/, 'unbound subscription menu sections must remain scoped to the subscriber');
+assert.match(migration, /p\.digital_page_order_id is null/, 'legacy unlinked menu pages may retain their existing edit contract while self-service menus require branch binding');
 assert.match(restaurant, /select\('id,name_ar,description_ar,base_price_egp,category,is_available,is_popular,image_url'\)/, 'restaurant editor must read canonical menu image URLs');
 assert.match(restaurant, /field\('image','رابط صورة المنتج \(HTTPS\)'/, 'restaurant editor must expose the optional image field');
 assert.match(restaurant, /image_url:imageUrl\|\|null/, 'restaurant editor must save image URL into canonical menu item');
