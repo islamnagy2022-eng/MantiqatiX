@@ -68,6 +68,7 @@ const published = await render({
     seo_description: 'Safe description',
     version: 1,
     status: 'PUBLISHED',
+    whatsapp_number: '201010171770',
   },
   sections: [{
     id: 'section-test',
@@ -80,6 +81,9 @@ const published = await render({
 });
 assert.equal(published.title, 'Demo menu');
 assert.equal(published.meta, 'Safe description');
+assert.match(published.html, /كتالوج المنتجات/);
+assert.match(published.html, /https:\/\/wa\.me\/201010171770/);
+assert.match(published.html, /تواصل واطلب عبر واتساب/);
 assert.match(published.html, /Drinks/);
 assert.match(published.html, /30/);
 assert.match(published.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
@@ -87,4 +91,4 @@ assert.match(published.html, /Tea &lt;img src=x&gt;/);
 assert.ok(!published.html.includes('<script>alert(1)</script>'), 'page content must be HTML-escaped');
 assert.equal(published.sectionLookups, 1);
 
-console.log('Digital page runtime tests: PASS (missing slug, unpublished page, published MENU render, HTML escaping).');
+console.log('Digital page runtime tests: PASS (missing slug, unpublished page, published MENU render, WhatsApp contact CTA, HTML escaping).');
