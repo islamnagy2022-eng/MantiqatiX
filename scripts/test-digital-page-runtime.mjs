@@ -39,7 +39,7 @@ async function render({ search = '', page = null, sections = [] } = {}) {
     window: { MANTIQATIX_CONFIG: { supabaseUrl: 'https://example.invalid', supabaseKey: 'public-test-key' } },
     supabase: { createClient: () => client },
     document,
-    location: { search },
+    location: { search, href: 'https://example.invalid/digital-page.html?slug=demo' },
     URLSearchParams,
   };
   vm.runInNewContext(source, context, { filename: 'digital-page.js' });
@@ -84,6 +84,10 @@ assert.equal(published.meta, 'Safe description');
 assert.match(published.html, /كتالوج المنتجات/);
 assert.match(published.html, /https:\/\/wa\.me\/201010171770/);
 assert.match(published.html, /تواصل واطلب عبر واتساب/);
+assert.match(published.html, /اطلب المنتج عبر واتساب/);
+assert.match(published.html, /المنتج: Tea/);
+assert.match(published.html, /السعر: 30 EGP/);
+assert.match(published.html, /wa\\.me\\/201010171770\\?text=/);
 assert.match(published.html, /Drinks/);
 assert.match(published.html, /30/);
 assert.match(published.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
