@@ -4,7 +4,7 @@
     auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
   });
   const $ = id => document.getElementById(id);
-  let user = null, orders = [], products = [], pages = [], currentPage = null, menuSection = null, items = [], editIndex = -1;
+  let user = null, orders = [], products = [], pages = [], currentPage = null, menuSection = null, items = [], editIndex = -1, pendingSubscriptionKeys = new Map();
 
   function message(text, bad = false) {
     $('status').textContent = text || '';
