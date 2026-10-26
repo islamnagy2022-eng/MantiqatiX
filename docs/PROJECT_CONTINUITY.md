@@ -703,3 +703,13 @@ This status is intentional and must remain until the open gates above are indepe
 - **CI PASS:** DEMO Isolation run [40269410403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40269410403) passed all nine steps, including JavaScript checks, local simulator workflows, connected DEMO source contracts, and non-mutating CORS/JWT smoke tests for all seven Edge Functions.
 - **Security boundary rechecked:** effective `anon`/`authenticated` INSERT/UPDATE/DELETE privileges are false on the tested DEMO business, branch, catalog, price, order, membership, and appointment tables. The Security Advisor still reports two RLS-enabled tables without policies and one anon plus six authenticated SECURITY DEFINER warnings; keep these under individual review.
 - **Still blocked:** `auth.users` remains empty and no authenticated business/order/appointment E2E was executed. PR #376 remains Draft/unmerged. No LIVE schema, data, Edge Function, or payment setting was changed; production release remains BLOCKED / NOT CERTIFIED.
+
+
+## Google OAuth and primary owner — 2026-10-26
+
+- The connected DEMO login now reuses the production Google OAuth pattern; the separate email/password signup/login path was removed. Configuration sets `primaryOwnerEmail` to `islam.nagy2022@gmail.com` (same identity as the user's uppercase address).
+- The client requests Google OAuth, uses `login_hint` for the primary owner and returns to the current DEMO page. This is a source-level change; it does not copy a production auth user, password, token, or session.
+- When the primary owner completes Google sign-in in the DEMO project and creates a business, the existing server-side business RPC assigns `OWNER` for that business only. It does not grant platform-wide `SUPER_ADMIN`.
+- **Remaining external setup:** the DEMO Supabase Auth project must have Google provider credentials configured and exact redirect URLs allowlisted in Supabase Auth and the Google OAuth client. The connected route is not publicly published while PR #376 remains Draft; therefore a real Google redirect/login has not been performed. Current `auth.users`, `businesses`, `orders`, and `medical_appointments` counts remain zero.
+- **CI evidence:** on code head `922569c016b11dbab541328bf978d7a55a88b263`, DEMO Isolation passed in [40270090760](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40270090760); the contract checks assert Google OAuth, owner-account config, no separate password path, and the clinic time guard. This is not a substitute for authenticated browser E2E.
+- The launch plan remains a minimum safe launch of the existing product. No new modules or non-essential scope is added before core end-to-end validation.
