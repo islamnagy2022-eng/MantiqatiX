@@ -146,6 +146,31 @@ Deno.serve(async (req: Request) => {
     if (businessError) throw businessError;
     if (!business) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
 
+    // Subscription enforcement belongs on the server, not only in dashboard UI.
+    // Keep reads available so an owner can see status and request reactivation,
+    // but block merchant mutations after a business is frozen or deactivated.
+    const catalogSettings = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
+      ? business.settings.bizcatalog
+      : {};
+    const mutationActions = new Set([
+      "BUSINESS_PROFILE_UPSERT",
+      "ITEM_PRICE_UPSERT",
+      "ITEM_STATUS_UPDATE",
+      "WAREHOUSE_CREATE",
+      "STOCK_ADJUST",
+      "ITEM_UPSERT",
+      "PRICE_UPSERT",
+      "SETTINGS_UPSERT",
+    ]);
+    if (mutationActions.has(action) && !scopedPlatformMembership) {
+      if (String(business.status || "").toUpperCase() !== "ACTIVE") {
+        return out(origin, { error: "BUSINESS_INACTIVE", message: "النشاط غير نشط؛ تواصل مع إدارة المنصة لإعادة التفعيل." }, 409);
+      }
+      if (catalogSettings.isFrozen === true || String(catalogSettings.paymentStatus || "").toLowerCase() === "frozen") {
+        return out(origin, { error: "SUBSCRIPTION_FROZEN", message: "تم إيقاف التعديلات بسبب حالة الاشتراك؛ تواصل مع إدارة المنصة لتجديده." }, 423);
+      }
+    }
+
     if (action === "CATALOG_READ") {
       const { data: rawBranches, error: branchesError } = await service.from("branches")
         .select("id,name,code,status,phone,address")
