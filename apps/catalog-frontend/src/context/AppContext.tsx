@@ -20,7 +20,6 @@ import {
 } from '../data/productionDefaults';
 import {
   createBackupPayload,
-  formatDirectCredentialsText,
   generateAdminCatalogRequestWhatsAppUrl,
   generateGmailInviteUrl,
   generateWhatsAppOrderUrl,
@@ -113,7 +112,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     return params.has('store') || params.has('businessId') ? 'public_storefront' : 'directory';
   });
-  const pendingCredentials = useRef(new Map<string, { fullName: string; businessName: string; username: string; password: string }>());
   // Prevent overlapping auth events from applying stale bootstrap results over a newer session.
   const authLoadSequence = useRef(0);
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
@@ -343,22 +341,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addSubscriber = async (data: { fullName: string; email: string; phone: string; businessId: string; username?: string; password?: string; authMethod: 'direct_password' | 'gmail_invite'; notes?: string }): Promise<Subscriber> => {
     if (authSession.role !== 'admin') throw new Error('إضافة المشتركين متاحة لإدارة المنصة فقط.');
-    const business = businesses.find((b) => b.id === data.businessId); if (!business?.tenantId) throw new Error('اختر نشاطا مرتبطا بقاعدة الإنتاج.');
-    const password = data.password?.trim() || crypto.randomUUID().replace(/-/g, '').slice(0, 14) + 'A!';
-    const result: any = await callPlatformAdmin({ action: 'CREATE_SUBSCRIBER', businessId: business.id, tenantId: business.tenantId, email: data.email.trim().toLowerCase(), password, fullName: data.fullName.trim(), phone: data.phone || '' });
+    const business = businesses.find((b) => b.id === data.businessId);
+    if (!business?.tenantId) throw new Error('اختر نشاطا مرتبطا بقاعدة الإنتاج.');
+    const email = data.email.trim().toLowerCase();
+    const result: any = await callPlatformAdmin({
+      action: 'CREATE_SUBSCRIBER',
+      businessId: business.id,
+      tenantId: business.tenantId,
+      email,
+      fullName: data.fullName.trim(),
+      phone: data.phone || '',
+    });
     const id = String(result.membershipId || result.id || result.userId);
-    const created: Subscriber = { id, fullName: data.fullName.trim(), email: data.email.trim().toLowerCase(), phone: data.phone, businessId: business.id, status: 'active', username: data.email.trim().toLowerCase(), authMethod: 'direct_password', inviteStatus: 'direct_created', notes: data.notes, joinedDate: new Date().toISOString().slice(0, 10) };
-    pendingCredentials.current.set(id, { fullName: created.fullName, businessName: business.name, username: created.email, password });
-    setSubscribers((prev) => [created, ...prev.filter((s) => s.id !== id)]); return created;
+    const created: Subscriber = {
+      id,
+      fullName: data.fullName.trim(),
+      email,
+      phone: data.phone,
+      businessId: business.id,
+      status: 'active',
+      username: email,
+      authMethod: 'gmail_invite',
+      inviteStatus: 'direct_created',
+      notes: data.notes,
+      joinedDate: new Date().toISOString().slice(0, 10),
+    };
+    setSubscribers((prev) => [created, ...prev.filter((s) => s.id !== id)]);
+    return created;
   };
-  const updateSubscriber = async (updated: Subscriber) => { await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: updated.id, status: updated.status === 'active' ? 'ACTIVE' : updated.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE' }); setSubscribers((prev) => prev.map((s) => s.id === updated.id ? { ...updated, password: undefined } : s)); };
-  const deleteSubscriber = async (id: string) => { await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: id, status: 'INACTIVE' }); setSubscribers((prev) => prev.filter((s) => s.id !== id)); pendingCredentials.current.delete(id); };
-  const sendGmailInvite = (id: string) => { const sub = subscribers.find((s) => s.id === id); if (!sub) return ''; const biz = businesses.find((b) => b.id === sub.businessId); return generateGmailInviteUrl(sub.email, sub.fullName, biz?.name || 'نشاطك التجاري', publicBaseUrl(), sub.email, undefined); };
-  const getSubscriberCredentialsText = (id: string) => { const sub = subscribers.find((s) => s.id === id); const credential = pendingCredentials.current.get(id); if (sub && credential) return formatDirectCredentialsText(credential.fullName, credential.businessName, credential.username, credential.password, publicBaseUrl()); if (sub) return `MantiqatiX
+  const updateSubscriber = async (updated: Subscriber) => {
+    await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: updated.id, status: updated.status === 'active' ? 'ACTIVE' : updated.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE' });
+    setSubscribers((prev) => prev.map((s) => s.id === updated.id ? { ...updated, password: undefined } : s));
+  };
+  const deleteSubscriber = async (id: string) => {
+    await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: id, status: 'INACTIVE' });
+    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+  };
+  const sendGmailInvite = (id: string) => {
+    const sub = subscribers.find((s) => s.id === id);
+    if (!sub) return '';
+    const biz = businesses.find((b) => b.id === sub.businessId);
+    return generateGmailInviteUrl(sub.email, sub.fullName, biz?.name || 'نشاطك التجاري', publicBaseUrl(), sub.email, undefined);
+  };
+  const getSubscriberCredentialsText = (id: string) => {
+    const sub = subscribers.find((s) => s.id === id);
+    if (!sub) return '';
+    return `منطقتي X | MantiqatiX
 اسم المشترك: ${sub.fullName}
 النشاط: ${businesses.find((b) => b.id === sub.businessId)?.name || 'النشاط'}
-البريد: ${sub.email}
-كلمة المرور لا تُخزّن ولا يمكن عرضها مجددا. استخدم إعادة تعيين كلمة المرور.`; return ''; };
+البريد المرتبط بحساب Google: ${sub.email}
+
+طريقة الدخول: اضغط "المتابعة باستخدام Google" واختر نفس حساب Google أعلاه.
+تم حفظ ربط الاشتراك وصلاحيات النشاط في Supabase.`;
+  };
   const updateAdminSettings = (settings: Partial<AdminSettings>) => { const safe = { ...settings }; delete (safe as any).adminPassword; setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' })); if (authSession.role === 'admin') void callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات المنصة.')); };
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };
 
