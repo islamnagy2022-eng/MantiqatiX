@@ -164,7 +164,7 @@ jobs:
           cat /tmp/changed-files.txt
           while IFS= read -r path; do
             case "$path" in
-              web/home.js|web/home.css|web/index.html|web/sw.js|scripts/validate-home-production-content.mjs|scripts/validate-sector-rendering.mjs|scripts/validate-marketing-campaign-ui.mjs|web/preview/restaurant-order.html|scripts/validate-preview-navigation.mjs) ;;
+              web/home.js|web/home.css|web/index.html|web/sw.js|scripts/validate-home-production-content.mjs|scripts/validate-sector-rendering.mjs|scripts/validate-marketing-campaign-ui.mjs|web/preview/restaurant-order.html|web/preview/four-sector-demo/*|.github/workflows/preview-pages.yml|scripts/validate-preview-navigation.mjs) ;;
               *) echo "Refusing public-only deployment because this path is outside the allowlist: $path"; exit 1 ;;
             esac
           done < /tmp/changed-files.txt

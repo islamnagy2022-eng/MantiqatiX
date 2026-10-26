@@ -99,7 +99,7 @@ jobs:
           grep -Fq 'رمز التحقق التجريبي الثابت 123456' /tmp/preview-login.html
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/four-sector-demo/" -o /tmp/four-sector-demo.html
           grep -Fq 'نسخة DEMO تفاعلية للقطاعات الأربعة' /tmp/four-sector-demo.html
-          grep -Fq 'بيانات المحاكاة' /tmp/four-sector-demo.html
+          grep -Fq 'البيانات محفوظة محليًا في هذا المتصفح فقط' /tmp/four-sector-demo.html
           grep -Fq 'id="app"' /tmp/four-sector-demo.html
           for asset in demo.css demo.js; do
             curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL}preview/four-sector-demo/${asset}?v=four-sector-demo-20261026" >/dev/null
