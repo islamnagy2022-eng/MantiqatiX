@@ -32,6 +32,7 @@ export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> =
       setIsInstalled(true);
       setInstallPrompt(null);
       setStatusMessage('تم تثبيت التطبيق');
+      window.setTimeout(() => setStatusMessage(''), 2500);
     };
 
     checkInstalled();
