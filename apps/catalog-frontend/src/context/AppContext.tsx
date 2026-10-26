@@ -48,6 +48,7 @@ interface AppContextType {
   loginAsSubscriber: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAsAdmin: (password?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  registerWithEmail: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string; message?: string; needsConfirmation?: boolean }>;
   authLoading: boolean;
   logout: () => void;
   isLoginModalOpen: boolean;
@@ -190,6 +191,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (error: any) { return { success: false, error: error?.message || 'تعذر بدء تسجيل الدخول بحساب Google.' }; }
   };
 
+  const registerWithEmail = async (fullName: string, identifier: string, password: string): Promise<{ success: boolean; error?: string; message?: string; needsConfirmation?: boolean }> => {
+    const email = identifier.trim().toLowerCase();
+    if (!fullName.trim()) return { success: false, error: 'اكتب الاسم الكامل.' };
+    if (!email.includes('@')) return { success: false, error: 'اكتب بريدًا إلكترونيًا صالحًا.' };
+    if (password.length < 8) return { success: false, error: 'كلمة المرور يجب ألا تقل عن 8 أحرف.' };
+    try {
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName.trim(), name: fullName.trim() },
+          emailRedirectTo: redirectTo,
+        },
+      });
+      if (error) return { success: false, error: error.message || 'تعذر إنشاء الحساب.' };
+      if (!data.user) return { success: false, error: 'لم يتم إنشاء الحساب. حاول مرة أخرى.' };
+      if (data.session) {
+        const boot = await bootstrapProductionUser(data.user);
+        setAuthSession(boot.authSession);
+        setBusinesses(boot.businesses);
+        setProducts(boot.products);
+        setSubscribers(boot.subscribers);
+        setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
+        setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
+        setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : boot.authSession.role === 'subscriber' ? 'merchant_admin' : 'directory');
+        return { success: true, message: 'تم إنشاء الحساب. تفعيل صلاحيات صاحب النشاط يحتاج اعتماد إدارة المنصة.' };
+      }
+      return {
+        success: true,
+        needsConfirmation: true,
+        message: 'تم تسجيل طلب إنشاء الحساب. افتح رسالة التأكيد المرسلة إلى بريدك الإلكتروني، وبعدها يمكنك تسجيل الدخول. اشتراك النشاط يحتاج اعتماد الإدارة.',
+      };
+    } catch (error: any) {
+      return { success: false, error: error?.message || 'تعذر إنشاء الحساب حاليًا.' };
+    }
+  };
+
   const loginAsSubscriber = async (identifier: string, password: string): Promise<{ success: boolean; error?: string }> => {
     const email = identifier.trim().toLowerCase();
     if (!email.includes('@')) return { success: false, error: 'استخدم البريد الإلكتروني الذي سلمته لك إدارة المنصة وليس اسم مستخدم تجريبيا.' };
@@ -197,14 +236,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error || !data.user) return { success: false, error: 'بيانات البريد الإلكتروني أو كلمة المرور غير صحيحة.' };
     try {
       const boot = await bootstrapProductionUser(data.user);
-      if (boot.authSession.role === 'guest') {
-        await supabase.auth.signOut();
-        return { success: false, error: 'الحساب لا يملك عضوية نشطة في MantiqatiX. تواصل مع إدارة المنصة.' };
-      }
       setAuthSession(boot.authSession); setBusinesses(boot.businesses); setProducts(boot.products); setSubscribers(boot.subscribers);
       setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
       setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
-      setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : 'merchant_admin');
+      setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : boot.authSession.role === 'subscriber' ? 'merchant_admin' : 'directory');
       setIsLoginModalOpen(false);
       return { success: true };
     } catch (e: any) {
@@ -345,7 +380,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return <AppContext.Provider value={{
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
-    authSession, authLoading, loginWithGoogle, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
+    authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, advanceBusinessOverdueDay, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,

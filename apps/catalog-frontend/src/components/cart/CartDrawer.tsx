@@ -58,7 +58,8 @@ export const CartDrawer: React.FC = () => {
 
   // Paymob Payment Method State
   const paymobConfig = currentBusiness?.paymobConfig;
-  const isPaymobAllowed = Boolean(paymobConfig?.enabled);
+  // Electronic payment is intentionally disabled platform-wide until the real gateway is approved and verified.
+  const isPaymobAllowed = false;
 
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'paymob'>('cod');
   const [paymobChannel, setPaymobChannel] = useState<PaymobChannel>('card');
@@ -512,7 +513,7 @@ export const CartDrawer: React.FC = () => {
                             <span className="text-[10px] text-slate-500 font-bold">بدون رسوم إضافية</span>
                           </div>
                           <p className="text-[11px] text-slate-500 mt-0.5">
-                            سداد نقدي مباشر عند استلام المنتجات من مندوب النشاط.
+                            تواصل مع صاحب النشاط عبر واتساب واتفق معه على الدفع النقدي عند الاستلام.
                           </p>
                         </div>
                       </label>
@@ -570,12 +571,29 @@ export const CartDrawer: React.FC = () => {
                           </div>
                         </label>
                       ) : (
-                        <div className="p-2.5 rounded-2xl bg-slate-100 border border-slate-200 text-slate-400 text-xs flex items-center justify-between">
-                          <span className="flex items-center gap-1.5 font-medium">
-                            <CreditCard className="w-4 h-4 text-slate-400" />
-                            بوابة Paymob غير مفعلة لهذا النشاط حالياً
-                          </span>
-                          <span className="text-[10px] text-slate-400">بقرار الإدارة</span>
+                        <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
+                          <div className="flex items-center gap-2 font-black">
+                            <Lock className="w-4 h-4" />
+                            <span>طرق الدفع الإلكتروني غير متاحة مؤقتًا</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div aria-disabled="true" className="rounded-xl border border-slate-200 bg-white/70 p-2 text-center text-slate-400">
+                              <CreditCard className="w-5 h-5 mx-auto mb-1" />
+                              <span className="block text-[10px] font-bold">بطاقة بنكية</span>
+                              <span className="block text-[9px]">قريبًا</span>
+                            </div>
+                            <div aria-disabled="true" className="rounded-xl border border-slate-200 bg-white/70 p-2 text-center text-slate-400">
+                              <Smartphone className="w-5 h-5 mx-auto mb-1" />
+                              <span className="block text-[10px] font-bold">محفظة إلكترونية</span>
+                              <span className="block text-[9px]">قريبًا</span>
+                            </div>
+                            <div aria-disabled="true" className="rounded-xl border border-slate-200 bg-white/70 p-2 text-center text-slate-400">
+                              <QrCode className="w-5 h-5 mx-auto mb-1" />
+                              <span className="block text-[10px] font-bold">أمان / مصاري</span>
+                              <span className="block text-[9px]">قريبًا</span>
+                            </div>
+                          </div>
+                          <p className="leading-relaxed">يمكنك إتمام الطلب بالتواصل مع صاحب النشاط عبر واتساب والاتفاق معه على الدفع النقدي عند الاستلام. لن يتم تحصيل أي مبلغ إلكتروني من هذه الواجهة حاليًا.</p>
                         </div>
                       )}
                     </div>
