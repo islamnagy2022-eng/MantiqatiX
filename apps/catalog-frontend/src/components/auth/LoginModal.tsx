@@ -67,10 +67,6 @@ export const LoginModal: React.FC = () => {
           </button>
         </div>
 
-        <button type="button" disabled={busy} onClick={() => void handleGoogle(intent)} className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 disabled:opacity-60 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all flex items-center justify-center gap-2">
-          <span className="w-5 h-5 rounded-full border border-slate-200 text-red-600 font-black flex items-center justify-center text-xs">G</span>
-          <span>{busy ? 'جارٍ التحويل إلى Google...' : 'المتابعة باستخدام Google'}</span>
-        </button>
         <p className="text-center text-[11px] text-slate-500 leading-relaxed">في التسجيل الجديد اختر حساب Google الذي تريد استخدامه. إذا كان الحساب جديدًا فسيُنشأ تلقائيًا بعد موافقة Google، لكن صلاحيات إدارة النشاط لا تُمنح تلقائيًا.</p>
 
         {subscriptionRequestUrl && (
