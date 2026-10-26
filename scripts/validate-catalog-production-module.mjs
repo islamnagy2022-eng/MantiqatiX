@@ -59,6 +59,7 @@ check("public_catalog_is_read_only_and_opt_in", () => {
   includes(publicFn, 'business.settings?.catalog_public_enabled !== true');
   includes(publicFn, '"PUBLIC_READ_ONLY"');
   includes(publicFn, "paymentsEnabled: false");
+  assert.ok(publicFn.indexOf("const stockAvailability = new Map<string, boolean>()") < publicFn.indexOf("const items = (rawItems || []).map"), "stock availability must be resolved before public item mapping");
   includes(publicFn, '.eq("business_id", businessId)');
   includes(publicFn, '.eq("status", "ACTIVE")');
   includes(publicFn, '.is("branch_id", null)');
