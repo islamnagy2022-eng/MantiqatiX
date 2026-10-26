@@ -143,7 +143,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('businessId') || params.get('store') || '';
-    if (!user && requestedId) {
+    if (boot.authSession.role === 'guest' && requestedId) {
       const byId = boot.businesses.find((b) => b.id === requestedId || b.slug === requestedId);
       if (byId) { setSelectedBusinessIdState(byId.id); setCurrentView('public_storefront'); }
       else if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
