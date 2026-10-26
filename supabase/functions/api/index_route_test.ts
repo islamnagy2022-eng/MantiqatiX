@@ -181,6 +181,24 @@ Deno.test("business-wide membership can read all branches of its own business bu
   }
 });
 
+Deno.test("unscoped OWNER membership is not a tenant-wide order-read wildcard", async () => {
+  const db = new FakeDatabase("orders");
+  db.orderReadMembership = { ...db.orderReadMembership, business_id: null, branch_id: null, role: "OWNER" };
+  const response = await makeHandler(db)(request("/api/v1/orders/order-a"));
+  if (response.status !== 403) {
+    throw new Error(`unscoped OWNER membership must not read business orders, got ${response.status}`);
+  }
+});
+
+Deno.test("tenant-wide ADMIN membership may read tenant orders when no business or branch is assigned", async () => {
+  const db = new FakeDatabase("orders");
+  db.orderReadMembership = { ...db.orderReadMembership, business_id: null, branch_id: null, role: "ADMIN" };
+  const response = await makeHandler(db)(request("/api/v1/orders/order-b"));
+  if (response.status !== 200) {
+    throw new Error(`tenant-wide ADMIN membership should read tenant orders, got ${response.status}`);
+  }
+});
+
 
 Deno.test("payment-intent route replays the same identity but rejects a key bound to another order", async () => {
   const intent: Row = {
