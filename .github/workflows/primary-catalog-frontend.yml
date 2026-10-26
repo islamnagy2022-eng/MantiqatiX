@@ -6,6 +6,7 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-catalog-google-auth-contract.mjs"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/public-catalog-directory/**"
       - "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql"
@@ -16,6 +17,7 @@ on:
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
+      - "scripts/validate-catalog-google-auth-contract.mjs"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/public-catalog-directory/**"
       - "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql"
@@ -60,6 +62,8 @@ jobs:
       - name: TypeScript check
         working-directory: apps/catalog-frontend
         run: npm run lint
+      - name: Validate Google OAuth session and role contract
+        run: node scripts/validate-catalog-google-auth-contract.mjs
       - name: Build production assets
         working-directory: apps/catalog-frontend
         run: npm run build
