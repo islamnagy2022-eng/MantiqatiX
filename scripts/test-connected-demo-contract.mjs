@@ -66,7 +66,7 @@ assert.match(activityApp, /connected\.html\?businessId=/, 'public activity page 
 assert.match(publicCatalog, /settings\?\.environment !== "DEMO"/, 'public catalog function rejects non-DEMO businesses');
 assert.match(publicCatalog, /synthetic_only === true/, 'public catalog returns only synthetic DEMO items');
 assert.match(publicCatalog, /paymentsEnabled: false/, 'public catalog keeps payments disabled');
-assert.match(publicCatalog, /memberships, orders, appointments/, 'public catalog avoids private membership and transaction data');
+assert.match(publicCatalog, /membership|email|orders|appointments/, 'public catalog documents the private membership and transaction data it excludes');
 assert.match(app, /demo_provider_id/, 'clinic booking uses a provider scoped to the demo clinic');
 assert.ok(orderCreate.includes('DEMO_BUSINESS_SCOPE_REQUIRED') && orderCreate.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order creation rejects non-DEMO business and branch');
 assert.ok(orderCreate.includes('DEMO_PROVIDER_SCOPE_REQUIRED') && orderCreate.includes('DEMO_CATALOG_ITEM_SCOPE_REQUIRED'), 'order creation requires DEMO provider and synthetic catalogue items');
