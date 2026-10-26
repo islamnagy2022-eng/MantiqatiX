@@ -22,6 +22,14 @@ import {
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 
+const whatsappDigits = (value: unknown): string => {
+  let digits = String(value || '').replace(/\\D/g, '');
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  if (digits.startsWith('0')) digits = '20' + digits.slice(1);
+  else if (digits.startsWith('1') && digits.length === 10) digits = '20' + digits;
+  return digits.length >= 10 && digits.length <= 15 ? digits : '';
+};
+
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
   retail: <ShoppingBag className="w-5 h-5 text-blue-500" />,
@@ -442,11 +450,11 @@ export const DirectoryView: React.FC = () => {
                 <Store className="w-8 h-8" />
               </div>
               <h3 className="font-bold text-slate-800 text-base">
-                {businesses.length === 0 ? 'لا توجد كتالوجات منشورة للعامة حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
+                {businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
               </h3>
               <p className="text-xs text-slate-500 max-w-lg mx-auto">
                 {businesses.length === 0
-                  ? 'الأنشطة غير المنشورة لا تظهر للزوار حفاظا على بيانات أصحابها. تواصل مع إدارة المنصة لتفعيل كتالوج نشاطك.'
+                  ? 'ستظهر هنا الأنشطة النشطة المتاحة للزوار. تواصل مع إدارة المنصة إذا كنت تبحث عن نشاط غير موجود.'
                   : 'جرب تغيير كلمات البحث أو تصنيف القطاع أو المحافظة.'}
               </p>
               {businesses.length === 0 && catalogRequestPhone && (
@@ -539,28 +547,36 @@ export const DirectoryView: React.FC = () => {
 
                     {/* Action Footer */}
                     <div className="p-5 pt-0 flex items-center justify-between gap-3 border-t border-slate-100 mt-2">
-                      <a
-                        href={`https://wa.me/${biz.ownerWhatsApp.replace(/[^\d]/g, '')}?text=${encodeURIComponent(
-                          `مرحباً، أود الاستفسار والطلب من نشاطكم: ${biz.name}`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <MessageCircle className="w-4 h-4 text-emerald-600" />
-                        <span>مراسلة واتساب</span>
-                      </a>
+                      {whatsappDigits(biz.ownerWhatsApp) ? (
+                        <a
+                          href={`https://wa.me/${whatsappDigits(biz.ownerWhatsApp)}?text=${encodeURIComponent(
+                            `مرحباً، أود الاستفسار عن نشاطكم: ${biz.name}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4 text-emerald-600" />
+                          <span>مراسلة واتساب</span>
+                        </a>
+                      ) : (
+                        <span className="flex-1 text-center text-xs text-slate-400 py-2.5">رقم التواصل غير متاح</span>
+                      )}
 
-                      <button
-                        onClick={() => {
-                          setSelectedBusinessId(biz.id);
-                          setCurrentView('public_storefront');
-                        }}
-                        className="flex-1 bg-slate-900 hover:bg-emerald-600 text-white font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                      >
-                        <span>عرض الكتالوج</span>
-                        <ArrowRight className="w-3.5 h-3.5 rotate-180" />
-                      </button>
+                      {biz.publicEnabled ? (
+                        <button
+                          onClick={() => {
+                            setSelectedBusinessId(biz.id);
+                            setCurrentView('public_storefront');
+                          }}
+                          className="flex-1 bg-slate-900 hover:bg-emerald-600 text-white font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                        >
+                          <span>عرض الكتالوج</span>
+                          <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                        </button>
+                      ) : (
+                        <span className="flex-1 text-center text-xs text-slate-500 bg-slate-50 rounded-xl py-2.5">التواصل متاح للزوار</span>
+                      )}
                     </div>
                   </div>
                 );
