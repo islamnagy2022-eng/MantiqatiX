@@ -1,6 +1,23 @@
--- Read-only authorization verification. Run inside a transaction; this script always rolls back.
--- It reports BLOCKED when no independent platform-only identity exists.
+-- Read-only authorization verification for a disposable CI/development database only.
+-- NEVER run against production. The production tenant-isolation fixtures were retired on 2026-10-26.
+-- Seed the isolated local/CI baseline fixture first; missing fixture rows fail closed instead of passing vacuously.
 BEGIN;
+
+DO $fixture_preflight$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.tenants
+    WHERE id='MNTY-TEST-B' AND code='S05-TEST-B'
+      AND settings->>'test_fixture'='true'
+  ) THEN
+    RAISE EXCEPTION 'BLOCKED: MNTY-TEST-B disposable fixture is missing; do not run this verifier against production';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.businesses WHERE tenant_id='MNTY-TEST-B' AND coalesce(settings->>'test_fixture','false')='true') THEN
+    RAISE EXCEPTION 'BLOCKED: isolated fixture business is missing';
+  END IF;
+END;
+$fixture_preflight$;
+
 SET LOCAL ROLE authenticated;
 
 DO $$
@@ -25,8 +42,7 @@ BEGIN
   LIMIT 1;
 
   IF v_user IS NULL THEN
-    RAISE NOTICE 'BLOCKED: no independent platform-only identity is available; create/use an authorized test identity before runtime E2E';
-    RETURN;
+    RAISE EXCEPTION 'BLOCKED: no independent platform-only identity is available; this runtime check is not verified';
   END IF;
 
   PERFORM set_config('request.jwt.claim.sub', v_user::text, true);

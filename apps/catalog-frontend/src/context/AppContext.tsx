@@ -70,7 +70,6 @@ interface AppContextType {
   addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
-  bulkAddDemoProducts: (businessId: string, count: number) => { success: boolean; added: number };
   addSubscriber: (sub: { fullName: string; email: string; phone: string; businessId: string; username?: string; password?: string; authMethod: 'direct_password' | 'gmail_invite'; notes?: string; }) => Promise<Subscriber>;
   updateSubscriber: (sub: Subscriber) => Promise<void>;
   deleteSubscriber: (id: string) => Promise<void>;
@@ -90,7 +89,6 @@ interface AppContextType {
   exportBackupJSON: () => string;
   downloadBackupFile: () => void;
   importBackupJSON: (jsonString: string) => { success: boolean; error?: string; counts?: { businesses: number; products: number; subscribers: number } };
-  resetToDefaultData: () => void;
 }
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -299,7 +297,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await callCatalogAdmin({ action: 'ITEM_STATUS_UPDATE', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, catalogItemId: id, status: 'INACTIVE' });
     setCartItems((prev) => prev.filter((x) => x.product.id !== id)); await refreshBusinessCatalog(product.businessId);
   };
-  const bulkAddDemoProducts = (_businessId: string, _count: number) => { window.alert('إضافة منتجات تجريبية معطلة في الإنتاج لحماية بيانات الأنشطة.'); return { success: false, added: 0 }; };
 
   const addSubscriber = async (data: { fullName: string; email: string; phone: string; businessId: string; username?: string; password?: string; authMethod: 'direct_password' | 'gmail_invite'; notes?: string }): Promise<Subscriber> => {
     if (authSession.role !== 'admin') throw new Error('إضافة المشتركين متاحة لإدارة المنصة فقط.');
@@ -340,7 +337,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const exportBackupJSON = () => createBackupPayload(businesses, products, subscribers, adminSettings);
   const downloadBackupFile = () => { const blob = new Blob([exportBackupJSON()], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `mantiqatix-backup-${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url); };
   const importBackupJSON = (_jsonString: string) => ({ success: false, error: 'استيراد البيانات إلى الإنتاج متوقف حتى تتم مراجعة الملف ومخطط قاعدة البيانات. لم يتم تغيير أي بيانات.' });
-  const resetToDefaultData = () => { window.alert('إعادة ضبط بيانات الإنتاج معطلة لحماية بيانات الأنشطة الحقيقية.'); };
 
   return <AppContext.Provider value={{
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
@@ -348,9 +344,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     authSession, authLoading, loginWithGoogle, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, advanceBusinessOverdueDay, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
-    businessProducts, addProduct, updateProduct, deleteProduct, bulkAddDemoProducts, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
+    businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
-    exportBackupJSON, downloadBackupFile, importBackupJSON, resetToDefaultData,
+    exportBackupJSON, downloadBackupFile, importBackupJSON,
   }}> {children} </AppContext.Provider>;
 };
 

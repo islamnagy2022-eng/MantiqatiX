@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   ShieldCheck,
   ShoppingBag,
-  RotateCcw,
   Sparkles,
   LogIn,
   LogOut,
@@ -27,7 +26,6 @@ export const Navbar: React.FC = () => {
     currentBusiness,
     cartItems,
     setIsCartOpen,
-    resetToDefaultData,
     authSession,
     logout,
     setIsLoginModalOpen,
@@ -85,18 +83,6 @@ export const Navbar: React.FC = () => {
               </div>
             )}
 
-            <button
-              onClick={() => {
-                if (window.confirm('هل تود استعادة البيانات الافتراضية لمنصة MantiqatiX؟')) {
-                  resetToDefaultData();
-                }
-              }}
-              title="استعادة البيانات الأصلية"
-              className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px] transition-colors cursor-pointer"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span className="hidden sm:inline">استعادة الافتراضي</span>
-            </button>
           </div>
         </div>
       </div>

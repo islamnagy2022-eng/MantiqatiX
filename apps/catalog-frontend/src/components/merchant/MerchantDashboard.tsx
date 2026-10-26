@@ -51,7 +51,6 @@ export const MerchantDashboard: React.FC = () => {
     addProduct,
     updateProduct,
     deleteProduct,
-    bulkAddDemoProducts,
     adminSettings,
     categories,
     functionalGroups,
@@ -380,23 +379,6 @@ export const MerchantDashboard: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              {/* Quick Demo items fill for testing 150 items capacity */}
-              {productsCount < maxLimit && (
-                <button
-                  onClick={() => {
-                    const res = bulkAddDemoProducts(currentBusiness.id, 10);
-                    if (res.success) {
-                      alert(`تمت إضافة ${res.added} منتجات تجريبية بنجاح لاختبار سعة الكتالوج!`);
-                    }
-                  }}
-                  className="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
-                  title="إضافة 10 منتجات تجريبية دفعة واحدة للتجربة"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>+10 تجريبية</span>
-                </button>
-              )}
-
               <button
                 disabled={productsCount >= maxLimit}
                 onClick={openAddModal}
