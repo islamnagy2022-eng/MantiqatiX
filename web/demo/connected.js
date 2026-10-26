@@ -338,10 +338,12 @@
     const quantity = Number($('#quantity-' + item.id)?.value || 1);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) return toast('الكمية يجب أن تكون عددًا صحيحًا من 1 إلى 100.', 'error');
     if (quantity > Number(item.metadata?.demo_stock ?? 0)) return toast('الكمية أكبر من المخزون التجريبي المتاح.', 'error');
-    const retryKey = ['MANTIQATIX_DEMO_ORDER_RETRY_V1', data.user.id, business.id, branchId, item.id].join(':');
+    const retryKey = ['MANTIQATIX_DEMO_ORDER_RETRY_V1', data.user.id, business.id, branchId, item.id, quantity].join(':');
     let storedIdempotencyKey = null;
     try { storedIdempotencyKey = window.sessionStorage.getItem(retryKey); } catch (_) {}
-    const clientIdempotencyKey = button.dataset.clientIdempotencyKey || storedIdempotencyKey || makeIdempotencyKey();
+    const buttonKeyMatchesScope = button.dataset.idempotencyScope === retryKey;
+    const clientIdempotencyKey = (buttonKeyMatchesScope ? button.dataset.clientIdempotencyKey : null) || storedIdempotencyKey || makeIdempotencyKey();
+    button.dataset.idempotencyScope = retryKey;
     button.dataset.clientIdempotencyKey = clientIdempotencyKey;
     try { window.sessionStorage.setItem(retryKey, clientIdempotencyKey); } catch (_) {}
     button.disabled = true;
@@ -362,6 +364,7 @@
     // Keep the retry key on failures so a lost response cannot accidentally create a second order.
     try { window.sessionStorage.removeItem(retryKey); } catch (_) {}
     delete button.dataset.clientIdempotencyKey;
+    delete button.dataset.idempotencyScope;
     toast('تم إنشاء الطلب داخل قاعدة DEMO بدون دفع.', 'success');
     data.tab = 'orders';
     await loadData();
