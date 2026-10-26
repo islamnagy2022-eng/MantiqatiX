@@ -21,6 +21,8 @@ const publicCss = read("web/catalog/catalog.css");
 const moduleJs = read("web/catalog-module.js");
 const app = read("web/app.js");
 const rbac = read("web/rbac.js");
+const reactApp = read("apps/catalog-frontend/src/App.tsx");
+const appContext = read("apps/catalog-frontend/src/context/AppContext.tsx");
 const adminFn = read("supabase/functions/catalog-admin/index.ts");
 const publicFn = read("supabase/functions/public-catalog/index.ts");
 const migration = read("supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql");
@@ -95,6 +97,13 @@ check("database_writes_enforce_business_branch_and_limits", () => {
   includes(migration, "REVOKE ALL ON FUNCTION");
   includes(migration, "FROM PUBLIC, anon");
   includes(migration, "upper(m.role::text) = 'OWNER' AND m.business_id IS NULL");
+});
+check("react_privileged_views_require_authorized_session", () => {
+  includes(reactApp, "currentView === 'super_admin' && authSession.role !== 'admin'");
+  includes(reactApp, "!['subscriber', 'admin'].includes(authSession.role) || !currentBusiness");
+  includes(reactApp, "{visibleView === 'merchant_admin' && <MerchantDashboard />}");
+  includes(reactApp, "{visibleView === 'super_admin' && <AdminDashboard />}");
+  includes(appContext, "return businesses.find((b) => b.id === authSession.businessId);");
 });
 check("edge_function_auth_and_tenant_selection", () => {
   includes(adminFn, 'auth.getUser(token)');
