@@ -48,6 +48,16 @@ Deno.serve(async (req: Request) => {
   const branchId = String(body.branchId || "");
   if (!businessId || !branchId) return reply({ error: "DEMO_SCOPE_REQUIRED" }, 400, origin);
 
+  // The SQL helper verifies the business tag; verify the branch's DEMO tag here as well.
+  const { data: branchScope, error: branchScopeError } = await admin.from("branches")
+    .select("id,tenant_id,business_id,status,settings")
+    .eq("id", branchId).eq("tenant_id", "MNTY-PLATFORM")
+    .eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+  if (branchScopeError) return reply({ error: "DEMO_BRANCH_LOOKUP_FAILED" }, 500, origin);
+  if (!branchScope || branchScope.settings?.environment !== "DEMO") {
+    return reply({ error: "DEMO_BRANCH_SCOPE_REQUIRED" }, 403, origin);
+  }
+
   if (operation === "item") {
     const name = typeof body.name === "string" ? body.name.trim() : "";
     const itemType = String(body.itemType || "PRODUCT").toUpperCase();
