@@ -70,6 +70,52 @@ Deno.serve(async (req: Request) => {
     return reply({ error: "INVALID_ITEM_OPTIONS" }, 400, origin);
   }
 
+  // Enforce DEMO scope at the Edge boundary too; the shared order RPC is not DEMO-specific.
+  const { data: business, error: businessError } = await admin.from("businesses")
+    .select("id,tenant_id,status,settings")
+    .eq("id", businessId).eq("tenant_id", "MNTY-PLATFORM").eq("status", "ACTIVE")
+    .maybeSingle();
+  if (businessError) return reply({ error: "DEMO_BUSINESS_LOOKUP_FAILED" }, 500, origin);
+  const sector = String(business?.settings?.sector_code || "").toUpperCase();
+  if (!business || business.settings?.environment !== "DEMO" || !["FOOD", "PHARMACY", "STORE"].includes(sector)) {
+    return reply({ error: "DEMO_BUSINESS_SCOPE_REQUIRED" }, 403, origin);
+  }
+
+  const { data: branch, error: branchError } = await admin.from("branches")
+    .select("id,tenant_id,business_id,status,settings")
+    .eq("id", branchId).eq("tenant_id", "MNTY-PLATFORM")
+    .eq("business_id", businessId).eq("status", "ACTIVE")
+    .maybeSingle();
+  if (branchError) return reply({ error: "DEMO_BRANCH_LOOKUP_FAILED" }, 500, origin);
+  if (!branch || branch.settings?.environment !== "DEMO") {
+    return reply({ error: "DEMO_BRANCH_SCOPE_REQUIRED" }, 403, origin);
+  }
+
+  const { data: providers, error: providerError } = await admin.from("marketing_provider_profiles")
+    .select("id,settings").eq("business_id", businessId).eq("status", "ACTIVE").limit(20);
+  if (providerError) return reply({ error: "DEMO_PROVIDER_LOOKUP_FAILED" }, 500, origin);
+  const demoProvider = (providers || []).some((provider: any) =>
+    provider.settings?.environment === "DEMO" &&
+    String(provider.settings?.sector_code || "").toUpperCase() === sector);
+  if (!demoProvider) return reply({ error: "DEMO_PROVIDER_SCOPE_REQUIRED" }, 403, origin);
+
+  const itemIds = Array.from(new Set(normalizedItems.map((item: any) => item.catalogItemId)));
+  if (itemIds.some(id => !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) {
+    return reply({ error: "INVALID_CATALOG_ITEM_ID" }, 400, origin);
+  }
+  const { data: catalogItems, error: catalogError } = await admin.from("catalog_items")
+    .select("id,tenant_id,business_id,branch_id,status,metadata")
+    .in("id", itemIds).eq("tenant_id", "MNTY-PLATFORM")
+    .eq("business_id", businessId).eq("status", "ACTIVE");
+  if (catalogError) return reply({ error: "DEMO_CATALOG_LOOKUP_FAILED" }, 500, origin);
+  const validItemIds = new Set((catalogItems || [])
+    .filter((item: any) => item.branch_id === branchId &&
+      item.metadata?.environment === "DEMO" && item.metadata?.synthetic_only === true)
+    .map((item: any) => item.id));
+  if (itemIds.some(id => !validItemIds.has(id))) {
+    return reply({ error: "DEMO_CATALOG_ITEM_SCOPE_REQUIRED" }, 403, origin);
+  }
+
   const { data: result, error } = await admin.rpc("create_order_backend", {
     p_order_id: crypto.randomUUID(),
     p_tenant_id: "MNTY-PLATFORM",
