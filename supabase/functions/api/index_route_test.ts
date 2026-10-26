@@ -45,7 +45,6 @@ class FakeDatabase {
     business_id: "business-a",
     branch_id: "branch-a",
   };
-  existingIntent: Row | null = null;
   constructor(mode: "catalog" | "payments" | "orders", existingIntent: Row | null = null, raceOnInsert: Row | null = null) {
     this.mode = mode;
     this.existingIntent = existingIntent;
