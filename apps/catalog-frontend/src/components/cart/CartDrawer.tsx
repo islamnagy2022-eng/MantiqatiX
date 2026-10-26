@@ -571,12 +571,29 @@ export const CartDrawer: React.FC = () => {
                           </div>
                         </label>
                       ) : (
-                        <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1.5">
+                        <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
                           <div className="flex items-center gap-2 font-black">
                             <Lock className="w-4 h-4" />
-                            <span>الدفع الإلكتروني غير متاح مؤقتًا</span>
+                            <span>طرق الدفع الإلكتروني غير متاحة مؤقتًا</span>
                           </div>
-                          <p className="leading-relaxed">البطاقات البنكية والمحافظ الإلكترونية وأمان ومصاري ستتاح بعد تفعيل بوابة الدفع واختبارها. يمكنك إتمام الطلب بالتواصل مع صاحب النشاط عبر واتساب والدفع النقدي بالاتفاق معه.</p>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div aria-disabled="true" className="rounded-xl border border-slate-200 bg-white/70 p-2 text-center text-slate-400">
+                              <CreditCard className="w-5 h-5 mx-auto mb-1" />
+                              <span className="block text-[10px] font-bold">بطاقة بنكية</span>
+                              <span className="block text-[9px]">قريبًا</span>
+                            </div>
+                            <div aria-disabled="true" className="rounded-xl border border-slate-200 bg-white/70 p-2 text-center text-slate-400">
+                              <Smartphone className="w-5 h-5 mx-auto mb-1" />
+                              <span className="block text-[10px] font-bold">محفظة إلكترونية</span>
+                              <span className="block text-[9px]">قريبًا</span>
+                            </div>
+                            <div aria-disabled="true" className="rounded-xl border border-slate-200 bg-white/70 p-2 text-center text-slate-400">
+                              <QrCode className="w-5 h-5 mx-auto mb-1" />
+                              <span className="block text-[10px] font-bold">أمان / مصاري</span>
+                              <span className="block text-[9px]">قريبًا</span>
+                            </div>
+                          </div>
+                          <p className="leading-relaxed">يمكنك إتمام الطلب بالتواصل مع صاحب النشاط عبر واتساب والاتفاق معه على الدفع النقدي عند الاستلام. لن يتم تحصيل أي مبلغ إلكتروني من هذه الواجهة حاليًا.</p>
                         </div>
                       )}
                     </div>
