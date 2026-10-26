@@ -879,3 +879,108 @@ $function$;
 
 REVOKE ALL ON FUNCTION public.adjust_catalog_stock_backend(character varying, uuid, character varying, character varying, uuid, numeric, numeric, character varying, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.adjust_catalog_stock_backend(character varying, uuid, character varying, character varying, uuid, numeric, numeric, character varying, text) TO authenticated;
+
+
+CREATE OR REPLACE FUNCTION public.create_catalog_warehouse_backend(
+  p_tenant_id character varying,
+  p_business_id uuid,
+  p_branch_id character varying,
+  p_name character varying,
+  p_code character varying
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_id character varying;
+  v_code character varying;
+  v_row public.warehouses%rowtype;
+BEGIN
+  IF v_uid IS NULL OR coalesce((auth.jwt()->>'is_anonymous'), 'false') = 'true' THEN
+    RAISE EXCEPTION 'UNAUTHENTICATED';
+  END IF;
+
+  IF p_tenant_id IS NULL OR length(trim(p_tenant_id)) < 1 OR length(trim(p_tenant_id)) > 80
+     OR p_business_id IS NULL
+     OR p_branch_id IS NULL OR length(trim(p_branch_id)) < 1 OR length(trim(p_branch_id)) > 80
+     OR p_name IS NULL OR length(trim(p_name)) < 2 OR length(trim(p_name)) > 160
+     OR p_code IS NULL OR trim(p_code) !~ '^[A-Za-z0-9_-]{2,40}$' THEN
+    RAISE EXCEPTION 'INVALID_WAREHOUSE_INPUT';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_memberships m
+     WHERE m.user_id = v_uid AND m.tenant_id = p_tenant_id
+       AND coalesce(m.status, 'ACTIVE') = 'ACTIVE'
+       AND (
+         (
+           upper(m.role::text) = 'SUPER_ADMIN'
+           AND m.business_id IS NULL
+           AND coalesce(m.permissions->>'scope', '') = 'PLATFORM'
+           AND coalesce((m.permissions->>'full_control')::boolean, false) = true
+         )
+         OR (
+           upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')
+           AND (
+             m.business_id = p_business_id
+             OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL)
+           )
+           AND (
+             (upper(m.role::text) = 'MANAGER' AND m.branch_id IS NOT NULL AND m.branch_id = p_branch_id)
+             OR (upper(m.role::text) <> 'MANAGER' AND (m.branch_id IS NULL OR m.branch_id = p_branch_id))
+           )
+         )
+       )
+  ) THEN
+    RAISE EXCEPTION 'CATALOG_WAREHOUSE_CREATE_FORBIDDEN';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.businesses b
+     WHERE b.id = p_business_id AND b.tenant_id = p_tenant_id
+       AND upper(coalesce(b.status,'')) = 'ACTIVE'
+  ) THEN
+    RAISE EXCEPTION 'BUSINESS_NOT_ACTIVE';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.branches br
+     WHERE br.id = p_branch_id AND br.tenant_id = p_tenant_id
+       AND br.business_id = p_business_id AND upper(coalesce(br.status,'')) = 'ACTIVE'
+  ) THEN
+    RAISE EXCEPTION 'BRANCH_BUSINESS_MISMATCH';
+  END IF;
+
+  v_code := upper(trim(p_code));
+  IF EXISTS (
+    SELECT 1 FROM public.warehouses w
+     WHERE w.tenant_id = p_tenant_id AND w.business_id = p_business_id
+       AND upper(w.code) = v_code AND upper(coalesce(w.status,'')) = 'ACTIVE'
+  ) THEN
+    RAISE EXCEPTION 'WAREHOUSE_CODE_ALREADY_EXISTS';
+  END IF;
+
+  v_id := 'wh-' || gen_random_uuid()::text;
+  INSERT INTO public.warehouses(
+    id, tenant_id, business_id, branch_id, name, code, status
+  ) VALUES (
+    v_id, p_tenant_id, p_business_id, p_branch_id, trim(p_name), v_code, 'ACTIVE'
+  )
+  RETURNING * INTO v_row;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'warehouse', jsonb_build_object(
+      'id', v_row.id, 'tenant_id', v_row.tenant_id, 'business_id', v_row.business_id,
+      'branch_id', v_row.branch_id, 'name', v_row.name, 'code', v_row.code, 'status', v_row.status
+    )
+  );
+END
+$function$;
+
+REVOKE ALL ON FUNCTION public.create_catalog_warehouse_backend(character varying, uuid, character varying, character varying, character varying) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.create_catalog_warehouse_backend(character varying, uuid, character varying, character varying, character varying) TO authenticated;
+
