@@ -59,9 +59,12 @@ for (const slug of functions) {
     headers: { apikey: key, Accept: 'text/html' },
   });
   const oauthLocation = oauth.headers.get('location');
+  const oauthBody = oauth.status >= 300 && oauth.status < 400
+    ? ''
+    : (await oauth.text()).slice(0, 600);
   assert.ok(
     oauth.status >= 300 && oauth.status < 400 && oauthLocation,
-    `Google OAuth provider/redirect readiness is blocked (status ${oauth.status}); configure Google Provider and allowlist ${callback} in the DEMO project.`,
+    `Google OAuth provider/redirect readiness is blocked (status ${oauth.status}); response: ${oauthBody}; configure Google Provider and allowlist ${callback} in the DEMO project.`,
   );
   assert.equal(
     new URL(oauthLocation).hostname,
