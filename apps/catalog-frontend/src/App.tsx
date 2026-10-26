@@ -12,7 +12,18 @@ import { FloatingAppInstallButton } from './components/common/FloatingAppInstall
 import { MessageCircle } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp } = useApp();
+  const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
+
+  // Route state is client-controlled. Never render a privileged dashboard solely
+  // because currentView was set; require the bootstrapped production role first.
+  const visibleView = authLoading
+    ? (currentView === 'public_storefront' ? 'public_storefront' : 'directory')
+    : currentView === 'super_admin' && authSession.role !== 'admin'
+      ? 'directory'
+      : currentView === 'merchant_admin' &&
+          (!['subscriber', 'admin'].includes(authSession.role) || !currentBusiness)
+        ? 'directory'
+        : currentView;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
@@ -20,18 +31,18 @@ const MainContent: React.FC = () => {
 
       <main className="flex-1">
         {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
-        {currentView === 'directory' && <DirectoryView />}
+        {visibleView === 'directory' && <DirectoryView />}
 
-        {currentView === 'public_storefront' && (
+        {visibleView === 'public_storefront' && (
           <div>
             <BusinessProfileHeader />
             <CatalogSection />
           </div>
         )}
 
-        {currentView === 'merchant_admin' && <MerchantDashboard />}
+        {visibleView === 'merchant_admin' && <MerchantDashboard />}
 
-        {currentView === 'super_admin' && <AdminDashboard />}
+        {visibleView === 'super_admin' && <AdminDashboard />}
       </main>
 
       <CartDrawer />
