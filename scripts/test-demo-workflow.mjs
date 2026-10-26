@@ -130,8 +130,8 @@ for (const item of sectorCases) {
   }
   click('[data-action="place-order"][data-business-id="' + item.businessId + '"][data-product-id="' + item.productId + '"]');
   data = db();
-  const sectorOrder = data.orders.find(o => o.businessId === item.businessId && o.productId === item.productId && o.customerId === 'demo_customer');
-  assert.ok(sectorOrder, 'customer flow works for sector ' + item.sector);
+  const sectorOrder = data.orders.find(o => o.businessId === item.businessId && o.productId === item.productId && o.customerId === 'demo_customer' && !String(o.id).endsWith('_sample'));
+  assert.ok(sectorOrder, 'customer creates a new order for sector ' + item.sector);
   assert.equal(sectorOrder.paymentMode, 'DEMO_ONLY', item.sector + ' order stays payment-free');
   if (item.sector === 'DOCTOR') {
     assert.ok(sectorOrder.appointmentDate, 'clinic booking stores the requested date');
