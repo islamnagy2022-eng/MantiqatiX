@@ -1,138 +1,96 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Download, Smartphone, X, ExternalLink } from 'lucide-react';
 import { Business } from '../../types';
-import { Smartphone, Bell, X, Check, Download, Sparkles, Heart } from 'lucide-react';
 
 interface FloatingAppInstallButtonProps {
   currentBusiness?: Business;
 }
 
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+};
+
 export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> = ({ currentBusiness }) => {
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
-  const handleToggleNotifications = () => {
-    setNotificationsEnabled(!notificationsEnabled);
-    if (!notificationsEnabled) {
-      if ('Notification' in window && Notification.permission !== 'granted') {
-        Notification.requestPermission();
-      }
+  useEffect(() => {
+    const checkInstalled = () =>
+      setIsInstalled(
+        window.matchMedia('(display-mode: standalone)').matches ||
+        Boolean((navigator as Navigator & { standalone?: boolean }).standalone)
+      );
+    const handleBeforeInstall = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const handleInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+      setIsOpen(false);
+    };
+    checkInstalled();
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleInstalled);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) {
+      setIsOpen(true);
+      return;
     }
-  };
-
-  const handleSaveApp = () => {
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    await installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === 'accepted') setIsOpen(false);
+    setInstallPrompt(null);
   };
 
   return (
     <>
-      {/* Floating Button */}
-      <div className="fixed bottom-6 left-6 z-40">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="bg-slate-900 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-2xl flex items-center gap-2.5 transition-all transform hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-emerald-500/20"
-          title="حفظ صفحة النشاط كتطبيق جوال"
-        >
-          <div className="w-7 h-7 bg-emerald-500 text-slate-950 rounded-xl flex items-center justify-center font-black shadow-sm">
-            <Smartphone className="w-4 h-4" />
-          </div>
-          <span>حفظ النشاط كتطبيق</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={handleInstall}
+        className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/50 bg-emerald-500 px-2 py-1.5 text-[10px] sm:text-xs font-black text-slate-950 shadow-sm transition-colors hover:bg-emerald-400 active:scale-95 whitespace-nowrap"
+        aria-label={isInstalled ? 'التطبيق مثبت بالفعل' : 'تثبيت منطقتي X على الهاتف'}
+        title={isInstalled ? 'التطبيق مثبت بالفعل' : 'تثبيت الموقع كتطبيق على الموبايل'}
+      >
+        {isInstalled ? <Smartphone className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+        <span>{isInstalled ? 'مثبت' : 'تثبيت التطبيق'}</span>
+      </button>
 
-      {/* Modal for App Save & Notifications */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 relative text-right animate-in fade-in zoom-in duration-200">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute top-5 left-5 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full transition-colors cursor-pointer"
-              aria-label="إغلاق"
-            >
-              <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="install-app-title">
+          <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-right shadow-2xl sm:p-6">
+            <button type="button" onClick={() => setIsOpen(false)} className="absolute left-3 top-3 rounded-full bg-slate-100 p-2 text-slate-500 hover:bg-slate-200" aria-label="إغلاق">
+              <X className="h-4 w-4" />
             </button>
-
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-200 shadow-xs">
-                <Smartphone className="w-6 h-6" />
-              </div>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-xl bg-emerald-100 p-3 text-emerald-700"><Smartphone className="h-6 w-6" /></div>
               <div>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                  تطبيق ويب تقدمي (PWA)
-                </span>
-                <h3 className="text-xl font-black text-slate-900 mt-0.5">
-                  {currentBusiness ? currentBusiness.name : 'منصة MantiqatiX'}
-                </h3>
+                <h2 id="install-app-title" className="text-lg font-black text-slate-900">تثبيت {currentBusiness?.name || 'منطقتي X'}</h2>
+                <p className="text-xs text-slate-500">أضف الموقع إلى الشاشة الرئيسية</p>
               </div>
             </div>
-
-            <p className="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
-              يمكنك إضافة هذه الصفحة مباشرة إلى شاشة هاتفك الرئيسية كـ تطبيق (App) وتفعيل الإشعارات ليصلك كل جديد من عروض ومنتجات هذا النشاط فوراً.
+            <p className="mb-4 text-sm leading-7 text-slate-600">
+              {installPrompt
+                ? 'اضغط تثبيت لإضافة الموقع كتطبيق على هاتفك.'
+                : 'لو لم تظهر نافذة التثبيت تلقائيا، اتبع الخطوات المناسبة للمتصفح:'}
             </p>
-
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-4 mb-6">
-              {/* Step 1: Add to Home Screen */}
-              <div>
-                <h4 className="font-extrabold text-xs text-slate-900 mb-1 flex items-center gap-1.5">
-                  <Download className="w-4 h-4 text-emerald-600" />
-                  <span>خطوات تثبيت النشاط على شاشة الموبايل:</span>
-                </h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  1. افتح قائمة المتصفح (في السفاري أو الكروم).<br />
-                  2. اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong> (Add to Home Screen).<br />
-                  3. سيظهر أيقونة التطبيق على شاشتك للوصول الفوري بلمسة واحدة!
-                </p>
-              </div>
-
-              {/* Step 2: Notifications Toggle */}
-              <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
-                <div>
-                  <h4 className="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
-                    <Bell className="w-4 h-4 text-amber-500" />
-                    <span>تنبيهات وإشعارات النشاط الجديد</span>
-                  </h4>
-                  <p className="text-[10px] text-slate-400">تلقي إشعارات فورية عند إضافة منتجات أو عروض جديدة</p>
-                </div>
-                <button
-                  onClick={handleToggleNotifications}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    notificationsEnabled
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                  }`}
-                >
-                  {notificationsEnabled ? 'مفعّلة ✓' : 'تفعيل الإشعارات'}
-                </button>
-              </div>
+            <div className="space-y-3 rounded-xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
+              <div><strong>Android / Chrome:</strong> افتح قائمة ⋮ ثم اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</div>
+              <div><strong>iPhone / Safari:</strong> اضغط زر المشاركة ثم اختر «إضافة إلى الشاشة الرئيسية».</div>
             </div>
-
-            <div className="space-y-2">
-              <button
-                onClick={handleSaveApp}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                {savedSuccess ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    <span>تم حفظ إعدادات التطبيق بنجاح!</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>تأكيد وحفظ التطبيق على الجوال</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => setIsOpen(false)}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer"
-              >
-                إغلاق
-              </button>
+            <div className="mt-4 flex gap-2">
+              {installPrompt && <button type="button" onClick={handleInstall} className="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700">تثبيت الآن</button>}
+              <button type="button" onClick={() => setIsOpen(false)} className="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-200">إغلاق</button>
             </div>
+            <p className="mt-3 flex items-center justify-center gap-1 text-[10px] text-slate-400"><ExternalLink className="h-3 w-3" /> قد تختلف أسماء الخيارات حسب نوع الهاتف والمتصفح</p>
           </div>
         </div>
       )}
