@@ -248,22 +248,28 @@ export function createApiHandler(deps: {
     if (membershipError) return json({ error: "Failed to validate order access" }, 500)
 
     const operationalRoles = ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"]
-    const scopedMemberships = (memberships ?? []).filter((membership: any) => {
-      const businessMatches =
-        membership.business_id == null || String(membership.business_id) === String(order.business_id)
-      const branchMatches =
-        membership.branch_id == null || String(membership.branch_id) === String(order.branch_id)
-      return businessMatches && branchMatches
-    })
-    const operationalOrderRead = scopedMemberships.some((membership: any) => {
+    const operationalOrderRead = (memberships ?? []).some((membership: any) => {
       const role = String(membership.role ?? "").toUpperCase()
       const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+      const tenantWideAdmin =
+        ["SUPER_ADMIN","ADMIN"].includes(role) &&
+        membership.business_id == null &&
+        membership.branch_id == null
+      const sameBusiness =
+        membership.business_id != null && String(membership.business_id) === String(order.business_id)
+      const sameBranch =
+        membership.branch_id == null || String(membership.branch_id) === String(order.branch_id)
+      if (tenantWideAdmin) return true
+      // Null business_id is not a wildcard for OWNER/MANAGER/STAFF: otherwise a
+      // malformed or incomplete membership could read every tenant order.
+      if (!sameBusiness || !sameBranch) return false
       return operationalRoles.includes(role) || permissions.includes("ORDER_READ_ALL")
     })
-    const providerOrderRead = scopedMemberships.some((membership: any) =>
+    const providerOrderRead = (memberships ?? []).some((membership: any) =>
       String(membership.role ?? "").toUpperCase() === "SERVICE_PROVIDER" &&
       !!membership.business_id &&
-      String(membership.business_id) === String(order.business_id)
+      String(membership.business_id) === String(order.business_id) &&
+      (membership.branch_id == null || String(membership.branch_id) === String(order.branch_id))
     )
     if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) {
       return json({ error: "Forbidden" }, 403)
