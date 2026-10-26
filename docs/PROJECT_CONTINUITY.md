@@ -650,3 +650,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Removed browser grants from the two RLS-enabled payment-event tables and restricted 12 out-of-scope backend RPCs to service role. The clinic booking RPC remains available to authenticated users by design.
 - Security advisor warnings reduced to 66 anon-executable and 81 authenticated-executable SECURITY DEFINER functions; remaining functions require deliberate per-function review. No broad revocation or production change was performed.
 - Migration history remains divergent (one standard tracked migration versus 283 schema-baseline entries and 35 manually applied entries in the internal ledger). Do not run `db push` until reconciled.
+
+
+
+## Clinic booking security update — 2026-10-26
+
+- Applied DEMO-only migration `20261026034100` from `supabase/demo/20261026-clinic-appointment-sector-guard.sql`.
+- `create_medical_appointment_backend` now requires both the target business and provider profile to be tagged `environment=DEMO` and `sector_code=DOCTOR`; `search_path` is empty. Live definition and tracked SQL source were compared, and function grants were verified.
+- Standard Supabase migration history now contains two DEMO-only targeted migrations (`20261026033808`, `20261026034100`), while the internal ledger contains 283 baseline entries, 35 manually executed migrations, and these two applied migrations. Historical migration reconciliation remains mandatory before `db push`.
