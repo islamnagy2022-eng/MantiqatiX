@@ -222,6 +222,14 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
       Number(ownerIntentRows[0].amount) !== 47 || ownerIntentRows[0].currency !== "EGP") {
     throw new Error("customer-owned cross-tenant payment intent did not preserve order identity");
   }
+  const ownerIntentReadResponse = await sendAs(otherToken, `/api/v1/payments/intents/${ownerIntentRows[0].id}`);
+  if (ownerIntentReadResponse.status !== 200) {
+    throw new Error(`customer should be able to read their own cross-tenant payment intent, got ${ownerIntentReadResponse.status}`);
+  }
+  const ownerIntentReadBody = await ownerIntentReadResponse.json();
+  if (ownerIntentReadBody.id !== ownerIntentRows[0].id || ownerIntentReadBody.order_id !== orderE) {
+    throw new Error("customer payment-intent read returned a mismatched intent/order");
+  }
 
   const concurrentSameKey = `same-${suffix}`;
   const sameKeyResponses = await Promise.all([
