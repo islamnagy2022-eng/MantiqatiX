@@ -31,7 +31,7 @@
   }[ch]));
   const money = value => Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
   const makeIdempotencyKey = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'demo-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-  const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, catalogFilterSector: 'ALL', catalogFilterBusinessId: 'ALL', tab: 'dashboard', loading: false };
+  const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, catalogFilterSector: 'ALL', catalogFilterBusinessId: 'ALL', tab: 'dashboard', workspaceMode: null, loading: false };
   let sb;
   let toastTimer = null;
 
@@ -51,8 +51,116 @@
     return sectors[code] || { label: code || 'نشاط تجريبي', icon: '◈', backend: code, itemType: 'PRODUCT' };
   }
   function activeMemberships() {
-    return data.memberships.filter(m => m.status === 'ACTIVE' && m.business_id);
+    const workspaceRoles = ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER', 'STAFF', 'EMPLOYEE', 'SERVICE_PROVIDER'];
+    return data.memberships.filter(m =>
+      m.status === 'ACTIVE' &&
+      m.tenant_id === cfg.tenantId &&
+      m.business_id &&
+      workspaceRoles.includes(String(m.role || '').toUpperCase())
+    );
   }
+  function platformOwnerMembership() {
+    return data.memberships.find(m =>
+      m.status === 'ACTIVE' &&
+      m.tenant_id === cfg.tenantId &&
+      !m.business_id && !m.branch_id &&
+      String(m.role || '').toUpperCase() === 'SUPER_ADMIN' &&
+      m.permissions?.scope === 'PLATFORM' &&
+      String(m.permissions?.full_control) === 'true'
+    ) || null;
+  }
+  function hasPlatformOwnerAccess() {
+    return !!platformOwnerMembership();
+  }
+  function hasCustomerAccess() {
+    return data.memberships.some(m =>
+      m.status === 'ACTIVE' &&
+      m.tenant_id === cfg.tenantId &&
+      !m.business_id && !m.branch_id &&
+      String(m.role || '').toUpperCase() === 'CUSTOMER'
+    );
+  }
+  function workspaceModeStorageKey() {
+    return 'MANTIQATIX_DEMO_WORKSPACE_MODE_V1:' + String(data.user?.id || 'anonymous');
+  }
+  function resolveWorkspaceMode() {
+    let saved = data.workspaceMode;
+    if (!saved && data.user) {
+      try { saved = window.localStorage.getItem(workspaceModeStorageKey()); } catch (_) {}
+    }
+    if (saved === 'PLATFORM' && hasPlatformOwnerAccess()) return 'PLATFORM';
+    if (saved === 'OWNER') return 'OWNER';
+    if (saved === 'CUSTOMER' && hasCustomerAccess()) return 'CUSTOMER';
+    if (hasPlatformOwnerAccess()) return 'PLATFORM';
+    if (activeMemberships().length) return 'OWNER';
+    return 'CUSTOMER';
+  }
+  function switchWorkspaceMode(mode, initialTab) {
+    const next = String(mode || '').toUpperCase();
+    if (!['PLATFORM', 'OWNER', 'CUSTOMER'].includes(next)) return;
+    if (next === 'PLATFORM' && !hasPlatformOwnerAccess()) {
+      return toast('لوحة مالك المنصة تتطلب عضوية منصة مؤكدة من الخادم.', 'error');
+    }
+    if (next === 'CUSTOMER' && !hasCustomerAccess()) {
+      return toast('لم يتم تجهيز سياق العميل لهذا الحساب بعد. حدّث البيانات ثم حاول مرة أخرى.', 'error');
+    }
+    data.workspaceMode = next;
+    try { window.localStorage.setItem(workspaceModeStorageKey(), next); } catch (_) {}
+    data.tab = initialTab || 'dashboard';
+    render();
+  }
+  function renderWorkspaceModeSwitcher(mode) {
+    const modes = [];
+    if (hasPlatformOwnerAccess()) modes.push(['PLATFORM', 'مالك المنصة', 'إدارة عامة للمنصة التجريبية']);
+    modes.push(['OWNER', 'صاحب النشاط', 'إدارة نشاطك وفروعك وطلباتك']);
+    if (hasCustomerAccess()) modes.push(['CUSTOMER', 'العميل', 'تصفح المنتجات وطلب الخدمات والحجز']);
+    return '<section class="workspace-mode-panel"><div class="workspace-mode-copy"><strong>تبديل مساحة العمل</strong><small>تغيير طريقة العرض لا يغيّر هويتك أو صلاحيات قاعدة البيانات.</small></div><div class="workspace-mode-switcher" role="group" aria-label="تبديل مساحة العمل">' +
+      modes.map(item => '<button type="button" class="mode-switch-btn' + (mode === item[0] ? ' active' : '') + '" data-action="workspace-mode" data-mode="' + item[0] + '" aria-pressed="' + String(mode === item[0]) + '"><strong>' + item[1] + '</strong><small>' + item[2] + '</small></button>').join('') +
+      '</div></section>';
+  }
+  function renderPlatformDashboard() {
+    const ownedIds = new Set(activeMemberships().map(m => m.business_id));
+    return header('لوحة مالك المنصة', 'نظرة عامة على بيئة DEMO المعزولة فقط. صلاحيات الإنتاج وبياناته غير متاحة من هذه الشاشة.') +
+      '<div class="stats-grid">' +
+      stat('الأنشطة', data.businesses.length, 'داخل قاعدة DEMO') +
+      stat('الفروع', data.branches.length, 'نطاقات تجريبية') +
+      stat('المنتجات والخدمات', data.items.length, 'سجلات كتالوج متاحة لهذه الجلسة') +
+      stat('الطلبات', data.orders.length, 'بيانات DEMO فقط بلا تحصيل') +
+      '</div>' +
+      '<section class="panel">' + header('اختر سياق العمل', 'يمكنك الانتقال لإدارة نشاط تملكه أو استخدام المنصة كعميل.') +
+      '<div class="card-grid">' +
+      '<article class="entity-card"><h3>صاحب النشاط</h3><p>إنشاء نشاط جديد أو إدارة الأنشطة التي تملك عضوية تشغيلية بها فقط.</p><button class="btn btn-primary" data-action="workspace-mode" data-mode="OWNER">دخول مساحة صاحب النشاط</button></article>' +
+      '<article class="entity-card"><h3>العميل</h3><p>تصفح كتالوج القطاعات الأربعة، وإنشاء طلب أو حجز من حسابك الشخصي.</p><button class="btn btn-secondary" data-action="workspace-mode" data-mode="CUSTOMER">دخول واجهة العميل</button></article>' +
+      '</div></section>' +
+      '<section class="panel">' + header('الأنشطة المسجلة', 'عرض معلومات النشاط فقط؛ الإدارة التشغيلية تتم من سياق صاحب النشاط وبحسب عضويته.') +
+      (data.businesses.length ? '<div class="card-grid">' + data.businesses.map(b => {
+        const sector = sectorForBusiness(b);
+        const itemCount = catalogItemsFor(b.id).length;
+        const own = ownedIds.has(b.id);
+        return '<article class="entity-card"><div class="entity-top"><h3>' + esc(sector.icon + ' ' + b.name) + '</h3><span class="badge">' + esc(sector.label) + '</span></div>' +
+          '<p>' + esc(b.settings?.city || '—') + '</p><div class="tag-row"><span class="badge">' + itemCount + ' منتج/خدمة</span>' +
+          '<span class="data-chip">' + (own ? 'لديك عضوية نشاط' : 'نطاق منصة') + '</span></div></article>';
+      }).join('') + '</div>' : '<div class="empty-state">لا توجد أنشطة مسجلة بعد. انتقل إلى سياق صاحب النشاط لإنشاء أول نشاط.</div>') +
+      '</section><div class="notice">صلاحية مالك المنصة معتمدة من عضوية خادم داخل DEMO، ولا تُمنح لأي حساب لمجرد تغيير وضع العرض.</div>';
+  }
+  function renderCustomerDashboard(orders) {
+    const customerOrders = orders.filter(o => o.customer_id === data.user?.id);
+    const businesses = data.businesses.filter(b => b.status === 'ACTIVE');
+    return header('واجهة العميل', 'تصفح الأنشطة والكتالوج، تابع طلباتك، واحجز موعدًا طبيًا عند الحاجة.',
+      '<button class="btn btn-primary" data-action="tab" data-tab="catalog">تصفح الكتالوج</button>') +
+      '<div class="stats-grid">' +
+      stat('الأنشطة المتاحة', businesses.length, 'في القطاعات الأربعة') +
+      stat('طلباتي', customerOrders.length, 'مرتبطة بحسابك فقط') +
+      stat('مواعيدي', data.appointments.length, 'مواعيدك الطبية فقط') +
+      '</div>' +
+      '<section class="panel">' + header('استكشف الأنشطة', 'افتح كتالوج النشاط ثم اختر المنتج أو الخدمة المناسبة.') +
+      (businesses.length ? '<div class="card-grid">' + businesses.map(b => activityCard(b, true)).join('') + '</div>' : '<div class="empty-state">لا توجد أنشطة متاحة حتى الآن. عند نشر أنشطة تجريبية ستظهر هنا.</div>') +
+      '</section>' +
+      '<section class="panel">' + header('متابعة طلباتك', 'تفاصيل الطلبات تظهر لحساب العميل المسجل فقط.') +
+      (customerOrders.length ? '<div class="card-grid">' + customerOrders.slice(0, 5).map(o => '<article class="entity-card"><div class="entity-top"><h3>' + esc(businessName(o.business_id)) + '</h3><span class="badge">' + esc(statusLabels[o.status] || o.status) + '</span></div><p>' + esc(o.id) + '</p><div class="price">' + money(o.total_amount) + '</div></article>').join('') + '</div>' : '<div class="empty-state">لا توجد طلبات حتى الآن. يمكنك البدء من الكتالوج.</div>') +
+      '</section>';
+  }
+
   function selectedBusiness() {
     return data.businesses.find(b => b.id === data.selectedBusinessId) || null;
   }
@@ -63,7 +171,7 @@
     return ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(membershipForBusiness(businessId)?.role || '').toUpperCase());
   }
   function roleLabel(role) {
-    return ({ OWNER: 'مالك النشاط', BUSINESS_OWNER: 'مالك النشاط', ADMIN: 'مدير نظام النشاط', MANAGER: 'مدير', STAFF: 'موظف', CUSTOMER: 'عميل' })[String(role || '').toUpperCase()] || role || 'مستخدم';
+    return ({ SUPER_ADMIN: 'مالك المنصة', OWNER: 'مالك النشاط', BUSINESS_OWNER: 'مالك النشاط', ADMIN: 'مدير نظام النشاط', MANAGER: 'مدير', STAFF: 'موظف', EMPLOYEE: 'موظف', SERVICE_PROVIDER: 'مقدم خدمة', CUSTOMER: 'عميل' })[String(role || '').toUpperCase()] || role || 'مستخدم';
   }
   function branchForBusiness(businessId) {
     const own = membershipForBusiness(businessId);
@@ -139,8 +247,8 @@
       '<p>' + esc(business.settings?.description || '') + '</p><div class="tag-row"><span class="badge">' + items.length + ' منتج/خدمة</span>' +
       (membership ? '<span class="badge good">' + esc(roleLabel(membership.role)) + '</span>' : '<span class="badge">كتالوج عام تجريبي</span>') +
       '<span class="data-chip">' + esc(branch?.name || 'فرع تجريبي') + '</span></div><div class="card-actions">' +
-      (membership ? '<button class="btn btn-primary btn-small" data-action="select-business" data-business-id="' + business.id + '" type="button">إدارة النشاط</button>' : '') +
-      (showCustomerLink ? '<button class="btn btn-secondary btn-small" data-action="catalog-business" data-business-id="' + business.id + '" type="button">فتح الكتالوج</button>' : '') +
+      (membership && data.workspaceMode === 'OWNER' ? '<button class="btn btn-primary btn-small" data-action="select-business" data-business-id="' + business.id + '" type="button">إدارة النشاط</button>' : '') +
+      (showCustomerLink ? '<button class="btn btn-secondary btn-small" data-action="catalog-business" data-business-id="' + business.id + '" type="button">فتح الكتالوج كعميل</button>' : '') +
       '</div></article>';
   }
 
