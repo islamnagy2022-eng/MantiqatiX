@@ -10,6 +10,31 @@ const corsHeaders = {
   "Vary": "Origin",
 }
 
+type MembershipScope = {
+  role?: unknown;
+  permissions?: unknown;
+  business_id?: unknown;
+  branch_id?: unknown;
+};
+
+function membershipHasPermission(permissions: unknown, key: string): boolean {
+  if (Array.isArray(permissions)) return permissions.includes(key);
+  if (permissions && typeof permissions === "object") {
+    return (permissions as Record<string, unknown>)[key] === true;
+  }
+  return false;
+}
+
+function matchesOrderScope(membership: MembershipScope, order: Record<string, unknown>): boolean {
+  const role = String(membership.role ?? "").toUpperCase();
+  const businessId = membership.business_id;
+  const branchId = membership.branch_id;
+  // Only deliberately tenant-wide admin memberships may omit business scope.
+  if (["SUPER_ADMIN", "ADMIN"].includes(role) && businessId == null && branchId == null) return true;
+  if (businessId == null || String(businessId) !== String(order.business_id ?? "")) return false;
+  return branchId == null || String(branchId) === String(order.branch_id ?? "");
+}
+
 export function createApiHandler(deps: {
   createClientFn?: (...args: any[]) => any;
   env?: { get(name: string): string | undefined };
@@ -248,28 +273,15 @@ export function createApiHandler(deps: {
     if (membershipError) return json({ error: "Failed to validate order access" }, 500)
 
     const operationalRoles = ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"]
-    const operationalOrderRead = (memberships ?? []).some((membership: any) => {
-      const role = String(membership.role ?? "").toUpperCase()
-      const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-      const tenantWideAdmin =
-        ["SUPER_ADMIN","ADMIN"].includes(role) &&
-        membership.business_id == null &&
-        membership.branch_id == null
-      const sameBusiness =
-        membership.business_id != null && String(membership.business_id) === String(order.business_id)
-      const sameBranch =
-        membership.branch_id == null || String(membership.branch_id) === String(order.branch_id)
-      if (tenantWideAdmin) return true
-      // Null business_id is not a wildcard for OWNER/MANAGER/STAFF: otherwise a
-      // malformed or incomplete membership could read every tenant order.
-      if (!sameBusiness || !sameBranch) return false
-      return operationalRoles.includes(role) || permissions.includes("ORDER_READ_ALL")
-    })
-    const providerOrderRead = (memberships ?? []).some((membership: any) =>
+    const operationalOrderRead = (memberships ?? []).some((membership: MembershipScope) =>
+      matchesOrderScope(membership, order) &&
+      (operationalRoles.includes(String(membership.role ?? "").toUpperCase()) ||
+       membershipHasPermission(membership.permissions, "ORDER_READ_ALL"))
+    )
+    const providerOrderRead = (memberships ?? []).some((membership: MembershipScope) =>
+      matchesOrderScope(membership, order) &&
       String(membership.role ?? "").toUpperCase() === "SERVICE_PROVIDER" &&
-      !!membership.business_id &&
-      String(membership.business_id) === String(order.business_id) &&
-      (membership.branch_id == null || String(membership.branch_id) === String(order.branch_id))
+      !!membership.business_id
     )
     if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) {
       return json({ error: "Forbidden" }, 403)
@@ -288,22 +300,24 @@ export function createApiHandler(deps: {
     }
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,total,currency,customer_id,business_id,branch_id").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate payment access" }, 500)
     const isOrderOwner = order.customer_id === user.id
-    // Marketplace customers may pay for their own order even when the provider
-    // belongs to another tenant. Non-owners still require active tenant access
-    // and operational payment permissions, matching the database authorization contract.
-    if (!membership && !isOrderOwner) return json({ error: "Forbidden" }, 403)
-
-    const role = String(membership?.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership?.permissions) ? membership.permissions : []
-    const operationalPaymentAccess =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_CREATE")
+    // Marketplace customers may pay for their own order across tenant boundaries.
+    // Every non-owner operation must match the target business and branch, unless
+    // it is an explicitly tenant-wide ADMIN/SUPER_ADMIN membership.
+    const scopedMemberships = (memberships ?? []).filter((membership: MembershipScope) =>
+      matchesOrderScope(membership, order)
+    )
+    const operationalPaymentAccess = scopedMemberships.some((membership: MembershipScope) =>
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(String(membership.role ?? "").toUpperCase()) ||
+      membershipHasPermission(membership.permissions, "PAYMENT_CREATE")
+    )
     if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
 
     const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
@@ -348,18 +362,22 @@ export function createApiHandler(deps: {
   if (req.method === "GET" && paymentIntentMatch) {
     const { data: intent, error } = await supabaseAdmin.from("payment_intents").select("*").eq("id", paymentIntentMatch[1]).single()
     if (error || !intent) return json({ error: "Intent not found" }, 404)
-    const { data: linkedOrder } = await supabaseAdmin.from("orders").select("customer_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
-    const isOrderOwner = linkedOrder?.customer_id === user.id
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    // Customers must be able to read the payment intent for their own marketplace order
-    // even when the provider operates in another tenant. Other users need active membership.
-    if (!membership && !isOrderOwner) return json({ error: "Forbidden" }, 403)
-    const role = String(membership?.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership?.permissions) ? membership.permissions : []
-    const operationalPaymentRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_READ_ALL")
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,customer_id,business_id,branch_id")
+      .eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError || !linkedOrder) return json({ error: "Linked order not found" }, 404)
+    const isOrderOwner = linkedOrder.customer_id === user.id
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate payment access" }, 500)
+    const scopedMemberships = (memberships ?? []).filter((membership: MembershipScope) =>
+      matchesOrderScope(membership, linkedOrder)
+    )
+    const operationalPaymentRead = scopedMemberships.some((membership: MembershipScope) =>
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(String(membership.role ?? "").toUpperCase()) ||
+      membershipHasPermission(membership.permissions, "PAYMENT_READ_ALL")
+    )
     if (!isOrderOwner && !operationalPaymentRead) return json({ error: "Forbidden" }, 403)
     return json(intent)
   }
@@ -368,17 +386,23 @@ export function createApiHandler(deps: {
   if (req.method === "POST" && cashConfirmMatch) {
     const intentId = cashConfirmMatch[1]
     const { data: intent, error: intentError } = await supabaseAdmin.from("payment_intents")
-      .select("tenant_id").eq("id", intentId).single()
+      .select("id,tenant_id,order_id").eq("id", intentId).single()
     if (intentError || !intent) return json({ error: "Payment intent not found" }, 404)
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,business_id,branch_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError || !linkedOrder) return json({ error: "Linked order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("role,permissions").eq("user_id", user.id).eq("tenant_id", intent.tenant_id)
-      .eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const authorized = ["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
-      permissions.includes("PAYMENT_CONFIRM_CASH")
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id,branch_id").eq("user_id", user.id)
+      .eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate payment confirmation access" }, 500)
+    const scopedMemberships = (memberships ?? []).filter((membership: MembershipScope) =>
+      matchesOrderScope(membership, linkedOrder)
+    )
+    const authorized = scopedMemberships.some((membership: MembershipScope) =>
+      ["SUPER_ADMIN","ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
+      membershipHasPermission(membership.permissions, "PAYMENT_CONFIRM_CASH")
+    )
     if (!authorized) return json({ error: "Forbidden: insufficient permissions" }, 403)
 
     const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
