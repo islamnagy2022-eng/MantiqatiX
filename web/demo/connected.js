@@ -216,6 +216,7 @@
       const failed = results.map((r, i) => r.error ? labels[i] + ': ' + errorText(r.error) : '').filter(Boolean);
       if (failed.length) throw new Error('تعذر تحميل بيانات DEMO:\n' + failed.join('\n'));
       [data.memberships, data.businesses, data.branches, data.items, data.prices, data.orders, data.appointments] = results.map(r => r.data || []);
+      data.workspaceMode = resolveWorkspaceMode();
       const saved = window.localStorage.getItem('MANTIQATIX_DEMO_ACTIVE_BUSINESS') || '';
       const own = activeMemberships();
       data.selectedBusinessId = (saved && own.some(m => m.business_id === saved)) ? saved : (own[0]?.business_id || null);
@@ -307,51 +308,82 @@
 
   function renderWorkspace() {
     const user = data.user;
-    const business = selectedBusiness();
+    const mode = resolveWorkspaceMode();
+    data.workspaceMode = mode;
+    const ownerContexts = activeMemberships();
+    const business = mode === 'OWNER' ? selectedBusiness() : null;
     const membership = business ? membershipForBusiness(business.id) : null;
-    const own = activeMemberships();
-    const primaryOwner = String(user.email || '').trim().toLowerCase() === String(cfg.primaryOwnerEmail || '').trim().toLowerCase();
-    const ownBusinessIds = new Set(own.map(m => m.business_id));
-    const ownOrders = data.orders.filter(o => o.customer_id === user.id || ownBusinessIds.has(o.business_id));
-    $('#app').innerHTML =
-      '<div class="workspace-header"><div><h1 class="screen-title">مساحة العمل المتصلة</h1><p class="sub-title">قاعدة DEMO: ' + esc(cfg.tenantId) + ' · لا معاملات مالية حقيقية.</p><div class="connection-state">اتصال قاعدة البيانات جاهز</div></div>' +
-      '<div class="user-box"><div class="user-avatar">' + esc((user.user_metadata?.full_name || user.email || 'م').slice(0, 1)) + '</div><div><strong>' + esc(user.user_metadata?.full_name || user.email) + '</strong><small>' + esc(user.email || '') + ' · ' + (primaryOwner ? 'الحساب الأساسي للمالك' : 'حساب DEMO') + '</small></div></div></div>' +
-      '<div class="workspace-grid"><aside class="panel sidebar">' +
-      navButton('dashboard', 'نظرة عامة', '⌂') + navButton('activities', 'أنشطتي', '◈') +
-      navButton('catalog', 'الكتالوج والطلبات', '▦') +
-      (business && canManage(business.id) ? navButton('products', 'المنتجات والأسعار', '＋') : '') +
-      navButton('orders', 'إدارة الطلبات والمواعيد', '≋') +
-      (business && String(membership?.role).toUpperCase() === 'OWNER' ? navButton('team', 'المستخدمون والصلاحيات', '♙') : '') +
-      (own.length ? '<div class="nav-divider"></div><div class="field" style="padding:0 6px 7px"><label for="active-business">النشاط المحدد</label><select id="active-business" class="toolbar-select">' +
-        own.map(m => { const b=data.businesses.find(x=>x.id===m.business_id); return b ? '<option value="' + esc(b.id) + '"' + (b.id===data.selectedBusinessId?' selected':'') + '>' + esc(b.name) + ' · ' + esc(roleLabel(m.role)) + '</option>' : ''; }).join('') +
-      '</select></div>' : '') +
-      '<div class="nav-divider"></div><div class="notice warning">DEMO فقط<br>لا دفع حقيقي · بيانات تجريبية · لا اتصال بالإنتاج</div></aside>' +
-      '<section class="content-area">' + (data.dataError ? '<div class="connected-error">' + esc(data.dataError) + '</div><button class="btn btn-secondary" data-action="refresh">إعادة المحاولة</button>' : renderActiveTab(business, membership, ownOrders)) + '</section></div>';
+    const ownBusinessIds = new Set(ownerContexts.map(m => m.business_id));
+    const visibleOrders = mode === 'CUSTOMER'
+      ? data.orders.filter(o => o.customer_id === user.id)
+      : mode === 'OWNER'
+        ? data.orders.filter(o => ownBusinessIds.has(o.business_id))
+        : [];
+    const userHeader =
+      '<div class="workspace-header"><div><h1 class="screen-title">MantiqatiX</h1><p class="sub-title">قاعدة DEMO: ' + esc(cfg.tenantId) + ' · لا معاملات مالية حقيقية.</p><div class="connection-state">اتصال قاعدة البيانات جاهز</div></div>' +
+      '<div class="user-box"><div class="user-avatar">' + esc((user.user_metadata?.full_name || user.email || 'م').slice(0, 1)) + '</div><div><strong>' + esc(user.user_metadata?.full_name || user.email) + '</strong><small>' + esc(user.email || '') + ' · ' + (hasPlatformOwnerAccess() ? 'مالك المنصة' : 'حساب DEMO') + '</small></div></div></div>';
+    const modeSwitcher = renderWorkspaceModeSwitcher(mode);
+    if (mode === 'PLATFORM') {
+      $('#app').innerHTML = userHeader + modeSwitcher +
+        (data.dataError ? '<div class="connected-error">' + esc(data.dataError) + '</div><button class="btn btn-secondary" data-action="refresh">إعادة المحاولة</button>' : renderPlatformDashboard());
+      return;
+    }
+    let sidebar;
+    if (mode === 'CUSTOMER') {
+      sidebar =
+        navButton('dashboard', 'الرئيسية', '⌂') +
+        navButton('catalog', 'تصفح الكتالوج', '▦') +
+        navButton('orders', 'طلباتي ومواعيدي', '≋') +
+        '<div class="nav-divider"></div><div class="notice warning">وضع العميل<br>طلباتك ومواعيدك مرتبطة بحسابك فقط.</div>';
+    } else {
+      sidebar =
+        navButton('dashboard', 'لوحة النشاط', '⌂') +
+        navButton('activities', 'أنشطتي / إنشاء نشاط', '◈') +
+        (business && canManage(business.id) ? navButton('products', 'المنتجات والأسعار', '＋') : '') +
+        navButton('orders', 'طلبات النشاط', '≋') +
+        (business && String(membership?.role).toUpperCase() === 'OWNER' ? navButton('team', 'المستخدمون والصلاحيات', '♙') : '') +
+        (ownerContexts.length ? '<div class="nav-divider"></div><div class="field" style="padding:0 6px 7px"><label for="active-business">النشاط المحدد</label><select id="active-business" class="toolbar-select">' +
+          ownerContexts.map(m => { const b=data.businesses.find(x=>x.id===m.business_id); return b ? '<option value="' + esc(b.id) + '"' + (b.id===data.selectedBusinessId?' selected':'') + '>' + esc(b.name) + ' · ' + esc(roleLabel(m.role)) + '</option>' : ''; }).join('') +
+        '</select></div>' : '') +
+        '<div class="nav-divider"></div><div class="notice warning">وضع صاحب النشاط<br>لا يمكنك إدارة نشاط بلا عضوية مخولة.</div>';
+    }
+    $('#app').innerHTML = userHeader + modeSwitcher +
+      '<div class="workspace-grid"><aside class="panel sidebar">' + sidebar + '</aside>' +
+      '<section class="content-area">' + (data.dataError ? '<div class="connected-error">' + esc(data.dataError) + '</div><button class="btn btn-secondary" data-action="refresh">إعادة المحاولة</button>' : renderActiveTab(business, membership, visibleOrders)) + '</section></div>';
   }
 
   function renderActiveTab(business, membership, ownOrders) {
+    const mode = resolveWorkspaceMode();
+    if (mode === 'PLATFORM') return renderPlatformDashboard();
+    if (mode === 'CUSTOMER') {
+      if (data.tab === 'catalog') return renderCatalog();
+      if (data.tab === 'orders') return renderOrders(null, null, ownOrders, false);
+      return renderCustomerDashboard(ownOrders);
+    }
     if (data.tab === 'activities') return renderActivities();
-    if (data.tab === 'catalog') return renderCatalog();
     if (data.tab === 'products') return renderProducts(business);
-    if (data.tab === 'orders') return renderOrders(business, membership, ownOrders);
+    if (data.tab === 'orders') return renderOrders(business, membership, ownOrders, true);
     if (data.tab === 'team') return renderTeam(business, membership);
     return renderDashboard(business, membership, ownOrders);
   }
 
   function renderDashboard(business, membership, orders) {
     const own = activeMemberships();
-    return header('لوحة DEMO', 'قاعدة مستقلة مع مصادقة وكتالوج وطلبات تجريبية.',
+    const ownIds = new Set(own.map(m => m.business_id));
+    const ownBusinesses = data.businesses.filter(b => ownIds.has(b.id));
+    const ownItems = data.items.filter(item => ownIds.has(item.business_id));
+    return header('لوحة صاحب النشاط', 'إدارة الأنشطة التي لديك عضوية تشغيلية بها فقط.',
       '<button class="btn btn-primary" data-action="tab" data-tab="activities">＋ إنشاء نشاط</button>') +
       '<div class="stats-grid">' +
-      stat('أنشطتي', own.length, 'عضويات نشطة في قاعدة DEMO') +
-      stat('أنشطة متاحة', data.businesses.length, 'داخل مساحة التجربة فقط') +
-      stat('منتجات وخدمات', data.items.length, 'كتالوج حقيقي داخل قاعدة DEMO') +
-      stat('طلبات أستطيع رؤيتها', orders.length, 'حسب الصلاحية وعزل النشاط/الفرع') +
+      stat('أنشطتي', ownBusinesses.length, 'الأنشطة المرتبطة بعضويتك') +
+      stat('فروعي', data.branches.filter(b => ownIds.has(b.business_id)).length, 'الفروع داخل أنشطتك') +
+      stat('منتجات وخدمات', ownItems.length, 'كتالوج أنشطتك') +
+      stat('طلبات النشاط', orders.length, 'طلبات تخص الأنشطة التي تديرها') +
       '</div>' +
-      '<section class="panel">' + header('الأنشطة التجريبية', 'افتح نشاطًا تديره أو استعرض كتالوجه.') +
-      (data.businesses.length ? '<div class="card-grid">' + data.businesses.map(b => activityCard(b, true)).join('') + '</div>' : '<div class="empty-state">لا توجد أنشطة حتى الآن. ابدأ بإنشاء نشاط.</div>') +
+      '<section class="panel">' + header('أنشطتي', 'اختر نشاطًا لإدارته أو أنشئ نشاطًا جديدًا.') +
+      (ownBusinesses.length ? '<div class="card-grid">' + ownBusinesses.map(b => activityCard(b, false)).join('') + '</div>' : '<div class="empty-state">لا توجد عضوية صاحب نشاط لهذا الحساب حتى الآن. أنشئ نشاطًا جديدًا ليُربط بك دور OWNER تلقائيًا.</div>') +
       '</section>' +
-      '<div class="notice">المشروع التجريبي منفصل، وكل الطلبات هنا بدون تحصيل. لم تُنسخ أي حسابات أو بيانات عملاء من الإنتاج.</div>';
+      '<div class="notice">تبديل مساحة العمل لا يضيف صلاحيات. كل تغيير يمر من الخادم ويتحقق من عضويتك في النشاط المحدد.</div>';
   }
 
   function renderActivities() {
@@ -407,7 +439,7 @@
     const branch = branchForBusiness(business.id);
     const items = catalogItemsFor(business.id);
     return header('المنتجات والأسعار', 'النشاط: ' + business.name + ' · ' + sector.label,
-      '<button class="btn btn-secondary" data-action="tab" data-tab="catalog">عرض الكتالوج العام</button>') +
+      '<button class="btn btn-secondary" data-action="customer-catalog">فتح الكتالوج كعميل</button>') +
       '<section class="panel"><form id="product-form" class="form-stack"><div class="form-grid">' +
       '<div class="field"><label for="product-name">اسم المنتج/الخدمة</label><input id="product-name" name="name" required maxlength="180"></div>' +
       '<div class="field"><label for="product-price">السعر (ج.م)</label><input id="product-price" name="price" type="number" min="0" step="0.01" required></div>' +
@@ -423,11 +455,11 @@
       '</tbody></table></div>' : '<div class="empty-state">لا توجد منتجات. أضف أول منتج أو خدمة من النموذج أعلاه.</div>') + '</section>';
   }
 
-  function renderOrders(business, membership, orders) {
+  function renderOrders(business, membership, orders, allowStatusChanges) {
     return header('الطلبات والمواعيد', 'يظهر فقط ما تسمح به صلاحيات قاعدة البيانات. الطلبات بلا دفع حقيقي.') +
       '<section class="panel">' + header('الطلبات', orders.length + ' سجلًا مرئيًا') +
       (orders.length ? '<div class="card-grid">' + orders.map(o => {
-        const staff = canManage(o.business_id) || ['STAFF','EMPLOYEE'].includes(String(membershipForBusiness(o.business_id)?.role || '').toUpperCase());
+        const staff = allowStatusChanges === true && (canManage(o.business_id) || ['STAFF','EMPLOYEE'].includes(String(membershipForBusiness(o.business_id)?.role || '').toUpperCase()));
         const possible = staff ? (allowedNext[o.status] || []) : [];
         const choices = possible.map(s => '<option value="' + s + '">' + statusLabels[s] + '</option>').join('');
         const stateLabel = statusLabels[o.status] || o.status;
@@ -594,6 +626,7 @@
   }
 
   async function bootstrap(session) {
+    if (data.user?.id !== session.user?.id) data.workspaceMode = null;
     data.session = session;
     data.user = session.user;
     data.dataError = null;
@@ -708,6 +741,7 @@
     await sb.auth.signOut();
     data.user = null;
     data.session = null;
+    data.workspaceMode = null;
     data.businesses = [];
     data.branches = [];
     data.memberships = [];
