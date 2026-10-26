@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
+> **LATEST SESSION STATE — 2026-10-26:** Active development is on `demo/four-sector-isolated-20261026`, based on main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`. A standalone local-only DEMO simulator is implemented for restaurants/cafes, pharmacies, doctors/clinics, and stores; the dedicated isolation workflow passed on code head `6f9a43310d7b1e7710662e3640ff63f66ea6f267` (run 40260016567). This is UI/workflow simulation only—not real Supabase Auth/RLS validation. No production config/database/function/deployment change or merge occurred. The current Supabase organization is Free and quoted new-project price is $0/month; isolated project creation is pending explicit organization confirmation. Global production release remains **BLOCKED / NOT CERTIFIED**.nological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -618,3 +618,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
 - Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
 - No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-26 — DEMO-first work state
+
+- New-work scope is frozen to restaurants/cafes, pharmacies, doctors/clinics, and stores. Existing modules outside scope are preserved and not deleted.
+- Branch `demo/four-sector-isolated-20261026` contains the standalone local demo and its static isolation guard. Do not substitute this simulator for real server authorization tests.
+- The demo HTML loads only its own CSS and JS. It does not load `web/config.js`, production app scripts, or the Supabase SDK; code path is localStorage-only with no remote requests and no real payment.
+- Validation workflow passed at run 40260016567; latest source changes after the check are documentation-only.
+- Supabase project creation is not yet done. The `manteqti` organization is on the Free plan and the connector's price quote for a new project was $0/month. Ask/confirm organization before creating; do not create a paid branch.
+- Next: open a draft PR and inspect its checks; obtain explicit confirmation to use `manteqti` for an isolated Free project; test an authoritative migration replay and synthetic-data Auth/RLS E2E before LIVE.
+- No production migrations or data writes, function deployments, merges, or production publishing occurred.
