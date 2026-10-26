@@ -657,6 +657,8 @@
     if (error || !result?.ok) return toast('تعذر إنشاء النشاط: ' + errorText(error || result?.detail || result?.error), 'error');
     data.selectedBusinessId = result.business_id;
     window.localStorage.setItem('MANTIQATIX_DEMO_ACTIVE_BUSINESS', result.business_id);
+    data.workspaceMode = 'OWNER';
+    try { window.localStorage.setItem(workspaceModeStorageKey(), 'OWNER'); } catch (_) {}
     toast('تم إنشاء النشاط والفرع ومنحك دور المالك في DEMO.', 'success');
     data.tab = 'products';
     await loadData();
@@ -757,7 +759,11 @@
   document.addEventListener('click', async event => {
     const button = event.target.closest('[data-action]');
     if (!button) return;
-    if (button.dataset.action === 'logout') {
+    if (button.dataset.action === 'workspace-mode') {
+      switchWorkspaceMode(button.dataset.mode);
+    } else if (button.dataset.action === 'customer-catalog') {
+      switchWorkspaceMode('CUSTOMER', 'catalog');
+    } else if (button.dataset.action === 'logout') {
       await logout();
     } else if (button.dataset.action === 'refresh') {
       if (data.user) await loadData();
@@ -772,8 +778,7 @@
     } else if (button.dataset.action === 'catalog-business') {
       data.catalogFilterBusinessId = button.dataset.businessId;
       data.catalogFilterSector = 'ALL';
-      data.tab = 'catalog';
-      render();
+      switchWorkspaceMode('CUSTOMER', 'catalog');
     } else if (button.dataset.action === 'place-order') {
       await placeOrder(button);
     } else if (button.dataset.action === 'book-appointment') {
