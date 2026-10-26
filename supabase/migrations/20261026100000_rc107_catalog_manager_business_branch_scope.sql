@@ -154,6 +154,27 @@ BEGIN
      WHERE id = p_id
        AND tenant_id = p_tenant_id
        AND business_id = p_business_id
+       AND (
+         branch_id = p_branch_id
+         OR (
+           branch_id IS NULL
+           AND EXISTS (
+             SELECT 1 FROM public.user_memberships m
+              WHERE m.user_id = auth.uid() AND m.tenant_id = p_tenant_id
+                AND m.status = 'ACTIVE' AND m.business_id = p_business_id
+                AND m.branch_id IS NULL
+                AND upper(m.role) IN ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER')
+           )
+         )
+         OR EXISTS (
+           SELECT 1 FROM public.user_memberships m
+            WHERE m.user_id = auth.uid() AND m.tenant_id = p_tenant_id
+              AND m.status = 'ACTIVE' AND upper(m.role) = 'SUPER_ADMIN'
+              AND m.business_id IS NULL
+              AND coalesce(m.permissions->>'scope','') = 'PLATFORM'
+              AND coalesce((m.permissions->>'full_control')::boolean,false) = true
+         )
+       )
     RETURNING id INTO v_id;
 
     IF v_id IS NULL THEN
@@ -615,3 +636,12 @@ $function$;
 GRANT EXECUTE ON FUNCTION public.update_catalog_item_status_backend(character varying, uuid, uuid, character varying, character varying) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_business_profile_backend(character varying, uuid, character varying, text, text, text, text, text, text, text, text, text, text, boolean) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_item_and_price_backend(character varying, uuid, character varying, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid, character varying, numeric, timestamp with time zone, timestamp with time zone) TO authenticated;
+
+-- Narrow privileged function execution to authenticated callers only.
+REVOKE ALL ON FUNCTION public.upsert_catalog_item_backend(character varying, uuid, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.upsert_catalog_price_backend(character varying, uuid, uuid, character varying, character varying, numeric, timestamp with time zone, timestamp with time zone) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.update_catalog_item_status_backend(character varying, uuid, uuid, character varying, character varying) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.upsert_catalog_item_and_price_backend(character varying, uuid, character varying, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid, character varying, numeric, timestamp with time zone, timestamp with time zone) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.upsert_catalog_business_profile_backend(character varying, uuid, character varying, text, text, text, text, text, text, text, text, text, text, boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_item_backend(character varying, uuid, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_price_backend(character varying, uuid, uuid, character varying, character varying, numeric, timestamp with time zone, timestamp with time zone) TO authenticated;
