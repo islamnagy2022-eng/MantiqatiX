@@ -299,3 +299,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Post-change verification: Security Advisor now reports 1 anon-executable and 6 authenticated-executable SECURITY DEFINER functions, down from 65/80 before the scope freeze. The remaining anon function is `get_mnty_targeted_advertisements`, which is also public in LIVE; the six authenticated functions are the clinic booking RPC, four authorization helpers, and that ad projection.
 - Core DEMO tables remain empty: 0 Auth users, businesses, branches, memberships, catalog items/prices, orders, or appointments; 4 active sectors and 4 active categories. Stock reserve/restore triggers are enabled.
 - [x] DEMO workflow run [40265909990](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40265909990) passed the latest scope-freeze/ACL contract tests. Authenticated database E2E and migration-history reconciliation remain blockers; LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Live DEMO endpoint smoke test added and passed
+
+- Added `scripts/test-connected-demo-live-smoke.mjs` and wired it into `.github/workflows/demo-isolation.yml` for both branch pushes and PRs affecting the connected DEMO contract.
+- The test uses only the public DEMO publishable key and makes no data writes. For each of the seven deployed Edge Functions, it verifies: approved GitHub Pages origin preflight returns 200 and reflects the origin; an unapproved origin returns 403; and a POST without a bearer session returns 401.
+- Workflow [40266196560](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266196560) completed all substantive steps successfully, including the live CORS/auth smoke test. No DEMO user or business data was created.
+- This validates the live gateway/CORS/authentication boundary only; it does not substitute for authenticated multi-user E2E, RLS tenant isolation, order transitions, or clinic booking/privacy tests.
