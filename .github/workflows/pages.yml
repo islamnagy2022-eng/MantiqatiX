@@ -23,6 +23,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - name: Install web runtime dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
@@ -76,6 +80,9 @@ jobs:
           node scripts/validate-production-gate-contract.mjs
           node scripts/validate-production-migration-chain-gate.mjs
           node scripts/validate-finance-boundaries.mjs
+          node scripts/validate-api-catalog-price-idempotency.mjs
+          node scripts/test-api-runtime-contracts.mjs
+          deno test --node-modules-dir=auto --allow-env --allow-net supabase/functions/api/index_route_test.ts
           node scripts/validate-digital-pages-boundaries.mjs
           node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs

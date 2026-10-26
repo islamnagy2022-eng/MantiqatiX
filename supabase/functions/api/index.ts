@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0"
+import { normalizeBranchId, matchesIdempotentIntent } from "./contracts.mjs"
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io"
 const corsHeaders = {
@@ -9,7 +10,38 @@ const corsHeaders = {
   "Vary": "Origin",
 }
 
-serve(async (req) => {
+type MembershipScope = {
+  role?: unknown;
+  permissions?: unknown;
+  business_id?: unknown;
+  branch_id?: unknown;
+};
+
+function membershipHasPermission(permissions: unknown, key: string): boolean {
+  if (Array.isArray(permissions)) return permissions.includes(key);
+  if (permissions && typeof permissions === "object") {
+    return (permissions as Record<string, unknown>)[key] === true;
+  }
+  return false;
+}
+
+function matchesOrderScope(membership: MembershipScope, order: Record<string, unknown>): boolean {
+  const role = String(membership.role ?? "").toUpperCase();
+  const businessId = membership.business_id;
+  const branchId = membership.branch_id;
+  // Only deliberately tenant-wide admin memberships may omit business scope.
+  if (["SUPER_ADMIN", "ADMIN"].includes(role) && businessId == null && branchId == null) return true;
+  if (businessId == null || String(businessId) !== String(order.business_id ?? "")) return false;
+  return branchId == null || String(branchId) === String(order.branch_id ?? "");
+}
+
+export function createApiHandler(deps: {
+  createClientFn?: (...args: any[]) => any;
+  env?: { get(name: string): string | undefined };
+} = {}) {
+  const createClientFn = deps.createClientFn ?? createClient;
+  const env = deps.env ?? Deno.env;
+  return async (req: Request) => {
   const origin = req.headers.get("Origin")
   if (req.method === "OPTIONS") {
     if (origin && origin !== allowedOrigin) {
@@ -32,9 +64,9 @@ serve(async (req) => {
   if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401)
   const token = authHeader.slice(7)
 
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+  const supabaseAdmin = createClientFn(
+    env.get("SUPABASE_URL") ?? "",
+    env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
 
@@ -60,10 +92,12 @@ serve(async (req) => {
   if (req.method === "GET" && path === "/api/v1/catalog") {
     const requestedTenantId = url.searchParams.get("tenantId");
     const businessId = url.searchParams.get("businessId");
-    const branchId = url.searchParams.get("branchId");
+    const branchId = normalizeBranchId(url.searchParams.get("branchId"));
     const parsedLimit = Number(url.searchParams.get("limit") ?? "100");
     const limit = Math.min(Math.max(Number.isFinite(parsedLimit) ? parsedLimit : 100, 1), 100);
     if (!businessId) return json({ error: "businessId is required" }, 400);
+    // Reject oversized caller-controlled identifiers before any database queries.
+    if (branchId && branchId.length > 128) return json({ error: "Invalid branchId" }, 400);
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
       .select("id,tenant_id,status").eq("id", businessId).single();
@@ -91,33 +125,80 @@ serve(async (req) => {
       .order("name", { ascending: true }).limit(100);
     if (branchesError) return json({ error: "Failed to load branches" }, 500);
 
-    let itemQuery = supabaseAdmin.from("catalog_items")
+    // Validate the selected branch against the active business. Use exact .eq()
+    // filters below; never interpolate a caller-supplied ID into PostgREST filter syntax.
+    if (branchId) {
+      const { data: selectedBranch, error: selectedBranchError } = await supabaseAdmin.from("branches")
+        .select("id").eq("id", branchId).eq("business_id", businessId).eq("status", "ACTIVE").maybeSingle();
+      if (selectedBranchError) return json({ error: "Failed to validate branch" }, 500);
+      if (!selectedBranch) return json({ error: "Branch not available for this business" }, 404);
+    }
+
+    const buildItemQuery = () => supabaseAdmin.from("catalog_items")
       .select("id,tenant_id,business_id,branch_id,legacy_ref,item_type,name_ar,name_en,description,sku,status,tax_rate,metadata")
       .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
       .order("name_ar", { ascending: true }).limit(limit);
-    if (branchId) itemQuery = itemQuery.or(`branch_id.is.null,branch_id.eq.${branchId}`);
-    const { data: items, error: itemError } = await itemQuery;
-    if (itemError) return json({ error: "Failed to load catalog" }, 500);
+    let items: any[] = [];
+    if (branchId) {
+      const [sharedItemsRes, branchItemsRes] = await Promise.all([
+        buildItemQuery().is("branch_id", null),
+        buildItemQuery().eq("branch_id", branchId)
+      ]);
+      if (sharedItemsRes.error || branchItemsRes.error) return json({ error: "Failed to load catalog" }, 500);
+      items = [...(sharedItemsRes.data ?? []), ...(branchItemsRes.data ?? [])]
+        .sort((a, b) => String(a.name_ar ?? "").localeCompare(String(b.name_ar ?? "")))
+        .slice(0, limit);
+    } else {
+      const { data, error } = await buildItemQuery();
+      if (error) return json({ error: "Failed to load catalog" }, 500);
+      items = data ?? [];
+    }
 
-    const ids = (items ?? []).map((x: any) => x.id);
+    const ids = items.map((x: any) => x.id);
     if (!ids.length) return json({ tenantId, businessId, branchId: branchId ?? null, items: [], prices: [], options: [] });
 
     const nowIso = new Date().toISOString();
+    const buildPriceQuery = () => supabaseAdmin.from("catalog_item_prices")
+      .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
+      .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
+      .lte("effective_from", nowIso).or(`effective_to.is.null,effective_to.gte.${nowIso}`);
+    const optionsQuery = supabaseAdmin.from("catalog_item_options")
+      .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
+      .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
+      .order("name_ar", { ascending: true });
+
+    let prices: any[] = [];
+    if (branchId) {
+      // Use separate exact filters rather than interpolating an untrusted branch
+      // into a compound OR expression; only shared prices and this branch's overrides
+      // are returned for a branch-specific catalog request.
+      const [sharedPricesRes, branchPricesRes, optionsRes] = await Promise.all([
+        buildPriceQuery().is("branch_id", null).order("version", { ascending: false }),
+        buildPriceQuery().eq("branch_id", branchId).order("version", { ascending: false }),
+        optionsQuery
+      ]);
+      if (sharedPricesRes.error || branchPricesRes.error || optionsRes.error) {
+        return json({ error: "Failed to load catalog pricing" }, 500);
+      }
+      prices = [...(sharedPricesRes.data ?? []), ...(branchPricesRes.data ?? [])];
+      return json({
+        tenantId, businessId, branchId,
+        pricingAuthority: "catalog_v1",
+        branches: branches ?? [],
+        items: items ?? [],
+        prices,
+        options: optionsRes.data ?? []
+      });
+    }
+
     const [pricesRes, optionsRes] = await Promise.all([
-      supabaseAdmin.from("catalog_item_prices")
-        .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
-        .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
-        .lte("effective_from", nowIso).or(`effective_to.is.null,effective_to.gte.${nowIso}`)
-        .order("version", { ascending: false }),
-      supabaseAdmin.from("catalog_item_options")
-        .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
-        .eq("tenant_id", tenantId).in("catalog_item_id", ids).eq("status", "ACTIVE")
-        .order("name_ar", { ascending: true })
+      buildPriceQuery().order("version", { ascending: false }),
+      optionsQuery
     ]);
     if (pricesRes.error || optionsRes.error) return json({ error: "Failed to load catalog pricing" }, 500);
 
     return json({
-      tenantId, businessId, branchId: branchId ?? null,
+      tenantId, businessId, branchId: null,
       pricingAuthority: "catalog_v1",
       branches: branches ?? [],
       items: items ?? [],
@@ -132,7 +213,8 @@ serve(async (req) => {
     const required = ["orderId","tenantId","businessId","branchId","clientIdempotencyKey","items"]
     if (required.some((k) => body[k] == null || body[k] === "")) return json({ error: "Missing required order fields" }, 400)
     if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 100) return json({ error: "Invalid items" }, 400)
-    if (String(body.clientIdempotencyKey).length > 200) return json({ error: "Invalid idempotency key" }, 400)
+    const normalizedOrderIdempotencyKey = String(body.clientIdempotencyKey ?? "").trim()
+    if (!normalizedOrderIdempotencyKey || normalizedOrderIdempotencyKey.length > 128) return json({ error: "Invalid idempotency key" }, 400)
 
     const { data: business, error: businessError } = await supabaseAdmin.from("businesses")
       .select("id,tenant_id,status").eq("id", String(body.businessId)).single()
@@ -160,7 +242,7 @@ serve(async (req) => {
       p_business_id: String(body.businessId),
       p_branch_id: body.branchId == null ? null : String(body.branchId),
       p_customer_id: user.id,
-      p_client_idempotency_key: String(body.clientIdempotencyKey),
+      p_client_idempotency_key: normalizedOrderIdempotencyKey,
       p_subtotal: 0,
       p_discount: 0,
       p_tax: 0,
@@ -182,19 +264,28 @@ serve(async (req) => {
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
     if (error || !order) return json({ error: "Order not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions,business_id")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalOrderRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role) ||
-      permissions.includes("ORDER_READ_ALL")
-    const providerOrderRead =
-      role === "SERVICE_PROVIDER" &&
-      !!membership.business_id &&
-      String(membership.business_id) === String(order.business_id)
-    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) return json({ error: "Forbidden" }, 403)
+
+    // Load every active membership for this tenant. Selecting one arbitrary row
+    // can accidentally authorize a request using a membership for another business.
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate order access" }, 500)
+
+    const operationalRoles = ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"]
+    const operationalOrderRead = (memberships ?? []).some((membership: MembershipScope) =>
+      matchesOrderScope(membership, order) &&
+      (operationalRoles.includes(String(membership.role ?? "").toUpperCase()) ||
+       membershipHasPermission(membership.permissions, "ORDER_READ_ALL"))
+    )
+    const providerOrderRead = (memberships ?? []).some((membership: MembershipScope) =>
+      matchesOrderScope(membership, order) &&
+      String(membership.role ?? "").toUpperCase() === "SERVICE_PROVIDER" &&
+      !!membership.business_id
+    )
+    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) {
+      return json({ error: "Forbidden" }, 403)
+    }
     return json(order)
   }
 
@@ -203,28 +294,44 @@ serve(async (req) => {
     if (!body) return json({ error: "Invalid JSON body" }, 400)
     const { orderId, provider, idempotencyKey } = body
     if (provider !== "CASH_ON_DELIVERY") return json({ error: "Only CASH_ON_DELIVERY is enabled in production" }, 400)
-    if (!orderId || !idempotencyKey || String(idempotencyKey).length > 200) return json({ error: "orderId and idempotencyKey are required" }, 400)
+    const normalizedIdempotencyKey = String(idempotencyKey ?? "").trim()
+    if (!orderId || !normalizedIdempotencyKey || normalizedIdempotencyKey.length > 128) {
+      return json({ error: "orderId and idempotencyKey are required" }, 400)
+    }
 
     const { data: order, error: orderError } = await supabaseAdmin.from("orders")
-      .select("id,tenant_id,total,currency,customer_id").eq("id", orderId).single()
+      .select("id,tenant_id,total,currency,customer_id,business_id,branch_id").eq("id", orderId).single()
     if (orderError || !order) return json({ error: "Order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentAccess =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_CREATE")
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate payment access" }, 500)
     const isOrderOwner = order.customer_id === user.id
+    // Marketplace customers may pay for their own order across tenant boundaries.
+    // Every non-owner operation must match the target business and branch, unless
+    // it is an explicitly tenant-wide ADMIN/SUPER_ADMIN membership.
+    const scopedMemberships = (memberships ?? []).filter((membership: MembershipScope) =>
+      matchesOrderScope(membership, order)
+    )
+    const operationalPaymentAccess = scopedMemberships.some((membership: MembershipScope) =>
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(String(membership.role ?? "").toUpperCase()) ||
+      membershipHasPermission(membership.permissions, "PAYMENT_CREATE")
+    )
     if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
 
     const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
       .eq("tenant_id", order.tenant_id).eq("payment_method", "CASH_ON_DELIVERY")
       .eq("provider", "CASH_ON_DELIVERY").eq("is_enabled", true).limit(1).maybeSingle()
     if (!configuredMethod) return json({ error: "Cash payment is not enabled for this tenant" }, 409)
+
+    const { data: existingIntent, error: existingIntentError } = await supabaseAdmin.from("payment_intents")
+      .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+    if (existingIntentError) return json({ error: "Failed to validate payment idempotency" }, 500)
+    if (existingIntent) {
+      if (!matchesIdempotentIntent(existingIntent, order)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
+      return json({ ...existingIntent, idempotent: true })
+    }
 
     const newIntent = {
       id: crypto.randomUUID(),
@@ -235,28 +342,43 @@ serve(async (req) => {
       status: "CREATED",
       provider: "CASH_ON_DELIVERY",
       payment_method: "CASH_ON_DELIVERY",
-      idempotency_key: String(idempotencyKey),
+      idempotency_key: normalizedIdempotencyKey,
     }
     const { data, error } = await supabaseAdmin.from("payment_intents")
-      .upsert(newIntent, { onConflict: "tenant_id,idempotency_key" }).select().single()
-    if (error) return json({ error: "Failed to create payment intent" }, 500)
-    return json(data)
+      .insert(newIntent).select().single()
+    if (error) {
+      // A concurrent request may have won the unique-key race. Return it only if the
+      // full immutable payment identity matches; never overwrite it with another order.
+      const { data: racedIntent, error: racedIntentError } = await supabaseAdmin.from("payment_intents")
+        .select("*").eq("tenant_id", order.tenant_id).eq("idempotency_key", normalizedIdempotencyKey).maybeSingle()
+      if (racedIntentError || !racedIntent) return json({ error: "Failed to create payment intent" }, 500)
+      if (!matchesIdempotentIntent(racedIntent, order)) return json({ error: "IDEMPOTENCY_CONFLICT" }, 409)
+      return json({ ...racedIntent, idempotent: true })
+    }
+    return json({ ...data, idempotent: false }, 201)
   }
 
   const paymentIntentMatch = path.match(/^\/api\/v1\/payments\/intents\/([^/]+)$/)
   if (req.method === "GET" && paymentIntentMatch) {
     const { data: intent, error } = await supabaseAdmin.from("payment_intents").select("*").eq("id", paymentIntentMatch[1]).single()
     if (error || !intent) return json({ error: "Intent not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
-      .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalPaymentRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
-      permissions.includes("PAYMENT_READ_ALL")
-    const { data: linkedOrder } = await supabaseAdmin.from("orders").select("customer_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
-    if (linkedOrder?.customer_id !== user.id && !operationalPaymentRead) return json({ error: "Forbidden" }, 403)
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,customer_id,business_id,branch_id")
+      .eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError || !linkedOrder) return json({ error: "Linked order not found" }, 404)
+    const isOrderOwner = linkedOrder.customer_id === user.id
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate payment access" }, 500)
+    const scopedMemberships = (memberships ?? []).filter((membership: MembershipScope) =>
+      matchesOrderScope(membership, linkedOrder)
+    )
+    const operationalPaymentRead = scopedMemberships.some((membership: MembershipScope) =>
+      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(String(membership.role ?? "").toUpperCase()) ||
+      membershipHasPermission(membership.permissions, "PAYMENT_READ_ALL")
+    )
+    if (!isOrderOwner && !operationalPaymentRead) return json({ error: "Forbidden" }, 403)
     return json(intent)
   }
 
@@ -264,17 +386,23 @@ serve(async (req) => {
   if (req.method === "POST" && cashConfirmMatch) {
     const intentId = cashConfirmMatch[1]
     const { data: intent, error: intentError } = await supabaseAdmin.from("payment_intents")
-      .select("tenant_id").eq("id", intentId).single()
+      .select("id,tenant_id,order_id").eq("id", intentId).single()
     if (intentError || !intent) return json({ error: "Payment intent not found" }, 404)
+    const { data: linkedOrder, error: linkedOrderError } = await supabaseAdmin.from("orders")
+      .select("id,tenant_id,business_id,branch_id").eq("id", intent.order_id).eq("tenant_id", intent.tenant_id).maybeSingle()
+    if (linkedOrderError || !linkedOrder) return json({ error: "Linked order not found" }, 404)
 
-    const { data: membership } = await supabaseAdmin.from("user_memberships")
-      .select("role,permissions").eq("user_id", user.id).eq("tenant_id", intent.tenant_id)
-      .eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const authorized = ["ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
-      permissions.includes("PAYMENT_CONFIRM_CASH")
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("role,permissions,business_id,branch_id").eq("user_id", user.id)
+      .eq("tenant_id", intent.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate payment confirmation access" }, 500)
+    const scopedMemberships = (memberships ?? []).filter((membership: MembershipScope) =>
+      matchesOrderScope(membership, linkedOrder)
+    )
+    const authorized = scopedMemberships.some((membership: MembershipScope) =>
+      ["SUPER_ADMIN","ADMIN","MANAGER","CASHIER","STAFF","OWNER"].includes(String(membership.role ?? "").toUpperCase()) ||
+      membershipHasPermission(membership.permissions, "PAYMENT_CONFIRM_CASH")
+    )
     if (!authorized) return json({ error: "Forbidden: insufficient permissions" }, 403)
 
     const { data, error } = await supabaseAdmin.rpc("confirm_cash_payment", {
@@ -286,4 +414,7 @@ serve(async (req) => {
   }
 
   return json({ error: "Not Found" }, 404)
-})
+  }
+}
+
+if (import.meta.main) serve(createApiHandler())
