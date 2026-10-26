@@ -162,6 +162,11 @@ begin
     pg_catalog.jsonb_build_object('environment','DEMO','demo',true,'sector_code',v_front_sector,'payments_enabled',false)
   ) returning id into v_provider_id;
 
+  update public.businesses
+    set settings = coalesce(settings,'{}'::jsonb)
+      || pg_catalog.jsonb_build_object('demo_provider_id',v_provider_id,'payments_enabled',false)
+  where id=v_business_id and tenant_id=v_tenant_id;
+
   insert into public.catalog_business_settings(business_id,tenant_id,currency,delivery_fee,tax_inclusive,allow_discounts)
   values(v_business_id,v_tenant_id,'EGP',0,false,false);
 
