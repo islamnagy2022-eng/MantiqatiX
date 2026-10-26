@@ -712,7 +712,7 @@ function roleWorkspaceDashboard(){
  const provider=window.MNTY_RBAC?.providerRole(role);
  const label=role==='SUPER_ADMIN'?'Super Admin':owner?'Owner / Business':provider?'Provider Workspace':role;
  const scope=window.MNTY_RBAC?.scope(role)||'USER';
- const allowed=(name)=>window.MNTY_RBAC?.can(role,name,'view',live.permissions);
+ const allowed=(name)=>canViewWorkspaceModule(name);
  const cards=[
   ['الطلبات',countOrDash('orders'),'الطلبات المرئية وفق النطاق والصلاحيات'],
   ['العملاء',countOrDash('leads'),'سجلات العملاء/العملاء المحتملين المتاحة'],
@@ -805,6 +805,7 @@ function canViewWorkspaceModule(name){
  if(permissionRole==='SUPER_ADMIN'&&!isPlatformOwnerSession())return false;
  const rbac=window.MNTY_RBAC;
  if(!rbac?.ROLE_DEFAULTS?.[permissionRole])return false;
+ if(name==='الدعم والحوكمة')return rbac.can(permissionRole,'GOVERNANCE','view',live.permissions)===true||rbac.can(permissionRole,'SUPPORT','view',live.permissions)===true;
  return rbac.can(permissionRole,name,'view',live.permissions)===true;
 }
 function isPrivilegedWorkspaceSession(){const role=String(live.role||'').toUpperCase();return isPlatformOwnerSession()||['OWNER','BUSINESS_OWNER','ADMIN','MANAGER'].includes(role)}
@@ -1047,7 +1048,7 @@ function enhancedPageContent(){
   case 'ملف نشاطي': return providerProfileWorkspace();
   case 'التقارير والتحليلات': return analyticsWorkspace();
   case 'العمولات والباقات': return financeWorkspace();
-  case 'الدعم والحوكمة': return isCustomerMode()?customerSupportWorkspace():governanceWorkspace();
+  case 'الدعم والحوكمة': return isCustomerMode()?customerSupportWorkspace():(window.MNTY_RBAC?.can(screenPermissionRole(),'GOVERNANCE','view',live.permissions)===true?governanceWorkspace():scopedSupportWorkspace());
   default: return pageContent();
  }
 }
@@ -2035,6 +2036,7 @@ function notificationsWorkspace(){
  +recordsTable('سجل الإشعارات',rows,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—']]);
 }
 function notificationCenter(){const rows=live.records.notifications||[];const unread=rows.filter(x=>!x.read_at);return '<section class="mnty-product-shell" style="margin-bottom:18px"><div class="mnty-product-head"><div><span class="eyebrow">NOTIFICATION CENTER</span><h2>مركز الإشعارات</h2><p>التحديثات من سجل الإشعارات الفعلي للحساب الحالي.</p></div><span class="mnty-badge mnty-badge--ui">'+unread.length+' جديد</span></div><div class="mnty-blueprint-grid">'+(rows.slice(0,12).map(n=>'<article class="mnty-blueprint-card"><div class="mnty-blueprint-icon">●</div><div class="mnty-blueprint-main"><div class="row"><h3>'+esc(n.title||'إشعار')+'</h3><span class="mnty-badge">'+(n.read_at?'مقروء':'جديد')+'</span></div><p>'+esc(n.body||n.message||'لا يوجد نص إضافي.')+'</p><small>'+esc(n.created_at?new Date(n.created_at).toLocaleString('ar-EG'):'—')+'</small></div></article>').join('')||'<div class="empty-state">لا توجد إشعارات فعلية حاليًا.</div>')+'</div></section>'}
+function scopedSupportWorkspace(){const rows=live.records.supportTickets||[];const open=rows.filter(t=>!['RESOLVED','CLOSED'].includes(String(t.status||'').toUpperCase())).length;return workspaceHead('SUPPORT','الدعم','تذاكر الدعم والإشعارات المتاحة ضمن الدور والنطاق الحالي. لا تظهر أدوات الحوكمة أو إدارة المنصة في هذه المساحة.','SUPPORT')+workspaceCards([['تذاكر متاحة',rows.length,'السجلات التي سمح الخادم بعرضها'],['مفتوحة',open,'تذاكر لم تُغلق بعد'],['إشعارات',countOrDash('notifications'),'الإشعارات المتاحة للحساب']])+'<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم المتاحة',rows,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التحديث',r=>r.updated_at?new Date(r.updated_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('آخر الإشعارات',live.records.notifications||[],[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])}
 function customerSupportWorkspace(){return workspaceHead('SUPPORT','الدعم','مساعدة العميل والتذاكر والإشعارات المرتبطة بحسابه فقط.','SUPPORT')+workspaceCards([['تذاكر الدعم',countOrDash('support'),'تذاكر حسابك وفق الصلاحيات'],['الإشعارات',countOrDash('notifications'),'إشعارات حسابك الفعلية'],['الدور','عميل','الصلاحيات الحالية للحساب']])+ '<div class="action-bar"><button class="btn btn-primary" style="width:auto" onclick="openSupportTicket()">+ فتح تذكرة دعم</button></div>'+recordsTable('تذاكر الدعم',live.records.supportTickets,[['الموضوع',r=>r.subject||'—'],['الحالة',r=>r.status||'—'],['الأولوية',r=>r.priority||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])+recordsTable('آخر الإشعارات',live.records.notifications,[['العنوان',r=>r.title||'—'],['الحالة',r=>r.read_at?'مقروء':'جديد'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleDateString('ar-EG'):'—']])}
 function attentionCenter(){
  const notes=Array.isArray(live.records.notifications)?live.records.notifications:[];
