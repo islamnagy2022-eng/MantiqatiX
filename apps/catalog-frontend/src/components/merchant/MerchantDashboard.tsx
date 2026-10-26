@@ -246,6 +246,15 @@ export const MerchantDashboard: React.FC = () => {
         </div>
       )}
 
+      {!currentBusiness.branchId && (
+        <div role="alert" className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-right text-amber-950" dir="rtl">
+          <h3 className="font-black text-sm">تم التعرف على نشاطك لكن الفرع غير مهيأ بعد</h3>
+          <p className="mt-1 text-xs leading-6">
+            عضوية الحساب محفوظة، لكن لا يوجد فرع نشط مرتبط بالنشاط في قاعدة الإنتاج. تواصل مع إدارة MantiqatiX لإعداد الفرع قبل تعديل المنتجات والأسعار. لن ننشئ فرعًا أو نغير بيانات الإنتاج تلقائيًا.
+          </p>
+        </div>
+      )}
+
       {/* Header with Title and Quick Quota indicator */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
