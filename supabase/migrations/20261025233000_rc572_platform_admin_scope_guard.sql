@@ -11,8 +11,7 @@ as $$
     select 1
     from public.mnty_active_membership(null, null, null) m
     where upper(m.role) = 'SUPER_ADMIN'
-      and coalesce((m.permissions ->> 'scope') = 'PLATFORM', false)
-      and coalesce((m.permissions ->> 'full_control')::boolean, false)
+      and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
   );
 $$;
 
