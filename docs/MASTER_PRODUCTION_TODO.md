@@ -1825,3 +1825,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] استمرار استكمال واجهات المطاعم ورحلة العميل ومقدم الخدمة، واختبار حالات الخطأ وإعادة المحاولة وحالات الشبكة على واجهة الطلب الحقيقية، مع عدم اعتبار تجربة الطلب التجريبية نظام طلبات إنتاجيًا.
 - [ ] ما زالت اختبارات E2E بهويات حقيقية متعددة الأدوار، واختبارات Paymob/refund والتسويات، ومراجعة RLS/Security Advisor، وتدريب النسخ الاحتياطي والاستعادة، واختبارات Android الموقعة وعلى أجهزة حقيقية، ومراقبة/تنبيه/تراجع الإنتاج غير مغلقة.
 - لا تغييرات على قاعدة بيانات الإنتاج أو معاملات مالية حقيقية في هذا الإصدار. حالة الإطلاق الكامل: **BLOCKED / NOT CERTIFIED**.
+
+
+## Production cleanup update — 2026-10-26 (supersedes earlier production fixture counts)
+
+- Live production now has **1 tenant** (`MNTY-PLATFORM`), **26 businesses**, **25 active official sector showcases**, **48?** memberships before cleanup minus the three synthetic `MNTY-TEST-B` memberships (verify current total before marking this line VERIFIED), **6 Auth users**, **0 orders**, and **0 payment intents**.
+- Removed the synthetic production tenant `MNTY-TEST-B` and the inactive `MNTY-BERKET-TEST` provider fixture with its test advertisement and catalog/pricing data. Financial/transactional records were checked first and none were present.
+- Kept all 25 official `OFFICIAL_PLATFORM_SHOWCASE` businesses and preserved the unrelated inactive pending web registration `BUSINESS-08769963`.
+- Synthetic two-tenant records are now local/CI-only. Use the guarded fixture at `supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql`; do not seed fixtures into production. The v2 verifier fails closed when its disposable fixture is absent.
+- The catalog-admin bootstrap privilege fix is recorded in migrations RC110/RC111; the service role has read access to the four catalog/profile tables used by catalog-admin. No new `anon` or `authenticated` table grants were added.
+- Remaining verification: run the CI checks and confirm the Pages release with production demo controls removed; ask the platform owner to confirm the live browser opens the admin dashboard after reloading the deployed site.
