@@ -5,7 +5,6 @@ window.MANTIQATIX_DEMO_CONFIG = Object.freeze({
   supabaseKey: "sb_publishable_mBXMQYGKc6_K4q1YkIUqMw_9vNYRZ2s",
   tenantId: "MNTY-PLATFORM",
   organizationId: "MNTY-MAIN",
-  primaryOwnerEmail: "islam.nagy2022@gmail.com",
   environment: "DEMO",
   paymentsEnabled: false
 });
