@@ -16,6 +16,14 @@
 
 المرحلة الحالية هي إطلاق أولي من المشروع القائم، وليست إعادة بناء. الأولوية الوحيدة قبل الإطلاق هي إكمال التدفقات الأساسية لقطاعات المطاعم والكافيهات والصيدليات والأطباء والعيادات والمتاجر: Google Auth، ملكية النشاط، الكتالوج والأسعار، الطلبات/المواعيد، العضويات وعزل البيانات، وحواجز الإنتاج. لا تبدأ موديولات إضافية أو تحسينات غير حرجة قبل إغلاق البوابات. انقل الأفكار الأخرى إلى قائمة ما بعد الإطلاق. **لا نتنازل عن اختبارات الأمان أو النسخ الاحتياطي أو التراجع مقابل السرعة.**
 
+## Google Auth / launch scope — current blocker
+
+- [x] Connected DEMO reuses the production Google OAuth method at source level; primary owner email is configured as `islam.nagy2022@gmail.com`; the separate email/password login/signup path is removed.
+- [ ] Enable the Google provider in the separate DEMO Supabase Auth settings and allowlist exact redirect URLs in both Supabase and the Google OAuth client.
+- [ ] Perform one real Google OAuth login in DEMO; verify the resulting Auth user/session, create the first business, and confirm `OWNER` membership is limited to that business.
+- [ ] Until the previous check passes, do not claim connected DEMO Auth E2E or publish/merge the connected page.
+- [ ] Preserve minimum launch scope: no additional modules/features before the four-sector core flow, ownership, RLS isolation, order/appointment E2E, rollback and production release checks are proven. Keep noncritical improvements for post-launch.
+
 # P0 — حواجز الإطلاق
 
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
