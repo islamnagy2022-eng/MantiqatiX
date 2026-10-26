@@ -97,20 +97,23 @@ Deno.serve(async (req: Request) => {
     const itemIds = (rawItems || []).map((item: any) => item.id);
     let prices: any[] = [], options: any[] = [];
     if (itemIds.length) {
-      const [priceResult, optionResult] = await Promise.all([
-        db.from("catalog_item_prices")
-          .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
-          .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
-          .or(`branch_id.is.null,branch_id.eq.${branchId}`)
-          .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
-          .order("version", { ascending: false }),
+      const priceQuery = () => db.from("catalog_item_prices")
+        .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
+        .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
+        .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
+        .order("version", { ascending: false });
+      const [globalPriceResult, branchPriceResult, optionResult] = await Promise.all([
+        priceQuery().is("branch_id", null),
+        priceQuery().eq("branch_id", branchId),
         db.from("catalog_item_options")
           .select("id,catalog_item_id,name_ar,name_en,price_delta,status")
           .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
           .order("name_ar", { ascending: true }),
       ]);
-      if (priceResult.error || optionResult.error) throw priceResult.error || optionResult.error;
-      prices = priceResult.data || [];
+      if (globalPriceResult.error || branchPriceResult.error || optionResult.error) {
+        throw globalPriceResult.error || branchPriceResult.error || optionResult.error;
+      }
+      prices = [...(globalPriceResult.data || []), ...(branchPriceResult.data || [])];
       options = optionResult.data || [];
     }
 
