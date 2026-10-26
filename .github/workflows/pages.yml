@@ -23,6 +23,38 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Build and type-check replacement catalog frontend
+        working-directory: apps/catalog-frontend
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          npm run lint
+          npm run build
+          test -s dist/index.html
+          test -s dist/config.js
+          test -d dist/assets
+          grep -q '/MantiqatiX/assets/' dist/index.html
+      - name: Smoke test production Google OAuth redirect
+        working-directory: apps/catalog-frontend
+        run: |
+          set -euo pipefail
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseUrl:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseKey:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          REDIRECT_URL="https://islamnagy2022-eng.github.io/MantiqatiX/"
+          HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-oauth-smoke.json --dump-header /tmp/catalog-oauth-smoke.headers --write-out '%{http_code}' --get --data-urlencode 'provider=google' --data-urlencode "redirect_to=${REDIRECT_URL}" --header "apikey: ${SUPABASE_ANON_KEY}" "${SUPABASE_URL}/auth/v1/authorize")"
+          if [ "${HTTP_CODE}" != "302" ] && [ "${HTTP_CODE}" != "303" ]; then
+            echo "Google OAuth initiation failed with HTTP ${HTTP_CODE}"
+            cat /tmp/catalog-oauth-smoke.json
+            exit 1
+          fi
+          grep -Eiq '^location: https://accounts\.google\.com/' /tmp/catalog-oauth-smoke.headers
+          echo "PRODUCTION_GOOGLE_OAUTH_HANDSHAKE=PASS"
+      - name: Upload replacement catalog build
+        uses: actions/upload-artifact@v4
+        with:
+          name: primary-catalog-frontend-dist
+          path: apps/catalog-frontend/dist
+          if-no-files-found: error
       - name: Install web runtime dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
@@ -204,7 +236,8 @@ jobs:
           echo "This gate does not certify backend, auth, database, payment, or financial production readiness."
 
   deploy:
-    # Never publish a feature branch by manually dispatching the production Pages workflow.
+    # The old MantiqatiX sources remain in /web; this publishes the new React frontend
+    # to the single GitHub Pages slot, so the new UI becomes the production root.
     needs: [validate, validate_public_only]
     if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (needs.validate.result == 'success' || needs.validate_public_only.result == 'success')
     timeout-minutes: 10
@@ -213,83 +246,43 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Setup Node
-        uses: actions/setup-node@v5
+      - name: Download validated replacement frontend
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22
-      - name: Install web runtime dependency
-        run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Vendor Supabase browser SDK
-        run: |
-          mkdir -p web/vendor
-          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
-          test -s web/vendor/supabase.js
+          name: primary-catalog-frontend-dist
+          path: ./dist
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Upload Pages Artifact
+      - name: Upload replacement frontend as the Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./web
+          path: ./dist
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Verify deployed site
+      - name: Verify deployed primary frontend
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           set -euo pipefail
-          test -n "$PAGE_URL"
+          ROOT_URL="${PAGE_URL%/}/"
           TMP_PAGE="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"
-          grep -Fq "MantiqatiX" "$TMP_PAGE"
-          for asset in config.js rbac.js vendor/supabase.js styles.css app.js android-parity-catalog.js provider-onboarding-module.js home.js home.css manifest.webmanifest sw.js smm.html smm.js digital-page.html digital-page.css digital-page.js digital-page-editor.html digital-page-editor.css digital-page-editor.js; do
-            curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "$PAGE_URL$asset" >/dev/null
-          done
-          APP_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/app.js")"
-          HOME_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL/home.js")"
-          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}config.js")"
-          DIGITAL_PAGE_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page.html")"
-          DIGITAL_PAGE_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page.js")"
-          DIGITAL_EDITOR_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.html")"
-          DIGITAL_EDITOR_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}digital-page-editor.js")"
-          grep -Fq 'id="go-public-home"' <<<"$APP_JS"
-          grep -Fq "mnty-customer-registration" <<<"$APP_JS"
-          grep -Fq "tenant_id:'MNTY-PLATFORM'" <<<"$APP_JS"
-          grep -Fq "openPlatform" <<<"$HOME_JS"
-          grep -Fq "mx-category-filter-input" <<<"$HOME_JS"
-          grep -Fq "mx-category-service-details" <<<"$HOME_JS"
-          grep -Fq "PUBLIC_CATEGORY_ALIASES" <<<"$HOME_JS"
-          grep -Fq "mx-profile-sector-services" <<<"$HOME_JS"
-          grep -Eq 'home\.js\?v=[A-Za-z0-9._-]+' "$TMP_PAGE"
-          grep -Eq 'home\.css\?v=[A-Za-z0-9._-]+' "$TMP_PAGE"
-          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"$CONFIG_JS"
-          grep -Fq "MNTY_DATA_SOURCE='WEBSITE_SUPABASE'" <<<"$CONFIG_JS"
-          PREVIEW_ENTRY="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/")"
-          PREVIEW_DASHBOARD="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/dashboard.html")"
-          PREVIEW_RESTAURANTS="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/restaurants.html")"
-          PREVIEW_RESTAURANT_ORDER="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/restaurant-order.html?restaurant=zaeem")"
-          PREVIEW_HOME="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${PAGE_URL%/}/preview/index.html")"
-          # The preview root is the actual interactive demo homepage, not a redirect stub.
-          grep -Fq 'معاينة تفاعلية' <<<"$PREVIEW_ENTRY"
-          grep -Fq 'href="dashboard.html"' <<<"$PREVIEW_ENTRY"
-          grep -Fq 'كل موديولات MantiqatiX' <<<"$PREVIEW_DASHBOARD"
-          grep -Fq 'وضع تجريبي فقط' <<<"$PREVIEW_ENTRY"
-          grep -Fq 'مطاعم وكافيهات' <<<"$PREVIEW_HOME"
-          grep -Fq "if(selected==='FOOD'){window.location.href='restaurants.html';return;}" <<<"$PREVIEW_HOME"
-          grep -Fq 'مطعم الزعيم' <<<"$PREVIEW_RESTAURANTS"
-          grep -Fq 'مطعم أولاد جابر' <<<"$PREVIEW_RESTAURANTS"
-          grep -Fq 'الأصلي' <<<"$PREVIEW_RESTAURANTS"
-          grep -Fq 'تأكيد الطلب التجريبي' <<<"$PREVIEW_RESTAURANT_ORDER"
-          grep -Fq 'digital-page.js' <<<"$DIGITAL_PAGE_HTML"
-          grep -Fq 'digital-page.css' <<<"$DIGITAL_PAGE_HTML"
-          grep -Fq "eq('status','PUBLISHED')" <<<"$DIGITAL_PAGE_JS"
-          grep -Fq 'fulfill_digital_page_publish' <<<"$DIGITAL_EDITOR_JS"
-          grep -Fq 'digital-page-editor.js' <<<"$DIGITAL_EDITOR_HTML"
-          echo "Production smoke verification passed for $PAGE_URL"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
+          grep -Fq "MantiqatiX" "${TMP_PAGE}"
+          grep -Fq "config.js" "${TMP_PAGE}"
+          grep -Fq "/MantiqatiX/assets/" "${TMP_PAGE}"
+          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
+          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
+          grep -Fq "window.MANTIQATIX_CONFIG" <<<"${CONFIG_JS}"
+          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' "${TMP_PAGE}" | head -n 1)"
+          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
+          test -n "${JS_ASSET}"
+          test -n "${CSS_ASSET}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
+          echo "PRIMARY_CATALOG_FRONTEND_DEPLOY=PASS: ${ROOT_URL}"

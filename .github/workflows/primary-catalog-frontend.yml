@@ -1,0 +1,83 @@
+name: Primary Catalog Frontend Release
+
+on:
+  push:
+    branches: [main, production/new-catalog-frontend]
+    paths:
+      - ".release-transfer/parts/**"
+      - "apps/catalog-frontend/**"
+      - "supabase/functions/catalog-platform-admin/**"
+      - "supabase/functions/public-catalog-directory/**"
+      - "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql"
+      - "supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql"
+      - ".github/workflows/primary-catalog-frontend.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".release-transfer/parts/**"
+      - "apps/catalog-frontend/**"
+      - "supabase/functions/catalog-platform-admin/**"
+      - "supabase/functions/public-catalog-directory/**"
+      - "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql"
+      - "supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql"
+      - ".github/workflows/primary-catalog-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: primary-catalog-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
+      - name: Verify release source files
+        run: |
+          set -euo pipefail
+          test -s apps/catalog-frontend/package.json
+          test -s apps/catalog-frontend/public/config.js
+          test -s supabase/functions/catalog-platform-admin/index.ts
+          test -s supabase/functions/public-catalog-directory/index.ts
+          test -s supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql
+          test -s supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        working-directory: apps/catalog-frontend
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript check
+        working-directory: apps/catalog-frontend
+        run: npm run lint
+      - name: Build production assets
+        working-directory: apps/catalog-frontend
+        run: npm run build
+      - name: Verify release files
+        run: |
+          test -s apps/catalog-frontend/dist/index.html
+          test -s apps/catalog-frontend/dist/config.js
+          grep -q '/MantiqatiX/assets/' apps/catalog-frontend/dist/index.html
+      - name: Smoke test deployed public catalog directory
+        run: |
+          set -euo pipefail
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseUrl:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-directory-smoke.json --write-out '%{http_code}' --header "apikey: ${SUPABASE_ANON_KEY}" --header 'Accept: application/json' "${SUPABASE_URL}/functions/v1/public-catalog-directory")"
+          cat /tmp/catalog-directory-smoke.json
+          test "${HTTP_CODE}" = "200"
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog-directory-smoke.json','utf8'));if(!Array.isArray(d.businesses)||d.accessMode!=='PUBLIC_DIRECTORY_READ_ONLY')process.exit(1);const s=JSON.stringify(d).toUpperCase();if(s.includes('MNTY-TEST-B')||s.includes('ISOLATION TEST'))process.exit(2);console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses='+d.businesses.length)"
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: primary-catalog-frontend-dist
+          path: apps/catalog-frontend/dist
+          if-no-files-found: error
