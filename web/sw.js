@@ -1,6 +1,6 @@
 const CACHE='mnty-web-v136';
 const APP_SHELL=[
-'./styles.css?v=rc340','./brand.css?v=rc450','./home.css?v=launch-mvp-20261026','./home-mobile-fixes.css?v=rc397',
+'./styles.css?v=launch-mvp-20261026','./brand.css?v=rc450','./home.css?v=launch-mvp-20261026','./home-mobile-fixes.css?v=rc397',
 './config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=launch-mvp-20261026',
 './rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=launch-mvp-20261026',
 './module-blueprints.js?v=rc308','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
