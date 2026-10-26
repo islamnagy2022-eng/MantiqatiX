@@ -236,10 +236,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error || !data.user) return { success: false, error: 'بيانات البريد الإلكتروني أو كلمة المرور غير صحيحة.' };
     try {
       const boot = await bootstrapProductionUser(data.user);
-      if (boot.authSession.role === 'guest') {
-        await supabase.auth.signOut();
-        return { success: false, error: 'الحساب لا يملك عضوية نشطة في MantiqatiX. تواصل مع إدارة المنصة.' };
-      }
       setAuthSession(boot.authSession); setBusinesses(boot.businesses); setProducts(boot.products); setSubscribers(boot.subscribers);
       setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
       setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
