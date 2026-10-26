@@ -137,9 +137,9 @@ export const Navbar: React.FC = () => {
           <span>
             تم تسجيل الدخول بحساب Google{authSession.email ? ` (${authSession.email})` : ''}، لكن لا توجد عضوية نشاط نشطة مرتبطة بهذا الحساب. لن تُمنح صلاحيات صاحب النشاط تلقائيًا.
           </span>
-          {String(adminSettings.adminWhatsApp || '').replace(/\\D/g, '') && (
+          {String(adminSettings.adminWhatsApp || '').replace(/\D/g, '') && (
             <a
-              href={`https://wa.me/${String(adminSettings.adminWhatsApp).replace(/\\D/g, '')}?text=${encodeURIComponent(`أرجو مراجعة ربط اشتراك MantiqatiX بحساب Google: ${authSession.email || 'الحساب الحالي'}`)}`}
+              href={`https://wa.me/${String(adminSettings.adminWhatsApp).replace(/\D/g, '')}?text=${encodeURIComponent(`أرجو مراجعة ربط اشتراك MantiqatiX بحساب Google: ${authSession.email || 'الحساب الحالي'}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="font-black text-amber-900 underline underline-offset-2"
