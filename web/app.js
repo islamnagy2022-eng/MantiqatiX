@@ -692,7 +692,7 @@ function roleCommandCenter(){
  const pending=(live.records.registrationRequests||[]).filter(x=>String(x.status||'').toUpperCase()==='PENDING').length;
  const unread=(live.records.notifications||[]).filter(x=>!x.read_at&&!x.is_read).length;
  const attention=[];
- if(pending&&['OWNER','BUSINESS_OWNER','ADMIN'].includes(role))attention.push(['critical','طلبات تسجيل','هناك '+pending+' طلب تسجيل يحتاج مراجعة.','طلبات التسجيل']);
+ if(pending&&isPlatformOwnerSession())attention.push(['critical','طلبات تسجيل','هناك '+pending+' طلب تسجيل يحتاج مراجعة.','طلبات التسجيل']);
  if(unread)attention.push(['attention','إشعارات','لديك '+unread+' إشعار غير مقروء.','الإشعارات']);
  if(!attention.length)attention.push(['success','الحالة الحالية','لا توجد عناصر حرجة مثبتة في البيانات المحملة.','الرئيسية']);
  const actions=meta.modules.filter(x=>allowed(x[1])||canAct(x[2],'view'));
@@ -797,7 +797,7 @@ function canViewWorkspaceModule(name){
  const role=String(live.role||'').toUpperCase();
  if(name==='التحكم الكامل')return isPlatformOwnerSession();
  if(name==='طلبات التسجيل')return isPlatformOwnerSession();
- if(name==='ملف نشاطي')return Boolean(live.myProviderProfile)&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN','SUPER_ADMIN'].includes(role);
+ if(name==='ملف نشاطي')return Boolean(live.myProviderProfile)&&(role!=='SUPER_ADMIN'||isPlatformOwnerSession())&&['SERVICE_PROVIDER','OWNER','BUSINESS_OWNER','PROVIDER_OWNER','PROVIDER_ADMIN','SUPER_ADMIN'].includes(role);
  if(!moduleEnabled(name))return false;
  if(role==='CUSTOMER')return customerVisibleModules.has(name);
  const permissionRole=screenPermissionRole();
