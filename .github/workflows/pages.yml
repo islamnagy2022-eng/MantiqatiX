@@ -268,6 +268,6 @@ jobs:
           CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
           test -n "${JS_ASSET}"
           test -n "${CSS_ASSET}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${JS_ASSET}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${CSS_ASSET}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
           echo "PRIMARY_CATALOG_FRONTEND_DEPLOY=PASS: ${ROOT_URL}"
