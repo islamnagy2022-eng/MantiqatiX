@@ -1,0 +1,32 @@
+name: MantiqatiX DEMO Isolation
+on:
+  push:
+    branches:
+      - demo/four-sector-isolated-20261026
+    paths:
+      - 'web/demo/**'
+      - 'scripts/validate-demo-isolation.mjs'
+      - '.github/workflows/demo-isolation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/demo/**'
+      - 'scripts/validate-demo-isolation.mjs'
+      - '.github/workflows/demo-isolation.yml'
+permissions:
+  contents: read
+jobs:
+  verify-demo-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Check demo JavaScript syntax
+        run: node --check web/demo/demo.js
+      - name: Verify isolation and four-sector scope
+        run: node scripts/validate-demo-isolation.mjs
