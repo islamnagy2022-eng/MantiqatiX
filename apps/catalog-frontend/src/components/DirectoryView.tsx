@@ -51,6 +51,9 @@ export const DirectoryView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const catalogRequestPhone = String(
+    adminSettings.adminWhatsApp || (window as any).MNTY_SUPPORT?.whatsapp || '201010171770'
+  ).replace(/\D/g, '');
 
   // 20 Professional Cover Slides with governorate targeting
   const coverSlides: CoverSlide[] = [
@@ -438,8 +441,25 @@ export const DirectoryView: React.FC = () => {
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
                 <Store className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base">لا توجد أنشطة مطابقة للبحث</h3>
-              <p className="text-xs text-slate-500">جرب تغيير كلمات البحث أو تصنيف القطاع أو المحافظة.</p>
+              <h3 className="font-bold text-slate-800 text-base">
+                {businesses.length === 0 ? 'لا توجد كتالوجات منشورة للعامة حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
+              </h3>
+              <p className="text-xs text-slate-500 max-w-lg mx-auto">
+                {businesses.length === 0
+                  ? 'الأنشطة غير المنشورة لا تظهر للزوار حفاظا على بيانات أصحابها. تواصل مع إدارة المنصة لتفعيل كتالوج نشاطك.'
+                  : 'جرب تغيير كلمات البحث أو تصنيف القطاع أو المحافظة.'}
+              </p>
+              {businesses.length === 0 && catalogRequestPhone && (
+                <a
+                  href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد تفعيل كتالوج لنشاطي على MantiqatiX')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  تواصل مع إدارة المنصة
+                </a>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
