@@ -256,3 +256,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PASS: DEMO Isolation workflow [40264871042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871042), including the new connected contract test. PASS: web verification [40264871016](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871016).
 - Security review found two RLS-enabled public tables without policies (`digital_page_payment_events`, `mantigo_payment_provider_events`); browser access is denied by RLS, but `digital_page_payment_events` still has table grants to `anon` and `authenticated`. Targeted review/hardening remains pending. Numerous `SECURITY DEFINER` advisor warnings also remain; no blanket privilege changes were made.
 - PR #376 remains Draft and no production merge/deployment/payment action occurred. LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Targeted DEMO database hardening applied
+
+- Added `supabase/demo/security-hardening-20261026.sql` and applied it only to `MantiqatiX-DEMO` using Supabase migration API. Supabase migration version: `20261026033808`; internal ledger row records the exact tracked source blob and application method.
+- Revoked browser table privileges on `digital_page_payment_events` and `mantigo_payment_provider_events`. Verified both remain RLS-enabled with zero policies, and neither `anon` nor `authenticated` has SELECT privilege; service-role access remains only where previously granted.
+- Restricted 12 out-of-scope SECURITY DEFINER backend functions to `service_role` only. Verified `anon_exec=false` and `authenticated_exec=false` for the targeted functions. Kept `create_medical_appointment_backend` executable by `authenticated` and `service_role`, because the connected DEMO clinic booking flow invokes it using the user's JWT.
+- Security advisor count fell from 78 to 66 anon-executable SECURITY DEFINER functions and from 93 to 81 authenticated-executable functions. Remaining warnings need function-by-function review; no blanket revokes were applied.
+- Migration history is still not reconciled: standard history now contains only `20261026033808`, while the internal ledger contains 283 baseline entries, 35 manually executed migrations, and this new targeted migration. Do not run `db push` or replay the historical chain.
+- Remaining acceptance blocker: `auth.users` is still empty; no real multi-user Auth/RLS or connected browser E2E has been claimed. LIVE remains BLOCKED.
