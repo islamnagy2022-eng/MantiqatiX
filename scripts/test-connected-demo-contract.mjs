@@ -69,7 +69,7 @@ assert.ok(app.includes('window.sessionStorage.removeItem(retryScope)'), 'success
 assert.ok(app.includes('delete button.dataset.idempotencyQuantity'), 'resolved orders clear the quantity stored on the button');
 
 assert.match(bootstrap, /demo_create_business_atomic/, 'bootstrap defines demo business creation');
-assert.match(bootstrap, /'OWNER',[\s\S]*?'scope','BUSINESS'/, 'creator receives an OWNER membership scoped to the business they create');
+assert.ok(bootstrap.includes("'OWNER',") && bootstrap.includes('{"scope":"BUSINESS","demo":true}'), 'creator receives an OWNER membership scoped to the business they create');
 assert.match(bootstrap, /demo_register_customer_atomic/, 'bootstrap defines customer provisioning');
 assert.match(catalog, /demo_upsert_catalog_item_price_atomic/, 'catalog helper writes item and price atomically');
 assert.match(catalog, /grant execute on function public\.demo_upsert_catalog_item_price_atomic[\s\S]*?to service_role/i, 'catalog atomic helper is service-role only');
