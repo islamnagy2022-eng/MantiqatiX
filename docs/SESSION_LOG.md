@@ -357,3 +357,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Remaining external setup:** the DEMO Supabase Auth project must have Google provider credentials configured and exact redirect URLs allowlisted in Supabase Auth and the Google OAuth client. The connected route is not publicly published while PR #376 remains Draft; therefore a real Google redirect/login has not been performed. Current `auth.users`, `businesses`, `orders`, and `medical_appointments` counts remain zero.
 - **CI evidence:** on code head `922569c016b11dbab541328bf978d7a55a88b263`, DEMO Isolation passed in [40270090760](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40270090760); the contract checks assert Google OAuth, owner-account config, no separate password path, and the clinic time guard. This is not a substitute for authenticated browser E2E.
 - The launch plan remains a minimum safe launch of the existing product. No new modules or non-essential scope is added before core end-to-end validation.
+
+
+## 2026-10-26 — DEMO root-switch verification checkpoint
+- Current read-only repository head for main: cf493ea38ab46af3356e6dcf750912616598a9b1. Its public web/config.js still targets LIVE project moyhiluyhjsujhwlyeuu.
+- Connected DEMO PR #376 remains Draft at 9ea512435c8a5b0477be37d2cc7212ececb35e96. The isolated project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY with seven JWT-protected DEMO Edge Functions.
+- Read-only queries confirmed zero demo Auth users, businesses, branches, catalog items/prices, orders, appointments and memberships.
+- [DEMO Isolation CI 40271831176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831176) passed its contract, source, scope and non-mutating CORS/JWT smoke checks. Those checks do not perform an authenticated Google OAuth or database CRUD flow.
+- [Pages CI 40271831245](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831245) validated the PR; its deployment job was skipped by design for a pull_request event. No public DEMO deployment occurred.
+- Blocking external/runtime gates: configure DEMO Google Provider credentials and exact redirect allowlists; test real login and session lifecycle; execute authenticated multi-user tenant/role E2E; reconcile migration history; complete per-function SECURITY DEFINER review. No production mutation, merge or deployment was made.
+- Status: connected DEMO code/CI PASS; authenticated backend E2E NOT VERIFIED; root URL still uses LIVE config; launch BLOCKED / NOT CERTIFIED.
