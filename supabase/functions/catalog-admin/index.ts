@@ -188,7 +188,50 @@ Deno.serve(async (req: Request) => {
         const allowed = new Set(branchOnlyMemberships.map((m: any) => String(m.branch_id)));
         branches = branches.filter((b: any) => allowed.has(String(b.id)));
       }
-      if (!branches.length) return out(origin, { error: "ACTIVE_BRANCH_REQUIRED" }, 409);
+      // A known business must remain visible to its authorized owner/admin even
+      // before a branch is activated. Return metadata-only state instead of
+      // turning a valid membership into a bootstrap failure or silently hiding it.
+      if (!branches.length) {
+        if (branchId) return out(origin, { error: "BRANCH_SCOPE_FORBIDDEN" }, 403);
+        const { data: provider, error: providerError } = await service.from("marketing_provider_profiles")
+          .select("id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
+          .eq("business_id", businessId).eq("status", "ACTIVE")
+          .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        if (providerError) throw providerError;
+        const profile = business.settings?.catalog_profile || {};
+        return out(origin, {
+          business: {
+            id: business.id, tenantId: business.tenant_id, organizationId: business.organization_id,
+            name: provider?.name_ar || provider?.name_en || business.name,
+            code: business.code, status: business.status,
+            profile: {
+              bio: String(profile.bio || provider?.description || ""),
+              governorate: String(profile.governorate || ""),
+              markaz: String(profile.markaz || ""),
+              village: String(profile.village || ""),
+              workingHours: String(profile.working_hours || ""),
+              logoUrl: String(profile.logo_url || ""),
+              coverUrl: String(profile.cover_url || ""),
+              publicEnabled: business.settings?.catalog_public_enabled === true,
+            },
+            bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
+              ? business.settings.bizcatalog
+              : {},
+          },
+          provider: provider ? {
+            id: provider.id,
+            name: provider.name_ar || provider.name_en || business.name,
+            nameAr: provider.name_ar, nameEn: provider.name_en,
+            kind: provider.provider_kind, description: provider.description,
+            slug: provider.slug, status: provider.status,
+            verified: Boolean(provider.is_verified), featured: Boolean(provider.is_featured),
+          } : null,
+          branches: [], selectedBranchId: "",
+          items: [], prices: [], options: [], warehouses: [], stockBalances: [],
+          paymentsEnabled: false, catalogReadiness: "BRANCH_REQUIRED",
+          message: "النشاط موجود، لكن لا يوجد فرع نشط. يلزم إعداد فرع قبل إدارة المنتجات والأسعار.",
+        });
+      }
       const chosenBranch = branchId || String(branches[0].id);
       if (!branches.some((b: any) => String(b.id) === chosenBranch)) {
         return out(origin, { error: "BRANCH_SCOPE_FORBIDDEN" }, 403);

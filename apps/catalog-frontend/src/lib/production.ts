@@ -115,7 +115,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     tenantId: String(raw.tenantId || raw.tenant_id || ''),
     branchId: String(branch.id || raw.branchId || raw.selectedBranchId || ''),
     organizationId: String(raw.organizationId || raw.organization_id || ''),
-    publicEnabled: Boolean(raw.publicEnabled ?? raw.settings?.catalog_public_enabled),
+    publicEnabled: Boolean(raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
     businessCode: String(raw.code || ''),
   } as Business;
 }
@@ -149,7 +149,13 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
     const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
-    return { authSession: { role: 'guest' }, businesses: directory.businesses, products: directory.products, subscribers: [], adminSettings };
+    return {
+      authSession: { role: 'guest', isAuthenticated: false },
+      businesses: directory.businesses,
+      products: directory.products,
+      subscribers: [],
+      adminSettings,
+    };
   }
 
   const { data: memberships, error } = await supabase.from('user_memberships')
@@ -191,9 +197,19 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     const branchId = String(row.branchId || membership?.branch_id || '');
     try {
       const catalog: any = await callCatalogAdmin({ action: 'CATALOG_READ', tenantId, businessId, ...(branchId ? { branchId } : {}) });
-      const b = mapBusiness({ ...catalog.business, ...row, tenantId, organizationId: row.organizationId || row.organization_id, branchId: catalog.selectedBranchId, branches: catalog.branches, profile: catalog.business?.profile }, catalog.provider);
+      const b = mapBusiness({
+        ...row,
+        ...catalog.business,
+        id: businessId,
+        tenantId,
+        organizationId: row.organizationId || row.organization_id || catalog.business?.organizationId,
+        branchId: catalog.selectedBranchId || branchId || '',
+        branches: Array.isArray(catalog.branches) ? catalog.branches : [],
+        profile: catalog.business?.profile || row.profile || {},
+        bizcatalog: catalog.business?.bizcatalog || row.bizcatalog || {},
+      }, catalog.provider);
       businesses.push(b);
-      products.push(...mapProducts(businessId, tenantId, catalog.selectedBranchId, catalog.items || [], catalog.prices || []));
+      products.push(...mapProducts(businessId, tenantId, catalog.selectedBranchId || branchId || '', catalog.items || [], catalog.prices || []));
     } catch (e) {
       // A membership may only cover a different branch or a legacy inactive business.
       console.warn('[MantiqatiX] skipped out-of-scope catalog row', businessId, e instanceof Error ? e.message : 'unavailable');
@@ -212,7 +228,17 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
   const chosen = businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id && ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role).toUpperCase()))) || businesses[0];
   return {
-    authSession: { role, subscriberId: own?.id, businessId: chosen?.id, subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || '') },
+    // Authentication and authorization are separate: a Google user with no
+    // active membership is signed in as a customer/guest, never an owner.
+    authSession: {
+      role,
+      isAuthenticated: true,
+      userId: user.id,
+      email: user.email || undefined,
+      subscriberId: own?.id,
+      businessId: chosen?.id,
+      subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || ''),
+    },
     businesses, products, subscribers, adminSettings,
   };
 }

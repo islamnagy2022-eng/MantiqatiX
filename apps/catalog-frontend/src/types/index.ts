@@ -159,6 +159,11 @@ export type AuthRole = 'admin' | 'subscriber' | 'guest';
 
 export interface AuthSession {
   role: AuthRole;
+  /** True when a valid Supabase session exists, even if it has no business membership. */
+  isAuthenticated?: boolean;
+  /** Supabase identity used for the current Google session; never grants permissions by itself. */
+  userId?: string;
+  email?: string;
   subscriberId?: string;
   businessId?: string;
   subscriberName?: string;
