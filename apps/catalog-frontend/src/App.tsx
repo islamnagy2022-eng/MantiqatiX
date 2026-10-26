@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { BusinessProfileHeader } from './components/storefront/BusinessProfileHeader';
@@ -10,9 +10,15 @@ import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
 import { FloatingAppInstallButton } from './components/common/FloatingAppInstallButton';
 import { MessageCircle } from 'lucide-react';
+import { canAccessView, defaultViewForRole } from './lib/access';
 
 const MainContent: React.FC = () => {
-  const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp } = useApp();
+  const { currentView, setCurrentView, authSession, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp } = useApp();
+  const screenView = canAccessView(authSession.role, currentView) ? currentView : defaultViewForRole(authSession.role);
+
+  useEffect(() => {
+    if (screenView !== currentView) setCurrentView(screenView);
+  }, [currentView, screenView, setCurrentView]);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
@@ -20,18 +26,18 @@ const MainContent: React.FC = () => {
 
       <main className="flex-1">
         {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
-        {currentView === 'directory' && <DirectoryView />}
+        {screenView === 'directory' && <DirectoryView />}
 
-        {currentView === 'public_storefront' && (
+        {screenView === 'public_storefront' && (
           <div>
             <BusinessProfileHeader />
             <CatalogSection />
           </div>
         )}
 
-        {currentView === 'merchant_admin' && <MerchantDashboard />}
+        {screenView === 'merchant_admin' && (authSession.role === 'subscriber' || authSession.role === 'admin') && <MerchantDashboard />}
 
-        {currentView === 'super_admin' && <AdminDashboard />}
+        {screenView === 'super_admin' && authSession.role === 'admin' && <AdminDashboard />}
       </main>
 
       <CartDrawer />
