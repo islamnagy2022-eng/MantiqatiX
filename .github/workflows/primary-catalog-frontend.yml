@@ -25,6 +25,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: primary-catalog-frontend-${{ github.ref }}
@@ -81,3 +83,54 @@ jobs:
           name: primary-catalog-frontend-dist
           path: apps/catalog-frontend/dist
           if-no-files-found: error
+
+  deploy:
+    # Catalog-only deployment is independent from broader MantiqatiX full-suite gate.
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download the validated catalog frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: primary-catalog-frontend-dist
+          path: ./dist
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload the catalog site as the root Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./dist
+      - name: Publish the replacement catalog site
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Verify live website root and required assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          ROOT_URL="${PAGE_URL%/}/"
+          TMP_PAGE="$(mktemp)"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
+          grep -Fq "MantiqatiX" "${TMP_PAGE}"
+          grep -Fq "/MantiqatiX/config.js" "${TMP_PAGE}"
+          grep -Fq "/MantiqatiX/assets/" "${TMP_PAGE}"
+          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
+          grep -Fq "window.MANTIQATIX_CONFIG" <<<"${CONFIG_JS}"
+          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
+          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\\.js' "${TMP_PAGE}" | head -n 1)"
+          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\\.css' "${TMP_PAGE}" | head -n 1)"
+          test -n "${JS_ASSET}"
+          test -n "${CSS_ASSET}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${JS_ASSET#/MantiqatiX}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${CSS_ASSET#/MantiqatiX}" >/dev/null
+          echo "PRIMARY_CATALOG_LIVE_DEPLOY=PASS: ${ROOT_URL}"
