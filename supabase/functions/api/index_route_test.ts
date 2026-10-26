@@ -31,11 +31,21 @@ class FakeQuery {
 }
 
 class FakeDatabase {
-  mode: "catalog" | "payments";
+  mode: "catalog" | "payments" | "orders";
   existingIntent: Row | null;
   raceOnInsert: Row | null;
   queryLog: QueryState[] = [];
-  constructor(mode: "catalog" | "payments", existingIntent: Row | null = null, raceOnInsert: Row | null = null) {
+  orderReadMembership: Row = {
+    id: "membership-a",
+    user_id: "user-a",
+    tenant_id: "tenant-a",
+    status: "ACTIVE",
+    role: "OWNER",
+    permissions: [],
+    business_id: "business-a",
+    branch_id: "branch-a",
+  };
+  constructor(mode: "catalog" | "payments" | "orders", existingIntent: Row | null = null, raceOnInsert: Row | null = null) {
     this.mode = mode;
     this.existingIntent = existingIntent;
     this.raceOnInsert = raceOnInsert;
@@ -63,7 +73,9 @@ class FakeDatabase {
     if (state.table === "businesses") {
       rows = [{ id: "business-a", tenant_id: "tenant-a", status: "ACTIVE" }];
     } else if (state.table === "user_memberships") {
-      rows = [{ id: "membership-a", user_id: "user-a", tenant_id: "tenant-a", status: "ACTIVE", role: "CUSTOMER", permissions: [], business_id: null }];
+      rows = this.mode === "orders"
+        ? [this.orderReadMembership]
+        : [{ id: "membership-a", user_id: "user-a", tenant_id: "tenant-a", status: "ACTIVE", role: "CUSTOMER", permissions: [], business_id: null }];
     } else if (state.table === "marketing_provider_profiles") {
       rows = [{ id: "provider-a", business_id: "business-a", status: "ACTIVE" }];
     } else if (state.table === "branches") {
@@ -79,6 +91,13 @@ class FakeDatabase {
       else if (value("branch_id") === "branch-b") rows = [{ id: "price-b", tenant_id: "tenant-a", catalog_item_id: "item-a", branch_id: "branch-b", currency: "EGP", unit_price: 99, version: 1, status: "ACTIVE" }];
     } else if (state.table === "catalog_item_options") {
       rows = [];
+    } else if (state.table === "orders" && this.mode === "orders") {
+      const orderFixtures: Row[] = [
+        { id: "order-a", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-a", total: 125.5, currency: "EGP", customer_id: "customer-other" },
+        { id: "order-b", tenant_id: "tenant-a", business_id: "business-b", branch_id: "branch-b", total: 82, currency: "EGP", customer_id: "customer-other" },
+        { id: "order-c", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-b", total: 47, currency: "EGP", customer_id: "customer-other" },
+      ];
+      rows = orderFixtures.filter((row) => String(row.id) === String(value("id")));
     } else if (state.table === "orders" && this.mode === "payments") {
       rows = [{ id: "order-a", tenant_id: "tenant-a", total: 125.5, currency: "EGP", customer_id: "user-a" }];
     } else if (state.table === "tenant_payment_methods") {
@@ -135,6 +154,33 @@ Deno.test("catalog route rejects a branch not owned by the selected business", a
   const response = await makeHandler(db)(request("/api/v1/catalog?businessId=business-a&branchId=branch-b"));
   if (response.status !== 404) throw new Error(`expected 404 for cross-business branch, got ${response.status}`);
 });
+
+Deno.test("order reads require matching business and branch scope", async () => {
+  const db = new FakeDatabase("orders");
+  const ownScope = await makeHandler(db)(request("/api/v1/orders/order-a"));
+  if (ownScope.status !== 200) throw new Error(`same-business/same-branch read should pass, got ${ownScope.status}`);
+
+  const otherBusiness = await makeHandler(db)(request("/api/v1/orders/order-b"));
+  if (otherBusiness.status !== 403) throw new Error(`cross-business read should be denied, got ${otherBusiness.status}`);
+
+  const otherBranch = await makeHandler(db)(request("/api/v1/orders/order-c"));
+  if (otherBranch.status !== 403) throw new Error(`cross-branch read should be denied, got ${otherBranch.status}`);
+});
+
+Deno.test("business-wide membership can read all branches of its own business but not another business", async () => {
+  const db = new FakeDatabase("orders");
+  db.orderReadMembership = { ...db.orderReadMembership, branch_id: null };
+  const sameBusinessOtherBranch = await makeHandler(db)(request("/api/v1/orders/order-c"));
+  if (sameBusinessOtherBranch.status !== 200) {
+    throw new Error(`business-wide membership should read same-business branch orders, got ${sameBusinessOtherBranch.status}`);
+  }
+
+  const otherBusiness = await makeHandler(db)(request("/api/v1/orders/order-b"));
+  if (otherBusiness.status !== 403) {
+    throw new Error(`business-wide membership must not read another business, got ${otherBusiness.status}`);
+  }
+});
+
 
 Deno.test("payment-intent route replays the same identity but rejects a key bound to another order", async () => {
   const intent: Row = {
