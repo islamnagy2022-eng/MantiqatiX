@@ -169,7 +169,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       catch (error) {
         console.error('[MantiqatiX production bootstrap]', error);
         if (active) {
-          setAuthSession({ role: 'guest', authenticated: false, accessState: 'public' });
+          setAuthSession({ role: 'guest', authenticated: Boolean(session?.user), accessState: session?.user ? 'verification_error' : 'public' });
           setBusinesses([]); setProducts([]); setSubscribers([]);
           setCurrentViewState('directory');
         }
