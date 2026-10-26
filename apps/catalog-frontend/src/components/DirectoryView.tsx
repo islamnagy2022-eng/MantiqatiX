@@ -23,7 +23,7 @@ import {
 import { formatEgyptianLocation } from '../utils/rules';
 
 const whatsappDigits = (value: unknown): string => {
-  let digits = String(value || '').replace(/\\D/g, '');
+  let digits = String(value || '').replace(/\D/g, '');
   if (digits.startsWith('00')) digits = digits.slice(2);
   if (digits.startsWith('0')) digits = '20' + digits.slice(1);
   else if (digits.startsWith('1') && digits.length === 10) digits = '20' + digits;
