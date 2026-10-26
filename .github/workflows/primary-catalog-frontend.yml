@@ -4,17 +4,25 @@ on:
   push:
     branches: [main, production/new-catalog-frontend]
     paths:
-      - ".release-transfer/parts/frontend/**"
+      - ".release-transfer/parts/**"
+      - "apps/catalog-frontend/**"
+      - "supabase/functions/catalog-platform-admin/**"
+      - "supabase/functions/public-catalog-directory/**"
+      - "supabase/migrations/20261026133000_rc108_bizcatalog_platform_settings.sql"
       - ".github/workflows/primary-catalog-frontend.yml"
   pull_request:
     branches: [main]
     paths:
-      - ".release-transfer/parts/frontend/**"
+      - ".release-transfer/parts/**"
+      - "apps/catalog-frontend/**"
+      - "supabase/functions/catalog-platform-admin/**"
+      - "supabase/functions/public-catalog-directory/**"
+      - "supabase/migrations/20261026133000_rc108_bizcatalog_platform_settings.sql"
       - ".github/workflows/primary-catalog-frontend.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -26,22 +34,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
+      - name: Checkout release branch
         uses: actions/checkout@v4
-      - name: Reassemble frontend archive
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
+      - name: Reassemble frontend and backend source archives
         run: |
           set -euo pipefail
-          test -d .release-transfer/parts/frontend
-          cat .release-transfer/parts/frontend/*.xz > /tmp/catalog-frontend.tar.xz
-          mkdir -p apps/catalog-frontend
-          tar -tJf /tmp/catalog-frontend.tar.xz >/dev/null
-          tar -xJf /tmp/catalog-frontend.tar.xz -C apps/catalog-frontend
+          if [ -d .release-transfer/parts/frontend ]; then
+            cat .release-transfer/parts/frontend/*.xz > /tmp/catalog-frontend.tar.xz
+            tar -tJf /tmp/catalog-frontend.tar.xz >/dev/null
+            mkdir -p apps/catalog-frontend
+            tar -xJf /tmp/catalog-frontend.tar.xz -C apps/catalog-frontend
+          fi
+          if [ -d .release-transfer/parts/backend ]; then
+            cat .release-transfer/parts/backend/*.xz > /tmp/catalog-backend.tar.xz
+            tar -tJf /tmp/catalog-backend.tar.xz >/dev/null
+            mkdir -p /tmp/catalog-backend-unpacked
+            tar -xJf /tmp/catalog-backend.tar.xz -C /tmp/catalog-backend-unpacked
+            mkdir -p supabase/functions supabase/migrations
+            cp -a /tmp/catalog-backend-unpacked/catalog-platform-admin supabase/functions/
+            cp -a /tmp/catalog-backend-unpacked/public-catalog-directory supabase/functions/
+            cp -a /tmp/catalog-backend-unpacked/supabase/migrations/20261026133000_rc108_bizcatalog_platform_settings.sql supabase/migrations/
+          fi
           test -s apps/catalog-frontend/package.json
           test -s apps/catalog-frontend/public/config.js
+          test -s supabase/functions/catalog-platform-admin/index.ts
+          test -s supabase/functions/public-catalog-directory/index.ts
+          test -s supabase/migrations/20261026133000_rc108_bizcatalog_platform_settings.sql
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Align esbuild with Vite 8 peer requirements
+        working-directory: apps/catalog-frontend
+        run: npm pkg set "devDependencies.esbuild=^0.28.2"
       - name: Install dependencies
         working-directory: apps/catalog-frontend
         run: npm install --no-audit --no-fund
@@ -62,6 +90,18 @@ jobs:
           name: primary-catalog-frontend-dist
           path: apps/catalog-frontend/dist
           if-no-files-found: error
+      - name: Materialize tested sources and remove transport chunks
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')
+        run: |
+          set -euo pipefail
+          if [ -d .release-transfer/parts ]; then
+            git add apps/catalog-frontend supabase/functions/catalog-platform-admin supabase/functions/public-catalog-directory supabase/migrations/20261026133000_rc108_bizcatalog_platform_settings.sql
+            git rm -r .release-transfer/parts
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "build(catalog): materialize validated frontend and backend source"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
 
   deploy:
     needs: build
