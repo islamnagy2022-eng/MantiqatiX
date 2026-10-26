@@ -449,7 +449,26 @@ BEGIN
    WHERE id = p_catalog_item_id
      AND tenant_id = p_tenant_id
      AND business_id = p_business_id
-     AND (p_branch_id IS NULL OR branch_id IS NULL OR branch_id = p_branch_id)
+     AND (
+       branch_id = p_branch_id
+       OR (
+         branch_id IS NULL
+         AND EXISTS (
+           SELECT 1 FROM public.user_memberships m
+            WHERE m.user_id = auth.uid() AND m.tenant_id = p_tenant_id
+              AND m.status = 'ACTIVE' AND m.business_id = p_business_id
+              AND m.branch_id IS NULL
+              AND upper(m.role) IN ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER')
+         )
+       )
+       OR EXISTS (
+         SELECT 1 FROM public.user_memberships m
+          WHERE m.user_id = auth.uid() AND m.tenant_id = p_tenant_id
+            AND m.status = 'ACTIVE' AND upper(m.role) = 'SUPER_ADMIN'
+            AND coalesce(m.permissions->>'scope','') = 'PLATFORM'
+            AND coalesce((m.permissions->>'full_control')::boolean,false) = true
+       )
+     )
   RETURNING id INTO v_id;
 
   IF v_id IS NULL THEN RAISE EXCEPTION 'CATALOG_ITEM_NOT_FOUND'; END IF;
