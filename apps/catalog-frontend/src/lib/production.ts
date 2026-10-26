@@ -149,7 +149,13 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
     const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
-    return { authSession: { role: 'guest' }, businesses: directory.businesses, products: directory.products, subscribers: [], adminSettings };
+    return {
+      authSession: { role: 'guest', isAuthenticated: false },
+      businesses: directory.businesses,
+      products: directory.products,
+      subscribers: [],
+      adminSettings,
+    };
   }
 
   const { data: memberships, error } = await supabase.from('user_memberships')
@@ -212,7 +218,17 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
   const chosen = businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id && ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role).toUpperCase()))) || businesses[0];
   return {
-    authSession: { role, subscriberId: own?.id, businessId: chosen?.id, subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || '') },
+    // Authentication and authorization are separate: a Google user with no
+    // active membership is signed in as a customer/guest, never an owner.
+    authSession: {
+      role,
+      isAuthenticated: true,
+      userId: user.id,
+      email: user.email || undefined,
+      subscriberId: own?.id,
+      businessId: chosen?.id,
+      subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || ''),
+    },
     businesses, products, subscribers, adminSettings,
   };
 }
