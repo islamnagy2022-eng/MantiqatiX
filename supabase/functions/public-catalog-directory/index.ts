@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
         profile: { bio: String(profile.bio || provider?.description || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url), coverUrl: safeImage(profile.cover_url), category: String(provider?.provider_kind || profile.category || business.settings?.activity_code || ""), whatsappPhone },
         provider: { kind: provider?.provider_kind || profile.category || business.settings?.activity_code || "", description: provider?.description || profile.bio || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
-        catalogPublished, paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
+        catalogPublished, publicEnabled: catalogPublished, paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
       });
     }
     return response(origin, { businesses: results, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
