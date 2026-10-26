@@ -265,6 +265,35 @@ begin
     raise exception 'RC568_ENTITLEMENT_HELPER_ACCEPTED_WRONG_USER';
   end if;
 
+  perform pg_catalog.set_config('request.jwt.claim.sub', v_admin::text, true);
+
+  -- A correctly scoped MENU subscription must activate successfully, record its
+  -- payment reference and preserve the target-business boundary.
+  v_result := public.mnty_admin_activate_digital_page_subscription(
+    v_order_menu, '  RC568-MENU-EXTERNAL-REFERENCE-002  ', 'Business-scoped menu fixture'
+  );
+  if v_result->>'payment_status' <> 'PAID'
+     or v_result->>'page_type' <> 'MENU'
+     or v_result->>'target_business_id' <> v_test_business::text
+     or v_result->>'activated_by' <> v_admin::text
+     or nullif(v_result->>'paid_at', '') is null then
+    raise exception 'RC568_MENU_ACTIVATION_RESPONSE_INVALID: %', v_result;
+  end if;
+  select count(*) into v_audit_count
+    from public.digital_page_manual_activation_audit where order_id = v_order_menu;
+  if v_audit_count <> 1 then
+    raise exception 'RC568_MENU_ACTIVATION_AUDIT_MISSING_OR_DUPLICATED';
+  end if;
+  select actor_user_id, payment_reference, amount, currency
+    into v_audit_actor, v_audit_reference, v_audit_amount, v_audit_currency
+    from public.digital_page_manual_activation_audit where order_id = v_order_menu;
+  if v_audit_actor <> v_admin
+     or v_audit_reference <> 'RC568-MENU-EXTERNAL-REFERENCE-002'
+     or v_audit_amount <> 82.00
+     or v_audit_currency <> 'EGP' then
+    raise exception 'RC568_MENU_AUDIT_CONTENT_MISMATCH';
+  end if;
+
   -- A published-page binding may be stored only for a real branch belonging to
   -- the same business and tenant. First create the paid MENU page under its owner.
   perform pg_catalog.set_config('request.jwt.claim.sub', '56800000-0000-4000-8000-000000000002', true);
@@ -319,33 +348,6 @@ begin
   end;
   if not v_rejected then
     raise exception 'RC568_MENU_BRANCH_BINDING_IDENTITY_WAS_MUTABLE';
-  end if;
-
-  -- A correctly scoped MENU subscription must activate successfully, record its
-  -- payment reference and preserve the target-business boundary.
-  v_result := public.mnty_admin_activate_digital_page_subscription(
-    v_order_menu, '  RC568-MENU-EXTERNAL-REFERENCE-002  ', 'Business-scoped menu fixture'
-  );
-  if v_result->>'payment_status' <> 'PAID'
-     or v_result->>'page_type' <> 'MENU'
-     or v_result->>'target_business_id' <> v_test_business::text
-     or v_result->>'activated_by' <> v_admin::text
-     or nullif(v_result->>'paid_at', '') is null then
-    raise exception 'RC568_MENU_ACTIVATION_RESPONSE_INVALID: %', v_result;
-  end if;
-  select count(*) into v_audit_count
-    from public.digital_page_manual_activation_audit where order_id = v_order_menu;
-  if v_audit_count <> 1 then
-    raise exception 'RC568_MENU_ACTIVATION_AUDIT_MISSING_OR_DUPLICATED';
-  end if;
-  select actor_user_id, payment_reference, amount, currency
-    into v_audit_actor, v_audit_reference, v_audit_amount, v_audit_currency
-    from public.digital_page_manual_activation_audit where order_id = v_order_menu;
-  if v_audit_actor <> v_admin
-     or v_audit_reference <> 'RC568-MENU-EXTERNAL-REFERENCE-002'
-     or v_audit_amount <> 82.00
-     or v_audit_currency <> 'EGP' then
-    raise exception 'RC568_MENU_AUDIT_CONTENT_MISMATCH';
   end if;
 
   -- After both valid activations, the pending queue must retain only the
