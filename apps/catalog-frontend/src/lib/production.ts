@@ -197,9 +197,19 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     const branchId = String(row.branchId || membership?.branch_id || '');
     try {
       const catalog: any = await callCatalogAdmin({ action: 'CATALOG_READ', tenantId, businessId, ...(branchId ? { branchId } : {}) });
-      const b = mapBusiness({ ...catalog.business, ...row, tenantId, organizationId: row.organizationId || row.organization_id, branchId: catalog.selectedBranchId, branches: catalog.branches, profile: catalog.business?.profile }, catalog.provider);
+      const b = mapBusiness({
+        ...row,
+        ...catalog.business,
+        id: businessId,
+        tenantId,
+        organizationId: row.organizationId || row.organization_id || catalog.business?.organizationId,
+        branchId: catalog.selectedBranchId || branchId || '',
+        branches: Array.isArray(catalog.branches) ? catalog.branches : [],
+        profile: catalog.business?.profile || row.profile || {},
+        bizcatalog: catalog.business?.bizcatalog || row.bizcatalog || {},
+      }, catalog.provider);
       businesses.push(b);
-      products.push(...mapProducts(businessId, tenantId, catalog.selectedBranchId, catalog.items || [], catalog.prices || []));
+      products.push(...mapProducts(businessId, tenantId, catalog.selectedBranchId || branchId || '', catalog.items || [], catalog.prices || []));
     } catch (e) {
       // A membership may only cover a different branch or a legacy inactive business.
       console.warn('[MantiqatiX] skipped out-of-scope catalog row', businessId, e instanceof Error ? e.message : 'unavailable');
