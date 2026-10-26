@@ -23,7 +23,7 @@ const checks = [
   ['unlinked BUSINESS_OWNER sees setup state instead of business operations', /BUSINESS_OWNER'&&!live\.businessId\?businessOwnerSetupView\(\)/],
   ['no-active-membership state blocks operational workspace', /if\(!live\.memberships\.length\)\{membershipRequiredView\(\);return\}/],
   ['registration review is platform-owner only in screen visibility', /if\(name==='طلبات التسجيل'\)return isPlatformOwnerSession\(\)/],
-  ['Super Admin creation uses server functions', /superAdminFunction\(['"]business-register['"][\s\S]*superAdminFunction\(['"]business-approval['"][\s\S]*superAdminFunction\(['"]business-branch-admin['"][\s\S]*superAdminFunction\(['"]catalog-admin['"]/]
+  ['business owner role defaults exist in RBAC', /BUSINESS_OWNER:\{scope:'BUSINESS'/],
   ['Super Admin creation uses server functions', /superAdminFunction\(['"]business-register['"][\s\S]*superAdminFunction\(['"]business-approval['"][\s\S]*superAdminFunction\(['"]business-branch-admin['"][\s\S]*superAdminFunction\(['"]catalog-admin['"]/]
 ];
 
