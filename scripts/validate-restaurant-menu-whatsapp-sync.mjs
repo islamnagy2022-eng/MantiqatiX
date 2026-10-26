@@ -20,8 +20,8 @@ assert.match(migration, /digital_page_menu_branch_binding_immutable/, 'branch id
 assert.match(migration, /digital_page_menu_branch_binding_scope_guard/, 'private branch binding must validate the page and subscription order');
 assert.match(migration, /v_order\.target_business_id::text is distinct from new\.business_id::text/, 'menu binding must match the subscription business across existing ID representations');
 assert.match(migration, /new\.updated_by is distinct from auth\.uid\(\)/, 'menu binding audit actor must match the authenticated caller');
-assert.match(migration, /digital_page_subscription_active\(v_order\.id,\s*auth\.uid\(\)\)/, 'branch binding writes must require the authenticated owner's active subscription, including drafts');
-assert.match(migration, /digital_page_subscription_active\(o\.id,\s*p_actor\)/, 'section writes must require the authenticated actor's active subscription server-side');
+assert.match(migration, /digital_page_subscription_active\(v_order\.id,\s*auth\.uid\(\)\)/, "branch binding writes must require the authenticated owner's active subscription, including drafts");
+assert.match(migration, /digital_page_subscription_active\(o\.id,\s*p_actor\)/, "section writes must require the authenticated actor's active subscription server-side");
 assert.match(subscriptionMigration, /digital_page_public_subscription_active\(digital_page_order_id\)/, 'expired/unpublished subscriptions must block public menu page reads');
 assert.match(subscriptionMigration, /digital_page_public_subscription_active\(p\.digital_page_order_id\)/, 'expired/unpublished subscriptions must block public menu section reads');
 assert.match(migration, /digital_page_sections as restrictive/, 'menu section writes must be restricted by the private branch binding');
