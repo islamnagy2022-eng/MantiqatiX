@@ -5,7 +5,6 @@ on:
     paths:
       - '.github/workflows/catalog-module-pages.yml'
       - 'scripts/validate-catalog-admin-cors-boundary.mjs'
-      - 'scripts/validate-catalog-production-module.mjs'
       - 'supabase/config.toml'
       - 'supabase/functions/catalog-admin/index.ts'
       - 'supabase/functions/public-catalog/index.ts'
