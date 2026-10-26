@@ -46,7 +46,7 @@ BEGIN
         )
         OR (
           upper(m.role) IN ('OWNER', 'ADMIN', 'MANAGER', 'BUSINESS_OWNER')
-          AND m.business_id = p_business_id
+          AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
           AND (m.branch_id IS NULL OR m.branch_id = p_branch_id)
         )
       )
@@ -161,7 +161,7 @@ BEGIN
            AND EXISTS (
              SELECT 1 FROM public.user_memberships m
               WHERE m.user_id = auth.uid() AND m.tenant_id = p_tenant_id
-                AND m.status = 'ACTIVE' AND m.business_id = p_business_id
+                AND m.status = 'ACTIVE' AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
                 AND m.branch_id IS NULL
                 AND upper(m.role) IN ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER')
            )
@@ -224,7 +224,7 @@ BEGIN
         )
         OR (
           upper(m.role) IN ('OWNER', 'ADMIN', 'MANAGER', 'BUSINESS_OWNER')
-          AND m.business_id = p_business_id
+          AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
           AND (m.branch_id IS NULL OR m.branch_id = p_branch_id)
         )
       )
@@ -327,7 +327,7 @@ BEGIN
        )
        OR (
          upper(m.role::text) IN ('OWNER', 'ADMIN', 'MANAGER', 'BUSINESS_OWNER')
-         AND (m.business_id = p_business_id OR m.business_id IS NULL)
+         AND ((m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL)) OR m.business_id IS NULL)
          AND m.branch_id IS NULL
        )
      )
@@ -454,7 +454,7 @@ BEGIN
            AND coalesce(m.permissions->>'scope', '') = 'PLATFORM'
            AND coalesce((m.permissions->>'full_control')::boolean, false) = true)
          OR (upper(m.role) IN ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER')
-           AND m.business_id = p_business_id
+           AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
            AND (m.branch_id IS NULL OR m.branch_id = p_branch_id))
        )
   ) THEN RAISE EXCEPTION 'CATALOG_WRITE_FORBIDDEN'; END IF;
@@ -477,7 +477,7 @@ BEGIN
          AND EXISTS (
            SELECT 1 FROM public.user_memberships m
             WHERE m.user_id = auth.uid() AND m.tenant_id = p_tenant_id
-              AND m.status = 'ACTIVE' AND m.business_id = p_business_id
+              AND m.status = 'ACTIVE' AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
               AND m.branch_id IS NULL
               AND upper(m.role) IN ('OWNER','ADMIN','MANAGER','BUSINESS_OWNER')
          )
@@ -561,7 +561,7 @@ BEGIN
           AND coalesce((m.permissions->>'full_control')::boolean, false) = true
           AND m.business_id IS NULL)
        OR (upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')
-          AND m.business_id = p_business_id
+          AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
           AND (m.branch_id IS NULL OR m.branch_id = p_branch_id))
      )
    ORDER BY CASE upper(m.role::text)
