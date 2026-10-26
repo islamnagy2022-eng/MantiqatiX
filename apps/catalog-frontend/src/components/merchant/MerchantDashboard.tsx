@@ -34,6 +34,7 @@ import {
   QrCode,
 } from 'lucide-react';
 import { QRCodeModal } from '../common/QRCodeModal';
+import { BusinessEmployeeManager } from './BusinessEmployeeManager';
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
@@ -57,7 +58,7 @@ export const MerchantDashboard: React.FC = () => {
     setCurrentView,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'products' | 'branding' | 'profile' | 'functional_engine' | 'qr'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees'>('products');
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Business Profile & Branding state
@@ -374,7 +375,21 @@ export const MerchantDashboard: React.FC = () => {
           <QrCode className="w-4 h-4" />
           <span>QR كود النشاط الدائم</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('employees')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'employees'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <Briefcase className="w-4 h-4" />
+          <span>الموظفون والتوظيف</span>
+        </button>
       </div>
+
+      {activeTab === 'employees' && <BusinessEmployeeManager business={currentBusiness} />}
 
       {/* Tab 1: Products and Catalog Management */}
       {activeTab === 'products' && (
