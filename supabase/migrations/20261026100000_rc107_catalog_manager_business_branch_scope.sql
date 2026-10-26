@@ -304,3 +304,53 @@ BEGIN
   RETURN to_jsonb(v_row);
 END
 $function$;
+
+
+-- Keep item fields and the first/new price in one transaction so the UI cannot
+-- leave an item created without its intended price if the second write fails.
+CREATE OR REPLACE FUNCTION public.upsert_catalog_item_and_price_backend(
+  p_tenant_id character varying,
+  p_business_id uuid,
+  p_branch_id character varying,
+  p_legacy_ref character varying,
+  p_item_type character varying,
+  p_name_ar text,
+  p_name_en text,
+  p_description text,
+  p_sku character varying,
+  p_tax_rate numeric,
+  p_metadata jsonb,
+  p_id uuid,
+  p_currency character varying,
+  p_unit_price numeric,
+  p_effective_from timestamp with time zone DEFAULT now(),
+  p_effective_to timestamp with time zone DEFAULT NULL::timestamp with time zone
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_item jsonb;
+  v_price jsonb;
+  v_item_id uuid;
+BEGIN
+  v_item := public.upsert_catalog_item_backend(
+    p_tenant_id, p_business_id, p_branch_id, p_legacy_ref, p_item_type,
+    p_name_ar, p_name_en, p_description, p_sku, p_tax_rate, p_metadata, p_id
+  );
+  v_item_id := (v_item->>'id')::uuid;
+
+  v_price := public.upsert_catalog_price_backend(
+    p_tenant_id, p_business_id, v_item_id, p_branch_id, p_currency,
+    p_unit_price, p_effective_from, p_effective_to
+  );
+
+  RETURN jsonb_build_object(
+    'itemId', v_item_id,
+    'item', v_item,
+    'price', v_price
+  );
+END
+$function$;
