@@ -217,3 +217,250 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-25 — Digital Page customer self-service proposal (RC567 candidate)
+
+- **User decision:** Make the lightweight marketing page a part of MantiqatiX but isolated from the other business modules for now. A subscribed customer should manage one page, add/edit products and prices, and set their own WhatsApp number. Public link is for self-promotion.
+- **Repository baseline reviewed:** existing `digital_pages`, `digital_page_sections`, `digital_page_orders`, `digital_page_products`, `web/digital-page.html`, and authenticated `web/digital-page-editor.*` already exist. Existing publishing uses paid fulfillment and a platform-admin gate; preserve that boundary.
+- **Branch created:** `feat/digital-page-self-service-20261025`, based on `main`. No merge or production deployment performed.
+- **Source added:** isolated `web/digital-page-self-service.html/.js/.css`; owner can edit page details, WhatsApp number, and menu items/prices through the existing `digital_page_sections` data model. Public renderer now displays product images when HTTPS URLs are supplied and a WhatsApp CTA using the page owner's number.
+- **Migration candidate added:** `supabase/migrations/20261025193000_rc567_digital_page_self_service.sql`. Adds `owner_user_id` and `whatsapp_number`, allows paid-order owners to manage their own isolated page, and extends section RLS while preserving legacy business/provider access. This is source-only and NOT applied to Supabase.
+- **Validation updates:** Pages workflow checks the new self-service JS and assets; `scripts/validate-digital-pages-boundaries.mjs` checks the owner/paid-order/WhatsApp boundaries. CI result still pending.
+- **Open risks / required verification:** run SQL migration replay and RLS integration tests on a disposable database; review migration ordering because RC563–RC566 are separate open candidates; verify self-service JS syntax, create/edit/list pages, product add/edit/delete, slug collision, WhatsApp rendering, and paid/unpaid cross-user isolation. Confirm how the existing fulfillment admin publishes newly created pages. No production data/configuration mutation was performed.
+- **Release state:** BLOCKED / NOT CERTIFIED; no claim of live deployment or production readiness.
+
+
+## 2026-10-25 — RC567 follow-up: checkout and admin publishing path
+
+- Added subscription package cards using active `PORTFOLIO` products and integrated the existing `digital-page-order-create` and `digital-page-payment-intent` Edge Functions; payment remains server-priced and idempotency-keyed.
+- Added refreshable subscription state, active-subscription checks, and the ability to create a separate page for each unused active subscription.
+- Fixed editor control enablement after checkout/refresh and added a login return link for direct editor visits.
+- Integrated standalone customer pages into the existing admin editor: customer owner option, WhatsApp field, and all-paid-order selection. Added a dedicated RLS select policy allowing platform admins to review customer orders while retaining the owner-only read policy for customers.
+- Updated deployment smoke checks to verify the self-service assets and checkout integration, and static boundary checks for checkout and admin publishing.
+- Exact-head CI was triggered for the latest branch head; migration replay, migration uniqueness/collision checks, and web validation are pending at the time of this note.
+- Still required: review CI results for the exact head; test Paymob checkout/webhook reconciliation with a sandbox order; test admin fulfillment/publishing and public WhatsApp CTA; test paid/unpaid and cross-user RLS on a disposable database. No production migration or deployment performed.
+- **Release state:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — RC567 customer self-service hardening continuation
+
+- Fixed the admin digital-page editor JavaScript parse error by correcting the closing brace around the unpublish handler; current editor, self-service, public renderer, and home JavaScript sources pass source-level syntax compilation.
+- Removed the duplicate create-page event listener and gave the secondary create-page button a unique ID wired to the same handler.
+- Kept the checkout idempotency key/order association until payment is confirmed, preventing a second click after opening the Paymob checkout from silently creating a duplicate pending order.
+- Narrowed the migration's ownership-check removal to the known legacy digital_pages_check constraint instead of dynamically dropping any check that mentions both ownership columns.
+- Kept expired customer pages visible to their owner while retaining the active-subscription requirement for customer edits and public rendering.
+- Updated the admin editor to preserve the PUBLISHED state when editing a published page and to offer only orders in fulfillment states accepted by the publication RPC.
+- Added regression source-contract assertions for checkout idempotency, the create-page control, owner visibility after expiry, and public subscription gating.
+- Latest source-level JS syntax checks passed. GitHub combined status currently returns no checks for the newest commit, so CI and isolated migration replay remain NOT VERIFIED.
+- PR #374 remains DRAFT / unmerged. No production migration, payment, or deployment was performed. Reconcile RC563–RC566 candidates, then run exact-head CI, disposable migration replay, RLS multi-user tests, and browser E2E before merge.
+
+
+## 2026-10-25 — RC567 source-contract recheck
+
+- Re-ran the digital-page boundary validator against the exact current branch sources using a controlled in-memory file shim: PASS (9 source files checked).
+- Re-ran the public digital-page runtime scenarios with the current renderer and the test's controlled Supabase/document mocks: PASS for missing slug, unpublished/missing page, published MENU rendering, WhatsApp CTA, and HTML escaping.
+- Re-ran syntax compilation of `web/digital-page-self-service.js`, `web/digital-page-editor.js`, `web/digital-page.js`, and `web/home.js`: PASS.
+- GitHub Actions runs for forward migration replay, migration collision checks, migration-history immutability, migration-version uniqueness, and Pages validation remain queued at the latest poll. Therefore these source-level checks are not a substitute for GitHub CI or disposable PostgreSQL migration replay.
+- PR #374 remains DRAFT and unmerged. Keep the production release blocked until the RC563–RC566 migration order is reconciled and CI, database replay, multi-account RLS isolation, and browser E2E are independently verified.
+
+- Security/logic correction during continued review: both owner and public subscription-expiry predicates now use `published_at` when available, otherwise the order's stable `created_at`; editing a draft no longer resets expiry through mutable `updated_at`. Added regression assertions for both expiry gates. This is source-level evidence only until CI and isolated migration replay finish.
+
+
+## 2026-10-25 — Paid-term start hardening (RC567)
+
+- Continued review found that anchoring expiry to order creation would consume subscription days while payment checkout is pending. RC567 now adds `digital_page_orders.paid_at`, backfills existing PAID orders conservatively, and uses a trigger to set the first successful-payment timestamp and preserve it on later edits/status updates.
+- Both owner authorization and public rendering now anchor expiry to `paid_at` first; legacy publication/creation timestamps remain fallback paths. This avoids draft edits or later order updates extending the subscription.
+- Added regression assertions for the paid-at trigger and both expiry gates. The digital-page boundary validator passes against the latest branch source (9 files checked).
+- The updated branch's forward migration replay and CI were restarted; results for the exact latest head are still pending. Do not treat the previous replay success as validation of this new `paid_at` change.
+
+## 2026-10-25 — Temporary WhatsApp-only handoff and CI repair
+
+- User decision: temporarily disable online card/Vodafone Cash collection for this customer self-service digital-page flow. Other MantiqatiX payment modules remain unchanged.
+- Subscription package action now prepares a WhatsApp request to the support channel with package, displayed price, duration, account email, and account ID; this UI does not create a paid order or mark payment as complete.
+- Public catalog product cards now include an owner-WhatsApp order link with encoded product name, listed price, page URL, and a request to confirm quantity.
+- Updated the deployment smoke contract and static boundary validator to enforce the WhatsApp-only subscription UI and product-order CTA. The first exact-head web validation exposed a stale expected-copy marker; that marker was aligned and the latest Deploy MantiqatiX Web validation job then passed. Its public-only/deploy jobs were skipped for this PR, so no deployment occurred.
+- Latest known head at time of this note: `f00d5921c16270e883091c5dadacf26333eb65f2`. Migration forward-chain replay and cross-PR migration collision checks were still running when last checked. Keep PR #374 draft/open; do not merge or deploy until exact-head checks, RLS integration, browser E2E, and manual activation flow are verified. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Product decision: WhatsApp-first service/menu/product modules
+
+- **User decision:** Expand the WhatsApp-first public page/catalog pattern beyond the digital-page slice to every applicable existing module that displays services, menus, or products.
+- **First-launch behavior:** owners manage their own permitted catalog/page data; customers browse and hand off requests through WhatsApp with contextual item/service details. Reuse canonical module records and preserve existing authorization, validation, and specialized operational controls.
+- **Deferred until after launch:** accounting/commissions for this new flow; sponsored-ad purchase/delivery/billing; Paymob collection for these new WhatsApp-first requests. Existing finance and Paymob flows used elsewhere in the platform are not to be removed or changed as a side effect.
+- **Marketing area:** public page describing the company's marketing services, with WhatsApp service-request/inquiry CTA. Keep separate from sponsored ads and the internal agency workspace.
+- **Documentation action:** recorded the scope and test/release gates in docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md on the active feature branch.
+- **Not yet done:** full module inventory, cross-module implementation, RLS/browser E2E, and regression testing. This documentation change is not proof of feature coverage.
+- **Production impact:** no production migration, merge, deployment, Paymob transaction, or production data mutation. PR #374 remains draft/unmerged; release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Dashboard updates and subscription-expiry reminders
+
+- User request: update role-specific dashboards to reflect the first-launch scope and add subscription-date alerts.
+- Implemented in source: shared dashboard/notification-center reminder panel for digital-page subscriptions, with 30-day notice, stronger warning within 7 days, expiry state, and a WhatsApp support handoff.
+- Safety: if the paid timestamp or product duration is missing, show an unknown-date notice instead of guessing. Reminder data is queried for the signed-in user only.
+- Database source change: new migration 20261025203000_digital_page_subscription_expiry_reminders.sql sets paid_at on a transition to PAID; it is not applied to production.
+- Validation: added scripts/validate-subscription-reminders.mjs to the web CI workflow.
+- Not yet verified: exact-head CI, isolated migration replay/collision guard, browser E2E, and webhook/manual-activation regression. Dashboard reminders are on-visit only; scheduled push/email delivery remains future work.
+- Production impact: no production migration/deployment or merge. PR #374 remains open; global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Launch hardening: marketing services, ad deferral, subscription reminders
+
+- Added public company marketing services page (HTML/CSS/JS) with responsive service cards and WhatsApp handoff; added desktop/mobile homepage links and source-contract validation.
+- Deferred public sponsored-ad booking/plan purchase for the first launch: ad surfaces now say “تحت الإنشاء”, public purchase controls are disabled, and the section links to available company marketing services instead.
+- Refreshed the PWA cache and precache list for marketing services and digital-page assets.
+- Dashboard home and notification center show subscription reminders from the user's paid digital-page orders using the canonical paid_at timestamp and product duration; unknown timing is not treated as healthy.
+- Fixed a stale RBAC validator marker that failed against the current dashboard routing and corrected reminder data-error handling so a failed read is not silently rendered as an empty list.
+- Removed the redundant unmerged paid_at candidate migration because RC567 already provides the canonical immutable paid_at guard and conservative backfill; updated the reminder validator accordingly.
+- Added/updated CI checks for marketing page assets, WhatsApp contract, deferred ads, PWA cache, and public deployment smoke.
+- Latest source head before this log update: c6152b2a9514e6107982c02ae575d5c40d152811. Latest-head CI/replay remains pending; no runtime E2E or production deployment is claimed.
+- No production migration, merge, or deployment occurred. Global release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — RC570 candidate: restaurant menu to WhatsApp public catalog
+
+- Added candidate migration 20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql with optional HTTPS-only restaurant_menu_items.image_url.
+- Updated the restaurant/café menu editor to store/show image URLs and added a guarded sync action that takes available canonical items from the selected branch into the existing published digital MENU page. The action requires catalog update RBAC, a published business MENU page, and an active subscription; it refuses to replace a section already bound to another branch.
+- Updated public digital MENU rendering to show category labels and include item/category/displayed price/page URL in WhatsApp order text, with quantity/availability confirmation requested. No Paymob collection or paid-order claim is introduced in this path.
+- Added scripts/validate-restaurant-menu-whatsapp-sync.mjs to Pages CI and extended scripts/test-digital-page-runtime.mjs to cover category rendering. Updated restaurant and public page cache asset versions.
+- Exact-head CI and forward migration replay have not yet been verified. Authenticated multi-user RLS, browser E2E, expiry lifecycle, and deployed preview smoke remain required.
+- No merge, production migration, or deployment. PR #374 remains draft/unmerged and release remains BLOCKED / NOT CERTIFIED.
+
+
+- RC570 follow-up security hardening: moved branch ownership binding out of public digital_page_sections.data into digital_page_menu_branch_bindings with RLS and no anonymous grants. Public menu JSON now contains only catalog display fields. Exact-head CI/replay still pending.
+
+
+## 2026-10-25 — Shared engine bootstrap and subscription dashboard milestones
+
+- Loaded the shared catalog experience engine before the main dashboard/module runtime and aligned the service-worker precache versions.
+- Corrected the dashboard launch-scope panel to link to the existing company marketing-services page and describe its WhatsApp inquiry route as available.
+- Added distinct dashboard urgency styling for subscription expiry at 7 days, 3 days, 1 day and expired, based on paid timestamp and product duration. This is in-app display only; scheduled push/email reminders are not yet verified.
+- Added static assertions for engine bootstrap order, cache versions, expiry milestones and marketing page status.
+- Latest head at the time of logging: 1972b3b25467de363dd7d6bbdf92a21b379907e9. CI checks were queued. Cross-sector adapter integration, multi-user RLS, browser/mobile E2E and production deployment remain open. No production migration, merge, or deployment occurred.
+
+
+## 2026-10-25 — Shared catalog engine, dashboard and subscription reminder requirements
+
+- User wants one reusable engine for all similar service/menu/product modules, with sector-specific differences, rather than repeating implementation per module. Examples include restaurants, cafés, pharmacies, doctors, hospitals, companies and stores.
+- User also wants dashboard updates and subscription-date reminders. Planned reminder thresholds: 14, 7, 3 and 1 day before expiry, plus expiry notification, idempotently and using server/database truth. Initial notification channel can be in-app; email/push are not claimed without configuration and E2E verification.
+- Repository inspection found web/module-blueprints.js is a workspace/blueprint UI, not proof of a complete shared catalog engine. web/sector-modules.js and web/operations-modules.js currently show different module-specific data contracts; canonical adapters and inventory are required.
+- Scope recorded in docs/MASTER_PRODUCTION_TODO.md and docs/PROJECT_CONTINUITY.md. SMM remains separate.
+- Planning estimate: narrow MVP 2–4 weeks if current data contracts and test environment are usable; full hardening may take longer. Estimate is not a commitment.
+- Current production gate: migration replay succeeded on prior exact head 3c4d57a61db6ee2080c574de0b6e887017baab7a, but newer documentation commits advanced the branch to 0d15d65c3757da6732d8a09a53f920cc6d9b4733 and new workflows are queued. PR #374 remains draft/open/unmerged; no production deployment. Multi-user RLS and browser E2E remain NOT VERIFIED.
+
+
+## 2026-10-25 — RC570 replay failure investigation
+
+- Read the project continuity, master production TODO, session log, shared catalog engine plan, current PR #374 metadata and changed-file inventory before editing.
+- Current catalog engine is a UI/helper foundation, not yet wired into every sector. PR #374 remains draft/unmerged and no production migration or deployment was performed.
+- Inspected exact-head CI run 40227854710: forward migration replay failed in RC570 because a branch membership identifier (`character varying`) was compared directly with a UUID binding. Updated five comparisons in RC570 to compare text representations exactly; commit `c3a2fef8386c3c89a67c54759108ff70c947a86e`.
+- The same CI snapshot showed the production security validator failing an assertion expecting a previous membership lookup pattern. This remains unresolved pending source review; do not assume it is a harmless stale assertion until its intended invariant is verified.
+- Rerun evidence is not available yet for the new commit. Exact-head CI, ordered migration replay, tenant isolation and browser E2E remain required. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Shared catalog engine and release-blocking RC570 repair
+
+- Added shared catalog rendering APIs to `web/catalog-experience-engine.js` with escaped output, bounded rendering, explicit empty/status states, and request-mode-specific CTA rules.
+- Public MENU product inquiries now use the shared FOOD adapter and include item name, displayed price, page URL, category, and quantity-confirmation detail. Generic WhatsApp helper now refuses to bypass existing booking, ride, job, and matching flows.
+- Updated module dashboard labels so module cards do not equate role-based management access with release readiness. Subscription reminder panels remain in the home dashboard, notification center, and digital-page self-service view; scheduled push/email/SMS reminders are not certified.
+- Found a real forward-replay failure in RC570: `operator does not exist: character varying = uuid` in branch binding policies, plus malformed `$body$1...` function delimiters in the same candidate migration. Fixed cross-type comparisons by explicit text normalization and repaired the dollar-quoted bodies; added source-level regression assertions.
+- Updated stale CI contracts for the shared-engine asset versions and the shared WhatsApp adapter. Exact-head CI/replay evidence is still pending after the fixes.
+- No production migration, deployment, or merge. PR #374 remains draft/open. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Catalog-first launch scope correction
+
+- User explicitly deferred the public marketing-services page as well as sponsored ads. The first launch scope is now limited to the digital self-service product catalog and the restaurant/café menu-to-WhatsApp catalog path.
+- Removed active marketing-services links from the public homepage and mobile drawer; marketing-services.html is now a static “تحت الإنشاء” placeholder with noindex/nofollow, no request form, and no WhatsApp submission script.
+- Updated PWA cache key to `mnty-web-v140-catalog-first` and removed deferred marketing page HTML/CSS/JS from the precache list.
+- Updated the marketing page source-contract validator and GitHub Pages deployment smoke assertions to require the deferred placeholder and reject the old request form. Updated the catalog module matrix accordingly.
+- Source commits: `e76c6a12e1ed43fe7a5fb084c895a4f3d5c27ae9` (homepage), `668ea9383ecceac417d80be99764d7224257bdfc` (placeholder), `cc4f03560c40705fa5d098c31e0edf9c6f6c5cd7` (validator), `92156626c55f57cfbde859e964fbaec2236971b5` (PWA), `5d1641d0ce8fefe2662ca0460f09c63c22ca20b6` (matrix), `2992ac9621c6979030bbe00f4aa3a3d6494dddc5` (deployment smoke).
+- Verification status at documentation time: exact-head Actions and forward migration replay are queued; do not infer success. No merge, production migration, or deployment occurred. PR #374 remains draft/open and release remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-25 — Final catalog-first UI and cache alignment follow-up
+
+- Also removed the active marketing-services link from the authenticated dashboard module card; it now says `تحت الإنشاء` and explains the deferral.
+- Updated Pages deployment smoke to check that the marketing-services page is an unindexed placeholder with no request form and that neither public homepage nor authenticated dashboard links to it.
+- Bumped the app script URL to `app.js?v=catalog-first-1`; bumped the service-worker registration/cache contract to `mnty-web-v140-catalog-first` and aligned the marketing workspace validator.
+- Additional commits: `939ba00b2c58142a017b5bc71b04655203219e33` (dashboard), `7577cf748e35c8a92da3c564e37e1fb1328af726` (smoke), `94a6404f13ee7f8fcac50912571f22024bc8b269` / `94a7bb6ed045cfb0cff829abf90c1a54b7747963` (cache refs), `664a7e37a2b95714f6462a889f816b0e774e210c` (workspace validator), `255cb8a79b87830841675844a6c2bc4bd9be5737` (dashboard deferral assertion).
+- Validation has not yet completed: latest observed PR checks are queued and the PR deployment job was cancelled as expected for a draft/PR event. This is not a production deploy. No merge or production migration occurred; release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — Dashboard deferral and final cache validator alignment
+
+- Removed the authenticated dashboard's active marketing-services link and replaced it with a visible “تحت الإنشاء” status. No public or authenticated UI should promote that page during the catalog-first release.
+- Updated the release smoke check to assert the deferred page placeholder and absence of marketing inquiry form/script, and to ensure neither homepage nor dashboard links to the deferred page.
+- Updated cache contract checks to match `app.js?v=catalog-first-1` and `mnty-web-v140-catalog-first`; current source-level cross-file checks confirm the references agree.
+- Latest source commits: `939ba00b2c58142a017b5bc71b04655203219e33`, `7577cf748e35c8a92da3c564e37e1fb1328af726`, `94a7bb6ed045cfb0cff829abf90c1a54b7747963`, `664a7e37a2b95714f6462a889f816b0e774e210c`, `255cb8a79b87830841675844a6c2bc4bd9be5737`.
+- CI evidence is still insufficient: observed workflow runs remain queued on an earlier PR head and the PR Pages deployment job was cancelled. No exact-head passing result, merge, production migration, or production deployment is claimed. Keep PR #374 draft/open and release **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — CI stale-head diagnosis and cache smoke hardening
+
+- Inspected failed Pages validation job `121281643287` from run `40230718461`. Its checked-out PR merge ref was `af6edecffe50bc14ebe490cd5945ea9da88b4036`, built from the earlier commit `2992ac9621c6979030bbe00f4aa3a3d6494dddc5`; it failed because that stale snapshot still expected PWA cache `mnty-web-v139-catalog-experience-engine` while the catalog-first source had moved to v140. This failure does not establish the result for the newer head, but the newer head also has not been proven green yet.
+- Added explicit deployment-smoke checks that the published HTML references `app.js?v=catalog-first-1` and `sw.js?v=mnty-web-v140-catalog-first`, commit `dc1f9108e6fd4f3e5a9d6b0be89d98f14782b06c`.
+- Latest PR head at time of writing: `dc1f9108e6fd4f3e5a9d6b0be89d98f14782b06c`. The available workflow-run query has not returned exact-head checks yet. Forward migration replay remains queued on the older observed run; no result is inferred from queued state.
+- No production deploy or migration occurred. PR #374 remains draft/open; release remains **BLOCKED / NOT CERTIFIED** until exact-head CI, ordered replay, RLS/tenant-isolation, browser E2E, and deployment smoke are verified.
+
+
+## 2026-10-25 — Public catalog security contract expansion
+
+- Extended `scripts/validate-digital-pages-boundaries.mjs` with source assertions for the public catalog renderer: HTML escaping, HTTPS-only product image URLs, external-link opener protection, lazy image loading, slug + PUBLISHED page lookup, and active/page-scoped section reads.
+- Follow-up commits: `669e7010f0b04db5c7219feb5b400930e19636be`, `7c30b3bab2d7bee52cad33798a892a48075c51ef`, `27b0355e3527b51862e27966e4c746ca6607f536`, `2bbf923549e596ab62f52843d1ff4a3fde956cdb`.
+- The new assertions are source-contract checks only; they have not yet been proven by a successful CI run. Latest observed workflow run set remained queued on an earlier head, and no exact-head green run was returned for `2bbf923549e596ab62f52843d1ff4a3fde956cdb` at documentation time.
+- No production deploy, merge, or production database migration was performed. PR #374 remains draft/open; release remains **BLOCKED / NOT CERTIFIED** pending exact-head CI, forward migration replay, RLS/tenant isolation and browser smoke verification.
+
+
+## 2026-10-25 — MVP subscription-tier presentation
+
+- The customer self-service page now displays feature labels from each active `digital_page_products.features` value (array or object) as DOM text, capped at 12 visible items, alongside the existing database-defined name, duration, and price. No feature values are injected as HTML.
+- Added tier feature-list styling and refreshed the PWA cache to `mnty-web-v141-catalog-tiers`; updated the public-shell workflow and cache contract validator to the new key.
+- This is the tier-selection/presentation slice only. It does not claim per-tier feature quotas are enforced across all backend operations; server-side entitlement/limit enforcement remains a separate release requirement.
+- Relevant commits: `6e2bd1f3e5776f790ab04334023251bd410e9530`, `bc426b8b36de153a4cf4fda2f203e144cf546cd3`, `7c9ee4d34f7f7a3b093927ea7bbd3e6d02e07957`, `fd7efa88cd0049c3ad0310e53b4de79610f53bde`, `2f013f12131c08588c48e7fbc26c4313df74bd98`, `99a52a2f2035d76aec99462422d51f51aa21b76f`, `ac54976f04802186ab594c2a4afa3952e041302d`, `97fd8444bac05940cfc783d054f9f3b51b550052`.
+- Exact-head CI still has no returned workflow results; existing observed jobs are queued/cancelled. No production deploy, merge, or migration occurred. PR #374 remains draft/open and production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## اعتماد نظام الإطلاق الطبقي — 2026-10-25
+
+تم اعتماد الطبقات L0–L8 كطريقة العمل الإلزامية لهذا المسار. كل طبقة تُسلَّم كوحدة تشغيل قابلة للاستخدام، مع بوابة قبول، وإصدار ثابت، واختبارات مناسبة، وأدلة نشر؛ لا يعني اكتمال الواجهة اكتمال التفويض أو backend.
+
+### سجل الطبقات الحالي
+- L0 — أساس النشر: PARTIAL؛ يوجد workflow للنشر والتحقق، لكن rollback والتعافي ومراقبة الإنتاج لم تُثبت كاملة في هذه الدورة.
+- L1 — الشاشة الرئيسية: IMPLEMENTED / NOT VERIFIED؛ أُضيف مدقق ثابت مستقل `scripts/validate-layer-l1-homepage.mjs` إلى CI للتحقق من أصول الصفحة وإصدارات الكاش وروابط الموديولات وحدود المعاينة. لا تُعتبر الطبقة VERIFIED حتى ينجح CI على commit الحالي ويثبت smoke test المنشور.
+- L2 — صفحات المشروعات: PARTIAL؛ يوجد أساس الصفحات ذاتية الخدمة والمنيو، لكن يلزم اختبار E2E لهوية مالك ومستخدم آخر وعزل RLS قبل الاعتماد.
+- L3 — المنتجات: PARTIAL؛ يوجد تحرير منتجات في كتالوج الصفحات، ويلزم اختبار CRUD وعزل الملكية وحدود الاستخدام من الخادم.
+- L4 — تفاصيل المنتجات: PARTIAL؛ دعم التفاصيل يختلف حسب الموديول ولم يُعتمد كطبقة عامة.
+- L5 — تفاعل العميل: PARTIAL؛ مسار واتساب متاح لبعض الكتالوجات، ولا يُعامل كطلب مؤكد أو دفع.
+- L6 — الطلبات والدفع: BLOCKED للتفعيل الإنتاجي حتى اكتمال اختبارات الدفع والتسوية وwebhooks.
+- L7 — الباقات والصلاحيات: PARTIAL؛ عرض مميزات الباقة لا يثبت فرض الحصص على الخادم.
+- L8 — التشغيل الموسع: NOT VERIFIED؛ النسخ الاحتياطي/الاستعادة والتنبيه والتراجع تحتاج أدلة تشغيل فعلية.
+
+### قاعدة التقدم
+نبدأ الآن بإغلاق L1، ثم ننتقل إلى L2/L3 على موديول FOOD/المنيو أولًا. لا نفتح إطلاقًا عامًا لكل القطاعات دفعة واحدة. أي طبقة لا تجتاز بوابتها تُسجَّل PARTIAL أو BLOCKED، ولا تُنشر باعتبارها مكتملة.
+
+- Commit إضافة مدقق L1: `28a93158229256f2dfc94bd8885251997a0c0a74`.
+- Commit ربط مدقق L1 بالـ workflow: `4d300a98ef6f4b45abcdbab1f0169db647a209c7`.
+- هذا تغيير في بوابة CI؛ لم يتم نشر إنتاجي أو دمج PR أو تطبيق migrations إنتاجية نتيجة له.
+
+
+## متابعة التنفيذ الفعلي — كتالوج L2/L3 — 2026-10-25
+
+- تم تعديل `web/digital-page-self-service.js` لرفض رابط صورة المنتج إن لم يبدأ بـ HTTPS أو تجاوز 2048 حرفًا. لا يعتمد عرض الصورة العامة على هذا الفحص وحده؛ `web/digital-page.js` لديه مرشح عرض يرفض الروابط غير HTTPS.
+- تمت إضافة عقد اختبار إلى `scripts/validate-digital-pages-boundaries.mjs` للتحقق من وجود رسالة/شرط HTTPS.
+- تم تحديث مرجع سكربت الخدمة الذاتية إلى `rc574` وتحديث PWA cache إلى `mnty-web-v142-https-images` مع مواءمة التسجيل وفحص CI ومدقق عقد الكاش.
+- التحقق من المصدر أكد تطابق مفاتيح cache وإصدارات ملفات الخدمة الذاتية ووجود مدققات L1 وdigital-page boundaries داخل workflow. هذا تحقق مصدر فقط، وليس نجاح تشغيل GitHub Actions أو اختبار متصفح.
+- أحدث PR head عند آخر قراءة: `08b132dbafe659de418adec46b8d25c472e1e20d`. PR #374 ما زال draft/open وغير مدمج. لا يوجد تصريح بإطلاق إنتاجي أو تطبيق ترحيلات قاعدة البيانات.
+- بوابة L1 ما زالت بانتظار CI وsmoke test منشور. L2/L3 ما زالتا PARTIAL إلى أن تُختبر الملكية وRLS وCRUD فعليًا بمستخدمين من جهتين مختلفتين.
+
+
+## Read-only production schema audit — 2026-10-25
+
+Supabase production project `moyhiluyhjsujhwlyeuu` was inspected read-only; no DDL, migration, or data changes were made.
+
+- Latest recorded production migration is `20261008222845 / rc424_atomic_digital_page_payment_webhook`.
+- Existing `digital_pages`, `digital_page_orders`, `digital_page_products`, `digital_page_sections`, and `restaurant_menu_items` have RLS enabled.
+- Production schema does not yet contain the candidate self-service fields `digital_pages.owner_user_id`, `digital_pages.whatsapp_number`, `digital_page_orders.paid_at`, or `restaurant_menu_items.image_url`; the private `digital_page_menu_branch_bindings` table is also absent.
+- Therefore the self-service UI is NOT compatible with production schema until the candidate migrations are safely reconciled, replayed against a production-equivalent checkpoint, and approved. Do not deploy the self-service HTML/JS alone and do not apply RC567–RC570 directly to production.
+- The known candidate-chain note requiring RC563–RC566 ordering reconciliation remains open. Preserve all existing production tables/data and all historical migrations; fix forward only after dependencies are resolved.

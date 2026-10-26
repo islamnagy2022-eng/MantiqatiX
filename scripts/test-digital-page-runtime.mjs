@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source = fs.readFileSync('web/digital-page.js', 'utf8');
+const engineSource = fs.readFileSync('web/catalog-experience-engine.js', 'utf8');
+const registrySource = fs.readFileSync('web/sector-registry.js', 'utf8');
 
 async function render({ search = '', page = null, sections = [] } = {}) {
   const root = { innerHTML: '' };
@@ -36,12 +38,16 @@ async function render({ search = '', page = null, sections = [] } = {}) {
     querySelector: () => meta,
   };
   const context = {
-    window: { MANTIQATIX_CONFIG: { supabaseUrl: 'https://example.invalid', supabaseKey: 'public-test-key' } },
+    MANTIQATIX_CONFIG: { supabaseUrl: 'https://example.invalid', supabaseKey: 'public-test-key' },
     supabase: { createClient: () => client },
     document,
-    location: { search },
+    location: { search, href: 'https://example.invalid/digital-page.html?slug=demo' },
     URLSearchParams,
   };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(registrySource, context, { filename: 'sector-registry.js' });
+  vm.runInNewContext(engineSource, context, { filename: 'catalog-experience-engine.js' });
   vm.runInNewContext(source, context, { filename: 'digital-page.js' });
   await new Promise(resolve => setImmediate(resolve));
   return { html: root.innerHTML, title: document.title, meta: meta.content, pageLookups, sectionLookups };
@@ -68,6 +74,7 @@ const published = await render({
     seo_description: 'Safe description',
     version: 1,
     status: 'PUBLISHED',
+    whatsapp_number: '201010171770',
   },
   sections: [{
     id: 'section-test',
@@ -75,11 +82,20 @@ const published = await render({
     sort_order: 1,
     title: 'Drinks',
     active: true,
-    data: { items: [{ name: 'Tea <img src=x>', description: 'Hot drink', price: '30', currency: 'EGP' }] },
+    data: { items: [{ name: 'Tea <img src=x>', description: 'Hot drink', price: '30', currency: 'EGP', category: 'مشروبات ساخنة' }] },
   }],
 });
 assert.equal(published.title, 'Demo menu');
 assert.equal(published.meta, 'Safe description');
+assert.match(published.html, /كتالوج المنتجات/);
+assert.match(published.html, /https:\/\/wa\.me\/201010171770/);
+assert.match(published.html, /تواصل واطلب عبر واتساب/);
+assert.match(published.html, /اطلب المنتج عبر واتساب/);
+assert.match(published.html, /Tea/);
+assert.match(published.html, /مشروبات ساخنة/, 'public catalog must display synchronized product category');
+assert.match(published.html, /30%20EGP/);
+assert.match(decodeURIComponent(published.html.match(/wa\.me\/201010171770\?text=([^" ]+)/)?.[1] || ''), /الكمية المطلوبة/, 'public menu CTA must include the quantity-confirmation detail through the shared adapter');
+assert.ok(published.html.includes('wa.me/201010171770?text='));
 assert.match(published.html, /Drinks/);
 assert.match(published.html, /30/);
 assert.match(published.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
@@ -87,4 +103,4 @@ assert.match(published.html, /Tea &lt;img src=x&gt;/);
 assert.ok(!published.html.includes('<script>alert(1)</script>'), 'page content must be HTML-escaped');
 assert.equal(published.sectionLookups, 1);
 
-console.log('Digital page runtime tests: PASS (missing slug, unpublished page, published MENU render, HTML escaping).');
+console.log('Digital page runtime tests: PASS (missing slug, unpublished page, published MENU render, WhatsApp contact CTA, HTML escaping).');

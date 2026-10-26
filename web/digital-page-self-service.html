@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MantiqatiX | صفحتي التسويقية</title>
+<link rel="stylesheet" href="digital-page-self-service.css?v=rc573">
+<script src="config.js?v=mnty116"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<main class="wrap">
+<header class="hero"><p class="eyebrow">MantiqatiX · صفحة تسويقية مستقلة</p><h1>صفحتك أو منيو نشاطك في رابط واحد</h1><p>أضف منتجاتك وأسعارك وحدد رقم واتساب الذي يستقبل العملاء.</p></header>
+<section id="auth" class="card">جارٍ التحقق من تسجيل الدخول…</section>
+<section id="app" hidden>
+<section class="card" id="subscription-panel"><h2>اشترك وابدأ صفحتك</h2><p class="hint">اختر صفحة شخصية أو منيو لنشاط تملكه. تظهر باقات المنيو لأصحاب الأنشطة المرتبطة بحسابهم فقط. الأسعار والمدة من قاعدة البيانات، والطلب والتفعيل عبر واتساب مؤقتًا دون دفع إلكتروني.</p><div id="subscription-products" class="subscription-products"><p>جارٍ تحميل الباقات…</p></div><button type="button" id="refresh-subscriptions">تحديث حالة الاشتراك</button></section>
+<section class="card" id="subscription-reminders" hidden aria-live="polite"><h2>تنبيهات الاشتراك</h2><div id="subscription-reminder-list"></div></section>
+<div class="grid">
+<form id="page-form" class="card">
+<div class="section-head"><h2>بيانات صفحتك</h2><button type="button" id="new-page">صفحة جديدة</button></div>
+<label>الاشتراك أو التفعيل<select id="order" required></select></label>
+<label>اسم النشاط<input id="title" required maxlength="160" placeholder="مثال: متجر النور"></label>
+<label>الرابط المختصر<input id="slug" required maxlength="80" pattern="[A-Za-z0-9-]+" placeholder="alnoor-store"></label>
+<label>وصف مختصر<textarea id="description" maxlength="500" placeholder="عرف الناس بنشاطك"></textarea></label>
+<label>رقم واتساب الذي سيظهر للعملاء<input id="whatsapp" required inputmode="numeric" pattern="[0-9]{8,15}" placeholder="2010XXXXXXXX"></label>
+<p class="hint">اكتب الرقم بصيغة دولية من غير + أو مسافات، مثال مصر 2010XXXXXXX.</p>
+<button type="submit" id="save-page">حفظ بيانات الصفحة</button>
+</form>
+<section class="card"><h2>صفحاتي</h2><button type="button" id="new-page-secondary" class="secondary">إنشاء صفحة لاشتراك آخر</button><div id="pages"></div></section>
+</div>
+<section id="products-panel" class="card" hidden>
+<h2>منتجاتك وأسعارك</h2>
+<div id="menu-canonical-notice" class="hint" hidden>منيو المطعم مرتبطة بأصناف مديول المطاعم لتجنب تكرار البيانات. أضف المنتجات وعدّل الأسعار من مديول المطاعم ثم اضغط «نشر / تحديث المنيو عبر واتساب». <a href="index.html">الانتقال إلى المنصة</a></div>
+<form id="product-form" class="product-form">
+<label>اسم المنتج<input id="product-name" required maxlength="120"></label>
+<label>السعر بالجنيه<input id="product-price" required type="number" min="0" step="0.01"></label>
+<label>وصف المنتج<input id="product-description" maxlength="240"></label>
+<label>رابط صورة المنتج (اختياري)<input id="product-image" type="url" placeholder="https://..."></label>
+<button type="submit">إضافة المنتج</button>
+</form>
+<div id="product-list" class="products"></div>
+</section>
+<p id="status" role="status" aria-live="polite"></p>
+</section>
+<footer><a href="https://wa.me/201010171770" target="_blank" rel="noopener">مساعدة من فريق MantiqatiX</a></footer>
+</main>
+<script src="catalog-experience-engine.js?v=1.0.1"></script>
+<script src="digital-page-self-service.js?v=rc574"></script>
+</body></html>

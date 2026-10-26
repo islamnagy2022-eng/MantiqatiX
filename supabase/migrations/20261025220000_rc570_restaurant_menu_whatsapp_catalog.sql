@@ -1,0 +1,265 @@
+-- RC570: enable safe restaurant-menu images and publish canonical branch menu into an active digital MENU page.
+-- Candidate migration only. Do not apply to production until the full release gate passes.
+alter table public.restaurant_menu_items
+  add column if not exists image_url text;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.restaurant_menu_items'::regclass
+      and conname = 'restaurant_menu_items_image_url_https_check'
+  ) then
+    alter table public.restaurant_menu_items
+      add constraint restaurant_menu_items_image_url_https_check
+      check (image_url is null or image_url ~* '^https://[^[:space:]]+$');
+  end if;
+end
+$$;
+
+comment on column public.restaurant_menu_items.image_url is
+  'Optional HTTPS product image used by the public restaurant MENU page.';
+
+
+-- Keep branch ownership binding private; never embed tenant/business/branch UUIDs in public section JSON.
+create table if not exists public.digital_page_menu_branch_bindings (
+  page_id uuid primary key references public.digital_pages(id) on delete cascade,
+  -- The canonical tenancy and branch identifiers are VARCHAR, not UUID:
+  -- tenants.id, businesses.tenant_id, branches.id and user_memberships.branch_id
+  -- all use text identifiers (for example MNTY-PLATFORM / MNTY-BERKET-MAIN).
+  tenant_id character varying not null references public.tenants(id) on delete restrict,
+  business_id uuid not null references public.businesses(id) on delete cascade,
+  branch_id character varying not null references public.branches(id) on delete cascade,
+  updated_by uuid not null references auth.users(id),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.digital_page_menu_branch_bindings enable row level security;
+revoke all on public.digital_page_menu_branch_bindings from public, anon, authenticated;
+grant select, insert, update on public.digital_page_menu_branch_bindings to authenticated;
+
+drop policy if exists digital_page_menu_branch_bindings_owner_read on public.digital_page_menu_branch_bindings;
+create policy digital_page_menu_branch_bindings_owner_read
+on public.digital_page_menu_branch_bindings
+for select to authenticated
+using (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
+      and m.status = 'ACTIVE'
+      and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+  )
+);
+drop policy if exists digital_page_menu_branch_bindings_owner_insert on public.digital_page_menu_branch_bindings;
+create policy digital_page_menu_branch_bindings_owner_insert
+on public.digital_page_menu_branch_bindings
+for insert to authenticated
+with check (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
+      and m.status = 'ACTIVE'
+      and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+  )
+);
+drop policy if exists digital_page_menu_branch_bindings_owner_update on public.digital_page_menu_branch_bindings;
+create policy digital_page_menu_branch_bindings_owner_update
+on public.digital_page_menu_branch_bindings
+for update to authenticated
+using (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
+      and m.status = 'ACTIVE'
+      and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+  )
+)
+with check (
+  coalesce(public.mnty_can_platform_admin(), false)
+  or exists (
+    select 1 from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
+      and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
+      and m.status = 'ACTIVE'
+      and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+  )
+);
+
+create or replace function public.digital_page_menu_branch_binding_immutable()
+returns trigger
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $body$
+begin
+  if new.page_id is distinct from old.page_id
+     or new.tenant_id is distinct from old.tenant_id
+     or new.business_id is distinct from old.business_id
+     or new.branch_id is distinct from old.branch_id then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_IMMUTABLE';
+  end if;
+  return new;
+end;
+$body$;
+drop trigger if exists trg_digital_page_menu_branch_binding_immutable on public.digital_page_menu_branch_bindings;
+create trigger trg_digital_page_menu_branch_binding_immutable
+before update on public.digital_page_menu_branch_bindings
+for each row execute function public.digital_page_menu_branch_binding_immutable();
+revoke all on function public.digital_page_menu_branch_binding_immutable() from public, anon, authenticated;
+
+create or replace function public.digital_page_menu_branch_binding_scope_guard()
+returns trigger
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $body$
+declare
+  v_page public.digital_pages%rowtype;
+  v_order public.digital_page_orders%rowtype;
+  v_business_tenant_id character varying;
+begin
+  if new.updated_by is distinct from auth.uid() then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ACTOR_INVALID';
+  end if;
+
+  -- Never accept an arbitrary tenant/business/branch tuple, even if the actor
+  -- happens to hold a membership row with similarly scoped identifiers.
+  select b.tenant_id into v_business_tenant_id
+    from public.businesses b
+   where b.id = new.business_id;
+  if not found or v_business_tenant_id is distinct from new.tenant_id then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_TENANT_SCOPE_INVALID';
+  end if;
+  if not exists (
+    select 1
+      from public.branches br
+     where br.id = new.branch_id
+       and br.tenant_id = new.tenant_id
+       and br.business_id = new.business_id
+  ) then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_BRANCH_SCOPE_INVALID';
+  end if;
+
+  select * into v_page from public.digital_pages where id = new.page_id;
+  if not found or v_page.page_type <> 'MENU' or v_page.business_id::text is distinct from new.business_id::text then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_PAGE_SCOPE_INVALID';
+  end if;
+  if v_page.digital_page_order_id is not null then
+    select * into v_order from public.digital_page_orders where id = v_page.digital_page_order_id;
+    if not found
+       or v_order.page_type <> 'MENU'
+       or v_order.target_business_id::text is distinct from new.business_id::text
+       or v_order.payment_status <> 'PAID'
+       or not coalesce(public.digital_page_subscription_active(v_order.id, auth.uid()), false) then
+      raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ORDER_SCOPE_INVALID';
+    end if;
+  end if;
+  return new;
+end;
+$body$;
+drop trigger if exists trg_digital_page_menu_branch_binding_scope_guard on public.digital_page_menu_branch_bindings;
+create trigger trg_digital_page_menu_branch_binding_scope_guard
+before insert or update on public.digital_page_menu_branch_bindings
+for each row execute function public.digital_page_menu_branch_binding_scope_guard();
+revoke all on function public.digital_page_menu_branch_binding_scope_guard() from public, anon, authenticated;
+
+-- This SECURITY DEFINER predicate reads the private binding even when another branch's RLS hides it.
+-- It is used only as a restrictive write policy; public readers can still read published MENU sections.
+create or replace function public.digital_page_menu_section_write_allowed(p_page_id uuid, p_actor uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog, public
+as $body$
+  select p_actor is not null
+    and p_actor = auth.uid()
+    and exists (
+      select 1
+      from public.digital_pages p
+      left join public.digital_page_orders o on o.id = p.digital_page_order_id
+      where p.id = p_page_id
+        and (
+          p.digital_page_order_id is null
+          or (
+            o.id is not null
+            and o.payment_status = 'PAID'
+            and coalesce(public.digital_page_subscription_active(o.id, p_actor), false)
+          )
+        )
+    )
+    and (
+      coalesce(public.mnty_can_platform_admin(), false)
+      or (
+        not exists (
+          select 1 from public.digital_page_menu_branch_bindings b
+          where b.page_id = p_page_id
+        )
+        and exists (
+          select 1 from public.digital_pages p
+          where p.id = p_page_id
+            and p.digital_page_order_id is null
+        )
+      )
+      or exists (
+        select 1
+        from public.digital_page_menu_branch_bindings b
+        join public.user_memberships m
+          on m.user_id = p_actor
+         and m.tenant_id::text = b.tenant_id::text
+         and m.business_id::text = b.business_id::text
+         and (m.branch_id is null or m.branch_id::text = b.branch_id::text)
+         and m.status = 'ACTIVE'
+         and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
+        where b.page_id = p_page_id
+      )
+    );
+$body$;
+revoke all on function public.digital_page_menu_section_write_allowed(uuid, uuid) from public, anon;
+grant execute on function public.digital_page_menu_section_write_allowed(uuid, uuid) to authenticated;
+
+drop policy if exists digital_page_sections_menu_binding_insert on public.digital_page_sections;
+create policy digital_page_sections_menu_binding_insert
+on public.digital_page_sections as restrictive
+for insert to authenticated
+with check (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+);
+drop policy if exists digital_page_sections_menu_binding_update on public.digital_page_sections;
+create policy digital_page_sections_menu_binding_update
+on public.digital_page_sections as restrictive
+for update to authenticated
+using (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+)
+with check (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+);
+drop policy if exists digital_page_sections_menu_binding_delete on public.digital_page_sections;
+create policy digital_page_sections_menu_binding_delete
+on public.digital_page_sections as restrictive
+for delete to authenticated
+using (
+  section_type <> 'MENU'
+  or public.digital_page_menu_section_write_allowed(page_id, auth.uid())
+);
+
+comment on table public.digital_page_menu_branch_bindings is
+  'Private branch binding for a published digital MENU page; intentionally not readable by anonymous visitors.';

@@ -52,7 +52,12 @@ const requiredReleaseMigrations=[
   "20261023030000_rc103_order_status_branch_scope.sql",
   "20261023040000_rc104_order_idempotency_scope.sql",
   "20261023050000_rc105_order_create_service_role_identity.sql",
-  "20261023060000_rc106_order_status_service_role_identity.sql"
+  "20261023060000_rc106_order_status_service_role_identity.sql",
+  "20261025193000_rc567_digital_page_self_service.sql",
+  "20261025200000_rc568_digital_page_manual_activation.sql",
+  "20261025210000_rc569_digital_page_menu_subscription_guard.sql",
+  "20261025220000_rc570_restaurant_menu_whatsapp_catalog.sql",
+  "20261025230000_rc571_digital_page_menu_scope_bypass_fix.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
@@ -81,13 +86,17 @@ const liveReconciliationVerified=Boolean(
   reconciliation.edge_function_contracts==="PASS" &&
   reconciliation.smm_gateway_parity==="PASS" &&
   reconciliation.auth_security_settings==="PASS" &&
+  reconciliation.digital_page_dependency_reconciliation==="PASS" &&
+  reconciliation.security_definer_authorization_review==="PASS" &&
+  reconciliation.authenticated_browser_e2e==="PASS" &&
+  reconciliation.production_deploy_rollback_smoke==="PASS" &&
   typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
   typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
 );
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
-    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_gateway_parity:reconciliation.smm_gateway_parity,auth_security_settings:reconciliation.auth_security_settings,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
+    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_gateway_parity:reconciliation.smm_gateway_parity,auth_security_settings:reconciliation.auth_security_settings,digital_page_dependency_reconciliation:reconciliation.digital_page_dependency_reconciliation,security_definer_authorization_review:reconciliation.security_definer_authorization_review,authenticated_browser_e2e:reconciliation.authenticated_browser_e2e,production_deploy_rollback_smoke:reconciliation.production_deploy_rollback_smoke,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
     : `All ${requiredReleaseMigrations.length} required source migrations are present and timestamp-ordered, and the live reconciliation manifest records completed ordered replay plus required runtime/security evidence at ${reconciliation.evidence_ref}.`,
   "P0");
 const wf=exists(".github/workflows/pages.yml")?read(".github/workflows/pages.yml"):"";for(const v of ["validate-production-gate-contract.mjs","validate-finance-boundaries.mjs","validate-digital-pages-boundaries.mjs","validate-security-definer-contract.mjs"])add("CI-"+v,"CI/CD",wf.includes(v)?"PASS":"FAIL",wf.includes(v)?`workflow invokes ${v}`:`workflow missing ${v}`,"P1");

@@ -93,7 +93,7 @@ async function load(){
  }
  state.error=null; state.loading=true; render();
  const s=scope();
- let menuQ=sb.from('restaurant_menu_items').select('id,name_ar,description_ar,base_price_egp,category,is_available,is_popular').order('category').order('name_ar').limit(200);
+ let menuQ=sb.from('restaurant_menu_items').select('id,name_ar,description_ar,base_price_egp,category,is_available,is_popular,image_url').order('category').order('name_ar').limit(200);
  let ordersQ=sb.from('orders').select('id,tenant_id,business_id,branch_id,status,total_amount,customer_name,created_at,updated_at').order('created_at',{ascending:false}).limit(100);
  let tablesQ=sb.from('restaurant_tables').select('id,table_number,capacity_persons,status,current_active_order_id,current_bill_egp,reserved_customer_name').order('table_number').limit(100);
  let invQ=sb.from('restaurant_inventory').select('id,name_ar,unit,current_stock_qty,min_stock_alert_threshold,unit_cost_egp,supplier_name').order('name_ar').limit(200);
@@ -167,11 +167,79 @@ function tabs(){
  }).join('')+'</div>';
 }
 function menuView(){
+ const canEdit=canOperate('CATALOG','update');
  const add=canOperate('CATALOG','create')?'<button class="btn btn-primary" id="rest-add-menu">+ إضافة صنف</button>':'';
- return shell(isCafe()?'قائمة المشروبات والأطعمة':'قائمة الطعام',tabs()+ '<div class="action-bar">'+add+'</div>'+
- '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>إجراء</th></tr></thead><tbody>'+
- (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(canOperate('CATALOG','update')?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="6">لا توجد أصناف فعلية بعد.</td></tr>')+
+ const sync=canEdit?'<button class="btn btn-primary" id="rest-sync-menu-page">نشر / تحديث المنيو عبر واتساب</button>':'';
+ const manage='<a class="btn btn-outline" href="digital-page-self-service.html" target="_blank" rel="noopener">إدارة رابط المنيو الرقمية</a>';
+ return shell(isCafe()?'قائمة المشروبات والأطعمة':'قائمة الطعام',tabs()+'<div class="notice">أضف الأصناف هنا مرة واحدة. عند وجود منيو رقمية منشورة واشتراك نشط، يمكنك مزامنة الأصناف المتاحة إلى الرابط العام؛ العميل يطلب عبر واتساب ولا يتم تحصيل Paymob في هذا المسار. ربط عدة فروع في رابط واحد: تحت الإنشاء.</div><div class="action-bar">'+add+sync+manage+'</div>'+
+ '<div class="table-wrap"><table><thead><tr><th>الصنف</th><th>الفئة</th><th>السعر</th><th>الحالة</th><th>الأكثر طلباً</th><th>الصورة</th><th>إجراء</th></tr></thead><tbody>'+
+ (state.menu.length?state.menu.map(x=>'<tr><td><b>'+esc(x.name_ar)+'</b><div class="muted">'+esc(x.description_ar)+'</div></td><td>'+esc(x.category)+'</td><td>'+money(x.base_price_egp)+'</td><td>'+ (x.is_available?'متاح':'غير متاح')+'</td><td>'+ (x.is_popular?'نعم':'—')+'</td><td>'+(x.image_url?'<a href="'+esc(x.image_url)+'" target="_blank" rel="noopener">عرض الصورة</a>':'—')+'</td><td>'+(canEdit?'<button class="linkbtn" data-menu-edit="'+esc(x.id)+'">تعديل</button>':'—')+'</td></tr>').join(''):'<tr><td colspan="7">لا توجد أصناف فعلية بعد.</td></tr>')+
  '</tbody></table></div>');
+}
+async function syncRestaurantMenuToDigitalPage(){
+ if(!canOperate('CATALOG','update'))return notify('ليس لديك صلاحية تحديث المنيو الرقمية.','error');
+ const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.','error');
+ try{
+  const pageResult=await sb.from('digital_pages')
+   .select('id,slug,title,whatsapp_number,digital_page_order_id,status,updated_at')
+   .eq('page_type','MENU').eq('business_id',s.business_id).eq('status','PUBLISHED')
+   .not('digital_page_order_id','is',null).order('updated_at',{ascending:false}).limit(1).maybeSingle();
+  if(pageResult.error)throw pageResult.error;
+  const page=pageResult.data;
+  if(!page)return notify('لا توجد منيو رقمية منشورة لهذا النشاط بعد. افتح «إدارة رابط المنيو الرقمية» لإنشاء الصفحة واستكمال اعتمادها.','error');
+  const pagePhone=String(page.whatsapp_number||'').replace(/\D/g,'');
+  if(!/^[0-9]{8,15}$/.test(pagePhone))return notify('اضبط رقم واتساب بصيغة دولية صحيحة في إدارة المنيو قبل نشر الأصناف للعملاء.','error');
+  const entitlement=await sb.rpc('digital_page_public_subscription_active',{p_order_id:page.digital_page_order_id});
+  if(entitlement.error)throw entitlement.error;
+  if(entitlement.data!==true)return notify('اشتراك المنيو غير نشط أو انتهى؛ لم يتم تحديث الصفحة العامة.','error');
+  const available=(state.menu||[]).filter(x=>x.is_available===true).map(x=>({
+   name:String(x.name_ar||'').slice(0,150),
+   price:Number(x.base_price_egp),
+   currency:'EGP',
+   description:String(x.description_ar||'').slice(0,2000),
+   image_url:x.image_url||null,
+   category:String(x.category||'').slice(0,80),
+   popular:x.is_popular===true
+  })).filter(x=>x.name&&Number.isFinite(x.price)&&x.price>=0);
+  if(!available.length)return notify('لا توجد أصناف متاحة صالحة للنشر. فعّل الأصناف وأعد المحاولة.','error');
+  const bindingResult=await sb.from('digital_page_menu_branch_bindings')
+   .select('page_id,tenant_id,business_id,branch_id').eq('page_id',page.id).maybeSingle();
+  if(bindingResult.error)throw bindingResult.error;
+  if(bindingResult.data&&(
+    String(bindingResult.data.tenant_id)!==String(s.tenant_id)||
+    String(bindingResult.data.business_id)!==String(s.business_id)||
+    String(bindingResult.data.branch_id)!==String(s.branch_id)
+  ))return notify('رابط المنيو مرتبط بفرع آخر. تم منع استبدال قائمة فرع بفرع مختلف؛ دعم الفروع المتعددة في رابط واحد تحت الإنشاء.','error');
+  if(!bindingResult.data){
+   const bindingInsert=await sb.from('digital_page_menu_branch_bindings').insert({page_id:page.id,tenant_id:s.tenant_id,business_id:s.business_id,branch_id:s.branch_id,updated_by:state.user.id}).select('page_id').maybeSingle();
+   if(bindingInsert.error)throw bindingInsert.error;
+   if(!bindingInsert.data)throw new Error('تعذر تثبيت نطاق الفرع الخاص بالمنيو');
+  }
+  const sectionResult=await sb.from('digital_page_sections')
+   .select('id').eq('page_id',page.id).eq('section_type','MENU')
+   .order('sort_order',{ascending:true}).limit(1).maybeSingle();
+  if(sectionResult.error)throw sectionResult.error;
+  const payload={title:'المنيو والأسعار',content:'قائمة محدثة من أصناف فرع النشاط. الطلب والتأكيد عبر واتساب.',data:{source:'restaurant_menu_items',items:available},sort_order:0,active:true};
+  let saved;
+  if(sectionResult.data){
+   saved=await sb.from('digital_page_sections').update(payload).eq('id',sectionResult.data.id).select('id').maybeSingle();
+  }else{
+   saved=await sb.from('digital_page_sections').insert({...payload,page_id:page.id,section_type:'MENU'}).select('id').single();
+  }
+  if(saved.error)throw saved.error;
+  if(!saved.data)throw new Error('لم يتم حفظ تحديث المنيو داخل نطاق الصفحة');
+  const publicUrl=new URL('digital-page.html?slug='+encodeURIComponent(page.slug),location.href).href;
+  const actionBar=document.getElementById('rest-sync-menu-page')?.parentElement;
+  let openLink=document.getElementById('rest-open-menu-page');
+  if(!openLink&&actionBar){
+   openLink=document.createElement('a');openLink.id='rest-open-menu-page';openLink.className='btn btn-outline';
+   openLink.target='_blank';openLink.rel='noopener noreferrer';openLink.textContent='فتح رابط المنيو المنشورة';actionBar.appendChild(openLink);
+  }
+  if(openLink)openLink.href=publicUrl;
+  notify('تم تحديث المنيو المنشورة بعدد '+available.length+' صنف. يمكنك فتح الرابط ومشاركته مع العملاء.');
+ }catch(e){
+  notify('لم يتم تحديث المنيو الرقمية: '+(e?.message||'خطأ غير معروف')+'. لم نغيّر حالة النشر أو الاشتراك.','error');
+ }
 }
 function ordersView(){
  const statuses=['CONFIRMED','PREPARING','OUT_FOR_DELIVERY','DELIVERED','CANCELLED'];
@@ -269,12 +337,13 @@ function addMenu(existing){
  if(!canOperate('CATALOG',existing?'update':'create'))return;
  const x=existing||{};
  modal(existing?'تعديل صنف':'إضافة صنف',
- field('name','اسم الصنف',x.name_ar,'text','maxlength="150" required')+field('desc','الوصف',x.description_ar,'text','maxlength="2000"')+field('cat','الفئة',x.category,'text','maxlength="80" required')+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" max="100000000" required')+
+ field('name','اسم الصنف',x.name_ar,'text','maxlength="150" required')+field('desc','الوصف',x.description_ar,'text','maxlength="2000"')+field('cat','الفئة',x.category,'text','maxlength="80" required')+field('price','السعر بالجنيه',x.base_price_egp,'number','step="0.01" min="0" max="100000000" required')+field('image','رابط صورة المنتج (HTTPS)',x.image_url||'','url','maxlength="2000" placeholder="https://..."')+
  '<div class="action-bar"><label><input id="available" type="checkbox" '+(x.is_available!==false?'checked':'')+'> متاح</label><label><input id="popular" type="checkbox" '+(x.is_popular?'checked':'')+'> الأكثر طلباً</label></div><button class="btn btn-primary" data-save>حفظ</button>',
  async o=>{
   const s=scope();if(!s)return notify('لا يوجد نطاق نشاط/فرع نشط.');
-  const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
-  if(!payload.name_ar||payload.name_ar.length>150||!payload.category||payload.category.length>80||payload.description_ar.length>2000||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0||payload.base_price_egp>100000000||Math.round(payload.base_price_egp*100)/100!==payload.base_price_egp)return notify('تحقق من الاسم والفئة والوصف والسعر؛ السعر يجب أن يكون حتى منزلتين عشريتين.');
+  const imageUrl=o.querySelector('#image').value.trim();
+  const payload={name_ar:o.querySelector('#name').value.trim(),description_ar:o.querySelector('#desc').value.trim(),category:o.querySelector('#cat').value.trim(),base_price_egp:Number(o.querySelector('#price').value),image_url:imageUrl||null,is_available:o.querySelector('#available').checked,is_popular:o.querySelector('#popular').checked};
+  if(!payload.name_ar||payload.name_ar.length>150||!payload.category||payload.category.length>80||payload.description_ar.length>2000||!Number.isFinite(payload.base_price_egp)||payload.base_price_egp<0||payload.base_price_egp>100000000||Math.round(payload.base_price_egp*100)/100!==payload.base_price_egp||(payload.image_url&&(!/^https:\/\//i.test(payload.image_url)||/\s/.test(payload.image_url)||payload.image_url.length>2000)))return notify('تحقق من الاسم والفئة والوصف والسعر ورابط الصورة HTTPS؛ السعر يجب أن يكون حتى منزلتين عشريتين.');
   let q;
   if(existing)q=sb.from('restaurant_menu_items').update(payload).eq('id',existing.id).eq('tenant_id',s.tenant_id).eq('business_id',s.business_id).eq('branch_id',s.branch_id).select('id').maybeSingle();
   else q=sb.from('restaurant_menu_items').insert({...payload,id:uid(),owner_user_id:state.user.id,...s}).select('id').single();
@@ -324,6 +393,7 @@ function bind(){
  document.querySelectorAll('[data-rest-tab]').forEach(b=>b.onclick=()=>{state.tab=b.dataset.restTab;render()});
  document.getElementById('rest-retry')?.addEventListener('click',load);
  document.getElementById('rest-add-menu')?.addEventListener('click',()=>addMenu());
+ document.getElementById('rest-sync-menu-page')?.addEventListener('click',syncRestaurantMenuToDigitalPage);
  document.getElementById('rest-create-order')?.addEventListener('click',createRestaurantOrder);
  document.getElementById('rest-add-table')?.addEventListener('click',()=>addTable());
  document.getElementById('rest-add-inv')?.addEventListener('click',()=>addInventory());
