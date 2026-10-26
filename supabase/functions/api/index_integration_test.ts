@@ -60,6 +60,7 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   const orderB = crypto.randomUUID();
   const orderC = crypto.randomUUID();
   const orderD = crypto.randomUUID();
+  const orderE = crypto.randomUUID();
 
   requireOk("insert disposable tenant", await admin.from("tenants").insert({
     id: tenantId, name: "API route integration test tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
@@ -160,6 +161,8 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
     { id: orderB, tenant_id: tenantId, business_id: businessBId, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
     { id: orderC, tenant_id: tenantId, business_id: businessAId, branch_id: branchA, customer_id: userId, total_amount: 82, currency: "EGP", status: "NEW" },
     { id: orderD, tenant_id: tenantId, business_id: businessBId, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 82, currency: "EGP", status: "NEW" },
+    // A customer belonging to another tenant can still pay for their own marketplace order.
+    { id: orderE, tenant_id: tenantId, business_id: businessAId, branch_id: branchA, customer_id: otherCreated.data.user.id, total_amount: 47, currency: "EGP", status: "NEW" },
   ]));
 
   const handler = createApiHandler();
@@ -202,6 +205,23 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   const unauthorizedRows = requireOk("read unauthorized payment intents", await admin.from("payment_intents")
     .select("id").eq("tenant_id", tenantId).eq("idempotency_key", unauthorizedKey));
   if (unauthorizedRows.length !== 0) throw new Error("unauthorized account created a payment intent");
+
+  const ownerCrossTenantKey = `owner-cross-tenant-${suffix}`;
+  const ownerPaymentResponse = await sendAs(otherToken, "/api/v1/payments/intents", "POST", {
+    orderId: orderE,
+    provider: "CASH_ON_DELIVERY",
+    idempotencyKey: ownerCrossTenantKey,
+  });
+  if (ownerPaymentResponse.status !== 201) {
+    const body = await ownerPaymentResponse.json();
+    throw new Error(`customer should be able to pay their own cross-tenant marketplace order, got ${ownerPaymentResponse.status}: ${JSON.stringify(body)}`);
+  }
+  const ownerIntentRows = requireOk("read customer-owned cross-tenant payment intent", await admin.from("payment_intents")
+    .select("id,order_id,amount,currency").eq("tenant_id", tenantId).eq("idempotency_key", ownerCrossTenantKey));
+  if (ownerIntentRows.length !== 1 || ownerIntentRows[0].order_id !== orderE ||
+      Number(ownerIntentRows[0].amount) !== 47 || ownerIntentRows[0].currency !== "EGP") {
+    throw new Error("customer-owned cross-tenant payment intent did not preserve order identity");
+  }
 
   const concurrentSameKey = `same-${suffix}`;
   const sameKeyResponses = await Promise.all([
