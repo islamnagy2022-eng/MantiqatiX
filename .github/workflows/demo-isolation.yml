@@ -5,6 +5,7 @@ on:
       - demo/four-sector-isolated-20261026
     paths:
       - 'web/demo/**'
+      - 'supabase/demo/**'
       - 'scripts/validate-demo-isolation.mjs'
       - 'scripts/test-demo-workflow.mjs'
       - 'scripts/test-connected-demo-contract.mjs'
@@ -13,6 +14,7 @@ on:
     branches: [main]
     paths:
       - 'web/demo/**'
+      - 'supabase/demo/**'
       - 'scripts/validate-demo-isolation.mjs'
       - 'scripts/test-demo-workflow.mjs'
       - '.github/workflows/demo-isolation.yml'
