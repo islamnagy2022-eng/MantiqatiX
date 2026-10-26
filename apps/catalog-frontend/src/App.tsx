@@ -13,17 +13,22 @@ import { MessageCircle } from 'lucide-react';
 
 const MainContent: React.FC = () => {
   const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
+  const params = new URLSearchParams(window.location.search);
+  const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
 
-  // Route state is client-controlled. Never render a privileged dashboard solely
-  // because currentView was set; require the bootstrapped production role first.
+  // Never expose a dashboard without a production role. Guests may view a
+  // storefront only through its direct share link, never through a generic tab.
   const visibleView = authLoading
-    ? (currentView === 'public_storefront' ? 'public_storefront' : 'directory')
+    ? (currentView === 'public_storefront' && hasDirectPublicCatalogLink ? 'public_storefront' : 'directory')
     : currentView === 'super_admin' && authSession.role !== 'admin'
       ? 'directory'
       : currentView === 'merchant_admin' &&
           (!['subscriber', 'admin'].includes(authSession.role) || !currentBusiness)
         ? 'directory'
-        : currentView;
+        : currentView === 'public_storefront' &&
+            authSession.role === 'guest' && !hasDirectPublicCatalogLink
+          ? 'directory'
+          : currentView;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
