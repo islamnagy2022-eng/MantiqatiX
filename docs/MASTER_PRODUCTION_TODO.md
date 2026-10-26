@@ -1832,16 +1832,18 @@ This checkpoint does not close the production release gate because runtime E2E e
 **Product scope for new work:** restaurants/cafes, pharmacies, doctors/clinics, stores. Do not create new modules outside these sectors in this phase. Keep existing out-of-scope module code intact; do not perform broad deletions or rearchitecture.
 
 **DEMO status:**
-- [x] Separate browser path `web/demo/` does not import production config or the production Supabase SDK.
-- [x] Local simulator supports demo account creation, activity setup, products/services and prices, demo orders/appointments, state transitions, and UI roles.
-- [x] Data key is isolated to localStorage namespace `MANTIQATIX_DEMO_DB_V1`; reset uses only demo storage/session.
-- [x] Static isolation/scope workflow passed (run 40260016567, 14 assertions).
-- [ ] Browser-driven end-to-end checks for each sector.
-- [ ] Free database-backed DEMO on a distinct Supabase project; the project is not created yet. The current organization is Free and current quoted project cost was $0/month, but explicit organization choice is still required before creating it.
-- [ ] Reapply the authoritative migration chain from an empty database; verify migration replay and schema prerequisites.
-- [ ] Authenticated multi-user tests across business/branch/role boundaries using real Supabase Auth and RLS.
-- [ ] End-to-end restaurant, pharmacy, clinic appointment, and store workflows using synthetic data only.
-- [ ] Verify all payment paths disabled/sandbox-only in DEMO, with no real money movement.
+- [x] Separate local simulator remains isolated in `web/demo/index.html`.
+- [x] Separate connected entry point exists at `web/demo/connected.html`; its public config targets only `MantiqatiX-DEMO` and keeps payments disabled.
+- [x] Seven DEMO Edge Functions are active; deployed source matches the tracked files under `supabase/demo/functions/`.
+- [x] Four sectors are seeded in the DEMO database; 132/132 public tables have RLS enabled.
+- [x] DEMO isolation workflow and connected-contract checks passed on commit `5cd0155f0ad4c509bea308190037eae6c8e36cce` (run [40264871042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871042)).
+- [x] Web security validation passed after removing a false-positive secret-scanner match in the public config comment (run [40264871016](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871016)).
+- [ ] Create and verify real test accounts through Supabase Auth; current `auth.users` count is 0.
+- [ ] Run authenticated two-user/two-business/two-branch tests for RLS, membership boundaries, catalog writes, order state transitions, appointment privacy and collision handling.
+- [ ] Reconcile Supabase migration history: the standard migration list is empty, while the internal ledger contains 283 baseline entries plus 35 manually applied migrations. Do not run `db push` or replay migrations until schema and history are reconciled.
+- [ ] Review DEMO security-advisor findings, including two RLS-enabled tables without policies and remaining browser execution grants on selected `SECURITY DEFINER` functions; review each function and privilege deliberately.
+- [ ] Perform browser/runtime E2E and verify cross-session persistence before treating connected DEMO as accepted.
+- [ ] Keep PR #376 Draft; do not merge, publish the connected entry point, touch LIVE, or enable real payments without the separate release approval.
 
 **Release safety:** production config and database remain unchanged. Do not merge or publish the DEMO code until PR CI/review is complete. Do not merge a DEMO database or synthetic data into production. Before LIVE, reconcile migrations, backup and rehearse restore, verify independent production settings, audit RLS and payment/webhook idempotency, run post-deploy smoke tests, and document rollback. Production remains BLOCKED / NOT CERTIFIED until every gate has evidence.
 
