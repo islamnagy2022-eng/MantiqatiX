@@ -9,6 +9,7 @@ on:
       - 'scripts/validate-demo-isolation.mjs'
       - 'scripts/test-demo-workflow.mjs'
       - 'scripts/test-connected-demo-contract.mjs'
+      - 'scripts/test-connected-demo-live-smoke.mjs'
       - '.github/workflows/demo-isolation.yml'
   pull_request:
     branches: [main]
@@ -44,3 +45,5 @@ jobs:
         run: node scripts/test-demo-workflow.mjs
       - name: Verify connected Supabase DEMO contract
         run: node scripts/test-connected-demo-contract.mjs
+      - name: Smoke-test live DEMO CORS and unauthenticated access (no writes)
+        run: node scripts/test-connected-demo-live-smoke.mjs
