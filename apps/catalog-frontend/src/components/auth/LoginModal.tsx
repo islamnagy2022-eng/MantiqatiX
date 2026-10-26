@@ -9,6 +9,7 @@ export const LoginModal: React.FC = () => {
     loginAsSubscriber,
     loginWithGoogle,
     registerWithEmail,
+    adminSettings,
   } = useApp();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [fullName, setFullName] = useState('');
@@ -19,6 +20,11 @@ export const LoginModal: React.FC = () => {
   const [busy, setBusy] = useState(false);
 
   if (!isLoginModalOpen) return null;
+
+  const adminPhone = String(adminSettings.adminWhatsApp || '').replace(/\\D/g, '');
+  const subscriptionRequestUrl = adminPhone
+    ? `https://wa.me/${adminPhone}?text=${encodeURIComponent('أرغب في الاشتراك وتفعيل نشاطي على منصة منطقتي X')}`
+    : '';
 
   const run = async (action: () => Promise<{ success: boolean; error?: string; message?: string }>, fallback: string) => {
     setErrorMsg('');
@@ -108,6 +114,12 @@ export const LoginModal: React.FC = () => {
             {!busy && <ArrowRight className="w-4 h-4 rotate-180" />}
           </button>
         </form>
+
+        {mode === 'signup' && subscriptionRequestUrl && (
+          <a href={subscriptionRequestUrl} target="_blank" rel="noopener noreferrer" className="block text-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-black text-emerald-800 hover:bg-emerald-100">
+            صاحب نشاط؟ اطلب تفعيل اشتراكك عبر واتساب الإدارة
+          </a>
+        )}
 
         <div className="text-center text-xs text-slate-500">
           {mode === 'login' ? (
