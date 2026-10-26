@@ -16,7 +16,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const [names,setNames]=useState<Record<string,string>>({});
   const load=useCallback(async()=>{
     setLoading(true);setNotice(null);
-    const {data,error}=await supabase.rpc('mnty_platform_admin_list_businesses',{p_search:search.trim()||null});
+    const {data,error}=await supabase.rpc('mnty_platform_admin_list_businesses',{p_search:search.trim()||undefined});
     setLoading(false);
     if(error){setNotice({error:true,text:error.message||'تعذر تحميل الأنشطة والمشتركين. تحقق من نشر RC116 في بيئة الاختبار.'});return;}
     const next=Array.isArray(data)?data as BusinessRow[]:[];
