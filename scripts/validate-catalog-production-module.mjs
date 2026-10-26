@@ -48,7 +48,7 @@ check("module_is_separate_and_role_gated", () => {
 });
 check("module_writes_only_through_authenticated_edge_function", () => {
   includes(moduleJs, "/functions/v1/catalog-admin");
-  includes(moduleJs, 'Authorization: "Bearer " + session.access_token');
+  includes(moduleJs, '"Authorization": "Bearer " + session.access_token');
   includes(moduleJs, 'action: "ITEM_PRICE_UPSERT"');
   includes(moduleJs, 'action: "BUSINESS_PROFILE_UPSERT"');
   includes(moduleJs, 'action: "ITEM_STATUS_UPDATE"');
