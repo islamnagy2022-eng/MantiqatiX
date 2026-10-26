@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 const home=fs.readFileSync("web/home.js","utf8");
 const css=fs.readFileSync("web/home.css","utf8");
+const app=fs.readFileSync("web/app.js","utf8");
 
 const forbidden=[
   ["نموذج إعلاني تجريبي","homepage must not ship fabricated sponsored offers"],
@@ -31,15 +32,15 @@ if(!home.includes("const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'D
 if(!home.includes("publicCategoryCode(x?.category_code)")) throw new Error("FAIL: live service counts must use canonical public sector codes");
 if(!home.includes("publicCategoryCode(x?.provider_kind)")) throw new Error("FAIL: live provider counts must use canonical public sector codes");
 if(!home.includes("Object.keys(PUBLIC_DIRECTORY_COUNTS||{})")) throw new Error("FAIL: public sector directory must include all discovered live sector codes");
-if(!home.includes('id="mx-module-hub"')) throw new Error("FAIL: public homepage must expose a full module tour");
-if(!home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: module tour must link to the all-module demo dashboard");
-if(!home.includes('href="preview/dashboard.html" class="mx-ref-smm"') || !home.includes("معاينة جميع الموديولات")) throw new Error("FAIL: primary navigation must expose the all-module tour instead of a development-only placeholder");
+if(home.includes('id="mx-module-hub"')) throw new Error("FAIL: deferred module tour must be hidden from the launch homepage");
+if(home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: all-module demo links must be hidden from the launch homepage");
+if(home.includes('معاينة جميع الموديولات') || home.includes('خدمات التسويق الرقمي — قيد التطوير')) throw new Error("FAIL: deferred modules must not be advertised in the public navigation");
 
-if(!home.includes('href="preview/index.html"')) throw new Error("FAIL: module tour must link to the interactive demo home");
-if(!home.includes('href="preview/restaurants.html">جرّب مساحة المطاعم والكافيهات</a>')) throw new Error("FAIL: public homepage must provide a direct entry to the restaurant/cafe demo");
+if(home.includes('href="preview/index.html"')) throw new Error("FAIL: interactive module tour link must be hidden for the launch scope");
+if(!home.includes("LAUNCH_SECTOR_CODES = Object.freeze(['FOOD','HEALTH','PHARMACY','GROCERY'])")) throw new Error("FAIL: homepage launch must be restricted to the four selected sectors");
 
-if(!home.includes("لا تنشئ طلبات أو مدفوعات حقيقية")) throw new Error("FAIL: module preview must clearly disclose its demo-only boundary");
-if(!css.includes(".mx-public-module-hub") || !css.includes("@media(max-width:760px){.mx-public-module-hub")) throw new Error("FAIL: public module tour must have responsive styles");
+if(home.includes('mx-public-module-hub') || home.includes('mx-ref-digital-workspace')) throw new Error("FAIL: deferred public workspaces must be removed from the launch page");
+if(!css.includes(".mx-ref-home #mx-category-grid") || !css.includes("@media(max-width:700px)")) throw new Error("FAIL: four-sector launch directory must have responsive styles");
 for(const [needle,label] of [
   ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
   ['id="mx-category-filter-clear"',"sector search must provide a clear action"],
@@ -56,5 +57,16 @@ if(!home.includes("b.setAttribute('aria-expanded',expanded?'true':'false')")) th
 if(!css.includes(".mx-category-service-details[hidden]{display:none!important}")) throw new Error("FAIL: expandable service details must respect their hidden state");
 if(!css.includes(".mx-category-result-card[hidden]{display:none!important}")) throw new Error("FAIL: filtered sector cards must be hidden accessibly and consistently");
 if(!css.includes(".mx-category-filter__controls")) throw new Error("FAIL: sector search controls must have responsive styling");
+
+const appLaunchStart=app.indexOf("async function accountView()");
+const appLaunchEnd=app.indexOf("async function providerOnboardingView()",appLaunchStart);
+const accountSource=appLaunchStart>=0&&appLaunchEnd>appLaunchStart?app.slice(appLaunchStart,appLaunchEnd):"";
+if(!app.includes("signInWithGoogle")||!app.includes("sb.auth.signInWithOAuth({provider:'google'")||!app.includes('id="google-auth"')) throw new Error("FAIL: existing Google OAuth login route must remain active");
+if(!app.includes("LAUNCH_WORKSPACE_MODULES")||!app.includes("if(!isLaunchModule(name))")) throw new Error("FAIL: deferred workspace routes must be hidden and guarded");
+if(!app.includes("domainModules.filter(m=>LAUNCH_DOMAIN_KEYS.has(m.key))")) throw new Error("FAIL: module management page must show launch modules only");
+if(!app.includes("لوحة صاحب النشاط")||!app.includes("لوحة قيادة المنصة")&&!app.includes("مركز قيادة المنصة")) throw new Error("FAIL: owner/platform dashboard surfaces must remain available");
+if(accountSource.includes("digital_page_products")||accountSource.includes("commercialHtml")) throw new Error("FAIL: deferred digital-page commerce must not be an account-center dependency");
+if(!app.includes("mx-auth-launch")||!app.includes("mx-account-card")) throw new Error("FAIL: launch auth/account presentation classes must be connected to existing screens");
+
 console.log("PASS: homepage production-content contract contains no fabricated offers/reviews/partners/map and keeps live-data boundaries.");
 console.log("PASS: public sector pages include responsive local search across loaded services and providers.");

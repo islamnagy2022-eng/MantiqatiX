@@ -28,6 +28,8 @@
     ['•','العيادات والخدمات البيطرية','أطباء وخدمات للحيوانات','VETERINARY'],
     ['•','المستقلون ومقدمو الخدمات','خدمات احترافية ومشروعات مستقلة','FREELANCER']
   ];
+  const LAUNCH_SECTOR_CODES = Object.freeze(['FOOD','HEALTH','PHARMACY','GROCERY']);
+  const launchTaxonomy = () => LAUNCH_SECTOR_CODES.map(code => TAXONOMY.find(item => item[3] === code)).filter(Boolean);
   const ACTIVITY_IMAGES = {FOOD:'food.svg',HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'medical.svg',DENTAL:'medical.svg',HOSPITAL:'medical.svg',MEDICAL:'medical.svg',REAL_ESTATE:'real-estate.svg',AUTO:'auto.svg',HOME:'home.svg',MAINTENANCE:'home.svg',ACCOUNTING:'digital.svg',LEGAL:'digital.svg',COMPANIES:'home.svg',EDU:'education.svg',DIGITAL:'digital.svg',TECH:'digital.svg',FITNESS:'fitness.svg',TRAVEL:'travel.svg',MANTIGO:'auto.svg',JOBS:'home.svg',MATRIMONY:'home.svg',USED_ITEMS:'home.svg',FASHION:'home.svg',GROCERY:'home.svg',VETERINARY:'medical.svg',FREELANCER:'digital.svg'};
   const OFFICIAL_ACTIVITY_ASSETS = {HEALTH:'health.svg',PHARMACY:'pharmacy.svg',LABS:'labs.svg',RADIOLOGY:'radiology.svg',HOSPITAL:'hospital.svg',DENTAL:'dental.svg',VETERINARY:'veterinary.svg',FOOD:'food.svg',GROCERY:'grocery.svg',FASHION:'fashion.svg',MAINTENANCE:'maintenance.svg',ACCOUNTING:'accounting.svg',LEGAL:'legal.svg',COMPANIES:'companies.svg',EDUCATION:'education.svg',ERP:'erp.svg',MARKETING:'marketing.svg',TRIPS:'trips.svg',MANTIGO:'mantigo.svg',JOBS:'jobs.svg',MATRIMONY:'matrimony.svg',USED_ITEMS:'used_items.svg',REAL_ESTATE:'real_estate.svg',AUTO:'auto.svg',SPORTS:'sports.svg'};
   const ACTIVITY_ASSET_ALIASES = {EDU:'EDUCATION',DIGITAL:'MARKETING',TECH:'ERP',TRAVEL:'TRIPS',FITNESS:'SPORTS'};
@@ -51,10 +53,10 @@
   const loadPublicDirectoryCounts = async sb => {
     try {
       const [servicesRes,providersRes,servicesTotalRes,providersTotalRes]=await Promise.all([
-        sb.from('marketing_services').select('category_code').eq('status','ACTIVE').limit(1000),
-        sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').limit(1000),
-        sb.from('marketing_services').select('id',{count:'exact',head:true}).eq('status','ACTIVE'),
-        sb.from('marketing_provider_profiles').select('id',{count:'exact',head:true}).eq('status','ACTIVE')
+        sb.from('marketing_services').select('category_code').eq('status','ACTIVE').in('category_code',LAUNCH_SECTOR_CODES).limit(1000),
+        sb.from('marketing_provider_profiles').select('provider_kind').eq('status','ACTIVE').in('provider_kind',LAUNCH_SECTOR_CODES).limit(1000),
+        sb.from('marketing_services').select('id',{count:'exact',head:true}).eq('status','ACTIVE').in('category_code',LAUNCH_SECTOR_CODES),
+        sb.from('marketing_provider_profiles').select('id',{count:'exact',head:true}).eq('status','ACTIVE').in('provider_kind',LAUNCH_SECTOR_CODES)
       ]);
       if(servicesRes.error || providersRes.error || servicesTotalRes.error || providersTotalRes.error) throw (servicesRes.error||providersRes.error||servicesTotalRes.error||providersTotalRes.error);
       PUBLIC_DIRECTORY_TOTALS={
@@ -112,7 +114,7 @@
           known.set(key,['',label,'خدمات وأنشطة منشورة على المنصة',key]);
         }
       });
-    return [...known.values()];
+    return LAUNCH_SECTOR_CODES.map(code=>known.get(code)).filter(Boolean);
   };
   const getClient = () => {
     try{
@@ -182,7 +184,7 @@
 
     const adminReturnMembershipId=window.MNTYAdminReturnMembershipId||localStorage.getItem('MNTYAdminReturnMembershipId')||'';
     if(adminReturnMembershipId) window.MNTYAdminReturnMembershipId=adminReturnMembershipId;
-    const initialCategoryTiles=TAXONOMY.slice(0,16).map(c=>{
+    const initialCategoryTiles=launchTaxonomy().map(c=>{
       const icon=escapeHtml(c?.[0]||'◉');
       const label=escapeHtml(c?.[1]||'قطاع');
       const desc=escapeHtml(c?.[2]||'استكشف الأنشطة والخدمات');
@@ -195,24 +197,21 @@
 <a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
 <header class="mx-ref-header"><div class="mx-ref-header__inner">
 <a class="mx-ref-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<span>MantiqatiX</span></a>
-<nav class="mx-ref-nav" aria-label="التنقل الرئيسي"><a class="is-active" href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-module-hub">كل الموديولات</a><a href="#mx-nearby">مقدمو الخدمات</a><a href="#mx-offers">الإعلانات الممولة</a><a href="#mx-growth">لأصحاب الأنشطة</a><a href="#mx-about">من نحن</a><a href="preview/dashboard.html" class="mx-ref-smm" style="background:linear-gradient(135deg,#0750C9,#00A99D);color:#fff;box-shadow:0 5px 14px rgba(7,80,201,.22)">معاينة جميع الموديولات</a></nav>
+<nav class="mx-ref-nav" aria-label="التنقل الرئيسي"><a class="is-active" href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-nearby">مقدمو الخدمات</a><a href="#mx-growth">لأصحاب الأنشطة</a><a href="#mx-about">من نحن</a></nav>
 <div class="mx-ref-actions"><button type="button" class="mx-ref-lang">◉ AR</button><button type="button" class="mx-ref-login" id="mx-login"><span class="mx-account-icon" aria-hidden="true"></span><span class="mx-account-copy"><b>تسجيل الدخول</b><small><i></i> غير مسجل</small></span></button><button type="button" class="mx-ref-primary" id="mx-add">ابدأ الآن ←</button><button type="button" class="mx-ref-menu" id="mx-mobile-menu" aria-label="القائمة">☰</button></div>
 </div></header>
-<div class="mx-mobile-drawer-backdrop" id="mx-mobile-drawer-backdrop" hidden></div><aside class="mx-mobile-drawer" id="mx-mobile-drawer" aria-hidden="true"><div class="mx-mobile-drawer__head"><strong>القائمة</strong><button id="mx-mobile-menu-close" type="button">×</button></div><nav><a href="#mx-home" data-mobile-nav>الرئيسية</a><a href="#mx-categories" data-mobile-nav>الخدمات</a><a href="#mx-nearby" data-mobile-nav>مقدمو الخدمات</a><a href="#mx-offers" data-mobile-nav>الإعلانات</a><a href="smm.html" data-mobile-nav style="background:linear-gradient(135deg,#0750C9,#00A99D);color:#fff">خدمات التسويق الرقمي — قيد التطوير</a><button id="mx-mobile-add" type="button">أضف نشاطك</button></nav></aside><div class="mx-release-hooks" hidden aria-hidden="true"><span class="mx-whatsapp-float">WhatsApp</span><span>MNTY_SUPPORT</span></div><div id="mx-live-status" hidden>وضع العرض</div><div id="mx-search-context" hidden></div><div id="mx-search-clear-results" hidden></div><div id="mx-location-status" hidden></div><div id="mx-location-ranges" hidden></div>
+<div class="mx-mobile-drawer-backdrop" id="mx-mobile-drawer-backdrop" hidden></div><aside class="mx-mobile-drawer" id="mx-mobile-drawer" aria-hidden="true"><div class="mx-mobile-drawer__head"><strong>القائمة</strong><button id="mx-mobile-menu-close" type="button">×</button></div><nav><a href="#mx-home" data-mobile-nav>الرئيسية</a><a href="#mx-categories" data-mobile-nav>الخدمات</a><a href="#mx-nearby" data-mobile-nav>مقدمو الخدمات</a><a href="#mx-offers" data-mobile-nav>الإعلانات</a><button id="mx-mobile-add" type="button">أضف نشاطك</button></nav></aside><div class="mx-release-hooks" hidden aria-hidden="true"><span class="mx-whatsapp-float">WhatsApp</span><span>MNTY_SUPPORT</span></div><div id="mx-live-status" hidden>وضع العرض</div><div id="mx-search-context" hidden></div><div id="mx-search-clear-results" hidden></div><div id="mx-location-status" hidden></div><div id="mx-location-ranges" hidden></div>
 <div class="mx-ref-hero"><div class="mx-ref-hero__overlay"></div><div class="mx-ref-hero__content"><div class="mx-ref-hero__copy"><span class="mx-ref-kicker">منصة الخدمات المحلية الذكية</span><h1>كل الخدمات.. أقرب إليك</h1><p>منصة موثوقة تربطك بمقدمي الخدمات المعتمدين في منطقتك وتساعدك على الاكتشاف والمقارنة والتواصل بسهولة.</p></div><div class="mx-ref-search-card"><div class="mx-ref-search"><span class="mx-search-icon" aria-hidden="true"></span><input id="mx-home-search" autocomplete="off" inputmode="search" aria-controls="mx-search-suggestions" aria-expanded="false" placeholder="ابحث عن خدمة (مثل: طبيب، صيدلية، مطعم...)"><button id="mx-search-clear" type="button" hidden aria-label="مسح">×</button><button id="mx-search-btn" type="button" aria-label="بحث">بحث</button></div><div class="mx-search-suggestions" id="mx-search-suggestions" role="listbox" hidden></div><div class="mx-ref-search-meta"><button id="mx-location-btn" type="button"><span class="mx-location-icon" aria-hidden="true"></span><span id="mx-location-label">القاهرة، مصر</span>⌄</button><span>ابحث داخل منطقتك أو اختر موقعك عند الحاجة</span></div></div></div><div class="mx-ref-hero__phone" aria-hidden="true"><div class="mx-ref-phone-screen"><b>MantiqatiX</b><span>كل الخدمات في مكانك</span><i></i><i></i><i></i></div></div></div>
-<section class="mx-ref-category-bar" aria-label="أهم الخدمات"><button class="mx-ref-category is-more" data-category=""><span>•••</span><b>المزيد</b></button><button class="mx-ref-category" data-category="CONSULTING"><span>◌</span><b>الاستشارات</b></button><button class="mx-ref-category" data-category="REAL_ESTATE"><span>▦</span><b>العقارات</b></button><button class="mx-ref-category" data-category="EDUCATION"><span>◇</span><b>التعليم</b></button><button class="mx-ref-category" data-category="CARS"><span>▣</span><b>السيارات</b></button><button class="mx-ref-category" data-category="FOOD"><span>◈</span><b>المطاعم</b></button><button class="mx-ref-category" data-category="HOSPITALS"><span>✚</span><b>المستشفيات</b></button><button class="mx-ref-category" data-category="PHARMACY"><span>♧</span><b>الصيدليات</b></button><button class="mx-ref-category" data-category="MEDICAL"><span>⚕</span><b>الأطباء</b></button><button class="mx-ref-category" data-category="HOME_SERVICES"><span>⌂</span><b>الخدمات المنزلية</b></button></section>
+<section class="mx-ref-category-bar" aria-label="القطاعات المتاحة حاليًا"><button class="mx-ref-category" data-category="FOOD"><span>◈</span><b>مطاعم وكافيهات</b></button><button class="mx-ref-category" data-category="HEALTH"><span>⚕</span><b>أطباء وعيادات</b></button><button class="mx-ref-category" data-category="PHARMACY"><span>♧</span><b>صيدليات</b></button><button class="mx-ref-category" data-category="GROCERY"><span>▣</span><b>متاجر وبقالة</b></button></section>
 <main class="mx-ref-main" id="mx-home">
-<section class="mx-ref-ad-row" id="mx-offers"><div class="mx-ref-loading-panel" aria-live="polite"><span class="mx-ref-sponsored">إعلان ممول</span><strong>جارٍ تحميل الإعلانات المنشورة</strong><small>سيظهر هنا الإعلان الفعال فقط.</small></div></section>
+
 <section class="mx-ref-service-layout" id="mx-nearby"><article class="mx-ref-services-panel"><div class="mx-ref-section-head"><div><span>اكتشف الأقرب إليك</span><h2>خدمات مميزة بالقرب منك</h2></div><button type="button" class="mx-ref-text-btn" id="mx-quick-search">← عرض الكل</button></div><div class="mx-ref-service-grid" id="mx-service-grid"><div class="mx-ref-loading-card" aria-live="polite"><b>جارٍ تحميل الخدمات</b><span>سيتم عرض الخدمات المنشورة والفعالة فقط.</span></div></div></article>
 <article class="mx-ref-map-panel"><div class="mx-ref-section-head"><div><span>استكشاف محلي</span><h2>اكتشف الأقرب إليك</h2></div><button type="button" class="mx-ref-map-all" id="mx-discovery-location">استخدم موقعي</button></div><div class="mx-ref-local-discovery"><div class="mx-ref-local-discovery__icon" aria-hidden="true"></div><b>النتائج القريبة تُرتب حسب الموقع المتاح</b><p>لا يتم طلب موقعك إلا عند اختيارك ذلك. عند عدم السماح بالموقع ستظل نتائج المنصة العامة متاحة.</p><span id="mx-discovery-state">الموقع غير محدد</span></div></article>
-<article class="mx-ref-growth-mini" id="mx-growth"><span>روّج لخدمتك الآن</span><h2>زِد ظهور نشاطك أمام العملاء في منطقتك</h2><p>زِد الظهور، اعرض خدماتك وابدأ استقبال العملاء عبر الإعلانات الممولة.</p><button type="button" id="mx-growth-ads">ابدأ حملتك الإعلانية</button><div class="mx-ref-doctor-art">◉</div></article></section>
-<section class="mx-ref-provider-section"><div class="mx-ref-section-head"><div><span>مقدمو الخدمات</span><h2>خدمات من جهات منشورة على المنصة</h2></div><button type="button" class="mx-ref-text-btn">← عرض الكل</button></div><div class="mx-ref-provider-grid" id="mx-provider-grid"><div class="mx-ref-loading-card" aria-live="polite"><b>جارٍ تحميل مقدمي الخدمات</b><span>سيتم عرض الجهات المنشورة والفعالة فقط.</span></div></div></section>
-<section class="mx-ref-stats"><div><b>+</b><strong id="mx-stat-services">—</strong><span>خدمة منشورة</span></div><div><b>+</b><strong id="mx-stat-providers">—</strong><span>مقدم خدمة</span></div><div><b>27</b><strong id="mx-stat-sectors">27</strong><span>فئة وقطاع</span></div><div><b>+</b><strong id="mx-stat-ads">—</strong><span>إعلان معروض</span></div><div><b>24/7</b><strong>24/7</strong><span>دعم وتجربة رقمية</span></div></section>
-<section class="mx-ref-categories" id="mx-categories"><div class="mx-ref-section-head"><div><span>دليل القطاعات</span><h2>استكشف الخدمات حسب القطاع</h2><p>27 قطاعًا — بيانات حية عند توفرها، وبطاقات نموذجية عند عدم وجود بيانات منشورة.</p></div><strong class="mx-ref-count" id="mx-sector-count">27</strong></div><div class="mx-ref-category-grid" id="mx-category-grid">${initialCategoryTiles}</div><div class="mx-category-actions"><button type="button" class="mx-ref-outline" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات ←</button></div></section>
-<section class="mx-public-module-hub" id="mx-module-hub" aria-labelledby="mx-module-hub-title">
-<div class="mx-public-module-hub__copy"><span class="mx-public-module-hub__eyebrow">MANTIQATIX PLATFORM TOUR</span><h2 id="mx-module-hub-title">استكشف موديولات المنصة بالكامل</h2><p>تعرّف على أقسام المنصة ومساراتها من خلال معاينة تفاعلية واضحة أنها تجريبية. البيانات والإجراءات داخل المعاينة ليست معاملات إنتاجية.</p><div class="mx-public-module-hub__actions"><a class="mx-public-module-hub__primary" href="preview/dashboard.html">استكشف جميع الموديولات ←</a><a class="mx-public-module-hub__secondary" href="preview/index.html">ابدأ الجولة التفاعلية</a><a class="mx-public-module-hub__secondary" href="preview/restaurants.html">جرّب مساحة المطاعم والكافيهات</a></div><small>معاينة توضيحية — لا تنشئ طلبات أو مدفوعات حقيقية</small></div>
-<div class="mx-public-module-hub__visual" aria-hidden="true"><div class="mx-public-module-hub__tile"><span>01</span><b>الخدمات والقطاعات</b></div><div class="mx-public-module-hub__tile"><span>02</span><b>الطلبات والعمليات</b></div><div class="mx-public-module-hub__tile"><span>03</span><b>التسويق والإعلان</b></div><div class="mx-public-module-hub__tile"><span>04</span><b>الحسابات والإدارة</b></div></div>
 </section>
+<section class="mx-ref-provider-section"><div class="mx-ref-section-head"><div><span>مقدمو الخدمات</span><h2>خدمات من جهات منشورة على المنصة</h2></div><button type="button" class="mx-ref-text-btn">← عرض الكل</button></div><div class="mx-ref-provider-grid" id="mx-provider-grid"><div class="mx-ref-loading-card" aria-live="polite"><b>جارٍ تحميل مقدمي الخدمات</b><span>سيتم عرض الجهات المنشورة والفعالة فقط.</span></div></div></section>
+<section class="mx-ref-stats"><div><b>4</b><strong id="mx-stat-sectors">4</strong><span>قطاعات متاحة حاليًا</span></div><div><b>+</b><strong id="mx-stat-services">—</strong><span>خدمات منشورة</span></div><div><b>+</b><strong id="mx-stat-providers">—</strong><span>أنشطة منشورة</span></div></section>
+<section class="mx-ref-categories" id="mx-categories"><div class="mx-ref-section-head"><div><span>القطاعات المتاحة حاليًا</span><h2>استكشف الخدمات حسب القطاع</h2><p>ابدأ بأربعة قطاعات أساسية. بقية موديولات المنصة محفوظة للمرحلة التالية.</p></div><strong class="mx-ref-count" id="mx-sector-count">4</strong></div><div class="mx-ref-category-grid" id="mx-category-grid">${initialCategoryTiles}</div><div class="mx-category-actions"><button type="button" class="mx-ref-outline" id="mx-category-toggle" aria-expanded="false">عرض جميع القطاعات ←</button></div></section>
+
 <section class="mx-ref-live-info" id="mx-about">
 <div class="mx-ref-section-head"><div><span>عن MantiqatiX</span><h2>منصة واحدة لاكتشاف الخدمات والتواصل معها</h2><p>نربط العملاء بمقدمي الخدمات والأنشطة المنشورة على المنصة، مع عرض البيانات الفعلية المتاحة فقط.</p></div></div>
 <div class="mx-ref-live-info__grid">
@@ -222,10 +221,7 @@
 </div>
 <div class="mx-ref-live-info__actions"><button type="button" class="mx-ref-primary" id="mx-about-search">ابدأ البحث الآن</button><button type="button" class="mx-ref-outline" id="mx-about-add">أضف نشاطك</button></div>
 </section>
-<section class="mx-ref-digital-workspace" id="mx-digital-workspace">
-<div class="mx-ref-digital-workspace__intro"><span>مساحة نمو نشاطك</span><h2>حوّل نشاطك إلى صفحة رقمية احترافية</h2><p>اجمع نبذة نشاطك وخدماتك وأعمالك وطرق التواصل في صفحة واحدة قابلة للإدارة من حسابك.</p><div class="mx-ref-digital-workspace__features"><article><b>ملف منظم</b><span>عنوان ووصف ورابط مخصص لنشاطك.</span></article><article><b>أقسام مرنة</b><span>أضف الخدمات أو قائمة المنتجات أو معرض الأعمال.</span></article><article><b>نشر منضبط</b><span>حالة المسودة والنشر مرتبطة بصلاحيات الحساب ومتطلبات الطلب.</span></article></div><button type="button" id="mx-open-digital-editor" class="mx-ref-primary">افتح محرر الصفحات الرقمية ←</button><small>يتطلب تسجيل الدخول. لا تُنشر الصفحة تلقائيًا بمجرد حفظ المسودة.</small></div>
-<div class="mx-ref-digital-workspace__visual" aria-hidden="true"><div class="mx-ref-digital-workspace__mock"><span>MantiqatiX</span><i></i><i></i><i></i><b>صفحة نشاطك</b><small>خدمات · أعمال · تواصل</small></div></div>
-</section>
+
 <section class="mx-ref-live-state" aria-live="polite">
 <div><span>التقييمات والشراكات</span><h2>بيانات موثوقة فقط</h2><p>لن نعرض تقييمات عملاء أو شعارات شركاء أو روابط متاجر غير موثقة. ستظهر هذه البيانات تلقائيًا عند توفر مصدرها واعتماده داخل المنصة.</p></div>
 </section>
@@ -349,6 +345,12 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
       const label=item[1], desc=item[2], key=normCode(code), dataKey=dataCategoryCode(code);
       const app=document.getElementById('app'); if(!app)return;
+      if(!LAUNCH_SECTOR_CODES.includes(key)){
+        try{history.replaceState({},document.title,location.pathname+location.search+'#mx-home');}catch(_){}
+        app.innerHTML='<main class="mx-category-page" dir="rtl"><section class="mx-category-page__section"><h1>القسم غير متاح في الإطلاق الحالي</h1><p>نبدأ حاليًا بالمطاعم والكافيهات والأطباء والعيادات والصيدليات والمتاجر. بقية الأقسام محفوظة للمرحلة التالية.</p><button type="button" class="btn btn-primary" id="mx-return-launch-home">العودة للرئيسية</button></section></main>';
+        document.getElementById('mx-return-launch-home')?.addEventListener('click',()=>window.MXHomeLanding?.());
+        return;
+      }
       try{if(location.hash!=='#category/'+encodeURIComponent(key))history.pushState({category:key},'', location.pathname+location.search);}catch(_){}
       if(key==='MANTIGO'){
         const app=document.getElementById('app'); if(!app)return;
@@ -927,19 +929,11 @@ const categoryGrid=document.getElementById('mx-category-grid');
           const el=document.getElementById(id);
           if(el) el.hidden = id==='mx-services' ? !homeSectionEnabled('SERVICE_CATALOG') : id==='mx-offers' ? !homeSectionEnabled('ADVERTISEMENTS') : !homeSectionEnabled('MARKETING');
         });
-        let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(12);
-        let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE').order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
+        let serviceQuery=sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,description').eq('status','ACTIVE').in('category_code',LAUNCH_SECTOR_CODES).order('created_at',{ascending:false}).limit(12);
+        let providerQuery=sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('status','ACTIVE').in('provider_kind',LAUNCH_SECTOR_CODES).order('is_featured',{ascending:false}).order('ranking_weight',{ascending:false}).limit(12);
         if(categoryCode){ const code=normCode(categoryCode); serviceQuery=serviceQuery.eq('category_code',code); providerQuery=providerQuery.eq('provider_kind',code); } else if(safeTerm){ serviceQuery=serviceQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%'); providerQuery=providerQuery.or('name_ar.ilike.%'+safeTerm+'%,name_en.ilike.%'+safeTerm+'%,description.ilike.%'+safeTerm+'%')}
         const adCoords=window.MNTYLocationAdapter?.state?.coords||null;
-        const adsPromise=sb.rpc('get_mnty_targeted_advertisements',{
-          p_country_code:'EG',
-          p_governorate_code:null,
-          p_center_code:null,
-          p_lat:adCoords?.latitude??null,
-          p_lon:adCoords?.longitude??null,
-          p_ad_space_id:'HOME_SPONSORED',
-          p_limit:4
-        });
+        const adsPromise=Promise.resolve({data:[],error:null});
         const [servicesRes,providersRes,adsRes]=await Promise.allSettled([serviceQuery,providerQuery,adsPromise]);
         if(servicesRes.status!=='fulfilled' || servicesRes.value?.error) throw (servicesRes.status==='fulfilled'?servicesRes.value.error:new Error('تعذر تحميل الخدمات'));
         if(providersRes.status!=='fulfilled' || providersRes.value?.error) throw (providersRes.status==='fulfilled'?providersRes.value.error:new Error('تعذر تحميل مقدمي الخدمات'));
@@ -953,9 +947,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         renderServices(services,term);renderProviders(providers,term);
         const adsData=adsRes.status==='fulfilled' && !adsRes.value?.error ? (adsRes.value.data||[]) : [];
         updateHomepageLiveStats({services,providers:providersRes.value?.data||[],ads:adsData});
-        if(adsData.length) renderTargetedAds(adsData);
-        else { renderSideTargetedAd([]); renderSponsored(providers); }
-        if(adsRes.status!=='fulfilled' || adsRes.value?.error) console.warn('[MantiqatiX home] ads load failed; catalog results kept visible',adsRes.value?.error||adsRes.reason);
+        // Paid advertising surfaces are deferred from the initial launch; do not query or render them here.
         status.textContent='مباشر · '+(services.length+providers.length)+' نتيجة';
         const activeTerm=String(term||'').trim();
         if(searchContext) searchContext.textContent=activeTerm?'نتائج البحث عن «'+activeTerm.slice(0,60)+'» من الكتالوج المنشور.':'استكشف الخدمات ومقدمي الخدمات المنشورين على المنصة.';
@@ -1028,7 +1020,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
     const showSearchSuggestions=()=>{
       if(!searchSuggestions||!searchInput)return;
       const term=String(searchInput.value||'').trim().toLowerCase();
-      const categorySuggestions=TAXONOMY.filter(x=>!term||String(x[1]).toLowerCase().includes(term)||String(x[2]).toLowerCase().includes(term)).slice(0,4);
+      const categorySuggestions=launchTaxonomy().filter(x=>!term||String(x[1]).toLowerCase().includes(term)||String(x[2]).toLowerCase().includes(term)).slice(0,4);
       const liveSuggestions=[...(window.__MNTY_HOME_SERVICES||[]).map(x=>({label:x.name_ar||x.name_en||'',desc:'خدمة منشورة',type:'service'})),...(window.__MNTY_HOME_PROVIDERS||[]).map(x=>({label:x.name_ar||x.name_en||'',desc:'مقدم خدمة منشور',type:'provider'}))]
         .filter(x=>x.label&&String(x.label).toLowerCase().includes(term)).slice(0,4);
       if(!term||(!categorySuggestions.length&&!liveSuggestions.length)){closeSearchSuggestions();return;}
@@ -1083,6 +1075,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const sb=getClient(); if(!sb) throw new Error('NO_CLIENT');
         const r=await sb.from('marketing_provider_profiles').select('id,business_id,name_ar,name_en,provider_kind,description,service_areas,status,is_verified,is_featured,ranking_weight,profile_image_path,settings,updated_at').eq('id',decodeURIComponent(id)).eq('status','ACTIVE').maybeSingle();
         if(r.error||!r.data) throw (r.error||new Error('NOT_FOUND'));
+        if(!LAUNCH_SECTOR_CODES.includes(publicCategoryCode(r.data.provider_kind))){try{history.replaceState({},document.title,location.pathname+location.search+'#mx-home');}catch(_){};window.MXHomeLanding?.();return;}
         openProviderProfilePage(r.data,'');
       }catch(_){ loadData(); }
     };

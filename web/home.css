@@ -4218,3 +4218,11 @@ body{font-family:Tajawal,Inter,Arial,sans-serif!important}
 .mx-public-module-hub__actions a:focus-visible{outline:3px solid #70b7ff;outline-offset:3px}
 @media(max-width:760px){.mx-public-module-hub{grid-template-columns:1fr;gap:22px;margin:24px 12px;padding:22px}.mx-public-module-hub__visual{transform:none}.mx-public-module-hub__tile{min-height:94px}.mx-public-module-hub__actions{flex-direction:column}.mx-public-module-hub__actions a{width:100%}}
 @media(prefers-reduced-motion:reduce){.mx-public-module-hub__actions a{transition:none}.mx-public-module-hub__actions a:hover{transform:none}}
+
+/* Launch MVP: four selected sectors only. */
+.mx-ref-home .mx-ref-category-bar{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mx-ref-home .mx-ref-category-bar .mx-ref-category{min-width:0}
+.mx-ref-home .mx-ref-category-bar .mx-ref-category b{font-size:12px}
+.mx-ref-home .mx-ref-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.mx-ref-home #mx-category-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:700px){.mx-ref-home .mx-ref-category-bar{grid-template-columns:repeat(2,minmax(0,1fr))}.mx-ref-home #mx-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mx-ref-home .mx-ref-stats{grid-template-columns:1fr}}
