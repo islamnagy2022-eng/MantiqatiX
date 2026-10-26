@@ -1892,3 +1892,18 @@ This PASS covers the isolated browser simulator only; it does not certify produc
 - Connected DEMO remains behind Draft PR #376 and is not deployed publicly. Google OAuth provider/redirect configuration and real authenticated end-to-end login remain NOT VERIFIED.
 - Anonymous catalog read is still a blocker: DEMO RLS currently allows anonymous SELECT only on explicitly showcased businesses, not catalog items, prices, or branches. Do not weaken RLS to make the UI work. Build a tightly filtered read-only public showcase endpoint and test it, or require authentication until that safe path is complete.
 - Public link currently available to test is the existing localStorage simulator only: https://islamnagy2022-eng.github.io/MantiqatiX/preview/four-sector-demo/
+
+
+## DEMO pre-launch gate recheck — 2026-10-26 (read-only)
+- [x] Rechecked the current main SHA (cf493ea38ab46af3356e6dcf750912616598a9b1) and confirmed web/config.js still points to LIVE (moyhiluyhjsujhwlyeuu).
+- [x] Rechecked connected DEMO PR #376 as Draft at code head 9ea512435c8a5b0477be37d2cc7212ececb35e96. The four-sector UI PR #378 is separate and still has the production config; do not treat it as the DEMO root switch.
+- [x] Read-only Supabase verification: DEMO project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY; seven DEMO Edge Functions are ACTIVE with JWT verification enabled.
+- [x] Read-only data counts: auth.users, businesses, branches, catalog items, prices, orders, medical appointments and memberships are all 0. No fabricated test users or writes were created.
+- [x] Exact-head run [40271831176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831176) passed connected DEMO source/scope and contract tests plus live non-mutating allowed/denied CORS and unauthenticated POST rejection for seven endpoints.
+- [x] Pages PR run [40271831245](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831245) validated the PR, but its deploy job was skipped on the pull_request event. The connected route remains unpublished.
+- [ ] Configure DEMO Google Provider credentials and redirect allowlists in Supabase Auth and the dedicated Google OAuth client; execute real sign-in/callback/session/logout via the final published DEMO route.
+- [ ] Run authenticated end-to-end tests for business creation, catalog item/price creation and edit, tenant isolation across two real users, order creation/status updates, appointment privacy/conflict/future-time guards and role separation.
+- [ ] Reconcile the standard migration history (seven visible targeted entries) with the internal baseline/manually applied history before any CLI migration push/replay.
+- [ ] Complete function-by-function review of remaining SECURITY DEFINER Advisor findings; do not use blanket revokes. Retain current payment-off and production isolation boundaries.
+- [ ] Publish connected DEMO only through separately reviewed release steps after all above gates pass. Root is still not switched; production web/config.js is intentionally unchanged in this checkpoint. No merge, LIVE mutation or deployment occurred.
+- Gate: DEMO code/CI and restricted endpoint smoke = PASS; authenticated database workflow = BLOCKED / NOT VERIFIED; root DEMO deployment = NOT DONE; LIVE release = BLOCKED / NOT CERTIFIED.
