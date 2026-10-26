@@ -1883,3 +1883,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Backup/restore rehearsal and final migration reconciliation before LIVE.
 
 This PASS covers the isolated browser simulator only; it does not certify production release readiness. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## Current DEMO Workspace / Public Catalog Status — 2026-10-26
+- Ordinary customer workspace is restricted to the homepage/catalog UI in connected DEMO; no owner/admin controls or customer order-history navigation are rendered.
+- Owner workspace requires an active business membership; platform workspace requires the server-authorized platform owner membership.
+- Contract + isolation tests PASS on `256e71f9cfbf2d26352faf56c30a702359a7be13`: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271703639
+- Connected DEMO remains behind Draft PR #376 and is not deployed publicly. Google OAuth provider/redirect configuration and real authenticated end-to-end login remain NOT VERIFIED.
+- Anonymous catalog read is still a blocker: DEMO RLS currently allows anonymous SELECT only on explicitly showcased businesses, not catalog items, prices, or branches. Do not weaken RLS to make the UI work. Build a tightly filtered read-only public showcase endpoint and test it, or require authentication until that safe path is complete.
+- Public link currently available to test is the existing localStorage simulator only: https://islamnagy2022-eng.github.io/MantiqatiX/preview/four-sector-demo/
