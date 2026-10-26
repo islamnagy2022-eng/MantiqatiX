@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { FloatingAppInstallButton } from './common/FloatingAppInstallButton';
 import {
   Store,
   LayoutDashboard,
@@ -37,15 +38,15 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       {/* Top Banner with Platform Context */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-3 sm:px-4">
+      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-2 sm:px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               <Sparkles className="w-3 h-3 ml-1 text-emerald-400" />
               منصة MantiqatiX الذكية
             </span>
             <div
-              className="mantiqati-ticker min-w-0 flex-[1_1_280px] overflow-hidden text-slate-300"
+              className="mantiqati-ticker min-w-0 flex-1 overflow-hidden text-slate-300"
               aria-label="رسائل تعريفية وتسويقية عن منصة منطقتي X"
             >
               <style>{`
@@ -82,6 +83,9 @@ export const Navbar: React.FC = () => {
                 </div>
               </div>
             </div>
+            <div className="shrink-0">
+              <FloatingAppInstallButton currentBusiness={currentBusiness} />
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -115,10 +119,10 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2.5">
         <div className="flex flex-col gap-2.5">
           {/* Top Line: Logo, Context, Cart */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
             <div
               onClick={() => {
                 if (authSession.role === 'subscriber') {
@@ -127,7 +131,7 @@ export const Navbar: React.FC = () => {
                   setCurrentView('directory');
                 }
               }}
-              className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0"
+              className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
               title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-black text-sm">
@@ -165,13 +169,13 @@ export const Navbar: React.FC = () => {
                 </select>
               </div>
             ) : (
-              <div className="text-xs font-bold text-slate-800 truncate max-w-[200px] sm:max-w-xs bg-slate-100 px-3 py-1 rounded-xl border border-slate-200">
+              <div className="text-[11px] sm:text-xs font-bold text-slate-800 truncate max-w-[100px] sm:max-w-xs bg-slate-100 px-2 sm:px-3 py-1 rounded-xl border border-slate-200">
                 <span className="truncate">{currentBusiness?.name}</span>
               </div>
             )}
 
             {/* Top Left Actions: Request Catalog Button + Shopping Cart */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
               {/* Mandatory Requirement:
                   "زر طلب كتالوج النشاط يكون بالاعلي على الشمال بجوار السلة" */}
               <a
@@ -182,7 +186,7 @@ export const Navbar: React.FC = () => {
                 title="طلب الكتالوج الرسمي للنشاط عبر واتساب إدارة MantiqatiX"
               >
                 <FileText className="w-3.5 h-3.5 text-slate-950" />
-                <span>طلب كتالوج النشاط</span>
+                <span className="hidden sm:inline">طلب كتالوج النشاط</span>
                 <ExternalLink className="w-3 h-3 opacity-75 hidden sm:inline" />
               </a>
 
@@ -196,7 +200,7 @@ export const Navbar: React.FC = () => {
                 title="فتح مشروع MantiqatiX للتسويق الإلكتروني"
               >
                 <Megaphone className="w-3.5 h-3.5 text-amber-300" />
-                <span>تسويق</span>
+                <span className="hidden sm:inline">تسويق</span>
               </button>
 
               {/* Shopping Cart Button */}
@@ -228,7 +232,7 @@ export const Navbar: React.FC = () => {
 
           {/* Bottom Line: Accessible View Mode Tabs */}
           <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
-            <nav className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
+            <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
               {/* Directory Home Tab */}
               <button
                 onClick={() => setCurrentView('directory')}

@@ -8,7 +8,6 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { DirectoryView } from './components/DirectoryView';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
-import { FloatingAppInstallButton } from './components/common/FloatingAppInstallButton';
 import { MessageCircle } from 'lucide-react';
 
 const MainContent: React.FC = () => {
@@ -52,7 +51,6 @@ const MainContent: React.FC = () => {
 
       <CartDrawer />
       <LoginModal />
-      <FloatingAppInstallButton currentBusiness={currentBusiness} />
 
       {/* Modern MantiqatiX Footer */}
       <footer className="bg-white border-t border-slate-200 mt-auto py-8">
