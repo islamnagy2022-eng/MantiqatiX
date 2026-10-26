@@ -21,8 +21,6 @@ import {
   Store,
   Users,
   KeyRound,
-  Eye,
-  EyeOff,
   Share2,
   Lock,
   Download,
@@ -353,11 +351,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const togglePasswordVisibility = (subId: string) => {
-    setShowPasswordMap((prev) => ({ ...prev, [subId]: !prev[subId] }));
-  };
-
-  return (
+    return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Admin Header */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -1378,20 +1372,7 @@ export const AdminDashboard: React.FC = () => {
                           {sub.username || sub.email.split('@')[0]}
                         </td>
 
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
-                              {isVisible ? sub.password || 'غير محددة' : '••••••••'}
-                            </span>
-                            <button
-                              onClick={() => togglePasswordVisibility(sub.id)}
-                              className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                              title={isVisible ? 'إخفاء' : 'إظهار كلمة المرور'}
-                            >
-                              {isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </td>
+
 
                         <td className="py-3.5 px-4">
                           <span
@@ -1570,7 +1551,7 @@ export const AdminDashboard: React.FC = () => {
               النسخ الاحتياطي واستعادة قاعدة بيانات MantiqatiX
             </h3>
             <p className="text-xs text-slate-500">
-              تصدير واستيراد كامل لكافة المشتركين، كلمات المرور، الأنشطة، الكتالوجات (حتى 150 صنف)، والتصنيف الوظيفي.
+              تصدير واستيراد بيانات المشتركين والأنشطة، الكتالوجات (حتى 150 صنف)، والتصنيف الوظيفي.
             </p>
           </div>
 
@@ -1593,7 +1574,7 @@ export const AdminDashboard: React.FC = () => {
                 <span>تصدير نسخة احتياطية (Export JSON)</span>
               </h4>
               <p className="text-xs text-amber-900 leading-relaxed">
-                حفظ ملف JSON كامل على جهازك يشمل كافة بيانات الأنشطة، المشتركين، كلمات المرور السرية، والعمولات.
+                حفظ ملف JSON كامل على جهازك يشمل بيانات الأنشطة والمشتركين والعمولات.
               </p>
               <div className="flex gap-2">
                 <button
@@ -1705,20 +1686,6 @@ export const AdminDashboard: React.FC = () => {
                   value={subEmail}
                   onChange={(e) => setSubEmail(e.target.value)}
                   placeholder="ahmed@example.com"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  
-                </label>
-                <input
-                  type="text"
-                  dir="ltr"
-                  value={subUsername}
-                  onChange={(e) => setSubUsername(e.target.value)}
-                  placeholder="مثال: ahmed_store"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
                 />
               </div>
