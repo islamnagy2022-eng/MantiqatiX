@@ -217,3 +217,17 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-26 — DEMO-first four-sector scope and isolated web simulator
+
+- **User decision:** freeze new product scope to restaurants/cafes, pharmacies, doctors/clinics, and stores. Finish DEMO first; only merge and release in controlled stages after tests. Do not start a new platform or rebuild existing working code.
+- **Backup points given to user before new changes:** repository main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`, PR #374 head `1929e77347f561a7f554bfb61a49177bebc1f1e9`, and PR #375 head `059155ff3ddee31a4f76b98c31390f91504c276a`, each accessible as a GitHub ZIP snapshot.
+- **Created branch:** `demo/four-sector-isolated-20261026`, starting at main `2a6b5a5209ae86815046c91fd3d3e35525361528`. No merge, production deploy, production database write, migration, or Edge Function deployment occurred.
+- **Implemented in branch:** standalone entrypoint `web/demo/index.html`, stylesheet `web/demo/demo.css`, and local-only simulator `web/demo/demo.js`. It supports account creation in the browser, activities in the four sectors, product/service catalog and price/stock edits, demo order/appointment creation, a bounded order-status state machine, and local role views for owner/manager/staff/customer.
+- **Isolation contract:** demo uses only `MANTIQATIX_DEMO_DB_V1` and `MANTIQATIX_DEMO_SESSION_V1` in the current browser localStorage. No production config or Supabase SDK is imported, no remote API is called, and no real payment or external message is sent. The simulator explicitly warns that local role checks are not server-side Auth/RLS evidence.
+- **Ready-made local logins:** `owner@demo.mantiqatix`, `manager@demo.mantiqatix`, `staff@demo.mantiqatix`, `customer@demo.mantiqatix`; password `Demo123!`.
+- **Verification:** dedicated workflow `MantiqatiX DEMO Isolation` run [40260016567](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40260016567) passed JavaScript syntax and 14 static isolation/scope assertions on code/workflow head `6f9a43310d7b1e7710662e3640ff63f66ea6f267`. Documentation commit(s) after this check did not change the simulator files. No browser E2E or real database/RLS test is claimed.
+- **Supabase environment check:** the connected `manteqti` organization is on Free; there is one production project. `get_cost(type=project)` returned `$0/month` for a new project. The project has not been created; user must explicitly choose/confirm the target organization before project creation. No paid branch was created.
+- **Next actions:** review/validate the local simulator, open a draft PR, then—after user confirms the `manteqti` organization—create a separately isolated Free Supabase project if its creation flow still quotes $0. Reapply an authoritative migration chain and synthetic fixtures only in that project, then test Auth/RLS/tenant/branch isolation and end-to-end sector flows before considering LIVE.
+- **Release status:** DEMO simulator source validation PASS; full database-backed DEMO and LIVE remain BLOCKED / NOT CERTIFIED.
