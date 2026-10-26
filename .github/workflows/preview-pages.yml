@@ -33,7 +33,7 @@ jobs:
           test -n "$changed"
           while IFS= read -r path; do
             case "$path" in
-              web/preview/*|.github/workflows/preview-pages.yml|.github/workflows/preview-demo-validation.yml|scripts/validate-preview-navigation.mjs) ;;
+              web/preview/*|.github/workflows/preview-pages.yml|.github/workflows/preview-demo-validation.yml|.github/workflows/pages.yml|scripts/validate-preview-navigation.mjs) ;;
               *) echo "Refusing preview-only deployment: unexpected changed path: $path"; exit 1 ;;
             esac
           done <<< "$changed"
