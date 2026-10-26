@@ -1,0 +1,89 @@
+name: Primary Catalog Frontend Release
+
+on:
+  push:
+    branches: [main, production/new-catalog-frontend]
+    paths:
+      - ".release-transfer/parts/frontend/**"
+      - ".github/workflows/primary-catalog-frontend.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".release-transfer/parts/frontend/**"
+      - ".github/workflows/primary-catalog-frontend.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: primary-catalog-frontend-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/catalog-frontend/package.json
+      - name: Reassemble frontend archive
+        run: |
+          set -euo pipefail
+          test -d .release-transfer/parts/frontend
+          cat .release-transfer/parts/frontend/*.xz > /tmp/catalog-frontend.tar.xz
+          mkdir -p apps/catalog-frontend
+          tar -tJf /tmp/catalog-frontend.tar.xz >/dev/null
+          tar -xJf /tmp/catalog-frontend.tar.xz -C apps/catalog-frontend
+          test -s apps/catalog-frontend/package.json
+          test -s apps/catalog-frontend/public/config.js
+      - name: Install dependencies
+        working-directory: apps/catalog-frontend
+        run: npm install --no-audit --no-fund
+      - name: TypeScript check
+        working-directory: apps/catalog-frontend
+        run: npm run lint
+      - name: Build production assets
+        working-directory: apps/catalog-frontend
+        run: npm run build
+      - name: Verify release files
+        run: |
+          test -s apps/catalog-frontend/dist/index.html
+          test -s apps/catalog-frontend/dist/config.js
+          grep -q '/MantiqatiX/' apps/catalog-frontend/dist/index.html
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: primary-catalog-frontend-dist
+          path: apps/catalog-frontend/dist
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download verified build
+        uses: actions/download-artifact@v4
+        with:
+          name: primary-catalog-frontend-dist
+          path: dist
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy primary catalog frontend
+        id: deployment
+        uses: actions/deploy-pages@v4
