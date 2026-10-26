@@ -80,8 +80,12 @@ Deno.serve(async (req: Request) => {
 
     if (action === "BUSINESS_LIST") {
       if (!hasPlatformScope) return out(origin, { error: "SUPER_ADMIN_REQUIRED" }, 403);
+      const platformTenants = [...new Set(activeMemberships.filter(isPlatformAdmin).map((m: any) => String(m.tenant_id)))];
+      if (tenantId && !platformTenants.includes(tenantId)) return out(origin, { error: "TENANT_SCOPE_FORBIDDEN" }, 403);
+      if (!platformTenants.length) return out(origin, { businesses: [] });
       let query = service.from("businesses")
         .select("id,tenant_id,organization_id,name,code,status,settings")
+        .in("tenant_id", platformTenants)
         .order("name", { ascending: true })
         .limit(250);
       if (tenantId) query = query.eq("tenant_id", tenantId);
