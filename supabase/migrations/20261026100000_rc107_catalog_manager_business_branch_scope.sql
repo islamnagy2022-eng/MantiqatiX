@@ -984,3 +984,6 @@ $function$;
 REVOKE ALL ON FUNCTION public.create_catalog_warehouse_backend(character varying, uuid, character varying, character varying, character varying) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.create_catalog_warehouse_backend(character varying, uuid, character varying, character varying, character varying) TO authenticated;
 
+
+REVOKE ALL ON FUNCTION public.upsert_catalog_settings_backend(character varying, uuid, character varying, numeric, boolean, boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_settings_backend(character varying, uuid, character varying, numeric, boolean, boolean) TO authenticated;
