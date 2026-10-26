@@ -101,6 +101,7 @@ Deno.serve(async (req: Request) => {
         db.from("catalog_item_prices")
           .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
           .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
+          .or(`branch_id.is.null,branch_id.eq.${branchId}`)
           .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
           .order("version", { ascending: false }),
         db.from("catalog_item_options")
