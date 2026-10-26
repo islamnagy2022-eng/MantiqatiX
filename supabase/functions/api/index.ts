@@ -239,19 +239,35 @@ export function createApiHandler(deps: {
   if (req.method === "GET" && orderMatch) {
     const { data: order, error } = await supabaseAdmin.from("orders").select("*").eq("id", orderMatch[1]).single()
     if (error || !order) return json({ error: "Order not found" }, 404)
-    const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions,business_id")
-      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
-    const operationalOrderRead =
-      ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"].includes(role) ||
-      permissions.includes("ORDER_READ_ALL")
-    const providerOrderRead =
-      role === "SERVICE_PROVIDER" &&
+
+    // Load every active membership for this tenant. Selecting one arbitrary row
+    // can accidentally authorize a request using a membership for another business.
+    const { data: memberships, error: membershipError } = await supabaseAdmin.from("user_memberships")
+      .select("id,role,permissions,business_id,branch_id")
+      .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE")
+    if (membershipError) return json({ error: "Failed to validate order access" }, 500)
+
+    const operationalRoles = ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","STAFF","CASHIER","DELIVERY_PARTNER"]
+    const scopedMemberships = (memberships ?? []).filter((membership: any) => {
+      const businessMatches =
+        membership.business_id == null || String(membership.business_id) === String(order.business_id)
+      const branchMatches =
+        membership.branch_id == null || String(membership.branch_id) === String(order.branch_id)
+      return businessMatches && branchMatches
+    })
+    const operationalOrderRead = scopedMemberships.some((membership: any) => {
+      const role = String(membership.role ?? "").toUpperCase()
+      const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+      return operationalRoles.includes(role) || permissions.includes("ORDER_READ_ALL")
+    })
+    const providerOrderRead = scopedMemberships.some((membership: any) =>
+      String(membership.role ?? "").toUpperCase() === "SERVICE_PROVIDER" &&
       !!membership.business_id &&
       String(membership.business_id) === String(order.business_id)
-    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) return json({ error: "Forbidden" }, 403)
+    )
+    if (order.customer_id !== user.id && !operationalOrderRead && !providerOrderRead) {
+      return json({ error: "Forbidden" }, 403)
+    }
     return json(order)
   }
 
