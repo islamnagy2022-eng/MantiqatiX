@@ -115,7 +115,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     tenantId: String(raw.tenantId || raw.tenant_id || ''),
     branchId: String(branch.id || raw.branchId || raw.selectedBranchId || ''),
     organizationId: String(raw.organizationId || raw.organization_id || ''),
-    publicEnabled: Boolean(raw.publicEnabled ?? raw.settings?.catalog_public_enabled),
+    publicEnabled: Boolean(raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
     businessCode: String(raw.code || ''),
   } as Business;
 }
