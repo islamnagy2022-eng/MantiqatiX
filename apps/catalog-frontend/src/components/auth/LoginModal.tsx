@@ -27,7 +27,6 @@ export const LoginModal: React.FC = () => {
     try {
       const result = await loginWithGoogle();
       if (!result.success) setErrorMsg(result.error || 'تعذر بدء تسجيل الدخول باستخدام Google.');
-      else if (result.message) setSuccessMsg(result.message);
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : 'تعذر بدء تسجيل الدخول باستخدام Google.');
     } finally {
