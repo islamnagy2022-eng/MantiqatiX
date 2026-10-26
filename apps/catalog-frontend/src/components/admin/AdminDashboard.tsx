@@ -21,8 +21,6 @@ import {
   Store,
   Users,
   KeyRound,
-  Eye,
-  EyeOff,
   Share2,
   Lock,
   Download,
@@ -115,22 +113,15 @@ export const AdminDashboard: React.FC = () => {
   const [isSubModalOpen, setIsSubModalOpen] = useState(false);
   const [subName, setSubName] = useState('');
   const [subEmail, setSubEmail] = useState('');
-  const [subUsername, setSubUsername] = useState('');
-  const [subPassword, setSubPassword] = useState('');
-  const [subAuthMethod, setSubAuthMethod] = useState<'direct_password' | 'gmail_invite'>('direct_password');
   const [subPhone, setSubPhone] = useState('');
   const [subBizId, setSubBizId] = useState(businesses[0]?.id || '');
   const [subNotes, setSubNotes] = useState('');
-
-  // Password visibility map
-  const [showPasswordMap, setShowPasswordMap] = useState<Record<string, boolean>>({});
 
   // Credentials copied popup/feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [createdCredentialsCard, setCreatedCredentialsCard] = useState<{
     name: string;
-    username: string;
-    pass: string;
+    email: string;
     bizName: string;
     text: string;
   } | null>(null);
@@ -234,51 +225,39 @@ export const AdminDashboard: React.FC = () => {
   const totalBusinesses = businesses.length;
   const totalCatalogItems = products.length;
 
-  const generateRandomPassword = () => {
-    // 16+ chars; the server also enforces a minimum length of 10.
-    setSubPassword(`${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}aB7!`);
-  };
-
   const handleAddSubscriber = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subName.trim() || !subEmail.trim()) return;
 
     const assignedBiz = businesses.find((b) => b.id === subBizId);
-    // Supabase password authentication uses the subscriber's email as the login identifier.
-    const chosenUsername = subEmail.trim().toLowerCase();
-    const chosenPassword = subPassword.trim() || (crypto.randomUUID().replace(/-/g, '').slice(0, 12) + 'A7!');
-    if (chosenPassword.length < 10) { window.alert('كلمة المرور يجب ألا تقل عن 10 أحرف.'); return; }
-
+    const email = subEmail.trim().toLowerCase();
     try {
-    const created = await addSubscriber({
-      fullName: subName,
-      email: subEmail,
-      phone: subPhone,
-      businessId: subBizId,
-      username: chosenUsername,
-      password: chosenPassword,
-      authMethod: subAuthMethod,
-      notes: subNotes,
-    });
+      const created = await addSubscriber({
+        fullName: subName,
+        email,
+        phone: subPhone,
+        businessId: subBizId,
+        username: email,
+        authMethod: 'gmail_invite',
+        notes: subNotes,
+      });
 
-    const credText = getSubscriberCredentialsText(created.id);
-    setCreatedCredentialsCard({
-      name: subName,
-      username: chosenUsername,
-      pass: chosenPassword,
-      bizName: assignedBiz?.name || 'نشاط جديد',
-      text: credText,
-    });
+      const credText = getSubscriberCredentialsText(created.id);
+      setCreatedCredentialsCard({
+        name: subName,
+        email,
+        bizName: assignedBiz?.name || 'نشاط جديد',
+        text: credText,
+      });
 
-    // Reset form
-    setSubName('');
-    setSubEmail('');
-    setSubUsername('');
-    setSubPassword('');
-    setSubPhone('');
-    setSubNotes('');
-    setIsSubModalOpen(false);
-    } catch (error) { window.alert(error instanceof Error ? error.message : 'تعذر إنشاء حساب المشترك.'); }
+      setSubName('');
+      setSubEmail('');
+      setSubPhone('');
+      setSubNotes('');
+      setIsSubModalOpen(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر حفظ اشتراك المشترك في Supabase.');
+    }
   };
 
   const handleAddBusiness = async (e: React.FormEvent) => {
@@ -372,11 +351,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const togglePasswordVisibility = (subId: string) => {
-    setShowPasswordMap((prev) => ({ ...prev, [subId]: !prev[subId] }));
-  };
-
-  return (
+    return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Admin Header */}
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -411,12 +386,11 @@ export const AdminDashboard: React.FC = () => {
           <button
             onClick={() => {
               setIsSubModalOpen(true);
-              generateRandomPassword();
             }}
             className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>تعيين مشترك وباسورد</span>
+            <span>تعيين مشترك</span>
           </button>
 
           <button
@@ -435,7 +409,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-emerald-950 font-black text-base">
               <CheckCircle2 className="w-6 h-6 text-emerald-600" />
-              <span>تم تعيين المشترك وكلمة المرور وتفعيل حسابه مباشرة على MantiqatiX!</span>
+              <span>تم حفظ ربط المشترك بالنشاط في Supabase.</span>
             </div>
             <button
               onClick={() => setCreatedCredentialsCard(null)}
@@ -445,7 +419,7 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-4 rounded-2xl border border-emerald-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-2xl border border-emerald-200">
             <div>
               <span className="text-[11px] text-slate-400 font-bold block">اسم المشترك والنشاط:</span>
               <span className="text-sm font-black text-slate-900">
@@ -454,35 +428,29 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div>
-              <span className="text-[11px] text-slate-400 font-bold block">اسم المستخدم / المعرف:</span>
+              <span className="text-[11px] text-slate-400 font-bold block">حساب Google المرتبط:</span>
               <span className="text-sm font-mono font-black text-emerald-700">
-                {createdCredentialsCard.username}
+                {createdCredentialsCard.email}
               </span>
             </div>
 
-            <div>
-              <span className="text-[11px] text-slate-400 font-bold block">كلمة المرور (المحددة من الإدارة):</span>
-              <span className="text-sm font-mono font-black text-slate-900 bg-amber-100 px-2 py-0.5 rounded">
-                {createdCredentialsCard.pass}
-              </span>
-            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
             <p className="text-xs text-emerald-800">
-              يمكنك نسخ النص الجاهز وإرساله للمشترك مباشرة عبر الواتساب أو تيليجرام دون الحاجة لأي دعوة بريدية.
+              أرسل للمشترك رسالة الدخول؛ عليه اختيار المتابعة باستخدام Google بنفس البريد المرتبط بالاشتراك.
             </p>
             <button
               onClick={() => {
                 if (navigator.clipboard) {
                   navigator.clipboard.writeText(createdCredentialsCard.text);
-                  alert('تم نسخ بيانات الدخول بالكامل إلى الحافظة!');
+                  alert('تم نسخ تعليمات الدخول باستخدام Google!');
                 }
               }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>نسخ رسالة الترحيب والبيانات للواتساب</span>
+              <span>نسخ تعليمات الدخول للواتساب</span>
             </button>
           </div>
         </div>
@@ -590,7 +558,7 @@ export const AdminDashboard: React.FC = () => {
           }`}
         >
           <KeyRound className="w-4 h-4 text-amber-500" />
-          <span>المشتركون وكلمات المرور ({subscribers.length})</span>
+          <span>المشتركون وحسابات Google ({subscribers.length})</span>
         </button>
 
         {/* Tab 5: Settings */}
@@ -1340,23 +1308,22 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {/* =========================================================================
-          TAB: SUBSCRIBERS & DIRECT PASSWORDS
+          TAB: SUBSCRIBERS
          ========================================================================= */}
       {activeAdminTab === 'subscribers' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-extrabold text-lg text-slate-900">
-                قائمة المشتركين وكلمات المرور المحددة من الإدارة
+                قائمة المشتركين وربط حسابات Google
               </h3>
               <p className="text-xs text-slate-500">
-                يتم عرض بيانات الدخول كاملة مرة واحدة عند إنشاء المشترك ونسخها له. لا تُخزّن كلمات المرور داخل قاعدة البيانات أو الواجهة بعد ذلك.
+                يتم ربط كل اشتراك بهوية Supabase وفق البريد الإلكتروني. تسجيل الدخول للمشتركين باستخدام Google فقط.
               </p>
             </div>
             <button
               onClick={() => {
                 setIsSubModalOpen(true);
-                generateRandomPassword();
               }}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
@@ -1372,8 +1339,8 @@ export const AdminDashboard: React.FC = () => {
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
                     <th className="py-3.5 px-4">المشترك</th>
                     <th className="py-3.5 px-4">النشاط المخصص</th>
-                    <th className="py-3.5 px-4">اسم المستخدم</th>
-                    <th className="py-3.5 px-4">كلمة المرور (المحددة)</th>
+                    <th className="py-3.5 px-4">حساب Google</th>
+                    
                     <th className="py-3.5 px-4">طريقة التعيين</th>
                     <th className="py-3.5 px-4 text-center">نسخ البيانات</th>
                     <th className="py-3.5 px-4 text-center">دعوة Gmail</th>
@@ -1383,7 +1350,6 @@ export const AdminDashboard: React.FC = () => {
                 <tbody className="divide-y divide-slate-100">
                   {subscribers.map((sub) => {
                     const assignedBiz = businesses.find((b) => b.id === sub.businessId);
-                    const isVisible = showPasswordMap[sub.id] || false;
 
                     return (
                       <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors">
@@ -1406,20 +1372,7 @@ export const AdminDashboard: React.FC = () => {
                           {sub.username || sub.email.split('@')[0]}
                         </td>
 
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
-                              {isVisible ? sub.password || 'غير محددة' : '••••••••'}
-                            </span>
-                            <button
-                              onClick={() => togglePasswordVisibility(sub.id)}
-                              className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                              title={isVisible ? 'إخفاء' : 'إظهار كلمة المرور'}
-                            >
-                              {isVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                            </button>
-                          </div>
-                        </td>
+
 
                         <td className="py-3.5 px-4">
                           <span
@@ -1598,7 +1551,7 @@ export const AdminDashboard: React.FC = () => {
               النسخ الاحتياطي واستعادة قاعدة بيانات MantiqatiX
             </h3>
             <p className="text-xs text-slate-500">
-              تصدير واستيراد كامل لكافة المشتركين، كلمات المرور، الأنشطة، الكتالوجات (حتى 150 صنف)، والتصنيف الوظيفي.
+              تصدير واستيراد بيانات المشتركين والأنشطة، الكتالوجات (حتى 150 صنف)، والتصنيف الوظيفي.
             </p>
           </div>
 
@@ -1621,7 +1574,7 @@ export const AdminDashboard: React.FC = () => {
                 <span>تصدير نسخة احتياطية (Export JSON)</span>
               </h4>
               <p className="text-xs text-amber-900 leading-relaxed">
-                حفظ ملف JSON كامل على جهازك يشمل كافة بيانات الأنشطة، المشتركين، كلمات المرور السرية، والعمولات.
+                حفظ ملف JSON كامل على جهازك يشمل بيانات الأنشطة والمشتركين والعمولات.
               </p>
               <div className="flex gap-2">
                 <button
@@ -1698,7 +1651,7 @@ export const AdminDashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="font-black text-base text-slate-900">تعيين مشترك وتحديد كلمة المرور</h3>
+              <h3 className="font-black text-base text-slate-900">ربط مشترك بحساب Google</h3>
               <button
                 onClick={() => setIsSubModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 text-xs font-bold"
@@ -1734,47 +1687,6 @@ export const AdminDashboard: React.FC = () => {
                   onChange={(e) => setSubEmail(e.target.value)}
                   placeholder="ahmed@example.com"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  اسم عرض اختياري (يظل تسجيل الدخول بالبريد الإلكتروني)
-                </label>
-                <input
-                  type="text"
-                  dir="ltr"
-                  value={subUsername}
-                  onChange={(e) => setSubUsername(e.target.value)}
-                  placeholder="مثال: ahmed_store"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
-                />
-              </div>
-
-              {/* Password field set directly by Admin */}
-              <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-black text-amber-950">
-                    كلمة المرور المحددة من الإدارة <span className="text-rose-500">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={generateRandomPassword}
-                    className="text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-200/80 px-2 py-0.5 rounded-lg cursor-pointer"
-                  >
-                    توليد كلمة مرور عشوائية
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  required
-                  minLength={10}
-                  autoComplete="new-password"
-                  dir="ltr"
-                  value={subPassword}
-                  onChange={(e) => setSubPassword(e.target.value)}
-                  placeholder="اكتب الباسورد هنا..."
-                  className="w-full bg-white border border-amber-300 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 text-right"
                 />
               </div>
 
@@ -1823,7 +1735,7 @@ export const AdminDashboard: React.FC = () => {
                   type="submit"
                   className="px-5 py-2 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md shadow-emerald-600/20 cursor-pointer"
                 >
-                  تعيين المشترك وتفعيل الحساب فوراً
+                  حفظ الاشتراك وربطه بحساب Google
                 </button>
               </div>
             </form>
