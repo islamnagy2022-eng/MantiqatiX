@@ -144,7 +144,7 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
     const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
-    return { authSession: { role: 'guest' }, businesses: directory.businesses, products: directory.products, subscribers: [], adminSettings };
+    return { authSession: { role: 'guest', authenticated: false, accessState: 'public' }, businesses: directory.businesses, products: directory.products, subscribers: [], adminSettings };
   }
 
   const { data: memberships, error } = await supabase.from('user_memberships')
@@ -155,6 +155,20 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const platformMemberships = active.filter(isPlatformAdmin);
   const roleMemberships = active.filter((m: any) => ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role || '').toUpperCase()));
   const platform = platformMemberships.length > 0;
+
+  // A verified Google identity without an active catalog-owner membership may
+  // browse public catalogs, but must not inherit owner/admin screens or data.
+  if (!platform && roleMemberships.length === 0) {
+    const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
+    return {
+      authSession: { role: 'guest', authenticated: true, accessState: 'no_active_subscription' },
+      businesses: directory.businesses,
+      products: directory.products,
+      subscribers: [],
+      adminSettings,
+    };
+  }
+
   const permittedRows: any[] = [];
 
   if (platform) {
@@ -207,7 +221,14 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
   const chosen = businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id && ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role).toUpperCase()))) || businesses[0];
   return {
-    authSession: { role, subscriberId: own?.id, businessId: chosen?.id, subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || '') },
+    authSession: {
+      role,
+      authenticated: true,
+      accessState: 'active_subscription',
+      subscriberId: own?.id,
+      businessId: chosen?.id,
+      subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || ''),
+    },
     businesses, products, subscribers, adminSettings,
   };
 }
