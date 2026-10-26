@@ -666,3 +666,12 @@ This status is intentional and must remain until the open gates above are indepe
 - DEMO migration `20261026034449` restricts `get_mnty_push_secrets()` to `service_role`. The function returns decrypted Vault secret fields; production was checked read-only and already had the same grants. DEMO currently has no matching Vault secret rows.
 - Verified effective privileges: anon=false, authenticated=false, service_role=true. The source file and internal ledger hash match. No production changes were made.
 - Standard migration history now contains three targeted DEMO migrations; historical migration reconciliation remains a blocker before any `db push`.
+
+
+
+## SECURITY DEFINER ACL reconciliation — 2026-10-26
+
+- Applied DEMO migration `20261026034707`: compared current DEMO grants to LIVE via read-only catalog queries and aligned 64 shared SECURITY DEFINER functions' `anon`/`authenticated` privileges with LIVE, preserving DEMO service_role grants. Nine DEMO-only marketing/matrimony RPCs were also made backend-only.
+- Applied DEMO migration `20261026034833`: restricted 25 out-of-scope RPCs for rides, jobs, education, notifications, and digital-page publishing to `service_role` only.
+- Post-change Security Advisor: 1 anonymous and 6 authenticated SECURITY DEFINER warnings remain (intentional public targeted-ad projection, clinic booking RPC, and authorization helpers). No blanket revoke was used; production was not modified.
+- The standard migration list now has five DEMO-only entries; internal ledger has 283 baseline entries, 35 manually executed migrations, and five new tracked DEMO migrations. Historical migration reconciliation remains required before `db push`.
