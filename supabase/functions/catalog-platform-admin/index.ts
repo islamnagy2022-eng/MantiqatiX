@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
     };
 
     if (action === "GET_SETTINGS") {
-      const { data, error } = await service.schema("app_private").from("platform_app_settings")
+      const { data, error } = await service.from("bizcatalog_platform_settings")
         .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
       if (error && !String(error.message || "").toLowerCase().includes("does not exist")) throw error;
       return response(origin, { settings: data?.settings || {} });
@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
       const safe: Record<string, unknown> = {};
       const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
-      const { error } = await service.schema("app_private").from("platform_app_settings").upsert({ settings_key: "bizcatalog", settings: safe, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "settings_key" });
+      const { error } = await service.from("bizcatalog_platform_settings").upsert({ settings_key: "bizcatalog", settings: safe, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "settings_key" });
       if (error) throw error;
       return response(origin, { success: true, settings: safe });
     }

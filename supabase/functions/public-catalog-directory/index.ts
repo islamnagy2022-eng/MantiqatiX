@@ -20,9 +20,23 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return response(origin, { error: "SERVER_MISCONFIGURED" }, 500);
   const db = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   try {
+    // Never publish isolated security-test tenants in the public directory.
+    const { data: tenants, error: tenantError } = await db.from("tenants")
+      .select("id,name,code,status,settings").eq("status", "ACTIVE").limit(100);
+    if (tenantError) throw tenantError;
+    const productionTenantIds = (tenants || []).filter((t: any) => {
+      const id = String(t.id || "").toUpperCase();
+      const code = String(t.code || "").toUpperCase();
+      const name = String(t.name || "").toLowerCase();
+      const purpose = String(t.settings?.purpose || "").toLowerCase();
+      const testIdentity = /(^|[-_])TEST([-_]|$)|ISOLATION/.test(id) || /(^|[-_])TEST([-_]|$)|ISOLATION/.test(code);
+      return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
+        && !name.includes("isolation test") && !name.includes("اختبار العزل");
+    }).map((t: any) => String(t.id)).filter(Boolean);
+    if (!productionTenantIds.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
     const { data: businesses, error: businessError } = await db.from("businesses")
       .select("id,tenant_id,organization_id,name,code,status,settings")
-      .eq("status", "ACTIVE").limit(250);
+      .in("tenant_id", productionTenantIds).eq("status", "ACTIVE").limit(250);
     if (businessError) throw businessError;
     const published = (businesses || []).filter((b: any) => b.settings?.catalog_public_enabled === true);
     if (!published.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
