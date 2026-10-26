@@ -369,12 +369,13 @@
     if (menuSection) {
       result = await sb.from('digital_page_sections').update({
         title: payload.title, content: payload.content, data: payload.data, active: true
-      }).eq('id', menuSection.id);
+      }).eq('id', menuSection.id).select('id').maybeSingle();
     } else {
       result = await sb.from('digital_page_sections').insert(payload).select().single();
       if (!result.error) menuSection = result.data;
     }
     if (result.error) throw result.error;
+    if (!result.data?.id) throw new Error('لم يتأكد حفظ المنتجات من قاعدة البيانات. تحقق من صلاحية الاشتراك ثم حاول مرة أخرى.');
     items = nextItems;
     renderItems();
     message('تم حفظ المنتجات والأسعار.');
