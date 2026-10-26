@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="color-scheme" content="light">
+  <title>كتالوج النشاط | MantiqatiX</title>
+  <meta name="description" content="استعرض منتجات وخدمات وأسعار النشاط عبر كتالوج MantiqatiX.">
+  <link rel="stylesheet" href="./catalog.css?v=rc107">
+  <script defer src="../config.js?v=rc107"></script>
+  <script defer src="./catalog.js?v=rc107"></script>
+</head>
+<body>
+  <header class="catalog-topbar">
+    <a class="catalog-brand" href="../index.html" aria-label="MantiqatiX الرئيسية">
+      <span class="catalog-brand-mark">M</span>
+      <span><strong>MantiqatiX</strong><small>كتالوج نشاط تجاري</small></span>
+    </a>
+    <a class="catalog-login-link" href="../index.html">دخول الإدارة بحساب Google</a>
+  </header>
+
+  <main class="catalog-main">
+    <section class="catalog-hero">
+      <div class="catalog-hero-eyebrow">PUBLIC BUSINESS CATALOG</div>
+      <h1 id="business-name">كتالوج النشاط</h1>
+      <p id="business-description">استعرض الخدمات والمنتجات والأسعار المعلنة للنشاط.</p>
+      <div class="catalog-meta" id="business-meta"></div>
+      <div class="catalog-hero-actions">
+        <button class="catalog-btn catalog-btn-primary" id="share-catalog" type="button">مشاركة رابط الكتالوج</button>
+        <a class="catalog-btn catalog-btn-secondary" id="whatsapp-link" href="#" hidden target="_blank" rel="noopener noreferrer">تواصل عبر واتساب</a>
+      </div>
+      <p class="catalog-note">تصفح الكتالوج متاح بدون تسجيل دخول. تعديل الأسعار والمنتجات وإدارة النشاط تتطلب الدخول بحساب Google وصلاحية معتمدة.</p>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <div><span class="catalog-kicker">PRODUCTS & SERVICES</span><h2>المنتجات والخدمات</h2><p>الأسعار المعروضة هي الأسعار النشطة المعتمدة في الكتالوج.</p></div>
+        <label class="catalog-branch-field"><span>الفرع</span><select id="branch-select" disabled><option>جاري تحميل الفروع...</option></select></label>
+      </div>
+      <label class="catalog-search-field"><span aria-hidden="true">⌕</span><input id="catalog-search" type="search" placeholder="ابحث عن منتج أو خدمة..." autocomplete="off" disabled></label>
+      <div id="catalog-state" class="catalog-state" role="status" aria-live="polite">جاري تحميل الكتالوج...</div>
+      <div id="catalog-items" class="catalog-items" hidden></div>
+      <div id="catalog-empty" class="catalog-empty" hidden>لا توجد منتجات أو خدمات معلنة في هذا الفرع حتى الآن.</div>
+    </section>
+
+    <section class="catalog-contact-footer">
+      <div><strong>هل تحتاج إلى تفاصيل إضافية؟</strong><p>تواصل مباشرة مع النشاط للاستفسار عن التوافر أو تفاصيل الخدمة.</p></div>
+      <a id="footer-whatsapp" class="catalog-btn catalog-btn-primary" href="#" target="_blank" rel="noopener noreferrer" hidden>تواصل مع النشاط</a>
+    </section>
+  </main>
+
+  <footer class="catalog-footer"><span>MantiqatiX</span><span>كتالوج عام للقراءة فقط · لا يتم تنفيذ دفع إلكتروني من هذه الصفحة</span></footer>
+</body>
+</html>
