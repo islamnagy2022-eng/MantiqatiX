@@ -117,9 +117,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
     if (authSession.role === 'subscriber' && currentView === 'merchant_admin') {
-      return businesses.find((b) => b.id === authSession.businessId) || businesses[0];
+      // Never fall back to another public business if the subscriber's authorized
+      // business is missing from the current production bootstrap.
+      return businesses.find((b) => b.id === authSession.businessId);
     }
-    return businesses.find((b) => b.id === selectedBusinessId) || businesses[0];
+    const selected = businesses.find((b) => b.id === selectedBusinessId);
+    if (selected) return selected;
+    return authSession.role === 'admin' ? businesses[0] : undefined;
   })();
   const businessProducts = products.filter((p) => p.businessId === currentBusiness?.id);
 
