@@ -17,7 +17,7 @@ BEGIN
  IF NOT FOUND THEN RAISE EXCEPTION 'PAYMENT_INTENT_NOT_FOUND'; END IF;
  SELECT * INTO v_order FROM public.orders WHERE id=v_intent.order_id FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'ORDER_NOT_FOUND'; END IF;
- IF v_intent.status NOT IN ('CREATED','PENDING','SUCCEEDED') THEN RAISE EXCEPTION 'INVALID_PAYMENT_STATE'; END IF;
+
  IF v_order.status='CANCELLED' THEN RAISE EXCEPTION 'ORDER_CANCELLED'; END IF;
  IF v_intent.payment_method<>'CASH_ON_DELIVERY' THEN RAISE EXCEPTION 'INVALID_METHOD'; END IF;
  IF v_intent.tenant_id::text<>v_order.tenant_id::text THEN RAISE EXCEPTION 'TENANT_MISMATCH'; END IF;
@@ -57,6 +57,7 @@ BEGIN
    OR (jsonb_typeof(v_membership.permissions)='array' AND v_membership.permissions ? 'PAYMENT_CONFIRM_CASH')
    OR (jsonb_typeof(v_membership.permissions)='object' AND v_membership.permissions @> '{"PAYMENT_CONFIRM_CASH":true}'::jsonb);
  IF NOT v_is_authorized THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
+ IF v_intent.status NOT IN ('CREATED','PENDING','SUCCEEDED') THEN RAISE EXCEPTION 'INVALID_PAYMENT_STATE'; END IF;
 
  IF v_intent.status='SUCCEEDED' THEN
    RETURN jsonb_build_object('status','success','message','Already confirmed','payment_intent',to_jsonb(v_intent),'order',to_jsonb(v_order));
