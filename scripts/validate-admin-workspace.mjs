@@ -28,6 +28,10 @@ const checks = [
   ['catalog frontend setter fails closed on unauthorized screens', /const setCurrentView = \(view: ViewMode\) => \{[\s\S]*?if \(canOpenViewForRole\(view, authSession\.role\)\)[\s\S]*?setCurrentViewState\('directory'\);/],
   ['bootstrap assigns initial screens according to verified role', /if \(boot\.authSession\.role === 'admin'\) setCurrentViewState\('super_admin'\);[\s\S]*?else if \(boot\.authSession\.role === 'subscriber'\) setCurrentViewState\('merchant_admin'\);[\s\S]*?else setCurrentViewState\('directory'\);/],
   ['customer support route never opens global governance workspace', /case 'الدعم والحوكمة': return isCustomerMode\(\)\?customerSupportWorkspace\(\):governanceWorkspace\(\);/],
+  ['compound support screen requires SUPPORT or GOVERNANCE permission', /if\(name==='الدعم والحوكمة'\)return rbac\.can\(permissionRole,'GOVERNANCE','view',live\.permissions\)===true\|\|rbac\.can\(permissionRole,'SUPPORT','view',live\.permissions\)===true/],
+  ['non-governance roles receive scoped support instead of platform governance', /case 'الدعم والحوكمة': return isCustomerMode\(\)\?customerSupportWorkspace\(\):\(window\.MNTY_RBAC\?\.can\(screenPermissionRole\(\),'GOVERNANCE','view',live\.permissions\)===true\?governanceWorkspace\(\):scopedSupportWorkspace\(\)\)/],
+  ['scoped support workspace does not render the global governance workspace', /function scopedSupportWorkspace\(\)[\s\S]*?workspaceHead\('SUPPORT','الدعم'[\s\S]*?نطاق الحالي[\s\S]*?recordsTable\('تذاكر الدعم المتاحة'/],
+  ['role dashboard quick actions share the common screen visibility gate', /function roleWorkspaceDashboard\(\)[\s\S]*?const allowed=\(name\)=>canViewWorkspaceModule\(name\)/],
   ['business owner role defaults exist in RBAC', /BUSINESS_OWNER:\{scope:'BUSINESS'/],
   ['Super Admin creation uses server functions', /superAdminFunction\(['"]business-register['"][\s\S]*superAdminFunction\(['"]business-approval['"][\s\S]*superAdminFunction\(['"]business-branch-admin['"][\s\S]*superAdminFunction\(['"]catalog-admin['"]/]
 ];
