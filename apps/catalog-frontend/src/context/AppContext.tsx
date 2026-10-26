@@ -108,10 +108,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedBusinessId, setSelectedBusinessIdState] = useState('');
-  const [currentView, setCurrentView] = useState<ViewMode>(() => {
+  const [currentView, setCurrentViewState] = useState<ViewMode>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.has('store') || params.has('businessId') ? 'public_storefront' : 'directory';
   });
+
+  // Client-side screen visibility mirrors the three production states. Server
+  // authorization remains authoritative for every data read and mutation.
+  const canOpenViewForRole = (view: ViewMode, role: AuthSession['role']): boolean => {
+    if (view === 'directory' || view === 'public_storefront') return true;
+    if (view === 'merchant_admin') return role === 'subscriber' || role === 'admin';
+    if (view === 'super_admin') return role === 'admin';
+    return false;
+  };
+  const setCurrentView = (view: ViewMode) => {
+    if (canOpenViewForRole(view, authSession.role)) {
+      setCurrentViewState(view);
+      return;
+    }
+    // Fail closed: an invalid/stale route returns to the public directory.
+    setCurrentViewState('directory');
+  };
   const pendingCredentials = useRef(new Map<string, { fullName: string; businessName: string; username: string; password: string }>());
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
@@ -147,9 +164,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       const preferred = boot.authSession.businessId || boot.businesses[0]?.id || '';
       setSelectedBusinessIdState(preferred);
-      if (boot.authSession.role === 'admin') setCurrentView('super_admin');
-      else if (boot.authSession.role === 'subscriber') setCurrentView('merchant_admin');
-      else setCurrentView('directory');
+      if (boot.authSession.role === 'admin') setCurrentViewState('super_admin');
+      else if (boot.authSession.role === 'subscriber') setCurrentViewState('merchant_admin');
+      else setCurrentViewState('directory');
     }
   };
 
@@ -200,7 +217,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAuthSession(boot.authSession); setBusinesses(boot.businesses); setProducts(boot.products); setSubscribers(boot.subscribers);
       setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
       setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
-      setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : 'merchant_admin');
+      setCurrentViewState(boot.authSession.role === 'admin' ? 'super_admin' : 'merchant_admin');
       setIsLoginModalOpen(false);
       return { success: true };
     } catch (e: any) {
