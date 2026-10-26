@@ -221,6 +221,16 @@ begin
     update public.business_job_positions set branch_id=p_branch_id,title=trim(p_title),description=coalesce(p_description,''),department=coalesce(p_department,''),employment_type=p_employment_type,permission_template=p_permission_template,is_hiring=coalesce(p_is_hiring,false),is_active=coalesce(p_is_active,true),updated_by=v_actor,updated_at=now()
     where id=p_position_id returning * into v_position;
   end if;
+  -- Permission and activation changes propagate immediately to memberships linked to this position.
+  update public.user_memberships m
+    set permissions=coalesce(v_position.permission_template,'{}'::jsonb)||coalesce(e.permission_overrides,'{}'::jsonb),
+        status=case when e.status='ACTIVE' and v_position.is_active then 'ACTIVE' else 'INACTIVE' end
+  from public.business_employees e
+  where e.job_position_id=v_position.id and e.business_id=p_business_id and e.tenant_id=p_tenant_id
+    and e.user_id=m.user_id
+    and m.id='MNTY-EMPLOYEE-'||replace(e.id::text,'-','')
+    and upper(m.role)='EMPLOYEE';
+
   insert into public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result)
   values(gen_random_uuid()::text,p_tenant_id,v_actor,case when p_position_id is null then 'BUSINESS_JOB_POSITION_CREATED' else 'BUSINESS_JOB_POSITION_UPDATED' end,'business_job_position',v_position.id::text,v_old,
     jsonb_build_object('business_id',p_business_id,'branch_id',v_position.branch_id,'title',v_position.title,'department',v_position.department,'employment_type',v_position.employment_type,'permission_template',v_position.permission_template,'is_hiring',v_position.is_hiring,'is_active',v_position.is_active),'SUCCESS');
@@ -254,6 +264,7 @@ declare
   v_position public.business_job_positions%rowtype;
   v_old jsonb := '{}'::jsonb;
   v_user_id uuid;
+  v_previous_user_id uuid;
   v_org_id public.businesses.organization_id%type;
   v_membership_id text;
   v_effective_permissions jsonb;
@@ -293,11 +304,21 @@ begin
     select * into v_employee from public.business_employees where id=p_employee_id and tenant_id=p_tenant_id and business_id=p_business_id for update;
     if not found then raise exception 'EMPLOYEE_NOT_FOUND'; end if;
     v_old:=jsonb_build_object('user_id',v_employee.user_id,'job_position_id',v_employee.job_position_id,'status',v_employee.status,'permission_overrides',v_employee.permission_overrides);
+    v_previous_user_id:=v_employee.user_id;
     update public.business_employees set branch_id=p_branch_id,user_id=v_user_id,job_position_id=p_job_position_id,full_name=trim(p_full_name),email=lower(trim(p_email)),phone=coalesce(p_phone,''),status=p_status,permission_overrides=coalesce(p_permission_overrides,'{}'::jsonb),
       hired_at=case when p_status='ACTIVE' then coalesce(hired_at,current_date) else hired_at end,
       ended_at=case when p_status='ENDED' then coalesce(ended_at,current_date) else null end,
       updated_by=v_actor,updated_at=now()
     where id=p_employee_id returning * into v_employee;
+  end if;
+
+  -- Revoke the old employee membership before linking a changed email/identity.
+  if v_previous_user_id is not null and v_previous_user_id is distinct from v_employee.user_id then
+    update public.user_memberships
+      set status='INACTIVE'
+      where id='MNTY-EMPLOYEE-'||replace(v_employee.id::text,'-','')
+        and user_id=v_previous_user_id and tenant_id=p_tenant_id and business_id=p_business_id
+        and upper(role)='EMPLOYEE';
   end if;
 
   if v_employee.user_id is not null then
