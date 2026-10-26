@@ -31,7 +31,7 @@
   }[ch]));
   const money = value => Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
   const makeIdempotencyKey = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'demo-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-  const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, tab: 'dashboard', authMode: 'login', loading: false };
+  const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, catalogFilterSector: 'ALL', catalogFilterBusinessId: 'ALL', tab: 'dashboard', authMode: 'login', loading: false };
   let sb;
   let toastTimer = null;
 
@@ -51,7 +51,7 @@
     return sectors[code] || { label: code || 'نشاط تجريبي', icon: '◈', backend: code, itemType: 'PRODUCT' };
   }
   function activeMemberships() {
-    return data.memberships.filter(m => m.status === 'ACTIVE');
+    return data.memberships.filter(m => m.status === 'ACTIVE' && m.business_id);
   }
   function selectedBusiness() {
     return data.businesses.find(b => b.id === data.selectedBusinessId) || null;
@@ -89,6 +89,7 @@
 
   async function loadData() {
     data.loading = true;
+    data.dataError = null;
     render();
     const user = data.user;
     if (!user) { data.loading = false; return render(); }
@@ -101,13 +102,12 @@
         sb.from('catalog_items').select('id,tenant_id,business_id,branch_id,item_type,name_ar,name_en,description,sku,status,tax_rate,metadata,created_at').eq('tenant_id', cfg.tenantId).eq('status', 'ACTIVE').order('created_at', { ascending: false }).limit(500),
         sb.from('catalog_item_prices').select('id,tenant_id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to').eq('tenant_id', cfg.tenantId).eq('status', 'ACTIVE').lte('effective_from', new Date().toISOString()).limit(1000),
         sb.from('orders').select('id,tenant_id,business_id,branch_id,customer_id,status,subtotal,total_amount,currency,customer_name,items_json,metadata,created_at,updated_at,notes').eq('tenant_id', cfg.tenantId).order('created_at', { ascending: false }).limit(100),
-        sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status').eq('status', 'ACTIVE').limit(300),
         sb.from('medical_appointments').select('id,tenant_id,business_id,patient_id,doctor_id,date_time,status,reason,created_at').eq('patient_id', user.id).eq('tenant_id', cfg.tenantId).order('date_time', { ascending: true }).limit(100)
       ]);
-      const labels = ['العضويات', 'الأنشطة', 'الفروع', 'المنتجات والخدمات', 'الأسعار', 'الطلبات', 'مقدمو الخدمة', 'المواعيد'];
+      const labels = ['العضويات', 'الأنشطة', 'الفروع', 'المنتجات والخدمات', 'الأسعار', 'الطلبات', 'المواعيد'];
       const failed = results.map((r, i) => r.error ? labels[i] + ': ' + errorText(r.error) : '').filter(Boolean);
       if (failed.length) throw new Error('تعذر تحميل بيانات DEMO:\n' + failed.join('\n'));
-      [data.memberships, data.businesses, data.branches, data.items, data.prices, data.orders, data.providers, data.appointments] = results.map(r => r.data || []);
+      [data.memberships, data.businesses, data.branches, data.items, data.prices, data.orders, data.appointments] = results.map(r => r.data || []);
       const saved = window.localStorage.getItem('MANTIQATIX_DEMO_ACTIVE_BUSINESS') || '';
       const own = activeMemberships();
       data.selectedBusinessId = (saved && own.some(m => m.business_id === saved)) ? saved : (own[0]?.business_id || null);
@@ -230,8 +230,8 @@
   function renderCatalog() {
     const sectorFilter = '<div class="catalog-filter"><div class="field"><label for="filter-sector">القطاع</label><select id="filter-sector"><option value="ALL">كل القطاعات</option>' + Object.keys(sectors).map(k => '<option value="' + k + '">' + esc(sectors[k].label) + '</option>').join('') + '</select></div>' +
       '<div class="field"><label for="filter-business">النشاط</label><select id="filter-business"><option value="ALL">كل الأنشطة</option>' + data.businesses.map(b => '<option value="' + b.id + '">' + esc(b.name) + '</option>').join('') + '</select></div></div>';
-    const fSector = $('#filter-sector')?.value || 'ALL';
-    const fBusiness = $('#filter-business')?.value || 'ALL';
+    const fSector = data.catalogFilterSector || 'ALL';
+    const fBusiness = data.catalogFilterBusinessId || 'ALL';
     const items = data.items.filter(item => {
       const business = data.businesses.find(b => b.id === item.business_id);
       const code = String(business?.settings?.sector_code || '');
@@ -357,7 +357,7 @@
   async function bookAppointment(button) {
     const item = data.items.find(i => i.id === button.dataset.itemId);
     const business = data.businesses.find(b => b.id === button.dataset.businessId);
-    const provider = data.providers.find(p => p.business_id === business?.id && p.status === 'ACTIVE');
+    const provider = business?.settings?.demo_provider_id ? { id: business.settings.demo_provider_id } : null;
     if (!item || !business || !provider) return toast('تعذر تحديد مقدم الخدمة لهذه العيادة التجريبية.', 'error');
     const date = $('#appointment-date-' + item.id)?.value || '';
     const time = $('#appointment-time-' + item.id)?.value || '';
@@ -593,10 +593,10 @@
       data.tab = 'dashboard';
       render();
     } else if (button.dataset.action === 'catalog-business') {
-      $('#filter-business')?.setAttribute('data-selected', button.dataset.businessId);
+      data.catalogFilterBusinessId = button.dataset.businessId;
+      data.catalogFilterSector = 'ALL';
       data.tab = 'catalog';
       render();
-      if ($('#filter-business')) $('#filter-business').value = button.dataset.businessId;
     } else if (button.dataset.action === 'place-order') {
       await placeOrder(button);
     } else if (button.dataset.action === 'book-appointment') {
@@ -640,18 +640,13 @@
       window.localStorage.setItem('MANTIQATIX_DEMO_ACTIVE_BUSINESS', target.value);
       render();
     }
-    if (target.id === 'filter-sector' || target.id === 'filter-business') {
-      const id = target.id;
-      const value = target.value;
-      const keep = { sector: $('#filter-sector')?.value || 'ALL', business: $('#filter-business')?.value || 'ALL' };
+    if (target.id === 'filter-sector') {
+      data.catalogFilterSector = target.value;
       render();
-      if ($('#filter-sector')) $('#filter-sector').value = keep.sector;
-      if ($('#filter-business')) $('#filter-business').value = keep.business;
-      // Re-render once the filter values have been restored.
-      if (id === 'filter-business') $('#filter-business').value = value;
-      if (id === 'filter-sector') $('#filter-sector').value = value;
-      const appBody = $('.content-area');
-      if (appBody) appBody.innerHTML = renderActiveTab(selectedBusiness(), membershipForBusiness(selectedBusiness()?.id), data.orders.filter(o => o.customer_id === data.user.id || activeMemberships().some(m => m.business_id === o.business_id)));
+    }
+    if (target.id === 'filter-business') {
+      data.catalogFilterBusinessId = target.value;
+      render();
     }
   });
 
