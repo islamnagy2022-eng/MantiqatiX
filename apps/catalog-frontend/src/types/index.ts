@@ -159,6 +159,10 @@ export type AuthRole = 'admin' | 'subscriber' | 'guest';
 
 export interface AuthSession {
   role: AuthRole;
+  /** True when Supabase has an authenticated user, even if there is no active catalog membership. */
+  authenticated?: boolean;
+  /** Distinguishes public browsing from an authenticated user who has no active catalog membership. */
+  accessState?: 'public' | 'no_active_subscription' | 'active_subscription';
   subscriberId?: string;
   businessId?: string;
   subscriberName?: string;
