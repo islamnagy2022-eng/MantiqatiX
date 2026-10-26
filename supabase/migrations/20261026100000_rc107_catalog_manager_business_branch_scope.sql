@@ -446,6 +446,7 @@ AS $function$
 DECLARE
   v_status text := upper(trim(coalesce(p_status, '')));
   v_id uuid;
+  v_active_count integer;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'AUTH_REQUIRED'; END IF;
   IF v_status NOT IN ('ACTIVE', 'INACTIVE') THEN RAISE EXCEPTION 'INVALID_CATALOG_ITEM_STATUS'; END IF;
@@ -469,6 +470,29 @@ BEGIN
      WHERE br.id = p_branch_id AND br.tenant_id = p_tenant_id
        AND br.business_id = p_business_id AND upper(coalesce(br.status,'')) = 'ACTIVE'
   ) THEN RAISE EXCEPTION 'BRANCH_BUSINESS_MISMATCH'; END IF;
+
+  -- Reactivation counts against the same per-business cap as item creation.
+  -- Use the same transaction lock to prevent concurrent creates/reactivations
+  -- from racing past the 150 active item limit.
+  IF v_status = 'ACTIVE' THEN
+    PERFORM pg_advisory_xact_lock(hashtext(p_business_id::text)::bigint);
+    IF EXISTS (
+      SELECT 1 FROM public.catalog_items ci
+       WHERE ci.id = p_catalog_item_id
+         AND ci.tenant_id = p_tenant_id
+         AND ci.business_id = p_business_id
+         AND ci.status <> 'ACTIVE'
+    ) THEN
+      SELECT count(*)::integer INTO v_active_count
+        FROM public.catalog_items ci
+       WHERE ci.business_id = p_business_id
+         AND ci.tenant_id = p_tenant_id
+         AND ci.status = 'ACTIVE';
+      IF v_active_count >= 150 THEN
+        RAISE EXCEPTION 'CATALOG_ITEM_LIMIT_REACHED';
+      END IF;
+    END IF;
+  END IF;
 
   UPDATE public.catalog_items
      SET status = v_status, updated_at = now()
