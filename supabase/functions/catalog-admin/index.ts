@@ -271,6 +271,9 @@ Deno.serve(async (req: Request) => {
             coverUrl: String(profile.cover_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
           },
+          bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
+            ? business.settings.bizcatalog
+            : {},
         },
         provider: provider ? {
           id: provider.id,
