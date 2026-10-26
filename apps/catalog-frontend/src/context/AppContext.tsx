@@ -101,7 +101,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
-  const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest' });
+  const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest', isAuthenticated: false });
   const [authLoading, setAuthLoading] = useState(true);
   const [authBootstrapError, setAuthBootstrapError] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -114,8 +114,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     return params.has('store') || params.has('businessId') ? 'public_storefront' : 'directory';
   });
-  // Prevent overlapping auth events from applying stale bootstrap results over a newer session.
+  // Prevent overlapping auth events and duplicate INITIAL_SESSION/getSession hydration.
   const authLoadSequence = useRef(0);
+  const authUserIdRef = useRef<string | null | undefined>(undefined);
+  const lastAuthLoadKeyRef = useRef<string | null>(null);
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
@@ -165,22 +167,84 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     let active = true;
-    const loadSession = async (session: any) => {
+    const loadSession = async (session: any, force = false) => {
+      const incomingUserId = session?.user?.id || null;
+      const sessionKey = incomingUserId
+        ? `${incomingUserId}:${String(session?.access_token || 'no-token')}`
+        : 'signed-out';
+      if (!force && lastAuthLoadKeyRef.current === sessionKey) return;
+      lastAuthLoadKeyRef.current = sessionKey;
+
+      const identityChanged = authUserIdRef.current !== incomingUserId;
+      if (identityChanged) {
+        authUserIdRef.current = incomingUserId;
+        // Drop the previous identity's data before the next identity is hydrated.
+        // A valid Google session without a business membership is still a signed-in user,
+        // but it does not receive owner/admin permissions.
+        setAuthSession({
+          role: 'guest',
+          isAuthenticated: Boolean(session?.user),
+          userId: incomingUserId || undefined,
+          email: session?.user?.email || undefined,
+        });
+        setBusinesses([]);
+        setProducts([]);
+        setSubscribers([]);
+        setSelectedBusinessIdState('');
+        setCartItems([]);
+        setCurrentView('directory');
+        setAuthBootstrapError('');
+        setAuthLoading(true);
+      } else if (force) {
+        setAuthBootstrapError('');
+        setAuthLoading(true);
+      }
+
       const sequence = ++authLoadSequence.current;
       const isCurrent = () => active && sequence === authLoadSequence.current;
-      try { if (isCurrent()) await applyUser(session?.user || null, isCurrent); }
-      catch (error) {
+      try {
+        if (isCurrent()) await applyUser(session?.user || null, isCurrent);
+      } catch (error) {
         console.error('[MantiqatiX production bootstrap]', error);
         if (isCurrent()) {
           setAuthBootstrapError(error instanceof Error ? error.message : 'تعذر تحميل صلاحيات الحساب من قاعدة الإنتاج.');
+          // Allow another auth event or a fresh page load to retry the same session.
+          if (lastAuthLoadKeyRef.current === sessionKey) lastAuthLoadKeyRef.current = null;
+          if (session?.user) {
+            setAuthSession((previous) => previous.userId === incomingUserId
+              ? { ...previous, role: previous.role === 'admin' || previous.role === 'subscriber' ? previous.role : 'guest', isAuthenticated: true, userId: incomingUserId, email: session.user.email || previous.email }
+              : previous);
+          }
         }
-        // Keep the Supabase session, but expose the failure instead of silently presenting the user as a guest.
-      } finally { if (isCurrent()) setAuthLoading(false); }
+      } finally {
+        if (isCurrent()) setAuthLoading(false);
+      }
     };
-    void supabase.auth.getSession().then(({ data }) => loadSession(data.session));
+
+    void supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return loadSession(data.session);
+      })
+      .catch((error) => {
+        if (!active) return;
+        console.error('[MantiqatiX getSession]', error);
+        setAuthBootstrapError(error instanceof Error ? error.message : 'تعذر قراءة جلسة Google الحالية.');
+        setAuthLoading(false);
+      });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        queueMicrotask(() => { if (active) void loadSession(session); });
+      if (
+        event === 'INITIAL_SESSION' ||
+        event === 'SIGNED_IN' ||
+        event === 'SIGNED_OUT' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'USER_UPDATED' ||
+        event === 'PASSWORD_RECOVERY'
+      ) {
+        queueMicrotask(() => {
+          if (active) void loadSession(session, event === 'USER_UPDATED' || event === 'PASSWORD_RECOVERY');
+        });
       }
     });
     return () => { active = false; subscription.unsubscribe(); };
@@ -258,7 +322,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loginAsAdmin = async (_password?: string) => loginWithGoogle();
   const logout = () => {
     void supabase.auth.signOut();
-    setAuthSession({ role: 'guest' }); setBusinesses([]); setProducts([]); setSubscribers([]);
+    setAuthSession({ role: 'guest', isAuthenticated: false }); setBusinesses([]); setProducts([]); setSubscribers([]);
     setSelectedBusinessIdState(''); setCurrentView('directory'); setCartItems([]);
   };
 
