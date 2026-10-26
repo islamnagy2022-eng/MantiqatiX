@@ -288,12 +288,12 @@ begin
     or jsonb_typeof(coalesce(p_permission_overrides,'{}'::jsonb))<>'object'
     or p_status not in ('INVITED','ACTIVE','SUSPENDED','ENDED') then raise exception 'INVALID_EMPLOYEE'; end if;
 
-  select u.id into v_user_id from auth.users u where lower(u.email)=lower(trim(p_email)) limit 1;
+  select u.id into v_user_id from auth.users u where lower(u.email)=lower(trim(p_email)) and u.email_confirmed_at is not null limit 1;
   if p_user_id is not null then
-    if not exists(select 1 from auth.users u where u.id=p_user_id and lower(u.email)=lower(trim(p_email))) then raise exception 'AUTH_USER_EMAIL_MISMATCH'; end if;
+    if not exists(select 1 from auth.users u where u.id=p_user_id and lower(u.email)=lower(trim(p_email)) and u.email_confirmed_at is not null) then raise exception 'AUTH_USER_EMAIL_MISMATCH_OR_UNCONFIRMED'; end if;
     v_user_id:=p_user_id;
   end if;
-  if p_status='ACTIVE' and v_user_id is null then raise exception 'ACTIVE_EMPLOYEE_REQUIRES_AUTH_USER'; end if;
+  if p_status='ACTIVE' and v_user_id is null then raise exception 'ACTIVE_EMPLOYEE_REQUIRES_CONFIRMED_AUTH_USER'; end if;
   if p_employee_id is null then
     insert into public.business_employees
       (tenant_id,business_id,branch_id,user_id,job_position_id,full_name,email,phone,status,permission_overrides,hired_at,created_by,updated_by)
