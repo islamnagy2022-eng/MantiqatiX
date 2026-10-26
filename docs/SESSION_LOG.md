@@ -217,3 +217,19 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-27 — Catalog login, subscription enforcement, and branch-scope hardening
+
+- [x] PR #401 merged: explicit Google sign-in and sign-up actions; new identity creation does not grant business-owner permissions by itself. Primary Catalog Frontend Release run 40410405168 passed and verified the deployed root/assets.
+- [x] PR #404 merged: server-side catalog mutations reject inactive businesses and frozen subscriptions while retaining authorized platform-admin recovery and read access.
+- [x] PR #405 merged: branch-scoped memberships require an exact branch match; catalog reads return persisted `settings.bizcatalog` state so the frontend can reflect the same stored subscription/freeze status used by the server guard.
+- [x] PR #406 merged: platform-admin membership must be platform-wide (no business or branch scope); frontend Edge Function errors preserve server-provided actionable messages.
+- [x] Deployed `catalog-admin` Edge Function version 12 (ACTIVE). Read-back verification confirmed exact branch-scope check, strict platform scope, persisted billing-state return, and inactive/frozen mutation guards.
+- [x] Exact-head checks for PR #405 passed across Catalog Admin CORS Boundary, Deploy MantiqatiX Web validation, Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, and RC425 Paymob atomicity.
+- [x] Primary Catalog Frontend Release run 40411518575 passed on commit `443b95b8ea9b40806cf5f52b0c455b49d440212d`.
+- [!] The broad Pages/production verification run 40411518743 remains failed by design because `PRODUCTION_GATE=BLOCKED`: required post-RC424 migrations are not proven applied, and payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway parity, and live Auth security settings are not verified. Do not bypass this gate.
+- [!] Catalog Module Pages Release run 40411518649 refused a mixed-scope push because `apps/catalog-frontend/src/lib/production.ts` is outside its legacy `web/` release allowlist. Its deploy job was skipped; this is not evidence that the React frontend deployment failed (the dedicated Primary Catalog Frontend Release passed).
+- [!] Read-only production audit reconfirmed one user UUID has 22 active OWNER/BUSINESS_OWNER memberships across 22 business showcases and also has a valid platform-wide SUPER_ADMIN membership. No memberships or production business records were changed. Treat this as an unresolved ownership/data-mapping anomaly until each membership is classified; do not mass-delete or reassign privileges automatically.
+- [ ] Still required: real authenticated browser E2E with distinct customer, business owner, frozen owner, and platform-admin identities; test active/frozen/inactive mutation paths; resolve the 22-business membership anomaly with an approved mapping; reconcile required production migrations and collect live backup/restore, payment/finance, Edge Function, SMM parity, and Auth-setting evidence.
+- No production membership/business data was modified and no real financial transaction was created. Full production release remains **BLOCKED / NOT CERTIFIED**.

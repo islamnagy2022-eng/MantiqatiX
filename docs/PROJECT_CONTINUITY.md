@@ -618,3 +618,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
 - Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
 - No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest verified checkpoint — 2026-10-27 — Catalog authorization
+
+- Latest relevant main commit: `443b95b8ea9b40806cf5f52b0c455b49d440212d` (PR #406). Catalog authorization hardening PRs #404–#406 are merged.
+- Supabase project `moyhiluyhjsujhwlyeuu`: `catalog-admin` Edge Function version 12 is ACTIVE. Read-back verification confirms exact branch scope, platform-admin memberships without business/branch binding, persisted `settings.bizcatalog` returned from catalog reads, and server-side inactive/frozen mutation blocks.
+- The dedicated React catalog frontend workflow passed on the latest merge. Do not conflate that with the broad Pages workflow: production verification still exits with `PRODUCTION_GATE=BLOCKED`, and the catalog-only legacy `web/` workflow correctly refused a mixed-scope change and skipped deployment.
+- Production migration checkpoint remains RC424. Required post-RC424 migrations and live payment/finance E2E, backup/restore rehearsal, Edge Function contract tests, SMM gateway parity, and Auth security settings remain unverified. Never bypass the gate or claim platform-wide production certification.
+- Read-only membership audit still finds one user UUID with 22 active OWNER/BUSINESS_OWNER memberships across 22 official showcase businesses plus a valid platform-wide SUPER_ADMIN membership. No production records were changed; require a reviewed mapping before cleanup or reassignment.
+- Next actions: (1) execute real browser E2E with separate customer, active owner, frozen owner, and platform-admin identities; (2) classify the 22 memberships safely; (3) reconcile and verify the required production migration chain and outstanding external/runtime release evidence.
+- No production membership/business data or payment records were changed during this checkpoint.
