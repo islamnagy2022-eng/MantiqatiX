@@ -359,7 +359,8 @@ $function$;
 CREATE OR REPLACE FUNCTION public.upsert_catalog_item_and_price_backend(
   p_tenant_id character varying,
   p_business_id uuid,
-  p_branch_id character varying,
+  p_item_branch_id character varying,
+  p_price_branch_id character varying,
   p_legacy_ref character varying,
   p_item_type character varying,
   p_name_ar text,
@@ -385,13 +386,13 @@ DECLARE
   v_item_id uuid;
 BEGIN
   v_item := public.upsert_catalog_item_backend(
-    p_tenant_id, p_business_id, p_branch_id, p_legacy_ref, p_item_type,
+    p_tenant_id, p_business_id, p_item_branch_id, p_legacy_ref, p_item_type,
     p_name_ar, p_name_en, p_description, p_sku, p_tax_rate, p_metadata, p_id
   );
   v_item_id := (v_item->>'id')::uuid;
 
   v_price := public.upsert_catalog_price_backend(
-    p_tenant_id, p_business_id, v_item_id, p_branch_id, p_currency,
+    p_tenant_id, p_business_id, v_item_id, p_price_branch_id, p_currency,
     p_unit_price, p_effective_from, p_effective_to
   );
 
@@ -594,4 +595,4 @@ $function$;
 
 GRANT EXECUTE ON FUNCTION public.update_catalog_item_status_backend(character varying, uuid, uuid, character varying, character varying) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_business_profile_backend(character varying, uuid, character varying, text, text, text, text, text, text, text, text, text, text, boolean) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.upsert_catalog_item_and_price_backend(character varying, uuid, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid, character varying, numeric, timestamp with time zone, timestamp with time zone) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_catalog_item_and_price_backend(character varying, uuid, character varying, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid, character varying, numeric, timestamp with time zone, timestamp with time zone) TO authenticated;
