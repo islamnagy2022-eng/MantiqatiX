@@ -1,0 +1,56 @@
+name: MantiqatiX DEMO Isolation
+on:
+  push:
+    branches:
+      - demo/four-sector-isolated-20261026
+    paths:
+      - 'web/demo/**'
+      - 'supabase/demo/**'
+      - 'scripts/validate-demo-isolation.mjs'
+      - 'scripts/test-demo-workflow.mjs'
+      - 'scripts/test-connected-demo-contract.mjs'
+      - 'scripts/test-connected-demo-live-smoke.mjs'
+      - '.github/workflows/demo-isolation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/demo/**'
+      - 'supabase/demo/**'
+      - 'scripts/validate-demo-isolation.mjs'
+      - 'scripts/test-demo-workflow.mjs'
+      - 'scripts/test-connected-demo-contract.mjs'
+      - 'scripts/test-connected-demo-live-smoke.mjs'
+      - '.github/workflows/demo-isolation.yml'
+permissions:
+  contents: read
+jobs:
+  verify-demo-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Check demo JavaScript syntax
+        run: |
+          node --check web/demo/demo.js
+          node --check web/demo/connected.js
+          node --check web/demo/connected-config.js
+          node --check web/demo/activity.js
+      - name: Verify isolation and four-sector scope
+        run: node scripts/validate-demo-isolation.mjs
+      - name: Install temporary DOM test dependency
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund jsdom@26.1.0
+      - name: Exercise local simulator account, catalog, permissions, and order flows
+        run: node scripts/test-demo-workflow.mjs
+      - name: Verify connected Supabase DEMO contract
+        run: node scripts/test-connected-demo-contract.mjs
+      - name: Exercise password-based DEMO auth UI with a mock Auth gateway
+        run: node scripts/test-connected-demo-auth.mjs
+      - name: Exercise public activity catalogue with a mock read-only gateway
+        run: node scripts/test-connected-catalog-page.mjs
+      - name: Smoke-test live DEMO CORS and unauthenticated access (no writes)
+        run: node scripts/test-connected-demo-live-smoke.mjs

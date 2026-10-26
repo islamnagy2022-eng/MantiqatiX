@@ -1,0 +1,102 @@
+# MantiqatiX — DEMO-first / LIVE-gated plan (2026-10-26)
+
+
+## قاعدة التنفيذ الحالية — إطلاق أولي ثم تطوير تدريجي
+
+- **الهدف الآن:** إخراج أول نسخة تشغيلية صغيرة وموثوقة من MantiqatiX انطلاقًا من المشروع الحالي؛ لا إعادة بناء، ولا استبدال المعمارية، ولا فتح نطاقات جديدة.
+- **نطاق الإطلاق الأول:** تسجيل الدخول بـ Google، حساب المالك الأساسي، إنشاء وإدارة النشاط والفروع، المنتجات/الخدمات والأسعار والمخزون التجريبي/الفعلي حسب بيئة التشغيل، الطلبات وحالاتها، مواعيد العيادات، أدوار المالك/المدير/الموظف/العميل، وعزل البيانات والأمان الأساسي.
+- **النطاق التجاري المحدد لهذه المرحلة:** المطاعم والكافيهات، الصيدليات، الأطباء والعيادات، والمتاجر. بقية الموديولات الحالية لا تُحذف ولا يُعاد تصميمها الآن؛ تُحفظ للاستفادة منها بعد الإطلاق.
+- **منع التوسع:** لا ميزات جديدة ولا تحسينات شكلية كبيرة ولا تطوير موديولات غير لازمة لاختبار التدفق الأساسي قبل إغلاق بوابات الإطلاق. تُجمع طلبات التحسين في قائمة Post-launch.
+- **قاعدة الجودة:** نقلل الميزات، لا نقلل أمانها. لا إطلاق قبل إثبات Auth/RLS، عزل مستخدمين/نشاطين، التدفق الأساسي للطلب/الموعد، النسخ الاحتياطي/الرجوع، ومراجعة الإنتاج. نجاح الواجهة أو CI وحده لا يساوي جاهزية إنتاج.
+- **الفصل بين البيئات:** تطوير واختبارات DEMO مستقلة أولًا؛ لا نقل لحسابات أو جلسات أو بيانات من إنتاج Supabase إلى DEMO. تُستخدم هوية Google نفسها مع سجل مصادقة مستقل في المشروع التجريبي.
+
+## قرار النطاق
+- تجميد نطاق المنتج الجديد على: **المطاعم والكافيهات، الصيدليات، الأطباء والعيادات، المتاجر**.
+- لا ننشئ موديولات جديدة خارج هذه القطاعات في هذه المرحلة.
+- لا نحذف ملفات أو موديولات أخرى موجودة؛ تبقى محفوظة للتوافق، وتظهر مستقبلًا كـ «قريبًا» عند ضبط واجهة النطاق.
+- لا نعيد بناء ما يعمل. التطوير يمر من الكود الحالي وبأقل تغييرات ممكنة.
+
+## حدود نسخة DEMO الحالية
+- مدخل مستقل: `web/demo/index.html` مع `demo.js` و`demo.css`.
+- لا يستورد `web/config.js` أو `app.js` أو `home.js` أو Supabase SDK.
+- لا ينشئ Supabase client ولا يتصل بأي API أو بقاعدة الإنتاج.
+- بيانات المحاكاة تحفظ في المتصفح تحت المفتاحين `MANTIQATIX_DEMO_DB_V1` و`MANTIQATIX_DEMO_SESSION_V1` فقط.
+- يشمل سيناريوهات إنشاء الحساب والنشاط، المنتجات والخدمات والأسعار والكميات، إنشاء الطلب/الموعد، انتقالات الحالة، وفصل واجهات المالك والمدير والموظف والعميل.
+- المدفوعات كلها «محاكاة فقط»؛ لا توجد بوابة دفع ولا تحصيل ولا رسائل أو إشعارات خارجية.
+- إعادة الضبط تمس مفاتيح DEMO المحلية فقط.
+
+### بيانات دخول محلية جاهزة
+كلمة المرور التجريبية للحسابات الجاهزة: `Demo123!`
+- `owner@demo.mantiqatix` — مالك الأنشطة التجريبية.
+- `manager@demo.mantiqatix` — مدير لأنشطة محددة.
+- `staff@demo.mantiqatix` — موظف.
+- `customer@demo.mantiqatix` — عميل.
+
+لا تستخدم بيانات شخصية أو كلمات مرور حقيقية. هذا الحساب المحلي ليس مصادقة حقيقية، والبيانات لا تتزامن بين متصفحات أو أجهزة.
+
+## قيد مهم قبل اعتبار DEMO بوابة قبول للإنتاج
+نسخة المتصفح الحالية تختبر تدفق الواجهة وقواعد الصلاحيات داخل المحاكاة فقط. **لا تثبت** صحة Supabase Auth أو PostgreSQL RLS أو عزل المؤسسات والفروع من جهة الخادم. يلزم استكمال مرحلة ثانية على مشروع Supabase مستقل ومجاني قبل الحكم على جاهزية LIVE.
+
+## بيئة Supabase منفصلة — الحالة الفعلية في 2026-10-26
+- مشروع DEMO موجود بالفعل: `MantiqatiX-DEMO`، المرجع `lkijdgqanbqjudiducjt`، المنطقة `eu-central-1`، والحالة `ACTIVE_HEALTHY`.
+- مشروع LIVE منفصل: `moyhiluyhjsujhwlyeuu`. لم تُجرَ أي تغييرات إنتاجية خلال هذه الدفعة.
+- واجهة الاتصال موجودة في `web/demo/connected.html` وتستخدم `web/demo/connected-config.js`، عنوان مشروع DEMO ومفتاحًا عامًا من نوع publishable فقط.
+- وظائف Edge التجريبية السبع منشورة، ومصدر كل وظيفة مطابق بايتًا ببايت للملف المقابل في `supabase/demo/functions/`. لم يُستخدم مفتاح `service_role` في المتصفح.
+- قاعدة DEMO بها 132 جدولًا عامًا، وكلها مفعّل عليها RLS. يوجد 0 مستخدم في `auth.users` وقت الفحص، لذلك لم يثبت بعد تسجيل دخول فعلي أو عزل متعدد المستخدمين.
+- قبل إصلاح الصلاحيات كان سجل Supabase القياسي للترحيلات فارغًا. أُضيفت ستة ترحيلات مستهدفة لبيئة DEMO: `20261026033808` لتقييد صلاحيات الجداول/الدوال غير المستخدمة؛ `20261026034100` لحصر حجز المواعيد في نشاط وملف مقدم خدمة موسومين `DEMO` وقطاع `DOCTOR`؛ `20261026034449` لتقييد دالة أسرار Vault؛ `20261026034707` لمحاذاة صلاحيات 64 دالة SECURITY DEFINER مشتركة مع الصلاحيات الفعلية المرصودة في LIVE؛ و`20261026034833` لحصر 25 RPC خارج نطاق القطاعات الأربعة في `service_role`. والترحيل `20261026043029` يفرض رفض أي موعد ماضٍ أو حالي داخل RPC قاعدة البيانات نفسها. السجل الداخلي يسجل 283 إصدارًا ضمن baseline مخطط فقط و35 ترحيلًا نُفذت عبر `EXECUTE_SQL_FROM_MAIN` بالإضافة إلى هذه الترحيلات الستة. لا تشغّل `db push` ولا تعِد تطبيق الترحيلات السابقة قبل مصالحة السجلين ومقارنة المخطط.
+- نُفذت مراجعة أمنية مستهدفة على DEMO: أُزيلت صلاحيات anon/authenticated من جدولي أحداث الدفع، وقُيدت 12 دالة backend خارج النطاق إلى `service_role` فقط، ثم تمت محاذاة صلاحيات 64 دالة مشتركة مع صلاحيات LIVE للـ anon/authenticated، وقُيدت 25 RPC أخرى خارج نطاق القطاعات الأربعة و9 RPCs إضافية خاصة بموديولات التسويق/الزواج إلى `service_role` فقط، وأُضيف شرط خادمي يمنع استخدام RPC المواعيد إلا مع نشاط وملف مقدم خدمة من DEMO وقطاع DOCTOR، ثم شرط مستقل يرفض التاريخ/الوقت الماضي أو الحالي داخل RPC نفسها. بقيت `create_medical_appointment_backend` متاحة للمستخدم المصادق عليه لأنها مطلوبة لحجز موعد DEMO. أُزيل أيضًا وصول المتصفح إلى `get_mnty_push_secrets()`، وهي دالة SECURITY DEFINER تعيد أسرار Vault؛ فحصنا الإنتاج للقراءة فقط ووجدناها مقيدة بالفعل إلى service_role، ولم نغير الإنتاج. بقي تحذير RLS بلا سياسات لجدولين (لكن لا يملكان صلاحيات SELECT للمتصفح الآن) وما زالت 6 تحذيرات authenticated و1 تحذير anon لدوال `SECURITY DEFINER`؛ المتبقي يتوافق مع دالة الإعلانات العامة وRPC حجز العيادات ومساعدات الصلاحيات، لكنه يحتاج مراجعة نهائية فردية. لا تعالج التحذيرات بإلغاء صلاحيات جماعي.
+- لا تُنشر Edge Functions أو migrations على LIVE خلال مرحلة DEMO، ولا تدمج PR #376 دون موافقة منفصلة.
+
+## بوابات القبول للـ DEMO الحقيقي
+1. حسابات تجريبية مستقلة يمكن تسجيل الدخول والخروج منها.
+2. إنشاء نشاطات من القطاعات الأربعة فقط، مع بيانات تركيبية.
+3. إضافة وتعديل أسعار المنتجات/الخدمات والتوفر والمخزون التجريبي.
+4. دورة طلب/موعد كاملة مع انتقالات حالات محددة وصلاحيات المالك والمدير والموظف والعميل.
+5. اختبار مستخدمين متزامنين وعزل tenant/business/branch بواسطة PostgreSQL RLS وEdge Functions في قاعدة DEMO.
+6. تأكيد أن سجل الدفع/الـ provider هو DEMO أو غير مفعّل؛ لا معاملات مالية حقيقية.
+7. تشغيل migration replay من الصفر، وتسجيل إصدار schema ونتيجة كل workflow.
+8. اختبارات المتصفح للقطاعات الأربعة، حالات الصلاحيات، عزل البيانات، التكرار، وانقطاع الاتصال/إعادة المحاولة.
+9. لا تسجل بوابة كـ PASS إلا بدليل تشغيل فعلي؛ لا يكفي وجود الكود أو نجاح syntax checks.
+
+## شروط الانتقال إلى LIVE
+- مراجعة وموافقة منفصلة على PR؛ لا دمج تلقائي.
+- مراجعة migration chain مقابل قاعدة الإنتاج وتحديد كل migration غير مطبقة، دون تعديل أو حذف التاريخ.
+- backup قبل أي migration إنتاجية، مع تجربة استعادة على بيئة غير الإنتاج وتحديد نقطة الرجوع.
+- إعدادات إنتاج مستقلة ومراجعة عنوان Supabase والمفتاح العام، وأسرار الخادم فقط في إدارة الأسرار.
+- مراجعة RLS/صلاحيات/Edge Functions وCORS وwebhooks وidempotency قبل فتح المدفوعات.
+- اختبار المدفوعات في sandbox فقط أولًا؛ لا أموال حقيقية قبل تفويض صريح واختبار مكتمل.
+- النشر مرحليًا مع smoke tests ومراقبة وخطة رجوع واضحة. إذا فشل أي gate، يبقى الإطلاق BLOCKED.
+
+## حالة التنفيذ في هذا الفرع
+- PR #376 ما زال مفتوحًا بحالة Draft؛ الفرع لم يُدمج إلى `main`.
+- صفحة المحاكاة المحلية ما زالت مستقلة، وأُضيفت صفحة منفصلة متصلة بقاعدة DEMO مع تسجيل/دخول، إنشاء نشاط، كتالوج وأسعار، طلبات، مواعيد وإدارة عضويات عبر Edge Functions.
+- تم إصلاح مانع CI فعلي: ماسح أسرار الإنتاج كان يرفض تعليقًا في ملف الإعداد العام بسبب احتوائه على عبارة `service-role`، رغم عدم وجود مفتاح سري. أُعيدت صياغة التعليق، وأصبحت مراجعة الويب الأمنية وWorkflow عزل DEMO ناجحتين.
+- أُضيف اختبار عقد ثابت للواجهة المتصلة، ويتحقق Workflow من صياغة ملفاتها ومن إعدادات العزل واستدعاءات الخادم.
+- لا تزال اختبارات Auth/RLS متعددة المستخدمين ودورة العمل الفعلية على قاعدة البيانات غير مثبتة؛ لا يوجد مستخدم DEMO بعد. كما لم تُنشر الصفحة المتصلة على الموقع العام لأن PR ما زال Draft.
+- في متابعة 2026-10-26 أُضيف الحارس الخادمي للموعد الماضي/الحالي، وطُبق ترحيله السادس على DEMO فقط، واجتاز الاختبار الوظيفي دون إنشاء بيانات، كما نجح Workflow رقم 40269410403. بقي Auth/RLS E2E متعدد المستخدمين مفتوحًا لأن عدد مستخدمي Auth ما زال صفرًا.
+- الحالة: **DEMO connected code/CI = PASS؛ targeted DEMO hardening = APPLIED/VERIFIED؛ authenticated database E2E = BLOCKED / NOT YET VERIFIED؛ LIVE = BLOCKED**.
+
+
+## Google OAuth and primary owner — 2026-10-26
+
+- The connected DEMO login now reuses the production Google OAuth pattern; the separate email/password signup/login path was removed. Configuration sets `primaryOwnerEmail` to `islam.nagy2022@gmail.com` (same identity as the user's uppercase address).
+- The client requests Google OAuth, uses `login_hint` for the primary owner and returns to the current DEMO page. This is a source-level change; it does not copy a production auth user, password, token, or session.
+- When the primary owner completes Google sign-in in the DEMO project and creates a business, the existing server-side business RPC assigns `OWNER` for that business only. It does not grant platform-wide `SUPER_ADMIN`.
+- **Remaining external setup:** DEMO Supabase Auth must have Google provider credentials configured and exact redirect URLs allowlisted in Supabase Auth and the Google OAuth client. The connected route is not publicly published while PR #376 remains Draft; therefore a real Google redirect/login has not been performed. Current `auth.users`, `businesses`, `orders`, and `medical_appointments` counts remain zero.
+- **CI evidence:** on code head `922569c016b11dbab541328bf978d7a55a88b263`, DEMO Isolation passed in [40270090760](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40270090760); contract checks assert Google OAuth, owner-account config, no separate password path, and the clinic time guard. This is not a substitute for authenticated browser E2E.
+- The launch plan remains a minimum safe launch of the existing product. No new modules or non-essential scope is added before core end-to-end validation.
+
+
+## Workspace Access Update — 2026-10-26
+- Implemented in connected DEMO source: ordinary CUSTOMER accounts render only the homepage/catalog, without dashboard, sidebar, order-history tab, or workspace switcher.
+- OWNER workspace switching requires an active business membership; PLATFORM switching requires the server-backed SUPER_ADMIN platform membership. Existing authorized owners/platform owner may switch between their permitted contexts.
+- DEMO Isolation workflow passed on commit `256e71f9cfbf2d26352faf56c30a702359a7be13`, including connected contract tests and non-mutating CORS/unauthenticated endpoint checks.
+- Google OAuth runtime remains NOT VERIFIED because the DEMO Supabase Google Provider and redirect allowlist still require dashboard configuration. PR #376 remains Draft and the connected page is not publicly deployed.
+- Anonymous catalog browsing is NOT IMPLEMENTED in the connected app. Current DEMO RLS permits anonymous reads only for explicitly showcased businesses; catalog items/prices/branches are membership-scoped. Do not loosen RLS directly. If anonymous visitors must see products/prices, implement and test a read-only public showcase endpoint restricted to explicitly published DEMO records before enabling it.
+
+
+## Latest live OAuth readiness result — 2026-10-26
+
+- The new non-mutating provider check returns `400 validation_failed — Unsupported provider: provider is not enabled` for DEMO project `lkijdgqanbqjudiducjt`. Google OAuth is not enabled there yet.
+- Setup guide: `docs/DEMO_GOOGLE_OAUTH_RUNBOOK_20261026.md`. Configure the Google provider in DEMO with Google callback `https://lkijdgqanbqjudiducjt.supabase.co/auth/v1/callback`, allow the exact app return URL `https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html`, then re-run CI and execute real browser/authenticated E2E.
+- Do not treat successful CORS/JWT preflight tests or a 3xx OAuth readiness redirect as an authenticated E2E pass. No user data was created in the failing probe; no production config or data was changed.

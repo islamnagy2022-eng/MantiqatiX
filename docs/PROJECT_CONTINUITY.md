@@ -2,13 +2,24 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
+> **LATEST SESSION STATE — 2026-10-26:** Active development is on `demo/four-sector-isolated-20261026`, based on main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`. A standalone local-only DEMO simulator is implemented for restaurants/cafes, pharmacies, doctors/clinics, and stores; dedicated source-isolation + DOM workflow CI passed on simulator head `58f46459eca005782c13a42d48d73b7a3f271aa7` (run 40260656015). It tests UI flows only, not real Supabase Auth/RLS. No production config/database/function/deployment change or merge occurred. A separate Supabase DEMO project has since been created and hardened; see the latest dated notes below. Global production release remains **BLOCKED / NOT CERTIFIED**.
+
+## قاعدة التنفيذ الحالية — إطلاق أولي ثم تطوير تدريجي
+
+- **الهدف الآن:** إخراج أول نسخة تشغيلية صغيرة وموثوقة من MantiqatiX انطلاقًا من المشروع الحالي؛ لا إعادة بناء، ولا استبدال المعمارية، ولا فتح نطاقات جديدة.
+- **نطاق الإطلاق الأول:** تسجيل الدخول بـ Google، حساب المالك الأساسي، إنشاء وإدارة النشاط والفروع، المنتجات/الخدمات والأسعار والمخزون التجريبي/الفعلي حسب بيئة التشغيل، الطلبات وحالاتها، مواعيد العيادات، أدوار المالك/المدير/الموظف/العميل، وعزل البيانات والأمان الأساسي.
+- **النطاق التجاري المحدد لهذه المرحلة:** المطاعم والكافيهات، الصيدليات، الأطباء والعيادات، والمتاجر. بقية الموديولات الحالية لا تُحذف ولا يُعاد تصميمها الآن؛ تُحفظ للاستفادة منها بعد الإطلاق.
+- **منع التوسع:** لا ميزات جديدة ولا تحسينات شكلية كبيرة ولا تطوير موديولات غير لازمة لاختبار التدفق الأساسي قبل إغلاق بوابات الإطلاق. تُجمع طلبات التحسين في قائمة Post-launch.
+- **قاعدة الجودة:** نقلل الميزات، لا نقلل أمانها. لا إطلاق قبل إثبات Auth/RLS، عزل مستخدمين/نشاطين، التدفق الأساسي للطلب/الموعد، النسخ الاحتياطي/الرجوع، ومراجعة الإنتاج. نجاح الواجهة أو CI وحده لا يساوي جاهزية إنتاج.
+- **الفصل بين البيئات:** تطوير واختبارات DEMO مستقلة أولًا؛ لا نقل لحسابات أو جلسات أو بيانات من إنتاج Supabase إلى DEMO. تُستخدم هوية Google نفسها مع سجل مصادقة مستقل في المشروع التجريبي.
+
+> Previous baseline note: the marketing workspace PR #292 and live-security review PR #291 were merged, with checkpoint `cf522740e9dd058c28728ba582e347661ef24122`; production remained blocked.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
 
-## Latest session update — 2026-10-21
+## Previous session update — 2026-10-21
 
 - Current active work is PR #316 on branch `fix/preview-starts-at-public-home-20261021`; inspected head before this documentation-only commit: `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
 - Preview/navigation contract validator is present and invoked by `.github/workflows/pages.yml`. The production Pages deploy job is intentionally restricted to `main` push or manual dispatch on `main`; PR runs should skip deploy.
@@ -618,3 +629,108 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
 - Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
 - No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-26 — DEMO-first work state
+
+- New-work scope is frozen to restaurants/cafes, pharmacies, doctors/clinics, and stores. Existing modules outside scope are preserved and not deleted.
+- Branch `demo/four-sector-isolated-20261026` contains the standalone local demo and its static isolation guard. Do not substitute this simulator for real server authorization tests.
+- The demo HTML loads only its own CSS and JS. It does not load `web/config.js`, production app scripts, or the Supabase SDK; code path is localStorage-only with no remote requests and no real payment.
+- Validation workflow passed at run 40260016567; latest source changes after the check are documentation-only.
+- Supabase project creation is not yet done. The `manteqti` organization is on the Free plan and the connector's price quote for a new project was $0/month. Ask/confirm organization before creating; do not create a paid branch.
+- Next: open a draft PR and inspect its checks; obtain explicit confirmation to use `manteqti` for an isolated Free project; test an authoritative migration replay and synthetic-data Auth/RLS E2E before LIVE.
+- No production migrations or data writes, function deployments, merges, or production publishing occurred.
+
+
+
+## Latest handoff — 2026-10-26 (connected DEMO)
+
+- Current branch: `demo/four-sector-isolated-20261026`; PR [#376](https://github.com/islamnagy2022-eng/MantiqatiX/pull/376) remains Draft and unmerged.
+- Connected UI: `web/demo/connected.html`, `connected.js`, `connected.css`, and `connected-config.js`; local simulator remains at `web/demo/index.html`.
+- Supabase DEMO project `lkijdgqanbqjudiducjt` is active and separate from LIVE. Seven Edge Function source files match deployed code exactly. The connected contract and syntax checks passed in run [40264871042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871042); web security verification passed in run [40264871016](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871016).
+- Database observation: 132 public tables, all with RLS enabled; 0 Auth users; four sector rows seeded. The internal ledger records 283 schema-baseline versions plus 35 manually applied later migrations, while the standard Supabase migration list is empty. Never run `db push` or replay the 35 migrations before reconciling schema and migration history.
+- Next blocking work: establish disposable Auth test users through the supported Auth flow; run real authenticated E2E for owner/manager/staff/customer, tenant/business/branch isolation, catalog/price writes, orders/status transitions, and clinic appointment privacy/conflict handling. Review the two RLS-enabled tables without policies and remaining `SECURITY DEFINER` warnings by function, not with blanket revokes.
+- Safety state: no production change, merge, public connected-page release, or real payment activation. LIVE remains BLOCKED / NOT CERTIFIED.
+
+
+
+## Latest security update — 2026-10-26
+
+- Applied DEMO-only migration `20261026033808` from `supabase/demo/security-hardening-20261026.sql`; recorded it in the internal bootstrap ledger with the source blob SHA.
+- Removed browser grants from the two RLS-enabled payment-event tables and restricted 12 out-of-scope backend RPCs to service role. The clinic booking RPC remains available to authenticated users by design.
+- Security advisor warnings reduced to 66 anon-executable and 81 authenticated-executable SECURITY DEFINER functions; remaining functions require deliberate per-function review. No broad revocation or production change was performed.
+- Migration history remains divergent (one standard tracked migration versus 283 schema-baseline entries and 35 manually applied entries in the internal ledger). Do not run `db push` until reconciled.
+
+
+
+## Clinic booking security update — 2026-10-26
+
+- Applied DEMO-only migration `20261026034100` from `supabase/demo/20261026-clinic-appointment-sector-guard.sql`.
+- `create_medical_appointment_backend` now requires both the target business and provider profile to be tagged `environment=DEMO` and `sector_code=DOCTOR`; `search_path` is empty. Live definition and tracked SQL source were compared, and function grants were verified.
+- Standard Supabase migration history now contains two DEMO-only targeted migrations (`20261026033808`, `20261026034100`), while the internal ledger contains 283 baseline entries, 35 manually executed migrations, and these two applied migrations. Historical migration reconciliation remains mandatory before `db push`.
+
+
+
+## Vault-secret RPC update — 2026-10-26
+
+- DEMO migration `20261026034449` restricts `get_mnty_push_secrets()` to `service_role`. The function returns decrypted Vault secret fields; production was checked read-only and already had the same grants. DEMO currently has no matching Vault secret rows.
+- Verified effective privileges: anon=false, authenticated=false, service_role=true. The source file and internal ledger hash match. No production changes were made.
+- Standard migration history now contains three targeted DEMO migrations; historical migration reconciliation remains a blocker before any `db push`.
+
+
+
+## SECURITY DEFINER ACL reconciliation — 2026-10-26
+
+- Applied DEMO migration `20261026034707`: compared current DEMO grants to LIVE via read-only catalog queries and aligned 64 shared SECURITY DEFINER functions' `anon`/`authenticated` privileges with LIVE, preserving DEMO service_role grants. Nine DEMO-only marketing/matrimony RPCs were also made backend-only.
+- Applied DEMO migration `20261026034833`: restricted 25 out-of-scope RPCs for rides, jobs, education, notifications, and digital-page publishing to `service_role` only.
+- Post-change Security Advisor: 1 anonymous and 6 authenticated SECURITY DEFINER warnings remain (intentional public targeted-ad projection, clinic booking RPC, and authorization helpers). No blanket revoke was used; production was not modified.
+- The standard migration list now has five DEMO-only entries; internal ledger has 283 baseline entries, 35 manually executed migrations, and five new tracked DEMO migrations. Historical migration reconciliation remains required before `db push`.
+
+
+
+## Live endpoint smoke — 2026-10-26
+
+- Added `scripts/test-connected-demo-live-smoke.mjs` to the DEMO workflow. It sends non-mutating requests to all seven live DEMO Edge Functions using the public publishable key only.
+- Verified in workflow [40266196560](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266196560): allowed origin preflight = 200; unapproved origin = 403; unauthenticated POST = 401 for each function. No data was written.
+- This is a real deployed-endpoint check, but authenticated business flows and cross-user isolation remain untested.
+
+
+## Latest verified DEMO execution — 2026-10-26
+
+- **Code change:** commit `6aabe92c61ded3a9a85c5b714fb0b7fd5512a1aa` adds `supabase/demo/20261026-clinic-appointment-future-time-guard.sql` and a contract assertion. The SQL function now enforces `p_date_time > current epoch milliseconds` itself, raising `APPOINTMENT_TIME_MUST_BE_FUTURE`; relying only on Edge validation was insufficient because the authenticated RPC is callable directly.
+- **Applied only to DEMO:** migration `20261026043029_demo_clinic_appointment_future_time_guard_20261026` on project `lkijdgqanbqjudiducjt`. The function definition was read back and confirms the new guard plus empty `search_path`.
+- **Functional DB check:** a read-only/no-persistent-write SQL assertion passed both cases: a past timestamp is rejected with `APPOINTMENT_TIME_MUST_BE_FUTURE`, while a future timestamp passes the time gate and reaches the expected missing synthetic provider guard. No user, business, or appointment rows were created.
+- **CI PASS:** DEMO Isolation run [40269410403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40269410403) passed all nine steps, including JavaScript checks, local simulator workflows, connected DEMO source contracts, and non-mutating CORS/JWT smoke tests for all seven Edge Functions.
+- **Security boundary rechecked:** effective `anon`/`authenticated` INSERT/UPDATE/DELETE privileges are false on the tested DEMO business, branch, catalog, price, order, membership, and appointment tables. The Security Advisor still reports two RLS-enabled tables without policies and one anon plus six authenticated SECURITY DEFINER warnings; keep these under individual review.
+- **Still blocked:** `auth.users` remains empty and no authenticated business/order/appointment E2E was executed. PR #376 remains Draft/unmerged. No LIVE schema, data, Edge Function, or payment setting was changed; production release remains BLOCKED / NOT CERTIFIED.
+
+
+## Google OAuth and primary owner — 2026-10-26
+
+- The connected DEMO login now reuses the production Google OAuth pattern; the separate email/password signup/login path was removed. Configuration sets `primaryOwnerEmail` to `islam.nagy2022@gmail.com` (same identity as the user's uppercase address).
+- The client requests Google OAuth, uses `login_hint` for the primary owner and returns to the current DEMO page. This is a source-level change; it does not copy a production auth user, password, token, or session.
+- When the primary owner completes Google sign-in in the DEMO project and creates a business, the existing server-side business RPC assigns `OWNER` for that business only. It does not grant platform-wide `SUPER_ADMIN`.
+- **Remaining external setup:** the DEMO Supabase Auth project must have Google provider credentials configured and exact redirect URLs allowlisted in Supabase Auth and the Google OAuth client. The connected route is not publicly published while PR #376 remains Draft; therefore a real Google redirect/login has not been performed. Current `auth.users`, `businesses`, `orders`, and `medical_appointments` counts remain zero.
+- **CI evidence:** on code head `922569c016b11dbab541328bf978d7a55a88b263`, DEMO Isolation passed in [40270090760](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40270090760); the contract checks assert Google OAuth, owner-account config, no separate password path, and the clinic time guard. This is not a substitute for authenticated browser E2E.
+- The launch plan remains a minimum safe launch of the existing product. No new modules or non-essential scope is added before core end-to-end validation.
+
+
+## 2026-10-26 — DEMO pre-launch gate recheck (read-only)
+
+- Rechecked the current repository state before any root-site change. main remains at cf493ea38ab46af3356e6dcf750912616598a9b1 and its web/config.js still targets production project moyhiluyhjsujhwlyeuu. The connected four-sector DEMO remains in Draft PR #376. The application-code head last examined before these documentation-only checkpoint commits was 9ea512435c8a5b0477be37d2cc7212ececb35e96; subsequent commits in this checkpoint modify documentation only. Separate launch-UI PR #378 also retains the same production config and is not a substitute for the DEMO switch.
+- The isolated Supabase project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY. Its seven DEMO Edge Functions are ACTIVE with verify_jwt=true. Read-only checks found 0 rows in auth.users and 0 rows in businesses, branches, catalog_items, catalog_item_prices, orders, medical_appointments, and user_memberships.
+- Exact-head workflow [MantiqatiX DEMO Isolation run 40271831176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831176) passed source/scope assertions, local simulator flow tests, static connected-contract tests, and live non-mutating CORS/JWT smoke checks. The live smoke proves approved-origin preflight, denied-origin rejection, and rejection of unauthenticated POSTs; it does not prove authenticated Google login, database CRUD, two-user tenant isolation, ordering, or clinic booking.
+- PR #376's Pages validation run [40271831245](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831245) completed validation successfully, but its deployment job was skipped because the event was a pull request. The connected route is not publicly deployed.
+- Google OAuth remains an external/manual gate: configure the DEMO project's Google provider and exact redirect allowlist in Supabase Auth and the corresponding dedicated Google OAuth client, then test real sign-in, callback/session restoration, refresh, and sign-out against the published DEMO route. Do not request or store the user's Google password, commit OAuth client secrets, copy production sessions, or grant owner status on email text alone.
+- Migration history reconciliation remains open. The standard DEMO migration list contains seven targeted entries, while the branch's internal migration ledger records a wider manually applied baseline. Do not run db push or replay historical migrations until the schema and history are reconciled.
+- The DEMO Security Advisor still reports one anonymous-executable and six authenticated-executable SECURITY DEFINER functions; perform function-by-function caller/authorization review rather than blanket revocation. Two payment-event tables have RLS enabled without policies, and browser grants were revoked; preserve this least-privilege boundary.
+- Decision: no changes to production database/config/functions, no PR merge, and no deployment were performed. Root Pages remains production-configured, so the request to switch the root URL to connected DEMO is not complete. Keep PR #376 Draft and release BLOCKED / NOT CERTIFIED until OAuth and authenticated multi-user database E2E, migration reconciliation, security review, and a separately approved deployment/rollback plan are evidenced.
+
+
+## 2026-10-26 — Google OAuth live readiness probe
+
+- Added a non-mutating live authorize probe to `scripts/test-connected-demo-live-smoke.mjs`. It checks the Google provider and exact connected-app callback by issuing an authorize request with redirect-following disabled; it cannot complete login or create a user.
+- Run [40279002724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40279002724) failed at this new gate with the live response `400 validation_failed — Unsupported provider: provider is not enabled`. Earlier JavaScript syntax, local simulator, and connected contract steps passed.
+- Confirmed blocker: enable the Google provider in Supabase project `MantiqatiX-DEMO` (`lkijdgqanbqjudiducjt`) using an approved OAuth client. Required Google Authorized redirect URI: `https://lkijdgqanbqjudiducjt.supabase.co/auth/v1/callback`. Required Supabase DEMO Additional Redirect URL: `https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html`.
+- Exact steps and the real authenticated acceptance matrix are in `docs/DEMO_GOOGLE_OAUTH_RUNBOOK_20261026.md`. No OAuth secrets were requested or committed. No project/user data was created or mutated by the probe.
+- Until the provider and redirect allowlist are configured, CI should remain blocked at the live OAuth readiness gate. After it passes, perform real browser login and authenticated multi-user E2E; a 3xx authorize redirect alone is not final acceptance.

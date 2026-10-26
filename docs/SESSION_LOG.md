@@ -217,3 +217,163 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-26 — DEMO-first four-sector scope and isolated web simulator
+
+- **User decision:** freeze new product scope to restaurants/cafes, pharmacies, doctors/clinics, and stores. Finish DEMO first; only merge and release in controlled stages after tests. Do not start a new platform or rebuild existing working code.
+- **Backup points given to user before new changes:** repository main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`, PR #374 head `1929e77347f561a7f554bfb61a49177bebc1f1e9`, and PR #375 head `059155ff3ddee31a4f76b98c31390f91504c276a`, each accessible as a GitHub ZIP snapshot.
+- **Created branch:** `demo/four-sector-isolated-20261026`, starting at main `2a6b5a5209ae86815046c91fd3d3e35525361528`. No merge, production deploy, production database write, migration, or Edge Function deployment occurred.
+- **Implemented in branch:** standalone entrypoint `web/demo/index.html`, stylesheet `web/demo/demo.css`, and local-only simulator `web/demo/demo.js`. It supports account creation in the browser, activities in the four sectors, product/service catalog and price/stock edits, demo order/appointment creation, a bounded order-status state machine, and local role views for owner/manager/staff/customer.
+- **Isolation contract:** demo uses only `MANTIQATIX_DEMO_DB_V1` and `MANTIQATIX_DEMO_SESSION_V1` in the current browser localStorage. No production config or Supabase SDK is imported, no remote API is called, and no real payment or external message is sent. The simulator explicitly warns that local role checks are not server-side Auth/RLS evidence.
+- **Ready-made local logins:** `owner@demo.mantiqatix`, `manager@demo.mantiqatix`, `staff@demo.mantiqatix`, `customer@demo.mantiqatix`; password `Demo123!`.
+- **Verification:** dedicated workflow `MantiqatiX DEMO Isolation` run [40260016567](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40260016567) passed JavaScript syntax and 14 static isolation/scope assertions on code/workflow head `6f9a43310d7b1e7710662e3640ff63f66ea6f267`. Documentation commit(s) after this check did not change the simulator files. No browser E2E or real database/RLS test is claimed.
+- **Supabase environment check:** the connected `manteqti` organization is on Free; there is one production project. `get_cost(type=project)` returned `$0/month` for a new project. The project has not been created; user must explicitly choose/confirm the target organization before project creation. No paid branch was created.
+- **Next actions:** review/validate the local simulator, open a draft PR, then—after user confirms the `manteqti` organization—create a separately isolated Free Supabase project if its creation flow still quotes $0. Reapply an authoritative migration chain and synthetic fixtures only in that project, then test Auth/RLS/tenant/branch isolation and end-to-end sector flows before considering LIVE.
+- **Release status:** DEMO simulator source validation PASS; full database-backed DEMO and LIVE remain BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-26 — Four-sector DEMO integration test PASS
+
+- **Source head verified:** `58f46459eca005782c13a42d48d73b7a3f271aa7` on `demo/four-sector-isolated-20261026`.
+- **PASS:** dedicated DEMO workflow run [40260656015](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40260656015) completed successfully, including JavaScript syntax, 14 static isolation/scope assertions, and DOM-based simulator workflow integration tests.
+- **Tested flow:** demo account login, create a store activity, add and edit a product/price/stock, assign an in-scope staff membership, create and transition an order, customer login through the actual login form, create a customer order for each of the four sectors, set a clinic appointment date/time, verify DEMO_ONLY payment marker, and reset the local demo fixture.
+- **Test correction history:** an earlier integration test failed because it tried to click a quick-login button while on the orders page; the test was corrected to use the actual login form. A second run found a seed-fixture ambiguity in the clinic-order assertion; the assertion now specifically checks a newly created order rather than the pre-seeded clinic sample. Latest run above is the passing evidence.
+- **Boundary:** browser-local workflow tests do not certify Supabase Auth, RLS, Edge Function authorization, persistence across browsers, real multi-user tenant isolation, backup/restore, or real payment integration. No production config/database/functions/deploy or merge occurred.
+- **Next:** obtain explicit user confirmation to use the `manteqti` Free organization for a new Supabase project (current project quote: $0/month), then set up a separate database-backed DEMO with synthetic fixtures and an authoritative migration replay. Do not create a paid branch or change production.
+- **Release status:** isolated local DEMO workflow tests PASS; database-backed DEMO and LIVE release remain BLOCKED / NOT CERTIFIED.
+
+
+
+## 2026-10-26 — Connected DEMO integration and CI repair
+
+- Verified project `MantiqatiX-DEMO` (`lkijdgqanbqjudiducjt`) is `ACTIVE_HEALTHY`; production project was not modified.
+- Verified the seven deployed DEMO Edge Function sources match their tracked files exactly. The connected page uses a DEMO-only publishable key and has separate config, JS, and CSS from the local simulator.
+- Observed 132 public tables with RLS enabled and zero Auth users. Four sector rows are seeded. No authenticated database E2E has yet been performed.
+- Migration status remains a release blocker: Supabase's standard migration listing is empty, while the internal ledger records 283 schema-baseline versions and 35 manually executed later migrations. No migration replay or `db push` was run.
+- Fixed a real CI blocker: the production secret scanner falsely matched the words “service-role” in a comment in `web/demo/connected-config.js`. Reworded the comment without changing the public project URL or key.
+- Added `scripts/test-connected-demo-contract.mjs` and updated `.github/workflows/demo-isolation.yml` to syntax-check the connected JS/config and validate the isolated project, auth flows, seven function calls, database reads, atomic catalog helper, synthetic stock guards, and payments-off setting.
+- PASS: DEMO Isolation workflow [40264871042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871042), including the new connected contract test. PASS: web verification [40264871016](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871016).
+- Security review found two RLS-enabled public tables without policies (`digital_page_payment_events`, `mantigo_payment_provider_events`); browser access is denied by RLS, but `digital_page_payment_events` still has table grants to `anon` and `authenticated`. Targeted review/hardening remains pending. Numerous `SECURITY DEFINER` advisor warnings also remain; no blanket privilege changes were made.
+- PR #376 remains Draft and no production merge/deployment/payment action occurred. LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Targeted DEMO database hardening applied
+
+- Added `supabase/demo/security-hardening-20261026.sql` and applied it only to `MantiqatiX-DEMO` using Supabase migration API. Supabase migration version: `20261026033808`; internal ledger row records the exact tracked source blob and application method.
+- Revoked browser table privileges on `digital_page_payment_events` and `mantigo_payment_provider_events`. Verified both remain RLS-enabled with zero policies, and neither `anon` nor `authenticated` has SELECT privilege; service-role access remains only where previously granted.
+- Restricted 12 out-of-scope SECURITY DEFINER backend functions to `service_role` only. Verified `anon_exec=false` and `authenticated_exec=false` for the targeted functions. Kept `create_medical_appointment_backend` executable by `authenticated` and `service_role`, because the connected DEMO clinic booking flow invokes it using the user's JWT.
+- Security advisor count fell from 78 to 66 anon-executable SECURITY DEFINER functions and from 93 to 81 authenticated-executable functions. Remaining warnings need function-by-function review; no blanket revokes were applied.
+- Migration history is still not reconciled: standard history now contains only `20261026033808`, while the internal ledger contains 283 baseline entries, 35 manually executed migrations, and this new targeted migration. Do not run `db push` or replay the historical chain.
+- Remaining acceptance blocker: `auth.users` is still empty; no real multi-user Auth/RLS or connected browser E2E has been claimed. LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Clinic appointment scope guard applied
+
+- Static code review found that the connected appointment Edge Function called `create_medical_appointment_backend`, but the database RPC did not require the target business/provider profile to be a DEMO clinic. A caller could attempt to use the RPC with a provider profile from another sector in the isolated database.
+- Added `supabase/demo/20261026-clinic-appointment-sector-guard.sql` and applied it only to the DEMO project as migration `20261026034100`. The RPC now requires both business and provider profile settings to declare `environment=DEMO` and `sector_code=DOCTOR`; its SECURITY DEFINER `search_path` is empty.
+- Verified the live function definition contains all four predicates; verified `anon` execution is false and `authenticated`/ `service_role` execution remains true. The internal ledger records the exact source blob SHA.
+- Added static CI assertions for the sector guard. On the latest tested code, the DEMO workflow's connected contract test passed; the workflow was still finishing cleanup when last checked.
+- Standard Supabase migration history now contains only two targeted DEMO migrations (`20261026033808`, `20261026034100`) and remains inconsistent with the historical schema baseline and 35 manually executed migrations. Do not run `db push`.
+- Remaining blocker: no real Auth users or authenticated browser E2E yet. LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Restricted Vault secret RPC in DEMO
+
+- Read-only production comparison found `public.get_mnty_push_secrets()` returns decrypted VAPID/webhook secrets. Production already restricts it to `service_role`; DEMO incorrectly allowed `anon` and `authenticated` execution due to its schema baseline grants.
+- Added and applied DEMO-only migration `20261026034449` from `supabase/demo/20261026-restrict-push-secret-rpc.sql`; recorded the exact source blob in the internal ledger. Verified DEMO grants now match production: anon=false, authenticated=false, service_role=true.
+- Verified DEMO currently contains zero Vault entries with the two expected secret names, but restricted the RPC anyway as defense in depth. Production was queried read-only and not changed.
+- Security Advisor warnings reduced to 65 anon-executable and 80 authenticated-executable SECURITY DEFINER functions. Remaining warnings are not certified and need function-by-function review.
+
+
+
+## 2026-10-26 — DEMO SECURITY DEFINER grant reconciliation and scope freeze
+
+- Compared effective `anon` / `authenticated` EXECUTE privileges for shared public SECURITY DEFINER functions in DEMO against a read-only query of LIVE. Added `supabase/demo/20261026-align-security-definer-grants.sql`, explicitly enumerating 64 shared functions and restoring browser-role grants to match LIVE while preserving current DEMO service_role grants.
+- Restricted nine DEMO-only marketing/matrimony RPCs to service_role in the same migration because they are outside the frozen four-sector scope and are not used by the connected DEMO UI.
+- Added and applied `supabase/demo/20261026-freeze-out-of-scope-rpcs.sql` as migration `20261026034833`, restricting 25 additional shared out-of-scope RPCs (rides, jobs, education, notifications, digital-page publishing) to service_role only.
+- Recorded both migration source blob hashes in the internal ledger. No production grants or data were changed.
+- Post-change verification: Security Advisor now reports 1 anon-executable and 6 authenticated-executable SECURITY DEFINER functions, down from 65/80 before the scope freeze. The remaining anon function is `get_mnty_targeted_advertisements`, which is also public in LIVE; the six authenticated functions are the clinic booking RPC, four authorization helpers, and that ad projection.
+- Core DEMO tables remain empty: 0 Auth users, businesses, branches, memberships, catalog items/prices, orders, or appointments; 4 active sectors and 4 active categories. Stock reserve/restore triggers are enabled.
+- [x] DEMO workflow run [40265909990](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40265909990) passed the latest scope-freeze/ACL contract tests. Authenticated database E2E and migration-history reconciliation remain blockers; LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Live DEMO endpoint smoke test added and passed
+
+- Added `scripts/test-connected-demo-live-smoke.mjs` and wired it into `.github/workflows/demo-isolation.yml` for both branch pushes and PRs affecting the connected DEMO contract.
+- The test uses only the public DEMO publishable key and makes no data writes. For each of the seven deployed Edge Functions, it verifies: approved GitHub Pages origin preflight returns 200 and reflects the origin; an unapproved origin returns 403; and a POST without a bearer session returns 401.
+- Workflow [40266196560](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266196560) completed all substantive steps successfully, including the live CORS/auth smoke test. No DEMO user or business data was created.
+- This validates the live gateway/CORS/authentication boundary only; it does not substitute for authenticated multi-user E2E, RLS tenant isolation, order transitions, or clinic booking/privacy tests.
+
+
+## 2026-10-26 — DEMO order retry idempotency hardening
+
+- **Problem found in source review:** the connected UI generated a fresh client idempotency key on every click. If the server created an order but the client lost the response, retrying could create a second order despite the existing server-side idempotency protection.
+- **Change:** preserve the same key in the current button and `sessionStorage`, scoped to the DEMO user, business, branch, and catalog item; clear it only after the Edge Function reports success. A retry after an ambiguous failure now reuses the same key. Storage access is guarded so browser storage restrictions do not break order submission.
+- **Regression contract:** extended `scripts/test-connected-demo-contract.mjs` to assert the stable retry key, its scope, persistence, and success cleanup.
+- **Verification status at commit time:** code/test source updated; exact-head GitHub Actions is required before calling this change CI-verified. Authenticated order creation and network fault-injection still require runtime E2E and are not certified by static contracts.
+- **Safety:** code remains in Draft PR #376; no database migration, Edge Function deployment, production change, payment activation, merge, or public deployment was performed.
+
+
+## 2026-10-26 — DEMO endpoint boundary hardening and isolated deployment
+
+- **Observed:** a shared order RPC is not intrinsically tied to the connected four-sector DEMO. The DEMO Edge Function must therefore verify the explicit environment/sector tags before reaching that shared function.
+- **Changes in PR #376:** `demo-order-create` now requires a DEMO-tagged active business in FOOD/PHARMACY/STORE, a DEMO-tagged active branch, an active matching DEMO provider, and catalog entries with `environment=DEMO` and `synthetic_only=true`. `demo-order-status-update` now permits status changes only for orders explicitly marked `source=MANTIQATIX_DEMO`, `environment=DEMO`, `payments_enabled=false`, `synthetic_only=true`, plus a DEMO-tagged business/branch in the allowed order sectors. `demo-catalog-write` now independently validates the active branch's DEMO tag. The existing clinic path remains separate.
+- **Idempotency:** order UI retries reuse the same session-scoped key for the same user/business/branch/item when a prior response may have been lost; the key is cleared only after success. Contract assertions cover this behavior.
+- **Verification before deployment:** exact-head run [40266886638](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266886638) passed, including the connected DEMO contract and live non-mutating CORS/JWT smoke checks. Related Backend-only Module Boundary, Module Professionalization Validation, MantiGO Open Ride Privacy Boundary, RC425 Paymob Atomicity, and web validation workflows also completed successfully on that code head.
+- **Isolated deployment:** deployed updated versions of only `demo-order-create`, `demo-order-status-update`, and `demo-catalog-write` to DEMO project `lkijdgqanbqjudiducjt`; their JWT verification remains enabled. Deployment versions and tracked-source parity are being checked, then the live non-mutating smoke workflow is rerun. No LIVE project was changed.
+- **Not yet certified:** authenticated customer/owner/employee signup and multi-user tenant/business/branch isolation, real catalog/order lifecycle E2E, clinic booking E2E, migration-history reconciliation, and final SECURITY DEFINER review remain open. PR #376 remains Draft/unmerged; connected page is not publicly deployed; payments remain disabled.
+
+
+## 2026-10-26 — Order retry ambiguity handling and exact-head verification
+
+- **Final retry behavior:** the client stores a pending idempotency key and the exact requested quantity per DEMO user/business/branch/item. If an outcome is ambiguous (for example, a lost network response), a different quantity is blocked until the same-quantity retry resolves the pending request; this prevents changing the payload while reusing the retry intent. A definite non-retryable 4xx or an explicit failure payload clears the pending record; a successful result clears it as well.
+- **Exact code head verified:** `ee66c415d1d0b9f9af0b527e3f19ff82f49a1db6`.
+- **PASS:** DEMO Isolation [run 40267274927](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40267274927) — JavaScript syntax, local simulator flows, connected DEMO source contracts including retry-boundary assertions, and post-deployment CORS/JWT smoke across the seven DEMO Edge Functions completed successfully without database writes.
+- **PASS:** Backend-only Module Boundary [40267274976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40267274976), Module Professionalization Validation [40267274914](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40267274914), MantiGO Open Ride Privacy Boundary [40267274953](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40267274953), RC425 Paymob Atomicity [40267274893](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40267274893), and web validation [40267274899](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40267274899). The Pages deploy job was skipped for the PR, as intended.
+- **Deployment/source parity:** the three updated DEMO-only functions remain active (order-create v2, order-status v2, catalog-write v3), JWT verification remains on, and fetched deployed source matches the corresponding tracked files byte-for-byte.
+- **Still blocked:** no DEMO Auth users existed at the last DB inspection, so authenticated cross-user end-to-end flows remain unverified. Migration-history reconciliation and final function-by-function SECURITY DEFINER review are still required. PR #376 remains Draft/unmerged; LIVE was not changed and real payments remain disabled.
+
+
+## Latest verified DEMO execution — 2026-10-26
+
+- **Code change:** commit `6aabe92c61ded3a9a85c5b714fb0b7fd5512a1aa` adds `supabase/demo/20261026-clinic-appointment-future-time-guard.sql` and a contract assertion. The SQL function now enforces `p_date_time > current epoch milliseconds` itself, raising `APPOINTMENT_TIME_MUST_BE_FUTURE`; relying only on Edge validation was insufficient because the authenticated RPC is callable directly.
+- **Applied only to DEMO:** migration `20261026043029_demo_clinic_appointment_future_time_guard_20261026` on project `lkijdgqanbqjudiducjt`. The function definition was read back and confirms the new guard plus empty `search_path`.
+- **Functional DB check:** a read-only/no-persistent-write SQL assertion passed both cases: a past timestamp is rejected with `APPOINTMENT_TIME_MUST_BE_FUTURE`, while a future timestamp passes the time gate and reaches the expected missing synthetic provider guard. No user, business, or appointment rows were created.
+- **CI PASS:** DEMO Isolation run [40269410403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40269410403) passed all nine steps, including JavaScript checks, local simulator workflows, connected DEMO source contracts, and non-mutating CORS/JWT smoke tests for all seven Edge Functions.
+- **Security boundary rechecked:** effective `anon`/`authenticated` INSERT/UPDATE/DELETE privileges are false on the tested DEMO business, branch, catalog, price, order, membership, and appointment tables. The Security Advisor still reports two RLS-enabled tables without policies and one anon plus six authenticated SECURITY DEFINER warnings; keep these under individual review.
+- **Still blocked:** `auth.users` remains empty and no authenticated business/order/appointment E2E was executed. PR #376 remains Draft/unmerged. No LIVE schema, data, Edge Function, or payment setting was changed; production release remains BLOCKED / NOT CERTIFIED.
+
+
+## Google OAuth and primary owner — 2026-10-26
+
+- The connected DEMO login now reuses the production Google OAuth pattern; the separate email/password signup/login path was removed. Configuration sets `primaryOwnerEmail` to `islam.nagy2022@gmail.com` (same identity as the user's uppercase address).
+- The client requests Google OAuth, uses `login_hint` for the primary owner and returns to the current DEMO page. This is a source-level change; it does not copy a production auth user, password, token, or session.
+- When the primary owner completes Google sign-in in the DEMO project and creates a business, the existing server-side business RPC assigns `OWNER` for that business only. It does not grant platform-wide `SUPER_ADMIN`.
+- **Remaining external setup:** the DEMO Supabase Auth project must have Google provider credentials configured and exact redirect URLs allowlisted in Supabase Auth and the Google OAuth client. The connected route is not publicly published while PR #376 remains Draft; therefore a real Google redirect/login has not been performed. Current `auth.users`, `businesses`, `orders`, and `medical_appointments` counts remain zero.
+- **CI evidence:** on code head `922569c016b11dbab541328bf978d7a55a88b263`, DEMO Isolation passed in [40270090760](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40270090760); the contract checks assert Google OAuth, owner-account config, no separate password path, and the clinic time guard. This is not a substitute for authenticated browser E2E.
+- The launch plan remains a minimum safe launch of the existing product. No new modules or non-essential scope is added before core end-to-end validation.
+
+
+## 2026-10-26 — DEMO root-switch verification checkpoint
+- Current read-only repository head for main: cf493ea38ab46af3356e6dcf750912616598a9b1. Its public web/config.js still targets LIVE project moyhiluyhjsujhwlyeuu.
+- Connected DEMO PR #376 remains Draft. The application-code head last inspected before this documentation-only checkpoint was 9ea512435c8a5b0477be37d2cc7212ececb35e96; the following checkpoint commits alter documentation only. The isolated project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY with seven JWT-protected DEMO Edge Functions.
+- Read-only queries confirmed zero demo Auth users, businesses, branches, catalog items/prices, orders, appointments and memberships.
+- [DEMO Isolation CI 40271831176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831176) passed its contract, source, scope and non-mutating CORS/JWT smoke checks. Those checks do not perform an authenticated Google OAuth or database CRUD flow.
+- [Pages CI 40271831245](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831245) validated the PR; its deployment job was skipped by design for a pull_request event. No public DEMO deployment occurred.
+- Blocking external/runtime gates: configure DEMO Google Provider credentials and exact redirect allowlists; test real login and session lifecycle; execute authenticated multi-user tenant/role E2E; reconcile migration history; complete per-function SECURITY DEFINER review. No production mutation, merge or deployment was made.
+- Status: connected DEMO code/CI PASS; authenticated backend E2E NOT VERIFIED; root URL still uses LIVE config; launch BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-26 — Google OAuth provider blocker confirmed
+
+- Added a live non-mutating Google OAuth authorize probe to the connected DEMO smoke script.
+- The live check reached Supabase Auth and returned `400 validation_failed — Unsupported provider: provider is not enabled`, confirming the DEMO project's Google provider is currently disabled. The probe stops before leaving for Google and creates no Auth user or business data.
+- Required Google callback for the isolated DEMO Supabase project: `https://lkijdgqanbqjudiducjt.supabase.co/auth/v1/callback`. Required allowed app return URL: `https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html`.
+- Exact dashboard steps, safe secret handling, post-configuration tests, and the acceptance matrix are in `docs/DEMO_GOOGLE_OAUTH_RUNBOOK_20261026.md`.
+- CI run [40279002724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40279002724) failed on this genuine live configuration blocker after local simulator and connected contract tests passed. Keep the gate failing until the provider and callback are configured, then re-run real authenticated acceptance tests.
+- No secrets were requested/committed, no DEMO Auth users were created, no live DB writes occurred, and production remained unchanged.
