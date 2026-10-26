@@ -24,9 +24,12 @@ comment on column public.restaurant_menu_items.image_url is
 -- Keep branch ownership binding private; never embed tenant/business/branch UUIDs in public section JSON.
 create table if not exists public.digital_page_menu_branch_bindings (
   page_id uuid primary key references public.digital_pages(id) on delete cascade,
-  tenant_id uuid not null,
+  -- The canonical tenancy and branch identifiers are VARCHAR, not UUID:
+  -- tenants.id, businesses.tenant_id, branches.id and user_memberships.branch_id
+  -- all use text identifiers (for example MNTY-PLATFORM / MNTY-BERKET-MAIN).
+  tenant_id character varying not null references public.tenants(id) on delete restrict,
   business_id uuid not null references public.businesses(id) on delete cascade,
-  branch_id uuid not null,
+  branch_id character varying not null references public.branches(id) on delete cascade,
   updated_by uuid not null references auth.users(id),
   updated_at timestamptz not null default now()
 );
@@ -127,10 +130,30 @@ as $body$
 declare
   v_page public.digital_pages%rowtype;
   v_order public.digital_page_orders%rowtype;
+  v_business_tenant_id character varying;
 begin
   if new.updated_by is distinct from auth.uid() then
     raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ACTOR_INVALID';
   end if;
+
+  -- Never accept an arbitrary tenant/business/branch tuple, even if the actor
+  -- happens to hold a membership row with similarly scoped identifiers.
+  select b.tenant_id into v_business_tenant_id
+    from public.businesses b
+   where b.id = new.business_id;
+  if not found or v_business_tenant_id is distinct from new.tenant_id then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_TENANT_SCOPE_INVALID';
+  end if;
+  if not exists (
+    select 1
+      from public.branches br
+     where br.id = new.branch_id
+       and br.tenant_id = new.tenant_id
+       and br.business_id = new.business_id
+  ) then
+    raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_BRANCH_SCOPE_INVALID';
+  end if;
+
   select * into v_page from public.digital_pages where id = new.page_id;
   if not found or v_page.page_type <> 'MENU' or v_page.business_id::text is distinct from new.business_id::text then
     raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_PAGE_SCOPE_INVALID';
