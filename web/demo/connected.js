@@ -144,25 +144,56 @@
       '</div></article>';
   }
 
-  function renderAuth() {
-    const signup = data.authMode === 'signup';
+  function renderAuth(message = '', messageType = 'error') {
+    const email = String(cfg?.primaryOwnerEmail || '').trim().toLowerCase();
     app.innerHTML =
       '<div class="auth-layout"><section class="hero-panel">' +
-      '<div><span class="hero-label">MANTIQATIX · DATABASE DEMO</span><h1>جرّب المنظومة على قاعدة منفصلة</h1>' +
-      '<p>هذه النسخة تستخدم مصادقة Supabase الحقيقية وقاعدة تجريبية مستقلة. أنشئ نشاطًا، أضف منتجات وأسعارًا، أنشئ طلبات واختبر الصلاحيات.</p></div>' +
+      '<div><span class="hero-label">MANTIQATIX · DATABASE DEMO</span><h1>نفس طريقة الدخول المستخدمة في الإنتاج</h1>' +
+      '<p>سجّل الدخول بحساب Google نفسه. سيُنشأ له سجل مصادقة مستقل داخل مشروع DEMO، بينما تبقى جلسة وبيانات الإنتاج منفصلة تمامًا.</p></div>' +
       '<div class="sector-list"><div class="sector-chip">🍽️ مطاعم وكافيهات</div><div class="sector-chip">⚕️ صيدليات</div><div class="sector-chip">🩺 أطباء وعيادات</div><div class="sector-chip">🛍️ متاجر</div></div>' +
-      '<p class="tiny">لا دفع حقيقي. استخدم بريدًا تختبره وكلمة مرور لا تستخدمها في أي خدمة أخرى. بيانات العيادات هنا تدريبية وليست ملفات مرضى.</p></section>' +
-      '<section class="panel"><h2 class="screen-title">' + (signup ? 'إنشاء حساب تجريبي' : 'تسجيل الدخول إلى DEMO') + '</h2>' +
-      '<p class="sub-title">الحساب مرتبط بقاعدة DEMO فقط، ولا ينشئ حسابًا في الإنتاج.</p>' +
-      '<div class="auth-switch"><button type="button" class="btn ' + (!signup ? 'active' : 'btn-secondary') + '" data-action="auth-mode" data-mode="login">دخول</button>' +
-      '<button type="button" class="btn ' + (signup ? 'active' : 'btn-secondary') + '" data-action="auth-mode" data-mode="signup">حساب جديد</button></div>' +
-      '<form id="auth-form" class="form-stack">' +
-      (signup ? '<div class="field"><label for="auth-name">الاسم</label><input id="auth-name" name="name" required maxlength="80" autocomplete="name"></div>' : '') +
-      '<div class="field"><label for="auth-email">البريد الإلكتروني</label><input id="auth-email" name="email" type="email" required maxlength="180" autocomplete="email"></div>' +
-      '<div class="field"><label for="auth-password">كلمة المرور</label><input id="auth-password" name="password" type="password" minlength="8" required autocomplete="' + (signup ? 'new-password' : 'current-password') + '"></div>' +
-      '<div class="form-actions"><button class="btn btn-primary" type="submit">' + (signup ? 'إنشاء الحساب التجريبي' : 'دخول') + '</button></div></form>' +
-      '<div id="auth-message" class="auth-confirm-card hide" role="status"></div>' +
-      '<p class="connected-note">قد يتطلب الحساب الجديد تأكيد البريد الإلكتروني وفق إعدادات Auth. بعد التأكيد، ارجع إلى هذه الصفحة وسجّل الدخول.</p></section></div>';
+      '<p class="tiny">لا يتم طلب كلمة مرور Google أو تخزينها داخل MantiqatiX. لا توجد مدفوعات حقيقية ولا بيانات إنتاج في هذه البيئة.</p></section>' +
+      '<section class="panel"><h2 class="screen-title">الدخول إلى نسخة DEMO المتصلة</h2>' +
+      '<p class="sub-title">استخدم زر Google بدل إنشاء كلمة مرور جديدة.</p>' +
+      '<div class="connected-success"><strong>الحساب الأساسي للمالك</strong><br><span dir="ltr">' + esc(email) + '</span><br>عند الدخول بهذا الحساب وإنشاء نشاط، تمنح قاعدة DEMO الحساب دور OWNER على النشاط الذي أنشأه.</div>' +
+      '<div class="form-actions"><button id="google-auth" class="btn btn-primary" type="button">🔐 المتابعة باستخدام Google</button></div>' +
+      (message ? '<div id="auth-message" class="auth-confirm-card ' + (messageType === 'error' ? 'connected-error' : '') + '" role="status">' + esc(message) + '</div>' : '') +
+      '<p class="connected-note">يلزم تفعيل Google Provider وقائمة Redirect URLs لمشروع Supabase التجريبي. هذا الإعداد منفصل عن إنتاج MantiqatiX؛ لا ننسخ جلسة الإنتاج ولا نطلب منك إعادة تعيين كلمة مرور.</p></section></div>';
+    const button = $('#google-auth');
+    if (button) button.addEventListener('click', signInWithGoogle);
+  }
+
+  function oauthRedirectUrl() {
+    return window.location.origin + window.location.pathname + window.location.search.split('#')[0].replace(/\\?$/, '');
+  }
+
+  function cleanAuthUrl() {
+    const hasAuthResult = window.location.hash.includes('access_token=') ||
+      window.location.hash.includes('error=') ||
+      /[?&](?:code|error|error_description)=/.test(window.location.search);
+    if (hasAuthResult) window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+  }
+
+  async function signInWithGoogle() {
+    const button = $('#google-auth');
+    if (button) button.disabled = true;
+    try {
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: oauthRedirectUrl(),
+          queryParams: {
+            access_type: 'online',
+            prompt: 'select_account',
+            login_hint: String(cfg.primaryOwnerEmail || '').trim().toLowerCase()
+          }
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      renderAuth('تعذر بدء تسجيل الدخول باستخدام Google: ' + errorText(error) + ' — تحقق من إعداد Google Provider وروابط التحويل داخل مشروع DEMO.');
+    } finally {
+      if (button && button.isConnected) button.disabled = false;
+    }
   }
 
   function renderWorkspace() {
@@ -464,54 +495,6 @@
       data.loading = false;
       data.dataError = errorText(error);
       render();
-    }
-  }
-
-  async function login(form) {
-    const values = new FormData(form);
-    const email = String(values.get('email') || '').trim().toLowerCase();
-    const password = String(values.get('password') || '');
-    const button = $('button[type="submit"]', form);
-    button.disabled = true;
-    const { data: result, error } = await sb.auth.signInWithPassword({ email, password });
-    button.disabled = false;
-    if (error || !result.session) {
-      const msg = errorText(error || 'لم يتم إنشاء جلسة تسجيل الدخول.');
-      $('#auth-message').textContent = msg;
-      $('#auth-message').classList.remove('hide');
-      $('#auth-message').classList.add('connected-error');
-      return;
-    }
-    await bootstrap(result.session);
-    toast('تم تسجيل الدخول إلى قاعدة DEMO.', 'success');
-  }
-
-  async function signup(form) {
-    const values = new FormData(form);
-    const name = String(values.get('name') || '').trim();
-    const email = String(values.get('email') || '').trim().toLowerCase();
-    const password = String(values.get('password') || '');
-    if (name.length < 2 || password.length < 8) return toast('أدخل اسمًا صحيحًا وكلمة مرور من 8 أحرف على الأقل.', 'error');
-    const button = $('button[type="submit"]', form);
-    button.disabled = true;
-    const { data: result, error } = await sb.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name, demo_account: true } }
-    });
-    button.disabled = false;
-    if (error) {
-      $('#auth-message').textContent = 'تعذر إنشاء الحساب التجريبي: ' + errorText(error);
-      $('#auth-message').classList.remove('hide');
-      return;
-    }
-    if (result.session) {
-      await bootstrap(result.session);
-      toast('تم إنشاء الحساب والدخول إلى DEMO.', 'success');
-    } else {
-      $('#auth-message').innerHTML = '<strong>تم إرسال طلب إنشاء الحساب.</strong><br>قد يحتاج Supabase Auth إلى تأكيد البريد الإلكتروني. افتح رسالة التأكيد إن وصلت، ثم ارجع إلى هذه الصفحة وسجّل الدخول. لم يتم إنشاء أي حساب في الإنتاج.';
-      $('#auth-message').classList.remove('hide');
-      $('#auth-message').classList.remove('connected-error');
     }
   }
 
