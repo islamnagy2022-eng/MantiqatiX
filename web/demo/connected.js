@@ -89,7 +89,7 @@
       try { saved = window.localStorage.getItem(workspaceModeStorageKey()); } catch (_) {}
     }
     if (saved === 'PLATFORM' && hasPlatformOwnerAccess()) return 'PLATFORM';
-    if (saved === 'OWNER') return 'OWNER';
+    if (saved === 'OWNER' && (activeMemberships().length || hasPlatformOwnerAccess())) return 'OWNER';
     if (saved === 'CUSTOMER' && hasCustomerAccess()) return 'CUSTOMER';
     if (hasPlatformOwnerAccess()) return 'PLATFORM';
     if (activeMemberships().length) return 'OWNER';
@@ -100,6 +100,9 @@
     if (!['PLATFORM', 'OWNER', 'CUSTOMER'].includes(next)) return;
     if (next === 'PLATFORM' && !hasPlatformOwnerAccess()) {
       return toast('لوحة مالك المنصة تتطلب عضوية منصة مؤكدة من الخادم.', 'error');
+    }
+    if (next === 'OWNER' && !activeMemberships().length && !hasPlatformOwnerAccess()) {
+      return toast('مساحة صاحب النشاط تتطلب عضوية نشاط معتمدة. حساب العميل وحده لا يفتح لوحة الإدارة.', 'error');
     }
     if (next === 'CUSTOMER' && !hasCustomerAccess()) {
       return toast('لم يتم تجهيز سياق العميل لهذا الحساب بعد. حدّث البيانات ثم حاول مرة أخرى.', 'error');
@@ -112,8 +115,9 @@
   function renderWorkspaceModeSwitcher(mode) {
     const modes = [];
     if (hasPlatformOwnerAccess()) modes.push(['PLATFORM', 'مالك المنصة', 'إدارة عامة للمنصة التجريبية']);
-    modes.push(['OWNER', 'صاحب النشاط', 'إدارة نشاطك وفروعك وطلباتك']);
-    if (hasCustomerAccess()) modes.push(['CUSTOMER', 'العميل', 'تصفح المنتجات وطلب الخدمات والحجز']);
+    if (activeMemberships().length || hasPlatformOwnerAccess()) modes.push(['OWNER', 'صاحب النشاط', 'إدارة نشاطك وفروعك وطلباتك']);
+    if (hasCustomerAccess()) modes.push(['CUSTOMER', 'العميل', 'الصفحة الرئيسية وتصفح الكتالوج']);
+    if (modes.length < 2) return '';
     return '<section class="workspace-mode-panel"><div class="workspace-mode-copy"><strong>تبديل مساحة العمل</strong><small>تغيير طريقة العرض لا يغيّر هويتك أو صلاحيات قاعدة البيانات.</small></div><div class="workspace-mode-switcher" role="group" aria-label="تبديل مساحة العمل">' +
       modes.map(item => '<button type="button" class="mode-switch-btn' + (mode === item[0] ? ' active' : '') + '" data-action="workspace-mode" data-mode="' + item[0] + '" aria-pressed="' + String(mode === item[0]) + '"><strong>' + item[1] + '</strong><small>' + item[2] + '</small></button>').join('') +
       '</div></section>';
@@ -323,6 +327,14 @@
       '<div class="workspace-header"><div><h1 class="screen-title">MantiqatiX</h1><p class="sub-title">قاعدة DEMO: ' + esc(cfg.tenantId) + ' · لا معاملات مالية حقيقية.</p><div class="connection-state">اتصال قاعدة البيانات جاهز</div></div>' +
       '<div class="user-box"><div class="user-avatar">' + esc((user.user_metadata?.full_name || user.email || 'م').slice(0, 1)) + '</div><div><strong>' + esc(user.user_metadata?.full_name || user.email) + '</strong><small>' + esc(user.email || '') + ' · ' + (hasPlatformOwnerAccess() ? 'مالك المنصة' : 'حساب DEMO') + '</small></div></div></div>';
     const modeSwitcher = renderWorkspaceModeSwitcher(mode);
+    // Ordinary customers receive the public home/catalog only: no workspace switcher,
+    // dashboard, sidebar, order history, or owner controls.
+    if (mode === 'CUSTOMER' && !hasPlatformOwnerAccess() && activeMemberships().length === 0) {
+      $('#app').innerHTML = data.dataError
+        ? '<div class="connected-error">' + esc(data.dataError) + '</div><button class="btn btn-secondary" data-action="refresh">إعادة المحاولة</button>'
+        : '<section class="customer-home-only"><div class="customer-home-brand"><span class="brand-mark">M</span><div><h1>MantiqatiX</h1><p>اكتشف الأنشطة والمنتجات والخدمات المتاحة</p></div></div>' + renderCatalog() + '</section>';
+      return;
+    }
     if (mode === 'PLATFORM') {
       $('#app').innerHTML = userHeader + modeSwitcher +
         (data.dataError ? '<div class="connected-error">' + esc(data.dataError) + '</div><button class="btn btn-secondary" data-action="refresh">إعادة المحاولة</button>' : renderPlatformDashboard());
