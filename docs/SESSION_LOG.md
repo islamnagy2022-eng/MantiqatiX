@@ -308,3 +308,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The test uses only the public DEMO publishable key and makes no data writes. For each of the seven deployed Edge Functions, it verifies: approved GitHub Pages origin preflight returns 200 and reflects the origin; an unapproved origin returns 403; and a POST without a bearer session returns 401.
 - Workflow [40266196560](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266196560) completed all substantive steps successfully, including the live CORS/auth smoke test. No DEMO user or business data was created.
 - This validates the live gateway/CORS/authentication boundary only; it does not substitute for authenticated multi-user E2E, RLS tenant isolation, order transitions, or clinic booking/privacy tests.
+
+
+## 2026-10-26 — DEMO order retry idempotency hardening
+
+- **Problem found in source review:** the connected UI generated a fresh client idempotency key on every click. If the server created an order but the client lost the response, retrying could create a second order despite the existing server-side idempotency protection.
+- **Change:** preserve the same key in the current button and `sessionStorage`, scoped to the DEMO user, business, branch, and catalog item; clear it only after the Edge Function reports success. A retry after an ambiguous failure now reuses the same key. Storage access is guarded so browser storage restrictions do not break order submission.
+- **Regression contract:** extended `scripts/test-connected-demo-contract.mjs` to assert the stable retry key, its scope, persistence, and success cleanup.
+- **Verification status at commit time:** code/test source updated; exact-head GitHub Actions is required before calling this change CI-verified. Authenticated order creation and network fault-injection still require runtime E2E and are not certified by static contracts.
+- **Safety:** code remains in Draft PR #376; no database migration, Edge Function deployment, production change, payment activation, merge, or public deployment was performed.
