@@ -12,22 +12,22 @@ const sources = {
 };
 
 for (const [name, source] of Object.entries({
-  order: sources.order,
   digital: sources.digital,
-  mantigo: sources.mantigo,
   subscription: sources.subscription
 })) {
-  assert.match(source, /const PAYMOB_CHECKOUT_ENABLED\s*=\s*false/, name + ': Paymob checkout must be explicitly disabled for first launch');
+  assert.match(source, /const PAYMOB_CHECKOUT_ENABLED\\s*=\\s*false/, name + ': catalog/subscription checkout must remain disabled for first launch');
   assert.match(source, /PAYMOB_CHECKOUT_UNDER_CONSTRUCTION/, name + ': disabled checkout must fail closed with a clear status');
   const gate = source.indexOf('PAYMOB_CHECKOUT_UNDER_CONSTRUCTION');
   const firstProviderCall = [
-    source.indexOf('create_payment_intent_backend'),
     source.indexOf('claim_digital_page_payment_intent_backend'),
     source.indexOf('create_subscription_payment_intent_claimable_backend'),
-    source.indexOf('https://accept.paymob.com/v1/intention/'),
     source.indexOf('https://accept.paymob.com/v1/intention/')
   ].filter(i => i >= 0).sort((a,b)=>a-b)[0];
   assert.ok(firstProviderCall === undefined || gate < firstProviderCall, name + ': gate must run before database/provider intent creation');
+}
+
+for (const [name, source] of Object.entries({ order: sources.order, mantigo: sources.mantigo })) {
+  assert.doesNotMatch(source, /PAYMOB_CHECKOUT_ENABLED|PAYMOB_CHECKOUT_UNDER_CONSTRUCTION/, name + ': existing payment flow must not be globally disabled by catalog launch policy');
 }
 
 assert.doesNotMatch(sources.app, /sb\.functions\.invoke\(['"]digital-page-payment-intent['"]/, 'browser account flow must not invoke digital-page Paymob checkout');
