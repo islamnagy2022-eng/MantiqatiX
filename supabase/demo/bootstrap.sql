@@ -41,40 +41,109 @@ security definer
 set search_path = ''
 as $function$
 declare
-  v_membership_id varchar;
+  v_email text;
+  v_email_confirmed boolean;
+  v_google_identity boolean;
+  v_is_primary_platform_owner boolean := false;
+  v_customer_membership_id varchar;
+  v_platform_membership_id varchar;
+  v_created_customer boolean := false;
 begin
-  if p_user_id is null or not exists(select 1 from auth.users u where u.id=p_user_id) then
-    raise exception 'DEMO_AUTH_USER_REQUIRED';
-  end if;
-  if not exists(select 1 from public.tenants t where t.id='MNTY-PLATFORM' and t.status='ACTIVE') then
-    raise exception 'DEMO_TENANT_NOT_READY';
+  select
+    pg_catalog.lower(pg_catalog.coalesce(u.email, '')),
+    u.email_confirmed_at is not null,
+    (
+      pg_catalog.coalesce(u.raw_app_meta_data->>'provider', '') = 'google'
+      or pg_catalog.coalesce(u.raw_app_meta_data->'providers', '[]'::jsonb) @> '["google"]'::jsonb
+    )
+  into v_email, v_email_confirmed, v_google_identity
+  from auth.users u
+  where u.id = p_user_id;
+
+  if p_user_id is null or v_email is null then
+    raise exception 'demo_auth_user_required';
   end if;
 
-  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_user_id::text, 90126));
+  if not exists (
+    select 1 from public.tenants t
+    where t.id = 'mnty-platform' and t.status = 'active'
+  ) then
+    raise exception 'demo_tenant_not_ready';
+  end if;
 
-  select m.id into v_membership_id
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_user_id::text, 90126)
+  );
+
+  select m.id into v_customer_membership_id
   from public.user_memberships m
-  where m.user_id=p_user_id and m.tenant_id='MNTY-PLATFORM'
-    and upper(m.role)='CUSTOMER' and m.status='ACTIVE'
+  where m.user_id = p_user_id
+    and m.tenant_id = 'mnty-platform'
+    and m.business_id is null
+    and m.branch_id is null
+    and pg_catalog.upper(m.role) = 'customer'
+    and m.status = 'active'
   limit 1;
 
-  if v_membership_id is not null then
-    return pg_catalog.jsonb_build_object('ok',true,'created',false,'membership_id',v_membership_id,'role','CUSTOMER','tenant_id','MNTY-PLATFORM');
+  if v_customer_membership_id is null then
+    v_customer_membership_id := pg_catalog.gen_random_uuid()::text;
+    insert into public.user_memberships
+      (id, user_id, tenant_id, organization_id, business_id, branch_id, role, permissions, status)
+    values
+      (v_customer_membership_id, p_user_id, 'mnty-platform', 'mnty-main',
+       null, null, 'customer', '{"scope":"tenant","demo":true}'::jsonb, 'active');
+    v_created_customer := true;
   end if;
 
-  v_membership_id := pg_catalog.gen_random_uuid()::text;
-  insert into public.user_memberships(id,user_id,tenant_id,organization_id,role,permissions,status)
-  values(v_membership_id,p_user_id,'MNTY-PLATFORM','MNTY-MAIN','CUSTOMER',
-         '{"scope":"TENANT","demo":true}'::jsonb,'ACTIVE');
+  -- only the explicitly configured, google-authenticated, confirmed primary account
+  -- becomes platform owner in this isolated demo project. email text alone is not
+  -- sufficient; the identity must exist in this project's own auth.users.
+  v_is_primary_platform_owner :=
+    v_email = 'islam.nagy2022@gmail.com'
+    and v_email_confirmed
+    and v_google_identity;
 
-  return pg_catalog.jsonb_build_object('ok',true,'created',true,'membership_id',v_membership_id,'role','CUSTOMER','tenant_id','MNTY-PLATFORM');
+  if v_is_primary_platform_owner then
+    insert into private.platform_admins(user_id)
+    values (p_user_id)
+    on conflict (user_id) do nothing;
+
+    select m.id into v_platform_membership_id
+    from public.user_memberships m
+    where m.user_id = p_user_id
+      and m.tenant_id = 'mnty-platform'
+      and m.business_id is null
+      and m.branch_id is null
+      and pg_catalog.upper(m.role) = 'super_admin'
+      and m.status = 'active'
+      and m.permissions->>'scope' = 'platform'
+      and m.permissions->>'full_control' = 'true'
+    limit 1;
+
+    if v_platform_membership_id is null then
+      v_platform_membership_id := pg_catalog.gen_random_uuid()::text;
+      insert into public.user_memberships
+        (id, user_id, tenant_id, organization_id, business_id, branch_id, role, permissions, status)
+      values
+        (v_platform_membership_id, p_user_id, 'mnty-platform', 'mnty-main',
+         null, null, 'super_admin',
+         '{"scope":"platform","full_control":true,"demo":true}'::jsonb, 'active');
+    end if;
+  end if;
+
+  return pg_catalog.jsonb_build_object(
+    'ok', true,
+    'created', v_created_customer,
+    'membership_id', v_customer_membership_id,
+    'role', 'customer',
+    'tenant_id', 'mnty-platform',
+    'is_platform_owner', v_is_primary_platform_owner
+  );
 end;
 $function$;
 
-revoke all on function public.demo_register_customer_atomic(uuid) from public;
-revoke all on function public.demo_register_customer_atomic(uuid) from anon, authenticated;
+revoke all on function public.demo_register_customer_atomic(uuid) from public, anon, authenticated;
 grant execute on function public.demo_register_customer_atomic(uuid) to service_role;
-
 create or replace function public.demo_create_business_atomic(
   p_user_id uuid,
   p_name text,
