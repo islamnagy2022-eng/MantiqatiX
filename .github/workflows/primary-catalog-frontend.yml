@@ -19,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: primary-catalog-frontend-pages
+  group: primary-catalog-frontend-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,12 +28,6 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: apps/catalog-frontend/package.json
       - name: Reassemble frontend archive
         run: |
           set -euo pipefail
@@ -44,6 +38,10 @@ jobs:
           tar -xJf /tmp/catalog-frontend.tar.xz -C apps/catalog-frontend
           test -s apps/catalog-frontend/package.json
           test -s apps/catalog-frontend/public/config.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Install dependencies
         working-directory: apps/catalog-frontend
         run: npm install --no-audit --no-fund
