@@ -1844,3 +1844,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Verify all payment paths disabled/sandbox-only in DEMO, with no real money movement.
 
 **Release safety:** production config and database remain unchanged. Do not merge or publish the DEMO code until PR CI/review is complete. Do not merge a DEMO database or synthetic data into production. Before LIVE, reconcile migrations, backup and rehearse restore, verify independent production settings, audit RLS and payment/webhook idempotency, run post-deploy smoke tests, and document rollback. Production remains BLOCKED / NOT CERTIFIED until every gate has evidence.
+
+
+## DEMO workflow test evidence — 2026-10-26
+
+- [x] Dedicated local DEMO source isolation assertions passed (14 checks).
+- [x] DOM-based workflow test passed on source head `58f46459eca005782c13a42d48d73b7a3f271aa7`, GitHub Actions run [40260656015](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40260656015).
+- [x] Exercised new activity creation for Store, product creation and price/stock edits, team role assignment, order status transition, customer order submission in FOOD/PHARMACY/DOCTOR/STORE, clinic appointment date/time, and demo-only payment mode.
+- [ ] Real Supabase Auth + tenant/business/branch RLS verification on a separate Free DEMO project.
+- [ ] Confirm schema replay from a clean database and Edge Function parity on DEMO.
+- [ ] Browser accessibility/responsive manual check and runtime persistence behavior check.
+- [ ] Backup/restore rehearsal and final migration reconciliation before LIVE.
+
+This PASS covers the isolated browser simulator only; it does not certify production release readiness. Production remains BLOCKED / NOT CERTIFIED.
