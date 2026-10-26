@@ -26,6 +26,7 @@ DECLARE
   v_public jsonb;
   v_image_url text;
   v_compare_price numeric;
+  v_active_count integer;
 BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'AUTH_REQUIRED';
@@ -118,6 +119,16 @@ BEGIN
   ));
 
   IF p_id IS NULL THEN
+    -- Serialize item creation per business to prevent concurrent requests from
+    -- exceeding the published module limit of 150 active products/services.
+    PERFORM pg_advisory_xact_lock(hashtext(p_business_id::text)::bigint);
+    SELECT count(*)::integer INTO v_active_count
+      FROM public.catalog_items
+     WHERE business_id = p_business_id AND status = 'ACTIVE';
+    IF v_active_count >= 150 THEN
+      RAISE EXCEPTION 'CATALOG_ITEM_LIMIT_REACHED';
+    END IF;
+
     INSERT INTO public.catalog_items(
       tenant_id, business_id, branch_id, legacy_ref, item_type,
       name_ar, name_en, description, sku, tax_rate, metadata
