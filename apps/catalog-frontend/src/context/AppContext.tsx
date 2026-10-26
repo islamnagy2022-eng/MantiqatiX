@@ -380,7 +380,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return <AppContext.Provider value={{
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
-    authSession, authLoading, loginWithGoogle, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
+    authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, advanceBusinessOverdueDay, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
