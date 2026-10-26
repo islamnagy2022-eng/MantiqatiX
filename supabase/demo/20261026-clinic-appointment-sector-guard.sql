@@ -47,8 +47,7 @@ begin
   values(p_appointment_id,v_tenant,p_business_id,p_user_id,p_doctor_id,p_date_time,'BOOKED',nullif(trim(p_reason),''));
   return jsonb_build_object('id',p_appointment_id,'status','BOOKED');
 end;
-$function$
-
+$function$;
 
 revoke all on function public.create_medical_appointment_backend(uuid, text, uuid, text, bigint, text)
   from public, anon, authenticated;
