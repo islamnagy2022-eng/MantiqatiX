@@ -47,31 +47,27 @@ for (const slug of functions) {
 }
 
 
-  // Non-mutating OAuth readiness probe. Do not follow the redirect: this only verifies
-  // that Google OAuth is enabled and this exact future DEMO callback is allowlisted.
-  const callback = 'https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html';
-  const authorizeUrl = new URL('/auth/v1/authorize', url);
-  authorizeUrl.searchParams.set('provider', 'google');
-  authorizeUrl.searchParams.set('redirect_to', callback);
-  const oauth = await fetch(authorizeUrl, {
-    method: 'GET',
-    redirect: 'manual',
-    headers: { apikey: key, Accept: 'text/html' },
+  // Non-mutating settings probe: this DEMO uses email/password, not Google OAuth.
+  const settingsResponse = await fetch(url + '/auth/v1/settings', {
+    headers: { apikey: key, Accept: 'application/json' },
   });
-  const oauthLocation = oauth.headers.get('location');
-  const oauthBody = oauth.status >= 300 && oauth.status < 400
-    ? ''
-    : (await oauth.text()).slice(0, 600);
-  assert.ok(
-    oauth.status >= 300 && oauth.status < 400 && oauthLocation,
-    `Google OAuth provider/redirect readiness is blocked (status ${oauth.status}); response: ${oauthBody}; configure Google Provider and allowlist ${callback} in the DEMO project.`,
-  );
-  assert.equal(
-    new URL(oauthLocation).hostname,
-    'accounts.google.com',
-    'Google OAuth must redirect to accounts.google.com; a redirect back to the app usually means provider or callback configuration is missing.',
-  );
-  if (oauth.body) await oauth.body.cancel();
-  console.log('Google OAuth readiness: PASS (provider enabled and exact DEMO callback allowlisted; redirect not followed, no user created).');
+  assert.equal(settingsResponse.status, 200, 'Supabase Auth settings must be readable (got ' + settingsResponse.status + ')');
+  const authSettings = await settingsResponse.json();
+  assert.notEqual(authSettings?.external?.email, false, 'email/password provider must be enabled in DEMO Auth');
+  console.log('DEMO Auth readiness: PASS (email provider enabled; no user created).');
+
+  // Public catalog reads are intentionally anonymous but read-only and strictly scoped.
+  const publicAllowed = await preflight('demo-public-catalog', allowedOrigin);
+  assert.equal(publicAllowed.status, 200, 'demo-public-catalog should allow the GitHub Pages origin');
+  const publicDenied = await preflight('demo-public-catalog', deniedOrigin);
+  assert.equal(publicDenied.status, 403, 'demo-public-catalog should reject an unapproved origin');
+  const invalidPublicRead = await fetch(url + '/functions/v1/demo-public-catalog', {
+    method: 'POST',
+    headers: { apikey: key, 'content-type': 'application/json', Origin: allowedOrigin },
+    body: JSON.stringify({ businessId: 'not-a-uuid' }),
+  });
+  assert.equal(invalidPublicRead.status, 400, 'public catalog must reject an invalid business ID (got ' + invalidPublicRead.status + ')');
+  const invalidPublicBody = await invalidPublicRead.json();
+  assert.equal(invalidPublicBody?.error, 'INVALID_BUSINESS_ID', 'public catalog invalid-ID response must fail closed');
 
 console.log(`Connected DEMO live smoke: PASS (${functions.length} functions; allowed/denied CORS; unauthenticated POST blocked; no data mutations).`);
