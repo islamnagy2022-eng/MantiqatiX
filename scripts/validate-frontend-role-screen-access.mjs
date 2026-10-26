@@ -29,6 +29,10 @@ const checks = [
   }],
   ['no active catalog membership only receives public directory data', () => {
     assert.match(production, /if \(!platform && roleMemberships\.length === 0\)[\s\S]*?fetchPublicDirectory\(\)[\s\S]*?role: 'guest', authenticated: true, accessState: 'no_active_subscription'/);
+    assert.match(app, /accessState === 'no_active_subscription'[\s\S]*?لا توجد عضوية نشاط نشطة على حسابك/);
+  }],
+  ['successful OAuth boot closes login modal', () => {
+    assert.match(context, /setAdminSettings\(\{ \.\.\.boot\.adminSettings, adminPassword: '' \}\);[\s\S]*?if \(user\) setIsLoginModalOpen\(false\)/);
   }],
   ['navigation labels no-subscription status', () => {
     assert.match(nav, /لا توجد عضوية نشطة — التصفح العام فقط/);
