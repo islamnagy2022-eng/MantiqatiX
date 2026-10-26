@@ -69,19 +69,19 @@ Deno.serve(async (req: Request) => {
 
     const tenantId = String(business.tenant_id || "");
     if (!tenantId) return response(origin, { error: "BUSINESS_TENANT_MISSING" }, 500);
-    let branchQuery = db.from("branches")
+    const { data: branches, error: branchError } = await db.from("branches")
       .select("id,name,code,status,address,phone")
       .eq("tenant_id", tenantId)
       .eq("business_id", businessId)
       .eq("status", "ACTIVE")
       .order("name", { ascending: true })
       .limit(100);
-    if (requestedBranchId) branchQuery = branchQuery.eq("id", requestedBranchId);
-    const { data: branches, error: branchError } = await branchQuery;
     if (branchError) throw branchError;
-    if (!branches?.length) return response(origin, { error: requestedBranchId ? "BRANCH_NOT_PUBLIC" : "NO_ACTIVE_BRANCH" }, 404);
-
-    const selectedBranch = branches[0];
+    if (!branches?.length) return response(origin, { error: "NO_ACTIVE_BRANCH" }, 404);
+    const selectedBranch = requestedBranchId
+      ? branches.find((branch: any) => String(branch.id) === requestedBranchId)
+      : branches[0];
+    if (!selectedBranch) return response(origin, { error: "BRANCH_NOT_PUBLIC" }, 404);
     const branchId = String(selectedBranch.id);
     const now = new Date().toISOString();
     const { data: rawItems, error: itemError } = await db.from("catalog_items")
