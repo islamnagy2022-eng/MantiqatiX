@@ -150,15 +150,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setBusinesses([publicCatalog.business, ...boot.businesses.filter((b) => b.id !== publicCatalog.business.id)]);
           setProducts([...publicCatalog.products, ...boot.products.filter((p) => p.businessId !== publicCatalog.business.id)]);
           setSelectedBusinessIdState(publicCatalog.business.id);
-          setCurrentView('public_storefront');
+          setCurrentViewState('public_storefront');
         } else { setSelectedBusinessIdState(''); setCurrentViewState('directory'); }
-      } else { setSelectedBusinessIdState(''); setCurrentView('directory'); }
+      } else { setSelectedBusinessIdState(''); setCurrentViewState('directory'); }
     } else {
       const preferred = boot.authSession.businessId || boot.businesses[0]?.id || '';
       setSelectedBusinessIdState(preferred);
       if (boot.authSession.role === 'admin') setCurrentViewState('super_admin');
       else if (boot.authSession.role === 'subscriber') setCurrentViewState('merchant_admin');
-      else setCurrentView('directory');
+      else setCurrentViewState('directory');
     }
   };
 
@@ -171,7 +171,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (active) {
           setAuthSession({ role: 'guest', authenticated: false, accessState: 'public' });
           setBusinesses([]); setProducts([]); setSubscribers([]);
-          setCurrentView('directory');
+          setCurrentViewState('directory');
         }
       } finally { if (active) setAuthLoading(false); }
     };
@@ -221,8 +221,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loginAsAdmin = async (_password?: string) => loginWithGoogle();
   const logout = () => {
     void supabase.auth.signOut();
-    setAuthSession({ role: 'guest' }); setBusinesses([]); setProducts([]); setSubscribers([]);
-    setSelectedBusinessIdState(''); setCurrentView('directory'); setCartItems([]);
+    setAuthSession({ role: 'guest', authenticated: false, accessState: 'public' }); setBusinesses([]); setProducts([]); setSubscribers([]);
+    setSelectedBusinessIdState(''); setCurrentViewState('directory'); setCartItems([]);
   };
 
   const addCategory = (data: { name: string; functionalGroupId: FunctionalGroupId; description?: string }): ActivityCategory => {
