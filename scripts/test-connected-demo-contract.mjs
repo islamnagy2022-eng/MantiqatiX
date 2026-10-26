@@ -52,7 +52,9 @@ assert.ok(orderStatus.includes('DEMO_ORDER_SCOPE_REQUIRED') && orderStatus.inclu
 assert.ok(orderStatus.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order-status updates require a DEMO-tagged branch');
 assert.ok(catalogWrite.includes('branchScope.settings?.environment !== "DEMO"'), 'catalog writes require a DEMO-tagged branch');
 assert.ok(app.includes('clientIdempotencyKey,'), 'order submission passes the retained idempotency key');
-assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1'), 'order retry key is scoped to the DEMO user/business/branch/item');
+assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1') && app.includes("item.id, quantity].join(':')"), 'order retry key is scoped to the DEMO user/business/branch/item/quantity');
+assert.ok(app.includes("button.dataset.idempotencyScope === retryKey"), 'a changed quantity cannot reuse the old button idempotency key');
+assert.ok(app.includes('delete button.dataset.idempotencyScope'), 'successful order clears the button retry scope');
 assert.ok(app.includes('window.sessionStorage.setItem(retryKey, clientIdempotencyKey)'), 'order retry key survives page-level network retries');
 assert.ok(app.includes('window.sessionStorage.removeItem(retryKey)'), 'successful order clears the retry key for intentional future orders');
 
