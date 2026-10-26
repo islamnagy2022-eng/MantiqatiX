@@ -245,6 +245,14 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   if (Number(sameKeyRows[0].amount) !== 125.5 || sameKeyRows[0].currency !== "EGP") {
     throw new Error(`payment intent amount/currency did not preserve the order identity: ${sameKeyRows[0].amount} ${sameKeyRows[0].currency}`);
   }
+  const otherAccountReadResponse = await sendAs(otherToken, `/api/v1/payments/intents/${sameKeyRows[0].id}`);
+  if (otherAccountReadResponse.status !== 403) {
+    throw new Error(`unrelated account must not read another customer's payment intent, got ${otherAccountReadResponse.status}`);
+  }
+  const customerReadResponse = await sendAs(token, `/api/v1/payments/intents/${sameKeyRows[0].id}`);
+  if (customerReadResponse.status !== 200) {
+    throw new Error(`customer should read their own payment intent, got ${customerReadResponse.status}`);
+  }
 
   const crossOrderKey = `cross-${suffix}`;
   const crossOrderResponses = await Promise.all([
