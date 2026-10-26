@@ -37,8 +37,9 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const manageMembership=async(m:Membership,action:'SUSPEND'|'RESTORE'|'CHANGE_ROLE')=>{
     let role:string|undefined;
     if(action==='CHANGE_ROLE'){
-      role=window.prompt('اكتب الدور الجديد للمشترك (مثال: CUSTOMER أو OWNER أو EMPLOYEE)',m.role);
-      if(!role)return;
+      const requestedRole=window.prompt('اكتب الدور الجديد للمشترك (مثال: CUSTOMER أو OWNER أو EMPLOYEE)',m.role);
+      if(requestedRole===null||!requestedRole.trim())return;
+      role=requestedRole.trim();
       if(!window.confirm('تأكيد تغيير الدور؟ سيتم تسجيل العملية في سجل التدقيق.'))return;
     } else if(!window.confirm(action==='SUSPEND'?'تعليق عضوية هذا المشترك؟':'إعادة تفعيل عضوية هذا المشترك؟'))return;
     setSaving(m.id);setNotice(null);
