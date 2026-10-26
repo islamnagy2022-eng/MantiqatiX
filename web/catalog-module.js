@@ -394,6 +394,43 @@
       root.querySelector("#mx-cat-item-form").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
 
+    list.querySelectorAll("[data-mx-stock-open]").forEach((button) => button.addEventListener("click", () => {
+      const item = (data.items || []).find((candidate) => String(candidate.id) === String(button.dataset.mxStockOpen));
+      const dialog = root.querySelector("#mx-cat-stock-dialog");
+      const select = root.querySelector("#mx-cat-stock-warehouse");
+      if (!item || !dialog || !select || !(data.warehouses || []).length) return;
+      const meta = selectedItemMeta(item);
+      if (meta.track_stock !== true) {
+        if (!window.confirm("تتبع المخزون غير مفعّل لهذا المنتج. فتح شاشة التسوية لن يفعّل التتبع تلقائيًا. تابع لتسجيل الرصيد الفعلي؟")) return;
+      }
+      root.querySelector("#mx-cat-stock-item-id").value = item.id;
+      root.querySelector("#mx-cat-stock-title").textContent = "تسوية مخزون: " + (item.name_ar || item.name_en || "المنتج");
+      select.innerHTML = (data.warehouses || []).map((warehouse) =>
+        '<option value="' + esc(warehouse.id) + '">' + esc(warehouse.name) + " · " + esc(warehouse.code) + "</option>"
+      ).join("");
+      const updateBalance = (prefill = false) => {
+        const warehouseId = select.value;
+        const row = (data.stockBalances || []).find((balance) =>
+          String(balance.product_id) === String(item.id) && String(balance.warehouse_id) === String(warehouseId)
+        );
+        const onHand = Number(row?.quantity_on_hand || 0);
+        const reserved = Number(row?.quantity_reserved || 0);
+        root.querySelector("#mx-cat-stock-balance").textContent =
+          "الرصيد الفعلي الحالي: " + onHand + " · المحجوز للطلبات: " + reserved +
+          " · المتاح: " + Math.max(0, onHand - reserved) +
+          ". لا يمكن خفض الرصيد الفعلي إلى أقل من الكمية المحجوزة.";
+        if (prefill) root.querySelector("#mx-cat-stock-target").value = String(onHand);
+      };
+      root.querySelector("#mx-cat-stock-target").value = "";
+      root.querySelector("#mx-cat-stock-cost").value = "0";
+      root.querySelector("#mx-cat-stock-reason").value = "";
+      updateBalance(true);
+      select.onchange = () => updateBalance(true);
+      root.querySelector("#mx-cat-stock-status").textContent = "تأكد من الكمية والمخزن قبل الحفظ.";
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "open");
+    }));
+
     list.querySelectorAll("[data-catalog-toggle]").forEach((button) => button.addEventListener("click", async () => {
       const itemId = button.dataset.catalogItemId;
       const targetStatus = button.dataset.catalogToggle;
@@ -481,6 +518,97 @@
         root.dataset.branchId = branchSelect.value;
         loadAndRender(root, branchSelect.value);
       });
+      const warehouseForm = content.querySelector("#mx-cat-warehouse-form");
+      warehouseForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = warehouseForm.querySelector('button[type="submit"]');
+        const name = content.querySelector("#mx-cat-warehouse-name").value.trim();
+        const code = content.querySelector("#mx-cat-warehouse-code").value.trim();
+        if (!name || !/^[A-Za-z0-9_-]{2,40}$/.test(code)) {
+          content.querySelector("#mx-cat-warehouse-status").textContent = "أدخل اسمًا وكودًا صحيحين. الكود يقبل أحرفًا إنجليزية وأرقامًا وشرطة فقط.";
+          content.querySelector("#mx-cat-warehouse-status").className = "mx-cat-status error";
+          return;
+        }
+        if (button?.disabled) return;
+        if (button) { button.disabled = true; button.textContent = "جارٍ الإنشاء..."; }
+        const status = content.querySelector("#mx-cat-warehouse-status");
+        status.textContent = "جارٍ إنشاء المخزن داخل نظام الإنتاج...";
+        status.className = "mx-cat-status";
+        try {
+          await invoke({
+            action: "WAREHOUSE_CREATE", tenantId, businessId,
+            branchId: branchSelect?.value || data.selectedBranchId,
+            name, code,
+          });
+          toast("تم إنشاء المخزن بنجاح.", "success");
+          await loadAndRender(root, branchSelect?.value || data.selectedBranchId);
+        } catch (error) {
+          status.textContent = messageFor(error);
+          status.className = "mx-cat-status error";
+          if (button) { button.disabled = false; button.textContent = "إنشاء مخزن"; }
+        }
+      });
+      const stockDialog = content.querySelector("#mx-cat-stock-dialog");
+      content.querySelector("#mx-cat-stock-close")?.addEventListener("click", () => stockDialog?.close?.());
+      content.querySelector("#mx-cat-stock-cancel")?.addEventListener("click", () => stockDialog?.close?.());
+      stockDialog?.addEventListener("click", (event) => {
+        if (event.target === stockDialog) stockDialog.close?.();
+      });
+      const stockForm = content.querySelector("#mx-cat-stock-form");
+      stockForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const save = content.querySelector("#mx-cat-stock-save");
+        if (save?.disabled) return;
+        const itemId = content.querySelector("#mx-cat-stock-item-id").value;
+        const warehouseId = content.querySelector("#mx-cat-stock-warehouse").value;
+        const targetQuantity = Number(content.querySelector("#mx-cat-stock-target").value);
+        const unitCost = Number(content.querySelector("#mx-cat-stock-cost").value || "0");
+        const reason = content.querySelector("#mx-cat-stock-reason").value.trim();
+        const warehouse = (data.warehouses || []).find((item) => String(item.id) === String(warehouseId));
+        const balance = (data.stockBalances || []).find((item) =>
+          String(item.product_id) === String(itemId) && String(item.warehouse_id) === String(warehouseId)
+        );
+        const reserved = Number(balance?.quantity_reserved || 0);
+        if (!itemId || !warehouse || !Number.isFinite(targetQuantity) || targetQuantity < 0 ||
+            !Number.isFinite(unitCost) || unitCost < 0 || reason.length < 3 || reason.length > 300) {
+          content.querySelector("#mx-cat-stock-status").textContent = "أكمل المخزن والكمية والتكلفة وسبب التسوية بشكل صحيح.";
+          content.querySelector("#mx-cat-stock-status").className = "mx-cat-status error";
+          return;
+        }
+        if (targetQuantity < reserved) {
+          content.querySelector("#mx-cat-stock-status").textContent = "الكمية الجديدة لا يمكن أن تقل عن الكمية المحجوزة (" + reserved + ").";
+          content.querySelector("#mx-cat-stock-status").className = "mx-cat-status error";
+          return;
+        }
+        if (save) { save.disabled = true; save.textContent = "جارٍ الحفظ..."; }
+        content.querySelector("#mx-cat-stock-status").textContent = "جارٍ تسجيل حركة المخزون...";
+        content.querySelector("#mx-cat-stock-status").className = "mx-cat-status";
+        try {
+          await invoke({
+            action: "STOCK_ADJUST", tenantId, businessId,
+            branchId: branchSelect?.value || data.selectedBranchId,
+            warehouseId, catalogItemId: itemId, targetQuantity, unitCost,
+            requestId: crypto.randomUUID(), reason,
+          });
+          stockDialog.close?.();
+          toast("تم تسجيل تسوية المخزون.", "success");
+          await loadAndRender(root, branchSelect?.value || data.selectedBranchId, search?.value || "");
+        } catch (error) {
+          content.querySelector("#mx-cat-stock-status").textContent = messageFor(error);
+          content.querySelector("#mx-cat-stock-status").className = "mx-cat-status error";
+        } finally {
+          if (save) { save.disabled = false; save.textContent = "حفظ وتسوية المخزون"; }
+        }
+      });
+      const itemTypeSelect = content.querySelector("#mx-cat-item-type");
+      const trackStockCheckbox = content.querySelector("#mx-cat-item-track-stock");
+      const syncStockInput = () => {
+        const isProduct = itemTypeSelect?.value === "PRODUCT";
+        trackStockCheckbox.disabled = !isProduct;
+        if (!isProduct) trackStockCheckbox.checked = false;
+      };
+      itemTypeSelect?.addEventListener("change", syncStockInput);
+      syncStockInput();
       const search = content.querySelector("#mx-cat-item-search");
       search?.addEventListener("input", () => renderItems(root, data, branchSelect?.value || data.selectedBranchId, search.value, role));
       renderItems(root, data, data.selectedBranchId, queryText, role);
