@@ -1843,3 +1843,17 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Remediation is proposed in PR `fix/catalog-role-view-guards`; do not mark complete until its latest-commit CI passes.
 - [ ] Active-subscription enforcement is NOT VERIFIED: the inspected catalog bootstrap uses active `user_memberships` and the inspected catalog RPC migration validates membership/tenant/business/branch scope, but this review has not established a canonical subscription entitlement source or a server-side subscription gate. Do not infer subscription enforcement from UI flags such as `isFrozen` / `paymentStatus`.
 - [ ] Authenticated browser E2E, role-switch/logout cache isolation, and cross-tenant adversarial tests remain NOT VERIFIED.
+
+
+## 2026-10-27 — Catalog authorization hardening checkpoint
+
+- [x] PR #401: explicit Google login/signup actions merged; deployed React catalog frontend release run 40410405168 passed.
+- [x] PR #404: server-side inactive-business and frozen-subscription mutation guards merged.
+- [x] PR #405: branch-scoped memberships require exact branch matching; catalog reads return persisted billing/subscription state.
+- [x] PR #406: platform-admin scope is required to be platform-wide (no business/branch binding); frontend now preserves useful server errors.
+- [x] Supabase `catalog-admin` Edge Function version 12 is ACTIVE and read-back verified for these source contracts.
+- [ ] Subscription/login E2E remains NOT VERIFIED until tested in a real browser using separate authorized identities (customer, active owner, frozen owner, platform admin).
+- [ ] Production membership anomaly remains OPEN: one user UUID has 22 active OWNER/BUSINESS_OWNER memberships across 22 official showcase businesses and also a valid platform-wide SUPER_ADMIN membership. Do not change production rows until an explicit ownership mapping is approved.
+- [ ] Full production gate remains **BLOCKED / NOT CERTIFIED**. The live migration ledger is at RC424; 34 required post-RC424 migrations are not proven applied, and payment/finance E2E, backup/restore rehearsal, deployed Edge Function contracts, SMM gateway parity, and live Auth security settings remain unverified.
+- [!] The broad Pages verification workflow failed with `PRODUCTION_GATE=BLOCKED`; this is the intended fail-closed behavior. The dedicated React catalog frontend release passed, but that does not certify backend or whole-platform readiness.
+- No production membership/business data was modified and no real payment transaction was created.
