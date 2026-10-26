@@ -11,6 +11,7 @@ const stock = read('supabase/demo/order-stock-guards.sql');
 const hardening = read('supabase/demo/security-hardening.sql');
 const hardeningDelta = read('supabase/demo/security-hardening-20261026.sql');
 const clinicGuard = read('supabase/demo/20261026-clinic-appointment-sector-guard.sql');
+const clinicTimeGuard = read('supabase/demo/20261026-clinic-appointment-future-time-guard.sql');
 const secretGuard = read('supabase/demo/20261026-restrict-push-secret-rpc.sql');
 const grantAlignment = read('supabase/demo/20261026-align-security-definer-grants.sql');
 const scopeFreeze = read('supabase/demo/20261026-freeze-out-of-scope-rpcs.sql');
@@ -73,6 +74,8 @@ assert.match(hardeningDelta, /grant execute on function public\.create_medical_a
 assert.match(hardeningDelta, /create_purchase_order_backend[\s\S]*?upsert_catalog_settings_backend/, 'out-of-scope backend RPCs are restricted in DEMO');
 assert.match(clinicGuard, /b\.settings->>'environment',[\s\S]*?b\.settings->>'sector_code',[\s\S]*?mp\.settings->>'environment',[\s\S]*?mp\.settings->>'sector_code'/, 'appointment RPC is restricted to DEMO doctor/clinic business and provider');
 assert.match(clinicGuard, /SET search_path TO ''/, 'clinic appointment definer uses an empty search_path');
+assert.ok(clinicTimeGuard.includes('pg_catalog.clock_timestamp()') && clinicTimeGuard.includes('APPOINTMENT_TIME_MUST_BE_FUTURE'), 'clinic booking RPC rejects past/current appointment timestamps at the database boundary');
+assert.match(clinicTimeGuard, /SET search_path TO ''/, 'future-time guard preserves an empty search_path for the definer');
 assert.match(secretGuard, /revoke all on function public\.get_mnty_push_secrets\(\) from public, anon, authenticated/i, 'Vault secret RPC is not browser-executable');
 assert.match(secretGuard, /grant execute on function public\.get_mnty_push_secrets\(\) to service_role/i, 'Vault secret RPC remains backend-only');
 assert.ok((grantAlignment.match(/REVOKE ALL ON FUNCTION public\./g) || []).length >= 70, 'grant alignment explicitly enumerates shared and out-of-scope RPCs');
