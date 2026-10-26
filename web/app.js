@@ -1047,7 +1047,7 @@ function enhancedPageContent(){
   case 'ملف نشاطي': return providerProfileWorkspace();
   case 'التقارير والتحليلات': return analyticsWorkspace();
   case 'العمولات والباقات': return financeWorkspace();
-  case 'الدعم والحوكمة': return governanceWorkspace();
+  case 'الدعم والحوكمة': return isCustomerMode()?customerSupportWorkspace():governanceWorkspace();
   default: return pageContent();
  }
 }
