@@ -26,8 +26,9 @@ import {
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
 import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { canAccessView, defaultViewForRole, type AppView } from '../lib/access';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
+export type ViewMode = AppView;
 
 interface AppContextType {
   currentView: ViewMode;
@@ -100,7 +101,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
-  const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest' });
+  const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest', authenticated: false, accessState: 'public' });
   const [authLoading, setAuthLoading] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter] = useState('all');
@@ -108,10 +109,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedBusinessId, setSelectedBusinessIdState] = useState('');
-  const [currentView, setCurrentView] = useState<ViewMode>(() => {
+  const [currentView, setCurrentViewState] = useState<ViewMode>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.has('store') || params.has('businessId') ? 'public_storefront' : 'directory';
   });
+  // UI navigation follows one shared role policy. Unauthorized view changes fail closed.
+  const setCurrentView = (view: ViewMode) => {
+    if (!canAccessView(authSession.role, view)) {
+      setCurrentViewState(defaultViewForRole(authSession.role));
+      return;
+    }
+    setCurrentViewState(view);
+  };
   const pendingCredentials = useRef(new Map<string, { fullName: string; businessName: string; username: string; password: string }>());
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
@@ -134,7 +143,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const requestedId = params.get('businessId') || params.get('store') || '';
     if (!user && requestedId) {
       const byId = boot.businesses.find((b) => b.id === requestedId || b.slug === requestedId);
-      if (byId) { setSelectedBusinessIdState(byId.id); setCurrentView('public_storefront'); }
+      if (byId) { setSelectedBusinessIdState(byId.id); setCurrentViewState('public_storefront'); }
       else if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
         const publicCatalog = await fetchPublicCatalog(requestedId).catch(() => null);
         if (publicCatalog) {
@@ -142,13 +151,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setProducts([...publicCatalog.products, ...boot.products.filter((p) => p.businessId !== publicCatalog.business.id)]);
           setSelectedBusinessIdState(publicCatalog.business.id);
           setCurrentView('public_storefront');
-        } else { setSelectedBusinessIdState(''); setCurrentView('directory'); }
+        } else { setSelectedBusinessIdState(''); setCurrentViewState('directory'); }
       } else { setSelectedBusinessIdState(''); setCurrentView('directory'); }
     } else {
       const preferred = boot.authSession.businessId || boot.businesses[0]?.id || '';
       setSelectedBusinessIdState(preferred);
-      if (boot.authSession.role === 'admin') setCurrentView('super_admin');
-      else if (boot.authSession.role === 'subscriber') setCurrentView('merchant_admin');
+      if (boot.authSession.role === 'admin') setCurrentViewState('super_admin');
+      else if (boot.authSession.role === 'subscriber') setCurrentViewState('merchant_admin');
       else setCurrentView('directory');
     }
   };
@@ -160,7 +169,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       catch (error) {
         console.error('[MantiqatiX production bootstrap]', error);
         if (active) {
-          setAuthSession({ role: 'guest' });
+          setAuthSession({ role: 'guest', authenticated: false, accessState: 'public' });
           setBusinesses([]); setProducts([]); setSubscribers([]);
           setCurrentView('directory');
         }
@@ -200,7 +209,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAuthSession(boot.authSession); setBusinesses(boot.businesses); setProducts(boot.products); setSubscribers(boot.subscribers);
       setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
       setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
-      setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : 'merchant_admin');
+      setCurrentViewState(boot.authSession.role === 'admin' ? 'super_admin' : 'merchant_admin');
       setIsLoginModalOpen(false);
       return { success: true };
     } catch (e: any) {
