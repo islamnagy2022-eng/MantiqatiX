@@ -1,0 +1,247 @@
+-- RC568 runtime regression: WhatsApp-requested subscription activation is gated, audited and idempotently fails closed.
+-- Intended only for disposable PostgreSQL after the candidate RC567-RC572 chain.
+-- All fixture writes, including the synthetic auth user, are rolled back at the end.
+begin;
+
+insert into public.tenants (id, name, code, status)
+values ('MNTY-PLATFORM', 'RC568 Platform Test Tenant', 'RC568-PLATFORM', 'ACTIVE')
+on conflict (id) do nothing;
+
+insert into public.tenants (id, name, code, status)
+values ('RC568-TEST', 'RC568 Disposable Activation Test', 'RC568-TEST', 'ACTIVE');
+
+insert into auth.users
+  (id, aud, role, email, encrypted_password, email_confirmed_at,
+   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+   is_sso_user, is_anonymous)
+values
+  ('56800000-0000-4000-8000-000000000001', 'authenticated', 'authenticated',
+   'rc568-platform-admin@example.invalid', '', pg_catalog.now(),
+   '{"provider":"email","providers":["email"]}'::jsonb,
+   '{"full_name":"RC568 Test Platform Admin"}'::jsonb,
+   pg_catalog.now(), pg_catalog.now(), false, false);
+
+insert into public.user_memberships
+  (id, user_id, tenant_id, role, permissions, status)
+values
+  ('RC568-PLATFORM-ADMIN', '56800000-0000-4000-8000-000000000001',
+   'MNTY-PLATFORM', 'SUPER_ADMIN',
+   '{"scope":"PLATFORM","full_control":true}'::jsonb, 'ACTIVE'),
+  ('RC568-TENANT-OWNER', '56800000-0000-4000-8000-000000000003',
+   'RC568-TEST', 'OWNER',
+   '{"admin":true,"scope":"PLATFORM","full_control":true}'::jsonb, 'ACTIVE');
+
+insert into public.digital_page_products
+  (id, page_type, code, name_ar, price, currency, duration_days, features, active)
+values
+  ('56800000-0000-4000-8000-000000000010', 'PORTFOLIO', 'RC568-PORTFOLIO-TEST',
+   'RC568 Portfolio Test Package', 125.50, 'EGP', 30, '[]'::jsonb, true),
+  ('56800000-0000-4000-8000-000000000011', 'MENU', 'RC568-MENU-TEST',
+   'RC568 Menu Test Package', 82.00, 'EGP', 30, '[]'::jsonb, true);
+
+insert into public.digital_page_orders
+  (id, user_id, product_id, page_type, title, amount, currency,
+   pricing_hash, idempotency_key, payment_status, fulfillment_status, metadata)
+values
+  ('56800000-0000-4000-8000-000000000020',
+   '56800000-0000-4000-8000-000000000002',
+   '56800000-0000-4000-8000-000000000010',
+   'PORTFOLIO', 'RC568 Pending Portfolio A', 125.50, 'EGP',
+   'rc568-test-pricing-hash-a', 'rc568-test-idempotency-a',
+   'PENDING', 'REQUESTED', '{"test_fixture":true}'::jsonb),
+  ('56800000-0000-4000-8000-000000000021',
+   '56800000-0000-4000-8000-000000000002',
+   '56800000-0000-4000-8000-000000000011',
+   'MENU', 'RC568 Pending Menu', 82.00, 'EGP',
+   'rc568-test-pricing-hash-menu', 'rc568-test-idempotency-menu',
+   'PENDING', 'REQUESTED', '{"test_fixture":true}'::jsonb),
+  ('56800000-0000-4000-8000-000000000022',
+   '56800000-0000-4000-8000-000000000002',
+   '56800000-0000-4000-8000-000000000010',
+   'PORTFOLIO', 'RC568 Pending Portfolio C', 125.50, 'EGP',
+   'rc568-test-pricing-hash-c', 'rc568-test-idempotency-c',
+   'PENDING', 'REQUESTED', '{"test_fixture":true}'::jsonb);
+
+do $test$
+declare
+  v_admin constant uuid := '56800000-0000-4000-8000-000000000001';
+  v_owner constant uuid := '56800000-0000-4000-8000-000000000003';
+  v_order_a constant uuid := '56800000-0000-4000-8000-000000000020';
+  v_order_menu constant uuid := '56800000-0000-4000-8000-000000000021';
+  v_order_c constant uuid := '56800000-0000-4000-8000-000000000022';
+  v_result jsonb;
+  v_pending jsonb;
+  v_status text;
+  v_paid_at timestamptz;
+  v_audit_count integer;
+  v_audit_actor uuid;
+  v_audit_reference text;
+  v_audit_amount numeric;
+  v_audit_currency text;
+  v_rejected boolean;
+  v_rls_enabled boolean;
+begin
+  -- Access configuration must keep the audit table available only through its
+  -- authenticated, platform-admin-filtered read policy.
+  if has_table_privilege('anon', 'public.digital_page_manual_activation_audit', 'SELECT') then
+    raise exception 'RC568_ANON_AUDIT_READ_MUST_BE_REVOKED';
+  end if;
+  if not has_table_privilege('authenticated', 'public.digital_page_manual_activation_audit', 'SELECT') then
+    raise exception 'RC568_AUTHENTICATED_AUDIT_READ_GRANT_MISSING';
+  end if;
+  select c.relrowsecurity into v_rls_enabled
+    from pg_catalog.pg_class c
+   where c.oid = 'public.digital_page_manual_activation_audit'::regclass;
+  if v_rls_enabled is distinct from true then
+    raise exception 'RC568_AUDIT_TABLE_RLS_MUST_BE_ENABLED';
+  end if;
+
+  -- Tenant owner must not enumerate the queue or activate an order, even when
+  -- its local permission JSON claims admin/platform flags.
+  perform pg_catalog.set_config('request.jwt.claim.sub', v_owner::text, true);
+  v_rejected := false;
+  begin
+    perform public.mnty_admin_list_pending_digital_page_subscriptions();
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC568_TENANT_OWNER_READ_PENDING_QUEUE';
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.mnty_admin_activate_digital_page_subscription(
+      v_order_a, 'RC568-UNAUTHORIZED-REFERENCE', null
+    );
+  exception when others then
+    if sqlerrm = 'PLATFORM_ADMIN_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC568_TENANT_OWNER_ACTIVATED_SUBSCRIPTION';
+  end if;
+
+  select payment_status into v_status
+    from public.digital_page_orders where id = v_order_a;
+  if v_status <> 'PENDING' then
+    raise exception 'RC568_UNAUTHORIZED_CALL_CHANGED_PAYMENT_STATUS';
+  end if;
+  select count(*) into v_audit_count
+    from public.digital_page_manual_activation_audit where order_id = v_order_a;
+  if v_audit_count <> 0 then
+    raise exception 'RC568_UNAUTHORIZED_CALL_CREATED_AUDIT_ROW';
+  end if;
+
+  -- Platform admins can see only the bounded PENDING PORTFOLIO queue.
+  perform pg_catalog.set_config('request.jwt.claim.sub', v_admin::text, true);
+  v_pending := public.mnty_admin_list_pending_digital_page_subscriptions();
+  if pg_catalog.jsonb_array_length(v_pending) <> 2
+     or not (v_pending @> pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('id', v_order_a::text)))
+     or not (v_pending @> pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('id', v_order_c::text)))
+     or (v_pending @> pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('id', v_order_menu::text))) then
+    raise exception 'RC568_PENDING_QUEUE_SCOPE_OR_FILTER_INCORRECT: %', v_pending;
+  end if;
+
+  -- A blank reference and oversized notes must fail before mutating the order.
+  v_rejected := false;
+  begin
+    perform public.mnty_admin_activate_digital_page_subscription(v_order_a, '  ', null);
+  exception when others then
+    if sqlerrm = 'MANUAL_PAYMENT_REFERENCE_REQUIRED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'RC568_BLANK_PAYMENT_REFERENCE_ACCEPTED'; end if;
+
+  v_rejected := false;
+  begin
+    perform public.mnty_admin_activate_digital_page_subscription(v_order_a, 'RC568-VALID-REF', pg_catalog.repeat('x', 1001));
+  exception when others then
+    if sqlerrm = 'MANUAL_ACTIVATION_NOTES_TOO_LONG' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'RC568_OVERSIZED_NOTES_ACCEPTED'; end if;
+
+  select payment_status into v_status
+    from public.digital_page_orders where id = v_order_a;
+  select count(*) into v_audit_count
+    from public.digital_page_manual_activation_audit where order_id = v_order_a;
+  if v_status <> 'PENDING' or v_audit_count <> 0 then
+    raise exception 'RC568_INVALID_INPUT_MUTATED_ORDER_OR_AUDIT';
+  end if;
+
+  -- MENU orders cannot use the manual PORTFOLIO subscription activation path.
+  v_rejected := false;
+  begin
+    perform public.mnty_admin_activate_digital_page_subscription(v_order_menu, 'RC568-MENU-REF', null);
+  exception when others then
+    if sqlerrm = 'MANUAL_ACTIVATION_PAGE_TYPE_NOT_SUPPORTED' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'RC568_MENU_ORDER_MANUALLY_ACTIVATED'; end if;
+  select payment_status into v_status
+    from public.digital_page_orders where id = v_order_menu;
+  if v_status <> 'PENDING' then raise exception 'RC568_MENU_ORDER_STATUS_CHANGED'; end if;
+
+  -- Valid admin activation must atomically mark PAID, stamp paid_at, and write
+  -- exactly one immutable audit record with the authenticated actor and amount.
+  v_result := public.mnty_admin_activate_digital_page_subscription(
+    v_order_a, '  RC568-EXTERNAL-REFERENCE-001  ', '  Independently checked in test fixture  '
+  );
+  if v_result->>'payment_status' <> 'PAID'
+     or nullif(v_result->>'paid_at', '') is null
+     or v_result->>'activated_by' <> v_admin::text then
+    raise exception 'RC568_ACTIVATION_RESPONSE_INVALID: %', v_result;
+  end if;
+
+  select payment_status, paid_at into v_status, v_paid_at
+    from public.digital_page_orders where id = v_order_a;
+  if v_status <> 'PAID' or v_paid_at is null then
+    raise exception 'RC568_PAID_AT_OR_PAYMENT_STATUS_NOT_SET';
+  end if;
+
+  select count(*) into v_audit_count
+    from public.digital_page_manual_activation_audit where order_id = v_order_a;
+  if v_audit_count <> 1 then
+    raise exception 'RC568_EXPECTED_ONE_AUDIT_ROW_GOT_%', v_audit_count;
+  end if;
+  select actor_user_id, payment_reference, amount, currency
+    into v_audit_actor, v_audit_reference, v_audit_amount, v_audit_currency
+    from public.digital_page_manual_activation_audit where order_id = v_order_a;
+  if v_audit_actor <> v_admin
+     or v_audit_reference <> 'RC568-EXTERNAL-REFERENCE-001'
+     or v_audit_amount <> 125.50
+     or v_audit_currency <> 'EGP' then
+    raise exception 'RC568_AUDIT_CONTENT_MISMATCH';
+  end if;
+
+  -- A repeat attempt cannot replace the evidence or create a second audit row.
+  v_rejected := false;
+  begin
+    perform public.mnty_admin_activate_digital_page_subscription(v_order_a, 'RC568-SECOND-REFERENCE', null);
+  exception when others then
+    if sqlerrm = 'DIGITAL_PAGE_ORDER_NOT_PENDING' then v_rejected := true; else raise; end if;
+  end;
+  if not v_rejected then raise exception 'RC568_DUPLICATE_ACTIVATION_WAS_ACCEPTED'; end if;
+  select count(*) into v_audit_count
+    from public.digital_page_manual_activation_audit where order_id = v_order_a;
+  if v_audit_count <> 1 then raise exception 'RC568_DUPLICATE_AUDIT_ROW_CREATED'; end if;
+
+  -- The owner-side entitlement RPC reflects the activation and remains tied to
+  -- the authenticated customer and the canonical order/product.
+  perform pg_catalog.set_config('request.jwt.claim.sub', '56800000-0000-4000-8000-000000000002', true);
+  if public.digital_page_subscription_active(v_order_a, '56800000-0000-4000-8000-000000000002') is not true then
+    raise exception 'RC568_OWNER_SUBSCRIPTION_ENTITLEMENT_NOT_ACTIVE_AFTER_PAID';
+  end if;
+  if public.digital_page_subscription_active(v_order_a, v_admin) is not false then
+    raise exception 'RC568_ENTITLEMENT_HELPER_ACCEPTED_WRONG_USER';
+  end if;
+
+  -- After activation, the queue no longer includes the paid order.
+  perform pg_catalog.set_config('request.jwt.claim.sub', v_admin::text, true);
+  v_pending := public.mnty_admin_list_pending_digital_page_subscriptions();
+  if v_pending @> pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('id', v_order_a::text))
+     or not (v_pending @> pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('id', v_order_c::text))) then
+    raise exception 'RC568_ACTIVATED_ORDER_REMAINS_IN_PENDING_QUEUE: %', v_pending;
+  end if;
+end;
+$test$;
+
+rollback;
+\echo 'RC568 manual activation integration regression: PASS'
