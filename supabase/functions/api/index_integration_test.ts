@@ -163,7 +163,7 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   ]));
 
   const handler = createApiHandler();
-  const sendAs = (accessToken: string, path: string, method = "GET", body?: unknown) => handler(new Request(`${url.replace(/\\/$/, "")}${path}`, {
+  const sendAs = (accessToken: string, path: string, method = "GET", body?: unknown) => handler(new Request(`${url.replace(/\/$/, "")}${path}`, {
     method,
     headers: {
       Origin: "https://islamnagy2022-eng.github.io",
