@@ -99,38 +99,3 @@ jobs:
           name: primary-catalog-frontend-dist
           path: apps/catalog-frontend/dist
           if-no-files-found: error
-      - name: Materialize tested sources and remove transport chunks
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/')
-        run: |
-          set -euo pipefail
-          if [ -d .release-transfer/parts ]; then
-            git add apps/catalog-frontend supabase/functions/catalog-platform-admin supabase/functions/public-catalog-directory supabase/migrations/20261026133000_rc108_bizcatalog_platform_settings.sql
-            git rm -r .release-transfer/parts
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "build(catalog): materialize validated frontend and backend source"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
-
-  deploy:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Download verified build
-        uses: actions/download-artifact@v4
-        with:
-          name: primary-catalog-frontend-dist
-          path: dist
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - name: Deploy primary catalog frontend
-        id: deployment
-        uses: actions/deploy-pages@v4
