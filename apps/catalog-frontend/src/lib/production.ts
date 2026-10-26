@@ -16,18 +16,23 @@ export const supabase = createClient(runtime.supabaseUrl, runtime.supabaseKey, {
   },
 });
 
-export async function callCatalogAdmin<T = any>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('catalog-admin', { body });
-  if (error) throw new Error(error.message || 'تعذر الاتصال بإدارة الكتالوج');
-  if (data?.error) throw new Error(String(data.error));
+async function invokeAdminFunction<T = any>(name: string, body: Record<string, unknown>, fallback: string): Promise<T> {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (error) {
+    let payload: any = null;
+    try { payload = await (error as any).context?.json?.(); } catch { /* Some network errors have no JSON response. */ }
+    throw new Error(String(payload?.message || payload?.error || error.message || fallback));
+  }
+  if (data?.error) throw new Error(String(data.message || data.error || fallback));
   return data as T;
 }
 
+export async function callCatalogAdmin<T = any>(body: Record<string, unknown>): Promise<T> {
+  return invokeAdminFunction<T>('catalog-admin', body, 'تعذر الاتصال بإدارة الكتالوج');
+}
+
 export async function callPlatformAdmin<T = any>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('catalog-platform-admin', { body });
-  if (error) throw new Error(error.message || 'تعذر الاتصال بخدمات إدارة المنصة');
-  if (data?.error) throw new Error(String(data.error));
-  return data as T;
+  return invokeAdminFunction<T>('catalog-platform-admin', body, 'تعذر الاتصال بخدمات إدارة المنصة');
 }
 
 export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[] }> {

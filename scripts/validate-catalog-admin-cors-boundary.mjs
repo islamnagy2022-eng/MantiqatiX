@@ -29,4 +29,6 @@ assert.match(source, /paymentStatus \|\| ""\)\.toLowerCase\(\) === "frozen"/, "l
 assert.match(source, /BUSINESS_INACTIVE/, "inactive businesses must not accept merchant mutations");
 assert.match(source, /SUBSCRIPTION_FROZEN/, "frozen subscriptions must reject merchant mutations");
 
+assert.match(source, /!m\.business_id &&\s*!m\.branch_id &&\s*m\.permissions\?\.scope === "PLATFORM"/, "platform-wide privileges must not be attached to a branch-scoped membership");
+
 console.log("Catalog admin CORS, authorization, and subscription enforcement source contract: PASS");

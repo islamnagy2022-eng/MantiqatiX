@@ -17,6 +17,7 @@ const out = (origin: string | null, body: unknown, status = 200) =>
 const isPlatformAdmin = (m: any) =>
   String(m.role || "").toUpperCase() === "SUPER_ADMIN" &&
   !m.business_id &&
+  !m.branch_id &&
   m.permissions?.scope === "PLATFORM" &&
   m.permissions?.full_control === true;
 
