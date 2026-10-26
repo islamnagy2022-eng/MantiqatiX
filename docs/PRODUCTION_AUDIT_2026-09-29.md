@@ -183,3 +183,13 @@ Reason: release gates remain NOT VERIFIED; no claim of production certification 
 ## RC163 — 2026-09-29 geographic advertisement runtime check
 - [x] Production targeted-advertisement RPC returned the configured HOME_SPONSORED global fallback ads for a Cairo coordinate when no more-specific eligible target was available.
 - [ ] Provider-nearest runtime result remains unverified for an active provider because the controlled Berket fixture is intentionally INACTIVE/PENDING.
+
+
+## 2026-10-26 production fixture retirement
+
+- Removed the explicitly synthetic production tenant-isolation fixture `MNTY-TEST-B` and its business/branch/catalog/support/approval rows after confirming there were no associated orders, payment intents, financial obligations, ledger entries, journal entries, refunds, wallet transactions, or inventory transactions.
+- Removed the inactive `MNTY-BERKET-TEST` E2E provider fixture, its test catalog/prices/services, pending test ad `MNTY-AD-BERKET-20260929`, and associated branch. The cleanup refused to proceed if the fixture identity changed or transactional/financial activity was present.
+- Preserved all Auth users (including the platform owner), the 25 active `OFFICIAL_PLATFORM_SHOWCASE` sectors, and the unrelated inactive pending restaurant registration `BUSINESS-08769963`.
+- Post-cleanup production verification: 1 tenant (`MNTY-PLATFORM`), 26 businesses, 25 active official showcase businesses, 6 Auth users, 0 orders, 0 payment intents. Audit logs were not deleted.
+- Two tenant-isolation fixtures remain in `supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql` for guarded local/CI use only. `scripts/verify-tenant-isolation.sql` and `scripts/verify-tenant-isolation-v2.sql` must not be run against production; the v2 verifier now fails if the isolated test fixture is missing.
+- Catalog-admin bootstrap fix: production now grants `service_role` SELECT on `marketing_provider_profiles`, `catalog_items`, `catalog_item_prices`, and `catalog_item_options`. No extra privilege was granted to `anon` or `authenticated`.
