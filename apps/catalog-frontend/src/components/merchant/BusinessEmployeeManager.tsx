@@ -127,8 +127,8 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
     setSaving(false);
     if (error) {
       const message = error.message || 'تعذر حفظ الموظف.';
-      setNotice({ type: 'error', text: message.includes('ACTIVE_EMPLOYEE_REQUIRES_AUTH_USER')
-        ? 'لا يمكن تفعيل الموظف قبل أن يسجل حسابًا بنفس البريد الإلكتروني على Supabase.'
+      setNotice({ type: 'error', text: message.includes('ACTIVE_EMPLOYEE_REQUIRES_CONFIRMED_AUTH_USER')
+        ? 'لا يمكن تفعيل الموظف قبل وجود حساب Supabase مؤكد بنفس البريد الإلكتروني. اطلب منه تأكيد البريد ثم أعد المحاولة.'
         : message });
       return;
     }
