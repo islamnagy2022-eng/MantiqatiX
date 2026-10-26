@@ -33,6 +33,19 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   }
   const token = signedIn.data.session.access_token;
 
+  // A second account proves that knowing an order ID cannot authorize payment.
+  const otherEmail = `api-integration-other-${suffix}@example.test`;
+  const otherPassword = `MantiqatiX-${crypto.randomUUID()}-B7!`;
+  const otherCreated = await admin.auth.admin.createUser({ email: otherEmail, password: otherPassword, email_confirm: true });
+  if (otherCreated.error || !otherCreated.data.user) {
+    throw new Error(`create second disposable auth user failed: ${otherCreated.error?.message ?? "missing user"}`);
+  }
+  const otherSignedIn = await anon.auth.signInWithPassword({ email: otherEmail, password: otherPassword });
+  if (otherSignedIn.error || !otherSignedIn.data.session?.access_token) {
+    throw new Error(`sign in second disposable auth user failed: ${otherSignedIn.error?.message ?? "missing access token"}`);
+  }
+  const otherToken = otherSignedIn.data.session.access_token;
+
   // These fixtures are deliberately disposable and explicitly test-labelled.
   // Never disable the business legal-owner guard to make test setup pass.
   const tenantId = `api-it-${suffix}`;
@@ -150,15 +163,16 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   ]));
 
   const handler = createApiHandler();
-  const send = (path: string, method = "GET", body?: unknown) => handler(new Request(`${url.replace(/\/$/, "")}${path}`, {
+  const sendAs = (accessToken: string, path: string, method = "GET", body?: unknown) => handler(new Request(`${url.replace(/\\/$/, "")}${path}`, {
     method,
     headers: {
       Origin: "https://islamnagy2022-eng.github.io",
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${accessToken}`,
       ...(body === undefined ? {} : { "Content-Type": "application/json" }),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   }));
+  const send = (path: string, method = "GET", body?: unknown) => sendAs(token, path, method, body);
 
   const catalogResponse = await send(`/api/v1/catalog?businessId=${businessAId}&branchId=${encodeURIComponent(branchA)}`);
   const catalogBody = await catalogResponse.json();
@@ -175,6 +189,19 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
 
   const crossBusinessResponse = await send(`/api/v1/catalog?businessId=${businessAId}&branchId=${encodeURIComponent(crossBusinessBranch)}`);
   if (crossBusinessResponse.status !== 404) throw new Error(`cross-business branch must be rejected, got ${crossBusinessResponse.status}`);
+
+  const unauthorizedKey = `unauthorized-${suffix}`;
+  const unauthorizedPaymentResponse = await sendAs(otherToken, "/api/v1/payments/intents", "POST", {
+    orderId: orderA,
+    provider: "CASH_ON_DELIVERY",
+    idempotencyKey: unauthorizedKey,
+  });
+  if (unauthorizedPaymentResponse.status !== 403) {
+    throw new Error(`another authenticated account must not create an intent for this customer's order, got ${unauthorizedPaymentResponse.status}`);
+  }
+  const unauthorizedRows = requireOk("read unauthorized payment intents", await admin.from("payment_intents")
+    .select("id").eq("tenant_id", tenantId).eq("idempotency_key", unauthorizedKey));
+  if (unauthorizedRows.length !== 0) throw new Error("unauthorized account created a payment intent");
 
   const concurrentSameKey = `same-${suffix}`;
   const sameKeyResponses = await Promise.all([
