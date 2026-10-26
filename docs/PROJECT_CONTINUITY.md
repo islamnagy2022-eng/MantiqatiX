@@ -683,3 +683,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/test-connected-demo-live-smoke.mjs` to the DEMO workflow. It sends non-mutating requests to all seven live DEMO Edge Functions using the public publishable key only.
 - Verified in workflow [40266196560](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266196560): allowed origin preflight = 200; unapproved origin = 403; unauthenticated POST = 401 for each function. No data was written.
 - This is a real deployed-endpoint check, but authenticated business flows and cross-user isolation remain untested.
+
+
+## Latest verified DEMO execution — 2026-10-26
+
+- **Code change:** commit `6aabe92c61ded3a9a85c5b714fb0b7fd5512a1aa` adds `supabase/demo/20261026-clinic-appointment-future-time-guard.sql` and a contract assertion. The SQL function now enforces `p_date_time > current epoch milliseconds` itself, raising `APPOINTMENT_TIME_MUST_BE_FUTURE`; relying only on Edge validation was insufficient because the authenticated RPC is callable directly.
+- **Applied only to DEMO:** migration `20261026043029_demo_clinic_appointment_future_time_guard_20261026` on project `lkijdgqanbqjudiducjt`. The function definition was read back and confirms the new guard plus empty `search_path`.
+- **Functional DB check:** a read-only/no-persistent-write SQL assertion passed both cases: a past timestamp is rejected with `APPOINTMENT_TIME_MUST_BE_FUTURE`, while a future timestamp passes the time gate and reaches the expected missing synthetic provider guard. No user, business, or appointment rows were created.
+- **CI PASS:** DEMO Isolation run [40269410403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40269410403) passed all nine steps, including JavaScript checks, local simulator workflows, connected DEMO source contracts, and non-mutating CORS/JWT smoke tests for all seven Edge Functions.
+- **Security boundary rechecked:** effective `anon`/`authenticated` INSERT/UPDATE/DELETE privileges are false on the tested DEMO business, branch, catalog, price, order, membership, and appointment tables. The Security Advisor still reports two RLS-enabled tables without policies and one anon plus six authenticated SECURITY DEFINER warnings; keep these under individual review.
+- **Still blocked:** `auth.users` remains empty and no authenticated business/order/appointment E2E was executed. PR #376 remains Draft/unmerged. No LIVE schema, data, Edge Function, or payment setting was changed; production release remains BLOCKED / NOT CERTIFIED.
