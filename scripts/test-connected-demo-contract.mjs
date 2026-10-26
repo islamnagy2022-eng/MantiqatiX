@@ -60,6 +60,16 @@ assert.ok(orderStatus.includes('DEMO_ORDER_SCOPE_REQUIRED') && orderStatus.inclu
 assert.ok(orderStatus.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order-status updates require a DEMO-tagged branch');
 assert.ok(catalogWrite.includes('branchScope.settings?.environment !== "DEMO"'), 'catalog writes require a DEMO-tagged branch');
 assert.ok(app.includes('clientIdempotencyKey,'), 'order submission passes the retained idempotency key');
+
+assert.match(app, /saved === 'OWNER' && \(activeMemberships\(\)\.length \|\| hasPlatformOwnerAccess\(\)\)/, 'a customer cannot restore an owner workspace without an owner/platform membership');
+assert.match(app, /next === 'OWNER' && !activeMemberships\(\)\.length && !hasPlatformOwnerAccess\(\)/, 'server-backed owner membership is required before switching into owner workspace');
+assert.match(app, /if \(activeMemberships\(\)\.length \|\| hasPlatformOwnerAccess\(\)\) modes\.push\(\['OWNER'/, 'the owner workspace switch is hidden from ordinary customers');
+assert.match(app, /modes\.length < 2\) return ''/, 'ordinary customers do not see a workspace switcher');
+assert.match(app, /mode === 'CUSTOMER' && !hasPlatformOwnerAccess\(\) && activeMemberships\(\)\.length === 0/, 'ordinary customer is restricted to the homepage/catalog view');
+assert.match(app, /class="customer-home-only"/, 'customer-only homepage has a dedicated isolated layout');
+assert.match(app, /renderCatalog\(\)/, 'the customer homepage exposes the public catalog');
+assert.match(app, /mode === 'CUSTOMER'\) return renderOrders\(null, null, ownOrders, false\)/, 'customer order-status actions remain disabled in any privileged customer workspace');
+
 assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1'), 'order retry record is scoped to the DEMO user/business/branch/item');
 assert.ok(app.includes('JSON.stringify({ clientIdempotencyKey, quantity })'), 'pending retry persists the exact quantity with its idempotency key');
 assert.ok(app.includes('pendingRetry.quantity !== quantity'), 'an ambiguous order response blocks changed quantity until same-key retry');
