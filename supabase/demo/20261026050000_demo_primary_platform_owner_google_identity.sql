@@ -14,11 +14,11 @@ DECLARE
   v_created_customer boolean := false;
 BEGIN
   SELECT
-    pg_catalog.lower(pg_catalog.coalesce(u.email, '')),
+    pg_catalog.lower(coalesce(u.email, '')),
     u.email_confirmed_at IS NOT NULL,
     (
-      pg_catalog.coalesce(u.raw_app_meta_data->>'provider', '') = 'google'
-      OR pg_catalog.coalesce(u.raw_app_meta_data->'providers', '[]'::jsonb) @> '["google"]'::jsonb
+      coalesce(u.raw_app_meta_data->>'provider', '') = 'google'
+      OR coalesce(u.raw_app_meta_data->'providers', '[]'::jsonb) @> '["google"]'::jsonb
     )
   INTO v_email, v_email_confirmed, v_google_identity
   FROM auth.users u
