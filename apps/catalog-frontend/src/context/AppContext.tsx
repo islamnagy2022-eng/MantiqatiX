@@ -139,6 +139,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts(boot.products);
     setSubscribers(boot.subscribers);
     setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
+    if (user) setIsLoginModalOpen(false);
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('businessId') || params.get('store') || '';
     if (requestedId) {
