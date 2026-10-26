@@ -96,6 +96,15 @@ check("database_writes_enforce_business_branch_and_limits", () => {
   includes(migration, "FROM PUBLIC, anon");
   includes(migration, "upper(m.role::text) = 'OWNER' AND m.business_id IS NULL");
 });
+check("legacy_postgres_uuid_shape_is_accepted", () => {
+  const legacyBusinessId = "1da8c784-5bad-5ed9-744c-8656bc49c19f";
+  const uuidShape = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  assert.ok(uuidShape.test(legacyBusinessId), "existing PostgreSQL UUID-shaped business IDs must be accepted");
+  includes(adminFn, "const isUuid = (value: unknown)");
+  includes(adminFn, "[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}");
+  includes(read("supabase/functions/catalog-platform-admin/index.ts"), "[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}");
+  includes(publicFn, "[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}");
+});
 check("edge_function_auth_and_tenant_selection", () => {
   includes(adminFn, 'auth.getUser(token)');
   includes(adminFn, "BUSINESS_LIST");
