@@ -104,7 +104,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     paymentDueDay: Number(meta.paymentDueDay || 1), paymentDueDate: String(meta.paymentDueDate || created).slice(0, 10),
     commissionPerOrder: Number(meta.commissionPerOrder ?? INITIAL_ADMIN_SETTINGS.defaultCommissionPerOrder),
     totalOrdersCount: Number(meta.totalOrdersCount || 0), paymentStatus: meta.paymentStatus || 'pending',
-    overdueDaysCount: Number(meta.overdueDaysCount || 0), isFrozen: Boolean(meta.isFrozen),
+    overdueDaysCount: Number(meta.overdueDaysCount || 0), isFrozen: Boolean(meta.isFrozen || String(meta.paymentStatus || '').toLowerCase() === 'frozen'),
     lastPaymentDate: meta.lastPaymentDate, paymentConfirmedByAdmin: Boolean(meta.paymentConfirmedByAdmin),
     paymobConfig: { ...DEFAULT_PAYMOB_CONFIG, enabled: false },
     tenantId: String(raw.tenantId || raw.tenant_id || ''),
