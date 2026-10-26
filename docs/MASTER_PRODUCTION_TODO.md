@@ -1835,3 +1835,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - Synthetic two-tenant records are now local/CI-only. Use the guarded fixture at `supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql`; do not seed fixtures into production. The v2 verifier fails closed when its disposable fixture is absent.
 - The catalog-admin bootstrap privilege fix is recorded in migrations RC110/RC111; the service role has read access to the four catalog/profile tables used by catalog-admin. No new `anon` or `authenticated` table grants were added.
 - Remaining verification: run the CI checks and confirm the Pages release with production demo controls removed; ask the platform owner to confirm the live browser opens the admin dashboard after reloading the deployed site.
+
+
+## 2026-10-26 — Catalog role/view boundary review
+- [x] Source review confirmed the React catalog shell rendered `merchant_admin` / `super_admin` directly from client-side `currentView` state without a render-time role gate.
+- [x] Source review confirmed subscriber business selection could fall back to `businesses[0]` when the authorized business was absent, risking the wrong public business being shown as the management context.
+- [ ] Remediation is proposed in PR `fix/catalog-role-view-guards`; do not mark complete until its latest-commit CI passes.
+- [ ] Active-subscription enforcement is NOT VERIFIED: the inspected catalog bootstrap uses active `user_memberships` and the inspected catalog RPC migration validates membership/tenant/business/branch scope, but this review has not established a canonical subscription entitlement source or a server-side subscription gate. Do not infer subscription enforcement from UI flags such as `isFrozen` / `paymentStatus`.
+- [ ] Authenticated browser E2E, role-switch/logout cache isolation, and cross-tenant adversarial tests remain NOT VERIFIED.
