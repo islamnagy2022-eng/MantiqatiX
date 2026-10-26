@@ -79,13 +79,21 @@ Deno.serve(async (req: Request) => {
     const hasPlatformScope = activeMemberships.some(isPlatformAdmin);
 
     if (action === "BUSINESS_LIST") {
-      if (!hasPlatformScope) return out(origin, { error: "SUPER_ADMIN_REQUIRED" }, 403);
+      const tenantOwnerScope = tenantId && activeMemberships.some((m: any) =>
+        String(m.tenant_id) === tenantId &&
+        String(m.role || "").toUpperCase() === "OWNER" &&
+        !m.business_id && !m.branch_id &&
+        String(m.status || "").toUpperCase() === "ACTIVE"
+      );
+      if (!hasPlatformScope && !tenantOwnerScope) return out(origin, { error: "CATALOG_BUSINESS_LIST_FORBIDDEN" }, 403);
       const platformTenants = [...new Set(activeMemberships.filter(isPlatformAdmin).map((m: any) => String(m.tenant_id)))];
-      if (tenantId && !platformTenants.includes(tenantId)) return out(origin, { error: "TENANT_SCOPE_FORBIDDEN" }, 403);
-      if (!platformTenants.length) return out(origin, { businesses: [] });
+      if (hasPlatformScope && tenantId && !platformTenants.includes(tenantId)) return out(origin, { error: "TENANT_SCOPE_FORBIDDEN" }, 403);
+      const authorizedTenants = hasPlatformScope ? platformTenants : [tenantId];
+      if (!authorizedTenants.length || authorizedTenants.some((value: string) => !value)) return out(origin, { businesses: [] });
       let query = service.from("businesses")
         .select("id,tenant_id,organization_id,name,code,status,settings")
-        .in("tenant_id", platformTenants)
+        .in("tenant_id", authorizedTenants)
+        .eq("status", "ACTIVE")
         .order("name", { ascending: true })
         .limit(250);
       if (tenantId) query = query.eq("tenant_id", tenantId);
@@ -119,8 +127,11 @@ Deno.serve(async (req: Request) => {
 
     const businessMemberships = activeMemberships.filter((m: any) =>
       String(m.tenant_id) === tenantId &&
-      String(m.business_id || "") === businessId &&
       businessRole(m) &&
+      (
+        String(m.business_id || "") === businessId ||
+        (String(m.role || "").toUpperCase() === "OWNER" && !m.business_id && !m.branch_id)
+      ) &&
       (!m.branch_id || !branchId || String(m.branch_id) === String(branchId))
     );
     const scopedPlatformMembership = activeMemberships.some((m: any) =>
