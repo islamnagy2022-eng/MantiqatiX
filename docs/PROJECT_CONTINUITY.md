@@ -675,3 +675,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Applied DEMO migration `20261026034833`: restricted 25 out-of-scope RPCs for rides, jobs, education, notifications, and digital-page publishing to `service_role` only.
 - Post-change Security Advisor: 1 anonymous and 6 authenticated SECURITY DEFINER warnings remain (intentional public targeted-ad projection, clinic booking RPC, and authorization helpers). No blanket revoke was used; production was not modified.
 - The standard migration list now has five DEMO-only entries; internal ledger has 283 baseline entries, 35 manually executed migrations, and five new tracked DEMO migrations. Historical migration reconciliation remains required before `db push`.
+
+
+
+## Live endpoint smoke — 2026-10-26
+
+- Added `scripts/test-connected-demo-live-smoke.mjs` to the DEMO workflow. It sends non-mutating requests to all seven live DEMO Edge Functions using the public publishable key only.
+- Verified in workflow [40266196560](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40266196560): allowed origin preflight = 200; unapproved origin = 403; unauthenticated POST = 401 for each function. No data was written.
+- This is a real deployed-endpoint check, but authenticated business flows and cross-user isolation remain untested.
