@@ -15,7 +15,7 @@ for (const [name, source] of Object.entries({
   digital: sources.digital,
   subscription: sources.subscription
 })) {
-  assert.match(source, /const PAYMOB_CHECKOUT_ENABLED\\s*=\\s*false/, name + ': catalog/subscription checkout must remain disabled for first launch');
+  assert.match(source, /const PAYMOB_CHECKOUT_ENABLED\s*=\s*false/, name + ': catalog/subscription checkout must remain disabled for first launch');
   assert.match(source, /PAYMOB_CHECKOUT_UNDER_CONSTRUCTION/, name + ': disabled checkout must fail closed with a clear status');
   const gate = source.indexOf('PAYMOB_CHECKOUT_UNDER_CONSTRUCTION');
   const firstProviderCall = [
