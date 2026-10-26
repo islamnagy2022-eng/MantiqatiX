@@ -361,7 +361,7 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 ## 2026-10-26 — DEMO root-switch verification checkpoint
 - Current read-only repository head for main: cf493ea38ab46af3356e6dcf750912616598a9b1. Its public web/config.js still targets LIVE project moyhiluyhjsujhwlyeuu.
-- Connected DEMO PR #376 remains Draft at 9ea512435c8a5b0477be37d2cc7212ececb35e96. The isolated project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY with seven JWT-protected DEMO Edge Functions.
+- Connected DEMO PR #376 remains Draft. The application-code head last inspected before this documentation-only checkpoint was 9ea512435c8a5b0477be37d2cc7212ececb35e96; the following checkpoint commits alter documentation only. The isolated project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY with seven JWT-protected DEMO Edge Functions.
 - Read-only queries confirmed zero demo Auth users, businesses, branches, catalog items/prices, orders, appointments and memberships.
 - [DEMO Isolation CI 40271831176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831176) passed its contract, source, scope and non-mutating CORS/JWT smoke checks. Those checks do not perform an authenticated Google OAuth or database CRUD flow.
 - [Pages CI 40271831245](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831245) validated the PR; its deployment job was skipped by design for a pull_request event. No public DEMO deployment occurred.
