@@ -31,14 +31,14 @@ if(!home.includes("const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'D
 if(!home.includes("publicCategoryCode(x?.category_code)")) throw new Error("FAIL: live service counts must use canonical public sector codes");
 if(!home.includes("publicCategoryCode(x?.provider_kind)")) throw new Error("FAIL: live provider counts must use canonical public sector codes");
 if(!home.includes("Object.keys(PUBLIC_DIRECTORY_COUNTS||{})")) throw new Error("FAIL: public sector directory must include all discovered live sector codes");
-if(!home.includes('id="mx-module-hub"')) throw new Error("FAIL: public homepage must expose a full module tour");
-if(!home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: module tour must link to the all-module demo dashboard");
-if(!home.includes('href="preview/dashboard.html" class="mx-ref-smm"') || !home.includes("معاينة جميع الموديولات")) throw new Error("FAIL: primary navigation must expose the all-module tour instead of a development-only placeholder");
+if(home.includes('id="mx-module-hub"')) throw new Error("FAIL: deferred module tour must be hidden from the launch homepage");
+if(home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: all-module demo links must be hidden from the launch homepage");
+if(home.includes('معاينة جميع الموديولات') || home.includes('خدمات التسويق الرقمي — قيد التطوير')) throw new Error("FAIL: deferred modules must not be advertised in the public navigation");
 
-if(!home.includes('href="preview/index.html"')) throw new Error("FAIL: module tour must link to the interactive demo home");
-if(!home.includes('href="preview/restaurants.html">جرّب مساحة المطاعم والكافيهات</a>')) throw new Error("FAIL: public homepage must provide a direct entry to the restaurant/cafe demo");
+if(home.includes('href="preview/index.html"')) throw new Error("FAIL: interactive module tour link must be hidden for the launch scope");
+if(!home.includes("LAUNCH_SECTOR_CODES = Object.freeze(['FOOD','HEALTH','PHARMACY','GROCERY'])")) throw new Error("FAIL: homepage launch must be restricted to the four selected sectors");
 
-if(!home.includes("لا تنشئ طلبات أو مدفوعات حقيقية")) throw new Error("FAIL: module preview must clearly disclose its demo-only boundary");
+if(home.includes('mx-public-module-hub') || home.includes('mx-ref-digital-workspace')) throw new Error("FAIL: deferred public workspaces must be removed from the launch page");
 if(!css.includes(".mx-public-module-hub") || !css.includes("@media(max-width:760px){.mx-public-module-hub")) throw new Error("FAIL: public module tour must have responsive styles");
 for(const [needle,label] of [
   ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
