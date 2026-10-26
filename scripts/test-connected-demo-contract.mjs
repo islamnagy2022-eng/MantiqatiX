@@ -52,11 +52,13 @@ assert.ok(orderStatus.includes('DEMO_ORDER_SCOPE_REQUIRED') && orderStatus.inclu
 assert.ok(orderStatus.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order-status updates require a DEMO-tagged branch');
 assert.ok(catalogWrite.includes('branchScope.settings?.environment !== "DEMO"'), 'catalog writes require a DEMO-tagged branch');
 assert.ok(app.includes('clientIdempotencyKey,'), 'order submission passes the retained idempotency key');
-assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1') && app.includes("item.id, quantity].join(':')"), 'order retry key is scoped to the DEMO user/business/branch/item/quantity');
-assert.ok(app.includes("button.dataset.idempotencyScope === retryKey"), 'a changed quantity cannot reuse the old button idempotency key');
-assert.ok(app.includes('delete button.dataset.idempotencyScope'), 'successful order clears the button retry scope');
-assert.ok(app.includes('window.sessionStorage.setItem(retryKey, clientIdempotencyKey)'), 'order retry key survives page-level network retries');
-assert.ok(app.includes('window.sessionStorage.removeItem(retryKey)'), 'successful order clears the retry key for intentional future orders');
+assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1'), 'order retry record is scoped to the DEMO user/business/branch/item');
+assert.ok(app.includes('JSON.stringify({ clientIdempotencyKey, quantity })'), 'pending retry persists the exact quantity with its idempotency key');
+assert.ok(app.includes('pendingRetry.quantity !== quantity'), 'an ambiguous order response blocks changed quantity until same-key retry');
+assert.ok(app.includes('const definitiveHttpFailure'), 'a definite non-retryable client response releases the pending retry record');
+assert.ok(app.includes('window.sessionStorage.setItem(retryScope, JSON.stringify({ clientIdempotencyKey, quantity }))'), 'order retry record survives page-level network retries');
+assert.ok(app.includes('window.sessionStorage.removeItem(retryScope)'), 'successful or definitive failed requests clear the pending retry record');
+assert.ok(app.includes('delete button.dataset.idempotencyQuantity'), 'resolved orders clear the quantity stored on the button');
 
 assert.match(bootstrap, /demo_create_business_atomic/, 'bootstrap defines demo business creation');
 assert.match(bootstrap, /demo_register_customer_atomic/, 'bootstrap defines customer provisioning');
