@@ -93,7 +93,6 @@ export const AdminDashboard: React.FC = () => {
     downloadBackupFile,
     exportBackupJSON,
     importBackupJSON,
-    resetToDefaultData,
     confirmAdminPayment,
     advanceBusinessOverdueDay,
     toggleBusinessFreeze,
