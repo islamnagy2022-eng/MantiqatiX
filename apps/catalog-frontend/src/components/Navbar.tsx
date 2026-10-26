@@ -220,7 +220,7 @@ export const Navbar: React.FC = () => {
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer"
                 >
                   <LogIn className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">دخول الحساب</span>
+                  <span className="hidden sm:inline">دخول / إنشاء حساب</span>
                 </button>
               )}
             </div>
@@ -296,16 +296,7 @@ export const Navbar: React.FC = () => {
                 </button>
               )}
 
-              {/* If Guest clicks dashboard */}
-              {authSession.role === 'guest' && (
-                <button
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                >
-                  <LogIn className="w-3.5 h-3.5 text-slate-400" />
-                  <span>دخول صاحب النشاط</span>
-                </button>
-              )}
+
             </nav>
           </div>
         </div>
