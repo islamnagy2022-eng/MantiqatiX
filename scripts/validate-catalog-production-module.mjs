@@ -23,7 +23,7 @@ const app = read("web/app.js");
 const rbac = read("web/rbac.js");
 const adminFn = read("supabase/functions/catalog-admin/index.ts");
 const publicFn = read("supabase/functions/public-catalog/index.ts");
-const migration = read("supabase/migrations/20261026100000_rc107_catalog_manager_business_branch_scope.sql");
+const migration = read("supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql");
 const supabaseConfig = read("supabase/config.toml");
 const workflow = read(".github/workflows/pages.yml");
 
