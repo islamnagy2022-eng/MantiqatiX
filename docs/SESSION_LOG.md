@@ -287,3 +287,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added and applied DEMO-only migration `20261026034449` from `supabase/demo/20261026-restrict-push-secret-rpc.sql`; recorded the exact source blob in the internal ledger. Verified DEMO grants now match production: anon=false, authenticated=false, service_role=true.
 - Verified DEMO currently contains zero Vault entries with the two expected secret names, but restricted the RPC anyway as defense in depth. Production was queried read-only and not changed.
 - Security Advisor warnings reduced to 65 anon-executable and 80 authenticated-executable SECURITY DEFINER functions. Remaining warnings are not certified and need function-by-function review.
+
+
+
+## 2026-10-26 — DEMO SECURITY DEFINER grant reconciliation and scope freeze
+
+- Compared effective `anon` / `authenticated` EXECUTE privileges for shared public SECURITY DEFINER functions in DEMO against a read-only query of LIVE. Added `supabase/demo/20261026-align-security-definer-grants.sql`, explicitly enumerating 64 shared functions and restoring browser-role grants to match LIVE while preserving current DEMO service_role grants.
+- Restricted nine DEMO-only marketing/matrimony RPCs to service_role in the same migration because they are outside the frozen four-sector scope and are not used by the connected DEMO UI.
+- Added and applied `supabase/demo/20261026-freeze-out-of-scope-rpcs.sql` as migration `20261026034833`, restricting 25 additional shared out-of-scope RPCs (rides, jobs, education, notifications, digital-page publishing) to service_role only.
+- Recorded both migration source blob hashes in the internal ledger. No production grants or data were changed.
+- Post-change verification: Security Advisor now reports 1 anon-executable and 6 authenticated-executable SECURITY DEFINER functions, down from 65/80 before the scope freeze. The remaining anon function is `get_mnty_targeted_advertisements`, which is also public in LIVE; the six authenticated functions are the clinic booking RPC, four authorization helpers, and that ad projection.
+- Core DEMO tables remain empty: 0 Auth users, businesses, branches, memberships, catalog items/prices, orders, or appointments; 4 active sectors and 4 active categories. Stock reserve/restore triggers are enabled.
+- The DEMO workflow must re-run against the latest scope-freeze contract test. Authenticated database E2E and migration-history reconciliation remain blockers; LIVE remains BLOCKED.
