@@ -149,7 +149,7 @@ jobs:
           grep -q "MNTY_SUPPORT" web/home.js
           grep -q "mx-catalog-branch" web/app.js
           grep -q "if(!branchId)" web/app.js
-          grep -q "branches: branches ?? \[\]" supabase/functions/api/index.ts
+          grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
   # This narrow path publishes only reviewed public-shell changes when the
   # broader production certification gate is still blocked. It cannot publish
