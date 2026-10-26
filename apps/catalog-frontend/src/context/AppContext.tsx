@@ -239,7 +239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAuthSession(boot.authSession); setBusinesses(boot.businesses); setProducts(boot.products); setSubscribers(boot.subscribers);
       setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
       setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
-      setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : 'merchant_admin');
+      setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : boot.authSession.role === 'subscriber' ? 'merchant_admin' : 'directory');
       setIsLoginModalOpen(false);
       return { success: true };
     } catch (e: any) {
