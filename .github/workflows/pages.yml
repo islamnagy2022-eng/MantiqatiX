@@ -36,6 +36,8 @@ jobs:
         run: |
           node --check web/rbac.js
           node --check web/app.js
+          node --check web/catalog-module.js
+          node --check web/catalog/catalog.js
           ! grep -Eq "from\\(['\"]marketing_leads['\"]\\)\\.insert|from\\(['\"]marketing_leads['\"]\\).*\\.insert" web/app.js
           grep -q "sb.functions.invoke('marketing-lead-create'" web/app.js
           ! grep -REq "from\\(['\"](orders|payment_intents|user_memberships|notifications|marketing_projects|advertisements)['\"]\\)\\.(insert|update|delete)" web --include='*.js'
@@ -85,6 +87,7 @@ jobs:
           node scripts/validate-provider-services-contract.mjs
           node scripts/validate-restaurant-module-contract.mjs
           node scripts/validate-sensitive-module-writes.mjs
+          node scripts/validate-catalog-production-module.mjs
           node scripts/validate-home-sponsored-ads.mjs
           node scripts/validate-home-production-content.mjs
       - name: Upload verification evidence
@@ -103,6 +106,13 @@ jobs:
           test -f web/styles.css
           test -f web/home.css
           test -f web/app.js
+          test -f web/catalog/index.html
+          test -f web/catalog/catalog.css
+          test -f web/catalog/catalog.js
+          test -f web/catalog-module.js
+          test -f supabase/functions/catalog-admin/index.ts
+          test -f supabase/functions/public-catalog/index.ts
+          test -f supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql
           test -f web/home.js
           test -f web/smm.html
           test -f web/digital-page.html
@@ -139,7 +149,7 @@ jobs:
           grep -q "MNTY_SUPPORT" web/home.js
           grep -q "mx-catalog-branch" web/app.js
           grep -q "if(!branchId)" web/app.js
-          grep -q "branches: branches ?? \[\]" supabase/functions/api/index.ts
+          grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
   # This narrow path publishes only reviewed public-shell changes when the
   # broader production certification gate is still blocked. It cannot publish

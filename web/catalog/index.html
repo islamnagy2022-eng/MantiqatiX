@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0750C9">
+  <title>كتالوج النشاط | MantiqatiX</title>
+  <meta name="description" content="استعرض منتجات وخدمات وأسعار النشاط عبر كتالوج MantiqatiX.">
+  <link rel="stylesheet" href="./catalog.css?v=rc107">
+  <script defer src="../config.js?v=rc107"></script>
+  <script defer src="./catalog.js?v=rc107"></script>
+</head>
+<body>
+  <header class="catalog-topbar">
+    <a class="catalog-brand" href="../index.html" aria-label="MantiqatiX الرئيسية">
+      <span class="catalog-brand-mark">M</span>
+      <span><strong>MantiqatiX</strong><small>كتالوج نشاط تجاري</small></span>
+    </a>
+    <a class="catalog-login-link" href="../index.html">دخول الإدارة بحساب Google</a>
+  </header>
+
+  <main class="catalog-main">
+    <section class="catalog-profile">
+      <div class="catalog-cover" id="business-cover">
+        <div class="catalog-cover-overlay"></div>
+        <div class="catalog-cover-label"><span class="catalog-live-dot"></span> كتالوج رسمي على MantiqatiX</div>
+      </div>
+      <div class="catalog-profile-body">
+        <div class="catalog-branding-row">
+          <div class="catalog-business-logo-wrap"><img id="business-logo" alt="شعار النشاط" hidden><span id="business-logo-fallback">م</span></div>
+          <div class="catalog-business-title">
+            <div class="catalog-identity-pills" id="business-badges"></div>
+            <h1 id="business-name">كتالوج النشاط</h1>
+            <p id="business-description">استعرض المنتجات والخدمات والأسعار المعلنة للنشاط.</p>
+          </div>
+          <button class="catalog-share-icon" id="share-catalog" type="button" aria-label="مشاركة رابط الكتالوج" title="مشاركة رابط الكتالوج">↗</button>
+        </div>
+        <div class="catalog-meta" id="business-meta"></div>
+        <div class="catalog-contact-row">
+          <div class="catalog-contact-copy" id="branch-contact">بيانات الفرع تظهر هنا عند توفرها.</div>
+          <div class="catalog-hero-actions">
+            <a class="catalog-btn catalog-btn-whatsapp" id="whatsapp-link" href="#" hidden target="_blank" rel="noopener noreferrer">تواصل عبر واتساب</a>
+          </div>
+        </div>
+        <p class="catalog-note">التصفح بدون تسجيل دخول. تعديل النشاط والمنتجات والأسعار متاح لصاحب النشاط والأدوار المخولة بعد الدخول إلى MantiqatiX بحساب Google.</p>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <div>
+          <span class="catalog-kicker">PRODUCTS & SERVICES</span>
+          <h2>المنتجات والخدمات</h2>
+          <p>تصفح العناصر المعلنة واختر ما ترغب في الاستفسار عنه أو طلبه عبر واتساب.</p>
+        </div>
+        <label class="catalog-branch-field"><span>الفرع</span><select id="branch-select" disabled><option>جاري تحميل الفروع...</option></select></label>
+      </div>
+
+      <div class="catalog-filter-panel">
+        <label class="catalog-search-field"><span aria-hidden="true">⌕</span><input id="catalog-search" type="search" placeholder="ابحث بالاسم أو الوصف..." autocomplete="off" disabled></label>
+        <div id="catalog-type-filters" class="catalog-type-filters" role="group" aria-label="نوع العنصر">
+          <button type="button" data-type-filter="ALL" class="active">الكل</button>
+          <button type="button" data-type-filter="PRODUCT">منتجات</button>
+          <button type="button" data-type-filter="SERVICE">خدمات</button>
+        </div>
+        <nav id="catalog-category-filters" class="catalog-category-filters" aria-label="أقسام الكتالوج"></nav>
+      </div>
+
+      <div id="catalog-state" class="catalog-state" role="status" aria-live="polite">جاري تحميل الكتالوج...</div>
+      <div id="catalog-items" class="catalog-items" hidden></div>
+      <div id="catalog-empty" class="catalog-empty" hidden>
+        <div class="catalog-empty-icon">◇</div>
+        <strong>لا توجد منتجات أو خدمات مطابقة</strong>
+        <p>جرّب تغيير البحث أو اختيار قسم آخر.</p>
+      </div>
+    </section>
+
+    <section class="catalog-contact-footer">
+      <div><strong>هل تحتاج إلى تفاصيل إضافية؟</strong><p>تواصل مع النشاط للاستفسار عن التوافر أو الأسعار أو تفاصيل الخدمة.</p></div>
+      <a id="footer-whatsapp" class="catalog-btn catalog-btn-primary" href="#" target="_blank" rel="noopener noreferrer" hidden>تواصل مع النشاط</a>
+    </section>
+  </main>
+
+  <aside id="catalog-cart-bar" class="catalog-cart-bar" hidden aria-live="polite">
+    <div class="catalog-cart-summary"><span class="catalog-cart-icon">▣</span><div><strong id="catalog-cart-count">0 عناصر</strong><small id="catalog-cart-total">إجمالي تقديري: 0 ج.م</small></div></div>
+    <div class="catalog-cart-actions">
+      <button id="catalog-cart-clear" class="catalog-cart-clear" type="button">تفريغ السلة</button>
+      <button id="catalog-cart-checkout" class="catalog-cart-checkout" type="button">إرسال الطلب عبر واتساب</button>
+    </div>
+  </aside>
+
+
+  <dialog id="catalog-order-dialog" class="catalog-order-dialog">
+    <form id="catalog-order-form" method="dialog">
+      <div class="catalog-order-head"><div><span>WHATSAPP ORDER</span><h2>بيانات طلبك</h2><p>سيتم فتح واتساب النشاط مع تفاصيل الطلب. لا يتم دفع أو حفظ الطلب إلكترونيًا من هذه الصفحة.</p></div><button id="catalog-order-close" class="catalog-order-close" type="button" aria-label="إغلاق">×</button></div>
+      <div id="catalog-order-review" class="catalog-order-review"></div>
+      <div class="catalog-order-fields">
+        <label><span>الاسم</span><input id="catalog-customer-name" maxlength="120" autocomplete="name" placeholder="اسمك (اختياري)"></label>
+        <label><span>رقم الهاتف</span><input id="catalog-customer-phone" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="رقم للتواصل (اختياري)"></label>
+        <label class="catalog-order-field-wide"><span>العنوان أو ملاحظات التوصيل</span><textarea id="catalog-customer-address" maxlength="500" rows="2" placeholder="العنوان أو أي ملاحظة (اختياري)"></textarea></label>
+      </div>
+      <div class="catalog-order-footer"><button id="catalog-order-cancel" class="catalog-cart-clear" type="button">رجوع للكتالوج</button><button class="catalog-cart-checkout" type="submit">متابعة إلى واتساب</button></div>
+    </form>
+  </dialog>
+
+  <footer class="catalog-footer"><span class="catalog-footer-brand">MantiqatiX</span><span>كتالوج عام للقراءة فقط · لا يتم تحصيل مدفوعات إلكترونية من هذه الصفحة</span></footer>
+</body>
+</html>
