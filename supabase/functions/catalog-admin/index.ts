@@ -24,6 +24,29 @@ Deno.serve(async (req) => {
     if (userError || !user || user.is_anonymous) return new Response(JSON.stringify({ error: "AUTH_REQUIRED" }), { status: 401, headers: cors });
     const body = await req.json(), action = String(body.action ?? "").toUpperCase(), tenantId = String(body.tenantId ?? ""), businessId = String(body.businessId ?? "");
     if (!tenantId || !businessId) return new Response(JSON.stringify({ error: "TENANT_BUSINESS_REQUIRED" }), { status: 400, headers: cors });
+    if (action === "ITEM_PRICE_UPSERT") {
+      const { data, error } = await client.rpc("upsert_catalog_item_and_price_backend", {
+        p_tenant_id: tenantId,
+        p_business_id: businessId,
+        p_branch_id: body.branchId ?? null,
+        p_legacy_ref: body.legacyRef ?? null,
+        p_item_type: body.itemType ?? "PRODUCT",
+        p_name_ar: body.nameAr,
+        p_name_en: body.nameEn ?? null,
+        p_description: body.description ?? null,
+        p_sku: body.sku ?? null,
+        p_tax_rate: Number(body.taxRate ?? 0),
+        p_metadata: body.metadata ?? {},
+        p_id: body.id ?? null,
+        p_currency: body.currency ?? "EGP",
+        p_unit_price: Number(body.unitPrice),
+        p_effective_from: body.effectiveFrom ?? new Date().toISOString(),
+        p_effective_to: body.effectiveTo ?? null,
+      });
+      if (error) throw error;
+      return new Response(JSON.stringify(data), { status: 200, headers: cors });
+    }
+
     if (action === "ITEM_UPSERT") {
       const { data, error } = await client.rpc("upsert_catalog_item_backend", {p_tenant_id:tenantId,p_business_id:businessId,p_branch_id:body.branchId??null,p_legacy_ref:body.legacyRef??null,p_item_type:body.itemType??"PRODUCT",p_name_ar:body.nameAr,p_name_en:body.nameEn??null,p_description:body.description??null,p_sku:body.sku??null,p_tax_rate:Number(body.taxRate??0),p_metadata:body.metadata??{},p_id:body.id??null});
       if(error)throw error; return new Response(JSON.stringify(data),{status:200,headers:cors});
