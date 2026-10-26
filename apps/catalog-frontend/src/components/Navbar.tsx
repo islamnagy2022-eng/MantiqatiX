@@ -44,9 +44,44 @@ export const Navbar: React.FC = () => {
               <Sparkles className="w-3 h-3 ml-1 text-emerald-400" />
               منصة MantiqatiX الذكية
             </span>
-            <span className="hidden md:inline text-slate-400">
-              دعم الجنيه المصري (ج.م) • تصنيف وظيفي للأغذية والتجزئة والخدمات والصحة
-            </span>
+            <div
+              className="mantiqati-ticker min-w-0 flex-[1_1_280px] overflow-hidden text-slate-300"
+              aria-label="رسائل تعريفية وتسويقية عن منصة منطقتي X"
+            >
+              <style>{`
+                @keyframes mantiqati-ticker-ltr {
+                  from { transform: translateX(-50%); }
+                  to { transform: translateX(0); }
+                }
+                .mantiqati-ticker-track {
+                  display: flex;
+                  width: max-content;
+                  animation: mantiqati-ticker-ltr 36s linear infinite;
+                }
+                .mantiqati-ticker:hover .mantiqati-ticker-track {
+                  animation-play-state: paused;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  .mantiqati-ticker-track { animation: none; }
+                }
+              `}</style>
+              <div className="mantiqati-ticker-track w-max">
+                <div className="flex shrink-0 items-center gap-8 whitespace-nowrap pl-8" dir="rtl">
+                  <span className="text-emerald-300 font-bold">صاحب نشاط؟ اطلب تفعيل اشتراكك من إدارة منطقتي X وابدأ عرض منتجاتك وخدماتك</span>
+                  <span>قرّب عملاء منطقتك منك بكتالوج رقمي واضح وأسعار محدثة</span>
+                  <span className="text-amber-300 font-bold">تابع منطقتي X لاكتشاف الأنشطة والخدمات والعروض الجديدة</span>
+                  <span>ساعد مشروعك على الوصول لعملاء جدد واطلب مساعدة الإدارة في الانضمام</span>
+                  <span className="text-emerald-300 font-bold">تابع الموقع وشارك رابطه مع أصدقائك لدعم الأنشطة المحلية</span>
+                </div>
+                <div className="flex shrink-0 items-center gap-8 whitespace-nowrap pl-8" dir="rtl" aria-hidden="true">
+                  <span className="text-emerald-300 font-bold">صاحب نشاط؟ اطلب تفعيل اشتراكك من إدارة منطقتي X وابدأ عرض منتجاتك وخدماتك</span>
+                  <span>قرّب عملاء منطقتك منك بكتالوج رقمي واضح وأسعار محدثة</span>
+                  <span className="text-amber-300 font-bold">تابع منطقتي X لاكتشاف الأنشطة والخدمات والعروض الجديدة</span>
+                  <span>ساعد مشروعك على الوصول لعملاء جدد واطلب مساعدة الإدارة في الانضمام</span>
+                  <span className="text-emerald-300 font-bold">تابع الموقع وشارك رابطه مع أصدقائك لدعم الأنشطة المحلية</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
