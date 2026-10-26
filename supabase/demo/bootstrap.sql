@@ -43,7 +43,6 @@ as $function$
 declare
   v_email text;
   v_email_confirmed boolean;
-  v_google_identity boolean;
   v_is_primary_platform_owner boolean := false;
   v_customer_membership_id varchar;
   v_platform_membership_id varchar;
@@ -51,12 +50,8 @@ declare
 begin
   select
     pg_catalog.lower(coalesce(u.email, '')),
-    u.email_confirmed_at is not null,
-    (
-      coalesce(u.raw_app_meta_data->>'provider', '') = 'google'
-      or coalesce(u.raw_app_meta_data->'providers', '[]'::jsonb) @> '["google"]'::jsonb
-    )
-  into v_email, v_email_confirmed, v_google_identity
+    u.email_confirmed_at is not null
+  into v_email, v_email_confirmed
   from auth.users u
   where u.id = p_user_id;
 
@@ -95,13 +90,11 @@ begin
     v_created_customer := true;
   end if;
 
-  -- only the explicitly configured, google-authenticated, confirmed primary account
-  -- becomes platform owner in this isolated demo project. email text alone is not
-  -- sufficient; the identity must exist in this project's own auth.users.
+  -- only the configured primary email receives DEMO platform-owner privileges.
+  -- Supabase must confirm control of that email; browser-supplied identity is not trusted.
   v_is_primary_platform_owner :=
     v_email = 'islam.nagy2022@gmail.com'
-    and v_email_confirmed
-    and v_google_identity;
+    and v_email_confirmed;
 
   if v_is_primary_platform_owner then
     insert into private.platform_admins(user_id)
