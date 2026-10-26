@@ -45,6 +45,7 @@ class FakeDatabase {
     business_id: "business-a",
     branch_id: "branch-a",
   };
+  existingIntent: Row | null = null;
   constructor(mode: "catalog" | "payments" | "orders", existingIntent: Row | null = null, raceOnInsert: Row | null = null) {
     this.mode = mode;
     this.existingIntent = existingIntent;
@@ -73,7 +74,7 @@ class FakeDatabase {
     if (state.table === "businesses") {
       rows = [{ id: "business-a", tenant_id: "tenant-a", status: "ACTIVE" }];
     } else if (state.table === "user_memberships") {
-      rows = this.mode === "orders"
+      rows = this.mode === "orders" || this.mode === "payments"
         ? [this.orderReadMembership]
         : [{ id: "membership-a", user_id: "user-a", tenant_id: "tenant-a", status: "ACTIVE", role: "CUSTOMER", permissions: [], business_id: null }];
     } else if (state.table === "marketing_provider_profiles") {
@@ -91,15 +92,13 @@ class FakeDatabase {
       else if (value("branch_id") === "branch-b") rows = [{ id: "price-b", tenant_id: "tenant-a", catalog_item_id: "item-a", branch_id: "branch-b", currency: "EGP", unit_price: 99, version: 1, status: "ACTIVE" }];
     } else if (state.table === "catalog_item_options") {
       rows = [];
-    } else if (state.table === "orders" && this.mode === "orders") {
+    } else if (state.table === "orders" && (this.mode === "orders" || this.mode === "payments")) {
       const orderFixtures: Row[] = [
-        { id: "order-a", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-a", total: 125.5, currency: "EGP", customer_id: "customer-other" },
+        { id: "order-a", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-a", total: 125.5, currency: "EGP", customer_id: this.mode === "payments" ? "user-a" : "customer-other" },
         { id: "order-b", tenant_id: "tenant-a", business_id: "business-b", branch_id: "branch-b", total: 82, currency: "EGP", customer_id: "customer-other" },
         { id: "order-c", tenant_id: "tenant-a", business_id: "business-a", branch_id: "branch-b", total: 47, currency: "EGP", customer_id: "customer-other" },
       ];
       rows = orderFixtures.filter((row) => String(row.id) === String(value("id")));
-    } else if (state.table === "orders" && this.mode === "payments") {
-      rows = [{ id: "order-a", tenant_id: "tenant-a", total: 125.5, currency: "EGP", customer_id: "user-a" }];
     } else if (state.table === "tenant_payment_methods") {
       rows = [{ id: "method-a", tenant_id: "tenant-a", payment_method: "CASH_ON_DELIVERY", provider: "CASH_ON_DELIVERY", is_enabled: true }];
     } else if (state.table === "payment_intents") {
@@ -199,6 +198,54 @@ Deno.test("tenant-wide ADMIN membership may read tenant orders when no business 
   }
 });
 
+
+Deno.test("payment creation denies a tenant member scoped to another business or branch", async () => {
+  const db = new FakeDatabase("payments");
+  db.orderReadMembership = { ...db.orderReadMembership, role: "OWNER", business_id: "business-a", branch_id: "branch-a" };
+
+  const otherBusiness = await makeHandler(db)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-b", provider: "CASH_ON_DELIVERY", idempotencyKey: "business-scope-key",
+  }));
+  if (otherBusiness.status !== 403) throw new Error(`payment creation for another business must be denied, got ${otherBusiness.status}`);
+
+  const otherBranch = await makeHandler(db)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-c", provider: "CASH_ON_DELIVERY", idempotencyKey: "branch-scope-key",
+  }));
+  if (otherBranch.status !== 403) throw new Error(`payment creation for another branch must be denied, got ${otherBranch.status}`);
+});
+
+Deno.test("business-wide OWNER can create intents for its own branches, not another business", async () => {
+  const db = new FakeDatabase("payments");
+  db.orderReadMembership = { ...db.orderReadMembership, role: "OWNER", business_id: "business-a", branch_id: null };
+
+  const ownBusinessOtherBranch = await makeHandler(db)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-c", provider: "CASH_ON_DELIVERY", idempotencyKey: "business-wide-key",
+  }));
+  if (ownBusinessOtherBranch.status !== 201) {
+    throw new Error(`business-wide OWNER should create an intent for a branch of its business, got ${ownBusinessOtherBranch.status}`);
+  }
+
+  const otherBusiness = await makeHandler(db)(request("/api/v1/payments/intents", "POST", {
+    orderId: "order-b", provider: "CASH_ON_DELIVERY", idempotencyKey: "business-wide-cross-key",
+  }));
+  if (otherBusiness.status !== 403) throw new Error(`business-wide OWNER must not create an intent for another business, got ${otherBusiness.status}`);
+});
+
+Deno.test("payment-intent reads and cash confirmations deny cross-business/branch membership", async () => {
+  const intent: Row = {
+    id: "intent-cross", tenant_id: "tenant-a", order_id: "order-b", amount: 82, currency: "EGP",
+    status: "CREATED", provider: "CASH_ON_DELIVERY", payment_method: "CASH_ON_DELIVERY", idempotency_key: "intent-cross-key",
+  };
+  const readDb = new FakeDatabase("payments", intent);
+  readDb.orderReadMembership = { ...readDb.orderReadMembership, role: "OWNER", business_id: "business-a", branch_id: "branch-a" };
+  const read = await makeHandler(readDb)(request("/api/v1/payments/intents/intent-cross"));
+  if (read.status !== 403) throw new Error(`cross-business intent read must be denied, got ${read.status}`);
+
+  const confirmDb = new FakeDatabase("payments", intent);
+  confirmDb.orderReadMembership = { ...confirmDb.orderReadMembership, role: "OWNER", business_id: "business-a", branch_id: "branch-a" };
+  const confirm = await makeHandler(confirmDb)(request("/api/v1/payments/intent-cross/cash/confirm", "POST", {}));
+  if (confirm.status !== 403) throw new Error(`cross-business cash confirmation must be denied, got ${confirm.status}`);
+});
 
 Deno.test("payment-intent route replays the same identity but rejects a key bound to another order", async () => {
   const intent: Row = {
