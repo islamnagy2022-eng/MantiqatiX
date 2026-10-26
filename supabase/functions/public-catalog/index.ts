@@ -123,24 +123,6 @@ Deno.serve(async (req: Request) => {
       options = optionResult.data || [];
     }
 
-    const items = (rawItems || []).map((item: any) => {
-      const meta = item.metadata?.catalog_public || {};
-      const comparePrice = Number(meta.compare_price);
-      return {
-        id: item.id,
-        branchId: item.branch_id,
-        type: String(item.item_type || "").toUpperCase() === "SERVICE" ? "SERVICE" : "PRODUCT",
-        nameAr: item.name_ar,
-        nameEn: item.name_en,
-        description: item.description || "",
-        category: String(meta.category || "عام").slice(0, 100),
-        unit: String(meta.unit || "").slice(0, 40),
-        imageUrl: safeImageUrl(meta.image_url),
-        comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
-        trackStock: meta.track_stock === true,
-        available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
-      };
-    });
     const trackStockIds = rawItems
       .filter((item: any) => String(item.item_type || "").toUpperCase() === "PRODUCT" && item.metadata?.catalog_public?.track_stock === true)
       .map((item: any) => item.id);
@@ -178,6 +160,25 @@ Deno.serve(async (req: Request) => {
         for (const itemId of trackStockIds) stockAvailability.set(String(itemId), false);
       }
     }
+    const items = (rawItems || []).map((item: any) => {
+      const meta = item.metadata?.catalog_public || {};
+      const comparePrice = Number(meta.compare_price);
+      return {
+        id: item.id,
+        branchId: item.branch_id,
+        type: String(item.item_type || "").toUpperCase() === "SERVICE" ? "SERVICE" : "PRODUCT",
+        nameAr: item.name_ar,
+        nameEn: item.name_en,
+        description: item.description || "",
+        category: String(meta.category || "عام").slice(0, 100),
+        unit: String(meta.unit || "").slice(0, 40),
+        imageUrl: safeImageUrl(meta.image_url),
+        comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
+        trackStock: meta.track_stock === true,
+        available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
+      };
+    });
+
     const profile = business.settings?.catalog_profile || {};
     const selectedBranchPhone = String(selectedBranch.phone || "");
     return response(origin, {
