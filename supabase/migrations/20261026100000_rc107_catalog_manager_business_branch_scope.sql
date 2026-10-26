@@ -111,6 +111,11 @@ BEGIN
     'unit', nullif(trim(coalesce(p_metadata->'catalog_public'->>'unit', '')), ''),
     'image_url', v_image_url,
     'compare_price', v_compare_price,
+    'track_stock', CASE
+      WHEN jsonb_typeof(p_metadata->'catalog_public'->'track_stock') = 'boolean'
+      THEN (p_metadata->'catalog_public'->>'track_stock')::boolean
+      ELSE false
+    END,
     'is_available', CASE
       WHEN jsonb_typeof(p_metadata->'catalog_public'->'is_available') = 'boolean'
       THEN (p_metadata->'catalog_public'->>'is_available')::boolean
@@ -645,3 +650,232 @@ REVOKE ALL ON FUNCTION public.upsert_catalog_item_and_price_backend(character va
 REVOKE ALL ON FUNCTION public.upsert_catalog_business_profile_backend(character varying, uuid, character varying, text, text, text, text, text, text, text, text, text, text, boolean) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_item_backend(character varying, uuid, character varying, character varying, character varying, text, text, text, character varying, numeric, jsonb, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_catalog_price_backend(character varying, uuid, uuid, character varying, character varying, numeric, timestamp with time zone, timestamp with time zone) TO authenticated;
+
+
+CREATE OR REPLACE FUNCTION public.adjust_catalog_stock_backend(
+  p_tenant_id character varying,
+  p_business_id uuid,
+  p_branch_id character varying,
+  p_warehouse_id character varying,
+  p_catalog_item_id uuid,
+  p_target_quantity numeric,
+  p_unit_cost numeric,
+  p_request_id character varying,
+  p_reason text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_warehouse_branch character varying;
+  v_reference_prefix text;
+  v_reference text;
+  v_existing public.inventory_transactions%rowtype;
+  v_balance public.stock_balances%rowtype;
+  v_current numeric := 0;
+  v_reserved numeric := 0;
+  v_delta numeric := 0;
+  v_broad_scope boolean := false;
+  v_tx_id character varying;
+BEGIN
+  IF v_uid IS NULL OR coalesce((auth.jwt()->>'is_anonymous'), 'false') = 'true' THEN
+    RAISE EXCEPTION 'UNAUTHENTICATED';
+  END IF;
+
+  IF p_tenant_id IS NULL OR length(trim(p_tenant_id)) < 1 OR length(trim(p_tenant_id)) > 80
+     OR p_branch_id IS NULL OR length(trim(p_branch_id)) < 1 OR length(trim(p_branch_id)) > 80
+     OR p_warehouse_id IS NULL OR length(trim(p_warehouse_id)) < 1 OR length(trim(p_warehouse_id)) > 80
+     OR p_request_id IS NULL OR trim(p_request_id) !~ '^[A-Za-z0-9_-]{8,80}$'
+     OR p_reason IS NULL OR length(trim(p_reason)) < 3 OR length(trim(p_reason)) > 300 THEN
+    RAISE EXCEPTION 'INVALID_STOCK_ADJUSTMENT_INPUT';
+  END IF;
+
+  IF p_target_quantity IS NULL OR p_target_quantity < 0 OR p_target_quantity > 1000000000
+     OR p_target_quantity::text IN ('NaN', 'Infinity', '-Infinity')
+     OR p_unit_cost IS NULL OR p_unit_cost < 0 OR p_unit_cost > 1000000000
+     OR p_unit_cost::text IN ('NaN', 'Infinity', '-Infinity') THEN
+    RAISE EXCEPTION 'INVALID_STOCK_ADJUSTMENT_AMOUNT';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_memberships m
+     WHERE m.user_id = v_uid AND m.tenant_id = p_tenant_id
+       AND coalesce(m.status, 'ACTIVE') = 'ACTIVE'
+       AND (
+         (
+           upper(m.role::text) = 'SUPER_ADMIN'
+           AND m.business_id IS NULL
+           AND coalesce(m.permissions->>'scope', '') = 'PLATFORM'
+           AND coalesce((m.permissions->>'full_control')::boolean, false) = true
+         )
+         OR (
+           upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')
+           AND (
+             m.business_id = p_business_id
+             OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL)
+           )
+           AND (m.branch_id IS NULL OR m.branch_id = p_branch_id)
+         )
+       )
+  ) THEN
+    RAISE EXCEPTION 'CATALOG_STOCK_WRITE_FORBIDDEN';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.businesses b
+     WHERE b.id = p_business_id AND b.tenant_id = p_tenant_id
+       AND upper(coalesce(b.status, '')) = 'ACTIVE'
+  ) THEN
+    RAISE EXCEPTION 'BUSINESS_NOT_ACTIVE';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.branches br
+     WHERE br.id = p_branch_id AND br.tenant_id = p_tenant_id
+       AND br.business_id = p_business_id AND upper(coalesce(br.status, '')) = 'ACTIVE'
+  ) THEN
+    RAISE EXCEPTION 'BRANCH_BUSINESS_MISMATCH';
+  END IF;
+
+  SELECT w.branch_id INTO v_warehouse_branch
+    FROM public.warehouses w
+   WHERE w.id = p_warehouse_id AND w.tenant_id = p_tenant_id
+     AND w.business_id = p_business_id AND upper(coalesce(w.status, '')) = 'ACTIVE';
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'WAREHOUSE_INVALID';
+  END IF;
+
+  IF v_warehouse_branch IS NOT NULL AND v_warehouse_branch <> p_branch_id THEN
+    RAISE EXCEPTION 'WAREHOUSE_BRANCH_MISMATCH';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_memberships m
+     WHERE m.user_id = v_uid AND m.tenant_id = p_tenant_id
+       AND coalesce(m.status, 'ACTIVE') = 'ACTIVE'
+       AND m.branch_id IS NULL
+       AND (
+         (
+           upper(m.role::text) = 'SUPER_ADMIN'
+           AND m.business_id IS NULL
+           AND coalesce(m.permissions->>'scope', '') = 'PLATFORM'
+           AND coalesce((m.permissions->>'full_control')::boolean, false) = true
+         )
+         OR (
+           upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')
+           AND (
+             m.business_id = p_business_id
+             OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL)
+           )
+         )
+       )
+  ) INTO v_broad_scope;
+
+  IF v_warehouse_branch IS NULL AND NOT v_broad_scope THEN
+    RAISE EXCEPTION 'WAREHOUSE_SCOPE_FORBIDDEN';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.catalog_items ci
+     WHERE ci.id = p_catalog_item_id
+       AND ci.tenant_id = p_tenant_id
+       AND ci.business_id = p_business_id
+       AND upper(coalesce(ci.status, '')) = 'ACTIVE'
+       AND upper(coalesce(ci.item_type, '')) = 'PRODUCT'
+       AND (ci.branch_id IS NULL OR ci.branch_id = p_branch_id)
+  ) THEN
+    RAISE EXCEPTION 'PRODUCT_NOT_AVAILABLE_FOR_STOCK';
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtext(p_warehouse_id || ':' || p_catalog_item_id::text)::bigint);
+
+  v_reference_prefix := 'MNTY-CATALOG-STOCK:' || trim(p_request_id) || ':';
+  v_reference := v_reference_prefix ||
+    trim_scale(p_target_quantity)::text || ':' ||
+    trim_scale(p_unit_cost)::text || ':' ||
+    left(trim(p_reason), 300);
+
+  SELECT * INTO v_existing
+    FROM public.inventory_transactions it
+   WHERE it.tenant_id = p_tenant_id
+     AND it.business_id = p_business_id
+     AND it.warehouse_id = p_warehouse_id
+     AND it.product_id = p_catalog_item_id
+     AND left(coalesce(it.reference_id, ''), length(v_reference_prefix)) = v_reference_prefix
+   ORDER BY it.created_at DESC
+   LIMIT 1;
+
+  IF FOUND THEN
+    IF v_existing.reference_id <> v_reference THEN
+      RAISE EXCEPTION 'STOCK_IDEMPOTENCY_KEY_REUSED';
+    END IF;
+    SELECT * INTO v_balance FROM public.stock_balances sb
+     WHERE sb.tenant_id = p_tenant_id AND sb.business_id = p_business_id
+       AND sb.warehouse_id = p_warehouse_id AND sb.product_id = p_catalog_item_id;
+    RETURN jsonb_build_object(
+      'success', true, 'idempotent', true,
+      'quantityOnHand', coalesce(v_balance.quantity_on_hand, 0),
+      'quantityReserved', coalesce(v_balance.quantity_reserved, 0),
+      'transactionId', v_existing.id
+    );
+  END IF;
+
+  SELECT * INTO v_balance
+    FROM public.stock_balances sb
+   WHERE sb.tenant_id = p_tenant_id AND sb.business_id = p_business_id
+     AND sb.warehouse_id = p_warehouse_id AND sb.product_id = p_catalog_item_id
+   FOR UPDATE;
+
+  IF FOUND THEN
+    v_current := v_balance.quantity_on_hand;
+    v_reserved := v_balance.quantity_reserved;
+  END IF;
+
+  IF p_target_quantity < v_reserved THEN
+    RAISE EXCEPTION 'TARGET_BELOW_RESERVED_STOCK';
+  END IF;
+
+  v_delta := p_target_quantity - v_current;
+
+  IF v_balance.id IS NULL THEN
+    INSERT INTO public.stock_balances(
+      id, tenant_id, business_id, branch_id, warehouse_id, product_id,
+      quantity_on_hand, quantity_reserved
+    ) VALUES (
+      'sb-' || gen_random_uuid()::text,
+      p_tenant_id, p_business_id, v_warehouse_branch, p_warehouse_id,
+      p_catalog_item_id, p_target_quantity, 0
+    )
+    RETURNING * INTO v_balance;
+  ELSE
+    UPDATE public.stock_balances
+       SET quantity_on_hand = p_target_quantity, updated_at = now()
+     WHERE id = v_balance.id
+    RETURNING * INTO v_balance;
+  END IF;
+
+  v_tx_id := 'it-' || gen_random_uuid()::text;
+  INSERT INTO public.inventory_transactions(
+    id, tenant_id, business_id, branch_id, warehouse_id, product_id,
+    transaction_type, quantity, unit_cost, reference_id, created_by
+  ) VALUES (
+    v_tx_id, p_tenant_id, p_business_id, v_warehouse_branch, p_warehouse_id,
+    p_catalog_item_id, 'STOCK_ADJUSTMENT', v_delta, p_unit_cost, v_reference, v_uid
+  );
+
+  RETURN jsonb_build_object(
+    'success', true, 'idempotent', false,
+    'quantityOnHand', v_balance.quantity_on_hand,
+    'quantityReserved', v_balance.quantity_reserved,
+    'delta', v_delta,
+    'transactionId', v_tx_id,
+    'warehouseId', p_warehouse_id
+  );
+END
+$function$;
+
+REVOKE ALL ON FUNCTION public.adjust_catalog_stock_backend(character varying, uuid, character varying, character varying, uuid, numeric, numeric, character varying, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.adjust_catalog_stock_backend(character varying, uuid, character varying, character varying, uuid, numeric, numeric, character varying, text) TO authenticated;
