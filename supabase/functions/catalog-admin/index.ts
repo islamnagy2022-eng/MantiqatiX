@@ -135,19 +135,26 @@ Deno.serve(async (req: Request) => {
     if (!business) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
 
     if (action === "CATALOG_READ") {
-      let branchesQuery = service.from("branches")
+      const { data: rawBranches, error: branchesError } = await service.from("branches")
         .select("id,name,code,status,phone,address")
         .eq("tenant_id", tenantId)
         .eq("business_id", businessId)
         .eq("status", "ACTIVE")
         .order("name", { ascending: true })
         .limit(100);
-      if (branchId) branchesQuery = branchesQuery.eq("id", branchId);
-      const { data: branches, error: branchesError } = await branchesQuery;
       if (branchesError) throw branchesError;
-      if (!branches?.length) return out(origin, { error: "ACTIVE_BRANCH_REQUIRED" }, 409);
-
+      const branchOnlyMemberships = businessMemberships.filter((m: any) => Boolean(m.branch_id));
+      const hasBusinessWideMembership = businessMemberships.some((m: any) => !m.branch_id);
+      let branches = rawBranches || [];
+      if (!scopedPlatformMembership && branchOnlyMemberships.length && !hasBusinessWideMembership) {
+        const allowed = new Set(branchOnlyMemberships.map((m: any) => String(m.branch_id)));
+        branches = branches.filter((b: any) => allowed.has(String(b.id)));
+      }
+      if (!branches.length) return out(origin, { error: "ACTIVE_BRANCH_REQUIRED" }, 409);
       const chosenBranch = branchId || String(branches[0].id);
+      if (!branches.some((b: any) => String(b.id) === chosenBranch)) {
+        return out(origin, { error: "BRANCH_SCOPE_FORBIDDEN" }, 403);
+      }
       const [{ data: provider, error: providerError }, { data: items, error: itemsError }] = await Promise.all([
         service.from("marketing_provider_profiles")
           .select("id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
