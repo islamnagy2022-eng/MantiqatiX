@@ -175,3 +175,57 @@ $function$;
 revoke all on function public.demo_upsert_catalog_price_atomic(uuid,character varying,uuid,character varying,uuid,numeric,character varying) from public;
 revoke all on function public.demo_upsert_catalog_price_atomic(uuid,character varying,uuid,character varying,uuid,numeric,character varying) from anon,authenticated;
 grant execute on function public.demo_upsert_catalog_price_atomic(uuid,character varying,uuid,character varying,uuid,numeric,character varying) to service_role;
+
+
+create or replace function public.demo_upsert_catalog_item_price_atomic(
+  p_actor_user_id uuid,
+  p_tenant_id varchar,
+  p_business_id uuid,
+  p_branch_id varchar,
+  p_item_type varchar,
+  p_name_ar text,
+  p_name_en text,
+  p_description text,
+  p_sku varchar,
+  p_tax_rate numeric,
+  p_unit_price numeric,
+  p_demo_stock numeric,
+  p_currency varchar default 'EGP'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_item jsonb;
+  v_price jsonb;
+  v_item_id uuid;
+begin
+  if p_demo_stock is null or p_demo_stock<0 or p_demo_stock>10000000 or trunc(p_demo_stock)<>p_demo_stock then
+    raise exception 'DEMO_INVALID_STOCK';
+  end if;
+  if p_unit_price is null or p_unit_price<0 then raise exception 'DEMO_INVALID_PRICE'; end if;
+
+  v_item:=public.demo_upsert_catalog_item_atomic(
+    p_actor_user_id,p_tenant_id,p_business_id,p_branch_id,p_item_type,
+    p_name_ar,p_name_en,p_description,p_sku,p_tax_rate,
+    pg_catalog.jsonb_build_object('demo_stock',p_demo_stock,'environment','DEMO','synthetic_only',true),null
+  );
+  v_item_id:=nullif(v_item->>'id','')::uuid;
+  if v_item_id is null then raise exception 'DEMO_CATALOG_ITEM_CREATE_FAILED'; end if;
+
+  update public.catalog_items
+    set metadata=coalesce(metadata,'{}'::jsonb)||pg_catalog.jsonb_build_object('demo_stock',p_demo_stock,'environment','DEMO','synthetic_only',true),
+        updated_at=now()
+  where id=v_item_id and tenant_id=p_tenant_id and business_id=p_business_id and branch_id=p_branch_id;
+
+  v_price:=public.demo_upsert_catalog_price_atomic(
+    p_actor_user_id,p_tenant_id,p_business_id,p_branch_id,v_item_id,p_unit_price,p_currency
+  );
+  return pg_catalog.jsonb_build_object('ok',true,'item',v_item,'price',v_price,'demoStock',p_demo_stock);
+end;
+$function$;
+
+revoke all on function public.demo_upsert_catalog_item_price_atomic(uuid,character varying,uuid,character varying,character varying,text,text,text,character varying,numeric,numeric,numeric,character varying) from public,anon,authenticated;
+grant execute on function public.demo_upsert_catalog_item_price_atomic(uuid,character varying,uuid,character varying,character varying,text,text,text,character varying,numeric,numeric,numeric,character varying) to service_role;
