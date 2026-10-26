@@ -8,10 +8,10 @@ CREATE OR REPLACE FUNCTION public.confirm_cash_payment(p_payment_intent_id chara
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-DECLARE v_payment_intent_id uuid; v_intent record; v_order record; v_membership record; v_rule record;
+DECLARE v_payment_intent_id character varying(64); v_intent record; v_order record; v_membership record; v_rule record;
 v_commission_amount numeric:=0; v_user_role text; v_is_authorized boolean:=false; v_event_id text; v_obligation_id text;
 BEGIN
- v_payment_intent_id:=p_payment_intent_id::uuid;
+ v_payment_intent_id:=p_payment_intent_id;
  IF auth.uid() IS NOT NULL AND auth.uid()<>p_user_id THEN RAISE EXCEPTION 'FORBIDDEN'; END IF;
  SELECT * INTO v_intent FROM public.payment_intents WHERE id=v_payment_intent_id FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'PAYMENT_INTENT_NOT_FOUND'; END IF;
