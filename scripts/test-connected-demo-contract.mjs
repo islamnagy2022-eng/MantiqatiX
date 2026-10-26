@@ -12,6 +12,7 @@ const hardening = read('supabase/demo/security-hardening.sql');
 const hardeningDelta = read('supabase/demo/security-hardening-20261026.sql');
 const clinicGuard = read('supabase/demo/20261026-clinic-appointment-sector-guard.sql');
 const secretGuard = read('supabase/demo/20261026-restrict-push-secret-rpc.sql');
+const grantAlignment = read('supabase/demo/20261026-align-security-definer-grants.sql');
 
 assert.match(html, /connected-config\.js/, 'connected page loads the DEMO-only config');
 assert.match(html, /connected\.js/, 'connected page loads the database-backed client');
@@ -56,5 +57,8 @@ assert.match(clinicGuard, /b\.settings->>'environment',[\s\S]*?b\.settings->>'se
 assert.match(clinicGuard, /SET search_path TO ''/, 'clinic appointment definer uses an empty search_path');
 assert.match(secretGuard, /revoke all on function public\.get_mnty_push_secrets\(\) from public, anon, authenticated/i, 'Vault secret RPC is not browser-executable');
 assert.match(secretGuard, /grant execute on function public\.get_mnty_push_secrets\(\) to service_role/i, 'Vault secret RPC remains backend-only');
+assert.ok((grantAlignment.match(/REVOKE ALL ON FUNCTION public\./g) || []).length >= 70, 'grant alignment explicitly enumerates shared and out-of-scope RPCs');
+assert.match(grantAlignment, /REVOKE ALL ON FUNCTION public\.mnty_can\(text, character varying, uuid, character varying\) FROM PUBLIC, anon, authenticated[\s\S]*?GRANT EXECUTE ON FUNCTION public\.mnty_can\(text, character varying, uuid, character varying\) TO authenticated/i, 'RLS authorization helper keeps the production authenticated grant');
+assert.match(grantAlignment, /REVOKE ALL ON FUNCTION public\.matrimony_create_request_backend\(uuid, text\) FROM PUBLIC, anon, authenticated[\s\S]*?GRANT EXECUTE ON FUNCTION public\.matrimony_create_request_backend\(uuid, text\) TO service_role/i, 'out-of-scope matrimony RPCs remain backend-only in DEMO');
 
 console.log('Connected DEMO contract: PASS (config isolation, auth flows, seven server functions, core reads, DB helper contracts, payment-off boundary).');
