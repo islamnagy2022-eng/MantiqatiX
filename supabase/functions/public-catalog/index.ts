@@ -84,17 +84,23 @@ Deno.serve(async (req: Request) => {
     if (!selectedBranch) return response(origin, { error: "BRANCH_NOT_PUBLIC" }, 404);
     const branchId = String(selectedBranch.id);
     const now = new Date().toISOString();
-    const { data: rawItems, error: itemError } = await db.from("catalog_items")
+    const itemQuery = () => db.from("catalog_items")
       .select("id,branch_id,item_type,name_ar,name_en,description,status,metadata")
       .eq("tenant_id", tenantId)
       .eq("business_id", businessId)
       .eq("status", "ACTIVE")
-      .or(`branch_id.is.null,branch_id.eq.${branchId}`)
       .order("name_ar", { ascending: true })
       .limit(150);
-    if (itemError) throw itemError;
+    const [globalItemResult, branchItemResult] = await Promise.all([
+      itemQuery().is("branch_id", null),
+      itemQuery().eq("branch_id", branchId),
+    ]);
+    if (globalItemResult.error || branchItemResult.error) throw globalItemResult.error || branchItemResult.error;
+    const rawItems = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
+      .slice(0, 150)
+      .sort((a: any, b: any) => String(a.name_ar || "").localeCompare(String(b.name_ar || ""), "ar"));
 
-    const itemIds = (rawItems || []).map((item: any) => item.id);
+    const itemIds = rawItems.map((item: any) => item.id);
     let prices: any[] = [], options: any[] = [];
     if (itemIds.length) {
       const priceQuery = () => db.from("catalog_item_prices")
