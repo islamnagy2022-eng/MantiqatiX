@@ -215,22 +215,25 @@ export const Navbar: React.FC = () => {
                 <span>الرئيسية والدليل الشامل</span>
               </button>
 
-              {/* Public Storefront Tab */}
-              <button
-                onClick={() => setCurrentView('public_storefront')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                  currentView === 'public_storefront'
-                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>
-                  {authSession.role === 'subscriber'
-                    ? 'معاينة صفحة نشاطي'
-                    : 'صفحة النشاط والكتالوج'}
-                </span>
-              </button>
+              {/* Public storefront preview is a subscriber/admin navigation item.
+                  Guests still access a public catalog through its direct shared link. */}
+              {authSession.role !== 'guest' && (
+                <button
+                  onClick={() => setCurrentView('public_storefront')}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                    currentView === 'public_storefront'
+                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Store className="w-3.5 h-3.5" />
+                  <span>
+                    {authSession.role === 'subscriber'
+                      ? 'معاينة صفحة نشاطي'
+                      : 'صفحة النشاط والكتالوج'}
+                  </span>
+                </button>
+              )}
 
               {/* Merchant Dashboard Tab */}
               {(authSession.role === 'subscriber' || authSession.role === 'admin') && (
