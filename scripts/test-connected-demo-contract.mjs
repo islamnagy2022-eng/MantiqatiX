@@ -6,6 +6,7 @@ const html = read('web/demo/connected.html');
 const activityHtml = read('web/demo/activity.html');
 const activityApp = read('web/demo/activity.js');
 const publicCatalog = read('supabase/demo/functions/demo-public-catalog/index.ts');
+const primaryOwnerMigration = read('supabase/demo/20261026062000_demo_primary_owner_confirmed_email_password.sql');
 const config = read('web/demo/connected-config.js');
 const app = read('web/demo/connected.js');
 const bootstrap = read('supabase/demo/bootstrap.sql');
@@ -97,6 +98,8 @@ assert.ok(app.includes('delete button.dataset.idempotencyQuantity'), 'resolved o
 assert.match(bootstrap, /demo_create_business_atomic/, 'bootstrap defines demo business creation');
 assert.ok(bootstrap.includes("'OWNER',") && bootstrap.includes('{"scope":"BUSINESS","demo":true}'), 'creator receives an OWNER membership scoped to the business they create');
 assert.match(bootstrap, /demo_register_customer_atomic/, 'bootstrap defines customer provisioning');
+assert.match(primaryOwnerMigration, /v_email = 'islam\.nagy2022@gmail\.com'[\s\S]*?AND v_email_confirmed/, 'DEMO platform-owner access requires the confirmed configured email');
+assert.doesNotMatch(primaryOwnerMigration, /v_google_identity|raw_app_meta_data->>\s*'provider'/, 'DEMO platform owner does not require Google OAuth identity');
 assert.match(catalog, /demo_upsert_catalog_item_price_atomic/, 'catalog helper writes item and price atomically');
 assert.match(catalog, /grant execute on function public\.demo_upsert_catalog_item_price_atomic[\s\S]*?to service_role/i, 'catalog atomic helper is service-role only');
 assert.match(stock, /mantiqatix_demo_reserve_catalog_stock/, 'order creation reserves synthetic stock');
