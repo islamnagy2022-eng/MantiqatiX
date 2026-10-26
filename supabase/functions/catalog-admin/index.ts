@@ -187,20 +187,23 @@ Deno.serve(async (req: Request) => {
       let prices: any[] = [], options: any[] = [];
       if (itemIds.length) {
         const now = new Date().toISOString();
-        const [priceRes, optionRes] = await Promise.all([
-          service.from("catalog_item_prices")
-            .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
-            .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
-            .or(`branch_id.is.null,branch_id.eq.${chosenBranch}`)
-            .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
-            .order("version", { ascending: false }),
+        const priceQuery = () => service.from("catalog_item_prices")
+          .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
+          .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
+          .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
+          .order("version", { ascending: false });
+        const [globalPriceRes, branchPriceRes, optionRes] = await Promise.all([
+          priceQuery().is("branch_id", null),
+          priceQuery().eq("branch_id", chosenBranch),
           service.from("catalog_item_options")
             .select("id,catalog_item_id,name_ar,name_en,price_delta,status,metadata")
             .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
             .order("name_ar", { ascending: true }),
         ]);
-        if (priceRes.error || optionRes.error) throw priceRes.error || optionRes.error;
-        prices = priceRes.data || [];
+        if (globalPriceRes.error || branchPriceRes.error || optionRes.error) {
+          throw globalPriceRes.error || branchPriceRes.error || optionRes.error;
+        }
+        prices = [...(globalPriceRes.data || []), ...(branchPriceRes.data || [])];
         options = optionRes.data || [];
       }
       const profile = business.settings?.catalog_profile || {};
