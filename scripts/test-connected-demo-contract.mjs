@@ -28,6 +28,7 @@ assert.match(config, /https:\/\/lkijdgqanbqjudiducjt\.supabase\.co/, 'config poi
 assert.match(config, /sb_publishable_/, 'browser config uses a publishable key');
 assert.match(config, /environment:\s*"DEMO"/, 'config declares DEMO environment');
 assert.match(config, /paymentsEnabled:\s*false/, 'real payments remain disabled');
+assert.match(config, /primaryOwnerEmail:\s*"islam\\.nagy2022@gmail\\.com"/, 'the configured primary owner account uses the requested Google identity');
 assert.doesNotMatch(config, /moyhiluyhjsujhwlyeuu|service_role|eyJhbGciOi/i, 'config contains no production project reference or secret-style credential');
 
 for (const api of [
@@ -41,10 +42,15 @@ for (const table of [
   'catalog_item_prices', 'orders', 'medical_appointments'
 ]) assert.ok(app.includes("from('" + table + "'"), 'connected UI reads ' + table);
 
-for (const authFlow of ['signInWithPassword', 'signUp', 'signOut']) {
+for (const authFlow of ['signInWithOAuth', 'signOut']) {
   assert.ok(app.includes('auth.' + authFlow), 'connected UI implements ' + authFlow);
 }
 assert.match(app, /paymentsEnabled\s*!==\s*false/, 'client refuses to initialize unless payment switch is false');
+assert.match(app, /signInWithOAuth\(\{[\s\S]*?provider:\s*'google'/, 'connected DEMO uses the same Google OAuth flow as production');
+assert.match(app, /redirectTo:\s*oauthRedirectUrl\(\)/, 'Google OAuth returns to the current DEMO route');
+assert.match(app, /login_hint:\s*String\(cfg\.primaryOwnerEmail/, 'Google OAuth is hinted toward the configured primary owner account');
+assert.doesNotMatch(app, /signInWithPassword|auth\.signUp\(/, 'connected DEMO does not create a separate email/password login path');
+assert.match(app, /function cleanAuthUrl\(\)/, 'OAuth callback parameters are cleaned after session restore');
 assert.match(app, /demo_provider_id/, 'clinic booking uses a provider scoped to the demo clinic');
 assert.ok(orderCreate.includes('DEMO_BUSINESS_SCOPE_REQUIRED') && orderCreate.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order creation rejects non-DEMO business and branch');
 assert.ok(orderCreate.includes('DEMO_PROVIDER_SCOPE_REQUIRED') && orderCreate.includes('DEMO_CATALOG_ITEM_SCOPE_REQUIRED'), 'order creation requires DEMO provider and synthetic catalogue items');
@@ -62,6 +68,7 @@ assert.ok(app.includes('window.sessionStorage.removeItem(retryScope)'), 'success
 assert.ok(app.includes('delete button.dataset.idempotencyQuantity'), 'resolved orders clear the quantity stored on the button');
 
 assert.match(bootstrap, /demo_create_business_atomic/, 'bootstrap defines demo business creation');
+assert.match(bootstrap, /'OWNER',[\s\S]*?'scope','BUSINESS'/, 'creator receives an OWNER membership scoped to the business they create');
 assert.match(bootstrap, /demo_register_customer_atomic/, 'bootstrap defines customer provisioning');
 assert.match(catalog, /demo_upsert_catalog_item_price_atomic/, 'catalog helper writes item and price atomically');
 assert.match(catalog, /grant execute on function public\.demo_upsert_catalog_item_price_atomic[\s\S]*?to service_role/i, 'catalog atomic helper is service-role only');
