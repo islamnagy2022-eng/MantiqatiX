@@ -267,3 +267,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Security advisor count fell from 78 to 66 anon-executable SECURITY DEFINER functions and from 93 to 81 authenticated-executable functions. Remaining warnings need function-by-function review; no blanket revokes were applied.
 - Migration history is still not reconciled: standard history now contains only `20261026033808`, while the internal ledger contains 283 baseline entries, 35 manually executed migrations, and this new targeted migration. Do not run `db push` or replay the historical chain.
 - Remaining acceptance blocker: `auth.users` is still empty; no real multi-user Auth/RLS or connected browser E2E has been claimed. LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Clinic appointment scope guard applied
+
+- Static code review found that the connected appointment Edge Function called `create_medical_appointment_backend`, but the database RPC did not require the target business/provider profile to be a DEMO clinic. A caller could attempt to use the RPC with a provider profile from another sector in the isolated database.
+- Added `supabase/demo/20261026-clinic-appointment-sector-guard.sql` and applied it only to the DEMO project as migration `20261026034100`. The RPC now requires both business and provider profile settings to declare `environment=DEMO` and `sector_code=DOCTOR`; its SECURITY DEFINER `search_path` is empty.
+- Verified the live function definition contains all four predicates; verified `anon` execution is false and `authenticated`/ `service_role` execution remains true. The internal ledger records the exact source blob SHA.
+- Added static CI assertions for the sector guard. On the latest tested code, the DEMO workflow's connected contract test passed; the workflow was still finishing cleanup when last checked.
+- Standard Supabase migration history now contains only two targeted DEMO migrations (`20261026033808`, `20261026034100`) and remains inconsistent with the historical schema baseline and 35 manually executed migrations. Do not run `db push`.
+- Remaining blocker: no real Auth users or authenticated browser E2E yet. LIVE remains BLOCKED.
