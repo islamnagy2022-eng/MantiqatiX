@@ -5,37 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <meta name="color-scheme" content="light">
-  <title>MantiqatiX | DEMO متصلة بقاعدة تجريبية</title>
+  <title>MantiqatiX | معاينة DEMO بدون تسجيل</title>
   <link rel="stylesheet" href="demo.css?v=demo-20261026">
-  <link rel="stylesheet" href="connected.css?v=connected-20261026">
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
-  <script defer src="connected-config.js?v=demo-db-20261026"></script>
-  <script defer src="connected.js?v=connected-20261026"></script>
+  <link rel="stylesheet" href="guest.css?v=guest-20261026">
+  <script defer src="guest.js?v=guest-20261026"></script>
 </head>
-<body>
+<body class="guest-page">
   <header class="topbar">
-    <a class="brand" href="./connected.html" aria-label="MantiqatiX DEMO">
+    <a class="brand" href="./index.html" aria-label="MantiqatiX DEMO">
       <span class="brand-mark">M</span>
-      <span><strong>MantiqatiX</strong><small>نسخة DEMO متصلة بقاعدة تجريبية</small></span>
+      <span><strong>MantiqatiX</strong><small>معاينة المنصة بدون تسجيل دخول</small></span>
     </a>
     <div class="top-actions">
       <span class="env-pill"><i></i> DEMO منفصلة</span>
-      <button class="btn btn-ghost" data-action="refresh" type="button">تحديث البيانات</button>
-      <button class="btn btn-ghost" data-action="logout" type="button" hidden>تسجيل الخروج</button>
+      <a class="btn btn-primary" href="./connected.html">دخول إدارة النشاط</a>
     </div>
   </header>
+
   <div class="safety-banner" role="status">
-    <strong>قاعدة DEMO مستقلة</strong>
-    <span>الاتصال موجه إلى مشروع Supabase التجريبي فقط. لا دفع حقيقي ولا بيانات إنتاج. استخدم بيانات تجريبية، ولا تستخدم بيانات مرضى فعلية.</span>
+    <strong>وضع الاستعراض المفتوح</strong>
+    <span>تقدر تتصفح شكل المنصة والكتالوجات بدون حساب. البيانات المعروضة أمثلة افتراضية للعرض فقط، وأي تعديل أو حفظ يتطلب تسجيل الدخول.</span>
   </div>
-  <main id="app" class="page-shell" aria-live="polite">
-    <div class="loading-state">جاري الاتصال ببيئة DEMO…</div>
+
+  <main class="guest-shell">
+    <section class="guest-hero">
+      <div class="guest-hero-copy">
+        <div class="guest-eyebrow">MANTIQATIX · DEMO PREVIEW</div>
+        <h1>نشاطك ومنتجاتك وأسعارك<br><span>في صفحة واحدة سهلة المشاركة</span></h1>
+        <p>تجربة أولية لعرض أنشطة من قطاعات مختلفة. اختر القطاع أو ابحث عن نشاط، ثم افتح كتالوجه لمشاهدة المنتجات والخدمات والأسعار.</p>
+        <div class="guest-hero-actions">
+          <a class="btn btn-primary" href="#public-catalogs">استعرض الكتالوجات</a>
+          <a class="btn btn-secondary" href="./connected.html">جرّب إدارة النشاط</a>
+        </div>
+        <div class="guest-highlights">
+          <span>✓ صفحة نشاط عامة</span><span>✓ منتجات وخدمات وأسعار</span><span>✓ بدون دفع حقيقي</span>
+        </div>
+      </div>
+      <aside class="guest-hero-panel" aria-label="ملخص نسخة التجربة">
+        <div class="guest-panel-top"><span class="guest-panel-dot"></span><span>نسخة تجريبية للعرض</span></div>
+        <div class="guest-panel-number">4</div>
+        <div class="guest-panel-label">قطاعات مستهدفة للإطلاق الأول</div>
+        <div class="guest-sector-mini-grid">
+          <span>مطاعم وكافيهات</span><span>صيدليات</span><span>أطباء وعيادات</span><span>متاجر</span>
+        </div>
+        <div class="guest-panel-foot">بيانات أمثلة فقط · غير محفوظة</div>
+      </aside>
+    </section>
+
+    <section class="guest-catalog-section" id="public-catalogs">
+      <div class="guest-section-head">
+        <div>
+          <div class="guest-eyebrow">PUBLIC CATALOGS</div>
+          <h2>استكشف الأنشطة</h2>
+          <p>استخدم البحث أو اختر قطاعًا لتصفية أمثلة الكتالوجات.</p>
+        </div>
+        <label class="guest-search">
+          <span class="visually-hidden">ابحث عن نشاط أو منتج</span>
+          <span aria-hidden="true">⌕</span>
+          <input id="catalog-search" type="search" placeholder="ابحث عن نشاط أو منتج..." autocomplete="off">
+        </label>
+      </div>
+
+      <nav class="guest-filters" aria-label="تصفية حسب القطاع">
+        <button class="guest-filter active" type="button" data-sector="ALL" aria-pressed="true">كل القطاعات</button>
+        <button class="guest-filter" type="button" data-sector="FOOD" aria-pressed="false">مطاعم وكافيهات</button>
+        <button class="guest-filter" type="button" data-sector="PHARMACY" aria-pressed="false">صيدليات</button>
+        <button class="guest-filter" type="button" data-sector="DOCTOR" aria-pressed="false">أطباء وعيادات</button>
+        <button class="guest-filter" type="button" data-sector="STORE" aria-pressed="false">متاجر</button>
+      </nav>
+
+      <div id="catalog-grid" class="guest-catalog-grid" aria-live="polite"></div>
+      <div id="no-results" class="empty-state" hidden>لا توجد نتائج مطابقة. جرّب كلمة بحث أخرى أو اختر قطاعًا مختلفًا.</div>
+      <p class="guest-disclaimer">الأنشطة والأسماء والأسعار الظاهرة في هذه الصفحة أمثلة توضيحية، وليست بيانات منشآت حقيقية أو سجلًا محفوظًا في قاعدة البيانات.</p>
+    </section>
+
+    <section class="guest-owner-cta">
+      <div>
+        <div class="guest-eyebrow">OWNER WORKSPACE</div>
+        <h2>عايز تجرّب إدارة نشاطك؟</h2>
+        <p>منطقة الإدارة منفصلة عن وضع الاستعراض. تسجيل الدخول مطلوب لإضافة نشاط أو تعديل بياناته أو حفظ المنتجات والأسعار.</p>
+      </div>
+      <a class="btn btn-primary" href="./connected.html">فتح إدارة DEMO</a>
+    </section>
   </main>
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
   <footer class="footer">
     <span>MantiqatiX DEMO</span>
     <span>مطاعم وكافيهات · صيدليات · أطباء وعيادات · متاجر</span>
-    <span>الدفع الخارجي معطل</span>
+    <span>الدفع الحقيقي معطل</span>
   </footer>
 </body>
 </html>
