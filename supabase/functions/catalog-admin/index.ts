@@ -200,6 +200,33 @@ Deno.serve(async (req: Request) => {
         prices = [...(globalPriceRes.data || []), ...(branchPriceRes.data || [])];
         options = optionRes.data || [];
       }
+      let warehouseQuery = service.from("warehouses")
+        .select("id,branch_id,name,code,status")
+        .eq("tenant_id", tenantId)
+        .eq("business_id", businessId)
+        .eq("status", "ACTIVE")
+        .order("name", { ascending: true })
+        .limit(100);
+      if (branchOnlyMemberships.length && !hasBusinessWideMembership && !scopedPlatformMembership) {
+        warehouseQuery = warehouseQuery.eq("branch_id", chosenBranch);
+      } else {
+        warehouseQuery = warehouseQuery.or(`branch_id.is.null,branch_id.eq.${chosenBranch}`);
+      }
+      const { data: warehouseRows, error: warehouseError } = await warehouseQuery;
+      if (warehouseError) throw warehouseError;
+      const warehouses = warehouseRows || [];
+      const warehouseIds = warehouses.map((warehouse: any) => String(warehouse.id));
+      let stockBalances: any[] = [];
+      if (itemIds.length && warehouseIds.length) {
+        const { data: balances, error: balancesError } = await service.from("stock_balances")
+          .select("id,branch_id,warehouse_id,product_id,quantity_on_hand,quantity_reserved")
+          .eq("tenant_id", tenantId)
+          .eq("business_id", businessId)
+          .in("warehouse_id", warehouseIds)
+          .in("product_id", itemIds);
+        if (balancesError) throw balancesError;
+        stockBalances = balances || [];
+      }
       const profile = business.settings?.catalog_profile || {};
       return out(origin, {
         business: {
@@ -231,6 +258,11 @@ Deno.serve(async (req: Request) => {
         })),
         selectedBranchId: chosenBranch,
         items: items || [], prices, options,
+        warehouses: warehouses.map((warehouse: any) => ({
+          id: warehouse.id, branchId: warehouse.branch_id,
+          name: warehouse.name, code: warehouse.code,
+        })),
+        stockBalances,
         paymentsEnabled: false,
       });
     }
