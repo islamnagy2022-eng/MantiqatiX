@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Check, ClipboardList, KeyRound, Plus, RefreshCw, Save, Search, ShieldCheck, UserCog, Users, X } from 'lucide-react';
+import { BadgeCheck, Check, ClipboardList, KeyRound, RefreshCw, Save, Search, ShieldCheck, UserCog, Users } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { BusinessEmployeeManager } from '../merchant/BusinessEmployeeManager';
@@ -88,7 +88,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     setAuditRows(Array.isArray(data)?data:[]);
   },[auditSearch]);
 
-  useEffect(()=>{void loadAll();},[loadAll]);
+  useEffect(()=>{void loadAll();},[]);
   useEffect(()=>{if(tab==='audit')void loadAudit();},[tab,loadAudit]);
 
   const resetRole=()=>{setRoleEditId('');setRoleKey('');setRoleName('');setRoleDescription('');setRoleScope('BUSINESS');setRoleActive(true);setPermissionMap({HOME:['view']});};
@@ -142,7 +142,6 @@ export const SuperAdminControlCenter: React.FC = () => {
     if(error){setNotice({type:'error',text:error.message||'تعذر سحب الدور.'});return;}
     setNotice({type:'success',text:'تم سحب الدور. أي API تستخدم بوابة الصلاحيات المركزية ستتحقق من الحالة الجديدة.'});await loadAll();
   };
-  const doSearchPeople=async(event:React.FormEvent)=>{event.preventDefault();await loadAll();};
   const statusText=(row:AuditRow)=>row.result||'—';
   const chosenPerson=people.find((p)=>p.id===selectedPersonId);
 
@@ -183,7 +182,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     {tab==='assignments'&&<div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
       <form onSubmit={assignRole} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><UserCog className="h-5 w-5 text-indigo-700"/>إسناد دور إلى حساب</h3>
-        <form onSubmit={doSearchPeople} className="flex gap-2"><input value={personSearch} onChange={(e)=>setPersonSearch(e.target.value)} className={inputClass} placeholder="ابحث بالاسم أو البريد"/><button className="rounded-xl border border-slate-200 px-3" type="button" onClick={()=>void loadAll()}><Search className="h-4 w-4"/></button></form>
+        <div className="flex gap-2"><input value={personSearch} onChange={(e)=>setPersonSearch(e.target.value)} className={inputClass} placeholder="ابحث بالاسم أو البريد"/><button className="rounded-xl border border-slate-200 px-3" type="button" onClick={()=>void loadAll()}><Search className="h-4 w-4"/></button></div>
         <label className="block text-xs font-bold text-slate-600">حساب Supabase<select required value={selectedPersonId} onChange={(e)=>setSelectedPersonId(e.target.value)} className={'mt-1 '+inputClass}><option value="">اختر حسابًا</option>{people.map((person)=><option key={person.id} value={person.id}>{person.full_name||person.email} — {person.email}</option>)}</select></label>
         {chosenPerson&&<p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600">الحساب: {chosenPerson.email} · {chosenPerson.email_confirmed?'البريد مؤكد':'البريد غير مؤكد'} · {chosenPerson.memberships?.length||0} عضوية</p>}
         <label className="block text-xs font-bold text-slate-600">الدور المخصص<select required value={roleId} onChange={(e)=>setRoleId(e.target.value)} className={'mt-1 '+inputClass}><option value="">اختر دورًا</option>{roles.filter(r=>r.is_active).map((role)=><option key={role.id} value={role.id}>{role.display_name} ({role.scope})</option>)}</select></label>
