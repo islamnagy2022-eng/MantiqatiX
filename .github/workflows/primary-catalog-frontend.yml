@@ -127,8 +127,8 @@ jobs:
           CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
           grep -Fq "window.MANTIQATIX_CONFIG" <<<"${CONFIG_JS}"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
-          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\\.js' "${TMP_PAGE}" | head -n 1)"
-          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\\.css' "${TMP_PAGE}" | head -n 1)"
+          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' "${TMP_PAGE}" | head -n 1)"
+          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
           test -n "${JS_ASSET}"
           test -n "${CSS_ASSET}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${JS_ASSET#/MantiqatiX}" >/dev/null
