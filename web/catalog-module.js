@@ -61,6 +61,20 @@
   .mx-catalog-module .mx-cat-platform-picker{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:end}
   .mx-catalog-module .mx-cat-platform-picker select{min-height:42px;border:1px solid #d8e2ee;border-radius:9px;background:#fff;padding:9px 10px;font:inherit;font-size:12px}
   @media(max-width:900px){.mx-catalog-module .mx-cat-grid{grid-template-columns:1fr}.mx-catalog-module .mx-cat-item-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .mx-catalog-module .mx-cat-warehouse-form{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end;margin:12px 0}
+  .mx-catalog-module .mx-cat-warehouse-list{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .mx-catalog-module .mx-cat-stock-dialog{width:min(650px,calc(100% - 22px));max-width:none;max-height:90vh;padding:0;border:1px solid #d9e4ef;border-radius:17px;color:#17253a;background:#fff;box-shadow:0 25px 80px #091f3a55}
+  .mx-catalog-module .mx-cat-stock-dialog::backdrop{background:#071d39a8;backdrop-filter:blur(3px)}
+  .mx-catalog-module .mx-cat-stock-dialog form{padding:clamp(15px,3vw,23px)}
+  .mx-catalog-module .mx-cat-stock-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .mx-catalog-module .mx-cat-stock-head span{font-size:9px;letter-spacing:1px;font-weight:900;color:#0750c9}
+  .mx-catalog-module .mx-cat-stock-head h3{font-size:19px;margin:5px 0}
+  .mx-catalog-module .mx-cat-stock-head p{font-size:11px;line-height:1.8;color:#63758b;margin:0}
+  .mx-catalog-module .mx-cat-stock-head button{flex:0 0 34px;width:34px;height:34px;border:1px solid #dce5ef;border-radius:9px;background:#f8fafc;font-size:22px;color:#5d6e82}
+  .mx-catalog-module .mx-cat-stock-dialog[open]{animation:mx-catalog-dialog-in .15s ease-out}
+  @keyframes mx-catalog-dialog-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:900px){.mx-catalog-module .mx-cat-warehouse-form{grid-template-columns:1fr 1fr}.mx-catalog-module .mx-cat-warehouse-form button{grid-column:1/-1}}
+  @media(max-width:620px){.mx-catalog-module .mx-cat-warehouse-form{grid-template-columns:1fr}.mx-catalog-module .mx-cat-warehouse-form button{grid-column:auto}.mx-catalog-module .mx-cat-stock-dialog{width:calc(100% - 16px)}}
   @media(max-width:620px){.mx-catalog-module .mx-cat-form-grid,.mx-catalog-module .mx-cat-item-list{grid-template-columns:1fr}.mx-catalog-module .mx-cat-span-2{grid-column:auto}.mx-catalog-module .mx-cat-branch-row{grid-template-columns:1fr}.mx-catalog-module .mx-cat-platform-picker{grid-template-columns:1fr}.mx-catalog-module .mx-cat-platform-picker button{width:100%}.mx-catalog-module .mx-cat-card{padding:13px}.mx-catalog-module .mx-cat-card-head{flex-direction:column}}
   `;
 
@@ -279,6 +293,16 @@
           <label class="mx-cat-field"><span>بحث بالاسم أو الوصف</span><input id="mx-cat-item-search" type="search" placeholder="ابحث في العناصر..." autocomplete="off"></label>
         </div>
         <div id="mx-cat-item-list" class="mx-cat-item-list"></div>
+      </section>
+      <section class="mx-cat-card">
+        <div class="mx-cat-card-head"><div><h3>مخازن الفرع</h3><p>أرصدة المخزون مرتبطة بالمخزن والفرع الفعليين. لا يتم إنشاء مخزن تلقائيًا أو إضافة أرصدة افتراضية.</p></div><span class="mx-cat-pill">${(data.warehouses || []).length} مخزن نشط</span></div>
+        <div class="mx-cat-warehouse-list">${(data.warehouses || []).length ? data.warehouses.map((warehouse) => '<span class="mx-cat-pill">' + esc(warehouse.name) + ' · ' + esc(warehouse.code) + '</span>').join('') : '<span class="mx-cat-pill warn">لا يوجد مخزن نشط في هذا الفرع</span>'}</div>
+        <form id="mx-cat-warehouse-form" class="mx-cat-warehouse-form">
+          <label class="mx-cat-field"><span>اسم المخزن الجديد *</span><input id="mx-cat-warehouse-name" maxlength="160" minlength="2" required placeholder="مثال: مخزن الفرع الرئيسي"></label>
+          <label class="mx-cat-field"><span>كود المخزن *</span><input id="mx-cat-warehouse-code" maxlength="40" minlength="2" pattern="[A-Za-z0-9_-]{2,40}" required placeholder="MAIN"></label>
+          <button type="submit" class="btn btn-outline" style="width:auto">إنشاء مخزن</button>
+        </form>
+        <div id="mx-cat-warehouse-status" class="mx-cat-status" role="status" aria-live="polite">إنشاء المخزن يسجل مخزنًا فعليًا على الفرع المحدد.</div>
       </section>
       <dialog id="mx-cat-stock-dialog" class="mx-cat-stock-dialog">
         <form id="mx-cat-stock-form">
@@ -519,6 +543,7 @@
         const imageUrl = content.querySelector("#mx-cat-item-image").value.trim();
         const description = content.querySelector("#mx-cat-item-description").value.trim();
         const available = content.querySelector("#mx-cat-item-available").checked;
+        const trackStock = itemType === "PRODUCT" && content.querySelector("#mx-cat-item-track-stock").checked;
         const itemId = content.querySelector("#mx-cat-item-id").value.trim() || null;
         const currentItem = itemId ? (data.items || []).find((item) => String(item.id) === itemId) : null;
         const branch = branchSelect?.value || data.selectedBranchId;
@@ -561,6 +586,7 @@
                 image_url: imageUrl || null,
                 compare_price: comparePrice,
                 is_available: available,
+                track_stock: trackStock,
               },
             },
             currency: "EGP",
