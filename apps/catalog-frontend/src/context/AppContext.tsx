@@ -217,7 +217,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
         setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
         setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : boot.authSession.role === 'subscriber' ? 'merchant_admin' : 'directory');
-        setIsLoginModalOpen(false);
         return { success: true, message: 'تم إنشاء الحساب. تفعيل صلاحيات صاحب النشاط يحتاج اعتماد إدارة المنصة.' };
       }
       return {
