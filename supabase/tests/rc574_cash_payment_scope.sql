@@ -45,12 +45,12 @@ values
 
 insert into public.orders
   (id, tenant_id, business_id, branch_id, customer_id, status, subtotal, discount, tax,
-   delivery_fee, total_amount, total, currency, customer_name, customer_phone,
+   delivery_fee, total_amount, currency, customer_name, customer_phone,
    delivery_address, items_json, metadata, pricing_version, pricing_hash, pricing_snapshot, pricing_authority)
 values
   ('57400000-0000-4000-8000-000000000030', 'RC574-TEST',
    '57400000-0000-4000-8000-000000000020', 'RC574-BRANCH-B', null, 'NEW',
-   82, 0, 0, 0, 82, 82, 'EGP', 'RC574 Test Order', '0000000000',
+   82, 0, 0, 0, 82, 'EGP', 'RC574 Test Order', '0000000000',
    'Disposable only', '[]'::jsonb, '{"test_fixture":true}'::jsonb,
    1, 'rc574-pricing-hash', '[]'::jsonb, 'catalog_v1');
 
