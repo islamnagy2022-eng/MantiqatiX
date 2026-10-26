@@ -92,6 +92,90 @@ Deno.serve(async (req: Request) => {
     return reply({ ok: true, ...saved }, 200, origin);
   }
 
+  if (operation === "update-item") {
+    const itemId = String(body.itemId || "");
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const description = typeof body.description === "string" ? body.description.trim() : "";
+    const stock = Number(body.stock);
+    const itemType = String(body.itemType || "PRODUCT").toUpperCase();
+    if (!/^[0-9a-f-]{36}$/i.test(itemId)) return reply({ error: "INVALID_ITEM_ID" }, 400, origin);
+    if (name.length < 1 || name.length > 180) return reply({ error: "INVALID_NAME" }, 400, origin);
+    if (description.length > 400) return reply({ error: "DESCRIPTION_TOO_LONG" }, 400, origin);
+    if (!Number.isInteger(stock) || stock < 0 || stock > 10000000) return reply({ error: "INVALID_STOCK" }, 400, origin);
+    if (!["PRODUCT", "SERVICE"].includes(itemType)) return reply({ error: "INVALID_ITEM_TYPE" }, 400, origin);
+
+    const { data: memberships, error: membershipError } = await admin.from("user_memberships")
+      .select("role,status")
+      .eq("user_id", user.id).eq("tenant_id", "MNTY-PLATFORM")
+      .eq("business_id", businessId).eq("branch_id", branchId).eq("status", "ACTIVE")
+      .limit(20);
+    if (membershipError) return reply({ error: "DEMO_MEMBERSHIP_CHECK_FAILED" }, 500, origin);
+    const canWrite = (memberships || []).some((m: any) =>
+      ["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"].includes(String(m.role || "").toUpperCase()));
+    if (!canWrite) return reply({ error: "DEMO_CATALOG_WRITE_FORBIDDEN" }, 403, origin);
+
+    const { data: existing, error: itemLookupError } = await admin.from("catalog_items")
+      .select("id,metadata")
+      .eq("id", itemId).eq("tenant_id", "MNTY-PLATFORM")
+      .eq("business_id", businessId).eq("branch_id", branchId).eq("status", "ACTIVE")
+      .maybeSingle();
+    if (itemLookupError) return reply({ error: "DEMO_CATALOG_ITEM_LOOKUP_FAILED" }, 500, origin);
+    if (!existing || existing.metadata?.environment !== "DEMO" || existing.metadata?.synthetic_only !== true) {
+      return reply({ error: "DEMO_CATALOG_ITEM_SCOPE_REQUIRED" }, 403, origin);
+    }
+    const metadata = { ...(existing.metadata || {}), environment: "DEMO", synthetic_only: true, demo_stock: stock };
+    const { data: updatedItem, error: updateError } = await admin.from("catalog_items")
+      .update({ name_ar: name, description: description || null, item_type: itemType, metadata, updated_at: new Date().toISOString() })
+      .eq("id", itemId).eq("tenant_id", "MNTY-PLATFORM")
+      .eq("business_id", businessId).eq("branch_id", branchId)
+      .select("id,name_ar,description,item_type,branch_id,metadata").maybeSingle();
+    if (updateError || !updatedItem) {
+      console.error("demo catalog item update failed", updateError?.message || "NO_ROW");
+      return reply({ error: "DEMO_CATALOG_ITEM_UPDATE_FAILED" }, 400, origin);
+    }
+    return reply({ ok: true, item: updatedItem, environment: "DEMO" }, 200, origin);
+  }
+
+  if (operation === "business-profile") {
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+    const city = typeof body.city === "string" ? body.city.trim() : "";
+    const description = typeof body.description === "string" ? body.description.trim() : "";
+    if (name.length < 2 || name.length > 100) return reply({ error: "INVALID_BUSINESS_NAME" }, 400, origin);
+    if (phone.length > 30 || city.length > 70 || description.length > 400) return reply({ error: "BUSINESS_FIELD_TOO_LONG" }, 400, origin);
+
+    const { data: memberships, error: membershipError } = await admin.from("user_memberships")
+      .select("role,status")
+      .eq("user_id", user.id).eq("tenant_id", "MNTY-PLATFORM")
+      .eq("business_id", businessId).eq("branch_id", branchId).eq("status", "ACTIVE")
+      .limit(20);
+    if (membershipError) return reply({ error: "DEMO_MEMBERSHIP_CHECK_FAILED" }, 500, origin);
+    if (!(memberships || []).some((m: any) => String(m.role || "").toUpperCase() === "OWNER")) {
+      return reply({ error: "DEMO_OWNER_REQUIRED" }, 403, origin);
+    }
+
+    const { data: business, error: businessLookupError } = await admin.from("businesses")
+      .select("id,name,settings")
+      .eq("id", businessId).eq("tenant_id", "MNTY-PLATFORM").eq("status", "ACTIVE").maybeSingle();
+    if (businessLookupError) return reply({ error: "DEMO_BUSINESS_LOOKUP_FAILED" }, 500, origin);
+    if (!business || business.settings?.environment !== "DEMO") return reply({ error: "DEMO_BUSINESS_SCOPE_REQUIRED" }, 403, origin);
+
+    const settings = { ...(business.settings || {}), environment: "DEMO", demo: true, phone, city, description, payments_enabled: false, external_notifications_enabled: false };
+    const { data: updatedBusiness, error: updateBusinessError } = await admin.from("businesses")
+      .update({ name, settings }).eq("id", businessId).eq("tenant_id", "MNTY-PLATFORM")
+      .select("id,name,settings").maybeSingle();
+    if (updateBusinessError || !updatedBusiness) return reply({ error: "DEMO_BUSINESS_PROFILE_UPDATE_FAILED" }, 400, origin);
+
+    const { error: branchUpdateError } = await admin.from("branches")
+      .update({ name: name + " - الفرع الرئيسي", phone: phone || null, address: city || null })
+      .eq("id", branchId).eq("business_id", businessId).eq("tenant_id", "MNTY-PLATFORM").eq("status", "ACTIVE");
+    if (branchUpdateError) {
+      console.error("demo branch profile sync failed", branchUpdateError.message);
+      return reply({ ok: true, warning: "BUSINESS_SAVED_BRANCH_SYNC_FAILED", business: updatedBusiness }, 200, origin);
+    }
+    return reply({ ok: true, business: updatedBusiness, environment: "DEMO" }, 200, origin);
+  }
+
   if (operation === "price") {
     const itemId = String(body.itemId || "");
     const price = Number(body.price);
