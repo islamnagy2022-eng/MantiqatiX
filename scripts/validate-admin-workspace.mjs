@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const app = fs.readFileSync('web/app.js', 'utf8');
 const rbac = fs.readFileSync('web/rbac.js', 'utf8');
+const catalogContext = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 
 const checks = [
   ['selectModule is an async function', /async\s+function\s+selectModule\s*\(name\)/],
@@ -23,12 +24,17 @@ const checks = [
   ['unlinked BUSINESS_OWNER sees setup state instead of business operations', /BUSINESS_OWNER'&&!live\.businessId\?businessOwnerSetupView\(\)/],
   ['no-active-membership state blocks operational workspace', /if\(!live\.memberships\.length\)\{membershipRequiredView\(\);return\}/],
   ['registration review is platform-owner only in screen visibility', /if\(name==='طلبات التسجيل'\)return isPlatformOwnerSession\(\)/],
+  ['catalog frontend keeps public browsing separate from operational screens', /const canOpenViewForRole = \(view: ViewMode, role: AuthSession\['role'\]\): boolean => \{[\s\S]*?if \(view === 'directory' \|\| view === 'public_storefront'\) return true;[\s\S]*?if \(view === 'merchant_admin'\) return role === 'subscriber' \|\| role === 'admin';[\s\S]*?if \(view === 'super_admin'\) return role === 'admin';[\s\S]*?return false;/],
+  ['catalog frontend setter fails closed on unauthorized screens', /const setCurrentView = \(view: ViewMode\) => \{[\s\S]*?if \(canOpenViewForRole\(view, authSession\.role\)\)[\s\S]*?setCurrentViewState\('directory'\);/],
+  ['bootstrap assigns initial screens according to verified role', /if \(boot\.authSession\.role === 'admin'\) setCurrentViewState\('super_admin'\);[\s\S]*?else if \(boot\.authSession\.role === 'subscriber'\) setCurrentViewState\('merchant_admin'\);[\s\S]*?else setCurrentViewState\('directory'\);/],
+  ['customer support route never opens global governance workspace', /case 'الدعم والحوكمة': return isCustomerMode\(\)\?customerSupportWorkspace\(\):governanceWorkspace\(\);/],
   ['business owner role defaults exist in RBAC', /BUSINESS_OWNER:\{scope:'BUSINESS'/],
   ['Super Admin creation uses server functions', /superAdminFunction\(['"]business-register['"][\s\S]*superAdminFunction\(['"]business-approval['"][\s\S]*superAdminFunction\(['"]business-branch-admin['"][\s\S]*superAdminFunction\(['"]catalog-admin['"]/]
 ];
 
 const failed = checks.filter(([name, rule]) => {
-  const ok = rule instanceof RegExp ? rule.test(app) : rule;
+  const source = name.startsWith('catalog frontend') || name.startsWith('bootstrap assigns') ? catalogContext : name.startsWith('customer support') ? app : app;
+  const ok = rule instanceof RegExp ? rule.test(source) : rule;
   if (!ok) console.error('FAIL:', name);
   return !ok;
 });
