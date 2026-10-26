@@ -630,3 +630,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Supabase project creation is not yet done. The `manteqti` organization is on the Free plan and the connector's price quote for a new project was $0/month. Ask/confirm organization before creating; do not create a paid branch.
 - Next: open a draft PR and inspect its checks; obtain explicit confirmation to use `manteqti` for an isolated Free project; test an authoritative migration replay and synthetic-data Auth/RLS E2E before LIVE.
 - No production migrations or data writes, function deployments, merges, or production publishing occurred.
+
+
+
+## Latest handoff — 2026-10-26 (connected DEMO)
+
+- Current branch: `demo/four-sector-isolated-20261026`; PR [#376](https://github.com/islamnagy2022-eng/MantiqatiX/pull/376) remains Draft and unmerged.
+- Connected UI: `web/demo/connected.html`, `connected.js`, `connected.css`, and `connected-config.js`; local simulator remains at `web/demo/index.html`.
+- Supabase DEMO project `lkijdgqanbqjudiducjt` is active and separate from LIVE. Seven Edge Function source files match deployed code exactly. The connected contract and syntax checks passed in run [40264871042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871042); web security verification passed in run [40264871016](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871016).
+- Database observation: 132 public tables, all with RLS enabled; 0 Auth users; four sector rows seeded. The internal ledger records 283 schema-baseline versions plus 35 manually applied later migrations, while the standard Supabase migration list is empty. Never run `db push` or replay the 35 migrations before reconciling schema and migration history.
+- Next blocking work: establish disposable Auth test users through the supported Auth flow; run real authenticated E2E for owner/manager/staff/customer, tenant/business/branch isolation, catalog/price writes, orders/status transitions, and clinic appointment privacy/conflict handling. Review the two RLS-enabled tables without policies and remaining `SECURITY DEFINER` warnings by function, not with blanket revokes.
+- Safety state: no production change, merge, public connected-page release, or real payment activation. LIVE remains BLOCKED / NOT CERTIFIED.
