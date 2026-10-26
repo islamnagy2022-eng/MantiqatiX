@@ -33,7 +33,7 @@ const checks = [
 ];
 
 const failed = checks.filter(([name, rule]) => {
-  const source = name.startsWith('catalog frontend') || name.startsWith('bootstrap assigns') ? catalogContext : name.startsWith('customer support') ? app : app;
+  const source = name.startsWith('catalog frontend') || name.startsWith('bootstrap assigns') ? catalogContext : name.startsWith('business owner role defaults') ? rbac : app;
   const ok = rule instanceof RegExp ? rule.test(source) : rule;
   if (!ok) console.error('FAIL:', name);
   return !ok;
