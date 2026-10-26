@@ -23,9 +23,12 @@ const isPlatformAdmin = (m: any) =>
 const businessRole = (m: any) =>
   ["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"].includes(String(m.role || "").toUpperCase());
 
+// PostgreSQL UUID columns accept any 128-bit UUID-shaped value. Some existing
+// platform business IDs are legacy values whose version/variant nibbles do not
+// follow RFC 4122; validate the canonical shape without rejecting those rows.
 const isUuid = (value: unknown) =>
   typeof value === "string" &&
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 const safeBranch = (value: unknown) =>
   typeof value === "string" && value.length > 0 && value.length <= 80 && /^[a-z0-9_-]+$/i.test(value);

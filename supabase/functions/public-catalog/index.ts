@@ -16,8 +16,9 @@ const headersFor = (origin: string | null) => ({
 });
 const response = (origin: string | null, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: headersFor(origin) });
+// Accept the UUID-shaped legacy IDs already stored in PostgreSQL.
 const isUuid = (value: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const safeImageUrl = (value: unknown) => {
   const candidate = String(value || "").trim();
   return candidate.length <= 1500 && /^https:\/\//i.test(candidate) ? candidate : "";
