@@ -30,3 +30,7 @@ jobs:
         run: node --check web/demo/demo.js
       - name: Verify isolation and four-sector scope
         run: node scripts/validate-demo-isolation.mjs
+      - name: Install temporary DOM test dependency
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund jsdom@26.1.0
+      - name: Exercise account, catalog, permissions, and order flows
+        run: node scripts/test-demo-workflow.mjs
