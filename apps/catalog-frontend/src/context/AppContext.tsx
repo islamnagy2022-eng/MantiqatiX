@@ -141,24 +141,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('businessId') || params.get('store') || '';
-    if (!user && requestedId) {
+    if (requestedId) {
+      // Preserve a direct public catalog link for signed-in and signed-out users.
+      // Screen access is public; private dashboards remain role-gated separately.
       const byId = boot.businesses.find((b) => b.id === requestedId || b.slug === requestedId);
-      if (byId) { setSelectedBusinessIdState(byId.id); setCurrentViewState('public_storefront'); }
-      else if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
+      if (byId) {
+        setSelectedBusinessIdState(byId.id);
+        setCurrentViewState('public_storefront');
+      } else if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
         const publicCatalog = await fetchPublicCatalog(requestedId).catch(() => null);
         if (publicCatalog) {
           setBusinesses([publicCatalog.business, ...boot.businesses.filter((b) => b.id !== publicCatalog.business.id)]);
           setProducts([...publicCatalog.products, ...boot.products.filter((p) => p.businessId !== publicCatalog.business.id)]);
           setSelectedBusinessIdState(publicCatalog.business.id);
           setCurrentViewState('public_storefront');
-        } else { setSelectedBusinessIdState(''); setCurrentViewState('directory'); }
-      } else { setSelectedBusinessIdState(''); setCurrentViewState('directory'); }
+        } else {
+          setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
+          setCurrentViewState(defaultViewForRole(boot.authSession.role));
+        }
+      } else {
+        setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
+        setCurrentViewState(defaultViewForRole(boot.authSession.role));
+      }
     } else {
       const preferred = boot.authSession.businessId || boot.businesses[0]?.id || '';
       setSelectedBusinessIdState(preferred);
-      if (boot.authSession.role === 'admin') setCurrentViewState('super_admin');
-      else if (boot.authSession.role === 'subscriber') setCurrentViewState('merchant_admin');
-      else setCurrentViewState('directory');
+      setCurrentViewState(defaultViewForRole(boot.authSession.role));
     }
   };
 
