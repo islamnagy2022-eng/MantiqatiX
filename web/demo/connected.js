@@ -4,6 +4,9 @@
   const cfg = window.MANTIQATIX_DEMO_CONFIG;
   const sdk = window.supabase;
   const app = document.getElementById('app');
+  const routeParams = new URLSearchParams(window.location.search);
+  const requestedBusinessId = routeParams.get('businessId') || routeParams.get('business') || '';
+  const requestedTab = routeParams.get('tab') || '';
   const $ = (s, root) => (root || document).querySelector(s);
   const $$ = (s, root) => Array.from((root || document).querySelectorAll(s));
   const sectors = {
@@ -34,6 +37,7 @@
   const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, catalogFilterSector: 'ALL', catalogFilterBusinessId: 'ALL', tab: 'dashboard', workspaceMode: null, loading: false };
   let sb;
   let toastTimer = null;
+  let authMode = 'login';
 
   function toast(message, type) {
     const el = $('#toast');
@@ -223,7 +227,21 @@
       data.workspaceMode = resolveWorkspaceMode();
       const saved = window.localStorage.getItem('MANTIQATIX_DEMO_ACTIVE_BUSINESS') || '';
       const own = activeMemberships();
-      data.selectedBusinessId = (saved && own.some(m => m.business_id === saved)) ? saved : (own[0]?.business_id || null);
+      const ownsRequestedBusiness = requestedBusinessId && own.some(m => m.business_id === requestedBusinessId);
+      data.selectedBusinessId = ownsRequestedBusiness
+        ? requestedBusinessId
+        : ((saved && own.some(m => m.business_id === saved)) ? saved : (own[0]?.business_id || null));
+      if (requestedTab === 'catalog' && requestedBusinessId && data.businesses.some(b => b.id === requestedBusinessId)) {
+        data.catalogFilterBusinessId = requestedBusinessId;
+        data.catalogFilterSector = 'ALL';
+        data.workspaceMode = 'CUSTOMER';
+        data.tab = 'catalog';
+      } else if (ownsRequestedBusiness) {
+        data.workspaceMode = 'OWNER';
+        data.tab = requestedTab === 'products' ? 'products' : 'dashboard';
+      } else if (requestedTab === 'products') {
+        data.tab = 'dashboard';
+      }
       data.loading = false;
       render();
     } catch (error) {
@@ -253,58 +271,67 @@
       (membership ? '<span class="badge good">' + esc(roleLabel(membership.role)) + '</span>' : '<span class="badge">كتالوج عام تجريبي</span>') +
       '<span class="data-chip">' + esc(branch?.name || 'فرع تجريبي') + '</span></div><div class="card-actions">' +
       (membership && data.workspaceMode === 'OWNER' ? '<button class="btn btn-primary btn-small" data-action="select-business" data-business-id="' + business.id + '" type="button">إدارة النشاط</button>' : '') +
-      (showCustomerLink ? '<button class="btn btn-secondary btn-small" data-action="catalog-business" data-business-id="' + business.id + '" type="button">فتح الكتالوج كعميل</button>' : '') +
+      '<button class="btn btn-secondary btn-small" data-action="open-activity" data-business-id="' + business.id + '" type="button">فتح صفحة النشاط</button>' +
+      (showCustomerLink ? '<button class="btn btn-secondary btn-small" data-action="catalog-business" data-business-id="' + business.id + '" type="button">تصفح داخل التطبيق</button>' : '') +
       '</div></article>';
   }
 
   function renderAuth(message = '', messageType = 'error') {
-    const email = String(cfg?.primaryOwnerEmail || '').trim().toLowerCase();
+    const isSignup = authMode === 'signup';
     app.innerHTML =
       '<div class="auth-layout"><section class="hero-panel">' +
-      '<div><span class="hero-label">MANTIQATIX · DATABASE DEMO</span><h1>نفس طريقة الدخول المستخدمة في الإنتاج</h1>' +
-      '<p>سجّل الدخول بحساب Google نفسه. سيُنشأ له سجل مصادقة مستقل داخل مشروع DEMO، بينما تبقى جلسة وبيانات الإنتاج منفصلة تمامًا.</p></div>' +
+      '<div><span class="hero-label">MANTIQATIX · DATABASE DEMO</span><h1>كتالوج نشاطك في رابط واحد</h1>' +
+      '<p>أنشئ حسابًا تجريبيًا بالبريد وكلمة مرور، وأنشئ نشاطك وأضف المنتجات والأسعار. كل البيانات هنا في قاعدة DEMO منفصلة عن الإنتاج.</p></div>' +
       '<div class="sector-list"><div class="sector-chip">🍽️ مطاعم وكافيهات</div><div class="sector-chip">⚕️ صيدليات</div><div class="sector-chip">🩺 أطباء وعيادات</div><div class="sector-chip">🛍️ متاجر</div></div>' +
-      '<p class="tiny">لا يتم طلب كلمة مرور Google أو تخزينها داخل MantiqatiX. لا توجد مدفوعات حقيقية ولا بيانات إنتاج في هذه البيئة.</p></section>' +
-      '<section class="panel"><h2 class="screen-title">الدخول إلى نسخة DEMO المتصلة</h2>' +
-      '<p class="sub-title">استخدم زر Google بدل إنشاء كلمة مرور جديدة.</p>' +
-      '<div class="connected-success"><strong>الحساب الأساسي للمالك</strong><br><span dir="ltr">' + esc(email) + '</span><br>عند الدخول بهذا الحساب وإنشاء نشاط، تمنح قاعدة DEMO الحساب دور OWNER على النشاط الذي أنشأه.</div>' +
-      '<div class="form-actions"><button id="google-auth" class="btn btn-primary" type="button">🔐 المتابعة باستخدام Google</button></div>' +
-      (message ? '<div id="auth-message" class="auth-confirm-card ' + (messageType === 'error' ? 'connected-error' : '') + '" role="status">' + esc(message) + '</div>' : '') +
-      '<p class="connected-note">يلزم تفعيل Google Provider وقائمة Redirect URLs لمشروع Supabase التجريبي. هذا الإعداد منفصل عن إنتاج MantiqatiX؛ لا ننسخ جلسة الإنتاج ولا نطلب منك إعادة تعيين كلمة مرور.</p></section></div>';
-    const button = $('#google-auth');
-    if (button) button.addEventListener('click', signInWithGoogle);
+      '<p class="tiny">استخدم بريدًا تملكه وكلمة مرور تجريبية. لا تستخدم كلمة مرور Gmail، ولا توجد مدفوعات حقيقية أو بيانات إنتاج في هذه البيئة.</p></section>' +
+      '<section class="panel"><h2 class="screen-title">' + (isSignup ? 'إنشاء حساب DEMO' : 'الدخول إلى نسخة DEMO') + '</h2>' +
+      '<p class="sub-title">اسم الدخول هو بريدك الإلكتروني. نظام تسجيل الدخول بـ Google في الإنتاج لم يتغير.</p>' +
+      '<div class="auth-switch"><button type="button" class="btn ' + (!isSignup ? 'active' : 'btn-secondary') + '" data-action="auth-mode" data-mode="login">تسجيل الدخول</button>' +
+      '<button type="button" class="btn ' + (isSignup ? 'active' : 'btn-secondary') + '" data-action="auth-mode" data-mode="signup">إنشاء حساب</button></div>' +
+      '<form id="auth-form" data-mode="' + (isSignup ? 'signup' : 'login') + '" class="form-stack">' +
+      (isSignup ? '<div class="field"><label for="auth-name">الاسم</label><input id="auth-name" name="fullName" required maxlength="100" autocomplete="name" placeholder="اسمك أو اسم المسؤول"></div>' : '') +
+      '<div class="field"><label for="auth-email">البريد الإلكتروني (اسم الدخول)</label><input id="auth-email" name="email" type="email" required maxlength="180" autocomplete="username" placeholder="you@example.com"></div>' +
+      '<div class="field"><label for="auth-password">كلمة المرور</label><input id="auth-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="' + (isSignup ? 'new-password' : 'current-password') + '" placeholder="8 أحرف على الأقل"></div>' +
+      '<div class="form-actions"><button class="btn btn-primary" type="submit">' + (isSignup ? 'إنشاء حساب تجريبي' : 'دخول') + '</button></div></form>' +
+      (message ? '<div id="auth-message" class="auth-confirm-card ' + (messageType === 'error' ? 'connected-error' : 'connected-success') + '" role="status">' + esc(message) + '</div>' : '') +
+      '<p class="connected-note">قد يطلب Supabase تأكيد البريد الإلكتروني قبل أول دخول حسب إعدادات المشروع. لا يلزم تفعيل Google OAuth لاختبار DEMO.</p></section></div>';
   }
 
-  function oauthRedirectUrl() {
-    const search = window.location.search;
-    return window.location.origin + window.location.pathname + (search === '?' ? '' : search);
-  }
-
-  function cleanAuthUrl() {
-    const hasAuthResult = window.location.hash.includes('access_token=') ||
-      window.location.hash.includes('error=') ||
-      /[?&](?:code|error|error_description)=/.test(window.location.search);
-    if (hasAuthResult) window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
-  }
-
-  async function signInWithGoogle() {
-    const button = $('#google-auth');
+  async function submitAuth(form) {
+    const mode = form.dataset.mode;
+    const values = new FormData(form);
+    const email = String(values.get('email') || '').trim().toLowerCase();
+    const password = String(values.get('password') || '');
+    const fullName = String(values.get('fullName') || '').trim();
+    if (!email || password.length < 8) return renderAuth('أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل.', 'error');
+    if (mode === 'signup' && !fullName) return renderAuth('أدخل الاسم لإنشاء الحساب.', 'error');
+    const button = $('button[type="submit"]', form);
     if (button) button.disabled = true;
     try {
-      const { error } = await sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: oauthRedirectUrl(),
-          queryParams: {
-            access_type: 'online',
-            prompt: 'select_account',
-            login_hint: String(cfg.primaryOwnerEmail || '').trim().toLowerCase()
+      if (mode === 'signup') {
+        const { data: result, error } = await sb.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: window.location.origin + window.location.pathname
           }
+        });
+        if (error) throw error;
+        if (result?.session) {
+          await bootstrap(result.session);
+          return;
         }
-      });
+        authMode = 'login';
+        renderAuth('تم إنشاء الحساب. إذا طلب Supabase تأكيد البريد، افتح رسالة التأكيد ثم ارجع وسجّل الدخول بالبريد وكلمة المرور.', 'success');
+        return;
+      }
+      const { data: result, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      if (!result?.session) throw new Error('لم يتم إنشاء جلسة دخول. تحقق من تأكيد البريد ثم أعد المحاولة.');
+      await bootstrap(result.session);
     } catch (error) {
-      renderAuth('تعذر بدء تسجيل الدخول باستخدام Google: ' + errorText(error) + ' — تحقق من إعداد Google Provider وروابط التحويل داخل مشروع DEMO.');
+      renderAuth((mode === 'signup' ? 'تعذر إنشاء الحساب: ' : 'تعذر تسجيل الدخول: ') + errorText(error), 'error');
     } finally {
       if (button && button.isConnected) button.disabled = false;
     }
@@ -450,21 +477,46 @@
     const sector = sectorForBusiness(business);
     const branch = branchForBusiness(business.id);
     const items = catalogItemsFor(business.id);
-    return header('المنتجات والأسعار', 'النشاط: ' + business.name + ' · ' + sector.label,
-      '<button class="btn btn-secondary" data-action="customer-catalog">فتح الكتالوج كعميل</button>') +
-      '<section class="panel"><form id="product-form" class="form-stack"><div class="form-grid">' +
+    const isOwner = String(membershipForBusiness(business.id)?.role || '').toUpperCase() === 'OWNER';
+    const publicUrl = './activity.html?business=' + encodeURIComponent(business.id);
+    const profile = '<section class="panel"><div class="connected-hero"><div><h2 class="screen-title">صفحة النشاط العامة</h2><p class="connected-note">المعلومات الأساسية تظهر أعلى رابط الكتالوج، والمنتجات والأسعار تظهر أسفلها.</p></div><a class="btn btn-secondary" href="' + esc(publicUrl) + '" target="_blank" rel="noopener">معاينة صفحة النشاط ↗</a></div>' +
+      (isOwner ? '<form id="business-profile-form" class="form-stack"><div class="form-grid">' +
+        '<div class="field"><label for="profile-name">اسم النشاط</label><input id="profile-name" name="name" required maxlength="100" value="' + esc(business.name) + '"></div>' +
+        '<div class="field"><label for="profile-phone">رقم التواصل</label><input id="profile-phone" name="phone" maxlength="30" inputmode="tel" value="' + esc(business.settings?.phone || '') + '"></div>' +
+        '<div class="field"><label for="profile-city">المدينة</label><input id="profile-city" name="city" maxlength="70" value="' + esc(business.settings?.city || '') + '"></div>' +
+        '<div class="field span-2"><label for="profile-description">نبذة عن النشاط</label><textarea id="profile-description" name="description" maxlength="400">' + esc(business.settings?.description || '') + '</textarea></div>' +
+        '</div><div class="form-actions"><button class="btn btn-secondary" type="submit">حفظ معلومات النشاط</button></div></form>' :
+        '<div class="notice">تعديل بيانات النشاط متاح لمالك النشاط فقط.</div>') + '</section>';
+    const createForm = '<section class="panel">' + header('إضافة منتج أو خدمة', 'تُحفظ البيانات والسعر في قاعدة DEMO. يمكنك تعديل المنتج والسعر لاحقًا.') +
+      '<form id="product-form" class="form-stack"><div class="form-grid">' +
       '<div class="field"><label for="product-name">اسم المنتج/الخدمة</label><input id="product-name" name="name" required maxlength="180"></div>' +
       '<div class="field"><label for="product-price">السعر (ج.م)</label><input id="product-price" name="price" type="number" min="0" step="0.01" required></div>' +
-      '<div class="field"><label for="product-stock">الكمية التجريبية</label><input id="product-stock" name="stock" type="number" min="0" step="1" value="20" required></div>' +
+      '<div class="field"><label for="product-stock">المخزون/السعة التجريبية</label><input id="product-stock" name="stock" type="number" min="0" step="1" value="20" required></div>' +
       '<div class="field"><label for="product-type">النوع</label><select id="product-type" name="itemType"><option value="' + sector.itemType + '">' + (sector.itemType === 'SERVICE' ? 'خدمة/موعد' : 'منتج') + '</option>' +
       (sector.itemType === 'PRODUCT' ? '<option value="SERVICE">خدمة</option>' : '<option value="PRODUCT">منتج</option>') + '</select></div>' +
       '<div class="field span-2"><label for="product-description">الوصف</label><textarea id="product-description" name="description" maxlength="400"></textarea></div>' +
-      '</div><div class="form-actions"><button class="btn btn-primary" type="submit">إضافة عنصر + سعر</button></div></form>' +
-      '<p class="connected-note">الكتالوج والأسعار محفوظة في قاعدة DEMO. المخزون رقم تجريبي يُحدث داخل معاملة الطلب.</p></section>' +
-      '<section class="panel">' + header('الكتالوج الحالي', items.length + ' عنصرًا') +
-      (items.length ? '<div class="table-wrap"><table class="data-table"><thead><tr><th>الاسم</th><th>السعر</th><th>المخزون التجريبي</th><th>الحالة</th><th>تعديل السعر</th></tr></thead><tbody>' +
-      items.map(item => { const p=priceFor(item); return '<tr><td><strong>' + esc(item.name_ar) + '</strong><br><span class="tiny">' + esc(item.description || '') + '</span></td><td>' + money(p?.unit_price) + '</td><td>' + Number(item.metadata?.demo_stock ?? 0) + '</td><td><span class="badge good">متاح</span></td><td><form class="inline-form" data-form="price-update" data-item-id="' + item.id + '" data-business-id="' + business.id + '" data-branch-id="' + (branch?.id || item.branch_id || '') + '"><input type="number" min="0" step="0.01" required name="price" value="' + esc(p?.unit_price ?? 0) + '" aria-label="السعر الجديد"><button class="btn btn-secondary btn-small" type="submit">حفظ</button></form></td></tr>'; }).join('') +
-      '</tbody></table></div>' : '<div class="empty-state">لا توجد منتجات. أضف أول منتج أو خدمة من النموذج أعلاه.</div>') + '</section>';
+      '</div><div class="form-actions"><button class="btn btn-primary" type="submit">إضافة إلى الكتالوج</button></div></form>' +
+      '<p class="connected-note">الدفع الحقيقي معطّل. لا تُدخل بيانات مرضى فعلية أو معلومات حساسة.</p></section>';
+    const productCards = items.map(item => {
+      const p = priceFor(item);
+      const itemBranch = data.branches.find(b => b.id === item.branch_id) || branch;
+      const branchId = itemBranch?.id || item.branch_id || '';
+      return '<article class="entity-card catalog-owner-card"><div class="entity-top"><h3>' + esc(item.name_ar) + '</h3><span class="badge">' + esc(item.item_type || 'PRODUCT') + '</span></div>' +
+        '<div class="tag-row"><span class="data-chip">' + money(p?.unit_price) + '</span><span class="data-chip">المتاح التجريبي: ' + Number(item.metadata?.demo_stock ?? 0) + '</span></div>' +
+        '<form class="catalog-edit-form" data-form="item-update" data-item-id="' + esc(item.id) + '" data-business-id="' + esc(business.id) + '" data-branch-id="' + esc(branchId) + '">' +
+        '<div class="field"><label>اسم المنتج/الخدمة</label><input name="itemName" required maxlength="180" value="' + esc(item.name_ar) + '"></div>' +
+        '<div class="field"><label>الوصف</label><textarea name="description" maxlength="400">' + esc(item.description || '') + '</textarea></div>' +
+        '<div class="form-grid"><div class="field"><label>المخزون/السعة</label><input name="stock" type="number" min="0" max="10000000" step="1" required value="' + Number(item.metadata?.demo_stock ?? 0) + '"></div>' +
+        '<div class="field"><label>النوع</label><select name="itemType"><option value="PRODUCT"' + (String(item.item_type).toUpperCase() === 'PRODUCT' ? ' selected' : '') + '>منتج</option><option value="SERVICE"' + (String(item.item_type).toUpperCase() === 'SERVICE' ? ' selected' : '') + '>خدمة</option></select></div></div>' +
+        '<button class="btn btn-secondary btn-small" type="submit">حفظ بيانات المنتج</button></form>' +
+        '<form class="inline-form price-edit-form" data-form="price-update" data-item-id="' + esc(item.id) + '" data-business-id="' + esc(business.id) + '" data-branch-id="' + esc(branchId) + '">' +
+        '<label>السعر الجديد (ج.م)</label><input type="number" min="0" max="100000000" step="0.01" required name="price" value="' + esc(p?.unit_price ?? 0) + '" aria-label="السعر الجديد">' +
+        '<button class="btn btn-primary btn-small" type="submit">حفظ السعر</button></form></article>';
+    }).join('');
+    return header('إدارة النشاط والكتالوج', business.name + ' · ' + sector.label,
+      '<button class="btn btn-secondary" data-action="customer-catalog">عرض الكتالوج كعميل</button>') +
+      profile + createForm + '<section class="panel">' + header('المنتجات والخدمات', items.length + ' عنصرًا في الكتالوج') +
+      (productCards ? '<div class="card-grid catalog-owner-grid">' + productCards + '</div>' : '<div class="empty-state">لا توجد منتجات بعد. أضف أول منتج أو خدمة من النموذج أعلاه.</div>') + '</section>';
   }
 
   function renderOrders(business, membership, orders, allowStatusChanges) {
@@ -676,6 +728,43 @@
     await loadData();
   }
 
+  async function saveBusinessProfile(form) {
+    const business = selectedBusiness();
+    const branch = branchForBusiness(business?.id);
+    if (!business || !branch || String(membershipForBusiness(business.id)?.role || '').toUpperCase() !== 'OWNER') return toast('تعديل بيانات النشاط متاح لمالك النشاط فقط.', 'error');
+    const values = new FormData(form);
+    const body = { operation: 'business-profile', businessId: business.id, branchId: branch.id,
+      name: String(values.get('name') || '').trim(), phone: String(values.get('phone') || '').trim(),
+      city: String(values.get('city') || '').trim(), description: String(values.get('description') || '').trim() };
+    const button = $('button[type="submit"]', form);
+    if (button) button.disabled = true;
+    const { data: result, error } = await sb.functions.invoke('demo-catalog-write', { body });
+    if (button && button.isConnected) button.disabled = false;
+    if (error || !result?.ok) return toast('تعذر حفظ معلومات النشاط: ' + errorText(error || result?.detail || result?.error), 'error');
+    toast('تم حفظ معلومات النشاط في DEMO.', 'success');
+    await loadData();
+  }
+
+  async function updateCatalogItem(form) {
+    const businessId = form.dataset.businessId;
+    const branchId = form.dataset.branchId;
+    if (!canManage(businessId)) return toast('لا تملك صلاحية تعديل هذا المنتج.', 'error');
+    const values = new FormData(form);
+    const body = { operation: 'update-item', businessId, branchId, itemId: form.dataset.itemId,
+      name: String(values.get('itemName') || '').trim(), description: String(values.get('description') || '').trim(),
+      stock: Number(values.get('stock')), itemType: String(values.get('itemType') || 'PRODUCT') };
+    if (!body.name || body.name.length > 180 || body.description.length > 400 || !Number.isInteger(body.stock) || body.stock < 0 || body.stock > 10000000) {
+      return toast('تحقق من اسم المنتج والوصف والمخزون.', 'error');
+    }
+    const button = $('button[type="submit"]', form);
+    if (button) button.disabled = true;
+    const { data: result, error } = await sb.functions.invoke('demo-catalog-write', { body });
+    if (button && button.isConnected) button.disabled = false;
+    if (error || !result?.ok) return toast('تعذر تعديل المنتج: ' + errorText(error || result?.detail || result?.error), 'error');
+    toast('تم تحديث بيانات المنتج/الخدمة.', 'success');
+    await loadData();
+  }
+
   async function createProduct(form) {
     const business = selectedBusiness();
     const branch = branchForBusiness(business?.id);
@@ -771,7 +860,12 @@
   document.addEventListener('click', async event => {
     const button = event.target.closest('[data-action]');
     if (!button) return;
-    if (button.dataset.action === 'workspace-mode') {
+    if (button.dataset.action === 'auth-mode') {
+      authMode = button.dataset.mode === 'signup' ? 'signup' : 'login';
+      return renderAuth();
+    } else if (button.dataset.action === 'open-activity') {
+      window.location.href = './activity.html?business=' + encodeURIComponent(button.dataset.businessId || '');
+    } else if (button.dataset.action === 'workspace-mode') {
       switchWorkspaceMode(button.dataset.mode);
     } else if (button.dataset.action === 'customer-catalog') {
       switchWorkspaceMode('CUSTOMER', 'catalog');
@@ -801,6 +895,14 @@
   document.addEventListener('submit', async event => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
+    if (form.id === 'auth-form') {
+      event.preventDefault();
+      return submitAuth(form);
+    }
+    if (form.id === 'business-profile-form') {
+      event.preventDefault();
+      return saveBusinessProfile(form);
+    }
     if (form.id === 'business-form') {
       event.preventDefault();
       return createBusiness(form);
@@ -812,6 +914,10 @@
     if (form.id === 'team-form') {
       event.preventDefault();
       return manageTeam(form);
+    }
+    if (form.dataset.form === 'item-update') {
+      event.preventDefault();
+      return updateCatalogItem(form);
     }
     if (form.dataset.form === 'price-update') {
       event.preventDefault();
