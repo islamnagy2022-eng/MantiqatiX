@@ -101,9 +101,16 @@ check("database_writes_enforce_business_branch_and_limits", () => {
 check("react_privileged_views_require_authorized_session", () => {
   includes(reactApp, "currentView === 'super_admin' && authSession.role !== 'admin'");
   includes(reactApp, "!['subscriber', 'admin'].includes(authSession.role) || !currentBusiness");
+  includes(reactApp, "currentView === 'public_storefront' &&");
+  includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink");
   includes(reactApp, "{visibleView === 'merchant_admin' && <MerchantDashboard />}");
   includes(reactApp, "{visibleView === 'super_admin' && <AdminDashboard />}");
   includes(appContext, "return businesses.find((b) => b.id === authSession.businessId);");
+});
+check("guest_catalog_navigation_is_not_an_owner_entrypoint", () => {
+  const navbar = read("apps/catalog-frontend/src/components/Navbar.tsx");
+  includes(navbar, "authSession.role !== 'guest' && (");
+  includes(navbar, "Guests still access a public catalog through its direct shared link.");
 });
 check("edge_function_auth_and_tenant_selection", () => {
   includes(adminFn, 'auth.getUser(token)');
