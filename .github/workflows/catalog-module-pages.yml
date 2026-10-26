@@ -48,7 +48,7 @@ jobs:
           cat /tmp/catalog-changed-files.txt
           while IFS= read -r path; do
             case "$path" in
-              .github/workflows/catalog-module-pages.yml|              scripts/validate-catalog-admin-cors-boundary.mjs|              scripts/validate-catalog-production-module.mjs|              supabase/config.toml|              supabase/functions/catalog-admin/index.ts|              supabase/functions/public-catalog/index.ts|              supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql|              web/app.js|web/index.html|web/rbac.js|web/catalog-module.js|              web/catalog/*|web/preview/catalog-demo/*) ;;
+              .github/workflows/catalog-module-pages.yml|scripts/validate-catalog-admin-cors-boundary.mjs|scripts/validate-catalog-production-module.mjs|supabase/config.toml|supabase/functions/catalog-admin/index.ts|supabase/functions/public-catalog/index.ts|supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql|web/app.js|web/index.html|web/rbac.js|web/catalog-module.js|web/catalog/*|web/preview/catalog-demo/*)
               *) echo "Refusing catalog-only deploy because this path is outside the allowlist: $path"; exit 1 ;;
             esac
           done < /tmp/catalog-changed-files.txt
