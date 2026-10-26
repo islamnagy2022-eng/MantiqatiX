@@ -338,14 +338,39 @@
     const quantity = Number($('#quantity-' + item.id)?.value || 1);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) return toast('الكمية يجب أن تكون عددًا صحيحًا من 1 إلى 100.', 'error');
     if (quantity > Number(item.metadata?.demo_stock ?? 0)) return toast('الكمية أكبر من المخزون التجريبي المتاح.', 'error');
-    const retryKey = ['MANTIQATIX_DEMO_ORDER_RETRY_V1', data.user.id, business.id, branchId, item.id, quantity].join(':');
-    let storedIdempotencyKey = null;
-    try { storedIdempotencyKey = window.sessionStorage.getItem(retryKey); } catch (_) {}
-    const buttonKeyMatchesScope = button.dataset.idempotencyScope === retryKey;
-    const clientIdempotencyKey = (buttonKeyMatchesScope ? button.dataset.clientIdempotencyKey : null) || storedIdempotencyKey || makeIdempotencyKey();
-    button.dataset.idempotencyScope = retryKey;
+
+    // Keep one pending request per user/business/branch/item. If the result is ambiguous,
+    // retry with the same quantity/key; do not silently turn it into a second order.
+    const retryScope = ['MANTIQATIX_DEMO_ORDER_RETRY_V1', data.user.id, business.id, branchId, item.id].join(':');
+    let pendingRetry = null;
+    try {
+      const raw = window.sessionStorage.getItem(retryScope);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.clientIdempotencyKey === 'string' &&
+            parsed.clientIdempotencyKey.length >= 8 && Number.isInteger(parsed.quantity)) {
+          pendingRetry = parsed;
+        }
+      }
+    } catch (_) {}
+    if (!pendingRetry && button.dataset.idempotencyScope === retryScope &&
+        typeof button.dataset.clientIdempotencyKey === 'string' &&
+        Number.isInteger(Number(button.dataset.idempotencyQuantity))) {
+      pendingRetry = {
+        clientIdempotencyKey: button.dataset.clientIdempotencyKey,
+        quantity: Number(button.dataset.idempotencyQuantity),
+      };
+    }
+    if (pendingRetry && pendingRetry.quantity !== quantity) {
+      return toast('نتيجة محاولة الطلب السابقة غير مؤكدة. أعد المحاولة بنفس الكمية أولًا لتجنب تكرار الطلب.', 'error');
+    }
+
+    const clientIdempotencyKey = pendingRetry?.clientIdempotencyKey || makeIdempotencyKey();
+    button.dataset.idempotencyScope = retryScope;
+    button.dataset.idempotencyQuantity = String(quantity);
     button.dataset.clientIdempotencyKey = clientIdempotencyKey;
-    try { window.sessionStorage.setItem(retryKey, clientIdempotencyKey); } catch (_) {}
+    try { window.sessionStorage.setItem(retryScope, JSON.stringify({ clientIdempotencyKey, quantity })); } catch (_) {}
+
     button.disabled = true;
     const { data: result, error } = await sb.functions.invoke('demo-order-create', {
       body: {
@@ -360,11 +385,23 @@
       }
     });
     button.disabled = false;
-    if (error || !result?.ok) return toast('فشل إنشاء الطلب التجريبي: ' + errorText(error || result?.detail || result?.error), 'error');
-    // Keep the retry key on failures so a lost response cannot accidentally create a second order.
-    try { window.sessionStorage.removeItem(retryKey); } catch (_) {}
+    if (error || !result?.ok) {
+      const status = Number(error?.context?.status || 0);
+      const definitiveHttpFailure = status >= 400 && status < 500 && ![408, 425, 429].includes(status);
+      const definitivePayloadFailure = !error && Boolean(result);
+      if (definitiveHttpFailure || definitivePayloadFailure) {
+        try { window.sessionStorage.removeItem(retryScope); } catch (_) {}
+        delete button.dataset.clientIdempotencyKey;
+        delete button.dataset.idempotencyScope;
+        delete button.dataset.idempotencyQuantity;
+      }
+      return toast('فشل إنشاء الطلب التجريبي: ' + errorText(error || result?.detail || result?.error), 'error');
+    }
+
+    try { window.sessionStorage.removeItem(retryScope); } catch (_) {}
     delete button.dataset.clientIdempotencyKey;
     delete button.dataset.idempotencyScope;
+    delete button.dataset.idempotencyQuantity;
     toast('تم إنشاء الطلب داخل قاعدة DEMO بدون دفع.', 'success');
     data.tab = 'orders';
     await loadData();
