@@ -85,6 +85,12 @@ check("database_writes_enforce_business_branch_and_limits", () => {
   includes(migration, "pg_advisory_xact_lock");
   includes(migration, "upsert_catalog_item_and_price_backend");
   includes(migration, "update_catalog_item_status_backend");
+  const statusFunctionStart = migration.indexOf("CREATE OR REPLACE FUNCTION public.update_catalog_item_status_backend(");
+  const statusFunctionEnd = migration.indexOf("CREATE OR REPLACE FUNCTION public.upsert_catalog_business_profile_backend(", statusFunctionStart);
+  const statusFunction = migration.slice(statusFunctionStart, statusFunctionEnd);
+  includes(statusFunction, "IF v_status = 'ACTIVE'");
+  includes(statusFunction, "CATALOG_ITEM_LIMIT_REACHED");
+  includes(statusFunction, "pg_advisory_xact_lock");
   includes(migration, "upsert_catalog_business_profile_backend");
   includes(migration, "REVOKE ALL ON FUNCTION");
   includes(migration, "FROM PUBLIC, anon");
