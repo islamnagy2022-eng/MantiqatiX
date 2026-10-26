@@ -254,7 +254,7 @@ declare
   v_position public.business_job_positions%rowtype;
   v_old jsonb := '{}'::jsonb;
   v_user_id uuid;
-  v_org_id uuid;
+  v_org_id public.businesses.organization_id%type;
   v_membership_id text;
   v_effective_permissions jsonb;
   v_permission text := case when p_employee_id is null then 'EMPLOYEES.CREATE' else 'EMPLOYEES.UPDATE' end;
@@ -321,10 +321,41 @@ begin
 end;
 $function$;
 
+
+create or replace function public.mnty_platform_admin_list_audit(p_search text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare v_actor uuid := auth.uid(); v_search text := lower(trim(coalesce(p_search,'')));
+begin
+  if v_actor is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then raise exception 'AUTH_REQUIRED'; end if;
+  if not exists(select 1 from private.platform_admins pa where pa.user_id=v_actor) then raise exception 'PLATFORM_ADMIN_REQUIRED'; end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id',l.id,'tenant_id',l.tenant_id,'actor_user_id',l.actor_user_id,'actor_email',coalesce(u.email,''),
+      'action',l.action,'entity_type',l.entity_type,'entity_id',l.entity_id,'old_values',l.old_values,
+      'new_values',l.new_values,'result',l.result,'created_at',l.created_at
+    ) order by l.created_at desc)
+    from (
+      select al.* from public.audit_logs al
+      where v_search='' or lower(coalesce(al.action,'')) like '%'||v_search||'%'
+        or lower(coalesce(al.entity_type,'')) like '%'||v_search||'%'
+        or lower(coalesce(al.entity_id,'')) like '%'||v_search||'%'
+      order by al.created_at desc limit 200
+    ) l
+    left join auth.users u on u.id=l.actor_user_id
+  ),'[]'::jsonb);
+end;
+$function$;
+
+revoke all on function public.mnty_platform_admin_list_audit(text) from public, anon;
 revoke all on function public.mnty_platform_has_permission(text,varchar,uuid,varchar) from public, anon;
 revoke all on function public.mnty_platform_admin_list_people(text) from public, anon;
 revoke all on function public.mnty_platform_admin_list_role_assignments() from public, anon;
 revoke all on function public.mnty_business_employee_list(varchar,uuid) from public, anon;
+grant execute on function public.mnty_platform_admin_list_audit(text) to authenticated;
 grant execute on function public.mnty_platform_has_permission(text,varchar,uuid,varchar) to authenticated;
 grant execute on function public.mnty_platform_admin_list_people(text) to authenticated;
 grant execute on function public.mnty_platform_admin_list_role_assignments() to authenticated;
