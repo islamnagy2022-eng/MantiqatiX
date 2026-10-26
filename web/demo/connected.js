@@ -228,10 +228,12 @@
   }
 
   function renderCatalog() {
-    const sectorFilter = '<div class="catalog-filter"><div class="field"><label for="filter-sector">القطاع</label><select id="filter-sector"><option value="ALL">كل القطاعات</option>' + Object.keys(sectors).map(k => '<option value="' + k + '">' + esc(sectors[k].label) + '</option>').join('') + '</select></div>' +
-      '<div class="field"><label for="filter-business">النشاط</label><select id="filter-business"><option value="ALL">كل الأنشطة</option>' + data.businesses.map(b => '<option value="' + b.id + '">' + esc(b.name) + '</option>').join('') + '</select></div></div>';
     const fSector = data.catalogFilterSector || 'ALL';
     const fBusiness = data.catalogFilterBusinessId || 'ALL';
+    const sectorFilter = '<div class="catalog-filter"><div class="field"><label for="filter-sector">القطاع</label><select id="filter-sector"><option value="ALL"' + (fSector === 'ALL' ? ' selected' : '') + '>كل القطاعات</option>' +
+      Object.keys(sectors).map(k => '<option value="' + k + '"' + (fSector === k ? ' selected' : '') + '>' + esc(sectors[k].label) + '</option>').join('') + '</select></div>' +
+      '<div class="field"><label for="filter-business">النشاط</label><select id="filter-business"><option value="ALL"' + (fBusiness === 'ALL' ? ' selected' : '') + '>كل الأنشطة</option>' +
+      data.businesses.map(b => '<option value="' + b.id + '"' + (fBusiness === b.id ? ' selected' : '') + '>' + esc(b.name) + '</option>').join('') + '</select></div></div>';
     const items = data.items.filter(item => {
       const business = data.businesses.find(b => b.id === item.business_id);
       const code = String(business?.settings?.sector_code || '');
@@ -243,7 +245,9 @@
       const price = priceFor(item);
       const stock = Number(item.metadata?.demo_stock ?? 0);
       const branch = data.branches.find(b => b.id === item.branch_id);
-      const appointmentForm = sector.backend === 'HEALTH' ? '<div class="clinic-form-grid"><div class="field"><label for="appointment-date-' + item.id + '">تاريخ الموعد</label><input id="appointment-date-' + item.id + '" type="date" min="' + new Date().toISOString().slice(0,10) + '" value="' + new Date(Date.now()+86400000*2).toISOString().slice(0,10) + '"></div><div class="field"><label for="appointment-time-' + item.id + '">الوقت</label><select id="appointment-time-' + item.id + '"><option>10:00</option><option>12:00</option><option selected>18:00</option><option>19:00</option></select></div></div>' : '<div class="field"><label for="quantity-' + item.id + '">الكمية</label><input id="quantity-' + item.id + '" type="number" min="1" max="100" value="1"></div>';
+      const appointmentForm = sector.backend === 'HEALTH'
+        ? '<div class="clinic-form-grid"><div class="field"><label for="appointment-date-' + item.id + '">تاريخ الموعد</label><input id="appointment-date-' + item.id + '" type="date" min="' + new Date().toISOString().slice(0,10) + '" value="' + new Date(Date.now()+86400000*2).toISOString().slice(0,10) + '"></div><div class="field"><label for="appointment-time-' + item.id + '">الوقت</label><select id="appointment-time-' + item.id + '"><option>10:00</option><option>12:00</option><option selected>18:00</option><option>19:00</option></select></div></div>'
+        : '<div class="field"><label for="quantity-' + item.id + '">الكمية</label><input id="quantity-' + item.id + '" type="number" min="1" max="100" value="1"></div>';
       const action = sector.backend === 'HEALTH'
         ? '<button class="btn btn-primary" data-action="book-appointment" data-business-id="' + item.business_id + '" data-item-id="' + item.id + '">حجز موعد تجريبي</button>'
         : '<button class="btn btn-primary" data-action="place-order" data-business-id="' + item.business_id + '" data-branch-id="' + (branch?.id || item.branch_id || '') + '" data-item-id="' + item.id + '">إنشاء طلب تجريبي</button>';
