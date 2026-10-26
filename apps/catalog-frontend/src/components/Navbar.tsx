@@ -28,6 +28,7 @@ export const Navbar: React.FC = () => {
     cartItems,
     setIsCartOpen,
     authSession,
+    authBootstrapError,
     logout,
     setIsLoginModalOpen,
     requestCatalogViaAdminWhatsApp,
@@ -117,6 +118,12 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {authBootstrapError && (
+        <div role="alert" className="bg-rose-50 border-b border-rose-200 px-3 py-2 text-xs font-bold text-rose-800 text-right" dir="rtl">
+          تم تسجيل الدخول لكن تعذر تحميل صلاحيات الحساب: {authBootstrapError} — حدّث الصفحة، وإذا استمرت المشكلة أرسل هذه الرسالة للدعم.
+        </div>
+      )}
 
       {/* Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-2 sm:px-6 py-2.5">
