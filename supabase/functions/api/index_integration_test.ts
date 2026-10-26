@@ -45,6 +45,8 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   const branchItemId = crypto.randomUUID();
   const orderA = crypto.randomUUID();
   const orderB = crypto.randomUUID();
+  const orderC = crypto.randomUUID();
+  const orderD = crypto.randomUUID();
 
   requireOk("insert disposable tenant", await admin.from("tenants").insert({
     id: tenantId, name: "API route integration test tenant", code: `APIIT-${suffix}`, status: "ACTIVE",
@@ -143,6 +145,8 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   requireOk("insert disposable orders", await admin.from("orders").insert([
     { id: orderA, tenant_id: tenantId, business_id: businessAId, branch_id: branchA, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
     { id: orderB, tenant_id: tenantId, business_id: businessBId, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 125.5, currency: "EGP", status: "NEW" },
+    { id: orderC, tenant_id: tenantId, business_id: businessAId, branch_id: branchA, customer_id: userId, total_amount: 82, currency: "EGP", status: "NEW" },
+    { id: orderD, tenant_id: tenantId, business_id: businessBId, branch_id: crossBusinessBranch, customer_id: userId, total_amount: 82, currency: "EGP", status: "NEW" },
   ]));
 
   const handler = createApiHandler();
@@ -189,8 +193,8 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
 
   const crossOrderKey = `cross-${suffix}`;
   const crossOrderResponses = await Promise.all([
-    send("/api/v1/payments/intents", "POST", { orderId: orderA, provider: "CASH_ON_DELIVERY", idempotencyKey: crossOrderKey }),
-    send("/api/v1/payments/intents", "POST", { orderId: orderB, provider: "CASH_ON_DELIVERY", idempotencyKey: crossOrderKey }),
+    send("/api/v1/payments/intents", "POST", { orderId: orderC, provider: "CASH_ON_DELIVERY", idempotencyKey: crossOrderKey }),
+    send("/api/v1/payments/intents", "POST", { orderId: orderD, provider: "CASH_ON_DELIVERY", idempotencyKey: crossOrderKey }),
   ]);
   const crossStatuses = crossOrderResponses.map((r) => r.status).sort((a, b) => a - b);
   if (crossStatuses[0] !== 201 || crossStatuses[1] !== 409) {
