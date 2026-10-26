@@ -7,6 +7,7 @@ on:
       - 'web/demo/**'
       - 'scripts/validate-demo-isolation.mjs'
       - 'scripts/test-demo-workflow.mjs'
+      - 'scripts/test-connected-demo-contract.mjs'
       - '.github/workflows/demo-isolation.yml'
   pull_request:
     branches: [main]
@@ -37,5 +38,7 @@ jobs:
         run: node scripts/validate-demo-isolation.mjs
       - name: Install temporary DOM test dependency
         run: npm install --no-save --ignore-scripts --no-audit --no-fund jsdom@26.1.0
-      - name: Exercise account, catalog, permissions, and order flows
+      - name: Exercise local simulator account, catalog, permissions, and order flows
         run: node scripts/test-demo-workflow.mjs
+      - name: Verify connected Supabase DEMO contract
+        run: node scripts/test-connected-demo-contract.mjs
