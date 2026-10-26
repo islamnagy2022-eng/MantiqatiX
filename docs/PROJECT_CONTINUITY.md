@@ -658,3 +658,11 @@ This status is intentional and must remain until the open gates above are indepe
 - Applied DEMO-only migration `20261026034100` from `supabase/demo/20261026-clinic-appointment-sector-guard.sql`.
 - `create_medical_appointment_backend` now requires both the target business and provider profile to be tagged `environment=DEMO` and `sector_code=DOCTOR`; `search_path` is empty. Live definition and tracked SQL source were compared, and function grants were verified.
 - Standard Supabase migration history now contains two DEMO-only targeted migrations (`20261026033808`, `20261026034100`), while the internal ledger contains 283 baseline entries, 35 manually executed migrations, and these two applied migrations. Historical migration reconciliation remains mandatory before `db push`.
+
+
+
+## Vault-secret RPC update — 2026-10-26
+
+- DEMO migration `20261026034449` restricts `get_mnty_push_secrets()` to `service_role`. The function returns decrypted Vault secret fields; production was checked read-only and already had the same grants. DEMO currently has no matching Vault secret rows.
+- Verified effective privileges: anon=false, authenticated=false, service_role=true. The source file and internal ledger hash match. No production changes were made.
+- Standard migration history now contains three targeted DEMO migrations; historical migration reconciliation remains a blocker before any `db push`.
