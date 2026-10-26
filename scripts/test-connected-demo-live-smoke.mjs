@@ -46,4 +46,29 @@ for (const slug of functions) {
   assert.equal(unauthenticated.status, 401, `${slug}: unauthenticated call must be rejected (got ${unauthenticated.status})`);
 }
 
+
+  // Non-mutating OAuth readiness probe. Do not follow the redirect: this only verifies
+  // that Google OAuth is enabled and this exact future DEMO callback is allowlisted.
+  const callback = 'https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html';
+  const authorizeUrl = new URL('/auth/v1/authorize', url);
+  authorizeUrl.searchParams.set('provider', 'google');
+  authorizeUrl.searchParams.set('redirect_to', callback);
+  const oauth = await fetch(authorizeUrl, {
+    method: 'GET',
+    redirect: 'manual',
+    headers: { apikey: key, Accept: 'text/html' },
+  });
+  const oauthLocation = oauth.headers.get('location');
+  assert.ok(
+    oauth.status >= 300 && oauth.status < 400 && oauthLocation,
+    `Google OAuth provider/redirect readiness is blocked (status ${oauth.status}); configure Google Provider and allowlist ${callback} in the DEMO project.`,
+  );
+  assert.equal(
+    new URL(oauthLocation).hostname,
+    'accounts.google.com',
+    'Google OAuth must redirect to accounts.google.com; a redirect back to the app usually means provider or callback configuration is missing.',
+  );
+  if (oauth.body) await oauth.body.cancel();
+  console.log('Google OAuth readiness: PASS (provider enabled and exact DEMO callback allowlisted; redirect not followed, no user created).');
+
 console.log(`Connected DEMO live smoke: PASS (${functions.length} functions; allowed/denied CORS; unauthenticated POST blocked; no data mutations).`);
