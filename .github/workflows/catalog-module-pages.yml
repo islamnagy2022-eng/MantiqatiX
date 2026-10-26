@@ -3,7 +3,6 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/catalog-module-pages.yml'
       - 'scripts/validate-catalog-admin-cors-boundary.mjs'
       - 'supabase/config.toml'
       - 'supabase/functions/catalog-admin/index.ts'
