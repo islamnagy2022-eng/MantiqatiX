@@ -14,7 +14,7 @@ const requiredWorkflowMarkers = [
   'node scripts/validate-booking-payment-flow.mjs',
   'name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}',
   'artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}',
-  'curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "$PAGE_URL" -o "$TMP_PAGE"'
+  'curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"'
 ];
 for (const marker of requiredWorkflowMarkers) {
   if (!workflow.includes(marker)) throw new Error('Release workflow missing required guard: ' + marker);
