@@ -55,7 +55,9 @@ export const Navbar: React.FC = () => {
               authSession.authenticated ? (
                 <div className="flex items-center gap-2 text-[11px]">
                   <span className="text-amber-300 font-bold" role="status">
-                    لا توجد عضوية نشطة — التصفح العام فقط
+                    {authSession.accessState === 'verification_error'
+                      ? 'تعذر التحقق من الصلاحيات — التصفح العام فقط'
+                      : 'لا توجد عضوية نشطة — التصفح العام فقط'}
                   </span>
                   <button
                     onClick={logout}
