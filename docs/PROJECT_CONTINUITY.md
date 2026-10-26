@@ -641,3 +641,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Database observation: 132 public tables, all with RLS enabled; 0 Auth users; four sector rows seeded. The internal ledger records 283 schema-baseline versions plus 35 manually applied later migrations, while the standard Supabase migration list is empty. Never run `db push` or replay the 35 migrations before reconciling schema and migration history.
 - Next blocking work: establish disposable Auth test users through the supported Auth flow; run real authenticated E2E for owner/manager/staff/customer, tenant/business/branch isolation, catalog/price writes, orders/status transitions, and clinic appointment privacy/conflict handling. Review the two RLS-enabled tables without policies and remaining `SECURITY DEFINER` warnings by function, not with blanket revokes.
 - Safety state: no production change, merge, public connected-page release, or real payment activation. LIVE remains BLOCKED / NOT CERTIFIED.
+
+
+
+## Latest security update — 2026-10-26
+
+- Applied DEMO-only migration `20261026033808` from `supabase/demo/security-hardening-20261026.sql`; recorded it in the internal bootstrap ledger with the source blob SHA.
+- Removed browser grants from the two RLS-enabled payment-event tables and restricted 12 out-of-scope backend RPCs to service role. The clinic booking RPC remains available to authenticated users by design.
+- Security advisor warnings reduced to 66 anon-executable and 81 authenticated-executable SECURITY DEFINER functions; remaining functions require deliberate per-function review. No broad revocation or production change was performed.
+- Migration history remains divergent (one standard tracked migration versus 283 schema-baseline entries and 35 manually applied entries in the internal ledger). Do not run `db push` until reconciled.
