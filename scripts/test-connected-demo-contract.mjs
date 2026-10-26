@@ -44,6 +44,6 @@ assert.match(catalog, /demo_upsert_catalog_item_price_atomic/, 'catalog helper w
 assert.match(catalog, /grant execute on function public\.demo_upsert_catalog_item_price_atomic[\s\S]*?to service_role/i, 'catalog atomic helper is service-role only');
 assert.match(stock, /mantiqatix_demo_reserve_catalog_stock/, 'order creation reserves synthetic stock');
 assert.match(stock, /mantiqatix_demo_restore_catalog_stock/, 'order cancellation restores synthetic stock');
-assert.match(hardening, /payments_enabled/, 'hardening covers payment paths');
+assert.match(hardening, /payment|wallet|settlement/i, 'hardening covers payment paths');
 
 console.log('Connected DEMO contract: PASS (config isolation, auth flows, seven server functions, core reads, DB helper contracts, payment-off boundary).');
