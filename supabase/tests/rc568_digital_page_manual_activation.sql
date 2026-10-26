@@ -10,9 +10,11 @@ on conflict (id) do nothing;
 insert into public.tenants (id, name, code, status)
 values ('RC568-TEST', 'RC568 Disposable Activation Test', 'RC568-TEST', 'ACTIVE');
 
-insert into public.businesses (id, tenant_id, name, code)
+-- Create inactive first to satisfy the legal business-activation guard's
+-- owner-membership prerequisite; activate only after the fixture owner exists.
+insert into public.businesses (id, tenant_id, name, code, status)
 values ('56800000-0000-4000-8000-000000000030', 'RC568-TEST',
-        'RC568 Test Restaurant', 'RC568-TEST-BIZ');
+        'RC568 Test Restaurant', 'RC568-TEST-BIZ', 'INACTIVE');
 
 insert into public.branches (id, tenant_id, business_id, name, code)
 values ('RC568-BRANCH-001', 'RC568-TEST', '56800000-0000-4000-8000-000000000030',
@@ -51,6 +53,14 @@ values
   ('RC568-MENU-BUSINESS-OWNER', '56800000-0000-4000-8000-000000000002',
    'RC568-TEST', '56800000-0000-4000-8000-000000000030', 'RC568-BRANCH-001', 'OWNER',
    '{"business":"owner"}'::jsonb, 'ACTIVE');
+
+-- Exercise the same legal activation guard as the application: the business has
+-- an active owner membership before being activated. The synthetic replay fixture
+-- ships with BUSINESS_ACTIVATION legal requirements disabled; if requirements
+-- are enabled later, the consent gates should fail this test closed until seeded.
+update public.businesses
+   set status = 'ACTIVE'
+ where id = '56800000-0000-4000-8000-000000000030';
 
 insert into public.digital_page_products
   (id, page_type, code, name_ar, price, currency, duration_days, features, active)
