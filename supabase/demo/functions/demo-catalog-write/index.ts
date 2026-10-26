@@ -54,14 +54,13 @@ Deno.serve(async (req: Request) => {
     const description = typeof body.description === "string" ? body.description.trim() : "";
     const price = Number(body.price);
     const stock = Number(body.stock);
-    const id = body.id ? String(body.id) : null;
     if (name.length < 1 || name.length > 180) return reply({ error: "INVALID_NAME" }, 400, origin);
     if (!["PRODUCT", "SERVICE"].includes(itemType)) return reply({ error: "INVALID_ITEM_TYPE" }, 400, origin);
     if (!Number.isFinite(price) || price < 0 || price > 100000000) return reply({ error: "INVALID_PRICE" }, 400, origin);
     if (!Number.isInteger(stock) || stock < 0 || stock > 10000000) return reply({ error: "INVALID_STOCK" }, 400, origin);
     if (description.length > 400) return reply({ error: "DESCRIPTION_TOO_LONG" }, 400, origin);
 
-    const { data: item, error: itemError } = await admin.rpc("demo_upsert_catalog_item_atomic", {
+    const { data: saved, error: saveError } = await admin.rpc("demo_upsert_catalog_item_price_atomic", {
       p_actor_user_id: user.id,
       p_tenant_id: "MNTY-PLATFORM",
       p_business_id: businessId,
@@ -72,27 +71,15 @@ Deno.serve(async (req: Request) => {
       p_description: description || null,
       p_sku: null,
       p_tax_rate: 0,
-      p_metadata: { environment: "DEMO", synthetic_only: true, demo_stock: stock },
-      p_id: id,
-    });
-    if (itemError || !item?.id) {
-      console.error("demo catalogue item write failed", itemError?.message || "NO_ITEM_ID");
-      return reply({ error: "DEMO_CATALOG_ITEM_WRITE_FAILED", detail: itemError?.message || "NO_ITEM_ID" }, 400, origin);
-    }
-    const { data: savedPrice, error: priceError } = await admin.rpc("demo_upsert_catalog_price_atomic", {
-      p_actor_user_id: user.id,
-      p_tenant_id: "MNTY-PLATFORM",
-      p_business_id: businessId,
-      p_branch_id: branchId,
-      p_catalog_item_id: item.id,
       p_unit_price: price,
+      p_demo_stock: stock,
       p_currency: "EGP",
     });
-    if (priceError) {
-      console.error("demo catalogue price write failed", priceError.message);
-      return reply({ error: "DEMO_CATALOG_PRICE_WRITE_FAILED", detail: priceError.message }, 400, origin);
+    if (saveError || !saved?.ok) {
+      console.error("demo catalogue item and price write failed", saveError?.message || "NO_RESULT");
+      return reply({ error: "DEMO_CATALOG_ITEM_PRICE_WRITE_FAILED", detail: saveError?.message || "NO_RESULT" }, 400, origin);
     }
-    return reply({ ok: true, item, price: savedPrice, demoStock: stock }, 200, origin);
+    return reply({ ok: true, ...saved }, 200, origin);
   }
 
   if (operation === "price") {
