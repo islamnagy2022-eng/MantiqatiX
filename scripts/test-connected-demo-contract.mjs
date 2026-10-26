@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 
 const read = path => fs.readFileSync(path, 'utf8');
 const html = read('web/demo/connected.html');
+const activityHtml = read('web/demo/activity.html');
+const activityApp = read('web/demo/activity.js');
+const publicCatalog = read('supabase/demo/functions/demo-public-catalog/index.ts');
 const config = read('web/demo/connected-config.js');
 const app = read('web/demo/connected.js');
 const bootstrap = read('supabase/demo/bootstrap.sql');
@@ -29,7 +32,6 @@ assert.match(config, /https:\/\/lkijdgqanbqjudiducjt\.supabase\.co/, 'config poi
 assert.match(config, /sb_publishable_/, 'browser config uses a publishable key');
 assert.match(config, /environment:\s*"DEMO"/, 'config declares DEMO environment');
 assert.match(config, /paymentsEnabled:\s*false/, 'real payments remain disabled');
-assert.match(config, /primaryOwnerEmail:\s*"islam\.nagy2022@gmail\.com"/, 'the configured primary owner account uses the requested Google identity');
 assert.doesNotMatch(config, /moyhiluyhjsujhwlyeuu|service_role|eyJhbGciOi/i, 'config contains no production project reference or secret-style credential');
 
 for (const api of [
@@ -43,15 +45,27 @@ for (const table of [
   'catalog_item_prices', 'orders', 'medical_appointments'
 ]) assert.ok(app.includes("from('" + table + "'"), 'connected UI reads ' + table);
 
-for (const authFlow of ['signInWithOAuth', 'signOut']) {
-  assert.ok(app.includes('auth.' + authFlow), 'connected UI implements ' + authFlow);
+for (const authFlow of ['signInWithPassword', 'signUp', 'signOut']) {
+  assert.ok(app.includes('auth.' + authFlow), 'connected DEMO implements ' + authFlow);
 }
+assert.match(app, /id="auth-form"/, 'connected DEMO renders a real email/password form');
+assert.match(app, /emailRedirectTo:/, 'DEMO signup sets an email-confirmation return URL');
+assert.doesNotMatch(app, /signInWithOAuth|oauthRedirectUrl|primaryOwnerEmail/, 'DEMO login does not depend on Google OAuth or expose owner email');
 assert.match(app, /paymentsEnabled\s*!==\s*false/, 'client refuses to initialize unless payment switch is false');
-assert.match(app, /signInWithOAuth\(\{[\s\S]*?provider:\s*'google'/, 'connected DEMO uses the same Google OAuth flow as production');
-assert.match(app, /redirectTo:\s*oauthRedirectUrl\(\)/, 'Google OAuth returns to the current DEMO route');
-assert.match(app, /login_hint:\s*String\(cfg\.primaryOwnerEmail/, 'Google OAuth is hinted toward the configured primary owner account');
-assert.doesNotMatch(app, /signInWithPassword|auth\.signUp\(/, 'connected DEMO does not create a separate email/password login path');
-assert.match(app, /function cleanAuthUrl\(\)/, 'OAuth callback parameters are cleaned after session restore');
+assert.match(app, /requestedTab === 'catalog'/, 'a public catalog link can restore the selected activity in customer mode');
+assert.match(app, /data-form="item-update"/, 'owner can edit product details and stock');
+assert.match(app, /operation: 'business-profile'/, 'owner can update public activity details');
+assert.match(activityHtml, /activity\.js/);
+assert.match(activityHtml, /activity\.css/);
+assert.match(activityHtml, /connected-config\.js/);
+assert.match(activityApp, /functions\.invoke\('demo-public-catalog'/, 'public activity page reads via the read-only DEMO catalog function');
+assert.match(activityApp, /business\.name/, 'public activity page shows business information at the top');
+assert.match(activityApp, /activity-products/, 'public activity page renders products below the profile');
+assert.match(activityApp, /connected\.html\?businessId=/, 'public activity page links to the authenticated manager');
+assert.match(publicCatalog, /settings\?\.environment !== "DEMO"/, 'public catalog function rejects non-DEMO businesses');
+assert.match(publicCatalog, /synthetic_only === true/, 'public catalog returns only synthetic DEMO items');
+assert.match(publicCatalog, /paymentsEnabled: false/, 'public catalog keeps payments disabled');
+assert.match(publicCatalog, /memberships, orders, appointments/, 'public catalog avoids private membership and transaction data');
 assert.match(app, /demo_provider_id/, 'clinic booking uses a provider scoped to the demo clinic');
 assert.ok(orderCreate.includes('DEMO_BUSINESS_SCOPE_REQUIRED') && orderCreate.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order creation rejects non-DEMO business and branch');
 assert.ok(orderCreate.includes('DEMO_PROVIDER_SCOPE_REQUIRED') && orderCreate.includes('DEMO_CATALOG_ITEM_SCOPE_REQUIRED'), 'order creation requires DEMO provider and synthetic catalogue items');
@@ -59,6 +73,8 @@ assert.ok(orderCreate.includes('metadata?.synthetic_only === true'), 'order crea
 assert.ok(orderStatus.includes('DEMO_ORDER_SCOPE_REQUIRED') && orderStatus.includes('payments_enabled !== false'), 'order-status updates require a synthetic unpaid DEMO order');
 assert.ok(orderStatus.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order-status updates require a DEMO-tagged branch');
 assert.ok(catalogWrite.includes('branchScope.settings?.environment !== "DEMO"'), 'catalog writes require a DEMO-tagged branch');
+assert.ok(catalogWrite.includes('operation === "update-item"'), 'catalog write function has guarded product detail/stock edits');
+assert.ok(catalogWrite.includes('operation === "business-profile"'), 'catalog write function has owner-only activity profile edits');
 assert.ok(app.includes('clientIdempotencyKey,'), 'order submission passes the retained idempotency key');
 
 assert.match(app, /saved === 'OWNER' && \(activeMemberships\(\)\.length \|\| hasPlatformOwnerAccess\(\)\)/, 'a customer cannot restore an owner workspace without an owner/platform membership');
