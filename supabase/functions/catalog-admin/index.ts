@@ -255,7 +255,9 @@ Deno.serve(async (req: Request) => {
 
     if (action === "ITEM_PRICE_UPSERT") {
       const { data, error } = await userClient.rpc("upsert_catalog_item_and_price_backend", {
-        p_tenant_id: tenantId, p_business_id: businessId, p_branch_id: branchId,
+        p_tenant_id: tenantId, p_business_id: businessId,
+        p_item_branch_id: Object.prototype.hasOwnProperty.call(body, "itemBranchId") ? body.itemBranchId : branchId,
+        p_price_branch_id: Object.prototype.hasOwnProperty.call(body, "priceBranchId") ? body.priceBranchId : branchId,
         p_legacy_ref: body.legacyRef ?? null,
         p_item_type: body.itemType ?? "PRODUCT",
         p_name_ar: String(body.nameAr || ""),
