@@ -322,16 +322,27 @@
       const price = activePriceFor(data, item.id, selectedBranchId);
       const active = String(item.status || "").toUpperCase() === "ACTIVE";
       const available = meta.is_available !== false;
+      const isProduct = String(item.item_type || "PRODUCT").toUpperCase() === "PRODUCT";
+      const trackStock = meta.track_stock === true;
+      const itemBalances = (data.stockBalances || []).filter((balance) => String(balance.product_id) === String(item.id));
+      const onHand = itemBalances.reduce((sum, balance) => sum + Number(balance.quantity_on_hand || 0), 0);
+      const reserved = itemBalances.reduce((sum, balance) => sum + Number(balance.quantity_reserved || 0), 0);
+      const freeStock = Math.max(0, onHand - reserved);
       const branchLabel = item.branch_id ? "فرع محدد" : "متاح على مستوى النشاط";
+      const stockLabel = !isProduct ? "الخدمة لا تحتاج إلى مخزون" :
+        (trackStock ? "المخزون الفعلي: " + currency(onHand).replace(" ج.م", "") + " · متاح: " + currency(freeStock).replace(" ج.م", "") :
+          "تتبع المخزون غير مفعّل");
       return '<article class="mx-cat-item" data-mx-item-id="' + esc(item.id) + '">' +
         '<div class="mx-cat-item-top"><strong>' + esc(item.name_ar || item.name_en || "عنصر") + '</strong>' +
         '<span class="mx-cat-pill ' + (active ? "good" : "warn") + '">' + (active ? "نشط" : "مؤرشف") + '</span></div>' +
         '<p>' + esc(item.description || "لا يوجد وصف") + '</p>' +
         '<div class="mx-cat-item-price">' + (price ? esc(currency(price.unit_price)) : "السعر غير مسجل") + '</div>' +
-        '<div class="mx-cat-item-meta">' + esc(String(item.item_type || "PRODUCT").toUpperCase() === "SERVICE" ? "خدمة" : "منتج") +
+        '<div class="mx-cat-item-meta">' + esc(isProduct ? "منتج" : "خدمة") +
         ' · ' + esc(meta.category || "عام") + ' · ' + branchLabel + ' · ' + (available ? "متاح" : "غير متاح") + '</div>' +
+        '<div class="mx-cat-item-meta">' + esc(stockLabel) + (reserved > 0 && trackStock ? ' · محجوز: ' + esc(String(reserved)) : '') + '</div>' +
         '<div class="mx-cat-item-actions">' +
         '<button type="button" data-mx-item-edit="' + esc(item.id) + '">تعديل البيانات والسعر</button>' +
+        (isProduct ? '<button type="button" data-mx-stock-open="' + esc(item.id) + '"' + ((data.warehouses || []).length ? "" : ' disabled title="لا يوجد مخزن نشط لهذا الفرع"') + '>تسوية المخزون</button>' : '') +
         '<button type="button" data-catalog-toggle="' + (active ? "INACTIVE" : "ACTIVE") + '" data-catalog-item-id="' + esc(item.id) + '">' +
         (active ? "أرشفة" : "إعادة تفعيل") + '</button></div></article>';
     }).join("");
@@ -352,6 +363,7 @@
       root.querySelector("#mx-cat-item-image").value = meta.image_url || "";
       root.querySelector("#mx-cat-item-description").value = item.description || "";
       root.querySelector("#mx-cat-item-available").checked = meta.is_available !== false;
+      root.querySelector("#mx-cat-item-track-stock").checked = meta.track_stock === true;
       root.querySelector("#mx-cat-item-form-title").textContent = "تعديل " + (item.name_ar || item.name_en || "عنصر");
       root.querySelector("#mx-cat-item-save").textContent = "حفظ التعديلات والسعر";
       root.querySelector("#mx-cat-item-cancel").hidden = false;
