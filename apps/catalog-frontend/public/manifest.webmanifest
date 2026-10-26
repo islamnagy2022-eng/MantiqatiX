@@ -1,0 +1,22 @@
+{
+  "id": "/MantiqatiX/",
+  "name": "منطقتي X | MantiqatiX",
+  "short_name": "منطقتي X",
+  "description": "دليل الأنشطة والكتالوجات المحلية",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/MantiqatiX/",
+  "scope": "/MantiqatiX/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/MantiqatiX/icons/mantiqatix.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
