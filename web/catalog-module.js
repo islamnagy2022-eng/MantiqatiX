@@ -256,6 +256,7 @@
               <label class="mx-cat-field mx-cat-span-2"><span>رابط صورة المنتج (HTTPS)</span><input id="mx-cat-item-image" type="url" maxlength="1500" placeholder="https://..."></label>
               <label class="mx-cat-field mx-cat-span-2"><span>الوصف</span><textarea id="mx-cat-item-description" maxlength="2000"></textarea></label>
               <label class="mx-cat-check mx-cat-span-2"><input id="mx-cat-item-available" type="checkbox" checked><span><strong>متاح للطلب أو الاستفسار</strong><small>إلغاء التحديد يعرض العنصر كغير متاح دون حذفه من السجل.</small></span></label>
+              <label class="mx-cat-check mx-cat-span-2"><input id="mx-cat-item-track-stock" type="checkbox"><span><strong>تتبع المخزون لهذا المنتج</strong><small>يتم حساب التوافر من أرصدة المخازن الفعلية. الخدمات لا تحتاج إلى تتبع كمية.</small></span></label>
             </div>
             <div class="mx-cat-form-actions">
               <button class="btn btn-primary" id="mx-cat-item-save" type="submit" style="width:auto">حفظ العنصر والسعر</button>
@@ -279,6 +280,27 @@
         </div>
         <div id="mx-cat-item-list" class="mx-cat-item-list"></div>
       </section>
+      <dialog id="mx-cat-stock-dialog" class="mx-cat-stock-dialog">
+        <form id="mx-cat-stock-form">
+          <div class="mx-cat-stock-head">
+            <div><span>INVENTORY ADJUSTMENT</span><h3 id="mx-cat-stock-title">تسوية مخزون المنتج</h3><p>يتم تسجيل حركة مخزون في النظام الفعلي. لا يمكن تقليل الكمية عن الرصيد المحجوز للطلبات.</p></div>
+            <button id="mx-cat-stock-close" type="button" aria-label="إغلاق">×</button>
+          </div>
+          <input type="hidden" id="mx-cat-stock-item-id">
+          <div id="mx-cat-stock-balance" class="mx-cat-status">اختر المخزن وأدخل الكمية الجديدة.</div>
+          <div class="mx-cat-form-grid" style="margin-top:13px">
+            <label class="mx-cat-field mx-cat-span-2"><span>المخزن *</span><select id="mx-cat-stock-warehouse" required></select></label>
+            <label class="mx-cat-field"><span>الرصيد الفعلي بعد التسوية *</span><input id="mx-cat-stock-target" type="number" min="0" max="1000000000" step="0.001" required inputmode="decimal"></label>
+            <label class="mx-cat-field"><span>تكلفة الوحدة (ج.م)</span><input id="mx-cat-stock-cost" type="number" min="0" max="1000000000" step="0.01" value="0" inputmode="decimal"></label>
+            <label class="mx-cat-field mx-cat-span-2"><span>سبب التسوية *</span><textarea id="mx-cat-stock-reason" maxlength="300" minlength="3" rows="2" required placeholder="مثال: جرد دوري وتصحيح الرصيد"></textarea></label>
+          </div>
+          <div id="mx-cat-stock-status" class="mx-cat-status" role="status" aria-live="polite" style="margin-top:12px">تأكد من الكمية والمخزن قبل الحفظ.</div>
+          <div class="mx-cat-form-actions">
+            <button class="btn btn-primary" id="mx-cat-stock-save" type="submit" style="width:auto">حفظ وتسوية المخزون</button>
+            <button class="btn btn-outline" id="mx-cat-stock-cancel" type="button">إلغاء</button>
+          </div>
+        </form>
+      </dialog>
       <div id="mx-cat-operation-status" class="mx-cat-status" data-mx-catalog-status role="status" aria-live="polite">تم تحميل بيانات النشاط.</div>`;
   }
 
