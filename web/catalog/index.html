@@ -92,6 +92,20 @@
     </div>
   </aside>
 
+
+  <dialog id="catalog-order-dialog" class="catalog-order-dialog">
+    <form id="catalog-order-form" method="dialog">
+      <div class="catalog-order-head"><div><span>WHATSAPP ORDER</span><h2>بيانات طلبك</h2><p>سيتم فتح واتساب النشاط مع تفاصيل الطلب. لا يتم دفع أو حفظ الطلب إلكترونيًا من هذه الصفحة.</p></div><button id="catalog-order-close" class="catalog-order-close" type="button" aria-label="إغلاق">×</button></div>
+      <div id="catalog-order-review" class="catalog-order-review"></div>
+      <div class="catalog-order-fields">
+        <label><span>الاسم</span><input id="catalog-customer-name" maxlength="120" autocomplete="name" placeholder="اسمك (اختياري)"></label>
+        <label><span>رقم الهاتف</span><input id="catalog-customer-phone" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="رقم للتواصل (اختياري)"></label>
+        <label class="catalog-order-field-wide"><span>العنوان أو ملاحظات التوصيل</span><textarea id="catalog-customer-address" maxlength="500" rows="2" placeholder="العنوان أو أي ملاحظة (اختياري)"></textarea></label>
+      </div>
+      <div class="catalog-order-footer"><button id="catalog-order-cancel" class="catalog-cart-clear" type="button">رجوع للكتالوج</button><button class="catalog-cart-checkout" type="submit">متابعة إلى واتساب</button></div>
+    </form>
+  </dialog>
+
   <footer class="catalog-footer"><span class="catalog-footer-brand">MantiqatiX</span><span>كتالوج عام للقراءة فقط · لا يتم تحصيل مدفوعات إلكترونية من هذه الصفحة</span></footer>
 </body>
 </html>
