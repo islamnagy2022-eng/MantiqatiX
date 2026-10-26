@@ -181,8 +181,11 @@ Deno.test("API catalog and payment idempotency against disposable Supabase", asy
   if (sameStatuses[0] !== 200 || sameStatuses[1] !== 201) {
     throw new Error(`same-order concurrent idempotency should yield one 201 and one 200, got ${sameStatuses.join(",")}`);
   }
-  const sameKeyRows = requireOk("read same-key intents", await admin.from("payment_intents").select("id,order_id").eq("tenant_id", tenantId).eq("idempotency_key", concurrentSameKey));
+  const sameKeyRows = requireOk("read same-key intents", await admin.from("payment_intents").select("id,order_id,amount,currency").eq("tenant_id", tenantId).eq("idempotency_key", concurrentSameKey));
   if (sameKeyRows.length !== 1 || sameKeyRows[0].order_id !== orderA) throw new Error("same-order concurrent requests did not persist exactly one matching intent");
+  if (Number(sameKeyRows[0].amount) !== 125.5 || sameKeyRows[0].currency !== "EGP") {
+    throw new Error(`payment intent amount/currency did not preserve the order identity: ${sameKeyRows[0].amount} ${sameKeyRows[0].currency}`);
+  }
 
   const crossOrderKey = `cross-${suffix}`;
   const crossOrderResponses = await Promise.all([
