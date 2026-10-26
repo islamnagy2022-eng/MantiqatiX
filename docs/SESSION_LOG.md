@@ -231,3 +231,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Supabase environment check:** the connected `manteqti` organization is on Free; there is one production project. `get_cost(type=project)` returned `$0/month` for a new project. The project has not been created; user must explicitly choose/confirm the target organization before project creation. No paid branch was created.
 - **Next actions:** review/validate the local simulator, open a draft PR, then—after user confirms the `manteqti` organization—create a separately isolated Free Supabase project if its creation flow still quotes $0. Reapply an authoritative migration chain and synthetic fixtures only in that project, then test Auth/RLS/tenant/branch isolation and end-to-end sector flows before considering LIVE.
 - **Release status:** DEMO simulator source validation PASS; full database-backed DEMO and LIVE remain BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-26 — Four-sector DEMO integration test PASS
+
+- **Source head verified:** `58f46459eca005782c13a42d48d73b7a3f271aa7` on `demo/four-sector-isolated-20261026`.
+- **PASS:** dedicated DEMO workflow run [40260656015](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40260656015) completed successfully, including JavaScript syntax, 14 static isolation/scope assertions, and DOM-based simulator workflow integration tests.
+- **Tested flow:** demo account login, create a store activity, add and edit a product/price/stock, assign an in-scope staff membership, create and transition an order, customer login through the actual login form, create a customer order for each of the four sectors, set a clinic appointment date/time, verify DEMO_ONLY payment marker, and reset the local demo fixture.
+- **Test correction history:** an earlier integration test failed because it tried to click a quick-login button while on the orders page; the test was corrected to use the actual login form. A second run found a seed-fixture ambiguity in the clinic-order assertion; the assertion now specifically checks a newly created order rather than the pre-seeded clinic sample. Latest run above is the passing evidence.
+- **Boundary:** browser-local workflow tests do not certify Supabase Auth, RLS, Edge Function authorization, persistence across browsers, real multi-user tenant isolation, backup/restore, or real payment integration. No production config/database/functions/deploy or merge occurred.
+- **Next:** obtain explicit user confirmation to use the `manteqti` Free organization for a new Supabase project (current project quote: $0/month), then set up a separate database-backed DEMO with synthetic fixtures and an authoritative migration replay. Do not create a paid branch or change production.
+- **Release status:** isolated local DEMO workflow tests PASS; database-backed DEMO and LIVE release remain BLOCKED / NOT CERTIFIED.
