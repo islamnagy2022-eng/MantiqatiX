@@ -328,6 +328,23 @@ Deno.serve(async (req: Request) => {
       return out(origin, data);
     }
 
+    if (action === "WAREHOUSE_CREATE") {
+      if (!branchId || !safeBranch(branchId)) return out(origin, { error: "BRANCH_REQUIRED" }, 400);
+      const name = String(body.name || "").trim();
+      const code = String(body.code || "").trim();
+      if (name.length < 2 || name.length > 160) return out(origin, { error: "INVALID_WAREHOUSE_NAME" }, 400);
+      if (!/^[A-Za-z0-9_-]{2,40}$/.test(code)) return out(origin, { error: "INVALID_WAREHOUSE_CODE" }, 400);
+      const { data, error } = await userClient.rpc("create_catalog_warehouse_backend", {
+        p_tenant_id: tenantId,
+        p_business_id: businessId,
+        p_branch_id: branchId,
+        p_name: name,
+        p_code: code,
+      });
+      if (error) throw error;
+      return out(origin, data);
+    }
+
     if (action === "STOCK_ADJUST") {
       if (!isUuid(body.catalogItemId)) return out(origin, { error: "INVALID_CATALOG_ITEM_ID" }, 400);
       if (!branchId || !safeBranch(branchId)) return out(origin, { error: "BRANCH_REQUIRED" }, 400);
