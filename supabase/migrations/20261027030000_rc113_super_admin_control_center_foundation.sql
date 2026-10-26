@@ -176,7 +176,7 @@ begin
     raise exception 'PLATFORM_ADMIN_REQUIRED';
   end if;
   if p_user_id is null or p_role_id is null then raise exception 'USER_AND_ROLE_REQUIRED'; end if;
-  select * into v_role from public.platform_custom_roles where id=p_role_id and is_active;
+  select * into v_role from public.platform_custom_roles where id=p_role_id and (is_active or (p_assignment_id is not null and coalesce(p_is_active,true)=false));
   if not found then raise exception 'ACTIVE_ROLE_REQUIRED'; end if;
   if v_role.scope='TENANT' and (p_tenant_id is null or p_business_id is not null or p_branch_id is not null) then
     raise exception 'INVALID_TENANT_SCOPE';
@@ -192,6 +192,11 @@ begin
   end if;
   if p_business_id is not null and not exists(select 1 from public.businesses b where b.id=p_business_id and b.tenant_id=p_tenant_id) then
     raise exception 'BUSINESS_TENANT_MISMATCH';
+  end if;
+  if p_branch_id is not null and (p_business_id is null or not exists(
+    select 1 from public.branches br where br.id=p_branch_id and br.tenant_id=p_tenant_id and br.business_id=p_business_id
+  )) then
+    raise exception 'BRANCH_BUSINESS_MISMATCH';
   end if;
 
   if p_assignment_id is null then
