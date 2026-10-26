@@ -9,6 +9,7 @@ const bootstrap = read('supabase/demo/bootstrap.sql');
 const catalog = read('supabase/demo/catalog-functions.sql');
 const stock = read('supabase/demo/order-stock-guards.sql');
 const hardening = read('supabase/demo/security-hardening.sql');
+const hardeningDelta = read('supabase/demo/security-hardening-20261026.sql');
 
 assert.match(html, /connected-config\.js/, 'connected page loads the DEMO-only config');
 assert.match(html, /connected\.js/, 'connected page loads the database-backed client');
@@ -45,5 +46,9 @@ assert.match(catalog, /grant execute on function public\.demo_upsert_catalog_ite
 assert.match(stock, /mantiqatix_demo_reserve_catalog_stock/, 'order creation reserves synthetic stock');
 assert.match(stock, /mantiqatix_demo_restore_catalog_stock/, 'order cancellation restores synthetic stock');
 assert.match(hardening, /payment|wallet|settlement/i, 'hardening covers payment paths');
+assert.match(hardeningDelta, /digital_page_payment_events[\\s\\S]*?from public, anon, authenticated/i, 'payment event table grants are removed from browser roles');
+assert.match(hardeningDelta, /update_medical_appointment_status_backend/, 'clinic status mutation is server-only in DEMO');
+assert.match(hardeningDelta, /grant execute on function public\\.create_medical_appointment_backend[\\s\\S]*?to authenticated, service_role/i, 'clinic booking RPC remains available to authenticated users');
+assert.match(hardeningDelta, /create_purchase_order_backend[\\s\\S]*?upsert_catalog_settings_backend/, 'out-of-scope backend RPCs are restricted in DEMO');
 
 console.log('Connected DEMO contract: PASS (config isolation, auth flows, seven server functions, core reads, DB helper contracts, payment-off boundary).');
