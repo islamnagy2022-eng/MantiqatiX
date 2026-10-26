@@ -328,6 +328,29 @@ Deno.serve(async (req: Request) => {
       return out(origin, data);
     }
 
+    if (action === "STOCK_ADJUST") {
+      if (!isUuid(body.catalogItemId)) return out(origin, { error: "INVALID_CATALOG_ITEM_ID" }, 400);
+      if (!branchId || !safeBranch(branchId)) return out(origin, { error: "BRANCH_REQUIRED" }, 400);
+      if (!safeBranch(body.warehouseId)) return out(origin, { error: "INVALID_WAREHOUSE_ID" }, 400);
+      const requestId = String(body.requestId || "");
+      const reason = String(body.reason || "");
+      if (!/^[A-Za-z0-9_-]{8,80}$/.test(requestId)) return out(origin, { error: "INVALID_STOCK_REQUEST_ID" }, 400);
+      if (reason.trim().length < 3 || reason.length > 300) return out(origin, { error: "INVALID_STOCK_REASON" }, 400);
+      const { data, error } = await userClient.rpc("adjust_catalog_stock_backend", {
+        p_tenant_id: tenantId,
+        p_business_id: businessId,
+        p_branch_id: branchId,
+        p_warehouse_id: String(body.warehouseId),
+        p_catalog_item_id: body.catalogItemId,
+        p_target_quantity: Number(body.targetQuantity),
+        p_unit_cost: Number(body.unitCost ?? 0),
+        p_request_id: requestId,
+        p_reason: reason.trim(),
+      });
+      if (error) throw error;
+      return out(origin, data);
+    }
+
     if (action === "ITEM_UPSERT") {
       const { data, error } = await userClient.rpc("upsert_catalog_item_backend", {
         p_tenant_id: tenantId, p_business_id: businessId, p_branch_id: branchId,
