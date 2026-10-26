@@ -1048,6 +1048,7 @@ function enhancedPageContent(){
   case 'ملف نشاطي': return providerProfileWorkspace();
   case 'التقارير والتحليلات': return analyticsWorkspace();
   case 'العمولات والباقات': return financeWorkspace();
+  // This route combines Support and Governance; only the latter permission opens the global governance console.
   case 'الدعم والحوكمة': return isCustomerMode()?customerSupportWorkspace():(window.MNTY_RBAC?.can(screenPermissionRole(),'GOVERNANCE','view',live.permissions)===true?governanceWorkspace():scopedSupportWorkspace());
   default: return pageContent();
  }
