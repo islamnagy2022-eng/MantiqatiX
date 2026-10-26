@@ -39,6 +39,7 @@ jobs:
           node --check web/demo/demo.js
           node --check web/demo/connected.js
           node --check web/demo/connected-config.js
+          node --check web/demo/activity.js
       - name: Verify isolation and four-sector scope
         run: node scripts/validate-demo-isolation.mjs
       - name: Install temporary DOM test dependency
@@ -47,5 +48,9 @@ jobs:
         run: node scripts/test-demo-workflow.mjs
       - name: Verify connected Supabase DEMO contract
         run: node scripts/test-connected-demo-contract.mjs
+      - name: Exercise password-based DEMO auth UI with a mock Auth gateway
+        run: node scripts/test-connected-demo-auth.mjs
+      - name: Exercise public activity catalogue with a mock read-only gateway
+        run: node scripts/test-connected-catalog-page.mjs
       - name: Smoke-test live DEMO CORS and unauthenticated access (no writes)
         run: node scripts/test-connected-demo-live-smoke.mjs
