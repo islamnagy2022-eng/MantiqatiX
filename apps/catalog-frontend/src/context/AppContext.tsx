@@ -49,6 +49,7 @@ interface AppContextType {
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   registerWithEmail: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string; message?: string; needsConfirmation?: boolean }>;
   authLoading: boolean;
+  authBootstrapError: string;
   logout: () => void;
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (open: boolean) => void;
@@ -102,6 +103,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
   const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest' });
   const [authLoading, setAuthLoading] = useState(true);
+  const [authBootstrapError, setAuthBootstrapError] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter] = useState('all');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
@@ -131,6 +133,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const applyUser = async (user: any, isCurrent: () => boolean = () => true) => {
     const boot = await bootstrapProductionUser(user || null);
     if (!isCurrent()) return;
+    setAuthBootstrapError('');
     setAuthSession(boot.authSession);
     setBusinesses(boot.businesses);
     setProducts(boot.products);
@@ -168,13 +171,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try { if (isCurrent()) await applyUser(session?.user || null, isCurrent); }
       catch (error) {
         console.error('[MantiqatiX production bootstrap]', error);
-        // A temporary role/catalog API failure must not erase a valid Supabase session.
-        // Keep the last known UI state and allow a later refresh to retry hydration.
+        if (isCurrent()) {
+          setAuthBootstrapError(error instanceof Error ? error.message : 'تعذر تحميل صلاحيات الحساب من قاعدة الإنتاج.');
+        }
+        // Keep the Supabase session, but expose the failure instead of silently presenting the user as a guest.
       } finally { if (isCurrent()) setAuthLoading(false); }
     };
     void supabase.auth.getSession().then(({ data }) => loadSession(data.session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'USER_DELETED') {
         queueMicrotask(() => { if (active) void loadSession(session); });
       }
     });
