@@ -278,3 +278,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added static CI assertions for the sector guard. On the latest tested code, the DEMO workflow's connected contract test passed; the workflow was still finishing cleanup when last checked.
 - Standard Supabase migration history now contains only two targeted DEMO migrations (`20261026033808`, `20261026034100`) and remains inconsistent with the historical schema baseline and 35 manually executed migrations. Do not run `db push`.
 - Remaining blocker: no real Auth users or authenticated browser E2E yet. LIVE remains BLOCKED.
+
+
+
+## 2026-10-26 — Restricted Vault secret RPC in DEMO
+
+- Read-only production comparison found `public.get_mnty_push_secrets()` returns decrypted VAPID/webhook secrets. Production already restricts it to `service_role`; DEMO incorrectly allowed `anon` and `authenticated` execution due to its schema baseline grants.
+- Added and applied DEMO-only migration `20261026034449` from `supabase/demo/20261026-restrict-push-secret-rpc.sql`; recorded the exact source blob in the internal ledger. Verified DEMO grants now match production: anon=false, authenticated=false, service_role=true.
+- Verified DEMO currently contains zero Vault entries with the two expected secret names, but restricted the RPC anyway as defense in depth. Production was queried read-only and not changed.
+- Security Advisor warnings reduced to 65 anon-executable and 80 authenticated-executable SECURITY DEFINER functions. Remaining warnings are not certified and need function-by-function review.
