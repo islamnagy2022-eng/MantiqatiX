@@ -2215,3 +2215,30 @@ This is an evidence checkpoint, not a release approval. Supabase production proj
 - [ ] PR #374 remains draft/open with 61 changed files. Scope review/splitting remains outstanding; the new security fix is required for RC568/RC569 admin-only activation.
 - [ ] PR #375 payment idempotency migration is sequenced as RC573 and must not merge before PR #374/RC572. No merge or production deployment has occurred.
 - Global release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-26 — Master continuation checkpoint (read-only revalidation)
+
+### Current GitHub state observed
+- PR #374 is OPEN / DRAFT / NOT MERGED, head `250b24e85e500b70a583411f3ec8050a65b190ae`, base `main` at `2a6b5a5209ae86815046c91fd3d3e35525361528`.
+- PR #375 is OPEN / DRAFT / NOT MERGED, head `7a8ed3269ea2b1733891e2b9f2fb2969d4c61ce8`, base `main` at `2a6b5a5209ae86815046c91fd3d3e35525361528`.
+- No submitted review approvals or inline review threads were returned for either PR on this inspection.
+- The two heads are current as of this checkpoint; re-fetch before any later merge/migration operation.
+
+### Exact-head CI evidence observed
+- PR #374: latest exact-head run set at head `250b24e...` completed successfully for combined candidate forward replay [40252909396], independent forward-chain replay [40252909425], migration-history immutability [40252909581], migration-version uniqueness [40252909479], open-PR migration collision guard [40252909416], web validation [40252909546], and adjacent module/privacy/finance checks. The combined replay restored the captured production-schema checkpoint in disposable Supabase and applied the candidate chain; this is not a production migration.
+- PR #374 Pages run [40252909546]: `validate` passed; `validate_public_only` and `deploy` were skipped for the pull-request/draft event. Do not claim a deployment.
+- PR #375: on exact head `7a8ed326...`, forward-chain replay [40249148204] completed successfully and its log ran `supabase/functions/api/index_integration_test.ts` against the disposable local Supabase API, reporting **1 passed / 0 failed**. That integration harness creates synthetic local-only fixtures and covers branch price isolation, rejection of a cross-business branch, unauthorized payment-intent creation/read denial, authorized own-intent read, same-key concurrent insert replay, and conflicting cross-order key use. Route behavior tests also include fake-client cases; those are not a substitute for database/API integration.
+- PR #375 Pages run [40249148166]: `validate` passed; `validate_public_only` and `deploy` were skipped. No production Edge Function or database migration was deployed/applied by these PR runs.
+- These checks improve confidence in candidate behavior but do not certify authenticated browser lifecycle E2E, complete real-money Paymob/settlement E2E, backup/restore, production authorization review, or rollback/deployed smoke.
+
+### Immediate execution order
+1. Keep both PRs draft and production blocked while independently reviewing the implementation and candidate migration dependency chain.
+2. Preserve merge order: PR #374 / RC572 before PR #375 / RC573. Re-check the current branch heads, branch protections, all candidate migration collisions and the complete combined replay immediately before any approved merge.
+3. Complete authenticated browser E2E for the digital-page subscription request → independent reference verification → platform-admin activation → owner CRUD/publication → expiry, including cross-owner and cross-business denial.
+4. Complete finance/payment/webhook/settlement acceptance; manual payment reference review; backup/restore rehearsal; Auth leaked-password protection confirmation; SECURITY DEFINER function-by-function identity/scope/grant review; Edge Function/SMM contract verification; production preview/deployment/rollback smoke.
+5. Reconcile PR #86 and PR #282 base conflicts and historical migration provenance before treating the combined candidate replay as a release-ready canonical branch.
+6. Only after all P0 evidence is reproducible and release owner approval is recorded, execute the staged release. No production writes, migrations, Edge Function deployment, merges, or website deployment were performed during this checkpoint.
+
+### Release decision
+**BLOCKED / NOT CERTIFIED.** The candidate CI and disposable database checks passed at the stated heads, but they are not authorization to merge or deploy.
