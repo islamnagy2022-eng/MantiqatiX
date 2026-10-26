@@ -28,6 +28,8 @@ for(const [src,marker,label] of [
  [selfService,"digital_page_orders","customer page requires paid order"],
  [selfService,"whatsapp_number","customer WhatsApp contact field"],
  [selfService,"saveItems","customer product and price management"],
+ [selfService,".select('id').maybeSingle()","product edits must verify a persisted update rather than treating an RLS no-op as success"],
+ [selfService,"if (!result.data?.id) throw new Error('لم يتأكد حفظ المنتجات من قاعدة البيانات.","product editor must display an error if the update did not persist"],
  [selfService,"loadSubscriptionProducts","customer package listing"],
  [selfService,"function productFeatureLabels(features)","subscription tiers derive feature labels from database-defined package features"],
  [selfService,"رابط الصورة يجب أن يبدأ بـ HTTPS وألا يتجاوز 2048 حرفًا.","customer product images must use HTTPS and a bounded URL length"],
