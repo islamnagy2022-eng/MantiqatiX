@@ -242,3 +242,17 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Boundary:** browser-local workflow tests do not certify Supabase Auth, RLS, Edge Function authorization, persistence across browsers, real multi-user tenant isolation, backup/restore, or real payment integration. No production config/database/functions/deploy or merge occurred.
 - **Next:** obtain explicit user confirmation to use the `manteqti` Free organization for a new Supabase project (current project quote: $0/month), then set up a separate database-backed DEMO with synthetic fixtures and an authoritative migration replay. Do not create a paid branch or change production.
 - **Release status:** isolated local DEMO workflow tests PASS; database-backed DEMO and LIVE release remain BLOCKED / NOT CERTIFIED.
+
+
+
+## 2026-10-26 — Connected DEMO integration and CI repair
+
+- Verified project `MantiqatiX-DEMO` (`lkijdgqanbqjudiducjt`) is `ACTIVE_HEALTHY`; production project was not modified.
+- Verified the seven deployed DEMO Edge Function sources match their tracked files exactly. The connected page uses a DEMO-only publishable key and has separate config, JS, and CSS from the local simulator.
+- Observed 132 public tables with RLS enabled and zero Auth users. Four sector rows are seeded. No authenticated database E2E has yet been performed.
+- Migration status remains a release blocker: Supabase's standard migration listing is empty, while the internal ledger records 283 schema-baseline versions and 35 manually executed later migrations. No migration replay or `db push` was run.
+- Fixed a real CI blocker: the production secret scanner falsely matched the words “service-role” in a comment in `web/demo/connected-config.js`. Reworded the comment without changing the public project URL or key.
+- Added `scripts/test-connected-demo-contract.mjs` and updated `.github/workflows/demo-isolation.yml` to syntax-check the connected JS/config and validate the isolated project, auth flows, seven function calls, database reads, atomic catalog helper, synthetic stock guards, and payments-off setting.
+- PASS: DEMO Isolation workflow [40264871042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871042), including the new connected contract test. PASS: web verification [40264871016](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40264871016).
+- Security review found two RLS-enabled public tables without policies (`digital_page_payment_events`, `mantigo_payment_provider_events`); browser access is denied by RLS, but `digital_page_payment_events` still has table grants to `anon` and `authenticated`. Targeted review/hardening remains pending. Numerous `SECURITY DEFINER` advisor warnings also remain; no blanket privilege changes were made.
+- PR #376 remains Draft and no production merge/deployment/payment action occurred. LIVE remains BLOCKED.
