@@ -40,7 +40,7 @@ if(home.includes('href="preview/index.html"')) throw new Error("FAIL: interactiv
 if(!home.includes("LAUNCH_SECTOR_CODES = Object.freeze(['FOOD','HEALTH','PHARMACY','GROCERY'])")) throw new Error("FAIL: homepage launch must be restricted to the four selected sectors");
 
 if(home.includes('mx-public-module-hub') || home.includes('mx-ref-digital-workspace')) throw new Error("FAIL: deferred public workspaces must be removed from the launch page");
-if(!css.includes(".mx-public-module-hub") || !css.includes("@media(max-width:760px){.mx-public-module-hub")) throw new Error("FAIL: public module tour must have responsive styles");
+if(!css.includes(".mx-ref-home #mx-category-grid") || !css.includes("@media(max-width:700px)")) throw new Error("FAIL: four-sector launch directory must have responsive styles");
 for(const [needle,label] of [
   ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
   ['id="mx-category-filter-clear"',"sector search must provide a clear action"],
