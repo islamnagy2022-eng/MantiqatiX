@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
       String(m.tenant_id) === tenantId &&
       String(m.business_id || "") === businessId &&
       businessRole(m) &&
-      (!m.branch_id || String(m.branch_id) === String(branchId || ""))
+      (!m.branch_id || !branchId || String(m.branch_id) === String(branchId))
     );
     const scopedPlatformMembership = activeMemberships.some((m: any) =>
       String(m.tenant_id) === tenantId && isPlatformAdmin(m)
@@ -180,6 +180,7 @@ Deno.serve(async (req: Request) => {
           service.from("catalog_item_prices")
             .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
             .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
+            .or(`branch_id.is.null,branch_id.eq.${chosenBranch}`)
             .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`)
             .order("version", { ascending: false }),
           service.from("catalog_item_options")
