@@ -31,7 +31,7 @@
   }[ch]));
   const money = value => Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
   const makeIdempotencyKey = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'demo-' + Date.now() + '-' + Math.random().toString(36).slice(2));
-  const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, catalogFilterSector: 'ALL', catalogFilterBusinessId: 'ALL', tab: 'dashboard', authMode: 'login', loading: false };
+  const data = { user: null, session: null, businesses: [], branches: [], memberships: [], items: [], prices: [], orders: [], providers: [], appointments: [], selectedBusinessId: null, catalogFilterSector: 'ALL', catalogFilterBusinessId: 'ALL', tab: 'dashboard', loading: false };
   let sb;
   let toastTimer = null;
 
@@ -163,7 +163,8 @@
   }
 
   function oauthRedirectUrl() {
-    return window.location.origin + window.location.pathname + window.location.search.split('#')[0].replace(/\\?$/, '');
+    const search = window.location.search;
+    return window.location.origin + window.location.pathname + (search === '?' ? '' : search);
   }
 
   function cleanAuthUrl() {
@@ -201,11 +202,12 @@
     const business = selectedBusiness();
     const membership = business ? membershipForBusiness(business.id) : null;
     const own = activeMemberships();
+    const primaryOwner = String(user.email || '').trim().toLowerCase() === String(cfg.primaryOwnerEmail || '').trim().toLowerCase();
     const ownBusinessIds = new Set(own.map(m => m.business_id));
     const ownOrders = data.orders.filter(o => o.customer_id === user.id || ownBusinessIds.has(o.business_id));
     $('#app').innerHTML =
       '<div class="workspace-header"><div><h1 class="screen-title">مساحة العمل المتصلة</h1><p class="sub-title">قاعدة DEMO: ' + esc(cfg.tenantId) + ' · لا معاملات مالية حقيقية.</p><div class="connection-state">اتصال قاعدة البيانات جاهز</div></div>' +
-      '<div class="user-box"><div class="user-avatar">' + esc((user.user_metadata?.full_name || user.email || 'م').slice(0, 1)) + '</div><div><strong>' + esc(user.user_metadata?.full_name || user.email) + '</strong><small>' + esc(user.email || '') + ' · حساب DEMO</small></div></div></div>' +
+      '<div class="user-box"><div class="user-avatar">' + esc((user.user_metadata?.full_name || user.email || 'م').slice(0, 1)) + '</div><div><strong>' + esc(user.user_metadata?.full_name || user.email) + '</strong><small>' + esc(user.email || '') + ' · ' + (primaryOwner ? 'الحساب الأساسي للمالك' : 'حساب DEMO') + '</small></div></div></div>' +
       '<div class="workspace-grid"><aside class="panel sidebar">' +
       navButton('dashboard', 'نظرة عامة', '⌂') + navButton('activities', 'أنشطتي', '◈') +
       navButton('catalog', 'الكتالوج والطلبات', '▦') +
@@ -613,10 +615,7 @@
   document.addEventListener('click', async event => {
     const button = event.target.closest('[data-action]');
     if (!button) return;
-    if (button.dataset.action === 'auth-mode') {
-      data.authMode = button.dataset.mode === 'signup' ? 'signup' : 'login';
-      renderAuth();
-    } else if (button.dataset.action === 'logout') {
+    if (button.dataset.action === 'logout') {
       await logout();
     } else if (button.dataset.action === 'refresh') {
       if (data.user) await loadData();
@@ -643,10 +642,6 @@
   document.addEventListener('submit', async event => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
-    if (form.id === 'auth-form') {
-      event.preventDefault();
-      return data.authMode === 'signup' ? signup(form) : login(form);
-    }
     if (form.id === 'business-form') {
       event.preventDefault();
       return createBusiness(form);
