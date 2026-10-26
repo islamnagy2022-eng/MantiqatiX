@@ -1,0 +1,147 @@
+name: Catalog Module Pages Release
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/catalog-module-pages.yml'
+      - 'scripts/validate-catalog-admin-cors-boundary.mjs'
+      - 'scripts/validate-catalog-production-module.mjs'
+      - 'supabase/config.toml'
+      - 'supabase/functions/catalog-admin/index.ts'
+      - 'supabase/functions/public-catalog/index.ts'
+      - 'supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql'
+      - 'web/app.js'
+      - 'web/index.html'
+      - 'web/rbac.js'
+      - 'web/catalog-module.js'
+      - 'web/catalog/**'
+      - 'web/preview/catalog-demo/**'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: catalog-pages-release
+  cancel-in-progress: true
+jobs:
+  validate_catalog_scope:
+    name: Validate catalog-only release scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Reject changes outside the catalog release boundary
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${BEFORE_SHA}" || "${BEFORE_SHA}" =~ ^0+$ ]]; then
+            echo "Cannot establish exact push diff; refusing scoped deploy."
+            exit 1
+          fi
+          git diff --name-only "${BEFORE_SHA}" "${CURRENT_SHA}" > /tmp/catalog-changed-files.txt
+          test -s /tmp/catalog-changed-files.txt
+          cat /tmp/catalog-changed-files.txt
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/catalog-module-pages.yml|              scripts/validate-catalog-admin-cors-boundary.mjs|              scripts/validate-catalog-production-module.mjs|              supabase/config.toml|              supabase/functions/catalog-admin/index.ts|              supabase/functions/public-catalog/index.ts|              supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql|              web/app.js|web/index.html|web/rbac.js|web/catalog-module.js|              web/catalog/*|web/preview/catalog-demo/*) ;;
+              *) echo "Refusing catalog-only deploy because this path is outside the allowlist: $path"; exit 1 ;;
+            esac
+          done < /tmp/catalog-changed-files.txt
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install build dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build public Supabase browser SDK
+        run: |
+          set -euo pipefail
+          mkdir -p web/vendor
+          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
+          test -s web/vendor/supabase.js
+      - name: Validate catalog code and contracts
+        run: |
+          set -euo pipefail
+          node --check web/rbac.js
+          node --check web/app.js
+          node --check web/catalog-module.js
+          node --check web/catalog/catalog.js
+          node scripts/validate-catalog-production-module.mjs
+          node scripts/validate-catalog-admin-cors-boundary.mjs
+          test -s web/catalog/index.html
+          test -s web/catalog/catalog.css
+          test -s web/catalog/catalog.js
+          grep -Fq 'catalog-module.js?v=rc107-catalog-production' web/index.html
+          grep -Fq 'signInWithGoogle' web/app.js
+          grep -Fq 'id="google-auth"' web/app.js
+          ! grep -Eq 'signInWithOtp|verifyOtp|signInWithPassword' web/app.js
+      - name: Smoke test deployed public catalog API contract
+        run: |
+          set -euo pipefail
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('web/config.js','utf8');const m=s.match(/supabaseUrl:'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('web/config.js','utf8');const m=s.match(/supabaseKey:'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-api-smoke.json --write-out '%{http_code}' \
+            --header "apikey: ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/functions/v1/public-catalog?businessId=00000000-0000-4000-8000-000000000000")"
+          cat /tmp/catalog-api-smoke.json
+          test "${HTTP_CODE}" = "404"
+          grep -Fq '"error":"BUSINESS_NOT_PUBLIC"' /tmp/catalog-api-smoke.json
+          echo "CATALOG_PUBLIC_API_SMOKE=PASS"
+  deploy_catalog:
+    name: Publish catalog module to GitHub Pages
+    needs: [validate_catalog_scope]
+    if: needs.validate_catalog_scope.result == 'success' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Build public Supabase browser SDK
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts --no-audit --no-fund
+          mkdir -p web/vendor
+          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
+          test -s web/vendor/supabase.js
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: catalog-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./web
+      - name: Deploy reviewed catalog release
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: catalog-pages-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Verify published catalog assets
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          test -n "${PAGE_URL}"
+          ROOT_URL="${PAGE_URL%/}/"
+          ROOT_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}")"
+          grep -Fq 'MantiqatiX' <<<"${ROOT_HTML}"
+          CATALOG_HTML="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}catalog/")"
+          grep -Fq 'كتالوج النشاط' <<<"${CATALOG_HTML}"
+          for asset in catalog-module.js app.js rbac.js config.js vendor/supabase.js catalog/catalog.js catalog/catalog.css; do
+            curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${ROOT_URL}${asset}" >/dev/null
+          done
+          test ! -e web/preview/catalog-demo/index.html
+          echo "CATALOG_PAGES_RELEASE=PASS: ${ROOT_URL}catalog/"
