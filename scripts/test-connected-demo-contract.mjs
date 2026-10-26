@@ -42,6 +42,10 @@ for (const authFlow of ['signInWithPassword', 'signUp', 'signOut']) {
 }
 assert.match(app, /paymentsEnabled\s*!==\s*false/, 'client refuses to initialize unless payment switch is false');
 assert.match(app, /demo_provider_id/, 'clinic booking uses a provider scoped to the demo clinic');
+assert.ok(app.includes('clientIdempotencyKey,'), 'order submission passes the retained idempotency key');
+assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1'), 'order retry key is scoped to the DEMO user/business/branch/item');
+assert.ok(app.includes('window.sessionStorage.setItem(retryKey, clientIdempotencyKey)'), 'order retry key survives page-level network retries');
+assert.ok(app.includes('window.sessionStorage.removeItem(retryKey)'), 'successful order clears the retry key for intentional future orders');
 
 assert.match(bootstrap, /demo_create_business_atomic/, 'bootstrap defines demo business creation');
 assert.match(bootstrap, /demo_register_customer_atomic/, 'bootstrap defines customer provisioning');
