@@ -15,7 +15,7 @@ export const LoginModal: React.FC = () => {
 
   if (!isLoginModalOpen) return null;
 
-  const adminPhone = String(adminSettings.adminWhatsApp || '').replace(/\\D/g, '');
+  const adminPhone = String(adminSettings.adminWhatsApp || '').replace(/\D/g, '');
   const subscriptionRequestUrl = adminPhone
     ? `https://wa.me/${adminPhone}?text=${encodeURIComponent('أرغب في الاشتراك وتفعيل نشاطي على منصة منطقتي X')}`
     : '';
