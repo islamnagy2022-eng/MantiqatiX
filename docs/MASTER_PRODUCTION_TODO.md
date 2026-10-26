@@ -78,6 +78,13 @@
     - Live preview URLs could not be independently fetched in this session; do not mark deployed-preview smoke as passed on that basis.
     - Still NOT VERIFIED: interactive authenticated browser session, responsive/accessibility manual audit, PWA/service-worker offline behavior, and end-user auth flow.
 
+## Latest DEMO execution note — 2026-10-26 (LIVE gates remain open)
+
+- Applied DEMO-only migration `20261026043029_demo_clinic_appointment_future_time_guard_20261026`: the appointment RPC itself rejects timestamps at or before current time, instead of relying on the Edge Function check alone.
+- **PASS:** no-persistent-write SQL behavior test and DEMO Isolation CI [40269410403](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40269410403).
+- Effective browser-role direct write privileges checked false for the core DEMO business, branch, catalog, price, order, membership, and appointment tables.
+- This does **not** close P0 item 1: DEMO `auth.users` is still empty, so authenticated multi-user/tenant E2E and full order/appointment flow remain **NOT VERIFIED**. PR #376 stays Draft; no production changes; LIVE remains **BLOCKED / NOT CERTIFIED**.
+
 # P1 — أولوية عالية
 
 11. G11 Analytics/Reports — PARTIAL
