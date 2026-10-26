@@ -97,7 +97,10 @@ updateOrderForm.dispatchEvent(new window.Event('submit', { bubbles: true, cancel
 data = db();
 assert.equal(data.orders.find(o => o.id === order.id).status, 'CONFIRMED', 'allowed order status transition works');
 
-click('[data-action="demo-login"][data-user-id="demo_customer"]');
+click('[data-action="logout"]');
+set('#login-email', 'customer@demo.mantiqatix');
+set('#login-password', 'Demo123!');
+submit('#login-form');
 assert.ok(window.document.querySelector('[data-tab="catalog"]'), 'customer can access public catalog');
 click('[data-action="tab"][data-tab="catalog"]');
 set('#catalog-business', business.id);
