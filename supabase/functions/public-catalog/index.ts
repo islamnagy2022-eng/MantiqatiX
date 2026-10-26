@@ -137,9 +137,47 @@ Deno.serve(async (req: Request) => {
         unit: String(meta.unit || "").slice(0, 40),
         imageUrl: safeImageUrl(meta.image_url),
         comparePrice: Number.isFinite(comparePrice) && comparePrice >= 0 ? comparePrice : null,
-        available: meta.is_available !== false,
+        trackStock: meta.track_stock === true,
+        available: meta.is_available !== false && (meta.track_stock !== true || stockAvailability.get(String(item.id)) === true),
       };
     });
+    const trackStockIds = rawItems
+      .filter((item: any) => String(item.item_type || "").toUpperCase() === "PRODUCT" && item.metadata?.catalog_public?.track_stock === true)
+      .map((item: any) => item.id);
+    const stockAvailability = new Map<string, boolean>();
+    if (trackStockIds.length) {
+      const { data: activeWarehouses, error: warehousesError } = await db.from("warehouses")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("business_id", businessId)
+        .eq("status", "ACTIVE")
+        .or(`branch_id.is.null,branch_id.eq.${branchId}`)
+        .limit(150);
+      if (warehousesError) throw warehousesError;
+      const warehouseIds = (activeWarehouses || []).map((warehouse: any) => String(warehouse.id));
+      if (warehouseIds.length) {
+        const stockQuery = () => db.from("stock_balances")
+          .select("product_id,branch_id,warehouse_id,quantity_on_hand,quantity_reserved")
+          .eq("tenant_id", tenantId)
+          .eq("business_id", businessId)
+          .in("warehouse_id", warehouseIds)
+          .in("product_id", trackStockIds);
+        const [globalStockResult, branchStockResult] = await Promise.all([
+          stockQuery().is("branch_id", null),
+          stockQuery().eq("branch_id", branchId),
+        ]);
+        if (globalStockResult.error || branchStockResult.error) throw globalStockResult.error || branchStockResult.error;
+        const availableUnits = new Map<string, number>();
+        for (const balance of [...(globalStockResult.data || []), ...(branchStockResult.data || [])] as any[]) {
+          const free = Math.max(0, Number(balance.quantity_on_hand || 0) - Number(balance.quantity_reserved || 0));
+          const key = String(balance.product_id);
+          availableUnits.set(key, (availableUnits.get(key) || 0) + free);
+        }
+        for (const itemId of trackStockIds) stockAvailability.set(String(itemId), (availableUnits.get(String(itemId)) || 0) > 0);
+      } else {
+        for (const itemId of trackStockIds) stockAvailability.set(String(itemId), false);
+      }
+    }
     const profile = business.settings?.catalog_profile || {};
     const selectedBranchPhone = String(selectedBranch.phone || "");
     return response(origin, {
