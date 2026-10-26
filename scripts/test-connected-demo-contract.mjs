@@ -68,7 +68,7 @@ assert.match(app, /modes\.length < 2\) return ''/, 'ordinary customers do not se
 assert.match(app, /mode === 'CUSTOMER' && !hasPlatformOwnerAccess\(\) && activeMemberships\(\)\.length === 0/, 'ordinary customer is restricted to the homepage/catalog view');
 assert.match(app, /class="customer-home-only"/, 'customer-only homepage has a dedicated isolated layout');
 assert.match(app, /renderCatalog\(\)/, 'the customer homepage exposes the public catalog');
-assert.match(app, /mode === 'CUSTOMER'\) return renderOrders\(null, null, ownOrders, false\)/, 'customer order-status actions remain disabled in any privileged customer workspace');
+assert.match(app, /if \(data\.tab === 'orders'\) return renderOrders\(null, null, ownOrders, false\)/, 'customer order-status actions remain disabled in any privileged customer workspace');
 
 assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1'), 'order retry record is scoped to the DEMO user/business/branch/item');
 assert.ok(app.includes('JSON.stringify({ clientIdempotencyKey, quantity })'), 'pending retry persists the exact quantity with its idempotency key');
