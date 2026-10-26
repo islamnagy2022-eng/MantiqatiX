@@ -6,6 +6,7 @@ on:
     paths:
       - 'web/demo/**'
       - 'scripts/validate-demo-isolation.mjs'
+      - 'scripts/test-demo-workflow.mjs'
       - '.github/workflows/demo-isolation.yml'
   pull_request:
     branches: [main]
