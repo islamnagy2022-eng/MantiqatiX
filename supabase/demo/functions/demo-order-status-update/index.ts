@@ -49,6 +49,38 @@ Deno.serve(async (req: Request) => {
   if (!/^[0-9a-f-]{36}$/i.test(orderId) || tenantId !== "MNTY-PLATFORM") return reply({ error: "INVALID_ORDER_SCOPE" }, 400, origin);
   if (!["CONFIRMED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"].includes(newStatus)) return reply({ error: "INVALID_ORDER_STATUS" }, 400, origin);
 
+  // Do not let this DEMO endpoint mutate any non-synthetic order in the isolated project.
+  const { data: order, error: orderError } = await admin.from("orders")
+    .select("id,tenant_id,business_id,branch_id,metadata")
+    .eq("id", orderId).eq("tenant_id", tenantId).maybeSingle();
+  if (orderError) return reply({ error: "DEMO_ORDER_LOOKUP_FAILED" }, 500, origin);
+  if (!order) return reply({ error: "ORDER_NOT_FOUND" }, 404, origin);
+  if (order.metadata?.environment !== "DEMO" ||
+      order.metadata?.payments_enabled !== false ||
+      order.metadata?.synthetic_only !== true ||
+      order.metadata?.source !== "MANTIQATIX_DEMO") {
+    return reply({ error: "DEMO_ORDER_SCOPE_REQUIRED" }, 403, origin);
+  }
+
+  const { data: business, error: businessError } = await admin.from("businesses")
+    .select("id,settings,status")
+    .eq("id", order.business_id).eq("tenant_id", tenantId).eq("status", "ACTIVE").maybeSingle();
+  if (businessError) return reply({ error: "DEMO_BUSINESS_LOOKUP_FAILED" }, 500, origin);
+  const sector = String(business?.settings?.sector_code || "").toUpperCase();
+  if (!business || business.settings?.environment !== "DEMO" ||
+      !["FOOD", "PHARMACY", "STORE"].includes(sector)) {
+    return reply({ error: "DEMO_BUSINESS_SCOPE_REQUIRED" }, 403, origin);
+  }
+
+  const { data: branch, error: branchError } = await admin.from("branches")
+    .select("id,settings,status")
+    .eq("id", order.branch_id).eq("business_id", order.business_id)
+    .eq("tenant_id", tenantId).eq("status", "ACTIVE").maybeSingle();
+  if (branchError) return reply({ error: "DEMO_BRANCH_LOOKUP_FAILED" }, 500, origin);
+  if (!branch || branch.settings?.environment !== "DEMO") {
+    return reply({ error: "DEMO_BRANCH_SCOPE_REQUIRED" }, 403, origin);
+  }
+
   const { data, error } = await admin.rpc("update_order_status_backend", {
     p_order_id: orderId,
     p_tenant_id: tenantId,
