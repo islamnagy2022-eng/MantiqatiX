@@ -14,6 +14,9 @@ const clinicGuard = read('supabase/demo/20261026-clinic-appointment-sector-guard
 const secretGuard = read('supabase/demo/20261026-restrict-push-secret-rpc.sql');
 const grantAlignment = read('supabase/demo/20261026-align-security-definer-grants.sql');
 const scopeFreeze = read('supabase/demo/20261026-freeze-out-of-scope-rpcs.sql');
+const orderCreate = read('supabase/demo/functions/demo-order-create/index.ts');
+const orderStatus = read('supabase/demo/functions/demo-order-status-update/index.ts');
+const catalogWrite = read('supabase/demo/functions/demo-catalog-write/index.ts');
 
 assert.match(html, /connected-config\.js/, 'connected page loads the DEMO-only config');
 assert.match(html, /connected\.js/, 'connected page loads the database-backed client');
@@ -42,6 +45,12 @@ for (const authFlow of ['signInWithPassword', 'signUp', 'signOut']) {
 }
 assert.match(app, /paymentsEnabled\s*!==\s*false/, 'client refuses to initialize unless payment switch is false');
 assert.match(app, /demo_provider_id/, 'clinic booking uses a provider scoped to the demo clinic');
+assert.ok(orderCreate.includes('DEMO_BUSINESS_SCOPE_REQUIRED') && orderCreate.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order creation rejects non-DEMO business and branch');
+assert.ok(orderCreate.includes('DEMO_PROVIDER_SCOPE_REQUIRED') && orderCreate.includes('DEMO_CATALOG_ITEM_SCOPE_REQUIRED'), 'order creation requires DEMO provider and synthetic catalogue items');
+assert.ok(orderCreate.includes('metadata?.synthetic_only === true'), 'order creation accepts only explicitly synthetic DEMO items');
+assert.ok(orderStatus.includes('DEMO_ORDER_SCOPE_REQUIRED') && orderStatus.includes('payments_enabled !== false'), 'order-status updates require a synthetic unpaid DEMO order');
+assert.ok(orderStatus.includes('DEMO_BRANCH_SCOPE_REQUIRED'), 'order-status updates require a DEMO-tagged branch');
+assert.ok(catalogWrite.includes('branchScope.settings?.environment !== "DEMO"'), 'catalog writes require a DEMO-tagged branch');
 assert.ok(app.includes('clientIdempotencyKey,'), 'order submission passes the retained idempotency key');
 assert.ok(app.includes('MANTIQATIX_DEMO_ORDER_RETRY_V1'), 'order retry key is scoped to the DEMO user/business/branch/item');
 assert.ok(app.includes('window.sessionStorage.setItem(retryKey, clientIdempotencyKey)'), 'order retry key survives page-level network retries');
