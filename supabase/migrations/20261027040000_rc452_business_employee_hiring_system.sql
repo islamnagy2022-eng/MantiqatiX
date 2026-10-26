@@ -19,8 +19,6 @@ create table if not exists public.business_job_positions (
   updated_by uuid not null references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint business_job_positions_tenant_business_fk
-    foreign key (tenant_id,business_id) references public.businesses(tenant_id,id) on delete cascade,
   constraint business_job_positions_title_nonempty check (length(trim(title)) between 2 and 120),
   constraint business_job_positions_permissions_object check (jsonb_typeof(permission_template)='object')
 );
@@ -44,8 +42,6 @@ create table if not exists public.business_employees (
   updated_by uuid not null references auth.users(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint business_employees_tenant_business_fk
-    foreign key (tenant_id,business_id) references public.businesses(tenant_id,id) on delete cascade,
   constraint business_employees_name_nonempty check (length(trim(full_name)) between 2 and 160),
   constraint business_employees_email_nonempty check (length(trim(email)) between 3 and 254),
   constraint business_employees_permissions_object check (jsonb_typeof(permission_overrides)='object')
