@@ -1825,3 +1825,22 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] استمرار استكمال واجهات المطاعم ورحلة العميل ومقدم الخدمة، واختبار حالات الخطأ وإعادة المحاولة وحالات الشبكة على واجهة الطلب الحقيقية، مع عدم اعتبار تجربة الطلب التجريبية نظام طلبات إنتاجيًا.
 - [ ] ما زالت اختبارات E2E بهويات حقيقية متعددة الأدوار، واختبارات Paymob/refund والتسويات، ومراجعة RLS/Security Advisor، وتدريب النسخ الاحتياطي والاستعادة، واختبارات Android الموقعة وعلى أجهزة حقيقية، ومراقبة/تنبيه/تراجع الإنتاج غير مغلقة.
 - لا تغييرات على قاعدة بيانات الإنتاج أو معاملات مالية حقيقية في هذا الإصدار. حالة الإطلاق الكامل: **BLOCKED / NOT CERTIFIED**.
+
+
+# DEMO-first scope freeze — 2026-10-26
+
+**Product scope for new work:** restaurants/cafes, pharmacies, doctors/clinics, stores. Do not create new modules outside these sectors in this phase. Keep existing out-of-scope module code intact; do not perform broad deletions or rearchitecture.
+
+**DEMO status:**
+- [x] Separate browser path `web/demo/` does not import production config or the production Supabase SDK.
+- [x] Local simulator supports demo account creation, activity setup, products/services and prices, demo orders/appointments, state transitions, and UI roles.
+- [x] Data key is isolated to localStorage namespace `MANTIQATIX_DEMO_DB_V1`; reset uses only demo storage/session.
+- [x] Static isolation/scope workflow passed (run 40260016567, 14 assertions).
+- [ ] Browser-driven end-to-end checks for each sector.
+- [ ] Free database-backed DEMO on a distinct Supabase project; the project is not created yet. The current organization is Free and current quoted project cost was $0/month, but explicit organization choice is still required before creating it.
+- [ ] Reapply the authoritative migration chain from an empty database; verify migration replay and schema prerequisites.
+- [ ] Authenticated multi-user tests across business/branch/role boundaries using real Supabase Auth and RLS.
+- [ ] End-to-end restaurant, pharmacy, clinic appointment, and store workflows using synthetic data only.
+- [ ] Verify all payment paths disabled/sandbox-only in DEMO, with no real money movement.
+
+**Release safety:** production config and database remain unchanged. Do not merge or publish the DEMO code until PR CI/review is complete. Do not merge a DEMO database or synthetic data into production. Before LIVE, reconcile migrations, backup and rehearse restore, verify independent production settings, audit RLS and payment/webhook idempotency, run post-deploy smoke tests, and document rollback. Production remains BLOCKED / NOT CERTIFIED until every gate has evidence.
