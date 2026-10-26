@@ -112,6 +112,33 @@ assert.ok(customerOrder, 'customer can place an order');
 assert.equal(customerOrder.paymentMode, 'DEMO_ONLY');
 assert.equal(data.orders.find(o => o.id === order.id).customerId, 'demo_owner', 'existing order identity remains separate');
 
+// Exercise the other three sector flows as a customer, including the clinic appointment fields.
+const sectorCases = [
+  { sector: 'FOOD', businessId: 'biz_food', productId: 'prod_food_1' },
+  { sector: 'PHARMACY', businessId: 'biz_pharmacy', productId: 'prod_pharmacy_1' },
+  { sector: 'DOCTOR', businessId: 'biz_doctor', productId: 'prod_doctor_1' }
+];
+for (const item of sectorCases) {
+  click('[data-action="tab"][data-tab="catalog"]');
+  set('#catalog-sector', item.sector);
+  window.document.querySelector('#catalog-sector').dispatchEvent(new window.Event('change', { bubbles: true }));
+  if (item.sector === 'DOCTOR') {
+    const future = new Date();
+    future.setDate(future.getDate() + 2);
+    set('#date-' + item.productId, future.toISOString().slice(0, 10));
+    set('#time-' + item.productId, '19:00');
+  }
+  click('[data-action="place-order"][data-business-id="' + item.businessId + '"][data-product-id="' + item.productId + '"]');
+  data = db();
+  const sectorOrder = data.orders.find(o => o.businessId === item.businessId && o.productId === item.productId && o.customerId === 'demo_customer');
+  assert.ok(sectorOrder, 'customer flow works for sector ' + item.sector);
+  assert.equal(sectorOrder.paymentMode, 'DEMO_ONLY', item.sector + ' order stays payment-free');
+  if (item.sector === 'DOCTOR') {
+    assert.ok(sectorOrder.appointmentDate, 'clinic booking stores the requested date');
+    assert.equal(sectorOrder.appointmentTime, '19:00', 'clinic booking stores the requested time');
+  }
+}
+
 click('[data-action="reset-demo"]');
 assert.equal(window.localStorage.getItem('MANTIQATIX_DEMO_SESSION_V1'), null, 'reset clears demo session');
 assert.equal(db().businesses.length, 4, 'reset restores only four seeded sector activities');
