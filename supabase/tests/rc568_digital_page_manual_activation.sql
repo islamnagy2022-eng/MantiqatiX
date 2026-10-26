@@ -14,6 +14,10 @@ insert into public.businesses (id, tenant_id, name, code)
 values ('56800000-0000-4000-8000-000000000030', 'RC568-TEST',
         'RC568 Test Restaurant', 'RC568-TEST-BIZ');
 
+insert into public.branches (id, tenant_id, business_id, name, code)
+values ('RC568-BRANCH-001', 'RC568-TEST', '56800000-0000-4000-8000-000000000030',
+        'RC568 Test Branch', 'RC568-BRANCH-001');
+
 insert into auth.users
   (id, aud, role, email, encrypted_password, email_confirmed_at,
    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
@@ -23,19 +27,29 @@ values
    'rc568-platform-admin@example.invalid', '', pg_catalog.now(),
    '{"provider":"email","providers":["email"]}'::jsonb,
    '{"full_name":"RC568 Test Platform Admin"}'::jsonb,
+   pg_catalog.now(), pg_catalog.now(), false, false),
+  ('56800000-0000-4000-8000-000000000002', 'authenticated', 'authenticated',
+   'rc568-customer@example.invalid', '', pg_catalog.now(),
+   '{"provider":"email","providers":["email"]}'::jsonb,
+   '{"full_name":"RC568 Test Customer"}'::jsonb,
+   pg_catalog.now(), pg_catalog.now(), false, false),
+  ('56800000-0000-4000-8000-000000000003', 'authenticated', 'authenticated',
+   'rc568-tenant-owner@example.invalid', '', pg_catalog.now(),
+   '{"provider":"email","providers":["email"]}'::jsonb,
+   '{"full_name":"RC568 Tenant Owner"}'::jsonb,
    pg_catalog.now(), pg_catalog.now(), false, false);
 
 insert into public.user_memberships
-  (id, user_id, tenant_id, business_id, role, permissions, status)
+  (id, user_id, tenant_id, business_id, branch_id, role, permissions, status)
 values
   ('RC568-PLATFORM-ADMIN', '56800000-0000-4000-8000-000000000001',
-   'MNTY-PLATFORM', null, 'SUPER_ADMIN',
+   'MNTY-PLATFORM', null, null, 'SUPER_ADMIN',
    '{"scope":"PLATFORM","full_control":true}'::jsonb, 'ACTIVE'),
   ('RC568-TENANT-OWNER', '56800000-0000-4000-8000-000000000003',
-   'RC568-TEST', null, 'OWNER',
+   'RC568-TEST', null, null, 'OWNER',
    '{"admin":true,"scope":"PLATFORM","full_control":true}'::jsonb, 'ACTIVE'),
   ('RC568-MENU-BUSINESS-OWNER', '56800000-0000-4000-8000-000000000002',
-   'RC568-TEST', '56800000-0000-4000-8000-000000000030', 'OWNER',
+   'RC568-TEST', '56800000-0000-4000-8000-000000000030', 'RC568-BRANCH-001', 'OWNER',
    '{"business":"owner"}'::jsonb, 'ACTIVE');
 
 insert into public.digital_page_products
@@ -249,6 +263,62 @@ begin
   end if;
   if public.digital_page_subscription_active(v_order_a, v_admin) is not false then
     raise exception 'RC568_ENTITLEMENT_HELPER_ACCEPTED_WRONG_USER';
+  end if;
+
+  -- A published-page binding may be stored only for a real branch belonging to
+  -- the same business and tenant. First create the paid MENU page under its owner.
+  perform pg_catalog.set_config('request.jwt.claim.sub', '56800000-0000-4000-8000-000000000002', true);
+  insert into public.digital_pages
+    (id, page_type, business_id, slug, title, status, created_by, updated_by, digital_page_order_id)
+  values
+    ('56800000-0000-4000-8000-000000000040', 'MENU',
+     '56800000-0000-4000-8000-000000000030',
+     'rc568-branch-menu-test', 'RC568 Branch Menu Test',
+     'DRAFT', '56800000-0000-4000-8000-000000000002',
+     '56800000-0000-4000-8000-000000000002', v_order_menu);
+
+  -- An inconsistent tenant/business pair is rejected by the trigger, even when
+  -- the caller is authorized for the page itself.
+  v_rejected := false;
+  begin
+    insert into public.digital_page_menu_branch_bindings
+      (page_id, tenant_id, business_id, branch_id, updated_by)
+    values
+      ('56800000-0000-4000-8000-000000000040', 'MNTY-PLATFORM',
+       '56800000-0000-4000-8000-000000000030', 'RC568-BRANCH-001',
+       '56800000-0000-4000-8000-000000000002');
+  exception when others then
+    if sqlerrm = 'DIGITAL_PAGE_MENU_BRANCH_BINDING_TENANT_SCOPE_INVALID' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC568_CROSS_TENANT_MENU_BRANCH_BINDING_ACCEPTED';
+  end if;
+
+  insert into public.digital_page_menu_branch_bindings
+    (page_id, tenant_id, business_id, branch_id, updated_by)
+  values
+    ('56800000-0000-4000-8000-000000000040', 'RC568-TEST',
+     '56800000-0000-4000-8000-000000000030', 'RC568-BRANCH-001',
+     '56800000-0000-4000-8000-000000000002');
+
+  v_rejected := false;
+  begin
+    update public.digital_page_menu_branch_bindings
+       set branch_id = 'MNTY-BERKET-MAIN'
+     where page_id = '56800000-0000-4000-8000-000000000040';
+  exception when others then
+    if sqlerrm = 'DIGITAL_PAGE_MENU_BRANCH_BINDING_IMMUTABLE' then
+      v_rejected := true;
+    else
+      raise;
+    end if;
+  end;
+  if not v_rejected then
+    raise exception 'RC568_MENU_BRANCH_BINDING_IDENTITY_WAS_MUTABLE';
   end if;
 
   -- A correctly scoped MENU subscription must activate successfully, record its
