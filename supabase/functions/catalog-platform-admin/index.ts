@@ -18,7 +18,9 @@ const headersFor = (origin: string | null) => ({
 });
 const response = (origin: string | null, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: headersFor(origin) });
-const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+// PostgreSQL UUID columns accept legacy UUID-shaped values even when their
+// version/variant nibbles do not follow RFC 4122.
+const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const isPlatformAdmin = (m: any) => String(m.role || "").toUpperCase() === "SUPER_ADMIN"
   && !m.business_id && !m.branch_id
   && m.permissions?.scope === "PLATFORM" && m.permissions?.full_control === true;
