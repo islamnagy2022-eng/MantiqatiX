@@ -3,6 +3,7 @@ import { BadgeCheck, Check, ClipboardList, KeyRound, RefreshCw, Save, Search, Sh
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { BusinessEmployeeManager } from '../merchant/BusinessEmployeeManager';
+import { BusinessSubscriberAdmin } from './BusinessSubscriberAdmin';
 
 type Scope = 'TENANT'|'BUSINESS'|'BRANCH'|'PROVIDER';
 type CustomRole = {
@@ -37,7 +38,7 @@ const primaryClass='inline-flex items-center justify-center gap-2 rounded-xl bg-
 
 export const SuperAdminControlCenter: React.FC = () => {
   const { businesses, currentBusiness, setSelectedBusinessId } = useApp();
-  const [tab,setTab]=useState<'roles'|'assignments'|'employees'|'audit'>('roles');
+  const [tab,setTab]=useState<'roles'|'assignments'|'employees'|'management'|'audit'>('roles');
   const [roles,setRoles]=useState<CustomRole[]>([]);
   const [people,setPeople]=useState<PlatformPerson[]>([]);
   const [assignments,setAssignments]=useState<Assignment[]>([]);
@@ -154,7 +155,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     </header>
     {notice&&<div role="status" className={'rounded-xl border p-3 text-sm '+(notice.type==='error'?'border-rose-200 bg-rose-50 text-rose-800':'border-emerald-200 bg-emerald-50 text-emerald-800')}>{notice.text}</div>}
     <nav className="flex gap-2 overflow-x-auto border-b border-slate-200 pb-2">
-      {[{id:'roles',label:'الأدوار والصلاحيات',icon:<KeyRound className="h-4 w-4"/>},{id:'assignments',label:'إسناد الصلاحيات',icon:<UserCog className="h-4 w-4"/>},{id:'employees',label:'توظيف وموظفو الأنشطة',icon:<Users className="h-4 w-4"/>},{id:'audit',label:'سجل العمليات',icon:<ClipboardList className="h-4 w-4"/>}].map((item)=> <button key={item.id} onClick={()=>setTab(item.id as typeof tab)} className={'inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-black '+(tab===item.id?'bg-indigo-700 text-white':'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50')}>{item.icon}{item.label}</button>)}
+      {[{id:'roles',label:'الأدوار والصلاحيات',icon:<KeyRound className="h-4 w-4"/>},{id:'assignments',label:'إسناد الصلاحيات',icon:<UserCog className="h-4 w-4"/>},{id:'employees',label:'توظيف وموظفو الأنشطة',icon:<Users className="h-4 w-4"/>},{id:'management',label:'إدارة الأنشطة والمشتركين',icon:<Users className="h-4 w-4"/>},{id:'audit',label:'سجل العمليات',icon:<ClipboardList className="h-4 w-4"/>}].map((item)=> <button key={item.id} onClick={()=>setTab(item.id as typeof tab)} className={'inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-3 text-sm font-black '+(tab===item.id?'bg-indigo-700 text-white':'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50')}>{item.icon}{item.label}</button>)}
     </nav>
 
     {tab==='roles'&&<div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -202,6 +203,8 @@ export const SuperAdminControlCenter: React.FC = () => {
       <div className="rounded-2xl border border-slate-200 bg-white p-4"><label className="block text-xs font-bold text-slate-600">اختر النشاط لإدارة وظائفه وموظفيه<select value={selectedBusiness?.id||''} onChange={(e)=>{setAssignmentBusinessId(e.target.value);setSelectedBusinessId(e.target.value);}} className={'mt-1 '+inputClass}>{businesses.map((business)=><option key={business.id} value={business.id}>{business.name}</option>)}</select></label></div>
       <BusinessEmployeeManager business={selectedBusiness}/>
     </div>}
+
+    {tab==='management'&&<BusinessSubscriberAdmin/>}
 
     {tab==='audit'&&<div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><ClipboardList className="h-5 w-5 text-indigo-700"/>سجل العمليات الإدارية</h3><p className="mt-1 text-xs text-slate-500">يعرض آخر السجلات المتاحة من قاعدة البيانات؛ لا يغيّر السجلات الأصلية.</p></div><form onSubmit={(e)=>{e.preventDefault();void loadAudit();}} className="flex gap-2"><input value={auditSearch} onChange={(e)=>setAuditSearch(e.target.value)} className={inputClass} placeholder="بحث بالإجراء أو الكيان"/><button className={primaryClass}><Search className="h-4 w-4"/>بحث</button></form></div>
