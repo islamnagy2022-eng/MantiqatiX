@@ -93,3 +93,10 @@
 - DEMO Isolation workflow passed on commit `256e71f9cfbf2d26352faf56c30a702359a7be13`, including connected contract tests and non-mutating CORS/unauthenticated endpoint checks.
 - Google OAuth runtime remains NOT VERIFIED because the DEMO Supabase Google Provider and redirect allowlist still require dashboard configuration. PR #376 remains Draft and the connected page is not publicly deployed.
 - Anonymous catalog browsing is NOT IMPLEMENTED in the connected app. Current DEMO RLS permits anonymous reads only for explicitly showcased businesses; catalog items/prices/branches are membership-scoped. Do not loosen RLS directly. If anonymous visitors must see products/prices, implement and test a read-only public showcase endpoint restricted to explicitly published DEMO records before enabling it.
+
+
+## Latest live OAuth readiness result — 2026-10-26
+
+- The new non-mutating provider check returns `400 validation_failed — Unsupported provider: provider is not enabled` for DEMO project `lkijdgqanbqjudiducjt`. Google OAuth is not enabled there yet.
+- Setup guide: `docs/DEMO_GOOGLE_OAUTH_RUNBOOK_20261026.md`. Configure the Google provider in DEMO with Google callback `https://lkijdgqanbqjudiducjt.supabase.co/auth/v1/callback`, allow the exact app return URL `https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html`, then re-run CI and execute real browser/authenticated E2E.
+- Do not treat successful CORS/JWT preflight tests or a 3xx OAuth readiness redirect as an authenticated E2E pass. No user data was created in the failing probe; no production config or data was changed.

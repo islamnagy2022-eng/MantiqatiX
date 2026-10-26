@@ -367,3 +367,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [Pages CI 40271831245](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831245) validated the PR; its deployment job was skipped by design for a pull_request event. No public DEMO deployment occurred.
 - Blocking external/runtime gates: configure DEMO Google Provider credentials and exact redirect allowlists; test real login and session lifecycle; execute authenticated multi-user tenant/role E2E; reconcile migration history; complete per-function SECURITY DEFINER review. No production mutation, merge or deployment was made.
 - Status: connected DEMO code/CI PASS; authenticated backend E2E NOT VERIFIED; root URL still uses LIVE config; launch BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-26 — Google OAuth provider blocker confirmed
+
+- Added a live non-mutating Google OAuth authorize probe to the connected DEMO smoke script.
+- The live check reached Supabase Auth and returned `400 validation_failed — Unsupported provider: provider is not enabled`, confirming the DEMO project's Google provider is currently disabled. The probe stops before leaving for Google and creates no Auth user or business data.
+- Required Google callback for the isolated DEMO Supabase project: `https://lkijdgqanbqjudiducjt.supabase.co/auth/v1/callback`. Required allowed app return URL: `https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html`.
+- Exact dashboard steps, safe secret handling, post-configuration tests, and the acceptance matrix are in `docs/DEMO_GOOGLE_OAUTH_RUNBOOK_20261026.md`.
+- CI run [40279002724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40279002724) failed on this genuine live configuration blocker after local simulator and connected contract tests passed. Keep the gate failing until the provider and callback are configured, then re-run real authenticated acceptance tests.
+- No secrets were requested/committed, no DEMO Auth users were created, no live DB writes occurred, and production remained unchanged.

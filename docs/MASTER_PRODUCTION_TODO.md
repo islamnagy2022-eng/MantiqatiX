@@ -1907,3 +1907,12 @@ This PASS covers the isolated browser simulator only; it does not certify produc
 - [ ] Complete function-by-function review of remaining SECURITY DEFINER Advisor findings; do not use blanket revokes. Retain current payment-off and production isolation boundaries.
 - [ ] Publish connected DEMO only through separately reviewed release steps after all above gates pass. Root is still not switched; production web/config.js is intentionally unchanged in this checkpoint. No merge, LIVE mutation or deployment occurred.
 - Gate: DEMO code/CI and restricted endpoint smoke = PASS; authenticated database workflow = BLOCKED / NOT VERIFIED; root DEMO deployment = NOT DONE; LIVE release = BLOCKED / NOT CERTIFIED.
+
+
+## DEMO Google OAuth blocker — 2026-10-26
+- [x] Added a non-mutating OAuth readiness check to the connected DEMO live smoke script.
+- [x] Executed it against the isolated project. Workflow [40279002724](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40279002724) confirmed the live blocker: `400 validation_failed — Unsupported provider: provider is not enabled`.
+- [ ] Enable Google Provider in Supabase DEMO and enter the approved OAuth client credentials through the dashboard only; add the exact Google callback `https://lkijdgqanbqjudiducjt.supabase.co/auth/v1/callback`.
+- [ ] Add `https://islamnagy2022-eng.github.io/MantiqatiX/demo/connected.html` to DEMO Auth Additional Redirect URLs; deploy the connected route to a controlled preview path before testing browser login.
+- [ ] Re-run the OAuth readiness check, then perform actual owner sign-in/session/logout and two-independent-user E2E. The provider probe is not an authenticated E2E test.
+- The step-by-step setup and four-sector acceptance matrix are recorded in `docs/DEMO_GOOGLE_OAUTH_RUNBOOK_20261026.md`. Keep PR #376 Draft and the overall release BLOCKED / NOT CERTIFIED. No production settings or data were changed.
