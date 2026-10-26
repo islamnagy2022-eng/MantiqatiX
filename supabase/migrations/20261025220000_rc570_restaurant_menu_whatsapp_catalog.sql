@@ -164,7 +164,7 @@ begin
        or v_order.page_type <> 'MENU'
        or v_order.target_business_id::text is distinct from new.business_id::text
        or v_order.payment_status <> 'PAID'
-       or not coalesce(public.digital_page_public_subscription_active(v_order.id), false) then
+       or not coalesce(public.digital_page_subscription_active(v_order.id, auth.uid()), false) then
       raise exception 'DIGITAL_PAGE_MENU_BRANCH_BINDING_ORDER_SCOPE_INVALID';
     end if;
   end if;
@@ -198,7 +198,7 @@ as $body$
           or (
             o.id is not null
             and o.payment_status = 'PAID'
-            and coalesce(public.digital_page_public_subscription_active(o.id), false)
+            and coalesce(public.digital_page_subscription_active(o.id, p_actor), false)
           )
         )
     )
