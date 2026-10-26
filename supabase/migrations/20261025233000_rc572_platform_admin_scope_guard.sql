@@ -1,19 +1,31 @@
--- RC572: restrict the platform-admin convenience helper to explicit platform super-admin scope.
--- Forward-only correction: tenant/business OWNER and ADMIN roles are not platform administrators.
+-- RC572: preserve the platform-admin tenant and malformed-JSON protections from RC462.
+-- Forward-only candidate fix: tenant-local SUPER_ADMIN roles are not platform admins.
+-- Keep this helper VOLATILE and request-context aware; do not regress RC462's guard.
 create or replace function public.mnty_can_platform_admin()
 returns boolean
-language sql
-stable
+language plpgsql
+volatile
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
-  select exists (
+begin
+  return exists (
     select 1
-    from public.mnty_active_membership(null, null, null) m
-    where upper(m.role) = 'SUPER_ADMIN'
-      and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
+    from public.user_memberships m
+    where m.user_id = auth.uid()
+      and m.tenant_id = 'MNTY-PLATFORM'
+      and m.status = 'ACTIVE'
+      and upper(m.role) = 'SUPER_ADMIN'
+      and coalesce(
+        m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb,
+        false
+      )
   );
+end
 $$;
 
+revoke all on function public.mnty_can_platform_admin() from public, anon;
+grant execute on function public.mnty_can_platform_admin() to authenticated;
+
 comment on function public.mnty_can_platform_admin() is
-  'Platform admin guard: requires an active SUPER_ADMIN membership with explicit PLATFORM scope and full_control=true.';
+  'Platform admin guard: requires an active SUPER_ADMIN membership in MNTY-PLATFORM with exact JSON Booleans scope=PLATFORM and full_control=true.';
