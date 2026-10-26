@@ -378,9 +378,14 @@
 
   async function loadBusinessList(root) {
     const content = root.querySelector("#mx-cat-manager-content");
-    content.innerHTML = '<div class="empty-state">جاري تحميل قائمة الأنشطة ضمن صلاحيات مالك المنصة...</div>';
+    const role = String(root.dataset.role || "").toUpperCase();
+    content.innerHTML = '<div class="empty-state">جاري تحميل الأنشطة المتاحة ضمن نطاق صلاحياتك...</div>';
     try {
-      const response = await invoke({ action: "BUSINESS_LIST" });
+      const request = { action: "BUSINESS_LIST" };
+      // Tenant-level OWNER can choose only from their own tenant. Platform
+      // SUPER_ADMIN selection is restricted by server-side platform scope.
+      if (role !== "SUPER_ADMIN") request.tenantId = root.dataset.tenantId || null;
+      const response = await invoke(request);
       showPicker(root, response.businesses || []);
     } catch (error) {
       showPicker(root, [], messageFor(error));
@@ -393,7 +398,8 @@
     const tenantId = root.dataset.tenantId || "";
     const role = root.dataset.role || "";
     if (!businessId || !tenantId) {
-      if (String(role).toUpperCase() === "SUPER_ADMIN") {
+      if (String(role).toUpperCase() === "SUPER_ADMIN" ||
+          (String(role).toUpperCase() === "OWNER" && Boolean(tenantId))) {
         await loadBusinessList(root);
       } else {
         content.innerHTML = '<div class="empty-state">لا توجد عضوية نشاط مرتبطة بحسابك الحالي. اختر النشاط أو الدور الصحيح من حسابي أولًا.</div>';
