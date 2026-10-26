@@ -102,7 +102,7 @@ begin
   end if;
   v_old:=jsonb_build_object('user_id',v_membership.user_id,'role',v_membership.role,'status',v_membership.status);
   if v_action='SUSPEND' then
-    update public.user_memberships set status='SUSPENDED' where id=p_membership_id returning * into v_membership;
+    update public.user_memberships set status='INACTIVE' where id=p_membership_id returning * into v_membership;
   elsif v_action='RESTORE' then
     update public.user_memberships set status='ACTIVE' where id=p_membership_id returning * into v_membership;
   else
