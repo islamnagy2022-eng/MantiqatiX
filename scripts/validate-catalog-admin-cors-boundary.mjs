@@ -13,7 +13,8 @@ assert.match(source, /const origin = req\.headers\.get\("Origin"\);[\s\S]*?if \(
 assert.match(source, /if \(req\.method !== "POST"\)/, "non-POST requests must remain rejected");
 assert.match(source, /await service\.auth\.getUser\(token\)/, "bearer token must still be verified");
 assert.match(source, /user\.is_anonymous/, "anonymous sessions must remain rejected");
-assert.match(source, /if \(!tenantId \|\| tenantId\.length > 80\)/, "tenant identifier must remain bounded");\nassert.match(source, /if \(!isUuid\(businessId\)\)/, "business identifier must be a UUID");
+assert.match(source, /if \(!tenantId \|\| tenantId\.length > 80\)/, "tenant identifier must remain bounded");
+assert.match(source, /if \(!isUuid\(businessId\)\)/, "business identifier must be a UUID");
 assert.match(source, /upsert_catalog_item_backend/);
 assert.match(source, /upsert_catalog_price_backend/);
 assert.match(source, /upsert_catalog_settings_backend/);
