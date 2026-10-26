@@ -271,14 +271,17 @@ export function createApiHandler(deps: {
 
     const { data: membership } = await supabaseAdmin.from("user_memberships").select("id,role,permissions")
       .eq("user_id", user.id).eq("tenant_id", order.tenant_id).eq("status", "ACTIVE").limit(1).maybeSingle()
-    if (!membership) return json({ error: "Forbidden" }, 403)
+    const isOrderOwner = order.customer_id === user.id
+    // Marketplace customers may pay for their own order even when the provider
+    // belongs to another tenant. Non-owners still require active tenant access
+    // and operational payment permissions, matching the database authorization contract.
+    if (!membership && !isOrderOwner) return json({ error: "Forbidden" }, 403)
 
-    const role = String(membership.role ?? "").toUpperCase()
-    const permissions = Array.isArray(membership.permissions) ? membership.permissions : []
+    const role = String(membership?.role ?? "").toUpperCase()
+    const permissions = Array.isArray(membership?.permissions) ? membership.permissions : []
     const operationalPaymentAccess =
       ["SUPER_ADMIN","ADMIN","OWNER","MANAGER","CASHIER","STAFF"].includes(role) ||
       permissions.includes("PAYMENT_CREATE")
-    const isOrderOwner = order.customer_id === user.id
     if (!isOrderOwner && !operationalPaymentAccess) return json({ error: "Forbidden" }, 403)
 
     const { data: configuredMethod } = await supabaseAdmin.from("tenant_payment_methods").select("id")
