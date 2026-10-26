@@ -4,6 +4,7 @@ do $$
 declare
   v_guard text;
   v_binding_guard text;
+  v_section_write_guard text;
   v_page_policy text;
   v_section_policy text;
   v_tenant_type text;
@@ -35,6 +36,19 @@ begin
      or position('DIGITAL_PAGE_MENU_BRANCH_BINDING_TENANT_SCOPE_INVALID' in v_binding_guard) = 0
      or position('DIGITAL_PAGE_MENU_BRANCH_BINDING_BRANCH_SCOPE_INVALID' in v_binding_guard) = 0 then
     raise exception 'RC571_REGRESSION: private branch binding does not enforce canonical tenant/business/branch scope';
+  end if;
+
+  if position('digital_page_subscription_active' in v_binding_guard) = 0
+     or position('digital_page_public_subscription_active' in v_binding_guard) > 0 then
+    raise exception 'RC571_REGRESSION: owner branch binding must check the paid owner entitlement, not public publication state';
+  end if;
+
+  select pg_catalog.pg_get_functiondef(
+    'public.digital_page_menu_section_write_allowed(uuid, uuid)'::regprocedure
+  ) into v_section_write_guard;
+  if position('digital_page_subscription_active' in v_section_write_guard) = 0
+     or position('digital_page_public_subscription_active' in v_section_write_guard) > 0 then
+    raise exception 'RC571_REGRESSION: authenticated section writes must support active draft subscriptions without exposing them publicly';
   end if;
 
   select pg_catalog.pg_get_functiondef(
