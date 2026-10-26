@@ -92,7 +92,24 @@ export const MerchantDashboard: React.FC = () => {
   const [formError, setFormError] = useState('');
 
   if (!currentBusiness) {
-    return <div className="p-8 text-center text-slate-500">يرجى اختيار نشاط أولاً.</div>;
+    return (
+      <section className="mx-auto mt-12 max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm" role="status">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+          <ShieldAlert className="h-7 w-7 text-slate-500" aria-hidden="true" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900">لا يوجد نشاط مرتبط بالحساب</h2>
+        <p className="mt-3 leading-7 text-slate-600">
+          لا توجد بيانات نشاط متاحة للإدارة ضمن العضوية الحالية. تظل أدوات المنتجات والأسعار والإعدادات مغلقة حتى يتم ربط نشاط فعلي ومعتمد بالحساب.
+        </p>
+        <button
+          type="button"
+          onClick={() => setCurrentView('directory')}
+          className="mt-6 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"
+        >
+          العودة إلى دليل الأنشطة
+        </button>
+      </section>
+    );
   }
 
   const productsCount = businessProducts.length;
