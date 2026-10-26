@@ -9,6 +9,8 @@ declare
   v_section_policy text;
   v_tenant_type text;
   v_branch_type text;
+  v_binding_policy record;
+  v_binding_policy_count integer := 0;
 begin
   -- Keep the binding schema aligned with the canonical text identifiers.
   select data_type into v_tenant_type
@@ -41,6 +43,29 @@ begin
   if position('digital_page_subscription_active' in v_binding_guard) = 0
      or position('digital_page_public_subscription_active' in v_binding_guard) > 0 then
     raise exception 'RC571_REGRESSION: owner branch binding must check the paid owner entitlement, not public publication state';
+  end if;
+
+  -- Business-wide memberships have NULL branch_id in the canonical schema.
+  -- Such owners/admins must manage the business's branches without being able
+  -- to cross tenant or business boundaries; the trigger enforces real branch scope.
+  for v_binding_policy in
+    select policyname, coalesce(qual, '') || ' ' || coalesce(with_check, '') as policy_expression
+      from pg_catalog.pg_policies
+     where schemaname = 'public'
+       and tablename = 'digital_page_menu_branch_bindings'
+       and policyname in (
+         'digital_page_menu_branch_bindings_owner_read',
+         'digital_page_menu_branch_bindings_owner_insert',
+         'digital_page_menu_branch_bindings_owner_update'
+       )
+  loop
+    v_binding_policy_count := v_binding_policy_count + 1;
+    if position('M.BRANCH_ID IS NULL' in upper(v_binding_policy.policy_expression)) = 0 then
+      raise exception 'RC571_REGRESSION: policy % denies business-wide branch membership', v_binding_policy.policyname;
+    end if;
+  end loop;
+  if v_binding_policy_count <> 3 then
+    raise exception 'RC571_REGRESSION: expected 3 private branch binding policies, got %', v_binding_policy_count;
   end if;
 
   select pg_catalog.pg_get_functiondef(
