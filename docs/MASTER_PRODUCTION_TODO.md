@@ -1829,7 +1829,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 ## Production cleanup update — 2026-10-26 (supersedes earlier production fixture counts)
 
-- Live production now has **1 tenant** (`MNTY-PLATFORM`), **26 businesses**, **25 active official sector showcases**, **48?** memberships before cleanup minus the three synthetic `MNTY-TEST-B` memberships (verify current total before marking this line VERIFIED), **6 Auth users**, **0 orders**, and **0 payment intents**.
+- Live production now has **1 tenant** (`MNTY-PLATFORM`), **26 businesses**, **25 active official sector showcases**, **45 active memberships across 10 users**, **6 Auth users**, **0 orders**, and **0 payment intents**.
 - Removed the synthetic production tenant `MNTY-TEST-B` and the inactive `MNTY-BERKET-TEST` provider fixture with its test advertisement and catalog/pricing data. Financial/transactional records were checked first and none were present.
 - Kept all 25 official `OFFICIAL_PLATFORM_SHOWCASE` businesses and preserved the unrelated inactive pending web registration `BUSINESS-08769963`.
 - Synthetic two-tenant records are now local/CI-only. Use the guarded fixture at `supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql`; do not seed fixtures into production. The v2 verifier fails closed when its disposable fixture is absent.
