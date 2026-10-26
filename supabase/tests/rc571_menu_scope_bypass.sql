@@ -3,9 +3,40 @@
 do $$
 declare
   v_guard text;
+  v_binding_guard text;
   v_page_policy text;
   v_section_policy text;
+  v_tenant_type text;
+  v_branch_type text;
 begin
+  -- Keep the binding schema aligned with the canonical text identifiers.
+  select data_type into v_tenant_type
+    from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'digital_page_menu_branch_bindings'
+     and column_name = 'tenant_id';
+  select data_type into v_branch_type
+    from information_schema.columns
+   where table_schema = 'public'
+     and table_name = 'digital_page_menu_branch_bindings'
+     and column_name = 'branch_id';
+  if v_tenant_type is distinct from 'character varying' then
+    raise exception 'RC571_REGRESSION: binding tenant_id must be VARCHAR, got %', v_tenant_type;
+  end if;
+  if v_branch_type is distinct from 'character varying' then
+    raise exception 'RC571_REGRESSION: binding branch_id must be VARCHAR, got %', v_branch_type;
+  end if;
+
+  select pg_catalog.pg_get_functiondef(
+    'public.digital_page_menu_branch_binding_scope_guard()'::regprocedure
+  ) into v_binding_guard;
+  if position('public.branches' in v_binding_guard) = 0
+     or position('public.businesses' in v_binding_guard) = 0
+     or position('DIGITAL_PAGE_MENU_BRANCH_BINDING_TENANT_SCOPE_INVALID' in v_binding_guard) = 0
+     or position('DIGITAL_PAGE_MENU_BRANCH_BINDING_BRANCH_SCOPE_INVALID' in v_binding_guard) = 0 then
+    raise exception 'RC571_REGRESSION: private branch binding does not enforce canonical tenant/business/branch scope';
+  end if;
+
   select pg_catalog.pg_get_functiondef(
     'public.digital_page_business_menu_insert_guard()'::regprocedure
   ) into v_guard;
