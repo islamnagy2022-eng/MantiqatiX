@@ -114,6 +114,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return params.has('store') || params.has('businessId') ? 'public_storefront' : 'directory';
   });
   const pendingCredentials = useRef(new Map<string, { fullName: string; businessName: string; username: string; password: string }>());
+  // Prevent overlapping auth events from applying stale bootstrap results over a newer session.
+  const authLoadSequence = useRef(0);
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
@@ -128,8 +130,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   })();
   const businessProducts = products.filter((p) => p.businessId === currentBusiness?.id);
 
-  const applyUser = async (user: any) => {
+  const applyUser = async (user: any, isCurrent: () => boolean = () => true) => {
     const boot = await bootstrapProductionUser(user || null);
+    if (!isCurrent()) return;
     setAuthSession(boot.authSession);
     setBusinesses(boot.businesses);
     setProducts(boot.products);
@@ -142,6 +145,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (byId) { setSelectedBusinessIdState(byId.id); setCurrentView('public_storefront'); }
       else if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
         const publicCatalog = await fetchPublicCatalog(requestedId).catch(() => null);
+        if (!isCurrent()) return;
         if (publicCatalog) {
           setBusinesses([publicCatalog.business, ...boot.businesses.filter((b) => b.id !== publicCatalog.business.id)]);
           setProducts([...publicCatalog.products, ...boot.products.filter((p) => p.businessId !== publicCatalog.business.id)]);
@@ -161,19 +165,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let active = true;
     const loadSession = async (session: any) => {
-      try { if (active) await applyUser(session?.user || null); }
+      const sequence = ++authLoadSequence.current;
+      const isCurrent = () => active && sequence === authLoadSequence.current;
+      try { if (isCurrent()) await applyUser(session?.user || null, isCurrent); }
       catch (error) {
         console.error('[MantiqatiX production bootstrap]', error);
-        if (active) {
-          setAuthSession({ role: 'guest' });
-          setBusinesses([]); setProducts([]); setSubscribers([]);
-          setCurrentView('directory');
-        }
-      } finally { if (active) setAuthLoading(false); }
+        // A temporary role/catalog API failure must not erase a valid Supabase session.
+        // Keep the last known UI state and allow a later refresh to retry hydration.
+      } finally { if (isCurrent()) setAuthLoading(false); }
     };
     void supabase.auth.getSession().then(({ data }) => loadSession(data.session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         queueMicrotask(() => { if (active) void loadSession(session); });
       }
     });
@@ -243,8 +246,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsLoginModalOpen(false);
       return { success: true };
     } catch (e: any) {
-      await supabase.auth.signOut();
-      return { success: false, error: e?.message || 'تعذر تحميل الصلاحيات الإنتاجية للحساب.' };
+      // Do not sign out a valid user just because the production-role bootstrap failed.
+      // Preserve the Supabase session so the problem can be diagnosed and retried safely.
+      return { success: false, error: e?.message || 'تم تسجيل الدخول لكن تعذر تحميل صلاحيات الحساب. حاول تحديث الصفحة، ولن يتم حذف الجلسة.' };
     }
   };
 
