@@ -37,15 +37,15 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       {/* Top Banner with Platform Context */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-3 sm:px-4">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+      <div className="w-full min-w-0 max-w-full overflow-hidden bg-slate-900 text-slate-300 text-xs py-1.5 px-3 sm:px-4">
+        <div className="w-full min-w-0 max-w-7xl mx-auto flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-2">
+          <div className="flex min-w-0 w-full sm:flex-1 items-center gap-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               <Sparkles className="w-3 h-3 ml-1 text-emerald-400" />
               منصة MantiqatiX الذكية
             </span>
             <div
-              className="mantiqati-ticker min-w-0 flex-[1_1_280px] overflow-hidden text-slate-300"
+              className="mantiqati-ticker block min-w-0 w-full flex-1 overflow-hidden text-slate-300"
               aria-label="رسائل تعريفية وتسويقية عن منصة منطقتي X"
             >
               <style>{`
@@ -56,6 +56,8 @@ export const Navbar: React.FC = () => {
                 .mantiqati-ticker-track {
                   display: flex;
                   width: max-content;
+                  max-width: none;
+                  flex: 0 0 auto;
                   animation: mantiqati-ticker-ltr 36s linear infinite;
                 }
                 .mantiqati-ticker:hover .mantiqati-ticker-track {
