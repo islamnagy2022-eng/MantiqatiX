@@ -116,7 +116,18 @@ Deno.serve(async (req: Request) => {
         .in("tenant_id", productionTenantIds).not("business_id", "is", null)
         .in("role", ["OWNER", "BUSINESS_OWNER"]).limit(500);
       if (error) throw error;
-      const records = (rows || []).filter((m: any) => isUuid(String(m.business_id || "")));
+      // Keep one management row per real subscriber + business + owner role.
+      // Historical duplicate membership rows must not appear as duplicate subscriptions.
+      // Prefer ACTIVE membership over an inactive duplicate; do not merge different businesses.
+      const candidates = (rows || []).filter((m: any) => isUuid(String(m.business_id || "")));
+      const uniqueMemberships = new Map<string, any>();
+      for (const membership of candidates) {
+        const key = [String(membership.user_id), String(membership.business_id), String(membership.role).toUpperCase()].join(":");
+        const previous = uniqueMemberships.get(key);
+        const rank = (m: any) => String(m.status).toUpperCase() === "ACTIVE" ? 2 : 1;
+        if (!previous || rank(membership) > rank(previous)) uniqueMemberships.set(key, membership);
+      }
+      const records = [...uniqueMemberships.values()];
       const businessIds = [...new Set(records.map((m: any) => String(m.business_id)))];
       const { data: businesses, error: businessError } = businessIds.length
         ? await service.from("businesses").select("id,tenant_id,name").in("id", businessIds)
