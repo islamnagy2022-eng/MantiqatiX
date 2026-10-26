@@ -30,7 +30,34 @@ values
 do $$
 declare
   v_allowed boolean;
+  v_volatility "char";
+  v_search_path text;
 begin
+  if has_function_privilege('anon', 'public.mnty_can_platform_admin()', 'EXECUTE') then
+    raise exception 'RC572_ANON_EXECUTE_MUST_BE_REVOKED';
+  end if;
+  if not has_function_privilege('authenticated', 'public.mnty_can_platform_admin()', 'EXECUTE') then
+    raise exception 'RC572_AUTHENTICATED_EXECUTE_MISSING';
+  end if;
+
+  select p.provolatile
+    into v_volatility
+    from pg_catalog.pg_proc p
+   where p.oid = 'public.mnty_can_platform_admin()'::regprocedure;
+  if v_volatility is distinct from 'v' then
+    raise exception 'RC572_GUARD_MUST_REMAIN_VOLATILE';
+  end if;
+
+  select cfg.option_value
+    into v_search_path
+    from pg_catalog.pg_proc p
+    cross join lateral pg_catalog.pg_options_to_table(p.proconfig) cfg
+   where p.oid = 'public.mnty_can_platform_admin()'::regprocedure
+     and cfg.option_name = 'search_path';
+  if v_search_path is null or v_search_path ~ '(^|,)public(,|$)' then
+    raise exception 'RC572_GUARD_SEARCH_PATH_NOT_HARDENED: %', coalesce(v_search_path, '<null>');
+  end if;
+
   perform set_config('request.jwt.claim.sub', '57200000-0000-4000-8000-000000000001', true);
   if public.mnty_can('admin', null, null, null) is not true then
     raise exception 'RC572_FIXTURE_EXPECTATION_FAILED: owner no longer reproduces legacy generic-admin permission';
