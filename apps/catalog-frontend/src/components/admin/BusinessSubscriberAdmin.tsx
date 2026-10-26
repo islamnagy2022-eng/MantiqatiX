@@ -41,7 +41,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
       if(requestedRole===null||!requestedRole.trim())return;
       role=requestedRole.trim();
       if(!window.confirm('تأكيد تغيير الدور؟ سيتم تسجيل العملية في سجل التدقيق.'))return;
-    } else if(!window.confirm(action==='SUSPEND'?'تعليق عضوية هذا المشترك؟':'إعادة تفعيل عضوية هذا المشترك؟'))return;
+    } else if(!window.confirm(action==='SUSPEND'?'إنهاء عضوية هذا المشترك مع الاحتفاظ بسجلاته؟':'إعادة تفعيل عضوية هذا المشترك؟'))return;
     setSaving(m.id);setNotice(null);
     const {error}=await supabase.rpc('mnty_platform_admin_manage_membership',{
       p_membership_id:m.id,p_action:action,p_role:role||null
@@ -78,7 +78,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
           <div><div className="text-sm font-bold text-slate-800">{m.full_name||m.email||m.user_id}</div><div className="text-xs text-slate-500">{m.email} · {m.role} · {m.status}</div></div>
           <div className="flex flex-wrap gap-2">
             <button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'CHANGE_ROLE')} className={buttonClass}>تعديل الدور</button>
-            {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>تعليق العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
+            {m.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'SUSPEND')} className={buttonClass}>إنهاء العضوية</button>:<button type="button" disabled={!!saving} onClick={()=>void manageMembership(m,'RESTORE')} className={buttonClass}><RotateCcw className="h-3.5 w-3.5"/>إعادة التفعيل</button>}
           </div>
         </div>)}</div>
       </div>
