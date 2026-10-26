@@ -51,15 +51,7 @@ export const Navbar: React.FC = () => {
 
           <div className="flex items-center gap-3">
             {/* Auth Session Status or Login Trigger */}
-            {authSession.role === 'guest' ? (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-md text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <LogIn className="w-3 h-3" />
-                <span>دخول المشتركين / الإدارة</span>
-              </button>
-            ) : (
+            {authSession.role !== 'guest' && (
               <div className="flex items-center gap-2 text-[11px]">
                 {authSession.role === 'admin' ? (
                   <span className="text-amber-300 font-bold flex items-center gap-1">
