@@ -28,7 +28,9 @@ export const Navbar: React.FC = () => {
     cartItems,
     setIsCartOpen,
     authSession,
+    authLoading,
     authBootstrapError,
+    adminSettings,
     logout,
     setIsLoginModalOpen,
     requestCatalogViaAdminWhatsApp,
@@ -90,18 +92,24 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Auth Session Status or Login Trigger */}
-            {authSession.role !== 'guest' && (
+            {/* Show the Google identity separately from any business subscription. */}
+            {authLoading ? (
+              <span className="text-slate-300 text-[11px] font-bold">جارٍ التحقق من جلسة Google...</span>
+            ) : authSession.isAuthenticated ? (
               <div className="flex items-center gap-2 text-[11px]">
                 {authSession.role === 'admin' ? (
                   <span className="text-amber-300 font-bold flex items-center gap-1">
                     <Crown className="w-3 h-3" />
                     جلسة إدارة MantiqatiX
                   </span>
-                ) : (
+                ) : authSession.role === 'subscriber' ? (
                   <span className="text-emerald-300 font-bold flex items-center gap-1">
                     <UserCheck className="w-3 h-3" />
-                    المشترك: {authSession.subscriberName}
+                    المشترك: {authSession.subscriberName || authSession.email}
+                  </span>
+                ) : (
+                  <span className="text-sky-200 font-bold" title={authSession.email || ''}>
+                    حساب Google: {authSession.email || 'تم تسجيل الدخول'}
                   </span>
                 )}
                 <button
@@ -113,8 +121,7 @@ export const Navbar: React.FC = () => {
                   <span>خروج</span>
                 </button>
               </div>
-            )}
-
+            ) : null}
           </div>
         </div>
       </div>
@@ -122,6 +129,24 @@ export const Navbar: React.FC = () => {
       {authBootstrapError && (
         <div role="alert" className="bg-rose-50 border-b border-rose-200 px-3 py-2 text-xs font-bold text-rose-800 text-right" dir="rtl">
           تم تسجيل الدخول لكن تعذر تحميل صلاحيات الحساب: {authBootstrapError} — حدّث الصفحة، وإذا استمرت المشكلة أرسل هذه الرسالة للدعم.
+        </div>
+      )}
+
+      {authSession.isAuthenticated && authSession.role === 'guest' && !authBootstrapError && (
+        <div role="status" className="bg-amber-50 border-b border-amber-200 px-3 py-2 text-xs text-amber-950 text-right flex flex-wrap items-center justify-between gap-2" dir="rtl">
+          <span>
+            تم تسجيل الدخول بحساب Google{authSession.email ? ` (${authSession.email})` : ''}، لكن لا توجد عضوية نشاط نشطة مرتبطة بهذا الحساب. لن تُمنح صلاحيات صاحب النشاط تلقائيًا.
+          </span>
+          {String(adminSettings.adminWhatsApp || '').replace(/\\D/g, '') && (
+            <a
+              href={`https://wa.me/${String(adminSettings.adminWhatsApp).replace(/\\D/g, '')}?text=${encodeURIComponent(`أرجو مراجعة ربط اشتراك MantiqatiX بحساب Google: ${authSession.email || 'الحساب الحالي'}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-black text-amber-900 underline underline-offset-2"
+            >
+              مراجعة ربط الاشتراك مع الإدارة
+            </a>
+          )}
         </div>
       )}
 
@@ -177,7 +202,7 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <div className="text-[11px] sm:text-xs font-bold text-slate-800 truncate max-w-[100px] sm:max-w-xs bg-slate-100 px-2 sm:px-3 py-1 rounded-xl border border-slate-200">
-                <span className="truncate">{currentBusiness?.name}</span>
+                <span className="truncate">{currentBusiness?.name || (authSession.isAuthenticated ? 'حساب Google' : 'تصفح عام')}</span>
               </div>
             )}
 
@@ -225,7 +250,7 @@ export const Navbar: React.FC = () => {
                 )}
               </button>
 
-              {authSession.role === 'guest' && (
+              {authSession.role === 'guest' && !authSession.isAuthenticated && !authLoading && (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer"
