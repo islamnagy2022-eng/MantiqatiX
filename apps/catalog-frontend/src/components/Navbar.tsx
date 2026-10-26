@@ -52,13 +52,29 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* Auth Session Status or Login Trigger */}
             {authSession.role === 'guest' ? (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-md text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <LogIn className="w-3 h-3" />
-                <span>دخول المشتركين / الإدارة</span>
-              </button>
+              authSession.authenticated ? (
+                <div className="flex items-center gap-2 text-[11px]">
+                  <span className="text-amber-300 font-bold" role="status">
+                    لا توجد عضوية نشطة — التصفح العام فقط
+                  </span>
+                  <button
+                    onClick={logout}
+                    className="text-slate-400 hover:text-rose-400 flex items-center gap-0.5 transition-colors cursor-pointer"
+                    title="تسجيل الخروج"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    <span>خروج</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-md text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <LogIn className="w-3 h-3" />
+                  <span>دخول المشتركين / الإدارة</span>
+                </button>
+              )
             ) : (
               <div className="flex items-center gap-2 text-[11px]">
                 {authSession.role === 'admin' ? (
@@ -187,7 +203,7 @@ export const Navbar: React.FC = () => {
                 )}
               </button>
 
-              {authSession.role === 'guest' && (
+              {authSession.role === 'guest' && !authSession.authenticated && (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer"
@@ -267,7 +283,7 @@ export const Navbar: React.FC = () => {
               )}
 
               {/* If Guest clicks dashboard */}
-              {authSession.role === 'guest' && (
+              {authSession.role === 'guest' && !authSession.authenticated && (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
