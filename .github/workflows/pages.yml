@@ -112,7 +112,7 @@ jobs:
           test -f web/catalog-module.js
           test -f supabase/functions/catalog-admin/index.ts
           test -f supabase/functions/public-catalog/index.ts
-          test -f supabase/migrations/20261026100000_rc107_catalog_manager_business_branch_scope.sql
+          test -f supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql
           test -f web/home.js
           test -f web/smm.html
           test -f web/digital-page.html
