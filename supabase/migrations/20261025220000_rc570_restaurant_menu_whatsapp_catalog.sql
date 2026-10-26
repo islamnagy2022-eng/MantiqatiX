@@ -49,7 +49,7 @@ using (
     where m.user_id = auth.uid()
       and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
       and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
-      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -65,7 +65,7 @@ with check (
     where m.user_id = auth.uid()
       and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
       and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
-      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -81,7 +81,7 @@ using (
     where m.user_id = auth.uid()
       and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
       and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
-      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -93,7 +93,7 @@ with check (
     where m.user_id = auth.uid()
       and m.tenant_id::text = digital_page_menu_branch_bindings.tenant_id::text
       and m.business_id::text = digital_page_menu_branch_bindings.business_id::text
-      and m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text
+      and (m.branch_id is null or m.branch_id::text = digital_page_menu_branch_bindings.branch_id::text)
       and m.status = 'ACTIVE'
       and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
   )
@@ -222,7 +222,7 @@ as $body$
           on m.user_id = p_actor
          and m.tenant_id::text = b.tenant_id::text
          and m.business_id::text = b.business_id::text
-         and m.branch_id::text = b.branch_id::text
+         and (m.branch_id is null or m.branch_id::text = b.branch_id::text)
          and m.status = 'ACTIVE'
          and upper(coalesce(m.role,'')) in ('SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER')
         where b.page_id = p_page_id
