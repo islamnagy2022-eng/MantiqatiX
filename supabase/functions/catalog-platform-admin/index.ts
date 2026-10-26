@@ -261,8 +261,9 @@ Deno.serve(async (req: Request) => {
         business_id: businessId, branch_id: null, role: "BUSINESS_OWNER", status: "ACTIVE", permissions: { catalog: true },
       });
       if (membershipInsertError) {
-        // Membership creation is protected by the database unique constraint. If another
-        // request won the race, return its membership rather than treating the duplicate
+        // The null-safe unique index on (user_id, business_id, COALESCE(branch_id, ''))
+        // prevents duplicate business-wide memberships. If another request won the race,
+        // return its membership rather than treating the duplicate
         // as a fatal error. Never delete the Auth user here: another request may have
         // successfully attached that identity and deletion could cascade into production.
         const { data: racedMemberships, error: raceLookupError } = await service.from("user_memberships")
