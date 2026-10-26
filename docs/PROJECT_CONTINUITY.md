@@ -2,14 +2,24 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-26:** Active development is on `demo/four-sector-isolated-20261026`, based on main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`. A standalone local-only DEMO simulator is implemented for restaurants/cafes, pharmacies, doctors/clinics, and stores; dedicated source-isolation + DOM workflow CI passed on simulator head `58f46459eca005782c13a42d48d73b7a3f271aa7` (run 40260656015). It tests UI flows only, not real Supabase Auth/RLS. No production config/database/function/deployment change or merge occurred. The `manteqti` Supabase organization is on Free and the new-project quote was $0/month; project creation is pending explicit organization confirmation. Global production release remains **BLOCKED / NOT CERTIFIED**.
+> **LATEST SESSION STATE — 2026-10-26:** Active development is on `demo/four-sector-isolated-20261026`, based on main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`. A standalone local-only DEMO simulator is implemented for restaurants/cafes, pharmacies, doctors/clinics, and stores; dedicated source-isolation + DOM workflow CI passed on simulator head `58f46459eca005782c13a42d48d73b7a3f271aa7` (run 40260656015). It tests UI flows only, not real Supabase Auth/RLS. No production config/database/function/deployment change or merge occurred. A separate Supabase DEMO project has since been created and hardened; see the latest dated notes below. Global production release remains **BLOCKED / NOT CERTIFIED**.
+
+## قاعدة التنفيذ الحالية — إطلاق أولي ثم تطوير تدريجي
+
+- **الهدف الآن:** إخراج أول نسخة تشغيلية صغيرة وموثوقة من MantiqatiX انطلاقًا من المشروع الحالي؛ لا إعادة بناء، ولا استبدال المعمارية، ولا فتح نطاقات جديدة.
+- **نطاق الإطلاق الأول:** تسجيل الدخول بـ Google، حساب المالك الأساسي، إنشاء وإدارة النشاط والفروع، المنتجات/الخدمات والأسعار والمخزون التجريبي/الفعلي حسب بيئة التشغيل، الطلبات وحالاتها، مواعيد العيادات، أدوار المالك/المدير/الموظف/العميل، وعزل البيانات والأمان الأساسي.
+- **النطاق التجاري المحدد لهذه المرحلة:** المطاعم والكافيهات، الصيدليات، الأطباء والعيادات، والمتاجر. بقية الموديولات الحالية لا تُحذف ولا يُعاد تصميمها الآن؛ تُحفظ للاستفادة منها بعد الإطلاق.
+- **منع التوسع:** لا ميزات جديدة ولا تحسينات شكلية كبيرة ولا تطوير موديولات غير لازمة لاختبار التدفق الأساسي قبل إغلاق بوابات الإطلاق. تُجمع طلبات التحسين في قائمة Post-launch.
+- **قاعدة الجودة:** نقلل الميزات، لا نقلل أمانها. لا إطلاق قبل إثبات Auth/RLS، عزل مستخدمين/نشاطين، التدفق الأساسي للطلب/الموعد، النسخ الاحتياطي/الرجوع، ومراجعة الإنتاج. نجاح الواجهة أو CI وحده لا يساوي جاهزية إنتاج.
+- **الفصل بين البيئات:** تطوير واختبارات DEMO مستقلة أولًا؛ لا نقل لحسابات أو جلسات أو بيانات من إنتاج Supabase إلى DEMO. تُستخدم هوية Google نفسها مع سجل مصادقة مستقل في المشروع التجريبي.
+
 > Previous baseline note: the marketing workspace PR #292 and live-security review PR #291 were merged, with checkpoint `cf522740e9dd058c28728ba582e347661ef24122`; production remained blocked.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
 
-## Latest session update — 2026-10-21
+## Previous session update — 2026-10-21
 
 - Current active work is PR #316 on branch `fix/preview-starts-at-public-home-20261021`; inspected head before this documentation-only commit: `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
 - Preview/navigation contract validator is present and invoked by `.github/workflows/pages.yml`. The production Pages deploy job is intentionally restricted to `main` push or manual dispatch on `main`; PR runs should skip deploy.
