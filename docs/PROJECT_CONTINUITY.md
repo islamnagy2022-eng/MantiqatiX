@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-26:** Active development is on `demo/four-sector-isolated-20261026`, based on main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`. A standalone local-only DEMO simulator is implemented for restaurants/cafes, pharmacies, doctors/clinics, and stores; dedicated isolation CI passed on code head `6f9a43310d7b1e7710662e3640ff63f66ea6f267` (run 40260016567). It tests UI flows only, not real Supabase Auth/RLS. No production config/database/function/deployment change or merge occurred. The `manteqti` Supabase organization is on Free and the new-project quote was $0/month; project creation is pending explicit organization confirmation. Global production release remains **BLOCKED / NOT CERTIFIED**.
+> **LATEST SESSION STATE — 2026-10-26:** Active development is on `demo/four-sector-isolated-20261026`, based on main commit `2a6b5a5209ae86815046c91fd3d3e35525361528`. A standalone local-only DEMO simulator is implemented for restaurants/cafes, pharmacies, doctors/clinics, and stores; dedicated source-isolation + DOM workflow CI passed on simulator head `58f46459eca005782c13a42d48d73b7a3f271aa7` (run 40260656015). It tests UI flows only, not real Supabase Auth/RLS. No production config/database/function/deployment change or merge occurred. The `manteqti` Supabase organization is on Free and the new-project quote was $0/month; project creation is pending explicit organization confirmation. Global production release remains **BLOCKED / NOT CERTIFIED**.
 > Previous baseline note: the marketing workspace PR #292 and live-security review PR #291 were merged, with checkpoint `cf522740e9dd058c28728ba582e347661ef24122`; production remained blocked.
 
 >
