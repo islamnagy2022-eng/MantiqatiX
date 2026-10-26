@@ -77,10 +77,11 @@ Deno.serve(async (req: Request) => {
           .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
         if (priceError) throw priceError;
         prices = p || [];
+        }
       }
       const profile = business.settings?.catalog_profile || {};
       const phone = String(branch?.phone || profile.whatsapp_phone || profile.phone || "");
-      const cleanPhone = phone.replace(/\\D/g, "");
+      const cleanPhone = phone.replace(/\D/g, "");
       const whatsappPhone = cleanPhone.startsWith("00") ? cleanPhone.slice(2)
         : cleanPhone.startsWith("0") ? "20" + cleanPhone.slice(1)
         : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
