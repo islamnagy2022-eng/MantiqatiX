@@ -1,17 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const allowedOrigins = new Set([
-  "https://islamnagy2022-eng.github.io",
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-]);
+const allowedOrigin = "https://islamnagy2022-eng.github.io";
 
-const cors = (origin: string | null) => ({
+const cors = (_origin: string | null) => ({
   "Content-Type": "application/json",
-  "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin)
-    ? origin
-    : "https://islamnagy2022-eng.github.io",
+  "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
@@ -38,7 +32,7 @@ const safeBranch = (value: unknown) =>
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
-  if (origin && !allowedOrigins.has(origin)) return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
+  if (origin && origin !== allowedOrigin) return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors(origin) });
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
 
