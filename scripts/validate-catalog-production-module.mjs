@@ -99,7 +99,9 @@ check("database_writes_enforce_business_branch_and_limits", () => {
 check("legacy_postgres_uuid_shape_is_accepted", () => {
   const legacyBusinessId = "1da8c784-5bad-5ed9-744c-8656bc49c19f";
   const uuidShape = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const strictRfcUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   assert.ok(uuidShape.test(legacyBusinessId), "existing PostgreSQL UUID-shaped business IDs must be accepted");
+  assert.ok(!strictRfcUuid.test(legacyBusinessId), "regression fixture must be rejected by the former RFC-version-constrained validator");
   includes(adminFn, "const isUuid = (value: unknown)");
   includes(adminFn, "[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}");
   includes(read("supabase/functions/catalog-platform-admin/index.ts"), "[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}");
