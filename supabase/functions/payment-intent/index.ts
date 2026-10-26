@@ -1,7 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
-const PAYMOB_CHECKOUT_ENABLED = false; // First-launch gate: enable only in a later approved release.
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -32,7 +31,6 @@ Deno.serve(async (req) => {
   }
   if (origin && origin !== allowedOrigin) return json({ error: "ORIGIN_NOT_ALLOWED" }, 403, requestId);
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, requestId);
-  if (!PAYMOB_CHECKOUT_ENABLED) return json({ error: "PAYMOB_CHECKOUT_UNDER_CONSTRUCTION" }, 503, requestId);
 
   const auth = req.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401, requestId);
