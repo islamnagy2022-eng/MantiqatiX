@@ -1896,7 +1896,7 @@ This PASS covers the isolated browser simulator only; it does not certify produc
 
 ## DEMO pre-launch gate recheck — 2026-10-26 (read-only)
 - [x] Rechecked the current main SHA (cf493ea38ab46af3356e6dcf750912616598a9b1) and confirmed web/config.js still points to LIVE (moyhiluyhjsujhwlyeuu).
-- [x] Rechecked connected DEMO PR #376 as Draft at code head 9ea512435c8a5b0477be37d2cc7212ececb35e96. The four-sector UI PR #378 is separate and still has the production config; do not treat it as the DEMO root switch.
+- [x] Rechecked connected DEMO PR #376 as Draft. The application-code head last verified before these documentation-only checkpoint commits was 9ea512435c8a5b0477be37d2cc7212ececb35e96. The four-sector UI PR #378 is separate and still has the production config; do not treat it as the DEMO root switch.
 - [x] Read-only Supabase verification: DEMO project lkijdgqanbqjudiducjt is ACTIVE_HEALTHY; seven DEMO Edge Functions are ACTIVE with JWT verification enabled.
 - [x] Read-only data counts: auth.users, businesses, branches, catalog items, prices, orders, medical appointments and memberships are all 0. No fabricated test users or writes were created.
 - [x] Exact-head run [40271831176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40271831176) passed connected DEMO source/scope and contract tests plus live non-mutating allowed/denied CORS and unauthenticated POST rejection for seven endpoints.
