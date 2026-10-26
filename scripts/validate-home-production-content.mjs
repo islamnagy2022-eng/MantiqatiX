@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 const home=fs.readFileSync("web/home.js","utf8");
 const css=fs.readFileSync("web/home.css","utf8");
+const app=fs.readFileSync("web/app.js","utf8");
 
 const forbidden=[
   ["نموذج إعلاني تجريبي","homepage must not ship fabricated sponsored offers"],
@@ -56,5 +57,16 @@ if(!home.includes("b.setAttribute('aria-expanded',expanded?'true':'false')")) th
 if(!css.includes(".mx-category-service-details[hidden]{display:none!important}")) throw new Error("FAIL: expandable service details must respect their hidden state");
 if(!css.includes(".mx-category-result-card[hidden]{display:none!important}")) throw new Error("FAIL: filtered sector cards must be hidden accessibly and consistently");
 if(!css.includes(".mx-category-filter__controls")) throw new Error("FAIL: sector search controls must have responsive styling");
+
+const appLaunchStart=app.indexOf("async function accountView()");
+const appLaunchEnd=app.indexOf("async function providerOnboardingView()",appLaunchStart);
+const accountSource=appLaunchStart>=0&&appLaunchEnd>appLaunchStart?app.slice(appLaunchStart,appLaunchEnd):"";
+if(!app.includes("signInWithGoogle")||!app.includes("sb.auth.signInWithOAuth({provider:'google'")||!app.includes('id="google-auth"')) throw new Error("FAIL: existing Google OAuth login route must remain active");
+if(!app.includes("LAUNCH_WORKSPACE_MODULES")||!app.includes("if(!isLaunchModule(name))")) throw new Error("FAIL: deferred workspace routes must be hidden and guarded");
+if(!app.includes("domainModules.filter(m=>LAUNCH_DOMAIN_KEYS.has(m.key))")) throw new Error("FAIL: module management page must show launch modules only");
+if(!app.includes("لوحة صاحب النشاط")||!app.includes("لوحة قيادة المنصة")&&!app.includes("مركز قيادة المنصة")) throw new Error("FAIL: owner/platform dashboard surfaces must remain available");
+if(accountSource.includes("digital_page_products")||accountSource.includes("commercialHtml")) throw new Error("FAIL: deferred digital-page commerce must not be an account-center dependency");
+if(!app.includes("mx-auth-launch")||!app.includes("mx-account-card")) throw new Error("FAIL: launch auth/account presentation classes must be connected to existing screens");
+
 console.log("PASS: homepage production-content contract contains no fabricated offers/reviews/partners/map and keeps live-data boundaries.");
 console.log("PASS: public sector pages include responsive local search across loaded services and providers.");
