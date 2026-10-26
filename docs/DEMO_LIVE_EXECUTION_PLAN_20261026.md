@@ -85,3 +85,11 @@
 - **Remaining external setup:** DEMO Supabase Auth must have Google provider credentials configured and exact redirect URLs allowlisted in Supabase Auth and the Google OAuth client. The connected route is not publicly published while PR #376 remains Draft; therefore a real Google redirect/login has not been performed. Current `auth.users`, `businesses`, `orders`, and `medical_appointments` counts remain zero.
 - **CI evidence:** on code head `922569c016b11dbab541328bf978d7a55a88b263`, DEMO Isolation passed in [40270090760](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40270090760); contract checks assert Google OAuth, owner-account config, no separate password path, and the clinic time guard. This is not a substitute for authenticated browser E2E.
 - The launch plan remains a minimum safe launch of the existing product. No new modules or non-essential scope is added before core end-to-end validation.
+
+
+## Workspace Access Update — 2026-10-26
+- Implemented in connected DEMO source: ordinary CUSTOMER accounts render only the homepage/catalog, without dashboard, sidebar, order-history tab, or workspace switcher.
+- OWNER workspace switching requires an active business membership; PLATFORM switching requires the server-backed SUPER_ADMIN platform membership. Existing authorized owners/platform owner may switch between their permitted contexts.
+- DEMO Isolation workflow passed on commit `256e71f9cfbf2d26352faf56c30a702359a7be13`, including connected contract tests and non-mutating CORS/unauthenticated endpoint checks.
+- Google OAuth runtime remains NOT VERIFIED because the DEMO Supabase Google Provider and redirect allowlist still require dashboard configuration. PR #376 remains Draft and the connected page is not publicly deployed.
+- Anonymous catalog browsing is NOT IMPLEMENTED in the connected app. Current DEMO RLS permits anonymous reads only for explicitly showcased businesses; catalog items/prices/branches are membership-scoped. Do not loosen RLS directly. If anonymous visitors must see products/prices, implement and test a read-only public showcase endpoint restricted to explicitly published DEMO records before enabling it.
