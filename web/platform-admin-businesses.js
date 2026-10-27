@@ -4,7 +4,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const allowedKinds=[
  ['ACCOUNTING','المحاسبة والأعمال'],['AUTO','السيارات والمركبات'],['COMPANIES','الشركات والخدمات المؤسسية'],['DENTAL','طب الأسنان'],['EDU','التعليم والتدريب'],['TECH','البرمجيات والخدمات التقنية'],['FASHION','الأزياء والخياطة'],['FOOD','الطعام والمطاعم'],['FREELANCER','المهن والخدمات المستقلة'],['GROCERY','البقالة والتجزئة'],['HEALTH','الأطباء والتخصصات الطبية'],['HOSPITAL','المستشفيات والرعاية الطبية'],['JOBS','الوظائف والتوظيف'],['LABS','المعامل والتحاليل'],['LEGAL','المحاماة والخدمات القانونية'],['MAINTENANCE','الصيانة والحرف'],['MANTIGO','النقل والتوصيل'],['DIGITAL','التسويق والإعلان'],['MATRIMONY','الزواج والتوفيق'],['MEDICAL','المراكز الطبية'],['PHARMACY','الصيدليات'],['RADIOLOGY','الأشعة والتصوير الطبي'],['REAL_ESTATE','العقارات'],['FITNESS','الرياضة واللياقة'],['TRAVEL','السياحة والرحلات'],['USED_ITEMS','المستعمل والإعلانات المبوبة'],['VETERINARY','الطب البيطري والحيوانات']
 ];
-let state={businesses:[],total:0,offset:0,limit:25,search:'',filterStatus:'',tenants:[],rules:[],rulesTenant:'',editingBusiness:null,editingRule:null,loading:false,tab:'businesses'};
+let state={businesses:[],total:0,offset:0,limit:25,search:'',filterStatus:'',tenants:[],rules:[],rulesTenant:'',editingBusiness:null,editingRule:null,loading:false,tab:'businesses',tenantFilter:''};
 let toastTimer=null;
 const roleOK=()=>typeof canSuperAdmin==='function'&&canSuperAdmin();
 const api=async(action,extra={})=>{
@@ -50,7 +50,7 @@ function pageBusinesses(){
  const start=Math.floor(state.offset/state.limit)+1,end=Math.min(state.offset+state.limit,state.total);
  const cards='<section class="cards"><article class="card"><div class="muted">عدد النتائج المطابقة</div><div class="kpi">'+state.total+'</div><small>من قاعدة البيانات ضمن نطاق الإنتاج</small></article><article class="card"><div class="muted">المعروض في الصفحة</div><div class="kpi">'+state.businesses.length+'</div><small>حد الصفحة '+state.limit+'</small></article><article class="card"><div class="muted">بدون مالك نشط</div><div class="kpi">'+state.businesses.filter(b=>!(b.owners||[]).some(o=>o.status==='ACTIVE')).length+'</div><small>ضمن السجلات المعروضة فقط</small></article><article class="card"><div class="muted">اشتراك نشط</div><div class="kpi">'+state.businesses.filter(b=>b.subscription?.status==='ACTIVE').length+'</div><small>ضمن السجلات المعروضة فقط</small></article></section>';
  const tenantOptions=[{value:'',label:'كل نطاقات الإنتاج'},...state.tenants.map(t=>({value:t.id,label:t.name+' ('+t.code+')'}))];
- const tenantSelect=selectField('mx-pba-tenant','نطاق المستأجر',tenantOptions,'');
+ const tenantSelect=selectField('mx-pba-tenant','نطاق المستأجر',tenantOptions,state.tenantFilter);
  const table=state.loading?'<div class="empty-state">جاري تحميل البيانات الحقيقية…</div>':state.businesses.length?'<div class="table-wrap"><table><thead><tr><th>النشاط</th><th>التصنيف</th><th>الحالة</th><th>المالك</th><th>الاشتراك</th><th>تاريخ التحديث</th><th>إجراءات</th></tr></thead><tbody>'+state.businesses.map(b=>{
   const owner=(b.owners||[]).filter(o=>o.status==='ACTIVE').map(o=>o.email||o.name||o.userId).join('، ')||'لا يوجد مالك نشط';
   const subscription=b.subscription;
@@ -90,8 +90,7 @@ function render(){
 async function refreshBusinesses(){
  state.loading=true;render();
  try{
-  const tenantEl=document.getElementById('mx-pba-tenant');
-  const tenantId=tenantEl?.value||'';
+  const tenantId=state.tenantFilter||'';
   const result=await api('LIST_BUSINESSES',{limit:state.limit,offset:state.offset,search:state.search,status:state.filterStatus,tenantId});
   state.businesses=Array.isArray(result.businesses)?result.businesses:[];
   state.total=Number(result.total||0);
@@ -129,7 +128,7 @@ function openCreate(){
   e.preventDefault();const button=m.overlay.querySelector('#mx-biz-create-save'),out=m.overlay.querySelector('#mx-biz-create-status');button.disabled=true;out.textContent='جارٍ الإنشاء…';
   try{
    const name=m.overlay.querySelector('#mx-biz-name').value.trim();if(name.length<2)throw new Error('اسم النشاط مطلوب');
-   await loadTenants();const tenantId=state.tenants[0]?.id;if(!tenantId)throw new Error('لا يوجد نطاق إنتاج نشط');
+   await loadTenants();const tenantId=state.tenantFilter||state.tenants[0]?.id;if(!tenantId)throw new Error('لا يوجد نطاق إنتاج نشط');
    const kind=m.overlay.querySelector('#mx-biz-kind').value,phone=m.overlay.querySelector('#mx-biz-phone').value.trim(),address=m.overlay.querySelector('#mx-biz-address').value.trim(),nameEn=m.overlay.querySelector('#mx-biz-en').value.trim();
    const result=await api('CREATE_BUSINESS',{tenantId,business:{name,category:kind,phone,address,bio:'',slug:nameEn||name}});
    const businessId=String(result.business?.id||'');if(!businessId)throw new Error('تم الإنشاء دون رقم نشاط صالح');
@@ -144,7 +143,7 @@ function openEdit(b){
  const body='<form id="mx-biz-edit-form" class="form-grid"><input id="mx-biz-id" type="hidden" value="'+esc(b.id)+'"><div class="grid2">'+
  field('mx-biz-name','اسم النشاط *',b.name)+
  selectField('mx-biz-kind','القطاع / التصنيف',allowedKinds.map(x=>({value:x[0],label:x[1]})),settings.activity_code||'FREELANCER')+
- field('mx-biz-en','الاسم بالإنجليزية',b.owners?.[0]?.name||'')+
+ field('mx-biz-en','الاسم بالإنجليزية',p.name_en||'')+
  field('mx-biz-phone','رقم الهاتف',p.phone||settings.contact_phone||'','tel')+
  field('mx-biz-address','العنوان',p.address||settings.contact_address||'')+
  field('mx-biz-gov','المحافظة',p.governorate||'')+field('mx-biz-markaz','المركز/المدينة',p.markaz||'')+field('mx-biz-village','المنطقة/القرية',p.village||'')+
@@ -252,6 +251,7 @@ function bind(){
  document.getElementById('mx-pba-run-search')?.addEventListener('click',()=>{
   state.search=document.getElementById('mx-pba-search')?.value.trim()||'';
   state.filterStatus=document.getElementById('mx-pba-status')?.value||'';
+  state.tenantFilter=document.getElementById('mx-pba-tenant')?.value||'';
   state.offset=0;refreshBusinesses();
  });
  document.getElementById('mx-pba-search')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('mx-pba-run-search')?.click()}});
