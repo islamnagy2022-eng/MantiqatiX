@@ -90,6 +90,7 @@ jobs:
           exit 1
       - name: Syntax check
         run: |
+          node scripts/validate-production-catalog-real-state.mjs
           node scripts/validate-paid-subscription-gate.mjs
           node --check web/rbac.js
           node --check web/feature-flags.js
