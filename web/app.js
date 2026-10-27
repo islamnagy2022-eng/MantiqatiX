@@ -2176,8 +2176,12 @@ try{
  await renderApp({forceWorkspace:force});
  let pending=null;
  try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
+ let openActivityAfterAuth=false;
  if(pending&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())&&(!pending.email||String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase())){
-   await submitRegistrationRequest(String(pending.role).toUpperCase());
+   const pendingRole=String(pending.role).toUpperCase();
+   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+   if(pendingRole==='CUSTOMER')await submitRegistrationRequest('CUSTOMER');
+   if(pendingRole==='SERVICE_PROVIDER')openActivityAfterAuth=true;
  }
  let pendingProvider=null;
  try{pendingProvider=JSON.parse(localStorage.getItem('MNTYPendingProvider')||'null')}catch(_){}
@@ -2192,7 +2196,7 @@ try{
  }
  let pendingActivityDraft=null;
  try{pendingActivityDraft=JSON.parse(localStorage.getItem('MNTYPendingActivityDraft')||'null')}catch(_){}
- if(pendingActivityDraft?.resumeAfterAuth&&typeof window.MXOpenActivityRequestModal==='function'){
+ if((pendingActivityDraft?.resumeAfterAuth||openActivityAfterAuth)&&typeof window.MXOpenActivityRequestModal==='function'){
    window.setTimeout(()=>window.MXOpenActivityRequestModal(),350);
  }
 }finally{authRenderLock=false}
