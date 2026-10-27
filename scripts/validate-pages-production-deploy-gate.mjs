@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const primaryWorkflow = fs.readFileSync('.github/workflows/primary-catalog-frontend.yml', 'utf8');
 const home = fs.readFileSync('web/home.js', 'utf8');
+const platformApp = fs.readFileSync('web/app.js', 'utf8');
 const healthMonitor = fs.readFileSync('.github/workflows/production-health-monitor.yml', 'utf8');
 const lines = workflow.split(/\r?\n/);
 const blockStart = lines.findIndex(line => line === '  deploy:');
@@ -73,5 +74,19 @@ assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقد�
   'Production health checks must verify the existing platform root remains intact');
 assert.doesNotMatch(healthMonitor, /grep -Fq "\/MantiqatiX\/assets\/" <<<"\$HTML"/,
   'Production health checks must not expect the React catalog app to replace the platform root');
+
+
+assert.ok(validateBlock.includes('rm -rf "${SITE_DIR}/preview"') && validateBlock.includes('rm -f "${SITE_DIR}/smm.html"'),
+  'The Pages artifact must exclude source-only preview demos and the deferred SMM placeholder');
+assert.ok(validateBlock.includes('test ! -e "${SITE_DIR}/preview/index.html"') && validateBlock.includes('test ! -e "${SITE_DIR}/smm.html"'),
+  'The composed site must be checked for absent demo and deferred routes');
+assert.ok(deployBlock.includes('UNREQUESTED_DEMO_AND_SMM_ROUTES=ABSENT') && deployBlock.includes('preview/dashboard.html') && deployBlock.includes('smm.html'),
+  'Post-deploy validation must assert unrequested demo/SMM routes return 404');
+assert.doesNotMatch(home, /preview\/|mx-public-module-hub|mx-module-hub|smm\.html/,
+  'The public homepage must not expose demo routes or the deferred SMM page');
+assert.doesNotMatch(platformApp, /href="smm\.html"|smmModulePage|خدمات التسويق الرقمي SMM/,
+  'The app workspace must not expose the deferred SMM route');
+assert.ok(healthMonitor.includes('REACHABLE=0') && healthMonitor.includes('ATTEMPT in $(seq 1 8)'),
+  'Health monitoring must tolerate delayed Pages/CDN asset propagation');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_AND_CATALOG_SUBPATH=PASS');
