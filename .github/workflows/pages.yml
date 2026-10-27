@@ -300,8 +300,8 @@ jobs:
           echo "This gate does not certify backend, auth, database, payment, or financial production readiness."
 
   deploy:
-    # Preserve the existing MantiqatiX site at the root and mount the React catalog
-    # as /catalog-app/. Full production certification remains mandatory before publish.
+    # Publish the electronic catalog build as the only site at the public root.
+    # Full production certification remains mandatory before publish.
     needs: [validate, validate_public_only]
     if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.validate.result == 'success'
     timeout-minutes: 10
