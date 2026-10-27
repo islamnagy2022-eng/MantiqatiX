@@ -55,6 +55,12 @@ if (!migration.includes('CREATE OR REPLACE FUNCTION public.upsert_catalog_busine
     !migration.includes("coalesce(v_profile, '{}'::jsonb) || jsonb_build_object")) {
   throw new Error('FAIL: the forward migration must lock and merge the current catalog_profile instead of replacing it.');
 }
+if (!migration.includes("IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')") ||
+    !migration.includes("upper(m.role::text) = 'MANAGER' AND m.branch_id IS NOT NULL AND m.branch_id = p_branch_id") ||
+    !migration.includes("CATALOG_PUBLISH_REQUIRES_OWNER")) {
+  throw new Error('FAIL: branch managers must be explicitly authorized only within their branch, and must not publish the catalog.');
+}
+
 for (const marker of [
   'UNAUTHENTICATED',
   'INVALID_BUSINESS_PROFILE',
