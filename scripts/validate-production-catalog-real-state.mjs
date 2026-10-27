@@ -6,6 +6,8 @@ const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.ts
 const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
+const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
+const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
 const adminStart = admin.indexOf('const handleAddBusiness');
 const adminEnd = admin.indexOf('const handleCreateCategory', adminStart);
 assert.ok(adminStart >= 0 && adminEnd > adminStart, 'business creation handler must exist');
@@ -19,6 +21,9 @@ assert.doesNotMatch(directory, /201010171770|photo-1501339847302-ac426a4a7cbb|ph
 assert.match(directory, /businesses[\s\S]{0,180}publicEnabled/, 'directory hero slides must be built from real published business records');
 assert.match(directory, /business-placeholder\.svg/, 'missing business images must use the neutral local placeholder');
 assert.match(placeholder, /صورة النشاط غير متاحة/, 'placeholder must disclose that no real business image was provided');
+assert.match(itemPlaceholder, /صورة المنتج أو الخدمة غير متاحة/, 'catalog items without owner images must use a neutral placeholder');
+assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
+assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
 assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
 assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
 assert.match(createUi, /paymentStatus: 'pending'/, 'new business must remain unpaid until an admin confirms real payment');
