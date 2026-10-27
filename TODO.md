@@ -171,10 +171,30 @@ At the start of every continuation:
 
 ## 2026-10-27 — Activity taxonomy request
 - [x] Recorded the user request: provide a full list of activity names where every activity is independent and selectable, e.g. restaurant, doctor specialties, and other service professions.
-- [x] Added proposal: [`docs/product/ACTIVITY_TAXONOMY_PROPOSAL_AR.md`](docs/product/ACTIVITY_TAXONOMY_PROPOSAL_AR.md), with 18 top-level categories and separately coded activity names.
+- [x] Updated [`docs/product/ACTIVITY_TAXONOMY_PROPOSAL_AR.md`](docs/product/ACTIVITY_TAXONOMY_PROPOSAL_AR.md) to require a hierarchy: group/sector → activity → optional specialty; canonical label is «فني تبريد» (not «فني تكييف»).
 - [ ] Review the proposal with the platform owner; refine names, merge duplicates/aliases, and approve the taxonomy.
 - [ ] Map the existing 27 active `business_categories` records to the approved activities without losing current business/category links.
 - [ ] Define compatibility for `business_sectors`, modules, business registration, search, subscriptions, and commission scope.
-- [ ] Implement via a new reviewed migration and admin CRUD interface on the fix branch; preserve prior values and create a rollback/forward-fix plan.
-- [ ] Test category CRUD, search/autocomplete, new/existing business registration, permissions/RLS, subscriptions, and commission calculations.
+- [x] Added additive migration draft `supabase/migrations/20261027120000_business_activity_taxonomy_hierarchy.sql` on the fix branch: 27 stable group roots, initial independent activity/specialty records, FK/indexes, RLS FORCE, and no client grants. Not applied to production.
+- [x] Added guarded Edge Function actions `LIST_ACTIVITY_TYPES`, `UPSERT_ACTIVITY_TYPE`, and `SET_ACTIVITY_TYPE_STATUS` to `catalog-platform-admin`, with platform-admin validation and audit log writes. Not deployed.
+- [x] Added `web/platform-admin-taxonomy.js` and loaded it after `app.js`; the existing Super Admin control workspace now links to a hierarchy editor with search, create/edit, enable/disable, and reason capture. UI/API integration remains NOT VERIFIED until CI and authenticated E2E.
+- [ ] Run SQL migration replay in an isolated/staging database; validate all FK targets, duplicate codes/IDs, RLS/grants, and rollback/forward-fix.
+- [ ] Run JS syntax/build and Edge Function typecheck; test list/upsert/status flows with a real SUPER_ADMIN and reject CUSTOMER/BUSINESS_OWNER requests.
+- [ ] Wire the approved taxonomy into business onboarding, public discovery, search/autocomplete, subscriptions, and commission scope without breaking legacy category references.
 - [ ] Do not change production taxonomy until migration reconciliation, backup/PITR, and restore rehearsal gates are evidenced.
+
+
+## 2026-10-27 — Taxonomy implementation and administration console
+- [x] User decision recorded: canonical activity label is «فني تبريد»; hierarchy is sector/group → activity → optional specialty.
+- [x] Added an additive migration draft with 27 group roots and initial activities/specialties. Existing sector/category rows and business assignments are not mutated by the seed.
+- [x] Added platform-admin-only Edge Function actions for reading and editing activity taxonomy with audit writes; UI never receives service-role credentials.
+- [x] Added the taxonomy administration workspace and loader on the fix branch.
+- [ ] CI/typecheck and authenticated UI/API tests are pending; do not treat the UI or Edge Function as verified yet.
+- [ ] Complete the broader administration console: real metrics/traffic definitions, business owner assignment/state transitions, subscription lifecycle, commission rule management, claims/statements/reconciliation, category dependency handling, reports, audit explorer, and role-specific E2E.
+- [ ] Do not merge, deploy the function, or apply the migration until production backup/PITR and restore rehearsal gates are evidenced.
+
+## NEXT ACTION
+1. Run current PR CI and fix any syntax/type/security failures.
+2. Review migration constraints and test a replay against an isolated schema.
+3. Complete dashboard data contracts and business/subscription/commission admin workflows using server-authoritative actions.
+4. Keep PR #411 draft and production deployment blocked until gates pass.
