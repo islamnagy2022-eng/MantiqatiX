@@ -1015,6 +1015,11 @@
     "verified_by": "Post-deploy read-only get_edge_function source comparison",
     "behavior_contract": "New business-owner memberships are INACTIVE/PENDING_PAYMENT by default. The server rejects activation unless the business payment status is paid and admin-confirmed, and payment confirmation activates only memberships explicitly marked PENDING_PAYMENT. Official platform showcase businesses are exempt from commercial billing gate.",
     "unrelated_modules_deployed": false,
-    "notes": "Only catalog-platform-admin was deployed for the paid-subscription activation guard. No payment-intent, webhook, order, finance, SMM, or MantiGO functions were deployed. This scoped verification does not certify the full platform release."
+    "notes": "Only catalog-platform-admin was deployed for the paid-subscription activation guard. No payment-intent, webhook, order, finance, SMM, or MantiGO functions were deployed. This scoped verification does not certify the full platform release.",
+    "active_owner_memberships_count_before_guard": 24,
+    "active_official_showcase_memberships_count_before_guard": 24,
+    "active_non_showcase_owner_memberships_count_before_guard": 0,
+    "paid_subscription_activation_guard_verified_by_read_only_query": true,
+    "no_unpaid_non_showcase_owner_memberships_found": true
   }
 }
