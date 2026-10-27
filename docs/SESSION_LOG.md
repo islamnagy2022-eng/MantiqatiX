@@ -316,3 +316,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Read-only Supabase migration inventory is 293 entries through `20261027205405_catalog_pilot_owner_profile_repair`; all 41 full-platform required migration versions remain absent. The broader production gate stays BLOCKED.
 - PR #447 is removing demo-tour/SMM links from the public homepage, replacing the demo tour with the real catalog entrypoint, excluding demo routes from the production artifact, and preventing the preview workflow from publishing. CI failure on the first iteration exposed stale validators that required the demo link; the production-content contract was updated to require the real catalog CTA and reject demo routes. Latest-head CI is pending.
 - No payment-intent, webhook, order, finance, SMM or MantiGO functions were deployed in this work. Do not certify the full platform until the remaining production gates have evidence.
+
+ 
+## 2026-10-28 — RC451 targeted-ad search_path forward repair
+
+- Read-only production inspection confirmed `public.get_mnty_targeted_advertisements` was `SECURITY DEFINER` with `search_path=public, pg_temp`; its four application-table references are schema-qualified and anon/authenticated EXECUTE is intentional.
+- Added and tested the guarded forward-only repair `20261027223523_rc451_targeted_ads_search_path_forward_repair.sql`. It changes only the function search_path, checks the function/grant contract before and after, and refuses to proceed if unqualified references to the known application tables are detected.
+- Applied the migration to live Supabase as version `20261027223523`; read-only post-check confirmed the live statement matches the checked-in SQL exactly, `search_path=""`, anon/authenticated EXECUTE remain enabled, PUBLIC EXECUTE remains absent, and the live RPC returns 3 rows.
+- The original RC451 version `20261010200000` remains absent from the original required-version ledger list. Its effect is reconciled by the forward repair; no historical migration was edited or marked applied. The full platform gate remains BLOCKED by the other missing migration versions, critical order/payment/finance Edge Function drift, finance prerequisites, and unverified payment/finance E2E, backup/restore, Auth, and SMM runtime evidence.
+- The Supabase security advisor may still count the intentionally anon-callable SECURITY DEFINER RPC; the risky search_path configuration is fixed, and the public-discovery grant was deliberately preserved.

@@ -43,6 +43,7 @@ jobs:
           node scripts/validate-production-security.mjs
           node scripts/validate-rbac-contract.mjs
           node scripts/validate-security-definer-contract.mjs
+          node scripts/validate-rc451-forward-repair.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-restaurant-module-contract.mjs
           node scripts/validate-erp-purchase-receive-contract.mjs
@@ -106,7 +107,12 @@ jobs:
           test -n "$pg_container"
           docker cp supabase/tests/rc451_targeted_ads_search_path_fixture.sql "$pg_container:/tmp/rc451_fixture.sql"
           docker cp supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql "$pg_container:/tmp/rc451_migration.sql"
+          docker cp supabase/migrations/20261027223523_rc451_targeted_ads_search_path_forward_repair.sql "$pg_container:/tmp/rc451_forward_repair.sql"
           docker cp supabase/tests/rc451_targeted_ads_search_path_integration.sql "$pg_container:/tmp/rc451_test.sql"
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_fixture.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_test.sql
+          # Simulate production drift after the historical migration, then verify the forward-only repair.
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -c "ALTER FUNCTION public.get_mnty_targeted_advertisements(character varying, character varying, character varying, double precision, double precision, character varying, integer) SET search_path = public, pg_temp;"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_forward_repair.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc451_test -v ON_ERROR_STOP=1 -f /tmp/rc451_test.sql
