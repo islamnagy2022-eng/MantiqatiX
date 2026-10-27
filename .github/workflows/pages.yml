@@ -186,23 +186,25 @@ jobs:
       - name: Compose existing platform root with catalog as a separate module
         run: |
           set -euo pipefail
-          SITE_DIR="\${RUNNER_TEMP}/mantiqatix-composed-site"
-          rm -rf "\${SITE_DIR}"
-          mkdir -p "\${SITE_DIR}/catalog-app"
-          cp -a web/. "\${SITE_DIR}/"
-          cp -a apps/catalog-frontend/dist/. "\${SITE_DIR}/catalog-app/"
-          test -s "\${SITE_DIR}/index.html"
-          test -s "\${SITE_DIR}/config.js"
-          test -s "\${SITE_DIR}/catalog-app/index.html"
-          grep -Fq 'home.js' "\${SITE_DIR}/index.html"
-          grep -Fq '/MantiqatiX/catalog-app/assets/' "\${SITE_DIR}/catalog-app/index.html"
-          grep -Fq '/MantiqatiX/config.js' "\${SITE_DIR}/catalog-app/index.html"
+          SITE_DIR="${RUNNER_TEMP}/mantiqatix-composed-site"
+          rm -rf "${SITE_DIR}"
+          mkdir -p "${SITE_DIR}"
+          cp -a web/. "${SITE_DIR}/"
+          rm -rf "${SITE_DIR}/catalog-app"
+          mkdir -p "${SITE_DIR}/catalog-app"
+          cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/catalog-app/"
+          test -s "${SITE_DIR}/index.html"
+          test -s "${SITE_DIR}/config.js"
+          test -s "${SITE_DIR}/catalog-app/index.html"
+          grep -Fq 'home.js' "${SITE_DIR}/index.html"
+          grep -Fq '/MantiqatiX/catalog-app/assets/' "${SITE_DIR}/catalog-app/index.html"
+          grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/catalog-app/index.html"
           echo "PAGES_COMPOSITION=PASS: existing platform root preserved; catalog mounted at /catalog-app/"
       - name: Upload composed MantiqatiX site
         uses: actions/upload-artifact@v4
         with:
           name: mantiqatix-composed-pages-site
-          path: \${{RUNNER_TEMP}}/mantiqatix-composed-site
+          path: ${{ runner.temp }}/mantiqatix-composed-site
           if-no-files-found: error
 
   # This narrow path publishes only reviewed public-shell changes when the
@@ -295,20 +297,20 @@ jobs:
           ROOT_URL="${PAGE_URL%/}/"
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
-          grep -Fq "MantiqatiX | منصة الخدمات ومقدميها" "\${TMP_PAGE}"
-          grep -Fq "home.js" "\${TMP_PAGE}"
-          grep -Fq "config.js" "\${TMP_PAGE}"
-          CATALOG_URL="\${ROOT_URL}catalog-app/"
+          grep -Fq "MantiqatiX | منصة الخدمات ومقدميها" "${TMP_PAGE}"
+          grep -Fq "home.js" "${TMP_PAGE}"
+          grep -Fq "config.js" "${TMP_PAGE}"
+          CATALOG_URL="${ROOT_URL}catalog-app/"
           TMP_CATALOG="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "\${CATALOG_URL}" -o "\${TMP_CATALOG}"
-          grep -Fq "/MantiqatiX/catalog-app/assets/" "\${TMP_CATALOG}"
-          grep -Fq "/MantiqatiX/config.js" "\${TMP_CATALOG}"
-          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "\${ROOT_URL}config.js")"
-          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"\${CONFIG_JS}"
-          JS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.js' "\${TMP_CATALOG}" | head -n 1)"
-          CSS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.css' "\${TMP_CATALOG}" | head -n 1)"
-          test -n "\${JS_ASSET}"
-          test -n "\${CSS_ASSET}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "\${PAGE_URL%/}/\${JS_ASSET#/MantiqatiX/}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "\${PAGE_URL%/}/\${CSS_ASSET#/MantiqatiX/}" >/dev/null
-          echo "MANTIQATIX_ROOT_AND_CATALOG_MODULE_DEPLOY=PASS: \${ROOT_URL}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${CATALOG_URL}" -o "${TMP_CATALOG}"
+          grep -Fq "/MantiqatiX/catalog-app/assets/" "${TMP_CATALOG}"
+          grep -Fq "/MantiqatiX/config.js" "${TMP_CATALOG}"
+          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
+          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
+          JS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.js' "${TMP_CATALOG}" | head -n 1)"
+          CSS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.css' "${TMP_CATALOG}" | head -n 1)"
+          test -n "${JS_ASSET}"
+          test -n "${CSS_ASSET}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
+          echo "MANTIQATIX_ROOT_AND_CATALOG_MODULE_DEPLOY=PASS: ${ROOT_URL}"
