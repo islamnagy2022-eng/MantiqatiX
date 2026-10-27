@@ -5,6 +5,9 @@ const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminD
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 const productionMapper = fs.readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf8');
 const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+const defaults = fs.readFileSync('apps/catalog-frontend/src/data/productionDefaults.ts', 'utf8');
+const publicConfig = fs.readFileSync('apps/catalog-frontend/public/config.js', 'utf8');
+const webConfig = fs.readFileSync('web/config.js', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
@@ -22,6 +25,16 @@ assert.ok(adminStart >= 0 && adminEnd > adminStart, 'business creation handler m
 const createUi = admin.slice(adminStart, adminEnd);
 
 assert.doesNotMatch(admin, /adminPassInput|كلمة مرور لوحة الإدارة العامة/, 'admin settings must not expose a fake password field');
+assert.doesNotMatch([defaults, publicConfig, webConfig].join('\n'), /201010171770/, 'runtime configuration must not ship a fabricated support WhatsApp number');
+assert.match(defaults, /adminWhatsApp: ''/, 'platform support contact must remain unconfigured until a real number is saved');
+assert.match(defaults, /defaultCommissionPerOrder: 0/, 'unverified commission must not have a fabricated default');
+assert.doesNotMatch(admin, /مُسدّد وساري|مسدد ومعتمد|اشتراك شهري ثابت|0\.01 جنيه|متبقي \{5 - biz\.overdueDaysCount\}/, 'admin billing UI must not fabricate paid status, a fixed plan, or an automatic overdue countdown');
+assert.match(admin, /isOfficialShowcase \? 'عرض رسمي معفى من رسوم الاشتراك'/, 'official showcase exemption must be distinguished from paid subscriptions');
+assert.match(admin, /غير متاح في الإصدار الحالي/, 'unverified online payment controls must be clearly disabled');
+assert.doesNotMatch(admin, /handleSavePaymobConfig|paymobMerchantApiKey|Integration ID|تفعيل Paymob/, 'admin UI must not collect gateway credentials or offer fake Paymob activation');
+assert.match(productionMapper, /isOfficialShowcase: raw\.settings/, 'official platform showcase records must be mapped explicitly');
+assert.match(productionMapper, /paymentDueDay: Number\(meta\.paymentDueDay \|\| 0\)/, 'missing due day must remain unset instead of defaulting to day one');
+assert.match(productionMapper, /paymentDueDate: String\(meta\.paymentDueDate \|\| ''\)/, 'missing due date must remain unset instead of using registration date');
 assert.doesNotMatch(admin, /advanceBusinessOverdueDay|\+يوم تأخير|محاكاة مرور يوم تأخير/, 'production admin must not simulate overdue days');
 assert.doesNotMatch(createUi, /images\.unsplash\.com|\+201000000000|نشاط تجاري معتمد مسجل/, 'new businesses must not receive fake imagery, phone numbers, or descriptions');
 assert.doesNotMatch(directory, /إعلان عام #1|إعلان إقليمي #5|احجز هذه المساحة الإعلانية/, 'directory hero must not publish fabricated advertisement slides');
