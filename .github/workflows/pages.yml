@@ -33,14 +33,14 @@ jobs:
           test -s dist/index.html
           test -s dist/config.js
           test -d dist/assets
-          grep -q '/MantiqatiX/assets/' dist/index.html
+          grep -q '/MantiqatiX/catalog-app/assets/' dist/index.html
       - name: Smoke test production Google OAuth redirect
         working-directory: apps/catalog-frontend
         run: |
           set -euo pipefail
           SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseUrl:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('public/config.js','utf8');const m=s.match(/supabaseKey:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
-          REDIRECT_URL="https://islamnagy2022-eng.github.io/MantiqatiX/"
+          REDIRECT_URL="https://islamnagy2022-eng.github.io/MantiqatiX/catalog-app/"
           HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-oauth-smoke.json --dump-header /tmp/catalog-oauth-smoke.headers --write-out '%{http_code}' --get --data-urlencode 'provider=google' --data-urlencode "redirect_to=${REDIRECT_URL}" --header "apikey: ${SUPABASE_ANON_KEY}" "${SUPABASE_URL}/auth/v1/authorize")"
           if [ "${HTTP_CODE}" != "302" ] && [ "${HTTP_CODE}" != "303" ]; then
             echo "Google OAuth initiation failed with HTTP ${HTTP_CODE}"
@@ -49,13 +49,7 @@ jobs:
           fi
           grep -Eiq '^location: https://accounts\.google\.com/' /tmp/catalog-oauth-smoke.headers
           echo "PRODUCTION_GOOGLE_OAUTH_HANDSHAKE=PASS"
-      - name: Upload replacement catalog build
-        uses: actions/upload-artifact@v4
-        with:
-          name: primary-catalog-frontend-dist
-          path: apps/catalog-frontend/dist
-          if-no-files-found: error
-      - name: Install web runtime dependency
+            - name: Install web runtime dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
         run: |
@@ -189,6 +183,28 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
+      - name: Compose existing platform root with catalog as a separate module
+        run: |
+          set -euo pipefail
+          SITE_DIR="\${RUNNER_TEMP}/mantiqatix-composed-site"
+          rm -rf "\${SITE_DIR}"
+          mkdir -p "\${SITE_DIR}/catalog-app"
+          cp -a web/. "\${SITE_DIR}/"
+          cp -a apps/catalog-frontend/dist/. "\${SITE_DIR}/catalog-app/"
+          test -s "\${SITE_DIR}/index.html"
+          test -s "\${SITE_DIR}/config.js"
+          test -s "\${SITE_DIR}/catalog-app/index.html"
+          grep -Fq 'home.js' "\${SITE_DIR}/index.html"
+          grep -Fq '/MantiqatiX/catalog-app/assets/' "\${SITE_DIR}/catalog-app/index.html"
+          grep -Fq '/MantiqatiX/config.js' "\${SITE_DIR}/catalog-app/index.html"
+          echo "PAGES_COMPOSITION=PASS: existing platform root preserved; catalog mounted at /catalog-app/"
+      - name: Upload composed MantiqatiX site
+        uses: actions/upload-artifact@v4
+        with:
+          name: mantiqatix-composed-pages-site
+          path: \${{RUNNER_TEMP}}/mantiqatix-composed-site
+          if-no-files-found: error
+
   # This narrow path publishes only reviewed public-shell changes when the
   # broader production certification gate is still blocked. It cannot publish
   # backend, schema, auth, finance, payment, or workflow changes.
@@ -252,11 +268,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download validated replacement frontend
+      - name: Download the composed platform site
         uses: actions/download-artifact@v4
         with:
-          name: primary-catalog-frontend-dist
-          path: ./dist
+          name: mantiqatix-composed-pages-site
+          path: ./site
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
@@ -265,7 +281,7 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./dist
+          path: ./site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -279,16 +295,20 @@ jobs:
           ROOT_URL="${PAGE_URL%/}/"
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
-          grep -Fq "MantiqatiX" "${TMP_PAGE}"
-          grep -Fq "config.js" "${TMP_PAGE}"
-          grep -Fq "/MantiqatiX/assets/" "${TMP_PAGE}"
-          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
-          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
-          grep -Fq "window.MANTIQATIX_CONFIG" <<<"${CONFIG_JS}"
-          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' "${TMP_PAGE}" | head -n 1)"
-          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
-          test -n "${JS_ASSET}"
-          test -n "${CSS_ASSET}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
-          echo "PRIMARY_CATALOG_FRONTEND_DEPLOY=PASS: ${ROOT_URL}"
+          grep -Fq "MantiqatiX | منصة الخدمات ومقدميها" "\${TMP_PAGE}"
+          grep -Fq "home.js" "\${TMP_PAGE}"
+          grep -Fq "config.js" "\${TMP_PAGE}"
+          CATALOG_URL="\${ROOT_URL}catalog-app/"
+          TMP_CATALOG="$(mktemp)"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "\${CATALOG_URL}" -o "\${TMP_CATALOG}"
+          grep -Fq "/MantiqatiX/catalog-app/assets/" "\${TMP_CATALOG}"
+          grep -Fq "/MantiqatiX/config.js" "\${TMP_CATALOG}"
+          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "\${ROOT_URL}config.js")"
+          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"\${CONFIG_JS}"
+          JS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.js' "\${TMP_CATALOG}" | head -n 1)"
+          CSS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.css' "\${TMP_CATALOG}" | head -n 1)"
+          test -n "\${JS_ASSET}"
+          test -n "\${CSS_ASSET}"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "\${PAGE_URL%/}/\${JS_ASSET#/MantiqatiX/}" >/dev/null
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "\${PAGE_URL%/}/\${CSS_ASSET#/MantiqatiX/}" >/dev/null
+          echo "MANTIQATIX_ROOT_AND_CATALOG_MODULE_DEPLOY=PASS: \${ROOT_URL}"
