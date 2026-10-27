@@ -528,3 +528,11 @@
 - [x] Live `smm-gateway` v13 entrypoint exactly matches `main`; anonymous/authenticated negative runtime tests remain NOT VERIFIED.
 - [ ] Do not deploy the five drifting functions individually. Align rollout with the missing RC425–RC441 versions, review current live schema drift, and pass payment/webhook/finance sandbox E2E plus backup/restore and rollback gates first.
 - Safety: these checks retrieved code only. No Edge Function deployment or configuration change occurred.
+
+
+## 2026-10-27 — Financial journal RPC and schema preflight
+
+- [x] Read-only check confirms RC449A and RC450 are absent from the live migration ledger. The live schema lacks `journal_entries.entry_number`, `total_debit`, `total_credit`, `posted_at` and `journal_entry_lines.line_number`.
+- [x] Effective ACL inspection confirms neither `post_financial_journal(jsonb,jsonb)` nor `post_financial_journal_backend(uuid,jsonb,jsonb)` currently grants `EXECUTE` to `service_role`. Live `financial-journal` v3 calls the old RPC; `main` calls the backend RPC under the RC450 contract.
+- [x] Read-only counts were zero for the inspected journal headers/lines/general ledger, payment intents, subscription payment intents, ERP purchase orders/receipts, SMM orders and SMM wallet transactions. Counts are a snapshot only, not a substitute for backup/restore readiness.
+- [ ] Blocker: replay RC449A → RC450 in disposable/staging, verify schema and exact grants, run finance posting/replay/tenant-isolation E2E, and approve backup/rollback before any Production migration or function deployment. No RPC invocation, grant, schema edit or deployment was performed.
