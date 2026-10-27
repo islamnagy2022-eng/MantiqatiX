@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: 41 required distinct migration versions are absent; 20 of 27 granular core payment/finance/ERP/MantiGo object contracts and all 33 selected RC113–RC117 feature contracts are absent; Qadam owner membership is INACTIVE; duplicate source aliases remain unreconciled; RC451 search_path and finance runtime/Edge parity blockers remain.",
+  "reason": "The Qadam catalog owner/profile prerequisite was repaired and verified on 2026-10-28. This does not resolve the independent live migration/schema drift, critical Edge Function source parity, finance/payment E2E, backup/restore rehearsal, or Auth security evidence requirements. Production deployment remains blocked.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -950,14 +950,14 @@
     ]
   },
   "qadam_catalog_followup_check": {
-    "status": "BLOCKING_DATA_DRIFT",
-    "checked_at": "2026-10-27",
-    "migration_version": "20261027093000",
-    "migration_version_recorded": false,
+    "status": "OWNER_AND_PROFILE_REPAIRED",
+    "checked_at": "2026-10-28",
+    "migration_version": "20261027205405",
+    "migration_version_recorded": true,
     "business_active": true,
     "contact_fields_complete": true,
-    "owner_membership_status": "INACTIVE",
-    "owner_membership_active": false,
+    "owner_membership_status": "ACTIVE",
+    "owner_membership_active": true,
     "expected_product_count": 15,
     "active_product_count": 15,
     "expected_price_rows": 12,
@@ -965,7 +965,10 @@
     "contact_for_price_product_count": 3,
     "contact_for_price_without_active_price": 3,
     "stock_tracking_enabled_item_count": 0,
-    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect."
+    "observed": "Verified by read-only production queries after the scoped catalog_pilot_owner_profile_repair migration was applied. The owner membership is ACTIVE, the Qadam provider profile exists and is ACTIVE with the intended owner, all 15 catalog items remain active, and 12 priced products match. Three contact-for-price items intentionally have no active price; no stock tracking or fake orders were created. This resolves the owner/profile prerequisite only; the overall production gate remains blocked by independent migration, edge-function, finance, backup/restore, and authentication evidence gaps.",
+    "active_provider_profile": true,
+    "provider_profile_slug": "qadam-alsaad-homewares",
+    "provider_profile_owner_matches_business_owner": true
   },
   "migration_alias_resolution_check": {
     "status": "PENDING_CONTROLLED_REPAIR",
