@@ -1,14 +1,14 @@
-\\if :{?mantiqati_disposable}
-  \\if :mantiqati_disposable
-    \\echo 'Using explicit disposable-test authorization for production-checkpoint data prerequisites.'
-  \\else
-    \\echo 'REFUSED: this prerequisite fixture requires -v mantiqati_disposable=on.'
-    \\quit 3
-  \\endif
-\\else
-  \\echo 'REFUSED: set -v mantiqati_disposable=on only for an isolated disposable database.'
-  \\quit 3
-\\endif
+\if :{?mantiqati_disposable}
+  \if :mantiqati_disposable
+    \echo 'Using explicit disposable-test authorization for production-checkpoint data prerequisites.'
+  \else
+    \echo 'REFUSED: this prerequisite fixture requires -v mantiqati_disposable=on.'
+    \quit 3
+  \endif
+\else
+  \echo 'REFUSED: set -v mantiqati_disposable=on only for an isolated disposable database.'
+  \quit 3
+\endif
 
 -- The captured Production checkpoint is schema-only. Recreate only the minimal
 -- pre-existing data dependency needed by the later Qadam catalog migration.
