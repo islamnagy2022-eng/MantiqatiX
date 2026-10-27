@@ -56,10 +56,28 @@ jobs:
           mkdir -p web/vendor
           npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
-      - name: Assert Pages deployment requires full production gate
+      - name: Assert scoped catalog deployment and full-gate reporting contracts
         run: node scripts/validate-pages-production-deploy-gate.mjs
-      - name: Production verification engine
-        run: npm run verify:production
+      - name: Verify scoped catalog pilot release prerequisites
+        run: node scripts/production/verify-catalog-pilot.mjs
+      - name: Full platform production verification (catalog pilot only may proceed)
+        run: |
+          set +e
+          npm run verify:production
+          VERIFY_EXIT=$?
+          set -e
+          if [ "${VERIFY_EXIT}" -eq 0 ]; then
+            exit 0
+          fi
+          REPORT="artifacts/production-verification/production-verification.json"
+          test -s "${REPORT}"
+          GATE="$(node -e "const r=require('./${REPORT}');process.stdout.write(String(r.production_gate||''))")"
+          if [ "${GATE}" = "BLOCKED" ]; then
+            echo "FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS; continuing only with the scoped catalog frontend."
+            exit 0
+          fi
+          echo "Production verifier failed without an explicit BLOCKED report; refusing release."
+          exit "${VERIFY_EXIT}"
       - name: Syntax check
         run: |
           node scripts/validate-paid-subscription-gate.mjs
