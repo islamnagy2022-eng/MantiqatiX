@@ -454,3 +454,12 @@
 - [🟡] Exact-head workflow run `40449840182` reports isolated forward migration replay passed. The same PR’s deployment workflow `40449840167` was cancelled; no deployment claim is made.
 - [ ] Keep release status `BLOCKED / NOT CERTIFIED`: Production payment/finance E2E, restore rehearsal, live Edge Function contract parity, SMM gateway parity, live Auth security settings, browser/device E2E, monitoring/alert and rollback drills remain NOT VERIFIED.
 - [ ] Next safe action: resolve the cross-PR collision-check API failure and obtain current exact-head CI results for #413 and #414; separately reconcile the RC425–RC441 source-recovery PR against the latest main and full historical replay evidence before any merge decision.
+
+
+## 2026-10-27 — Primary catalog release-gate bypass found and isolated fix
+
+- [🔴] Root cause: `.github/workflows/primary-catalog-frontend.yml` on `main` deployed the replacement catalog to the shared GitHub Pages root after `build` alone. Its comment explicitly described catalog-only deployment as independent of the broader release gate. This created a parallel path around `npm run verify:production`.
+- [🟡] Fix branch `fix/primary-catalog-release-gate-20261027` adds a `production_gate` job on pushes to `main`; it runs `npm run verify:production`. The Pages deploy job now requires both `build` and successful `production_gate`.
+- [🟡] Added a regression contract in `scripts/validate-production-gate-contract.mjs` that asserts the primary catalog workflow contains the gate, runs the production verifier, depends on the gate, and checks `needs.production_gate.result == 'success'`. The primary catalog workflow invokes this validator in PR CI.
+- [ ] Await exact-head GitHub Actions for the focused PR. This is not merged or deployed at this checkpoint.
+- [ ] Production remains BLOCKED until migration provenance/replay, finance E2E, recovery rehearsal, Auth/security settings, Edge Function/SMM parity and live browser/device evidence are closed.
