@@ -1,7 +1,6 @@
 import fs from "node:fs";
 
 const app = fs.readFileSync("web/app.js", "utf8");
-const smm = fs.readFileSync("web/smm.js", "utf8");
 
 const required = [
   ["Google OAuth primary", "sb.auth.signInWithOAuth({provider:'google',options:", app],
@@ -29,11 +28,6 @@ const required = [
   ["Role labels", "BUSINESS_OWNER:'مالك نشاط'", app],
   ["Role labels", "SUPPORT_MANAGER:'مدير الدعم'", app],
   ["Role labels", "SERVICE_PROVIDER:'صاحب نشاط / مقدم خدمة'", app],
-  ["SMM Google sign-in", "sb.auth.signInWithOAuth({provider:'google',options:", smm],
-  ["SMM email OTP removed", "signInWithOtp(", smm, true],
-  ["SMM OTP verification removed", "verifyOtp(", smm, true],
-  ["SMM Google button", 'id="google-auth"', smm],
-  ["SMM no password auth", "signInWithPassword", smm, true],
   ["No direct membership insert", ".from('user_memberships').insert", app, true],
   ["No direct membership update", ".from('user_memberships').update", app, true],
   ["No direct membership delete", ".from('user_memberships').delete", app, true],

@@ -217,3 +217,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+## 2026-10-27 — SMM initial-launch deferral and legacy client retirement
+
+- Confirmed the current `main` source keeps SMM explicitly deferred in `supabase/functions/smm-gateway/index.ts`; PRs #306/#307 describe SMM as post-launch and separate from core Marketing & Advertising. This is a launch-scope deferral, not approval to remove the backend or rewrite historical migrations.
+- Removed the unused interactive SMM browser client assets (`web/smm.js`, `web/smm.css`) while retaining `web/smm.html` as a noindex, non-interactive unavailable notice.
+- Replaced obsolete auth/workflow dependencies on `web/smm.js` with a focused CI contract that checks the placeholder and confirms the server-side default-deny gate, SMM authorization validator, and RC456 historical migration remain present.
+- Corrected README deployment notes: the Pages workflow publishes the validated `apps/catalog-frontend/dist` artifact after full production verification; the legacy `web/` tree remains source/contract material and is not the deployed artifact in this workflow.
+- No production schema, production data, Auth settings, Supabase grants, Edge Function deployment, payment, or wallet was changed. No historical migration was deleted or modified.
+- Verification status: static contract is added and will be evaluated by exact-head CI; do not mark it verified until GitHub Actions reports the result. Production remains `BLOCKED / NOT CERTIFIED`; the live deployed SMM gateway's default-deny state still requires version/hash evidence and runtime negative tests.
+- Next actionable blockers: recover/reconcile post-RC424 migration sources and ledger state; refresh the exact-head production verifier; continue isolated payment/finance E2E and backup/restore evidence. Do not bypass the full production deployment gate.

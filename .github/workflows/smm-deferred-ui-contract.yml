@@ -1,0 +1,63 @@
+name: SMM Deferred Storefront Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'web/smm.html'
+      - 'web/smm.js'
+      - 'web/smm.css'
+      - 'scripts/validate-smm-deferred-ui.mjs'
+      - 'scripts/validate-auth-flow.mjs'
+      - 'scripts/validate-release-preflight.mjs'
+      - 'scripts/validate-web-assets.mjs'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/smm-deferred-ui-contract.yml'
+      - 'README.md'
+      - 'TODO_PRODUCTION.md'
+  push:
+    branches: [main]
+    paths:
+      - 'web/smm.html'
+      - 'web/smm.js'
+      - 'web/smm.css'
+      - 'scripts/validate-smm-deferred-ui.mjs'
+      - 'scripts/validate-auth-flow.mjs'
+      - 'scripts/validate-release-preflight.mjs'
+      - 'scripts/validate-web-assets.mjs'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/smm-deferred-ui-contract.yml'
+      - 'README.md'
+      - 'TODO_PRODUCTION.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smm-deferred-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Syntax-check affected validators
+        run: |
+          node --check scripts/validate-smm-deferred-ui.mjs
+          node --check scripts/validate-auth-flow.mjs
+          node --check scripts/validate-release-preflight.mjs
+      - name: Validate deferred UI and preserved server boundary
+        run: node scripts/validate-smm-deferred-ui.mjs
+      - name: Validate core authentication
+        run: node scripts/validate-auth-flow.mjs
+      - name: Validate release preflight
+        run: node scripts/validate-release-preflight.mjs
+      - name: Validate local web assets
+        run: node scripts/validate-web-assets.mjs
