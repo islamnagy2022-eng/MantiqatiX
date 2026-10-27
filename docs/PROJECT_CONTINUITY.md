@@ -660,3 +660,10 @@ This status is intentional and must remain until the open gates above are indepe
 - A read-only ledger LEFT JOIN covered all 34 migration IDs enforced by `scripts/production/verify-production.mjs`; **0/34** are present in `supabase_migrations.schema_migrations`. Current source files and disposable replay do not prove Production application.
 - RC451's `get_mnty_targeted_advertisements` remains SECURITY DEFINER with anon/authenticated EXECUTE and live `search_path=public, pg_temp`; RC451's required empty search_path is not applied. Public discovery is intentional; never mass-revoke its EXECUTE as a workaround.
 - The verifier contract was strengthened in PR #428 and is being extended to require all exact 34 versions and RC451 live catalog evidence. Production gate remains `BLOCKED / NOT CERTIFIED`; no Production writes or deployment occurred.
+
+
+## 2026-10-27 — Full required object-name inventory
+
+- Read-only catalog inventory linked from `docs/release/production-source-object-drift.json`: 39 required function names, 21 absent; 4 required tables absent; 12/13 selected required indexes absent. Present function names are not proof of correct body, `search_path`, ACL or caller behavior.
+- Highest-impact gaps: atomic MantiGo/Paymob and failure webhook RPCs absent; subscription claim RPCs absent; order-line ERP table and atomic receiving functions absent; matrimony privacy/lifecycle RPCs absent; marketing campaign tables/RPCs absent; atomic finance journal RPC and uniqueness indexes absent.
+- Production remains `BLOCKED / NOT CERTIFIED`. Do not patch live objects individually; test the full reconciliation against a disposable/staging clone of the current live schema and later-dated migration ledger, with restore and rollback rehearsal.
