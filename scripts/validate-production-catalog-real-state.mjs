@@ -75,7 +75,7 @@ assert.match(admin, /settingsFeedback\.type === 'success'/, 'settings UI must di
 assert.match(context, /const updateAdminSettings = async/, 'settings persistence must be asynchronous');
 assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state must update only after server-confirmed success');
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
-assert.match(context, /business\.paymentStatus === 'paid' && business\.paymentConfirmedByAdmin[\s\S]{0,80}\? 'paid'/, 'Unfreezing a paid business must preserve its confirmed paid state');
+assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
 assert.match(directory, /if \(!biz\.publicEnabled \|\| biz\.isFrozen\) return false/, 'The public directory must exclude unpublished and frozen businesses even for broader admin sessions');
 assert.doesNotMatch(context, /const advanceBusinessOverdueDay/, 'overdue-day simulation must be removed from production context');
 
