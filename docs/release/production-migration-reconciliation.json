@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: 41 required distinct migration versions are absent; 20 of 27 granular core payment/finance/ERP/MantiGo object contracts and all 33 selected RC113–RC117 feature contracts are absent; Qadam owner membership is INACTIVE; duplicate source aliases remain unreconciled; RC451 search_path and finance runtime/Edge parity blockers remain.",
+  "reason": "The catalog-platform-admin paid-subscription activation guard is deployed and verified, and the Qadam catalog owner/profile data is ready. The original Qadam seed migration remains absent from the live ledger; independent migration/schema drift, critical payment/order Edge Function source parity, payment/finance E2E, backup/restore rehearsal, and Auth security evidence remain incomplete. Only a scoped catalog frontend release may be considered after its own tests; the full platform remains blocked.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -950,14 +950,14 @@
     ]
   },
   "qadam_catalog_followup_check": {
-    "status": "BLOCKING_DATA_DRIFT",
-    "checked_at": "2026-10-27",
+    "status": "DATA_READY_LEDGER_DRIFT",
+    "checked_at": "2026-10-28",
     "migration_version": "20261027093000",
     "migration_version_recorded": false,
     "business_active": true,
     "contact_fields_complete": true,
-    "owner_membership_status": "INACTIVE",
-    "owner_membership_active": false,
+    "owner_membership_status": "ACTIVE",
+    "owner_membership_active": true,
     "expected_product_count": 15,
     "active_product_count": 15,
     "expected_price_rows": 12,
@@ -965,7 +965,14 @@
     "contact_for_price_product_count": 3,
     "contact_for_price_without_active_price": 3,
     "stock_tracking_enabled_item_count": 0,
-    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect."
+    "observed": "Read-only production verification on 2026-10-28 confirms the Qadam business is ACTIVE and publicly enabled; its owner membership is ACTIVE; an ACTIVE provider profile exists and is owned by the intended owner; 15 catalog items remain active and 12 priced products match. Three contact-for-price products intentionally have no active price. However, original source migration 20261027093000 is absent from the live migration ledger (confirmed by a read-only ledger query), while the scoped repair migration 20261027205405 is recorded. Data readiness is repaired, but the original seed-migration ledger drift remains unresolved and must not be marked applied without a controlled reconciliation.",
+    "active_provider_profile": true,
+    "provider_profile_slug": "qadam-alsaad-homewares",
+    "provider_profile_owner_matches_business_owner": true,
+    "repair_migration_version": "20261027205405",
+    "repair_migration_version_recorded": true,
+    "catalog_public_enabled": true,
+    "provider_profile_status": "ACTIVE"
   },
   "migration_alias_resolution_check": {
     "status": "PENDING_CONTROLLED_REPAIR",
@@ -994,6 +1001,75 @@
         "ledger_repair_applied": false,
         "note": "The source blob is identical to the exact-version 20261027041411 migration already recorded in Production; do not execute the duplicate as an independent migration."
       }
+    ]
+  },
+  "catalog_platform_admin_paid_subscription_gate": {
+    "status": "PASS",
+    "checked_at": "2026-10-28",
+    "function_slug": "catalog-platform-admin",
+    "live_function_version": 3,
+    "verify_jwt": true,
+    "source_exact_match": true,
+    "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
+    "deployed_at_utc": "2026-10-27T21:24:16Z",
+    "verified_by": "Post-deploy read-only get_edge_function source comparison",
+    "behavior_contract": "New business-owner memberships are INACTIVE/PENDING_PAYMENT by default. The server rejects activation unless the business payment status is paid and admin-confirmed, and payment confirmation activates only memberships explicitly marked PENDING_PAYMENT. Official platform showcase businesses are exempt from commercial billing gate.",
+    "unrelated_modules_deployed": false,
+    "notes": "Only catalog-platform-admin was deployed for the paid-subscription activation guard. No payment-intent, webhook, order, finance, SMM, or MantiGO functions were deployed. This scoped verification does not certify the full platform release.",
+    "active_owner_memberships_count_before_guard": 24,
+    "active_official_showcase_memberships_count_before_guard": 24,
+    "active_non_showcase_owner_memberships_count_before_guard": 0,
+    "paid_subscription_activation_guard_verified_by_read_only_query": true,
+    "no_unpaid_non_showcase_owner_memberships_found": true
+  },
+  "catalog_pilot_edge_function_parity_check": {
+    "status": "PASS",
+    "checked_at": "2026-10-28",
+    "checked_via": "Read-only live Edge Function retrieval and exact source comparison against the reviewed branch",
+    "functions": [
+      {
+        "slug": "catalog-platform-admin",
+        "live_version": 3,
+        "verify_jwt": true,
+        "source_exact_match": true,
+        "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
+        "scope": "platform admin gate and subscription membership management"
+      },
+      {
+        "slug": "catalog-admin",
+        "live_version": 14,
+        "verify_jwt": false,
+        "source_exact_match": true,
+        "source_blob_sha": "1166507c0383af2139d3ef4b4ea20371992312d7",
+        "scope": "catalog-only owner/admin routes with route-level bearer/session/role checks"
+      },
+      {
+        "slug": "public-catalog-directory",
+        "live_version": 2,
+        "verify_jwt": false,
+        "source_exact_match": true,
+        "source_blob_sha": "3368a51b26ce7bc9c65d02a86f570e6eda90345d",
+        "scope": "public read-only directory"
+      },
+      {
+        "slug": "public-catalog",
+        "live_version": 2,
+        "verify_jwt": false,
+        "source_exact_match": true,
+        "source_blob_sha": "ae57c2126063931ee95f80b097a82c1742efb7c0",
+        "scope": "public read-only storefront"
+      }
+    ],
+    "unrelated_functions_deployed": false,
+    "excluded_scopes": [
+      "payment-intent",
+      "paymob-webhook",
+      "order-create",
+      "digital-page-payment-intent",
+      "subscription-payment-intent",
+      "financial-journal",
+      "SMM",
+      "MantiGO"
     ]
   }
 }

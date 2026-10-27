@@ -70,7 +70,7 @@ const checks = [
   ["Legacy homepage source remains preserved for future development", fs.existsSync("web/index.html")],
   ["Homepage has a visible boot failure fallback", /تعذر تحميل واجهة المنصة/.test(home)],
   ["Homepage keeps Supabase failure in public mode", /public mode remains open/.test(home)],
-  ["Pages artifact publishes the validated replacement frontend dist as the site root", /path:\s*\.\/dist/.test(pages) && /primary-catalog-frontend-dist/.test(pages)],
+  ["Pages artifact preserves the existing platform root and mounts catalog under its own subpath", pages.includes("Compose existing platform root with catalog as a separate module") && pages.includes("mantiqatix-composed-pages-site") && /path:\s*\.\/site/.test(pages) && !pages.includes("primary-catalog-frontend-dist")],
   ["Production deploy is restricted to main", /github\.ref == 'refs\/heads\/main'/.test(pages)],
   ["Service worker uses network-first navigation with cached homepage fallback", /event\.request\.mode==='navigate'[\s\S]*?caches\.match\('\.\/index\.html'\)/.test(sw)],
   ["Demo dashboard declares Arabic RTL and mobile viewport", /<html lang="ar" dir="rtl">/.test(dashboard) && /name="viewport"/.test(dashboard)],

@@ -58,16 +58,16 @@ interface AppContextType {
   products: Product[];
   subscribers: Subscriber[];
   adminSettings: AdminSettings;
-  updateBusiness: (business: Business) => void;
+  updateBusiness: (business: Business) => Promise<void>;
   addBusiness: (business: Omit<Business, 'id' | 'createdAt'>) => Promise<string>;
   deleteBusiness: (id: string) => Promise<void>;
   getStorePublicLink: (business: Business) => string;
-  updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => void;
-  confirmAdminPayment: (businessId: string) => void;
+  updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
+  confirmAdminPayment: (businessId: string) => Promise<void>;
   advanceBusinessOverdueDay: (businessId: string) => void;
   toggleBusinessFreeze: (businessId: string) => void;
   updateBusinessCommissionRate: (businessId: string, rate: number) => void;
-  updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => void;
+  updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => boolean;
   businessProducts: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
   updateProduct: (product: Product) => Promise<void>;
@@ -258,8 +258,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Always return OAuth to the canonical GitHub Pages app root.
       // Carrying arbitrary query/hash state into Supabase redirect allowlists can
       // cause a successful Google consent flow to return without hydrating the app.
-      const basePath = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
-      const redirectTo = new URL(basePath, window.location.origin).toString();
+      // Supabase currently allowlists the platform root. The root shell relays
+      // only OAuth callback parameters to /catalog-app/ before loading its own app.
+      const redirectTo = new URL('/MantiqatiX/', window.location.origin).toString();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo, queryParams: { prompt: 'select_account' } },
@@ -352,15 +353,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts((prev) => [...prev.filter((p) => p.businessId !== businessId), ...mappedProducts]);
   };
 
-  const updateBusiness = (updated: Business) => {
-    void (async () => {
-      try {
-        if (!updated.tenantId || !updated.branchId) throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
-        await callCatalogAdmin({ action: 'BUSINESS_PROFILE_UPSERT', tenantId: updated.tenantId, businessId: updated.id, branchId: updated.branchId, name: updated.name, bio: updated.bio || '', phone: updated.ownerWhatsApp || updated.phone || '', address: updated.address || '', governorate: updated.governorate || '', markaz: updated.markaz || '', village: updated.village || '', workingHours: updated.workingHours || '', logoUrl: updated.logoUrl || '', coverUrl: updated.coverUrl || '', publicEnabled: Boolean(updated.publicEnabled) });
-        if (authSession.role === 'admin') await callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId: updated.id, tenantId: updated.tenantId, settings: { commissionPerOrder: updated.commissionPerOrder, totalOrdersCount: updated.totalOrdersCount, paymentStatus: updated.paymentStatus, overdueDaysCount: updated.overdueDaysCount, isFrozen: updated.isFrozen, lastPaymentDate: updated.lastPaymentDate, paymentConfirmedByAdmin: updated.paymentConfirmedByAdmin, paymentDueDay: updated.paymentDueDay, paymentDueDate: updated.paymentDueDate } });
-        await refreshBusinessCatalog(updated.id);
-      } catch (e: any) { window.alert(e?.message || 'تعذر حفظ بيانات النشاط في قاعدة الإنتاج.'); }
-    })();
+  const updateBusiness = async (updated: Business): Promise<void> => {
+    if (!updated.tenantId || !updated.branchId) {
+      throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
+    }
+    await callCatalogAdmin({
+      action: 'BUSINESS_PROFILE_UPSERT',
+      tenantId: updated.tenantId,
+      businessId: updated.id,
+      branchId: updated.branchId,
+      name: updated.name,
+      bio: updated.bio || '',
+      phone: updated.ownerWhatsApp || updated.phone || '',
+      address: updated.address || '',
+      governorate: updated.governorate || '',
+      markaz: updated.markaz || '',
+      village: updated.village || '',
+      workingHours: updated.workingHours || '',
+      logoUrl: updated.logoUrl || '',
+      coverUrl: updated.coverUrl || '',
+      publicEnabled: Boolean(updated.publicEnabled),
+    });
+    // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
+    // Billing updates use dedicated admin actions and remain independent from contact/branding edits.
+    await refreshBusinessCatalog(updated.id);
   };
 
   const addBusiness = async (data: Omit<Business, 'id' | 'createdAt'>): Promise<string> => {
@@ -372,18 +388,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return result.business.id;
   };
 
-  const updateBusinessPaymobConfig = (_businessId: string, config: Partial<PaymobConfig>) => {
-    if (config.enabled) window.alert('الدفع الإلكتروني غير مفعّل في هذا الإصدار. لن يتم تحصيل أموال من خلال الكتالوج.');
+  const updateBusinessPaymobConfig = (_businessId: string, _config: Partial<PaymobConfig>): boolean => {
+    window.alert('إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي. لن يتم تفعيل الدفع الإلكتروني حتى اجتياز اختبارات الإنتاج.');
+    return false;
   };
-  const updateBusinessLocation = (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => {
-    const business = businesses.find((b) => b.id === businessId); if (business) updateBusiness({ ...business, governorate: loc.governorate, markaz: loc.markaz, village: loc.village, address: loc.address ?? business.address });
+  const updateBusinessLocation = async (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }): Promise<void> => {
+    const business = businesses.find((b) => b.id === businessId);
+    if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإنتاج الحالية.');
+    await updateBusiness({ ...business, governorate: loc.governorate, markaz: loc.markaz, village: loc.village, address: loc.address ?? business.address });
   };
   const updateBillingSetting = (businessId: string, settings: Record<string, unknown>) => {
     const business = businesses.find((b) => b.id === businessId);
     if (!business?.tenantId || authSession.role !== 'admin') return;
     void callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات النشاط.'));
   };
-  const confirmAdminPayment = (businessId: string) => { const today = new Date().toISOString().slice(0, 10); updateBillingSetting(businessId, { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }); setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today } : b)); };
+  const confirmAdminPayment = async (businessId: string): Promise<void> => {
+    const business = businesses.find((item) => item.id === businessId);
+    if (!business?.tenantId || authSession.role !== 'admin') return;
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      await callPlatformAdmin({
+        action: 'BUSINESS_SETTINGS_UPDATE',
+        businessId,
+        tenantId: business.tenantId,
+        settings: { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today },
+      });
+      setBusinesses((prev) => prev.map((item) => item.id === businessId
+        ? { ...item, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }
+        : item));
+      const pending = subscribers.filter((subscriber) => subscriber.businessId === businessId && subscriber.status === 'pending');
+      for (const subscriber of pending) {
+        await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: subscriber.id, status: 'ACTIVE' });
+        setSubscribers((prev) => prev.map((item) => item.id === subscriber.id ? { ...item, status: 'active' } : item));
+      }
+      if (pending.length) window.alert(`تم تأكيد السداد وتفعيل ${pending.length} اشتراك بعد نجاح الحفظ.`);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر تأكيد السداد وتفعيل الاشتراك.');
+    }
+  };
   const advanceBusinessOverdueDay = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const days = Number(b.overdueDaysCount || 0) + 1; const frozen = days > adminSettings.overdueGracePeriodDays; const paymentStatus = frozen ? 'frozen' : 'overdue'; updateBillingSetting(businessId, { overdueDaysCount: days, paymentStatus, isFrozen: frozen }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, overdueDaysCount: days, paymentStatus, isFrozen: frozen } : x)); };
   const toggleBusinessFreeze = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const frozen = !b.isFrozen; const paymentStatus = frozen ? 'frozen' : 'pending'; updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, isFrozen: frozen, paymentStatus } : x)); };
   const updateBusinessCommissionRate = (businessId: string, rate: number) => updateBillingSetting(businessId, { commissionPerOrder: rate });
@@ -449,16 +491,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       phone: data.phone || '',
     });
     const id = String(result.membershipId || result.id || result.userId);
+    const backendStatus = String(result.status || 'INACTIVE').toUpperCase();
     const created: Subscriber = {
       id,
       fullName: data.fullName.trim(),
       email,
       phone: data.phone,
       businessId: business.id,
-      status: 'active',
+      status: backendStatus === 'ACTIVE' ? 'active' : backendStatus === 'SUSPENDED' ? 'suspended' : 'pending',
       username: email,
       authMethod: 'gmail_invite',
-      inviteStatus: 'direct_created',
+      inviteStatus: 'pending',
       notes: data.notes,
       joinedDate: new Date().toISOString().slice(0, 10),
     };
@@ -466,6 +509,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return created;
   };
   const updateSubscriber = async (updated: Subscriber) => {
+    if (updated.status === 'active') {
+      const business = businesses.find((item) => item.id === updated.businessId);
+      if (!business || (String(business.paymentStatus || '').toLowerCase() !== 'paid' || !business.paymentConfirmedByAdmin)) {
+        throw new Error('لا يمكن تفعيل الاشتراك قبل تأكيد سداد النشاط من إدارة المنصة.');
+      }
+    }
     await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: updated.id, status: updated.status === 'active' ? 'ACTIVE' : updated.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE' });
     setSubscribers((prev) => prev.map((s) => s.id === updated.id ? { ...updated, password: undefined } : s));
   };
@@ -488,7 +537,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 البريد المرتبط بحساب Google: ${sub.email}
 
 طريقة الدخول: اضغط "المتابعة باستخدام Google" واختر نفس حساب Google أعلاه.
-تم حفظ ربط الاشتراك وصلاحيات النشاط في Supabase.`;
+حالة الاشتراك: ${sub.status === 'active' ? 'نشط' : sub.status === 'pending' ? 'بانتظار تأكيد السداد' : 'موقوف'}.
+لا تُفعّل صلاحيات إدارة النشاط إلا بعد تأكيد السداد من إدارة المنصة.`;
   };
   const updateAdminSettings = (settings: Partial<AdminSettings>) => { const safe = { ...settings }; delete (safe as any).adminPassword; setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' })); if (authSession.role === 'admin') void callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات المنصة.')); };
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };

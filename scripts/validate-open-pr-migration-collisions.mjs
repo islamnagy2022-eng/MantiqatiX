@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 
 const migrationPattern = /^supabase\/migrations\/(\d{14})_.+\.sql$/;
 
@@ -89,81 +90,124 @@ if (process.argv.includes("--self-test")) {
 const token = process.env.GITHUB_TOKEN;
 const repository = process.env.GITHUB_REPOSITORY;
 const currentPrNumber = Number(process.env.PULL_REQUEST_NUMBER);
-if (!token || !repository || !Number.isInteger(currentPrNumber) || currentPrNumber < 1) {
-  console.error("Missing GITHUB_TOKEN, GITHUB_REPOSITORY, or PULL_REQUEST_NUMBER.");
+const baseRef = process.env.PULL_REQUEST_BASE_REF || "main";
+if (!token || !repository || !Number.isInteger(currentPrNumber) || currentPrNumber < 1 ||
+    !/^[A-Za-z0-9._/-]+$/.test(baseRef) || baseRef.includes("..")) {
+  console.error("Missing or invalid GITHUB_TOKEN, GITHUB_REPOSITORY, PULL_REQUEST_NUMBER, or PULL_REQUEST_BASE_REF.");
   process.exit(2);
 }
 
-async function githubGet(url) {
-  const maxAttempts = 5;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Accept: "application/vnd.github+json",
-          Authorization: "Bearer " + token,
-          "X-GitHub-Api-Version": "2022-11-28"
-        }
-      });
-      if (response.ok) return response.json();
-
-      const errorBody = await response.text();
-      const rateLimited403 = isRateLimited403(
-        response.status,
-        response.headers.get("x-ratelimit-remaining"),
-        errorBody
-      );
-      const retryable = response.status === 429 || rateLimited403 || [500, 502, 503, 504].includes(response.status);
-      if (!retryable || attempt === maxAttempts - 1) {
-        throw new Error("GitHub API request failed (" + response.status + "): " + url + (errorBody ? " — " + errorBody.slice(0, 300) : ""));
-      }
-      const retryAfter = Number(response.headers.get("retry-after") || 0);
-      const resetAt = Number(response.headers.get("x-ratelimit-reset") || 0);
-      const resetDelay = resetAt > 0 ? Math.max(0, resetAt * 1000 - Date.now()) : 0;
-      const delayMs = retryAfter > 0
-        ? Math.min(retryAfter * 1000, 60000)
-        : resetDelay > 0 && rateLimited403
-          ? Math.min(resetDelay, 60000)
-          : Math.min(1000 * (2 ** attempt), 15000);
-      console.warn("Retrying transient GitHub API " + response.status + " response in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    } catch (error) {
-      if (attempt === maxAttempts - 1 || !(error instanceof TypeError)) throw error;
-      const delayMs = Math.min(300 * (2 ** attempt), 5000);
-      console.warn("Retrying transient GitHub API network error in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    }
-  }
-  throw new Error("GitHub API request exhausted retry budget: " + url);
+function git(args) {
+  return execFileSync("git", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 32 * 1024 * 1024
+  }).trim();
 }
 
-async function getAllPages(url) {
-  const results = [];
-  let page = 1;
-  while (true) {
-    const separator = url.includes("?") ? "&" : "?";
-    const batch = await githubGet(url + separator + "per_page=100&page=" + page);
-    if (!Array.isArray(batch) || batch.length === 0) break;
-    results.push(...batch);
-    if (batch.length < 100) break;
-    page++;
+async function graphql(query, variables) {
+  const response = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    },
+    body: JSON.stringify({ query, variables })
+  });
+  const body = await response.text();
+  if (!response.ok) {
+    throw new Error("GitHub GraphQL request failed (" + response.status + "): " + body.slice(0, 400));
   }
-  return results;
+  const payload = JSON.parse(body);
+  if (payload.errors?.length) {
+    throw new Error("GitHub GraphQL returned errors: " + payload.errors.map(e => e.message).join("; "));
+  }
+  return payload.data;
+}
+
+async function getOpenPullRequests(owner, name) {
+  const query = "query($owner: String!, $name: String!, $cursor: String) {\n" +
+    " repository(owner: $owner, name: $name) {\n" +
+    "  pullRequests(first: 100, states: OPEN, after: $cursor, orderBy: {field: UPDATED_AT, direction: DESC}) {\n" +
+    "   pageInfo { hasNextPage endCursor }\n" +
+    "   nodes { number title url baseRefName baseRepository { nameWithOwner } headRefOid }\n" +
+    "  }\n" +
+    " }\n" +
+    "}";
+  const pulls = [];
+  let cursor = null;
+  do {
+    const data = await graphql(query, { owner, name, cursor });
+    const connection = data?.repository?.pullRequests;
+    if (!connection) throw new Error("GraphQL did not return the repository pull-request connection.");
+    pulls.push(...connection.nodes);
+    cursor = connection.pageInfo.hasNextPage ? connection.pageInfo.endCursor : null;
+  } while (cursor);
+  return pulls;
+}
+
+function migrationEntriesForHead(prNumber, headRef) {
+  const mergeBase = git(["merge-base", "refs/remotes/origin/" + baseRef, headRef]);
+  const output = git([
+    "diff", "--name-status", "--no-renames",
+    mergeBase, headRef, "--", "supabase/migrations"
+  ]);
+  const entries = [];
+  for (const line of output.split(/\r?\n/).filter(Boolean)) {
+    const [status, file] = line.split("\t");
+    if (!file || status === "D") continue;
+    const match = migrationPattern.exec(file);
+    if (!match) continue;
+    const sha = git(["rev-parse", headRef + ":" + file]);
+    entries.push({ version: match[1], file, prNumber, sha });
+  }
+  return entries;
 }
 
 try {
-  const current = await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
-  const openPulls = await getAllPages("https://api.github.com/repos/" + repository + "/pulls?state=open");
-  const comparable = openPulls.filter(pr =>
-    pr.base?.ref === current.base?.ref &&
-    pr.base?.repo?.full_name === current.base?.repo?.full_name
+  const [owner, name] = repository.split("/");
+  if (!owner || !name) throw new Error("GITHUB_REPOSITORY must use owner/name format.");
+  const pulls = await getOpenPullRequests(owner, name);
+  const comparable = pulls.filter(pr =>
+    pr.baseRefName === baseRef &&
+    pr.baseRepository?.nameWithOwner === repository &&
+    Number.isInteger(pr.number) &&
+    typeof pr.headRefOid === "string"
   );
+  const current = comparable.find(pr => pr.number === currentPrNumber);
+  if (!current) throw new Error("Current PR #" + currentPrNumber + " is not present in the open pull-request list for base " + baseRef + ".");
+
+  // Fetch the target branch plus each open PR head via its read-only hidden ref.
+  // This avoids one REST API request per PR file list and reduces API rate pressure.
+  git(["fetch", "--no-tags", "origin", "+refs/heads/" + baseRef + ":refs/remotes/origin/" + baseRef]);
+  const refspecs = comparable.map(pr => "+refs/pull/" + pr.number + "/head:refs/remotes/origin/pr-head/" + pr.number);
+  const fetched = new Set();
+  for (let offset = 0; offset < refspecs.length; offset += 20) {
+    const batch = refspecs.slice(offset, offset + 20);
+    try {
+      git(["fetch", "--no-tags", "origin", ...batch]);
+      batch.forEach((_, idx) => fetched.add(comparable[offset + idx].number));
+    } catch {
+      for (let idx = 0; idx < batch.length; idx++) {
+        const pr = comparable[offset + idx];
+        try {
+          git(["fetch", "--no-tags", "origin", batch[idx]]);
+          fetched.add(pr.number);
+        } catch {
+          if (pr.number === currentPrNumber) throw new Error("Could not fetch the current PR head ref.");
+          console.warn("Skipping PR #" + pr.number + " because its head ref disappeared during the scan.");
+        }
+      }
+    }
+  }
+  if (!fetched.has(currentPrNumber)) throw new Error("Current PR head ref was not fetched; refusing to skip collision detection.");
 
   const all = [];
   for (const pr of comparable) {
-    const files = await getAllPages("https://api.github.com/repos/" + repository + "/pulls/" + pr.number + "/files");
-    const entries = migrationEntries(pr.number, files);
-    if (entries.length) all.push({ prNumber: pr.number, title: pr.title, url: pr.html_url, base: pr.base, entries });
+    if (!fetched.has(pr.number)) continue;
+    all.push({ prNumber: pr.number, title: pr.title, url: pr.url, entries: migrationEntriesForHead(pr.number, "refs/remotes/origin/pr-head/" + pr.number) });
   }
 
   const collisions = crossPullRequestCollisions(all);
@@ -171,13 +215,13 @@ try {
   if (relevantCollisions.length) {
     console.error("Cross-PR migration version collision detected involving the current PR:");
     for (const collision of relevantCollisions) {
-      const left = all.find(pr => pr.prNumber === collision.leftPr);
-      const right = all.find(pr => pr.prNumber === collision.rightPr);
       console.error(
         "- version " + collision.version +
         ": PR #" + collision.leftPr + " " + collision.leftFile +
         " conflicts with PR #" + collision.rightPr + " " + collision.rightFile
       );
+      const left = all.find(pr => pr.prNumber === collision.leftPr);
+      const right = all.find(pr => pr.prNumber === collision.rightPr);
       if (left?.url) console.error("  PR #" + collision.leftPr + ": " + left.url);
       if (right?.url) console.error("  PR #" + collision.rightPr + ": " + right.url);
     }
@@ -194,9 +238,8 @@ try {
 
   console.log(
     "Cross-PR migration collision check PASS for current PR #" + currentPrNumber +
-    ": audited " + all.length +
-    " open PR(s) with migration changes targeting " + current.base.ref +
-    "; unrelated existing collisions are warnings."
+    ": audited " + all.length + " open PR(s) targeting " + baseRef +
+    "; GraphQL listing plus Git ref diffs."
   );
 } catch (error) {
   console.error("Cross-PR migration collision check could not complete:", error instanceof Error ? error.message : "unknown error");

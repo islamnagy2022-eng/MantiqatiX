@@ -202,7 +202,7 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (!selectedPaymobBiz) return;
 
-    updateBusinessPaymobConfig(selectedPaymobBiz.id, {
+    const saved = updateBusinessPaymobConfig(selectedPaymobBiz.id, {
       enabled: paymobEnabled,
       feeType: paymobFeeType,
       feePercentage: Number(paymobFeePercentage) || 0,
@@ -213,6 +213,7 @@ export const AdminDashboard: React.FC = () => {
       integrationIdWallet: paymobIntegrationIdWallet,
       notesForCustomer: paymobNotesForCustomer,
     });
+    if (!saved) return;
 
     setPaymobSaveSuccess(true);
     setTimeout(() => {
@@ -577,31 +578,8 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         {/* Tab 6: Backup */}
-        <button
-          onClick={() => {
-            setActiveAdminTab('backup');
-            setBackupFeedback(null);
-          }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'backup'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
-          }`}
-        >
-          <Database className="w-4 h-4 text-amber-900" />
-          <span>النسخ الاحتياطي واستعادة البيانات</span>
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('control_center')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'control_center'
-              ? 'bg-indigo-700 text-white shadow-md'
-              : 'text-slate-600 hover:text-indigo-800 bg-white border border-slate-200'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4 text-indigo-500" />
-          <span>مركز تحكم المالك والصلاحيات</span>
-        </button>
+        
+        
       </div>
 
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
@@ -1355,7 +1333,7 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3.5 px-4">المشترك</th>
                     <th className="py-3.5 px-4">النشاط المخصص</th>
                     <th className="py-3.5 px-4">حساب Google</th>
-                    
+                    <th className="py-3.5 px-4">حالة الاشتراك</th>
                     <th className="py-3.5 px-4">طريقة التعيين</th>
                     <th className="py-3.5 px-4 text-center">نسخ البيانات</th>
                     <th className="py-3.5 px-4 text-center">دعوة Gmail</th>
@@ -1386,8 +1364,15 @@ export const AdminDashboard: React.FC = () => {
                         <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
                           {sub.username || sub.email.split('@')[0]}
                         </td>
-
-
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
+                            sub.status === 'active' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : sub.status === 'pending' ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}>
+                            {sub.status === 'active' ? 'نشط' : sub.status === 'pending' ? 'بانتظار السداد' : 'موقوف'}
+                          </span>
+                        </td>
 
                         <td className="py-3.5 px-4">
                           <span

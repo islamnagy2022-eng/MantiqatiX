@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { FunctionalGroupId, Product } from '../../types';
+import { Product } from '../../types';
 import { MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
@@ -54,7 +54,6 @@ export const MerchantDashboard: React.FC = () => {
     updateProduct,
     deleteProduct,
     adminSettings,
-    categories,
     functionalGroups,
     setCurrentView,
   } = useApp();
@@ -65,20 +64,17 @@ export const MerchantDashboard: React.FC = () => {
   // Business Profile & Branding state
   const [bizName, setBizName] = useState(currentBusiness?.name || '');
   const [bizBio, setBizBio] = useState(currentBusiness?.bio || '');
-  const [bizCategory, setBizCategory] = useState(currentBusiness?.category || '');
-  const [bizFunctionalGroup, setBizFunctionalGroup] = useState<FunctionalGroupId>(
-    currentBusiness?.functionalGroupId || 'dining'
-  );
   const [bizLogoUrl, setBizLogoUrl] = useState(currentBusiness?.logoUrl || '');
   const [bizCoverUrl, setBizCoverUrl] = useState(currentBusiness?.coverUrl || '');
   const [bizOwnerWhatsApp, setBizOwnerWhatsApp] = useState(currentBusiness?.ownerWhatsApp || '');
   const [bizAddress, setBizAddress] = useState(currentBusiness?.address || '');
-  const [bizGov, setBizGov] = useState(currentBusiness?.governorate || 'الدقهلية');
-  const [bizMarkaz, setBizMarkaz] = useState(currentBusiness?.markaz || 'المنصورة');
-  const [bizVillage, setBizVillage] = useState(currentBusiness?.village || 'حي الجامعة');
+  const [bizGov, setBizGov] = useState(currentBusiness?.governorate || '');
+  const [bizMarkaz, setBizMarkaz] = useState(currentBusiness?.markaz || '');
+  const [bizVillage, setBizVillage] = useState(currentBusiness?.village || '');
   const [bizWorkingHours, setBizWorkingHours] = useState(currentBusiness?.workingHours || '');
-  const [bizGoogleMapsUrl, setBizGoogleMapsUrl] = useState(currentBusiness?.googleMapsUrl || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaveError, setProfileSaveError] = useState('');
 
   // New / Edit Product Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,17 +82,13 @@ export const MerchantDashboard: React.FC = () => {
   const [formName, setFormName] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formType, setFormType] = useState<'product' | 'service'>('product');
-  const [formPrice, setFormPrice] = useState<number>(50);
+  const [formPrice, setFormPrice] = useState<string>('');
   const [formComparePrice, setFormComparePrice] = useState<string>('');
   const [formDescription, setFormDescription] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
   const [formImageSource, setFormImageSource] = useState<'auto' | 'owner'>('auto');
   const [formUnit, setFormUnit] = useState('قطعة');
   const [formError, setFormError] = useState('');
-
-  if (!currentBusiness) {
-    return <div className="p-8 text-center text-slate-500">يرجى اختيار نشاط أولاً.</div>;
-  }
 
   useEffect(() => {
     if (formImageSource !== 'auto') return;
@@ -108,47 +100,75 @@ export const MerchantDashboard: React.FC = () => {
     }));
   }, [formName, formDescription, formCategory, formType, formImageSource]);
 
+  useEffect(() => {
+    setBizName(currentBusiness?.name || '');
+    setBizBio(currentBusiness?.bio || '');
+    setBizLogoUrl(currentBusiness?.logoUrl || '');
+    setBizCoverUrl(currentBusiness?.coverUrl || '');
+    setBizOwnerWhatsApp(currentBusiness?.ownerWhatsApp || '');
+    setBizAddress(currentBusiness?.address || '');
+    setBizGov(currentBusiness?.governorate || '');
+    setBizMarkaz(currentBusiness?.markaz || '');
+    setBizVillage(currentBusiness?.village || '');
+    setBizWorkingHours(currentBusiness?.workingHours || '');
+    setSaveSuccess(false);
+    setProfileSaveError('');
+  }, [currentBusiness?.id]);
+
+  if (!currentBusiness) {
+    return <div className="p-8 text-center text-slate-500">يرجى اختيار نشاط أولاً.</div>;
+  }
+
   const productsCount = businessProducts.length;
   const maxLimit = currentBusiness.maxProductsLimit || MAX_PRODUCTS_PER_BUSINESS;
   const remainingQuota = Math.max(0, maxLimit - productsCount);
   const quotaPercent = Math.min(100, Math.round((productsCount / maxLimit) * 100));
 
   const currentGroupInfo = functionalGroups.find(
-    (g) => g.id === (currentBusiness.functionalGroupId || bizFunctionalGroup)
+    (g) => g.id === currentBusiness.functionalGroupId
   );
 
-  const handleCategoryChange = (catName: string) => {
-    setBizCategory(catName);
-    const matched = categories.find((c) => c.name === catName);
-    if (matched) {
-      setBizFunctionalGroup(matched.functionalGroupId);
-    }
-  };
-
-  const handleSaveBusiness = (e: React.FormEvent) => {
+  const handleSaveBusiness = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    const matchedCategory = categories.find((c) => c.name === bizCategory);
-    const categoryId = matchedCategory?.id;
+    setSaveSuccess(false);
+    setProfileSaveError('');
 
-    updateBusiness({
-      ...currentBusiness,
-      name: bizName,
-      bio: bizBio,
-      category: bizCategory,
-      categoryId,
-      functionalGroupId: bizFunctionalGroup,
-      logoUrl: bizLogoUrl,
-      coverUrl: bizCoverUrl,
-      ownerWhatsApp: bizOwnerWhatsApp,
-      address: bizAddress,
-      governorate: bizGov,
-      markaz: bizMarkaz,
-      village: bizVillage,
-      googleMapsUrl: bizGoogleMapsUrl,
-      workingHours: bizWorkingHours,
-    });
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2500);
+    const phoneDigits = bizOwnerWhatsApp.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      setProfileSaveError('أدخل رقم واتساب صحيحًا لصاحب النشاط من 10 إلى 15 رقمًا.');
+      return;
+    }
+    if (![bizGov, bizMarkaz, bizVillage].every((value) => value.trim())) {
+      setProfileSaveError('أدخل المحافظة والمركز أو القسم والقرية أو الحي الفعلي للنشاط.');
+      return;
+    }
+    if (bizName.trim().length < 2) {
+      setProfileSaveError('اسم النشاط يجب ألا يقل عن حرفين.');
+      return;
+    }
+
+    setProfileSaving(true);
+    try {
+      await updateBusiness({
+        ...currentBusiness,
+        name: bizName.trim(),
+        bio: bizBio.trim(),
+        logoUrl: bizLogoUrl.trim(),
+        coverUrl: bizCoverUrl.trim(),
+        ownerWhatsApp: bizOwnerWhatsApp.trim(),
+        address: bizAddress.trim(),
+        governorate: bizGov.trim(),
+        markaz: bizMarkaz.trim(),
+        village: bizVillage.trim(),
+        workingHours: bizWorkingHours.trim(),
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
+    } catch (error) {
+      setProfileSaveError(error instanceof Error ? error.message : 'تعذر حفظ بيانات النشاط في قاعدة الإنتاج.');
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const openAddModal = () => {
@@ -156,7 +176,7 @@ export const MerchantDashboard: React.FC = () => {
     setFormName('');
     setFormCategory(businessProducts[0]?.category || 'عام');
     setFormType('product');
-    setFormPrice(50);
+    setFormPrice('');
     setFormComparePrice('');
     setFormDescription('');
     setFormImageSource('auto');
@@ -171,7 +191,7 @@ export const MerchantDashboard: React.FC = () => {
     setFormName(p.name);
     setFormCategory(p.category);
     setFormType(p.type);
-    setFormPrice(p.price);
+    setFormPrice(String(p.price));
     setFormComparePrice(p.comparePrice ? String(p.comparePrice) : '');
     setFormDescription(p.description);
     setFormImageSource(p.imageSource === 'auto' ? 'auto' : 'owner');
@@ -189,12 +209,17 @@ export const MerchantDashboard: React.FC = () => {
       setFormError('يرجى إدخال اسم المنتج أو الخدمة.');
       return;
     }
-    if (formPrice < 0) {
-      setFormError('يرجى تحديد سعر صالح بالجنيه المصري.');
+    const priceValue = formPrice.trim() === '' ? Number.NaN : Number(formPrice);
+    if (!Number.isFinite(priceValue) || priceValue < 0) {
+      setFormError('أدخل السعر الحقيقي للمنتج أو الخدمة بالجنيه المصري. اتركه دون حفظ حتى تعرف السعر الصحيح.');
       return;
     }
 
-    const comparePriceVal = formComparePrice ? parseFloat(formComparePrice) : undefined;
+    const comparePriceVal = formComparePrice.trim() ? Number(formComparePrice) : undefined;
+    if (comparePriceVal !== undefined && (!Number.isFinite(comparePriceVal) || comparePriceVal < 0)) {
+      setFormError('السعر قبل الخصم يجب أن يكون رقمًا صالحًا غير سالب.');
+      return;
+    }
 
     if (editingProduct) {
       try {
@@ -203,7 +228,7 @@ export const MerchantDashboard: React.FC = () => {
         name: formName,
         category: formCategory || 'عام',
         type: formType,
-        price: formPrice,
+        price: priceValue,
         comparePrice: comparePriceVal,
         description: formDescription,
         imageUrl: formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
@@ -218,7 +243,7 @@ export const MerchantDashboard: React.FC = () => {
         name: formName,
         category: formCategory || 'عام',
         type: formType,
-        price: formPrice,
+        price: priceValue,
         comparePrice: comparePriceVal,
         description: formDescription,
         imageUrl: formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
@@ -559,7 +584,7 @@ export const MerchantDashboard: React.FC = () => {
                 />
                 <div className="pt-8">
                   <h4 className="font-extrabold text-base text-slate-900">{bizName}</h4>
-                  <p className="text-xs text-slate-500">{bizCategory}</p>
+                  <p className="text-xs text-slate-500">{currentBusiness.category || 'التصنيف غير مسجل'}</p>
                 </div>
               </div>
             </div>
@@ -594,20 +619,28 @@ export const MerchantDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-3">
+            <div className="pt-4 space-y-2">
+              {profileSaveError && (
+                <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800">
+                  {profileSaveError}
+                </div>
+              )}
               {saveSuccess && (
-                <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                <span role="status" className="text-xs font-bold text-emerald-600 flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  تم حفظ هوية النشاط بنجاح!
+                  تأكد حفظ هوية النشاط في قاعدة الإنتاج.
                 </span>
               )}
-              <button
-                type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
-              >
-                <Save className="w-4 h-4" />
-                <span>حفظ هوية النشاط</span>
-              </button>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{profileSaving ? 'جارٍ حفظ الهوية...' : 'حفظ هوية النشاط'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </form>
@@ -658,39 +691,22 @@ export const MerchantDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Category & Associated Functional Group */}
+              {/* Taxonomy is managed centrally until a dedicated production write contract exists. */}
               <div>
-                <label className="block text-xs font-black text-slate-800 mb-1.5">
-                  التصنيف التجاري للنشاط
-                </label>
-                <select
-                  value={bizCategory}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden cursor-pointer"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-xs font-black text-slate-800 mb-1.5">التصنيف التجاري الحالي</label>
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 font-bold" aria-readonly="true">
+                  {currentBusiness.category || 'التصنيف غير مسجل'}
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-800 mb-1.5">
-                  التصنيف الوظيفي (Functional Group) المخصص لنشاطك
-                </label>
-                <select
-                  value={bizFunctionalGroup}
-                  onChange={(e) => setBizFunctionalGroup(e.target.value as FunctionalGroupId)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden cursor-pointer"
-                >
-                  {functionalGroups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name} ({g.englishName})
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-xs font-black text-slate-800 mb-1.5">المجموعة الوظيفية الحالية</label>
+                <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 font-bold" aria-readonly="true">
+                  {currentGroupInfo?.name || 'المجموعة الوظيفية غير محددة'}
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  تعديل التصنيف أو المجموعة الوظيفية يحتاج اعتماد إدارة المنصة؛ هذه الشاشة تعرض القيم المسجلة فقط.
+                </p>
               </div>
 
               {/* Egyptian Location Administrative Breakdown */}
@@ -749,18 +765,15 @@ export const MerchantDashboard: React.FC = () => {
                   />
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-slate-200/60">
-                  <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    رابط موقع النشاط على خرائط جوجل (Google Maps URL)
-                  </label>
-                  <input
-                    type="url"
-                    value={bizGoogleMapsUrl}
-                    onChange={(e) => setBizGoogleMapsUrl(e.target.value)}
-                    placeholder="https://maps.app.goo.gl/..."
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-medium focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20"
-                    dir="ltr"
-                  />
+                <div className="mt-3 pt-3 border-t border-slate-200/60 text-xs text-slate-600">
+                  <span className="block text-[11px] font-bold text-slate-700 mb-1">موقع النشاط على خرائط Google</span>
+                  {currentBusiness.googleMapsUrl ? (
+                    <a href={currentBusiness.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-emerald-700 underline" dir="ltr">
+                      فتح رابط الخرائط المحفوظ
+                    </a>
+                  ) : (
+                    <p>لا يوجد رابط مخصص محفوظ. تستخدم صفحة الكتالوج الاسم والعنوان المسجلين لفتح بحث على خرائط Google؛ لا نعرض حقل تعديل غير مرتبط بالحفظ في هذا الإصدار.</p>
+                  )}
                 </div>
               </div>
 
@@ -790,20 +803,28 @@ export const MerchantDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-3">
+            <div className="pt-4 space-y-2">
+              {profileSaveError && (
+                <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800">
+                  {profileSaveError}
+                </div>
+              )}
               {saveSuccess && (
-                <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                <span role="status" className="text-xs font-bold text-emerald-600 flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  تم الحفظ بنجاح!
+                  تأكد حفظ بيانات النشاط في قاعدة الإنتاج.
                 </span>
               )}
-              <button
-                type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
-              >
-                <Save className="w-4 h-4" />
-                <span>حفظ التعديلات</span>
-              </button>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{profileSaving ? 'جارٍ حفظ التعديلات...' : 'حفظ التعديلات'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </form>
@@ -1014,7 +1035,7 @@ export const MerchantDashboard: React.FC = () => {
                     step="0.5"
                     required
                     value={formPrice}
-                    onChange={(e) => setFormPrice(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => setFormPrice(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-hidden"
                   />
                 </div>

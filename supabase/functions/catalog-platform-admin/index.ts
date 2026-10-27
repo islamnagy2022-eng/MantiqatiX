@@ -135,7 +135,7 @@ Deno.serve(async (req: Request) => {
         return {
           id: String(m.id), userId: String(m.user_id), fullName: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || "مشترك"),
           email: String(u?.email || ""), phone: String(u?.user_metadata?.phone || ""), businessId: String(m.business_id),
-          businessName: String(b?.name || "نشاط غير متاح"), status: String(m.status).toUpperCase() === "ACTIVE" ? "active" : "suspended",
+          businessName: String(b?.name || "نشاط غير متاح"), status: String(m.status).toUpperCase() === "ACTIVE" ? "active" : String(m.status).toUpperCase() === "INACTIVE" ? "pending" : "suspended",
           username: String(u?.email || ""), authMethod: "gmail_invite", inviteStatus: "pending", joinedDate: String(m.created_at || "").slice(0, 10),
         };
       }) });
@@ -248,17 +248,18 @@ Deno.serve(async (req: Request) => {
       }
       const existingMembership = existingMemberships?.[0];
       if (existingMembership) {
-        if (String(existingMembership.status).toUpperCase() !== "ACTIVE") {
-          const { error } = await service.from("user_memberships").update({ status: "ACTIVE" }).eq("id", existingMembership.id);
-          if (error) throw new Error("SUBSCRIBER_MEMBERSHIP_REACTIVATION_FAILED");
-        }
-        return response(origin, { success: true, membershipId: existingMembership.id, userId, email, reusedAccount: true, existingMembership: true }, 200);
+        const membershipStatus = String(existingMembership.status).toUpperCase();
+        return response(origin, {
+          success: true, membershipId: existingMembership.id, userId, email,
+          status: membershipStatus, paymentRequired: membershipStatus !== "ACTIVE",
+          reusedAccount: true, existingMembership: true,
+        }, 200);
       }
 
       const membershipId = crypto.randomUUID();
       const { error: membershipInsertError } = await service.from("user_memberships").insert({
         id: membershipId, user_id: userId, tenant_id: tenantId, organization_id: business.organization_id || null,
-        business_id: businessId, branch_id: null, role: "BUSINESS_OWNER", status: "ACTIVE", permissions: { catalog: true },
+        business_id: businessId, branch_id: null, role: "BUSINESS_OWNER", status: "INACTIVE", permissions: { catalog: true, subscription_status: "PENDING_PAYMENT" },
       });
       if (membershipInsertError) {
         // The null-safe unique index on (user_id, business_id, COALESCE(branch_id, ''))
@@ -271,11 +272,12 @@ Deno.serve(async (req: Request) => {
           .in("role", ["OWNER", "BUSINESS_OWNER"]).order("created_at", { ascending: true }).limit(1);
         if (!raceLookupError && racedMemberships?.[0]) {
           const racedMembership = racedMemberships[0];
-          if (String(racedMembership.status).toUpperCase() !== "ACTIVE") {
-            const { error: reactivateError } = await service.from("user_memberships").update({ status: "ACTIVE" }).eq("id", racedMembership.id);
-            if (reactivateError) throw new Error("SUBSCRIBER_MEMBERSHIP_REACTIVATION_FAILED");
-          }
-          return response(origin, { success: true, membershipId: racedMembership.id, userId, email, reusedAccount: true, existingMembership: true, recoveredRace: true }, 200);
+          const membershipStatus = String(racedMembership.status).toUpperCase();
+          return response(origin, {
+            success: true, membershipId: racedMembership.id, userId, email,
+            status: membershipStatus, paymentRequired: membershipStatus !== "ACTIVE",
+            reusedAccount: true, existingMembership: true, recoveredRace: true,
+          }, 200);
         }
         throw new Error(membershipInsertError.message || "SUBSCRIBER_MEMBERSHIP_CREATE_FAILED");
       }
@@ -283,7 +285,7 @@ Deno.serve(async (req: Request) => {
         actor_user_id: user.id, action: "BIZCATALOG_SUBSCRIBER_CREATED", entity_type: "user_membership",
         entity_id: membershipId, details: { tenantId, businessId, subscriberUserId: userId, reusedAuthIdentity: !createdAuthUser },
       }).then(() => {}).catch(() => {});
-      return response(origin, { success: true, membershipId, userId, email, reusedAccount: !createdAuthUser }, 201);
+      return response(origin, { success: true, membershipId, userId, email, status: "INACTIVE", paymentRequired: true, reusedAccount: !createdAuthUser }, 201);
     }
 
     if (action === "SUBSCRIBER_STATUS") {
@@ -294,6 +296,14 @@ Deno.serve(async (req: Request) => {
         .select("id,tenant_id,business_id,role").eq("id", membershipId).maybeSingle();
       if (findError) throw findError;
       if (!membership || !productionTenantIds.includes(String(membership.tenant_id)) || !["OWNER", "BUSINESS_OWNER"].includes(String(membership.role).toUpperCase())) throw new Error("SUBSCRIBER_NOT_FOUND");
+      if (status === "ACTIVE") {
+        const business = await getBusiness(String(membership.tenant_id), String(membership.business_id));
+        const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
+        const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
+        if (!isOfficialShowcase && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
+          return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "Confirm the business subscription payment before activating the owner membership." }, 409);
+        }
+      }
       const { error } = await service.from("user_memberships").update({ status }).eq("id", membershipId);
       if (error) throw error;
       return response(origin, { success: true, membershipId, status });
@@ -311,6 +321,18 @@ Deno.serve(async (req: Request) => {
       const nextSettings = { ...(business.settings || {}), bizcatalog: { ...current, ...patch } };
       const { error } = await service.from("businesses").update({ settings: nextSettings, updated_at: new Date().toISOString() }).eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
+
+      // Only an explicit admin-confirmed paid state can activate pending owner memberships.
+      if (String(patch.paymentStatus || "").toLowerCase() === "paid" && patch.paymentConfirmedByAdmin === true) {
+        const { error: activationError } = await service.from("user_memberships")
+          .update({ status: "ACTIVE", permissions: { catalog: true, subscription_status: "ACTIVE" } })
+          .eq("tenant_id", tenantId)
+          .eq("business_id", businessId)
+          .eq("status", "INACTIVE")
+          .contains("permissions", { subscription_status: "PENDING_PAYMENT" })
+          .in("role", ["OWNER", "BUSINESS_OWNER"]);
+        if (activationError) throw new Error("PAID_SUBSCRIPTION_ACTIVATION_FAILED");
+      }
       return response(origin, { success: true, settings: patch });
     }
 

@@ -1,4 +1,4 @@
-name: Primary Catalog Frontend Release
+name: Primary Catalog Frontend Validation
 
 on:
   push:
@@ -7,7 +7,13 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-paid-subscription-gate.mjs"
+      - "scripts/production/verify-catalog-pilot.mjs"
+      - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
+      - "scripts/validate-pages-production-deploy-gate.mjs"
+      - ".github/workflows/pages.yml"
+      - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
       - "supabase/functions/_shared/**"
@@ -24,14 +30,19 @@ on:
       - "supabase/tests/rc115_control_center_integration_contract.sql"
       - "supabase/tests/rc116_business_subscriber_admin_contract.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
-      - ".github/workflows/primary-catalog-frontend.yml"
   pull_request:
     branches: [main]
     paths:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-paid-subscription-gate.mjs"
+      - "scripts/production/verify-catalog-pilot.mjs"
+      - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
+      - "scripts/validate-pages-production-deploy-gate.mjs"
+      - ".github/workflows/pages.yml"
+      - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
       - "supabase/functions/_shared/**"
@@ -48,50 +59,27 @@ on:
       - "supabase/tests/rc115_control_center_integration_contract.sql"
       - "supabase/tests/rc116_business_subscriber_admin_contract.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
-      - ".github/workflows/primary-catalog-frontend.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: primary-catalog-frontend-${{ github.ref }}
+  group: primary-catalog-validation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout release branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 0
-      - name: Verify catalog deployment is bound to the production gate
-        run: node scripts/validate-production-gate-contract.mjs
-      - name: Verify release source files
-        run: |
-          set -euo pipefail
-          test -s apps/catalog-frontend/package.json
-          test -s apps/catalog-frontend/public/config.js
-          test -s supabase/functions/catalog-platform-admin/index.ts
-          test -s supabase/functions/public-catalog-directory/index.ts
-          test -s supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql
-          test -s supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql
-          test -s supabase/migrations/20261027030000_rc113_super_admin_control_center_foundation.sql
-          test -s supabase/migrations/20261027040000_rc114_business_employee_hiring_system.sql
-          test -s supabase/migrations/20261027050000_rc115_control_center_integration.sql
-          test -s supabase/migrations/20261027060000_rc116_business_subscriber_admin.sql
-          test -s supabase/migrations/20261027070000_rc117_default_images_and_activity_admin.sql
-          test -s supabase/tests/rc113_super_admin_control_center_contract.sql
-          test -s supabase/tests/rc114_employee_hiring_contract.sql
-          test -s supabase/tests/rc115_control_center_integration_contract.sql
-          test -s supabase/tests/rc116_business_subscriber_admin_contract.sql
-          test -s supabase/tests/rc117_default_images_and_activity_admin_contract.sql
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Install dependencies
@@ -102,96 +90,49 @@ jobs:
         run: npm run lint
       - name: Validate Google OAuth session and role contract
         run: node scripts/validate-catalog-google-auth-contract.mjs
-      - name: Build production assets
+      - name: Verify paid subscription activation gate
+        run: node scripts/validate-paid-subscription-gate.mjs
+      - name: Verify scoped catalog pilot release prerequisites
+        run: node scripts/production/verify-catalog-pilot.mjs
+      - name: Validate that the platform root is preserved
+        run: node scripts/validate-pages-production-deploy-gate.mjs
+      - name: Build catalog module for its own subpath
         working-directory: apps/catalog-frontend
         run: npm run build
-      - name: Verify release files
+      - name: Verify catalog subpath assets and PWA scope
         run: |
+          set -euo pipefail
           test -s apps/catalog-frontend/dist/index.html
           test -s apps/catalog-frontend/dist/config.js
-          grep -q '/MantiqatiX/assets/' apps/catalog-frontend/dist/index.html
-      - name: Smoke test deployed public catalog directory
+          grep -Fq '/MantiqatiX/catalog-app/assets/' apps/catalog-frontend/dist/index.html
+          grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
+          grep -Fq '/MantiqatiX/catalog-app/' apps/catalog-frontend/dist/manifest.webmanifest
+          grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
+      - name: Smoke test allowlisted Google OAuth root callback relay
         run: |
           set -euo pipefail
-          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseUrl:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
-          SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseUrl:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          REDIRECT_URL="https://islamnagy2022-eng.github.io/MantiqatiX/"
+          HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-oauth-smoke.json --dump-header /tmp/catalog-oauth-smoke.headers --write-out '%{http_code}' --get --data-urlencode 'provider=google' --data-urlencode "redirect_to=${REDIRECT_URL}" --header "apikey: ${SUPABASE_ANON_KEY}" "${SUPABASE_URL}/auth/v1/authorize")"
+          if [ "${HTTP_CODE}" != "302" ] && [ "${HTTP_CODE}" != "303" ]; then
+            echo "Google OAuth initiation failed with HTTP ${HTTP_CODE}"
+            cat /tmp/catalog-oauth-smoke.json
+            exit 1
+          fi
+          grep -Eiq '^location: https://accounts\.google\.com/' /tmp/catalog-oauth-smoke.headers
+          echo "CATALOG_OAUTH_ROOT_RELAY_HANDSHAKE=PASS"
+      - name: Smoke test production public catalog directory
+        run: |
+          set -euo pipefail
+          SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseUrl:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-directory-smoke.json --write-out '%{http_code}' --header "apikey: ${SUPABASE_ANON_KEY}" --header 'Accept: application/json' "${SUPABASE_URL}/functions/v1/public-catalog-directory")"
-          cat /tmp/catalog-directory-smoke.json
           test "${HTTP_CODE}" = "200"
-          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog-directory-smoke.json','utf8'));if(!Array.isArray(d.businesses)||d.accessMode!=='PUBLIC_DIRECTORY_READ_ONLY')process.exit(1);const s=JSON.stringify(d).toUpperCase();if(s.includes('MNTY-TEST-B')||s.includes('ISOLATION TEST'))process.exit(2);console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses='+d.businesses.length)"
-      - name: Upload production build
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog-directory-smoke.json','utf8'));if(!Array.isArray(d.businesses)||d.accessMode!=='PUBLIC_DIRECTORY_READ_ONLY')process.exit(1);const q=d.businesses.find(b=>b.slug==='qadam-alsaad-homewares');if(!q||!Array.isArray(q.items)||q.items.length===0||q.accessMode!=='PUBLIC_READ_ONLY'||q.paymentsEnabled!==false)process.exit(3);const s=JSON.stringify(d).toUpperCase();if(s.includes('MNTY-TEST-B')||s.includes('ISOLATION TEST'))process.exit(2);console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses='+d.businesses.length+'; qadam_items='+q.items.length)"
+      - name: Upload catalog build for review (no deployment)
         uses: actions/upload-artifact@v4
         with:
-          name: primary-catalog-frontend-dist
+          name: catalog-frontend-subpath-build
           path: apps/catalog-frontend/dist
           if-no-files-found: error
-
-  production_gate:
-    # A catalog UI release must not bypass the platform production-readiness gate.
-    # Pull requests validate the build; only pushes to main run the live release gate.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout production source
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install production verifier dependency
-        run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Require production readiness certification
-        run: npm run verify:production
-
-  deploy:
-    # Deployment is blocked unless the full production gate certifies readiness.
-    needs: [build, production_gate]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.production_gate.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Download the validated catalog frontend
-        uses: actions/download-artifact@v4
-        with:
-          name: primary-catalog-frontend-dist
-          path: ./dist
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Upload the catalog site as the root Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./dist
-      - name: Publish the replacement catalog site
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Verify live website root and required assets
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          set -euo pipefail
-          ROOT_URL="${PAGE_URL%/}/"
-          TMP_PAGE="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
-          grep -Fq "MantiqatiX" "${TMP_PAGE}"
-          grep -Fq "/MantiqatiX/config.js" "${TMP_PAGE}"
-          grep -Fq "/MantiqatiX/assets/" "${TMP_PAGE}"
-          CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
-          grep -Fq "window.MANTIQATIX_CONFIG" <<<"${CONFIG_JS}"
-          grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
-          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' "${TMP_PAGE}" | head -n 1)"
-          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
-          test -n "${JS_ASSET}"
-          test -n "${CSS_ASSET}"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${JS_ASSET#/MantiqatiX}" >/dev/null
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}${CSS_ASSET#/MantiqatiX}" >/dev/null
-          echo "PRIMARY_CATALOG_LIVE_DEPLOY=PASS: ${ROOT_URL}"

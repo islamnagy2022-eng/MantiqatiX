@@ -31,11 +31,13 @@ const requiredWorkflowMarkers = [
 ];
 
 const requiredPrimaryCatalogMarkers = [
-  'production_gate:',
-  'run: npm run verify:production',
-  'needs: [build, production_gate]',
-  "needs.production_gate.result == 'success'",
+  'Upload catalog build for review (no deployment)',
+  'node scripts/validate-pages-production-deploy-gate.mjs',
+  '/MantiqatiX/catalog-app/assets/',
 ];
+const primaryCatalogMustNotDeploy = !primaryCatalogWorkflow.includes('actions/deploy-pages@v4')
+  && !/pages:\s*write/.test(primaryCatalogWorkflow)
+  && !/id-token:\s*write/.test(primaryCatalogWorkflow);
 const home = read('web/home.js');
 const requiredHomeMarkers = [
   'data-targeted-ad',
@@ -48,6 +50,7 @@ const missing = [
   ...requiredContinuityMarkers.filter(x => !continuity.includes(x)).map(x => 'CONTINUITY:' + x),
   ...requiredWorkflowMarkers.filter(x => !workflow.includes(x)).map(x => 'WORKFLOW:' + x),
   ...requiredPrimaryCatalogMarkers.filter(x => !primaryCatalogWorkflow.includes(x)).map(x => 'PRIMARY_CATALOG_WORKFLOW:' + x),
+  ...(!primaryCatalogMustNotDeploy ? ['PRIMARY_CATALOG_WORKFLOW: deployment must remain exclusively in the canonical Pages workflow'] : []),
 ];
 
 if (missing.length) {
