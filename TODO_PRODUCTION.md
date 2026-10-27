@@ -151,7 +151,7 @@
 
 ## P1 — QA
 - [ ] type/lint/static checks.
-- [x] JS syntax — current `web/app.js` and `web/smm.js` pass CI.
+- [x] JS syntax — active legacy web checks pass CI; the retired SMM storefront JavaScript is no longer part of the client build.
 - [ ] routes/imports/environment.
 - [ ] DB/API tests.
 - [ ] Auth/Authz.
@@ -188,14 +188,13 @@
 - [ ] build/sign/release.
 - [ ] App regression مقابل Website/API.
 
-## P2 — SMM
-- [ ] providers/services/orders/wallets review.
-- [ ] platform RBAC integration.
-- [ ] provider credentials isolation.
-- [ ] order events/idempotency.
-- [ ] wallet reconciliation.
-- [ ] monitoring.
-- [ ] حماية الوظائف الإدارية.
+## P2 — SMM (deferred from initial launch)
+- [x] Confirmed launch scope: SMM is separate from the core Marketing & Advertising module and is deferred until a separately reviewed post-launch release.
+- [x] Retired the unused interactive customer-side storefront files (`web/smm.js` and `web/smm.css`); kept `web/smm.html` as a noindex informational page stating that orders are unavailable.
+- [x] Added a CI contract ensuring the placeholder has no interactive form/script/API calls and the server-side default-deny gate, authorization contract, and historical migration remain present.
+- [ ] NOT VERIFIED: prove the currently deployed production `smm-gateway` is still default-deny using read-only version/hash evidence and anonymous/authenticated negative runtime tests. Source checks alone do not prove live deployment state.
+- [ ] POST-LAUNCH: provider/service/order/wallet review, platform RBAC, provider credential isolation, idempotency/order events, wallet reconciliation, monitoring, and administrative authorization.
+- [ ] Do not delete deployed Edge Function source, security tests, or historical database migrations as part of frontend cleanup; no production schema or function changes are authorized by this task.
 
 ## P2 — Specialized Modules
 - [ ] Retail/Fashion.
