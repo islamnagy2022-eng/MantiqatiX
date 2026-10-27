@@ -35,4 +35,14 @@ if (!/const merged = \{ \.\.\.current, \.\.\.safe \}/.test(platformAdmin) ||
   throw new Error('FAIL: partial settings saves must preserve existing platform settings.');
 }
 
+
+if (!dashboard.includes(String.raw`adminPhone.replace(/\D/g, '')`) ||
+    dashboard.includes(String.raw`adminPhone.replace(/\\D/g, '')`)) {
+  throw new Error('FAIL: the browser must strip all non-digit characters from the WhatsApp number before checking its length.');
+}
+if (!platformAdmin.includes(String.raw`adminWhatsApp.replace(/\D/g, "")`) ||
+    platformAdmin.includes(String.raw`adminWhatsApp.replace(/\\D/g, "")`)) {
+  throw new Error('FAIL: the Edge Function must normalize phone digits correctly.');
+}
+
 console.log('Platform settings persistence and Google-only authentication copy: PASS');
