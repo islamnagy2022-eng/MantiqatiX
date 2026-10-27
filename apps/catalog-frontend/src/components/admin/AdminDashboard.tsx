@@ -716,7 +716,7 @@ export const AdminDashboard: React.FC = () => {
                         billingStatusFilter === 'all' ||
                         (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen' || b.overdueDaysCount > 5)) ||
                         (billingStatusFilter === 'overdue' && !b.isFrozen && b.paymentStatus === 'overdue' && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
-                        (billingStatusFilter === 'paid' && !b.isFrozen && b.paymentStatus === 'paid') ||
+                        (billingStatusFilter === 'paid' && !b.isFrozen && b.overdueDaysCount === 0 && b.paymentStatus === 'paid') ||
                         (billingStatusFilter === 'pending' && !b.isFrozen && b.paymentStatus === 'pending' && b.overdueDaysCount === 0);
                       return matchGov && matchStatus;
                     })
@@ -794,13 +794,13 @@ export const AdminDashboard: React.FC = () => {
                           {/* Monthly Subscription Status: reflect the persisted production state, never a hardcoded paid badge. */}
                           <td className="py-3.5 px-4">
                             <span className={`font-black block ${
-                              biz.paymentStatus === 'paid' && !biz.isFrozen
+                              biz.paymentStatus === 'paid' && !biz.isFrozen && biz.overdueDaysCount === 0
                                 ? 'text-emerald-700'
                                 : biz.paymentStatus === 'pending'
                                   ? 'text-amber-700'
                                   : 'text-rose-700'
                             }`}>
-                              {biz.paymentStatus === 'paid' && !biz.isFrozen
+                              {biz.paymentStatus === 'paid' && !biz.isFrozen && biz.overdueDaysCount === 0
                                 ? 'مسدد ومعتمد'
                                 : biz.paymentStatus === 'pending'
                                   ? 'بانتظار تأكيد السداد'
