@@ -37,5 +37,27 @@ begin
   if position('marketing_provider_profiles' in v_admin_definition)=0 then
     raise exception 'RC117_ACTIVITY_NAME_SYNC_MISSING';
   end if;
+
+  if exists (
+    select 1 from public.businesses b
+    where coalesce(trim(b.settings->'catalog_profile'->>'logo_url'),'')=''
+       or coalesce(trim(b.settings->'catalog_profile'->>'cover_url'),'')=''
+  ) then
+    raise exception 'RC117_EXISTING_BUSINESS_IMAGE_BACKFILL_INCOMPLETE';
+  end if;
+
+  if exists (
+    select 1 from public.catalog_items i
+    where coalesce(trim(i.metadata->'catalog_public'->>'image_url'),'')=''
+  ) then
+    raise exception 'RC117_EXISTING_CATALOG_ITEM_IMAGE_BACKFILL_INCOMPLETE';
+  end if;
+
+  if exists (
+    select 1 from public.marketing_services s
+    where coalesce(trim(s.image_url),'')=''
+  ) then
+    raise exception 'RC117_EXISTING_MARKETING_SERVICE_IMAGE_BACKFILL_INCOMPLETE';
+  end if;
 end;
-$$;
+$;
