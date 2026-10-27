@@ -520,3 +520,11 @@
 - [x] Forward replay correction verified in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976): all 52 post-checkpoint migrations applied in timestamp order in a disposable Supabase instance; RC117 contract ran and synthetic tenant A/B read isolation and cross-tenant order/payment-intent write denial passed.
 - [x] Exact-head migration immutability, version uniqueness, open-PR collision guard, RC425 Paymob atomicity, SMM deferred-storefront contract, backend-only boundary, MantiGO privacy and module validation checks passed at this checkpoint.
 - [ ] Production Gate stays BLOCKED: this isolated replay does not prove the migrations were applied to Production, and payment/finance E2E, backup/restore rehearsal, live Auth/Edge Function runtime gates, browser/device E2E, monitoring/alerts and rollback evidence remain open. Web deploy workflow skipped `validate_public_only` and `deploy`; no production deployment occurred.
+
+
+## 2026-10-27 — Critical Edge Function source drift recheck
+
+- [x] Read-only exact entrypoint comparisons against `main` show source drift in live `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3. Key observed differences are recorded in `docs/release/production-migration-reconciliation.json`.
+- [x] Live `smm-gateway` v13 entrypoint exactly matches `main`; anonymous/authenticated negative runtime tests remain NOT VERIFIED.
+- [ ] Do not deploy the five drifting functions individually. Align rollout with the missing RC425–RC441 versions, review current live schema drift, and pass payment/webhook/finance sandbox E2E plus backup/restore and rollback gates first.
+- Safety: these checks retrieved code only. No Edge Function deployment or configuration change occurred.
