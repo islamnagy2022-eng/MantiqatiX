@@ -68,6 +68,7 @@ jobs:
         run: |
           node --check web/rbac.js
           node --check web/app.js
+          node scripts/validate-order-detail-contract.mjs
           node --check web/catalog-module.js
           node --check web/catalog/catalog.js
           ! grep -Eq "from\\(['\"]marketing_leads['\"]\\)\\.insert|from\\(['\"]marketing_leads['\"]\\).*\\.insert" web/app.js

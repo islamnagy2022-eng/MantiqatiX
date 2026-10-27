@@ -163,9 +163,13 @@ try{
  live.finance=financeRoles.includes(String(live.role||'').toUpperCase())?{}:null;
  if(live.finance){const financeSpecs=[['journal_entries','tenant_id',live.tenantId,'journals'],['commission_transactions','tenant_id',live.tenantId,'commissions'],['payment_intents','tenant_id',live.tenantId,'paymentIntents'],['payment_financial_reconciliations','tenant_id',live.tenantId,'reconciliations'],['settlement_transactions','tenant_id',live.tenantId,'settlements'],['wallet_accounts','tenant_id',live.tenantId,'wallets']];const financeResults=await Promise.all(financeSpecs.map(x=>safeCount(x[0],x[1],x[2])));financeSpecs.forEach((x,i)=>{live.finance[x[3]]=financeResults[i]});}
  const orderRole=String(live.role||'').toUpperCase();
- const orderCountSpec=(orderRole==='SERVICE_PROVIDER'||orderRole==='BUSINESS_OWNER')&&live.businessId
+ const platformOrderAccess=orderRole==='SUPER_ADMIN'&&canSuperAdmin();
+ const useBusinessOrders=Boolean(live.businessId)&&!isCustomerMode();
+ const orderCountSpec=useBusinessOrders
    ? ['orders','business_id',live.businessId,'orders']
-   : ['orders','customer_id',uid,'orders'];
+   : platformOrderAccess
+     ? ['orders',null,null,'orders']
+     : ['orders','customer_id',uid,'orders'];
  const specs=[['advertisements',null,null,'ads'],['marketing_projects',live.businessId?'client_business_id':null,live.businessId,'projects'],['notifications','user_id',uid,'notifications'],['support_tickets','requester_id',uid,'support'],['marketing_leads','requester_user_id',uid,'leads'],['marketing_provider_profiles','owner_user_id',uid,'providers'],orderCountSpec];
  if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
  const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
@@ -177,14 +181,14 @@ try{
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
   sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
-  (()=>{const oq=sb.from('orders').select('id,tenant_id,status,total_amount,currency,customer_id,business_id,customer_name,created_at').order('created_at',{ascending:false}).limit(10);if(['SERVICE_PROVIDER','BUSINESS_OWNER'].includes(String(live.role||'').toUpperCase())&&live.businessId)oq.eq('business_id',live.businessId);else oq.eq('customer_id',uid);return oq})(),
+  (()=>{const oq=sb.from('orders').select('id,tenant_id,organization_id,business_id,branch_id,customer_id,assigned_partner_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at,pricing_version,pricing_snapshot,pricing_hash,pricing_authority').order('created_at',{ascending:false}).limit(10);if(useBusinessOrders)oq.eq('business_id',live.businessId);else if(!platformOrderAccess)oq.eq('customer_id',uid);return oq})(),
   sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10),
   sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_projects').select('id,project_type,management_mode,status,gross_value,platform_commission,currency,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_services').select('id,code,name_ar,name_en,category_code,status,created_at').eq('status','ACTIVE').order('created_at',{ascending:false}).limit(20)
  ]);
- live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=ordersRes.data||[];live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];
+ live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=(ordersRes.data||[]).map(r=>({...r,items:Array.isArray(r.items_json)?r.items_json:(Array.isArray(r.items)?r.items:[])}));live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];
  if(['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){
   const rr=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);
   live.records.registrationRequests=rr.data||[];
@@ -1531,12 +1535,12 @@ function orderStatusLabel(s){const k=String(s||'').toUpperCase();return ORDER_ST
 function orderStatusClass(s){return 'mx-order-status mx-order-status-'+String(s||'').toLowerCase().replace(/[^a-z_]+/g,'-')}
 function openOrderDetails(orderId){
  if(!user?.id||!orderId)return authView();const r=(live.records.orders||[]).find(x=>String(x.id)===String(orderId));if(!r)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
- const items=Array.isArray(r.items)?r.items:[],history=(live.records.orderHistory||[]).filter(x=>String(x.order_id)===String(r.id)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
- const itemText=items.length?items.map(x=>'<li><span>'+esc(x.name_ar||x.name||x.title||x.item_id||'صنف')+'</span><b>× '+esc(x.quantity??1)+'</b></li>').join(''):'<li><span>لا توجد تفاصيل أصناف محملة</span><b>—</b></li>';
+ const items=Array.isArray(r.items_json)?r.items_json:(Array.isArray(r.items)?r.items:[]),history=(live.records.orderHistory||[]).filter(x=>String(x.order_id)===String(r.id)).sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
+ const itemText=items.length?items.map((x,index)=>{const itemId=String(x.catalogItemId||x.catalog_item_id||x.item_id||'');const title=x.name_ar||x.name||x.title||(itemId?'صنف '+itemId.slice(0,8):'صنف '+(index+1));const unitPrice=x.unitPrice??x.unit_price;const lineTotal=x.lineSubtotal??x.line_subtotal;const priceText=Number.isFinite(Number(unitPrice))?'سعر الوحدة '+Number(unitPrice).toLocaleString('ar-EG')+' '+(r.currency||'EGP'):'';const lineText=Number.isFinite(Number(lineTotal))?'الإجمالي '+Number(lineTotal).toLocaleString('ar-EG')+' '+(r.currency||'EGP'):'';return '<li><div><span>'+esc(title)+'</span><small class="muted">'+esc([priceText,lineText].filter(Boolean).join(' · '))+'</small></div><b>× '+esc(x.quantity??1)+'</b></li>'}).join(''):'<li><span>لا توجد تفاصيل أصناف محفوظة في سجل الطلب</span><b>—</b></li>';
  const timeline=history.length?history.map(x=>'<div class="mx-order-timeline__item"><span class="mx-order-timeline__dot"></span><div><b>'+esc(orderStatusLabel(x.new_status))+'</b><p>'+esc(x.reason||'تحديث حالة الطلب')+'</p><small>'+esc(x.created_at?new Date(x.created_at).toLocaleString('ar-EG'):'—')+'</small></div></div>').join(''):'<div class="mnty-screen-note">لا يوجد سجل انتقالات محمل لهذا الطلب.</div>';
  const total=r.total_amount!=null?(r.total_amount+' '+(r.currency||'')):'—';
  openUnifiedRecordDetails({kicker:'ORDER DETAILS',title:'طلب '+String(r.id).slice(0,8),desc:'التفاصيل المتاحة من سجل الطلب الحالي فقط.',sections:[
- {title:'البيانات الأساسية',html:'<div class="mx-record-kv-grid"><div><span>الحالة الحالية</span><b><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span></b></div><div><span>الإجمالي</span><b>'+esc(total)+'</b></div><div><span>العميل</span><b>'+esc(r.customer_name||'—')+'</b></div><div><span>تاريخ الإنشاء</span><b>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</b></div><div><span>الهاتف</span><b>'+esc(r.customer_phone||r.phone||'غير متاح')+'</b></div><div><span>العنوان</span><b>'+esc(r.delivery_address||r.address||'غير متاح')+'</b></div></div>'},
+ {title:'البيانات الأساسية',html:'<div class="mx-record-kv-grid"><div><span>الحالة الحالية</span><b><span class="'+orderStatusClass(r.status)+'">'+esc(orderStatusLabel(r.status))+'</span></b></div><div><span>الإجمالي</span><b>'+esc(total)+'</b></div><div><span>الإجمالي قبل الضريبة والخصم</span><b>'+esc(r.subtotal!=null?(r.subtotal+' '+(r.currency||'')):'—')+'</b></div><div><span>الخصم</span><b>'+esc(r.discount!=null?(r.discount+' '+(r.currency||'')):'—')+'</b></div><div><span>الضريبة</span><b>'+esc(r.tax!=null?(r.tax+' '+(r.currency||'')):'—')+'</b></div><div><span>رسوم التوصيل</span><b>'+esc(r.delivery_fee!=null?(r.delivery_fee+' '+(r.currency||'')):'—')+'</b></div><div><span>العميل</span><b>'+esc(r.customer_name||'—')+'</b></div><div><span>تاريخ الإنشاء</span><b>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</b></div><div><span>الهاتف</span><b>'+esc(r.customer_phone||'غير متاح')+'</b></div><div><span>العنوان</span><b>'+esc(r.delivery_address||'غير متاح')+'</b></div><div><span>ملاحظات</span><b>'+esc(r.notes||'—')+'</b></div></div>'},
  {kicker:'ITEMS',title:'محتويات الطلب',badge:String(items.length||0),html:'<ul class="mx-order-items">'+itemText+'</ul>'},
  {kicker:'TIMELINE',title:'تسلسل الحالة',html:'<div class="mx-order-timeline">'+timeline+'</div>'}],actions:orderActions(r)});
 }

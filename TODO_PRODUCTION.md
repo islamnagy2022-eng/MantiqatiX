@@ -80,7 +80,7 @@
 
 ## P1 — Orders / Operations
 - [x] orders list وفق RLS.
-- [ ] order details.
+- [🟡] order details — expanded the RLS-scoped order query to include immutable line-item pricing snapshots and customer delivery details; UI contract validation pending.
 - [x] order status history.
 - [ ] user/business/branch links.
 - [ ] idempotency.
