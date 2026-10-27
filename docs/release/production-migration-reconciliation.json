@@ -359,9 +359,10 @@
       },
       {
         "migration": "RC431",
-        "object": "public.process_verified_digital_page_payment_backend",
+        "object": "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
         "exists": true,
-        "detail": "10-argument RPC exists and is service_role-only, but current search_path is public, pg_temp rather than the migration source's empty search_path; compare full body before rollout."
+        "detail": "10-argument RPC exists and is service_role-only, but current search_path is public, pg_temp rather than the migration source's empty search_path; full body parity remains to be certified.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC432",
@@ -377,21 +378,73 @@
       },
       {
         "migration": "RC435",
-        "object": "public.create_subscription_payment_intent_claimable_backend and claim_subscription_provider_intent_creation_backend",
+        "object": "public.create_subscription_payment_intent_claimable_backend",
         "exists": false,
-        "detail": "Subscription provider-intent claim RPCs absent."
+        "status": "BLOCKED",
+        "detail": "Claimable subscription payment-intent creation RPC is absent."
+      },
+      {
+        "migration": "RC435",
+        "object": "public.claim_subscription_provider_intent_creation_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Subscription provider-intent claim RPC is absent."
       },
       {
         "migration": "RC436",
-        "object": "public.post_financial_journal_atomic_backend and journal uniqueness indexes",
+        "object": "public.post_financial_journal_atomic_backend",
         "exists": false,
-        "detail": "Atomic financial journal RPC and two ledger uniqueness indexes absent; older journal RPCs have no service_role EXECUTE."
+        "status": "BLOCKED",
+        "detail": "Atomic journal-posting RPC is absent."
+      },
+      {
+        "migration": "RC436",
+        "object": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Journal line uniqueness index is absent."
+      },
+      {
+        "migration": "RC436",
+        "object": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Tenant-scoped journal entry number uniqueness index is absent."
       },
       {
         "migration": "RC437",
-        "object": "public.erp_purchase_order_lines, receive_purchase_stock_with_order_line_backend, set_purchase_order_lines_backend and RC437 indexes",
+        "object": "public.erp_purchase_order_lines",
         "exists": false,
-        "detail": "Line-aware ERP purchase-order table, receiving wrappers and indexes absent."
+        "status": "BLOCKED",
+        "detail": "Purchase-order line table is absent."
+      },
+      {
+        "migration": "RC437",
+        "object": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Line-aware receiving RPC is absent."
+      },
+      {
+        "migration": "RC437",
+        "object": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Purchase-order line mutation RPC is absent."
+      },
+      {
+        "migration": "RC437",
+        "object": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Business-scoped purchase-order number uniqueness index is absent."
+      },
+      {
+        "migration": "RC437",
+        "object": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Purchase-order lines scope index is absent."
       },
       {
         "migration": "RC438",
@@ -407,9 +460,38 @@
       },
       {
         "migration": "RC441",
-        "object": "public.mnty_can_platform_admin and MantiGo admin RPCs",
+        "object": "public.mnty_can_platform_admin",
         "exists": true,
-        "detail": "Functions exist but current configs remain search_path=public or public, pg_temp; RC441 source sets search_path empty. Review bodies/config before rollout."
+        "status": "BLOCKED",
+        "detail": "Function exists but live search_path is public, pg_temp; source contract requires an empty search_path. Caller/ACL review remains required."
+      },
+      {
+        "migration": "RC441",
+        "object": "public.get_mantigo_admin_dashboard_backend",
+        "exists": true,
+        "status": "BLOCKED",
+        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
+      },
+      {
+        "migration": "RC441",
+        "object": "public.get_mantigo_admin_financial_report_backend",
+        "exists": true,
+        "status": "BLOCKED",
+        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
+      },
+      {
+        "migration": "RC441",
+        "object": "public.settle_mantigo_captain_backend",
+        "exists": true,
+        "status": "BLOCKED",
+        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
+      },
+      {
+        "migration": "RC441",
+        "object": "public.expire_stale_mantigo_rides_backend",
+        "exists": true,
+        "status": "BLOCKED",
+        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
       },
       {
         "migration": "RC113",
@@ -643,7 +725,9 @@
         "status": "BLOCKED"
       }
     ],
-    "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout."
+    "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout.",
+    "observed_count": 60,
+    "note": "Every required object is listed atomically. Compound descriptions are not used as substitutes for individual table, index, or RPC checks."
   },
   "security_definer_search_path_check": {
     "status": "BLOCKING_DRIFT",
@@ -848,7 +932,8 @@
     "contact_for_price_product_count": 3,
     "contact_for_price_without_active_price": 3,
     "stock_tracking_enabled_item_count": 0,
-    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect."
+    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect.",
+    "diagnostics": "The source version is distinct and remains unrecorded; the owner membership is INACTIVE. Seeded product data alone does not satisfy this gate."
   },
   "migration_alias_resolution_check": {
     "status": "PENDING_CONTROLLED_REPAIR",
@@ -877,6 +962,7 @@
         "ledger_repair_applied": false,
         "note": "The source blob is identical to the exact-version 20261027041411 migration already recorded in Production; do not execute the duplicate as an independent migration."
       }
-    ]
+    ],
+    "diagnostics": "Both source aliases have verified source equivalence but remain unresolved in the live ledger; release must stay blocked until the controlled migration-history repair is completed and verified."
   }
 }
