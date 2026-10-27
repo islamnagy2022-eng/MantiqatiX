@@ -64,7 +64,6 @@ export const MerchantDashboard: React.FC = () => {
   // Business Profile & Branding state
   const [bizName, setBizName] = useState(currentBusiness?.name || '');
   const [bizBio, setBizBio] = useState(currentBusiness?.bio || '');
-  const [bizFunctionalGroup, setBizFunctionalGroup] = useState<string>(currentBusiness?.functionalGroupId || '');
   const [bizLogoUrl, setBizLogoUrl] = useState(currentBusiness?.logoUrl || '');
   const [bizCoverUrl, setBizCoverUrl] = useState(currentBusiness?.coverUrl || '');
   const [bizOwnerWhatsApp, setBizOwnerWhatsApp] = useState(currentBusiness?.ownerWhatsApp || '');
@@ -104,7 +103,6 @@ export const MerchantDashboard: React.FC = () => {
   useEffect(() => {
     setBizName(currentBusiness?.name || '');
     setBizBio(currentBusiness?.bio || '');
-    setBizFunctionalGroup(currentBusiness?.functionalGroupId || '');
     setBizLogoUrl(currentBusiness?.logoUrl || '');
     setBizCoverUrl(currentBusiness?.coverUrl || '');
     setBizOwnerWhatsApp(currentBusiness?.ownerWhatsApp || '');
@@ -581,7 +579,7 @@ export const MerchantDashboard: React.FC = () => {
                 />
                 <div className="pt-8">
                   <h4 className="font-extrabold text-base text-slate-900">{bizName}</h4>
-                  <p className="text-xs text-slate-500">{bizCategory}</p>
+                  <p className="text-xs text-slate-500">{currentBusiness.category || 'التصنيف غير مسجل'}</p>
                 </div>
               </div>
             </div>
