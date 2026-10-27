@@ -1641,7 +1641,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Edge Function now delegates all receipt, stock-balance, inventory-ledger, and purchase-line mutation to the line-aware atomic RPC; removed direct multi-request mutation.
 - [x] Added strict request validation and safe error handling; missing/unavailable RPC fails closed with HTTP 503.
 - [x] Updated contract validator to assert the atomic RPC boundary.
-- [ ] Restore and review the complete missing RC425–RC432 and RC434–RC441 migration source chain; do not cherry-pick RC434 alone or bypass collision guard.
+- [x] Required source files for RC425–RC432 and RC434–RC441 are available, and the full post-checkpoint chain passed isolated chronological replay in run 40494929976. Production read-only ledger checks show 0/16 of these exact versions recorded; reconcile current live-schema drift and plan/approve a guarded rollout before any Production apply. Do not cherry-pick RC434 alone or bypass collision guard.
 - [ ] Resolve legacy approved purchase orders without modeled lines before receiving can be production-ready.
 - [ ] Run Postgres integration tests for atomic rollback, concurrent duplicate receipt, over-receiving, tenant/business isolation, and service-role-only function grants.
 - [ ] Await CI for commit `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; the production gate remains BLOCKED / NOT CERTIFIED.
