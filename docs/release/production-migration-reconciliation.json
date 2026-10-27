@@ -3,8 +3,8 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261027205405",
-  "live_ledger_last_name": "catalog_pilot_owner_profile_repair",
+  "live_ledger_last_version": "20261027223523",
+  "live_ledger_last_name": "rc451_targeted_ads_search_path_forward_repair",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-28",
-  "reason": "Scoped catalog pilot is deployed and production smoke checks passed: platform root and catalog subpath are reachable, four catalog-scoped Edge Functions match main exactly, and Qadam owner/provider/catalog data are ready (15 active products, 12 priced, 3 contact-for-price). The full platform release remains BLOCKED: 41 required full-platform migration versions are absent from the 293-entry live ledger, critical order/payment/finance Edge Functions still have source drift, required finance journal schema/grants are missing, and payment/finance E2E, backup/restore rehearsal, SMM negative runtime tests, and Auth security evidence remain incomplete. Do not infer full-platform readiness from the successful scoped catalog deployment.",
+  "reason": "The scoped catalog pilot is deployed and production smoke checks passed: platform root and catalog subpath are reachable, demo/SMM routes return 404, four catalog-scoped Edge Functions match main exactly, and Qadam owner/provider/catalog data are ready (15 active products, 12 priced, 3 contact-for-price). The RC451 targeted-ad search_path issue is now fixed by forward-only migration 20261027223523, with exact source/ledger parity and intended grants preserved. The full platform release remains BLOCKED: 41 original release-required migration versions are still absent from the live ledger, critical order/payment/finance Edge Functions have source drift, required finance journal schema/grants are missing, and payment/finance E2E, backup/restore rehearsal, SMM negative runtime tests, and Auth security evidence remain incomplete.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -44,7 +44,7 @@
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
   "rc424_reconciliation_evidence_checked_at": "2026-10-11",
-  "live_ledger_inventory_count": 293,
+  "live_ledger_inventory_count": 294,
   "latest_live_ledger_reconciliation": {
     "status": "VERIFIED",
     "checked_at": "2026-10-28",
@@ -79,17 +79,27 @@
         "live_statement_chars": 1106,
         "source_chars": 1106,
         "exact_statement_match": true
+      },
+      {
+        "version": "20261027223523",
+        "name": "rc451_targeted_ads_search_path_forward_repair",
+        "source_file": "supabase/migrations/20261027223523_rc451_targeted_ads_search_path_forward_repair.sql",
+        "source_blob_sha": "b4d5aeac6188d0901b4883215298ccddcee5f7f1",
+        "live_statement_chars": 2462,
+        "source_chars": 2462,
+        "exact_statement_match": true,
+        "verification": "Read-only exact statement comparison returned true. Post-deploy SQL confirmed empty search_path, anon/authenticated EXECUTE retained, PUBLIC EXECUTE absent, and the live RPC returned 3 rows."
       }
     ],
-    "resolution": "All three latest live ledger statement bodies match exact-version source files character-for-character. The pre-existing 20261027100000 marketing contact migration is preserved unchanged under the repository migration-immutability rule; its statement body is an exact idempotent alias of applied live version 20261027041411. No existing migration file was edited or deleted.",
+    "resolution": "The three pre-existing latest live ledger statement bodies and the new RC451 forward-repair statement match their checked-in exact-version SQL sources character-for-character. The pre-existing 20261027100000 marketing contact migration remains unchanged as an exact idempotent alias of 20261027041411. RC451's original source version 20261010200000 remains absent; its search_path effect is now reconciled by the recorded forward repair 20261027223523. No historical migration was edited or deleted.",
     "current_inventory": {
       "checked_at": "2026-10-28",
       "method": "Read-only Supabase list_migrations inventory",
-      "live_ledger_count": 293,
-      "latest_version": "20261027205405",
-      "latest_name": "catalog_pilot_owner_profile_repair",
-      "statement_body_parity_for_latest_entry": "NOT RECHECKED_IN_THIS_INVENTORY",
-      "note": "This inventory corrects the stale 292-entry/20261027041549 summary. The scoped repair migration is present in the live ledger."
+      "live_ledger_count": 294,
+      "latest_version": "20261027223523",
+      "latest_name": "rc451_targeted_ads_search_path_forward_repair",
+      "statement_body_parity_for_latest_entry": "VERIFIED_EXACT_MATCH",
+      "note": "The scoped catalog repair and the guarded RC451 search_path forward repair are both present in the live ledger."
     }
   },
   "smm_gateway_live_source_evidence": {
@@ -110,8 +120,8 @@
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-10-28",
     "method": "Read-only LEFT JOIN of all 41 distinct required migration source versions in scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations; two source-version aliases are tracked separately and must be reconciled through the controlled migration-history process.",
-    "live_ledger_count": 293,
-    "latest_live_version": "20261027205405",
+    "live_ledger_count": 294,
+    "latest_live_version": "20261027223523",
     "expected_migration_versions": 41,
     "found_in_live_ledger": 0,
     "required_versions": [
@@ -200,7 +210,7 @@
       "20261027090000",
       "20261027093000"
     ],
-    "interpretation": "All 41 distinct full-platform release-required source versions remain absent from the live ledger (read-only comparison against the 293-entry inventory). The Qadam seed version 20261027093000 remains absent, but the scoped repair migration 20261027205405 is recorded and the Qadam owner membership/provider profile/catalog data are now active and ready for the scoped catalog pilot. Two duplicate source-version aliases still require controlled ledger reconciliation. Do not execute missing migrations blindly or mark aliases applied without reviewed evidence.",
+    "interpretation": "All 41 distinct full-platform release-required original source versions remain absent from the live ledger. RC451's original source version 20261010200000 is still absent, but its narrow search_path effect has been independently reconciled through the forward-only migration 20261027223523 and exact statement parity is verified. The Qadam seed version 20261027093000 also remains absent even though its data is ready through scoped repair. Two duplicate source-version aliases still require controlled ledger reconciliation. Do not replay missing migrations blindly or mark original versions applied without reviewed evidence.",
     "recorded_required_versions": []
   },
   "critical_edge_function_source_parity_check": {
@@ -772,22 +782,28 @@
     "note": "A name/signature match alone is not a release PASS. The two existing RPCs with confirmed search_path/ACL drift remain status BLOCKED until their exact source security contracts are reconciled."
   },
   "security_definer_search_path_check": {
-    "status": "BLOCKING_DRIFT",
-    "checked_at": "2026-10-27",
+    "status": "EFFECT_RECONCILED_FORWARD_REPAIR",
+    "checked_at": "2026-10-28",
     "function_signature": "get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)",
-    "migration_version": "20261010200000",
-    "migration_filename": "20261010200000_rc451_targeted_ads_empty_search_path.sql",
-    "migration_version_recorded": false,
+    "original_migration_version": "20261010200000",
+    "original_migration_filename": "20261010200000_rc451_targeted_ads_empty_search_path.sql",
+    "original_migration_version_recorded": false,
+    "forward_repair_version": "20261027223523",
+    "forward_repair_filename": "20261027223523_rc451_targeted_ads_search_path_forward_repair.sql",
+    "forward_repair_version_recorded": true,
+    "forward_repair_statement_exact_match": true,
     "security_definer": true,
     "current_search_path": [
-      "search_path=public, pg_temp"
+      "search_path=\"\""
     ],
     "expected_search_path": [],
     "anon_execute": true,
     "authenticated_execute": true,
-    "intended_access": "Public targeted-ad discovery is intentionally callable without authentication; RC451 changes only the function search_path and does not revoke this access.",
+    "public_execute": false,
+    "live_rpc_call_count": 3,
+    "intended_access": "Public targeted-ad discovery remains callable by anon and authenticated. The forward repair changed only function configuration and preserved the existing execute grants.",
     "schema_qualified_relations": true,
-    "interpretation": "The live definition still uses search_path=public, pg_temp instead of the RC451 empty search_path. The Supabase security advisor flagged this SECURITY DEFINER function as anon-executable. No grant was changed and no runtime call was issued. Keep the gate blocked until RC451 is applied in a reviewed release sequence and the live catalog confirms the intended search_path; do not fix by revoking the intentional public-discovery boundary."
+    "interpretation": "The RC451 search_path effect is now verified as reconciled by the exact-version forward repair 20261027223523. The original RC451 migration version remains absent, so the original required-version ledger check still reports it missing. This does not unblock the full platform gate."
   },
   "security_advisor_snapshot": {
     "checked_at": "2026-10-27",
@@ -1081,5 +1097,20 @@
       "SMM",
       "MantiGO"
     ]
+  },
+  "rc451_targeted_ads_forward_repair": {
+    "status": "PASS",
+    "version": "20261027223523",
+    "name": "rc451_targeted_ads_search_path_forward_repair",
+    "applied_to_live_supabase": true,
+    "exact_statement_match": true,
+    "post_deploy_search_path": "empty",
+    "anon_execute": true,
+    "authenticated_execute": true,
+    "public_execute": false,
+    "live_rpc_call_count": 3,
+    "data_changed": false,
+    "grants_changed": false,
+    "full_platform_gate_unblocked": false
   }
 }
