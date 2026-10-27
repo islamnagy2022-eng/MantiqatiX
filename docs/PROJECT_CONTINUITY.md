@@ -683,3 +683,12 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Added negative CI fixtures for absent subscription claim RPC, journal uniqueness index, ERP line receiving RPC and MantiGo admin dashboard RPC; a single row cannot stand in for multiple required objects.
 - [x] Improved Production verifier diagnostics to list every non-passing object plus unresolved migration aliases and Qadam owner state.
 - [ ] All 60 object contracts remain blocked or unverified; no Production migration, schema/ledger/grant change or deploy was performed.
+
+
+## 2026-10-27 — Granular release object contract correction
+
+- [x] Removed four compound object labels from the release contract. The verifier now requires 27 individually named core payment/finance/ERP/MantiGo objects plus 33 individually named RC113–RC117 feature objects: 60 total object contracts.
+- [x] Read-only catalog evidence: 7/27 core objects exist by name/signature; 20 are absent. All 33 feature objects remain absent. Two existing RPCs are explicitly BLOCKED despite name presence because their live `search_path`/ACL diverges from source expectations.
+- [x] Updated the reconciliation manifest to use exact object names, preventing false mismatches caused by a combined label that cannot match any catalog row.
+- [ ] Keep Production blocked: 0/41 distinct required migration versions recorded; 0/2 source aliases reconciled; Qadam owner membership INACTIVE; RC451 search_path, finance schema/EXECUTE, Edge Function parity, rollback and runtime evidence still open.
+- Safety: no Production writes or deployments. This change only improves the release gate's object-by-object evidence.
