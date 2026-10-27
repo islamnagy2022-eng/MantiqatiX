@@ -170,13 +170,13 @@ try{
  if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
  const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
  specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
- const fq=sb.from('platform_feature_flags').select('scope_type,scope_id,tenant_id,business_id,branch_id,sector_id,module_code,feature_code,enabled,configuration');
+ const fq=sb.from('platform_feature_flags').select('scope_type,scope_id,tenant_id,business_id,module_code,feature_code,enabled,configuration');
  const flagScopes=['scope_type.eq.GLOBAL'];
- if(live.tenantId)flagScopes.push(`tenant_id.eq.${live.tenantId}`);
- if(live.businessId)flagScopes.push(`business_id.eq.${live.businessId}`);
+ if(live.tenantId)flagScopes.push(`and(scope_type.eq.TENANT,tenant_id.eq.${live.tenantId})`);
+ if(live.businessId)flagScopes.push(`and(scope_type.eq.BUSINESS,business_id.eq.${live.businessId})`);
  fq.or(flagScopes.join(','));
  const fr=await fq;if(fr.error)throw fr.error;
- const flagPriority={GLOBAL:0,SECTOR:1,TENANT:2,BUSINESS:3,BRANCH:4,WIDGET:5};
+ const flagPriority={GLOBAL:0,TENANT:1,BUSINESS:2};
  (fr.data||[]).sort((a,b)=>(flagPriority[String(a.scope_type||'').toUpperCase()]??-1)-(flagPriority[String(b.scope_type||'').toUpperCase()]??-1)).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
   sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
