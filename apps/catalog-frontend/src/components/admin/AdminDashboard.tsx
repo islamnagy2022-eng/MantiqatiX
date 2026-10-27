@@ -665,11 +665,11 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3.5 px-4">النشاط والموقع (مصر)</th>
                     <th className="py-3.5 px-4">التصنيف الوظيفي</th>
                     <th className="py-3.5 px-4">تاريخ التسجيل</th>
-                    <th className="py-3.5 px-4">يوم السداد الشهري</th>
-                    <th className="py-3.5 px-4">نوع الاشتراك</th>
-                    <th className="py-3.5 px-4">الاشتراك الشهري</th>
+                    <th className="py-3.5 px-4">موعد السداد (إن وجد)</th>
+                    <th className="py-3.5 px-4">خطة الاشتراك</th>
+                    <th className="py-3.5 px-4">حالة السداد</th>
                     <th className="py-3.5 px-4">حالة السداد / المهلة</th>
-                    <th className="py-3.5 px-4">بوابة سداد PAYMOB</th>
+                    <th className="py-3.5 px-4">الدفع الإلكتروني</th>
                     <th className="py-3.5 px-4 text-center">إجراءات الإدارة</th>
                   </tr>
                 </thead>
@@ -679,28 +679,23 @@ export const AdminDashboard: React.FC = () => {
                       const matchGov = billingGovFilter === 'all' || b.governorate === billingGovFilter;
                       const matchStatus =
                         billingStatusFilter === 'all' ||
-                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.overdueDaysCount > 5)) ||
-                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
-                        (billingStatusFilter === 'paid' && !b.isFrozen && b.overdueDaysCount === 0);
+                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen')) ||
+                        (billingStatusFilter === 'overdue' && b.paymentStatus === 'overdue') ||
+                        (billingStatusFilter === 'paid' && b.paymentStatus === 'paid' && b.paymentConfirmedByAdmin);
                       return matchGov && matchStatus;
                     })
                     .map((biz) => {
-                      const { totalCommission } = calculateBusinessCommission(
-                        biz.totalOrdersCount,
-                        biz.commissionPerOrder
-                      );
-                      const freezeStatus = evaluatePaymentFreezeStatus(
-                        biz.paymentStatus,
-                        biz.overdueDaysCount,
-                        OVERDUE_GRACE_PERIOD_DAYS
-                      );
+                      const isOfficialShowcase = Boolean(biz.isOfficialShowcase);
+                      const isPaidConfirmed = biz.paymentStatus === 'paid' && biz.paymentConfirmedByAdmin;
+                      const isFrozen = biz.isFrozen || biz.paymentStatus === 'frozen';
+                      const isOverdue = biz.paymentStatus === 'overdue';
                       const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
 
                       return (
                         <tr
                           key={biz.id}
                           className={`hover:bg-slate-50/70 transition-colors ${
-                            biz.isFrozen || biz.overdueDaysCount > 5 ? 'bg-rose-50/40' : ''
+                            isFrozen ? 'bg-rose-50/40' : ''
                           }`}
                         >
                           {/* Business Name and Egyptian Location */}
@@ -737,101 +732,52 @@ export const AdminDashboard: React.FC = () => {
 
                           {/* Registration Date */}
                           <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
-                            {biz.registrationDate || biz.createdAt || '2026-01-10'}
+                            {biz.registrationDate || biz.createdAt || 'غير محدد'}
                           </td>
 
-                          {/* Payment Due Day */}
+                          {/* Show only saved due-date data; do not invent a billing schedule. */}
                           <td className="py-3.5 px-4 text-slate-800 font-black">
-                            <span>يوم {biz.paymentDueDay || 1} من كل شهر</span>
+                            <span>{biz.paymentDueDay > 0 ? `يوم ${biz.paymentDueDay} من الشهر` : 'غير محدد'}</span>
                             <span className="block text-[10px] text-slate-400 font-normal">
-                              استحقاق: {biz.paymentDueDate || 'شهري'}
+                              {biz.paymentDueDate || 'لم يُحدد موعد سداد'}
                             </span>
                           </td>
 
-                          {/* Subscription Type */}
                           <td className="py-3.5 px-4">
-                            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-md text-[11px] border border-indigo-200">
-                              اشتراك شهري ثابت
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[11px] border border-slate-200">
+                              {isOfficialShowcase ? 'عرض رسمي معفى' : 'غير محددة'}
                             </span>
                           </td>
 
-                          {/* Monthly Subscription Status */}
                           <td className="py-3.5 px-4">
-                            <span className="font-black text-emerald-700 block">
-                              مُسدّد وساري
+                            <span className={isOfficialShowcase || isPaidConfirmed ? 'font-black block text-emerald-700' : isFrozen ? 'font-black block text-rose-700' : isOverdue ? 'font-black block text-amber-700' : 'font-black block text-slate-700'}>
+                              {isOfficialShowcase ? 'عرض رسمي معفى من رسوم الاشتراك' : isPaidConfirmed ? 'مدفوع ومؤكد' : isFrozen ? 'مجمّد' : isOverdue ? 'متأخر' : 'بانتظار السداد'}
                             </span>
-                            <span className="text-[10px] text-slate-400">
-                              بدون عمولات على الطلبات
-                            </span>
+                            {isPaidConfirmed && biz.lastPaymentDate && (
+                              <span className="text-[10px] text-slate-400 block">آخر سداد: {biz.lastPaymentDate}</span>
+                            )}
                           </td>
 
-                          {/* Overdue & 5-day warning / freeze status */}
                           <td className="py-3.5 px-4">
-                            {biz.isFrozen || biz.overdueDaysCount > 5 ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-rose-600 text-white font-black px-2.5 py-0.5 rounded-md text-[10px] shadow-xs">
-                                  <Ban className="w-3 h-3" />
-                                  <span>النشاط مجمد</span>
-                                </span>
-                                <span className="block text-[10px] text-rose-700 font-bold">
-                                  تجاوز مهلة الـ 5 أيام ({biz.overdueDaysCount} يوم تأخر)
-                                </span>
-                              </div>
+                            {isFrozen ? (
+                              <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                <Ban className="w-3 h-3" /> تجميد مسجل
+                              </span>
+                            ) : isOverdue ? (
+                              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                <BellRing className="w-3 h-3" /> تأخير مسجل: {biz.overdueDaysCount} يوم
+                              </span>
                             ) : biz.overdueDaysCount > 0 ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-md text-[10px]">
-                                  <BellRing className="w-3 h-3" />
-                                  <span>حالة التأخير المسجلة ({biz.overdueDaysCount} من 5)</span>
-                                </span>
-                                <span className="block text-[10px] text-amber-800">
-                                  متبقي {5 - biz.overdueDaysCount} أيام قبل التجميد
-                                </span>
-                              </div>
+                              <span className="text-[10px] text-slate-600">عدد أيام التأخير المسجلة: {biz.overdueDaysCount}</span>
                             ) : (
-                              <div className="space-y-0.5">
-                                <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
-                                  <CheckCheck className="w-3 h-3" />
-                                  <span>مسدد ومعتمد</span>
-                                </span>
-                                {biz.lastPaymentDate && (
-                                  <span className="block text-[9px] text-slate-400 font-mono">
-                                    آخر سداد: {biz.lastPaymentDate}
-                                  </span>
-                                )}
-                              </div>
+                              <span className="text-[10px] text-slate-500">لا توجد بيانات تأخير مسجلة</span>
                             )}
                           </td>
 
-                          {/* Paymob Gateway Configuration Cell */}
                           <td className="py-3.5 px-4">
-                            {biz.paymobConfig?.enabled ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 font-extrabold px-2 py-0.5 rounded-md border border-blue-200 text-[10px]">
-                                  <CreditCard className="w-3 h-3 text-blue-600" />
-                                  <span>مفعل: {biz.paymobConfig.feePercentage}% {biz.paymobConfig.feeFixed > 0 ? `+ ${biz.paymobConfig.feeFixed}ج.م` : ''}</span>
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => openPaymobSettings(biz)}
-                                  className="block text-[10px] text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
-                                >
-                                  تعديل الرسوم والقنوات
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded-md text-[10px]">
-                                  معطل من الإدارة
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => openPaymobSettings(biz)}
-                                  className="block text-[10px] text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer"
-                                >
-                                  تفعيل وضبط Paymob
-                                </button>
-                              </div>
-                            )}
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 font-medium px-2 py-1 rounded-md text-[10px]">
+                              غير متاح في الإصدار الحالي
+                            </span>
                           </td>
 
                           {/* Admin Action Buttons */}
