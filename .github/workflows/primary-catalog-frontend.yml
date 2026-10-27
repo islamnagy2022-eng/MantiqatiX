@@ -114,7 +114,7 @@ jobs:
             cat /tmp/catalog-oauth-smoke.json
             exit 1
           fi
-          grep -Eiq '^location: https://accounts\\.google\\.com/' /tmp/catalog-oauth-smoke.headers
+          grep -Eiq '^location: https://accounts\.google\.com/' /tmp/catalog-oauth-smoke.headers
           echo "CATALOG_OAUTH_ROOT_RELAY_HANDSHAKE=PASS"
       - name: Smoke test production public catalog directory
         run: |
