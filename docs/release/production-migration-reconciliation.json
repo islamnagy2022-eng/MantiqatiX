@@ -241,5 +241,109 @@
       "public.smm_wallet_transactions": 0
     },
     "interpretation": "The deployed financial-journal v3 entrypoint calls post_financial_journal using a service-role client, but the live RPC ACL does not grant service_role EXECUTE and required journal columns are absent. Current main instead calls post_financial_journal_backend and expects the reviewed RC450 contract, which is also not executable by service_role until the reviewed grant migration is applied. Do not invoke or deploy this path individually; complete ordered RC449A → RC450 dependencies, migrate/replay in staging, and pass finance E2E before release."
+  },
+  "required_release_object_presence_check": {
+    "status": "MIXED_DRIFT",
+    "checked_at": "2026-10-27",
+    "method": "Read-only checks of public schema tables/indexes, function signatures, current proconfig and effective role privileges for selected objects introduced or hardened by RC425–RC441. This is a targeted inventory, not a complete physical-schema diff.",
+    "observed": [
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "exists": false,
+        "detail": "Required provider-event idempotency table absent."
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "exists": false,
+        "detail": "Atomic MantiGo payment backend RPC absent."
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "exists": false,
+        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE."
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "exists": false,
+        "detail": "Partial unique index for one active payment intent per order absent."
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "exists": false,
+        "detail": "Atomic provider-failure webhook RPC absent."
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "exists": false,
+        "detail": "Atomic subscription-failure webhook RPC absent."
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "exists": false,
+        "detail": "Atomic subscription-success backend RPC absent."
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "exists": true,
+        "detail": "10-argument RPC exists and is service_role-only, but current search_path is public, pg_temp rather than the migration source's empty search_path; compare full body before rollout."
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "exists": false,
+        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist."
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "exists": false,
+        "detail": "Atomic ERP receipt RPC absent."
+      },
+      {
+        "migration": "RC435",
+        "object": "public.create_subscription_payment_intent_claimable_backend and claim_subscription_provider_intent_creation_backend",
+        "exists": false,
+        "detail": "Subscription provider-intent claim RPCs absent."
+      },
+      {
+        "migration": "RC436",
+        "object": "public.post_financial_journal_atomic_backend and journal uniqueness indexes",
+        "exists": false,
+        "detail": "Atomic financial journal RPC and two ledger uniqueness indexes absent; older journal RPCs have no service_role EXECUTE."
+      },
+      {
+        "migration": "RC437",
+        "object": "public.erp_purchase_order_lines, receive_purchase_stock_with_order_line_backend, set_purchase_order_lines_backend and RC437 indexes",
+        "exists": false,
+        "detail": "Line-aware ERP purchase-order table, receiving wrappers and indexes absent."
+      },
+      {
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
+        "exists": false,
+        "detail": "Atomic purchase-order creation-with-lines RPC absent."
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "detail": "Old function exists with search_path=public and ACL only to postgres; source contract sets an empty search_path and grants authenticated execution."
+      },
+      {
+        "migration": "RC441",
+        "object": "public.mnty_can_platform_admin and MantiGo admin RPCs",
+        "exists": true,
+        "detail": "Functions exist but current configs remain search_path=public or public, pg_temp; RC441 source sets search_path empty. Review bodies/config before rollout."
+      }
+    ],
+    "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout."
   }
 }
