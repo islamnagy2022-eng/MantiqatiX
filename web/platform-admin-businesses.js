@@ -120,9 +120,10 @@ function openCreate(){
  const body='<form id="mx-biz-create-form" class="form-grid"><div class="grid2">'+field('mx-biz-name','اسم النشاط *','','text','اسم النشاط')+
  selectField('mx-biz-kind','القطاع / التصنيف *',allowedKinds.map(x=>({value:x[0],label:x[1]})),'FOOD')+
  field('mx-biz-phone','رقم الهاتف','','tel','رقم التواصل')+field('mx-biz-address','العنوان')+
- field('mx-biz-en','الاسم بالإنجليزية')+'</div><p class="muted">الإنشاء لا ينشئ كلمة مرور. لتعيين المالك، يجب أن يكون لديه حساب Google موثق. يمكن تعيينه لاحقًا بعد تسجيله.</p>'+
+ field('mx-biz-en','الاسم بالإنجليزية')+'</div><section class="card" style="margin:12px 0;padding:14px"><h3>التصنيف الهرمي</h3><div class="grid3"><label class="field"><span>القطاع الرئيسي</span><select id="mx-biz-sector" required><option value="">جارٍ التحميل…</option></select></label><label class="field"><span>النشاط</span><select id="mx-biz-activity" required disabled><option value="">اختر القطاع أولًا</option></select></label><label class="field"><span>التخصص الفرعي</span><select id="mx-biz-specialty" disabled><option value="">اختياري</option></select></label></div><p id="mx-biz-taxonomy-status" class="muted" aria-live="polite"></p></section><p class="muted">الإنشاء لا ينشئ كلمة مرور. لتعيين المالك، يجب أن يكون لديه حساب Google موثق. يمكن تعيينه لاحقًا بعد تسجيله.</p>'+
  '<div class="action-bar"><button class="btn btn-primary" id="mx-biz-create-save" type="submit" style="width:auto">إنشاء النشاط</button></div><p id="mx-biz-create-status" class="muted" aria-live="polite"></p></form>';
  const m=modal('إنشاء نشاط جديد',body);
+ initEditTaxonomy(m,{settings:{}});
  const form=m.overlay.querySelector('#mx-biz-create-form');
  form.addEventListener('submit',async e=>{
   e.preventDefault();const button=m.overlay.querySelector('#mx-biz-create-save'),out=m.overlay.querySelector('#mx-biz-create-status');button.disabled=true;out.textContent='جارٍ الإنشاء…';
