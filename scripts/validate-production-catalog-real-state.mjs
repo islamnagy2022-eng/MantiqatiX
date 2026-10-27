@@ -34,6 +34,7 @@ assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
 assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
 assert.match(productionMapper, /stockImage \? 'auto' : 'owner'/, 'legacy stock images must be converted to neutral auto placeholders rather than shown as owner photos');
+assert.match(productionMapper, /isNeutralPlaceholderUrl/, 'neutral placeholder images must not be treated as owner uploads');
 assert.match(productionMapper, /isStockImageUrl\(profile\.logoUrl/, 'legacy stock business logos and covers must be suppressed');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
@@ -41,6 +42,7 @@ assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product 
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
 assert.doesNotMatch(catalogAdminFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'catalog admin must not generate stock-photo URLs for item imagery');
 assert.match(catalogAdminFunction, /legacyStockUrl = \/\^https:/, 'catalog admin must clear legacy stock-photo URLs when an item is edited');
+assert.match(catalogAdminFunction, /neutralPlaceholderUrl/, 'catalog admin must keep neutral placeholders out of owner image metadata');
 assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
 assert.match(publicDirectoryFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public directory API must suppress legacy stock-photo URLs stored in production data');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
