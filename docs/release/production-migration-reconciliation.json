@@ -141,7 +141,6 @@
       "20261023050000",
       "20261023060000"
     ],
-    "recorded_versions": [],
     "missing_versions": [
       "20261009120000",
       "20261009130000",
@@ -178,7 +177,8 @@
       "20261023050000",
       "20261023060000"
     ],
-    "interpretation": "All 34 migration versions required by the Production verifier are absent from the live ledger, even though their SQL source files exist in main and the 52-migration post-RC424 chain replays in an isolated disposable database. The live ledger contains later catalog/contact versions, so do not apply these historical versions blindly."
+    "interpretation": "All 34 migration versions required by the Production verifier are absent from the live ledger, even though their SQL source files exist in main and the 52-migration post-RC424 chain replays in an isolated disposable database. The live ledger contains later catalog/contact versions, so do not apply these historical versions blindly.",
+    "recorded_required_versions": []
   },
   "critical_edge_function_source_parity_check": {
     "status": "DRIFT_FOUND",
