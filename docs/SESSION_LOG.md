@@ -271,3 +271,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] `smm-gateway` v13 entrypoint exactly matches `main`; this is source evidence, not anonymous/authenticated runtime evidence.
 - [ ] Keep all five drifting functions off the deployment path until their migrations/grants are reconciled and payment/webhook/finance sandbox acceptance passes. Do not deploy or change managed Auth settings as part of this source audit.
 - Safety: read-only source retrieval only; no live function changes or Production writes occurred.
+
+
+## 2026-10-27 — Financial journal RPC and schema preflight
+
+- [x] Read-only live migration query confirms RC449A `20261010175000` and RC450 `20261010180000` are not recorded.
+- [x] The journal schema preflight found the required post-RC449A fields absent: `journal_entries.entry_number`, `total_debit`, `total_credit`, `posted_at`, and `journal_entry_lines.line_number`. The legacy prerequisites inspected by RC449A are present.
+- [x] Effective ACL and catalog inspection found both `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` owned by postgres with ACL `{postgres=X/postgres}`; `service_role`, `authenticated` and `anon` have no EXECUTE privilege. The deployed `financial-journal` v3 calls the old RPC, while `main` calls the RC450 backend RPC.
+- [x] Aggregate read-only counts for `journal_entries`, `journal_entry_lines`, `general_ledger`, `payment_intents`, `subscription_payment_intents`, `erp_purchase_orders`, `erp_purchase_receipts`, `smm_orders`, and `smm_wallet_transactions` returned zero. No RPC was invoked.
+- [ ] RC449A → RC450 requires isolated/staging replay, effective privilege verification, finance posting and replay/idempotency tests, backup/restore and rollback approval before any Production change. No database change or function deployment occurred.
