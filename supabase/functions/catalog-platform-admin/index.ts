@@ -321,6 +321,17 @@ Deno.serve(async (req: Request) => {
       const nextSettings = { ...(business.settings || {}), bizcatalog: { ...current, ...patch } };
       const { error } = await service.from("businesses").update({ settings: nextSettings, updated_at: new Date().toISOString() }).eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
+
+      // Only an explicit admin-confirmed paid state can activate pending owner memberships.
+      if (String(patch.paymentStatus || "").toLowerCase() === "paid" && patch.paymentConfirmedByAdmin === true) {
+        const { error: activationError } = await service.from("user_memberships")
+          .update({ status: "ACTIVE" })
+          .eq("tenant_id", tenantId)
+          .eq("business_id", businessId)
+          .eq("status", "INACTIVE")
+          .in("role", ["OWNER", "BUSINESS_OWNER"]);
+        if (activationError) throw new Error("PAID_SUBSCRIPTION_ACTIVATION_FAILED");
+      }
       return response(origin, { success: true, settings: patch });
     }
 
