@@ -10,14 +10,27 @@ for (const [source, pattern, label] of [
   if (pattern.test(source)) throw new Error('FAIL: ' + label);
 }
 
+const paymentStart = context.indexOf('const confirmAdminPayment = async');
+const freezeStart = context.indexOf('const toggleBusinessFreeze = async');
+const commissionStart = context.indexOf('const updateBusinessCommissionRate = async');
+const paymentFn = paymentStart >= 0 && freezeStart > paymentStart ? context.slice(paymentStart, freezeStart) : '';
+const freezeFn = freezeStart >= 0 && commissionStart > freezeStart ? context.slice(freezeStart, commissionStart) : '';
+
+if (!paymentFn.includes('await updateBillingSetting(businessId, changes);') ||
+    paymentFn.indexOf('await updateBillingSetting(businessId, changes);') > paymentFn.indexOf('setBusinesses(')) {
+  throw new Error('FAIL: payment confirmation must persist successfully before local state changes.');
+}
+if (!freezeFn.includes('await updateBillingSetting(businessId, changes);') ||
+    freezeFn.indexOf('await updateBillingSetting(businessId, changes);') > freezeFn.indexOf('setBusinesses(')) {
+  throw new Error('FAIL: manual freeze state must persist successfully before local state changes.');
+}
+
 for (const [pattern, label] of [
-  [/await updateBillingSetting\(businessId, changes\);\s*setBusinesses\(/, 'payment confirmation updates local state only after server persistence'],
-  [/await updateBillingSetting\(businessId, changes\);\s*setBusinesses\(/, 'manual freeze state updates only after server persistence'],
   [/await confirmAdminPayment\(biz\.id\);/, 'admin UI waits for server confirmation before showing payment success'],
   [/await toggleBusinessFreeze\(biz\.id\);/, 'admin UI waits for server confirmation before showing freeze success'],
   [/billingActionMsg\.type === 'error'/, 'billing action failures are presented as errors, not green success notices'],
 ]) {
-  if (!pattern.test(context + '\n' + dashboard)) throw new Error('FAIL: ' + label);
+  if (!pattern.test(dashboard)) throw new Error('FAIL: ' + label);
 }
 
 if (!dashboard.includes('التنبيهات اليومية أو التجميد التلقائي مفعّلين قبل توافر مهمة خادمية موثقة')) {
