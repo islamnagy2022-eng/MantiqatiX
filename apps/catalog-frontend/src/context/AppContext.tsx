@@ -388,7 +388,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإدارة الحالية.');
     const now = new Date();
     const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
-    const changes = { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today };
+    const changes: Pick<Business, 'paymentConfirmedByAdmin' | 'paymentStatus' | 'overdueDaysCount' | 'isFrozen' | 'lastPaymentDate'> = { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today };
     await updateBillingSetting(businessId, changes);
     setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, ...changes } : b));
   };
@@ -396,7 +396,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const business = businesses.find((b) => b.id === businessId);
     if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإدارة الحالية.');
     const frozen = !business.isFrozen;
-    const changes = { isFrozen: frozen, paymentStatus: frozen ? 'frozen' : 'pending' };
+    const changes: Pick<Business, 'isFrozen' | 'paymentStatus'> = { isFrozen: frozen, paymentStatus: frozen ? 'frozen' : 'pending' };
     await updateBillingSetting(businessId, changes);
     setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, ...changes } : b));
   };
