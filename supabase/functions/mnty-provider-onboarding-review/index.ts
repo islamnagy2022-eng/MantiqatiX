@@ -29,4 +29,4 @@ Deno.serve(async (req) => {
   }
   return json({ok:true,...(result||{})});
 });
-function json(body,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
+function json(body: Record<string, unknown>,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
