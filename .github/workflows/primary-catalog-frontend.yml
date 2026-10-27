@@ -111,7 +111,7 @@ jobs:
           grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
           ! grep -Fq 'home.js' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/' apps/catalog-frontend/dist/manifest.webmanifest
-          grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
+          grep -Fq 'mantiqatix-primary-catalog-shell-' apps/catalog-frontend/dist/sw.js
       - name: Smoke test allowlisted Google OAuth root callback relay
         run: |
           set -euo pipefail
