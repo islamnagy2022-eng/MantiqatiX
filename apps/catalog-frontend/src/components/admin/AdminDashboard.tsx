@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ActivityCategory, Business, FunctionalGroupId, PaymobChannel, PaymobConfig, Subscriber } from '../../types';
-import { DEFAULT_PAYMOB_CONFIG } from '../../data/productionDefaults';
+import { ActivityCategory, Business, FunctionalGroupId, Subscriber } from '../../types';
 import {
   ShieldCheck,
   UserPlus,
@@ -43,15 +42,9 @@ import {
   Filter,
   ArrowRight,
   FolderPlus,
-  CreditCard,
-  Smartphone,
-  QrCode,
 } from 'lucide-react';
 import {
   formatEgyptianLocation,
-  DEFAULT_PAYMOB_FEE_PERCENTAGE,
-  DEFAULT_PAYMOB_FEE_FIXED,
-  calculatePaymobFee,
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
@@ -91,7 +84,6 @@ export const AdminDashboard: React.FC = () => {
     confirmAdminPayment,
     toggleBusinessFreeze,
     updateBusinessLocation,
-    updateBusinessPaymobConfig,
   } = useApp();
 
   const [activeAdminTab, setActiveAdminTab] = useState<
