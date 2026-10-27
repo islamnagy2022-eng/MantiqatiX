@@ -297,3 +297,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Results: 21 of 39 required function names absent; all 4 required tables absent; 12 of 13 selected indexes absent (one matrimony unlock index exists by name). Eighteen function names exist, but some have known wrong signatures/config/ACL, and all remaining existing functions still need body/ACL parity where applicable. Detailed entry-by-entry inventory is in `docs/release/production-source-object-drift.json`.
 - [ ] No Production migration is authorized by this inventory. The live schema contains later-dated October 26–27 migrations, so the remediation must be tested against the current schema/ledger in a disposable or staging clone, with backup/restore and rollback rehearsed first.
 - Safety: no Production write, migration, grant, RLS/Auth change, Edge Function deployment, payment or wallet mutation occurred.
+
+## 2026-10-27 — Expanded gate and Qadam owner membership finding
+
+- [x] Added six RC113–RC117 feature migration versions plus `20261027093000_add_qadam_alsaad_homewares_store.sql` to the distinct required release list; total is now **41**. Read-only query confirms 0/41 required versions in the 292-row Production ledger.
+- [x] The six feature migrations' live catalog effects are absent: 17 named function contracts, four tables, seven indexes, three default-image triggers, and two `marketing_services` image columns are not present.
+- [x] Qadam follow-up comparison confirms all 15 expected product names/modes/categories/source tags and all 12 prices match; three products correctly use contact-for-price and no stock tracking is enabled. The OWNER membership `MNTY-QADAM-ALSAAD-OWNER` is still `INACTIVE`, while the unrecorded migration sets it ACTIVE.
+- [x] Identified two exact alias source files to reconcile through the controlled migration-history process: RC424 file version `20261009010000` matches applied ledger version `20261008222845`; `20261027100000` is the same source blob as recorded `20261027041411`. No repair commands were run.
+- [ ] Keep release blocked pending current-schema rehearsal, backup/restore/rollback approval, 41 distinct migration versions, alias ledger repair, owner membership activation, live RPC/Edge Function parity and remaining runtime gates.
+- Safety: read-only Supabase SQL/catalog queries only; no Production changes, migration application, ledger repair, grants, Auth/RLS, Edge Functions, payments or wallets were touched.
+
