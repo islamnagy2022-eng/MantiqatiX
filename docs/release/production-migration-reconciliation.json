@@ -200,6 +200,16 @@
     "method": "Read-only Supabase Edge Function source retrieval and exact index.ts body comparison against repository main; no deployment performed.",
     "functions": [
       {
+        "slug": "order-create",
+        "live_version": 8,
+        "verify_jwt": true,
+        "live_bundle_sha256": "16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782",
+        "live_index_chars": 10083,
+        "main_index_chars": 13988,
+        "exact_match": false,
+        "observed_difference": "Live entrypoint lacks main's bounded streaming request-body limit, detailed customer/metadata field validation, branch-scoped membership query, duplicate-option checks, and option-to-item relationship guard."
+      },
+      {
         "slug": "payment-intent",
         "live_version": 8,
         "verify_jwt": true,
@@ -258,9 +268,39 @@
         "main_index_chars": 20040,
         "exact_match": true,
         "observed_difference": "Entrypoint exactly matches main; its deferred launch gate and runtime negative tests still require separate verification."
+      },
+      {
+        "slug": "api",
+        "live_version": 17,
+        "verify_jwt": false,
+        "live_bundle_sha256": "7fadbd2f2556a5af308b9a2bde9ade307cacec36950398aa655adf4ac48c677f",
+        "live_index_chars": 16432,
+        "main_index_chars": 16432,
+        "exact_match": true,
+        "observed_difference": "Entrypoint matches main. verify_jwt=false still requires separate runtime verification of route-level bearer-token authorization."
+      },
+      {
+        "slug": "order-status-update",
+        "live_version": 4,
+        "verify_jwt": true,
+        "live_bundle_sha256": "c8c41f70399909b9ea27ea74ccd1661fb5aeac7f15e63fd15449ba6de33ae1e6",
+        "live_index_chars": 1986,
+        "main_index_chars": 1986,
+        "exact_match": true,
+        "observed_difference": "Entrypoint matches main; order-state-machine and branch-authorization runtime tests remain a separate gate."
+      },
+      {
+        "slug": "payment-webhook",
+        "live_version": 3,
+        "verify_jwt": false,
+        "live_bundle_sha256": "1a415557f2fccaec6704fcc01a4b71dbaedc95b5f9c611fef23781c4b18d8642",
+        "live_index_chars": 3356,
+        "main_index_chars": 3356,
+        "exact_match": true,
+        "observed_difference": "Entrypoint matches main; callback signature verification and idempotent runtime processing remain a separate gate."
       }
     ],
-    "interpretation": "Five critical functions have source drift against main. These findings require review of the linked migration/grant contracts and payment/finance integration tests before any coordinated deployment; do not deploy these functions individually or infer exploitability from source drift alone."
+    "interpretation": "Six required critical functions have source drift against main: order-create, payment-intent, paymob-webhook, digital-page-payment-intent, subscription-payment-intent, and financial-journal. The api, order-status-update, payment-webhook, and smm-gateway entrypoints match main. Source parity does not itself verify runtime authorization, webhook idempotency, payment/finance dependencies, or behavior. Review linked migration/grant contracts and integration tests before any coordinated deployment; do not deploy functions individually or infer exploitability from source drift alone."
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
