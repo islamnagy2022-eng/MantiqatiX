@@ -79,9 +79,9 @@ assert.ok(primaryWorkflow.includes('/MantiqatiX/assets/'),
 assert.ok(primaryWorkflow.includes('Upload catalog build for review (no deployment)'),
   'The primary catalog workflow must validate and upload an artifact without deploying');
 assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإلكتروني</a>'),
-  'The existing platform desktop navigation must link to the catalog module');
+  'Legacy source navigation may continue linking to the catalog during development');
 assert.ok(home.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'),
-  'The existing platform mobile navigation must link to the catalog module');
+  'Legacy source navigation must retain its catalog entry for compatibility');
 assert.doesNotMatch(home, /(?:href|src)=["'][^"']*preview\//,
   'The production homepage must not expose any demo preview routes');
 assert.doesNotMatch(home, /(?:href|src)=["'][^"']*smm\.html/,
