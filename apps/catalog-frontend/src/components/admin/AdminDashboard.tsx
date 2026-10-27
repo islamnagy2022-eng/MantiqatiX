@@ -22,7 +22,6 @@ import {
   Users,
   KeyRound,
   Share2,
-  Lock,
   Download,
   Upload,
   Database,
@@ -158,12 +157,13 @@ export const AdminDashboard: React.FC = () => {
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
 
-  // Admin WhatsApp & Password Settings
+  // Platform settings are persisted through the authenticated platform-admin Edge Function.
   const [adminPhone, setAdminPhone] = useState(adminSettings.adminWhatsApp);
-  const [adminPassInput, setAdminPassInput] = useState(adminSettings.adminPassword || 'admin');
   const [platformCommissionInput, setPlatformCommissionInput] = useState(
-    adminSettings.defaultCommissionPerOrder || 0.01
+    adminSettings.defaultCommissionPerOrder ?? 0.01
   );
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsFeedback, setSettingsFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Paymob Administration & Configuration Per Business
   const [selectedPaymobBiz, setSelectedPaymobBiz] = useState<Business | null>(null);
@@ -1467,7 +1467,7 @@ export const AdminDashboard: React.FC = () => {
               إعدادات إدارة منصة MantiqatiX والواتساب الرسمي
             </h3>
             <p className="text-xs text-slate-500">
-              هذه الإعدادات تحدد رقم واتساب الإدارة لزر "طلب كتالوج النشاط" وكلمة مرور تسجيل الدخول كإدارة عامة.
+              رقم واتساب طلب الكتالوج والعمولة الافتراضية يُحفظان في قاعدة الإنتاج. تسجيل دخول مالك المنصة يتم عبر Google، ولا توجد كلمة مرور إدارية تقليدية في هذا الإصدار.
             </p>
           </div>
 
@@ -1493,21 +1493,6 @@ export const AdminDashboard: React.FC = () => {
 
             <div>
               <label className="block text-xs font-black text-slate-800 mb-1.5">
-                كلمة مرور لوحة الإدارة العامة
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-amber-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={adminPassInput}
-                  onChange={(e) => setAdminPassInput(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-10 pl-3 py-2.5 text-xs text-slate-900 font-bold"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-800 mb-1.5">
                 العمولة الافتراضية لكل طلب جديد (بالجنيه المصري ج.م - سري)
               </label>
               <input
@@ -1515,7 +1500,7 @@ export const AdminDashboard: React.FC = () => {
                 step="0.01"
                 min="0"
                 value={platformCommissionInput}
-                onChange={(e) => setPlatformCommissionInput(parseFloat(e.target.value) || 0.01)}
+                onChange={(e) => setPlatformCommissionInput(e.target.value === '' ? 0 : Number(e.target.value))}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold"
               />
               <p className="text-[11px] text-slate-400 mt-1">
@@ -1536,21 +1521,54 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
+          {settingsFeedback && (
+            <div
+              role="status"
+              className={`rounded-xl border px-4 py-3 text-xs font-bold ${settingsFeedback.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}
+            >
+              {settingsFeedback.message}
+            </div>
+          )}
+
           <div className="pt-4 flex justify-end">
             <button
-              onClick={() => {
-                updateAdminSettings({
-                  adminWhatsApp: adminPhone,
-                  adminPassword: adminPassInput,
-                  defaultCommissionPerOrder: platformCommissionInput,
-                  currency: 'ج.م',
-                  platformName: 'MantiqatiX',
-                });
-                alert('تم حفظ إعدادات إدارة MantiqatiX بنجاح!');
+              type="button"
+              disabled={settingsSaving}
+              onClick={async () => {
+                if (settingsSaving) return;
+                setSettingsFeedback(null);
+                const phoneDigits = adminPhone.replace(/\\D/g, '');
+                if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+                  setSettingsFeedback({ type: 'error', message: 'أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا.' });
+                  return;
+                }
+                const commission = Number(platformCommissionInput);
+                if (!Number.isFinite(commission) || commission < 0 || commission > 1000000) {
+                  setSettingsFeedback({ type: 'error', message: 'قيمة العمولة الافتراضية غير صالحة.' });
+                  return;
+                }
+
+                setSettingsSaving(true);
+                try {
+                  await updateAdminSettings({
+                    adminWhatsApp: adminPhone.trim(),
+                    defaultCommissionPerOrder: commission,
+                    currency: 'ج.م',
+                    platformName: 'MantiqatiX',
+                  });
+                  setSettingsFeedback({ type: 'success', message: 'أكد الخادم حفظ إعدادات المنصة في قاعدة الإنتاج.' });
+                } catch (error) {
+                  setSettingsFeedback({
+                    type: 'error',
+                    message: error instanceof Error ? error.message : 'تعذر حفظ الإعدادات لدى الخادم؛ لم يتم اعتماد التغيير.',
+                  });
+                } finally {
+                  setSettingsSaving(false);
+                }
               }}
-              className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer"
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer"
             >
-              حفظ إعدادات المنصة
+              {settingsSaving ? 'جارٍ حفظ الإعدادات...' : 'حفظ إعدادات المنصة'}
             </button>
           </div>
         </div>
