@@ -6,6 +6,7 @@ const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const primaryWorkflow = fs.readFileSync('.github/workflows/primary-catalog-frontend.yml', 'utf8');
 const home = fs.readFileSync('web/home.js', 'utf8');
 const healthMonitor = fs.readFileSync('.github/workflows/production-health-monitor.yml', 'utf8');
+const previewWorkflow = fs.readFileSync('.github/workflows/preview-pages.yml', 'utf8');
 const lines = workflow.split(/\r?\n/);
 const blockStart = lines.findIndex(line => line === '  deploy:');
 assert.notEqual(blockStart, -1, 'Pages workflow must define deploy job');
@@ -39,6 +40,14 @@ assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
   'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
 assert.match(validateBlock, /Compose existing platform root with catalog as a separate module/,
   'Pages artifact must preserve the existing platform root and mount catalog under a subpath');
+assert.match(validateBlock, /rm -rf "\$\{SITE_DIR\}\/preview"/,
+  'The production artifact must exclude the public demo preview tree');
+assert.match(validateBlock, /rm -f "\$\{SITE_DIR\}\/smm\.html"/,
+  'The production artifact must exclude the deferred SMM placeholder');
+assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/preview"/,
+  'The composed production site must not contain preview routes');
+assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/smm\.html"/,
+  'The composed production site must not contain the SMM placeholder');
 assert.match(validateBlock, /cp -a web\/\.[\s\S]*?cp -a apps\/catalog-frontend\/dist\/\.[\s\S]*?catalog-app/,
   'Composition must combine the existing platform root with the catalog build');
 assert.match(validateBlock, /path: \$\{\{ runner\.temp \}\}\/mantiqatix-composed-site/,
@@ -59,6 +68,8 @@ assert.doesNotMatch(deployBlock, /needs\.validate\.result == 'success'\s*\|\|\s*
 
 assert.doesNotMatch(primaryWorkflow, /actions\/deploy-pages@v4|pages:\s*write|id-token:\s*write/,
   'The catalog frontend validation workflow must not race the canonical Pages deploy workflow');
+assert.doesNotMatch(previewWorkflow, /actions\/deploy-pages@v4|actions\/upload-pages-artifact@v4|pages:\s*write|id-token:\s*write/,
+  'The deferred preview workflow must validate source only and never publish a Pages artifact');
 assert.ok(primaryWorkflow.includes('/MantiqatiX/catalog-app/assets/'),
   'The catalog build must target its own subpath');
 assert.ok(primaryWorkflow.includes('Upload catalog build for review (no deployment)'),
