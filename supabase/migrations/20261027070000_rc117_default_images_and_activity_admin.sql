@@ -31,6 +31,17 @@ begin
   elsif v_text ~ '(وظائف|توظيف|موارد بشرية|jobs|recruit|career|hiring)' then v_photo := 'photo-1521737711867-e3b97375f902';
   elsif v_text ~ '(زواج|اعراس|أعراس|wedding|bride|matrimony|engagement)' then v_photo := 'photo-1519741497674-611481863552';
   elsif v_text ~ '(رياض|لياقه|لياقة|sports|fitness|gym|football|كرة)' then v_photo := 'photo-1461896836934-ffe607ba8211';
+  elsif v_text ~ '(تصوير|photography|photograph|camera)' then v_photo := 'photo-1492691527719-9d1e07e534b4';
+  elsif v_text ~ '(فيديو|ريلز|video|reel|film production|مونتاج)' then v_photo := 'photo-1574717024653-61fd2cf4d44d';
+  elsif v_text ~ '(كتابة|نصوص|copywriting|writing|content writing)' then v_photo := 'photo-1455390582262-044cdead277a';
+  elsif v_text ~ '(تصميم|هوية بصرية|شعار|graphic design|branding|logo design)' then v_photo := 'photo-1558655146-d09347e92766';
+  elsif v_text ~ '(تحليل|تقارير|analytics|reporting|تحسين محركات|data analysis)' then v_photo := 'photo-1551288049-bebda4e38f71';
+  elsif v_text ~ '(إدارة حملات|إدارة الحملات|حملة إعلانية|اعلانات ممولة|إعلانات ممولة|paid ads|advertising campaign)' then v_photo := 'photo-1460925895917-afdab827c52f';
+  elsif v_text ~ '(صفحات هبوط|landing page|موقع تسويقي|landing pages)' then v_photo := 'photo-1498050108023-c5249f4df085';
+  elsif v_text ~ '(متجر إلكتروني|متاجر إلكترونية|تجارة إلكترونية|ecommerce|e-commerce|تسويق المتاجر)' then v_photo := 'photo-1556742049-0cfed4f6a45d';
+  elsif v_text ~ '(استراتيجية|استشارات|consulting|strategy|growth plan|خطة النمو)' then v_photo := 'photo-1521737711867-e3b97375f902';
+  elsif v_text ~ '(التواصل الاجتماعي|سوشيال|social media|إدارة حسابات)' then v_photo := 'photo-1516321318423-f06f85e504b3';
+  elsif v_text ~ '(تسويق محلي|local marketing|الملفات التجارية|business listing)' then v_photo := 'photo-1497366216548-37526070297c';
   elsif v_text ~ '(تسويق|اعلان|إعلان|حمله|حملة|محتوى|تصميم|marketing|advert|social media|seo|brand|digital)' then v_photo := 'photo-1460925895917-afdab827c52f';
   elsif v_text ~ '(برنامج|برمج|سوفت|تقني|software|technology|tech|computer|web|موقع إلكتروني)' then v_photo := 'photo-1498050108023-c5249f4df085';
   elsif v_text ~ '(اثاث|أثاث|موبيليا|furniture|interior|ديكور|منزل|home|kitchen)' then v_photo := 'photo-1555041469-a586c61ea9bc';
