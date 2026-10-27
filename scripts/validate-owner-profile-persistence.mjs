@@ -57,8 +57,9 @@ if (!migration.includes('CREATE OR REPLACE FUNCTION public.upsert_catalog_busine
 }
 if (migration.includes("IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')") ||
     !migration.includes("upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN')") ||
-    !migration.includes("CATALOG_PUBLISH_REQUIRES_OWNER")) {
-  throw new Error('FAIL: global business profile writes must remain owner/admin scoped; branch managers must not change business-wide identity through this RPC.');
+    !migration.includes("CATALOG_PUBLISH_REQUIRES_OWNER") ||
+    migration.includes("'{catalog_public_enabled}'")) {
+  throw new Error('FAIL: profile writes must remain owner/admin scoped and must not change the separate catalog publication flag from a stale client snapshot.');
 }
 
 for (const marker of [
