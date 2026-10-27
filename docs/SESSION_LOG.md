@@ -236,3 +236,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Removed the redundant pending marketing migration at `20261027100000` because it duplicated the already-applied `20261027041411` statement exactly. Left the distinct Qadam follow-up migration at `20261027093000` unchanged for separate review.
 - Updated the reconciliation manifest to reflect the live ledger tail (292 entries through `20261027041549`) and the exact-match evidence. The overall release status remains `BLOCKED / NOT CERTIFIED` because RC425–RC441 and the broader payment/finance, restore, live Edge Function/Auth, and browser/device gates are still unresolved.
 - All actions in this continuation were repository/documentation changes and read-only Production queries. No Production data/schema/function/grant/Auth changes, migration execution, payment, wallet mutation, or deployment occurred.
+
+
+## 2026-10-27 — Live SMM gateway source parity read-back
+
+- Read-only retrieved the active Production `smm-gateway` Edge Function: version 13, `verify_jwt=true`, deployed bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- Exact comparison passed for all 7 deployed TypeScript files against `main`: `index.ts`, `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
+- Deployed source contains `SMM_INITIAL_LAUNCH_DEFERRED=true` and fails closed with `SMM_DEFERRED` before request processing. The interactive browser assets remain retired.
+- Runtime negative tests for anonymous and authenticated callers remain NOT VERIFIED; the overall production release gate remains BLOCKED. No function deployment or environment/configuration mutation occurred.
