@@ -226,3 +226,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No production schema, production data, Auth settings, Supabase grants, Edge Function deployment, payment, or wallet was changed. No historical migration was deleted or modified.
 - Verification status: static contract is added and will be evaluated by exact-head CI; do not mark it verified until GitHub Actions reports the result. Production remains `BLOCKED / NOT CERTIFIED`; the live deployed SMM gateway's default-deny state still requires version/hash evidence and runtime negative tests.
 - Next actionable blockers: recover/reconcile post-RC424 migration sources and ledger state; refresh the exact-head production verifier; continue isolated payment/finance E2E and backup/restore evidence. Do not bypass the full production deployment gate.
+
+
+## 2026-10-27 — Exact live migration-source reconciliation
+
+- Read-only queried the Production `supabase_migrations.schema_migrations.statements` values for live versions `20261027010135`, `20261027041411`, and `20261027041549`.
+- Exact string comparison against the recovered/canonical source files passed for all three entries (5487/5487, 1114/1114, and 1106/1106 characters respectively).
+- Added the exact-version Qadam catalog source from the recovery branch; replaced the future-timestamp marketing contact source with the live versioned source; restored the Qadam contact repair under its exact live ledger version.
+- Removed the redundant pending marketing migration at `20261027100000` because it duplicated the already-applied `20261027041411` statement exactly. Left the distinct Qadam follow-up migration at `20261027093000` unchanged for separate review.
+- Updated the reconciliation manifest to reflect the live ledger tail (292 entries through `20261027041549`) and the exact-match evidence. The overall release status remains `BLOCKED / NOT CERTIFIED` because RC425–RC441 and the broader payment/finance, restore, live Edge Function/Auth, and browser/device gates are still unresolved.
+- All actions in this continuation were repository/documentation changes and read-only Production queries. No Production data/schema/function/grant/Auth changes, migration execution, payment, wallet mutation, or deployment occurred.
