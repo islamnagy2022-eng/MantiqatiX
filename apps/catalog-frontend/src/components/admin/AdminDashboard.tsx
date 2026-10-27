@@ -49,6 +49,8 @@ import {
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
 
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
   retail: <ShoppingBag className="w-4 h-4 text-blue-500" />,
@@ -646,9 +648,13 @@ export const AdminDashboard: React.FC = () => {
                           <td className="py-3.5 px-4 font-bold text-slate-900 max-w-[220px]">
                             <div className="flex items-center gap-2">
                               <img
-                                src={biz.logoUrl}
+                                src={biz.logoUrl || BUSINESS_PLACEHOLDER}
                                 alt={biz.name}
                                 className="w-8 h-8 rounded-lg object-cover bg-slate-100 flex-shrink-0"
+                                onError={(event) => {
+                                  const image = event.currentTarget;
+                                  if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                                }}
                               />
                               <div className="truncate">
                                 <div className="truncate">{biz.name}</div>
@@ -1070,9 +1076,13 @@ export const AdminDashboard: React.FC = () => {
                     <div className="p-4 relative -mt-8">
                       <div className="flex items-start gap-3">
                         <img
-                          src={b.logoUrl}
+                          src={b.logoUrl || BUSINESS_PLACEHOLDER}
                           alt={b.name}
                           className="w-14 h-14 rounded-2xl ring-4 ring-white object-cover bg-white shadow-md flex-shrink-0"
+                          onError={(event) => {
+                            const image = event.currentTarget;
+                            if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                          }}
                         />
                         <div className="pt-6 min-w-0 flex-1">
                           <h4 className="font-extrabold text-sm text-slate-900 truncate">
@@ -1103,7 +1113,7 @@ export const AdminDashboard: React.FC = () => {
                         <div className="flex items-center justify-between text-slate-600">
                           <span>واتساب النشاط:</span>
                           <span dir="ltr" className="font-mono text-[11px] text-slate-800">
-                            {b.ownerWhatsApp}
+                            {b.ownerWhatsApp || 'غير مسجل'}
                           </span>
                         </div>
 
