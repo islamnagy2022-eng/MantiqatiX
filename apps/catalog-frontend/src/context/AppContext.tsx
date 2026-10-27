@@ -415,13 +415,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const business = businesses.find((item) => item.id === businessId);
     if (!business) throw new Error('النشاط المطلوب غير موجود.');
     const frozen = !business.isFrozen;
-    const paymentStatus = frozen
-      ? 'frozen'
-      : business.paymentStatus === 'paid' && business.paymentConfirmedByAdmin
-        ? 'paid'
-        : 'pending';
-    await updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus });
-    setBusinesses((prev) => prev.map((item) => item.id === businessId ? { ...item, isFrozen: frozen, paymentStatus } : item));
+    // Freeze is an independent operational flag. Do not overwrite the underlying
+    // payment status: doing so loses whether the account was paid or overdue.
+    await updateBillingSetting(businessId, { isFrozen: frozen });
+    setBusinesses((prev) => prev.map((item) => item.id === businessId ? { ...item, isFrozen: frozen } : item));
   };
   const deleteBusiness = async (id: string) => {
     const business = businesses.find((b) => b.id === id); if (!business?.tenantId) throw new Error('النشاط غير مرتبط بقاعدة الإنتاج.');
