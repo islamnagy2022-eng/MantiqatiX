@@ -36,8 +36,8 @@ const requiredPrimaryCatalogMarkers = [
   '/MantiqatiX/catalog-app/assets/',
 ];
 const primaryCatalogMustNotDeploy = !primaryCatalogWorkflow.includes('actions/deploy-pages@v4')
-  && !/pages:\\s*write/.test(primaryCatalogWorkflow)
-  && !/id-token:\\s*write/.test(primaryCatalogWorkflow);
+  && !/pages:\s*write/.test(primaryCatalogWorkflow)
+  && !/id-token:\s*write/.test(primaryCatalogWorkflow);
 const home = read('web/home.js');
 const requiredHomeMarkers = [
   'data-targeted-ad',
