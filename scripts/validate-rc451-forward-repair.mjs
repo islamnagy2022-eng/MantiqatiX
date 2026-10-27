@@ -21,7 +21,7 @@ assert.doesNotMatch(migration, /\b(?:INSERT|UPDATE|DELETE|DROP TABLE|TRUNCATE)\b
   'The repair must not mutate business data or drop database objects');
 assert.doesNotMatch(migration, /\b(?:GRANT|REVOKE)\b/i,
   'The repair must preserve existing execute grants rather than changing the public discovery boundary');
-assert.match(workflow, /20261028010000_rc451_targeted_ads_search_path_forward_repair\.sql/,
+assert.match(workflow, /20261027223523_rc451_targeted_ads_search_path_forward_repair\.sql/,
   'The isolated PostgreSQL test must apply the forward repair');
 assert.match(workflow, /ALTER FUNCTION public\.get_mnty_targeted_advertisements[\s\S]*?SET search_path = public, pg_temp/,
   'The isolated test must restore the drifted configuration before exercising the forward repair');
