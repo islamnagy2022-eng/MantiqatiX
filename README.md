@@ -8,7 +8,7 @@ Internal technical identifiers that use legacy `MNTY` naming may remain where re
 
 SMM storefront: **deferred from initial launch**. `web/smm.html` is a `noindex` informational placeholder; the retired interactive browser client has been removed. The `smm-gateway` source, authorization tests, and historical database migrations remain intentionally in place for security and compatibility, with execution default-denied until a separately reviewed post-launch release.
 
-Production web deployment: `.github/workflows/pages.yml` builds `apps/catalog-frontend/` and publishes the validated `apps/catalog-frontend/dist` artifact only when the full production verifier succeeds. The legacy `web/` tree is still used by source-contract/compatibility checks; it is not the deployed artifact directory in this workflow.
+Production web deployment: `.github/workflows/pages.yml` composes the existing `web/` platform root with the validated React catalog under `/MantiqatiX/catalog-app/`. The production artifact deliberately excludes `web/preview/` demo pages and the deferred `web/smm.html` placeholder. `.github/workflows/preview-pages.yml` validates the demo source for regression tests but does not publish it. The scoped catalog pilot may deploy after its dedicated prerequisites and smoke checks pass; the full platform gate remains BLOCKED until migration/schema, payment/finance, backup/restore, Edge Function and Auth/SMM runtime evidence is complete.
 
 
 ## Project continuity (required for contributors and AI sessions)
