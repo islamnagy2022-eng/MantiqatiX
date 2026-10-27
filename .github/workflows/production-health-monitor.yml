@@ -34,27 +34,27 @@ jobs:
           grep -Fq '"status":"ok"' <<<"$BODY"
           grep -Fq '"service":"mantiqatix-health"' <<<"$BODY"
 
-      - name: Check platform root and catalog module assets
+      - name: Check primary catalog site and assets
         run: |
           set -euo pipefail
           BASE="https://islamnagy2022-eng.github.io"
           ROOT="$BASE/MantiqatiX/"
           ROOT_HTML="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$ROOT")"
-          grep -Fq "MantiqatiX | منصة الخدمات ومقدميها" <<<"$ROOT_HTML"
-          grep -Fq "home.js" <<<"$ROOT_HTML"
+          grep -Fq "MantiqatiX" <<<"$ROOT_HTML"
+          ! grep -Fq "home.js" <<<"$ROOT_HTML"
           grep -Fq "config.js" <<<"$ROOT_HTML"
 
-          CATALOG_URL="$ROOT/catalog-app/"
+          CATALOG_URL="$ROOT"
           CATALOG_HTML="$(curl --fail --silent --show-error --location --retry 4 --retry-delay 2 "$CATALOG_URL")"
-          grep -Fq "/MantiqatiX/catalog-app/assets/" <<<"$CATALOG_HTML"
+          grep -Fq "/MantiqatiX/assets/" <<<"$CATALOG_HTML"
           grep -Fq "/MantiqatiX/config.js" <<<"$CATALOG_HTML"
-          ASSETS="$(grep -oE '(src|href)="/MantiqatiX/catalog-app/assets/[^"]+\.(js|css)"' <<<"$CATALOG_HTML" | sed -E 's/^(src|href)="([^"]+)"/\2/' | sort -u)"
+          ASSETS="$(grep -oE '(src|href)="/MantiqatiX/assets/[^"]+\.(js|css)"' <<<"$CATALOG_HTML" | sed -E 's/^(src|href)="([^"]+)"/\2/' | sort -u)"
           test -n "$ASSETS"
           while IFS= read -r asset; do
             test -n "$asset"
             curl --fail --silent --show-error --location --retry 4 --retry-delay 2 --head "$BASE$asset" >/dev/null
           done <<<"$ASSETS"
-          echo "Platform root preserved and catalog module JavaScript/CSS assets reachable"
+          echo "Primary catalog root and JavaScript/CSS assets reachable"
 
       - name: Health summary
         run: |
