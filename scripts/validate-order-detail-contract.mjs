@@ -13,4 +13,6 @@ assert.match(app, /x\.catalogItemId\|\|x\.catalog_item_id\|\|x\.item_id/, 'snaps
 assert.match(app, /x\.unitPrice\?\?x\.unit_price/, 'snapshot unit price must be shown');
 assert.match(app, /x\.lineSubtotal\?\?x\.line_subtotal/, 'snapshot line total must be shown');
 assert.match(app, /invokeMntyFunction\('order-status-update'/, 'state changes must remain server-authoritative');
+assert.match(app, /const useBusinessOrders=Boolean\(live\.businessId\)&&!isCustomerMode\(\)/, 'business-scoped active roles must read business orders');
+assert.match(app, /else if\(!platformOrderAccess\)oq\.eq\('customer_id',uid\)/, 'only authenticated platform admins may read across business scopes through the platform workspace');
 console.log('ORDER_DETAIL_SNAPSHOT=PASS');
