@@ -69,5 +69,19 @@
       }
     ],
     "resolution": "All three latest live ledger statement bodies match exact-version source files character-for-character. The pre-existing 20261027100000 marketing contact migration is preserved unchanged under the repository migration-immutability rule; its statement body is an exact idempotent alias of applied live version 20261027041411. No existing migration file was edited or deleted."
+  },
+  "smm_gateway_live_source_evidence": {
+    "status": "PARTIAL",
+    "checked_at": "2026-10-27",
+    "deployed_status": "ACTIVE",
+    "deployed_version": 13,
+    "deployed_verify_jwt": true,
+    "deployed_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
+    "source_files_checked": 7,
+    "source_files_exact_match": 7,
+    "source_file_parity": "PASS",
+    "source_launch_gate": "SMM_INITIAL_LAUNCH_DEFERRED=true",
+    "runtime_negative_tests": "NOT VERIFIED",
+    "note": "Read-only retrieval of the live Edge Function and exact string comparison against main source confirms all seven deployed TypeScript files match. The source hard gate denies all actions before request authentication/processing. Keep the overall smm_gateway_parity release gate NOT VERIFIED until anonymous/authenticated negative runtime tests are recorded."
   }
 }
