@@ -128,14 +128,20 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const price = relevant.find((p: any) => String(p.branch_id || p.branchId || '') === String(branchId || '')) || relevant.find((p: any) => !p.branch_id && !p.branchId) || relevant[0];
     const end = price?.effective_to ? Date.parse(price.effective_to) : Infinity;
     const start = price?.effective_from ? Date.parse(price.effective_from) : 0;
-    const available = metadata.is_available !== false && Boolean(price) && start <= now && end >= now;
+    const itemType = String(i.item_type || 'PRODUCT').toUpperCase();
+    // Service requests with hidden prices are quotable services, not unavailable products.
+    const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
+    const available = metadata.is_available !== false && (
+      requiresQuote || (Boolean(price) && start <= now && end >= now)
+    );
     return {
       id: String(i.id), businessId, name: String(i.name_ar || i.name_en || 'عنصر كتالوج'),
       category: String(metadata.category || i.category || 'عام'),
-      type: String(i.item_type || 'PRODUCT').toUpperCase() === 'SERVICE' ? 'service' : 'product',
-      price: Number(price?.unit_price ?? 0), comparePrice: metadata.compare_price == null ? undefined : Number(metadata.compare_price),
+      type: itemType === 'SERVICE' ? 'service' : 'product',
+      price: requiresQuote ? 0 : Number(price?.unit_price ?? 0),
+      comparePrice: requiresQuote || metadata.compare_price == null ? undefined : Number(metadata.compare_price),
       description: String(i.description || ''), imageUrl: String(metadata.image_url || ''),
-      isAvailable: available, unit: String(metadata.unit || ''),
+      isAvailable: available, unit: String(metadata.unit || ''), requiresQuote,
     } as Product;
   });
 }
