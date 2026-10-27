@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: Build and type-check replacement catalog frontend
+      - name: Build and type-check catalog module
         working-directory: apps/catalog-frontend
         run: |
           set -euo pipefail
@@ -49,7 +49,7 @@ jobs:
           fi
           grep -Eiq '^location: https://accounts\.google\.com/' /tmp/catalog-oauth-smoke.headers
           echo "PRODUCTION_GOOGLE_OAUTH_HANDSHAKE=PASS"
-            - name: Install web runtime dependency
+      - name: Install web runtime dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
         run: |
@@ -279,7 +279,7 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Upload replacement frontend as the Pages artifact
+      - name: Upload composed site as the Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
