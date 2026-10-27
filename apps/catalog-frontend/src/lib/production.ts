@@ -1,6 +1,7 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS } from '../data/productionDefaults';
+import { resolveDefaultImage } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
 if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
@@ -129,18 +130,24 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const end = price?.effective_to ? Date.parse(price.effective_to) : Infinity;
     const start = price?.effective_from ? Date.parse(price.effective_from) : 0;
     const itemType = String(i.item_type || 'PRODUCT').toUpperCase();
+    const name = String(i.name_ar || i.name_en || 'عنصر كتالوج');
+    const description = String(i.description || '');
+    const category = String(metadata.category || i.category || 'عام');
+    const savedImageUrl = String(metadata.image_url || '').trim();
+    const imageSource: 'auto' | 'owner' = metadata.image_source === 'auto' || !savedImageUrl ? 'auto' : 'owner';
+    const imageUrl = savedImageUrl || resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
     // Service requests with hidden prices are quotable services, not unavailable products.
     const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
     const available = metadata.is_available !== false && (
       requiresQuote || (Boolean(price) && start <= now && end >= now)
     );
     return {
-      id: String(i.id), businessId, name: String(i.name_ar || i.name_en || 'عنصر كتالوج'),
-      category: String(metadata.category || i.category || 'عام'),
+      id: String(i.id), businessId, name,
+      category,
       type: itemType === 'SERVICE' ? 'service' : 'product',
       price: requiresQuote ? 0 : Number(price?.unit_price ?? 0),
       comparePrice: requiresQuote || metadata.compare_price == null ? undefined : Number(metadata.compare_price),
-      description: String(i.description || ''), imageUrl: String(metadata.image_url || ''),
+      description, imageUrl, imageSource,
       isAvailable: available, unit: String(metadata.unit || ''), requiresQuote,
     } as Product;
   });
