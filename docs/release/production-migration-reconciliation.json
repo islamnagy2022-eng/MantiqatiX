@@ -53,7 +53,10 @@
         "source_blob_sha": "1b85c341c0c9329e71f4fdbf36f2f852687994aa",
         "live_statement_chars": 1114,
         "source_chars": 1114,
-        "exact_statement_match": true
+        "exact_statement_match": true,
+        "source_alias_files": [
+          "supabase/migrations/20261027100000_mantiqatix_marketing_contact_details.sql"
+        ]
       },
       {
         "version": "20261027041549",
@@ -65,6 +68,6 @@
         "exact_statement_match": true
       }
     ],
-    "resolution": "All three latest live ledger statement bodies now have exact-version source files and match the recorded statements character-for-character. The redundant not-yet-applied 20261027100000 marketing contact file was removed because its body was identical to the live 20261027041411 entry. No production writes or migration execution occurred."
+    "resolution": "All three latest live ledger statement bodies match exact-version source files character-for-character. The pre-existing 20261027100000 marketing contact migration is preserved unchanged under the repository migration-immutability rule; its statement body is an exact idempotent alias of applied live version 20261027041411. No existing migration file was edited or deleted."
   }
 }
