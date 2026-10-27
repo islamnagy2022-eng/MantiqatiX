@@ -7,6 +7,7 @@ const context = { window: {}, module: { exports: {} }, globalThis: {} };
 vm.runInNewContext(source, context, { filename: 'web/feature-flags.js' });
 const flags = context.window.MNTYFeatureFlags || context.module.exports;
 assert.ok(flags, 'feature flag resolver must be exported');
+assert.equal(flags.normalize('catalog module-code'), 'CATALOG_MODULE_CODE', 'normalization must collapse whitespace and hyphens');
 
 const resolved = flags.resolve([
   { id: 'global-on', scope_type: 'GLOBAL', module_code: 'CATALOG', feature_code: 'MODULE_ENABLED', enabled: true, updated_at: '2026-01-01T00:00:00Z' },
