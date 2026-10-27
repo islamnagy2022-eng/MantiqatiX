@@ -67,6 +67,7 @@ jobs:
       - name: Syntax check
         run: |
           node --check web/rbac.js
+          node --check web/feature-flags.js
           node --check web/app.js
           node scripts/validate-order-detail-contract.mjs
           node --check web/catalog-module.js
@@ -94,6 +95,7 @@ jobs:
           node scripts/validate-public-brand.mjs
           node scripts/validate-production-security.mjs
           node scripts/validate-auth-flow.mjs
+          node scripts/validate-platform-feature-flags.mjs
           node scripts/validate-module-catalog.mjs
           node scripts/validate-android-parity-catalog.mjs
           node scripts/validate-public-web-secrets.mjs
@@ -136,6 +138,7 @@ jobs:
           test -s web/vendor/supabase.js
           test -f web/config.js
           test -f web/rbac.js
+          test -f web/feature-flags.js
           test -f web/styles.css
           test -f web/home.css
           test -f web/app.js
