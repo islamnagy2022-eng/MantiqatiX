@@ -30,7 +30,7 @@
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
 - Latest documented project commit before this reconciliation branch: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`
-- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`; the post-RC424 chain replayed successfully in a disposable environment (52 migrations, run 40494929976), but required migrations are still **not proven applied to Production**.
+- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`. A read-only LEFT JOIN confirms **0/16** expected RC425–RC432 and RC434–RC441 versions are recorded; later October 26–27 migrations are present despite those gaps. The source chain replays in isolation (52 migrations, run 40494929976), but it is not applied/proven in Production.
 - Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
 ## Latest verified web execution batch — 2026-10-18
