@@ -456,29 +456,10 @@
 - [ ] Next safe action: resolve the cross-PR collision-check API failure and obtain current exact-head CI results for #413 and #414; separately reconcile the RC425–RC441 source-recovery PR against the latest main and full historical replay evidence before any merge decision.
 
 
-## 2026-10-27 — Continuation evidence refresh (after follow-up PRs)
+## 2026-10-27 — Latest exact-head validation and access-boundary follow-up
 
-- [🟡] PR #412 remains closed without merge; the scoped successors are #413 and #414. Current open work also includes #415 (historical order-item/pricing snapshots), #416 (workspace feature-flag scope loading), and draft #411 (production deploy gates and rollback documentation).
-- [🟡] Exact-head Actions were rechecked for #413, #414, #415, and #416. Source/contract checks returned success for the listed relevant jobs, but their "Deploy MantiqatiX Web" workflow runs were cancelled. No live deployment is claimed for these PRs.
-- [🟡] PR #411 remains a draft and must not be merged as a shortcut: the current head has queued/running validation, including production workflow and migration-chain checks. Wait for all exact-head checks to finish and inspect their results.
-- [🟡] Open-PR migration collision guard: an earlier run failed because the GitHub installation API hit rate limiting (403), not because a concrete duplicate version was reported. A newer run for PR #411 is currently in progress at evidence capture time; its outcome is NOT VERIFIED.
-- [ ] Next safe work: monitor exact-head checks for #411 and review its migration/workflow patch; rerun/review collision guard to a definitive result; update the main-based migration recovery PR #347 to the current base and rerun full chronological disposable replay. Keep production gate BLOCKED until outstanding live evidence exists.
-
-
-## 2026-10-27 — Continuation evidence refresh (after follow-up PRs)
-
-- [🟡] PR #412 remains closed without merge; the scoped successors are #413 and #414. Current open work also includes #415 (historical order-item/pricing snapshots), #416 (workspace feature-flag scope loading), and draft #411 (production deploy gates and rollback documentation).
-- [🟡] Exact-head Actions were rechecked for #413, #414, #415, and #416. Source/contract checks returned success for the listed relevant jobs, but their "Deploy MantiqatiX Web" workflow runs were cancelled. No live deployment is claimed for these PRs.
-- [🟡] PR #411 remains a draft and must not be merged as a shortcut: the current head has queued/running validation, including production workflow and migration-chain checks. Wait for all exact-head checks to finish and inspect their results.
-- [🟡] Open-PR migration collision guard: an earlier run failed because the GitHub installation API hit rate limiting (403), not because a concrete duplicate version was reported. A newer run for PR #411 is currently in progress at evidence capture time; its outcome is NOT VERIFIED.
-- [ ] Next safe work: monitor exact-head checks for #411 and review its migration/workflow patch; rerun/review collision guard to a definitive result; update the main-based migration recovery PR #347 to the current base and rerun full chronological disposable replay. Keep production gate BLOCKED until outstanding live evidence exists.
-
-
-## 2026-10-27 — Read-only Production ledger and current replay blocker
-
-- [🟢] Supabase project inventory confirmed Production `moyhiluyhjsujhwlyeuu` and Demo `lkijdgqanbqjudiducjt` are separate ACTIVE_HEALTHY projects. No demo project was used for Production evidence.
-- [🟢] Read-only Production migration inventory returned 292 records. Latest recorded entries are `20261027010135 add_qadam_alsaad_homewares_store_and_catalog`, `20261027041411 mantiqatix_marketing_contact_details`, and `20261027041549 qadam_alsaad_restore_contact_fields`. This confirms contact-repair migration entries exist, but it does not certify the broader release.
-- [🟡] The prior manifest's “last migration = RC424” value was stale as a complete inventory summary. RC424 remains the last named RC in the historical core chain, while later catalog/contact migration records now exist.
-- [🔴] Current PR #411 chronological replay run `40453589750` failed before the replay step executed SQL: the CI runner hit `public.ecr.aws ... toomanyrequests: Data limit exceeded` while pulling Supabase containers. Classify as infrastructure BLOCKED / NOT VERIFIED, not a migration SQL failure. Re-run when image pulls work or use an approved equivalent isolated replay environment; do not bypass replay.
-- [🔴] Supabase Security Advisor (2026-10-27) still reports leaked-password protection as disabled and contextual anonymous-access-policy warnings. Enable leaked-password protection through the authorized Supabase Auth owner workflow, then re-run the advisor. Do not bulk-edit anonymous policies without contextual authorization review.
-- [ ] Production payment/finance E2E, restore rehearsal/PITR evidence, Edge Function parity, SMM parity, cross-account/tenant E2E, browser/device E2E, monitoring/alert and rollback drills remain NOT VERIFIED. The production release gate stays BLOCKED.
+- [x] On PR #411 head `4eb74e97932ca93c047816ca5e6179dda83339d1`, exact-head GitHub Actions succeeded for: [Platform Admin and Onboarding Typecheck](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024929), [Module Professionalization Validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024908), [Backend-only Module Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024878), and [MantiGO Open Ride Privacy Boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024869).
+- [ ] No exact-head run for the full chronological migration replay was present in the latest first 100 Actions runs at the time of this check. The prior replay failure on `40453589750` remains the latest replay evidence; rerun and pass the replay before marking the taxonomy migration VERIFIED.
+- [x] Read-only Production privilege inspection of `public.digital_page_payment_events`: zero RLS policies, but no SELECT/INSERT effective privileges for `anon`, `authenticated`, or `service_role`. Current evidence does not show direct client read/write exposure. Do not add an allow-all policy; separately validate the intended backend event-ingestion path.
+- [ ] Keep PR #411 as Draft; it is based on a stale base and is currently not mergeable. Successful unit/typecheck/source-boundary jobs do not unblock deployment or migration replay.
+- [ ] Production remains `BLOCKED / NOT CERTIFIED`: managed Auth leaked-password protection remains disabled, migration source/ledger reconciliation and all required-release migrations are not proven, no production backup/restore rehearsal has been evidenced, and live payment/finance/edge/SMM/browser/rollback evidence is incomplete.
