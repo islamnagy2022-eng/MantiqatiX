@@ -53,7 +53,13 @@ const requiredReleaseMigrations=[
   "20261023030000_rc103_order_status_branch_scope.sql",
   "20261023040000_rc104_order_idempotency_scope.sql",
   "20261023050000_rc105_order_create_service_role_identity.sql",
-  "20261023060000_rc106_order_status_service_role_identity.sql"
+  "20261023060000_rc106_order_status_service_role_identity.sql",
+  "20261027030000_rc113_super_admin_control_center_foundation.sql",
+  "20261027040000_rc114_business_employee_hiring_system.sql",
+  "20261027050000_rc115_control_center_integration.sql",
+  "20261027060000_rc116_business_subscriber_admin.sql",
+  "20261027070000_rc117_default_images_and_activity_admin.sql",
+  "20261027090000_rc113_user_membership_business_scope_idempotency.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
