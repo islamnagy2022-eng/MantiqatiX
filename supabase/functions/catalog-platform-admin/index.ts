@@ -354,6 +354,79 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (action === "UPDATE_BUSINESS_PROFILE") {
+      const tenantId = requireTenant(body.tenantId);
+      const input = body.business && typeof body.business === "object" ? body.business : {};
+      const businessId = String(input.id || body.businessId || "");
+      const name = String(input.name || "").trim().slice(0, 200);
+      const providerKind = String(input.activityCode || "").trim().toUpperCase().slice(0, 80);
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      const phone = String(input.phone || "").trim().slice(0, 40);
+      const address = String(input.address || "").trim().slice(0, 500);
+      const bio = String(input.bio || "").trim().slice(0, 3000);
+      const governorate = String(input.governorate || "").trim().slice(0, 100);
+      const markaz = String(input.markaz || "").trim().slice(0, 100);
+      const village = String(input.village || "").trim().slice(0, 100);
+      const workingHours = String(input.workingHours || "").trim().slice(0, 300);
+      const safeUrl = (value: unknown, max: number) => {
+        const raw = String(value || "").trim().slice(0, max);
+        if (!raw) return "";
+        try {
+          const parsed = new URL(raw);
+          return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
+        } catch { return ""; }
+      };
+      const logoUrl = safeUrl(input.logoUrl, 1500);
+      const coverUrl = safeUrl(input.coverUrl, 1500);
+      const allowedProviderKinds = ["FOOD","HEALTH","PHARMACY","LABS","RADIOLOGY","DENTAL","HOSPITAL","MEDICAL","REAL_ESTATE","AUTO","MAINTENANCE","ACCOUNTING","LEGAL","COMPANIES","EDU","DIGITAL","TECH","FITNESS","TRAVEL","MANTIGO","JOBS","MATRIMONY","USED_ITEMS","FASHION","GROCERY","VETERINARY","FREELANCER"];
+      if (!isUuid(businessId) || name.length < 2 || !allowedProviderKinds.includes(providerKind) || reason.length < 3) {
+        return response(origin, { error: "INVALID_BUSINESS_PROFILE" }, 400);
+      }
+      if ((input.logoUrl && !logoUrl) || (input.coverUrl && !coverUrl)) return response(origin, { error: "INVALID_PROFILE_URL" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      if (business.settings?.deleted_at) return response(origin, { error: "BUSINESS_ARCHIVED" }, 409);
+      const oldSettings = business.settings || {};
+      const oldProfile = oldSettings.catalog_profile && typeof oldSettings.catalog_profile === "object" ? oldSettings.catalog_profile : {};
+      const profile = { ...oldProfile, bio, governorate, markaz, village, working_hours: workingHours, logo_url: logoUrl, cover_url: coverUrl, address, phone };
+      const nextSettings = { ...oldSettings, activity_code: providerKind, contact_phone: phone, contact_address: address, catalog_profile: profile };
+      const { data: updated, error: businessUpdateError } = await service.from("businesses")
+        .update({ name, settings: nextSettings, updated_at: new Date().toISOString() })
+        .eq("id", businessId).eq("tenant_id", tenantId)
+        .select("id,tenant_id,organization_id,name,code,status,settings,updated_at").single();
+      if (businessUpdateError) throw businessUpdateError;
+      const { data: providerProfiles, error: profileFindError } = await service.from("marketing_provider_profiles")
+        .select("id,name_ar,name_en,provider_kind,description").eq("business_id", businessId).limit(5);
+      if (profileFindError) {
+        await service.from("businesses").update({ name: business.name, settings: oldSettings, updated_at: business.updated_at }).eq("id", businessId).eq("tenant_id", tenantId);
+        throw profileFindError;
+      }
+      const profileSnapshots = providerProfiles || [];
+      if (profileSnapshots.length) {
+        const { error: profileUpdateError } = await service.from("marketing_provider_profiles")
+          .update({ name_ar: name, provider_kind: providerKind, description: bio || null, name_en: input.nameEn ? String(input.nameEn).trim().slice(0, 180) : null, updated_at: new Date().toISOString() })
+          .eq("business_id", businessId);
+        if (profileUpdateError) {
+          const businessRollback = await service.from("businesses").update({ name: business.name, settings: oldSettings, updated_at: business.updated_at }).eq("id", businessId).eq("tenant_id", tenantId);
+          for (const p of profileSnapshots) await service.from("marketing_provider_profiles").update({ name_ar: p.name_ar, name_en: p.name_en, provider_kind: p.provider_kind, description: p.description }).eq("id", p.id);
+          if (businessRollback.error) console.error("business profile compensation failed", businessRollback.error.message);
+          throw profileUpdateError;
+        }
+      }
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        actor_user_id: user.id, action: "BUSINESS_PROFILE_UPDATED", entity_type: "business", entity_id: businessId,
+        old_values: { name: business.name, settings: oldSettings, providerProfiles: profileSnapshots },
+        new_values: { name: updated.name, settings: updated.settings, reason }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const businessRollback = await service.from("businesses").update({ name: business.name, settings: oldSettings, updated_at: business.updated_at }).eq("id", businessId).eq("tenant_id", tenantId);
+        for (const p of profileSnapshots) await service.from("marketing_provider_profiles").update({ name_ar: p.name_ar, name_en: p.name_en, provider_kind: p.provider_kind, description: p.description }).eq("id", p.id);
+        if (businessRollback.error) console.error("business profile audit rollback failed", businessRollback.error.message);
+        return response(origin, { error: businessRollback.error ? "BUSINESS_PROFILE_AUDIT_ROLLBACK_FAILED" : "BUSINESS_PROFILE_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, { success: true, business: updated });
+    }
+
     if (action === "GET_SETTINGS") {
       const { data, error } = await service.from("bizcatalog_platform_settings")
         .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
