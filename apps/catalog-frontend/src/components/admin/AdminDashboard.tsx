@@ -48,11 +48,7 @@ import {
   QrCode,
 } from 'lucide-react';
 import {
-  calculateBusinessCommission,
   formatEgyptianLocation,
-  evaluatePaymentFreezeStatus,
-  DEFAULT_COMMISSION_PER_ORDER,
-  OVERDUE_GRACE_PERIOD_DAYS,
   DEFAULT_PAYMOB_FEE_PERCENTAGE,
   DEFAULT_PAYMOB_FEE_FIXED,
   calculatePaymobFee,
@@ -94,7 +90,6 @@ export const AdminDashboard: React.FC = () => {
     importBackupJSON,
     confirmAdminPayment,
     toggleBusinessFreeze,
-    updateBusinessCommissionRate,
     updateBusinessLocation,
     updateBusinessPaymobConfig,
   } = useApp();
@@ -156,9 +151,6 @@ export const AdminDashboard: React.FC = () => {
 
   // Admin WhatsApp & Password Settings
   const [adminPhone, setAdminPhone] = useState(adminSettings.adminWhatsApp);
-  const [platformCommissionInput, setPlatformCommissionInput] = useState(
-    adminSettings.defaultCommissionPerOrder ?? 0.01
-  );
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsFeedback, setSettingsFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -492,16 +484,13 @@ export const AdminDashboard: React.FC = () => {
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-            <Coins className="w-6 h-6" />
+            <Store className="w-6 h-6" />
           </div>
           <div>
             <div className="text-2xl font-black text-slate-900">
-              {businesses
-                .reduce((acc, b) => acc + calculateBusinessCommission(b.totalOrdersCount, b.commissionPerOrder).totalCommission, 0)
-                .toLocaleString('ar-EG', { minimumFractionDigits: 2 })}{' '}
-              ج.م
+              {businesses.filter((business) => business.publicEnabled && !business.isFrozen).length}
             </div>
-            <div className="text-xs text-slate-500 font-medium">إجمالي عمولات المنصة</div>
+            <div className="text-xs text-slate-500 font-medium">كتالوجات منشورة وغير مجمدة</div>
           </div>
         </div>
       </div>
@@ -1447,7 +1436,7 @@ export const AdminDashboard: React.FC = () => {
               إعدادات إدارة منصة MantiqatiX والواتساب الرسمي
             </h3>
             <p className="text-xs text-slate-500">
-              هذه الإعدادات تحدد رقم واتساب الإدارة لزر "طلب كتالوج النشاط" وكلمة مرور تسجيل الدخول كإدارة عامة.
+              هذه الإعدادات تحدد رقم واتساب الإدارة لزر "طلب كتالوج النشاط". يتم تسجيل دخول مالك المنصة عبر Google.
             </p>
           </div>
 
@@ -1473,23 +1462,6 @@ export const AdminDashboard: React.FC = () => {
 
             <div>
               <p className="text-xs text-slate-600">تسجيل دخول مالك المنصة يتم عبر Google. لا توجد كلمة مرور إدارية تقليدية في هذا الإصدار.</p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-800 mb-1.5">
-                العمولة الافتراضية لكل طلب جديد (بالجنيه المصري ج.م - سري)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={platformCommissionInput}
-                onChange={(e) => setPlatformCommissionInput(e.target.value === '' ? 0 : Number(e.target.value))}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">
-                القيمة الافتراضية المحددة هي 0.01 جنيه مصري لكل طلب.
-              </p>
             </div>
 
             <div>
@@ -1522,16 +1494,10 @@ export const AdminDashboard: React.FC = () => {
                   setSettingsFeedback({ type: 'error', message: 'أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا.' });
                   return;
                 }
-                const commission = Number(platformCommissionInput);
-                if (!Number.isFinite(commission) || commission < 0 || commission > 1000000) {
-                  setSettingsFeedback({ type: 'error', message: 'قيمة العمولة الافتراضية غير صالحة.' });
-                  return;
-                }
                 setSettingsSaving(true);
                 try {
                   await updateAdminSettings({
                     adminWhatsApp: adminPhone.trim(),
-                    defaultCommissionPerOrder: commission,
                     currency: 'ج.م',
                     platformName: 'MantiqatiX',
                   });
