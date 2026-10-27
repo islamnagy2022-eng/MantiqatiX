@@ -56,6 +56,10 @@ assert.match(context, /لا تُفعّل صلاحيات إدارة النشاط 
   'Credential instructions must disclose the payment gate');
 assert.match(admin, /حالة الاشتراك/);
 assert.match(admin, /بانتظار السداد/);
+assert.doesNotMatch(admin, /setActiveAdminTab\('backup'\)/,
+  'Unverified backup/restore UI must not be exposed in the catalog pilot');
+assert.doesNotMatch(admin, /setActiveAdminTab\('control_center'\)/,
+  'Unverified advanced control-center UI must not be exposed in the catalog pilot');
 assert.match(context, /إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي/,
   'Unverified Paymob configuration must remain disabled for the catalog pilot');
 assert.match(admin, /if \(!saved\) return;/,
