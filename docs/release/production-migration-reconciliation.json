@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: all 34 exact migration versions required by the verifier are absent from the live ledger. Isolated chronological replay does not prove Production application. Live object/function drift includes critical payment and finance RPCs, journal schema/grants, five deployed Edge Functions differing from main, and the RC451 targeted-ad SECURITY DEFINER search_path. Payment/finance E2E, backup/restore, Auth security settings, SMM runtime negative tests, browser/device E2E, monitoring/alerts and rollback evidence remain NOT VERIFIED.",
+  "reason": "Production remains BLOCKED: all 40 release-required migration versions (34 payment/finance/security/order plus six RC113–RC117/platform feature migrations) are absent from the live ledger. Catalog checks confirm 21 of the original 39 required RPC names are absent, 4 required tables are absent, 12/13 selected required indexes are absent, and the six newer control-center/hiring/image migrations also have 17/17 named function contracts and 11/11 selected tables/indexes absent. Five critical deployed Edge Functions drift from main; the RC451 targeted-ad SECURITY DEFINER search_path and RC449A/RC450 finance schema/ACL remain blocked. No Production changes occurred.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -100,10 +100,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-10-27",
-    "method": "Read-only LEFT JOIN of every required source version listed by scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations.",
+    "method": "Read-only LEFT JOIN of all 40 required source version IDs used by scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations.",
     "live_ledger_count": 292,
     "latest_live_version": "20261027041549",
-    "expected_migration_versions": 34,
+    "expected_migration_versions": 40,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -139,7 +139,13 @@
       "20261023030000",
       "20261023040000",
       "20261023050000",
-      "20261023060000"
+      "20261023060000",
+      "20261027030000",
+      "20261027040000",
+      "20261027050000",
+      "20261027060000",
+      "20261027070000",
+      "20261027090000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -175,9 +181,15 @@
       "20261023030000",
       "20261023040000",
       "20261023050000",
-      "20261023060000"
+      "20261023060000",
+      "20261027030000",
+      "20261027040000",
+      "20261027050000",
+      "20261027060000",
+      "20261027070000",
+      "20261027090000"
     ],
-    "interpretation": "All 34 migration versions required by the Production verifier are absent from the live ledger, even though their SQL source files exist in main and the 52-migration post-RC424 chain replays in an isolated disposable database. The live ledger contains later catalog/contact versions, so do not apply these historical versions blindly.",
+    "interpretation": "All 40 release-required source versions are absent from the live ledger: the original 34 payment/finance/security/order versions plus six later platform-owner, hiring, subscriber-admin, default-image, and membership-scope migrations. Exact-version source presence and the 52-file disposable replay do not prove application to Production.",
     "recorded_required_versions": []
   },
   "critical_edge_function_source_parity_check": {
@@ -396,6 +408,237 @@
         "object": "public.mnty_can_platform_admin and MantiGo admin RPCs",
         "exists": true,
         "detail": "Functions exist but current configs remain search_path=public or public, pg_temp; RC441 source sets search_path empty. Review bodies/config before rollout."
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_custom_roles",
+        "exists": false,
+        "detail": "Custom platform roles table is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments",
+        "exists": false,
+        "detail": "Scoped platform role assignments table is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_list_custom_roles",
+        "exists": false,
+        "detail": "Custom role list RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_upsert_custom_role",
+        "exists": false,
+        "detail": "Custom role upsert RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.mnty_platform_admin_assign_custom_role",
+        "exists": false,
+        "detail": "Scoped custom role assignment RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions",
+        "exists": false,
+        "detail": "Business hiring/position table is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees",
+        "exists": false,
+        "detail": "Business employee table is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_active_unique",
+        "exists": false,
+        "detail": "Active scoped role assignment uniqueness index is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.platform_role_assignments_user_scope_idx",
+        "exists": false,
+        "detail": "Role assignment scope index is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_email_per_business_unique",
+        "exists": false,
+        "detail": "Per-business employee email uniqueness index is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_job_positions_business_active_idx",
+        "exists": false,
+        "detail": "Business job position index is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_business_status_idx",
+        "exists": false,
+        "detail": "Employee business/status index is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114",
+        "object": "public.business_employees_user_active_idx",
+        "exists": false,
+        "detail": "Employee user/active index is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_position_upsert",
+        "exists": false,
+        "detail": "Employee position upsert RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC114/RC115",
+        "object": "public.mnty_business_employee_upsert",
+        "exists": false,
+        "detail": "Employee onboarding/upsert RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_has_permission",
+        "exists": false,
+        "detail": "Platform permission checker RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_people",
+        "exists": false,
+        "detail": "Platform people list RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_role_assignments",
+        "exists": false,
+        "detail": "Platform role assignments list RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_business_employee_list",
+        "exists": false,
+        "detail": "Business employee list RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC115",
+        "object": "public.mnty_platform_admin_list_audit",
+        "exists": false,
+        "detail": "Platform admin audit list RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_list_businesses",
+        "exists": false,
+        "detail": "Platform business list RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC116/RC117",
+        "object": "public.mnty_platform_admin_manage_business",
+        "exists": false,
+        "detail": "Platform business management RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC116",
+        "object": "public.mnty_platform_admin_manage_membership",
+        "exists": false,
+        "detail": "Business membership admin RPC is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "exists": false,
+        "detail": "Name-aware default image resolver is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "exists": false,
+        "detail": "Business default-image trigger function is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "exists": false,
+        "detail": "Catalog item default-image trigger function is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "exists": false,
+        "detail": "Marketing service default-image trigger function is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.businesses.mnty_business_default_images",
+        "exists": false,
+        "detail": "Business default-image trigger is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.catalog_items.mnty_catalog_item_default_image",
+        "exists": false,
+        "detail": "Catalog item default-image trigger is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "exists": false,
+        "detail": "Marketing service default-image trigger is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "exists": false,
+        "detail": "Marketing services image_url column is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_source",
+        "exists": false,
+        "detail": "Marketing services image_source column is absent.",
+        "status": "BLOCKED"
+      },
+      {
+        "migration": "RC113",
+        "object": "public.ux_user_memberships_user_business_branch_nullsafe",
+        "exists": false,
+        "detail": "Membership business/branch NULL-safe idempotency index is absent.",
+        "status": "BLOCKED"
       }
     ],
     "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout."
@@ -435,7 +678,7 @@
     "status": "VERIFIED_READ_ONLY",
     "path": "docs/release/production-source-object-drift.json",
     "checked_at": "2026-10-27",
-    "required_release_migration_versions": 34,
+    "required_release_migration_versions": 40,
     "recorded_required_migration_versions": 0,
     "required_function_names": 39,
     "absent_function_names": 21,
@@ -443,6 +686,145 @@
     "absent_tables_and_indexes": 16,
     "present_objects_still_requiring_contract_review": 18,
     "interpretation": "Name/signature/catalog inventory is read-only evidence. Existing function names are not treated as behaviorally verified; body, search_path, effective grants, trigger attachment and runtime acceptance still require exact checks.",
-    "no_production_writes": true
+    "no_production_writes": true,
+    "additional_function_contracts": 17,
+    "additional_absent_function_contracts": 17,
+    "additional_relations_indexes": 11,
+    "additional_absent_relations_indexes": 11
+  },
+  "additional_feature_migration_check": {
+    "status": "BLOCKING_DRIFT",
+    "checked_at": "2026-10-27",
+    "required_migration_versions": [
+      "20261027030000",
+      "20261027040000",
+      "20261027050000",
+      "20261027060000",
+      "20261027070000",
+      "20261027090000"
+    ],
+    "recorded_migration_versions": [],
+    "missing_migration_versions": [
+      "20261027030000",
+      "20261027040000",
+      "20261027050000",
+      "20261027060000",
+      "20261027070000",
+      "20261027090000"
+    ],
+    "required_function_contracts": 17,
+    "present_required_function_contracts": 0,
+    "missing_required_function_contracts": 17,
+    "required_relations_indexes": 11,
+    "present_required_relations_indexes": 0,
+    "missing_required_relations_indexes": 11,
+    "notes": [
+      "RC113 creates platform_custom_roles, platform_role_assignments and custom-role RPCs.",
+      "RC114 creates business_job_positions/business_employees and owner-scoped hiring RPCs.",
+      "RC115/RC116 supply control-center integration and business/subscriber administration RPCs.",
+      "RC117 supplies default-image functions/triggers, marketing_services image columns, and business-admin RPCs.",
+      "RC113 membership-scope idempotency migration creates ux_user_memberships_user_business_branch_nullsafe."
+    ],
+    "interpretation": "These migrations are in main and referenced by the current catalog/module workflows, but their exact versions and required objects are absent in the live ledger/catalog. They are now added to the release-required source inventory. No live changes performed."
+  },
+  "recent_live_migration_source_parity": {
+    "status": "VERIFIED_WITH_NORMALIZATION_NOTES",
+    "checked_at": "2026-10-27",
+    "method": "Read-only comparison of source SQL text with supabase_migrations.schema_migrations.statements[1]; exact equality where supported, otherwise whole-line comments and leading/trailing whitespace were normalized before comparison.",
+    "entries": [
+      {
+        "version": "20261026092940",
+        "name": "rc107_catalog_manager_business_branch_scope",
+        "source_file": "supabase/migrations/20261026092940_rc107_catalog_manager_business_branch_scope.sql",
+        "comparison": "EXACT_MATCH",
+        "source_chars": 38156,
+        "live_chars": 38156
+      },
+      {
+        "version": "20261026123825",
+        "name": "rc108_bizcatalog_platform_settings",
+        "source_file": "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql",
+        "comparison": "EXACT_MATCH",
+        "source_chars": 742,
+        "live_chars": 742
+      },
+      {
+        "version": "20261026130450",
+        "name": "rc109_bizcatalog_settings_service_policy",
+        "source_file": "supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql",
+        "comparison": "EXECUTABLE_SQL_MATCH",
+        "source_chars": 433,
+        "live_chars": 430,
+        "note": "Comment text differs; executable SQL matches after comment and edge-whitespace normalization."
+      },
+      {
+        "version": "20261026133343",
+        "name": "20261026133500_rc110_marketing_provider_profiles_service_read",
+        "source_file": "supabase/migrations/20261026133343_20261026133500_rc110_marketing_provider_profiles_service_read.sql",
+        "comparison": "EXECUTABLE_SQL_MATCH",
+        "source_chars": 225,
+        "live_chars": 73,
+        "note": "Live ledger stores the GRANT command only; source comments are omitted."
+      },
+      {
+        "version": "20261026133751",
+        "name": "20261026133700_rc111_catalog_service_read_grants",
+        "source_file": "supabase/migrations/20261026133751_20261026133700_rc111_catalog_service_read_grants.sql",
+        "comparison": "EXECUTABLE_SQL_MATCH",
+        "source_chars": 358,
+        "live_chars": 192,
+        "note": "Live ledger stores the three GRANT commands; source comments are omitted."
+      },
+      {
+        "version": "20261026141029",
+        "name": "rc112_remove_production_test_fixtures",
+        "source_file": "supabase/migrations/20261026141029_rc112_remove_production_test_fixtures.sql",
+        "comparison": "EXECUTABLE_SQL_MATCH",
+        "source_chars": 8886,
+        "live_chars": 8887,
+        "note": "Only leading/edge whitespace differs after stripping full-line comments."
+      },
+      {
+        "version": "20261027010135",
+        "name": "add_qadam_alsaad_homewares_store_and_catalog",
+        "source_file": "supabase/migrations/20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql",
+        "comparison": "EXACT_MATCH",
+        "source_chars": 5487,
+        "live_chars": 5487
+      },
+      {
+        "version": "20261027041411",
+        "name": "mantiqatix_marketing_contact_details",
+        "source_file": "supabase/migrations/20261027041411_mantiqatix_marketing_contact_details.sql",
+        "comparison": "EXACT_MATCH",
+        "source_chars": 1114,
+        "live_chars": 1114
+      },
+      {
+        "version": "20261027041549",
+        "name": "qadam_alsaad_restore_contact_fields",
+        "source_file": "supabase/migrations/20261027041549_qadam_alsaad_restore_contact_fields.sql",
+        "comparison": "EXACT_MATCH",
+        "source_chars": 1106,
+        "live_chars": 1106
+      }
+    ],
+    "alias_notes": [
+      {
+        "path": "supabase/migrations/20261027100000_mantiqatix_marketing_contact_details.sql",
+        "status": "DUPLICATE_SOURCE_ALIAS",
+        "detail": "Same source blob as live-version 20261027041411; not a distinct live migration effect and must not be added as a separate required migration."
+      },
+      {
+        "path": "supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql",
+        "status": "DUPLICATE_SOURCE_ALIAS",
+        "detail": "Exact RC424 SQL body matches ledger version 20261008222845; preserve the historical ledger version and do not reapply the alias."
+      },
+      {
+        "path": "supabase/migrations/20261027093000_add_qadam_alsaad_homewares_store.sql",
+        "status": "EFFECTS_PRESENT_NOT_LEDGERED",
+        "detail": "Read-only live audit confirms the business/branch/owner membership, 15 active QAS products, all 12 expected price-bearing products, 3 contact-for-price products without price rows, no stock tracking, and business contact fields are already present. Do not reapply this data seed merely to ledger its filename."
+      }
+    ]
   }
 }
