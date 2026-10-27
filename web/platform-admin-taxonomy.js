@@ -63,7 +63,7 @@ function bind(){
   const type=document.getElementById('mx-tax-type').value,parent=document.getElementById('mx-tax-parent').value||null;
   const sector=document.getElementById('mx-tax-sector').value;
   const group=rows.find(r=>r.node_type==='SECTOR_GROUP'&&r.sector_id===sector);
-  const parentId=type==='SECTOR_GROUP'?null:(parent||group?.id||null);
+  const parentId=type==='SECTOR_GROUP'?null:(parent||(type==='ACTIVITY'?group?.id:null)||null);
   const payload={id:document.getElementById('mx-tax-id').value.trim(),code:document.getElementById('mx-tax-code').value.trim().toUpperCase(),name_ar:document.getElementById('mx-tax-ar').value.trim(),name_en:document.getElementById('mx-tax-en').value.trim(),sector_id:sector,parent_id:parentId,node_type:type,status:editing?.status||'ACTIVE',sort_order:Number(document.getElementById('mx-tax-order').value||100),legacy_category_id:editing?.legacy_category_id||null,metadata:editing?.metadata||{}};
   try{await call('UPSERT_ACTIVITY_TYPE',{activityType:payload});editing=null;await refresh()}catch(err){msg.textContent='تعذر الحفظ: '+(err?.message||'خطأ غير معروف');btn.disabled=false}
  });
