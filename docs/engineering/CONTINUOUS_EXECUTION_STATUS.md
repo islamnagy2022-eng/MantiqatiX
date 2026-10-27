@@ -405,3 +405,10 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - [x] Qadam follow-up data contract: 15 active products and 12 exact prices match; three contact-for-price products remain price-less and no stock is tracked. The owner membership is INACTIVE, so `20261027093000` must not be treated as an alias or already fully applied.
 - [x] Two separate duplicate source aliases require controlled ledger reconciliation: `20261009010000 → 20261008222845` and `20261027100000 → 20261027041411`. Their SQL/source equivalence is verified, but they are not recorded as alias versions in the live ledger.
 - [ ] Keep Production blocked until 41 distinct missing migrations are rehearsed against the current live schema, the aliases are resolved by a reviewed migration-repair plan, Qadam owner membership is verified ACTIVE, and all other release gates pass. No Production changes were made.
+
+## 2026-10-27 — Atomic release object contract repair
+
+- [x] Split the grouped RC435/RC436/RC437/RC441 release checks into separate function, index and table requirements. The release gate now requires **27 individual core objects + 33 feature objects = 60 object contracts**, all explicit in the manifest.
+- [x] Added negative CI fixtures for absent subscription claim RPC, journal uniqueness index, ERP line receiving RPC and MantiGo admin dashboard RPC; a single row cannot stand in for multiple required objects.
+- [x] Improved Production verifier diagnostics to list every non-passing object plus unresolved migration aliases and Qadam owner state.
+- [ ] All 60 object contracts remain blocked or unverified; no Production migration, schema/ledger/grant change or deploy was performed.
