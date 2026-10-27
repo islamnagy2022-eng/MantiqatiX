@@ -7,6 +7,7 @@ const read = path => fs.readFileSync(new URL(path, `file://${root}/`), 'utf8');
 const report = JSON.parse(read('docs/release/production-migration-reconciliation.json'));
 const qadam = report.qadam_catalog_followup_check;
 const paidGate = report.catalog_platform_admin_paid_subscription_gate;
+const catalogFunctions = report.catalog_pilot_edge_function_parity_check;
 const app = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const admin = read('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx');
 const types = read('apps/catalog-frontend/src/types/index.ts');
@@ -42,6 +43,24 @@ assert.equal(paidGate?.unrelated_modules_deployed, false, 'No unrelated backend 
 assert.equal(paidGate?.active_non_showcase_owner_memberships_count_before_guard, 0, 'No unpaid non-showcase owner memberships may already be active');
 assert.equal(paidGate?.no_unpaid_non_showcase_owner_memberships_found, true, 'The read-only subscription audit must be recorded');
 
+assert.equal(catalogFunctions?.status, 'PASS', 'All scoped catalog Edge Functions must have verified live source parity');
+const expectedCatalogFunctions = new Map([
+  ['catalog-platform-admin', { version: 3, verifyJwt: true }],
+  ['catalog-admin', { version: 14, verifyJwt: false }],
+  ['public-catalog-directory', { version: 2, verifyJwt: false }],
+  ['public-catalog', { version: 2, verifyJwt: false }],
+]);
+for (const fn of catalogFunctions.functions || []) {
+  const expected = expectedCatalogFunctions.get(fn.slug);
+  assert.ok(expected, 'Unexpected Edge Function in the scoped catalog release: ' + fn.slug);
+  assert.equal(fn.live_version, expected.version, fn.slug + ' live version must match its reviewed version');
+  assert.equal(fn.verify_jwt, expected.verifyJwt, fn.slug + ' JWT mode must remain unchanged and reviewed');
+  assert.equal(fn.source_exact_match, true, fn.slug + ' deployed source must match the reviewed branch');
+  expectedCatalogFunctions.delete(fn.slug);
+}
+assert.equal(expectedCatalogFunctions.size, 0, 'Every scoped catalog Edge Function must be accounted for');
+assert.equal(catalogFunctions.unrelated_functions_deployed, false, 'No unrelated Edge Functions may be deployed by the catalog pilot');
+
 assert.ok(vite.includes("base: '/MantiqatiX/catalog-app/'"), 'Catalog frontend must be built under its own subpath');
 assert.equal(manifest.scope, '/MantiqatiX/catalog-app/', 'Catalog PWA scope must not claim the platform root');
 assert.equal(manifest.start_url, '/MantiqatiX/catalog-app/', 'Catalog PWA start URL must use its subpath');
@@ -66,4 +85,4 @@ assert.ok(!pagesWorkflow.includes('primary-catalog-frontend-dist'), 'Catalog bui
 
 console.log('CATALOG_PILOT_GATE=PASS');
 console.log(`FULL_PLATFORM_GATE=${report.status}; this scoped gate authorizes only the catalog frontend and paid-subscription guard, not platform-wide certification.`);
-console.log('CATALOG_PILOT_BACKEND_SCOPE=catalog-platform-admin only; no payment-intent, webhook, order, finance, SMM, or MantiGO deployments.');
+console.log('CATALOG_PILOT_BACKEND_SCOPE=catalog-platform-admin + catalog-admin + public-catalog + public-catalog-directory; no payment-intent, webhook, order, finance, SMM, or MantiGO deployments.');
