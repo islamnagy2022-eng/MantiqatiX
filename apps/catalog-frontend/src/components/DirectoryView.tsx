@@ -18,7 +18,6 @@ import {
   CheckCircle2,
   Phone,
   MessageCircle,
-  Megaphone,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 
@@ -90,13 +89,14 @@ export const DirectoryView: React.FC = () => {
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
 
   // Filter slides based on selected governorate
-  const activeCoverSlides = React.useMemo(() => {
-    if (selectedGovFilter === 'all') return coverSlides;
-    const matched = coverSlides.filter(
-      (slide) => slide.governorates.includes('all') || slide.governorates.includes(selectedGovFilter)
-    );
-    return matched.length > 0 ? matched : coverSlides;
-  }, [selectedGovFilter, businesses]);
+  const activeCoverSlides = selectedGovFilter === 'all'
+    ? coverSlides
+    : (() => {
+        const matched = coverSlides.filter(
+          (slide) => slide.governorates.includes('all') || slide.governorates.includes(selectedGovFilter)
+        );
+        return matched.length > 0 ? matched : coverSlides;
+      })();
 
   useEffect(() => {
     setCurrentCoverIndex(0);
