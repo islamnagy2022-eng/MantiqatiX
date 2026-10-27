@@ -258,8 +258,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Always return OAuth to the canonical GitHub Pages app root.
       // Carrying arbitrary query/hash state into Supabase redirect allowlists can
       // cause a successful Google consent flow to return without hydrating the app.
-      const basePath = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
-      const redirectTo = new URL(basePath, window.location.origin).toString();
+      // Supabase currently allowlists the platform root. The root shell relays
+      // only OAuth callback parameters to /catalog-app/ before loading its own app.
+      const redirectTo = new URL('/MantiqatiX/', window.location.origin).toString();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo, queryParams: { prompt: 'select_account' } },
