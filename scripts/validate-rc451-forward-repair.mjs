@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const migration = fs.readFileSync('supabase/migrations/20261028010000_rc451_targeted_ads_search_path_forward_repair.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20261027223523_rc451_targeted_ads_search_path_forward_repair.sql', 'utf8');
 const workflow = fs.readFileSync('.github/workflows/module-professionalization.yml', 'utf8');
 const integration = fs.readFileSync('supabase/tests/rc451_targeted_ads_search_path_integration.sql', 'utf8');
 const historical = fs.readFileSync('supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql', 'utf8');
