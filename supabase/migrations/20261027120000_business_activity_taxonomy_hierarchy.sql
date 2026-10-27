@@ -199,6 +199,8 @@ alter table public.business_activity_types force row level security;
 revoke all on public.business_activity_types from anon, authenticated;
 grant all on public.business_activity_types to service_role;
 
+
+
 -- Make the seed replayable from a schema-only production checkpoint where
 -- earlier directory seed data may not have been restored. Only insert missing
 -- canonical sector/category rows; never overwrite existing names or assignments.
