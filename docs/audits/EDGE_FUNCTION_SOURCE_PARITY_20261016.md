@@ -115,3 +115,29 @@ No production migration, database row, grant, Auth/RLS policy, wallet, payment, 
 
 - Production Health Monitor passed for the current main commit, but the Production Verification Engine intentionally failed closed: the migration source chain RC425–RC441 is incomplete in `main`, the live ledger remains reconciled only through RC424, and chronological replay, tenant isolation, payment/finance E2E, backup/restore, and other release evidence remain unverified.
 - Do not treat a green health monitor or a successful source/test workflow as production certification. Do not bulk-apply migrations or rewrite the live ledger to silence the gate.
+
+
+## Fresh deployed-source comparison — 2026-10-27 (read-only)
+
+This addendum supersedes the historical version notes above where current live evidence differs. Compared Supabase's retrieved active function files in Production project `moyhiluyhjsujhwlyeuu` against the corresponding `main` files. Byte-length/match findings are indicators for semantic review; mismatches alone are not proof of exploitation or approval to deploy.
+
+| Function | Deployed state | Live index.ts bytes | Main index.ts bytes | Fresh finding / decision |
+| --- | --- | ---: | ---: | --- |
+| `smm-gateway` | v13, `verify_jwt=true` | 20,040 | 20,040 | **Exact source match** across all seven deployed files. The live entrypoint keeps `SMM_INITIAL_LAUNCH_DEFERRED=true` and rejects requests with `503 SMM_DEFERRED` before authentication/body/action routing. This proves source parity and the deny-first source guard, not the requested live negative-request/no-side-effect test; see issue #212. |
+| `financial-journal` | v3, `verify_jwt=true` | 1,591 | 3,387 | **Critical source drift.** Live source retains wildcard CORS and calls legacy `post_financial_journal`; `main` calls `post_financial_journal_backend` and no longer uses wildcard CORS. Live ledger still lacks RC449A (`20261010175000`) and RC450 (`20261010180000`). Do not deploy the newer entrypoint independently of the approved migration order; see issue #104 and the RC450 rollout runbook. |
+| `catalog-admin` | v13, `verify_jwt=false` | 24,407 | 25,731 | Entrypoints differ; the current `main` imports `../_shared/default-images.ts`, which is absent from the live entrypoint. Review complete behavior, explicit JWT/body authorization, CORS, tenant and business scope before deciding direction of sync. `verify_jwt=false` is not itself a vulnerability finding because the function may implement its own authentication contract. |
+| `catalog-platform-admin` | v2, `verify_jwt=true` | 20,807 | 20,923 | Entrypoints differ. The first material source difference concerns UUID validation: `main` accepts legacy UUID-shaped values that the stricter live pattern rejects. Check callers and regression coverage before deployment. |
+| `digital-page-payment-intent` | v5, `verify_jwt=true` | 5,345 | 6,532 | Live source lacks the shared `isValidPaymobAmountCents` / `matchesPaymobIntention` correlation helper import present in `main`. Review provider amount, order binding, and intent correlation together with the canonical RC425–RC441 migration chain; see issues #269 and #270. |
+| `payment-intent` | v8, `verify_jwt=true` | 8,114 | 10,366 | Live source lacks the shared Paymob amount/intent correlation helper import present in `main`. Do not sync the function alone until required database sources, grants, and end-to-end payment tests are verified. |
+| `paymob-webhook` | v10, `verify_jwt=false` | 11,538 | 12,665 | Live source differs from `main`; `main` rejects invalid/non-finite amounts via an explicit `Number.isFinite(amount)` check that the live entrypoint lacks. Provider webhook signature and order/amount correlation still need staging E2E; `verify_jwt=false` is expected for provider callbacks only when the handler independently verifies the webhook. |
+| `public-catalog-directory` | v1, `verify_jwt=false` | 6,901 | 8,723 | Entrypoints differ; `main` imports `../_shared/default-images.ts`, absent from the live entrypoint. Review default-image behavior and public directory filtering in staging before syncing. Public read access is intentional for this endpoint, subject to the explicit response allowlist. |
+
+### Required follow-up
+
+1. Preserve the current live source and migration history while each difference is reviewed against its authorization and data contract.
+2. For financial-journal, follow the exact RC449A → RC450 → matching Edge Function rollout in `docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md`; current Production is missing those ledger versions.
+3. For payment intent and webhook source, verify migration presence, ACL/RPC compatibility, request signing, amount/currency/order/provider-intent correlation, idempotency, duplicate/retried callbacks, and ambiguous provider outcomes on a disposable/staging environment before proposing deployment.
+4. For catalog functions, test authorization and tenant/business scope as well as intentional public reads. Never treat a byte match alone as a security certification.
+5. Keep `PRODUCTION_GATE=BLOCKED` while migration statement identity, backup/restore, provider/finance E2E, function parity and live Auth security settings remain unverified.
+
+This addendum was produced from read-only deployment/source inspection. No Edge Function deployment, database write, migration application, permission change, wallet operation, order creation, or provider request was performed.
