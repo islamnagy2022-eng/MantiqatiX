@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: the three latest live ledger entries through 20261027041549 have now been reconciled byte-for-byte to exact-version source files, but the required post-RC424 payment/finance/security migration chain is still not proven applied. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway deployment parity, live Auth security settings, and external browser/device E2E remain unverified. Do not deploy until each release gate has evidence and production backup/restore readiness is verified.",
+  "reason": "Production remains BLOCKED: read-only ledger comparison confirms all 16 required RC425–RC432 and RC434–RC441 versions are absent from the live Production ledger, even though the complete 52-migration forward chain passes in a disposable schema-checkpoint replay. Replay is not proof that missing migrations can safely be applied out of order to the current live schema. Payment/finance E2E, backup/restore rehearsal, Edge Function runtime parity, SMM anonymous/authenticated negative tests, live Auth security settings, browser/device E2E, monitoring/alert and rollback evidence remain unverified.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -96,5 +96,34 @@
     "source_launch_gate": "SMM_INITIAL_LAUNCH_DEFERRED=true",
     "runtime_negative_tests": "NOT VERIFIED",
     "note": "Read-only retrieval of the live Edge Function and exact string comparison against main source confirms all seven deployed TypeScript files match. The source hard gate denies all actions before request authentication/processing. Keep the overall smm_gateway_parity release gate NOT VERIFIED until anonymous/authenticated negative runtime tests are recorded."
+  },
+  "required_release_migration_ledger_check": {
+    "status": "VERIFIED_NOT_APPLIED",
+    "checked_at": "2026-10-27",
+    "method": "Read-only LEFT JOIN of the 16 expected RC425–RC432 and RC434–RC441 migration versions against public.supabase_migrations.schema_migrations.",
+    "live_ledger_count": 292,
+    "latest_live_version": "20261027041549",
+    "expected_migration_versions": 16,
+    "found_in_live_ledger": 0,
+    "missing_versions": [
+      "20261009120000",
+      "20261009130000",
+      "20261009140000",
+      "20261009150000",
+      "20261009160000",
+      "20261009170000",
+      "20261009180000",
+      "20261009190000",
+      "20261009200000",
+      "20261009210000",
+      "20261009220000",
+      "20261009230000",
+      "20261009240000",
+      "20261010010000",
+      "20261010020000",
+      "20261010030000"
+    ],
+    "interpretation": "The required migrations exist as candidate source files and pass isolated chronological replay, but all 16 exact versions are absent from the live Production migration ledger. Later-dated catalog/contact migrations are present; do not assume the missing payment/finance/security chain was applied from the overall ledger tail.",
+    "safety": "No Production writes or migration operations performed."
   }
 }
