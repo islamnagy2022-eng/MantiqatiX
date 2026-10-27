@@ -17,7 +17,7 @@
     "resolution_in_candidate": "Added a disposable-only data-prerequisite fixture for the platform tenant and a synthetic auth user with the migration's referenced ID; workflow now rejects non-local DB URLs and runs this fixture only against the locally started disposable database.",
     "verification": "Rerun required; no production changes performed."
   },
-  "tenant_isolation_tests": "PASS in prior isolated replay run 40052022874 for businesses, orders, payment_intents, provider_onboarding_requests; NOT REACHED in candidate run 40493639400 because forward migration replay failed earlier."
+  "tenant_isolation_tests": "PASS in prior isolated replay run 40052022874 for businesses, orders, payment_intents, provider_onboarding_requests; NOT REACHED in candidate run 40493639400 because forward migration replay failed earlier.",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40052022874",
