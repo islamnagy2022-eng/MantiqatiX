@@ -1,8 +1,20 @@
 # MantiqatiX Continuous Execution Status
-Last updated: 2026-10-16 — source-parity follow-ups verified; production release remains not certified
+Last updated: 2026-10-27 — live ledger reconciliation and 52-migration disposable replay verified; production release remains not certified
 
 ## Release status
 **NOT CERTIFIED.** Source, CI, and disposable-PostgreSQL evidence are not proof that migrations or function definitions are deployed in production.
+
+## Current checkpoint — 2026-10-27
+
+- [x] Live Production ledger inventory is 292 rows through `20261027041549`. A read-only LEFT JOIN found **0/16** required exact versions from RC425–RC432 and RC434–RC441 in the ledger, although source files are present in the candidate repository. The ledger also contains later-dated October 26–27 migrations, so the tail version is not proof of a contiguous release chain.
+- [x] The post-checkpoint chronological chain completed 52 migrations in an isolated disposable Supabase replay, and RC117 contract plus synthetic two-tenant isolation checks passed in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976).
+- [x] The replay gap was repaired by adding a disposable-only prerequisite fixture for the schema-only checkpoint and a local DB URL guard. No Production data was copied or changed.
+- [ ] Production rollout is NOT APPROVED: isolated replay does not prove safe application of historical missing migrations onto the current live schema, which already has later-dated migrations. Reconcile schema drift, obtain backup/restore and rollback evidence, and perform reviewed payment/finance E2E before any migration operation.
+- [ ] Critical live/source drift: payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, and financial-journal v3 differ from `main`; compare details in the reconciliation manifest. Do not deploy individually. SMM v13 matches source but anonymous/authenticated negative runtime tests remain unverified.
+- [ ] Financial-journal boundary is also blocked: RC449A/RC450 are not recorded; five journal columns are absent; neither the live `post_financial_journal` nor `post_financial_journal_backend` grants service_role EXECUTE. Coordinate RC449A → RC450, exact grant verification and finance sandbox E2E before deploying the function.
+- [ ] Remaining external gates: reconcile the 0/16 missing RC425–RC441 ledger versions with later applied migrations and approve backup/restore + rollback; managed Auth security settings (including leaked-password protection), browser/device E2E, monitoring/alerts and provider payment/finance sandbox acceptance.
+- Deployment workflow at the current replay checkpoint skipped `validate_public_only` and `deploy`; no Production deployment is claimed.
+
 
 ## Latest continuation — explicit migration-chain gate (2026-10-11)
 

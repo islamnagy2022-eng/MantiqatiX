@@ -5,7 +5,7 @@
 
 ## P0 — بوابة الإطلاق
 - [🟢] Baseline CI — run #114 نجح على `main` للـcommit `d58e1360a170bce596494b2aeb37b5166fff6a5b`، وتضمن تحقق ملفات الويب وSyntax وMetadata/Security smoke.
-- [ ] Auth production: Email OTP end-to-end، session، logout، expiry. **NOT VERIFIED — requires external browser/auth test.**
+- [ ] Auth production: Google OAuth end-to-end، session refresh/expiry، logout، membership approval، multi-role and tenant isolation. **NOT VERIFIED — CI OAuth handshake passes, but authenticated browser E2E and live Auth security settings remain unverified.**
 - [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، وتم إصلاح `support_tickets_update_staff` لمنع تغيير `tenant_id` أثناء التحديث؛ بقي اختبار E2E بحسابات أدوار متعددة.
 - [🟡] مراجعة SECURITY DEFINER وEXECUTE: العدد «10 وظائف» أدناه توثيق تاريخي وليس جردًا حاليًا. إعادة الفحص الحي يوم 2026-10-27 05:49 UTC سجلت 48 تحذيرًا لوظائف `SECURITY DEFINER` قابلة للتنفيذ من `authenticated` وتحذيرًا واحدًا لـ`anon` على `get_mnty_targeted_advertisements(...)`. هذه التحذيرات ليست وحدها إثباتًا لقابلية الاستغلال؛ يلزم جرد كل توقيع، و`search_path`، والصلاحيات، والمستدعين، ثم اختبارات قبل أي تغيير. راجع issue #98؛ ممنوع السحب الجماعي للصلاحيات.
 - [🟢] Data API grants baseline: anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط ولا يملك INSERT/UPDATE/DELETE؛ authenticated لديه امتيازات محددة ومحمية بـRLS؛ المراجعة التفصيلية لكل مسار تبقى ضمن E2E.
@@ -24,7 +24,7 @@
 
 ## P1 — Website / Platform
 - [x] Website baseline/PWA/brand.
-- [x] Email OTP path.
+- [x] Google OAuth sign-in path; authenticated browser/session lifecycle remains NOT VERIFIED.
 - [x] user_memberships + active role.
 - [x] Feature flag reading.
 - [x] إزالة الأرقام التشغيلية الوهمية من الواجهة.
@@ -192,7 +192,7 @@
 - [x] Confirmed launch scope: SMM is separate from the core Marketing & Advertising module and is deferred until a separately reviewed post-launch release.
 - [x] Retired the unused interactive customer-side storefront files (`web/smm.js` and `web/smm.css`); kept `web/smm.html` as a noindex informational page stating that orders are unavailable.
 - [x] Added a CI contract ensuring the placeholder has no interactive form/script/API calls and the server-side default-deny gate, authorization contract, and historical migration remain present.
-- [ ] NOT VERIFIED: prove the currently deployed production `smm-gateway` is still default-deny using read-only version/hash evidence and anonymous/authenticated negative runtime tests. Source checks alone do not prove live deployment state.
+- [🟡] Live source parity VERIFIED read-only on 2026-10-27: deployed `smm-gateway` version 13, bundle SHA `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`, all 7 deployed TypeScript files exactly match `main`, and `SMM_INITIAL_LAUNCH_DEFERRED=true`. **NOT VERIFIED:** anonymous/authenticated negative runtime tests; keep the overall release gate blocked until these are recorded.
 - [ ] POST-LAUNCH: provider/service/order/wallet review, platform RBAC, provider credential isolation, idempotency/order events, wallet reconciliation, monitoring, and administrative authorization.
 - [ ] Do not delete deployed Edge Function source, security tests, or historical database migrations as part of frontend cleanup; no production schema or function changes are authorized by this task.
 
@@ -229,7 +229,7 @@
 - BRAND: `MantiqatiX` is the sole official public/customer-facing brand name; legacy `MNTY` identifiers are internal technical contracts only.
 - PRODUCT MODEL: Customer ↔ Service Provider with Operational Service Map only when location is operationally necessary; no general GIS/GEOINT platform is assumed.
 - IMPLEMENTED: Website/PWA/brand baseline.
-- IMPLEMENTED: Email OTP path.
+- IMPLEMENTED: Google OAuth sign-in path; end-user browser/session lifecycle remains NOT VERIFIED.
 - IMPLEMENTED: membership/active role.
 - IMPLEMENTED: feature-flag reading + safe module visibility.
 - IMPLEMENTED: marketing lead creation.
@@ -447,19 +447,19 @@
 - [🟡] PR #412 is CLOSED / NOT MERGED (superseded); do not merge or reuse its combined branch. Its two concerns are split into #413 (Qadam Al-Saad contact repair) and #414 (scoped feature-flag UI handling).
 - [🟡] PR #413 is OPEN, not merged, based on the current recorded main SHA `0274bbd3f3657838153d1c8b62ea31ce487d1c90`. Its source migration records a Qadam Al-Saad contact repair reportedly already applied/read back from Production. Exact-head Pages workflow jobs for the PR were CANCELLED; successful isolated tests do not establish deployment.
 - [🟡] PR #414 is OPEN, not merged, based on the same main SHA. It adds scoped feature-flag resolution and a contract test. Exact-head Pages workflow jobs were CANCELLED; do not mark the feature-flag visibility/actions item VERIFIED until the required validation succeeds and feature-level use is reviewed.
-- [🟡] PR #347 remains DRAFT and source-only for recovery of RC425–RC441 migration files. Its scope contains 16 migrations and its description requires chronological disposable replay and wider regression evidence before merge. Do not apply these migrations directly to Production.
-- [🟡] Main's migration reconciliation manifest remains `BLOCKED`, `verified=false`; the recorded Production ledger ends at RC424 while required post-RC424 migrations are not proven applied. Preserve historical ledger versions and aliases; do not rewrite migration history.
+- [🟡] PR #347 was later superseded/closed; PR #427 now carries the exact live-ledger source reconciliation. The current disposable forward-replay evidence is run 40494929976 (52 migrations PASS); do not treat replay as proof of Production application or merge old recovery branches blindly.
+- [🟡] Read-only Production ledger LEFT JOIN confirms **0/16** exact versions from RC425–RC432 and RC434–RC441 are recorded, although their source files are present and the 52-migration disposable replay passes. The live ledger also contains later October 26–27 catalog/contact versions, so its maximum timestamp does not imply the missing payment/finance/security chain was applied. Keep the manifest `BLOCKED`, `verified=false`, and `required_release_migrations_applied=false`; do not rewrite history or apply the old chain blindly.
 - [🟡] Latest observed open-PR migration collision guard run for PR #413: run `40449840215` failed at “Compare changed migrations across open PRs”, but the job log shows the underlying cause was GitHub API HTTP 403 `API rate limit exceeded for installation` after five retries. Its self-test passed. This is an infrastructure/rate-limit blocker, not evidence of a concrete migration collision. Retry only after the API rate limit recovers or improve the job's GitHub API strategy without weakening the guard.
 - [🟡] Exact-head workflow run `40449840182` reports isolated forward migration replay passed. The same PR’s deployment workflow `40449840167` was cancelled; no deployment claim is made.
 - [ ] Keep release status `BLOCKED / NOT CERTIFIED`: Production payment/finance E2E, restore rehearsal, live Edge Function contract parity, SMM gateway parity, live Auth security settings, browser/device E2E, monitoring/alert and rollback drills remain NOT VERIFIED.
-- [ ] Next safe action: resolve the cross-PR collision-check API failure and obtain current exact-head CI results for #413 and #414; separately reconcile the RC425–RC441 source-recovery PR against the latest main and full historical replay evidence before any merge decision.
+- [x] Updated follow-up: PR #427 reconciles the latest three live-ledger sources, and current branch run 40494929976 passes 52-migration replay plus tenant-isolation checks. Review final exact-head checks; keep the Production gate blocked until live migration application and external runtime evidence are proven.
 
 
 ## 2026-10-27 — Verified CI checkpoint; live gate still blocked
 
 - [x] On branch `fix/production-launch-hardening-20261027`, chronological isolated replay `40453971339` passed after correcting taxonomy seed order. It applied 50 migrations from the captured disposable checkpoint and passed both tenant directions for own-row read / cross-tenant write denial across orders and payment intents.
 - [x] Exact-head CI `4eb74e97932ca93c047816ca5e6179dda83339d1`: [admin/onboarding typecheck](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024929), [module professionalization](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024908), [backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024878), and [MantiGO privacy boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024869) all passed.
-- [x] Production read-only verification as of 2026-10-27: 292 migration-ledger rows, latest `20261027041549 qadam_alsaad_restore_contact_fields`; `platform_feature_flags=0`; `business_modules=600` and all 600 enabled. This contradicts stale `docs/release/production-migration-reconciliation.json` fields that still claim the live ledger ends at RC424. Do not update the manifest by guessing or changing historical versions; reconcile exact ledger/source versions first.
+- [x] Production read-only verification as of 2026-10-27: 292 migration-ledger rows, latest `20261027041549 qadam_alsaad_restore_contact_fields`; `platform_feature_flags=0`; `business_modules=600` and all 600 enabled. Exact statement/source comparison now passes for live versions `20261027010135`, `20261027041411`, and `20261027041549`; the reconciliation manifest records this evidence while preserving the overall `BLOCKED` status.
 - [x] Production `digital_page_payment_events` has RLS enabled and zero policies, but current effective database privileges show no SELECT/INSERT for `anon`, `authenticated`, or `service_role`; no direct access grant was found. Keep policy count zero pending confirmation of backend event ingestion contract.
 - [ ] Do not merge/deploy PR #411 yet: it remains Draft and not mergeable due stale base; successful isolated replay is not Production migration reconciliation, a live restore rehearsal, nor payment/finance runtime evidence.
 - [ ] Remaining P0 evidence: reconcile all 292 live migration statements/aliases with source; prove Supabase PITR/backup retention and perform isolated restore rehearsal; review exposed SECURITY DEFINER and anonymous RLS policies; enable leaked-password protection in managed Auth after impact review; run provider sandbox payment/webhook + finance E2E; verify Edge Function and SMM deployment parity; browser/device regression; monitoring/alert + rollback drill.
@@ -492,3 +492,47 @@
 - [ ] Issue #422 remains open: leaked-password protection is reported disabled by the managed Auth Security Advisor. A project owner must enable it in the Supabase dashboard and re-run the advisor; source/SQL checks do not prove this managed setting is enabled.
 - [ ] Release status remains `BLOCKED / NOT CERTIFIED`. Payment/finance provider E2E, backup/restore rehearsal, Edge Function contract parity, SMM gateway launch safety/parity, Auth security settings, external browser/device regression, monitoring/alert and rollback evidence are still required. The OAuth source fix, isolated migration replay, and passing CI are not substitutes for these live checks.
 
+
+
+## 2026-10-27 — Exact live migration-source reconciliation
+
+- [x] Read-only queried `supabase_migrations.schema_migrations.statements` for the three latest live entries and compared each statement string to its exact-version SQL source. All three comparisons matched character-for-character.
+- [x] Restored `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` from the authoritative recovery branch; restored exact live-version sources for `20261027041411_mantiqatix_marketing_contact_details.sql` and `20261027041549_qadam_alsaad_restore_contact_fields.sql`.
+- [x] Confirmed `20261027100000_mantiqatix_marketing_contact_details.sql` has an exact statement body match with live version `20261027041411`. Preserved the existing file unchanged because the repository's migration-immutability guard forbids deleting or renaming migration history; documented it as an idempotent source-version alias. Kept the distinct `20261027093000_add_qadam_alsaad_homewares_store.sql` follow-up unchanged for separate review.
+- [x] Updated `docs/release/production-migration-reconciliation.json` with read-only evidence and current live ledger tail. `status=BLOCKED`, `verified=false`, and `required_release_migrations_applied=false` remain unchanged.
+- [ ] Remaining release blockers: reconcile the live schema drift created by newer applied migrations with the 16 missing RC425–RC441 versions and obtain an approved/rollback-tested Production rollout plan; payment/finance E2E; backup/restore rehearsal; live Edge Function parity including SMM anonymous/authenticated negative runtime tests; managed Auth security settings; browser/device E2E; monitoring/alert and rollback evidence.
+- Safety: no production writes, migration execution, schema/permission changes, Edge Function deployment, payment, or wallet mutation were performed.
+
+
+## 2026-10-27 — Live SMM gateway parity read-back
+
+- [x] Read-only retrieved the deployed `smm-gateway`: ACTIVE version 13, `verify_jwt=true`, bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- [x] Compared all 7 deployed TypeScript files against `main`: exact matches for `index.ts`, `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
+- [x] Confirmed the deployed source retains `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns `SMM_DEFERRED` before processing actions.
+- [ ] Anonymous/authenticated negative runtime tests remain NOT VERIFIED; source parity does not replace runtime evidence. No function deployment or environment change was performed.
+
+
+## 2026-10-27 — Schema-only checkpoint replay diagnosis
+
+- [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
+- [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
+- [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
+- [x] Forward replay correction verified in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976): all 52 post-checkpoint migrations applied in timestamp order in a disposable Supabase instance; RC117 contract ran and synthetic tenant A/B read isolation and cross-tenant order/payment-intent write denial passed.
+- [x] Exact-head migration immutability, version uniqueness, open-PR collision guard, RC425 Paymob atomicity, SMM deferred-storefront contract, backend-only boundary, MantiGO privacy and module validation checks passed at this checkpoint.
+- [ ] Production Gate stays BLOCKED: this isolated replay does not prove the migrations were applied to Production, and payment/finance E2E, backup/restore rehearsal, live Auth/Edge Function runtime gates, browser/device E2E, monitoring/alerts and rollback evidence remain open. Web deploy workflow skipped `validate_public_only` and `deploy`; no production deployment occurred.
+
+
+## 2026-10-27 — Critical Edge Function source drift recheck
+
+- [x] Read-only exact entrypoint comparisons against `main` show source drift in live `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3. Key observed differences are recorded in `docs/release/production-migration-reconciliation.json`.
+- [x] Live `smm-gateway` v13 entrypoint exactly matches `main`; anonymous/authenticated negative runtime tests remain NOT VERIFIED.
+- [ ] Do not deploy the five drifting functions individually. Align rollout with the missing RC425–RC441 versions, review current live schema drift, and pass payment/webhook/finance sandbox E2E plus backup/restore and rollback gates first.
+- Safety: these checks retrieved code only. No Edge Function deployment or configuration change occurred.
+
+
+## 2026-10-27 — Financial journal RPC and schema preflight
+
+- [x] Read-only check confirms RC449A and RC450 are absent from the live migration ledger. The live schema lacks `journal_entries.entry_number`, `total_debit`, `total_credit`, `posted_at` and `journal_entry_lines.line_number`.
+- [x] Effective ACL inspection confirms neither `post_financial_journal(jsonb,jsonb)` nor `post_financial_journal_backend(uuid,jsonb,jsonb)` currently grants `EXECUTE` to `service_role`. Live `financial-journal` v3 calls the old RPC; `main` calls the backend RPC under the RC450 contract.
+- [x] Read-only counts were zero for the inspected journal headers/lines/general ledger, payment intents, subscription payment intents, ERP purchase orders/receipts, SMM orders and SMM wallet transactions. Counts are a snapshot only, not a substitute for backup/restore readiness.
+- [ ] Blocker: replay RC449A → RC450 in disposable/staging, verify schema and exact grants, run finance posting/replay/tenant-isolation E2E, and approve backup/rollback before any Production migration or function deployment. No RPC invocation, grant, schema edit or deployment was performed.

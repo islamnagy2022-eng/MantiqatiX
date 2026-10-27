@@ -226,3 +226,57 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No production schema, production data, Auth settings, Supabase grants, Edge Function deployment, payment, or wallet was changed. No historical migration was deleted or modified.
 - Verification status: static contract is added and will be evaluated by exact-head CI; do not mark it verified until GitHub Actions reports the result. Production remains `BLOCKED / NOT CERTIFIED`; the live deployed SMM gateway's default-deny state still requires version/hash evidence and runtime negative tests.
 - Next actionable blockers: recover/reconcile post-RC424 migration sources and ledger state; refresh the exact-head production verifier; continue isolated payment/finance E2E and backup/restore evidence. Do not bypass the full production deployment gate.
+
+
+## 2026-10-27 — Exact live migration-source reconciliation
+
+- Read-only queried the Production `supabase_migrations.schema_migrations.statements` values for live versions `20261027010135`, `20261027041411`, and `20261027041549`.
+- Exact string comparison against the recovered/canonical source files passed for all three entries (5487/5487, 1114/1114, and 1106/1106 characters respectively).
+- Added the exact-version Qadam catalog source from the recovery branch; replaced the future-timestamp marketing contact source with the live versioned source; restored the Qadam contact repair under its exact live ledger version.
+- Removed the redundant pending marketing migration at `20261027100000` because it duplicated the already-applied `20261027041411` statement exactly. Left the distinct Qadam follow-up migration at `20261027093000` unchanged for separate review.
+- Updated the reconciliation manifest to reflect the live ledger tail (292 entries through `20261027041549`) and the exact-match evidence. The overall release status remains `BLOCKED / NOT CERTIFIED` because RC425–RC441 and the broader payment/finance, restore, live Edge Function/Auth, and browser/device gates are still unresolved.
+- All actions in this continuation were repository/documentation changes and read-only Production queries. No Production data/schema/function/grant/Auth changes, migration execution, payment, wallet mutation, or deployment occurred.
+
+
+## 2026-10-27 — Live SMM gateway source parity read-back
+
+- Read-only retrieved the active Production `smm-gateway` Edge Function: version 13, `verify_jwt=true`, deployed bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- Exact comparison passed for all 7 deployed TypeScript files against `main`: `index.ts`, `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
+- Deployed source contains `SMM_INITIAL_LAUNCH_DEFERRED=true` and fails closed with `SMM_DEFERRED` before request processing. The interactive browser assets remain retired.
+- Runtime negative tests for anonymous and authenticated callers remain NOT VERIFIED; the overall production release gate remains BLOCKED. No function deployment or environment/configuration mutation occurred.
+
+
+## 2026-10-27 — Schema-only checkpoint replay diagnosis
+
+- [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
+- [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
+- [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
+- [ ] Re-run forward replay and review the next failure or full pass. The current candidate remains NOT VERIFIED until the updated workflow completes; Production Gate stays BLOCKED.
+
+
+## 2026-10-27 — Forward replay remediation verified
+
+- [x] The initial candidate run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400) exposed a test-fixture gap: the schema-only checkpoint does not include the pre-existing `MNTY-PLATFORM` tenant or the historical Qadam owner auth identity. No Production data was copied.
+- [x] Added the guarded disposable-only prerequisite fixture `supabase/tests/baselines/production_data_prerequisites_fixture.sql` and a local DB URL guard in `.github/workflows/forward-migration-chain-replay.yml`.
+- [x] The corrected replay [40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976) passed: 52 post-checkpoint migrations replayed in timestamp order; RC117 default-image/activity-admin contract passed; synthetic two-tenant checks passed for own-row read and cross-tenant write denial on orders/payment intents. Migration history immutability, version uniqueness, cross-PR collision, RC425 Paymob atomicity, SMM deferred storefront, backend-only boundary, MantiGO privacy, and module validation checks passed at the recorded head.
+- [x] The web deployment workflow returned success at the workflow level but both `validate_public_only` and `deploy` were skipped; no Production deployment occurred.
+- [ ] Overall release remains `BLOCKED / NOT CERTIFIED`: isolated replay does not prove that the RC425–RC441/post-RC424 migrations have been applied to Production. Payment/finance provider E2E, backup/restore rehearsal, live Auth and Edge Function runtime validation (including SMM negative tests), browser/device regression, monitoring/alerts, and rollback evidence remain NOT VERIFIED.
+- Safety: all test records were created only in a disposable local Supabase instance; no Production write, migration, Auth/grant/RLS edit, Edge Function deployment, payment, or wallet mutation occurred.
+
+
+## 2026-10-27 — Critical Edge Function source drift recheck
+
+- [x] Read-only retrieved current Production function entrypoints and compared each `index.ts` exactly against `main`. Drift remains in `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3; exact sizes, bundle SHA-256 and observed differences are stored in the release reconciliation manifest.
+- [x] `financial-journal` live source uses `Access-Control-Allow-Origin: *` and calls `post_financial_journal`; current `main` uses an origin allowlist and `post_financial_journal_backend`. Live `paymob-webhook` lacks main's `Number.isFinite(amount)` guard; payment-intent sources also differ in Paymob correlation-helper integration.
+- [x] `smm-gateway` v13 entrypoint exactly matches `main`; this is source evidence, not anonymous/authenticated runtime evidence.
+- [ ] Keep all five drifting functions off the deployment path until their migrations/grants are reconciled and payment/webhook/finance sandbox acceptance passes. Do not deploy or change managed Auth settings as part of this source audit.
+- Safety: read-only source retrieval only; no live function changes or Production writes occurred.
+
+
+## 2026-10-27 — Financial journal RPC and schema preflight
+
+- [x] Read-only live migration query confirms RC449A `20261010175000` and RC450 `20261010180000` are not recorded.
+- [x] The journal schema preflight found the required post-RC449A fields absent: `journal_entries.entry_number`, `total_debit`, `total_credit`, `posted_at`, and `journal_entry_lines.line_number`. The legacy prerequisites inspected by RC449A are present.
+- [x] Effective ACL and catalog inspection found both `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` owned by postgres with ACL `{postgres=X/postgres}`; `service_role`, `authenticated` and `anon` have no EXECUTE privilege. The deployed `financial-journal` v3 calls the old RPC, while `main` calls the RC450 backend RPC.
+- [x] Aggregate read-only counts for `journal_entries`, `journal_entry_lines`, `general_ledger`, `payment_intents`, `subscription_payment_intents`, `erp_purchase_orders`, `erp_purchase_receipts`, `smm_orders`, and `smm_wallet_transactions` returned zero. No RPC was invoked.
+- [ ] RC449A → RC450 requires isolated/staging replay, effective privilege verification, finance posting and replay/idempotency tests, backup/restore and rollback approval before any Production change. No database change or function deployment occurred.

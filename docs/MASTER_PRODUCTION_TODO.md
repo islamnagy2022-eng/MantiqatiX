@@ -17,7 +17,7 @@
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
    - عميلان ومقدما خدمة من جهتين مختلفتين.
    - tenant/business/role isolation.
-   - OTP، انتهاء الجلسة، logout، refresh.
+   - Google OAuth، انتهاء الجلسة، logout، refresh.
    - منع IDOR والوصول إلى مستخدم/مزود آخر.
 
 2. E2E العميل → مقدم الخدمة → الطلب → الحالة → الإشعار — NOT VERIFIED
@@ -1568,7 +1568,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Exact-head checks passed: MantiGO Platform Admin Scope Hardening (run [38993296764](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296764)), migration version uniqueness ([38993296753](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296753)), migration history immutability ([38993296748](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296748)), cross-PR migration collision guard ([38993296745](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296745)), module-professionalization ([38993296752](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296752)), MantiGO open-ride privacy ([38993296765](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296765)), backend-only module boundary ([38993296743](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296743)), approval-action audit atomicity ([38993296815](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296815)), and web validation ([38993296776](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/38993296776)). Web deploy job was skipped; no production deployment occurred.
 - [x] RC565 PostgreSQL regression verified canonical ledger columns despite conflicting legacy aliases, half-open date boundaries, paid/settled/unsettled totals, empty ranges, invalid windows, tenant OWNER denial, and actor identity mismatch.
 - [x] RC462 PostgreSQL regression verified malformed/string/false permission values fail closed while explicit JSON Boolean true continues to authorize platform admin; all four high-risk platform RPCs were exercised.
-- [ ] BLOCKED: full chronological replay of the restored RC425–RC441 history still needs authoritative creation DDL for `public.counter_offer_indrive_bid(uuid,uuid,numeric)`. Do not fabricate a stub, skip the historical revoke, or infer the missing function's behavior.
+- [x] Forward replay from the captured Production schema checkpoint passed in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976); 52 post-checkpoint migrations applied in order and tenant-isolation checks passed. The checkpoint begins at `20261008222845`, so this proves the forward chain from that checkpoint—not a fresh install or pre-checkpoint migration provenance.
 - [ ] BLOCKED: PR #282 remains draft and unmerged; production is still on RC424 (283 migrations through `20261008222845`). Do not deploy RC449/RC462/RC565 or claim production certification until historical replay is resolved, reviewed, and explicitly approved.
 - Overall state: **focused security/report tests PASS; production release BLOCKED / NOT CERTIFIED**.
 
@@ -1577,7 +1577,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 - [x] Read-only query against live Supabase catalog recovered the exact current definition of `public.counter_offer_indrive_bid(uuid,uuid,numeric)`: returns `void`, SECURITY DEFINER, currently `SET search_path TO 'public'`, validates authenticated/non-anonymous caller and non-negative price, and updates only a bid belonging to the caller's editable request.
 - [x] Read-only query of `supabase_migrations.schema_migrations` for recorded migration statements containing `counter_offer_indrive_bid` returned zero rows. GitHub source search also found only the later revoke migration and documentation references, not the original creation DDL.
-- [ ] BLOCKED: live catalog definition is useful evidence but does **not** establish the original migration version/order or prove it is the exact historical definition at the point where the revoke migration runs. Do not invent a historical migration file or claim full chronological replay from a fixture alone.
+- [ ] Pre-checkpoint migration provenance for this function remains a separate historical question; do not invent a new historical migration. It is no longer blocking the verified post-checkpoint forward replay, and Production application of required release migrations remains unproven.
 - No production writes were made during these checks.
 
 
@@ -1641,7 +1641,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Edge Function now delegates all receipt, stock-balance, inventory-ledger, and purchase-line mutation to the line-aware atomic RPC; removed direct multi-request mutation.
 - [x] Added strict request validation and safe error handling; missing/unavailable RPC fails closed with HTTP 503.
 - [x] Updated contract validator to assert the atomic RPC boundary.
-- [ ] Restore and review the complete missing RC425–RC432 and RC434–RC441 migration source chain; do not cherry-pick RC434 alone or bypass collision guard.
+- [x] Required source files for RC425–RC432 and RC434–RC441 are available, and the full post-checkpoint chain passed isolated chronological replay in run 40494929976. Production read-only ledger checks show 0/16 of these exact versions recorded; reconcile current live-schema drift and plan/approve a guarded rollout before any Production apply. Do not cherry-pick RC434 alone or bypass collision guard.
 - [ ] Resolve legacy approved purchase orders without modeled lines before receiving can be production-ready.
 - [ ] Run Postgres integration tests for atomic rollback, concurrent duplicate receipt, over-receiving, tenant/business isolation, and service-role-only function grants.
 - [ ] Await CI for commit `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; the production gate remains BLOCKED / NOT CERTIFIED.
@@ -1649,7 +1649,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 
 ### RC434 source provenance check — 2026-10-21
 - [x] Compared the GitHub blob SHA for `20261009200000_rc434_atomic_erp_purchase_receiving.sql` across draft PR heads #271, #273, #282, and #286. All four resolve to the same blob SHA `a93a0a6827de15d50632e1deec015e20dd55b405` (6,968 bytes); no divergence was observed for RC434 itself.
-- [ ] This establishes agreement among these draft branches, not independent proof that the SQL matches the live production schema or is safe to apply. Keep the release gate blocked until the full RC425–RC441 chain is reviewed and replayed in an isolated database.
+- [x] The post-checkpoint forward migration chain subsequently replayed successfully in isolation in run 40494929976. This does not prove the chain was applied to Production or replace payment/finance and release acceptance tests.
 - [ ] The four branches are still drafts and overlap on migration files; do not merge them together or bypass the open-PR migration collision guard.
 - [ ] Continue validating RC434 against the RC437 line-aware wrapper, actual table constraints, receipt replay semantics, and transaction rollback/concurrency integration tests before release.
 
@@ -1843,3 +1843,20 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Remediation is proposed in PR `fix/catalog-role-view-guards`; do not mark complete until its latest-commit CI passes.
 - [ ] Active-subscription enforcement is NOT VERIFIED: the inspected catalog bootstrap uses active `user_memberships` and the inspected catalog RPC migration validates membership/tenant/business/branch scope, but this review has not established a canonical subscription entitlement source or a server-side subscription gate. Do not infer subscription enforcement from UI flags such as `isFrozen` / `paymentStatus`.
 - [ ] Authenticated browser E2E, role-switch/logout cache isolation, and cross-tenant adversarial tests remain NOT VERIFIED.
+
+
+## 2026-10-27 — Exact live migration-source reconciliation
+
+- [x] Live Production ledger read-only inventory: 292 rows, latest `20261027041549 qadam_alsaad_restore_contact_fields`.
+- [x] Exact statement/source identity verified for `20261027010135`, `20261027041411`, and `20261027041549`; exact-version source files are restored. The existing `20261027100000_mantiqatix_marketing_contact_details.sql` was preserved unchanged under the migration-history immutability guard, documented as an exact idempotent alias; no existing migration was deleted or renamed.
+- [x] The current schema-checkpoint replay passed all 52 forward migrations and tenant-isolation checks in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976); this is isolated replay evidence only, not Production migration-application evidence.
+- [ ] Global production release remains BLOCKED: required migration application in Production, payment/finance E2E, backup/restore, live Auth/Edge Function runtime parity, browser/device regression, monitoring/alerts and rollback evidence remain unverified.
+
+
+## 2026-10-27 — Schema-only checkpoint replay diagnosis
+
+- [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
+- [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
+- [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
+- [x] Re-ran forward replay successfully in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976): 52 migrations applied; RC117 contract and synthetic tenant A/B read isolation/cross-tenant mutation denial passed.
+- [ ] Production Gate remains BLOCKED / NOT CERTIFIED until the required migration set is proven applied in Production and the external payment, restore, Auth/Edge Function, browser/device, monitoring and rollback gates are evidenced. The deployment job was skipped.

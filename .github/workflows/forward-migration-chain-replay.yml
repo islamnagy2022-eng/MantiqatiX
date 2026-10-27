@@ -8,6 +8,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -19,6 +20,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.sql"
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
+      - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -64,10 +66,17 @@ jobs:
           set -euo pipefail
           db_url="$(cd "$MNTY_REPLAY_TEST_DIR" && supabase status -o env | sed -n 's/^DB_URL="\(.*\)"$/\1/p')"
           test -n "$db_url"
+          case "$db_url" in
+            *127.0.0.1*|*localhost*) ;;
+            *) echo "Refusing forward replay against a non-local database URL." >&2; exit 1 ;;
+          esac
           checkpoint="$(node -e 'const m=require("./supabase/tests/baselines/production_schema_snapshot.manifest.json"); process.stdout.write(m.last_applied_migration_version)')"
           [[ "$checkpoint" =~ ^[0-9]{14}$ ]]
           echo "BASELINE_CHECKPOINT=$checkpoint"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_schema_snapshot.sql
+
+          echo "RESTORE_SCHEMA_ONLY_CHECKPOINT_DATA_PREREQUISITES"
+          psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/production_data_prerequisites_fixture.sql
 
           migration_count=0
           while IFS= read -r migration; do

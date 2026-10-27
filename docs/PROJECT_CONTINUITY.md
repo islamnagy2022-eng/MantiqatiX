@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
+ > **LATEST SESSION STATE — 2026-10-27:** SMM interactive storefront assets are retired; the public route is a noindex unavailable notice and the server gateway remains default-deny. The three latest live Production migration entries (`20261027010135`, `20261027041411`, `20261027041549`) now have exact-version source files verified character-for-character by read-only SQL comparison. Current main checkpoint before this reconciliation: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`. Production remains **BLOCKED / NOT CERTIFIED**; no deployment is authorized.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -29,8 +29,8 @@
 - Branch: `main`
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `cf522740e9dd058c28728ba582e347661ef24122`
-- Latest live production migration checkpoint: **RC424** (`20261008222845`, 283 versions)
+- Latest documented project commit before this reconciliation branch: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`
+- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`. A read-only LEFT JOIN confirms **0/16** expected RC425–RC432 and RC434–RC441 versions are recorded; later October 26–27 migrations are present despite those gaps. The source chain replays in isolation (52 migrations, run 40494929976), but it is not applied/proven in Production.
 - Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
 ## Latest verified web execution batch — 2026-10-18
@@ -618,3 +618,38 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
 - Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
 - No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest continuation — 2026-10-27 — live migration ledger reconciliation
+
+- Read-only query verified the live migration inventory has 292 rows through `20261027041549 qadam_alsaad_restore_contact_fields`.
+- Exact source/body comparisons now pass for live versions `20261027010135`, `20261027041411`, and `20261027041549`; see `docs/release/production-migration-reconciliation.json` and the append-only `docs/SESSION_LOG.md` entry.
+- Restored the missing exact-version Qadam catalog migration source and Qadam contact repair source; restored the live-version marketing contact source and preserved the existing future-timestamp file unchanged as an exact idempotent alias under the migration-immutability rule. The distinct Qadam follow-up migration at `20261027093000` was preserved for separate review.
+- SMM frontend cleanup is already on main: `web/smm.js` and `web/smm.css` are absent, `web/smm.html` is a noindex notice, and the backend default-deny contract remains tested.
+- The isolated chronological replay and migration-source reconciliation now pass, but Production remains BLOCKED: the replay does not prove RC425–RC441/post-RC424 migrations are applied to Production; payment/finance E2E, backup/restore, live Edge Function/Auth runtime parity, browser/device E2E, monitoring/alert and rollback evidence remain open. Do not bypass the deployment gate.
+- No Production writes, migration execution, Auth/grant/RLS changes, Edge Function deployment, payment/wallet mutation, or deployment occurred.
+
+
+## Latest continuation — 2026-10-27 — live SMM gateway parity
+
+- Production `smm-gateway` read-back: ACTIVE version 13, `verify_jwt=true`, bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- All seven deployed TypeScript files exactly match `main`; the deployed source hard gate is `SMM_INITIAL_LAUNCH_DEFERRED=true` and denies actions before processing.
+- Anonymous/authenticated negative runtime tests remain NOT VERIFIED. Do not mark the SMM release gate complete from source parity alone; no function deployment or environment change was made.
+
+
+## 2026-10-27 — Schema-only checkpoint replay diagnosis
+
+- [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
+- [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
+- [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
+- [x] [Forward replay run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976) passed: 52 forward migrations applied in timestamp order against an isolated disposable checkpoint; RC117 contract and synthetic tenant A/B read/write isolation tests passed.
+- [ ] The Production gate remains BLOCKED / NOT CERTIFIED. Replay does not demonstrate Production application, and payment/finance E2E, backup/restore, live Edge Function/Auth settings and runtime tests, browser/device E2E, monitoring/alerts and rollback remain NOT VERIFIED. The web deploy job was skipped; no production deployment occurred.
+
+
+## Latest continuation — 2026-10-27 — critical Edge Function source drift
+
+- Read-only exact `index.ts` comparisons against `main`: `payment-intent` v8 (8,114 vs 10,366 chars), `paymob-webhook` v10 (11,538 vs 12,665), `digital-page-payment-intent` v5 (5,345 vs 6,532), `subscription-payment-intent` v4 (5,196 vs 10,896), and `financial-journal` v3 (1,591 vs 3,387) do not match current source. Relevant function-level differences are recorded in the reconciliation manifest.
+- `financial-journal` live code uses wildcard CORS and calls `post_financial_journal`, while `main` uses an origin allowlist and `post_financial_journal_backend`. The live `paymob-webhook` lacks the explicit finite-amount guard present in `main`; payment intent paths omit shared Paymob correlation helpers found in `main`.
+- `smm-gateway` v13 exact entrypoint match passes, but runtime negative tests remain NOT VERIFIED.
+- Required RC425–RC432 and RC434–RC441 versions are 0/16 in the live migration ledger. The 52-migration disposable replay passed, but neither that replay nor source presence proves safe application to the current Production schema.
+- No code deployed; no Production writes, migration operations, grants, Auth settings, payments, or wallet changes performed. Release stays **BLOCKED / NOT CERTIFIED**.
