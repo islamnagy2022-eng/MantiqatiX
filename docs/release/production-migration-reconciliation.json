@@ -8,13 +8,13 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "NOT VERIFIED for current PR #411 head: GitHub Actions run 40453589750 failed before migration execution because public.ecr.aws returned toomanyrequests: Data limit exceeded while pulling Supabase containers. Prior successful isolated replay run 40052022874 is historical evidence only and does not certify the current head.",
-  "tenant_isolation_tests": "PASS — synthetic two-tenant read-isolation checks completed in the same isolated CI replay; coverage limited to businesses, orders, payment_intents, provider_onboarding_requests",
+  "chronological_replay": "PASS",
+  "tenant_isolation_tests": "PASS",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40453589750",
+  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40453971339",
   "checked_at": "2026-10-27",
-  "reason": "Production remains blocked. Read-only Supabase migration inventory currently contains 292 records; latest recorded entries are 20261027010135 add_qadam_alsaad_homewares_store_and_catalog, 20261027041411 mantiqatix_marketing_contact_details, and 20261027041549 qadam_alsaad_restore_contact_fields. The ledger does not prove all required post-RC424 release migrations are applied. Current-head isolated replay could not execute migrations because of public ECR data-limit errors; this is an infrastructure blocker, not a migration pass or SQL failure. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway parity, and live Auth security settings remain unverified. Supabase Security Advisor on 2026-10-27 reports leaked-password protection disabled and contextual anonymous-access-policy warnings. Do not deploy until migration and release evidence is complete.",
+  "reason": "Production remains BLOCKED. Read-only Production inventory contains 292 migration records and confirms the latest catalog/contact entries, but does not prove all required release migrations (including RC113–RC117 and the recovered post-RC424 chain) are applied to Production. Candidate source replay passed in a disposable Supabase/PostgreSQL environment and tenant-isolation checks passed for orders and payment_intents in both directions; these results do not certify the live database, backup/restore, provider/payment flows, or runtime deployment. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway parity and live Auth security settings remain NOT VERIFIED. Supabase Security Advisor on 2026-10-27 reports leaked-password protection disabled and contextual anonymous-access-policy warnings. Do not deploy until every required release migration and external/runtime gate is verified.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED — Security Advisor observed leaked-password protection disabled on 2026-10-27; owner action and re-check required.",
@@ -51,7 +51,23 @@
     "source": "Supabase read-only migration inventory"
   },
   "historical_isolated_replay": {
-    "status": "PASS (historical; not current-head evidence)",
+    "status": "PASS (older independent checkpoint replay; superseded by current candidate evidence)",
     "run_id": "40052022874"
+  },
+  "isolated_replay_evidence": {
+    "status": "PASS",
+    "run_id": "40453971339",
+    "candidate_commit": "96fda2fbd9d885e727c65a626745d67c3154709d",
+    "checked_current_pr_head": "4eb74e97932ca93c047816ca5e6179dda83339d1",
+    "current_head_delta": "The two commits after the replay candidate changed TODO.md only; no SQL migration source changed in that delta.",
+    "forward_migrations_applied": 50,
+    "tests": [
+      "Tenant A cannot update Tenant B orders or payment intents",
+      "Tenant A can read its own rows and cannot read private Tenant B rows",
+      "Tenant B cannot update Tenant A orders or payment intents",
+      "Tenant B can read its own rows and cannot read private Tenant A rows"
+    ],
+    "transaction_end": "ROLLBACK",
+    "limitation": "Disposable CI environment only; no Production migrations or data writes."
   }
 }
