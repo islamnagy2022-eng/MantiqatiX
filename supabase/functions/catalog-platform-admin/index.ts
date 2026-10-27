@@ -299,7 +299,8 @@ Deno.serve(async (req: Request) => {
       if (status === "ACTIVE") {
         const business = await getBusiness(String(membership.tenant_id), String(membership.business_id));
         const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
-        if (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true) {
+        const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
+        if (!isOfficialShowcase && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
           return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "Confirm the business subscription payment before activating the owner membership." }, 409);
         }
       }
