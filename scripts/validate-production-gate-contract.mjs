@@ -7,6 +7,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const todo = read('docs/MASTER_PRODUCTION_TODO.md');
 const continuity = read('docs/PROJECT_CONTINUITY.md');
 const workflow = read('.github/workflows/pages.yml');
+const primaryCatalogWorkflow = read('.github/workflows/primary-catalog-frontend.yml');
 
 const requiredTodoMarkers = [
   'E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED',
@@ -29,6 +30,12 @@ const requiredWorkflowMarkers = [
   'validate-rbac-contract.mjs',
 ];
 
+const requiredPrimaryCatalogMarkers = [
+  'production_gate:',
+  'run: npm run verify:production',
+  'needs: [build, production_gate]',
+  "needs.production_gate.result == 'success'",
+];
 const home = read('web/home.js');
 const requiredHomeMarkers = [
   'data-targeted-ad',
@@ -40,6 +47,7 @@ const missing = [
   ...requiredTodoMarkers.filter(x => !todo.includes(x)).map(x => 'TODO:' + x),
   ...requiredContinuityMarkers.filter(x => !continuity.includes(x)).map(x => 'CONTINUITY:' + x),
   ...requiredWorkflowMarkers.filter(x => !workflow.includes(x)).map(x => 'WORKFLOW:' + x),
+  ...requiredPrimaryCatalogMarkers.filter(x => !primaryCatalogWorkflow.includes(x)).map(x => 'PRIMARY_CATALOG_WORKFLOW:' + x),
 ];
 
 if (missing.length) {
