@@ -218,12 +218,17 @@ jobs:
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}"
           cp -a web/. "${SITE_DIR}/"
+          # Keep development demos in source control, but never publish them to production Pages.
+          rm -rf "${SITE_DIR}/preview"
+          rm -f "${SITE_DIR}/smm.html"
           rm -rf "${SITE_DIR}/catalog-app"
           mkdir -p "${SITE_DIR}/catalog-app"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/catalog-app/"
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
           test -s "${SITE_DIR}/catalog-app/index.html"
+          test ! -e "${SITE_DIR}/preview/index.html"
+          test ! -e "${SITE_DIR}/smm.html"
           grep -Fq 'home.js' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/catalog-app/assets/' "${SITE_DIR}/catalog-app/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/catalog-app/index.html"
@@ -352,4 +357,13 @@ jobs:
           test -n "${CSS_ASSET}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
+          # These are source-only demos/deferred modules, not production entrypoints.
+          for UNREQUESTED_PATH in preview/index.html preview/dashboard.html preview/restaurants.html smm.html; do
+            HTTP_CODE="$(curl --silent --show-error --location --retry 3 --retry-delay 2 --output /dev/null --write-out '%{http_code}' "${ROOT_URL}${UNREQUESTED_PATH}")"
+            if [ "${HTTP_CODE}" != "404" ]; then
+              echo "Unrequested demo/deferred route was published: ${UNREQUESTED_PATH} (HTTP ${HTTP_CODE})"
+              exit 1
+            fi
+          done
+          echo "UNREQUESTED_DEMO_AND_SMM_ROUTES=ABSENT"
           echo "MANTIQATIX_ROOT_AND_CATALOG_MODULE_DEPLOY=PASS: ${ROOT_URL}"
