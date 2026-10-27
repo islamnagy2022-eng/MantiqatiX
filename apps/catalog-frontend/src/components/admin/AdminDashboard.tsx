@@ -678,7 +678,8 @@ export const AdminDashboard: React.FC = () => {
                   className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800"
                 >
                   <option value="all">جميع الحالات</option>
-                  <option value="paid">مسدد ومعتمد (ساري)</option>
+                  <option value="paid">مسدد ومعتمد</option>
+                  <option value="pending">بانتظار تأكيد السداد</option>
                   <option value="overdue">متأخر (ضمن مهلة الـ 5 أيام)</option>
                   <option value="frozen">مجمد لعدم السداد (&gt; 5 أيام)</option>
                 </select>
@@ -713,9 +714,10 @@ export const AdminDashboard: React.FC = () => {
                       const matchGov = billingGovFilter === 'all' || b.governorate === billingGovFilter;
                       const matchStatus =
                         billingStatusFilter === 'all' ||
-                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.overdueDaysCount > 5)) ||
-                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
-                        (billingStatusFilter === 'paid' && !b.isFrozen && b.overdueDaysCount === 0);
+                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen' || b.overdueDaysCount > 5)) ||
+                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.paymentStatus === 'overdue' && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
+                        (billingStatusFilter === 'paid' && !b.isFrozen && b.paymentStatus === 'paid') ||
+                        (billingStatusFilter === 'pending' && !b.isFrozen && b.paymentStatus === 'pending' && b.overdueDaysCount === 0);
                       return matchGov && matchStatus;
                     })
                     .map((biz) => {
@@ -771,7 +773,7 @@ export const AdminDashboard: React.FC = () => {
 
                           {/* Registration Date */}
                           <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
-                            {biz.registrationDate || biz.createdAt || '2026-01-10'}
+                            {biz.registrationDate || biz.createdAt || 'غير مسجل'}
                           </td>
 
                           {/* Payment Due Day */}
@@ -789,13 +791,25 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           </td>
 
-                          {/* Monthly Subscription Status */}
+                          {/* Monthly Subscription Status: reflect the persisted production state, never a hardcoded paid badge. */}
                           <td className="py-3.5 px-4">
-                            <span className="font-black text-emerald-700 block">
-                              مُسدّد وساري
+                            <span className={`font-black block ${
+                              biz.paymentStatus === 'paid' && !biz.isFrozen
+                                ? 'text-emerald-700'
+                                : biz.paymentStatus === 'pending'
+                                  ? 'text-amber-700'
+                                  : 'text-rose-700'
+                            }`}>
+                              {biz.paymentStatus === 'paid' && !biz.isFrozen
+                                ? 'مسدد ومعتمد'
+                                : biz.paymentStatus === 'pending'
+                                  ? 'بانتظار تأكيد السداد'
+                                  : biz.paymentStatus === 'overdue'
+                                    ? 'متأخر عن السداد'
+                                    : 'مجمد لعدم السداد'}
                             </span>
                             <span className="text-[10px] text-slate-400">
-                              بدون عمولات على الطلبات
+                              {biz.paymentDueDate ? `موعد الاستحقاق: ${biz.paymentDueDate}` : 'موعد الاستحقاق غير مسجل'}
                             </span>
                           </td>
 
