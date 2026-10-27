@@ -42,10 +42,6 @@ assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
   'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
 assert.match(validateBlock, /Publish the electronic catalog as the only production site/,
   'Pages artifact must publish the catalog directly at the public root');
-assert.match(validateBlock, /rm -rf "\$\{SITE_DIR\}\/preview"/,
-  'The production artifact must exclude the public demo preview tree');
-assert.match(validateBlock, /rm -f "\$\{SITE_DIR\}\/smm\.html"/,
-  'The production artifact must exclude the deferred SMM placeholder');
 assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/preview"/,
   'The composed production site must not contain preview routes');
 assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/smm\.html"/,
