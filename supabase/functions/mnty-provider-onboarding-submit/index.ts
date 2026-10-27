@@ -16,6 +16,7 @@ Deno.serve(async(req)=>{
  const requestedRegistrationId=String(b?.registration_request_id||"").trim(),tenant=String(b?.tenant_id||"MNTY-PLATFORM").trim(),org=String(b?.organization_id||"MNTY-MAIN").trim();
  const name=String(b?.business_name||"").trim().slice(0,180),kind=String(b?.provider_kind||"").trim().slice(0,80);
  const phone=String(b?.contact_phone||"").trim().slice(0,40),contactName=String(b?.contact_name||"").trim().slice(0,160);
+ const activityTypeId=String(b?.activity_type_id||"").trim()||null;
  const phoneDigits=phone.replace(/\D/g,"");
  if(tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2||contactName.length<2||phoneDigits.length<8||phoneDigits.length>15)
    return json({error:"business_name_activity_and_valid_contact_phone_required"},400);
@@ -32,6 +33,30 @@ Deno.serve(async(req)=>{
  if(centerErr)return json({error:"center_lookup_failed"},500);
  if(!center||center.code!==String(area.center_code)||center.name_ar!==String(area.center_name_ar))return json({error:"invalid_center"},400);
  const normalizedArea={governorate_id:gov.id,governorate_code:gov.code,governorate_name_ar:gov.name_ar,governorate_name_en:gov.name_en||"",center_id:center.id,center_code:center.code,center_name_ar:center.name_ar,center_name_en:center.name_en||"",address:String(area.address||"").trim().slice(0,300)};
+ let selectedActivity:any=null;
+ if(activityTypeId){
+   const {data:activity,error:activityError}=await admin.from("business_activity_types")
+     .select("id,sector_id,parent_id,code,name_ar,node_type,status")
+     .eq("id",activityTypeId).eq("status","ACTIVE").maybeSingle();
+   if(activityError)return json({error:"activity_type_lookup_failed"},500);
+   if(!activity||!["ACTIVITY","SPECIALTY"].includes(String(activity.node_type)))return json({error:"invalid_activity_type"},400);
+   if(!activity.parent_id)return json({error:"activity_parent_required"},400);
+   const {data:parent,error:parentError}=await admin.from("business_activity_types")
+     .select("id,sector_id,parent_id,node_type,status").eq("id",activity.parent_id).maybeSingle();
+   if(parentError)return json({error:"activity_parent_lookup_failed"},500);
+   const requiredParent=activity.node_type==="ACTIVITY"?"SECTOR_GROUP":"ACTIVITY";
+   if(!parent||parent.status!=="ACTIVE"||parent.node_type!==requiredParent||String(parent.sector_id)!==String(activity.sector_id))
+     return json({error:"invalid_activity_parent"},400);
+   if(activity.node_type==="SPECIALTY"){
+     if(!parent.parent_id)return json({error:"activity_sector_parent_required"},400);
+     const {data:group,error:groupError}=await admin.from("business_activity_types")
+       .select("id,sector_id,node_type,status").eq("id",parent.parent_id).maybeSingle();
+     if(groupError)return json({error:"activity_sector_lookup_failed"},500);
+     if(!group||group.node_type!=="SECTOR_GROUP"||group.status!=="ACTIVE"||String(group.sector_id)!==String(activity.sector_id))
+       return json({error:"invalid_activity_sector"},400);
+   }
+   selectedActivity=activity;
+ }
  const {data:mem,error:memErr}=await admin.from("user_memberships").select("id").eq("user_id",user.id).eq("tenant_id",tenant).eq("status","ACTIVE").eq("role","CUSTOMER").limit(1).maybeSingle();
  if(memErr)return json({error:"membership_lookup_failed"},500);
  if(!mem)return json({error:"customer_membership_required"},403);
@@ -62,7 +87,7 @@ Deno.serve(async(req)=>{
  if(ex&&["APPROVED","REJECTED"].includes(ex.status)){if(createdRegistration)await admin.from("account_registration_requests").delete().eq("id",rid);return json({error:"onboarding_already_processed"},409)}
  const {data:created,error:ce}=await admin.from("provider_onboarding_requests").insert({
    registration_request_id:rid,user_id:user.id,tenant_id:tenant,organization_id:org,
-   business_name:name,provider_kind:kind,contact_name:contactName||null,contact_phone:phone,
+   business_name:name,provider_kind:kind,contact_name:contactName||null,contact_phone:phone,activity_type_id:selectedActivity?.id||null,
    name_en:b?.name_en?String(b.name_en).trim().slice(0,180):null,
    description:b?.description?String(b.description).trim().slice(0,3000):null,
    specialties:arr(b?.specialties),service_areas:[normalizedArea],portfolio:arr(b?.portfolio,20),
@@ -74,7 +99,7 @@ Deno.serve(async(req)=>{
    return json({error:"onboarding_submit_failed"},500);
  }
  const {error:me}=await admin.from("account_registration_requests").update({
-   metadata:{source:"provider_onboarding",onboarding_request_id:created.id,business_name:name,provider_kind:kind,contact_phone:phone},
+   metadata:{source:"provider_onboarding",onboarding_request_id:created.id,business_name:name,provider_kind:kind,activity_type_id:selectedActivity?.id||null,activity_code:selectedActivity?.code||null,contact_phone:phone},
    updated_at:new Date().toISOString()
  }).eq("id",rid).eq("user_id",user.id);
  if(me){
@@ -82,6 +107,6 @@ Deno.serve(async(req)=>{
    if(createdRegistration)await admin.from("account_registration_requests").delete().eq("id",rid);
    return json({error:"registration_metadata_update_failed"},500);
  }
- return json({ok:true,onboarding_request_id:created.id,registration_request_id:rid,status:"PENDING",contact_phone:phone});
+ return json({ok:true,onboarding_request_id:created.id,registration_request_id:rid,status:"PENDING",contact_phone:phone,activity_type_id:selectedActivity?.id||null});
 });
 function json(body,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
