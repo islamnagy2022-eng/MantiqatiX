@@ -2000,9 +2000,14 @@ function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
 const app=document.getElementById('app');
 if(!app)return;
-app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>الحساب تم التحقق منه</h1><p>حسابك مسجل بنجاح، لكن لا توجد عضوية تشغيلية نشطة مرتبطة به حاليًا.</p><div class="mnty-screen-note">يمكنك العودة للواجهة العامة أو تسجيل الخروج. لا يتم منح صلاحيات تشغيلية تلقائيًا قبل ربط العضوية من المسار المعتمد.</div><div class="action-bar"><button class="btn btn-primary" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div></section></main>';
+app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>حسابك مسجل بالفعل</h1><p>تسجيل الدخول بحساب Google لا يحتاج موافقة الإدارة. سنحاول تهيئة عضوية العميل تلقائيًا لهذا الحساب.</p><div class="mnty-screen-note">موافقة الإدارة مطلوبة لاعتماد نشاط تجاري وتشغيل كتالوجه فقط، وليست للدخول إلى حساب العميل.</div><div class="action-bar"><button class="btn btn-primary" id="membership-activate">تفعيل حساب العميل</button><button class="btn btn-outline" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div><p class="muted" id="membership-activate-status" aria-live="polite"></p></section></main>';
 document.getElementById('membership-home')?.addEventListener('click',()=>window.MXHomeLanding?window.MXHomeLanding():landingView());
 document.getElementById('membership-logout')?.addEventListener('click',logout);
+document.getElementById('membership-activate')?.addEventListener('click',async()=>{
+ const button=document.getElementById('membership-activate'),status=document.getElementById('membership-activate-status');button.disabled=true;status.textContent='جارٍ تهيئة الحساب…';
+ try{const {data,error}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});if(error||data?.error)throw new Error(data?.error||error?.message||'تعذر تهيئة الحساب');await renderApp();}
+ catch(error){status.textContent='تعذر تهيئة الحساب: '+(error?.message||'خطأ غير معروف');button.disabled=false;}
+});
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function notificationsWorkspace(){
