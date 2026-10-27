@@ -16,6 +16,8 @@ import {
   QrCode,
 } from 'lucide-react';
 
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
 export const BusinessProfileHeader: React.FC = () => {
   const { currentBusiness, adminSettings, setCurrentView } = useApp();
   const [copied, setCopied] = useState(false);
@@ -32,7 +34,7 @@ export const BusinessProfileHeader: React.FC = () => {
     if (!currentBusiness) return [platformAdCover];
     const merchantCovers = currentBusiness.coverImages && currentBusiness.coverImages.length > 0
       ? currentBusiness.coverImages
-      : [currentBusiness.coverUrl || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80'];
+      : [currentBusiness.coverUrl || BUSINESS_PLACEHOLDER];
 
     if (merchantCovers.length === 1) {
       return [merchantCovers[0], platformAdCover, platformAdCover];
@@ -67,12 +69,13 @@ export const BusinessProfileHeader: React.FC = () => {
     }
   };
 
-  const cleanOwnerPhone = currentBusiness.ownerWhatsApp.replace(/[^\d]/g, '');
+  const cleanOwnerPhone = String(currentBusiness.ownerWhatsApp || '').replace(/[^\d]/g, '');
+  const hasOwnerPhone = cleanOwnerPhone.length >= 10 && cleanOwnerPhone.length <= 15;
   const merchantWhatsAppUrl = `https://wa.me/${cleanOwnerPhone}?text=${encodeURIComponent(
     `مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`
   )}`;
 
-  const isFrozen = currentBusiness.isFrozen || currentBusiness.overdueDaysCount > 5;
+  const isFrozen = currentBusiness.isFrozen || currentBusiness.paymentStatus === 'frozen';
   const isCurrentSlideAd = currentSlideIndex === 2 || (currentSlideIndex === 1 && (!currentBusiness.coverImages || currentBusiness.coverImages.length < 2));
 
   return (
@@ -101,8 +104,8 @@ export const BusinessProfileHeader: React.FC = () => {
                 isFrozen ? 'grayscale contrast-125 opacity-75' : ''
               }`}
               onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80';
+                const image = e.currentTarget;
+                if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30" />
@@ -191,14 +194,14 @@ export const BusinessProfileHeader: React.FC = () => {
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
-                  src={currentBusiness.logoUrl}
+                  src={currentBusiness.logoUrl || BUSINESS_PLACEHOLDER}
                   alt={`شعار ${currentBusiness.name}`}
                   className={`w-full h-full object-cover rounded-2xl bg-slate-100 ${
                     isFrozen ? 'grayscale opacity-80' : ''
                   }`}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=240&auto=format&fit=crop&q=80';
+                    const image = e.currentTarget;
+                    if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
                   }}
                 />
                 <div
@@ -229,11 +232,11 @@ export const BusinessProfileHeader: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-500 pt-1">
                   <div className="flex items-center gap-1.5 font-medium">
                     <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>{currentBusiness.address}</span>
+                    <span>{[currentBusiness.address, currentBusiness.governorate, currentBusiness.markaz, currentBusiness.village].filter(Boolean).join('، ') || 'الموقع غير مسجل'}</span>
                   </div>
                   <div className="flex items-center gap-1.5 font-medium">
                     <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>{currentBusiness.workingHours || 'يومياً'}</span>
+                    <span>{currentBusiness.workingHours || 'ساعات العمل غير مسجلة'}</span>
                   </div>
                 </div>
               </div>
@@ -241,15 +244,21 @@ export const BusinessProfileHeader: React.FC = () => {
 
             {/* Quick Actions (WhatsApp & QR Code) */}
             <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
-              <a
-                href={merchantWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>مراسلة صاحب النشاط (واتساب)</span>
-              </a>
+              {hasOwnerPhone ? (
+                <a
+                  href={merchantWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>مراسلة صاحب النشاط (واتساب)</span>
+                </a>
+              ) : (
+                <span className="bg-slate-100 text-slate-600 text-xs font-bold py-3 px-4 rounded-2xl border border-slate-200" role="status">
+                  رقم واتساب النشاط غير مسجل
+                </span>
+              )}
 
               <a
                 href={currentBusiness.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentBusiness.name + ' ' + currentBusiness.governorate + ' ' + currentBusiness.markaz + ' ' + currentBusiness.address)}`}
