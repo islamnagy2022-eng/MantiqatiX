@@ -558,6 +558,97 @@ Deno.serve(async (req: Request) => {
       return response(origin, { success: true, settings: patch });
     }
 
+    if (action === "SET_BUSINESS_STATUS") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "");
+      const status = String(body.status || "").trim().toUpperCase();
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (!["ACTIVE", "INACTIVE", "SUSPENDED"].includes(status)) return response(origin, { error: "INVALID_BUSINESS_STATUS" }, 400);
+      if (reason.length < 3) return response(origin, { error: "BUSINESS_STATUS_REASON_REQUIRED" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      if (business.settings?.deleted_at && status === "ACTIVE") return response(origin, { error: "BUSINESS_ARCHIVED_REQUIRES_RESTORE" }, 409);
+      const oldSettings = business.settings || {};
+      const nextSettings = { ...oldSettings };
+      if (status !== "ACTIVE") nextSettings.catalog_public_enabled = false;
+      const { data: updated, error: updateError } = await service.from("businesses")
+        .update({ status, settings: nextSettings, updated_at: new Date().toISOString() })
+        .eq("id", businessId).eq("tenant_id", tenantId)
+        .select("id,tenant_id,organization_id,name,code,status,settings,updated_at").single();
+      if (updateError) throw updateError;
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        actor_user_id: user.id, action: "BUSINESS_STATUS_CHANGED", entity_type: "business", entity_id: businessId,
+        old_values: { status: business.status, settings: oldSettings },
+        new_values: { status: updated.status, settings: updated.settings, reason }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = await service.from("businesses").update({ status: business.status, settings: oldSettings, updated_at: business.updated_at })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (rollback.error) console.error("business status compensation failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "BUSINESS_STATUS_AUDIT_ROLLBACK_FAILED" : "BUSINESS_STATUS_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, { success: true, business: updated });
+    }
+
+    if (action === "SOFT_DELETE_BUSINESS") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "");
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (reason.length < 3) return response(origin, { error: "BUSINESS_DELETE_REASON_REQUIRED" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      if (business.settings?.deleted_at) return response(origin, { success: true, businessId, status: "INACTIVE", alreadyArchived: true });
+      const oldSettings = business.settings || {};
+      const now = new Date().toISOString();
+      const nextSettings = { ...oldSettings, catalog_public_enabled: false, deleted_at: now, deleted_by: user.id, delete_reason: reason };
+      const { data: updated, error: updateError } = await service.from("businesses")
+        .update({ status: "INACTIVE", settings: nextSettings, updated_at: now })
+        .eq("id", businessId).eq("tenant_id", tenantId).select("id,tenant_id,organization_id,name,code,status,settings,updated_at").single();
+      if (updateError) throw updateError;
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        actor_user_id: user.id, action: "BUSINESS_SOFT_DELETED", entity_type: "business", entity_id: businessId,
+        old_values: { status: business.status, settings: oldSettings },
+        new_values: { status: updated.status, deleted_at: now, reason }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = await service.from("businesses").update({ status: business.status, settings: oldSettings, updated_at: business.updated_at })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (rollback.error) console.error("business delete compensation failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "BUSINESS_DELETE_AUDIT_ROLLBACK_FAILED" : "BUSINESS_DELETE_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, { success: true, business: updated, mode: "SOFT_DELETE" });
+    }
+
+    if (action === "RESTORE_BUSINESS") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "");
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (reason.length < 3) return response(origin, { error: "BUSINESS_RESTORE_REASON_REQUIRED" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      if (!business.settings?.deleted_at) return response(origin, { success: true, businessId, status: business.status, alreadyRestored: true });
+      const oldSettings = business.settings || {};
+      const nextSettings = { ...oldSettings, catalog_public_enabled: false };
+      delete (nextSettings as any).deleted_at; delete (nextSettings as any).deleted_by; delete (nextSettings as any).delete_reason;
+      const now = new Date().toISOString();
+      const { data: updated, error: updateError } = await service.from("businesses")
+        .update({ status: "ACTIVE", settings: nextSettings, updated_at: now })
+        .eq("id", businessId).eq("tenant_id", tenantId).select("id,tenant_id,organization_id,name,code,status,settings,updated_at").single();
+      if (updateError) throw updateError;
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        actor_user_id: user.id, action: "BUSINESS_RESTORED", entity_type: "business", entity_id: businessId,
+        old_values: { status: business.status, settings: oldSettings },
+        new_values: { status: updated.status, reason }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = await service.from("businesses").update({ status: business.status, settings: oldSettings, updated_at: business.updated_at })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (rollback.error) console.error("business restore compensation failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "BUSINESS_RESTORE_AUDIT_ROLLBACK_FAILED" : "BUSINESS_RESTORE_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, { success: true, business: updated, catalogPublicEnabled: false });
+    }
+
     if (action === "DEACTIVATE_BUSINESS") {
       const tenantId = requireTenant(body.tenantId);
       const businessId = String(body.businessId || "");
