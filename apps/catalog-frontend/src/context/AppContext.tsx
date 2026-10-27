@@ -64,7 +64,6 @@ interface AppContextType {
   getStorePublicLink: (business: Business) => string;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
   confirmAdminPayment: (businessId: string) => Promise<void>;
-  advanceBusinessOverdueDay: (businessId: string) => void;
   toggleBusinessFreeze: (businessId: string) => void;
   updateBusinessCommissionRate: (businessId: string, rate: number) => void;
   updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => boolean;
@@ -77,7 +76,7 @@ interface AppContextType {
   deleteSubscriber: (id: string) => Promise<void>;
   sendGmailInvite: (subscriberId: string) => string;
   getSubscriberCredentialsText: (subscriberId: string) => string;
-  updateAdminSettings: (settings: Partial<AdminSettings>) => void;
+  updateAdminSettings: (settings: Partial<AdminSettings>) => Promise<void>;
   addBusinessCategory: (category: string) => void;
   cartItems: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
@@ -397,37 +396,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإنتاج الحالية.');
     await updateBusiness({ ...business, governorate: loc.governorate, markaz: loc.markaz, village: loc.village, address: loc.address ?? business.address });
   };
-  const updateBillingSetting = (businessId: string, settings: Record<string, unknown>) => {
-    const business = businesses.find((b) => b.id === businessId);
-    if (!business?.tenantId || authSession.role !== 'admin') return;
-    void callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات النشاط.'));
+  const updateBillingSetting = async (businessId: string, settings: Record<string, unknown>): Promise<void> => {
+    const business = businesses.find((item) => item.id === businessId);
+    if (!business?.tenantId) throw new Error('النشاط غير مرتبط ببيانات الإنتاج.');
+    if (authSession.role !== 'admin') throw new Error('تعديل حالة السداد متاح لمالك المنصة فقط.');
+    await callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings });
   };
   const confirmAdminPayment = async (businessId: string): Promise<void> => {
     const business = businesses.find((item) => item.id === businessId);
-    if (!business?.tenantId || authSession.role !== 'admin') return;
+    if (!business?.tenantId || authSession.role !== 'admin') throw new Error('تأكيد السداد متاح لمالك المنصة بعد التحقق من الحساب.');
     const today = new Date().toISOString().slice(0, 10);
-    try {
-      await callPlatformAdmin({
-        action: 'BUSINESS_SETTINGS_UPDATE',
-        businessId,
-        tenantId: business.tenantId,
-        settings: { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today },
-      });
-      setBusinesses((prev) => prev.map((item) => item.id === businessId
-        ? { ...item, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }
-        : item));
-      const pending = subscribers.filter((subscriber) => subscriber.businessId === businessId && subscriber.status === 'pending');
-      for (const subscriber of pending) {
-        await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: subscriber.id, status: 'ACTIVE' });
-        setSubscribers((prev) => prev.map((item) => item.id === subscriber.id ? { ...item, status: 'active' } : item));
-      }
-      if (pending.length) window.alert(`تم تأكيد السداد وتفعيل ${pending.length} اشتراك بعد نجاح الحفظ.`);
-    } catch (error) {
-      window.alert(error instanceof Error ? error.message : 'تعذر تأكيد السداد وتفعيل الاشتراك.');
+    await updateBillingSetting(businessId, {
+      paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0,
+      isFrozen: false, lastPaymentDate: today,
+    });
+    setBusinesses((prev) => prev.map((item) => item.id === businessId
+      ? { ...item, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }
+      : item));
+    const pending = subscribers.filter((subscriber) => subscriber.businessId === businessId && subscriber.status === 'pending');
+    for (const subscriber of pending) {
+      await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: subscriber.id, status: 'ACTIVE' });
+      setSubscribers((prev) => prev.map((item) => item.id === subscriber.id ? { ...item, status: 'active' } : item));
     }
   };
-  const advanceBusinessOverdueDay = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const days = Number(b.overdueDaysCount || 0) + 1; const frozen = days > adminSettings.overdueGracePeriodDays; const paymentStatus = frozen ? 'frozen' : 'overdue'; updateBillingSetting(businessId, { overdueDaysCount: days, paymentStatus, isFrozen: frozen }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, overdueDaysCount: days, paymentStatus, isFrozen: frozen } : x)); };
-  const toggleBusinessFreeze = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const frozen = !b.isFrozen; const paymentStatus = frozen ? 'frozen' : 'pending'; updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, isFrozen: frozen, paymentStatus } : x)); };
+  const toggleBusinessFreeze = async (businessId: string): Promise<void> => {
+    const business = businesses.find((item) => item.id === businessId);
+    if (!business) throw new Error('النشاط المطلوب غير موجود.');
+    const frozen = !business.isFrozen;
+    const paymentStatus = frozen ? 'frozen' : 'pending';
+    await updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus });
+    setBusinesses((prev) => prev.map((item) => item.id === businessId ? { ...item, isFrozen: frozen, paymentStatus } : item));
+  };
   const updateBusinessCommissionRate = (businessId: string, rate: number) => updateBillingSetting(businessId, { commissionPerOrder: rate });
   const deleteBusiness = async (id: string) => {
     const business = businesses.find((b) => b.id === id); if (!business?.tenantId) throw new Error('النشاط غير مرتبط بقاعدة الإنتاج.');
@@ -540,7 +539,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 حالة الاشتراك: ${sub.status === 'active' ? 'نشط' : sub.status === 'pending' ? 'بانتظار تأكيد السداد' : 'موقوف'}.
 لا تُفعّل صلاحيات إدارة النشاط إلا بعد تأكيد السداد من إدارة المنصة.`;
   };
-  const updateAdminSettings = (settings: Partial<AdminSettings>) => { const safe = { ...settings }; delete (safe as any).adminPassword; setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' })); if (authSession.role === 'admin') void callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات المنصة.')); };
+  const updateAdminSettings = async (settings: Partial<AdminSettings>): Promise<void> => {
+    if (authSession.role !== 'admin') throw new Error('حفظ إعدادات المنصة متاح لمالك المنصة بعد التحقق من Google فقط.');
+    const safe = { ...settings };
+    delete (safe as any).adminPassword;
+    const result: any = await callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe });
+    if (result?.success !== true) throw new Error('لم يؤكد الخادم حفظ إعدادات المنصة.');
+    setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' }));
+  };
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };
 
   const addToCart = (product: Product, quantity = 1) => {
@@ -567,7 +573,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
-    confirmAdminPayment, advanceBusinessOverdueDay, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
+    confirmAdminPayment, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
     exportBackupJSON, downloadBackupFile, importBackupJSON,
