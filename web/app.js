@@ -2072,7 +2072,7 @@ async function reviewRegistration(requestId,decision){
 }
 async function reviewProviderOnboarding(requestId,decision){
  if(!user?.id||!requestId)return;
- if(!['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(String(live.role||'').toUpperCase()))return showToast('لا تملك صلاحية مراجعة نشاطات مقدمي الخدمة.','error');
+ if(!canSuperAdmin())return showToast('مراجعة طلبات الأنشطة متاحة لمالك المنصة المخول فقط.','error');
  const reason=decision==='REJECTED'?(window.prompt('سبب الرفض (اختياري):','')||null):null;
  const {data,error}=await sb.functions.invoke('mnty-provider-onboarding-review',{body:{onboarding_request_id:requestId,decision,rejection_reason:reason}});
  if(error)return showToast('تعذر تنفيذ المراجعة: '+(error.message||'خطأ غير معروف'),'error');
