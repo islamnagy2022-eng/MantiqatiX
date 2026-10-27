@@ -20,7 +20,7 @@ Deno.serve(async(req)=>{
  const phoneDigits=phone.replace(/\D/g,"");
  if(tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2||contactName.length<2||phoneDigits.length<8||phoneDigits.length>15)
    return json({error:"business_name_activity_and_valid_contact_phone_required"},400);
- const arr=(v,max=30)=>Array.isArray(v)?v.map(x=>String(x??"").trim()).filter(Boolean).slice(0,max):[];
+ const arr=(v: unknown,max=30)=>Array.isArray(v)?v.map(x=>String(x??"").trim()).filter(Boolean).slice(0,max):[];
  const rawAreas=Array.isArray(b?.service_areas)?b.service_areas.slice(0,10):[];
  if(rawAreas.length!==1)return json({error:"service_area_required"},400);
  const area=rawAreas[0];
@@ -109,4 +109,4 @@ Deno.serve(async(req)=>{
  }
  return json({ok:true,onboarding_request_id:created.id,registration_request_id:rid,status:"PENDING",contact_phone:phone,activity_type_id:selectedActivity?.id||null});
 });
-function json(body,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
+function json(body: Record<string, unknown>,status=200){return new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
