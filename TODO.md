@@ -200,3 +200,5 @@ At the start of every continuation:
 2. Review migration constraints and test a replay against an isolated schema.
 3. Complete dashboard data contracts and business/subscription/commission admin workflows using server-authoritative actions.
 4. Keep PR #411 draft and production deployment blocked until gates pass.
+
+- [x] Current admin/onboarding completion notes: `docs/ADMIN_COMPLETION_CHECKPOINT_20261027.md` (branch-only; release blockers remain open).
