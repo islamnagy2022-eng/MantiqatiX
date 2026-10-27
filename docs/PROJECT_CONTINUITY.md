@@ -30,7 +30,7 @@
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
 - Latest documented project commit before this reconciliation branch: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`
-- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`; the required RC425–RC441 release chain remains unproven/incomplete.
+- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`; the post-RC424 chain replayed successfully in a disposable environment (52 migrations, run 40494929976), but required migrations are still **not proven applied to Production**.
 - Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
 ## Latest verified web execution batch — 2026-10-18
@@ -626,7 +626,7 @@ This status is intentional and must remain until the open gates above are indepe
 - Exact source/body comparisons now pass for live versions `20261027010135`, `20261027041411`, and `20261027041549`; see `docs/release/production-migration-reconciliation.json` and the append-only `docs/SESSION_LOG.md` entry.
 - Restored the missing exact-version Qadam catalog migration source and Qadam contact repair source; restored the live-version marketing contact source and preserved the existing future-timestamp file unchanged as an exact idempotent alias under the migration-immutability rule. The distinct Qadam follow-up migration at `20261027093000` was preserved for separate review.
 - SMM frontend cleanup is already on main: `web/smm.js` and `web/smm.css` are absent, `web/smm.html` is a noindex notice, and the backend default-deny contract remains tested.
-- The overall release remains BLOCKED because required RC425–RC441 sources/sequence and payment/finance E2E, backup/restore, live Edge Function/Auth parity, browser/device E2E, monitoring/alert and rollback evidence are not complete. Do not bypass the deployment gate.
+- The isolated chronological replay and migration-source reconciliation now pass, but Production remains BLOCKED: the replay does not prove RC425–RC441/post-RC424 migrations are applied to Production; payment/finance E2E, backup/restore, live Edge Function/Auth runtime parity, browser/device E2E, monitoring/alert and rollback evidence remain open. Do not bypass the deployment gate.
 - No Production writes, migration execution, Auth/grant/RLS changes, Edge Function deployment, payment/wallet mutation, or deployment occurred.
 
 
@@ -642,4 +642,5 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
 - [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
 - [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
-- [ ] Re-run forward replay and review the next failure or full pass. The current candidate remains NOT VERIFIED until the updated workflow completes; Production Gate stays BLOCKED.
+- [x] [Forward replay run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976) passed: 52 forward migrations applied in timestamp order against an isolated disposable checkpoint; RC117 contract and synthetic tenant A/B read/write isolation tests passed.
+- [ ] The Production gate remains BLOCKED / NOT CERTIFIED. Replay does not demonstrate Production application, and payment/finance E2E, backup/restore, live Edge Function/Auth settings and runtime tests, browser/device E2E, monitoring/alerts and rollback remain NOT VERIFIED. The web deploy job was skipped; no production deployment occurred.
