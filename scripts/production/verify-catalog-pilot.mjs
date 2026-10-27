@@ -82,9 +82,9 @@ assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/res
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
 
 assert.ok(report.status === 'BLOCKED' || report.status === 'PASS', 'Full platform gate status must remain explicit');
-assert.ok(pagesWorkflow.includes('Compose existing platform root with catalog as a separate module'), 'Pages artifact must preserve the existing root');
-assert.ok(pagesWorkflow.includes('mantiqatix-composed-pages-site'), 'Pages must publish the composed root plus catalog subpath');
-assert.ok(!pagesWorkflow.includes('primary-catalog-frontend-dist'), 'Catalog build must not replace the existing platform root artifact');
+assert.ok(!pagesWorkflow.includes('Compose existing platform root with catalog as a separate module'), 'The legacy platform root must not be composed into the deployed site.');
+assert.ok(pagesWorkflow.includes('Prepare the catalog as the only production website'), 'The catalog must be the sole deployed website.');
+assert.ok(pagesWorkflow.includes('mantiqatix-primary-catalog-site'), 'The Pages artifact must contain the primary catalog build only.');
 
 console.log('CATALOG_PILOT_GATE=PASS');
 console.log(`FULL_PLATFORM_GATE=${report.status}; this scoped gate authorizes only the catalog frontend and paid-subscription guard, not platform-wide certification.`);
