@@ -63,10 +63,9 @@ interface AppContextType {
   deleteBusiness: (id: string) => Promise<void>;
   getStorePublicLink: (business: Business) => string;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => void;
-  confirmAdminPayment: (businessId: string) => void;
-  advanceBusinessOverdueDay: (businessId: string) => void;
-  toggleBusinessFreeze: (businessId: string) => void;
-  updateBusinessCommissionRate: (businessId: string, rate: number) => void;
+  confirmAdminPayment: (businessId: string) => Promise<void>;
+  toggleBusinessFreeze: (businessId: string) => Promise<void>;
+  updateBusinessCommissionRate: (businessId: string, rate: number) => Promise<void>;
   updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => void;
   businessProducts: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
@@ -378,15 +377,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateBusinessLocation = (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => {
     const business = businesses.find((b) => b.id === businessId); if (business) updateBusiness({ ...business, governorate: loc.governorate, markaz: loc.markaz, village: loc.village, address: loc.address ?? business.address });
   };
-  const updateBillingSetting = (businessId: string, settings: Record<string, unknown>) => {
+  const updateBillingSetting = async (businessId: string, settings: Record<string, unknown>): Promise<void> => {
     const business = businesses.find((b) => b.id === businessId);
-    if (!business?.tenantId || authSession.role !== 'admin') return;
-    void callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات النشاط.'));
+    if (!business?.tenantId) throw new Error('النشاط غير مرتبط ببيانات الإنتاج.');
+    if (authSession.role !== 'admin') throw new Error('تعديل حالة السداد متاح لإدارة المنصة فقط.');
+    await callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings });
   };
-  const confirmAdminPayment = (businessId: string) => { const today = new Date().toISOString().slice(0, 10); updateBillingSetting(businessId, { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }); setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today } : b)); };
-  const advanceBusinessOverdueDay = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const days = Number(b.overdueDaysCount || 0) + 1; const frozen = days > adminSettings.overdueGracePeriodDays; const paymentStatus = frozen ? 'frozen' : 'overdue'; updateBillingSetting(businessId, { overdueDaysCount: days, paymentStatus, isFrozen: frozen }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, overdueDaysCount: days, paymentStatus, isFrozen: frozen } : x)); };
-  const toggleBusinessFreeze = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const frozen = !b.isFrozen; const paymentStatus = frozen ? 'frozen' : 'pending'; updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, isFrozen: frozen, paymentStatus } : x)); };
-  const updateBusinessCommissionRate = (businessId: string, rate: number) => updateBillingSetting(businessId, { commissionPerOrder: rate });
+  const confirmAdminPayment = async (businessId: string): Promise<void> => {
+    const business = businesses.find((b) => b.id === businessId);
+    if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإدارة الحالية.');
+    const now = new Date();
+    const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    const changes: Pick<Business, 'paymentConfirmedByAdmin' | 'paymentStatus' | 'overdueDaysCount' | 'isFrozen' | 'lastPaymentDate'> = { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today };
+    await updateBillingSetting(businessId, changes);
+    setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, ...changes } : b));
+  };
+  const toggleBusinessFreeze = async (businessId: string): Promise<void> => {
+    const business = businesses.find((b) => b.id === businessId);
+    if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإدارة الحالية.');
+    const frozen = !business.isFrozen;
+    const changes: Pick<Business, 'isFrozen' | 'paymentStatus'> = { isFrozen: frozen, paymentStatus: frozen ? 'frozen' : 'pending' };
+    await updateBillingSetting(businessId, changes);
+    setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, ...changes } : b));
+  };
+  const updateBusinessCommissionRate = async (businessId: string, rate: number): Promise<void> => {
+    await updateBillingSetting(businessId, { commissionPerOrder: rate });
+    setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, commissionPerOrder: rate } : b));
+  };
   const deleteBusiness = async (id: string) => {
     const business = businesses.find((b) => b.id === id); if (!business?.tenantId) throw new Error('النشاط غير مرتبط بقاعدة الإنتاج.');
     if (authSession.role !== 'admin') throw new Error('تعطيل الأنشطة من اختصاص إدارة المنصة.');
@@ -517,7 +534,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
-    confirmAdminPayment, advanceBusinessOverdueDay, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
+    confirmAdminPayment, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
     exportBackupJSON, downloadBackupFile, importBackupJSON,

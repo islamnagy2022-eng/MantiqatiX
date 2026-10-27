@@ -51,9 +51,7 @@ import {
 import {
   calculateBusinessCommission,
   formatEgyptianLocation,
-  evaluatePaymentFreezeStatus,
   DEFAULT_COMMISSION_PER_ORDER,
-  OVERDUE_GRACE_PERIOD_DAYS,
   DEFAULT_PAYMOB_FEE_PERCENTAGE,
   DEFAULT_PAYMOB_FEE_FIXED,
   calculatePaymobFee,
@@ -94,7 +92,6 @@ export const AdminDashboard: React.FC = () => {
     exportBackupJSON,
     importBackupJSON,
     confirmAdminPayment,
-    advanceBusinessOverdueDay,
     toggleBusinessFreeze,
     updateBusinessCommissionRate,
     updateBusinessLocation,
@@ -153,7 +150,8 @@ export const AdminDashboard: React.FC = () => {
   // Billing tab filters & feedback
   const [billingGovFilter, setBillingGovFilter] = useState('all');
   const [billingStatusFilter, setBillingStatusFilter] = useState('all');
-  const [billingActionMsg, setBillingActionMsg] = useState<string | null>(null);
+  const [billingActionMsg, setBillingActionMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [billingActionBusyId, setBillingActionBusyId] = useState<string | null>(null);
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
@@ -371,7 +369,7 @@ export const AdminDashboard: React.FC = () => {
             إدارة المشتركين، العمولات، والتصنيف الوظيفي
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-            منظومة سرية للإدارة لتحديد العمولات، تأكيد السداد الشهري، متابعة التجميد بعد مهلة 5 أيام، وتقسيم الأنشطة إلى مجموعات وظيفية مهيأة للتطوير المستمر.
+            إدارة حالات السداد والتجميد اليدوي والعمولات. التنبيهات اليومية والتجميد التلقائي حسب تاريخ الاستحقاق غير معتمدين كوظيفة إنتاجية قبل التحقق من المهمة الخادمية واختبارها.
           </p>
         </div>
 
@@ -612,10 +610,10 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'billing' && (
         <div className="space-y-6">
           {billingActionMsg && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs">
+            <div className={`text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs border ${billingActionMsg.type === 'error' ? 'bg-rose-50 border-rose-300 text-rose-950' : 'bg-emerald-50 border-emerald-300 text-emerald-950'}`}>
               <div className="flex items-center gap-2 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span>{billingActionMsg}</span>
+                <span aria-hidden="true">{billingActionMsg.type === 'success' ? '✓' : '!'}</span>
+                <span>{billingActionMsg.message}</span>
               </div>
               <button
                 onClick={() => setBillingActionMsg(null)}
@@ -639,7 +637,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-xs text-slate-700 leading-relaxed">
                   • <strong>الاشتراك الشهري:</strong> رسوم الاشتراك الشهري الثابتة للمنصة (بدون أي عمولات على الطلبات أو العمليات).
                   <br />
-                  • <strong>قاعدة الـ 5 أيام:</strong> في حال عدم سداد الاشتراك الشهري في موعده، يتلقى المشترك إشعاراً يومياً لمدة 5 أيام، وبعد اليوم الخامس يتم <strong>تجميد نشاط الصفحة تلقائياً</strong> لحين سداد الاشتراك وتأكيده من الإدارة.
+                  • <strong>المهلة والتنبيهات:</strong> تم حذف محاكاة مرور الأيام من الإنتاج. لا تعتبر التنبيهات اليومية أو التجميد التلقائي مفعّلين قبل توافر مهمة خادمية موثقة واجتياز اختبارها.
                 </p>
               </div>
             </div>
@@ -678,7 +676,8 @@ export const AdminDashboard: React.FC = () => {
                   className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-800"
                 >
                   <option value="all">جميع الحالات</option>
-                  <option value="paid">مسدد ومعتمد (ساري)</option>
+                  <option value="paid">مسدد ومعتمد</option>
+                  <option value="pending">بانتظار تأكيد السداد</option>
                   <option value="overdue">متأخر (ضمن مهلة الـ 5 أيام)</option>
                   <option value="frozen">مجمد لعدم السداد (&gt; 5 أيام)</option>
                 </select>
@@ -713,9 +712,10 @@ export const AdminDashboard: React.FC = () => {
                       const matchGov = billingGovFilter === 'all' || b.governorate === billingGovFilter;
                       const matchStatus =
                         billingStatusFilter === 'all' ||
-                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.overdueDaysCount > 5)) ||
-                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
-                        (billingStatusFilter === 'paid' && !b.isFrozen && b.overdueDaysCount === 0);
+                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen' || b.overdueDaysCount > 5)) ||
+                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.paymentStatus !== 'frozen' && b.paymentStatus === 'overdue' && b.overdueDaysCount > 0) ||
+                        (billingStatusFilter === 'paid' && !b.isFrozen && b.paymentStatus !== 'frozen' && b.overdueDaysCount === 0 && b.paymentStatus === 'paid') ||
+                        (billingStatusFilter === 'pending' && !b.isFrozen && b.paymentStatus !== 'frozen' && b.paymentStatus === 'pending' && b.overdueDaysCount === 0);
                       return matchGov && matchStatus;
                     })
                     .map((biz) => {
@@ -723,18 +723,13 @@ export const AdminDashboard: React.FC = () => {
                         biz.totalOrdersCount,
                         biz.commissionPerOrder
                       );
-                      const freezeStatus = evaluatePaymentFreezeStatus(
-                        biz.paymentStatus,
-                        biz.overdueDaysCount,
-                        OVERDUE_GRACE_PERIOD_DAYS
-                      );
                       const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
 
                       return (
                         <tr
                           key={biz.id}
                           className={`hover:bg-slate-50/70 transition-colors ${
-                            biz.isFrozen || biz.overdueDaysCount > 5 ? 'bg-rose-50/40' : ''
+                            biz.isFrozen || biz.paymentStatus === 'frozen' ? 'bg-rose-50/40' : ''
                           }`}
                         >
                           {/* Business Name and Egyptian Location */}
@@ -771,14 +766,14 @@ export const AdminDashboard: React.FC = () => {
 
                           {/* Registration Date */}
                           <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
-                            {biz.registrationDate || biz.createdAt || '2026-01-10'}
+                            {biz.registrationDate || biz.createdAt || 'غير مسجل'}
                           </td>
 
                           {/* Payment Due Day */}
                           <td className="py-3.5 px-4 text-slate-800 font-black">
-                            <span>يوم {biz.paymentDueDay || 1} من كل شهر</span>
+                            <span>{biz.paymentDueDay ? `يوم ${biz.paymentDueDay} من كل شهر` : 'يوم الاستحقاق غير مسجل'}</span>
                             <span className="block text-[10px] text-slate-400 font-normal">
-                              استحقاق: {biz.paymentDueDate || 'شهري'}
+                              استحقاق: {biz.paymentDueDate || 'غير مسجل'}
                             </span>
                           </td>
 
@@ -789,39 +784,70 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           </td>
 
-                          {/* Monthly Subscription Status */}
+                          {/* Monthly Subscription Status: reflect the persisted production state, never a hardcoded paid badge. */}
                           <td className="py-3.5 px-4">
-                            <span className="font-black text-emerald-700 block">
-                              مُسدّد وساري
+                            <span className={`font-black block ${
+                              biz.isFrozen || biz.paymentStatus === 'frozen'
+                                ? 'text-rose-700'
+                                : biz.paymentStatus === 'paid' && biz.overdueDaysCount === 0
+                                  ? 'text-emerald-700'
+                                  : biz.paymentStatus === 'pending'
+                                    ? 'text-amber-700'
+                                    : 'text-rose-700'
+                            }`}>
+                              {biz.isFrozen || biz.paymentStatus === 'frozen'
+                                ? 'مجمد لعدم السداد'
+                                : biz.paymentStatus === 'paid' && biz.overdueDaysCount === 0
+                                  ? 'مسدد ومعتمد'
+                                  : biz.paymentStatus === 'pending'
+                                    ? 'بانتظار تأكيد السداد'
+                                    : biz.paymentStatus === 'overdue'
+                                      ? 'متأخر عن السداد'
+                                      : 'الحالة تحتاج مراجعة بيانات الإنتاج'}
                             </span>
                             <span className="text-[10px] text-slate-400">
-                              بدون عمولات على الطلبات
+                              {biz.paymentDueDate ? `موعد الاستحقاق: ${biz.paymentDueDate}` : 'موعد الاستحقاق غير مسجل'}
                             </span>
                           </td>
 
-                          {/* Overdue & 5-day warning / freeze status */}
+                          {/* Billing state is read from persisted values; do not imply a scheduler exists. */}
                           <td className="py-3.5 px-4">
-                            {biz.isFrozen || biz.overdueDaysCount > 5 ? (
+                            {biz.isFrozen || biz.paymentStatus === 'frozen' ? (
                               <div className="space-y-1">
                                 <span className="inline-flex items-center gap-1 bg-rose-600 text-white font-black px-2.5 py-0.5 rounded-md text-[10px] shadow-xs">
                                   <Ban className="w-3 h-3" />
                                   <span>النشاط مجمد</span>
                                 </span>
                                 <span className="block text-[10px] text-rose-700 font-bold">
-                                  تجاوز مهلة الـ 5 أيام ({biz.overdueDaysCount} يوم تأخر)
+                                  حالة التجميد المسجلة في بيانات الإنتاج
                                 </span>
                               </div>
-                            ) : biz.overdueDaysCount > 0 ? (
+                            ) : biz.paymentStatus === 'overdue' ? (
                               <div className="space-y-1">
                                 <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-md text-[10px]">
                                   <BellRing className="w-3 h-3" />
-                                  <span>إشعار يومي ({biz.overdueDaysCount} من 5)</span>
+                                  <span>متأخر عن السداد</span>
                                 </span>
                                 <span className="block text-[10px] text-amber-800">
-                                  متبقي {5 - biz.overdueDaysCount} أيام قبل التجميد
+                                  أيام التأخير المسجلة: {biz.overdueDaysCount}
+                                </span>
+                                <span className="block text-[10px] text-slate-500">
+                                  التنبيهات والتجميد التلقائي غير مؤكدين في هذا الإصدار
                                 </span>
                               </div>
-                            ) : (
+                            ) : biz.paymentStatus === 'pending' ? (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                  <BellRing className="w-3 h-3" />
+                                  <span>بانتظار تأكيد السداد</span>
+                                </span>
+                                {biz.lastPaymentDate && (
+                                  <span className="block text-[9px] text-slate-400 font-mono">
+                                    آخر سجل دفع: {biz.lastPaymentDate}
+                                  </span>
+                                )}
+                              </div>
+                            ) : biz.paymentStatus === 'paid' && !biz.isFrozen && biz.overdueDaysCount === 0 ? (
                               <div className="space-y-0.5">
                                 <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
                                   <CheckCheck className="w-3 h-3" />
@@ -833,6 +859,10 @@ export const AdminDashboard: React.FC = () => {
                                   </span>
                                 )}
                               </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                الحالة تحتاج مراجعة بيانات الإنتاج
+                              </span>
                             )}
                           </td>
 
@@ -883,47 +913,49 @@ export const AdminDashboard: React.FC = () => {
 
                               {/* 1. Confirm Payment Button */}
                               <button
-                                onClick={() => {
-                                  confirmAdminPayment(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تأكيد سداد النشاط (${biz.name}) بنجاح، وتجديد الاشتراك وفك التجميد.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  setBillingActionMsg(null);
+                                  try {
+                                    await confirmAdminPayment(biz.id);
+                                    setBillingActionMsg({ type: 'success', message: `تم حفظ تأكيد السداد للنشاط (${biz.name}) بعد تأكيد الخادم.` });
+                                  } catch (error) {
+                                    setBillingActionMsg({ type: 'error', message: error instanceof Error ? error.message : 'تعذر حفظ تأكيد السداد لدى الخادم. لم يتم تحديث الحالة في الواجهة.' });
+                                  } finally {
+                                    setBillingActionBusyId(null);
+                                  }
                                 }}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
-                                title="تأكيد سداد المستحقات وتجديد النشاط لشهر قادم"
+                                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                                title="حفظ تأكيد السداد لدى الخادم؛ لا يعتبر الضغط وحده إثباتاً للتحصيل"
                               >
                                 <CheckCheck className="w-3 h-3" />
                                 <span>تأكيد السداد</span>
                               </button>
 
-                              {/* 2. Simulate / Advance Overdue Day Button */}
-                              <button
-                                onClick={() => {
-                                  advanceBusinessOverdueDay(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تسجيل إشعار تأخر يوم إضافي للنشاط (${biz.name}).`
-                                  );
-                                }}
-                                className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold text-[10px] px-2 py-1 rounded-lg transition-colors cursor-pointer"
-                                title="محاكاة مرور يوم تأخير لاختبار إشعار الـ 5 أيام والتجميد الآلي"
-                              >
-                                +يوم تأخير
-                              </button>
-
                               {/* 3. Manual Freeze/Unfreeze toggle */}
                               <button
-                                onClick={() => {
-                                  toggleBusinessFreeze(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تبديل حالة تجميد النشاط (${biz.name}) يدوياً من الإدارة.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  setBillingActionMsg(null);
+                                  try {
+                                    await toggleBusinessFreeze(biz.id);
+                                    setBillingActionMsg({ type: 'success', message: `تم حفظ تغيير حالة تجميد النشاط (${biz.name}) بعد تأكيد الخادم.` });
+                                  } catch (error) {
+                                    setBillingActionMsg({ type: 'error', message: error instanceof Error ? error.message : 'تعذر حفظ حالة التجميد لدى الخادم. لم يتم تحديث الحالة في الواجهة.' });
+                                  } finally {
+                                    setBillingActionBusyId(null);
+                                  }
                                 }}
-                                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-50 ${
                                   biz.isFrozen
                                     ? 'bg-slate-800 text-white hover:bg-slate-700'
                                     : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
                                 }`}
-                                title="تجميد أو إلغاء تجميد صفحة النشاط يدوياً"
+                                title="حفظ تجميد أو إلغاء تجميد صفحة النشاط لدى الخادم"
                               >
                                 {biz.isFrozen ? 'فك التجميد' : 'تجميد فوري'}
                               </button>
