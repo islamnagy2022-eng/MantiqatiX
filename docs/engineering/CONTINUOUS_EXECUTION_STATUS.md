@@ -6,7 +6,7 @@ Last updated: 2026-10-27 — live ledger reconciliation and 52-migration disposa
 
 ## Current checkpoint — 2026-10-27
 
-- [x] Live Production ledger inventory is 292 rows through `20261027041549`. A read-only LEFT JOIN found **0/16** required exact versions from RC425–RC432 and RC434–RC441 in the ledger, although source files are present in the candidate repository. The ledger also contains later-dated October 26–27 migrations, so the tail version is not proof of a contiguous release chain.
+- [x] Live Production ledger inventory is 292 rows through `20261027041549`. A read-only LEFT JOIN found **0/34** exact versions required by the current Production verifier in the ledger, although source files are present in the candidate repository. The ledger also contains later-dated October 26–27 migrations, so the tail version is not proof of a contiguous release chain.
 - [x] The post-checkpoint chronological chain completed 52 migrations in an isolated disposable Supabase replay, and RC117 contract plus synthetic two-tenant isolation checks passed in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976).
 - [x] The replay gap was repaired by adding a disposable-only prerequisite fixture for the schema-only checkpoint and a local DB URL guard. No Production data was copied or changed.
 - [ ] Production rollout is NOT APPROVED: isolated replay does not prove safe application of historical missing migrations onto the current live schema, which already has later-dated migrations. Reconcile schema drift, obtain backup/restore and rollback evidence, and perform reviewed payment/finance E2E before any migration operation.
