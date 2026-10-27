@@ -395,13 +395,22 @@ const categoryGrid=document.getElementById('mx-category-grid');
       };
       const fillActivities=(preferredId='',preferredSpecialty='')=>{
         const group=currentGroup();
-        if(!taxonomyLoaded||!group){
-          const kind=String(sectorSelect.value||TAXONOMY[0]?.[3]||'FOOD');
-          const sector=TAXONOMY.find(x=>String(x[3])===kind)||TAXONOMY[0];
+        if(!taxonomyLoaded){
+          const kind=String(sectorSelect.value||'');
+          if(!kind){
+            activitySelect.innerHTML='<option value="">اختر القطاع أولًا</option>';activitySelect.value='';activitySelect.disabled=true;
+            specialtySelect.innerHTML='<option value="">اختياري</option>';specialtySelect.disabled=true;legacyKindSelect.value='';
+            return;
+          }
           activitySelect.innerHTML='<option value="legacy:'+escapeHtml(kind)+'">نشاط عام — اكتب تفاصيل النشاط في خانة الخدمات</option>';
           activitySelect.value='legacy:'+kind;activitySelect.disabled=false;
           specialtySelect.innerHTML='<option value="">اكتب التخصص في خانة الخدمات (اختياري)</option>';specialtySelect.disabled=true;
           legacyKindSelect.value=kind;
+          return;
+        }
+        if(!group){
+          activitySelect.innerHTML='<option value="">اختر القطاع أولًا</option>';activitySelect.value='';activitySelect.disabled=true;
+          specialtySelect.innerHTML='<option value="">اختياري</option>';specialtySelect.disabled=true;legacyKindSelect.value='';
           return;
         }
         setLegacyKind(group);
@@ -409,7 +418,6 @@ const categoryGrid=document.getElementById('mx-category-grid');
         activitySelect.innerHTML='<option value="">اختر النشاط</option>'+items.map(x=>'<option value="'+escapeHtml(x.id)+'">'+escapeHtml(x.name_ar)+'</option>').join('');
         activitySelect.disabled=!items.length;
         if(preferredId&&items.some(x=>String(x.id)===String(preferredId)))activitySelect.value=preferredId;
-        else if(items.length)activitySelect.value=items[0].id;
         fillSpecialties(preferredSpecialty);
       };
       const initActivityTaxonomy=async()=>{
@@ -422,7 +430,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(taxonomyLoaded){
           const groups=sortTaxonomy(activityTypes.filter(x=>x.node_type==='SECTOR_GROUP'));
           const priorActivity=activityTypes.find(x=>String(x.id)===String(savedDraft.activity_type_id||''));
-          const priorGroup=groups.find(x=>String(x.id)===String(savedDraft.activity_group_id||priorActivity?.parent_id||''))||groups.find(x=>legacyKindBySector[x.sector_id]===String(savedDraft.provider_kind||''))||groups[0];
+          const priorGroup=groups.find(x=>String(x.id)===String(savedDraft.activity_group_id||''))||groups.find(x=>legacyKindBySector[x.sector_id]===String(savedDraft.provider_kind||''))||null;
           sectorSelect.innerHTML='<option value="">اختر القطاع الرئيسي</option>'+groups.map(x=>'<option value="'+escapeHtml(x.id)+'">'+escapeHtml(x.name_ar)+'</option>').join('');
           if(priorGroup)sectorSelect.value=priorGroup.id;
           fillActivities(priorActivity?.node_type==='ACTIVITY'?priorActivity.id:(priorActivity?.node_type==='SPECIALTY'?priorActivity.parent_id:(savedDraft.activity_type_id||'')),priorActivity?.node_type==='SPECIALTY'?priorActivity.id:savedDraft.specialty_type_id||'');
@@ -431,7 +439,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
           activitySelect.addEventListener('change',()=>fillSpecialties(''));
         }else{
           sectorSelect.innerHTML='<option value="">اختر القطاع الرئيسي</option>'+TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'">'+escapeHtml(x[1])+'</option>').join('');
-          sectorSelect.value=String(savedDraft.provider_kind||TAXONOMY[0]?.[3]||'FOOD');
+          sectorSelect.value=String(savedDraft.provider_kind||'');
           fillActivities();
           sectorSelect.addEventListener('change',()=>fillActivities('',''));
           activitySelect.addEventListener('change',()=>fillSpecialties(''));
