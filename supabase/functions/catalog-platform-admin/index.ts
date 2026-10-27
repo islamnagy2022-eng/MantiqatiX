@@ -401,6 +401,12 @@ Deno.serve(async (req: Request) => {
       const businesses = rows || [];
       const ids = businesses.map((b: any) => String(b.id));
       if (!ids.length) return response(origin, { businesses: [], total: Number(count || 0), limit, offset });
+      const activityTypeIds = [...new Set(businesses.map((b: any) => String(b.settings?.activity_type_id || "")).filter(Boolean))];
+      const activityResult = activityTypeIds.length
+        ? await service.from("business_activity_types").select("id,code,name_ar,node_type,sector_id").in("id", activityTypeIds)
+        : { data: [], error: null };
+      if (activityResult.error) throw activityResult.error;
+      const activityMap = new Map((activityResult.data || []).map((a: any) => [String(a.id), a]));
       const [{ data: membershipsForPage, error: ownersError }, { data: subsForPage, error: subsError }] = await Promise.all([
         service.from("user_memberships").select("id,user_id,tenant_id,organization_id,business_id,role,status,created_at")
           .in("business_id", ids).in("role", ["OWNER", "BUSINESS_OWNER"]).order("created_at", { ascending: true }).limit(500),
@@ -437,7 +443,12 @@ Deno.serve(async (req: Request) => {
         businesses: businesses.map((b: any) => ({
           id: b.id, tenantId: b.tenant_id, organizationId: b.organization_id,
           name: b.name, code: b.code, status: b.status,
-          settings: b.settings || {}, createdAt: b.created_at, updatedAt: b.updated_at,
+          settings: { ...(b.settings || {}), ...(activityMap.has(String(b.settings?.activity_type_id || "")) ? {
+            activity_type_name_ar: (activityMap.get(String(b.settings?.activity_type_id || "")) as any).name_ar,
+            activity_type_code: (activityMap.get(String(b.settings?.activity_type_id || "")) as any).code,
+            activity_node_type: (activityMap.get(String(b.settings?.activity_type_id || "")) as any).node_type,
+            sector_id: (activityMap.get(String(b.settings?.activity_type_id || "")) as any).sector_id,
+          } : {}) }, createdAt: b.created_at, updatedAt: b.updated_at,
           owners: ownerMap.get(String(b.id)) || [],
           subscription: subscriptionMap.get(String(b.id)) || null,
         })),
