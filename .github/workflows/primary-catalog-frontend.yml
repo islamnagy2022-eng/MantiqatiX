@@ -99,7 +99,7 @@ jobs:
         run: node scripts/production/verify-catalog-pilot.mjs
       - name: Validate that the platform root is preserved
         run: node scripts/validate-pages-production-deploy-gate.mjs
-      - name: Build catalog module for its own subpath
+      - name: Build catalog for the primary website root
         working-directory: apps/catalog-frontend
         run: npm run build
       - name: Verify primary-root assets and PWA scope
@@ -136,6 +136,6 @@ jobs:
       - name: Upload catalog build for review (no deployment)
         uses: actions/upload-artifact@v4
         with:
-          name: catalog-frontend-subpath-build
+          name: catalog-primary-root-build
           path: apps/catalog-frontend/dist
           if-no-files-found: error
