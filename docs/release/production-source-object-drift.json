@@ -1,0 +1,445 @@
+{
+  "schema_version": 1,
+  "project": "moyhiluyhjsujhwlyeuu",
+  "audited_at": "2026-10-27",
+  "method": "Read-only live PostgreSQL catalog checks for required object names/signatures and exact function configuration/ACL checks for previously identified critical boundaries. SQL migration sources were parsed from main. This inventory does not assert full behavior equivalence unless an explicit observed difference is documented.",
+  "live_migration_ledger_rows": 292,
+  "latest_live_migration_version": "20261027041549",
+  "required_release_migration_versions": 34,
+  "recorded_required_migration_versions": 0,
+  "functions": {
+    "required_count": 39,
+    "missing_count": 21,
+    "found_by_name_count": 18,
+    "entries": [
+      {
+        "migration": "RC425",
+        "name": "process_verified_mantigo_payment_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic Paymob/MantiGo ledger processor absent."
+      },
+      {
+        "migration": "RC426",
+        "name": "finalize_digital_page_payment_intent_backend",
+        "status": "PRESENT_LEGACY_SIGNATURE",
+        "live_signature": "finalize_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+        "detail": "Source expects five arguments including provider_order_id; live has four arguments."
+      },
+      {
+        "migration": "RC428",
+        "name": "process_verified_provider_payment_failure",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic provider-payment failure webhook RPC absent."
+      },
+      {
+        "migration": "RC429",
+        "name": "process_verified_subscription_payment_failure",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic subscription failure webhook RPC absent."
+      },
+      {
+        "migration": "RC430",
+        "name": "process_verified_subscription_payment_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic subscription success webhook RPC absent."
+      },
+      {
+        "migration": "RC431",
+        "name": "process_verified_digital_page_payment_backend",
+        "status": "PRESENT_CONTRACT_DRIFT",
+        "live_signature": "process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "detail": "Existing signature uses search_path=public, pg_temp and body lacks provider-order binding and replay-status guard expected by source."
+      },
+      {
+        "migration": "RC432",
+        "name": "smm_debit_wallet",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "smm_debit_wallet(uuid,numeric,uuid)",
+        "detail": "Function exists; required reference/type idempotency unique index is absent."
+      },
+      {
+        "migration": "RC432",
+        "name": "smm_refund_wallet",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "smm_refund_wallet(uuid,numeric,uuid,text)",
+        "detail": "Function exists; required reference/type idempotency unique index is absent."
+      },
+      {
+        "migration": "RC432",
+        "name": "smm_admin_credit_wallet",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "smm_admin_credit_wallet(uuid,uuid,numeric,text)",
+        "detail": "Function exists; required reference/type idempotency unique index is absent."
+      },
+      {
+        "migration": "RC434",
+        "name": "receive_purchase_stock_atomic_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic ERP receiving RPC absent."
+      },
+      {
+        "migration": "RC435",
+        "name": "create_subscription_payment_intent_claimable_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Claimable subscription payment-intent creation RPC absent."
+      },
+      {
+        "migration": "RC435",
+        "name": "claim_subscription_provider_intent_creation_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Provider-intent claim RPC absent."
+      },
+      {
+        "migration": "RC436",
+        "name": "post_financial_journal",
+        "status": "PRESENT_UNUSABLE_ACL",
+        "live_signature": "post_financial_journal(jsonb,jsonb)",
+        "detail": "No EXECUTE for service_role, authenticated or anon in the live ACL; required journal uniqueness objects absent."
+      },
+      {
+        "migration": "RC436",
+        "name": "post_financial_journal_backend",
+        "status": "PRESENT_UNUSABLE_ACL",
+        "live_signature": "post_financial_journal_backend(uuid,jsonb,jsonb)",
+        "detail": "No EXECUTE for service_role, authenticated or anon in the live ACL; current RC450 grant contract not present."
+      },
+      {
+        "migration": "RC436",
+        "name": "post_financial_journal_atomic_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic financial journal RPC absent."
+      },
+      {
+        "migration": "RC437",
+        "name": "set_purchase_order_lines_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Line-aware purchase-order RPC absent."
+      },
+      {
+        "migration": "RC437",
+        "name": "receive_purchase_stock_with_order_line_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Receiving RPC that binds receipt to purchase-order line absent."
+      },
+      {
+        "migration": "RC438",
+        "name": "create_purchase_order_with_lines_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Atomic purchase-order creation with lines RPC absent."
+      },
+      {
+        "migration": "RC438",
+        "name": "update_purchase_order_status_backend",
+        "status": "PRESENT_CONTRACT_DRIFT",
+        "live_signature": "update_purchase_order_status_backend(character varying,character varying)",
+        "detail": "Legacy function exists with search_path=public and ACL only for postgres; source expects reviewed search_path and application caller contract."
+      },
+      {
+        "migration": "RC441",
+        "name": "mnty_can_platform_admin",
+        "status": "PRESENT_CONFIG_DRIFT",
+        "live_signature": "mnty_can_platform_admin()",
+        "detail": "Live search_path remains public/public, pg_temp rather than the source empty search_path."
+      },
+      {
+        "migration": "RC441",
+        "name": "get_mantigo_admin_dashboard_backend",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "get_mantigo_admin_dashboard_backend(uuid)",
+        "detail": "Function name exists; body, search_path, and caller grants need exact parity verification."
+      },
+      {
+        "migration": "RC441",
+        "name": "get_mantigo_admin_financial_report_backend",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)",
+        "detail": "Function name exists; body, search_path, and caller grants need exact parity verification."
+      },
+      {
+        "migration": "RC441",
+        "name": "settle_mantigo_captain_backend",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "settle_mantigo_captain_backend(uuid,text,text)",
+        "detail": "Function name exists; body, search_path, and caller grants need exact parity verification."
+      },
+      {
+        "migration": "RC441",
+        "name": "expire_stale_mantigo_rides_backend",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "expire_stale_mantigo_rides_backend(uuid,integer)",
+        "detail": "Function name exists; body, search_path, and caller grants need exact parity verification."
+      },
+      {
+        "migration": "RC446",
+        "name": "list_open_mantigo_rides_backend",
+        "status": "PRESENT_REQUIRES_CONTRACT_REVIEW",
+        "live_signature": "list_open_mantigo_rides_backend(uuid)",
+        "detail": "Function name exists; exact body/ACL parity to the privacy migration not yet established."
+      },
+      {
+        "migration": "RC447",
+        "name": "matrimony_discover_profiles_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Privacy-scoped profile discovery RPC absent."
+      },
+      {
+        "migration": "RC447/RC448",
+        "name": "matrimony_get_unlocked_contact_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Contact-unlock scoped RPC absent."
+      },
+      {
+        "migration": "RC448",
+        "name": "matrimony_create_request_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Authoritative matrimony request creation RPC absent."
+      },
+      {
+        "migration": "RC448",
+        "name": "matrimony_respond_request_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Authoritative matrimony request response RPC absent."
+      },
+      {
+        "migration": "RC448",
+        "name": "matrimony_unlock_contact_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Authoritative contact-unlock RPC absent."
+      },
+      {
+        "migration": "RC450",
+        "name": "trg_post_journal_to_general_ledger",
+        "status": "PRESENT_SCHEMA_DEPENDENCY_DRIFT",
+        "live_signature": "trg_post_journal_to_general_ledger()",
+        "detail": "Trigger function exists, but required journal columns and RC450 grant/migration contract are absent; trigger attachment was not certified."
+      },
+      {
+        "migration": "RC451",
+        "name": "get_mnty_targeted_advertisements",
+        "status": "PRESENT_SEARCH_PATH_DRIFT",
+        "live_signature": "get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)",
+        "detail": "Intentionally public SECURITY DEFINER endpoint: anon/authenticated EXECUTE retained; live search_path=public, pg_temp, expected empty by RC451."
+      },
+      {
+        "migration": "RC453",
+        "name": "mnty_can_manage_marketing_business",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Business-scoped marketing permission helper absent."
+      },
+      {
+        "migration": "RC453",
+        "name": "create_marketing_campaign_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Campaign creation backend RPC absent."
+      },
+      {
+        "migration": "RC453",
+        "name": "invite_marketing_campaign_partner_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Campaign partner-invitation RPC absent."
+      },
+      {
+        "migration": "RC453",
+        "name": "respond_marketing_campaign_invitation_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Campaign invitation response RPC absent."
+      },
+      {
+        "migration": "RC453",
+        "name": "update_marketing_campaign_status_backend",
+        "status": "MISSING",
+        "live_signature": null,
+        "detail": "Campaign status-change RPC absent."
+      },
+      {
+        "migration": "RC103/RC106",
+        "name": "update_order_status_backend",
+        "status": "PRESENT_REQUIRES_BODY_ACL_REVIEW",
+        "live_signature": "update_order_status_backend(uuid,character varying,uuid,character varying,text)",
+        "detail": "Function signature exists; exact RC103/RC106 body and service-role identity/branch-scope ACL parity not established."
+      },
+      {
+        "migration": "RC104/RC105",
+        "name": "create_order_backend",
+        "status": "PRESENT_REQUIRES_BODY_ACL_REVIEW",
+        "live_signature": "create_order_backend(uuid,character varying,uuid,character varying,uuid,character varying,numeric,numeric,numeric,numeric,numeric,character varying,text,text,text,jsonb,text,jsonb)",
+        "detail": "Function signature exists; exact RC104/RC105 body, idempotency, and service-role identity ACL parity not established."
+      }
+    ]
+  },
+  "relations": {
+    "required_count": 17,
+    "missing_count": 16,
+    "present_count": 1,
+    "entries": [
+      {
+        "kind": "table",
+        "name": "mantigo_payment_provider_events",
+        "migration": "RC425",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Provider event deduplication/idempotency table is absent."
+      },
+      {
+        "kind": "index",
+        "name": "uq_payment_intents_one_active_per_order",
+        "migration": "RC427",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Partial unique guard for one active payment intent per order is absent."
+      },
+      {
+        "kind": "index",
+        "name": "smm_wallet_transactions_reference_type_uidx",
+        "migration": "RC432",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Wallet transaction reference/type idempotency index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "journal_entry_lines_entry_line_uidx",
+        "migration": "RC436",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Journal line uniqueness index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "journal_entries_tenant_entry_number_uidx",
+        "migration": "RC436",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Tenant-scoped journal entry number uniqueness index is absent."
+      },
+      {
+        "kind": "table",
+        "name": "erp_purchase_order_lines",
+        "migration": "RC437",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Purchase-order line table is absent."
+      },
+      {
+        "kind": "index",
+        "name": "erp_purchase_orders_business_order_number_uidx",
+        "migration": "RC437",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Business-scoped purchase-order number uniqueness index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "erp_purchase_order_lines_scope_idx",
+        "migration": "RC437",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Purchase-order line scope index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "matrimony_contact_unlocks_request_id_key",
+        "migration": "RC448",
+        "exists": true,
+        "status": "PRESENT_NEEDS_BEHAVIOR_REVIEW",
+        "detail": "Expected unique index exists by name; migration application/behavior still requires review."
+      },
+      {
+        "kind": "index",
+        "name": "matrimony_requests_active_pair_unique",
+        "migration": "RC448",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Active matrimony request pair uniqueness index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "general_ledger_running_balance_lookup_idx",
+        "migration": "RC449A",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "General-ledger running-balance lookup index is absent."
+      },
+      {
+        "kind": "table",
+        "name": "marketing_campaigns",
+        "migration": "RC453",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Marketing campaigns table is absent."
+      },
+      {
+        "kind": "table",
+        "name": "marketing_campaign_participants",
+        "migration": "RC453",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Marketing campaign participants table is absent."
+      },
+      {
+        "kind": "index",
+        "name": "marketing_campaigns_business_status_idx",
+        "migration": "RC453",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Marketing campaign business/status index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "marketing_campaigns_tenant_created_idx",
+        "migration": "RC453",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Marketing campaign tenant/created index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "marketing_campaign_participants_provider_status_idx",
+        "migration": "RC453",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Marketing participant provider/status index is absent."
+      },
+      {
+        "kind": "index",
+        "name": "marketing_campaign_participants_business_campaign_idx",
+        "migration": "RC453",
+        "exists": false,
+        "status": "MISSING",
+        "detail": "Marketing participant business/campaign index is absent."
+      }
+    ]
+  },
+  "confirmed_additional_blockers": [
+    "journal_entries.entry_number is missing",
+    "journal_entries.total_debit is missing",
+    "journal_entries.total_credit is missing",
+    "journal_entries.posted_at is missing",
+    "journal_entry_lines.line_number is missing",
+    "RC449A and RC450 are absent from the live migration ledger",
+    "The existing financial journal RPCs do not grant service_role EXECUTE",
+    "Five critical deployed Edge Function entrypoints differ from current main; smm-gateway entrypoint matches"
+  ],
+  "interpretation": "This is mixed live schema drift: 21 required RPC names are absent; 4 required tables are absent; 12 of 13 selected required indexes are absent. Additional present names have stale signatures/configurations, or still require body/ACL parity verification. Do not apply historical migrations directly to the current Production schema: later-dated migrations already exist and no current-schema replay/restore rehearsal has approved the transition.",
+  "safety": "READ-ONLY evidence only. No Production data, schema, migration ledger, grants, RLS, Auth, Edge Functions, payment intents, or wallets were modified."
+}
