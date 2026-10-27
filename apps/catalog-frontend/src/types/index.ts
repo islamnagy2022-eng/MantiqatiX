@@ -102,6 +102,7 @@ export interface Product {
   imageUrl: string;
   isAvailable: boolean;
   unit?: string; // e.g. "قطعة", "وجبة", "ساعة", "جلسة", "كجم"
+  requiresQuote?: boolean; // service is published without a price; customer requests a quote instead of adding it to cart
 }
 
 export interface Subscriber {
