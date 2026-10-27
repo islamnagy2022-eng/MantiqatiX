@@ -28,7 +28,7 @@ jobs:
           node-version: 22
       - name: Typecheck privileged and public onboarding functions
         run: |
-          deno check --no-lock supabase/functions/catalog-platform-admin/index.ts
+          deno check --node-modules-dir=auto --no-lock supabase/functions/catalog-platform-admin/index.ts
           deno check --no-lock supabase/functions/activity-taxonomy-public/index.ts
           deno check --no-lock supabase/functions/mnty-provider-onboarding-submit/index.ts
           deno check --no-lock supabase/functions/mnty-provider-onboarding-review/index.ts
