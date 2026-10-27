@@ -35,6 +35,10 @@ assert.match(settingsBlock, /paymentStatus \|\| ""\)\.toLowerCase\(\) === "paid"
   'Payment confirmation must be explicit and admin-controlled');
 assert.match(settingsBlock, /PAID_SUBSCRIPTION_ACTIVATION_FAILED/,
   'Payment confirmation must activate pending owner memberships server-side');
+assert.match(settingsBlock, /contains\("permissions", \{ subscription_status: "PENDING_PAYMENT" \}\)/,
+  'Only memberships explicitly marked pending payment may be activated');
+assert.match(settingsBlock, /subscription_status: "ACTIVE"/,
+  'Activated memberships must leave the pending-payment state');
 
 assert.match(types, /status: 'active' \| 'pending' \| 'suspended'/,
   'Subscriber model must represent pending payment');
