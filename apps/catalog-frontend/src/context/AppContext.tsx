@@ -373,24 +373,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       coverUrl: updated.coverUrl || '',
       publicEnabled: Boolean(updated.publicEnabled),
     });
-    if (authSession.role === 'admin') {
-      await callPlatformAdmin({
-        action: 'BUSINESS_SETTINGS_UPDATE',
-        businessId: updated.id,
-        tenantId: updated.tenantId,
-        settings: {
-          commissionPerOrder: updated.commissionPerOrder,
-          totalOrdersCount: updated.totalOrdersCount,
-          paymentStatus: updated.paymentStatus,
-          overdueDaysCount: updated.overdueDaysCount,
-          isFrozen: updated.isFrozen,
-          lastPaymentDate: updated.lastPaymentDate,
-          paymentConfirmedByAdmin: updated.paymentConfirmedByAdmin,
-          paymentDueDay: updated.paymentDueDay,
-          paymentDueDate: updated.paymentDueDate,
-        },
-      });
-    }
+    // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
+    // Billing updates use dedicated admin actions and remain independent from contact/branding edits.
     await refreshBusinessCatalog(updated.id);
   };
 
