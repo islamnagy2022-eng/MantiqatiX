@@ -75,6 +75,106 @@ Deno.serve(async (req: Request) => {
     const productionTenantIds = productionTenants.map((t: any) => String(t.id));
     if (!productionTenantIds.length) return response(origin, { error: "PRODUCTION_TENANT_REQUIRED" }, 409);
 
+    if (action === "LIST_ACTIVITY_TYPES") {
+      const { data: rows, error } = await service.from("business_activity_types")
+        .select("id,sector_id,parent_id,legacy_category_id,code,name_ar,name_en,node_type,status,sort_order,metadata,created_at,updated_at")
+        .order("sector_id", { ascending: true }).order("sort_order", { ascending: true }).order("name_ar", { ascending: true }).limit(2000);
+      if (error) throw error;
+      return response(origin, { activityTypes: rows || [] });
+    }
+
+    if (action === "UPSERT_ACTIVITY_TYPE") {
+      const input = body.activityType && typeof body.activityType === "object" ? body.activityType : {};
+      const id = String(input.id || "").trim();
+      const sectorId = String(input.sector_id || "").trim();
+      const parentId = String(input.parent_id || "").trim() || null;
+      const code = String(input.code || "").trim().toUpperCase();
+      const nameAr = String(input.name_ar || "").trim();
+      const nameEn = String(input.name_en || "").trim();
+      const nodeType = String(input.node_type || "").trim().toUpperCase();
+      const status = String(input.status || "ACTIVE").trim().toUpperCase();
+      const sortOrder = Number.isInteger(Number(input.sort_order)) ? Number(input.sort_order) : 100;
+      if (!/^[a-zA-Z0-9_-]{2,100}$/.test(id) || !/^[A-Z0-9_-]{2,100}$/.test(code)
+        || nameAr.length < 2 || nameAr.length > 160 || nameEn.length > 160
+        || !["SECTOR_GROUP", "ACTIVITY", "SPECIALTY"].includes(nodeType)
+        || !["ACTIVE", "INACTIVE", "ARCHIVED"].includes(status)
+        || !/^[A-Z0-9_-]{2,100}$/.test(sectorId)) {
+        return response(origin, { error: "INVALID_ACTIVITY_TYPE" }, 400);
+      }
+      const { data: sector, error: sectorError } = await service.from("business_sectors")
+        .select("id").eq("id", sectorId).maybeSingle();
+      if (sectorError) throw sectorError;
+      if (!sector) return response(origin, { error: "ACTIVITY_SECTOR_NOT_FOUND" }, 400);
+      if (parentId) {
+        if (parentId === id) return response(origin, { error: "INVALID_ACTIVITY_PARENT" }, 400);
+        const { data: parent, error: parentError } = await service.from("business_activity_types")
+          .select("id,sector_id,node_type").eq("id", parentId).maybeSingle();
+        if (parentError) throw parentError;
+        if (!parent || String(parent.sector_id) !== sectorId
+          || (nodeType === "SECTOR_GROUP" && parent.node_type !== "SECTOR_GROUP")) {
+          return response(origin, { error: "INVALID_ACTIVITY_PARENT" }, 400);
+        }
+      } else if (nodeType !== "SECTOR_GROUP") {
+        return response(origin, { error: "ACTIVITY_PARENT_REQUIRED" }, 400);
+      }
+      const { data: previous, error: previousError } = await service.from("business_activity_types")
+        .select("*").eq("id", id).maybeSingle();
+      if (previousError) throw previousError;
+      const next = {
+        id, sector_id: sectorId, parent_id: parentId,
+        legacy_category_id: String(input.legacy_category_id || "").trim() || null,
+        code, name_ar: nameAr, name_en: nameEn, node_type: nodeType,
+        status, sort_order: Math.max(0, Math.min(100000, sortOrder)),
+        metadata: input.metadata && typeof input.metadata === "object" && !Array.isArray(input.metadata) ? input.metadata : {},
+        updated_by: user.id, updated_at: new Date().toISOString(),
+        ...(previous ? {} : { created_by: user.id, created_at: new Date().toISOString() }),
+      };
+      const { data: saved, error: saveError } = await service.from("business_activity_types")
+        .upsert(next, { onConflict: "id" }).select("id,sector_id,parent_id,legacy_category_id,code,name_ar,name_en,node_type,status,sort_order,metadata,created_at,updated_at").single();
+      if (saveError) throw saveError;
+      const { error: auditError } = await service.from("audit_logs").insert({
+        tenant_id: String(platformMemberships[0].tenant_id), actor_user_id: user.id,
+        action: previous ? "ACTIVITY_TYPE_UPDATED" : "ACTIVITY_TYPE_CREATED",
+        entity_type: "business_activity_type", entity_id: id,
+        old_values: previous || null, new_values: saved, result: "SUCCESS",
+      });
+      if (auditError) {
+        console.error("activity taxonomy audit write failed", auditError.message);
+        return response(origin, { error: "ACTIVITY_TYPE_SAVED_AUDIT_FAILED", saved: false }, 500);
+      }
+      return response(origin, { success: true, activityType: saved });
+    }
+
+    if (action === "SET_ACTIVITY_TYPE_STATUS") {
+      const id = String(body.id || "").trim();
+      const status = String(body.status || "").trim().toUpperCase();
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (!/^[a-zA-Z0-9_-]{2,100}$/.test(id) || !["ACTIVE", "INACTIVE", "ARCHIVED"].includes(status) || reason.length < 3) {
+        return response(origin, { error: "INVALID_ACTIVITY_STATUS_CHANGE" }, 400);
+      }
+      const { data: previous, error: findError } = await service.from("business_activity_types").select("*").eq("id", id).maybeSingle();
+      if (findError) throw findError;
+      if (!previous) return response(origin, { error: "ACTIVITY_TYPE_NOT_FOUND" }, 404);
+      const { data: children, error: childError } = await service.from("business_activity_types")
+        .select("id").eq("parent_id", id).eq("status", "ACTIVE").limit(1);
+      if (childError) throw childError;
+      if (status !== "ACTIVE" && children?.length) return response(origin, { error: "ACTIVE_CHILDREN_MUST_BE_DISABLED_FIRST" }, 409);
+      const { data: saved, error: updateError } = await service.from("business_activity_types")
+        .update({ status, updated_by: user.id, updated_at: new Date().toISOString() }).eq("id", id)
+        .select("id,sector_id,parent_id,code,name_ar,name_en,node_type,status,sort_order").single();
+      if (updateError) throw updateError;
+      const { error: auditError } = await service.from("audit_logs").insert({
+        tenant_id: String(platformMemberships[0].tenant_id), actor_user_id: user.id,
+        action: "ACTIVITY_TYPE_STATUS_CHANGED", entity_type: "business_activity_type", entity_id: id,
+        old_values: previous, new_values: { ...saved, reason }, result: "SUCCESS",
+      });
+      if (auditError) {
+        console.error("activity taxonomy status audit write failed", auditError.message);
+        return response(origin, { error: "ACTIVITY_TYPE_STATUS_AUDIT_FAILED" }, 500);
+      }
+      return response(origin, { success: true, activityType: saved });
+    }
+
     if (action === "TENANT_LIST") {
       return response(origin, { tenants: productionTenants.map((t: any) => ({ id: t.id, name: t.name, code: t.code })) });
     }
