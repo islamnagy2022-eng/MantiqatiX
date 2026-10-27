@@ -39,6 +39,8 @@ assert.equal(paidGate?.live_function_version, 3, 'Expected deployed catalog admi
 assert.equal(paidGate?.verify_jwt, true, 'Catalog platform admin must continue requiring JWT verification');
 assert.equal(paidGate?.source_exact_match, true, 'Deployed catalog admin function must match reviewed source exactly');
 assert.equal(paidGate?.unrelated_modules_deployed, false, 'No unrelated backend modules may be deployed by the catalog pilot');
+assert.equal(paidGate?.active_non_showcase_owner_memberships_count_before_guard, 0, 'No unpaid non-showcase owner memberships may already be active');
+assert.equal(paidGate?.no_unpaid_non_showcase_owner_memberships_found, true, 'The read-only subscription audit must be recorded');
 
 assert.ok(vite.includes("base: '/MantiqatiX/catalog-app/'"), 'Catalog frontend must be built under its own subpath');
 assert.equal(manifest.scope, '/MantiqatiX/catalog-app/', 'Catalog PWA scope must not claim the platform root');
