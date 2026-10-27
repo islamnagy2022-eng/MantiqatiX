@@ -416,7 +416,15 @@ Deno.serve(async (req: Request) => {
       const oldSettings = business.settings || {};
       const oldProfile = oldSettings.catalog_profile && typeof oldSettings.catalog_profile === "object" ? oldSettings.catalog_profile : {};
       const profile = { ...oldProfile, name_en: nameEn, bio, governorate, markaz, village, working_hours: workingHours, logo_url: logoUrl, cover_url: coverUrl, address, phone };
-      const nextSettings = { ...oldSettings, activity_code: providerKind, contact_phone: phone, contact_address: address, catalog_profile: profile };
+      const nextSettings: Record<string, any> = { ...oldSettings, activity_code: providerKind, contact_phone: phone, contact_address: address, catalog_profile: profile };
+      if (selectedActivity) {
+        nextSettings.activity_type_id = selectedActivity.id;
+        nextSettings.activity_type_code = selectedActivity.code;
+        nextSettings.activity_type_name_ar = selectedActivity.name_ar;
+        nextSettings.activity_node_type = selectedActivity.node_type;
+        nextSettings.sector_id = selectedActivity.sector_id;
+        nextSettings.legacy_category_id = selectedActivity.legacy_category_id;
+      }
       const { data: updated, error: businessUpdateError } = await service.from("businesses")
         .update({ name, settings: nextSettings, updated_at: new Date().toISOString() })
         .eq("id", businessId).eq("tenant_id", tenantId)
