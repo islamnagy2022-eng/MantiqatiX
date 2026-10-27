@@ -143,3 +143,5 @@ At the start of every continuation:
 2. Inspect production business/subscription/commission/claims/ledger tables and relevant RPCs read-only; compare with migration ledger and RLS.
 3. Produce a gap matrix (existing / partial / missing / not production-verified) and only then implement the smallest safe slice on the fix branch.
 4. Do not deploy or mutate production DB while backup/restore and release gates remain unverified.
+
+- **Confirmed action-dispatcher gap:** `catalog-platform-admin/index.ts` currently exposes only `TENANT_LIST`, `GET_SETTINGS`, `SAVE_SETTINGS`, `LIST_SUBSCRIBERS`, `CREATE_BUSINESS`, `CREATE_SUBSCRIBER`, `SUBSCRIBER_STATUS`, `BUSINESS_SETTINGS_UPDATE`, and `DEACTIVATE_BUSINESS`. Source inspection found no corresponding action for permanent business deletion, a complete activate/suspend/restore lifecycle, flexible commission rules, commission claims, or visits analytics in this function. Treat these as missing from this API surface until another verified backend contract is found.
