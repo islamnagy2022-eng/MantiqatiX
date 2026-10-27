@@ -578,31 +578,8 @@ export const AdminDashboard: React.FC = () => {
         </button>
 
         {/* Tab 6: Backup */}
-        <button
-          onClick={() => {
-            setActiveAdminTab('backup');
-            setBackupFeedback(null);
-          }}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'backup'
-              ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-              : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200'
-          }`}
-        >
-          <Database className="w-4 h-4 text-amber-900" />
-          <span>النسخ الاحتياطي واستعادة البيانات</span>
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('control_center')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
-            activeAdminTab === 'control_center'
-              ? 'bg-indigo-700 text-white shadow-md'
-              : 'text-slate-600 hover:text-indigo-800 bg-white border border-slate-200'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4 text-indigo-500" />
-          <span>مركز تحكم المالك والصلاحيات</span>
-        </button>
+        
+        
       </div>
 
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
