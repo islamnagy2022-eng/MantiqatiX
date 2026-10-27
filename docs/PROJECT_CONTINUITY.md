@@ -692,3 +692,11 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Updated the reconciliation manifest to use exact object names, preventing false mismatches caused by a combined label that cannot match any catalog row.
 - [ ] Keep Production blocked: 0/41 distinct required migration versions recorded; 0/2 source aliases reconciled; Qadam owner membership INACTIVE; RC451 search_path, finance schema/EXECUTE, Edge Function parity, rollback and runtime evidence still open.
 - Safety: no Production writes or deployments. This change only improves the release gate's object-by-object evidence.
+
+
+## 2026-10-27 — Current-schema rehearsal plan
+
+- [x] Added `docs/release/current-schema-rehearsal-plan.md` with staged rehearsal, preflight, rollback and go/no-go criteria for all 41 distinct missing migration effects.
+- [x] Static source review identified high-risk effects: RC440 dynamically changes `search_path` for exposed SECURITY DEFINER functions; RC449A backfills existing journal rows; RC117 updates existing business/catalog/marketing-service image fields; RC437/RC442/RC444/RC447/RC452/RC525 replace policies/triggers or revoke privileges; unique indexes can fail on duplicate data.
+- [x] Read-only catalog check of 60 atomic object contracts: 7 are present by name/declared signature and 53 are absent. This is not a PASS result: exact signatures, body parity, ACL/search_path, RLS and runtime tests remain open for all 60.
+- [ ] Current-schema-and-data restore rehearsal remains the next blocking dependency. A clean disposable replay does not prove compatibility with live schema/data; no Production writes, migration-ledger repair, grant/RLS/Auth changes, Edge Function deploy or website deploy were performed.

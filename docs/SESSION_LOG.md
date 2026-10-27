@@ -307,3 +307,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [ ] Keep release blocked pending current-schema rehearsal, backup/restore/rollback approval, 41 distinct migration versions, alias ledger repair, owner membership activation, live RPC/Edge Function parity and remaining runtime gates.
 - Safety: read-only Supabase SQL/catalog queries only; no Production changes, migration application, ledger repair, grants, Auth/RLS, Edge Functions, payments or wallets were touched.
 
+
+
+## 2026-10-27 — Current-schema rehearsal plan
+
+- [x] Added `docs/release/current-schema-rehearsal-plan.md` with staged rehearsal, preflight, rollback and go/no-go criteria for all 41 distinct missing migration effects.
+- [x] Static source review identified high-risk effects: RC440 dynamically changes `search_path` for exposed SECURITY DEFINER functions; RC449A backfills existing journal rows; RC117 updates existing business/catalog/marketing-service image fields; RC437/RC442/RC444/RC447/RC452/RC525 replace policies/triggers or revoke privileges; unique indexes can fail on duplicate data.
+- [x] Read-only catalog check of 60 atomic object contracts: 7 are present by name/declared signature and 53 are absent. This is not a PASS result: exact signatures, body parity, ACL/search_path, RLS and runtime tests remain open for all 60.
+- [ ] Current-schema-and-data restore rehearsal remains the next blocking dependency. A clean disposable replay does not prove compatibility with live schema/data; no Production writes, migration-ledger repair, grant/RLS/Auth changes, Edge Function deploy or website deploy were performed.

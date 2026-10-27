@@ -624,5 +624,130 @@
     "total_required": 60,
     "total_present_by_catalog_name": 7,
     "total_absent_by_catalog_name": 53
+  },
+  "present_function_security_check": {
+    "checked_at": "2026-10-27T16:05:52.319591+00:00",
+    "status": "BLOCKED",
+    "security_definer_functions_found_by_name": 7,
+    "exact_definition_parity_verified": 0,
+    "functions_with_expected_empty_search_path": 0,
+    "functions_with_search_path_mismatch": 7,
+    "functions_missing_expected_authenticated_execute": 1,
+    "functions": [
+      {
+        "name": "expire_stale_mantigo_rides_backend",
+        "signature": "expire_stale_mantigo_rides_backend(uuid,integer)",
+        "search_path": "public",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "public_execute": false,
+        "definition_md5": "09118aef654630478ccd2a46d5ad42b0",
+        "expected_search_path": "",
+        "expected_authenticated_execute": true,
+        "expected_service_role_execute": false,
+        "status": "BLOCKED_SEARCH_PATH"
+      },
+      {
+        "name": "get_mantigo_admin_dashboard_backend",
+        "signature": "get_mantigo_admin_dashboard_backend(uuid)",
+        "search_path": "public",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "public_execute": false,
+        "definition_md5": "e70fa7e89df3b3c9780b91ea8f4706ee",
+        "expected_search_path": "",
+        "expected_authenticated_execute": true,
+        "expected_service_role_execute": false,
+        "status": "BLOCKED_SEARCH_PATH"
+      },
+      {
+        "name": "get_mantigo_admin_financial_report_backend",
+        "signature": "get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)",
+        "search_path": "public",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "public_execute": false,
+        "definition_md5": "70c62a8010ec2ecfff59c4ee3c4426b5",
+        "expected_search_path": "",
+        "expected_authenticated_execute": true,
+        "expected_service_role_execute": false,
+        "status": "BLOCKED_SEARCH_PATH"
+      },
+      {
+        "name": "mnty_can_platform_admin",
+        "signature": "mnty_can_platform_admin()",
+        "search_path": "public, pg_temp",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "public_execute": false,
+        "definition_md5": "0829122aa82b562af07d4f9caf3e7d60",
+        "expected_search_path": "",
+        "expected_authenticated_execute": true,
+        "expected_service_role_execute": false,
+        "status": "BLOCKED_SEARCH_PATH"
+      },
+      {
+        "name": "process_verified_digital_page_payment_backend",
+        "signature": "process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "search_path": "public, pg_temp",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": true,
+        "public_execute": false,
+        "definition_md5": "2815e7dda7ee28100a3b936fa41c41ab",
+        "expected_search_path": "",
+        "expected_authenticated_execute": false,
+        "expected_service_role_execute": true,
+        "status": "BLOCKED_SEARCH_PATH"
+      },
+      {
+        "name": "settle_mantigo_captain_backend",
+        "signature": "settle_mantigo_captain_backend(uuid,text,text)",
+        "search_path": "public",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": true,
+        "service_role_execute": false,
+        "public_execute": false,
+        "definition_md5": "87813956826cb6edafeaa6fe02fdd94f",
+        "expected_search_path": "",
+        "expected_authenticated_execute": true,
+        "expected_service_role_execute": false,
+        "status": "BLOCKED_SEARCH_PATH"
+      },
+      {
+        "name": "update_purchase_order_status_backend",
+        "signature": "update_purchase_order_status_backend(varchar,varchar)",
+        "search_path": "public",
+        "security_definer": true,
+        "anon_execute": false,
+        "authenticated_execute": false,
+        "service_role_execute": false,
+        "public_execute": false,
+        "definition_md5": "fbf950a4d97a3632e553f7becc52e113",
+        "expected_search_path": "",
+        "expected_authenticated_execute": true,
+        "expected_service_role_execute": false,
+        "status": "BLOCKED_SEARCH_PATH_AND_AUTH_EXECUTE"
+      }
+    ]
+  },
+  "release_gate_object_contracts": {
+    "present_function_security_check": {
+      "found_by_name": 7,
+      "fully_verified": 0,
+      "search_path_mismatches": 7,
+      "missing_expected_authenticated_execute": 1,
+      "detail": "All seven present-by-name SECURITY DEFINER functions have non-empty search_path; update_purchase_order_status_backend lacks expected authenticated EXECUTE."
+    }
   }
 }

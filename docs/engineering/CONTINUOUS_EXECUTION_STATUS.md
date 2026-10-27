@@ -412,3 +412,11 @@ The project instruction is to defer the comprehensive real-world acceptance camp
 - [x] Added negative CI fixtures for absent subscription claim RPC, journal uniqueness index, ERP line receiving RPC and MantiGo admin dashboard RPC; a single row cannot stand in for multiple required objects.
 - [x] Improved Production verifier diagnostics to list every non-passing object plus unresolved migration aliases and Qadam owner state.
 - [ ] All 60 object contracts remain blocked or unverified; no Production migration, schema/ledger/grant change or deploy was performed.
+
+
+## 2026-10-27 — Current-schema rehearsal plan
+
+- [x] Added `docs/release/current-schema-rehearsal-plan.md` with staged rehearsal, preflight, rollback and go/no-go criteria for all 41 distinct missing migration effects.
+- [x] Static source review identified high-risk effects: RC440 dynamically changes `search_path` for exposed SECURITY DEFINER functions; RC449A backfills existing journal rows; RC117 updates existing business/catalog/marketing-service image fields; RC437/RC442/RC444/RC447/RC452/RC525 replace policies/triggers or revoke privileges; unique indexes can fail on duplicate data.
+- [x] Read-only catalog check of 60 atomic object contracts: 7 are present by name/declared signature and 53 are absent. This is not a PASS result: exact signatures, body parity, ACL/search_path, RLS and runtime tests remain open for all 60.
+- [ ] Current-schema-and-data restore rehearsal remains the next blocking dependency. A clean disposable replay does not prove compatibility with live schema/data; no Production writes, migration-ledger repair, grant/RLS/Auth changes, Edge Function deploy or website deploy were performed.
