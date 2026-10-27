@@ -18,8 +18,14 @@ assert.notEqual(validateStart, -1, 'Pages workflow must define full validate job
 assert.notEqual(publicOnlyStart, -1, 'Pages workflow must define the narrow public-only validator');
 const validateBlock = lines.slice(validateStart, publicOnlyStart).join('\n');
 
-assert.match(validateBlock, /- name: Production verification engine[\s\S]*?run: npm run verify:production/,
-  'Full validation job must run the production certification verifier');
+assert.match(validateBlock, /Verify scoped catalog pilot release prerequisites[\s\S]*?node scripts\/production\/verify-catalog-pilot\.mjs/,
+  'Pages release must pass the catalog-specific production gate');
+assert.match(validateBlock, /npm run verify:production/,
+  'Full platform production certification must still run and be reported');
+assert.match(validateBlock, /FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS/,
+  'A blocked full platform gate may only be non-fatal for the independently verified catalog pilot');
+assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
+  'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
 assert.match(validateBlock, /Compose existing platform root with catalog as a separate module/,
   'Pages artifact must preserve the existing platform root and mount catalog under a subpath');
 assert.match(validateBlock, /cp -a web\/\.[\s\S]*?cp -a apps\/catalog-frontend\/dist\/\.[\s\S]*?catalog-app/,
