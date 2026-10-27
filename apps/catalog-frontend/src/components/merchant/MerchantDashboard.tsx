@@ -86,7 +86,7 @@ export const MerchantDashboard: React.FC = () => {
   const [formName, setFormName] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formType, setFormType] = useState<'product' | 'service'>('product');
-  const [formPrice, setFormPrice] = useState<number>(50);
+  const [formPrice, setFormPrice] = useState<string>('');
   const [formComparePrice, setFormComparePrice] = useState<string>('');
   const [formDescription, setFormDescription] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
@@ -156,7 +156,7 @@ export const MerchantDashboard: React.FC = () => {
     setFormName('');
     setFormCategory(businessProducts[0]?.category || 'عام');
     setFormType('product');
-    setFormPrice(50);
+    setFormPrice('');
     setFormComparePrice('');
     setFormDescription('');
     setFormImageSource('auto');
@@ -171,7 +171,7 @@ export const MerchantDashboard: React.FC = () => {
     setFormName(p.name);
     setFormCategory(p.category);
     setFormType(p.type);
-    setFormPrice(p.price);
+    setFormPrice(String(p.price));
     setFormComparePrice(p.comparePrice ? String(p.comparePrice) : '');
     setFormDescription(p.description);
     setFormImageSource(p.imageSource === 'auto' ? 'auto' : 'owner');
@@ -189,12 +189,17 @@ export const MerchantDashboard: React.FC = () => {
       setFormError('يرجى إدخال اسم المنتج أو الخدمة.');
       return;
     }
-    if (formPrice < 0) {
-      setFormError('يرجى تحديد سعر صالح بالجنيه المصري.');
+    const priceValue = formPrice.trim() === '' ? Number.NaN : Number(formPrice);
+    if (!Number.isFinite(priceValue) || priceValue < 0) {
+      setFormError('أدخل السعر الحقيقي للمنتج أو الخدمة بالجنيه المصري. اتركه دون حفظ حتى تعرف السعر الصحيح.');
       return;
     }
 
-    const comparePriceVal = formComparePrice ? parseFloat(formComparePrice) : undefined;
+    const comparePriceVal = formComparePrice.trim() ? Number(formComparePrice) : undefined;
+    if (comparePriceVal !== undefined && (!Number.isFinite(comparePriceVal) || comparePriceVal < 0)) {
+      setFormError('السعر قبل الخصم يجب أن يكون رقمًا صالحًا غير سالب.');
+      return;
+    }
 
     if (editingProduct) {
       try {
@@ -203,7 +208,7 @@ export const MerchantDashboard: React.FC = () => {
         name: formName,
         category: formCategory || 'عام',
         type: formType,
-        price: formPrice,
+        price: priceValue,
         comparePrice: comparePriceVal,
         description: formDescription,
         imageUrl: formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
@@ -218,7 +223,7 @@ export const MerchantDashboard: React.FC = () => {
         name: formName,
         category: formCategory || 'عام',
         type: formType,
-        price: formPrice,
+        price: priceValue,
         comparePrice: comparePriceVal,
         description: formDescription,
         imageUrl: formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
@@ -1014,7 +1019,7 @@ export const MerchantDashboard: React.FC = () => {
                     step="0.5"
                     required
                     value={formPrice}
-                    onChange={(e) => setFormPrice(parseFloat(e.target.value) || 0)}
+                    onChange={(e) => setFormPrice(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-hidden"
                   />
                 </div>

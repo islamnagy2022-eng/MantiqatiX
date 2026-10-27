@@ -125,6 +125,7 @@ jobs:
           node scripts/validate-restaurant-module-contract.mjs
           node scripts/validate-sensitive-module-writes.mjs
           node scripts/validate-catalog-production-module.mjs
+          node scripts/validate-catalog-product-price-input.mjs
           node scripts/validate-home-sponsored-ads.mjs
           node scripts/validate-home-production-content.mjs
       - name: Upload verification evidence
