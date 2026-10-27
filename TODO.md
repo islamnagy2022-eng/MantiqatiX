@@ -179,8 +179,9 @@ At the start of every continuation:
 - [x] Added guarded Edge Function actions `LIST_ACTIVITY_TYPES`, `UPSERT_ACTIVITY_TYPE`, and `SET_ACTIVITY_TYPE_STATUS` to `catalog-platform-admin`, with platform-admin validation and audit log writes. Not deployed.
 - [x] Added `web/platform-admin-taxonomy.js` and loaded it after `app.js`; the existing Super Admin control workspace now links to a hierarchy editor with search, create/edit, enable/disable, and reason capture. UI/API integration remains NOT VERIFIED until CI and authenticated E2E.
 - [x] Added `PLATFORM_DASHBOARD_METRICS` server action and dashboard cards for live business, owner-membership, customer-membership, subscription, taxonomy, and recent-audit counts. Visits, commissions, and claims explicitly return NOT WIRED rather than fabricated values; subscription counts are scoped through production business IDs.
-- [ ] Run SQL migration replay in an isolated/staging database; validate all FK targets, duplicate codes/IDs, RLS/grants, and rollback/forward-fix.
-- [ ] Run JS syntax/build and Edge Function typecheck; test list/upsert/status flows with a real SUPER_ADMIN and reject CUSTOMER/BUSINESS_OWNER requests.
+- [ ] Run SQL migration replay in an isolated/staging database; validate all FK targets, duplicate codes/IDs, RLS/grants, and rollback/forward-fix. Production check confirms `public.business_activity_types` does not exist yet; migration remains unapplied.
+- [x] JavaScript syntax parse for `web/platform-admin-taxonomy.js` passed via `new Function`.
+- [ ] Run repository CI/build and Edge Function TypeScript check; test list/upsert/status/dashboard flows with a real SUPER_ADMIN and reject CUSTOMER/BUSINESS_OWNER requests.
 - [ ] Wire the approved taxonomy into business onboarding, public discovery, search/autocomplete, subscriptions, and commission scope without breaking legacy category references.
 - [ ] Do not change production taxonomy until migration reconciliation, backup/PITR, and restore rehearsal gates are evidenced.
 
