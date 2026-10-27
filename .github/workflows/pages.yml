@@ -247,7 +247,8 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Require public-shell-only changed paths
+      - name: Classify changed paths for the public-only validation lane
+        id: path_gate
         env:
           BEFORE_SHA: ${{ github.event.before }}
           CURRENT_SHA: ${{ github.sha }}
@@ -259,21 +260,31 @@ jobs:
           while IFS= read -r path; do
             case "$path" in
               web/home.js|web/home.css|web/index.html|web/sw.js|scripts/validate-home-production-content.mjs|scripts/validate-sector-rendering.mjs|scripts/validate-marketing-campaign-ui.mjs|web/preview/restaurant-order.html|scripts/validate-preview-navigation.mjs) ;;
-              *) echo "Refusing public-only deployment because this path is outside the allowlist: $path"; exit 1 ;;
+              *)
+                echo "eligible=false" >> "$GITHUB_OUTPUT"
+                echo "PUBLIC_ONLY_GATE=NOT_APPLICABLE; non-public change detected: $path. The canonical full validation and deploy gate remain authoritative."
+                exit 0
+                ;;
             esac
           done < /tmp/changed-files.txt
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+          echo "PUBLIC_ONLY_GATE=ELIGIBLE"
       - name: Setup Node
+        if: steps.path_gate.outputs.eligible == 'true'
         uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Install web runtime dependency
+        if: steps.path_gate.outputs.eligible == 'true'
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
+        if: steps.path_gate.outputs.eligible == 'true'
         run: |
           mkdir -p web/vendor
           npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
       - name: Validate public-shell-only release
+        if: steps.path_gate.outputs.eligible == 'true'
         run: |
           set -euo pipefail
           node --check web/home.js

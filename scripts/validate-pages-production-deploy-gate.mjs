@@ -17,6 +17,15 @@ const publicOnlyStart = lines.findIndex(line => line === '  validate_public_only
 assert.notEqual(validateStart, -1, 'Pages workflow must define full validate job');
 assert.notEqual(publicOnlyStart, -1, 'Pages workflow must define the narrow public-only validator');
 const validateBlock = lines.slice(validateStart, publicOnlyStart).join('\n');
+const publicOnlyBlock = lines.slice(publicOnlyStart, blockStart).join('\n');
+assert.match(publicOnlyBlock, /id: path_gate[\s\S]*?PUBLIC_ONLY_GATE=NOT_APPLICABLE/,
+  'Non-public pushes must skip the narrow public-only lane instead of failing a valid full release');
+assert.match(publicOnlyBlock, /eligible=false[\s\S]*?canonical full validation and deploy gate remain authoritative/,
+  'The public-only lane must remain non-authoritative when backend/workflow files change');
+assert.ok((publicOnlyBlock.match(/if: steps\.path_gate\.outputs\.eligible == 'true'/g) || []).length >= 3,
+  'Setup and validation steps must be skipped when the change is not public-shell-only');
+assert.doesNotMatch(publicOnlyBlock, /Refusing public-only deployment because this path is outside the allowlist/,
+  'Non-public file changes must not fail the auxiliary public-only job when the canonical release gate validates them');
 
 assert.match(validateBlock, /Verify scoped catalog pilot release prerequisites[\s\S]*?node scripts\/production\/verify-catalog-pilot\.mjs/,
   'Pages release must pass the catalog-specific production gate');
