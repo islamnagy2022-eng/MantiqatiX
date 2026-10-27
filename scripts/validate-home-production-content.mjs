@@ -3,6 +3,7 @@ import fs from "node:fs";
 
 const home=fs.readFileSync("web/home.js","utf8");
 const css=fs.readFileSync("web/home.css","utf8");
+const previewWorkflow=fs.readFileSync(".github/workflows/preview-pages.yml","utf8");
 
 const forbidden=[
   ["نموذج إعلاني تجريبي","homepage must not ship fabricated sponsored offers"],
@@ -31,15 +32,11 @@ if(!home.includes("const PUBLIC_CATEGORY_ALIASES = {EDUCATION:'EDU',MARKETING:'D
 if(!home.includes("publicCategoryCode(x?.category_code)")) throw new Error("FAIL: live service counts must use canonical public sector codes");
 if(!home.includes("publicCategoryCode(x?.provider_kind)")) throw new Error("FAIL: live provider counts must use canonical public sector codes");
 if(!home.includes("Object.keys(PUBLIC_DIRECTORY_COUNTS||{})")) throw new Error("FAIL: public sector directory must include all discovered live sector codes");
-if(!home.includes('id="mx-module-hub"')) throw new Error("FAIL: public homepage must expose a full module tour");
-if(!home.includes('href="preview/dashboard.html"')) throw new Error("FAIL: module tour must link to the all-module demo dashboard");
-if(!home.includes('href="preview/dashboard.html" class="mx-ref-smm"') || !home.includes("معاينة جميع الموديولات")) throw new Error("FAIL: primary navigation must expose the all-module tour instead of a development-only placeholder");
-
-if(!home.includes('href="preview/index.html"')) throw new Error("FAIL: module tour must link to the interactive demo home");
-if(!home.includes('href="preview/restaurants.html">جرّب مساحة المطاعم والكافيهات</a>')) throw new Error("FAIL: public homepage must provide a direct entry to the restaurant/cafe demo");
-
-if(!home.includes("لا تنشئ طلبات أو مدفوعات حقيقية")) throw new Error("FAIL: module preview must clearly disclose its demo-only boundary");
-if(!css.includes(".mx-public-module-hub") || !css.includes("@media(max-width:760px){.mx-public-module-hub")) throw new Error("FAIL: public module tour must have responsive styles");
+if(home.includes('preview/')) throw new Error("FAIL: production homepage must not link to experimental preview routes");
+if(home.includes('mx-module-hub') || home.includes('معاينة جميع الموديولات')) throw new Error("FAIL: production homepage must not expose the demo module tour");
+if(home.includes('href="smm.html"')) throw new Error("FAIL: retired SMM route must not be exposed from the production homepage");
+if(previewWorkflow.includes("pages: write") || previewWorkflow.includes("actions/upload-pages-artifact") || previewWorkflow.includes("actions/deploy-pages")) throw new Error("FAIL: retired preview workflow must not publish to GitHub Pages");
+if(!/workflow_dispatch:/.test(previewWorkflow)) throw new Error("FAIL: retired preview workflow must not auto-trigger");
 for(const [needle,label] of [
   ['id="mx-category-filter-input"',"sector pages must expose a public category search"],
   ['id="mx-category-filter-clear"',"sector search must provide a clear action"],
