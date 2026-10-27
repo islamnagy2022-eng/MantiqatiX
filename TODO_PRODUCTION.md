@@ -455,6 +455,33 @@
 - [ ] Keep release status `BLOCKED / NOT CERTIFIED`: Production payment/finance E2E, restore rehearsal, live Edge Function contract parity, SMM gateway parity, live Auth security settings, browser/device E2E, monitoring/alert and rollback drills remain NOT VERIFIED.
 - [ ] Next safe action: resolve the cross-PR collision-check API failure and obtain current exact-head CI results for #413 and #414; separately reconcile the RC425–RC441 source-recovery PR against the latest main and full historical replay evidence before any merge decision.
 
+
+## 2026-10-27 — Verified CI checkpoint; live gate still blocked
+
+- [x] On branch `fix/production-launch-hardening-20261027`, chronological isolated replay `40453971339` passed after correcting taxonomy seed order. It applied 50 migrations from the captured disposable checkpoint and passed both tenant directions for own-row read / cross-tenant write denial across orders and payment intents.
+- [x] Exact-head CI `4eb74e97932ca93c047816ca5e6179dda83339d1`: [admin/onboarding typecheck](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024929), [module professionalization](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024908), [backend-only module boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024878), and [MantiGO privacy boundary](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454024869) all passed.
+- [x] Production read-only verification as of 2026-10-27: 292 migration-ledger rows, latest `20261027041549 qadam_alsaad_restore_contact_fields`; `platform_feature_flags=0`; `business_modules=600` and all 600 enabled. This contradicts stale `docs/release/production-migration-reconciliation.json` fields that still claim the live ledger ends at RC424. Do not update the manifest by guessing or changing historical versions; reconcile exact ledger/source versions first.
+- [x] Production `digital_page_payment_events` has RLS enabled and zero policies, but current effective database privileges show no SELECT/INSERT for `anon`, `authenticated`, or `service_role`; no direct access grant was found. Keep policy count zero pending confirmation of backend event ingestion contract.
+- [ ] Do not merge/deploy PR #411 yet: it remains Draft and not mergeable due stale base; successful isolated replay is not Production migration reconciliation, a live restore rehearsal, nor payment/finance runtime evidence.
+- [ ] Remaining P0 evidence: reconcile all 292 live migration statements/aliases with source; prove Supabase PITR/backup retention and perform isolated restore rehearsal; review exposed SECURITY DEFINER and anonymous RLS policies; enable leaked-password protection in managed Auth after impact review; run provider sandbox payment/webhook + finance E2E; verify Edge Function and SMM deployment parity; browser/device regression; monitoring/alert + rollback drill.
+
+
+## 2026-10-27 — Main production-gate execution evidence
+
+- [x] Latest Main verification run [40454352495](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454352495) executed the production verifier and returned `PRODUCTION_GATE=BLOCKED`; the catalog/deploy path did not pass validation. This is the intended fail-closed behavior, not a successful production release.
+- [x] The verifier confirmed no missing migration source files and no source timestamp/order conflicts, but correctly blocked on the live reconciliation manifest (`verified=false`, `required_release_migrations_applied=false`) and unresolved payment/finance E2E, backup/restore rehearsal, Edge Function contract, SMM parity, and live Auth security evidence.
+- [ ] Resolve mismatch between the live Supabase ledger (292 entries, latest `20261027041549 qadam_alsaad_restore_contact_fields`) and the stale reconciliation manifest without rewriting historical migration versions. Confirm source-ledger statement identity for each live post-RC424 entry before updating the manifest.
+- [ ] Keep deployment blocked until the reconciled evidence and all remaining P0 checks pass.
+
+
+## 2026-10-27 — PR overlap and continuation coordination
+
+- [x] Reviewed #414 and #416 diffs. They overlap on `web/app.js` and both correct the invalid `scope_type='PLATFORM'` lookup, but #414 adds a reusable resolver + contract test for GLOBAL/SECTOR/TENANT/BUSINESS/BRANCH and guarded UI features. Do not merge both unchanged; consolidate to one validated scope-aware implementation after rebasing on current main.
+- [x] Reviewed #415 saved order/pricing snapshots; it correctly keeps order status mutation server-authoritative and adds a contract test. This remains a UI/data-contract fix, not proof of real order/payment E2E.
+- [x] #413's source-only durable contact migration is valuable because the repair has already been read back from Production, but its PR is dirty after main moved. Rebase/update and rerun exact-head CI before merge; do not replay the data update as an extra Production write.
+- [ ] Reconcile open PRs #413–#416 with current main; review independent behavior/tests, then merge only a current, clean, fully checked PR at a time. Keep #411 Draft until base conflicts and P0 release evidence are addressed.
+- [ ] #347's restored SQL files are byte-identical to canonical source, but full chronological replay on the intended current base and all required acceptance evidence remain preconditions; do not merge solely because its diff is source-only.
+
 ## 2026-10-27 — Follow-up evidence
 
 - [x] PR #411 exact-head forward migration replay on commit `96fda2fbd9d885e727c65a626745d67c3154709d` passed in isolated Supabase/PostgreSQL CI: [run 40453971339](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40453971339). The job applied 50 forward migrations from the captured checkpoint and passed bidirectional tenant read isolation and cross-tenant UPDATE-denial assertions for orders/payment intents. This remains an isolated replay, not a Production migration or live backup/restore rehearsal.
