@@ -73,17 +73,18 @@ export interface Business {
   // Paymob Payment Gateway Configuration (تحدد من قبل الإدارة لكل نشاط)
   paymobConfig?: PaymobConfig;
 
-  // Billing, Registration & Admin-Only Commission (ولا يراه صاحب النشاط)
-  registrationDate: string; // تاريخ التسجيل
-  paymentDueDay: number; // يوم السداد من كل شهر (1-31)
-  paymentDueDate: string; // موعد السداد القادم (YYYY-MM-DD)
-  commissionPerOrder: number; // عمولة الإدارة (الافتراضي 0.01 جنيه ولا تظهر لصاحب النشاط)
-  totalOrdersCount: number; // عدد العمليات لاحتساب العمولات
-  paymentStatus: 'paid' | 'pending' | 'overdue' | 'frozen'; // حالة السداد
-  overdueDaysCount: number; // عدد أيام التأخر (1 إلى 5 إشعار، > 5 تجميد)
-  isFrozen: boolean; // تجميد نشاط الصفحة لعدم السداد
-  lastPaymentDate?: string; // تاريخ آخر سداد تم تأكيده من الإدارة
-  paymentConfirmedByAdmin: boolean; // تم تأكيد السداد من الإدارة
+  // Subscription state is server-backed. The catalog pilot does not calculate commissions or schedule overdue freezes.
+  registrationDate: string;
+  paymentDueDay: number; // 0 when no due day has been configured
+  paymentDueDate: string; // empty when no due date has been configured
+  commissionPerOrder: number; // legacy field; defaults to 0 until finance is verified
+  totalOrdersCount: number;
+  paymentStatus: 'paid' | 'pending' | 'overdue' | 'frozen';
+  overdueDaysCount: number; // recorded count only; no automatic scheduler is enabled
+  isFrozen: boolean; // persisted manual freeze state
+  lastPaymentDate?: string;
+  paymentConfirmedByAdmin: boolean;
+  isOfficialShowcase?: boolean; // platform-owned catalog exempt from commercial subscription
   tenantId?: string;
   branchId?: string;
   publicEnabled?: boolean;
