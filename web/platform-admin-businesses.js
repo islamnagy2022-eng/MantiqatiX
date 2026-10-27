@@ -114,7 +114,7 @@ async function loadTenants(){
 }
 function readBusinessForm(overlay){
  const val=id=>overlay.querySelector('#'+id)?.value?.trim()||'';
- return {id:val('mx-biz-id'),name:val('mx-biz-name'),activityCode:val('mx-biz-kind'),nameEn:val('mx-biz-en'),phone:val('mx-biz-phone'),address:val('mx-biz-address'),bio:val('mx-biz-bio'),governorate:val('mx-biz-gov'),markaz:val('mx-biz-markaz'),village:val('mx-biz-village'),workingHours:val('mx-biz-hours'),logoUrl:val('mx-biz-logo'),coverUrl:val('mx-biz-cover')};
+ return {id:val('mx-biz-id'),name:val('mx-biz-name'),activityCode:val('mx-biz-kind'),activityTypeId:val('mx-biz-specialty')||val('mx-biz-activity'),nameEn:val('mx-biz-en'),phone:val('mx-biz-phone'),address:val('mx-biz-address'),bio:val('mx-biz-bio'),governorate:val('mx-biz-gov'),markaz:val('mx-biz-markaz'),village:val('mx-biz-village'),workingHours:val('mx-biz-hours'),logoUrl:val('mx-biz-logo'),coverUrl:val('mx-biz-cover')};
 }
 function openCreate(){
  const body='<form id="mx-biz-create-form" class="form-grid"><div class="grid2">'+field('mx-biz-name','اسم النشاط *','','text','اسم النشاط')+
@@ -138,6 +138,50 @@ function openCreate(){
   }catch(e){out.textContent='تعذر الإنشاء: '+(e?.message||'خطأ غير معروف');button.disabled=false}
  });
 }
+async function initEditTaxonomy(m,b){
+ const overlay=m.overlay,sector=overlay.querySelector('#mx-biz-sector'),activity=overlay.querySelector('#mx-biz-activity'),specialty=overlay.querySelector('#mx-biz-specialty'),out=overlay.querySelector('#mx-biz-taxonomy-status');
+ if(!sector||!activity||!specialty)return;
+ let rows=[];
+ try{
+  const response=await api('LIST_ACTIVITY_TYPES');
+  rows=Array.isArray(response.activityTypes)?response.activityTypes:[];
+  if(!rows.some(x=>x.node_type==='SECTOR_GROUP'))throw new Error('سجل التصنيفات الهرمي غير متاح بعد');
+ }catch(e){
+  sector.innerHTML='<option value="">غير متاح</option>';sector.disabled=true;activity.innerHTML='<option value="">استخدم القطاع القديم</option>';specialty.innerHTML='<option value="">اختياري</option>';
+  out.textContent='لم يتوفر سجل التصنيفات الهرمي من الخادم: '+(e?.message||'غير متاح')+'. التعديل الحالي سيحافظ على التصنيف القديم ما لم تتوفر بيانات موثقة.';
+  return;
+ }
+ const sort=list=>[...list].sort((a,b)=>(Number(a.sort_order||100)-Number(b.sort_order||100))||String(a.name_ar||'').localeCompare(String(b.name_ar||''),'ar'));
+ const get=id=>rows.find(x=>String(x.id)===String(id));
+ const currentId=String(b.settings?.activity_type_id||'');
+ const currentNode=get(currentId);
+ let groupId='';
+ let activityId='';
+ let specialtyId='';
+ if(currentNode?.node_type==='SPECIALTY'){specialtyId=currentNode.id;activityId=currentNode.parent_id;groupId=get(activityId)?.parent_id||'';}
+ else if(currentNode?.node_type==='ACTIVITY'){activityId=currentNode.id;groupId=currentNode.parent_id||'';}
+ else groupId=String(b.settings?.activity_group_id||'');
+ const groups=sort(rows.filter(x=>x.node_type==='SECTOR_GROUP'));
+ sector.innerHTML='<option value="">اختر القطاع الرئيسي</option>'+groups.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar)+'</option>').join('');
+ const fillSpecialty=(preferred)=>{
+  const act=get(activity.value);const options=act?sort(rows.filter(x=>x.node_type==='SPECIALTY'&&String(x.parent_id)===String(act.id))):[];
+  specialty.innerHTML='<option value="">لا يوجد تخصص فرعي</option>'+options.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar)+'</option>').join('');
+  specialty.disabled=!options.length;
+  if(preferred&&options.some(x=>String(x.id)===String(preferred)))specialty.value=preferred;
+ };
+ const fillActivity=(preferAct='',preferSpec='')=>{
+  const g=get(sector.value);const options=g?sort(rows.filter(x=>x.node_type==='ACTIVITY'&&String(x.parent_id)===String(g.id))):[];
+  activity.innerHTML='<option value="">اختر النشاط</option>'+options.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name_ar)+'</option>').join('');
+  activity.disabled=!options.length;specialty.innerHTML='<option value="">لا يوجد تخصص فرعي</option>';specialty.disabled=true;
+  if(preferAct&&options.some(x=>String(x.id)===String(preferAct)))activity.value=preferAct;
+  fillSpecialty(preferSpec);
+ };
+ sector.addEventListener('change',()=>fillActivity('',''));
+ activity.addEventListener('change',()=>fillSpecialty(''));
+ if(groups.some(x=>String(x.id)===String(groupId)))sector.value=groupId;
+ fillActivity(activityId,specialtyId);
+ out.textContent='تم تحميل '+rows.length+' عناصر تصنيف. اختر النشاط والتخصص لمزامنة التصنيف مع ملف النشاط.';
+}
 function openEdit(b){
  const settings=b.settings||{},p=settings.catalog_profile||{};
  const body='<form id="mx-biz-edit-form" class="form-grid"><input id="mx-biz-id" type="hidden" value="'+esc(b.id)+'"><div class="grid2">'+
@@ -148,10 +192,11 @@ function openEdit(b){
  field('mx-biz-address','العنوان',p.address||settings.contact_address||'')+
  field('mx-biz-gov','المحافظة',p.governorate||'')+field('mx-biz-markaz','المركز/المدينة',p.markaz||'')+field('mx-biz-village','المنطقة/القرية',p.village||'')+
  field('mx-biz-hours','مواعيد العمل',p.working_hours||'')+field('mx-biz-logo','رابط الشعار',p.logo_url||'','url')+field('mx-biz-cover','رابط الغلاف',p.cover_url||'','url')+
- '</div><label class="field"><span>وصف النشاط</span><textarea id="mx-biz-bio" rows="4" maxlength="3000">'+esc(p.bio||'')+'</textarea></label>'+
+ '</div><section class="card" style="margin:12px 0;padding:14px"><h3 style="margin-top:0">القطاع والنشاط والتخصص</h3><p class="muted">يرتبط التصنيف الهرمي بالاسم الثابت للنشاط. إذا لم تكن ترحيلات التصنيف منشورة بعد، ستظل بيانات القطاع القديمة متاحة ولن يُرسل معرّف غير موثق.</p><div class="grid3"><label class="field"><span>القطاع الرئيسي</span><select id="mx-biz-sector" disabled><option value="">تحميل سجل التصنيفات…</option></select></label><label class="field"><span>النشاط</span><select id="mx-biz-activity" disabled><option value="">اختر القطاع أولًا</option></select></label><label class="field"><span>التخصص الفرعي</span><select id="mx-biz-specialty" disabled><option value="">اختياري</option></select></label></div><p id="mx-biz-taxonomy-status" class="muted" aria-live="polite">جاري تحميل التصنيفات النشطة…</p></section><label class="field"><span>وصف النشاط</span><textarea id="mx-biz-bio" rows="4" maxlength="3000">'+esc(p.bio||'')+'</textarea></label>'+
  '<label class="field"><span>سبب التعديل *</span><input id="mx-biz-reason" maxlength="500" required placeholder="سبب تعديل بيانات النشاط"></label>'+
  '<div class="action-bar"><button class="btn btn-primary" type="submit" style="width:auto">حفظ بيانات النشاط</button></div><p class="muted" id="mx-biz-edit-status" aria-live="polite"></p></form>';
  const m=modal('تعديل بيانات النشاط',body);
+ initEditTaxonomy(m,b);
  m.overlay.querySelector('#mx-biz-edit-form').addEventListener('submit',async e=>{
   e.preventDefault();const button=m.overlay.querySelector('[type=submit]'),out=m.overlay.querySelector('#mx-biz-edit-status');button.disabled=true;out.textContent='جارٍ الحفظ…';
   try{
