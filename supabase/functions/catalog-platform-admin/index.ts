@@ -526,12 +526,45 @@ Deno.serve(async (req: Request) => {
       const organizationId = platformMembership?.organization_id || orgs?.[0]?.id || null;
       const randomCode = crypto.randomUUID().slice(0, 8).toUpperCase();
       const slug = slugify(String(input.slug || name)) || `business-${randomCode.toLowerCase()}`;
+      const activityTypeId = String(input.activityTypeId || "").trim();
+      let selectedActivity: any = null;
+      let selectedActivityGroupId: string | null = null;
+      if (activityTypeId) {
+        const { data, error } = await service.from("business_activity_types")
+          .select("id,sector_id,parent_id,legacy_category_id,code,name_ar,node_type,status")
+          .eq("id", activityTypeId).eq("status", "ACTIVE").maybeSingle();
+        if (error) throw error;
+        if (!data || !["ACTIVITY", "SPECIALTY"].includes(String(data.node_type))) return response(origin, { error: "INVALID_ACTIVITY_TYPE" }, 400);
+        const { data: parent, error: parentError } = await service.from("business_activity_types")
+          .select("id,sector_id,parent_id,node_type,status").eq("id", data.parent_id).maybeSingle();
+        if (parentError) throw parentError;
+        const requiredParent = data.node_type === "ACTIVITY" ? "SECTOR_GROUP" : "ACTIVITY";
+        if (!parent || parent.status !== "ACTIVE" || parent.node_type !== requiredParent || String(parent.sector_id) !== String(data.sector_id)) {
+          return response(origin, { error: "INVALID_ACTIVITY_PARENT" }, 400);
+        }
+        selectedActivity = data;
+        if (data.node_type === "ACTIVITY") selectedActivityGroupId = String(parent.id);
+        else {
+          const { data: group, error: groupError } = await service.from("business_activity_types")
+            .select("id,sector_id,node_type,status").eq("id", parent.parent_id).maybeSingle();
+          if (groupError) throw groupError;
+          if (!group || group.status !== "ACTIVE" || group.node_type !== "SECTOR_GROUP" || String(group.sector_id) !== String(data.sector_id)) {
+            return response(origin, { error: "INVALID_ACTIVITY_SECTOR" }, 400);
+          }
+          selectedActivityGroupId = String(group.id);
+        }
+      }
       let createdBusinessId = "";
       try {
         const { data: created, error: createError } = await service.from("businesses").insert({
           tenant_id: tenantId, organization_id: organizationId, name,
           code: `MX-${randomCode}`, status: "ACTIVE",
-          settings: { activity_code: String(input.category || "retail"), catalog_public_enabled: false,
+          settings: {
+            activity_code: String(input.category || "retail"), catalog_public_enabled: false,
+            activity_type_id: selectedActivity?.id || null, activity_group_id: selectedActivityGroupId,
+            activity_type_code: selectedActivity?.code || null, activity_type_name_ar: selectedActivity?.name_ar || null,
+            activity_node_type: selectedActivity?.node_type || null, sector_id: selectedActivity?.sector_id || null,
+            legacy_category_id: selectedActivity?.legacy_category_id || null,
             catalog_profile: { bio: String(input.bio || "").slice(0, 3000), governorate: String(input.governorate || "").slice(0, 100), markaz: String(input.markaz || "").slice(0, 100), village: String(input.village || "").slice(0, 100), working_hours: String(input.workingHours || "").slice(0, 300), logo_url: String(input.logoUrl || "").slice(0, 1500), cover_url: String(input.coverUrl || "").slice(0, 1500) },
             bizcatalog: { paymentStatus: "pending", isFrozen: false, commissionPerOrder: 0.01, totalOrdersCount: 0, paymentDueDay: 1, paymentDueDate: new Date().toISOString().slice(0, 10), paymentConfirmedByAdmin: false } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
@@ -548,11 +581,11 @@ Deno.serve(async (req: Request) => {
         const { error: providerError } = await service.from("marketing_provider_profiles").insert({
           provider_kind: String(input.category || "retail").slice(0, 80), business_id: created.id,
           owner_user_id: null, name_ar: name, name_en: null, slug: `${slug}-${randomCode.toLowerCase()}`,
-          description: String(input.bio || "").slice(0, 3000) || null, specialties: [], service_areas: [], portfolio: [],
+          description: String(input.bio || "").slice(0, 3000) || null, specialties: selectedActivity?.name_ar ? [selectedActivity.name_ar] : [], service_areas: [], portfolio: [],
           status: "ACTIVE", is_verified: false, is_featured: false, ranking_weight: 0, settings: {},
         });
         if (providerError) throw providerError;
-        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category: String(input.category || "retail"), status: "ACTIVE" } }, 201);
+        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category: String(input.category || "retail"), activityTypeId: selectedActivity?.id || null, activityName: selectedActivity?.name_ar || null, status: "ACTIVE" } }, 201);
       } catch (error) {
         if (createdBusinessId) {
           await service.from("marketing_provider_profiles").delete().eq("business_id", createdBusinessId);
