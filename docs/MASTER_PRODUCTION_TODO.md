@@ -17,7 +17,7 @@
 1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
    - عميلان ومقدما خدمة من جهتين مختلفتين.
    - tenant/business/role isolation.
-   - OTP، انتهاء الجلسة، logout، refresh.
+   - Google OAuth، انتهاء الجلسة، logout، refresh.
    - منع IDOR والوصول إلى مستخدم/مزود آخر.
 
 2. E2E العميل → مقدم الخدمة → الطلب → الحالة → الإشعار — NOT VERIFIED
@@ -1843,3 +1843,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Remediation is proposed in PR `fix/catalog-role-view-guards`; do not mark complete until its latest-commit CI passes.
 - [ ] Active-subscription enforcement is NOT VERIFIED: the inspected catalog bootstrap uses active `user_memberships` and the inspected catalog RPC migration validates membership/tenant/business/branch scope, but this review has not established a canonical subscription entitlement source or a server-side subscription gate. Do not infer subscription enforcement from UI flags such as `isFrozen` / `paymentStatus`.
 - [ ] Authenticated browser E2E, role-switch/logout cache isolation, and cross-tenant adversarial tests remain NOT VERIFIED.
+
+
+## 2026-10-27 — Exact live migration-source reconciliation
+
+- [x] Live Production ledger read-only inventory: 292 rows, latest `20261027041549 qadam_alsaad_restore_contact_fields`.
+- [x] Exact statement/source identity verified for `20261027010135`, `20261027041411`, and `20261027041549`; exact-version source files are restored and the redundant pending marketing contact migration was removed.
+- [ ] Global production release remains BLOCKED: this resolves only three live ledger source identities, not the required RC425–RC441 migration chain, payment/finance E2E, backup/restore, live Auth/Edge Function parity, or browser/device regression.
