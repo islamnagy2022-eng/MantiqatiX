@@ -59,7 +59,8 @@ const requiredReleaseMigrations=[
   "20261027050000_rc115_control_center_integration.sql",
   "20261027060000_rc116_business_subscriber_admin.sql",
   "20261027070000_rc117_default_images_and_activity_admin.sql",
-  "20261027090000_rc113_user_membership_business_scope_idempotency.sql"
+  "20261027090000_rc113_user_membership_business_scope_idempotency.sql",
+  "20261027093000_add_qadam_alsaad_homewares_store.sql"
 ];
 const missingReleaseMigrations=requiredReleaseMigrations.filter(name=>!mf.includes(name));
 const presentReleaseMigrations=requiredReleaseMigrations.filter(name=>mf.includes(name));
