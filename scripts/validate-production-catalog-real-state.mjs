@@ -46,7 +46,7 @@ assert.match(itemPlaceholder, /صورة المنتج أو الخدمة غير م
 assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
 assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
-assert.match(productionMapper, /stockImage \? 'auto' : 'owner'/, 'legacy stock images must be converted to neutral auto placeholders rather than shown as owner photos');
+assert.match(productionMapper, /savedImageSource === 'auto' \|\| !savedImageUrl \|\| stockImage \|\| neutralPlaceholder \? 'auto' : 'owner'/, 'legacy stock images and neutral placeholders must be converted to auto placeholders rather than shown as owner photos');
 assert.match(productionMapper, /isNeutralPlaceholderUrl/, 'neutral placeholder images must not be treated as owner uploads');
 assert.match(productionMapper, /isStockImageUrl\(profile\.logoUrl/, 'legacy stock business logos and covers must be suppressed');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
