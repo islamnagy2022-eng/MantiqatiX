@@ -6,6 +6,7 @@ const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 const types = fs.readFileSync('apps/catalog-frontend/src/types/index.ts', 'utf8');
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
+const platformApp = fs.readFileSync('web/app.js', 'utf8');
 
 const createStart = backend.indexOf('if (action === "CREATE_SUBSCRIBER")');
 const statusStart = backend.indexOf('if (action === "SUBSCRIBER_STATUS")', createStart);
@@ -64,5 +65,15 @@ assert.match(context, /إعدادات Paymob غير متاحة للحفظ في �
   'Unverified Paymob configuration must remain disabled for the catalog pilot');
 assert.match(admin, /if \(!saved\) return;/,
   'The UI must not show a false success state when Paymob configuration is blocked');
+
+
+assert.match(platformApp, /اشتراك أساسي مدفوع/,
+  'Public subscription messaging must not advertise a free subscription');
+assert.match(platformApp, /يبدأ مقدم الخدمة بعد اختيار الاشتراك المدفوع المعتمد وتأكيد السداد/,
+  'Public copy must describe paid activation');
+assert.ok(!['الباقة المجانية', 'نماذج مجانية', 'مجاني</h3>', 'نظام مجاني', 'البدء مجانًا'].some(x => platformApp.includes(x)),
+  'The app UI must not advertise a free platform subscription');
+assert.ok(!platformApp.includes('خدمات التسويق الرقمي SMM') && !platformApp.includes('smmModulePage') && !platformApp.includes('href="smm.html"'),
+  'Deferred SMM must not be presented as an enabled app module');
 
 console.log('PAID_SUBSCRIPTION_ACTIVATION_GATE=PASS');
