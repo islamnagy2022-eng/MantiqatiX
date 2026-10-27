@@ -69,13 +69,43 @@ function bind(){
  });
 }
 function back(){current='التحكم الكامل';try{localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}\nfunction open(){if(role()!=='SUPER_ADMIN'){window.alert('هذه الشاشة لمالك المنصة المخول فقط.');return}current='إدارة القطاعات والأنشطة';try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}
-window.MNTYTaxonomyAdmin={open,back,refresh,render:page};
+window.MNTYTaxonomyAdmin={open,back,refresh,render:page,loadDashboard};
+async function loadDashboard(){
+ const root=document.getElementById('mx-platform-admin-dashboard-data');if(!root)return;
+ root.innerHTML='<p class="muted">جاري تحميل المؤشرات الحقيقية…</p>';
+ try{
+  const result=await call('PLATFORM_DASHBOARD_METRICS');
+  const m=result.metrics||{};
+  const card=(label,value,note)=>'<article class="card"><div class="muted">'+esc(label)+'</div><div class="kpi">'+esc(value===null||value===undefined?'غير موصل':value)+'</div><small>'+esc(note||'من البيانات الحية')+'</small></article>';
+  root.innerHTML='<div class="cards">'+
+   card('إجمالي الأنشطة',m.businesses,'سجلات الأنشطة ضمن نطاقات الإنتاج')+
+   card('الأنشطة النشطة',m.activeBusinesses,'الحالة ACTIVE')+
+   card('الأنشطة المتوقفة',m.inactiveBusinesses,'الحالة INACTIVE')+
+   card('الأنشطة المعلقة',m.suspendedBusinesses,'الحالة SUSPENDED')+
+   card('ملاك الأنشطة النشطون',m.activeOwners,'عدد العضويات النشطة')+
+   card('أنشطة بلا مالك نشط',m.unassignedBusinesses,'غير متاح إذا تجاوزت قراءة السجلات الحد الآمن')+
+   card('العملاء',m.customers,'عضويات CUSTOMER النشطة')+
+   card('الاشتراكات النشطة',m.activeSubscriptions,m.status==='LIVE'?'حالة الاشتراك ACTIVE':'مصدر الاشتراكات غير موصول')+
+   card('اشتراكات متأخرة',m.pastDueSubscriptions,'PAST_DUE / UNPAID')+
+   card('اشتراكات ملغاة',m.cancelledSubscriptions,'CANCELLED')+
+   card('المجموعات الرئيسية',m.activeActivityGroups,'سجل التصنيفات الهرمي')+
+   card('الأنشطة والتخصصات',m.activeActivities,'سجل التصنيفات الهرمي')+
+   card('الزيارات',m.visits,'غير موصول: لا يوجد مصدر تحليلات موثق')+
+   card('العمولات والمطالبات',m.commissionAccrued,'غير موصول حتى اعتماد ربط دفتر الأستاذ والتسويات')+
+   '</div>'+
+   '<section class="card" style="margin-top:14px;padding:16px"><h3>آخر الإجراءات الإدارية</h3>'+
+   ((result.recentAudit||[]).length?'<div class="table-wrap"><table><thead><tr><th>الإجراء</th><th>الكيان</th><th>النتيجة</th><th>الوقت</th></tr></thead><tbody>'+
+    result.recentAudit.map(a=>'<tr><td>'+esc(a.action)+'</td><td>'+esc(a.entity_type)+' / '+esc(a.entity_id)+'</td><td>'+esc(a.result)+'</td><td>'+esc(a.created_at?new Date(a.created_at).toLocaleString('ar-EG'):'—')+'</td></tr>').join('')+
+   '</tbody></table></div>':'<p class="muted">لا توجد إجراءات إدارية مسجلة ضمن النطاق الحالي.</p>')+
+   '<p class="muted">الزيارات والعمولات والمطالبات تعرض «غير موصل» إلى أن يثبت مصدرها وتعريفاتها؛ لن تُعرض أرقام تقديرية.</p></section>';
+ }catch(e){root.innerHTML='<div class="empty-state">تعذر تحميل لوحة المؤشرات من الخادم: '+esc(e?.message||'خطأ غير معروف')+'. لا يتم استخدام بيانات DEMO.</div>'}
+}
 const oldEnhanced=window.enhancedPageContent;
 if(typeof oldEnhanced==='function'){
  window.enhancedPageContent=function(){
   if(current==='إدارة القطاعات والأنشطة')return page();
   const html=oldEnhanced();
-  if(current==='التحكم الكامل'&&role()==='SUPER_ADMIN')return html+'<section class="card" style="margin-top:16px;padding:18px"><span class="eyebrow">ACTIVITY TAXONOMY</span><h2>إدارة القطاعات والأنشطة</h2><p>تحكم في القطاعات والأنشطة والتخصصات من سجل هرمي واحد.</p><button class="btn btn-primary" type="button" onclick="window.MNTYTaxonomyAdmin.open()">فتح إدارة القطاعات والأنشطة</button></section>';
+  if(current==='التحكم الكامل'&&role()==='SUPER_ADMIN'){setTimeout(loadDashboard,0);return html+'<section class="card" style="margin-top:16px;padding:18px"><div class="section-head"><div><span class="eyebrow">PLATFORM ADMIN DASHBOARD</span><h2>لوحة مؤشرات المنصة</h2><p>الأرقام التي تظهر هنا من البيانات الحقيقية. أي مؤشر غير موصول يظل واضحًا بدل اختلاق قيمة.</p></div><button class="btn btn-outline" type="button" onclick="window.MNTYTaxonomyAdmin.loadDashboard()">تحديث المؤشرات</button></div><div id="mx-platform-admin-dashboard-data"><p class="muted">جاري تحميل المؤشرات…</p></div></section><section class="card" style="margin-top:16px;padding:18px"><span class="eyebrow">ACTIVITY TAXONOMY</span><h2>إدارة القطاعات والأنشطة</h2><p>تحكم في القطاعات والأنشطة والتخصصات من سجل هرمي واحد.</p><button class="btn btn-primary" type="button" onclick="window.MNTYTaxonomyAdmin.open()">فتح إدارة القطاعات والأنشطة</button></section>';}
   return html;
  };
 }
