@@ -71,4 +71,4 @@ begin
     raise exception 'RC117_EXISTING_MARKETING_SERVICE_IMAGE_BACKFILL_INCOMPLETE';
   end if;
 end;
-$;
+$$;
