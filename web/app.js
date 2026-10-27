@@ -2165,7 +2165,7 @@ authRenderLock=true;
 try{
  // Activate a normal CUSTOMER membership for newly authenticated accounts; this is separate from business approval.
  try {
-  const {data:memberships,error:membershipError}=await sb.from('user_memberships').select('id').eq('user_id',authUser.id).eq('status','ACTIVE').limit(1);
+  const {data:memberships,error:membershipError}=await sb.from('user_memberships').select('id').eq('user_id',authUser.id).eq('tenant_id','MNTY-PLATFORM').eq('role','CUSTOMER').eq('status','ACTIVE').limit(1);
   if(!membershipError&&!(memberships||[]).length){
    const {data:activation,error:activationError}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
    if(activationError||activation?.error)console.warn('Automatic customer membership setup failed',activation?.error||activationError?.message);
