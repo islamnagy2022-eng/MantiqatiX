@@ -145,3 +145,20 @@ At the start of every continuation:
 4. Do not deploy or mutate production DB while backup/restore and release gates remain unverified.
 
 - **Confirmed action-dispatcher gap:** `catalog-platform-admin/index.ts` currently exposes only `TENANT_LIST`, `GET_SETTINGS`, `SAVE_SETTINGS`, `LIST_SUBSCRIBERS`, `CREATE_BUSINESS`, `CREATE_SUBSCRIBER`, `SUBSCRIBER_STATUS`, `BUSINESS_SETTINGS_UPDATE`, and `DEACTIVATE_BUSINESS`. Source inspection found no corresponding action for permanent business deletion, a complete activate/suspend/restore lifecycle, flexible commission rules, commission claims, or visits analytics in this function. Treat these as missing from this API surface until another verified backend contract is found.
+
+### Read-only production schema and permission findings — 2026-10-27
+
+- Live schema contains `businesses`, `business_subscriptions`, `commission_rules`, `commission_transactions`, `general_ledger`, `payment_events`, `payment_intents`, `payment_financial_reconciliations`, `audit_logs`, `business_categories`, and `user_memberships`.
+- Live functions include `create_commission_backend`, `preview_commission_backend`, `resolve_commission_rule_backend`, `record_cash_commission_due`, `deactivate_business`, `append_audit_log_backend`, and `mnty_can_platform_admin`. Reuse/verify these contracts before adding duplicates.
+- Live `commission_rules` schema currently includes tenant, optional business/module scope, rule type, percentage, fixed amount, per-item amount, active flag, and timestamps. It does not, in the inspected columns, expose effective dates, explicit priority/stacking behavior, or immutable rule snapshots on `commission_transactions`.
+- Live `commission_transactions` currently includes business/order/rule IDs, gross amount, commission amount, status, and timestamp. Need verify idempotency constraints and existing journal integration before extending.
+- Live `business_subscriptions` includes tier, billing cycle, status, start/end, provider references, payment intent, idempotency key, creator, and timestamps. This is a canonical source to build on; subscription changes need to preserve payment history.
+- The inspected high-impact tables have RLS enabled and forced. Current policies are primarily tenant/business-scoped: `business_subscriptions` has owner-scoped SELECT; `commission_rules` permits tenant OWNER/ADMIN/MANAGER operations; `commission_transactions` has finance-role read scope; `businesses` has tenant-manager policies plus a narrow public showcase read. A platform-wide admin UI must call server-side guarded contracts; do not bypass RLS with direct browser writes or grant broad client access.
+- Live routines query found no obvious routine named for commission claims, invoice/claim history, or traffic/visit analytics. That does not prove no alternative reporting source exists; inspect order, page-view, access-log, billing, and ledger sources before designing new tables.
+- The read-only production inspection made no database changes. No production migration was applied.
+
+### Next safe implementation slice
+- [ ] Map exact source and destination fields for platform admin business/subscription/commission operations and verify the full bodies of the existing SECURITY DEFINER routines, including grants, actor checks, search_path, idempotency, and audit behavior.
+- [ ] Inspect `catalog-platform-admin` full handler guard and current deployed Edge Function version/configuration; compare with repository source.
+- [ ] Define new platform-admin-only server contracts for missing operations, with reason-required state transitions and audit events. Do not expose service-role operations to the browser.
+- [ ] Implement the dashboard shell only after choosing verified real metrics; display unavailable metrics as unavailable, never as zeros/fake values.
