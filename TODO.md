@@ -205,3 +205,16 @@ At the start of every continuation:
 
 - [x] Expanded the hierarchy seed to 27 sectors with 133 activity records and 62 specialty records (including «فني تبريد»); static integrity check found no duplicate IDs/codes or orphan/mismatched parents.
 - [x] Added Deno 2 typecheck CI and corrected strict typing issues discovered in onboarding helpers; final workflow result still pending.
+
+## 2026-10-27 — Live Production checkpoint and migration replay blocker
+
+- [x] Read-only Supabase Production inspection completed against project `moyhiluyhjsujhwlyeuu`; Demo project remains `lkijdgqanbqjudiducjt`, with no cross-project writes performed.
+- [x] Production migration table currently contains 292 records; latest version is `20261027041549` / `qadam_alsaad_restore_contact_fields`. The later deployment manifest is stale relative to the live migration table and must be refreshed only after source/ledger identity and chronological ordering are reconciled.
+- [x] Read-only counts: `platform_feature_flags=0`; `business_modules=600`, all enabled; `user_memberships=48`, 43 ACTIVE. No feature-flag rows were inserted because absence of configuration must not grant new entitlements.
+- [x] Supabase Security Advisor at 2026-10-27 reported leaked-password protection disabled; `public.digital_page_payment_events` has RLS enabled but no policies; 1 anonymous-executable SECURITY DEFINER function and 48 authenticated-executable SECURITY DEFINER functions were flagged. Do not bulk-revoke without reviewing each caller contract.
+- [x] The release-forward-replay workflow `40453589750` failed inside the isolated disposable Supabase/Postgres environment at migration `20261027120000_business_activity_taxonomy_hierarchy.sql`, line 195: FK violation because activity seed rows referenced `SEC-ACCOUNTING` before its parent sector seed existed.
+- [x] Fixed the ordering on this branch only: seed existing canonical `business_sectors` and `business_categories` first, then insert top-level `business_activity_types` roots, then child activities/specialties. Commit: `96fda2fbd9d885e727c65a626745d67c3154709d`. Production was not modified.
+- [ ] Rerun the exact-head chronological replay and validate no later migrations fail; this fix is not VERIFIED until that run passes.
+- [ ] Review every Security Advisor finding, especially `digital_page_payment_events` with no policies and exposed SECURITY DEFINER RPCs, against intended public/backend access. Draft and test fixes in migrations/PRs; do not make blanket Production privilege changes.
+- [ ] Enable leaked-password protection through managed Supabase Auth settings only after confirming sign-in methods and account-password impact; current warning remains open.
+- [ ] Update `docs/release/production-migration-reconciliation.json` only when source/ledger reconciliation is evidenced. Keep `BLOCKED / NOT CERTIFIED`.
