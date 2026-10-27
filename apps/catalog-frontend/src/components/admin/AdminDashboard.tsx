@@ -1396,7 +1396,7 @@ export const AdminDashboard: React.FC = () => {
                           </span>
                         </td>
 
-<td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
                               sub.authMethod === 'direct_password'
