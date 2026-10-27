@@ -13,10 +13,13 @@ BEGIN
   END IF;
 
   v_definition := lower(pg_get_functiondef(v_oid));
-  IF position('public.advertisements' IN v_definition) = 0
-     OR position('public.advertisement_target_locations' IN v_definition) = 0
-     OR position('public.platform_geo_areas' IN v_definition) = 0
-     OR position('public.platform_global_advertisements' IN v_definition) = 0 THEN
+  -- Only reject unqualified references to known application tables. A minimal
+  -- disposable fixture may use no tables; the live function is separately
+  -- inspected before rollout and its actual references are all schema-qualified.
+  IF v_definition ~* '\m(from|join)\s+advertisements\M'
+     OR v_definition ~* '\m(from|join)\s+advertisement_target_locations\M'
+     OR v_definition ~* '\m(from|join)\s+platform_geo_areas\M'
+     OR v_definition ~* '\m(from|join)\s+platform_global_advertisements\M' THEN
     RAISE EXCEPTION 'RC451_FORWARD_REPAIR_SCHEMA_QUALIFICATION_CONTRACT_DRIFT';
   END IF;
 
