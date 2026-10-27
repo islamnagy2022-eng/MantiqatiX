@@ -190,9 +190,17 @@
       let image=''; try{image=activityImage(code)||'';}catch(_){}
       return '<button class="mx-category" type="button" aria-label="استكشف '+label+'" data-category="'+escapeHtml(code)+'"><span class="mx-category__media"><span class="mx-category__glyph" aria-hidden="true">'+icon+'</span>'+(image?'<img src="'+escapeHtml(image)+'" alt="" loading="eager" onerror="this.hidden=true">':'')+'</span><strong>'+label+'</strong><small>'+desc+'</small><span class="mx-category__cta">استكشف الأنشطة ←</span></button>';
     }).join('');
+    const promoMessages=["اكتشف الخدمات ومقدميها من مكان واحد","اعثر على الخدمة المناسبة لاحتياجك بسهولة","ابحث عن الأنشطة المتاحة في منطقتك","أضف نشاطك وابدأ بناء حضورك الرقمي","اعرض خدماتك ومعلومات نشاطك بوضوح","اجمع خدمات نشاطك في صفحة واحدة","تابع طلباتك من مساحة عمل موحدة","اكتشف المتاجر والمطاعم والخدمات المحلية","استكشف الأطباء والمراكز والمعامل والصيدليات","ابحث عن خدمات الصيانة والحرف المهنية","اكتشف التعليم والتدريب والخدمات التقنية","اعثر على المحلات والمنتجات والخدمات القريبة","روّج لنشاطك من خلال الإعلانات داخل المنصة","حدّث بيانات نشاطك بما يناسب خدماتك","اختر القطاع والنشاط المناسبين لعملك","سهّل على العملاء اكتشاف خدماتك","تصفح قطاعات متعددة من تجربة واحدة","ابدأ البحث بكلمة تصف ما تحتاجه","تابع تفاصيل الطلب وحالته من حسابك","تعرّف على مقدمي الخدمات المنشورين على المنصة","استكشف الخدمات المهنية وخيارات التواصل","جهّز ملف نشاطك الرقمي بطريقة منظمة","وسّع فرص ظهور نشاطك محليًا","MantiqatiX تجمع اكتشاف الخدمات وإدارة النشاط في مكان واحد","رحلتك للخدمة المناسبة تبدأ من MantiqatiX"];
+    const promoItems=promoMessages.map(msg=>'<span class="mx-ref-promo-rail__item">'+escapeHtml(msg)+'</span>').join('');
+    const promoMarkup='<section class="mx-ref-promo-rail" role="region" aria-label="رسائل MantiqatiX الترويجية">'+
+      '<strong class="mx-ref-promo-rail__brand">منصة MantiqatiX الذكية</strong>'+
+      '<div class="mx-ref-promo-rail__viewport" aria-label="رسائل متحركة">'+
+        '<div class="mx-ref-promo-rail__track"><div class="mx-ref-promo-rail__group">'+promoItems+'</div><div class="mx-ref-promo-rail__group" aria-hidden="true">'+promoItems+'</div></div>'+
+      '</div><button type="button" class="mx-ref-promo-rail__install" id="mx-ref-install-app">＋ تثبيت التطبيق</button></section>';
 
     app.innerHTML=`<div class="mx-home mx-ref-home" dir="rtl">
 <a class="mx-skip-link" href="#mx-home">تخطي إلى المحتوى الرئيسي</a>
+${promoMarkup}
 <header class="mx-ref-header"><div class="mx-ref-header__inner">
 <a class="mx-ref-brand" href="#mx-home" aria-label="MantiqatiX">${logo()}<span>MantiqatiX</span></a>
 <nav class="mx-ref-nav" aria-label="التنقل الرئيسي"><a class="is-active" href="#mx-home">الرئيسية</a><a href="#mx-categories">الخدمات</a><a href="#mx-module-hub">كل الموديولات</a><a href="#mx-nearby">مقدمو الخدمات</a><a href="#mx-offers">الإعلانات الممولة</a><a href="#mx-growth">لأصحاب الأنشطة</a><a href="#mx-about">من نحن</a><a href="preview/dashboard.html" class="mx-ref-smm" style="background:linear-gradient(135deg,#0750C9,#00A99D);color:#fff;box-shadow:0 5px 14px rgba(7,80,201,.22)">معاينة جميع الموديولات</a></nav>
@@ -235,6 +243,18 @@
 <nav class="mx-bottom-nav"><button type="button" id="mx-bottom-search"><span class="mx-bottom-icon mx-bottom-icon--search"></span><span>بحث</span></button><button type="button" id="mx-bottom-add" class="plus">＋</button><button type="button" id="mx-bottom-account"><span class="mx-bottom-icon mx-bottom-icon--account"></span><span>حسابي</span></button></nav>
 </div>`;
 
+    const installAppButton=document.getElementById('mx-ref-install-app');
+    if(installAppButton){
+      const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+      if(standalone)installAppButton.hidden=true;
+      installAppButton.addEventListener('click',()=>{
+        const launch=document.getElementById('mnty-install-launch');
+        if(launch){launch.click();return;}
+        const panel=document.getElementById('mnty-install-panel');
+        if(panel){panel.hidden=false;return;}
+        window.alert('لتثبيت التطبيق افتح قائمة المتصفح ثم اختر «إضافة إلى الشاشة الرئيسية».');
+      });
+    }
     const sideAd=document.getElementById('mx-side-ad');
     if(sideAd) sideAd.innerHTML='<div class="mx-side-banner__screen"><b>MantiqatiX</b><span>جارٍ تحميل الإعلان</span></div><div class="mx-side-banner__copy"><strong>مساحة إعلانية</strong><span>جارٍ التحقق من الإعلانات المنشورة</span></div>';
 
@@ -295,31 +315,6 @@ const categoryGrid=document.getElementById('mx-category-grid');
       }
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
-    const platformNotices=[
-      'استكشف الخدمات ومقدميها من مكان واحد.',
-      'احجز إعلان نشاطك مسبقًا بباقة ربع سنوية أو نصف سنوية أو سنوية.',
-      'أضف نشاطك إلى المنصة وابدأ في بناء حضورك الرقمي.',
-      'تابع الخدمات والطلبات من خلال تجربة MantiqatiX الموحدة.',
-      'MantiqatiX تربط العميل بمقدم الخدمة رقميًا دون الحلول محل مقدم الخدمة.'
-    ];
-    let platformNoticeIndex=0;
-    let platformNoticeTimer=null;
-    const renderPlatformNotice=()=>{
-      const el=document.getElementById('mx-platform-notice');
-      if(!el)return;
-      el.classList.remove('is-visible');
-      window.setTimeout(()=>{
-        el.textContent=platformNotices[platformNoticeIndex];
-        el.classList.add('is-visible');
-      },120);
-    };
-    renderPlatformNotice();
-    platformNoticeTimer=window.setInterval(()=>{
-      platformNoticeIndex=(platformNoticeIndex+1)%platformNotices.length;
-      renderPlatformNotice();
-    },3000);
-    window.addEventListener('pagehide',()=>{if(platformNoticeTimer)window.clearInterval(platformNoticeTimer)},{once:true});
-
     const openActivityRequestModal=async()=>{
       const overlay=document.createElement('div');
       overlay.className='mx-modal mx-home-request-modal';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','إضافة نشاط');
