@@ -68,7 +68,8 @@ function bind(){
   try{await call('UPSERT_ACTIVITY_TYPE',{activityType:payload});editing=null;await refresh()}catch(err){msg.textContent='تعذر الحفظ: '+(err?.message||'خطأ غير معروف');btn.disabled=false}
  });
 }
-function back(){current='التحكم الكامل';try{localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}\nfunction open(){if(role()!=='SUPER_ADMIN'){window.alert('هذه الشاشة لمالك المنصة المخول فقط.');return}current='إدارة القطاعات والأنشطة';try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}
+function back(){current='التحكم الكامل';try{localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}
+function open(){if(role()!=='SUPER_ADMIN'){window.alert('هذه الشاشة لمالك المنصة المخول فقط.');return}current='إدارة القطاعات والأنشطة';try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}
 window.MNTYTaxonomyAdmin={open,back,refresh,render:page,loadDashboard};
 async function loadDashboard(){
  const root=document.getElementById('mx-platform-admin-dashboard-data');if(!root)return;
