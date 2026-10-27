@@ -47,7 +47,6 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     if(action!=='UPDATE'&&!window.confirm(action==='DEACTIVATE'?'سيتم إيقاف ظهور النشاط ومنع استخدامه عبر الشاشات التي تتحقق من حالة النشاط. ستظل السجلات التاريخية محفوظة. متابعة؟':'إعادة تنشيط النشاط؟'))return;
     const draft=drafts[b.id]||draftFor(b);
     const profile=b.settings?.catalog_profile||{};
-    const defaults=resolveDefaultActivityImages({name:draft.name,description:draft.description,category:draft.category});
     const settings=action==='UPDATE'?{
       ...(b.settings||{}),
       display_name_ar:draft.name,
