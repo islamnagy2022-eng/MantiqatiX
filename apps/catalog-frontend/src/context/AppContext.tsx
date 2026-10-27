@@ -67,7 +67,7 @@ interface AppContextType {
   advanceBusinessOverdueDay: (businessId: string) => void;
   toggleBusinessFreeze: (businessId: string) => void;
   updateBusinessCommissionRate: (businessId: string, rate: number) => void;
-  updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => void;
+  updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => boolean;
   businessProducts: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
   updateProduct: (product: Product) => Promise<void>;
@@ -388,8 +388,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return result.business.id;
   };
 
-  const updateBusinessPaymobConfig = (_businessId: string, config: Partial<PaymobConfig>) => {
-    if (config.enabled) window.alert('الدفع الإلكتروني غير مفعّل في هذا الإصدار. لن يتم تحصيل أموال من خلال الكتالوج.');
+  const updateBusinessPaymobConfig = (_businessId: string, _config: Partial<PaymobConfig>): boolean => {
+    window.alert('إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي. لن يتم تفعيل الدفع الإلكتروني حتى اجتياز اختبارات الإنتاج.');
+    return false;
   };
   const updateBusinessLocation = async (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }): Promise<void> => {
     const business = businesses.find((b) => b.id === businessId);
