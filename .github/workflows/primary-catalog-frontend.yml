@@ -129,7 +129,7 @@ jobs:
           SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-directory-smoke.json --write-out '%{http_code}' --header "apikey: ${SUPABASE_ANON_KEY}" --header 'Accept: application/json' "${SUPABASE_URL}/functions/v1/public-catalog-directory")"
           test "${HTTP_CODE}" = "200"
-          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog-directory-smoke.json','utf8'));if(!Array.isArray(d.businesses)||d.accessMode!=='PUBLIC_DIRECTORY_READ_ONLY')process.exit(1);const s=JSON.stringify(d).toUpperCase();if(s.includes('MNTY-TEST-B')||s.includes('ISOLATION TEST'))process.exit(2);console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses='+d.businesses.length)"
+          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog-directory-smoke.json','utf8'));if(!Array.isArray(d.businesses)||d.accessMode!=='PUBLIC_DIRECTORY_READ_ONLY')process.exit(1);const q=d.businesses.find(b=>b.slug==='qadam-alsaad-homewares');if(!q||!Array.isArray(q.items)||q.items.length===0||q.accessMode!=='PUBLIC_READ_ONLY'||q.paymentsEnabled!==false)process.exit(3);const s=JSON.stringify(d).toUpperCase();if(s.includes('MNTY-TEST-B')||s.includes('ISOLATION TEST'))process.exit(2);console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses='+d.businesses.length+'; qadam_items='+q.items.length)"
       - name: Upload catalog build for review (no deployment)
         uses: actions/upload-artifact@v4
         with:
