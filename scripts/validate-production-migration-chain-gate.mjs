@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS } from "./production/live-reconciliation-contract.mjs";
+import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS, REQUIRED_MIGRATION_ALIASES } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
@@ -77,6 +77,7 @@ assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the inten
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
 assert.equal(REQUIRED_CORE_OBJECTS.length, 16, "release gate must track selected payment/finance core object contracts");
+assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
 assert.match(liveContract, /required_release_migration_ledger_check/, "exact live ledger version verification must be required");
@@ -133,6 +134,33 @@ const validReconciliation = {
       { slug: "smm-gateway", exact_match: true }
     ]
   },
+  migration_alias_resolution_check: {
+    status: "RECONCILED",
+    expected_aliases: REQUIRED_MIGRATION_ALIASES.length,
+    resolved_aliases: REQUIRED_MIGRATION_ALIASES.length,
+    aliases: REQUIRED_MIGRATION_ALIASES.map(alias => ({
+      ...alias,
+      status: "RECONCILED",
+      source_effect_verified: true,
+      ledger_repair_applied: true
+    }))
+  },
+  qadam_catalog_followup_check: {
+    status: "PASS",
+    migration_version: "20261027093000",
+    migration_version_recorded: true,
+    business_active: true,
+    contact_fields_complete: true,
+    owner_membership_status: "ACTIVE",
+    owner_membership_active: true,
+    expected_product_count: 15,
+    active_product_count: 15,
+    expected_price_rows: 12,
+    matching_price_rows: 12,
+    contact_for_price_product_count: 3,
+    contact_for_price_without_active_price: 3,
+    stock_tracking_enabled_item_count: 0
+  },
   security_definer_search_path_check: {
     status: "PASS",
     migration_version: "20261010200000",
@@ -168,6 +196,10 @@ const blockedFixtures = [
   value => { value.security_definer_search_path_check.current_search_path = ["search_path=public, pg_temp"]; },
   value => { value.security_definer_search_path_check.migration_version_recorded = false; },
   value => { value.required_release_migration_ledger_check.recorded_required_versions.pop(); },
+  value => { value.migration_alias_resolution_check.resolved_aliases = 1; },
+  value => { value.migration_alias_resolution_check.aliases[0].ledger_repair_applied = false; },
+  value => { value.qadam_catalog_followup_check.owner_membership_active = false; },
+  value => { value.qadam_catalog_followup_check.matching_price_rows = 11; },
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.business_employees"); },
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); }
 ];
