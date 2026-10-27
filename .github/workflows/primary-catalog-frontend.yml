@@ -7,6 +7,7 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-production-gate-contract.mjs"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
       - "supabase/functions/_shared/**"
@@ -30,6 +31,7 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-production-gate-contract.mjs"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
       - "supabase/functions/_shared/**"
@@ -67,6 +69,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
           fetch-depth: 0
+      - name: Verify catalog deployment is bound to the production gate
+        run: node scripts/validate-production-gate-contract.mjs
       - name: Verify release source files
         run: |
           set -euo pipefail
@@ -122,10 +126,29 @@ jobs:
           path: apps/catalog-frontend/dist
           if-no-files-found: error
 
-  deploy:
-    # Catalog-only deployment is independent from broader MantiqatiX full-suite gate.
-    needs: [build]
+  production_gate:
+    # A catalog UI release must not bypass the platform production-readiness gate.
+    # Pull requests validate the build; only pushes to main run the live release gate.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout production source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install production verifier dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Require production readiness certification
+        run: npm run verify:production
+
+  deploy:
+    # Deployment is blocked unless the full production gate certifies readiness.
+    needs: [build, production_gate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.production_gate.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
