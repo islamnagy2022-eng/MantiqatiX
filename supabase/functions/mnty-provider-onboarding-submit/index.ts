@@ -17,7 +17,7 @@ Deno.serve(async(req)=>{
  const name=String(b?.business_name||"").trim().slice(0,180),kind=String(b?.provider_kind||"").trim().slice(0,80);
  const phone=String(b?.contact_phone||"").trim().slice(0,40),contactName=String(b?.contact_name||"").trim().slice(0,160);
  const phoneDigits=phone.replace(/\\D/g,"");
- if(tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2||phoneDigits.length<8||phoneDigits.length>15)
+ if(tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2||contactName.length<2||phoneDigits.length<8||phoneDigits.length>15)
    return json({error:"business_name_activity_and_valid_contact_phone_required"},400);
  const arr=(v,max=30)=>Array.isArray(v)?v.map(x=>String(x??"").trim()).filter(Boolean).slice(0,max):[];
  const rawAreas=Array.isArray(b?.service_areas)?b.service_areas.slice(0,10):[];
@@ -31,7 +31,7 @@ Deno.serve(async(req)=>{
  const {data:center,error:centerErr}=await admin.from("platform_geo_areas").select("id,code,name_ar,name_en,parent_id").eq("id",String(area.center_id)).eq("country_code","EG").eq("level","CENTER").eq("status","ACTIVE").eq("parent_id",gov.id).maybeSingle();
  if(centerErr)return json({error:"center_lookup_failed"},500);
  if(!center||center.code!==String(area.center_code)||center.name_ar!==String(area.center_name_ar))return json({error:"invalid_center"},400);
- const normalizedArea={governorate_id:gov.id,governorate_code:gov.code,governorate_name_ar:gov.name_ar,governorate_name_en:gov.name_en||"",center_id:center.id,center_code:center.code,center_name_ar:center.name_ar,center_name_en:center.name_en||""};
+ const normalizedArea={governorate_id:gov.id,governorate_code:gov.code,governorate_name_ar:gov.name_ar,governorate_name_en:gov.name_en||"",center_id:center.id,center_code:center.code,center_name_ar:center.name_ar,center_name_en:center.name_en||"",address:String(area.address||"").trim().slice(0,300)};
  const {data:mem,error:memErr}=await admin.from("user_memberships").select("id").eq("user_id",user.id).eq("tenant_id",tenant).eq("status","ACTIVE").eq("role","CUSTOMER").limit(1).maybeSingle();
  if(memErr)return json({error:"membership_lookup_failed"},500);
  if(!mem)return json({error:"customer_membership_required"},403);
