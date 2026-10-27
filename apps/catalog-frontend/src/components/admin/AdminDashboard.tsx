@@ -202,7 +202,7 @@ export const AdminDashboard: React.FC = () => {
     e.preventDefault();
     if (!selectedPaymobBiz) return;
 
-    updateBusinessPaymobConfig(selectedPaymobBiz.id, {
+    const saved = updateBusinessPaymobConfig(selectedPaymobBiz.id, {
       enabled: paymobEnabled,
       feeType: paymobFeeType,
       feePercentage: Number(paymobFeePercentage) || 0,
@@ -213,6 +213,7 @@ export const AdminDashboard: React.FC = () => {
       integrationIdWallet: paymobIntegrationIdWallet,
       notesForCustomer: paymobNotesForCustomer,
     });
+    if (!saved) return;
 
     setPaymobSaveSuccess(true);
     setTimeout(() => {
