@@ -254,7 +254,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Carrying arbitrary query/hash state into Supabase redirect allowlists can
       // cause a successful Google consent flow to return without hydrating the app.
       // Supabase currently allowlists the platform root. The root shell relays
-      // only OAuth callback parameters to /catalog-app/ before loading its own app.
+      // OAuth returns directly to the catalog application at the primary site root.
       const redirectTo = new URL('/MantiqatiX/', window.location.origin).toString();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
