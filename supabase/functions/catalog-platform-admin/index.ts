@@ -156,6 +156,35 @@ Deno.serve(async (req: Request) => {
       const organizationId = platformMembership?.organization_id || orgs?.[0]?.id || null;
       const randomCode = crypto.randomUUID().slice(0, 8).toUpperCase();
       const slug = slugify(String(input.slug || name)) || `business-${randomCode.toLowerCase()}`;
+
+      const hasCommissionInput = input.commissionPerOrder !== undefined && input.commissionPerOrder !== null && input.commissionPerOrder !== "";
+      const commissionCandidate = hasCommissionInput ? Number(input.commissionPerOrder) : 0.01;
+      if (!Number.isFinite(commissionCandidate) || commissionCandidate < 0 || commissionCandidate > 1000000) {
+        return response(origin, { error: "INVALID_COMMISSION_PER_ORDER" }, 400);
+      }
+      const commissionPerOrder = commissionCandidate;
+
+      const hasDueDayInput = input.paymentDueDay !== undefined && input.paymentDueDay !== null && input.paymentDueDay !== "";
+      const dueDayCandidate = hasDueDayInput ? Number(input.paymentDueDay) : 1;
+      if (!Number.isInteger(dueDayCandidate) || dueDayCandidate < 1 || dueDayCandidate > 31) {
+        return response(origin, { error: "INVALID_PAYMENT_DUE_DAY" }, 400);
+      }
+      const paymentDueDay = dueDayCandidate;
+      const allowedFunctionalGroups = new Set(["dining", "retail", "services", "healthcare", "crafts_maintenance"]);
+      const requestedFunctionalGroup = String(input.functionalGroupId || "").trim();
+      const functionalGroupId = allowedFunctionalGroups.has(requestedFunctionalGroup) ? requestedFunctionalGroup : null;
+
+      const now = new Date();
+      const today = now.toISOString().slice(0, 10);
+      let dueYear = now.getUTCFullYear();
+      let dueMonth = now.getUTCMonth();
+      if (paymentDueDay < now.getUTCDate()) {
+        dueMonth += 1;
+        if (dueMonth > 11) { dueMonth = 0; dueYear += 1; }
+      }
+      const lastDayOfDueMonth = new Date(Date.UTC(dueYear, dueMonth + 1, 0)).getUTCDate();
+      const paymentDueDate = new Date(Date.UTC(dueYear, dueMonth, Math.min(paymentDueDay, lastDayOfDueMonth))).toISOString().slice(0, 10);
+
       let createdBusinessId = "";
       try {
         const { data: created, error: createError } = await service.from("businesses").insert({
@@ -163,7 +192,7 @@ Deno.serve(async (req: Request) => {
           code: `MX-${randomCode}`, status: "ACTIVE",
           settings: { activity_code: String(input.category || "retail"), catalog_public_enabled: false,
             catalog_profile: { bio: String(input.bio || "").slice(0, 3000), governorate: String(input.governorate || "").slice(0, 100), markaz: String(input.markaz || "").slice(0, 100), village: String(input.village || "").slice(0, 100), working_hours: String(input.workingHours || "").slice(0, 300), logo_url: String(input.logoUrl || "").slice(0, 1500), cover_url: String(input.coverUrl || "").slice(0, 1500) },
-            bizcatalog: { paymentStatus: "pending", isFrozen: false, commissionPerOrder: 0.01, totalOrdersCount: 0, paymentDueDay: 1, paymentDueDate: new Date().toISOString().slice(0, 10), paymentConfirmedByAdmin: false } },
+            bizcatalog: { registrationDate: today, paymentStatus: "pending", isFrozen: false, commissionPerOrder, totalOrdersCount: 0, paymentDueDay, paymentDueDate, paymentConfirmedByAdmin: false, ...(functionalGroupId ? { functionalGroupId } : {}) } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
         if (createError) throw createError;
         createdBusinessId = String(created.id);
