@@ -63,6 +63,12 @@ if (migration.includes("IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')") ||
   throw new Error('FAIL: global profile writes must require business-wide owner/admin scope and must not change the separate catalog publication flag from a stale client snapshot.');
 }
 
+if (migration.includes("'publicEnabled', coalesce(p_public_enabled, false)") ||
+    !migration.includes("INTO v_profile, v_public_enabled") ||
+    !migration.includes("'publicEnabled', v_public_enabled")) {
+  throw new Error('FAIL: profile RPC must report the persisted catalog publication state, not echo a stale client argument.');
+}
+
 for (const marker of [
   'UNAUTHENTICATED',
   'INVALID_BUSINESS_PROFILE',
