@@ -94,8 +94,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category)?.id,
     functionalGroupId: groupFromCategory(category),
-    logoUrl: String(profile.logoUrl || profile.logo_url || raw.logoUrl || ''),
-    coverUrl: String(profile.coverUrl || profile.cover_url || raw.coverUrl || ''),
+    logoUrl: isStockImageUrl(profile.logoUrl || profile.logo_url || raw.logoUrl) ? '' : String(profile.logoUrl || profile.logo_url || raw.logoUrl || ''),
+    coverUrl: isStockImageUrl(profile.coverUrl || profile.cover_url || raw.coverUrl) ? '' : String(profile.coverUrl || profile.cover_url || raw.coverUrl || ''),
     bio: String(profile.bio || raw.bio || provider?.description || ''),
     ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
     phone: String(branch.phone || profile.phone || ''), email: String(raw.email || ''),
@@ -134,8 +134,9 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const description = String(i.description || '');
     const category = String(metadata.category || i.category || 'عام');
     const savedImageUrl = String(metadata.image_url || '').trim();
-    const imageSource: 'auto' | 'owner' = metadata.image_source === 'auto' || !savedImageUrl ? 'auto' : 'owner';
-    const imageUrl = savedImageUrl || resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
+    const stockImage = isStockImageUrl(savedImageUrl);
+    const imageSource: 'auto' | 'owner' = metadata.image_source === 'auto' || !savedImageUrl || stockImage ? 'auto' : 'owner';
+    const imageUrl = imageSource === 'owner' ? savedImageUrl : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
     // Service requests with hidden prices are quotable services, not unavailable products.
     const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
     const available = metadata.is_available !== false && (
@@ -152,6 +153,9 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     } as Product;
   });
 }
+
+const isStockImageUrl = (value: unknown): boolean =>
+  /^https:\/\/images\.unsplash\.com\//i.test(String(value || '').trim());
 
 const isPlatformAdmin = (m: any) => String(m.role || '').toUpperCase() === 'SUPER_ADMIN'
   && !m.business_id && !m.branch_id && m.permissions?.scope === 'PLATFORM' && m.permissions?.full_control === true;
