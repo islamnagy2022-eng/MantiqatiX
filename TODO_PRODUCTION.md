@@ -463,3 +463,12 @@
 - [🟡] PR #411 remains a draft and must not be merged as a shortcut: the current head has queued/running validation, including production workflow and migration-chain checks. Wait for all exact-head checks to finish and inspect their results.
 - [🟡] Open-PR migration collision guard: an earlier run failed because the GitHub installation API hit rate limiting (403), not because a concrete duplicate version was reported. A newer run for PR #411 is currently in progress at evidence capture time; its outcome is NOT VERIFIED.
 - [ ] Next safe work: monitor exact-head checks for #411 and review its migration/workflow patch; rerun/review collision guard to a definitive result; update the main-based migration recovery PR #347 to the current base and rerun full chronological disposable replay. Keep production gate BLOCKED until outstanding live evidence exists.
+
+
+## 2026-10-27 — Continuation evidence refresh (after follow-up PRs)
+
+- [🟡] PR #412 remains closed without merge; the scoped successors are #413 and #414. Current open work also includes #415 (historical order-item/pricing snapshots), #416 (workspace feature-flag scope loading), and draft #411 (production deploy gates and rollback documentation).
+- [🟡] Exact-head Actions were rechecked for #413, #414, #415, and #416. Source/contract checks returned success for the listed relevant jobs, but their "Deploy MantiqatiX Web" workflow runs were cancelled. No live deployment is claimed for these PRs.
+- [🟡] PR #411 remains a draft and must not be merged as a shortcut: the current head has queued/running validation, including production workflow and migration-chain checks. Wait for all exact-head checks to finish and inspect their results.
+- [🟡] Open-PR migration collision guard: an earlier run failed because the GitHub installation API hit rate limiting (403), not because a concrete duplicate version was reported. A newer run for PR #411 is currently in progress at evidence capture time; its outcome is NOT VERIFIED.
+- [ ] Next safe work: monitor exact-head checks for #411 and review its migration/workflow patch; rerun/review collision guard to a definitive result; update the main-based migration recovery PR #347 to the current base and rerun full chronological disposable replay. Keep production gate BLOCKED until outstanding live evidence exists.
