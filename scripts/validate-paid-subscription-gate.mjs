@@ -44,7 +44,7 @@ assert.match(types, /status: 'active' \| 'pending' \| 'suspended'/,
   'Subscriber model must represent pending payment');
 assert.match(context, /const confirmAdminPayment = async/,
   'Payment confirmation must be awaited');
-assert.match(context, /settings: \{ paymentConfirmedByAdmin: true, paymentStatus: 'paid'/,
+assert.match(context, /await updateBillingSetting\(businessId, \{[\s\S]{0,180}paymentConfirmedByAdmin: true, paymentStatus: 'paid'/,
   'Client must persist confirmed payment before attempting activation');
 assert.match(context, /const pending = subscribers\.filter\(\(subscriber\) => subscriber\.businessId === businessId && subscriber\.status === 'pending'\)/,
   'Client must reflect pending subscriber activation after payment confirmation');
