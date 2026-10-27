@@ -1355,7 +1355,7 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3.5 px-4">المشترك</th>
                     <th className="py-3.5 px-4">النشاط المخصص</th>
                     <th className="py-3.5 px-4">حساب Google</th>
-                    
+                    <th className="py-3.5 px-4">حالة الاشتراك</th>
                     <th className="py-3.5 px-4">طريقة التعيين</th>
                     <th className="py-3.5 px-4 text-center">نسخ البيانات</th>
                     <th className="py-3.5 px-4 text-center">دعوة Gmail</th>
@@ -1386,10 +1386,17 @@ export const AdminDashboard: React.FC = () => {
                         <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
                           {sub.username || sub.email.split('@')[0]}
                         </td>
-
-
-
                         <td className="py-3.5 px-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
+                            sub.status === 'active' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : sub.status === 'pending' ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                          }`}>
+                            {sub.status === 'active' ? 'نشط' : sub.status === 'pending' ? 'بانتظار السداد' : 'موقوف'}
+                          </span>
+                        </td>
+
+<td className="py-3.5 px-4">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
                               sub.authMethod === 'direct_password'
