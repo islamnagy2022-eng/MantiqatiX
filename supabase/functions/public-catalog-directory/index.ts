@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
         name: activityName,
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
-        profile: { bio: String(profile.bio || provider?.description || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url) || defaultImages.coverUrl, category: activityCategory, whatsappPhone },
+        profile: { bio: String(profile.bio || provider?.description || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url) || defaultImages.coverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
         provider: { kind: activityCategory, description: provider?.description || profile.bio || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
         catalogPublished, publicEnabled: catalogPublished, paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
