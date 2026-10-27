@@ -8,6 +8,7 @@ on:
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
+      - "scripts/validate-catalog-membership-bootstrap.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
@@ -38,6 +39,7 @@ on:
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
+      - "scripts/validate-catalog-membership-bootstrap.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
@@ -93,6 +95,8 @@ jobs:
         run: node scripts/validate-catalog-google-auth-contract.mjs
       - name: Verify paid subscription activation gate
         run: node scripts/validate-paid-subscription-gate.mjs
+      - name: Verify membership bootstrap fails closed
+        run: node scripts/validate-catalog-membership-bootstrap.mjs
       - name: Verify production catalog uses real persisted state
         run: node scripts/validate-production-catalog-real-state.mjs
       - name: Verify scoped catalog pilot release prerequisites
