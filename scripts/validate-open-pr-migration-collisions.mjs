@@ -87,12 +87,13 @@ if (process.argv.includes("--self-test")) {
   process.exit(0);
 }
 
+const token = process.env.GITHUB_TOKEN;
 const repository = process.env.GITHUB_REPOSITORY;
 const currentPrNumber = Number(process.env.PULL_REQUEST_NUMBER);
 const baseRef = process.env.PULL_REQUEST_BASE_REF || "main";
-if (!repository || !Number.isInteger(currentPrNumber) || currentPrNumber < 1 ||
+if (!token || !repository || !Number.isInteger(currentPrNumber) || currentPrNumber < 1 ||
     !/^[A-Za-z0-9._/-]+$/.test(baseRef) || baseRef.includes("..")) {
-  console.error("Missing or invalid GITHUB_REPOSITORY, PULL_REQUEST_NUMBER, or PULL_REQUEST_BASE_REF.");
+  console.error("Missing or invalid GITHUB_TOKEN, GITHUB_REPOSITORY, PULL_REQUEST_NUMBER, or PULL_REQUEST_BASE_REF.");
   process.exit(2);
 }
 
@@ -104,71 +105,110 @@ function git(args) {
   }).trim();
 }
 
-function isAncestor(candidateBase, targetRef) {
-  try {
-    git(["merge-base", "--is-ancestor", candidateBase, targetRef]);
-    return true;
-  } catch {
-    return false;
+async function graphql(query, variables) {
+  const response = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+      "X-GitHub-Api-Version": "2022-11-28"
+    },
+    body: JSON.stringify({ query, variables })
+  });
+  const body = await response.text();
+  if (!response.ok) {
+    throw new Error("GitHub GraphQL request failed (" + response.status + "): " + body.slice(0, 400));
   }
+  const payload = JSON.parse(body);
+  if (payload.errors?.length) {
+    throw new Error("GitHub GraphQL returned errors: " + payload.errors.map(e => e.message).join("; "));
+  }
+  return payload.data;
 }
 
-function entriesForMergeRef(prNumber, mergeRef) {
-  const parent = git(["rev-parse", mergeRef + "^1"]);
-  const targetRef = "refs/remotes/origin/" + baseRef;
-  // Only compare PRs whose synthetic merge base belongs to the selected target
-  // branch's history. This keeps feature-branch PRs out of the main release set.
-  if (!isAncestor(parent, targetRef)) return { prNumber, entries: [], comparable: false };
+async function getOpenPullRequests(owner, name) {
+  const query = "query($owner: String!, $name: String!, $cursor: String) {\\n" +
+    " repository(owner: $owner, name: $name) {\\n" +
+    "  pullRequests(first: 100, states: OPEN, after: $cursor, orderBy: {field: UPDATED_AT, direction: DESC}) {\\n" +
+    "   pageInfo { hasNextPage endCursor }\\n" +
+    "   nodes { number title url baseRefName baseRepository { nameWithOwner } headRefOid }\\n" +
+    "  }\\n" +
+    " }\\n" +
+    "}";
+  const pulls = [];
+  let cursor = null;
+  do {
+    const data = await graphql(query, { owner, name, cursor });
+    const connection = data?.repository?.pullRequests;
+    if (!connection) throw new Error("GraphQL did not return the repository pull-request connection.");
+    pulls.push(...connection.nodes);
+    cursor = connection.pageInfo.hasNextPage ? connection.pageInfo.endCursor : null;
+  } while (cursor);
+  return pulls;
+}
 
+function migrationEntriesForHead(prNumber, headRef) {
+  const mergeBase = git(["merge-base", "refs/remotes/origin/" + baseRef, headRef]);
   const output = git([
     "diff", "--name-status", "--no-renames",
-    mergeRef + "^1", mergeRef, "--", "supabase/migrations"
+    mergeBase, headRef, "--", "supabase/migrations"
   ]);
   const entries = [];
-  for (const line of output.split(/\r?\n/).filter(Boolean)) {
-    const [status, file] = line.split("\t");
+  for (const line of output.split(/\\r?\\n/).filter(Boolean)) {
+    const [status, file] = line.split("\\t");
     if (!file || status === "D") continue;
     const match = migrationPattern.exec(file);
     if (!match) continue;
-    const sha = git(["rev-parse", mergeRef + ":" + file]);
+    const sha = git(["rev-parse", headRef + ":" + file]);
     entries.push({ version: match[1], file, prNumber, sha });
   }
-  return { prNumber, entries, comparable: true };
+  return entries;
 }
 
 try {
-  // REST API calls can share an installation-wide rate limit across many CI
-  // runs. Enumerate GitHub's read-only PR merge refs through Git instead of
-  // requesting every open PR and its changed-file list via REST.
-  git([
-    "fetch", "--no-tags", "origin",
-    "+refs/heads/" + baseRef + ":refs/remotes/origin/" + baseRef,
-    "+refs/pull/*/merge:refs/remotes/origin/pr-merge/*"
-  ]);
+  const [owner, name] = repository.split("/");
+  if (!owner || !name) throw new Error("GITHUB_REPOSITORY must use owner/name format.");
+  const pulls = await getOpenPullRequests(owner, name);
+  const comparable = pulls.filter(pr =>
+    pr.baseRefName === baseRef &&
+    pr.baseRepository?.nameWithOwner === repository &&
+    Number.isInteger(pr.number) &&
+    typeof pr.headRefOid === "string"
+  );
+  const current = comparable.find(pr => pr.number === currentPrNumber);
+  if (!current) throw new Error("Current PR #" + currentPrNumber + " is not present in the open pull-request list for base " + baseRef + ".");
 
-  const refs = git([
-    "for-each-ref", "--format=%(refname)", "refs/remotes/origin/pr-merge/"
-  ]).split(/\r?\n/).filter(Boolean);
-  if (!refs.length) throw new Error("No open pull-request merge refs were available from origin.");
-
-  const all = [];
-  let currentFound = false;
-  for (const refName of refs) {
-    const match = /\/pr-merge\/(\d+)$/.exec(refName);
-    if (!match) continue;
-    const prNumber = Number(match[1]);
-    const result = entriesForMergeRef(prNumber, refName);
-    if (prNumber === currentPrNumber) {
-      currentFound = true;
-      if (!result.comparable) throw new Error("Current PR merge base is not in target branch history; cannot safely compare migration versions.");
-    }
-    if (result.comparable && result.entries.length) {
-      all.push({ prNumber, entries: result.entries });
-    } else if (result.comparable) {
-      all.push({ prNumber, entries: [] });
+  // Fetch the target branch plus each open PR head via its read-only hidden ref.
+  // This avoids one REST API request per PR file list and reduces API rate pressure.
+  git(["fetch", "--no-tags", "origin", "+refs/heads/" + baseRef + ":refs/remotes/origin/" + baseRef]);
+  const refspecs = comparable.map(pr => "+refs/pull/" + pr.number + "/head:refs/remotes/origin/pr-head/" + pr.number);
+  const fetched = new Set();
+  for (let offset = 0; offset < refspecs.length; offset += 20) {
+    const batch = refspecs.slice(offset, offset + 20);
+    try {
+      git(["fetch", "--no-tags", "origin", ...batch]);
+      batch.forEach((_, idx) => fetched.add(comparable[offset + idx].number));
+    } catch {
+      for (let idx = 0; idx < batch.length; idx++) {
+        const pr = comparable[offset + idx];
+        try {
+          git(["fetch", "--no-tags", "origin", batch[idx]]);
+          fetched.add(pr.number);
+        } catch {
+          if (pr.number === currentPrNumber) throw new Error("Could not fetch the current PR head ref.");
+          console.warn("Skipping PR #" + pr.number + " because its head ref disappeared during the scan.");
+        }
+      }
     }
   }
-  if (!currentFound) throw new Error("Current PR #" + currentPrNumber + " merge ref was not found; refusing to skip collision detection.");
+  if (!fetched.has(currentPrNumber)) throw new Error("Current PR head ref was not fetched; refusing to skip collision detection.");
+
+  const all = [];
+  for (const pr of comparable) {
+    if (!fetched.has(pr.number)) continue;
+    all.push({ prNumber: pr.number, title: pr.title, url: pr.url, entries: migrationEntriesForHead(pr.number, "refs/remotes/origin/pr-head/" + pr.number) });
+  }
 
   const collisions = crossPullRequestCollisions(all);
   const relevantCollisions = collisionsForPullRequest(collisions, currentPrNumber);
@@ -180,8 +220,10 @@ try {
         ": PR #" + collision.leftPr + " " + collision.leftFile +
         " conflicts with PR #" + collision.rightPr + " " + collision.rightFile
       );
-      console.error("  PR #" + collision.leftPr + ": https://github.com/" + repository + "/pull/" + collision.leftPr);
-      console.error("  PR #" + collision.rightPr + ": https://github.com/" + repository + "/pull/" + collision.rightPr);
+      const left = all.find(pr => pr.prNumber === collision.leftPr);
+      const right = all.find(pr => pr.prNumber === collision.rightPr);
+      if (left?.url) console.error("  PR #" + collision.leftPr + ": " + left.url);
+      if (right?.url) console.error("  PR #" + collision.rightPr + ": " + right.url);
     }
     console.error("Do not silence this check by renaming an already-applied migration. Reconcile the intended migration history and choose one canonical release path.");
     process.exit(1);
@@ -196,9 +238,8 @@ try {
 
   console.log(
     "Cross-PR migration collision check PASS for current PR #" + currentPrNumber +
-    ": audited " + all.length +
-    " GitHub pull-request merge ref(s) based on " + baseRef +
-    "; no REST API calls required."
+    ": audited " + all.length + " open PR(s) targeting " + baseRef +
+    "; GraphQL listing plus Git ref diffs."
   );
 } catch (error) {
   console.error("Cross-PR migration collision check could not complete:", error instanceof Error ? error.message : "unknown error");
