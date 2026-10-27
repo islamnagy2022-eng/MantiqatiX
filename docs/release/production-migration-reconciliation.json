@@ -125,5 +125,73 @@
     ],
     "interpretation": "The required migrations exist as candidate source files and pass isolated chronological replay, but all 16 exact versions are absent from the live Production migration ledger. Later-dated catalog/contact migrations are present; do not assume the missing payment/finance/security chain was applied from the overall ledger tail.",
     "safety": "No Production writes or migration operations performed."
+  },
+  "critical_edge_function_source_parity_check": {
+    "status": "DRIFT_FOUND",
+    "checked_at": "2026-10-27",
+    "method": "Read-only Supabase Edge Function source retrieval and exact index.ts body comparison against repository main; no deployment performed.",
+    "functions": [
+      {
+        "slug": "payment-intent",
+        "live_version": 8,
+        "verify_jwt": true,
+        "live_bundle_sha256": "d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54",
+        "live_index_chars": 8114,
+        "main_index_chars": 10366,
+        "exact_match": false,
+        "observed_difference": "Live entrypoint lacks the matchesPaymobIntention/isValidPaymobAmountCents helper present in main; live retains Number.isFinite(amount)."
+      },
+      {
+        "slug": "paymob-webhook",
+        "live_version": 10,
+        "verify_jwt": false,
+        "live_bundle_sha256": "f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca",
+        "live_index_chars": 11538,
+        "main_index_chars": 12665,
+        "exact_match": false,
+        "observed_difference": "Live entrypoint lacks main's explicit Number.isFinite(amount) guard. verify_jwt=false is expected for provider callback endpoints only if webhook signature/correlation checks are independently verified."
+      },
+      {
+        "slug": "digital-page-payment-intent",
+        "live_version": 5,
+        "verify_jwt": true,
+        "live_bundle_sha256": "8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b",
+        "live_index_chars": 5345,
+        "main_index_chars": 6532,
+        "exact_match": false,
+        "observed_difference": "Live entrypoint lacks the Paymob correlation helper present in main."
+      },
+      {
+        "slug": "subscription-payment-intent",
+        "live_version": 4,
+        "verify_jwt": true,
+        "live_bundle_sha256": "4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5",
+        "live_index_chars": 5196,
+        "main_index_chars": 10896,
+        "exact_match": false,
+        "observed_difference": "Live entrypoint differs materially in size from main and lacks the Paymob correlation helper; full behavior-by-behavior contract comparison remains required."
+      },
+      {
+        "slug": "financial-journal",
+        "live_version": 3,
+        "verify_jwt": true,
+        "live_bundle_sha256": "79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366",
+        "live_index_chars": 1591,
+        "main_index_chars": 3387,
+        "exact_match": false,
+        "observed_difference": "Live entrypoint uses Access-Control-Allow-Origin '*' and calls post_financial_journal; main uses an origin allowlist and calls post_financial_journal_backend."
+      },
+      {
+        "slug": "smm-gateway",
+        "live_version": 13,
+        "verify_jwt": true,
+        "live_bundle_sha256": "a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72",
+        "live_index_chars": 20040,
+        "main_index_chars": 20040,
+        "exact_match": true,
+        "observed_difference": "Entrypoint exactly matches main; its deferred launch gate and runtime negative tests still require separate verification."
+      }
+    ],
+    "interpretation": "Five critical functions have source drift against main. These findings require review of the linked migration/grant contracts and payment/finance integration tests before any coordinated deployment; do not deploy these functions individually or infer exploitability from source drift alone."
   }
 }
