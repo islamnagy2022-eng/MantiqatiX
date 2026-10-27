@@ -10,7 +10,8 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  # Keep PR validation in a separate group so it cannot cancel a live main deployment.
+  group: pages-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   validate:
@@ -358,3 +359,17 @@ jobs:
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
           echo "MANTIQATIX_ROOT_AND_CATALOG_MODULE_DEPLOY=PASS: ${ROOT_URL}"
+          # Verify the old interactive demo and deferred SMM placeholder are not publicly served.
+          for route in "preview/" "smm.html"; do
+            status=""
+            for attempt in 1 2 3 4 5 6; do
+              status="$(curl --silent --show-error --location --output /tmp/retired-route.html --write-out '%{http_code}' "https://islamnagy2022-eng.github.io/MantiqatiX/${route}" || true)"
+              [ "${status}" = "404" ] && break
+              sleep 3
+            done
+            if [ "${status}" != "404" ]; then
+              echo "Retired production route still reachable: ${route} (HTTP ${status})"
+              exit 1
+            fi
+          done
+          echo "MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED"

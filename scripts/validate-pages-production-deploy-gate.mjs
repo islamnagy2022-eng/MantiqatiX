@@ -10,6 +10,8 @@ const previewWorkflow = fs.readFileSync('.github/workflows/preview-pages.yml', '
 const lines = workflow.split(/\r?\n/);
 const blockStart = lines.findIndex(line => line === '  deploy:');
 assert.notEqual(blockStart, -1, 'Pages workflow must define deploy job');
+assert.match(workflow, /group: pages-\$\{\{ github\.workflow \}\}-\$\{\{ github\.event\.pull_request\.number \|\| github\.ref \}\}/,
+  'PR validation must use a separate Pages concurrency group and never cancel the main deployment');
 const blockEnd = lines.findIndex((line, index) => index > blockStart && /^  [A-Za-z0-9_-]+:$/.test(line));
 const deployBlock = lines.slice(blockStart, blockEnd < 0 ? lines.length : blockEnd).join('\n');
 
@@ -90,6 +92,8 @@ assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
   'Production health checks must monitor the catalog subpath');
 assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
   'Production health checks must verify the existing platform root remains intact');
+assert.match(deployBlock, /Retired production route still reachable:[\s\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
+  'Post-deploy verification must assert the demo preview and SMM routes are absent');
 assert.doesNotMatch(healthMonitor, /grep -Fq "\/MantiqatiX\/assets\/" <<<"\$HTML"/,
   'Production health checks must not expect the React catalog app to replace the platform root');
 
