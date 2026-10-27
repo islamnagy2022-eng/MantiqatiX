@@ -41,6 +41,6 @@ const sw = fs.readFileSync("web/sw.js", "utf8");
 assert.match(sw, /const CACHE='mnty-web-v137'/, "PWA cache must be versioned for the new shell");
 assert.match(sw, /app\.js\?v=rc416-admin-onboarding-final/, "service worker must precache the exact versioned app entrypoint");
 assert.ok(sw.includes("./vendor/supabase.js?v=supabase21172"), "service worker must precache the exact versioned Supabase SDK entrypoint");
-assert.match(index, /sw\.js\?v=rc370-admin-onboarding-final/, "service worker registration cache key must be refreshed");
+assert.match(index, /sw\.js\?v=rc371-admin-onboarding-final/, "service worker registration cache key must be refreshed");
 
 console.log("Marketing workspace contract: PASS (32 assertions)");
