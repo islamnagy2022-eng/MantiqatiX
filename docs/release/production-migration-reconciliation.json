@@ -8,8 +8,16 @@
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS — isolated disposable Supabase checkpoint restore and ordered forward migration replay completed successfully in GitHub Actions run 40052022874",
-  "tenant_isolation_tests": "PASS — synthetic two-tenant read-isolation checks completed in the same isolated CI replay; coverage limited to businesses, orders, payment_intents, provider_onboarding_requests",
+  "chronological_replay": "PASS — isolated disposable Supabase checkpoint restore and ordered forward migration replay completed successfully in earlier GitHub Actions run 40052022874",
+  "latest_candidate_replay": {
+    "status": "FAIL_DIAGNOSTIC_PENDING_RERUN",
+    "run_id": 40493639400,
+    "checked_at": "2026-10-27",
+    "failure": "The current candidate replay reached migration 20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql and failed because the schema-only checkpoint intentionally has no data rows, including MNTY-PLATFORM; its user_memberships insert also needs a matching auth.users identity.",
+    "resolution_in_candidate": "Added a disposable-only data-prerequisite fixture for the platform tenant and a synthetic auth user with the migration's referenced ID; workflow now rejects non-local DB URLs and runs this fixture only against the locally started disposable database.",
+    "verification": "Rerun required; no production changes performed."
+  },
+  "tenant_isolation_tests": "PASS in prior isolated replay run 40052022874 for businesses, orders, payment_intents, provider_onboarding_requests; NOT REACHED in candidate run 40493639400 because forward migration replay failed earlier."
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40052022874",
