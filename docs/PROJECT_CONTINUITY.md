@@ -716,6 +716,7 @@ This status is intentional and must remain until the open gates above are indepe
 ## 2026-10-28 — electronic catalog is the primary customer entry
 
 - Decision: the electronic catalog is the canonical customer-facing product; the legacy application is a source of reusable code/assets and compatibility only, never the intended primary UI.
-- Implemented on branch `feat/catalog-primary-site`: `web/index.html` now immediately redirects the public root to `/MantiqatiX/catalog-app/` and preserves query/hash parameters so Google OAuth callback data reaches the catalog app.
-- This is a safe first routing change; the current Pages workflow still publishes the legacy shell/assets before the redirect. A direct root deployment of the React catalog requires a separately validated migration of Vite base paths, PWA scope/service worker, config asset placement, OAuth callback contract, deployment workflow, and all release validators. Do not claim the legacy files have been removed from the deployed artifact yet.
-- Branch commit: `d7e2c82c8e996ae33c6ebd86a28663e6c94df8e7`. Not merged to main and not deployed. CI and browser OAuth verification remain pending.
+- Implemented on branch `feat/catalog-primary-site`: the Vite build base, PWA `start_url`/`scope`/icons, and service-worker shell are configured for `/MantiqatiX/`.
+- `.github/workflows/pages.yml` now publishes only `apps/catalog-frontend/dist` as the production artifact; the legacy `web/` application is not copied into the published site. Post-deploy checks validate the catalog title, root assets, Supabase config, and that JavaScript/CSS assets are reachable. Legacy preview/SMM routes remain required to return 404.
+- Updated primary catalog CI, health monitoring, production gate contracts, and catalog pilot verification to expect a catalog-only root deployment. Legacy source files remain in GitHub for development and are not the production UI.
+- Changes are still in open PR #453; not merged to main and not deployed. CI and browser Google OAuth verification remain pending.
