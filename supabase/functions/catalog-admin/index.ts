@@ -244,6 +244,7 @@ Deno.serve(async (req: Request) => {
               workingHours: String(profile.working_hours || ""),
               logoUrl: String(profile.logo_url || ""),
               coverUrl: String(profile.cover_url || ""),
+              google_maps_url: String(profile.google_maps_url || ""),
               publicEnabled: business.settings?.catalog_public_enabled === true,
             },
             bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
@@ -345,6 +346,7 @@ Deno.serve(async (req: Request) => {
             workingHours: String(profile.working_hours || ""),
             logoUrl: String(profile.logo_url || ""),
             coverUrl: String(profile.cover_url || ""),
+            google_maps_url: String(profile.google_maps_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
           },
           bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
