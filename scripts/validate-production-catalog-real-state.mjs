@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
+const productionMapper = fs.readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf8');
 const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
@@ -31,6 +32,9 @@ assert.match(placeholder, /صورة النشاط غير متاحة/, 'placeholde
 assert.match(itemPlaceholder, /صورة المنتج أو الخدمة غير متاحة/, 'catalog items without owner images must use a neutral placeholder');
 assert.doesNotMatch(defaultImages, /images\.unsplash\.com|PHOTO_RULES/, 'missing owner images must not be replaced by stock photos that could be mistaken for real catalog imagery');
 assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and services must use the local neutral placeholder');
+assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
+assert.match(productionMapper, /stockImage \? 'auto' : 'owner'/, 'legacy stock images must be converted to neutral auto placeholders rather than shown as owner photos');
+assert.match(productionMapper, /isStockImageUrl\(profile\.logoUrl/, 'legacy stock business logos and covers must be suppressed');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
