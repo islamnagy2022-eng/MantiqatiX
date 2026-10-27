@@ -217,3 +217,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-27 — SESSION-ADMIN-TAXONOMY — Hierarchical activity registry and console
+
+- **User decision:** Use «فني تبريد» instead of «فني تكييف» and apply the sector/category hierarchy before continuing the platform administration console.
+- **Production schema reconnaissance:** `business_sectors` and `business_categories` each contain 27 current records with IDs such as `SEC-MAINTENANCE` and `CAT-MAINTENANCE`. The current category schema has no parent pointer, so the hierarchical registry is additive rather than mutating legacy rows.
+- **Branch changes:** Added `supabase/migrations/20261027120000_business_activity_taxonomy_hierarchy.sql` with 27 group roots and initial selectable activities/specialties, including «فني تبريد». The migration has not been applied to production.
+- **Branch changes:** Extended `supabase/functions/catalog-platform-admin/index.ts` with list/upsert/status actions guarded by the existing platform SUPER_ADMIN membership check and audit-log writes. The function has not been deployed.
+- **Branch changes:** Added `web/platform-admin-taxonomy.js` and loaded it after `web/app.js`. The existing Super Admin control workspace links to the taxonomy editor. The frontend/API integration has not yet been tested in an authenticated browser.
+- **Safety:** No production rows, migrations, Edge Functions, secrets, or deployment settings were changed. Production gate remains BLOCKED pending backup/PITR proof, restore rehearsal, CI, and authenticated E2E.
+- **Next:** Run current-head CI, review SQL constraints/RLS/grants in isolated replay, correct any type or runtime errors, then continue with real-data dashboard and business/subscription/commission management. Keep PR #411 draft until release gates are met.
