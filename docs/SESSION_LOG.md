@@ -237,3 +237,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Hardened taxonomy actions to enforce group → activity → specialty parent types, same-sector parentage, active-parent checks, and blocking deactivation when active descendants remain.
 - Current latest commit at time of this note: `aa9eef2cc1fb207a7ecf2d709f93f86f5a90b15c`. Workflow results for that exact commit have not yet been returned; no CI or browser verification is claimed.
 - Production migration and Edge Function deployment remain intentionally unperformed. Next step: inspect the latest PR checks, fix any CI/type issues, and test migration/function/UI together in an isolated environment before production review.
+
+
+## 2026-10-27 — Verification checkpoint
+
+- JavaScript syntax parse for `web/platform-admin-taxonomy.js` passed.
+- Static source checks confirm the migration includes 27 group roots, the canonical «فني تبريد» entry, and service-role-only grants; this is not a substitute for isolated PostgreSQL replay.
+- Read-only production query confirmed `public.business_activity_types` does not exist. The taxonomy migration remains unapplied, and no production data has been changed.
+- Added compensation attempts when taxonomy audit-log writes fail, plus stricter parent/descendant state validation. The Edge Function TypeScript check and authenticated UI/API E2E remain pending; current commit has no reported combined CI statuses.
+- Production release remains BLOCKED. Continue by running repository CI/typecheck and isolated migration replay; do not deploy the Edge Function before the migration is reviewed and safely applied in the approved sequence.
