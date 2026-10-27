@@ -228,3 +228,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Branch changes:** Added `web/platform-admin-taxonomy.js` and loaded it after `web/app.js`. The existing Super Admin control workspace links to the taxonomy editor. The frontend/API integration has not yet been tested in an authenticated browser.
 - **Safety:** No production rows, migrations, Edge Functions, secrets, or deployment settings were changed. Production gate remains BLOCKED pending backup/PITR proof, restore rehearsal, CI, and authenticated E2E.
 - **Next:** Run current-head CI, review SQL constraints/RLS/grants in isolated replay, correct any type or runtime errors, then continue with real-data dashboard and business/subscription/commission management. Keep PR #411 draft until release gates are met.
+
+
+## 2026-10-27 — SESSION-ADMIN-DASHBOARD — Real-data dashboard baseline
+
+- Added `PLATFORM_DASHBOARD_METRICS` to `catalog-platform-admin` for production-scoped business counts, owner/customer membership counts, taxonomy counts, scoped subscription counts where the lookup remains within the safe read limit, and recent audit events.
+- The dashboard deliberately marks visits, commissions, and claims as not wired until a reliable analytics source and financial status contract are defined. It does not render invented values.
+- Hardened taxonomy actions to enforce group → activity → specialty parent types, same-sector parentage, active-parent checks, and blocking deactivation when active descendants remain.
+- Current latest commit at time of this note: `aa9eef2cc1fb207a7ecf2d709f93f86f5a90b15c`. Workflow results for that exact commit have not yet been returned; no CI or browser verification is claimed.
+- Production migration and Edge Function deployment remain intentionally unperformed. Next step: inspect the latest PR checks, fix any CI/type issues, and test migration/function/UI together in an isolated environment before production review.
