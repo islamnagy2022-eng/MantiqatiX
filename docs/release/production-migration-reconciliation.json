@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Qadam catalog data/owner/profile readiness is repaired, but original seed migration 20261027093000 is still absent from the live ledger. Independent live migration/schema drift, critical Edge Function source parity, payment/finance E2E, backup/restore rehearsal, and Auth security evidence remain incomplete. Production deployment remains blocked.",
+  "reason": "The catalog-platform-admin paid-subscription activation guard is deployed and verified, and the Qadam catalog owner/profile data is ready. The original Qadam seed migration remains absent from the live ledger; independent migration/schema drift, critical payment/order Edge Function source parity, payment/finance E2E, backup/restore rehearsal, and Auth security evidence remain incomplete. Only a scoped catalog frontend release may be considered after its own tests; the full platform remains blocked.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -1000,5 +1000,19 @@
         "note": "The source blob is identical to the exact-version 20261027041411 migration already recorded in Production; do not execute the duplicate as an independent migration."
       }
     ]
+  },
+  "catalog_platform_admin_paid_subscription_gate": {
+    "status": "PASS",
+    "checked_at": "2026-10-28",
+    "function_slug": "catalog-platform-admin",
+    "live_function_version": 3,
+    "verify_jwt": true,
+    "source_exact_match": true,
+    "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
+    "deployed_at_utc": "2026-10-27T21:24:16Z",
+    "verified_by": "Post-deploy read-only get_edge_function source comparison",
+    "behavior_contract": "New business-owner memberships are INACTIVE/PENDING_PAYMENT by default. The server rejects activation unless the business payment status is paid and admin-confirmed, and payment confirmation activates only memberships explicitly marked PENDING_PAYMENT. Official platform showcase businesses are exempt from commercial billing gate.",
+    "unrelated_modules_deployed": false,
+    "notes": "Only catalog-platform-admin was deployed for the paid-subscription activation guard. No payment-intent, webhook, order, finance, SMM, or MantiGO functions were deployed. This scoped verification does not certify the full platform release."
   }
 }
