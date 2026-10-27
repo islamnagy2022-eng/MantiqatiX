@@ -63,7 +63,8 @@ const catalogMetadataWithImage = (
     : {};
   const currentUrl = String(catalog.image_url || "").trim();
   const explicitSource = String(catalog.image_source || "").toLowerCase();
-  const imageSource = explicitSource === "auto" || !currentUrl ? "auto" : "owner";
+  const legacyStockUrl = /^https:\/\/images\.unsplash\.com\//i.test(currentUrl);
+  const imageSource = explicitSource === "auto" || !currentUrl || legacyStockUrl ? "auto" : "owner";
   const imageUrl = imageSource === "owner"
     ? currentUrl
     : resolveDefaultImage({
