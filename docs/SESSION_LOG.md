@@ -252,3 +252,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
 - [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
 - [ ] Re-run forward replay and review the next failure or full pass. The current candidate remains NOT VERIFIED until the updated workflow completes; Production Gate stays BLOCKED.
+
+
+## 2026-10-27 — Forward replay remediation verified
+
+- [x] The initial candidate run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400) exposed a test-fixture gap: the schema-only checkpoint does not include the pre-existing `MNTY-PLATFORM` tenant or the historical Qadam owner auth identity. No Production data was copied.
+- [x] Added the guarded disposable-only prerequisite fixture `supabase/tests/baselines/production_data_prerequisites_fixture.sql` and a local DB URL guard in `.github/workflows/forward-migration-chain-replay.yml`.
+- [x] The corrected replay [40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976) passed: 52 post-checkpoint migrations replayed in timestamp order; RC117 default-image/activity-admin contract passed; synthetic two-tenant checks passed for own-row read and cross-tenant write denial on orders/payment intents. Migration history immutability, version uniqueness, cross-PR collision, RC425 Paymob atomicity, SMM deferred storefront, backend-only boundary, MantiGO privacy, and module validation checks passed at the recorded head.
+- [x] The web deployment workflow returned success at the workflow level but both `validate_public_only` and `deploy` were skipped; no Production deployment occurred.
+- [ ] Overall release remains `BLOCKED / NOT CERTIFIED`: isolated replay does not prove that the RC425–RC441/post-RC424 migrations have been applied to Production. Payment/finance provider E2E, backup/restore rehearsal, live Auth and Edge Function runtime validation (including SMM negative tests), browser/device regression, monitoring/alerts, and rollback evidence remain NOT VERIFIED.
+- Safety: all test records were created only in a disposable local Supabase instance; no Production write, migration, Auth/grant/RLS edit, Edge Function deployment, payment, or wallet mutation occurred.
