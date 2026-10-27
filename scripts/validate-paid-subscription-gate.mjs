@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
+const types = fs.readFileSync('apps/catalog-frontend/src/types/index.ts', 'utf8');
+const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
+
+const createStart = backend.indexOf('if (action === "CREATE_SUBSCRIBER")');
+const statusStart = backend.indexOf('if (action === "SUBSCRIBER_STATUS")', createStart);
+const settingsStart = backend.indexOf('if (action === "BUSINESS_SETTINGS_UPDATE")', statusStart);
+assert.ok(createStart >= 0 && statusStart > createStart && settingsStart > statusStart, 'Subscriber and billing action boundaries must exist');
+const createBlock = backend.slice(createStart, statusStart);
+const statusBlock = backend.slice(statusStart, settingsStart);
+const settingsBlock = backend.slice(settingsStart);
+
+assert.match(createBlock, /role: "BUSINESS_OWNER", status: "INACTIVE", permissions: \{ catalog: true, subscription_status: "PENDING_PAYMENT" \}/,
+  'New subscriber memberships must be inactive until payment is confirmed');
+assert.match(createBlock, /paymentRequired: true/,
+  'New subscriber creation must tell the UI that payment is required');
+assert.doesNotMatch(createBlock, /update\(\{ status: "ACTIVE" \}\)/,
+  'Reusing an existing inactive membership must not auto-activate it');
+assert.match(backend, /String\(m\.status\)\.toUpperCase\(\) === "INACTIVE" \? "pending"/,
+  'Inactive memberships must appear as pending payment in the admin list');
+
+assert.match(statusBlock, /if \(status === "ACTIVE"\)/,
+  'Membership activation must have a server-side guard');
+assert.match(statusBlock, /SUBSCRIPTION_PAYMENT_REQUIRED/,
+  'Server must reject activation without confirmed payment');
+assert.match(statusBlock, /isOfficialShowcase/,
+  'Official platform showcase memberships must remain manageable without commercial billing');
+
+assert.match(settingsBlock, /paymentStatus \|\| ""\)\.toLowerCase\(\) === "paid" && patch\.paymentConfirmedByAdmin === true/,
+  'Payment confirmation must be explicit and admin-controlled');
+assert.match(settingsBlock, /PAID_SUBSCRIPTION_ACTIVATION_FAILED/,
+  'Payment confirmation must activate pending owner memberships server-side');
+
+assert.match(types, /status: 'active' \| 'pending' \| 'suspended'/,
+  'Subscriber model must represent pending payment');
+assert.match(context, /const confirmAdminPayment = async/,
+  'Payment confirmation must be awaited');
+assert.match(context, /settings: \{ paymentConfirmedByAdmin: true, paymentStatus: 'paid'/,
+  'Client must persist confirmed payment before attempting activation');
+assert.match(context, /const pending = subscribers\.filter\(\(subscriber\) => subscriber\.businessId === businessId && subscriber\.status === 'pending'\)/,
+  'Client must reflect pending subscriber activation after payment confirmation');
+assert.match(context, /status: backendStatus === 'ACTIVE' \? 'active' : backendStatus === 'SUSPENDED' \? 'suspended' : 'pending'/,
+  'Newly assigned subscribers must remain pending by default');
+assert.match(context, /paymentConfirmedByAdmin\)\)\s*\{\s*throw new Error\('لا يمكن تفعيل الاشتراك قبل تأكيد سداد/,
+  'Client must not activate a subscriber without paid and confirmed business state');
+assert.match(context, /لا تُفعّل صلاحيات إدارة النشاط إلا بعد تأكيد السداد/,
+  'Credential instructions must disclose the payment gate');
+assert.match(admin, /حالة الاشتراك/);
+assert.match(admin, /بانتظار السداد/);
+
+console.log('PAID_SUBSCRIPTION_ACTIVATION_GATE=PASS');
