@@ -576,5 +576,41 @@
     "additional_feature_missing_table_index_contracts": 11,
     "aggregate_table_index_contracts": 28,
     "aggregate_missing_table_index_contracts": 27
+  },
+  "release_gate_object_contracts": {
+    "checked_at": "2026-10-27",
+    "status": "BLOCKED",
+    "atomic_object_contracts": true,
+    "core_payment_finance_erp_mantigo_contracts": 27,
+    "rc113_rc117_control_center_feature_contracts": 33,
+    "total_required_object_contracts": 60,
+    "live_pass_count": 0,
+    "live_blocked_or_unverified_count": 60,
+    "rationale": "Every object is evaluated as a distinct function/signature/table/index/column/trigger requirement. Grouped text no longer implies that multiple target objects exist because one exists.",
+    "compound_contracts_split": [
+      [
+        "public.create_subscription_payment_intent_claimable_backend",
+        "public.claim_subscription_provider_intent_creation_backend"
+      ],
+      [
+        "public.post_financial_journal_atomic_backend",
+        "public.journal_entry_lines_entry_line_uidx",
+        "public.journal_entries_tenant_entry_number_uidx"
+      ],
+      [
+        "public.erp_purchase_order_lines",
+        "public.receive_purchase_stock_with_order_line_backend",
+        "public.set_purchase_order_lines_backend",
+        "public.erp_purchase_orders_business_order_number_uidx",
+        "public.erp_purchase_order_lines_scope_idx"
+      ],
+      [
+        "public.mnty_can_platform_admin",
+        "public.get_mantigo_admin_dashboard_backend",
+        "public.get_mantigo_admin_financial_report_backend",
+        "public.settle_mantigo_captain_backend",
+        "public.expire_stale_mantigo_rides_backend"
+      ]
+    ]
   }
 }
