@@ -44,7 +44,7 @@ assert.match(types, /status: 'active' \| 'pending' \| 'suspended'/,
   'Subscriber model must represent pending payment');
 assert.match(context, /const confirmAdminPayment = async/,
   'Payment confirmation must be awaited');
-assert.match(context, /settings: \{ paymentConfirmedByAdmin: true, paymentStatus: 'paid'/,
+assert.match(context, /await updateBillingSetting\(businessId, \{[\s\S]{0,180}paymentConfirmedByAdmin: true, paymentStatus: 'paid'/,
   'Client must persist confirmed payment before attempting activation');
 assert.match(context, /const pending = subscribers\.filter\(\(subscriber\) => subscriber\.businessId === businessId && subscriber\.status === 'pending'\)/,
   'Client must reflect pending subscriber activation after payment confirmation');
@@ -60,9 +60,11 @@ assert.doesNotMatch(admin, /setActiveAdminTab\('backup'\)/,
   'Unverified backup/restore UI must not be exposed in the catalog pilot');
 assert.doesNotMatch(admin, /setActiveAdminTab\('control_center'\)/,
   'Unverified advanced control-center UI must not be exposed in the catalog pilot');
-assert.match(context, /إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي/,
-  'Unverified Paymob configuration must remain disabled for the catalog pilot');
-assert.match(admin, /if \(!saved\) return;/,
-  'The UI must not show a false success state when Paymob configuration is blocked');
+assert.doesNotMatch(context, /updateBusinessPaymobConfig|merchantApiKey|integrationIdCard/,
+  'The production catalog context must not expose unverified Paymob credential persistence');
+assert.match(admin, /لن تُحفظ مفاتيح Paymob من هذه الواجهة ولن يُفعّل التحصيل الإلكتروني/,
+  'The admin UI must explicitly disclose that online collection is disabled until production verification');
+assert.doesNotMatch(admin, /handleSavePaymobConfig|paymobMerchantApiKey|Integration ID|تفعيل Paymob/,
+  'The admin UI must not expose a fake Paymob credential-save or activation path');
 
 console.log('PAID_SUBSCRIPTION_ACTIVATION_GATE=PASS');

@@ -12,44 +12,33 @@ import {
   Check,
   AlertTriangle,
   Ban,
-  Sparkles,
   QrCode,
 } from 'lucide-react';
 
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
 export const BusinessProfileHeader: React.FC = () => {
-  const { currentBusiness, adminSettings, setCurrentView } = useApp();
+  const { currentBusiness } = useApp();
   const [copied, setCopied] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-
-  // Platform Ad banner image for registering new business in MantiqatiX
-  const platformAdCover = 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1600&auto=format&fit=crop&q=80';
-
-  // Build the 3 slides for the Cover slider (3 seconds rotation)
-  // Slide 1: Primary merchant cover (or default)
-  // Slide 2: Second merchant cover (if provided) OR platform ad banner
-  // Slide 3: Platform ad banner for registering new business in MantiqatiX
+  // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
   const slides = React.useMemo(() => {
-    if (!currentBusiness) return [platformAdCover];
-    const merchantCovers = currentBusiness.coverImages && currentBusiness.coverImages.length > 0
-      ? currentBusiness.coverImages
-      : [currentBusiness.coverUrl || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80'];
-
-    if (merchantCovers.length === 1) {
-      return [merchantCovers[0], platformAdCover, platformAdCover];
-    } else if (merchantCovers.length >= 2) {
-      return [merchantCovers[0], merchantCovers[1], platformAdCover];
-    }
-    return [currentBusiness.coverUrl, platformAdCover, platformAdCover];
+    if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
+    const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
+    if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
+    return [currentBusiness.coverUrl || BUSINESS_PLACEHOLDER];
   }, [currentBusiness]);
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   useEffect(() => {
+    setCurrentSlideIndex(0);
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, currentBusiness?.id]);
 
   if (!currentBusiness) {
     return (
@@ -67,13 +56,11 @@ export const BusinessProfileHeader: React.FC = () => {
     }
   };
 
-  const cleanOwnerPhone = currentBusiness.ownerWhatsApp.replace(/[^\d]/g, '');
-  const merchantWhatsAppUrl = `https://wa.me/${cleanOwnerPhone}?text=${encodeURIComponent(
-    `مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`
-  )}`;
-
-  const isFrozen = currentBusiness.isFrozen || currentBusiness.overdueDaysCount > 5;
-  const isCurrentSlideAd = currentSlideIndex === 2 || (currentSlideIndex === 1 && (!currentBusiness.coverImages || currentBusiness.coverImages.length < 2));
+  const cleanOwnerPhone = currentBusiness.ownerWhatsApp.replace(/\D/g, '');
+  const merchantWhatsAppUrl = cleanOwnerPhone.length >= 10 && cleanOwnerPhone.length <= 15
+    ? `https://wa.me/${cleanOwnerPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`)}`
+    : '';
+  const isFrozen = Boolean(currentBusiness.isFrozen);
 
   return (
     <div className="relative bg-white border-b border-slate-200/80 shadow-xs mb-8">
@@ -101,34 +88,13 @@ export const BusinessProfileHeader: React.FC = () => {
                 isFrozen ? 'grayscale contrast-125 opacity-75' : ''
               }`}
               onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80';
+                const image = e.currentTarget;
+                if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30" />
           </div>
         ))}
-
-        {/* Platform Advertisement Overlay when Ad slide is active */}
-        {isCurrentSlideAd && (
-          <div className="absolute inset-x-0 bottom-16 sm:bottom-20 z-20 flex justify-center px-4 pointer-events-none">
-            <div className="bg-slate-900/90 backdrop-blur-md border border-amber-400/50 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 pointer-events-auto max-w-lg text-center sm:text-right">
-              <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 font-black flex items-center justify-center flex-shrink-0 shadow-md">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-black text-amber-300">إعلان منصة MantiqatiX</div>
-                <div className="text-[11px] text-slate-200 truncate">هل تمتلك نشاطاً تجارياً؟ أنشئ كتالوجك الفوري الآن</div>
-              </div>
-              <button
-                onClick={() => setCurrentView('directory')}
-                className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shadow-md transition-colors whitespace-nowrap cursor-pointer"
-              >
-                سجل نشاطك
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Slider Indicators (Dots) */}
         <div className="absolute bottom-4 right-1/2 translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/15">
@@ -191,14 +157,14 @@ export const BusinessProfileHeader: React.FC = () => {
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
-                  src={currentBusiness.logoUrl}
+                  src={currentBusiness.logoUrl || BUSINESS_PLACEHOLDER}
                   alt={`شعار ${currentBusiness.name}`}
                   className={`w-full h-full object-cover rounded-2xl bg-slate-100 ${
                     isFrozen ? 'grayscale opacity-80' : ''
                   }`}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=240&auto=format&fit=crop&q=80';
+                    const image = e.currentTarget;
+                    if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
                   }}
                 />
                 <div
@@ -231,25 +197,29 @@ export const BusinessProfileHeader: React.FC = () => {
                     <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                     <span>{currentBusiness.address}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 font-medium">
-                    <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>{currentBusiness.workingHours || 'يومياً'}</span>
-                  </div>
+                  {currentBusiness.workingHours && (
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <span>{currentBusiness.workingHours}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Quick Actions (WhatsApp & QR Code) */}
             <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
-              <a
-                href={merchantWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>مراسلة صاحب النشاط (واتساب)</span>
-              </a>
+              {merchantWhatsAppUrl && (
+                <a
+                  href={merchantWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>مراسلة صاحب النشاط (واتساب)</span>
+                </a>
+              )}
 
               <a
                 href={currentBusiness.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentBusiness.name + ' ' + currentBusiness.governorate + ' ' + currentBusiness.markaz + ' ' + currentBusiness.address)}`}

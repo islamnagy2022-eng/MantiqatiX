@@ -74,7 +74,9 @@ assert.ok(types.includes("status: 'active' | 'pending' | 'suspended'"), 'Subscri
 assert.ok(app.includes("status: backendStatus === 'ACTIVE' ? 'active' : backendStatus === 'SUSPENDED' ? 'suspended' : 'pending'"), 'New subscribers must not be assumed active');
 assert.ok(backend.includes('SUBSCRIPTION_PAYMENT_REQUIRED'), 'Backend must reject activation without payment confirmation');
 assert.ok(backend.includes('PAID_SUBSCRIPTION_ACTIVATION_FAILED'), 'Backend must activate pending memberships only after confirmed payment');
-assert.ok(app.includes('إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي'), 'Unverified Paymob configuration must remain disabled');
+assert.ok(!app.includes('updateBusinessPaymobConfig') && !app.includes('merchantApiKey') && !app.includes('integrationIdCard'), 'Catalog context must not expose unverified Paymob credential persistence');
+assert.ok(admin.includes('لن تُحفظ مفاتيح Paymob من هذه الواجهة ولن يُفعّل التحصيل الإلكتروني'), 'Admin UI must disclose that online collection remains disabled until production verification');
+assert.ok(!admin.includes('handleSavePaymobConfig') && !admin.includes('paymobMerchantApiKey') && !admin.includes('Integration ID'), 'Admin UI must not expose a fake Paymob credential-save path');
 assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/restore UI must not be exposed');
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
 

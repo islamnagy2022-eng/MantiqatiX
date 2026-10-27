@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
+
+const CATALOG_ITEM_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}catalog-item-placeholder.svg`;
 import { filterProducts, formatPrice } from '../../utils/rules';
 import {
   Search,
@@ -250,8 +252,8 @@ export const CatalogSection: React.FC = () => {
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80';
+                      const image = e.currentTarget;
+                      if (!image.src.endsWith('/catalog-item-placeholder.svg')) image.src = CATALOG_ITEM_PLACEHOLDER;
                     }}
                   />
 

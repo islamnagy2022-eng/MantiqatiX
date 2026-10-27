@@ -94,8 +94,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category)?.id,
     functionalGroupId: groupFromCategory(category),
-    logoUrl: String(profile.logoUrl || profile.logo_url || raw.logoUrl || ''),
-    coverUrl: String(profile.coverUrl || profile.cover_url || raw.coverUrl || ''),
+    logoUrl: isStockImageUrl(profile.logoUrl || profile.logo_url || raw.logoUrl) ? '' : String(profile.logoUrl || profile.logo_url || raw.logoUrl || ''),
+    coverUrl: isStockImageUrl(profile.coverUrl || profile.cover_url || raw.coverUrl) ? '' : String(profile.coverUrl || profile.cover_url || raw.coverUrl || ''),
     bio: String(profile.bio || raw.bio || provider?.description || ''),
     ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
     phone: String(branch.phone || profile.phone || ''), email: String(raw.email || ''),
@@ -107,8 +107,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     isVerified: Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified),
     maxProductsLimit: 150, createdAt: String(created).slice(0, 10),
     registrationDate: String(meta.registrationDate || created).slice(0, 10),
-    paymentDueDay: Number(meta.paymentDueDay || 1), paymentDueDate: String(meta.paymentDueDate || created).slice(0, 10),
-    commissionPerOrder: Number(meta.commissionPerOrder ?? INITIAL_ADMIN_SETTINGS.defaultCommissionPerOrder),
+    paymentDueDay: Number(meta.paymentDueDay || 0), paymentDueDate: String(meta.paymentDueDate || ''),
+    commissionPerOrder: Number(meta.commissionPerOrder ?? 0),
     totalOrdersCount: Number(meta.totalOrdersCount || 0), paymentStatus: meta.paymentStatus || 'pending',
     overdueDaysCount: Number(meta.overdueDaysCount || 0), isFrozen: Boolean(meta.isFrozen || String(meta.paymentStatus || '').toLowerCase() === 'frozen'),
     lastPaymentDate: meta.lastPaymentDate, paymentConfirmedByAdmin: Boolean(meta.paymentConfirmedByAdmin),
@@ -118,6 +118,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     organizationId: String(raw.organizationId || raw.organization_id || ''),
     publicEnabled: Boolean(raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
     businessCode: String(raw.code || ''),
+    isOfficialShowcase: raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN',
   } as Business;
 }
 
@@ -133,9 +134,12 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const name = String(i.name_ar || i.name_en || 'عنصر كتالوج');
     const description = String(i.description || '');
     const category = String(metadata.category || i.category || 'عام');
-    const savedImageUrl = String(metadata.image_url || '').trim();
-    const imageSource: 'auto' | 'owner' = metadata.image_source === 'auto' || !savedImageUrl ? 'auto' : 'owner';
-    const imageUrl = savedImageUrl || resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
+    const savedImageUrl = String(metadata.image_url || i.imageUrl || i.image_url || '').trim();
+    const savedImageSource = String(metadata.image_source || i.imageSource || i.image_source || '').toLowerCase();
+    const stockImage = isStockImageUrl(savedImageUrl);
+    const neutralPlaceholder = isNeutralPlaceholderUrl(savedImageUrl);
+    const imageSource: 'auto' | 'owner' = savedImageSource === 'auto' || !savedImageUrl || stockImage || neutralPlaceholder ? 'auto' : 'owner';
+    const imageUrl = imageSource === 'owner' ? savedImageUrl : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
     // Service requests with hidden prices are quotable services, not unavailable products.
     const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
     const available = metadata.is_available !== false && (
@@ -152,6 +156,11 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     } as Product;
   });
 }
+
+const isStockImageUrl = (value: unknown): boolean =>
+  /^https:\/\/images\.unsplash\.com\//i.test(String(value || '').trim());
+const isNeutralPlaceholderUrl = (value: unknown): boolean =>
+  /(?:^|\/)catalog-item-placeholder\.svg(?:[?#].*)?$/i.test(String(value || '').trim());
 
 const isPlatformAdmin = (m: any) => String(m.role || '').toUpperCase() === 'SUPER_ADMIN'
   && !m.business_id && !m.branch_id && m.permissions?.scope === 'PLATFORM' && m.permissions?.full_control === true;

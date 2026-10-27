@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ActivityCategory, Business, FunctionalGroupId, PaymobChannel, PaymobConfig, Subscriber } from '../../types';
-import { DEFAULT_PAYMOB_CONFIG } from '../../data/productionDefaults';
+import { ActivityCategory, Business, FunctionalGroupId, Subscriber } from '../../types';
 import {
   ShieldCheck,
   UserPlus,
@@ -22,7 +21,6 @@ import {
   Users,
   KeyRound,
   Share2,
-  Lock,
   Download,
   Upload,
   Database,
@@ -44,22 +42,14 @@ import {
   Filter,
   ArrowRight,
   FolderPlus,
-  CreditCard,
-  Smartphone,
-  QrCode,
 } from 'lucide-react';
 import {
-  calculateBusinessCommission,
   formatEgyptianLocation,
-  evaluatePaymentFreezeStatus,
-  DEFAULT_COMMISSION_PER_ORDER,
-  OVERDUE_GRACE_PERIOD_DAYS,
-  DEFAULT_PAYMOB_FEE_PERCENTAGE,
-  DEFAULT_PAYMOB_FEE_FIXED,
-  calculatePaymobFee,
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
+
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
@@ -94,11 +84,8 @@ export const AdminDashboard: React.FC = () => {
     exportBackupJSON,
     importBackupJSON,
     confirmAdminPayment,
-    advanceBusinessOverdueDay,
     toggleBusinessFreeze,
-    updateBusinessCommissionRate,
     updateBusinessLocation,
-    updateBusinessPaymobConfig,
   } = useApp();
 
   const [activeAdminTab, setActiveAdminTab] = useState<
@@ -136,13 +123,10 @@ export const AdminDashboard: React.FC = () => {
   const [newBizOwnerWhatsApp, setNewBizOwnerWhatsApp] = useState('');
   const [newBizBio, setNewBizBio] = useState('');
   // Egyptian Location Fields
-  const [newBizGov, setNewBizGov] = useState('الدقهلية');
-  const [newBizMarkaz, setNewBizMarkaz] = useState('المنصورة');
-  const [newBizVillage, setNewBizVillage] = useState('حي الجامعة');
-  const [newBizAddress, setNewBizAddress] = useState('شارع المشاية السفلية');
-  // Billing & Commission Fields (Admin Only)
-  const [newBizDueDay, setNewBizDueDay] = useState(1);
-  const [newBizCommission, setNewBizCommission] = useState(0.01);
+  const [newBizGov, setNewBizGov] = useState('');
+  const [newBizMarkaz, setNewBizMarkaz] = useState('');
+  const [newBizVillage, setNewBizVillage] = useState('');
+  const [newBizAddress, setNewBizAddress] = useState('');
 
   // New Category Creation state
   const [isNewCatModalOpen, setIsNewCatModalOpen] = useState(false);
@@ -154,73 +138,19 @@ export const AdminDashboard: React.FC = () => {
   const [billingGovFilter, setBillingGovFilter] = useState('all');
   const [billingStatusFilter, setBillingStatusFilter] = useState('all');
   const [billingActionMsg, setBillingActionMsg] = useState<string | null>(null);
+  const [billingActionBusyId, setBillingActionBusyId] = useState<string | null>(null);
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
 
   // Admin WhatsApp & Password Settings
   const [adminPhone, setAdminPhone] = useState(adminSettings.adminWhatsApp);
-  const [adminPassInput, setAdminPassInput] = useState(adminSettings.adminPassword || 'admin');
-  const [platformCommissionInput, setPlatformCommissionInput] = useState(
-    adminSettings.defaultCommissionPerOrder || 0.01
-  );
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsFeedback, setSettingsFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Paymob Administration & Configuration Per Business
+  // Payment gateway configuration is intentionally unavailable in the catalog pilot.
   const [selectedPaymobBiz, setSelectedPaymobBiz] = useState<Business | null>(null);
-  const [paymobEnabled, setPaymobEnabled] = useState(true);
-  const [paymobFeeType, setPaymobFeeType] = useState<'percentage' | 'fixed' | 'percentage_plus_fixed'>('percentage_plus_fixed');
-  const [paymobFeePercentage, setPaymobFeePercentage] = useState(DEFAULT_PAYMOB_FEE_PERCENTAGE);
-  const [paymobFeeFixed, setPaymobFeeFixed] = useState(DEFAULT_PAYMOB_FEE_FIXED);
-  const [paymobAcceptedChannels, setPaymobAcceptedChannels] = useState<PaymobChannel[]>(['card', 'wallet', 'kiosk']);
-  const [paymobMerchantApiKey, setPaymobMerchantApiKey] = useState('');
-  const [paymobIntegrationIdCard, setPaymobIntegrationIdCard] = useState('');
-  const [paymobIntegrationIdWallet, setPaymobIntegrationIdWallet] = useState('');
-  const [paymobNotesForCustomer, setPaymobNotesForCustomer] = useState('');
-  const [paymobSaveSuccess, setPaymobSaveSuccess] = useState(false);
-
-  // New Business Paymob initial configuration
-  const [newBizPaymobEnabled, setNewBizPaymobEnabled] = useState(true);
-  const [newBizPaymobFeePercentage, setNewBizPaymobFeePercentage] = useState(2.75);
-  const [newBizPaymobFeeFixed, setNewBizPaymobFeeFixed] = useState(3.0);
-
-  const openPaymobSettings = (biz: Business) => {
-    setSelectedPaymobBiz(biz);
-    const cfg = biz.paymobConfig || DEFAULT_PAYMOB_CONFIG;
-    setPaymobEnabled(cfg.enabled);
-    setPaymobFeeType(cfg.feeType === 'percentage_and_fixed' ? 'percentage_plus_fixed' : (cfg.feeType || 'percentage_plus_fixed'));
-    setPaymobFeePercentage(cfg.feePercentage);
-    setPaymobFeeFixed(cfg.feeFixed);
-    setPaymobAcceptedChannels(cfg.acceptedChannels || ['card', 'wallet', 'kiosk']);
-    setPaymobMerchantApiKey(cfg.merchantApiKey || '');
-    setPaymobIntegrationIdCard(cfg.integrationIdCard || '');
-    setPaymobIntegrationIdWallet(cfg.integrationIdWallet || '');
-    setPaymobNotesForCustomer(cfg.notesForCustomer || '');
-    setPaymobSaveSuccess(false);
-  };
-
-  const handleSavePaymobConfig = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPaymobBiz) return;
-
-    const saved = updateBusinessPaymobConfig(selectedPaymobBiz.id, {
-      enabled: paymobEnabled,
-      feeType: paymobFeeType,
-      feePercentage: Number(paymobFeePercentage) || 0,
-      feeFixed: Number(paymobFeeFixed) || 0,
-      acceptedChannels: paymobAcceptedChannels.length > 0 ? paymobAcceptedChannels : ['card'],
-      merchantApiKey: paymobMerchantApiKey,
-      integrationIdCard: paymobIntegrationIdCard,
-      integrationIdWallet: paymobIntegrationIdWallet,
-      notesForCustomer: paymobNotesForCustomer,
-    });
-    if (!saved) return;
-
-    setPaymobSaveSuccess(true);
-    setTimeout(() => {
-      setPaymobSaveSuccess(false);
-      setSelectedPaymobBiz(null);
-    }, 1200);
-  };
+  const openPaymobSettings = (biz: Business) => setSelectedPaymobBiz(biz);
 
   // Quick stats
   const totalSubscribers = subscribers.length;
@@ -265,7 +195,19 @@ export const AdminDashboard: React.FC = () => {
 
   const handleAddBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBizName.trim()) return;
+    if (!newBizName.trim()) {
+      window.alert('أدخل اسم النشاط التجاري.');
+      return;
+    }
+    const phoneDigits = newBizOwnerWhatsApp.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      window.alert('أدخل رقم واتساب حقيقيًا لصاحب النشاط من 10 إلى 15 رقمًا.');
+      return;
+    }
+    if (!newBizGov.trim() || !newBizMarkaz.trim() || !newBizVillage.trim()) {
+      window.alert('أدخل المحافظة والمركز/القسم والقرية/الحي الفعلي للنشاط.');
+      return;
+    }
 
     const matchedCat = categories.find((c) => c.name === newBizCategory);
     const resolvedGroup = newBizFunctionalGroup || matchedCat?.functionalGroupId || 'dining';
@@ -282,40 +224,35 @@ export const AdminDashboard: React.FC = () => {
       category: newBizCategory,
       categoryId: matchedCat?.id,
       functionalGroupId: resolvedGroup,
-      logoUrl:
-        'https://images.unsplash.com/photo-1544816155-12df9643f363?w=240&auto=format&fit=crop&q=80',
-      coverUrl:
-        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80',
-      bio: newBizBio || 'نشاط تجاري معتمد مسجل في منصة MantiqatiX.',
-      ownerWhatsApp: newBizOwnerWhatsApp || '+201000000000',
+      logoUrl: '',
+      coverUrl: '',
+      bio: newBizBio.trim(),
+      ownerWhatsApp: newBizOwnerWhatsApp.trim(),
       address: newBizAddress,
       governorate: newBizGov,
       markaz: newBizMarkaz,
       village: newBizVillage,
-      workingHours: 'يومياً: 9 ص - 11 م',
-      isVerified: true,
+      workingHours: '',
+      isVerified: false,
       maxProductsLimit: 150,
       registrationDate: new Date().toISOString().split('T')[0],
-      paymentDueDay: Number(newBizDueDay) || 1,
-      paymentDueDate: new Date().toISOString().split('T')[0],
-      commissionPerOrder: Number(newBizCommission) || 0.01,
+      paymentDueDay: 0,
+      paymentDueDate: '',
+      commissionPerOrder: 0,
       totalOrdersCount: 0,
-      paymentStatus: 'paid',
+      paymentStatus: 'pending',
       overdueDaysCount: 0,
       isFrozen: false,
-      lastPaymentDate: new Date().toISOString().split('T')[0],
-      paymentConfirmedByAdmin: true,
-      paymobConfig: {
-        ...DEFAULT_PAYMOB_CONFIG,
-        enabled: newBizPaymobEnabled,
-        feePercentage: Number(newBizPaymobFeePercentage) || 2.75,
-        feeFixed: Number(newBizPaymobFeeFixed) || 3.0,
-      },
+      paymentConfirmedByAdmin: false,
     });
 
     setNewBizName('');
     setNewBizBio('');
     setNewBizOwnerWhatsApp('');
+    setNewBizGov('');
+    setNewBizMarkaz('');
+    setNewBizVillage('');
+    setNewBizAddress('');
     setIsBizModalOpen(false);
     setSelectedBusinessId(createdBizId);
     } catch (error) { window.alert(error instanceof Error ? error.message : 'تعذر إنشاء النشاط في قاعدة الإنتاج.'); }
@@ -372,7 +309,7 @@ export const AdminDashboard: React.FC = () => {
             إدارة المشتركين، العمولات، والتصنيف الوظيفي
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-            منظومة سرية للإدارة لتحديد العمولات، تأكيد السداد الشهري، متابعة التجميد بعد مهلة 5 أيام، وتقسيم الأنشطة إلى مجموعات وظيفية مهيأة للتطوير المستمر.
+            إدارة حالات السداد والتجميد اليدوي والعمولات. التنبيهات اليومية والتجميد التلقائي غير معتمدين كوظيفة إنتاجية في هذا الإصدار.
           </p>
         </div>
 
@@ -493,16 +430,13 @@ export const AdminDashboard: React.FC = () => {
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
-            <Coins className="w-6 h-6" />
+            <Store className="w-6 h-6" />
           </div>
           <div>
             <div className="text-2xl font-black text-slate-900">
-              {businesses
-                .reduce((acc, b) => acc + calculateBusinessCommission(b.totalOrdersCount, b.commissionPerOrder).totalCommission, 0)
-                .toLocaleString('ar-EG', { minimumFractionDigits: 2 })}{' '}
-              ج.م
+              {businesses.filter((business) => business.publicEnabled && !business.isFrozen).length}
             </div>
-            <div className="text-xs text-slate-500 font-medium">إجمالي عمولات المنصة</div>
+            <div className="text-xs text-slate-500 font-medium">كتالوجات منشورة وغير مجمدة</div>
           </div>
         </div>
       </div>
@@ -590,9 +524,9 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'billing' && (
         <div className="space-y-6">
           {billingActionMsg && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs">
+            <div className={`text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs border ${billingActionMsg.startsWith('تعذر') ? 'bg-rose-50 border-rose-300 text-rose-950' : 'bg-emerald-50 border-emerald-300 text-emerald-950'}`}>
               <div className="flex items-center gap-2 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                {billingActionMsg.startsWith('تعذر') ? <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
                 <span>{billingActionMsg}</span>
               </div>
               <button
@@ -617,7 +551,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-xs text-slate-700 leading-relaxed">
                   • <strong>الاشتراك الشهري:</strong> رسوم الاشتراك الشهري الثابتة للمنصة (بدون أي عمولات على الطلبات أو العمليات).
                   <br />
-                  • <strong>قاعدة الـ 5 أيام:</strong> في حال عدم سداد الاشتراك الشهري في موعده، يتلقى المشترك إشعاراً يومياً لمدة 5 أيام، وبعد اليوم الخامس يتم <strong>تجميد نشاط الصفحة تلقائياً</strong> لحين سداد الاشتراك وتأكيده من الإدارة.
+                  • <strong>مهلة السداد:</strong> في حال عدم سداد الاشتراك الشهري في موعده، يتلقى المشترك إشعاراً يومياً لمدة 5 أيام، وبعد اليوم الخامس يتم <strong>مراجعة حالة النشاط المسجلة</strong> لحين سداد الاشتراك وتأكيده من الإدارة.
                 </p>
               </div>
             </div>
@@ -677,11 +611,11 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3.5 px-4">النشاط والموقع (مصر)</th>
                     <th className="py-3.5 px-4">التصنيف الوظيفي</th>
                     <th className="py-3.5 px-4">تاريخ التسجيل</th>
-                    <th className="py-3.5 px-4">يوم السداد الشهري</th>
-                    <th className="py-3.5 px-4">نوع الاشتراك</th>
-                    <th className="py-3.5 px-4">الاشتراك الشهري</th>
+                    <th className="py-3.5 px-4">موعد السداد (إن وجد)</th>
+                    <th className="py-3.5 px-4">خطة الاشتراك</th>
+                    <th className="py-3.5 px-4">حالة السداد</th>
                     <th className="py-3.5 px-4">حالة السداد / المهلة</th>
-                    <th className="py-3.5 px-4">بوابة سداد PAYMOB</th>
+                    <th className="py-3.5 px-4">الدفع الإلكتروني</th>
                     <th className="py-3.5 px-4 text-center">إجراءات الإدارة</th>
                   </tr>
                 </thead>
@@ -691,37 +625,36 @@ export const AdminDashboard: React.FC = () => {
                       const matchGov = billingGovFilter === 'all' || b.governorate === billingGovFilter;
                       const matchStatus =
                         billingStatusFilter === 'all' ||
-                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.overdueDaysCount > 5)) ||
-                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
-                        (billingStatusFilter === 'paid' && !b.isFrozen && b.overdueDaysCount === 0);
+                        (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen')) ||
+                        (billingStatusFilter === 'overdue' && b.paymentStatus === 'overdue') ||
+                        (billingStatusFilter === 'paid' && b.paymentStatus === 'paid' && b.paymentConfirmedByAdmin);
                       return matchGov && matchStatus;
                     })
                     .map((biz) => {
-                      const { totalCommission } = calculateBusinessCommission(
-                        biz.totalOrdersCount,
-                        biz.commissionPerOrder
-                      );
-                      const freezeStatus = evaluatePaymentFreezeStatus(
-                        biz.paymentStatus,
-                        biz.overdueDaysCount,
-                        OVERDUE_GRACE_PERIOD_DAYS
-                      );
+                      const isOfficialShowcase = Boolean(biz.isOfficialShowcase);
+                      const isPaidConfirmed = biz.paymentStatus === 'paid' && biz.paymentConfirmedByAdmin;
+                      const isFrozen = biz.isFrozen || biz.paymentStatus === 'frozen';
+                      const isOverdue = biz.paymentStatus === 'overdue';
                       const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
 
                       return (
                         <tr
                           key={biz.id}
                           className={`hover:bg-slate-50/70 transition-colors ${
-                            biz.isFrozen || biz.overdueDaysCount > 5 ? 'bg-rose-50/40' : ''
+                            isFrozen ? 'bg-rose-50/40' : ''
                           }`}
                         >
                           {/* Business Name and Egyptian Location */}
                           <td className="py-3.5 px-4 font-bold text-slate-900 max-w-[220px]">
                             <div className="flex items-center gap-2">
                               <img
-                                src={biz.logoUrl}
+                                src={biz.logoUrl || BUSINESS_PLACEHOLDER}
                                 alt={biz.name}
                                 className="w-8 h-8 rounded-lg object-cover bg-slate-100 flex-shrink-0"
+                                onError={(event) => {
+                                  const image = event.currentTarget;
+                                  if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                                }}
                               />
                               <div className="truncate">
                                 <div className="truncate">{biz.name}</div>
@@ -749,101 +682,52 @@ export const AdminDashboard: React.FC = () => {
 
                           {/* Registration Date */}
                           <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
-                            {biz.registrationDate || biz.createdAt || '2026-01-10'}
+                            {biz.registrationDate || biz.createdAt || 'غير محدد'}
                           </td>
 
-                          {/* Payment Due Day */}
+                          {/* Show only saved due-date data; do not invent a billing schedule. */}
                           <td className="py-3.5 px-4 text-slate-800 font-black">
-                            <span>يوم {biz.paymentDueDay || 1} من كل شهر</span>
+                            <span>{biz.paymentDueDay > 0 ? `يوم ${biz.paymentDueDay} من الشهر` : 'غير محدد'}</span>
                             <span className="block text-[10px] text-slate-400 font-normal">
-                              استحقاق: {biz.paymentDueDate || 'شهري'}
+                              {biz.paymentDueDate || 'لم يُحدد موعد سداد'}
                             </span>
                           </td>
 
-                          {/* Subscription Type */}
                           <td className="py-3.5 px-4">
-                            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 font-bold px-2.5 py-1 rounded-md text-[11px] border border-indigo-200">
-                              اشتراك شهري ثابت
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[11px] border border-slate-200">
+                              {isOfficialShowcase ? 'عرض رسمي معفى' : 'غير محددة'}
                             </span>
                           </td>
 
-                          {/* Monthly Subscription Status */}
                           <td className="py-3.5 px-4">
-                            <span className="font-black text-emerald-700 block">
-                              مُسدّد وساري
+                            <span className={isOfficialShowcase || isPaidConfirmed ? 'font-black block text-emerald-700' : isFrozen ? 'font-black block text-rose-700' : isOverdue ? 'font-black block text-amber-700' : 'font-black block text-slate-700'}>
+                              {isOfficialShowcase ? 'عرض رسمي معفى من رسوم الاشتراك' : isPaidConfirmed ? 'مدفوع ومؤكد' : isFrozen ? 'مجمّد' : isOverdue ? 'متأخر' : 'بانتظار السداد'}
                             </span>
-                            <span className="text-[10px] text-slate-400">
-                              بدون عمولات على الطلبات
-                            </span>
+                            {isPaidConfirmed && biz.lastPaymentDate && (
+                              <span className="text-[10px] text-slate-400 block">آخر سداد: {biz.lastPaymentDate}</span>
+                            )}
                           </td>
 
-                          {/* Overdue & 5-day warning / freeze status */}
                           <td className="py-3.5 px-4">
-                            {biz.isFrozen || biz.overdueDaysCount > 5 ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-rose-600 text-white font-black px-2.5 py-0.5 rounded-md text-[10px] shadow-xs">
-                                  <Ban className="w-3 h-3" />
-                                  <span>النشاط مجمد</span>
-                                </span>
-                                <span className="block text-[10px] text-rose-700 font-bold">
-                                  تجاوز مهلة الـ 5 أيام ({biz.overdueDaysCount} يوم تأخر)
-                                </span>
-                              </div>
+                            {isFrozen ? (
+                              <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                <Ban className="w-3 h-3" /> تجميد مسجل
+                              </span>
+                            ) : isOverdue ? (
+                              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                <BellRing className="w-3 h-3" /> تأخير مسجل: {biz.overdueDaysCount} يوم
+                              </span>
                             ) : biz.overdueDaysCount > 0 ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-md text-[10px]">
-                                  <BellRing className="w-3 h-3" />
-                                  <span>إشعار يومي ({biz.overdueDaysCount} من 5)</span>
-                                </span>
-                                <span className="block text-[10px] text-amber-800">
-                                  متبقي {5 - biz.overdueDaysCount} أيام قبل التجميد
-                                </span>
-                              </div>
+                              <span className="text-[10px] text-slate-600">عدد أيام التأخير المسجلة: {biz.overdueDaysCount}</span>
                             ) : (
-                              <div className="space-y-0.5">
-                                <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
-                                  <CheckCheck className="w-3 h-3" />
-                                  <span>مسدد ومعتمد</span>
-                                </span>
-                                {biz.lastPaymentDate && (
-                                  <span className="block text-[9px] text-slate-400 font-mono">
-                                    آخر سداد: {biz.lastPaymentDate}
-                                  </span>
-                                )}
-                              </div>
+                              <span className="text-[10px] text-slate-500">لا توجد بيانات تأخير مسجلة</span>
                             )}
                           </td>
 
-                          {/* Paymob Gateway Configuration Cell */}
                           <td className="py-3.5 px-4">
-                            {biz.paymobConfig?.enabled ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 font-extrabold px-2 py-0.5 rounded-md border border-blue-200 text-[10px]">
-                                  <CreditCard className="w-3 h-3 text-blue-600" />
-                                  <span>مفعل: {biz.paymobConfig.feePercentage}% {biz.paymobConfig.feeFixed > 0 ? `+ ${biz.paymobConfig.feeFixed}ج.م` : ''}</span>
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => openPaymobSettings(biz)}
-                                  className="block text-[10px] text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
-                                >
-                                  تعديل الرسوم والقنوات
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded-md text-[10px]">
-                                  معطل من الإدارة
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => openPaymobSettings(biz)}
-                                  className="block text-[10px] text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer"
-                                >
-                                  تفعيل وضبط Paymob
-                                </button>
-                              </div>
-                            )}
+                            <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 font-medium px-2 py-1 rounded-md text-[10px]">
+                              غير متاح في الإصدار الحالي
+                            </span>
                           </td>
 
                           {/* Admin Action Buttons */}
@@ -852,20 +736,24 @@ export const AdminDashboard: React.FC = () => {
                               {/* Paymob Settings Quick Button */}
                               <button
                                 onClick={() => openPaymobSettings(biz)}
-                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[10px] px-2 py-1 rounded-lg border border-blue-200 transition-colors cursor-pointer flex items-center gap-1"
-                                title="تحديد وسيلة سداد Paymob ونسبة التكلفة لهذا النشاط"
+                                className="bg-slate-100 text-slate-600 font-bold text-[10px] px-2 py-1 rounded-lg border border-slate-200 cursor-pointer"
+                                title="بوابة الدفع الإلكتروني غير متاحة في الإصدار الحالي"
                               >
-                                <CreditCard className="w-3 h-3 text-blue-600" />
-                                <span>إدارة Paymob</span>
+                                <span>تفاصيل الدفع الإلكتروني</span>
                               </button>
 
                               {/* 1. Confirm Payment Button */}
                               <button
-                                onClick={() => {
-                                  confirmAdminPayment(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تأكيد سداد النشاط (${biz.name}) بنجاح، وتجديد الاشتراك وفك التجميد.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  try {
+                                    await confirmAdminPayment(biz.id);
+                                    setBillingActionMsg(`تم حفظ تأكيد السداد للنشاط (${biz.name}) بعد تأكيد الخادم.`);
+                                  } catch (error) {
+                                    setBillingActionMsg(`تعذر حفظ تأكيد السداد للنشاط (${biz.name}): ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+                                  } finally { setBillingActionBusyId(null); }
                                 }}
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
                                 title="تأكيد سداد المستحقات وتجديد النشاط لشهر قادم"
@@ -874,27 +762,18 @@ export const AdminDashboard: React.FC = () => {
                                 <span>تأكيد السداد</span>
                               </button>
 
-                              {/* 2. Simulate / Advance Overdue Day Button */}
-                              <button
-                                onClick={() => {
-                                  advanceBusinessOverdueDay(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تسجيل إشعار تأخر يوم إضافي للنشاط (${biz.name}).`
-                                  );
-                                }}
-                                className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold text-[10px] px-2 py-1 rounded-lg transition-colors cursor-pointer"
-                                title="محاكاة مرور يوم تأخير لاختبار إشعار الـ 5 أيام والتجميد الآلي"
-                              >
-                                +يوم تأخير
-                              </button>
-
                               {/* 3. Manual Freeze/Unfreeze toggle */}
                               <button
-                                onClick={() => {
-                                  toggleBusinessFreeze(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تبديل حالة تجميد النشاط (${biz.name}) يدوياً من الإدارة.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  try {
+                                    await toggleBusinessFreeze(biz.id);
+                                    setBillingActionMsg(`تم حفظ تغيير حالة تجميد النشاط (${biz.name}) لدى الخادم.`);
+                                  } catch (error) {
+                                    setBillingActionMsg(`تعذر حفظ حالة النشاط (${biz.name}): ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+                                  } finally { setBillingActionBusyId(null); }
                                 }}
                                 className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer ${
                                   biz.isFrozen
@@ -1197,9 +1076,13 @@ export const AdminDashboard: React.FC = () => {
                     <div className="p-4 relative -mt-8">
                       <div className="flex items-start gap-3">
                         <img
-                          src={b.logoUrl}
+                          src={b.logoUrl || BUSINESS_PLACEHOLDER}
                           alt={b.name}
                           className="w-14 h-14 rounded-2xl ring-4 ring-white object-cover bg-white shadow-md flex-shrink-0"
+                          onError={(event) => {
+                            const image = event.currentTarget;
+                            if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                          }}
                         />
                         <div className="pt-6 min-w-0 flex-1">
                           <h4 className="font-extrabold text-sm text-slate-900 truncate">
@@ -1230,21 +1113,13 @@ export const AdminDashboard: React.FC = () => {
                         <div className="flex items-center justify-between text-slate-600">
                           <span>واتساب النشاط:</span>
                           <span dir="ltr" className="font-mono text-[11px] text-slate-800">
-                            {b.ownerWhatsApp}
+                            {b.ownerWhatsApp || 'غير مسجل'}
                           </span>
                         </div>
 
-                        {/* Paymob Gateway Badge */}
                         <div className="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
-                          <span>بوابة PAYMOB:</span>
-                          {b.paymobConfig?.enabled ? (
-                            <span className="font-extrabold text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                              <CreditCard className="w-3 h-3" />
-                              <span>مفعلة (+{b.paymobConfig.feePercentage}% {b.paymobConfig.feeFixed > 0 ? `+ ${b.paymobConfig.feeFixed}ج.م` : ''})</span>
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">معطلة من الإدارة</span>
-                          )}
+                          <span>الدفع الإلكتروني:</span>
+                          <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">غير متاح في الإصدار الحالي</span>
                         </div>
                       </div>
                     </div>
@@ -1254,15 +1129,10 @@ export const AdminDashboard: React.FC = () => {
                   <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
                     <button
                       onClick={() => openPaymobSettings(b)}
-                      className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 cursor-pointer transition-colors ${
-                        b.paymobConfig?.enabled
-                          ? 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-                          : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                      }`}
-                      title="إعداد وسيلة سداد Paymob وتكلفتها لهذا النشاط"
+                      className="text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors"
+                      title="بوابة الدفع الإلكتروني غير متاحة في الإصدار الحالي"
                     >
-                      <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                      <span>{b.paymobConfig?.enabled ? 'إدارة Paymob' : 'تفعيل Paymob'}</span>
+                      <span>حالة الدفع الإلكتروني</span>
                     </button>
 
                     <button
@@ -1452,7 +1322,7 @@ export const AdminDashboard: React.FC = () => {
               إعدادات إدارة منصة MantiqatiX والواتساب الرسمي
             </h3>
             <p className="text-xs text-slate-500">
-              هذه الإعدادات تحدد رقم واتساب الإدارة لزر "طلب كتالوج النشاط" وكلمة مرور تسجيل الدخول كإدارة عامة.
+              هذه الإعدادات تحدد رقم واتساب الإدارة لزر "طلب كتالوج النشاط". يتم تسجيل دخول مالك المنصة عبر Google.
             </p>
           </div>
 
@@ -1477,35 +1347,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-800 mb-1.5">
-                كلمة مرور لوحة الإدارة العامة
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-amber-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={adminPassInput}
-                  onChange={(e) => setAdminPassInput(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-10 pl-3 py-2.5 text-xs text-slate-900 font-bold"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-800 mb-1.5">
-                العمولة الافتراضية لكل طلب جديد (بالجنيه المصري ج.م - سري)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={platformCommissionInput}
-                onChange={(e) => setPlatformCommissionInput(parseFloat(e.target.value) || 0.01)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 font-bold"
-              />
-              <p className="text-[11px] text-slate-400 mt-1">
-                القيمة الافتراضية المحددة هي 0.01 جنيه مصري لكل طلب.
-              </p>
+              <p className="text-xs text-slate-600">تسجيل دخول مالك المنصة يتم عبر Google. لا توجد كلمة مرور إدارية تقليدية في هذا الإصدار.</p>
             </div>
 
             <div>
@@ -1521,21 +1363,40 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
+          {settingsFeedback && (
+            <div role="status" className={`rounded-xl border px-4 py-3 text-xs font-bold ${settingsFeedback.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>
+              {settingsFeedback.message}
+            </div>
+          )}
           <div className="pt-4 flex justify-end">
             <button
-              onClick={() => {
-                updateAdminSettings({
-                  adminWhatsApp: adminPhone,
-                  adminPassword: adminPassInput,
-                  defaultCommissionPerOrder: platformCommissionInput,
-                  currency: 'ج.م',
-                  platformName: 'MantiqatiX',
-                });
-                alert('تم حفظ إعدادات إدارة MantiqatiX بنجاح!');
+              type="button"
+              disabled={settingsSaving}
+              onClick={async () => {
+                if (settingsSaving) return;
+                setSettingsFeedback(null);
+                const phoneDigits = adminPhone.replace(/\D/g, '');
+                if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+                  setSettingsFeedback({ type: 'error', message: 'أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا.' });
+                  return;
+                }
+                setSettingsSaving(true);
+                try {
+                  await updateAdminSettings({
+                    adminWhatsApp: adminPhone.trim(),
+                    currency: 'ج.م',
+                    platformName: 'MantiqatiX',
+                  });
+                  setSettingsFeedback({ type: 'success', message: 'أكد الخادم حفظ إعدادات المنصة في قاعدة الإنتاج.' });
+                } catch (error) {
+                  setSettingsFeedback({ type: 'error', message: error instanceof Error ? error.message : 'تعذر حفظ الإعدادات لدى الخادم؛ لم يتم اعتماد التغيير.' });
+                } finally {
+                  setSettingsSaving(false);
+                }
               }}
-              className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer"
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-black text-xs px-6 py-2.5 rounded-xl shadow-md cursor-pointer"
             >
-              حفظ إعدادات المنصة
+              {settingsSaving ? 'جارٍ حفظ الإعدادات...' : 'حفظ إعدادات المنصة'}
             </button>
           </div>
         </div>
@@ -1822,6 +1683,7 @@ export const AdminDashboard: React.FC = () => {
                   type="tel"
                   dir="ltr"
                   value={newBizOwnerWhatsApp}
+                  required
                   onChange={(e) => setNewBizOwnerWhatsApp(e.target.value)}
                   placeholder="+201012345678"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
@@ -1882,94 +1744,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Secret Admin Billing & Commission */}
-              <div className="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-2">
-                <span className="block text-[11px] font-black text-amber-950 flex items-center gap-1">
-                  <Coins className="w-3.5 h-3.5 text-amber-600" />
-                  <span>نظام العمولة والسداد (إدارة فقط - ولا يراه صاحب النشاط):</span>
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-amber-900 mb-0.5">
-                      عمولة كل طلب (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      required
-                      value={newBizCommission}
-                      onChange={(e) => setNewBizCommission(parseFloat(e.target.value) || 0.01)}
-                      className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-black text-amber-950"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-amber-900 mb-0.5">
-                      يوم السداد الشهري (1 - 31)
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="31"
-                      required
-                      value={newBizDueDay}
-                      onChange={(e) => setNewBizDueDay(parseInt(e.target.value) || 1)}
-                      className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-black text-amber-950"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Paymob Electronic Payment Configuration for New Business */}
-              <div className="p-3 bg-blue-50/80 rounded-2xl border border-blue-200/80 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black text-blue-950 flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                    <span>بوابة PAYMOB الإلكترونية (تحددها الإدارة):</span>
-                  </span>
-                  <label className="flex items-center gap-1 text-[11px] font-bold text-blue-900 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={newBizPaymobEnabled}
-                      onChange={(e) => setNewBizPaymobEnabled(e.target.checked)}
-                      className="rounded text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>تفعيل وسيلة Paymob</span>
-                  </label>
-                </div>
-
-                {newBizPaymobEnabled && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-bold text-blue-900 mb-0.5">
-                        نسبة تكلفة الدفع (%)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.05"
-                        min="0"
-                        value={newBizPaymobFeePercentage}
-                        onChange={(e) => setNewBizPaymobFeePercentage(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-blue-900 mb-0.5">
-                        مبلغ إضافي ثابت (ج.م)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        value={newBizPaymobFeeFixed}
-                        onChange={(e) => setNewBizPaymobFeeFixed(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">لا يتم تسجيل رسوم أو تفعيل اشتراك من هذا النموذج. يتم حفظ النشاط كغير مدفوع وغير منشور إلى أن تؤكد الإدارة السداد الفعلي.</div>
 
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <button
@@ -2075,416 +1850,26 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* =========================================================================
-          MODAL: PAYMOB CONFIGURATION PER BUSINESS (Admin Controlled)
-         ========================================================================= */}
       {selectedPaymobBiz && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="bg-white text-blue-900 font-black text-xs px-2.5 py-0.5 rounded shadow-xs tracking-wider">
-                    PAYMOB
-                  </span>
-                  <span className="bg-blue-600/60 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
-                    محدد حصراً من الإدارة
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedPaymobBiz(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <h3 className="font-black text-lg text-white mt-3">
-                تحديد وسيلة سداد PAYMOB وتكلفتها لنشاط: {selectedPaymobBiz.name}
-              </h3>
-              <p className="text-xs text-blue-200 mt-1 leading-relaxed">
-                يتم تحديد وسيلة الاستخدام وقنواتها ونسبة التكلفة المضافة حصراً من قِبل إدارة MantiqatiX لكل نشاط على حدة.
-              </p>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-900 p-5 text-white">
+              <h3 className="font-black text-lg">الدفع الإلكتروني غير متاح</h3>
+              <p className="text-xs text-slate-300 mt-1">النشاط: {selectedPaymobBiz.name}</p>
             </div>
-
-            {/* Modal Body */}
-            <form onSubmit={handleSavePaymobConfig} className="p-6 space-y-5 text-right">
-              {paymobSaveSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                  <span>تم حفظ وتطبيق إعدادات وسيلة سداد Paymob لهذا النشاط بنجاح!</span>
-                </div>
-              )}
-
-              {/* Toggle Enable/Disable Paymob for this business */}
-              <div className="p-4 rounded-2xl border transition-colors flex items-center justify-between bg-slate-50 border-slate-200">
-                <div>
-                  <div className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-                    <CreditCard className="w-4 h-4 text-blue-600" />
-                    <span>تفعيل وسيلة السداد عبر PAYMOB لهذا النشاط</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    عند التفعيل، ستظهر وسيلة الدفع الإلكتروني بي موب في سلة المشتريات لزبائن هذا النشاط.
-                  </p>
-                </div>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={paymobEnabled}
-                    onChange={(e) => setPaymobEnabled(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              {paymobEnabled && (
-                <div className="space-y-5 animate-in fade-in duration-200">
-                  {/* Fee Calculation Method */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-slate-800">
-                      نموذج احتساب تكلفة الدفع الإلكتروني (تضاف لإجمالي الفاتورة للعميل):
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                      <label
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                          paymobFeeType === 'percentage_plus_fixed'
-                            ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold shadow-xs ring-1 ring-blue-600/30'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="feeType"
-                          value="percentage_plus_fixed"
-                          checked={paymobFeeType === 'percentage_plus_fixed'}
-                          onChange={() => setPaymobFeeType('percentage_plus_fixed')}
-                          className="sr-only"
-                        />
-                        <div className="font-extrabold text-xs">نسبة + مبلغ ثابت</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">النموذج الشائع في مصر (2.75% + 3 ج.م)</div>
-                      </label>
-
-                      <label
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                          paymobFeeType === 'percentage'
-                            ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold shadow-xs ring-1 ring-blue-600/30'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="feeType"
-                          value="percentage"
-                          checked={paymobFeeType === 'percentage'}
-                          onChange={() => setPaymobFeeType('percentage')}
-                          className="sr-only"
-                        />
-                        <div className="font-extrabold text-xs">نسبة مئوية فقط</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">تعتمد كلياً على قيمة السلة</div>
-                      </label>
-
-                      <label
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                          paymobFeeType === 'fixed'
-                            ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold shadow-xs ring-1 ring-blue-600/30'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="feeType"
-                          value="fixed"
-                          checked={paymobFeeType === 'fixed'}
-                          onChange={() => setPaymobFeeType('fixed')}
-                          className="sr-only"
-                        />
-                        <div className="font-extrabold text-xs">مبلغ ثابت فقط</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">قيمة مقطوعة لكل معاملة</div>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Fee Inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
-                    {(paymobFeeType === 'percentage' || paymobFeeType === 'percentage_plus_fixed') && (
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                          نسبة تكلفة الدفع (%) <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step="0.05"
-                            min="0"
-                            required
-                            value={paymobFeePercentage}
-                            onChange={(e) => setPaymobFeePercentage(parseFloat(e.target.value) || 0)}
-                            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                            %
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {(paymobFeeType === 'fixed' || paymobFeeType === 'percentage_plus_fixed') && (
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                          المبلغ الثابت المضاف (ج.م) <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step="0.5"
-                            min="0"
-                            required
-                            value={paymobFeeFixed}
-                            onChange={(e) => setPaymobFeeFixed(parseFloat(e.target.value) || 0)}
-                            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                            ج.م
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Preset Buttons */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11px] font-bold text-slate-500 ml-1">إعدادات سريعة:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymobFeeType('percentage_plus_fixed');
-                        setPaymobFeePercentage(2.75);
-                        setPaymobFeeFixed(3.0);
-                      }}
-                      className="text-[10.5px] bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      القياسي لمصر (2.75% + 3.00 ج.م)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymobFeeType('percentage');
-                        setPaymobFeePercentage(2.5);
-                        setPaymobFeeFixed(0);
-                      }}
-                      className="text-[10.5px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      2.5% فقط
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymobFeeType('fixed');
-                        setPaymobFeePercentage(0);
-                        setPaymobFeeFixed(5.0);
-                      }}
-                      className="text-[10.5px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      5.00 ج.م ثابتة فقط
-                    </button>
-                  </div>
-
-                  {/* Live Simulation Card */}
-                  {(() => {
-                    const sim100 = calculatePaymobFee(100, {
-                      enabled: true,
-                      feeType: paymobFeeType,
-                      feePercentage: Number(paymobFeePercentage) || 0,
-                      feeFixed: Number(paymobFeeFixed) || 0,
-                      acceptedChannels: paymobAcceptedChannels,
-                    });
-                    const sim500 = calculatePaymobFee(500, {
-                      enabled: true,
-                      feeType: paymobFeeType,
-                      feePercentage: Number(paymobFeePercentage) || 0,
-                      feeFixed: Number(paymobFeeFixed) || 0,
-                      acceptedChannels: paymobAcceptedChannels,
-                    });
-
-                    return (
-                      <div className="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80 text-xs space-y-1.5">
-                        <div className="font-extrabold text-amber-950 flex items-center gap-1.5">
-                          <Sparkles className="w-4 h-4 text-amber-600" />
-                          <span>معاينة فورية لتكلفة الدفع المضافة لطلب العميل:</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                          <div className="bg-white p-2 rounded-xl border border-amber-200">
-                            <span className="text-slate-500 block">طلب بقيمة 100 ج.م:</span>
-                            <span className="font-bold text-amber-900">
-                              رسوم Paymob: +{sim100.fee.toFixed(2)} ج.م
-                            </span>
-                            <div className="font-black text-slate-900 text-xs mt-0.5">
-                              الإجمالي: {sim100.totalWithFee.toFixed(2)} ج.م
-                            </div>
-                          </div>
-
-                          <div className="bg-white p-2 rounded-xl border border-amber-200">
-                            <span className="text-slate-500 block">طلب بقيمة 500 ج.م:</span>
-                            <span className="font-bold text-amber-900">
-                              رسوم Paymob: +{sim500.fee.toFixed(2)} ج.م
-                            </span>
-                            <div className="font-black text-slate-900 text-xs mt-0.5">
-                              الإجمالي: {sim500.totalWithFee.toFixed(2)} ج.م
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Accepted Channels Checkboxes */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-slate-800">
-                      قنوات الدفع المسموح بها لهذا النشاط عبر Paymob:
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-slate-100">
-                        <input
-                          type="checkbox"
-                          checked={paymobAcceptedChannels.includes('card')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPaymobAcceptedChannels((prev) => [...prev, 'card']);
-                            } else {
-                              setPaymobAcceptedChannels((prev) => prev.filter((c) => c !== 'card'));
-                            }
-                          }}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                            <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                            <span>بطاقات ميزة وفيزا</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 block">Meeza, Visa, MC</span>
-                        </div>
-                      </label>
-
-                      <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-slate-100">
-                        <input
-                          type="checkbox"
-                          checked={paymobAcceptedChannels.includes('wallet')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPaymobAcceptedChannels((prev) => [...prev, 'wallet']);
-                            } else {
-                              setPaymobAcceptedChannels((prev) => prev.filter((c) => c !== 'wallet'));
-                            }
-                          }}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                            <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>محافظ الكاش الذكية</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 block">فودافون/أورنج/اتصالات/وي</span>
-                        </div>
-                      </label>
-
-                      <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-slate-100">
-                        <input
-                          type="checkbox"
-                          checked={paymobAcceptedChannels.includes('kiosk')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPaymobAcceptedChannels((prev) => [...prev, 'kiosk']);
-                            } else {
-                              setPaymobAcceptedChannels((prev) => prev.filter((c) => c !== 'kiosk'));
-                            }
-                          }}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                            <QrCode className="w-3.5 h-3.5 text-amber-600" />
-                            <span>أمان ومصاري</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 block">كود سداد بمنافذ مصر</span>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Merchant Key & Integration ID Notes */}
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
-                    <span className="text-[11px] font-black text-slate-700 block">
-                      بيانات الربط مع حساب النشاط في Paymob (اختياري / معرفات الربط):
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                          Integration ID (بطاقات ميزة / فيزا)
-                        </label>
-                        <input
-                          type="text"
-                          dir="ltr"
-                          placeholder="مثال: 458129"
-                          value={paymobIntegrationIdCard}
-                          onChange={(e) => setPaymobIntegrationIdCard(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                          Integration ID (محافظ كاش)
-                        </label>
-                        <input
-                          type="text"
-                          dir="ltr"
-                          placeholder="مثال: 458130"
-                          value={paymobIntegrationIdWallet}
-                          onChange={(e) => setPaymobIntegrationIdWallet(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                        ملاحظة للعميل تظهر أسفل وسيلة Paymob في السلة (اختياري)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="مثال: متاح الدفع ببطاقات ميزة البنكية ومحافظ فودافون كاش لسرعة استلام طلبك."
-                        value={paymobNotesForCustomer}
-                        onChange={(e) => setPaymobNotesForCustomer(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit / Cancel Footer */}
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setSelectedPaymobBiz(null)}
-                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 text-xs font-black bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/25 flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>حفظ وتطبيق إعدادات Paymob للنشاط</span>
+            <div className="p-6 space-y-4 text-right">
+              <p className="text-sm text-slate-700 leading-7">
+                لم يتم اعتماد دورة الدفع الإلكتروني واختبارات الإنتاج بعد. لن تُحفظ مفاتيح Paymob من هذه الواجهة ولن يُفعّل التحصيل الإلكتروني في الإصدار الحالي.
+              </p>
+              <p className="text-xs text-slate-500">
+                يمكن تأكيد الاشتراك يدويًا فقط بعد التحقق من السداد الفعلي خارج المنصة.
+              </p>
+              <div className="flex justify-end">
+                <button type="button" onClick={() => setSelectedPaymobBiz(null)} className="px-5 py-2.5 text-xs font-bold text-white bg-slate-900 rounded-xl">
+                  إغلاق
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}

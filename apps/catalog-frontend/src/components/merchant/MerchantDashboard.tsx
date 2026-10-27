@@ -484,8 +484,8 @@ export const MerchantDashboard: React.FC = () => {
                             alt={p.name}
                             className="w-12 h-12 rounded-xl object-cover bg-slate-100 border border-slate-200"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80';
+                              const image = e.currentTarget;
+                              if (!image.src.endsWith('/catalog-item-placeholder.svg')) image.src = resolveDefaultImage({ kind: 'product' });
                             }}
                           />
                         </td>

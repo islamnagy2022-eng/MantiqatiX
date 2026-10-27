@@ -1,5 +1,5 @@
 window.MANTIQATIX_CONFIG={supabaseUrl:'https://moyhiluyhjsujhwlyeuu.supabase.co',supabaseKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1veWhpbHV5aGpzdWpod2x5ZXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0MTE2NzEsImV4cCI6MjEwMjk4NzY3MX0.NShoR3SRT8bnOdp8izsx0dCNGc8-GpLy057S9dgoszc'};
 window.MNTY_CONFIG=window.MANTIQATIX_CONFIG;
-window.MNTY_SUPPORT={whatsapp:'201010171770'};
+window.MNTY_SUPPORT={whatsapp:''};
 window.MNTY_DATA_SOURCE='WEBSITE_SUPABASE';
 window.MNTY_WEB_PUSH_PUBLIC_KEY='BPLMpu7NvGMROu3CfsZdieVBgKrXI3u8o6m1COq24RHigGlZN60MakIvaiHmqU8CdcWDCM_F6IQgep4ok6DmUTg';
