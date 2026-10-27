@@ -66,7 +66,7 @@ BEGIN
           AND m.business_id IS NULL)
        OR (upper(m.role::text) IN ('OWNER','BUSINESS_OWNER','ADMIN')
           AND (m.business_id = p_business_id OR (upper(m.role::text) = 'OWNER' AND m.business_id IS NULL AND m.branch_id IS NULL))
-          AND ((upper(m.role::text) = 'MANAGER' AND m.branch_id IS NOT NULL AND m.branch_id = p_branch_id) OR (upper(m.role::text) <> 'MANAGER' AND (m.branch_id IS NULL OR m.branch_id = p_branch_id))))
+          AND m.branch_id IS NULL)
      )
    ORDER BY CASE upper(m.role::text)
      WHEN 'SUPER_ADMIN' THEN 0 WHEN 'OWNER' THEN 1 WHEN 'BUSINESS_OWNER' THEN 2
