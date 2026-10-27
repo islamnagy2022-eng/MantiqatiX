@@ -506,7 +506,7 @@ Deno.serve(async (req: Request) => {
           id: String(m.id), userId: String(m.user_id), fullName: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || "مشترك"),
           email: String(u?.email || ""), phone: String(u?.user_metadata?.phone || ""), businessId: String(m.business_id),
           businessName: String(b?.name || "نشاط غير متاح"), status: String(m.status).toUpperCase() === "ACTIVE" ? "active" : "suspended",
-          username: String(u?.email || ""), authMethod: "direct_password", inviteStatus: "direct_created", joinedDate: String(m.created_at || "").slice(0, 10),
+          username: String(u?.email || ""), authMethod: "google_oauth", inviteStatus: "google_login_required", joinedDate: String(m.created_at || "").slice(0, 10),
         };
       }) });
     }
