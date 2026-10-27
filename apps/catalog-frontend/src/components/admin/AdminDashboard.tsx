@@ -827,36 +827,17 @@ export const AdminDashboard: React.FC = () => {
                             )}
                           </td>
 
-                          {/* Paymob Gateway Configuration Cell */}
+                          {/* Online payment is disabled in this catalog-first release. */}
                           <td className="py-3.5 px-4">
-                            {biz.paymobConfig?.enabled ? (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-800 font-extrabold px-2 py-0.5 rounded-md border border-blue-200 text-[10px]">
-                                  <CreditCard className="w-3 h-3 text-blue-600" />
-                                  <span>مفعل: {biz.paymobConfig.feePercentage}% {biz.paymobConfig.feeFixed > 0 ? `+ ${biz.paymobConfig.feeFixed}ج.م` : ''}</span>
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => openPaymobSettings(biz)}
-                                  className="block text-[10px] text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
-                                >
-                                  تعديل الرسوم والقنوات
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-500 font-medium px-2 py-0.5 rounded-md text-[10px]">
-                                  معطل من الإدارة
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => openPaymobSettings(biz)}
-                                  className="block text-[10px] text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer"
-                                >
-                                  تفعيل وضبط Paymob
-                                </button>
-                              </div>
-                            )}
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-md border border-slate-200 text-[10px]">
+                                <CreditCard className="w-3 h-3" />
+                                الدفع الإلكتروني غير متاح
+                              </span>
+                              <span className="block text-[10px] text-slate-500">
+                                لا يتم تحصيل أموال من هذا الإصدار
+                              </span>
+                            </div>
                           </td>
 
                           {/* Admin Action Buttons */}
@@ -866,10 +847,10 @@ export const AdminDashboard: React.FC = () => {
                               <button
                                 onClick={() => openPaymobSettings(biz)}
                                 className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[10px] px-2 py-1 rounded-lg border border-blue-200 transition-colors cursor-pointer flex items-center gap-1"
-                                title="تحديد وسيلة سداد Paymob ونسبة التكلفة لهذا النشاط"
+                                title="الدفع الإلكتروني غير مفعّل في إصدار الكتالوج الحالي"
                               >
                                 <CreditCard className="w-3 h-3 text-blue-600" />
-                                <span>إدارة Paymob</span>
+                                <span>Paymob غير متاح</span>
                               </button>
 
                               {/* 1. Confirm Payment Button */}
