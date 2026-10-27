@@ -369,6 +369,7 @@ Deno.serve(async (req: Request) => {
       const village = String(input.village || "").trim().slice(0, 100);
       const workingHours = String(input.workingHours || "").trim().slice(0, 300);
       const nameEn = String(input.nameEn || "").trim().slice(0, 180);
+      const activityTypeId = String(input.activityTypeId || "").trim();
       const safeUrl = (value: unknown, max: number) => {
         const raw = String(value || "").trim().slice(0, max);
         if (!raw) return "";
