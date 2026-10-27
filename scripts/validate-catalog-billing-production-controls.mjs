@@ -37,4 +37,14 @@ if (!dashboard.includes('التنبيهات اليومية أو التجميد �
   throw new Error('FAIL: billing UI must not claim automated overdue enforcement without a verified server scheduler.');
 }
 
+
+if (dashboard.includes("مُسدّد وساري") || dashboard.includes("biz.registrationDate || biz.createdAt || '2026-01-10'")) {
+  throw new Error('FAIL: production billing view must not show a hardcoded paid state or a fabricated registration date.');
+}
+if (!dashboard.includes("b.paymentStatus === 'paid'") ||
+    !dashboard.includes("b.paymentStatus === 'pending'") ||
+    !dashboard.includes("value=\"pending\"")) {
+  throw new Error('FAIL: production billing status and pending filter must use the persisted billing state.');
+}
+
 console.log('Production billing controls: PASS');
