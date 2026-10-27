@@ -58,11 +58,11 @@ interface AppContextType {
   products: Product[];
   subscribers: Subscriber[];
   adminSettings: AdminSettings;
-  updateBusiness: (business: Business) => void;
+  updateBusiness: (business: Business) => Promise<void>;
   addBusiness: (business: Omit<Business, 'id' | 'createdAt'>) => Promise<string>;
   deleteBusiness: (id: string) => Promise<void>;
   getStorePublicLink: (business: Business) => string;
-  updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => void;
+  updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
   confirmAdminPayment: (businessId: string) => void;
   advanceBusinessOverdueDay: (businessId: string) => void;
   toggleBusinessFreeze: (businessId: string) => void;
@@ -352,15 +352,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts((prev) => [...prev.filter((p) => p.businessId !== businessId), ...mappedProducts]);
   };
 
-  const updateBusiness = (updated: Business) => {
-    void (async () => {
-      try {
-        if (!updated.tenantId || !updated.branchId) throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
-        await callCatalogAdmin({ action: 'BUSINESS_PROFILE_UPSERT', tenantId: updated.tenantId, businessId: updated.id, branchId: updated.branchId, name: updated.name, bio: updated.bio || '', phone: updated.ownerWhatsApp || updated.phone || '', address: updated.address || '', governorate: updated.governorate || '', markaz: updated.markaz || '', village: updated.village || '', workingHours: updated.workingHours || '', logoUrl: updated.logoUrl || '', coverUrl: updated.coverUrl || '', publicEnabled: Boolean(updated.publicEnabled) });
-        if (authSession.role === 'admin') await callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId: updated.id, tenantId: updated.tenantId, settings: { commissionPerOrder: updated.commissionPerOrder, totalOrdersCount: updated.totalOrdersCount, paymentStatus: updated.paymentStatus, overdueDaysCount: updated.overdueDaysCount, isFrozen: updated.isFrozen, lastPaymentDate: updated.lastPaymentDate, paymentConfirmedByAdmin: updated.paymentConfirmedByAdmin, paymentDueDay: updated.paymentDueDay, paymentDueDate: updated.paymentDueDate } });
-        await refreshBusinessCatalog(updated.id);
-      } catch (e: any) { window.alert(e?.message || 'تعذر حفظ بيانات النشاط في قاعدة الإنتاج.'); }
-    })();
+  const updateBusiness = async (updated: Business): Promise<void> => {
+    if (!updated.tenantId || !updated.branchId) {
+      throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
+    }
+    await callCatalogAdmin({
+      action: 'BUSINESS_PROFILE_UPSERT',
+      tenantId: updated.tenantId,
+      businessId: updated.id,
+      branchId: updated.branchId,
+      name: updated.name,
+      bio: updated.bio || '',
+      phone: updated.ownerWhatsApp || updated.phone || '',
+      address: updated.address || '',
+      governorate: updated.governorate || '',
+      markaz: updated.markaz || '',
+      village: updated.village || '',
+      workingHours: updated.workingHours || '',
+      logoUrl: updated.logoUrl || '',
+      coverUrl: updated.coverUrl || '',
+      publicEnabled: Boolean(updated.publicEnabled),
+    });
+    if (authSession.role === 'admin') {
+      await callPlatformAdmin({
+        action: 'BUSINESS_SETTINGS_UPDATE',
+        businessId: updated.id,
+        tenantId: updated.tenantId,
+        settings: {
+          commissionPerOrder: updated.commissionPerOrder,
+          totalOrdersCount: updated.totalOrdersCount,
+          paymentStatus: updated.paymentStatus,
+          overdueDaysCount: updated.overdueDaysCount,
+          isFrozen: updated.isFrozen,
+          lastPaymentDate: updated.lastPaymentDate,
+          paymentConfirmedByAdmin: updated.paymentConfirmedByAdmin,
+          paymentDueDay: updated.paymentDueDay,
+          paymentDueDate: updated.paymentDueDate,
+        },
+      });
+    }
+    await refreshBusinessCatalog(updated.id);
   };
 
   const addBusiness = async (data: Omit<Business, 'id' | 'createdAt'>): Promise<string> => {
@@ -375,8 +406,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateBusinessPaymobConfig = (_businessId: string, config: Partial<PaymobConfig>) => {
     if (config.enabled) window.alert('الدفع الإلكتروني غير مفعّل في هذا الإصدار. لن يتم تحصيل أموال من خلال الكتالوج.');
   };
-  const updateBusinessLocation = (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => {
-    const business = businesses.find((b) => b.id === businessId); if (business) updateBusiness({ ...business, governorate: loc.governorate, markaz: loc.markaz, village: loc.village, address: loc.address ?? business.address });
+  const updateBusinessLocation = async (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }): Promise<void> => {
+    const business = businesses.find((b) => b.id === businessId);
+    if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإنتاج الحالية.');
+    await updateBusiness({ ...business, governorate: loc.governorate, markaz: loc.markaz, village: loc.village, address: loc.address ?? business.address });
   };
   const updateBillingSetting = (businessId: string, settings: Record<string, unknown>) => {
     const business = businesses.find((b) => b.id === businessId);
