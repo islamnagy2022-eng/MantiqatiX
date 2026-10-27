@@ -1,5 +1,4 @@
--- Catalog-only pilot readiness. Scoped to the confirmed Qadam Al-Saad owner and this business.
--- No payment, finance, SMM, MantiGO, or unrelated module changes.
+-- Scoped catalog pilot readiness repair. No payment, finance, or unrelated module changes.
 DO $qadam$
 DECLARE
   v_business_id uuid;
