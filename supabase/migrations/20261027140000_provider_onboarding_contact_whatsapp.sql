@@ -99,7 +99,8 @@ begin
       'contact_phone',v_contact_phone,
       'provider_kind',v_req.provider_kind,
       'specialties',v_req.specialties,
-      'service_areas',v_req.service_areas
+      'service_areas',v_req.service_areas,
+      'activity_type_id',v_req.activity_type_id
     )
   );
 
@@ -115,7 +116,8 @@ begin
       'source','provider_onboarding',
       'onboarding_request_id',v_req.id,
       'contact_name',v_contact_name,
-      'contact_phone',v_contact_phone
+      'contact_phone',v_contact_phone,
+      'activity_type_id',v_req.activity_type_id
     ),
     v_req.profile_image_path
   );
@@ -145,7 +147,7 @@ begin
     jsonb_build_object(
       'status','APPROVED','business_id',v_business_id,
       'provider_profile_id',v_profile_id,'membership_id',v_membership_id,
-      'contact_name',v_contact_name,'contact_phone',v_contact_phone
+      'contact_name',v_contact_name,'contact_phone',v_contact_phone,'activity_type_id',v_req.activity_type_id
     ),
     'SUCCESS'
   );
