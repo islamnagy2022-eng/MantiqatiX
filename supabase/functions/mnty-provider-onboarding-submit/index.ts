@@ -15,7 +15,10 @@ Deno.serve(async(req)=>{
  let b;try{b=await req.json()}catch{return json({error:"invalid_json"},400)}
  const rid=String(b?.registration_request_id||"").trim(),tenant=String(b?.tenant_id||"").trim(),org=String(b?.organization_id||"").trim();
  const name=String(b?.business_name||"").trim().slice(0,180),kind=String(b?.provider_kind||"").trim().slice(0,80);
- if(!rid||tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2)return json({error:"required_fields_missing"},400);
+ const phone=String(b?.contact_phone||"").trim().slice(0,40);
+ const phoneDigits=phone.replace(/\\D/g,"");
+ if(!rid||tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2||phoneDigits.length<8||phoneDigits.length>15)
+   return json({error:"business_name_activity_and_valid_contact_phone_required"},400);
  const arr=(v,max=30)=>Array.isArray(v)?v.map(x=>String(x??"").trim()).filter(Boolean).slice(0,max):[];
  const rawAreas=Array.isArray(b?.service_areas)?b.service_areas.slice(0,10):[];
  if(rawAreas.length!==1)return json({error:"service_area_required"},400);
@@ -40,7 +43,7 @@ Deno.serve(async(req)=>{
  if(exErr)return json({error:"onboarding_lookup_failed"},500);
  if(ex?.status==="PENDING")return json({error:"onboarding_already_exists"},409);
  if(ex&&["APPROVED","REJECTED"].includes(ex.status))return json({error:"onboarding_already_processed"},409);
- const {data:created,error:ce}=await admin.from("provider_onboarding_requests").insert({registration_request_id:rid,user_id:user.id,tenant_id:tenant,organization_id:org,business_name:name,provider_kind:kind,name_en:b?.name_en?String(b.name_en).trim().slice(0,180):null,description:b?.description?String(b.description).trim().slice(0,3000):null,specialties:arr(b?.specialties),service_areas:[normalizedArea],portfolio:arr(b?.portfolio,20),profile_image_path:b?.profile_image_path?String(b.profile_image_path).trim().slice(0,500):null,status:"PENDING"}).select("id,status").single();
+ const {data:created,error:ce}=await admin.from("provider_onboarding_requests").insert({registration_request_id:rid,user_id:user.id,tenant_id:tenant,organization_id:org,business_name:name,provider_kind:kind,contact_phone:phone,name_en:b?.name_en?String(b.name_en).trim().slice(0,180):null,description:b?.description?String(b.description).trim().slice(0,3000):null,specialties:arr(b?.specialties),service_areas:[normalizedArea],portfolio:arr(b?.portfolio,20),profile_image_path:b?.profile_image_path?String(b.profile_image_path).trim().slice(0,500):null,status:"PENDING"}).select("id,status").single();
  if(ce){if(ce.code==="23505")return json({error:"onboarding_already_exists"},409);return json({error:"onboarding_submit_failed"},500)}
  const {error:me}=await admin.from("account_registration_requests").update({metadata:{source:"provider_onboarding",onboarding_request_id:created.id},updated_at:new Date().toISOString()}).eq("id",rid).eq("user_id",user.id);
  if(me){await admin.from("provider_onboarding_requests").delete().eq("id",created.id);return json({error:"registration_metadata_update_failed"},500)}
