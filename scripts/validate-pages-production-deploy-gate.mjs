@@ -29,49 +29,44 @@ assert.match(validateBlock, /FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS
   'A blocked full platform gate may only be non-fatal for the independently verified catalog pilot');
 assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
   'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
-assert.match(validateBlock, /Compose existing platform root with catalog as a separate module/,
-  'Pages artifact must preserve the existing platform root and mount catalog under a subpath');
-assert.match(validateBlock, /cp -a web\/\.[\s\S]*?cp -a apps\/catalog-frontend\/dist\/\.[\s\S]*?catalog-app/,
-  'Composition must combine the existing platform root with the catalog build');
-assert.match(validateBlock, /path: \$\{\{ runner\.temp \}\}\/mantiqatix-composed-site/,
-  'The composed site artifact must be uploaded from the runner temp directory');
-assert.ok(validateBlock.includes('rm -rf "${SITE_DIR}/preview"') && validateBlock.includes('rm -f "${SITE_DIR}/smm.html"'),
-  'The Pages artifact must exclude source-only preview demos and deferred SMM placeholder');
-assert.ok(validateBlock.includes('test ! -e "${SITE_DIR}/preview/index.html"') && validateBlock.includes('test ! -e "${SITE_DIR}/smm.html"'),
-  'The composed site must be checked for absent demo and deferred routes');
+assert.match(validateBlock, /Compose catalog as the primary MantiqatiX site/,
+  'Pages artifact must publish the electronic catalog as the primary site root');
+assert.match(validateBlock, /cp -a apps\/catalog-frontend\/dist\/\.[\s\S]*?mantiqatix-primary-catalog-site/,
+  'Composition must publish the catalog build directly at the site root');
+assert.ok(validateBlock.includes('test ! -e "${SITE_DIR}/home.js"') && validateBlock.includes('test ! -e "${SITE_DIR}/app.js"'),
+  'Legacy platform UI must not be published at the primary site root');
+assert.match(validateBlock, /path: \$\{\{ runner\.temp \}\}\/mantiqatix-primary-catalog-site/,
+  'The primary catalog artifact must be uploaded from the runner temp directory');
+assert.ok(validateBlock.includes('cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/"'),
+  'The production root must be copied from the catalog build, not the legacy web folder');
+assert.ok(validateBlock.includes('grep -Fq \'/MantiqatiX/assets/\' "${SITE_DIR}/index.html"'),
+  'The published catalog must reference root-level production assets');
 assert.match(deployBlock, /needs: \[validate, validate_public_only\]/,
   'Deploy job must retain both validation dependencies so its condition can inspect their results');
 assert.match(deployBlock, /if: always\(\).*needs\.validate\.result == 'success'/,
   'Deploy must evaluate after dependencies finish and require full validation to succeed');
-assert.match(deployBlock, /name: mantiqatix-composed-pages-site[\s\S]*?path: \.\/site/,
-  'Deploy must download and publish the composed site artifact');
-assert.ok(deployBlock.includes('catalog-app/'), 'Post-deploy verification must check the catalog module subpath');
-assert.ok(deployBlock.includes('MantiqatiX | منصة الخدمات ومقدميها'),
-  'Post-deploy verification must ensure the original platform root is still present');
-assert.doesNotMatch(deployBlock, /replacement catalog site|primary-catalog-frontend-dist/,
-  'Deployment must not replace the platform root with the catalog-only frontend');
+assert.match(deployBlock, /name: mantiqatix-primary-catalog-site[\s\S]*?path: \.\/site/,
+  'Deploy must download and publish the primary catalog artifact');
+assert.ok(deployBlock.includes('MANTIQATIX_PRIMARY_CATALOG_DEPLOY=PASS'), 'Post-deploy verification must confirm the primary catalog release');
+assert.doesNotMatch(deployBlock, /catalog-app\/|home\.js/, 'Deployment must not publish the legacy UI or a nested catalog route');
 assert.doesNotMatch(deployBlock, /needs\.validate\.result == 'success'\s*\|\|\s*needs\.validate_public_only\.result == 'success'/,
   'Passing the narrow public-only check must not bypass failed production certification');
 
 assert.doesNotMatch(primaryWorkflow, /actions\/deploy-pages@v4|pages:\s*write|id-token:\s*write/,
   'The catalog frontend validation workflow must not race the canonical Pages deploy workflow');
-assert.ok(primaryWorkflow.includes('/MantiqatiX/catalog-app/assets/'),
-  'The catalog build must target its own subpath');
+assert.ok(primaryWorkflow.includes('/MantiqatiX/assets/'),
+  'The catalog build must target root-level assets');
 assert.ok(primaryWorkflow.includes('Upload catalog build for review (no deployment)'),
   'The primary catalog workflow must validate and upload an artifact without deploying');
-assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإلكتروني</a>'),
-  'The existing platform desktop navigation must link to the catalog module');
-assert.ok(home.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'),
-  'The existing platform mobile navigation must link to the catalog module');
+assert.ok(!workflow.includes('cp -a web/. "${SITE_DIR}/"'),
+  'The legacy homepage must not be the deployed root');
 assert.doesNotMatch(home, /preview\/|mx-public-module-hub|mx-module-hub|smm\.html/,
   'The public homepage must not expose demo routes or the deferred SMM page');
 assert.doesNotMatch(platformApp, /href="smm\.html"|smmModulePage|خدمات التسويق الرقمي SMM/,
   'The app workspace must not expose a deferred SMM route');
-assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
-  'Production health checks must monitor the catalog subpath');
-assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
-  'Production health checks must verify the existing platform root remains intact');
-assert.doesNotMatch(healthMonitor, /grep -Fq "\/MantiqatiX\/assets\/" <<<"\$HTML"/,
-  'Production health checks must not expect the React catalog app to replace the platform root');
+assert.ok(healthMonitor.includes('/MantiqatiX/assets/'),
+  'Production health checks must monitor the primary catalog assets');
+assert.ok(!healthMonitor.includes('/MantiqatiX/catalog-app/'),
+  'Production health checks must not rely on a nested catalog path');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_AND_CATALOG_SUBPATH=PASS');
