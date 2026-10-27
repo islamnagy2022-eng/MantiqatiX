@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: all 40 release-required migration versions (34 payment/finance/security/order plus six RC113–RC117/platform feature migrations) are absent from the live ledger. Catalog checks confirm 21 of the original 39 required RPC names are absent, 4 required tables are absent, 12/13 selected required indexes are absent, and the six newer control-center/hiring/image migrations also have 17/17 named function contracts and 11/11 selected tables/indexes absent. Five critical deployed Edge Functions drift from main; the RC451 targeted-ad SECURITY DEFINER search_path and RC449A/RC450 finance schema/ACL remain blocked. No Production changes occurred.",
+  "reason": "Production remains BLOCKED: 41 distinct release-required migration versions are absent from the live ledger; 33 selected new RC113–RC117 module objects are absent; the Qadam catalog follow-up is unrecorded and its owner membership is INACTIVE; and two duplicate source-version aliases need controlled migration-history reconciliation. Existing payment/finance/RPC schema and five critical Edge Function source drifts plus RC451 search_path remain blockers. No Production migration, data write, grant/Auth/RLS change or deployment occurred.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -100,10 +100,10 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-10-27",
-    "method": "Read-only LEFT JOIN of all 40 required source version IDs used by scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations.",
+    "method": "Read-only LEFT JOIN of all 41 distinct required migration source versions in scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations; two source-version aliases are tracked separately and must be reconciled through the controlled migration-history process.",
     "live_ledger_count": 292,
     "latest_live_version": "20261027041549",
-    "expected_migration_versions": 40,
+    "expected_migration_versions": 41,
     "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
@@ -145,7 +145,8 @@
       "20261027050000",
       "20261027060000",
       "20261027070000",
-      "20261027090000"
+      "20261027090000",
+      "20261027093000"
     ],
     "missing_versions": [
       "20261009120000",
@@ -187,9 +188,10 @@
       "20261027050000",
       "20261027060000",
       "20261027070000",
-      "20261027090000"
+      "20261027090000",
+      "20261027093000"
     ],
-    "interpretation": "All 40 release-required source versions are absent from the live ledger: the original 34 payment/finance/security/order versions plus six later platform-owner, hiring, subscriber-admin, default-image, and membership-scope migrations. Exact-version source presence and the 52-file disposable replay do not prove application to Production.",
+    "interpretation": "All 41 distinct release-required source versions are absent from the live ledger: the original 34 payment/finance/security/order versions, six RC113–RC117 platform-feature migrations, and the Qadam catalog follow-up whose data seed is partly present but whose owner membership is still INACTIVE. Two duplicate source-version aliases are tracked separately and require controlled ledger reconciliation; do not execute them as new SQL.",
     "recorded_required_versions": []
   },
   "critical_edge_function_source_parity_check": {
@@ -678,7 +680,7 @@
     "status": "VERIFIED_READ_ONLY",
     "path": "docs/release/production-source-object-drift.json",
     "checked_at": "2026-10-27",
-    "required_release_migration_versions": 40,
+    "required_release_migration_versions": 41,
     "recorded_required_migration_versions": 0,
     "required_function_names": 39,
     "absent_function_names": 21,
@@ -690,7 +692,10 @@
     "additional_function_contracts": 17,
     "additional_absent_function_contracts": 17,
     "additional_relations_indexes": 11,
-    "additional_absent_relations_indexes": 11
+    "additional_absent_relations_indexes": 11,
+    "qadam_followup_version": "20261027093000",
+    "qadam_owner_membership_status": "INACTIVE",
+    "source_aliases_pending_reconciliation": 2
   },
   "additional_feature_migration_check": {
     "status": "BLOCKING_DRIFT",
@@ -822,8 +827,55 @@
       },
       {
         "path": "supabase/migrations/20261027093000_add_qadam_alsaad_homewares_store.sql",
-        "status": "EFFECTS_PRESENT_NOT_LEDGERED",
-        "detail": "Read-only live audit confirms the business/branch/owner membership, 15 active QAS products, all 12 expected price-bearing products, 3 contact-for-price products without price rows, no stock tracking, and business contact fields are already present. Do not reapply this data seed merely to ledger its filename."
+        "status": "EFFECTS_PARTIALLY_PRESENT_OWNER_MEMBERSHIP_INACTIVE",
+        "detail": "The Qadam business, branch, contact fields, 15 products and 12 price rows match the source, but the live owner membership remains INACTIVE. The distinct follow-up migration is required because it promotes the owner membership to ACTIVE; do not mark it applied without running/rehearsing this effect."
+      }
+    ]
+  },
+  "qadam_catalog_followup_check": {
+    "status": "BLOCKING_DATA_DRIFT",
+    "checked_at": "2026-10-27",
+    "migration_version": "20261027093000",
+    "migration_version_recorded": false,
+    "business_active": true,
+    "contact_fields_complete": true,
+    "owner_membership_status": "INACTIVE",
+    "owner_membership_active": false,
+    "expected_product_count": 15,
+    "active_product_count": 15,
+    "expected_price_rows": 12,
+    "matching_price_rows": 12,
+    "contact_for_price_product_count": 3,
+    "contact_for_price_without_active_price": 3,
+    "stock_tracking_enabled_item_count": 0,
+    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect."
+  },
+  "migration_alias_resolution_check": {
+    "status": "PENDING_CONTROLLED_REPAIR",
+    "checked_at": "2026-10-27",
+    "expected_aliases": 2,
+    "resolved_aliases": 0,
+    "procedure": "After a reviewed current-schema replay, backup/restore and rollout approval, use the documented Supabase migration-history repair path to reconcile these duplicate source versions as already-applied aliases, without executing duplicate SQL. This changes only the migration ledger and is a Production write; it has not been performed.",
+    "aliases": [
+      {
+        "source_version": "20261009010000",
+        "source_file": "supabase/migrations/20261009010000_rc424_atomic_digital_page_payment_webhook.sql",
+        "target_ledger_version": "20261008222845",
+        "evidence_type": "EXACT_STATEMENT_ALIAS",
+        "status": "PENDING",
+        "source_effect_verified": true,
+        "ledger_repair_applied": false,
+        "note": "The live statement is character-for-character identical to the already-applied legacy RC424 ledger version; preserve the live version and do not execute the alias as new SQL."
+      },
+      {
+        "source_version": "20261027100000",
+        "source_file": "supabase/migrations/20261027100000_mantiqatix_marketing_contact_details.sql",
+        "target_ledger_version": "20261027041411",
+        "evidence_type": "EXACT_SOURCE_BLOB_ALIAS",
+        "status": "PENDING",
+        "source_effect_verified": true,
+        "ledger_repair_applied": false,
+        "note": "The source blob is identical to the exact-version 20261027041411 migration already recorded in Production; do not execute the duplicate as an independent migration."
       }
     ]
   }
