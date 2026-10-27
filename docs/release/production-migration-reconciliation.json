@@ -430,5 +430,19 @@
     "anon_security_definer_executable_count": 1,
     "authenticated_security_definer_executable_count": 48,
     "interpretation": "Advisor findings are not a blanket instruction to revoke all security-definer RPC access. Review each function's intended caller, identity checks, search_path and schema/grant contract; no grants were changed during this check."
+  },
+  "production_source_object_drift_inventory": {
+    "status": "VERIFIED_READ_ONLY",
+    "path": "docs/release/production-source-object-drift.json",
+    "checked_at": "2026-10-27",
+    "required_release_migration_versions": 34,
+    "recorded_required_migration_versions": 0,
+    "required_function_names": 39,
+    "absent_function_names": 21,
+    "required_tables_and_indexes": 17,
+    "absent_tables_and_indexes": 16,
+    "present_objects_still_requiring_contract_review": 18,
+    "interpretation": "Name/signature/catalog inventory is read-only evidence. Existing function names are not treated as behaviorally verified; body, search_path, effective grants, trigger attachment and runtime acceptance still require exact checks.",
+    "no_production_writes": true
   }
 }
