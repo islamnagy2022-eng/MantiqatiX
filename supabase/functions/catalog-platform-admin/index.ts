@@ -287,6 +287,97 @@ Deno.serve(async (req: Request) => {
       return data;
     };
 
+    if (action === "LIST_AUDIT_LOGS") {
+      const rawLimit = Number(body.limit || 50);
+      const limit = Math.max(1, Math.min(100, Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 50));
+      const rawOffset = Number(body.offset || 0);
+      const offset = Math.max(0, Math.min(100000, Number.isFinite(rawOffset) ? Math.floor(rawOffset) : 0));
+      const tenantId = body.tenantId ? requireTenant(body.tenantId) : null;
+      const actionFilter = String(body.actionFilter || "").trim().slice(0, 100);
+      const entityType = String(body.entityType || "").trim().slice(0, 100);
+      const businessId = String(body.businessId || "").trim();
+      let query = service.from("audit_logs")
+        .select("id,tenant_id,organization_id,business_id,branch_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result,created_at", { count: "exact" })
+        .in("tenant_id", tenantId ? [tenantId] : productionTenantIds)
+        .order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+      if (actionFilter) query = query.ilike("action", "%" + actionFilter.replace(/[%_]/g, "") + "%");
+      if (entityType) query = query.eq("entity_type", entityType);
+      if (businessId && isUuid(businessId)) query = query.eq("business_id", businessId);
+      const { data, count, error } = await query;
+      if (error) throw error;
+      return response(origin, { auditLogs: data || [], total: Number(count || 0), limit, offset });
+    }
+
+    if (action === "LIST_FINANCIAL_OBLIGATIONS") {
+      const rawLimit = Number(body.limit || 50);
+      const limit = Math.max(1, Math.min(100, Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 50));
+      const rawOffset = Number(body.offset || 0);
+      const offset = Math.max(0, Math.min(100000, Number.isFinite(rawOffset) ? Math.floor(rawOffset) : 0));
+      const tenantId = body.tenantId ? requireTenant(body.tenantId) : null;
+      const status = String(body.status || "").trim().toUpperCase();
+      const obligationType = String(body.obligationType || "").trim().slice(0, 100);
+      const { data, count, error } = await (()=>{
+        let query = service.from("financial_obligations")
+          .select("id,tenant_id,business_id,order_id,payment_intent_id,beneficiary_type,beneficiary_id,obligation_type,gross_amount,amount,currency,status,payment_method,settlement_id,due_at,settled_at,created_at,metadata", { count: "exact" })
+          .in("tenant_id", tenantId ? [tenantId] : productionTenantIds)
+          .order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+        if (status) query = query.eq("status", status);
+        if (obligationType) query = query.eq("obligation_type", obligationType);
+        return query;
+      })();
+      if (error) throw error;
+      const rows = data || [];
+      const businessIds = [...new Set(rows.map((r: any) => r.business_id).filter(Boolean).map(String))];
+      const { data: businessRows, error: businessError } = businessIds.length
+        ? await service.from("businesses").select("id,name,code").in("id", businessIds)
+        : { data: [], error: null };
+      if (businessError) throw businessError;
+      const businessMap = new Map((businessRows || []).map((b: any) => [String(b.id), b]));
+      return response(origin, {
+        obligations: rows.map((r: any) => ({ ...r, business_name: String((businessMap.get(String(r.business_id)) as any)?.name || "") })),
+        total: Number(count || 0), limit, offset,
+        isReadOnly: true,
+      });
+    }
+
+    if (action === "LIST_FINANCIAL_RECONCILIATIONS") {
+      const rawLimit = Number(body.limit || 50);
+      const limit = Math.max(1, Math.min(100, Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 50));
+      const rawOffset = Number(body.offset || 0);
+      const offset = Math.max(0, Math.min(100000, Number.isFinite(rawOffset) ? Math.floor(rawOffset) : 0));
+      const tenantId = body.tenantId ? requireTenant(body.tenantId) : null;
+      const reconciliationStatus = String(body.reconciliationStatus || "").trim().toUpperCase();
+      const ledgerStatus = String(body.ledgerStatus || "").trim().toUpperCase();
+      let query = service.from("payment_financial_reconciliations")
+        .select("id,tenant_id,payment_intent_id,provider_event_id,order_id,currency,gross_amount,commission_amount,provider_received_amount,provider_payout_amount,commission_obligation_id,provider_obligation_id,commission_transaction_id,reconciliation_status,ledger_status,exception_code,metadata,created_at,updated_at", { count: "exact" })
+        .in("tenant_id", tenantId ? [tenantId] : productionTenantIds)
+        .order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+      if (reconciliationStatus) query = query.eq("reconciliation_status", reconciliationStatus);
+      if (ledgerStatus) query = query.eq("ledger_status", ledgerStatus);
+      const { data, count, error } = await query;
+      if (error) throw error;
+      return response(origin, { reconciliations: data || [], total: Number(count || 0), limit, offset, isReadOnly: true });
+    }
+
+    if (action === "LIST_COMMISSION_TRANSACTIONS") {
+      const rawLimit = Number(body.limit || 50);
+      const limit = Math.max(1, Math.min(100, Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 50));
+      const rawOffset = Number(body.offset || 0);
+      const offset = Math.max(0, Math.min(100000, Number.isFinite(rawOffset) ? Math.floor(rawOffset) : 0));
+      const tenantId = body.tenantId ? requireTenant(body.tenantId) : null;
+      const status = String(body.status || "").trim().toUpperCase();
+      const businessId = String(body.businessId || "").trim();
+      let query = service.from("commission_transactions")
+        .select("id,tenant_id,business_id,order_id,rule_id,gross_amount,commission_amount,status,created_at", { count: "exact" })
+        .in("tenant_id", tenantId ? [tenantId] : productionTenantIds)
+        .order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+      if (status) query = query.eq("status", status);
+      if (businessId && isUuid(businessId)) query = query.eq("business_id", businessId);
+      const { data, count, error } = await query;
+      if (error) throw error;
+      return response(origin, { commissionTransactions: data || [], total: Number(count || 0), limit, offset, isReadOnly: true });
+    }
+
     if (action === "LIST_BUSINESSES") {
       const rawLimit = Number(body.limit || 25);
       const limit = Math.max(1, Math.min(50, Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 25));
