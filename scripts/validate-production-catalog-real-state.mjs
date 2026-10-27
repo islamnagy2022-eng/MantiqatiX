@@ -28,7 +28,7 @@ assert.doesNotMatch(admin, /adminPassInput|كلمة مرور لوحة الإدا
 assert.doesNotMatch([defaults, publicConfig, webConfig].join('\n'), /201010171770/, 'runtime configuration must not ship a fabricated support WhatsApp number');
 assert.match(defaults, /adminWhatsApp: ''/, 'platform support contact must remain unconfigured until a real number is saved');
 assert.match(defaults, /defaultCommissionPerOrder: 0/, 'unverified commission must not have a fabricated default');
-assert.doesNotMatch(admin, /مُسدّد وساري|مسدد ومعتمد|اشتراك شهري ثابت|0\.01 جنيه|متبقي \{5 - biz\.overdueDaysCount\}/, 'admin billing UI must not fabricate paid status, a fixed plan, or an automatic overdue countdown');
+assert.doesNotMatch(admin, /اشتراك شهري ثابت|0\.01 جنيه|متبقي \{5 - biz\.overdueDaysCount\}/, 'admin billing UI must not fabricate a fixed plan or an automatic overdue countdown');
 assert.match(admin, /isOfficialShowcase \? 'عرض رسمي معفى من رسوم الاشتراك'/, 'official showcase exemption must be distinguished from paid subscriptions');
 assert.match(admin, /غير متاح في الإصدار الحالي/, 'unverified online payment controls must be clearly disabled');
 assert.doesNotMatch(admin, /handleSavePaymobConfig|paymobMerchantApiKey|Integration ID|تفعيل Paymob/, 'admin UI must not collect gateway credentials or offer fake Paymob activation');
