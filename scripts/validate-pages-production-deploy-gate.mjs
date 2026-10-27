@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const primaryWorkflow = fs.readFileSync('.github/workflows/primary-catalog-frontend.yml', 'utf8');
 const home = fs.readFileSync('web/home.js', 'utf8');
+const healthMonitor = fs.readFileSync('.github/workflows/production-health-monitor.yml', 'utf8');
 const lines = workflow.split(/\r?\n/);
 const blockStart = lines.findIndex(line => line === '  deploy:');
 assert.notEqual(blockStart, -1, 'Pages workflow must define deploy job');
@@ -49,5 +50,11 @@ assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإ
   'The existing platform desktop navigation must link to the catalog module');
 assert.ok(home.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'),
   'The existing platform mobile navigation must link to the catalog module');
+assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
+  'Production health checks must monitor the catalog subpath');
+assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
+  'Production health checks must verify the existing platform root remains intact');
+assert.doesNotMatch(healthMonitor, /grep -Fq "\/MantiqatiX\/assets\/" <<<"\$HTML"/,
+  'Production health checks must not expect the React catalog app to replace the platform root');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_AND_CATALOG_SUBPATH=PASS');
