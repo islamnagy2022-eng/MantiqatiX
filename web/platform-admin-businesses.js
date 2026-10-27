@@ -134,7 +134,7 @@ function openCreate(){
    const businessId=String(result.business?.id||'');if(!businessId)throw new Error('تم الإنشاء دون رقم نشاط صالح');
    out.textContent='تم إنشاء النشاط '+businessId+'. يمكن تعيين مالكه الآن بعد إنشاء حساب Google الخاص به.';
    notify('تم إنشاء النشاط دون مالك؛ اربطه بحساب Google لاحقًا.','success');
-   state.offset=0;await refreshBusinesses();
+   state.offset=0;state.search='';state.filterStatus='';state.tenantFilter=tenantId;await refreshBusinesses();
   }catch(e){out.textContent='تعذر الإنشاء: '+(e?.message||'خطأ غير معروف');button.disabled=false}
  });
 }
