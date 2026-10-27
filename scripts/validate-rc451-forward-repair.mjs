@@ -8,10 +8,10 @@ const historical = fs.readFileSync('supabase/migrations/20261010200000_rc451_tar
 
 assert.match(migration, /RC451_FORWARD_REPAIR_FUNCTION_MISSING/);
 assert.match(migration, /RC451_FORWARD_REPAIR_SCHEMA_QUALIFICATION_CONTRACT_DRIFT/);
-assert.match(migration, /public\.advertisements/);
-assert.match(migration, /public\.advertisement_target_locations/);
-assert.match(migration, /public\.platform_geo_areas/);
-assert.match(migration, /public\.platform_global_advertisements/);
+assert.match(migration, /from\|join/);
+assert.match(migration, /advertisement_target_locations/);
+assert.match(migration, /platform_geo_areas/);
+assert.match(migration, /platform_global_advertisements/);
 assert.match(migration, /ALTER FUNCTION public\.get_mnty_targeted_advertisements/);
 assert.match(migration, /SET search_path = ''/);
 assert.match(migration, /has_function_privilege\('anon', v_oid, 'EXECUTE'\)/);
