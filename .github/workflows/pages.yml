@@ -62,6 +62,7 @@ jobs:
         run: npm run verify:production
       - name: Syntax check
         run: |
+          node scripts/validate-paid-subscription-gate.mjs
           node --check web/rbac.js
           node --check web/feature-flags.js
           node --check web/app.js
