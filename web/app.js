@@ -1990,12 +1990,9 @@ document.getElementById('account-open-activity-request')?.addEventListener('clic
  });
 }
 async function providerOnboardingView(){
+  if(typeof window.MXOpenActivityRequestModal==='function')return window.MXOpenActivityRequestModal();
   await accountView();
-  const form=document.getElementById('provider-onboarding-form');
-  if(form){
-    form.scrollIntoView({behavior:'smooth',block:'start'});
-    window.setTimeout(()=>document.getElementById('po-business-name')?.focus(),250);
-  }
+  showToast('افتح الصفحة الرئيسية ثم اختر «طلب كتالوج نشاط».','error');
 }
 window.providerOnboardingView=providerOnboardingView;
 function membershipRequiredView(){
