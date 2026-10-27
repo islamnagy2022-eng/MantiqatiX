@@ -141,8 +141,9 @@ function openCreate(){
  });
 }
 async function initEditTaxonomy(m,b){
- const overlay=m.overlay,sector=overlay.querySelector('#mx-biz-sector'),activity=overlay.querySelector('#mx-biz-activity'),specialty=overlay.querySelector('#mx-biz-specialty'),out=overlay.querySelector('#mx-biz-taxonomy-status');
+ const overlay=m.overlay,sector=overlay.querySelector('#mx-biz-sector'),activity=overlay.querySelector('#mx-biz-activity'),specialty=overlay.querySelector('#mx-biz-specialty'),out=overlay.querySelector('#mx-biz-taxonomy-status'),createButton=overlay.querySelector('#mx-biz-create-save');
  if(!sector||!activity||!specialty)return;
+ if(createButton)createButton.disabled=true;
  let rows=[];
  try{
   const response=await api('LIST_ACTIVITY_TYPES');
@@ -151,6 +152,7 @@ async function initEditTaxonomy(m,b){
  }catch(e){
   sector.innerHTML='<option value="">غير متاح</option>';sector.disabled=true;activity.innerHTML='<option value="">استخدم القطاع القديم</option>';specialty.innerHTML='<option value="">اختياري</option>';
   out.textContent='لم يتوفر سجل التصنيفات الهرمي من الخادم: '+(e?.message||'غير متاح')+'. التعديل الحالي سيحافظ على التصنيف القديم ما لم تتوفر بيانات موثقة.';
+  if(createButton)createButton.disabled=false;
   return;
  }
  const sort=list=>[...list].sort((a,b)=>(Number(a.sort_order||100)-Number(b.sort_order||100))||String(a.name_ar||'').localeCompare(String(b.name_ar||''),'ar'));
@@ -183,6 +185,7 @@ async function initEditTaxonomy(m,b){
  if(groups.some(x=>String(x.id)===String(groupId)))sector.value=groupId;
  fillActivity(activityId,specialtyId);
  out.textContent='تم تحميل '+rows.length+' عناصر تصنيف. اختر النشاط والتخصص لمزامنة التصنيف مع ملف النشاط.';
+ if(createButton)createButton.disabled=false;
 }
 function openEdit(b){
  const settings=b.settings||{},p=settings.catalog_profile||{};
