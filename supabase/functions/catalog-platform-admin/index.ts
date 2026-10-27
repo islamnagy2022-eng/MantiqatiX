@@ -280,7 +280,7 @@ Deno.serve(async (req: Request) => {
     };
     const getBusiness = async (tenantId: string, businessId: string) => {
       if (!isUuid(businessId)) throw new Error("INVALID_BUSINESS_ID");
-      const { data, error } = await service.from("businesses").select("id,tenant_id,organization_id,name,code,status,settings")
+      const { data, error } = await service.from("businesses").select("id,tenant_id,organization_id,name,code,status,settings,updated_at")
         .eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
       if (error) throw error;
       if (!data) throw new Error("BUSINESS_NOT_FOUND");
