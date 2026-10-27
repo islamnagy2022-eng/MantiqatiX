@@ -5,7 +5,7 @@
   "method": "Read-only live PostgreSQL catalog checks for required object names/signatures and exact function configuration/ACL checks for previously identified critical boundaries. SQL migration sources were parsed from main. This inventory does not assert full behavior equivalence unless an explicit observed difference is documented.",
   "live_migration_ledger_rows": 292,
   "latest_live_migration_version": "20261027041549",
-  "required_release_migration_versions": 34,
+  "required_release_migration_versions": 41,
   "recorded_required_migration_versions": 0,
   "functions": {
     "required_count": 39,
@@ -440,6 +440,141 @@
     "The existing financial journal RPCs do not grant service_role EXECUTE",
     "Five critical deployed Edge Function entrypoints differ from current main; smm-gateway entrypoint matches"
   ],
-  "interpretation": "This is mixed live schema drift: 21 required RPC names are absent; 4 required tables are absent; 12 of 13 selected required indexes are absent. Additional present names have stale signatures/configurations, or still require body/ACL parity verification. Do not apply historical migrations directly to the current Production schema: later-dated migrations already exist and no current-schema replay/restore rehearsal has approved the transition.",
-  "safety": "READ-ONLY evidence only. No Production data, schema, migration ledger, grants, RLS, Auth, Edge Functions, payment intents, or wallets were modified."
+  "interpretation": "The current repository and live Production diverge beyond the original 34 release migrations: six RC113–RC117 feature migrations are also unrecorded and their owner/hiring/subscriber/default-image objects are absent. The Qadam follow-up migration is unrecorded and its owner membership remains INACTIVE, despite the store and 15-item catalog data matching. Two duplicate source aliases require controlled migration-history reconciliation. Do not run db push on Production until missing distinct migration effects, aliases, current live schema drift and rollback are reconciled.",
+  "safety": "READ-ONLY evidence only. No Production data, schema, migration ledger, grants, RLS, Auth, Edge Functions, payment intents, or wallets were modified.",
+  "additional_feature_migrations": [
+    {
+      "version": "20261027030000",
+      "name": "rc113_super_admin_control_center_foundation",
+      "recorded": false,
+      "missing_objects": [
+        "public.platform_custom_roles",
+        "public.platform_role_assignments",
+        "public.platform_role_assignments_active_unique",
+        "public.platform_role_assignments_user_scope_idx",
+        "public.mnty_platform_admin_list_custom_roles",
+        "public.mnty_platform_admin_upsert_custom_role",
+        "public.mnty_platform_admin_assign_custom_role"
+      ]
+    },
+    {
+      "version": "20261027040000",
+      "name": "rc114_business_employee_hiring_system",
+      "recorded": false,
+      "missing_objects": [
+        "public.business_job_positions",
+        "public.business_employees",
+        "public.business_employees_email_per_business_unique",
+        "public.business_job_positions_business_active_idx",
+        "public.business_employees_business_status_idx",
+        "public.business_employees_user_active_idx",
+        "public.mnty_business_employee_position_upsert",
+        "public.mnty_business_employee_upsert"
+      ]
+    },
+    {
+      "version": "20261027050000",
+      "name": "rc115_control_center_integration",
+      "recorded": false,
+      "missing_objects": [
+        "public.mnty_platform_has_permission",
+        "public.mnty_platform_admin_list_people",
+        "public.mnty_platform_admin_list_role_assignments",
+        "public.mnty_business_employee_list",
+        "public.mnty_platform_admin_list_audit"
+      ]
+    },
+    {
+      "version": "20261027060000",
+      "name": "rc116_business_subscriber_admin",
+      "recorded": false,
+      "missing_objects": [
+        "public.mnty_platform_admin_manage_membership"
+      ]
+    },
+    {
+      "version": "20261027070000",
+      "name": "rc117_default_images_and_activity_admin",
+      "recorded": false,
+      "missing_objects": [
+        "public.mnty_default_image_url",
+        "public.mnty_default_business_images_trigger",
+        "public.mnty_default_catalog_item_image_trigger",
+        "public.mnty_default_marketing_service_image_trigger",
+        "public.businesses.mnty_business_default_images",
+        "public.catalog_items.mnty_catalog_item_default_image",
+        "public.marketing_services.mnty_marketing_service_default_image",
+        "public.marketing_services.image_url",
+        "public.marketing_services.image_source",
+        "public.mnty_platform_admin_list_businesses",
+        "public.mnty_platform_admin_manage_business"
+      ]
+    },
+    {
+      "version": "20261027090000",
+      "name": "rc113_user_membership_business_scope_idempotency",
+      "recorded": false,
+      "missing_objects": [
+        "public.ux_user_memberships_user_business_branch_nullsafe"
+      ]
+    }
+  ],
+  "qadam_catalog_followup": {
+    "version": "20261027093000",
+    "name": "add_qadam_alsaad_homewares_store",
+    "recorded": false,
+    "source_effects": {
+      "business_present": true,
+      "business_active": true,
+      "contact_fields_match": true,
+      "active_main_branch_present": true,
+      "expected_products": 15,
+      "active_products": 15,
+      "expected_price_rows": 12,
+      "matching_price_rows": 12,
+      "contact_for_price_products": 3,
+      "contact_for_price_products_without_active_price": 3,
+      "stock_tracking_enabled_item_count": 0
+    },
+    "blocking_difference": {
+      "owner_membership_id": "MNTY-QADAM-ALSAAD-OWNER",
+      "current_status": "INACTIVE",
+      "expected_status": "ACTIVE",
+      "detail": "The source migration explicitly promotes the owner membership to ACTIVE; this is still missing, so this migration is not a redundant alias and must remain required."
+    },
+    "release_handling": "Include version 20261027093000 among required distinct migration effects. Rehearse the idempotent data update against current schema and backup/rollback plan before Production."
+  },
+  "source_version_aliases": [
+    {
+      "source_version": "20261009010000",
+      "target_ledger_version": "20261008222845",
+      "kind": "EXACT_STATEMENT_ALIAS",
+      "recorded": false,
+      "action": "Resolve through controlled migration-history repair only after current-schema rehearsal; do not execute the duplicate RC424 SQL."
+    },
+    {
+      "source_version": "20261027100000",
+      "target_ledger_version": "20261027041411",
+      "kind": "EXACT_SOURCE_BLOB_ALIAS",
+      "recorded": false,
+      "action": "Resolve through controlled migration-history repair after evidence capture; do not execute duplicate SQL as a separate release effect."
+    }
+  ],
+  "aggregate_drift_summary": {
+    "required_migration_versions": 41,
+    "recorded_required_migration_versions": 0,
+    "missing_required_migration_versions": 41,
+    "previously_audited_function_contracts": 39,
+    "previously_audited_absent_function_contracts": 21,
+    "additional_feature_function_contracts": 17,
+    "additional_feature_absent_function_contracts": 17,
+    "aggregate_function_contracts": 56,
+    "aggregate_absent_function_contracts": 38,
+    "previously_audited_table_index_contracts": 17,
+    "previously_audited_missing_table_index_contracts": 16,
+    "additional_feature_table_index_contracts": 11,
+    "additional_feature_missing_table_index_contracts": 11,
+    "aggregate_table_index_contracts": 28,
+    "aggregate_missing_table_index_contracts": 27
+  }
 }

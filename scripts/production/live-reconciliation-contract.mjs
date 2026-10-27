@@ -12,6 +12,76 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261010200000", "20261010210000", "20261010220000", "20261011010000",
   "20261014230000", "20261023020000", "20261023030000", "20261023040000",
   "20261023050000", "20261023060000",
+  "20261027030000", "20261027040000", "20261027050000",
+  "20261027060000", "20261027070000", "20261027090000", "20261027093000",
+];
+
+export const REQUIRED_MIGRATION_ALIASES = [
+  {
+    source_version: "20261009010000",
+    target_ledger_version: "20261008222845",
+    evidence_type: "EXACT_STATEMENT_ALIAS",
+  },
+  {
+    source_version: "20261027100000",
+    target_ledger_version: "20261027041411",
+    evidence_type: "EXACT_SOURCE_BLOB_ALIAS",
+  },
+];
+
+export const REQUIRED_CORE_OBJECTS = [
+  "public.mantigo_payment_provider_events",
+  "public.process_verified_mantigo_payment_backend",
+  "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+  "public.uq_payment_intents_one_active_per_order",
+  "public.process_verified_provider_payment_failure",
+  "public.process_verified_subscription_payment_failure",
+  "public.process_verified_subscription_payment_backend",
+  "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+  "public.smm_wallet_transactions_reference_type_uidx",
+  "public.receive_purchase_stock_atomic_backend",
+  "public.create_subscription_payment_intent_claimable_backend and claim_subscription_provider_intent_creation_backend",
+  "public.post_financial_journal_atomic_backend and journal uniqueness indexes",
+  "public.erp_purchase_order_lines, receive_purchase_stock_with_order_line_backend, set_purchase_order_lines_backend and RC437 indexes",
+  "public.create_purchase_order_with_lines_backend",
+  "public.update_purchase_order_status_backend(varchar,varchar)",
+  "public.mnty_can_platform_admin and MantiGo admin RPCs",
+];
+
+export const REQUIRED_CONTROL_CENTER_OBJECTS = [
+  "public.platform_custom_roles",
+  "public.platform_role_assignments",
+  "public.mnty_platform_admin_list_custom_roles",
+  "public.mnty_platform_admin_upsert_custom_role",
+  "public.mnty_platform_admin_assign_custom_role",
+  "public.business_job_positions",
+  "public.business_employees",
+  "public.platform_role_assignments_active_unique",
+  "public.platform_role_assignments_user_scope_idx",
+  "public.business_employees_email_per_business_unique",
+  "public.business_job_positions_business_active_idx",
+  "public.business_employees_business_status_idx",
+  "public.business_employees_user_active_idx",
+  "public.mnty_business_employee_position_upsert",
+  "public.mnty_business_employee_upsert",
+  "public.mnty_platform_has_permission",
+  "public.mnty_platform_admin_list_people",
+  "public.mnty_platform_admin_list_role_assignments",
+  "public.mnty_business_employee_list",
+  "public.mnty_platform_admin_list_audit",
+  "public.mnty_platform_admin_list_businesses",
+  "public.mnty_platform_admin_manage_business",
+  "public.mnty_platform_admin_manage_membership",
+  "public.mnty_default_image_url",
+  "public.mnty_default_business_images_trigger",
+  "public.mnty_default_catalog_item_image_trigger",
+  "public.mnty_default_marketing_service_image_trigger",
+  "public.businesses.mnty_business_default_images",
+  "public.catalog_items.mnty_catalog_item_default_image",
+  "public.marketing_services.mnty_marketing_service_default_image",
+  "public.marketing_services.image_url",
+  "public.marketing_services.image_source",
+  "public.ux_user_memberships_user_business_branch_nullsafe",
 ];
 
 const REQUIRED_EDGE_FUNCTIONS = [
@@ -41,6 +111,9 @@ export function isLiveReconciliationVerified(reconciliation) {
   const requiredVersions = Array.isArray(ledger?.required_versions) ? ledger.required_versions : null;
   const recordedRequiredVersions = Array.isArray(ledger?.recorded_required_versions) ? ledger.recorded_required_versions : null;
   const securityDefiner = reconciliation.security_definer_search_path_check;
+  const qadam = reconciliation.qadam_catalog_followup_check;
+  const aliasCheck = reconciliation.migration_alias_resolution_check;
+  const aliasFindings = Array.isArray(aliasCheck?.aliases) ? aliasCheck.aliases : [];
   const missingColumns = Array.isArray(finance?.schema_preflight?.missing_columns)
     ? finance.schema_preflight.missing_columns
     : null;
@@ -51,6 +124,45 @@ export function isLiveReconciliationVerified(reconciliation) {
   const requiredEdgeParityPassed = REQUIRED_EDGE_FUNCTIONS.every(slug =>
     functions.some(row => row?.slug === slug && row?.exact_match === true)
   );
+
+  const requiredLiveObjectsPassed = [...REQUIRED_CORE_OBJECTS, ...REQUIRED_CONTROL_CENTER_OBJECTS].every(name =>
+    objectFindings.some(row =>
+      (row?.name ?? row?.object) === name &&
+      row?.exists === true &&
+      row?.status === "PASS"
+    )
+  );
+
+  const requiredMigrationAliasesResolved =
+    aliasCheck?.status === "RECONCILED" &&
+    aliasCheck.expected_aliases === REQUIRED_MIGRATION_ALIASES.length &&
+    aliasCheck.resolved_aliases === REQUIRED_MIGRATION_ALIASES.length &&
+    REQUIRED_MIGRATION_ALIASES.every(required =>
+      aliasFindings.some(alias =>
+        alias?.source_version === required.source_version &&
+        alias?.target_ledger_version === required.target_ledger_version &&
+        alias?.evidence_type === required.evidence_type &&
+        alias?.status === "RECONCILED" &&
+        alias?.source_effect_verified === true &&
+        alias?.ledger_repair_applied === true
+      )
+    );
+
+  const qadamCatalogFollowupPassed =
+    qadam?.status === "PASS" &&
+    qadam.migration_version === "20261027093000" &&
+    qadam.migration_version_recorded === true &&
+    qadam.business_active === true &&
+    qadam.contact_fields_complete === true &&
+    qadam.owner_membership_status === "ACTIVE" &&
+    qadam.owner_membership_active === true &&
+    qadam.expected_product_count === 15 &&
+    qadam.active_product_count === 15 &&
+    qadam.expected_price_rows === 12 &&
+    qadam.matching_price_rows === 12 &&
+    qadam.contact_for_price_product_count === 3 &&
+    qadam.contact_for_price_without_active_price === 3 &&
+    qadam.stock_tracking_enabled_item_count === 0;
 
   return Boolean(
     reconciliation.status === "VERIFIED" &&
@@ -86,6 +198,8 @@ export function isLiveReconciliationVerified(reconciliation) {
     recordedRequiredVersions.every((version, index) => version === REQUIRED_RELEASE_MIGRATION_VERSIONS[index]) &&
     missingVersions !== null &&
     missingVersions.length === 0 &&
+    requiredMigrationAliasesResolved &&
+    qadamCatalogFollowupPassed &&
 
     // RC451 must leave the intentionally public discovery boundary intact while hardening search_path.
     securityDefiner?.status === "PASS" &&
@@ -103,6 +217,7 @@ export function isLiveReconciliationVerified(reconciliation) {
     objects?.status === "PASS" &&
     objectFindings.length > 0 &&
     objectFindings.every(row => row?.exists === true && row?.status === "PASS") &&
+    requiredLiveObjectsPassed &&
 
     // Source parity must cover every deployed critical entrypoint, not just one function.
     edgeParity?.status === "PASS" &&

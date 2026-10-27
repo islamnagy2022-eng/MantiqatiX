@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS } from "./production/live-reconciliation-contract.mjs";
+import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS, REQUIRED_MIGRATION_ALIASES } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
@@ -40,9 +40,16 @@ const required = [
   "20261023030000_rc103_order_status_branch_scope.sql",
   "20261023040000_rc104_order_idempotency_scope.sql",
   "20261023050000_rc105_order_create_service_role_identity.sql",
-  "20261023060000_rc106_order_status_service_role_identity.sql"
+  "20261023060000_rc106_order_status_service_role_identity.sql",
+  "20261027030000_rc113_super_admin_control_center_foundation.sql",
+  "20261027040000_rc114_business_employee_hiring_system.sql",
+  "20261027050000_rc115_control_center_integration.sql",
+  "20261027060000_rc116_business_subscriber_admin.sql",
+  "20261027070000_rc117_default_images_and_activity_admin.sql",
+  "20261027090000_rc113_user_membership_business_scope_idempotency.sql",
+  "20261027093000_add_qadam_alsaad_homewares_store.sql"
 ];
-assert.equal(required.length, 34, "release gate must track every known post-RC424 migration source");
+assert.equal(required.length, 41, "release gate must track all distinct required post-RC424 migration effects");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
 assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
@@ -69,6 +76,10 @@ assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
+assert.equal(REQUIRED_CORE_OBJECTS.length, 16, "release gate must track selected payment/finance core object contracts");
+assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
+assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
+assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
 assert.match(liveContract, /required_release_migration_ledger_check/, "exact live ledger version verification must be required");
 assert.match(liveContract, /required_release_object_presence_check/, "selected production object contracts must be required");
 assert.match(liveContract, /critical_edge_function_source_parity_check/, "deployed critical Edge Function parity must be required");
@@ -106,7 +117,11 @@ const validReconciliation = {
   },
   required_release_object_presence_check: {
     status: "PASS",
-    observed: [{ name: "required-object-fixture", exists: true, status: "PASS" }]
+    observed: [
+      { name: "required-object-fixture", exists: true, status: "PASS" },
+      ...REQUIRED_CORE_OBJECTS.map(name => ({ name, exists: true, status: "PASS" })),
+      ...REQUIRED_CONTROL_CENTER_OBJECTS.map(name => ({ name, exists: true, status: "PASS" }))
+    ]
   },
   critical_edge_function_source_parity_check: {
     status: "PASS",
@@ -118,6 +133,33 @@ const validReconciliation = {
       { slug: "financial-journal", exact_match: true },
       { slug: "smm-gateway", exact_match: true }
     ]
+  },
+  migration_alias_resolution_check: {
+    status: "RECONCILED",
+    expected_aliases: REQUIRED_MIGRATION_ALIASES.length,
+    resolved_aliases: REQUIRED_MIGRATION_ALIASES.length,
+    aliases: REQUIRED_MIGRATION_ALIASES.map(alias => ({
+      ...alias,
+      status: "RECONCILED",
+      source_effect_verified: true,
+      ledger_repair_applied: true
+    }))
+  },
+  qadam_catalog_followup_check: {
+    status: "PASS",
+    migration_version: "20261027093000",
+    migration_version_recorded: true,
+    business_active: true,
+    contact_fields_complete: true,
+    owner_membership_status: "ACTIVE",
+    owner_membership_active: true,
+    expected_product_count: 15,
+    active_product_count: 15,
+    expected_price_rows: 12,
+    matching_price_rows: 12,
+    contact_for_price_product_count: 3,
+    contact_for_price_without_active_price: 3,
+    stock_tracking_enabled_item_count: 0
   },
   security_definer_search_path_check: {
     status: "PASS",
@@ -153,7 +195,13 @@ const blockedFixtures = [
   value => { value.financial_journal_runtime_prerequisite_check.rpc_privileges[0].service_role_execute = false; },
   value => { value.security_definer_search_path_check.current_search_path = ["search_path=public, pg_temp"]; },
   value => { value.security_definer_search_path_check.migration_version_recorded = false; },
-  value => { value.required_release_migration_ledger_check.recorded_required_versions.pop(); }
+  value => { value.required_release_migration_ledger_check.recorded_required_versions.pop(); },
+  value => { value.migration_alias_resolution_check.resolved_aliases = 1; },
+  value => { value.migration_alias_resolution_check.aliases[0].ledger_repair_applied = false; },
+  value => { value.qadam_catalog_followup_check.owner_membership_active = false; },
+  value => { value.qadam_catalog_followup_check.matching_price_rows = 11; },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.business_employees"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); }
 ];
 for (const mutate of blockedFixtures) {
   const invalid = clone(validReconciliation);
