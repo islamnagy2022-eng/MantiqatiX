@@ -170,10 +170,29 @@ try{
  if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
  const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
  specs.forEach((x,i)=>{if(results[i]!==null)live.counts[x[3]]=results[i]});
- const fq=sb.from('platform_feature_flags').select('module_code,feature_code,enabled,configuration');
- if(live.businessId)fq.or(`scope_type.eq.PLATFORM,business_id.eq.${live.businessId}`);else fq.eq('scope_type','PLATFORM');
- const fr=await fq;if(fr.error)throw fr.error;
- (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
+ const currentFlagMembership=live.memberships.find(m=>m.id===live.activeMembershipId);
+ const sectorId=String(currentFlagMembership?.business_section_code||'').trim();
+ const flagScopes=[{scope:'GLOBAL'}];
+ if(sectorId)flagScopes.push({scope:'SECTOR',column:'sector_id',value:sectorId});
+ if(live.tenantId)flagScopes.push({scope:'TENANT',column:'tenant_id',value:live.tenantId});
+ if(live.businessId)flagScopes.push({scope:'BUSINESS',column:'business_id',value:live.businessId});
+ if(live.branchId)flagScopes.push({scope:'BRANCH',column:'branch_id',value:live.branchId});
+ const flagResults=await Promise.all(flagScopes.map(spec=>{
+  let q=sb.from('platform_feature_flags').select('id,scope_type,scope_id,sector_id,tenant_id,business_id,branch_id,module_code,feature_code,enabled,configuration,updated_at').eq('scope_type',spec.scope);
+  if(spec.column)q=q.eq(spec.column,spec.value);
+  return q;
+ }));
+ const flagFailure=flagResults.find(r=>r.error);
+ if(flagFailure){
+  // Feature flags only affect UI visibility. A read failure must not break sign-in;
+  // RLS/RPC/Edge Function authorization remains authoritative for protected data/actions.
+  live.flags={};live.featureFlagsAvailable=false;
+  console.warn('[MantiqatiX] Feature flags unavailable; preserving baseline UI and server-side authorization.');
+ }else{
+  const rows=flagResults.flatMap(r=>r.data||[]);
+  live.flags=window.MNTYFeatureFlags?.resolve(rows,{sectorId,tenantId:live.tenantId,businessId:live.businessId,branchId:live.branchId})||{};
+  live.featureFlagsAvailable=true;
+ }
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
   sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
@@ -785,11 +804,12 @@ function pageContent(){switch(current){case'الرئيسية':return canSuperAdm
 const moduleAliases={'التحكم الكامل':['CONTROL','SUPER_ADMIN','PLATFORM_CONTROL'],'كتالوج النشاط':['CATALOG'],'الرئيسية':['HOME','DASHBOARD'],'الموديولات':['MODULES'],'المجالات والخدمات':['DOMAINS','SECTORS','SERVICES'],'التجارة والأزياء':['FASHION','RETAIL'],'البقالة والسوبر ماركت':['GROCERY'],'المطاعم والمطابخ':['RESTAURANTS','CAFES'],'المنظومة الطبية':['MEDICAL','HEALTH','PHYSIOTHERAPY','PHARMACIES','CLINICS','HOSPITALS','LABS'],'الصيانة':['MAINTENANCE','HOME_MAINTENANCE'],'الخدمات المهنية':['PRO_SERVICES','BUSINESS_ERP','ACCOUNTING','ACCOUNTING_SERVICES','LEGAL','COMPANIES','FACTORIES','SOFTWARE_ERP','TECH','PROFESSIONAL','ERP'],'MantiGO والمزايدات':['MANTIGO','REVERSE_BIDDING','TRIPS','FLIGHTS_TRIPS'],'الزواج':['MATRIMONY','MARRIAGE'],'الوظائف':['JOBS'],'التعليم':['EDUCATION','SCHOOLS'],'المستعمل':['USED_ITEMS'],'التسويق والإعلان':['MARKETING','ADVERTISING'],'خدمات التسويق الرقمي SMM':['SMM'],'المستخدمون وCRM':['CRM','USERS'],'الطلبات والعمليات':['OPERATIONS','ORDERS'],'العمولات والباقات':['FINANCE','COMMISSIONS'],'التقارير والتحليلات':['ANALYTICS','REPORTS'],'الدعم والحوكمة':['GOVERNANCE','SUPPORT'],'طلبات التسجيل':['REGISTRATION'],'الإعدادات':['SETTINGS']};
 function normCode(v){return String(v||'').trim().toUpperCase().replace(/[\\s-]+/g,'_')}
 function moduleFlagKeys(name){return [normCode(name)].concat((moduleAliases[name]||[]).map(normCode))}
-function moduleEnabled(name){for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled!==false}}return true}
-function featureEnabled(moduleCode,featureCode){const a=live.flags[normCode(moduleCode)+':'+normCode(featureCode)];const b=live.flags[':'+normCode(featureCode)];return a?.enabled===true||b?.enabled===true}
+function moduleEnabled(name){if(window.MNTYFeatureFlags)return window.MNTYFeatureFlags.moduleEnabled(name,live.flags,moduleAliases);for(const key of moduleFlagKeys(name)){for(const feature of ['MODULE_ENABLED','ENABLED','VISIBILITY']){const flag=live.flags[key+':'+feature];if(flag)return flag.enabled===true}}return true}
+function featureEnabled(moduleCode,featureCode){if(window.MNTYFeatureFlags)return window.MNTYFeatureFlags.featureEnabled(moduleCode,featureCode,live.flags);const a=live.flags[normCode(moduleCode)+':'+normCode(featureCode)];const b=live.flags[':'+normCode(featureCode)];return a?.enabled===true||b?.enabled===true}
 function canManage(){const r=String(live.role||'').toUpperCase();return window.MNTY_RBAC?.can(r,'ORDERS','update',live.permissions)===true||['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(r)}
 function canSuperAdmin(){return window.MNTY_RBAC?.can('SUPER_ADMIN','PLATFORM_CONTROL','view',live.permissions)===true}
 async function selectModule(name){
+ if(!moduleEnabled(name)){showToast('هذه الوحدة متوقفة حاليا من إعدادات المنصة.','error');return}
  const role=String(live.role||'').toUpperCase();
  const privileged=window.MNTY_RBAC?.isPrivileged(role)===true||['SUPER_ADMIN','OWNER','ADMIN','MANAGER'].includes(role);
  const rbacKnown=!!window.MNTY_RBAC?.ROLE_DEFAULTS?.[role];
