@@ -440,7 +440,7 @@
     "The existing financial journal RPCs do not grant service_role EXECUTE",
     "Five critical deployed Edge Function entrypoints differ from current main; smm-gateway entrypoint matches"
   ],
-  "interpretation": "The current repository and live Production diverge beyond the original 34 release migrations: six RC113–RC117 feature migrations are also unrecorded and their owner/hiring/subscriber/default-image objects are absent. The Qadam follow-up migration is unrecorded and its owner membership remains INACTIVE, despite the store and 15-item catalog data matching. Two duplicate source aliases require controlled migration-history reconciliation. Do not run db push on Production until missing distinct migration effects, aliases, current live schema drift and rollback are reconciled.",
+  "interpretation": "Production remains blocked. The live object evidence is now granular: 60 individual core and feature object contracts, rather than combined labels that could never match a catalog finding. Seven core objects exist by name/signature only; 20 core objects and all 33 RC113–RC117 objects are absent. Exact function bodies/ACLs/search_path and runtime behavior remain separate gates.",
   "safety": "READ-ONLY evidence only. No Production data, schema, migration ledger, grants, RLS, Auth, Edge Functions, payment intents, or wallets were modified.",
   "additional_feature_migrations": [
     {
@@ -577,106 +577,52 @@
     "aggregate_table_index_contracts": 28,
     "aggregate_missing_table_index_contracts": 27
   },
-  "release_gate_object_contracts": {
-    "checked_at": "2026-10-27T15:56:24.468448+00:00",
-    "status": "BLOCKED",
-    "atomic_object_contracts": true,
-    "core_payment_finance_erp_mantigo_contracts": 27,
-    "rc113_rc117_control_center_feature_contracts": 33,
-    "total_required_object_contracts": 60,
-    "live_pass_count": 0,
-    "live_blocked_or_unverified_count": 60,
-    "rationale": "Read-only catalog query found only 7/60 contracts by name or explicitly declared signature; 53 are absent. Name presence is not full certification: all 60 remain blocked/unverified until exact signature, body, ACL/search_path and runtime behavior are proved.",
-    "compound_contracts_split": [
-      [
-        "public.create_subscription_payment_intent_claimable_backend",
-        "public.claim_subscription_provider_intent_creation_backend"
-      ],
-      [
-        "public.post_financial_journal_atomic_backend",
-        "public.journal_entry_lines_entry_line_uidx",
-        "public.journal_entries_tenant_entry_number_uidx"
-      ],
-      [
-        "public.erp_purchase_order_lines",
-        "public.receive_purchase_stock_with_order_line_backend",
-        "public.set_purchase_order_lines_backend",
-        "public.erp_purchase_orders_business_order_number_uidx",
-        "public.erp_purchase_order_lines_scope_idx"
-      ],
-      [
-        "public.mnty_can_platform_admin",
-        "public.get_mantigo_admin_dashboard_backend",
-        "public.get_mantigo_admin_financial_report_backend",
-        "public.settle_mantigo_captain_backend",
-        "public.expire_stale_mantigo_rides_backend"
-      ]
-    ],
-    "live_name_presence_count": 7,
-    "live_missing_name_count": 53,
-    "present_by_name_or_declared_signature": [
-      "public.expire_stale_mantigo_rides_backend",
-      "public.get_mantigo_admin_dashboard_backend",
-      "public.get_mantigo_admin_financial_report_backend",
-      "public.mnty_can_platform_admin",
-      "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
-      "public.settle_mantigo_captain_backend",
-      "public.update_purchase_order_status_backend(varchar,varchar)"
-    ],
-    "missing_by_name_or_declared_signature": [
-      "public.business_employees",
-      "public.business_employees_business_status_idx",
-      "public.business_employees_email_per_business_unique",
-      "public.business_employees_user_active_idx",
-      "public.business_job_positions",
-      "public.business_job_positions_business_active_idx",
-      "public.businesses.mnty_business_default_images",
-      "public.catalog_items.mnty_catalog_item_default_image",
-      "public.claim_subscription_provider_intent_creation_backend",
-      "public.create_purchase_order_with_lines_backend",
-      "public.create_subscription_payment_intent_claimable_backend",
-      "public.erp_purchase_order_lines",
-      "public.erp_purchase_order_lines_scope_idx",
-      "public.erp_purchase_orders_business_order_number_uidx",
-      "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
-      "public.journal_entries_tenant_entry_number_uidx",
-      "public.journal_entry_lines_entry_line_uidx",
+  "granular_core_object_contracts": {
+    "required": 27,
+    "present_by_catalog_name": 7,
+    "absent_by_catalog_name": 20,
+    "absent_names": [
       "public.mantigo_payment_provider_events",
-      "public.marketing_services.image_source",
-      "public.marketing_services.image_url",
-      "public.marketing_services.mnty_marketing_service_default_image",
-      "public.mnty_business_employee_list",
-      "public.mnty_business_employee_position_upsert",
-      "public.mnty_business_employee_upsert",
-      "public.mnty_default_business_images_trigger",
-      "public.mnty_default_catalog_item_image_trigger",
-      "public.mnty_default_image_url",
-      "public.mnty_default_marketing_service_image_trigger",
-      "public.mnty_platform_admin_assign_custom_role",
-      "public.mnty_platform_admin_list_audit",
-      "public.mnty_platform_admin_list_businesses",
-      "public.mnty_platform_admin_list_custom_roles",
-      "public.mnty_platform_admin_list_people",
-      "public.mnty_platform_admin_list_role_assignments",
-      "public.mnty_platform_admin_manage_business",
-      "public.mnty_platform_admin_manage_membership",
-      "public.mnty_platform_admin_upsert_custom_role",
-      "public.mnty_platform_has_permission",
-      "public.platform_custom_roles",
-      "public.platform_role_assignments",
-      "public.platform_role_assignments_active_unique",
-      "public.platform_role_assignments_user_scope_idx",
-      "public.post_financial_journal_atomic_backend",
       "public.process_verified_mantigo_payment_backend",
+      "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+      "public.uq_payment_intents_one_active_per_order",
       "public.process_verified_provider_payment_failure",
-      "public.process_verified_subscription_payment_backend",
       "public.process_verified_subscription_payment_failure",
+      "public.process_verified_subscription_payment_backend",
+      "public.smm_wallet_transactions_reference_type_uidx",
       "public.receive_purchase_stock_atomic_backend",
+      "public.create_subscription_payment_intent_claimable_backend",
+      "public.claim_subscription_provider_intent_creation_backend",
+      "public.post_financial_journal_atomic_backend",
+      "public.journal_entry_lines_entry_line_uidx",
+      "public.journal_entries_tenant_entry_number_uidx",
+      "public.erp_purchase_order_lines",
       "public.receive_purchase_stock_with_order_line_backend",
       "public.set_purchase_order_lines_backend",
-      "public.smm_wallet_transactions_reference_type_uidx",
-      "public.uq_payment_intents_one_active_per_order",
-      "public.ux_user_memberships_user_business_branch_nullsafe"
-    ]
+      "public.erp_purchase_orders_business_order_number_uidx",
+      "public.erp_purchase_order_lines_scope_idx",
+      "public.create_purchase_order_with_lines_backend"
+    ],
+    "present_by_catalog_name_only_not_security_certified": [
+      "public.process_verified_digital_page_payment_backend",
+      "public.update_purchase_order_status_backend(varchar,varchar)",
+      "public.mnty_can_platform_admin",
+      "public.get_mantigo_admin_dashboard_backend",
+      "public.get_mantigo_admin_financial_report_backend",
+      "public.settle_mantigo_captain_backend",
+      "public.expire_stale_mantigo_rides_backend"
+    ],
+    "note": "Presence by name/signature is not a substitute for exact body, search_path, grants, tenant scope, or adversarial runtime verification. Separate release checks still apply."
+  },
+  "granular_object_contract_totals": {
+    "core_required": 27,
+    "core_present_by_catalog_name": 7,
+    "core_absent_by_catalog_name": 20,
+    "rc113_rc117_required": 33,
+    "rc113_rc117_present_by_catalog_name": 0,
+    "rc113_rc117_absent_by_catalog_name": 33,
+    "total_required": 60,
+    "total_present_by_catalog_name": 7,
+    "total_absent_by_catalog_name": 53
   }
 }
