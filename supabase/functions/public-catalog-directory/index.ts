@@ -9,7 +9,13 @@ const headersFor = (origin: string | null) => ({
   "Access-Control-Allow-Methods": "GET, OPTIONS", "Vary": "Origin", "Cache-Control": "no-store",
 });
 const response = (origin: string | null, body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: headersFor(origin) });
-const safeImage = (value: unknown) => { const s = String(value || "").trim(); return s.length <= 1500 && /^https:\/\//i.test(s) ? s : ""; };
+const safeImage = (value: unknown) => {
+  const s = String(value || "").trim();
+  if (s.length > 1500 || !/^https:\/\//i.test(s)) return "";
+  // Ignore old stock-photo defaults so only owner-supplied images are displayed.
+  if (/^https:\/\/images\.unsplash\.com\//i.test(s)) return "";
+  return s;
+};
 
 type DefaultImageKind = "activity" | "product" | "service" | "cover";
 
