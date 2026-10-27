@@ -96,8 +96,11 @@ export const REQUIRED_CONTROL_CENTER_OBJECTS = [
 ];
 
 const REQUIRED_EDGE_FUNCTIONS = [
+  "api",
   "order-create",
+  "order-status-update",
   "payment-intent",
+  "payment-webhook",
   "paymob-webhook",
   "digital-page-payment-intent",
   "subscription-payment-intent",
