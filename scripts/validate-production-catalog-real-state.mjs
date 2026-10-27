@@ -13,6 +13,7 @@ const storefrontCatalog = fs.readFileSync('apps/catalog-frontend/src/components/
 const merchantDashboard = fs.readFileSync('apps/catalog-frontend/src/components/merchant/MerchantDashboard.tsx', 'utf8');
 const catalogAdminFunction = fs.readFileSync('supabase/functions/catalog-admin/index.ts', 'utf8');
 const publicDirectoryFunction = fs.readFileSync('supabase/functions/public-catalog-directory/index.ts', 'utf8');
+const publicCatalogFunction = fs.readFileSync('supabase/functions/public-catalog/index.ts', 'utf8');
 const sharedDefaultImages = fs.readFileSync('supabase/functions/_shared/default-images.ts', 'utf8');
 const adminStart = admin.indexOf('const handleAddBusiness');
 const adminEnd = admin.indexOf('const handleCreateCategory', adminStart);
@@ -35,6 +36,8 @@ assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product 
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
 assert.doesNotMatch(catalogAdminFunction, /images\.unsplash\.com|const rules:/, 'catalog admin must not persist stock photos as item imagery');
 assert.doesNotMatch(publicDirectoryFunction, /images\.unsplash\.com|const rules:/, 'public directory API must not assign stock photos to businesses');
+assert.doesNotMatch(publicCatalogFunction, /images\.unsplash\.com/, 'public storefront API must suppress legacy stock-photo URLs stored in production data');
+assert.match(publicCatalogFunction, /images\\\\?\.unsplash\\\\?\.com|images\\\\?\.unsplash\\\\?\.com|Unsplash defaults were seeded/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
 assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
