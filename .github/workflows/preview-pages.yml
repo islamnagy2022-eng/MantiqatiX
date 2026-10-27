@@ -1,4 +1,4 @@
-name: Deploy MantiqaTiX Preview Route
+name: Validate deferred preview sources (not published)
 
 on:
   push:
@@ -6,43 +6,42 @@ on:
     paths:
       - "web/preview/**"
       - ".github/workflows/preview-pages.yml"
+      - ".github/workflows/preview-demo-validation.yml"
+      - "scripts/validate-preview-navigation.mjs"
+      - "scripts/validate-smm-deferred-ui.mjs"
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/preview/**"
+      - ".github/workflows/preview-pages.yml"
+      - ".github/workflows/preview-demo-validation.yml"
+      - "scripts/validate-preview-navigation.mjs"
+      - "scripts/validate-smm-deferred-ui.mjs"
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages-preview
-  cancel-in-progress: false
+  group: preview-source-validation-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  validate-preview-scope:
+  validate-preview-source:
+    name: Validate preview source without publishing
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout exact deployed commit
+      - name: Checkout repository
         uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
         with:
-          ref: ${{ github.sha }}
-          fetch-depth: 2
-      - name: Ensure this commit changes only the preview route and this workflow
-        shell: bash
-        run: |
-          set -euo pipefail
-          changed="$(git diff-tree --no-commit-id --name-only -r "$GITHUB_SHA")"
-          test -n "$changed"
-          while IFS= read -r path; do
-            case "$path" in
-              web/preview/*|.github/workflows/preview-pages.yml|.github/workflows/preview-demo-validation.yml|.github/workflows/pages.yml|scripts/validate-preview-navigation.mjs) ;;
-              *) echo "Refusing preview-only deployment: unexpected changed path: $path"; exit 1 ;;
-            esac
-          done <<< "$changed"
-          test -s web/preview/index.html
-          grep -Fq 'معاينة تفاعلية' web/preview/index.html
-          grep -Fq 'لا يوجد اتصال بالـ Backend' web/preview/index.html
-      - name: Validate demo and administration contracts
+          node-version: 22
+      - name: Validate preview-only source contracts
         run: node scripts/validate-preview-navigation.mjs
-      - name: Validate public four-sector DEMO simulator
+      - name: Verify SMM stays deferred and non-interactive
+        run: node scripts/validate-smm-deferred-ui.mjs
+      - name: Validate four-sector demo source without deployment
         run: |
           set -euo pipefail
           test -s web/preview/four-sector-demo/index.html
@@ -56,52 +55,4 @@ jobs:
           done
           grep -Fq 'لا يوجد اتصال بـ Supabase أو بقاعدة الإنتاج' web/preview/four-sector-demo/index.html
           ! grep -Eq 'fetch[[:space:]]*\\(|XMLHttpRequest|WebSocket|createClient[[:space:]]*\\(|supabase\\.co|signInWithOtp' web/preview/four-sector-demo/index.html web/preview/four-sector-demo/demo.js web/preview/four-sector-demo/demo.css
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-      - name: Build browser SDK required by the existing site
-        run: |
-          npm install --ignore-scripts --no-audit --no-fund
-          mkdir -p web/vendor
-          npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
-          test -s web/vendor/supabase.js
-      - name: Upload current web tree with additive preview route
-        uses: actions/upload-pages-artifact@v4
-        with:
-          name: github-pages-preview-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./web
-      - name: Deploy preview route
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-preview-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Verify deployed preview route
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          set -euo pipefail
-          test -n "$PAGE_URL"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/" -o /tmp/preview.html
-          grep -Fq 'id="heroTitle"' /tmp/preview.html
-          grep -Fq 'id="categoryGrid"' /tmp/preview.html
-          grep -Fq 'id="serviceCards"' /tmp/preview.html
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/dashboard.html" -o /tmp/preview-dashboard.html
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/admin.html" -o /tmp/preview-admin.html
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/login.html" -o /tmp/preview-login.html
-          grep -Fq 'MantiqatiX' /tmp/preview.html
-          grep -Fq 'dashboard.html' /tmp/preview.html
-          grep -Fq 'كل موديولات MantiqatiX' /tmp/preview-dashboard.html
-          grep -Fq 'وضع تجريبي فقط' /tmp/preview.html
-          grep -Fq 'لوحة الإدارة الشاملة' /tmp/preview-admin.html
-          grep -Fq 'Demo Administration Center' /tmp/preview-admin.html
-          grep -Fq 'AUTHENTICATION UI DEMO' /tmp/preview-login.html
-          grep -Fq 'رمز التحقق التجريبي الثابت 123456' /tmp/preview-login.html
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${PAGE_URL}preview/four-sector-demo/" -o /tmp/four-sector-demo.html
-          grep -Fq 'نسخة DEMO تفاعلية للقطاعات الأربعة' /tmp/four-sector-demo.html
-          grep -Fq 'البيانات محفوظة محليًا في هذا المتصفح فقط' /tmp/four-sector-demo.html
-          grep -Fq 'id="app"' /tmp/four-sector-demo.html
-          for asset in demo.css demo.js; do
-            curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL}preview/four-sector-demo/${asset}?v=four-sector-demo-20261026" >/dev/null
-          done
-          echo "Preview routes verified at ${PAGE_URL}preview/, four-sector-demo/, dashboard.html, admin.html, and login.html"
+          echo "PREVIEW_SOURCE_ONLY=PASS; no Pages artifact or deployment produced"

@@ -307,3 +307,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [ ] Keep release blocked pending current-schema rehearsal, backup/restore/rollback approval, 41 distinct migration versions, alias ledger repair, owner membership activation, live RPC/Edge Function parity and remaining runtime gates.
 - Safety: read-only Supabase SQL/catalog queries only; no Production changes, migration application, ledger repair, grants, Auth/RLS, Edge Functions, payments or wallets were touched.
 
+ 
+## 2026-10-28 — deployed catalog pilot verification and demo-route retirement
+
+- Verified successful canonical Pages deployment and post-deploy smoke tests for the existing platform root and the separate catalog subpath.
+- Verified exact live/main source parity for `catalog-platform-admin` v3, `catalog-admin` v14, `public-catalog-directory` v2 and `public-catalog` v2.
+- Read-only database checks confirm Qadam's active owner membership/provider profile and 15 active catalog items (12 priced; 3 contact-for-price).
+- Read-only Supabase migration inventory is 293 entries through `20261027205405_catalog_pilot_owner_profile_repair`; all 41 full-platform required migration versions remain absent. The broader production gate stays BLOCKED.
+- PR #447 is removing demo-tour/SMM links from the public homepage, replacing the demo tour with the real catalog entrypoint, excluding demo routes from the production artifact, and preventing the preview workflow from publishing. CI failure on the first iteration exposed stale validators that required the demo link; the production-content contract was updated to require the real catalog CTA and reject demo routes. Latest-head CI is pending.
+- No payment-intent, webhook, order, finance, SMM or MantiGO functions were deployed in this work. Do not certify the full platform until the remaining production gates have evidence.

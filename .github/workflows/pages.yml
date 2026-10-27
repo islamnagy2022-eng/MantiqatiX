@@ -218,6 +218,11 @@ jobs:
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}"
           cp -a web/. "${SITE_DIR}/"
+          # Keep legacy demo assets in source for contract tests, never in the production artifact.
+          rm -rf "${SITE_DIR}/preview"
+          rm -f "${SITE_DIR}/smm.html"
+          test ! -e "${SITE_DIR}/preview"
+          test ! -e "${SITE_DIR}/smm.html"
           rm -rf "${SITE_DIR}/catalog-app"
           mkdir -p "${SITE_DIR}/catalog-app"
           cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/catalog-app/"
@@ -227,7 +232,7 @@ jobs:
           grep -Fq 'home.js' "${SITE_DIR}/index.html"
           grep -Fq '/MantiqatiX/catalog-app/assets/' "${SITE_DIR}/catalog-app/index.html"
           grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/catalog-app/index.html"
-          echo "PAGES_COMPOSITION=PASS: existing platform root preserved; catalog mounted at /catalog-app/"
+          echo "PAGES_COMPOSITION=PASS: platform root preserved; demo/SMM assets excluded; catalog mounted at /catalog-app/"
       - name: Upload composed MantiqatiX site
         uses: actions/upload-artifact@v4
         with:

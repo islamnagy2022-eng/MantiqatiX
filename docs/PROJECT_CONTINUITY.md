@@ -692,3 +692,13 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Updated the reconciliation manifest to use exact object names, preventing false mismatches caused by a combined label that cannot match any catalog row.
 - [ ] Keep Production blocked: 0/41 distinct required migration versions recorded; 0/2 source aliases reconciled; Qadam owner membership INACTIVE; RC451 search_path, finance schema/EXECUTE, Edge Function parity, rollback and runtime evidence still open.
 - Safety: no Production writes or deployments. This change only improves the release gate's object-by-object evidence.
+
+ 
+## 2026-10-28 — scoped catalog pilot live; full platform still blocked
+
+- Main commit `e2d64f0b26ba128866fc42da23dbbab86036fd5f` passed the canonical Pages deployment workflow: the existing platform root remained at `/MantiqatiX/`, the React catalog was mounted at `/MantiqatiX/catalog-app/`, and the post-deploy root/catalog asset smoke check passed.
+- Live source retrieval confirms exact byte-for-byte parity for the four catalog-scoped Edge Functions: `catalog-platform-admin` v3 (`verify_jwt=true`), `catalog-admin` v14, `public-catalog-directory` v2 and `public-catalog` v2. Public functions are read-only; admin routes retain their own authorization checks.
+- Read-only production checks confirm Qadam's business and owner membership are ACTIVE, the provider profile is ACTIVE and owned by the intended owner, and 15 products are active: 12 with active prices and 3 intentionally contact-for-price.
+- The live migration inventory contains 293 entries through `20261027205405_catalog_pilot_owner_profile_repair`. All 41 distinct full-platform release-required migration versions remain absent; the Qadam source seed version `20261027093000` remains missing even though its data is ready through the scoped repair. Never replay the 41 migrations blindly.
+- PR #447 removes the homepage demo-tour routes and SMM placeholder link, converts the homepage section to a real catalog entrypoint, excludes `preview/` and `smm.html` from the production artifact, and changes the preview workflow to validation-only. Do not merge until its current-head checks pass.
+- The full platform release remains BLOCKED by missing migration/schema contracts, six critical payment/order/finance Edge Function source drifts, missing financial-journal schema/grants, and unverified payment/finance E2E, backup/restore, Auth security, and SMM negative runtime evidence. Only the scoped catalog pilot is currently approved for real use.
