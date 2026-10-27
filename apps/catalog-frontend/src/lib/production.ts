@@ -133,9 +133,10 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const name = String(i.name_ar || i.name_en || 'عنصر كتالوج');
     const description = String(i.description || '');
     const category = String(metadata.category || i.category || 'عام');
-    const savedImageUrl = String(metadata.image_url || '').trim();
+    const savedImageUrl = String(metadata.image_url || i.imageUrl || i.image_url || '').trim();
+    const savedImageSource = String(metadata.image_source || i.imageSource || i.image_source || '').toLowerCase();
     const stockImage = isStockImageUrl(savedImageUrl);
-    const imageSource: 'auto' | 'owner' = metadata.image_source === 'auto' || !savedImageUrl || stockImage ? 'auto' : 'owner';
+    const imageSource: 'auto' | 'owner' = savedImageSource === 'auto' || !savedImageUrl || stockImage ? 'auto' : 'owner';
     const imageUrl = imageSource === 'owner' ? savedImageUrl : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
     // Service requests with hidden prices are quotable services, not unavailable products.
     const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
