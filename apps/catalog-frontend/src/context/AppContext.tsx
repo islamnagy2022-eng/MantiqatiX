@@ -64,7 +64,7 @@ interface AppContextType {
   getStorePublicLink: (business: Business) => string;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
   confirmAdminPayment: (businessId: string) => Promise<void>;
-  toggleBusinessFreeze: (businessId: string) => void;
+  toggleBusinessFreeze: (businessId: string) => Promise<void>;
   updateBusinessCommissionRate: (businessId: string, rate: number) => void;
   updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => boolean;
   businessProducts: Product[];
