@@ -441,3 +441,9 @@
 - [ ] احتفظ بالاختبارات الآلية الحالية التي تعمل كجزء من CI كأدلة تطوير منفصلة؛ نجاحها لا يعني أن حملة الاختبارات النهائية قد نُفذت.
 - [ ] في نهاية التطوير، نفّذ حملة موحدة تغطي: المصادقة والجلسات والأدوار، عزل المستأجرين وRLS، جميع تدفقات الموديولات، الطلبات والمخزون والحسابات والمحافظ والمدفوعات وwebhooks والتسويات، SMM، الإشعارات والأتمتة، الأداء وإمكانية الوصول، Android/المتصفحات والأجهزة، النسخ الاحتياطي والاستعادة، المراقبة والتنبيه والتراجع، ثم إصلاح العيوب وإعادة الاختبار وتوثيق الأدلة.
 - [ ] تظل بوابة الإنتاج `BLOCKED / NOT CERTIFIED` حتى تنجح حملة الاختبارات النهائية وتُغلق كل بوابة بدليل قابل للمراجعة. هذا القرار يؤجل الاختبارات الشاملة ولا يحول الاختبارات غير المنفذة إلى PASS.
+
+
+## Verified production repairs — 2026-10-27
+- [🟢] MantiqatiX marketing activity contact settings repaired and read back from production: WhatsApp `01010171770`, manager `islam.nagy2022@gmail.com`, and quote-only pricing (`show_prices=false`, `CONTACT_FOR_QUOTE`). The idempotent migration is `20261027100000_mantiqatix_marketing_contact_details.sql`.
+- [🟢] Qadam Al-Saad production catalog contact settings repaired and read back: WhatsApp `01011145124`, address تلا – المنوفية, 15 catalog items retained, and 12 priced items retained. The idempotent repair is `20261027110000_qadam_alsaad_restore_contact_fields.sql`.
+- [ ] Production release gate remains BLOCKED: do not mark the platform released until missing post-RC424 migrations are reconciled without rewriting history and payment/finance E2E, backup/restore, Edge Function contracts, SMM parity, and live Auth settings have evidence.
