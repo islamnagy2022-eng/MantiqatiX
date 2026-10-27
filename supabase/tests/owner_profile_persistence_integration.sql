@@ -51,7 +51,11 @@ BEGIN
     ('OWNER-PROFILE-TEST-OWNER', v_owner_id, v_tenant_id, v_business_id,
      NULL, 'OWNER', '["*"]'::jsonb, 'ACTIVE'),
     ('OWNER-PROFILE-TEST-MANAGER', v_manager_id, v_tenant_id, v_business_id,
-     v_branch_id, 'MANAGER', '[]'::jsonb, 'ACTIVE');
+     v_branch_id, 'MANAGER', '[]'::jsonb, 'ACTIVE')
+  ON CONFLICT DO UPDATE
+    SET role = EXCLUDED.role,
+        permissions = EXCLUDED.permissions,
+        status = EXCLUDED.status;
 
   INSERT INTO public.marketing_provider_profiles
     (provider_kind, business_id, owner_user_id, name_ar, slug, status)
