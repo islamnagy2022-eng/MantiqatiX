@@ -125,8 +125,8 @@ BEGIN
   UPDATE public.businesses b
      SET name = trim(p_name),
          settings = jsonb_set(
-           jsonb_set(coalesce(b.settings, '{}'::jsonb), '{catalog_profile}', v_profile, true),
-           '{catalog_public_enabled}', to_jsonb(coalesce(p_public_enabled, false)), true
+           coalesce(b.settings, '{}'::jsonb),
+           '{catalog_profile}', v_profile, true
          ),
          updated_at = now()
    WHERE b.id = p_business_id AND b.tenant_id = p_tenant_id;
