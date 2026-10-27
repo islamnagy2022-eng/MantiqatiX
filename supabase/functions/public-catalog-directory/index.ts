@@ -77,7 +77,12 @@ Deno.serve(async (req: Request) => {
           .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
           .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
         if (priceError) throw priceError;
-        prices = p || [];
+        const hiddenPriceIds = new Set(
+          items.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
+            .map((item: any) => String(item.id))
+        );
+        // Never serialize price rows for catalog entries explicitly marked as quote-only.
+        prices = (p || []).filter((price: any) => !hiddenPriceIds.has(String(price.catalog_item_id)));
         }
       }
       const profile = business.settings?.catalog_profile || {};
