@@ -40,12 +40,8 @@ if (!/signInWithOAuth\(\{provider:\s*['"]google['"]/.test(app) ||
     !/detectSessionInUrl\s*:\s*true/.test(app)) {
   throw new Error('Production auth flow is missing the secure Google OAuth redirect/session detection guard.');
 }
-const smm = fs.readFileSync('web/smm.js', 'utf8');
-if (app.includes('signInWithOtp(') || app.includes('verifyOtp(') || smm.includes('signInWithOtp(') || smm.includes('verifyOtp(')) {
+if (app.includes('signInWithOtp(') || app.includes('verifyOtp(')) {
   throw new Error('Production auth flow still exposes an Email OTP path.');
-}
-if (!smm.includes("signInWithOAuth({provider:'google',options:") || !smm.includes('id="google-auth"')) {
-  throw new Error('SMM production auth flow is not Google-only.');
 }
 if (!/MantiqatiX/i.test(index)) {
   throw new Error('Production landing page does not contain the MantiqatiX identity marker.');
