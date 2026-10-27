@@ -560,3 +560,10 @@
 - [x] Two source-version aliases remain separate from the 41 distinct migrations: RC424 source version `20261009010000` maps to applied ledger version `20261008222845`; `20261027100000_mantiqatix_marketing_contact_details.sql` is an exact source-blob alias of live version `20261027041411`. Both require controlled ledger repair after backup/rehearsal; do not execute duplicate SQL as distinct effects.
 - [ ] Overall status remains `BLOCKED / NOT CERTIFIED`: all 41 distinct required versions are still 0/41 in the live ledger; aliases are 0/2 reconciled; RC451 search_path, finance ACL/schema, five critical Edge Function source drifts, payment/finance E2E, backup/restore, Auth settings, browser/device, monitoring and rollback evidence remain open.
 - Safety: no Production migration, repair, data write, grant/RLS/Auth change, Edge Function deployment, payment or wallet mutation was performed.
+
+## 2026-10-27 — Atomic release object contract repair
+
+- [x] Split the grouped RC435/RC436/RC437/RC441 release checks into separate function, index and table requirements. The release gate now requires **27 individual core objects + 33 feature objects = 60 object contracts**, all explicit in the manifest.
+- [x] Added negative CI fixtures for absent subscription claim RPC, journal uniqueness index, ERP line receiving RPC and MantiGo admin dashboard RPC; a single row cannot stand in for multiple required objects.
+- [x] Improved Production verifier diagnostics to list every non-passing object plus unresolved migration aliases and Qadam owner state.
+- [ ] All 60 object contracts remain blocked or unverified; no Production migration, schema/ledger/grant change or deploy was performed.
