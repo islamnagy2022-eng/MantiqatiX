@@ -624,7 +624,7 @@ This status is intentional and must remain until the open gates above are indepe
 
 - Read-only query verified the live migration inventory has 292 rows through `20261027041549 qadam_alsaad_restore_contact_fields`.
 - Exact source/body comparisons now pass for live versions `20261027010135`, `20261027041411`, and `20261027041549`; see `docs/release/production-migration-reconciliation.json` and the append-only `docs/SESSION_LOG.md` entry.
-- Restored the missing exact-version Qadam catalog migration source and Qadam contact repair source; replaced the future-timestamp duplicate marketing contact migration with its live versioned source. The distinct Qadam follow-up migration at `20261027093000` was preserved for separate review.
+- Restored the missing exact-version Qadam catalog migration source and Qadam contact repair source; restored the live-version marketing contact source and preserved the existing future-timestamp file unchanged as an exact idempotent alias under the migration-immutability rule. The distinct Qadam follow-up migration at `20261027093000` was preserved for separate review.
 - SMM frontend cleanup is already on main: `web/smm.js` and `web/smm.css` are absent, `web/smm.html` is a noindex notice, and the backend default-deny contract remains tested.
 - The overall release remains BLOCKED because required RC425–RC441 sources/sequence and payment/finance E2E, backup/restore, live Edge Function/Auth parity, browser/device E2E, monitoring/alert and rollback evidence are not complete. Do not bypass the deployment gate.
 - No Production writes, migration execution, Auth/grant/RLS changes, Edge Function deployment, payment/wallet mutation, or deployment occurred.
