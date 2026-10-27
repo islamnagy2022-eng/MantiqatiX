@@ -88,12 +88,17 @@ export function mapBusiness(raw: any, provider: any): Business {
   const category = String(raw.category || provider?.kind || provider?.provider_kind || 'أنشطة تجارية');
   const meta = raw.bizcatalog || raw.settings?.bizcatalog || {};
   const created = raw.createdAt || raw.created_at || new Date().toISOString();
+  const requestedFunctionalGroup = String(meta.functionalGroupId || raw.functionalGroupId || '').trim() as FunctionalGroupId;
+  const allowedFunctionalGroups: FunctionalGroupId[] = ['dining', 'retail', 'services', 'healthcare', 'crafts_maintenance'];
+  const resolvedFunctionalGroup = allowedFunctionalGroups.includes(requestedFunctionalGroup)
+    ? requestedFunctionalGroup
+    : groupFromCategory(category);
   const id = String(raw.id || raw.businessId || '');
   const name = String(raw.name || provider?.name || provider?.name_ar || 'نشاط تجاري');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category)?.id,
-    functionalGroupId: groupFromCategory(category),
+    functionalGroupId: resolvedFunctionalGroup,
     logoUrl: String(profile.logoUrl || profile.logo_url || raw.logoUrl || ''),
     coverUrl: String(profile.coverUrl || profile.cover_url || raw.coverUrl || ''),
     bio: String(profile.bio || raw.bio || provider?.description || ''),
