@@ -131,7 +131,8 @@ function openCreate(){
    const name=m.overlay.querySelector('#mx-biz-name').value.trim();if(name.length<2)throw new Error('اسم النشاط مطلوب');
    await loadTenants();const tenantId=state.tenantFilter||state.tenants[0]?.id;if(!tenantId)throw new Error('لا يوجد نطاق إنتاج نشط');
    const kind=m.overlay.querySelector('#mx-biz-kind').value,phone=m.overlay.querySelector('#mx-biz-phone').value.trim(),address=m.overlay.querySelector('#mx-biz-address').value.trim(),nameEn=m.overlay.querySelector('#mx-biz-en').value.trim();
-   const result=await api('CREATE_BUSINESS',{tenantId,business:{name,category:kind,phone,address,bio:'',slug:nameEn||name}});
+   const activityTypeId=m.overlay.querySelector('#mx-biz-specialty')?.value||m.overlay.querySelector('#mx-biz-activity')?.value||'';
+   const result=await api('CREATE_BUSINESS',{tenantId,business:{name,category:kind,activityTypeId:activityTypeId||null,phone,address,bio:'',slug:nameEn||name}});
    const businessId=String(result.business?.id||'');if(!businessId)throw new Error('تم الإنشاء دون رقم نشاط صالح');
    out.textContent='تم إنشاء النشاط '+businessId+'. يمكن تعيين مالكه الآن بعد إنشاء حساب Google الخاص به.';
    notify('تم إنشاء النشاط دون مالك؛ اربطه بحساب Google لاحقًا.','success');
