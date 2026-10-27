@@ -21,7 +21,10 @@ const isUuid = (value: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 const safeImageUrl = (value: unknown) => {
   const candidate = String(value || "").trim();
-  return candidate.length <= 1500 && /^https:\/\//i.test(candidate) ? candidate : "";
+  if (candidate.length > 1500 || !/^https:\/\//i.test(candidate)) return "";
+  // Unsplash defaults were seeded by the former demo image resolver; do not present them as owner-provided photos.
+  if (/^https:\/\/images\.unsplash\.com\//i.test(candidate)) return "";
+  return candidate;
 };
 
 Deno.serve(async (req: Request) => {
