@@ -76,7 +76,7 @@ assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
-assert.equal(REQUIRED_CORE_OBJECTS.length, 16, "release gate must track selected payment/finance core object contracts");
+assert.equal(REQUIRED_CORE_OBJECTS.length, 27, "release gate must track granular payment, finance, ERP, and MantiGo object contracts");
 assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
