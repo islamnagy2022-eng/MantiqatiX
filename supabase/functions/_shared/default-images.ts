@@ -7,14 +7,16 @@ export interface DefaultImageInput {
   kind?: DefaultImageKind;
 }
 
+/**
+ * Do not return third-party stock imagery as if it depicts a real business or item.
+ * The frontend renders local neutral placeholders when these values are empty.
+ */
 export function resolveDefaultImage(_input: DefaultImageInput = {}): string {
   return "";
 }
 
-export function resolveDefaultActivityImages(_input: Omit<DefaultImageInput, "kind">): { logoUrl: string; coverUrl: string } {
+export function resolveDefaultActivityImages(
+  _input: Omit<DefaultImageInput, "kind">,
+): { logoUrl: string; coverUrl: string } {
   return { logoUrl: "", coverUrl: "" };
-}
-
-    coverUrl: resolveDefaultImage({ ...input, kind: "cover" }),
-  };
 }
