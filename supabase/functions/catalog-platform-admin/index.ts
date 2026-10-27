@@ -701,6 +701,198 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (action === "UPSERT_BUSINESS_SUBSCRIPTION") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "");
+      const input = body.subscription && typeof body.subscription === "object" ? body.subscription : {};
+      const subscriptionId = String(input.id || "").trim();
+      const tierCode = String(input.tier_code || input.tierCode || "").trim().toUpperCase().slice(0, 60);
+      const billingCycle = String(input.billing_cycle || input.billingCycle || "").trim().toUpperCase();
+      const status = String(input.status || "").trim().toUpperCase();
+      const sector = String(input.sector || "").trim().slice(0, 80) || null;
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (!isUuid(businessId) || tierCode.length < 2 || !["MONTHLY", "ANNUAL", "TRIAL"].includes(billingCycle)
+        || !["TRIALING", "PENDING_PAYMENT", "ACTIVE", "PAST_DUE", "CANCELLED", "EXPIRED"].includes(status)
+        || reason.length < 3) return response(origin, { error: "INVALID_SUBSCRIPTION_INPUT" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      if (business.settings?.deleted_at) return response(origin, { error: "BUSINESS_ARCHIVED" }, 409);
+      const startsAt = input.starts_at ? new Date(String(input.starts_at)) : new Date();
+      const endsAt = input.ends_at ? new Date(String(input.ends_at)) : null;
+      if (!Number.isFinite(startsAt.getTime()) || (endsAt && !Number.isFinite(endsAt.getTime()))
+        || (endsAt && endsAt.getTime() <= startsAt.getTime())) return response(origin, { error: "INVALID_SUBSCRIPTION_DATES" }, 400);
+      let previous: any = null;
+      if (subscriptionId) {
+        if (!isUuid(subscriptionId)) return response(origin, { error: "INVALID_SUBSCRIPTION_ID" }, 400);
+        const { data, error } = await service.from("business_subscriptions").select("*")
+          .eq("id", subscriptionId).eq("business_id", businessId).maybeSingle();
+        if (error) throw error;
+        if (!data) return response(origin, { error: "SUBSCRIPTION_NOT_FOUND" }, 404);
+        previous = data;
+      }
+      if (status === "ACTIVE") {
+        let activeQuery = service.from("business_subscriptions").select("id,status")
+          .eq("business_id", businessId).eq("status", "ACTIVE");
+        if (subscriptionId) activeQuery = activeQuery.neq("id", subscriptionId);
+        const { data: activeRows, error: activeError } = await activeQuery.limit(1);
+        if (activeError) throw activeError;
+        if (activeRows?.length) return response(origin, { error: "ACTIVE_SUBSCRIPTION_EXISTS", message: "يوجد اشتراك نشط بالفعل لهذا النشاط. أوقفه أو حدّثه أولًا." }, 409);
+      }
+      const timestamp = new Date().toISOString();
+      const patch = {
+        tier_code: tierCode, billing_cycle: billingCycle, status, sector,
+        starts_at: previous?.starts_at || startsAt.toISOString(),
+        ends_at: endsAt ? endsAt.toISOString() : (Object.prototype.hasOwnProperty.call(input, "ends_at") ? null : previous?.ends_at || null),
+        updated_at: timestamp,
+      };
+      let saved: any = null;
+      if (previous) {
+        const { data, error } = await service.from("business_subscriptions").update(patch)
+          .eq("id", subscriptionId).eq("business_id", businessId)
+          .select("id,business_id,tier_code,billing_cycle,status,sector,starts_at,ends_at,provider,provider_reference,source_payment_intent_id,idempotency_key,created_by,created_at,updated_at").single();
+        if (error) throw error;
+        saved = data;
+      } else {
+        const { data, error } = await service.from("business_subscriptions").insert({
+          business_id: businessId, tier_code: tierCode, billing_cycle: billingCycle, status, sector,
+          starts_at: startsAt.toISOString(), ends_at: endsAt?.toISOString() || null,
+          provider: "ADMIN_MANUAL", provider_reference: null, source_payment_intent_id: null,
+          idempotency_key: "admin-subscription:" + businessId + ":" + crypto.randomUUID(),
+          created_by: user.id, updated_at: timestamp,
+        }).select("id,business_id,tier_code,billing_cycle,status,sector,starts_at,ends_at,provider,provider_reference,source_payment_intent_id,idempotency_key,created_by,created_at,updated_at").single();
+        if (error) throw error;
+        saved = data;
+      }
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        business_id: businessId, actor_user_id: user.id,
+        action: previous ? "BUSINESS_SUBSCRIPTION_UPDATED" : "BUSINESS_SUBSCRIPTION_CREATED",
+        entity_type: "business_subscription", entity_id: String(saved.id),
+        old_values: previous, new_values: { ...saved, admin_reason: reason, manual_admin_change: true }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = previous
+          ? await service.from("business_subscriptions").update({
+              tier_code: previous.tier_code, billing_cycle: previous.billing_cycle, status: previous.status,
+              sector: previous.sector, starts_at: previous.starts_at, ends_at: previous.ends_at, updated_at: previous.updated_at,
+            }).eq("id", saved.id).eq("business_id", businessId)
+          : await service.from("business_subscriptions").delete().eq("id", saved.id).eq("business_id", businessId);
+        if (rollback.error) console.error("subscription audit compensation failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "SUBSCRIPTION_AUDIT_ROLLBACK_FAILED" : "SUBSCRIPTION_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, { success: true, subscription: saved, manualAdminChange: true, warning: "هذه العملية لا تسجل دفعة ولا تغير سجلات التحصيل." });
+    }
+
+    if (action === "LIST_COMMISSION_RULES") {
+      const requestedTenant = body.tenantId ? requireTenant(body.tenantId) : null;
+      let query = service.from("commission_rules")
+        .select("id,tenant_id,business_id,module_id,rule_type,percentage,fixed_amount,per_item_amount,active,created_at,updated_at")
+        .in("tenant_id", requestedTenant ? [requestedTenant] : productionTenantIds)
+        .order("updated_at", { ascending: false }).limit(1000);
+      const { data: rules, error } = await query;
+      if (error) throw error;
+      const rows = rules || [];
+      const businessIds = [...new Set(rows.map((r: any) => r.business_id).filter(Boolean).map(String))];
+      const moduleIds = [...new Set(rows.map((r: any) => r.module_id).filter(Boolean).map(String))];
+      const [businessesResult, modulesResult] = await Promise.all([
+        businessIds.length ? service.from("businesses").select("id,name,tenant_id").in("id", businessIds) : Promise.resolve({ data: [], error: null } as any),
+        moduleIds.length ? service.from("modules").select("id").in("id", moduleIds) : Promise.resolve({ data: [], error: null } as any),
+      ]);
+      if (businessesResult.error) throw businessesResult.error;
+      if (modulesResult.error) throw modulesResult.error;
+      const businessMap = new Map((businessesResult.data || []).map((b: any) => [String(b.id), b]));
+      const moduleMap = new Map((modulesResult.data || []).map((m: any) => [String(m.id), m]));
+      return response(origin, { rules: rows.map((r: any) => ({
+        ...r,
+        business_name: r.business_id ? String((businessMap.get(String(r.business_id)) as any)?.name || "نشاط غير متاح") : "عام على مستوى المنصة",
+        module_exists: !r.module_id || moduleMap.has(String(r.module_id)),
+      })) });
+    }
+
+    if (action === "UPSERT_COMMISSION_RULE") {
+      const tenantId = requireTenant(body.tenantId);
+      const input = body.rule && typeof body.rule === "object" ? body.rule : {};
+      const ruleId = String(input.id || "").trim();
+      const businessId = input.business_id ? String(input.business_id) : null;
+      const moduleId = input.module_id ? String(input.module_id).trim() : null;
+      const ruleType = String(input.rule_type || "PERCENTAGE").trim().toUpperCase();
+      const percentage = Number(input.percentage);
+      const active = input.active !== false;
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (ruleType !== "PERCENTAGE" || !Number.isFinite(percentage) || percentage < 0 || percentage > 100 || reason.length < 3) {
+        return response(origin, { error: "INVALID_PERCENTAGE_COMMISSION_RULE" }, 400);
+      }
+      if (businessId) {
+        if (!isUuid(businessId)) return response(origin, { error: "INVALID_RULE_BUSINESS_ID" }, 400);
+        await getBusiness(tenantId, businessId);
+      }
+      if (moduleId) {
+        const { data: module, error: moduleError } = await service.from("modules").select("id").eq("id", moduleId).maybeSingle();
+        if (moduleError) throw moduleError;
+        if (!module) return response(origin, { error: "COMMISSION_MODULE_NOT_FOUND" }, 400);
+      }
+      let previous: any = null;
+      if (ruleId) {
+        const { data, error } = await service.from("commission_rules").select("*").eq("id", ruleId).eq("tenant_id", tenantId).maybeSingle();
+        if (error) throw error;
+        if (!data) return response(origin, { error: "COMMISSION_RULE_NOT_FOUND" }, 404);
+        previous = data;
+        const { count, error: transactionError } = await service.from("commission_transactions")
+          .select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("rule_id", ruleId);
+        if (transactionError) throw transactionError;
+        const hasHistory = Number(count || 0) > 0;
+        const scopeChanged = String(previous.business_id || "") !== String(businessId || "") || String(previous.module_id || "") !== String(moduleId || "");
+        const rateChanged = Number(previous.percentage || 0) !== percentage || String(previous.rule_type || "").toUpperCase() !== ruleType;
+        if (hasHistory && (scopeChanged || rateChanged)) {
+          return response(origin, { error: "COMMISSION_RULE_WITH_HISTORY_IMMUTABLE", message: "هذه القاعدة لها معاملات مالية سابقة. أنشئ قاعدة جديدة ولا تعدّل النسبة التاريخية." }, 409);
+        }
+      }
+      if (active) {
+        let scopeQuery = service.from("commission_rules").select("id").eq("tenant_id", tenantId).eq("active", true).eq("rule_type", "PERCENTAGE");
+        scopeQuery = businessId ? scopeQuery.eq("business_id", businessId) : scopeQuery.is("business_id", null);
+        scopeQuery = moduleId ? scopeQuery.eq("module_id", moduleId) : scopeQuery.is("module_id", null);
+        if (ruleId) scopeQuery = scopeQuery.neq("id", ruleId);
+        const { data: conflicts, error: conflictError } = await scopeQuery.limit(1);
+        if (conflictError) throw conflictError;
+        if (conflicts?.length) return response(origin, { error: "ACTIVE_RULE_SCOPE_CONFLICT", message: "توجد قاعدة نشطة لنفس نطاق النشاط والموديول. أوقف القاعدة الحالية أولًا." }, 409);
+      }
+      const record = {
+        id: ruleId || crypto.randomUUID(), tenant_id: tenantId, business_id: businessId, module_id: moduleId,
+        rule_type: "PERCENTAGE", percentage, fixed_amount: 0, per_item_amount: 0, active,
+        updated_at: new Date().toISOString(),
+      };
+      let saved: any = null;
+      if (previous) {
+        const { data, error } = await service.from("commission_rules").update(record)
+          .eq("id", ruleId).eq("tenant_id", tenantId)
+          .select("id,tenant_id,business_id,module_id,rule_type,percentage,fixed_amount,per_item_amount,active,created_at,updated_at").single();
+        if (error) throw error;
+        saved = data;
+      } else {
+        const { data, error } = await service.from("commission_rules").insert({ ...record, created_at: new Date().toISOString() })
+          .select("id,tenant_id,business_id,module_id,rule_type,percentage,fixed_amount,per_item_amount,active,created_at,updated_at").single();
+        if (error) throw error;
+        saved = data;
+      }
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, actor_user_id: user.id,
+        action: previous ? "COMMISSION_RULE_UPDATED" : "COMMISSION_RULE_CREATED",
+        entity_type: "commission_rule", entity_id: String(saved.id),
+        old_values: previous, new_values: { ...saved, admin_reason: reason }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = previous
+          ? await service.from("commission_rules").update({
+              business_id: previous.business_id, module_id: previous.module_id, rule_type: previous.rule_type,
+              percentage: previous.percentage, fixed_amount: previous.fixed_amount, per_item_amount: previous.per_item_amount,
+              active: previous.active, updated_at: previous.updated_at,
+            }).eq("id", saved.id).eq("tenant_id", tenantId)
+          : await service.from("commission_rules").delete().eq("id", saved.id).eq("tenant_id", tenantId);
+        if (rollback.error) console.error("commission rule audit compensation failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "COMMISSION_RULE_AUDIT_ROLLBACK_FAILED" : "COMMISSION_RULE_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, { success: true, rule: saved });
+    }
+
     if (action === "SET_BUSINESS_STATUS") {
       const tenantId = requireTenant(body.tenantId);
       const businessId = String(body.businessId || "");
