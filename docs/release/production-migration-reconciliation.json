@@ -3,8 +3,8 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261027041549",
-  "live_ledger_last_name": "qadam_alsaad_restore_contact_fields",
+  "live_ledger_last_version": "20261027205405",
+  "live_ledger_last_name": "catalog_pilot_owner_profile_repair",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
@@ -26,8 +26,8 @@
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
-  "checked_at": "2026-10-27",
-  "reason": "The catalog-platform-admin paid-subscription activation guard is deployed and verified, and the Qadam catalog owner/profile data is ready. The original Qadam seed migration remains absent from the live ledger; independent migration/schema drift, critical payment/order Edge Function source parity, payment/finance E2E, backup/restore rehearsal, and Auth security evidence remain incomplete. Only a scoped catalog frontend release may be considered after its own tests; the full platform remains blocked.",
+  "checked_at": "2026-10-28",
+  "reason": "Scoped catalog pilot is deployed and production smoke checks passed: platform root and catalog subpath are reachable, four catalog-scoped Edge Functions match main exactly, and Qadam owner/provider/catalog data are ready (15 active products, 12 priced, 3 contact-for-price). The full platform release remains BLOCKED: 41 required full-platform migration versions are absent from the 293-entry live ledger, critical order/payment/finance Edge Functions still have source drift, required finance journal schema/grants are missing, and payment/finance E2E, backup/restore rehearsal, SMM negative runtime tests, and Auth security evidence remain incomplete. Do not infer full-platform readiness from the successful scoped catalog deployment.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -44,10 +44,10 @@
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
   "rc424_reconciliation_evidence_checked_at": "2026-10-11",
-  "live_ledger_inventory_count": 292,
+  "live_ledger_inventory_count": 293,
   "latest_live_ledger_reconciliation": {
     "status": "VERIFIED",
-    "checked_at": "2026-10-27",
+    "checked_at": "2026-10-28",
     "method": "Read-only SELECT of supabase_migrations.schema_migrations.statements, followed by exact string comparison against checked-in SQL source files.",
     "entries": [
       {
@@ -81,7 +81,16 @@
         "exact_statement_match": true
       }
     ],
-    "resolution": "All three latest live ledger statement bodies match exact-version source files character-for-character. The pre-existing 20261027100000 marketing contact migration is preserved unchanged under the repository migration-immutability rule; its statement body is an exact idempotent alias of applied live version 20261027041411. No existing migration file was edited or deleted."
+    "resolution": "All three latest live ledger statement bodies match exact-version source files character-for-character. The pre-existing 20261027100000 marketing contact migration is preserved unchanged under the repository migration-immutability rule; its statement body is an exact idempotent alias of applied live version 20261027041411. No existing migration file was edited or deleted.",
+    "current_inventory": {
+      "checked_at": "2026-10-28",
+      "method": "Read-only Supabase list_migrations inventory",
+      "live_ledger_count": 293,
+      "latest_version": "20261027205405",
+      "latest_name": "catalog_pilot_owner_profile_repair",
+      "statement_body_parity_for_latest_entry": "NOT RECHECKED_IN_THIS_INVENTORY",
+      "note": "This inventory corrects the stale 292-entry/20261027041549 summary. The scoped repair migration is present in the live ledger."
+    }
   },
   "smm_gateway_live_source_evidence": {
     "status": "PARTIAL",
@@ -99,10 +108,10 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-10-27",
+    "checked_at": "2026-10-28",
     "method": "Read-only LEFT JOIN of all 41 distinct required migration source versions in scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations; two source-version aliases are tracked separately and must be reconciled through the controlled migration-history process.",
-    "live_ledger_count": 292,
-    "latest_live_version": "20261027041549",
+    "live_ledger_count": 293,
+    "latest_live_version": "20261027205405",
     "expected_migration_versions": 41,
     "found_in_live_ledger": 0,
     "required_versions": [
@@ -191,7 +200,7 @@
       "20261027090000",
       "20261027093000"
     ],
-    "interpretation": "All 41 distinct release-required source versions are absent from the live ledger: the original 34 payment/finance/security/order versions, six RC113–RC117 platform-feature migrations, and the Qadam catalog follow-up whose data seed is partly present but whose owner membership is still INACTIVE. Two duplicate source-version aliases are tracked separately and require controlled ledger reconciliation; do not execute them as new SQL.",
+    "interpretation": "All 41 distinct full-platform release-required source versions remain absent from the live ledger (read-only comparison against the 293-entry inventory). The Qadam seed version 20261027093000 remains absent, but the scoped repair migration 20261027205405 is recorded and the Qadam owner membership/provider profile/catalog data are now active and ready for the scoped catalog pilot. Two duplicate source-version aliases still require controlled ledger reconciliation. Do not execute missing migrations blindly or mark aliases applied without reviewed evidence.",
     "recorded_required_versions": []
   },
   "critical_edge_function_source_parity_check": {
@@ -796,7 +805,7 @@
   "production_source_object_drift_inventory": {
     "status": "VERIFIED_READ_ONLY",
     "path": "docs/release/production-source-object-drift.json",
-    "checked_at": "2026-10-27",
+    "checked_at": "2026-10-28",
     "required_release_migration_versions": 41,
     "recorded_required_migration_versions": 0,
     "required_function_names": 39,
@@ -811,8 +820,9 @@
     "additional_relations_indexes": 11,
     "additional_absent_relations_indexes": 11,
     "qadam_followup_version": "20261027093000",
-    "qadam_owner_membership_status": "INACTIVE",
-    "source_aliases_pending_reconciliation": 2
+    "qadam_owner_membership_status": "ACTIVE",
+    "source_aliases_pending_reconciliation": 2,
+    "qadam_scoped_repair_version": "20261027205405"
   },
   "additional_feature_migration_check": {
     "status": "BLOCKING_DRIFT",
