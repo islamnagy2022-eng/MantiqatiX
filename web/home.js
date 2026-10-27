@@ -316,29 +316,172 @@ const categoryGrid=document.getElementById('mx-category-grid');
       categoryGrid.querySelectorAll('.mx-category').forEach(btn=>btn.onclick=()=>{ const code=btn.dataset.category||''; openCategoryPage(code); });
     };
     const openActivityRequestModal=async()=>{
+      const sbClient=getClient();
+      const savedDraft=(()=>{try{return JSON.parse(localStorage.getItem('MNTYPendingActivityDraft')||'{}')||{}}catch(_){return {}}})();
       const overlay=document.createElement('div');
-      overlay.className='mx-modal mx-home-request-modal';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','إضافة نشاط');
-      overlay.innerHTML='<div class="mx-modal-card"><div class="section-head"><div><span class="eyebrow">MantiqatiX</span><h2>إضافة نشاط</h2><p>أرسل بيانات النشاط، وسيتم استكمال المراجعة والاعتماد وفق إجراءات المنصة.</p></div><button type="button" class="text-btn mx-close-modal" aria-label="إغلاق">إغلاق</button></div><form id="mx-activity-request-form" class="form-grid"><label class="field"><span>اسم النشاط *</span><input id="mx-req-business" required maxlength="120" placeholder="مثال: مطعم أو شركة"></label><label class="field"><span>نوع النشاط *</span><select id="mx-req-kind" required>__TAX_OPTIONS__</select></label><label class="field"><span>رقم الهاتف</span><input id="mx-req-phone" inputmode="tel" maxlength="30" placeholder="رقم التواصل"></label><label class="field"><span>المدينة / المنطقة</span><input id="mx-req-area" maxlength="120" placeholder="المدينة والمنطقة"></label><label class="field" style="grid-column:1/-1"><span>وصف النشاط</span><textarea id="mx-req-description" rows="3" maxlength="1000" placeholder="وصف مختصر للنشاط والخدمات"></textarea></label><label class="field" style="grid-column:1/-1"><span>الخدمات أو التخصصات</span><input id="mx-req-services" maxlength="500" placeholder="افصل الخدمات بفواصل"></label><div class="action-bar" style="grid-column:1/-1"><button type="submit" class="btn btn-primary" id="mx-activity-request-submit">إرسال الطلب</button><button type="button" class="btn btn-outline mx-close-modal">إلغاء</button></div></form></div>';
-      overlay.innerHTML=overlay.innerHTML.replace('__TAX_OPTIONS__',TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'">'+escapeHtml(x[1])+'</option>').join(''));
+      overlay.className='mx-modal mx-home-request-modal';
+      overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','طلب إضافة كتالوج نشاط');
+      overlay.innerHTML=
+        '<div class="mx-modal-card mx-activity-basket" dir="rtl">'+
+          '<header class="mx-activity-basket__head"><div class="mx-activity-basket__icon" aria-hidden="true">▤</div><div><span class="eyebrow">MANTIQATIX · BUSINESS ONBOARDING</span><h2>طلب إضافة كتالوج نشاط</h2><p>املأ بيانات نشاطك. سيتم تسجيل طلب حقيقي في لوحة الإدارة، ولن يُنشر النشاط أو تُمنح صلاحيات مالك النشاط إلا بعد الموافقة.</p></div><button type="button" class="text-btn mx-close-modal" aria-label="إغلاق">×</button></header>'+
+          '<div class="mx-activity-basket__steps"><span class="is-active">١ · بيانات النشاط</span><span>٢ · مراجعة الإدارة</span><span>٣ · تفعيل الكتالوج</span></div>'+
+          '<form id="mx-activity-request-form" class="mx-activity-basket__form">'+
+            '<section class="mx-activity-basket__section"><h3>بيانات المشروع</h3><div class="mx-activity-basket__grid">'+
+              '<label class="field"><span>اسم النشاط / المشروع *</span><input id="mx-req-business" required maxlength="180" value="'+escapeHtml(savedDraft.business_name||'')+'" placeholder="اسم النشاط التجاري"></label>'+
+              '<label class="field"><span>القطاع الرئيسي *</span><select id="mx-req-kind" required><option value="">اختر القطاع</option>'+TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'" '+(String(savedDraft.provider_kind||'')===String(x[3])?'selected':'')+'>'+escapeHtml(x[1])+'</option>').join('')+'</select></label>'+
+              '<label class="field"><span>اسم المسؤول عن النشاط *</span><input id="mx-req-contact-name" required maxlength="160" value="'+escapeHtml(savedDraft.contact_name||'')+'" placeholder="الاسم المسؤول عن الطلب"></label>'+
+              '<label class="field"><span>رقم الهاتف / واتساب *</span><input id="mx-req-phone" type="tel" inputmode="tel" autocomplete="tel" minlength="8" maxlength="40" pattern="[+0-9() .-]{8,40}" required value="'+escapeHtml(savedDraft.contact_phone||savedDraft.phone||'')+'" placeholder="مثال 01010171770"></label>'+
+              '<label class="field"><span>الاسم بالإنجليزية</span><input id="mx-req-name-en" maxlength="180" value="'+escapeHtml(savedDraft.name_en||'')+'" placeholder="Business name"></label>'+
+              '<label class="field"><span>رابط الموقع أو الصفحة (اختياري)</span><input id="mx-req-website" type="url" maxlength="500" value="'+escapeHtml(savedDraft.website||'')+'" placeholder="https://"></label>'+
+            '</div></section>'+
+            '<section class="mx-activity-basket__section"><h3>موقع النشاط</h3><div class="mx-activity-basket__grid">'+
+              '<label class="field"><span>المحافظة *</span><select id="mx-req-governorate" required><option value="">جارٍ تحميل المحافظات…</option></select></label>'+
+              '<label class="field"><span>المركز / المدينة *</span><select id="mx-req-center" required disabled><option value="">اختر المحافظة أولًا</option></select></label>'+
+            '</div><p class="mx-activity-basket__hint" id="mx-req-geo-status" aria-live="polite">يُستخدم الموقع الذي تختاره لتصنيف النشاط وتسهيل اكتشافه. لن نطلب موقع هاتفك تلقائيًا.</p>'+
+            '<label class="field"><span>العنوان أو تفاصيل الوصول (اختياري)</span><input id="mx-req-address" maxlength="300" value="'+escapeHtml(savedDraft.address||savedDraft.area||'')+'" placeholder="الشارع، المنطقة، علامة مميزة"></label></section>'+
+            '<section class="mx-activity-basket__section"><h3>الخدمات ومعلومات المشروع</h3>'+
+              '<label class="field"><span>وصف النشاط والخدمات *</span><textarea id="mx-req-description" rows="3" maxlength="3000" required placeholder="اكتب وصفًا مختصرًا وواضحًا للنشاط والخدمات التي تقدمها">'+escapeHtml(savedDraft.description||'')+'</textarea></label>'+
+              '<label class="field"><span>الخدمات أو التخصصات</span><input id="mx-req-services" maxlength="1000" value="'+escapeHtml(Array.isArray(savedDraft.specialties)?savedDraft.specialties.join('، '):(savedDraft.specialties||''))+'" placeholder="مثال: فني تبريد، صيانة ثلاجات، تبريد تجاري"></label>'+
+              '<label class="field"><span>روابط أو نماذج أعمال (اختياري، رابط في كل سطر)</span><textarea id="mx-req-portfolio" rows="2" maxlength="2000" placeholder="روابط الموقع أو صفحة التواصل أو نماذج الأعمال">'+escapeHtml(Array.isArray(savedDraft.portfolio)?savedDraft.portfolio.join('\n'):(savedDraft.portfolio||''))+'</textarea></label>'+
+            '</section>'+
+            '<div class="mx-activity-basket__privacy"><b>ماذا يحدث بعد الإرسال؟</b><span>يظهر طلبك في لوحة إدارة MantiqatiX بحالة «قيد المراجعة». بعد القرار، يستطيع مسؤول الإدارة التواصل معك على رقم الهاتف المسجل. إرسال واتساب يفتح رسالة جاهزة؛ الإرسال النهائي يتم بضغطك على زر الإرسال داخل واتساب.</span></div>'+
+            '<p class="mx-activity-basket__error" id="mx-req-error" role="alert" hidden></p>'+
+            '<div class="mx-activity-basket__actions"><button type="submit" class="btn btn-primary" id="mx-activity-request-submit">إرسال الطلب للإدارة</button><button type="button" class="btn btn-outline mx-close-modal">إلغاء</button></div>'+
+          '</form>'+
+        '</div>';
       document.body.appendChild(overlay);
+      let geoRows=[];
+      const governorate=overlay.querySelector('#mx-req-governorate');
+      const center=overlay.querySelector('#mx-req-center');
+      const geoStatus=overlay.querySelector('#mx-req-geo-status');
+      const errorBox=overlay.querySelector('#mx-req-error');
+      const submitBtn=overlay.querySelector('#mx-activity-request-submit');
       const close=()=>{document.removeEventListener('keydown',onKey);overlay.remove()};
       const onKey=e=>{if(e.key==='Escape')close()};
       document.addEventListener('keydown',onKey);
-      overlay.querySelectorAll('.mx-close-modal').forEach(b=>b.addEventListener('click',close));
+      overlay.querySelectorAll('.mx-close-modal').forEach(btn=>btn.addEventListener('click',close));
+      const govName=id=>geoRows.find(x=>x.level==='GOVERNORATE'&&String(x.id)===String(id))?.name_ar||'';
+      const centerName=id=>geoRows.find(x=>x.level==='CENTER'&&String(x.id)===String(id))?.name_ar||'';
+      const fillCenters=(preferredId)=>{
+        const children=geoRows.filter(x=>x.level==='CENTER'&&String(x.parent_id)===String(governorate.value));
+        center.innerHTML='<option value="">اختر المركز / المدينة</option>'+children.map(x=>'<option value="'+escapeHtml(x.id)+'" '+(String(x.id)===String(preferredId||'')?'selected':'')+'>'+escapeHtml(x.name_ar||x.name_en||x.code)+'</option>').join('');
+        center.disabled=!children.length;
+        if(!children.length)geoStatus.textContent='لا توجد مراكز منشورة لهذه المحافظة. اختر محافظة أخرى أو حاول لاحقًا.';
+      };
+      try{
+        if(!sbClient)throw new Error('تعذر الاتصال بخدمة المنصة. أعد تحميل الصفحة ثم حاول مرة أخرى.');
+        const {data,error}=await sbClient.from('platform_geo_areas')
+          .select('id,code,name_ar,name_en,parent_id,level')
+          .eq('country_code','EG').eq('status','ACTIVE').in('level',['GOVERNORATE','CENTER'])
+          .order('level',{ascending:true}).order('name_ar',{ascending:true}).limit(2000);
+        if(error)throw error;
+        geoRows=data||[];
+        const govs=geoRows.filter(x=>x.level==='GOVERNORATE');
+        governorate.innerHTML='<option value="">اختر المحافظة</option>'+govs.map(x=>'<option value="'+escapeHtml(x.id)+'" '+(String(x.id)===String(savedDraft.governorate_id||savedDraft.service_areas?.[0]?.governorate_id||'')?'selected':'')+'>'+escapeHtml(x.name_ar||x.name_en||x.code)+'</option>').join('');
+        if(!govs.length)throw new Error('لا توجد قائمة محافظات معتمدة في المنصة.');
+        governorate.addEventListener('change',()=>fillCenters(''));
+        fillCenters(savedDraft.center_id||savedDraft.service_areas?.[0]?.center_id||'');
+        if(savedDraft.governorate_id||savedDraft.service_areas?.[0]?.governorate_id)fillCenters(savedDraft.center_id||savedDraft.service_areas?.[0]?.center_id||'');
+        geoStatus.textContent='اختيار المحافظة والمركز مطلوب لإرسال الطلب.';
+      }catch(geoError){
+        governorate.innerHTML='<option value="">تعذر تحميل المحافظات</option>';
+        center.innerHTML='<option value="">الموقع غير متاح</option>';center.disabled=true;
+        geoStatus.textContent='تعذر تحميل بيانات الموقع: '+String(geoError?.message||geoError);
+        submitBtn.disabled=true;
+      }
       overlay.querySelector('#mx-activity-request-form')?.addEventListener('submit',async e=>{
         e.preventDefault();
-        const draft={business_name:document.getElementById('mx-req-business')?.value?.trim()||'',provider_kind:document.getElementById('mx-req-kind')?.value||'FOOD',phone:document.getElementById('mx-req-phone')?.value?.trim()||'',area:document.getElementById('mx-req-area')?.value?.trim()||'',description:document.getElementById('mx-req-description')?.value?.trim()||'',specialties:document.getElementById('mx-req-services')?.value?.trim()||''};
-        try{localStorage.setItem('MNTYPendingActivityDraft',JSON.stringify(draft));}catch(_){}
-        close();
-        if(await hydrateAuthenticatedSession()){
-          if(typeof submitRegistrationRequest==='function'){try{await submitRegistrationRequest('SERVICE_PROVIDER');}catch(_){}}
-          if(typeof window.providerOnboardingView==='function') return window.providerOnboardingView();
-          return typeof window.accountView==='function'?window.accountView():callPlatform();
+        if(submitBtn.disabled)return;
+        const draft={
+          business_name:overlay.querySelector('#mx-req-business')?.value?.trim()||'',
+          provider_kind:overlay.querySelector('#mx-req-kind')?.value||'',
+          contact_name:overlay.querySelector('#mx-req-contact-name')?.value?.trim()||'',
+          contact_phone:overlay.querySelector('#mx-req-phone')?.value?.trim()||'',
+          name_en:overlay.querySelector('#mx-req-name-en')?.value?.trim()||'',
+          website:overlay.querySelector('#mx-req-website')?.value?.trim()||'',
+          governorate_id:governorate.value,center_id:center.value,
+          address:overlay.querySelector('#mx-req-address')?.value?.trim()||'',
+          description:overlay.querySelector('#mx-req-description')?.value?.trim()||'',
+          specialties:overlay.querySelector('#mx-req-services')?.value?.trim()||'',
+          portfolio:overlay.querySelector('#mx-req-portfolio')?.value||''
+        };
+        if(!draft.business_name||!draft.provider_kind||draft.contact_name.length<2||draft.description.length<4||!draft.contact_phone||!draft.governorate_id||!draft.center_id){
+          errorBox.hidden=false;errorBox.textContent='استكمل الحقول المطلوبة قبل إرسال الطلب.';return;
         }
-        return callAuth();
+        try{localStorage.setItem('MNTYPendingActivityDraft',JSON.stringify({...draft,resumeAfterAuth:false}));}catch(_){}
+        const authenticated=await hydrateAuthenticatedSession();
+        if(!authenticated){
+          try{localStorage.setItem('MNTYPendingActivityDraft',JSON.stringify({...draft,resumeAfterAuth:true}));}catch(_){}
+          close();
+          callAuth();
+          return;
+        }
+        let waWindow=null;
+        try{waWindow=window.open('about:blank','_blank');if(waWindow)waWindow.opener=null;}catch(_){}
+        submitBtn.disabled=true;submitBtn.textContent='جارٍ تسجيل الطلب…';errorBox.hidden=true;
+        try{
+          const client=getClient();if(!client)throw new Error('تعذر الاتصال بخدمة المنصة.');
+          const {data:{user:authUser},error:userError}=await client.auth.getUser();
+          if(userError||!authUser||authUser.is_anonymous)throw new Error('سجّل الدخول بحساب Google صالح ثم أعد المحاولة.');
+          const {data:customerActivation,error:customerError}=await client.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
+          if(customerError||customerActivation?.error)throw new Error(customerActivation?.error||customerError?.message||'تعذر تفعيل حساب العميل.');
+          const gov=geoRows.find(x=>x.level==='GOVERNORATE'&&String(x.id)===String(draft.governorate_id));
+          const ctr=geoRows.find(x=>x.level==='CENTER'&&String(x.id)===String(draft.center_id));
+          if(!gov||!ctr||String(ctr.parent_id)!==String(gov.id))throw new Error('اختيار المحافظة والمركز غير صحيح.');
+          const services=String(draft.specialties||'').split(/[،,;]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
+          const portfolio=String(draft.portfolio||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,20);
+          const areaDetails=(draft.address||'').trim();
+          const serviceArea={
+            governorate_id:gov.id,governorate_code:gov.code,governorate_name_ar:gov.name_ar,
+            center_id:ctr.id,center_code:ctr.code,center_name_ar:ctr.name_ar,
+            address:areaDetails
+          };
+          const payload={
+            tenant_id:'MNTY-PLATFORM',organization_id:'MNTY-MAIN',
+            business_name:draft.business_name,provider_kind:draft.provider_kind,
+            contact_name:draft.contact_name,contact_phone:draft.contact_phone,
+            name_en:draft.name_en||null,
+            description:draft.description,
+            specialties:services,service_areas:[serviceArea],portfolio
+          };
+          if(draft.website)payload.portfolio=[...portfolio,draft.website].slice(0,20);
+          const {data,error}=await client.functions.invoke('mnty-provider-onboarding-submit',{body:payload});
+          if(error||data?.error)throw new Error(data?.error||error?.message||'تعذر إرسال طلب النشاط.');
+          const requestId=String(data?.onboarding_request_id||'');
+          const accountEmail=String(authUser.email||'');
+          const message=[
+            'طلب جديد لإضافة كتالوج نشاط على منصة MantiqatiX',
+            'رقم الطلب: '+(requestId||'جارٍ تخصيص الرقم'),
+            'اسم النشاط: '+draft.business_name,
+            'القطاع: '+(TAXONOMY.find(x=>String(x[3])===draft.provider_kind)?.[1]||draft.provider_kind),
+            'مسؤول النشاط: '+draft.contact_name,
+            'رقم الهاتف: '+draft.contact_phone,
+            'البريد الإلكتروني: '+accountEmail,
+            'الموقع: '+gov.name_ar+' - '+ctr.name_ar+(areaDetails?' - '+areaDetails:''),
+            'الوصف: '+draft.description,
+            'الخدمات: '+(services.join('، ')||'غير محددة'),
+            draft.website?'الرابط: '+draft.website:'',
+            'الحالة: قيد المراجعة الإدارية'
+          ].filter(Boolean).join('\n');
+          const waUrl='https://wa.me/201010171770?text='+encodeURIComponent(message);
+          try{localStorage.removeItem('MNTYPendingActivityDraft')}catch(_){}
+          if(waWindow){try{waWindow.location.href=waUrl;}catch(_){}}
+          const card=overlay.querySelector('.mx-modal-card');
+          if(card)card.innerHTML=
+            '<div class="mx-activity-success"><div class="mx-activity-success__icon" aria-hidden="true">✓</div><span class="eyebrow">REQUEST SUBMITTED</span><h2>تم إرسال طلبك للإدارة</h2><p>رقم الطلب: <b>'+escapeHtml(requestId||'—')+'</b></p><p>سيبقى حسابك فعالًا كعميل. تفعيل كتالوج النشاط وصلاحيات صاحبه يتم بعد مراجعة الطلب.</p>'+
+            '<a class="mx-activity-success__whatsapp" id="mx-activity-wa-link" href="'+escapeHtml(waUrl)+'" target="_blank" rel="noopener noreferrer">إرسال نسخة الطلب إلى واتساب الإدارة</a>'+
+            '<p class="mx-activity-basket__hint">فتحنا واتساب برسالة جاهزة عند السماح بذلك. اضغط «إرسال» داخل واتساب لإرسال الرسالة فعليًا.</p><button type="button" class="btn btn-outline mx-close-modal">إغلاق</button></div>';
+          overlay.querySelectorAll('.mx-close-modal').forEach(btn=>btn.addEventListener('click',close));
+          showStatusToast('تم تسجيل طلب النشاط في لوحة الإدارة.','success');
+        }catch(err){
+          if(waWindow&&!waWindow.closed){try{waWindow.close()}catch(_){}}
+          submitBtn.disabled=false;submitBtn.textContent='إرسال الطلب للإدارة';
+          errorBox.hidden=false;errorBox.textContent='تعذر إرسال الطلب: '+String(err?.message||err);
+        }
       });
       window.setTimeout(()=>overlay.querySelector('#mx-req-business')?.focus(),0);
     };
+    window.MXOpenActivityRequestModal=openActivityRequestModal;
 
     const openCategoryPage=async(code)=>{
       const item=TAXONOMY.find(x=>String(x[3])===String(code))||['◉',String(code||'نشاط'),'خدمات وأنشطة منشورة',String(code||'')];
