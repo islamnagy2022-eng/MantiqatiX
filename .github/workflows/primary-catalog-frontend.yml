@@ -99,12 +99,12 @@ jobs:
       - name: Build catalog module for its own subpath
         working-directory: apps/catalog-frontend
         run: npm run build
-      - name: Verify catalog subpath assets and PWA scope
+      - name: Verify primary site root assets and PWA scope
         run: |
           set -euo pipefail
           test -s apps/catalog-frontend/dist/index.html
           test -s apps/catalog-frontend/dist/config.js
-          grep -Fq '/MantiqatiX/catalog-app/assets/' apps/catalog-frontend/dist/index.html
+          grep -Fq '/MantiqatiX/assets/' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/catalog-app/' apps/catalog-frontend/dist/manifest.webmanifest
           grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
