@@ -81,7 +81,7 @@ jobs:
           ! grep -Eq 'signInWithOtp|verifyOtp|sendOtp|resend-otp|one-time-code|رمز التحقق|رمز البريد' web/app.js
           grep -q 'signInWithGoogle' web/app.js
           grep -q 'id="google-auth"' web/app.js
-          node --check web/smm.js
+          node scripts/validate-smm-deferred-ui.mjs
           node --check web/home.js
           node --check web/android-parity-catalog.js
           node --check web/provider-onboarding-module.js
@@ -161,7 +161,6 @@ jobs:
           test -f web/digital-page-editor.js
           for asset in web/assets/activity/*.svg; do test -f "$asset"; done
           for asset in web/assets/activities/*.svg; do test -f "$asset"; done
-          test -f web/smm.js
           test -f web/manifest.webmanifest
           test -f web/sw.js
           test -f web/android-parity-catalog.js
