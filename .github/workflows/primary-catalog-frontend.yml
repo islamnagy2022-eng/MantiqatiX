@@ -94,9 +94,9 @@ jobs:
         run: node scripts/validate-paid-subscription-gate.mjs
       - name: Verify scoped catalog pilot release prerequisites
         run: node scripts/production/verify-catalog-pilot.mjs
-      - name: Validate that the platform root is preserved
+      - name: Validate the catalog as the primary site
         run: node scripts/validate-pages-production-deploy-gate.mjs
-      - name: Build catalog module for its own subpath
+      - name: Build catalog for the primary site root
         working-directory: apps/catalog-frontend
         run: npm run build
       - name: Verify primary site root assets and PWA scope
@@ -106,7 +106,7 @@ jobs:
           test -s apps/catalog-frontend/dist/config.js
           grep -Fq '/MantiqatiX/assets/' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
-          grep -Fq '/MantiqatiX/catalog-app/' apps/catalog-frontend/dist/manifest.webmanifest
+          grep -Fq '/MantiqatiX/' apps/catalog-frontend/dist/manifest.webmanifest
           grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
       - name: Smoke test allowlisted Google OAuth root callback relay
         run: |
