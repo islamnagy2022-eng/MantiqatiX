@@ -2183,6 +2183,11 @@ try{
  if(pendingAdBooking&&typeof selectModule==='function'){
    try{localStorage.removeItem('MNTYOpenAdBooking');selectModule('التسويق والإعلان')}catch(_){}
  }
+ let pendingActivityDraft=null;
+ try{pendingActivityDraft=JSON.parse(localStorage.getItem('MNTYPendingActivityDraft')||'null')}catch(_){}
+ if(pendingActivityDraft?.resumeAfterAuth&&typeof window.MXOpenActivityRequestModal==='function'){
+   window.setTimeout(()=>window.MXOpenActivityRequestModal(),350);
+ }
 }finally{authRenderLock=false}
 }
 async function bootAuth(){
