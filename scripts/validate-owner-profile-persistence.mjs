@@ -64,6 +64,8 @@ if (migration.includes("IN ('OWNER','BUSINESS_OWNER','ADMIN','MANAGER')") ||
 }
 
 if (migration.includes("'publicEnabled', coalesce(p_public_enabled, false)") ||
+    !migration.includes("v_public_enabled boolean := false;") ||
+    !migration.includes("coalesce(b.settings->'catalog_public_enabled' = 'true'::jsonb, false)") ||
     !migration.includes("INTO v_profile, v_public_enabled") ||
     !migration.includes("'publicEnabled', v_public_enabled")) {
   throw new Error('FAIL: profile RPC must report the persisted catalog publication state, not echo a stale client argument.');
