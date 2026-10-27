@@ -40,8 +40,8 @@ assert.match(validateBlock, /FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS
   'A blocked full platform gate may only be non-fatal for the independently verified catalog pilot');
 assert.match(validateBlock, /if \[ "\$\{GATE\}" = "BLOCKED" \]/,
   'Only an explicit BLOCKED report may be non-fatal; unexpected verifier failures must stop release');
-assert.match(validateBlock, /Compose existing platform root with catalog as a separate module/,
-  'Pages artifact must preserve the existing platform root and mount catalog under a subpath');
+assert.match(validateBlock, /Publish the electronic catalog as the only production site/,
+  'Pages artifact must publish the catalog directly at the public root');
 assert.match(validateBlock, /rm -rf "\$\{SITE_DIR\}\/preview"/,
   'The production artifact must exclude the public demo preview tree');
 assert.match(validateBlock, /rm -f "\$\{SITE_DIR\}\/smm\.html"/,
@@ -50,8 +50,10 @@ assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/preview"/,
   'The composed production site must not contain preview routes');
 assert.match(validateBlock, /test ! -e "\$\{SITE_DIR\}\/smm\.html"/,
   'The composed production site must not contain the SMM placeholder');
-assert.match(validateBlock, /cp -a web\/\.[\s\S]*?cp -a apps\/catalog-frontend\/dist\/\.[\s\S]*?catalog-app/,
-  'Composition must combine the existing platform root with the catalog build');
+assert.match(validateBlock, /cp -a apps\/catalog-frontend\/dist\/\. "\$\{SITE_DIR\}\/"/,
+  'Production artifact must be copied from the catalog build only');
+assert.doesNotMatch(validateBlock, /cp -a web\//,
+  'Legacy web application must not be included in the production artifact');
 assert.match(validateBlock, /path: \$\{\{ runner\.temp \}\}\/mantiqatix-composed-site/,
   'The composed site artifact must be uploaded from the runner temp directory');
 assert.match(deployBlock, /needs: \[validate, validate_public_only\]/,
@@ -60,11 +62,11 @@ assert.match(deployBlock, /if: always\(\).*needs\.validate\.result == 'success'/
   'Deploy must evaluate after dependencies finish and require full validation to succeed');
 assert.match(deployBlock, /name: mantiqatix-composed-pages-site[\s\S]*?path: \.\/site/,
   'Deploy must download and publish the composed site artifact');
-assert.ok(deployBlock.includes('catalog-app/'), 'Post-deploy verification must check the catalog module subpath');
-assert.ok(deployBlock.includes('MantiqatiX | منصة الخدمات ومقدميها'),
-  'Post-deploy verification must ensure the original platform root is still present');
-assert.doesNotMatch(deployBlock, /replacement catalog site|primary-catalog-frontend-dist/,
-  'Deployment must not replace the platform root with the catalog-only frontend');
+assert.ok(deployBlock.includes('/MantiqatiX/assets/'), 'Post-deploy verification must check root catalog assets');
+assert.ok(deployBlock.includes('MantiqatiX | منصة إدارة الأنشطة والكتالوجات'),
+  'Post-deploy verification must ensure the electronic catalog is the public root');
+assert.doesNotMatch(deployBlock, /catalog-app\//,
+  'Production deployment must not depend on a catalog subpath');
 assert.doesNotMatch(deployBlock, /needs\.validate\.result == 'success'\s*\|\|\s*needs\.validate_public_only\.result == 'success'/,
   'Passing the narrow public-only check must not bypass failed production certification');
 
@@ -72,8 +74,8 @@ assert.doesNotMatch(primaryWorkflow, /actions\/deploy-pages@v4|pages:\s*write|id
   'The catalog frontend validation workflow must not race the canonical Pages deploy workflow');
 assert.doesNotMatch(previewWorkflow, /actions\/deploy-pages@v4|actions\/upload-pages-artifact@v4|pages:\s*write|id-token:\s*write/,
   'The deferred preview workflow must validate source only and never publish a Pages artifact');
-assert.ok(primaryWorkflow.includes('/MantiqatiX/catalog-app/assets/'),
-  'The catalog build must target its own subpath');
+assert.ok(primaryWorkflow.includes('/MantiqatiX/assets/'),
+  'The catalog build must target the public root');
 assert.ok(primaryWorkflow.includes('Upload catalog build for review (no deployment)'),
   'The primary catalog workflow must validate and upload an artifact without deploying');
 assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإلكتروني</a>'),
@@ -88,13 +90,13 @@ assert.doesNotMatch(home, /معاينة تفاعلية|معاينة توضيحي
   'The production homepage must not present demo-tour copy as a live platform feature');
 assert.ok(home.includes('افتح الكتالوج الإلكتروني'),
   'The homepage module section must route users to the real catalog module');
-assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
-  'Production health checks must monitor the catalog subpath');
+assert.ok(healthMonitor.includes('/MantiqatiX/assets/'),
+  'Production health checks must monitor root catalog assets');
 assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
   'Production health checks must verify the existing platform root remains intact');
 assert.match(deployBlock, /Retired production route still reachable:[\s\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
   'Post-deploy verification must assert the demo preview and SMM routes are absent');
-assert.doesNotMatch(healthMonitor, /grep -Fq "\/MantiqatiX\/assets\/" <<<"\$HTML"/,
-  'Production health checks must not expect the React catalog app to replace the platform root');
+assert.ok(healthMonitor.includes('PRIMARY_CATALOG_ROOT_AND_ASSETS=PASS'),
+  'Production health checks must verify the catalog-only root deployment');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_AND_CATALOG_SUBPATH=PASS');
