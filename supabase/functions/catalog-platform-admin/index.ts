@@ -164,13 +164,15 @@ Deno.serve(async (req: Request) => {
         .select("id").eq("id", sectorId).maybeSingle();
       if (sectorError) throw sectorError;
       if (!sector) return response(origin, { error: "ACTIVITY_SECTOR_NOT_FOUND" }, 400);
+      if (nodeType === "SECTOR_GROUP" && parentId) return response(origin, { error: "GROUP_CANNOT_HAVE_PARENT" }, 400);
       if (parentId) {
         if (parentId === id) return response(origin, { error: "INVALID_ACTIVITY_PARENT" }, 400);
         const { data: parent, error: parentError } = await service.from("business_activity_types")
-          .select("id,sector_id,node_type").eq("id", parentId).maybeSingle();
+          .select("id,sector_id,node_type,status").eq("id", parentId).maybeSingle();
         if (parentError) throw parentError;
-        if (!parent || String(parent.sector_id) !== sectorId
-          || (nodeType === "SECTOR_GROUP" && parent.node_type !== "SECTOR_GROUP")) {
+        const expectedParentType = nodeType === "ACTIVITY" ? "SECTOR_GROUP" : "ACTIVITY";
+        if (!parent || String(parent.sector_id) !== sectorId || parent.node_type !== expectedParentType
+          || (status === "ACTIVE" && parent.status !== "ACTIVE")) {
           return response(origin, { error: "INVALID_ACTIVITY_PARENT" }, 400);
         }
       } else if (nodeType !== "SECTOR_GROUP") {
@@ -214,10 +216,28 @@ Deno.serve(async (req: Request) => {
       const { data: previous, error: findError } = await service.from("business_activity_types").select("*").eq("id", id).maybeSingle();
       if (findError) throw findError;
       if (!previous) return response(origin, { error: "ACTIVITY_TYPE_NOT_FOUND" }, 404);
-      const { data: children, error: childError } = await service.from("business_activity_types")
-        .select("id").eq("parent_id", id).eq("status", "ACTIVE").limit(1);
+      const { data: allRows, error: childError } = await service.from("business_activity_types")
+        .select("id,parent_id,status").eq("sector_id", previous.sector_id).limit(5000);
       if (childError) throw childError;
-      if (status !== "ACTIVE" && children?.length) return response(origin, { error: "ACTIVE_CHILDREN_MUST_BE_DISABLED_FIRST" }, 409);
+      const descendants = new Set([id]);
+      let expanded = true;
+      while (expanded) {
+        expanded = false;
+        for (const item of (allRows || [])) {
+          if (item.parent_id && descendants.has(String(item.parent_id)) && !descendants.has(String(item.id))) {
+            descendants.add(String(item.id)); expanded = true;
+          }
+        }
+      }
+      const activeDescendants = (allRows || []).some((item: any) => String(item.id) !== id
+        && descendants.has(String(item.id)) && String(item.status).toUpperCase() === "ACTIVE");
+      if (status !== "ACTIVE" && activeDescendants) return response(origin, { error: "ACTIVE_CHILDREN_MUST_BE_DISABLED_FIRST" }, 409);
+      if (status === "ACTIVE" && previous.parent_id) {
+        const { data: parent, error: parentError } = await service.from("business_activity_types")
+          .select("status").eq("id", previous.parent_id).maybeSingle();
+        if (parentError) throw parentError;
+        if (!parent || String(parent.status).toUpperCase() !== "ACTIVE") return response(origin, { error: "ACTIVE_PARENT_REQUIRED" }, 409);
+      }
       const { data: saved, error: updateError } = await service.from("business_activity_types")
         .update({ status, updated_by: user.id, updated_at: new Date().toISOString() }).eq("id", id)
         .select("id,sector_id,parent_id,code,name_ar,name_en,node_type,status,sort_order").single();
