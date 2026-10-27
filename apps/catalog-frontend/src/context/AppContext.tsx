@@ -415,7 +415,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const business = businesses.find((item) => item.id === businessId);
     if (!business) throw new Error('النشاط المطلوب غير موجود.');
     const frozen = !business.isFrozen;
-    const paymentStatus = frozen ? 'frozen' : 'pending';
+    const paymentStatus = frozen
+      ? 'frozen'
+      : business.paymentStatus === 'paid' && business.paymentConfirmedByAdmin
+        ? 'paid'
+        : 'pending';
     await updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus });
     setBusinesses((prev) => prev.map((item) => item.id === businessId ? { ...item, isFrozen: frozen, paymentStatus } : item));
   };
