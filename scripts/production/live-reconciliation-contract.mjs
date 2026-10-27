@@ -16,6 +16,25 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261027060000", "20261027070000", "20261027090000",
 ];
 
+export const REQUIRED_CORE_OBJECTS = [
+  "public.mantigo_payment_provider_events",
+  "public.process_verified_mantigo_payment_backend",
+  "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+  "public.uq_payment_intents_one_active_per_order",
+  "public.process_verified_provider_payment_failure",
+  "public.process_verified_subscription_payment_failure",
+  "public.process_verified_subscription_payment_backend",
+  "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+  "public.smm_wallet_transactions_reference_type_uidx",
+  "public.receive_purchase_stock_atomic_backend",
+  "public.create_subscription_payment_intent_claimable_backend and claim_subscription_provider_intent_creation_backend",
+  "public.post_financial_journal_atomic_backend and journal uniqueness indexes",
+  "public.erp_purchase_order_lines, receive_purchase_stock_with_order_line_backend, set_purchase_order_lines_backend and RC437 indexes",
+  "public.create_purchase_order_with_lines_backend",
+  "public.update_purchase_order_status_backend(varchar,varchar)",
+  "public.mnty_can_platform_admin and MantiGo admin RPCs",
+];
+
 export const REQUIRED_CONTROL_CENTER_OBJECTS = [
   "public.platform_custom_roles",
   "public.platform_role_assignments",
@@ -90,7 +109,7 @@ export function isLiveReconciliationVerified(reconciliation) {
     functions.some(row => row?.slug === slug && row?.exact_match === true)
   );
 
-  const requiredControlCenterObjectsPassed = REQUIRED_CONTROL_CENTER_OBJECTS.every(name =>
+  const requiredLiveObjectsPassed = [...REQUIRED_CORE_OBJECTS, ...REQUIRED_CONTROL_CENTER_OBJECTS].every(name =>
     objectFindings.some(row =>
       (row?.name ?? row?.object) === name &&
       row?.exists === true &&
@@ -149,7 +168,7 @@ export function isLiveReconciliationVerified(reconciliation) {
     objects?.status === "PASS" &&
     objectFindings.length > 0 &&
     objectFindings.every(row => row?.exists === true && row?.status === "PASS") &&
-    requiredControlCenterObjectsPassed &&
+    requiredLiveObjectsPassed &&
 
     // Source parity must cover every deployed critical entrypoint, not just one function.
     edgeParity?.status === "PASS" &&
