@@ -360,7 +360,84 @@ const categoryGrid=document.getElementById('mx-category-grid');
       const governorate=overlay.querySelector('#mx-req-governorate');
       const center=overlay.querySelector('#mx-req-center');
       const geoStatus=overlay.querySelector('#mx-req-geo-status');
+      const sectorSelect=overlay.querySelector('#mx-req-sector');
+      const activitySelect=overlay.querySelector('#mx-req-activity');
+      const specialtySelect=overlay.querySelector('#mx-req-specialty');
+      const legacyKindSelect=overlay.querySelector('#mx-req-kind');
       const errorBox=overlay.querySelector('#mx-req-error');
+      let activityTypes=[];
+      let taxonomyLoaded=false;
+      const legacyKindBySector={
+        'SEC-ACCOUNTING':'ACCOUNTING','SEC-AUTO':'AUTO','SEC-COMPANIES':'COMPANIES','SEC-DENTAL':'DENTAL',
+        'SEC-EDUCATION':'EDU','SEC-ERP':'TECH','SEC-FASHION':'FASHION','SEC-FOOD':'FOOD',
+        'SEC-FREELANCER':'FREELANCER','SEC-GROCERY':'GROCERY','SEC-HEALTH':'HEALTH','SEC-HOSPITAL':'HOSPITAL',
+        'SEC-JOBS':'JOBS','SEC-LABS':'LABS','SEC-LEGAL':'LEGAL','SEC-MAINTENANCE':'MAINTENANCE',
+        'SEC-MANTIGO':'MANTIGO','SEC-MARKETING':'DIGITAL','SEC-MATRIMONY':'MATRIMONY','SEC-MEDICAL':'MEDICAL',
+        'SEC-PHARMACY':'PHARMACY','SEC-RADIOLOGY':'RADIOLOGY','SEC-REAL_ESTATE':'REAL_ESTATE',
+        'SEC-SPORTS':'FITNESS','SEC-TRIPS':'TRAVEL','SEC-USED_ITEMS':'USED_ITEMS','SEC-VETERINARY':'VETERINARY'
+      };
+      legacyKindSelect.innerHTML=TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'">'+escapeHtml(x[1])+'</option>').join('');
+      const sortTaxonomy=list=>[...(list||[])].sort((a,b)=>(Number(a.sort_order||100)-Number(b.sort_order||100))||String(a.name_ar||'').localeCompare(String(b.name_ar||''),'ar'));
+      const currentGroup=()=>activityTypes.find(x=>x.node_type==='SECTOR_GROUP'&&String(x.id)===String(sectorSelect.value))||null;
+      const selectedActivity=()=>activityTypes.find(x=>x.node_type==='ACTIVITY'&&String(x.id)===String(activitySelect.value))||null;
+      const selectedSpecialty=()=>activityTypes.find(x=>x.node_type==='SPECIALTY'&&String(x.id)===String(specialtySelect.value))||null;
+      const setLegacyKind=group=>{
+        const kind=group?(legacyKindBySector[group.sector_id]||String(group.legacy_category_id||'').replace(/^CAT-/,'')||'FREELANCER'):String(sectorSelect.value||'');
+        if([...legacyKindSelect.options].some(o=>o.value===kind))legacyKindSelect.value=kind;
+        else legacyKindSelect.value=TAXONOMY[0]?.[3]||'FOOD';
+      };
+      const fillSpecialties=(preferredId='')=>{
+        const activity=selectedActivity();
+        const items=activity&&taxonomyLoaded?sortTaxonomy(activityTypes.filter(x=>x.node_type==='SPECIALTY'&&String(x.parent_id)===String(activity.id))):[];
+        specialtySelect.innerHTML='<option value="">لا يوجد تخصص فرعي / اختياري</option>'+items.map(x=>'<option value="'+escapeHtml(x.id)+'">'+escapeHtml(x.name_ar)+'</option>').join('');
+        specialtySelect.disabled=!taxonomyLoaded||!activity||!items.length;
+        if(preferredId&&items.some(x=>String(x.id)===String(preferredId)))specialtySelect.value=preferredId;
+      };
+      const fillActivities=(preferredId='',preferredSpecialty='')=>{
+        const group=currentGroup();
+        if(!taxonomyLoaded||!group){
+          const kind=String(sectorSelect.value||TAXONOMY[0]?.[3]||'FOOD');
+          const sector=TAXONOMY.find(x=>String(x[3])===kind)||TAXONOMY[0];
+          activitySelect.innerHTML='<option value="legacy:'+escapeHtml(kind)+'">نشاط عام — اكتب تفاصيل النشاط في خانة الخدمات</option>';
+          activitySelect.value='legacy:'+kind;activitySelect.disabled=false;
+          specialtySelect.innerHTML='<option value="">اكتب التخصص في خانة الخدمات (اختياري)</option>';specialtySelect.disabled=true;
+          legacyKindSelect.value=kind;
+          return;
+        }
+        setLegacyKind(group);
+        const items=sortTaxonomy(activityTypes.filter(x=>x.node_type==='ACTIVITY'&&String(x.parent_id)===String(group.id)));
+        activitySelect.innerHTML='<option value="">اختر النشاط</option>'+items.map(x=>'<option value="'+escapeHtml(x.id)+'">'+escapeHtml(x.name_ar)+'</option>').join('');
+        activitySelect.disabled=!items.length;
+        if(preferredId&&items.some(x=>String(x.id)===String(preferredId)))activitySelect.value=preferredId;
+        else if(items.length)activitySelect.value=items[0].id;
+        fillSpecialties(preferredSpecialty);
+      };
+      const initActivityTaxonomy=async()=>{
+        try{
+          const {data,error}=await sbClient.functions.invoke('activity-taxonomy-public',{body:{}});
+          if(!error&&Array.isArray(data?.activityTypes)&&data.activityTypes.some(x=>x.node_type==='SECTOR_GROUP')){
+            activityTypes=data.activityTypes;taxonomyLoaded=true;
+          }
+        }catch(_){}
+        if(taxonomyLoaded){
+          const groups=sortTaxonomy(activityTypes.filter(x=>x.node_type==='SECTOR_GROUP'));
+          const priorActivity=activityTypes.find(x=>String(x.id)===String(savedDraft.activity_type_id||''));
+          const priorGroup=groups.find(x=>String(x.id)===String(savedDraft.activity_group_id||priorActivity?.parent_id||''))||groups.find(x=>legacyKindBySector[x.sector_id]===String(savedDraft.provider_kind||''))||groups[0];
+          sectorSelect.innerHTML='<option value="">اختر القطاع الرئيسي</option>'+groups.map(x=>'<option value="'+escapeHtml(x.id)+'">'+escapeHtml(x.name_ar)+'</option>').join('');
+          if(priorGroup)sectorSelect.value=priorGroup.id;
+          fillActivities(priorActivity?.node_type==='ACTIVITY'?priorActivity.id:(priorActivity?.node_type==='SPECIALTY'?priorActivity.parent_id:(savedDraft.activity_type_id||'')),priorActivity?.node_type==='SPECIALTY'?priorActivity.id:savedDraft.specialty_type_id||'');
+          if(priorActivity?.node_type==='SPECIALTY'){activitySelect.value=priorActivity.parent_id;fillSpecialties(priorActivity.id);}
+          sectorSelect.addEventListener('change',()=>fillActivities('',''));
+          activitySelect.addEventListener('change',()=>fillSpecialties(''));
+        }else{
+          sectorSelect.innerHTML='<option value="">اختر القطاع الرئيسي</option>'+TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'">'+escapeHtml(x[1])+'</option>').join('');
+          sectorSelect.value=String(savedDraft.provider_kind||TAXONOMY[0]?.[3]||'FOOD');
+          fillActivities();
+          sectorSelect.addEventListener('change',()=>fillActivities('',''));
+          activitySelect.addEventListener('change',()=>fillSpecialties(''));
+          geoStatus.textContent='التصنيفات التفصيلية غير متاحة مؤقتًا؛ اختر القطاع واكتب النشاط والتخصص في خانة الخدمات.';
+        }
+      };
       const submitBtn=overlay.querySelector('#mx-activity-request-submit');
       const close=()=>{document.removeEventListener('keydown',onKey);overlay.remove()};
       const onKey=e=>{if(e.key==='Escape')close()};
@@ -385,6 +462,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
         const govs=geoRows.filter(x=>x.level==='GOVERNORATE');
         governorate.innerHTML='<option value="">اختر المحافظة</option>'+govs.map(x=>'<option value="'+escapeHtml(x.id)+'" '+(String(x.id)===String(savedDraft.governorate_id||savedDraft.service_areas?.[0]?.governorate_id||'')?'selected':'')+'>'+escapeHtml(x.name_ar||x.name_en||x.code)+'</option>').join('');
         if(!govs.length)throw new Error('لا توجد قائمة محافظات معتمدة في المنصة.');
+        await initActivityTaxonomy();
         governorate.addEventListener('change',()=>fillCenters(''));
         fillCenters(savedDraft.center_id||savedDraft.service_areas?.[0]?.center_id||'');
         if(savedDraft.governorate_id||savedDraft.service_areas?.[0]?.governorate_id)fillCenters(savedDraft.center_id||savedDraft.service_areas?.[0]?.center_id||'');
