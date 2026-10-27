@@ -33,6 +33,71 @@ alter table public.business_activity_types force row level security;
 revoke all on public.business_activity_types from anon, authenticated;
 grant all on public.business_activity_types to service_role;
 
+-- Make the seed replayable from a schema-only production checkpoint where
+-- earlier directory seed data may not have been restored. Only insert missing
+-- canonical sector/category rows; never overwrite existing names or assignments.
+insert into public.business_sectors(id,code,name_ar,name_en,status)
+values
+('SEC-ACCOUNTING','ACCOUNTING','محاسب منطقتي','Accountant MantiqatiX','ACTIVE'),
+('SEC-AUTO','AUTO','سيارات منطقتي','Auto MantiqatiX','ACTIVE'),
+('SEC-COMPANIES','COMPANIES','شركة منطقتي','Company MantiqatiX','ACTIVE'),
+('SEC-DENTAL','DENTAL','أسنان منطقتي','Dental MantiqatiX','ACTIVE'),
+('SEC-EDUCATION','EDUCATION','مدرسة منطقتي','School MantiqatiX','ACTIVE'),
+('SEC-ERP','ERP','برمجيات منطقتي','Software MantiqatiX','ACTIVE'),
+('SEC-FASHION','FASHION','أزياء منطقتي','Fashion MantiqatiX','ACTIVE'),
+('SEC-FOOD','FOOD','مطعم منطقتي','Restaurant MantiqatiX','ACTIVE'),
+('SEC-FREELANCER','FREELANCER','المستقلون ومقدمو الخدمات','Freelancers & Service Providers','ACTIVE'),
+('SEC-GROCERY','GROCERY','سوبر ماركت منطقتي','Supermarket MantiqatiX','ACTIVE'),
+('SEC-HEALTH','HEALTH','دكتور منطقتي','Doctor MantiqatiX','ACTIVE'),
+('SEC-HOSPITAL','HOSPITAL','مستشفى منطقتي','Hospital MantiqatiX','ACTIVE'),
+('SEC-JOBS','JOBS','وظائف منطقتي','Jobs MantiqatiX','ACTIVE'),
+('SEC-LABS','LABS','معمل منطقتي','Lab MantiqatiX','ACTIVE'),
+('SEC-LEGAL','LEGAL','محامي منطقتي','Lawyer MantiqatiX','ACTIVE'),
+('SEC-MAINTENANCE','MAINTENANCE','صيانة منطقتي','Maintenance MantiqatiX','ACTIVE'),
+('SEC-MANTIGO','MANTIGO','نقل منطقتي','Transport MantiqatiX','ACTIVE'),
+('SEC-MARKETING','MARKETING','تسويق منطقتي','Marketing MantiqatiX','ACTIVE'),
+('SEC-MATRIMONY','MATRIMONY','زواج منطقتي','Matrimony MantiqatiX','ACTIVE'),
+('SEC-MEDICAL','MEDICAL','مراكز طبية','Medical Centers','ACTIVE'),
+('SEC-PHARMACY','PHARMACY','صيدلية منطقتي','Pharmacy MantiqatiX','ACTIVE'),
+('SEC-RADIOLOGY','RADIOLOGY','أشعة منطقتي','Radiology MantiqatiX','ACTIVE'),
+('SEC-REAL_ESTATE','REAL_ESTATE','عقارات منطقتي','Real Estate MantiqatiX','ACTIVE'),
+('SEC-SPORTS','SPORTS','رياضة منطقتي','Sports MantiqatiX','ACTIVE'),
+('SEC-TRIPS','TRIPS','سفر منطقتي','Travel MantiqatiX','ACTIVE'),
+('SEC-USED_ITEMS','USED_ITEMS','مستعمل منطقتي','Used Items MantiqatiX','ACTIVE'),
+('SEC-VETERINARY','VETERINARY','بيطري منطقتي','Veterinary MantiqatiX','ACTIVE')
+on conflict (id) do nothing;
+
+insert into public.business_categories(id,sector_id,code,name_ar,name_en,status)
+values
+('CAT-ACCOUNTING','SEC-ACCOUNTING','ACCOUNTING','المحاسبة والأعمال','Accounting & Business','ACTIVE'),
+('CAT-AUTO','SEC-AUTO','AUTO','سيارات منطقتي','Auto MantiqatiX','ACTIVE'),
+('CAT-COMPANIES','SEC-COMPANIES','COMPANIES','شركة منطقتي','Company MantiqatiX','ACTIVE'),
+('CAT-DENTAL','SEC-DENTAL','DENTAL','أسنان منطقتي','Dental MantiqatiX','ACTIVE'),
+('CAT-EDUCATION','SEC-EDUCATION','EDUCATION','مدرسة منطقتي','School MantiqatiX','ACTIVE'),
+('CAT-ERP','SEC-ERP','ERP','برمجيات منطقتي','Software MantiqatiX','ACTIVE'),
+('CAT-FASHION','SEC-FASHION','FASHION','أزياء منطقتي','Fashion MantiqatiX','ACTIVE'),
+('CAT-FOOD','SEC-FOOD','FOOD','مطعم منطقتي','Restaurant MantiqatiX','ACTIVE'),
+('CAT-FREELANCER','SEC-FREELANCER','FREELANCER','المستقلون ومقدمو الخدمات','Freelancers & Services','ACTIVE'),
+('CAT-GROCERY','SEC-GROCERY','GROCERY','سوبر ماركت منطقتي','Supermarket MantiqatiX','ACTIVE'),
+('CAT-HEALTH','SEC-HEALTH','HEALTH','دكتور منطقتي','Doctor MantiqatiX','ACTIVE'),
+('CAT-HOSPITAL','SEC-HOSPITAL','HOSPITAL','مستشفى منطقتي','Hospital MantiqatiX','ACTIVE'),
+('CAT-JOBS','SEC-JOBS','JOBS','وظائف منطقتي','Jobs MantiqatiX','ACTIVE'),
+('CAT-LABS','SEC-LABS','LABS','معمل منطقتي','Lab MantiqatiX','ACTIVE'),
+('CAT-LEGAL','SEC-LEGAL','LEGAL','محامي منطقتي','Lawyer MantiqatiX','ACTIVE'),
+('CAT-MAINTENANCE','SEC-MAINTENANCE','MAINTENANCE','صيانة منطقتي','Maintenance MantiqatiX','ACTIVE'),
+('CAT-MANTIGO','SEC-MANTIGO','MANTIGO','نقل منطقتي','Transport MantiqatiX','ACTIVE'),
+('CAT-MARKETING','SEC-MARKETING','MARKETING','تسويق منطقتي','Marketing MantiqatiX','ACTIVE'),
+('CAT-MATRIMONY','SEC-MATRIMONY','MATRIMONY','زواج منطقتي','Matrimony MantiqatiX','ACTIVE'),
+('CAT-MEDICAL','SEC-MEDICAL','MEDICAL','مراكز طبية','Medical Centers','ACTIVE'),
+('CAT-PHARMACY','SEC-PHARMACY','PHARMACY','صيدلية منطقتي','Pharmacy MantiqatiX','ACTIVE'),
+('CAT-RADIOLOGY','SEC-RADIOLOGY','RADIOLOGY','أشعة منطقتي','Radiology MantiqatiX','ACTIVE'),
+('CAT-REAL_ESTATE','SEC-REAL_ESTATE','REAL_ESTATE','عقارات منطقتي','Real Estate MantiqatiX','ACTIVE'),
+('CAT-SPORTS','SEC-SPORTS','SPORTS','رياضة منطقتي','Sports MantiqatiX','ACTIVE'),
+('CAT-TRIPS','SEC-TRIPS','TRIPS','سفر منطقتي','Travel MantiqatiX','ACTIVE'),
+('CAT-USED_ITEMS','SEC-USED_ITEMS','USED_ITEMS','مستعمل منطقتي','Used Items MantiqatiX','ACTIVE'),
+('CAT-VETERINARY','SEC-VETERINARY','VETERINARY','بيطري منطقتي','Veterinary MantiqatiX','ACTIVE')
+on conflict (id) do nothing;
+
 -- Stable top-level group per existing sector. Existing business_categories and
 -- sector identifiers are preserved; no business is reassigned by this seed.
 insert into public.business_activity_types
