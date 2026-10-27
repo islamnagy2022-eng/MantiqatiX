@@ -3,8 +3,8 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261008222845",
-  "live_ledger_last_name": "rc424_atomic_digital_page_payment_webhook",
+  "live_ledger_last_version": "20261027041549",
+  "live_ledger_last_name": "qadam_alsaad_restore_contact_fields",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
@@ -13,8 +13,8 @@
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40052022874",
-  "checked_at": "2026-10-24",
-  "reason": "Production remains blocked: successful isolated replay and scoped two-tenant read-isolation checks do not prove required post-RC424 migrations are applied in production. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway parity, and live Auth security settings remain unverified. Do not deploy until each item has evidence and production backup/restore readiness is verified.",
+  "checked_at": "2026-10-27",
+  "reason": "Production remains BLOCKED: the three latest live ledger entries through 20261027041549 have now been reconciled byte-for-byte to exact-version source files, but the required post-RC424 payment/finance/security migration chain is still not proven applied. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway deployment parity, live Auth security settings, and external browser/device E2E remain unverified. Do not deploy until each release gate has evidence and production backup/restore readiness is verified.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -30,5 +30,41 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "live_ledger_inventory_count": 292,
+  "latest_live_ledger_reconciliation": {
+    "status": "VERIFIED",
+    "checked_at": "2026-10-27",
+    "method": "Read-only SELECT of supabase_migrations.schema_migrations.statements, followed by exact string comparison against checked-in SQL source files.",
+    "entries": [
+      {
+        "version": "20261027010135",
+        "name": "add_qadam_alsaad_homewares_store_and_catalog",
+        "source_file": "supabase/migrations/20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql",
+        "source_blob_sha": "795fe4d9cc422eab0851bcf323d9ee36201175be",
+        "live_statement_chars": 5487,
+        "source_chars": 5487,
+        "exact_statement_match": true
+      },
+      {
+        "version": "20261027041411",
+        "name": "mantiqatix_marketing_contact_details",
+        "source_file": "supabase/migrations/20261027041411_mantiqatix_marketing_contact_details.sql",
+        "source_blob_sha": "1b85c341c0c9329e71f4fdbf36f2f852687994aa",
+        "live_statement_chars": 1114,
+        "source_chars": 1114,
+        "exact_statement_match": true
+      },
+      {
+        "version": "20261027041549",
+        "name": "qadam_alsaad_restore_contact_fields",
+        "source_file": "supabase/migrations/20261027041549_qadam_alsaad_restore_contact_fields.sql",
+        "source_blob_sha": "30ebff9dc3c7259630f5b897ca60dcb6b54d51e2",
+        "live_statement_chars": 1106,
+        "source_chars": 1106,
+        "exact_statement_match": true
+      }
+    ],
+    "resolution": "All three latest live ledger statement bodies now have exact-version source files and match the recorded statements character-for-character. The redundant not-yet-applied 20261027100000 marketing contact file was removed because its body was identical to the live 20261027041411 entry. No production writes or migration execution occurred."
+  }
 }
