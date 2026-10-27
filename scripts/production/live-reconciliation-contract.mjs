@@ -83,7 +83,7 @@ export function isLiveReconciliationVerified(reconciliation) {
     requiredVersions.every((version, index) => version === REQUIRED_RELEASE_MIGRATION_VERSIONS[index]) &&
     recordedRequiredVersions !== null &&
     recordedRequiredVersions.length === REQUIRED_RELEASE_MIGRATION_VERSIONS.length &&
-    REQUIRED_RELEASE_MIGRATION_VERSIONS.every(version => recordedRequiredVersions.includes(version)) &&
+    recordedRequiredVersions.every((version, index) => version === REQUIRED_RELEASE_MIGRATION_VERSIONS[index]) &&
     missingVersions !== null &&
     missingVersions.length === 0 &&
 
