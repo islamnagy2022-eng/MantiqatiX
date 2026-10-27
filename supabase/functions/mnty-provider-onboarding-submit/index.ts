@@ -16,7 +16,7 @@ Deno.serve(async(req)=>{
  const requestedRegistrationId=String(b?.registration_request_id||"").trim(),tenant=String(b?.tenant_id||"MNTY-PLATFORM").trim(),org=String(b?.organization_id||"MNTY-MAIN").trim();
  const name=String(b?.business_name||"").trim().slice(0,180),kind=String(b?.provider_kind||"").trim().slice(0,80);
  const phone=String(b?.contact_phone||"").trim().slice(0,40),contactName=String(b?.contact_name||"").trim().slice(0,160);
- const phoneDigits=phone.replace(/\\D/g,"");
+ const phoneDigits=phone.replace(/\D/g,"");
  if(tenant!=="MNTY-PLATFORM"||org!=="MNTY-MAIN"||name.length<2||kind.length<2||contactName.length<2||phoneDigits.length<8||phoneDigits.length>15)
    return json({error:"business_name_activity_and_valid_contact_phone_required"},400);
  const arr=(v,max=30)=>Array.isArray(v)?v.map(x=>String(x??"").trim()).filter(Boolean).slice(0,max):[];
