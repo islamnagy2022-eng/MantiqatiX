@@ -45,17 +45,31 @@ BEGIN
      '{"test_fixture":true}'::jsonb, now(), now(), false, false)
   ON CONFLICT (id) DO NOTHING;
 
-  INSERT INTO public.user_memberships
-    (id, user_id, tenant_id, business_id, branch_id, role, permissions, status)
-  VALUES
-    ('OWNER-PROFILE-TEST-OWNER', v_owner_id, v_tenant_id, v_business_id,
-     NULL, 'OWNER', '["*"]'::jsonb, 'ACTIVE'),
-    ('OWNER-PROFILE-TEST-MANAGER', v_manager_id, v_tenant_id, v_business_id,
-     v_branch_id, 'MANAGER', '[]'::jsonb, 'ACTIVE')
-  ON CONFLICT DO UPDATE
-    SET role = EXCLUDED.role,
-        permissions = EXCLUDED.permissions,
-        status = EXCLUDED.status;
+  -- Reuse pre-existing membership fixtures when the unique business/scope
+  -- membership already exists; do not assume the surrogate ID is the conflict key.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_memberships m
+     WHERE m.user_id = v_owner_id AND m.tenant_id = v_tenant_id
+       AND m.business_id = v_business_id AND m.branch_id IS NULL
+  ) THEN
+    INSERT INTO public.user_memberships
+      (id, user_id, tenant_id, business_id, branch_id, role, permissions, status)
+    VALUES
+      ('OWNER-PROFILE-TEST-OWNER', v_owner_id, v_tenant_id, v_business_id,
+       NULL, 'OWNER', '["*"]'::jsonb, 'ACTIVE');
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_memberships m
+     WHERE m.user_id = v_manager_id AND m.tenant_id = v_tenant_id
+       AND m.business_id = v_business_id AND m.branch_id = v_branch_id
+  ) THEN
+    INSERT INTO public.user_memberships
+      (id, user_id, tenant_id, business_id, branch_id, role, permissions, status)
+    VALUES
+      ('OWNER-PROFILE-TEST-MANAGER', v_manager_id, v_tenant_id, v_business_id,
+       v_branch_id, 'MANAGER', '[]'::jsonb, 'ACTIVE');
+  END IF;
 
   INSERT INTO public.marketing_provider_profiles
     (provider_kind, business_id, owner_user_id, name_ar, slug, status)
