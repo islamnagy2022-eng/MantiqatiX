@@ -16,6 +16,19 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261027060000", "20261027070000", "20261027090000", "20261027093000",
 ];
 
+export const REQUIRED_MIGRATION_ALIASES = [
+  {
+    source_version: "20261009010000",
+    target_ledger_version: "20261008222845",
+    evidence_type: "EXACT_STATEMENT_ALIAS",
+  },
+  {
+    source_version: "20261027100000",
+    target_ledger_version: "20261027041411",
+    evidence_type: "EXACT_SOURCE_BLOB_ALIAS",
+  },
+];
+
 export const REQUIRED_CORE_OBJECTS = [
   "public.mantigo_payment_provider_events",
   "public.process_verified_mantigo_payment_backend",
@@ -98,6 +111,9 @@ export function isLiveReconciliationVerified(reconciliation) {
   const requiredVersions = Array.isArray(ledger?.required_versions) ? ledger.required_versions : null;
   const recordedRequiredVersions = Array.isArray(ledger?.recorded_required_versions) ? ledger.recorded_required_versions : null;
   const securityDefiner = reconciliation.security_definer_search_path_check;
+  const qadam = reconciliation.qadam_catalog_followup_check;
+  const aliasCheck = reconciliation.migration_alias_resolution_check;
+  const aliasFindings = Array.isArray(aliasCheck?.aliases) ? aliasCheck.aliases : [];
   const missingColumns = Array.isArray(finance?.schema_preflight?.missing_columns)
     ? finance.schema_preflight.missing_columns
     : null;
@@ -116,6 +132,37 @@ export function isLiveReconciliationVerified(reconciliation) {
       row?.status === "PASS"
     )
   );
+
+  const requiredMigrationAliasesResolved =
+    aliasCheck?.status === "RECONCILED" &&
+    aliasCheck.expected_aliases === REQUIRED_MIGRATION_ALIASES.length &&
+    aliasCheck.resolved_aliases === REQUIRED_MIGRATION_ALIASES.length &&
+    REQUIRED_MIGRATION_ALIASES.every(required =>
+      aliasFindings.some(alias =>
+        alias?.source_version === required.source_version &&
+        alias?.target_ledger_version === required.target_ledger_version &&
+        alias?.evidence_type === required.evidence_type &&
+        alias?.status === "RECONCILED" &&
+        alias?.source_effect_verified === true &&
+        alias?.ledger_repair_applied === true
+      )
+    );
+
+  const qadamCatalogFollowupPassed =
+    qadam?.status === "PASS" &&
+    qadam.migration_version === "20261027093000" &&
+    qadam.migration_version_recorded === true &&
+    qadam.business_active === true &&
+    qadam.contact_fields_complete === true &&
+    qadam.owner_membership_status === "ACTIVE" &&
+    qadam.owner_membership_active === true &&
+    qadam.expected_product_count === 15 &&
+    qadam.active_product_count === 15 &&
+    qadam.expected_price_rows === 12 &&
+    qadam.matching_price_rows === 12 &&
+    qadam.contact_for_price_product_count === 3 &&
+    qadam.contact_for_price_without_active_price === 3 &&
+    qadam.stock_tracking_enabled_item_count === 0;
 
   return Boolean(
     reconciliation.status === "VERIFIED" &&
@@ -151,6 +198,8 @@ export function isLiveReconciliationVerified(reconciliation) {
     recordedRequiredVersions.every((version, index) => version === REQUIRED_RELEASE_MIGRATION_VERSIONS[index]) &&
     missingVersions !== null &&
     missingVersions.length === 0 &&
+    requiredMigrationAliasesResolved &&
+    qadamCatalogFollowupPassed &&
 
     // RC451 must leave the intentionally public discovery boundary intact while hardening search_path.
     securityDefiner?.status === "PASS" &&
