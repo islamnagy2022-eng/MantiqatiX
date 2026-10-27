@@ -77,6 +77,10 @@ assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the inten
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
 assert.equal(REQUIRED_CORE_OBJECTS.length, 27, "release gate must require each payment, finance, ERP, and MantiGo core object independently");
+assert.equal(new Set(REQUIRED_CORE_OBJECTS).size, REQUIRED_CORE_OBJECTS.length, "each core object must appear exactly once");
+assert.ok(REQUIRED_CORE_OBJECTS.every(name => !name.includes(" and ") && !name.endsWith("indexes")), "core live object checks must be atomic rather than grouped");
+assert.ok(required.includes("20261027093000_add_qadam_alsaad_homewares_store.sql"), "Qadam owner-activation follow-up migration must be required");
+assert.ok(!required.some(name => name.startsWith("20261009010000_") || name.startsWith("20261027100000_")), "duplicate source-version aliases must not be executed as independent migrations");
 assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
