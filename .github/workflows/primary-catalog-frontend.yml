@@ -98,12 +98,12 @@ jobs:
           grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/catalog-app/' apps/catalog-frontend/dist/manifest.webmanifest
           grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
-      - name: Smoke test production Google OAuth redirect for catalog subpath
+      - name: Smoke test allowlisted Google OAuth root callback relay
         run: |
           set -euo pipefail
           SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseUrl:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
-          REDIRECT_URL="https://islamnagy2022-eng.github.io/MantiqatiX/catalog-app/"
+          REDIRECT_URL="https://islamnagy2022-eng.github.io/MantiqatiX/"
           HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-oauth-smoke.json --dump-header /tmp/catalog-oauth-smoke.headers --write-out '%{http_code}' --get --data-urlencode 'provider=google' --data-urlencode "redirect_to=${REDIRECT_URL}" --header "apikey: ${SUPABASE_ANON_KEY}" "${SUPABASE_URL}/auth/v1/authorize")"
           if [ "${HTTP_CODE}" != "302" ] && [ "${HTTP_CODE}" != "303" ]; then
             echo "Google OAuth initiation failed with HTTP ${HTTP_CODE}"
@@ -111,7 +111,7 @@ jobs:
             exit 1
           fi
           grep -Eiq '^location: https://accounts\\.google\\.com/' /tmp/catalog-oauth-smoke.headers
-          echo "CATALOG_SUBPATH_GOOGLE_OAUTH_HANDSHAKE=PASS"
+          echo "CATALOG_OAUTH_ROOT_RELAY_HANDSHAKE=PASS"
       - name: Smoke test production public catalog directory
         run: |
           set -euo pipefail
