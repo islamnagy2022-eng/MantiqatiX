@@ -1,8 +1,8 @@
-const CACHE='mnty-web-v135';
+const CACHE='mnty-web-v136';
 const APP_SHELL=[
-'./styles.css?v=rc340','./brand.css?v=rc450','./home.css?v=rc401-module-hub','./home-mobile-fixes.css?v=rc397',
-'./config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=rc409-restaurant-preview',
-'./rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=rc458-marketing-workspace-20261018',
+'./styles.css?v=rc340','./brand.css?v=rc450','./home.css?v=rc401-module-hub','./home-mobile-fixes.css?v=rc397','./activity-basket.css?v=rc411-catalog-onboarding','./platform-admin-taxonomy.js?v=activity-taxonomy-20261027','./platform-admin-businesses.js?v=rc415-hierarchy-owner-subscription-admin','./platform-admin-finance.js?v=rc414-audit-financial-readonly',
+'./config.js?v=mnty116','./location-adapter.js?v=mnty116','./sector-registry.js?v=rc371','./home.js?v=rc416-admin-onboarding-final',
+'./rbac.js?v=mnty120','./android-parity-catalog.js?v=mnty116','./vendor/supabase.js?v=supabase21172','./app.js?v=rc416-admin-onboarding-final',
 './module-blueprints.js?v=rc308','./restaurant-module.js?v=rc314','./sector-modules.js?v=mnty116',
 './reverse-bidding-module.js?v=mnty116','./operations-modules.js?v=mnty117','./provider-onboarding-module.js?v=mnty116','./brand.js?v=rc355',
 './','./index.html','./styles.css','./android-parity-catalog.js','./app.js','./module-blueprints.js','./config.js','./location-adapter.js','./sector-registry.js','./brand.css','./brand.js','./home.css','./home.js','./sector-modules.js','./reverse-bidding-module.js','./operations-modules.js','./provider-onboarding-module.js','./restaurant-module.js','./manifest.webmanifest','./vendor/supabase.js','./assets/mantiqatix-logo.svg','./assets/mantiqatix-mark.svg','./assets/activities/ai-sector-directory.svg','./icons/icon-192.svg','./icons/icon-512.svg'];
