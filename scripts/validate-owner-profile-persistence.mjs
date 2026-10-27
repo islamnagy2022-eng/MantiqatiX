@@ -12,7 +12,7 @@ const publicCatalog = read('supabase/functions/public-catalog/index.ts');
 if (!/const updateBusiness = async \(updated: Business\): Promise<void>/.test(context) ||
     !/await callCatalogAdmin\(\{\s*action: 'BUSINESS_PROFILE_UPSERT'/.test(context) ||
     !/await refreshBusinessCatalog\(updated\.id\)/.test(context) ||
-    /void \(async \(\) =>/.test(context.slice(context.indexOf('const updateBusiness = async'), context.indexOf('const addBusiness = async'))) {
+    /void \(async \(\) =>/.test(context.slice(context.indexOf('const updateBusiness = async'), context.indexOf('const addBusiness = async')))) {
   throw new Error('FAIL: owner profile saves must await the production write and catalog refresh and propagate errors.');
 }
 
