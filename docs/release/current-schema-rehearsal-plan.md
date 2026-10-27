@@ -18,6 +18,23 @@ A fresh Supabase development branch starts without Production data. A successful
 
 Do not use `supabase db push` on Production as a diagnostic. Do not apply any migration in this plan directly to Production.
 
+
+### Exact security preflight for the seven present-by-name functions
+
+A read-only `pg_proc`/ACL check at `2026-10-27T16:05:52Z` found seven candidate functions. All seven are `SECURITY DEFINER`, and all seven have a non-empty `search_path` (`public` or `public, pg_temp`) even though the expected release contract requires an empty path. `update_purchase_order_status_backend(varchar,varchar)` also has no EXECUTE privilege for `authenticated`, despite the source contract expecting authenticated execution. Therefore **0/7 are certified**, even though their names/signatures are present.
+
+| Function | Live search_path | ACL observation |
+|---|---|---|
+| `expire_stale_mantigo_rides_backend(uuid,integer)` | `public` | authenticated only among anon/auth/service_role |
+| `get_mantigo_admin_dashboard_backend(uuid)` | `public` | authenticated only among anon/auth/service_role |
+| `get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)` | `public` | authenticated only among anon/auth/service_role |
+| `mnty_can_platform_admin()` | `public, pg_temp` | authenticated only among anon/auth/service_role |
+| `process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)` | `public, pg_temp` | service_role only; expected boundary otherwise matches |
+| `settle_mantigo_captain_backend(uuid,text,text)` | `public` | authenticated only among anon/auth/service_role |
+| `update_purchase_order_status_backend(varchar,varchar)` | `public` | no EXECUTE for anon, authenticated, or service_role; authenticated EXECUTE is expected |
+
+These are catalog-level findings, not proof of full source-body parity. Compare each `pg_get_functiondef` to the exact source migration on the restored clone, and do not correct the grants/search paths on Production as part of this audit.
+
 ## 3. High-risk migration effects requiring explicit preflight
 
 | Migration(s) | Risk to rehearse | Required evidence before approval |
