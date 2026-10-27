@@ -2082,7 +2082,7 @@ async function reviewProviderOnboarding(requestId,decision){
 async function loadProviderOnboardingReview(){
  const host=document.getElementById('provider-onboarding-review-list')||document.getElementById('sa-provider-review-list');
  if(!host)return;
- const {data,error}=await sb.from('provider_onboarding_requests').select('id,user_id,registration_request_id,business_name,provider_kind,contact_name,contact_phone,name_en,description,specialties,service_areas,portfolio,status,created_at,rejection_reason').order('created_at',{ascending:false}).limit(50);
+ const {data,error}=await sb.from('provider_onboarding_requests').select('id,user_id,registration_request_id,business_name,provider_kind,activity_type_id,contact_name,contact_phone,name_en,description,specialties,service_areas,portfolio,status,created_at,rejection_reason').order('created_at',{ascending:false}).limit(50);
  if(error){host.innerHTML='<div class="empty-state">تعذر تحميل طلبات تسجيل الأنشطة: '+esc(error.message)+'</div>';return}
  const rows=data||[];
  if(!rows.length){host.innerHTML='<div class="empty-state">لا توجد طلبات تسجيل نشاط فعلية حاليًا.</div>';return}
