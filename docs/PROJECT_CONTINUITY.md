@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
-> **LATEST SESSION STATE — 2026-10-18:** Read `docs/SESSION_LOG.md` for the chronological record. Marketing workspace PR #292 and live-security review PR #291 are merged. Latest verified merge checkpoint: `cf522740e9dd058c28728ba582e347661ef24122`. Global production release remains **BLOCKED / NOT CERTIFIED**; main-branch Pages deployment is not independently verified yet.
+ > **LATEST SESSION STATE — 2026-10-27:** SMM interactive storefront assets are retired; the public route is a noindex unavailable notice and the server gateway remains default-deny. The three latest live Production migration entries (`20261027010135`, `20261027041411`, `20261027041549`) now have exact-version source files verified character-for-character by read-only SQL comparison. Current main checkpoint before this reconciliation: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`. Production remains **BLOCKED / NOT CERTIFIED**; no deployment is authorized.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -29,8 +29,8 @@
 - Branch: `main`
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit: `cf522740e9dd058c28728ba582e347661ef24122`
-- Latest live production migration checkpoint: **RC424** (`20261008222845`, 283 versions)
+- Latest documented project commit before this reconciliation branch: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`
+- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`; the required RC425–RC441 release chain remains unproven/incomplete.
 - Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
 ## Latest verified web execution batch — 2026-10-18
@@ -618,3 +618,13 @@ This status is intentional and must remain until the open gates above are indepe
 - Added `scripts/validate-provider-services-contract.mjs` to the Pages validation workflow.
 - Exact-head CI, browser behavior, cross-provider isolation with two real accounts, and order/booking regression remain **NOT VERIFIED** until results are fetched and tests are executed.
 - No merge or production deployment. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest continuation — 2026-10-27 — live migration ledger reconciliation
+
+- Read-only query verified the live migration inventory has 292 rows through `20261027041549 qadam_alsaad_restore_contact_fields`.
+- Exact source/body comparisons now pass for live versions `20261027010135`, `20261027041411`, and `20261027041549`; see `docs/release/production-migration-reconciliation.json` and the append-only `docs/SESSION_LOG.md` entry.
+- Restored the missing exact-version Qadam catalog migration source and Qadam contact repair source; replaced the future-timestamp duplicate marketing contact migration with its live versioned source. The distinct Qadam follow-up migration at `20261027093000` was preserved for separate review.
+- SMM frontend cleanup is already on main: `web/smm.js` and `web/smm.css` are absent, `web/smm.html` is a noindex notice, and the backend default-deny contract remains tested.
+- The overall release remains BLOCKED because required RC425–RC441 sources/sequence and payment/finance E2E, backup/restore, live Edge Function/Auth parity, browser/device E2E, monitoring/alert and rollback evidence are not complete. Do not bypass the deployment gate.
+- No Production writes, migration execution, Auth/grant/RLS changes, Edge Function deployment, payment/wallet mutation, or deployment occurred.
