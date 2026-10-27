@@ -135,6 +135,8 @@ values
 ('group-veterinary','SEC-VETERINARY','CAT-VETERINARY','GROUP_VETERINARY','الطب البيطري والحيوانات','Veterinary & Animals','SECTOR_GROUP',270)
 on conflict (id) do nothing;
 
+
+
 -- Initial selectable activity and specialty registry. Stable IDs allow future
 -- label edits without changing references. “فني تبريد” is the canonical label.
 insert into public.business_activity_types
