@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { isLiveReconciliationVerified } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
+const liveContract = fs.readFileSync("scripts/production/live-reconciliation-contract.mjs", "utf8");
 const required = [
   "20261009120000_rc425_atomic_mantigo_paymob_payment.sql",
   "20261009130000_rc426_digital_page_provider_order_binding.sql",
@@ -50,20 +52,98 @@ assert.match(source, /const nonProductionValidation=process\.env\.GITHUB_EVENT_N
 assert.ok(workflow.includes("node scripts/validate-production-migration-chain-gate.mjs"), "Pages validation must run the release-chain gate contract");
 assert.match(source, /migrationTimestampOrderViolations/, "migration timestamp/order conflicts must be checked");
 assert.match(source, /const reconciliationPath="docs\/release\/production-migration-reconciliation\.json"/, "live reconciliation manifest must be read");
-assert.match(source, /reconciliation\.source_ledger_identity_reconciled===true/, "source/ledger identity must be reconciled");
-assert.match(source, /reconciliation\.rc424_reconciliation\?\.exact_statement_match===true/, "RC424 reconciliation must be backed by exact ledger statement equality");
-assert.match(source, /reconciliation\.rc424_reconciliation\?\.history_rewritten===false/, "applied migration history must remain immutable");
-assert.match(source, /reconciliation\.required_release_migrations_applied===true/, "all required migrations must be proven applied");
-assert.match(source, /reconciliation\.chronological_replay==="PASS"/, "ordered disposable replay must pass");
-assert.match(source, /reconciliation\.tenant_isolation_tests==="PASS"/, "tenant isolation acceptance must pass");
-assert.match(source, /reconciliation\.payment_finance_e2e==="PASS"/, "payment and finance E2E must pass");
-assert.match(source, /reconciliation\.backup_restore_rehearsal==="PASS"/, "backup/restore rehearsal must pass");
-assert.match(source, /reconciliation\.edge_function_contracts==="PASS"/, "deployed Edge Function contracts must pass");
-assert.match(source, /reconciliation\.smm_gateway_parity==="PASS"/, "SMM gateway deployment parity must pass");
-assert.match(source, /reconciliation\.auth_security_settings==="PASS"/, "critical Auth security settings must pass");
+assert.match(liveContract, /source_ledger_identity_reconciled\s*===\s*true/, "source/ledger identity must be reconciled");
+assert.match(liveContract, /rc424_reconciliation\?\.exact_statement_match\s*===\s*true/, "RC424 reconciliation must be backed by exact ledger statement equality");
+assert.match(liveContract, /rc424_reconciliation\?\.history_rewritten\s*===\s*false/, "applied migration history must remain immutable");
+assert.match(liveContract, /required_release_migrations_applied\s*===\s*true/, "all required migrations must be proven applied");
+assert.match(liveContract, /chronological_replay\s*===\s*"PASS"/, "ordered disposable replay must pass");
+assert.match(liveContract, /tenant_isolation_tests\s*===\s*"PASS"/, "tenant isolation acceptance must pass");
+assert.match(liveContract, /payment_finance_e2e\s*===\s*"PASS"/, "payment and finance E2E must pass");
+assert.match(liveContract, /backup_restore_rehearsal\s*===\s*"PASS"/, "backup/restore rehearsal must pass");
+assert.match(liveContract, /edge_function_contracts\s*===\s*"PASS"/, "deployed Edge Function contracts must pass");
+assert.match(liveContract, /smm_gateway_parity\s*===\s*"PASS"/, "SMM gateway deployment parity must pass");
+assert.match(liveContract, /auth_security_settings\s*===\s*"PASS"/, "critical Auth security settings must pass");
 const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted_ads_empty_search_path.sql", "utf8");
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
+
+assert.match(liveContract, /required_release_migration_ledger_check/, "exact live ledger version verification must be required");
+assert.match(liveContract, /required_release_object_presence_check/, "selected production object contracts must be required");
+assert.match(liveContract, /critical_edge_function_source_parity_check/, "deployed critical Edge Function parity must be required");
+assert.match(liveContract, /financial_journal_runtime_prerequisite_check/, "journal schema and service-role RPC boundary must be required");
+assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract must enumerate all critical function entrypoints");
+
+const validReconciliation = {
+  status: "VERIFIED",
+  verified: true,
+  source_ledger_identity_reconciled: true,
+  rc424_reconciliation: {
+    exact_statement_match: true,
+    ledger_version: "20261008222845",
+    source_filename_version: "20261009010000",
+    history_rewritten: false
+  },
+  required_release_migrations_applied: true,
+  chronological_replay: "PASS",
+  tenant_isolation_tests: "PASS",
+  payment_finance_e2e: "PASS",
+  backup_restore_rehearsal: "PASS",
+  edge_function_contracts: "PASS",
+  smm_gateway_parity: "PASS",
+  auth_security_settings: "PASS",
+  evidence_ref: "https://github.com/example/evidence",
+  checked_at: "2026-10-27",
+  required_release_migration_ledger_check: {
+    status: "VERIFIED_APPLIED",
+    expected_migration_versions: 16,
+    found_in_live_ledger: 16,
+    missing_versions: []
+  },
+  required_release_object_presence_check: {
+    status: "PASS",
+    observed: [{ name: "required-object-fixture", exists: true, status: "PASS" }]
+  },
+  critical_edge_function_source_parity_check: {
+    status: "PASS",
+    functions: [
+      { slug: "payment-intent", exact_match: true },
+      { slug: "paymob-webhook", exact_match: true },
+      { slug: "digital-page-payment-intent", exact_match: true },
+      { slug: "subscription-payment-intent", exact_match: true },
+      { slug: "financial-journal", exact_match: true },
+      { slug: "smm-gateway", exact_match: true }
+    ]
+  },
+  financial_journal_runtime_prerequisite_check: {
+    status: "PASS",
+    live_migrations: {
+      "20261010175000_rc449a_financial_journal_schema_prerequisites": true,
+      "20261010180000_rc450_financial_journal_service_role_boundary": true
+    },
+    schema_preflight: { missing_columns: [] },
+    rpc_privileges: [
+      { signature: "post_financial_journal_backend(uuid,jsonb,jsonb)", service_role_execute: true }
+    ]
+  }
+};
+const clone = value => JSON.parse(JSON.stringify(value));
+assert.equal(isLiveReconciliationVerified(validReconciliation), true, "complete evidence fixture must satisfy the release contract");
+const blockedFixtures = [
+  value => { value.required_release_migration_ledger_check.found_in_live_ledger = 15; },
+  value => { value.required_release_migration_ledger_check.missing_versions = ["20261009120000"]; },
+  value => { value.required_release_object_presence_check.observed[0].status = "BLOCKED"; },
+  value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "paymob-webhook").exact_match = false; },
+  value => { value.financial_journal_runtime_prerequisite_check.live_migrations["20261010180000_rc450_financial_journal_service_role_boundary"] = false; },
+  value => { value.financial_journal_runtime_prerequisite_check.schema_preflight.missing_columns = ["journal_entries.total_debit"]; },
+  value => { value.financial_journal_runtime_prerequisite_check.rpc_privileges[0].service_role_execute = false; }
+];
+for (const mutate of blockedFixtures) {
+  const invalid = clone(validReconciliation);
+  mutate(invalid);
+  assert.equal(isLiveReconciliationVerified(invalid), false, "live drift fixture must block certification");
+}
+console.log("Strict live-evidence fixtures (ledger, object drift, Edge Function parity, RC449A/RC450 schema/grants): PASS");
+
 assert.match(source, /!liveReconciliationVerified/, "missing live evidence must block release even when all migration files exist");
 const runVerifier = event => spawnSync(process.execPath, ["scripts/production/verify-production.mjs"], {
   encoding: "utf8",

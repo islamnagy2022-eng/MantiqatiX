@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { isLiveReconciliationVerified } from "./live-reconciliation-contract.mjs";
 const root=process.cwd(), results=[];
 const add=(id,category,status,evidence,severity="P1")=>results.push({id,category,status,severity,evidence});
 const exists=p=>fs.existsSync(path.join(root,p));
@@ -64,30 +65,11 @@ for(let i=1;i<presentReleaseMigrations.length;i++){
 const reconciliationPath="docs/release/production-migration-reconciliation.json";
 let reconciliation=null, reconciliationParseError=null;
 try { reconciliation=JSON.parse(read(reconciliationPath)); } catch (error) { reconciliationParseError=String(error); }
-const liveReconciliationVerified=Boolean(
-  reconciliation &&
-  reconciliation.status==="VERIFIED" &&
-  reconciliation.verified===true &&
-  reconciliation.source_ledger_identity_reconciled===true &&
-  reconciliation.rc424_reconciliation?.exact_statement_match===true &&
-  reconciliation.rc424_reconciliation?.ledger_version==="20261008222845" &&
-  reconciliation.rc424_reconciliation?.source_filename_version==="20261009010000" &&
-  reconciliation.rc424_reconciliation?.history_rewritten===false &&
-  reconciliation.required_release_migrations_applied===true &&
-  reconciliation.chronological_replay==="PASS" &&
-  reconciliation.tenant_isolation_tests==="PASS" &&
-  reconciliation.payment_finance_e2e==="PASS" &&
-  reconciliation.backup_restore_rehearsal==="PASS" &&
-  reconciliation.edge_function_contracts==="PASS" &&
-  reconciliation.smm_gateway_parity==="PASS" &&
-  reconciliation.auth_security_settings==="PASS" &&
-  typeof reconciliation.evidence_ref==="string" && reconciliation.evidence_ref.trim().length>0 &&
-  typeof reconciliation.checked_at==="string" && reconciliation.checked_at.trim().length>0
-);
+const liveReconciliationVerified = isLiveReconciliationVerified(reconciliation);
 const migrationChainBlocked=missingReleaseMigrations.length>0||migrationTimestampOrderViolations.length>0||!liveReconciliationVerified;
 add("DB-RELEASE-MIGRATION-CHAIN","DATABASE",migrationChainBlocked?"BLOCKED":"PASS",
   migrationChainBlocked
-    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_gateway_parity:reconciliation.smm_gateway_parity,auth_security_settings:reconciliation.auth_security_settings,evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
+    ? `Production rollout cannot be certified. Missing sources: ${missingReleaseMigrations.length?missingReleaseMigrations.join(", "):"none"}. Migration timestamp/order conflicts: ${migrationTimestampOrderViolations.length?migrationTimestampOrderViolations.join("; "):"none"}. Live reconciliation: ${reconciliationParseError||(!reconciliation?"manifest missing":JSON.stringify({status:reconciliation.status,verified:reconciliation.verified,source_ledger_identity_reconciled:reconciliation.source_ledger_identity_reconciled,rc424_reconciliation:reconciliation.rc424_reconciliation,required_release_migrations_applied:reconciliation.required_release_migrations_applied,chronological_replay:reconciliation.chronological_replay,tenant_isolation_tests:reconciliation.tenant_isolation_tests,payment_finance_e2e:reconciliation.payment_finance_e2e,backup_restore_rehearsal:reconciliation.backup_restore_rehearsal,edge_function_contracts:reconciliation.edge_function_contracts,smm_gateway_parity:reconciliation.smm_gateway_parity,auth_security_settings:reconciliation.auth_security_settings,required_release_migration_ledger_check:reconciliation.required_release_migration_ledger_check&&{status:reconciliation.required_release_migration_ledger_check.status,expected_migration_versions:reconciliation.required_release_migration_ledger_check.expected_migration_versions,found_in_live_ledger:reconciliation.required_release_migration_ledger_check.found_in_live_ledger,missing_versions_count:reconciliation.required_release_migration_ledger_check.missing_versions?.length},required_release_object_presence_check:reconciliation.required_release_object_presence_check&&{status:reconciliation.required_release_object_presence_check.status,observed_count:reconciliation.required_release_object_presence_check.observed?.length,non_pass_count:reconciliation.required_release_object_presence_check.observed?.filter(o=>o.status!=="PASS"||o.exists!==true).length},critical_edge_function_source_parity_check:reconciliation.critical_edge_function_source_parity_check&&{status:reconciliation.critical_edge_function_source_parity_check.status,mismatched_functions:reconciliation.critical_edge_function_source_parity_check.functions?.filter(f=>f.exact_match!==true).map(f=>f.slug)},financial_journal_runtime_prerequisite_check:reconciliation.financial_journal_runtime_prerequisite_check&&{status:reconciliation.financial_journal_runtime_prerequisite_check.status,missing_columns:reconciliation.financial_journal_runtime_prerequisite_check.schema_preflight?.missing_columns,rc449a_applied:reconciliation.financial_journal_runtime_prerequisite_check.live_migrations?.["20261010175000_rc449a_financial_journal_schema_prerequisites"],rc450_applied:reconciliation.financial_journal_runtime_prerequisite_check.live_migrations?.["20261010180000_rc450_financial_journal_service_role_boundary"],backend_rpc_service_role_execute:reconciliation.financial_journal_runtime_prerequisite_check.rpc_privileges?.find(p=>p.signature==="post_financial_journal_backend(uuid,jsonb,jsonb)")?.service_role_execute},evidence_ref:reconciliation.evidence_ref}))}. A source-only check cannot certify the live database.`
     : `All ${requiredReleaseMigrations.length} required source migrations are present and timestamp-ordered, and the live reconciliation manifest records completed ordered replay plus required runtime/security evidence at ${reconciliation.evidence_ref}.`,
   "P0");
 const wf=exists(".github/workflows/pages.yml")?read(".github/workflows/pages.yml"):"";for(const v of ["validate-production-gate-contract.mjs","validate-finance-boundaries.mjs","validate-digital-pages-boundaries.mjs","validate-security-definer-contract.mjs"])add("CI-"+v,"CI/CD",wf.includes(v)?"PASS":"FAIL",wf.includes(v)?`workflow invokes ${v}`:`workflow missing ${v}`,"P1");
