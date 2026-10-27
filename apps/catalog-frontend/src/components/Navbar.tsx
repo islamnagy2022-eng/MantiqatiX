@@ -37,6 +37,7 @@ export const Navbar: React.FC = () => {
   } = useApp();
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
@@ -210,17 +211,19 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center gap-1 sm:gap-2 min-w-0">
               {/* Mandatory Requirement:
                   "زر طلب كتالوج النشاط يكون بالاعلي على الشمال بجوار السلة" */}
-              <a
-                href={requestCatalogViaAdminWhatsApp(currentBusiness)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-amber-500/25 border border-amber-300 transition-all hover:scale-102 active:scale-98 cursor-pointer flex-shrink-0"
-                title="طلب الكتالوج الرسمي للنشاط عبر واتساب إدارة MantiqatiX"
-              >
-                <FileText className="w-3.5 h-3.5 text-slate-950" />
-                <span className="hidden sm:inline">طلب كتالوج النشاط</span>
-                <ExternalLink className="w-3 h-3 opacity-75 hidden sm:inline" />
-              </a>
+              {catalogRequestUrl && (
+                <a
+                  href={requestCatalogViaAdminWhatsApp(currentBusiness)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-amber-500/25 border border-amber-300 transition-all hover:scale-102 active:scale-98 cursor-pointer flex-shrink-0"
+                  title="طلب الكتالوج الرسمي للنشاط عبر واتساب إدارة MantiqatiX"
+                >
+                  <FileText className="w-3.5 h-3.5 text-slate-950" />
+                  <span className="hidden sm:inline">طلب كتالوج النشاط</span>
+                  <ExternalLink className="w-3 h-3 opacity-75 hidden sm:inline" />
+      
+              )}          </a>
 
               {/* Marketing Project Button */}
               <button
