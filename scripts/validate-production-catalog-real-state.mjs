@@ -35,9 +35,10 @@ assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
 assert.doesNotMatch(catalogAdminFunction, /images\.unsplash\.com|const rules:/, 'catalog admin must not persist stock photos as item imagery');
-assert.doesNotMatch(publicDirectoryFunction, /images\.unsplash\.com|const rules:/, 'public directory API must not assign stock photos to businesses');
-assert.doesNotMatch(publicCatalogFunction, /images\.unsplash\.com/, 'public storefront API must suppress legacy stock-photo URLs stored in production data');
-assert.match(publicCatalogFunction, /images\\\\?\.unsplash\\\\?\.com|images\\\\?\.unsplash\\\\?\.com|Unsplash defaults were seeded/, 'public storefront API must explicitly reject legacy stock-photo URLs');
+assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
+assert.match(publicDirectoryFunction, /images\.unsplash\.com[\s\S]{0,180}return ""/, 'public directory API must suppress legacy stock-photo URLs stored in production data');
+assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
+assert.match(publicCatalogFunction, /images\.unsplash\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
 assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
