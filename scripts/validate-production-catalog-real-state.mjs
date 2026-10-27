@@ -42,9 +42,9 @@ assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant produc
 assert.doesNotMatch(catalogAdminFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'catalog admin must not generate stock-photo URLs for item imagery');
 assert.match(catalogAdminFunction, /legacyStockUrl = \/\^https:/, 'catalog admin must clear legacy stock-photo URLs when an item is edited');
 assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
-assert.match(publicDirectoryFunction, /images\.unsplash\.com[\s\S]{0,180}return ""/, 'public directory API must suppress legacy stock-photo URLs stored in production data');
+assert.match(publicDirectoryFunction, /images\\\\\.unsplash\\\\\.com[\\s\\S]{0,180}return ""/, 'public directory API must suppress legacy stock-photo URLs stored in production data');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
-assert.match(publicCatalogFunction, /images\.unsplash\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
+assert.match(publicCatalogFunction, /images\\\\\.unsplash\\\\\.com[\\s\\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
 assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
