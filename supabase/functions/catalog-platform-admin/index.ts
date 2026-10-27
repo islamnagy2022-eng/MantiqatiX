@@ -105,9 +105,40 @@ Deno.serve(async (req: Request) => {
       const safe: Record<string, unknown> = {};
       const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
-      const { error } = await service.from("bizcatalog_platform_settings").upsert({ settings_key: "bizcatalog", settings: safe, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "settings_key" });
+
+      if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
+        const adminWhatsApp = String(input.adminWhatsApp || "").trim();
+        const phoneDigits = adminWhatsApp.replace(/\D/g, "");
+        if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+          return response(origin, { error: "INVALID_ADMIN_WHATSAPP", message: "أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا." }, 400);
+        }
+        safe.adminWhatsApp = adminWhatsApp.slice(0, 40);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "defaultCommissionPerOrder")) {
+        const commission = Number(input.defaultCommissionPerOrder);
+        if (!Number.isFinite(commission) || commission < 0 || commission > 1000000) {
+          return response(origin, { error: "INVALID_DEFAULT_COMMISSION" }, 400);
+        }
+        safe.defaultCommissionPerOrder = commission;
+      }
+
+      // Preserve settings written by other supported admin screens; a partial save
+      // must not erase categories, functional groups, or existing platform settings.
+      const { data: existing, error: readError } = await service.from("bizcatalog_platform_settings")
+        .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
+      if (readError) throw readError;
+      const current = existing?.settings && typeof existing.settings === "object" && !Array.isArray(existing.settings)
+        ? existing.settings
+        : {};
+      const merged = { ...current, ...safe };
+      const { error } = await service.from("bizcatalog_platform_settings").upsert({
+        settings_key: "bizcatalog",
+        settings: merged,
+        updated_by: user.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "settings_key" });
       if (error) throw error;
-      return response(origin, { success: true, settings: safe });
+      return response(origin, { success: true, settings: merged });
     }
 
     if (action === "LIST_SUBSCRIBERS") {
