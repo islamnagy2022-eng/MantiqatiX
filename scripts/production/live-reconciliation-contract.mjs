@@ -96,6 +96,7 @@ export const REQUIRED_CONTROL_CENTER_OBJECTS = [
 ];
 
 const REQUIRED_EDGE_FUNCTIONS = [
+  "order-create",
   "payment-intent",
   "paymob-webhook",
   "digital-page-payment-intent",
