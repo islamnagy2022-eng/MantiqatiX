@@ -1859,7 +1859,7 @@ async function accountView(){
  const activeRoles=new Set(memberships.map(m=>String(m.role||'').toUpperCase()));
  const pendingRoles=new Set(requests.filter(r=>r.status==='PENDING').map(r=>String(r.requested_role||'').toUpperCase()));
  const roleOption=(role,label)=>activeRoles.has(role)||pendingRoles.has(role)?'':('<button class="btn btn-outline" id="request-'+role.toLowerCase()+'">'+label+'</button>');
- const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>'<div class="request-row"><span>'+esc(roleLabel(r.requested_role))+'</span><b>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض')+'</b></div>').join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
+ const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>{const businessRequest=['provider_onboarding','provider_catalog_modal'].includes(String(r.metadata?.source||''));const label=businessRequest?'طلب اعتماد كتالوج النشاط':roleLabel(r.requested_role);const state=businessRequest&&r.status==='PENDING'?'النشاط قيد المراجعة — حسابك فعال':r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض';return '<div class="request-row"><span>'+esc(label)+'</span><b>'+esc(state)+'</b></div>'}).join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
  const membershipRows=memberships.length?'<div class="mx-membership-grid">'+memberships.map(m=>{
    const role=String(m.role||'CUSTOMER').toUpperCase();
    const active=m.id===live.activeMembershipId;
