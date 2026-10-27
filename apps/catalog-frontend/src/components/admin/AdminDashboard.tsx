@@ -616,7 +616,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-xs text-slate-700 leading-relaxed">
                   • <strong>الاشتراك الشهري:</strong> رسوم الاشتراك الشهري الثابتة للمنصة (بدون أي عمولات على الطلبات أو العمليات).
                   <br />
-                  • <strong>قاعدة الـ 5 أيام:</strong> في حال عدم سداد الاشتراك الشهري في موعده، يتلقى المشترك إشعاراً يومياً لمدة 5 أيام، وبعد اليوم الخامس يتم <strong>تجميد نشاط الصفحة تلقائياً</strong> لحين سداد الاشتراك وتأكيده من الإدارة.
+                  • <strong>مهلة السداد:</strong> في حال عدم سداد الاشتراك الشهري في موعده، يتلقى المشترك إشعاراً يومياً لمدة 5 أيام، وبعد اليوم الخامس يتم <strong>مراجعة حالة النشاط المسجلة</strong> لحين سداد الاشتراك وتأكيده من الإدارة.
                 </p>
               </div>
             </div>
@@ -792,7 +792,7 @@ export const AdminDashboard: React.FC = () => {
                               <div className="space-y-1">
                                 <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-md text-[10px]">
                                   <BellRing className="w-3 h-3" />
-                                  <span>إشعار يومي ({biz.overdueDaysCount} من 5)</span>
+                                  <span>حالة التأخير المسجلة ({biz.overdueDaysCount} من 5)</span>
                                 </span>
                                 <span className="block text-[10px] text-amber-800">
                                   متبقي {5 - biz.overdueDaysCount} أيام قبل التجميد
