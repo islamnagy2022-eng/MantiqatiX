@@ -28,6 +28,7 @@ DECLARE
   v_role text;
   v_profile_id uuid;
   v_profile jsonb;
+  v_public_enabled boolean := false;
 BEGIN
   IF v_uid IS NULL OR coalesce((auth.jwt()->>'is_anonymous'), 'false') = 'true' THEN
     RAISE EXCEPTION 'UNAUTHENTICATED';
@@ -102,8 +103,9 @@ BEGIN
            WHEN jsonb_typeof(b.settings->'catalog_profile') = 'object'
              THEN b.settings->'catalog_profile'
            ELSE '{}'::jsonb
-         END
-    INTO v_profile
+         END,
+         coalesce(b.settings->'catalog_public_enabled' = 'true'::jsonb, false)
+    INTO v_profile, v_public_enabled
     FROM public.businesses b
    WHERE b.id = p_business_id
      AND b.tenant_id = p_tenant_id
@@ -147,7 +149,7 @@ BEGIN
   RETURN jsonb_build_object(
     'success', true, 'businessId', p_business_id, 'providerProfileId', v_profile_id,
     'branchId', p_branch_id, 'name', trim(p_name),
-    'publicEnabled', coalesce(p_public_enabled, false)
+    'publicEnabled', v_public_enabled
   );
 END
 $function$;
