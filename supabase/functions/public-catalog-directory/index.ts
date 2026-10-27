@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveDefaultActivityImages } from "../_shared/default-images.ts";
 
 const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:8080"]);
 const headersFor = (origin: string | null) => ({
@@ -80,6 +81,13 @@ Deno.serve(async (req: Request) => {
         }
       }
       const profile = business.settings?.catalog_profile || {};
+      const activityName = String(provider?.name_ar || provider?.name_en || business.name);
+      const activityCategory = String(profile.category || business.settings?.category_code || business.settings?.activity_code || (provider?.provider_kind !== "OFFICIAL" ? provider?.provider_kind : ""));
+      const defaultImages = resolveDefaultActivityImages({
+        name: activityName,
+        description: String(profile.bio || provider?.description || business.settings?.headline || ""),
+        category: activityCategory,
+      });
       const phone = String(branch?.phone || profile.whatsapp_phone || profile.phone || "");
       const cleanPhone = phone.replace(/\D/g, "");
       const whatsappPhone = cleanPhone.startsWith("00") ? cleanPhone.slice(2)
@@ -87,11 +95,11 @@ Deno.serve(async (req: Request) => {
         : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
       results.push({
         id: business.id, tenantId, organizationId: business.organization_id,
-        name: provider?.name_ar || provider?.name_en || business.name,
+        name: activityName,
         slug: provider?.slug || String(business.code || business.id),
-        code: business.code, category: provider?.provider_kind || profile.category || business.settings?.activity_code || "",
-        profile: { bio: String(profile.bio || provider?.description || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url), coverUrl: safeImage(profile.cover_url), category: String(provider?.provider_kind || profile.category || business.settings?.activity_code || ""), whatsappPhone },
-        provider: { kind: provider?.provider_kind || profile.category || business.settings?.activity_code || "", description: provider?.description || profile.bio || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
+        code: business.code, category: activityCategory,
+        profile: { bio: String(profile.bio || provider?.description || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url) || defaultImages.coverUrl, category: activityCategory, whatsappPhone },
+        provider: { kind: activityCategory, description: provider?.description || profile.bio || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
         catalogPublished, publicEnabled: catalogPublished, paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
       });
