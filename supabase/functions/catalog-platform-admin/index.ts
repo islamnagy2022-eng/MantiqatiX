@@ -287,6 +287,73 @@ Deno.serve(async (req: Request) => {
       return data;
     };
 
+    if (action === "LIST_BUSINESSES") {
+      const rawLimit = Number(body.limit || 25);
+      const limit = Math.max(1, Math.min(50, Number.isFinite(rawLimit) ? Math.floor(rawLimit) : 25));
+      const rawOffset = Number(body.offset || 0);
+      const offset = Math.max(0, Math.min(100000, Number.isFinite(rawOffset) ? Math.floor(rawOffset) : 0));
+      const search = String(body.search || "").trim().replace(/[%_]/g, "").slice(0, 100);
+      const requestedStatus = String(body.status || "").trim().toUpperCase();
+      if (requestedStatus && !["ACTIVE", "INACTIVE", "SUSPENDED"].includes(requestedStatus)) {
+        return response(origin, { error: "INVALID_BUSINESS_STATUS_FILTER" }, 400);
+      }
+      const requestedTenant = body.tenantId ? requireTenant(body.tenantId) : null;
+      let query = service.from("businesses")
+        .select("id,tenant_id,organization_id,name,code,status,settings,created_at,updated_at", { count: "exact" })
+        .in("tenant_id", requestedTenant ? [requestedTenant] : productionTenantIds)
+        .order("updated_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+      if (requestedStatus) query = query.eq("status", requestedStatus);
+      if (search) query = query.ilike("name", "%" + search + "%");
+      const { data: rows, count, error } = await query;
+      if (error) throw error;
+      const businesses = rows || [];
+      const ids = businesses.map((b: any) => String(b.id));
+      if (!ids.length) return response(origin, { businesses: [], total: Number(count || 0), limit, offset });
+      const [{ data: membershipsForPage, error: ownersError }, { data: subsForPage, error: subsError }] = await Promise.all([
+        service.from("user_memberships").select("id,user_id,tenant_id,organization_id,business_id,role,status,created_at")
+          .in("business_id", ids).in("role", ["OWNER", "BUSINESS_OWNER"]).order("created_at", { ascending: true }).limit(500),
+        service.from("business_subscriptions").select("id,business_id,tier_code,billing_cycle,status,sector,starts_at,ends_at,provider,provider_reference,created_at,updated_at")
+          .in("business_id", ids).order("created_at", { ascending: false }).limit(500),
+      ]);
+      if (ownersError) throw ownersError;
+      if (subsError) throw subsError;
+      const ownerRows = membershipsForPage || [];
+      const ownerUserIds = [...new Set(ownerRows.map((m: any) => String(m.user_id)))];
+      const userRows = await Promise.all(ownerUserIds.map(async id => {
+        const result = await service.auth.admin.getUserById(id);
+        return [id, result.data?.user || null] as const;
+      }));
+      const userMap = new Map(userRows);
+      const ownerMap = new Map<string, any[]>();
+      for (const m of ownerRows) {
+        const key = String((m as any).business_id);
+        const authUser: any = userMap.get(String((m as any).user_id));
+        if (!ownerMap.has(key)) ownerMap.set(key, []);
+        ownerMap.get(key)!.push({
+          membershipId: (m as any).id, userId: (m as any).user_id, role: (m as any).role,
+          status: (m as any).status, email: String(authUser?.email || ""),
+          name: String(authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || ""),
+          emailVerified: Boolean(authUser?.email_confirmed_at && !authUser?.is_anonymous),
+        });
+      }
+      const subscriptionMap = new Map<string, any>();
+      for (const sub of (subsForPage || [])) {
+        const key = String((sub as any).business_id);
+        if (!subscriptionMap.has(key)) subscriptionMap.set(key, sub);
+      }
+      return response(origin, {
+        businesses: businesses.map((b: any) => ({
+          id: b.id, tenantId: b.tenant_id, organizationId: b.organization_id,
+          name: b.name, code: b.code, status: b.status,
+          settings: b.settings || {}, createdAt: b.created_at, updatedAt: b.updated_at,
+          owners: ownerMap.get(String(b.id)) || [],
+          subscription: subscriptionMap.get(String(b.id)) || null,
+        })),
+        total: Number(count || 0), limit, offset,
+      });
+    }
+
     if (action === "GET_SETTINGS") {
       const { data, error } = await service.from("bizcatalog_platform_settings")
         .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
