@@ -192,7 +192,7 @@
 - [x] Confirmed launch scope: SMM is separate from the core Marketing & Advertising module and is deferred until a separately reviewed post-launch release.
 - [x] Retired the unused interactive customer-side storefront files (`web/smm.js` and `web/smm.css`); kept `web/smm.html` as a noindex informational page stating that orders are unavailable.
 - [x] Added a CI contract ensuring the placeholder has no interactive form/script/API calls and the server-side default-deny gate, authorization contract, and historical migration remain present.
-- [ ] NOT VERIFIED: prove the currently deployed production `smm-gateway` is still default-deny using read-only version/hash evidence and anonymous/authenticated negative runtime tests. Source checks alone do not prove live deployment state.
+- [🟡] Live source parity VERIFIED read-only on 2026-10-27: deployed `smm-gateway` version 13, bundle SHA `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`, all 7 deployed TypeScript files exactly match `main`, and `SMM_INITIAL_LAUNCH_DEFERRED=true`. **NOT VERIFIED:** anonymous/authenticated negative runtime tests; keep the overall release gate blocked until these are recorded.
 - [ ] POST-LAUNCH: provider/service/order/wallet review, platform RBAC, provider credential isolation, idempotency/order events, wallet reconciliation, monitoring, and administrative authorization.
 - [ ] Do not delete deployed Edge Function source, security tests, or historical database migrations as part of frontend cleanup; no production schema or function changes are authorized by this task.
 
@@ -502,3 +502,11 @@
 - [x] Updated `docs/release/production-migration-reconciliation.json` with read-only evidence and current live ledger tail. `status=BLOCKED`, `verified=false`, and `required_release_migrations_applied=false` remain unchanged.
 - [ ] Remaining release blockers: RC425–RC441 source/dependency reconciliation and ordered replay; payment/finance E2E; backup/restore rehearsal; live Edge Function parity including SMM default-deny; managed Auth security settings; browser/device E2E; monitoring/alert and rollback evidence.
 - Safety: no production writes, migration execution, schema/permission changes, Edge Function deployment, payment, or wallet mutation were performed.
+
+
+## 2026-10-27 — Live SMM gateway parity read-back
+
+- [x] Read-only retrieved the deployed `smm-gateway`: ACTIVE version 13, `verify_jwt=true`, bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- [x] Compared all 7 deployed TypeScript files against `main`: exact matches for `index.ts`, `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
+- [x] Confirmed the deployed source retains `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns `SMM_DEFERRED` before processing actions.
+- [ ] Anonymous/authenticated negative runtime tests remain NOT VERIFIED; source parity does not replace runtime evidence. No function deployment or environment change was performed.
