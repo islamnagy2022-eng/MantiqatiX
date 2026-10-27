@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, Search, Save, PauseCircle, RotateCcw, Users, Store, PencilLine, X, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import { RefreshCw, Search, Save, PauseCircle, RotateCcw, Users, Store, PencilLine, X } from 'lucide-react';
 import { supabase } from '../../lib/production';
 import { resolveDefaultActivityImages } from '../../utils/defaultImages';
 
@@ -75,7 +75,9 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     await load();
   };
   const updateDraft=(id:string,key:keyof BusinessDraft,value:string)=>{
-    setDrafts(prev=>({...prev,[id]:{...(prev[id]||draftFor(rows.find(x=>x.id===id)!)),[key]:value}}));
+    const row=rows.find(x=>x.id===id);
+    if(!row)return;
+    setDrafts(prev=>({...prev,[id]:{...(prev[id]||draftFor(row)),[key]:value}}));
   };
   const manageMembership=async(m:Membership,action:'SUSPEND'|'RESTORE'|'CHANGE_ROLE')=>{
     let role:string|undefined;
