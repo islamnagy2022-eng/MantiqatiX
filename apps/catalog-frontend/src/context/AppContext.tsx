@@ -77,7 +77,7 @@ interface AppContextType {
   deleteSubscriber: (id: string) => Promise<void>;
   sendGmailInvite: (subscriberId: string) => string;
   getSubscriberCredentialsText: (subscriberId: string) => string;
-  updateAdminSettings: (settings: Partial<AdminSettings>) => void;
+  updateAdminSettings: (settings: Partial<AdminSettings>) => Promise<void>;
   addBusinessCategory: (category: string) => void;
   cartItems: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
@@ -490,7 +490,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 طريقة الدخول: اضغط "المتابعة باستخدام Google" واختر نفس حساب Google أعلاه.
 تم حفظ ربط الاشتراك وصلاحيات النشاط في Supabase.`;
   };
-  const updateAdminSettings = (settings: Partial<AdminSettings>) => { const safe = { ...settings }; delete (safe as any).adminPassword; setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' })); if (authSession.role === 'admin') void callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات المنصة.')); };
+  const updateAdminSettings = async (settings: Partial<AdminSettings>): Promise<void> => {
+    if (authSession.role !== 'admin') throw new Error('حفظ إعدادات المنصة متاح لمالك المنصة بعد التحقق من Google فقط.');
+    const safe = { ...settings };
+    delete (safe as any).adminPassword;
+    const result: any = await callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe });
+    if (result?.success !== true) throw new Error('لم يؤكد الخادم حفظ إعدادات المنصة.');
+    setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' }));
+  };
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };
 
   const addToCart = (product: Product, quantity = 1) => {
