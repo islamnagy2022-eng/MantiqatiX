@@ -282,15 +282,15 @@ function bind(){
 }
 async function open(){
  if(!roleOK()){notify('هذه الشاشة لمالك المنصة المخول فقط.','error');return}
- current='إدارة الأنشطة التجارية';
+ current='إدارة الأنشطة التجارية';state.tab='businesses';
  try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}
- await loadTenants();render();await refreshBusinesses();
+ await loadTenants();await renderApp({forceWorkspace:true});render();await refreshBusinesses();
 }
 async function openRules(){
  if(!roleOK()){notify('هذه الشاشة لمالك المنصة المخول فقط.','error');return}
- current='إدارة العمولات';
+ current='إدارة العمولات';state.tab='rules';
  try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}
- await loadTenants();state.tab='rules';render();await refreshRules();
+ await loadTenants();await renderApp({forceWorkspace:true});render();await refreshRules();
 }
 function back(){current='التحكم الكامل';state.tab='businesses';try{localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){};renderApp({forceWorkspace:true})}
 window.MNTYPlatformBusinesses={open,openRules,refreshBusinesses,refreshRules};
