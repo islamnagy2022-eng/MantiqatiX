@@ -644,3 +644,12 @@ This status is intentional and must remain until the open gates above are indepe
 - [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
 - [x] [Forward replay run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976) passed: 52 forward migrations applied in timestamp order against an isolated disposable checkpoint; RC117 contract and synthetic tenant A/B read/write isolation tests passed.
 - [ ] The Production gate remains BLOCKED / NOT CERTIFIED. Replay does not demonstrate Production application, and payment/finance E2E, backup/restore, live Edge Function/Auth settings and runtime tests, browser/device E2E, monitoring/alerts and rollback remain NOT VERIFIED. The web deploy job was skipped; no production deployment occurred.
+
+
+## Latest continuation — 2026-10-27 — critical Edge Function source drift
+
+- Read-only exact `index.ts` comparisons against `main`: `payment-intent` v8 (8,114 vs 10,366 chars), `paymob-webhook` v10 (11,538 vs 12,665), `digital-page-payment-intent` v5 (5,345 vs 6,532), `subscription-payment-intent` v4 (5,196 vs 10,896), and `financial-journal` v3 (1,591 vs 3,387) do not match current source. Relevant function-level differences are recorded in the reconciliation manifest.
+- `financial-journal` live code uses wildcard CORS and calls `post_financial_journal`, while `main` uses an origin allowlist and `post_financial_journal_backend`. The live `paymob-webhook` lacks the explicit finite-amount guard present in `main`; payment intent paths omit shared Paymob correlation helpers found in `main`.
+- `smm-gateway` v13 exact entrypoint match passes, but runtime negative tests remain NOT VERIFIED.
+- Required RC425–RC432 and RC434–RC441 versions are 0/16 in the live migration ledger. The 52-migration disposable replay passed, but neither that replay nor source presence proves safe application to the current Production schema.
+- No code deployed; no Production writes, migration operations, grants, Auth settings, payments, or wallet changes performed. Release stays **BLOCKED / NOT CERTIFIED**.
