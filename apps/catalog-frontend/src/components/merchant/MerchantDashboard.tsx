@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { FunctionalGroupId, Product } from '../../types';
 import { MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   Package,
   Plus,
@@ -34,6 +35,7 @@ import {
   QrCode,
 } from 'lucide-react';
 import { QRCodeModal } from '../common/QRCodeModal';
+import { BusinessEmployeeManager } from './BusinessEmployeeManager';
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
@@ -57,7 +59,7 @@ export const MerchantDashboard: React.FC = () => {
     setCurrentView,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'products' | 'branding' | 'profile' | 'functional_engine' | 'qr'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees'>('products');
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Business Profile & Branding state
@@ -88,12 +90,23 @@ export const MerchantDashboard: React.FC = () => {
   const [formComparePrice, setFormComparePrice] = useState<string>('');
   const [formDescription, setFormDescription] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
+  const [formImageSource, setFormImageSource] = useState<'auto' | 'owner'>('auto');
   const [formUnit, setFormUnit] = useState('قطعة');
   const [formError, setFormError] = useState('');
 
   if (!currentBusiness) {
     return <div className="p-8 text-center text-slate-500">يرجى اختيار نشاط أولاً.</div>;
   }
+
+  useEffect(() => {
+    if (formImageSource !== 'auto') return;
+    setFormImageUrl(resolveDefaultImage({
+      name: formName,
+      description: formDescription,
+      category: formCategory,
+      kind: formType === 'service' ? 'service' : 'product',
+    }));
+  }, [formName, formDescription, formCategory, formType, formImageSource]);
 
   const productsCount = businessProducts.length;
   const maxLimit = currentBusiness.maxProductsLimit || MAX_PRODUCTS_PER_BUSINESS;
@@ -146,9 +159,8 @@ export const MerchantDashboard: React.FC = () => {
     setFormPrice(50);
     setFormComparePrice('');
     setFormDescription('');
-    setFormImageUrl(
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80'
-    );
+    setFormImageSource('auto');
+    setFormImageUrl(resolveDefaultImage({ name: '', category: businessProducts[0]?.category, kind: 'product' }));
     setFormUnit('قطعة');
     setFormError('');
     setIsModalOpen(true);
@@ -162,7 +174,8 @@ export const MerchantDashboard: React.FC = () => {
     setFormPrice(p.price);
     setFormComparePrice(p.comparePrice ? String(p.comparePrice) : '');
     setFormDescription(p.description);
-    setFormImageUrl(p.imageUrl);
+    setFormImageSource(p.imageSource === 'auto' ? 'auto' : 'owner');
+    setFormImageUrl(p.imageUrl || resolveDefaultImage({ name: p.name, description: p.description, category: p.category, kind: p.type === 'service' ? 'service' : 'product' }));
     setFormUnit(p.unit || (p.type === 'service' ? 'جلسة' : 'قطعة'));
     setFormError('');
     setIsModalOpen(true);
@@ -193,7 +206,8 @@ export const MerchantDashboard: React.FC = () => {
         price: formPrice,
         comparePrice: comparePriceVal,
         description: formDescription,
-        imageUrl: formImageUrl || 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80',
+        imageUrl: formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
+        imageSource: formImageUrl.trim() ? formImageSource : 'auto',
         unit: formUnit,
       });
       setIsModalOpen(false);
@@ -207,7 +221,8 @@ export const MerchantDashboard: React.FC = () => {
         price: formPrice,
         comparePrice: comparePriceVal,
         description: formDescription,
-        imageUrl: formImageUrl || 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=600&auto=format&fit=crop&q=80',
+        imageUrl: formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' }),
+        imageSource: formImageUrl.trim() ? formImageSource : 'auto',
         isAvailable: true,
         unit: formUnit,
       });
@@ -374,7 +389,21 @@ export const MerchantDashboard: React.FC = () => {
           <QrCode className="w-4 h-4" />
           <span>QR كود النشاط الدائم</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('employees')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === 'employees'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <Briefcase className="w-4 h-4" />
+          <span>الموظفون والتوظيف</span>
+        </button>
       </div>
+
+      {activeTab === 'employees' && <BusinessEmployeeManager business={currentBusiness} />}
 
       {/* Tab 1: Products and Catalog Management */}
       {activeTab === 'products' && (
@@ -1026,10 +1055,15 @@ export const MerchantDashboard: React.FC = () => {
                 <input
                   type="url"
                   value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
+                  onChange={(e) => { setFormImageSource('owner'); setFormImageUrl(e.target.value); }}
+                  placeholder="الصورة الافتراضية ستتغير تلقائياً حسب الاسم والوصف"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden"
                 />
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <img src={formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' })} alt="معاينة الصورة" className="h-16 w-20 rounded-lg border border-slate-200 bg-white object-cover" />
+                  <button type="button" onClick={() => setFormImageSource('auto')} className="text-xs font-bold text-emerald-700 underline">استخدام الصورة التلقائية المناسبة للاسم والوصف</button>
+                  <span className="text-[11px] text-slate-500">{formImageSource === 'auto' ? 'صورة تلقائية' : 'صورة مخصصة'}</span>
+                </div>
               </div>
 
               <div>

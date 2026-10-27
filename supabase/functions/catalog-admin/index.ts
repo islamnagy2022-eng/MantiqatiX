@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveDefaultImage } from "../_shared/default-images.ts";
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
 
@@ -33,6 +34,37 @@ const isUuid = (value: unknown) =>
 
 const safeBranch = (value: unknown) =>
   typeof value === "string" && value.length > 0 && value.length <= 80 && /^[a-z0-9_-]+$/i.test(value);
+
+const catalogMetadataWithImage = (
+  value: unknown,
+  name: string,
+  description: string,
+  itemType: string,
+) => {
+  const root = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+  const catalog = root.catalog_public && typeof root.catalog_public === "object" && !Array.isArray(root.catalog_public)
+    ? root.catalog_public as Record<string, any>
+    : {};
+  const currentUrl = String(catalog.image_url || "").trim();
+  const explicitSource = String(catalog.image_source || "").toLowerCase();
+  const imageSource = explicitSource === "auto" || !currentUrl ? "auto" : "owner";
+  const imageUrl = imageSource === "owner"
+    ? currentUrl
+    : resolveDefaultImage({
+      name,
+      description,
+      category: String(catalog.category || ""),
+      kind: String(itemType).toUpperCase() === "SERVICE" ? "service" : "product",
+    });
+  return {
+    ...root,
+    catalog_public: {
+      ...catalog,
+      image_url: imageUrl,
+      image_source: imageSource,
+    },
+  };
+};
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
@@ -381,7 +413,7 @@ Deno.serve(async (req: Request) => {
         p_description: body.description ?? null,
         p_sku: body.sku ?? null,
         p_tax_rate: Number(body.taxRate ?? 0),
-        p_metadata: body.metadata ?? {},
+        p_metadata: catalogMetadataWithImage(body.metadata, String(body.nameAr || ""), String(body.description || ""), String(body.itemType || "PRODUCT")),
         p_id: body.id ?? null,
         p_currency: body.currency ?? "EGP",
         p_unit_price: Number(body.unitPrice),
@@ -449,7 +481,7 @@ Deno.serve(async (req: Request) => {
         p_legacy_ref: body.legacyRef ?? null, p_item_type: body.itemType ?? "PRODUCT",
         p_name_ar: String(body.nameAr || ""), p_name_en: body.nameEn ?? null,
         p_description: body.description ?? null, p_sku: body.sku ?? null,
-        p_tax_rate: Number(body.taxRate ?? 0), p_metadata: body.metadata ?? {},
+        p_tax_rate: Number(body.taxRate ?? 0), p_metadata: catalogMetadataWithImage(body.metadata, String(body.nameAr || ""), String(body.description || ""), String(body.itemType || "PRODUCT")),
         p_id: body.id ?? null,
       });
       if (error) throw error;

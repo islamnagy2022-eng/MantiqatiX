@@ -8,9 +8,21 @@ on:
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "supabase/functions/catalog-platform-admin/**"
+      - "supabase/functions/catalog-admin/**"
+      - "supabase/functions/_shared/**"
       - "supabase/functions/public-catalog-directory/**"
       - "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql"
       - "supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql"
+      - "supabase/migrations/20261027030000_rc113_super_admin_control_center_foundation.sql"
+      - "supabase/migrations/20261027040000_rc114_business_employee_hiring_system.sql"
+      - "supabase/migrations/20261027050000_rc115_control_center_integration.sql"
+      - "supabase/migrations/20261027060000_rc116_business_subscriber_admin.sql"
+      - "supabase/migrations/20261027070000_rc117_default_images_and_activity_admin.sql"
+      - "supabase/tests/rc113_super_admin_control_center_contract.sql"
+      - "supabase/tests/rc114_employee_hiring_contract.sql"
+      - "supabase/tests/rc115_control_center_integration_contract.sql"
+      - "supabase/tests/rc116_business_subscriber_admin_contract.sql"
+      - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
       - ".github/workflows/primary-catalog-frontend.yml"
   pull_request:
     branches: [main]
@@ -19,9 +31,21 @@ on:
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "supabase/functions/catalog-platform-admin/**"
+      - "supabase/functions/catalog-admin/**"
+      - "supabase/functions/_shared/**"
       - "supabase/functions/public-catalog-directory/**"
       - "supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql"
       - "supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql"
+      - "supabase/migrations/20261027030000_rc113_super_admin_control_center_foundation.sql"
+      - "supabase/migrations/20261027040000_rc114_business_employee_hiring_system.sql"
+      - "supabase/migrations/20261027050000_rc115_control_center_integration.sql"
+      - "supabase/migrations/20261027060000_rc116_business_subscriber_admin.sql"
+      - "supabase/migrations/20261027070000_rc117_default_images_and_activity_admin.sql"
+      - "supabase/tests/rc113_super_admin_control_center_contract.sql"
+      - "supabase/tests/rc114_employee_hiring_contract.sql"
+      - "supabase/tests/rc115_control_center_integration_contract.sql"
+      - "supabase/tests/rc116_business_subscriber_admin_contract.sql"
+      - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
       - ".github/workflows/primary-catalog-frontend.yml"
   workflow_dispatch:
 
@@ -52,6 +76,16 @@ jobs:
           test -s supabase/functions/public-catalog-directory/index.ts
           test -s supabase/migrations/20261026123825_rc108_bizcatalog_platform_settings.sql
           test -s supabase/migrations/20261026130450_rc109_bizcatalog_settings_service_policy.sql
+          test -s supabase/migrations/20261027030000_rc113_super_admin_control_center_foundation.sql
+          test -s supabase/migrations/20261027040000_rc114_business_employee_hiring_system.sql
+          test -s supabase/migrations/20261027050000_rc115_control_center_integration.sql
+          test -s supabase/migrations/20261027060000_rc116_business_subscriber_admin.sql
+          test -s supabase/migrations/20261027070000_rc117_default_images_and_activity_admin.sql
+          test -s supabase/tests/rc113_super_admin_control_center_contract.sql
+          test -s supabase/tests/rc114_employee_hiring_contract.sql
+          test -s supabase/tests/rc115_control_center_integration_contract.sql
+          test -s supabase/tests/rc116_business_subscriber_admin_contract.sql
+          test -s supabase/tests/rc117_default_images_and_activity_admin_contract.sql
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:

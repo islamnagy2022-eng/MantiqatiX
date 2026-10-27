@@ -14,6 +14,7 @@ import {
   Package,
   Ban,
   AlertTriangle,
+  MessageCircle,
   X,
 } from 'lucide-react';
 
@@ -58,6 +59,14 @@ export const CatalogSection: React.FC = () => {
   };
 
   const isFrozen = currentBusiness?.isFrozen || (currentBusiness?.overdueDaysCount && currentBusiness.overdueDaysCount > 5);
+
+  const buildQuoteUrl = (product: Product) => {
+    let digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '201010171770')
+      .replace(/\\D/g, '');
+    if (!digits) digits = '201010171770';
+    const message = `مرحبًا، أريد طلب عرض سعر لخدمة ${product.name} من ${currentBusiness?.name || 'MantiqatiX'}.`;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  };
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -298,22 +307,27 @@ export const CatalogSection: React.FC = () => {
                   {/* Price & Add to Cart Action */}
                   <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
                     <div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-lg font-black text-slate-900">
-                          {product.price}
-                        </span>
-                        <span className="text-xs font-bold text-slate-500">
-                          {adminSettings.currency}
-                        </span>
-                      </div>
-                      {hasDiscount && (
-                        <div className="text-[11px] text-slate-400 line-through">
-                          {product.comparePrice} {adminSettings.currency}
-                        </div>
+                      {product.requiresQuote ? (
+                        <>
+                          <div className="text-sm font-black text-emerald-800">السعر حسب الاتفاق</div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">تواصل لطلب عرض سعر</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-lg font-black text-slate-900">{product.price}</span>
+                            <span className="text-xs font-bold text-slate-500">{adminSettings.currency}</span>
+                          </div>
+                          {hasDiscount && (
+                            <div className="text-[11px] text-slate-400 line-through">
+                              {product.comparePrice} {adminSettings.currency}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
 
-                    {/* Add to Cart Button */}
+                    {/* Request a quote for unpriced services; only priced items go to cart. */}
                     {isFrozen ? (
                       <button
                         disabled
@@ -323,6 +337,17 @@ export const CatalogSection: React.FC = () => {
                         <Ban className="w-4 h-4 text-rose-500" />
                         <span>النشاط مجمد</span>
                       </button>
+                    ) : product.requiresQuote ? (
+                      <a
+                        href={buildQuoteUrl(product)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`اطلب عرض سعر لخدمة ${product.name}`}
+                        className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs whitespace-nowrap"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>اطلب عرض سعر</span>
+                      </a>
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product)}
