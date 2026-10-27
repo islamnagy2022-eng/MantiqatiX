@@ -589,9 +589,9 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'billing' && (
         <div className="space-y-6">
           {billingActionMsg && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs">
+            <div className={`text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs border ${billingActionMsg.startsWith('تعذر') ? 'bg-rose-50 border-rose-300 text-rose-950' : 'bg-emerald-50 border-emerald-300 text-emerald-950'}`}>
               <div className="flex items-center gap-2 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                {billingActionMsg.startsWith('تعذر') ? <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" /> : <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />}
                 <span>{billingActionMsg}</span>
               </div>
               <button
@@ -880,11 +880,16 @@ export const AdminDashboard: React.FC = () => {
 
                               {/* 3. Manual Freeze/Unfreeze toggle */}
                               <button
-                                onClick={() => {
-                                  toggleBusinessFreeze(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تبديل حالة تجميد النشاط (${biz.name}) يدوياً من الإدارة.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  try {
+                                    await toggleBusinessFreeze(biz.id);
+                                    setBillingActionMsg(`تم حفظ تغيير حالة تجميد النشاط (${biz.name}) لدى الخادم.`);
+                                  } catch (error) {
+                                    setBillingActionMsg(`تعذر حفظ حالة النشاط (${biz.name}): ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
+                                  } finally { setBillingActionBusyId(null); }
                                 }}
                                 className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer ${
                                   biz.isFrozen
@@ -1826,6 +1831,7 @@ export const AdminDashboard: React.FC = () => {
                   type="tel"
                   dir="ltr"
                   value={newBizOwnerWhatsApp}
+                  required
                   onChange={(e) => setNewBizOwnerWhatsApp(e.target.value)}
                   placeholder="+201012345678"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
@@ -1886,46 +1892,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Secret Admin Billing & Commission */}
-              <div className="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-2">
-                <span className="block text-[11px] font-black text-amber-950 flex items-center gap-1">
-                  <Coins className="w-3.5 h-3.5 text-amber-600" />
-                  <span>نظام العمولة والسداد (إدارة فقط - ولا يراه صاحب النشاط):</span>
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-bold text-amber-900 mb-0.5">
-                      عمولة كل طلب (ج.م)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      required
-                      value={newBizCommission}
-                      onChange={(e) => setNewBizCommission(parseFloat(e.target.value) || 0.01)}
-                      className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-black text-amber-950"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-amber-900 mb-0.5">
-                      يوم السداد الشهري (1 - 31)
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="31"
-                      required
-                      value={newBizDueDay}
-                      onChange={(e) => setNewBizDueDay(parseInt(e.target.value) || 1)}
-                      className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-black text-amber-950"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">رسوم الاشتراك والدفع الإلكتروني لا تُفعّل من نموذج إنشاء النشاط. يظل النشاط غير مدفوع وغير منشور حتى استكمال الإعداد والتحقق الفعلي.</div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">لا يتم تسجيل رسوم أو تفعيل اشتراك من هذا النموذج. يتم حفظ النشاط كغير مدفوع وغير منشور إلى أن تؤكد الإدارة السداد الفعلي.</div>
 
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <button
