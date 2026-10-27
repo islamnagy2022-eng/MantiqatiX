@@ -136,7 +136,8 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const savedImageUrl = String(metadata.image_url || i.imageUrl || i.image_url || '').trim();
     const savedImageSource = String(metadata.image_source || i.imageSource || i.image_source || '').toLowerCase();
     const stockImage = isStockImageUrl(savedImageUrl);
-    const imageSource: 'auto' | 'owner' = savedImageSource === 'auto' || !savedImageUrl || stockImage ? 'auto' : 'owner';
+    const neutralPlaceholder = isNeutralPlaceholderUrl(savedImageUrl);
+    const imageSource: 'auto' | 'owner' = savedImageSource === 'auto' || !savedImageUrl || stockImage || neutralPlaceholder ? 'auto' : 'owner';
     const imageUrl = imageSource === 'owner' ? savedImageUrl : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
     // Service requests with hidden prices are quotable services, not unavailable products.
     const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
@@ -157,6 +158,8 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
 
 const isStockImageUrl = (value: unknown): boolean =>
   /^https:\/\/images\.unsplash\.com\//i.test(String(value || '').trim());
+const isNeutralPlaceholderUrl = (value: unknown): boolean =>
+  /(?:^|\/)catalog-item-placeholder\.svg(?:[?#].*)?$/i.test(String(value || '').trim());
 
 const isPlatformAdmin = (m: any) => String(m.role || '').toUpperCase() === 'SUPER_ADMIN'
   && !m.business_id && !m.branch_id && m.permissions?.scope === 'PLATFORM' && m.permissions?.full_control === true;
