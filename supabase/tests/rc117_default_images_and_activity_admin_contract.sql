@@ -5,6 +5,7 @@ declare
   v_product text;
   v_service text;
   v_admin_definition text;
+  v_list_definition text;
 begin
   v_activity := public.mnty_default_image_url('عيادة دكتور منطقتي','خدمات طبية','HEALTHCARE','activity');
   v_product := public.mnty_default_image_url('بن شهريار','قهوة عربية','COFFEE','product');
@@ -36,6 +37,16 @@ begin
     into v_admin_definition;
   if position('marketing_provider_profiles' in v_admin_definition)=0 then
     raise exception 'RC117_ACTIVITY_NAME_SYNC_MISSING';
+  end if;
+
+  select pg_get_functiondef('public.mnty_platform_admin_list_businesses(text)'::regprocedure)
+    into v_list_definition;
+  if position('limit 300' in lower(v_list_definition))>0 then
+    raise exception 'RC117_ACTIVITY_LIST_MUST_NOT_TRUNCATE_EXISTING_ACTIVITIES';
+  end if;
+  if not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='mnty_platform_admin_list_businesses' and p.prosecdef) then
+    raise exception 'RC117_ACTIVITY_LIST_MUST_BE_SECURITY_DEFINER';
   end if;
 
   if exists (
