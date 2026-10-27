@@ -5,7 +5,7 @@
 (function (root) {
   'use strict';
   const PRIORITY = Object.freeze({ GLOBAL: 1, SECTOR: 2, TENANT: 3, BUSINESS: 4, BRANCH: 5 });
-  const normalize = value => String(value || '').trim().toUpperCase().replace(/[\\s-]+/g, '_');
+  const normalize = value => String(value || '').trim().toUpperCase().replace(/[\s-]+/g, '_');
 
   function scopeMatches(row, context) {
     const scope = String(row?.scope_type || '').toUpperCase();
