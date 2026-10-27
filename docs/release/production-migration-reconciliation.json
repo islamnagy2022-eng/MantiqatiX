@@ -970,7 +970,9 @@
     "provider_profile_slug": "qadam-alsaad-homewares",
     "provider_profile_owner_matches_business_owner": true,
     "repair_migration_version": "20261027205405",
-    "repair_migration_version_recorded": true
+    "repair_migration_version_recorded": true,
+    "catalog_public_enabled": true,
+    "provider_profile_status": "ACTIVE"
   },
   "migration_alias_resolution_check": {
     "status": "PENDING_CONTROLLED_REPAIR",
