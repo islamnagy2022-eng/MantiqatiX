@@ -127,3 +127,19 @@ At the start of every continuation:
 1. Inspect the current repository tree/history for the prior production administration console and the existing schema/role/commission/subscription model.
 2. Record findings and gaps here before implementation.
 3. Keep PR #411 draft and production deployment blocked until the release safety gates are satisfied.
+
+## Reconnaissance findings — 2026-10-27
+
+- Existing catalog admin UI is present at `apps/catalog-frontend/src/components/admin/AdminDashboard.tsx` with tabs for billing, taxonomy, businesses, subscribers, settings, backup, and control center. This is a useful starting point, but it is not yet evidence of the requested complete platform-wide administration console.
+- The current catalog admin dashboard stores a single default commission input (`defaultCommissionPerOrder`) and existing Paymob fee configuration. The requested multi-rule commission engine, immutable transaction-level rule snapshots, claims, statements, and reconciliation still need a dedicated audit/implementation.
+- `apps/catalog-frontend/src/context/AppContext.tsx` calls production backend functions for business creation and profile/catalog updates; subscriber deactivation is currently represented as membership status `INACTIVE`. Audit each action and ensure business status/delete/ownerless workflows exist before relying on them.
+- `supabase/functions/catalog-platform-admin/index.ts` contains `CREATE_BUSINESS`, `SUBSCRIBER_STATUS`, and `SAVE_SETTINGS` actions. The inspected snippets do not establish a complete business suspend/delete/update lifecycle or a complete subscription-management API; verify all handlers and authorization paths before UI work.
+- `SuperAdminControlCenter.tsx` uses guarded RPCs for custom roles, people, assignments, and audit records. Its own error message says it depends on RC115 being deployed; do not assume those migrations are live in production.
+- The app's current `AdminDashboard` tab set does not include a traffic/visits analytics tab. Repository searches did not find a clearly wired production visits analytics endpoint, so define the metric source and add it without hardcoded or demo data.
+- Existing migration history includes docs for RC113–RC115 and later admin-scope hardening in source control. The production migration ledger previously observed did not show RC113–RC117. Do not apply these directly; reconcile exact migration names, dependencies, live schema, and authorization model first.
+
+### Immediate next action (updated)
+1. Inspect the complete `catalog-platform-admin` action dispatcher and its authorization guard, then map every admin action to an existing backend contract.
+2. Inspect production business/subscription/commission/claims/ledger tables and relevant RPCs read-only; compare with migration ledger and RLS.
+3. Produce a gap matrix (existing / partial / missing / not production-verified) and only then implement the smallest safe slice on the fix branch.
+4. Do not deploy or mutate production DB while backup/restore and release gates remain unverified.
