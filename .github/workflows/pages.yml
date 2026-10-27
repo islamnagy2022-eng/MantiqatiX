@@ -34,7 +34,7 @@ jobs:
           test -s dist/index.html
           test -s dist/config.js
           test -d dist/assets
-          grep -q '/MantiqatiX/catalog-app/assets/' dist/index.html
+          grep -q '/MantiqatiX/assets/' dist/index.html
       - name: Smoke test production Google OAuth redirect
         working-directory: apps/catalog-frontend
         run: |
@@ -213,28 +213,22 @@ jobs:
           grep -q "if(!branchId)" web/app.js
           grep -Fq 'branches: branches ?? []' supabase/functions/api/index.ts
 
-      - name: Compose existing platform root with catalog as a separate module
+      - name: Publish the electronic catalog as the only production site
         run: |
           set -euo pipefail
           SITE_DIR="${RUNNER_TEMP}/mantiqatix-composed-site"
           rm -rf "${SITE_DIR}"
           mkdir -p "${SITE_DIR}"
-          cp -a web/. "${SITE_DIR}/"
-          # Keep legacy demo assets in source for contract tests, never in the production artifact.
-          rm -rf "${SITE_DIR}/preview"
-          rm -f "${SITE_DIR}/smm.html"
-          test ! -e "${SITE_DIR}/preview"
-          test ! -e "${SITE_DIR}/smm.html"
-          rm -rf "${SITE_DIR}/catalog-app"
-          mkdir -p "${SITE_DIR}/catalog-app"
-          cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/catalog-app/"
+          cp -a apps/catalog-frontend/dist/. "${SITE_DIR}/"
           test -s "${SITE_DIR}/index.html"
           test -s "${SITE_DIR}/config.js"
-          test -s "${SITE_DIR}/catalog-app/index.html"
-          grep -Fq 'home.js' "${SITE_DIR}/index.html"
-          grep -Fq '/MantiqatiX/catalog-app/assets/' "${SITE_DIR}/catalog-app/index.html"
-          grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/catalog-app/index.html"
-          echo "PAGES_COMPOSITION=PASS: platform root preserved; demo/SMM assets excluded; catalog mounted at /catalog-app/"
+          test -d "${SITE_DIR}/assets"
+          grep -Fq '/MantiqatiX/assets/' "${SITE_DIR}/index.html"
+          grep -Fq '/MantiqatiX/config.js' "${SITE_DIR}/index.html"
+          test ! -e "${SITE_DIR}/web"
+          test ! -e "${SITE_DIR}/preview"
+          test ! -e "${SITE_DIR}/smm.html"
+          echo "PAGES_COMPOSITION=PASS: electronic catalog is the only production root; legacy UI/demo/SMM files are not published."
       - name: Upload composed MantiqatiX site
         uses: actions/upload-artifact@v4
         with:
@@ -306,8 +300,8 @@ jobs:
           echo "This gate does not certify backend, auth, database, payment, or financial production readiness."
 
   deploy:
-    # Preserve the existing MantiqatiX site at the root and mount the React catalog
-    # as /catalog-app/. Full production certification remains mandatory before publish.
+    # Publish the electronic catalog build as the only site at the public root.
+    # Full production certification remains mandatory before publish.
     needs: [validate, validate_public_only]
     if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.validate.result == 'success'
     timeout-minutes: 10
@@ -335,7 +329,7 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Verify platform root and catalog module after deployment
+      - name: Verify primary catalog root after deployment
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
@@ -343,24 +337,20 @@ jobs:
           ROOT_URL="${PAGE_URL%/}/"
           TMP_PAGE="$(mktemp)"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" -o "${TMP_PAGE}"
-          grep -Fq "MantiqatiX | منصة الخدمات ومقدميها" "${TMP_PAGE}"
-          grep -Fq "home.js" "${TMP_PAGE}"
-          grep -Fq "config.js" "${TMP_PAGE}"
-          CATALOG_URL="${ROOT_URL}catalog-app/"
-          TMP_CATALOG="$(mktemp)"
-          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${CATALOG_URL}" -o "${TMP_CATALOG}"
-          grep -Fq "/MantiqatiX/catalog-app/assets/" "${TMP_CATALOG}"
-          grep -Fq "/MantiqatiX/config.js" "${TMP_CATALOG}"
+          grep -Fq "MantiqatiX | منصة إدارة الأنشطة والكتالوجات" "${TMP_PAGE}"
+          grep -Fq "/MantiqatiX/assets/" "${TMP_PAGE}"
+          grep -Fq "/MantiqatiX/config.js" "${TMP_PAGE}"
+          ! grep -Fq "home.js" "${TMP_PAGE}"
           CONFIG_JS="$(curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}config.js")"
           grep -Fq "moyhiluyhjsujhwlyeuu.supabase.co" <<<"${CONFIG_JS}"
-          JS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.js' "${TMP_CATALOG}" | head -n 1)"
-          CSS_ASSET="$(grep -oE '/MantiqatiX/catalog-app/assets/[^" ]+\.css' "${TMP_CATALOG}" | head -n 1)"
+          JS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.js' "${TMP_PAGE}" | head -n 1)"
+          CSS_ASSET="$(grep -oE '/MantiqatiX/assets/[^" ]+\.css' "${TMP_PAGE}" | head -n 1)"
           test -n "${JS_ASSET}"
           test -n "${CSS_ASSET}"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${JS_ASSET#/MantiqatiX/}" >/dev/null
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --head "${PAGE_URL%/}/${CSS_ASSET#/MantiqatiX/}" >/dev/null
-          echo "MANTIQATIX_ROOT_AND_CATALOG_MODULE_DEPLOY=PASS: ${ROOT_URL}"
-          # Verify the old interactive demo and deferred SMM placeholder are not publicly served.
+          echo "MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS: ${ROOT_URL}"
+          # The artifact is catalog-only; retired legacy routes must stay unavailable.
           for route in "preview/" "smm.html"; do
             status=""
             for attempt in 1 2 3 4 5 6; do

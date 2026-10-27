@@ -99,18 +99,19 @@ jobs:
         run: node scripts/production/verify-catalog-pilot.mjs
       - name: Validate that the platform root is preserved
         run: node scripts/validate-pages-production-deploy-gate.mjs
-      - name: Build catalog module for its own subpath
+      - name: Build primary catalog at the public root
         working-directory: apps/catalog-frontend
         run: npm run build
-      - name: Verify catalog subpath assets and PWA scope
+      - name: Verify primary root assets and PWA scope
         run: |
           set -euo pipefail
           test -s apps/catalog-frontend/dist/index.html
           test -s apps/catalog-frontend/dist/config.js
-          grep -Fq '/MantiqatiX/catalog-app/assets/' apps/catalog-frontend/dist/index.html
+          grep -Fq '/MantiqatiX/assets/' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
-          grep -Fq '/MantiqatiX/catalog-app/' apps/catalog-frontend/dist/manifest.webmanifest
-          grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
+          ! grep -Fq 'home.js' apps/catalog-frontend/dist/index.html
+          grep -Fq '/MantiqatiX/' apps/catalog-frontend/dist/manifest.webmanifest
+          grep -Fq 'mantiqatix-primary-catalog-shell-' apps/catalog-frontend/dist/sw.js
       - name: Smoke test allowlisted Google OAuth root callback relay
         run: |
           set -euo pipefail

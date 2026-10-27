@@ -711,3 +711,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Applied the migration to live Supabase as version `20261027223523`; read-only post-check confirmed the live statement matches the checked-in SQL exactly, `search_path=""`, anon/authenticated EXECUTE remain enabled, PUBLIC EXECUTE remains absent, and the live RPC returns 3 rows.
 - The original RC451 version `20261010200000` remains absent from the original required-version ledger list. Its effect is reconciled by the forward repair; no historical migration was edited or marked applied. The full platform gate remains BLOCKED by the other missing migration versions, critical order/payment/finance Edge Function drift, finance prerequisites, and unverified payment/finance E2E, backup/restore, Auth, and SMM runtime evidence.
 - The Supabase security advisor may still count the intentionally anon-callable SECURITY DEFINER RPC; the risky search_path configuration is fixed, and the public-discovery grant was deliberately preserved.
+
+
+## 2026-10-28 — electronic catalog is the primary customer entry
+
+- Decision: the electronic catalog is the canonical customer-facing product; the legacy application is a source of reusable code/assets and compatibility only, never the intended primary UI.
+- Implemented on branch `feat/catalog-primary-site`: the Vite build base, PWA `start_url`/`scope`/icons, and service-worker shell are configured for `/MantiqatiX/`.
+- `.github/workflows/pages.yml` now publishes only `apps/catalog-frontend/dist` as the production artifact; the legacy `web/` application is not copied into the published site. Post-deploy checks validate the catalog title, root assets, Supabase config, and that JavaScript/CSS assets are reachable. Legacy preview/SMM routes remain required to return 404.
+- Updated primary catalog CI, health monitoring, production gate contracts, and catalog pilot verification to expect a catalog-only root deployment. Legacy source files remain in GitHub for development and are not the production UI.
+- Changes are still in open PR #453; not merged to main and not deployed. CI and browser Google OAuth verification remain pending.
