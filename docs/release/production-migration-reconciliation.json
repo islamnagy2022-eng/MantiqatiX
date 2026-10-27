@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: all 16 required RC425–RC432 and RC434–RC441 versions are absent from the live Production ledger, despite passing isolated forward replay. A second blocking mismatch is confirmed in the financial journal boundary: RC449A/RC450 are absent, five required journal columns are missing, and neither current financial journal RPC is executable by service_role under the live ACL. Payment/webhook/finance E2E, backup/restore, critical Edge Function source parity, SMM negative runtime tests, managed Auth security settings, browser/device E2E, monitoring/alert and rollback evidence remain unverified.",
+  "reason": "Production remains BLOCKED: all 34 exact migration versions required by the verifier are absent from the live ledger. Isolated chronological replay does not prove Production application. Live object/function drift includes critical payment and finance RPCs, journal schema/grants, five deployed Edge Functions differing from main, and the RC451 targeted-ad SECURITY DEFINER search_path. Payment/finance E2E, backup/restore, Auth security settings, SMM runtime negative tests, browser/device E2E, monitoring/alerts and rollback evidence remain NOT VERIFIED.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -100,11 +100,47 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-10-27",
-    "method": "Read-only LEFT JOIN of the 16 expected RC425–RC432 and RC434–RC441 migration versions against public.supabase_migrations.schema_migrations.",
+    "method": "Read-only LEFT JOIN of every required source version listed by scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations.",
     "live_ledger_count": 292,
     "latest_live_version": "20261027041549",
-    "expected_migration_versions": 16,
+    "expected_migration_versions": 34,
     "found_in_live_ledger": 0,
+    "required_versions": [
+      "20261009120000",
+      "20261009130000",
+      "20261009140000",
+      "20261009150000",
+      "20261009160000",
+      "20261009170000",
+      "20261009180000",
+      "20261009190000",
+      "20261009200000",
+      "20261009210000",
+      "20261009220000",
+      "20261009230000",
+      "20261009240000",
+      "20261010010000",
+      "20261010020000",
+      "20261010030000",
+      "20261010060000",
+      "20261010120000",
+      "20261010140000",
+      "20261010150000",
+      "20261010161000",
+      "20261010170000",
+      "20261010175000",
+      "20261010180000",
+      "20261010200000",
+      "20261010210000",
+      "20261010220000",
+      "20261011010000",
+      "20261014230000",
+      "20261023020000",
+      "20261023030000",
+      "20261023040000",
+      "20261023050000",
+      "20261023060000"
+    ],
     "missing_versions": [
       "20261009120000",
       "20261009130000",
@@ -121,10 +157,28 @@
       "20261009240000",
       "20261010010000",
       "20261010020000",
-      "20261010030000"
+      "20261010030000",
+      "20261010060000",
+      "20261010120000",
+      "20261010140000",
+      "20261010150000",
+      "20261010161000",
+      "20261010170000",
+      "20261010175000",
+      "20261010180000",
+      "20261010200000",
+      "20261010210000",
+      "20261010220000",
+      "20261011010000",
+      "20261014230000",
+      "20261023020000",
+      "20261023030000",
+      "20261023040000",
+      "20261023050000",
+      "20261023060000"
     ],
-    "interpretation": "The required migrations exist as candidate source files and pass isolated chronological replay, but all 16 exact versions are absent from the live Production migration ledger. Later-dated catalog/contact migrations are present; do not assume the missing payment/finance/security chain was applied from the overall ledger tail.",
-    "safety": "No Production writes or migration operations performed."
+    "interpretation": "All 34 migration versions required by the Production verifier are absent from the live ledger, even though their SQL source files exist in main and the 52-migration post-RC424 chain replays in an isolated disposable database. The live ledger contains later catalog/contact versions, so do not apply these historical versions blindly.",
+    "recorded_required_versions": []
   },
   "critical_edge_function_source_parity_check": {
     "status": "DRIFT_FOUND",
@@ -345,5 +399,36 @@
       }
     ],
     "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout."
+  },
+  "security_definer_search_path_check": {
+    "status": "BLOCKING_DRIFT",
+    "checked_at": "2026-10-27",
+    "function_signature": "get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)",
+    "migration_version": "20261010200000",
+    "migration_filename": "20261010200000_rc451_targeted_ads_empty_search_path.sql",
+    "migration_version_recorded": false,
+    "security_definer": true,
+    "current_search_path": [
+      "search_path=public, pg_temp"
+    ],
+    "expected_search_path": [],
+    "anon_execute": true,
+    "authenticated_execute": true,
+    "intended_access": "Public targeted-ad discovery is intentionally callable without authentication; RC451 changes only the function search_path and does not revoke this access.",
+    "schema_qualified_relations": true,
+    "interpretation": "The live definition still uses search_path=public, pg_temp instead of the RC451 empty search_path. The Supabase security advisor flagged this SECURITY DEFINER function as anon-executable. No grant was changed and no runtime call was issued. Keep the gate blocked until RC451 is applied in a reviewed release sequence and the live catalog confirms the intended search_path; do not fix by revoking the intentional public-discovery boundary."
+  },
+  "security_advisor_snapshot": {
+    "checked_at": "2026-10-27",
+    "rls_enabled_without_policy_count": 1,
+    "rls_enabled_without_policy": [
+      {
+        "table": "public.digital_page_payment_events",
+        "interpretation": "INFO only: RLS with no policies denies direct anon/authenticated row access; verify that all intended service access uses service_role/controlled RPC paths."
+      }
+    ],
+    "anon_security_definer_executable_count": 1,
+    "authenticated_security_definer_executable_count": 48,
+    "interpretation": "Advisor findings are not a blanket instruction to revoke all security-definer RPC access. Review each function's intended caller, identity checks, search_path and schema/grant contract; no grants were changed during this check."
   }
 }

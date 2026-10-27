@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { isLiveReconciliationVerified } from "./production/live-reconciliation-contract.mjs";
+import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
@@ -45,6 +45,7 @@ const required = [
 assert.equal(required.length, 34, "release gate must track every known post-RC424 migration source");
 const requiredTimestamps = required.map(name => name.slice(0, 14));
 assert.deepEqual(requiredTimestamps, [...requiredTimestamps].sort(), "required migration list must be ordered by immutable timestamp, not RC number");
+assert.deepEqual(requiredTimestamps, REQUIRED_RELEASE_MIGRATION_VERSIONS, "live ledger contract must cover the exact migration versions enforced by the verifier");
 for (const name of required) assert.ok(source.includes(JSON.stringify(name)), `release verifier must track ${name}`);
 assert.match(source, /migrationChainBlocked\?"BLOCKED":"PASS"/, "missing migrations or timestamp conflicts must block release certification");
 assert.match(source, /r=>\(r\.status==="FAIL"\|\|r\.status==="BLOCKED"\)&&r\.severity==="P0"/, "P0 FAIL or BLOCKED checks must set production_gate=BLOCKED");
@@ -67,10 +68,12 @@ const rc451 = fs.readFileSync("supabase/migrations/20261010200000_rc451_targeted
 assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\s\S]*?\) set search_path = '';/, "RC451 must harden the public targeted-ad SECURITY DEFINER search path");
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
+assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
 assert.match(liveContract, /required_release_migration_ledger_check/, "exact live ledger version verification must be required");
 assert.match(liveContract, /required_release_object_presence_check/, "selected production object contracts must be required");
 assert.match(liveContract, /critical_edge_function_source_parity_check/, "deployed critical Edge Function parity must be required");
 assert.match(liveContract, /financial_journal_runtime_prerequisite_check/, "journal schema and service-role RPC boundary must be required");
+assert.match(liveContract, /security_definer_search_path_check/, "RC451 targeted-ad security-definer search_path must be required");
 assert.match(liveContract, /REQUIRED_EDGE_FUNCTIONS/, "the live parity contract must enumerate all critical function entrypoints");
 
 const validReconciliation = {
@@ -95,8 +98,10 @@ const validReconciliation = {
   checked_at: "2026-10-27",
   required_release_migration_ledger_check: {
     status: "VERIFIED_APPLIED",
-    expected_migration_versions: 16,
-    found_in_live_ledger: 16,
+    expected_migration_versions: REQUIRED_RELEASE_MIGRATION_VERSIONS.length,
+    found_in_live_ledger: REQUIRED_RELEASE_MIGRATION_VERSIONS.length,
+    required_versions: REQUIRED_RELEASE_MIGRATION_VERSIONS,
+    recorded_required_versions: REQUIRED_RELEASE_MIGRATION_VERSIONS,
     missing_versions: []
   },
   required_release_object_presence_check: {
@@ -113,6 +118,16 @@ const validReconciliation = {
       { slug: "financial-journal", exact_match: true },
       { slug: "smm-gateway", exact_match: true }
     ]
+  },
+  security_definer_search_path_check: {
+    status: "PASS",
+    migration_version: "20261010200000",
+    migration_version_recorded: true,
+    security_definer: true,
+    current_search_path: [],
+    expected_search_path: [],
+    anon_execute: true,
+    authenticated_execute: true
   },
   financial_journal_runtime_prerequisite_check: {
     status: "PASS",
@@ -135,7 +150,10 @@ const blockedFixtures = [
   value => { value.critical_edge_function_source_parity_check.functions.find(f => f.slug === "paymob-webhook").exact_match = false; },
   value => { value.financial_journal_runtime_prerequisite_check.live_migrations["20261010180000_rc450_financial_journal_service_role_boundary"] = false; },
   value => { value.financial_journal_runtime_prerequisite_check.schema_preflight.missing_columns = ["journal_entries.total_debit"]; },
-  value => { value.financial_journal_runtime_prerequisite_check.rpc_privileges[0].service_role_execute = false; }
+  value => { value.financial_journal_runtime_prerequisite_check.rpc_privileges[0].service_role_execute = false; },
+  value => { value.security_definer_search_path_check.current_search_path = ["search_path=public, pg_temp"]; },
+  value => { value.security_definer_search_path_check.migration_version_recorded = false; },
+  value => { value.required_release_migration_ledger_check.recorded_required_versions.pop(); }
 ];
 for (const mutate of blockedFixtures) {
   const invalid = clone(validReconciliation);

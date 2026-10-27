@@ -280,3 +280,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Effective ACL and catalog inspection found both `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` owned by postgres with ACL `{postgres=X/postgres}`; `service_role`, `authenticated` and `anon` have no EXECUTE privilege. The deployed `financial-journal` v3 calls the old RPC, while `main` calls the RC450 backend RPC.
 - [x] Aggregate read-only counts for `journal_entries`, `journal_entry_lines`, `general_ledger`, `payment_intents`, `subscription_payment_intents`, `erp_purchase_orders`, `erp_purchase_receipts`, `smm_orders`, and `smm_wallet_transactions` returned zero. No RPC was invoked.
 - [ ] RC449A → RC450 requires isolated/staging replay, effective privilege verification, finance posting and replay/idempotency tests, backup/restore and rollback approval before any Production change. No database change or function deployment occurred.
+
+
+## 2026-10-27 — Full 34-version ledger and RC451 live catalog audit
+
+- [x] Read-only LEFT JOIN of every exact migration version listed in `scripts/production/verify-production.mjs` returned **0/34** recorded in the 292-row live ledger, although the source files are present on `main`.
+- [x] Read-only catalog inspection confirms `get_mnty_targeted_advertisements` is SECURITY DEFINER, executable by `anon` and `authenticated`, and configured with `search_path=public, pg_temp`; required RC451 (`20261010200000`) is absent from the live ledger. Its public ad-discovery EXECUTE boundary is intentional; only search_path hardening is required by RC451.
+- [x] Manifest now records all 34 required versions, the missing-version list, the targeted-ad search_path drift, and advisor counts (one anon-executable SECURITY DEFINER function, 48 authenticated-executable ones, and one RLS-enabled table without policies).
+- [x] The strict contract now requires exact version-list parity and an explicit RC451 live catalog PASS, in addition to RC449A/RC450 journal prerequisites, object state and six critical Edge Function source matches. Synthetic pass/fail fixtures cover the new blockers.
+- [ ] Production remains BLOCKED / NOT CERTIFIED. No Production migration, data write, grant/RLS/Auth change, Edge Function deployment, payment or wallet mutation occurred.
