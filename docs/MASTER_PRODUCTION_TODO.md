@@ -1850,3 +1850,11 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Live Production ledger read-only inventory: 292 rows, latest `20261027041549 qadam_alsaad_restore_contact_fields`.
 - [x] Exact statement/source identity verified for `20261027010135`, `20261027041411`, and `20261027041549`; exact-version source files are restored and the redundant pending marketing contact migration was removed.
 - [ ] Global production release remains BLOCKED: this resolves only three live ledger source identities, not the required RC425–RC441 migration chain, payment/finance E2E, backup/restore, live Auth/Edge Function parity, or browser/device regression.
+
+
+## 2026-10-27 — Schema-only checkpoint replay diagnosis
+
+- [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
+- [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
+- [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
+- [ ] Re-run forward replay and review the next failure or full pass. The current candidate remains NOT VERIFIED until the updated workflow completes; Production Gate stays BLOCKED.
