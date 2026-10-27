@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
 
       if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
         const adminWhatsApp = String(input.adminWhatsApp || "").trim();
-        const phoneDigits = adminWhatsApp.replace(/\\D/g, "");
+        const phoneDigits = adminWhatsApp.replace(/\D/g, "");
         if (phoneDigits.length < 10 || phoneDigits.length > 15) {
           return response(origin, { error: "INVALID_ADMIN_WHATSAPP", message: "أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا." }, 400);
         }
