@@ -6,9 +6,9 @@ Product model: **Customer ↔ Service Provider** with an **Operational Service M
 
 Internal technical identifiers that use legacy `MNTY` naming may remain where required for database contracts, migrations, APIs, validation scripts, compatibility, or security boundaries. They are implementation identifiers, not public branding.
 
-SMM storefront: web/smm.html — provider/API gateway, customer orders, wallet, and admin controls.
+SMM storefront: **deferred from initial launch**. `web/smm.html` is a `noindex` informational placeholder; the retired interactive browser client has been removed. The `smm-gateway` source, authorization tests, and historical database migrations remain intentionally in place for security and compatibility, with execution default-denied until a separately reviewed post-launch release.
 
-Production web deployment: GitHub Pages via `.github/workflows/pages.yml`, publishing the `web/` directory.
+Production web deployment: `.github/workflows/pages.yml` builds `apps/catalog-frontend/` and publishes the validated `apps/catalog-frontend/dist` artifact only when the full production verifier succeeds. The legacy `web/` tree is still used by source-contract/compatibility checks; it is not the deployed artifact directory in this workflow.
 
 
 ## Project continuity (required for contributors and AI sessions)
