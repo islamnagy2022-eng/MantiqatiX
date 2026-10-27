@@ -1,8 +1,8 @@
-const CACHE_NAME = 'mantiqatix-shell-v1';
+const CACHE_NAME = 'mantiqatix-catalog-shell-v2';
 const APP_SHELL = [
-  '/MantiqatiX/',
-  '/MantiqatiX/manifest.webmanifest',
-  '/MantiqatiX/icons/mantiqatix.svg'
+  '/MantiqatiX/catalog-app/',
+  '/MantiqatiX/catalog-app/manifest.webmanifest',
+  '/MantiqatiX/catalog-app/icons/mantiqatix.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith('mantiqatix-catalog-shell-') && key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -32,6 +32,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(async () => (await caches.match(event.request)) || (event.request.mode === 'navigate' ? caches.match('/MantiqatiX/') : undefined))
+      .catch(async () => (await caches.match(event.request)) || (event.request.mode === 'navigate' ? caches.match('/MantiqatiX/catalog-app/') : undefined))
   );
 });
