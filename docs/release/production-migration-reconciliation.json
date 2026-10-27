@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "The Qadam catalog owner/profile prerequisite was repaired and verified on 2026-10-28. This does not resolve the independent live migration/schema drift, critical Edge Function source parity, finance/payment E2E, backup/restore rehearsal, or Auth security evidence requirements. Production deployment remains blocked.",
+  "reason": "The Qadam catalog owner/profile prerequisite passed on 2026-10-28, including the original seed migration and the scoped repair migration. Independent live migration/schema drift, critical Edge Function source parity, payment/finance E2E, backup/restore rehearsal, and Auth security evidence remain incomplete. Production deployment remains blocked.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -950,9 +950,9 @@
     ]
   },
   "qadam_catalog_followup_check": {
-    "status": "OWNER_AND_PROFILE_REPAIRED",
+    "status": "PASS",
     "checked_at": "2026-10-28",
-    "migration_version": "20261027205405",
+    "migration_version": "20261027093000",
     "migration_version_recorded": true,
     "business_active": true,
     "contact_fields_complete": true,
@@ -965,10 +965,12 @@
     "contact_for_price_product_count": 3,
     "contact_for_price_without_active_price": 3,
     "stock_tracking_enabled_item_count": 0,
-    "observed": "Verified by read-only production queries after the scoped catalog_pilot_owner_profile_repair migration was applied. The owner membership is ACTIVE, the Qadam provider profile exists and is ACTIVE with the intended owner, all 15 catalog items remain active, and 12 priced products match. Three contact-for-price items intentionally have no active price; no stock tracking or fake orders were created. This resolves the owner/profile prerequisite only; the overall production gate remains blocked by independent migration, edge-function, finance, backup/restore, and authentication evidence gaps.",
+    "observed": "Production read-only verification on 2026-10-28 confirmed the original catalog seed migration and scoped owner/profile repair migration are recorded. The business is ACTIVE and publicly enabled; its owner membership is ACTIVE; an ACTIVE provider profile exists and is owned by the intended owner. All 15 catalog items remain active, all 12 priced products match expected data, and the 3 contact-for-price products intentionally have no active price. No stock tracking or fake orders were created. This PASS applies only to the Qadam catalog follow-up; the overall production gate remains BLOCKED by independent migration/schema, Edge Function, finance/payment, backup/restore, and Auth evidence gaps.",
     "active_provider_profile": true,
     "provider_profile_slug": "qadam-alsaad-homewares",
-    "provider_profile_owner_matches_business_owner": true
+    "provider_profile_owner_matches_business_owner": true,
+    "repair_migration_version": "20261027205405",
+    "repair_migration_version_recorded": true
   },
   "migration_alias_resolution_check": {
     "status": "PENDING_CONTROLLED_REPAIR",
