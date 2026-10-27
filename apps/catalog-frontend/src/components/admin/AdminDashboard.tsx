@@ -736,7 +736,7 @@ export const AdminDashboard: React.FC = () => {
                         <tr
                           key={biz.id}
                           className={`hover:bg-slate-50/70 transition-colors ${
-                            biz.isFrozen || biz.overdueDaysCount > 5 ? 'bg-rose-50/40' : ''
+                            biz.isFrozen || biz.paymentStatus === 'frozen' ? 'bg-rose-50/40' : ''
                           }`}
                         >
                           {/* Business Name and Egyptian Location */}
@@ -778,9 +778,9 @@ export const AdminDashboard: React.FC = () => {
 
                           {/* Payment Due Day */}
                           <td className="py-3.5 px-4 text-slate-800 font-black">
-                            <span>يوم {biz.paymentDueDay || 1} من كل شهر</span>
+                            <span>{biz.paymentDueDay ? `يوم ${biz.paymentDueDay} من كل شهر` : 'يوم الاستحقاق غير مسجل'}</span>
                             <span className="block text-[10px] text-slate-400 font-normal">
-                              استحقاق: {biz.paymentDueDate || 'شهري'}
+                              استحقاق: {biz.paymentDueDate || 'غير مسجل'}
                             </span>
                           </td>
 
@@ -813,29 +813,44 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           </td>
 
-                          {/* Overdue & 5-day warning / freeze status */}
+                          {/* Billing state is read from persisted values; do not imply a scheduler exists. */}
                           <td className="py-3.5 px-4">
-                            {biz.isFrozen || biz.overdueDaysCount > 5 ? (
+                            {biz.isFrozen || biz.paymentStatus === 'frozen' ? (
                               <div className="space-y-1">
                                 <span className="inline-flex items-center gap-1 bg-rose-600 text-white font-black px-2.5 py-0.5 rounded-md text-[10px] shadow-xs">
                                   <Ban className="w-3 h-3" />
                                   <span>النشاط مجمد</span>
                                 </span>
                                 <span className="block text-[10px] text-rose-700 font-bold">
-                                  تجاوز مهلة الـ 5 أيام ({biz.overdueDaysCount} يوم تأخر)
+                                  حالة التجميد المسجلة في بيانات الإنتاج
                                 </span>
                               </div>
-                            ) : biz.overdueDaysCount > 0 ? (
+                            ) : biz.paymentStatus === 'overdue' ? (
                               <div className="space-y-1">
                                 <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-md text-[10px]">
                                   <BellRing className="w-3 h-3" />
-                                  <span>إشعار يومي ({biz.overdueDaysCount} من 5)</span>
+                                  <span>متأخر عن السداد</span>
                                 </span>
                                 <span className="block text-[10px] text-amber-800">
-                                  متبقي {5 - biz.overdueDaysCount} أيام قبل التجميد
+                                  أيام التأخير المسجلة: {biz.overdueDaysCount}
+                                </span>
+                                <span className="block text-[10px] text-slate-500">
+                                  التنبيهات والتجميد التلقائي غير مؤكدين في هذا الإصدار
                                 </span>
                               </div>
-                            ) : (
+                            ) : biz.paymentStatus === 'pending' ? (
+                              <div className="space-y-0.5">
+                                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                  <BellRing className="w-3 h-3" />
+                                  <span>بانتظار تأكيد السداد</span>
+                                </span>
+                                {biz.lastPaymentDate && (
+                                  <span className="block text-[9px] text-slate-400 font-mono">
+                                    آخر سجل دفع: {biz.lastPaymentDate}
+                                  </span>
+                                )}
+                              </div>
+                            ) : biz.paymentStatus === 'paid' && !biz.isFrozen && biz.overdueDaysCount === 0 ? (
                               <div className="space-y-0.5">
                                 <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
                                   <CheckCheck className="w-3 h-3" />
@@ -847,6 +862,10 @@ export const AdminDashboard: React.FC = () => {
                                   </span>
                                 )}
                               </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                                الحالة تحتاج مراجعة بيانات الإنتاج
+                              </span>
                             )}
                           </td>
 
