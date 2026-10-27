@@ -28,6 +28,172 @@ create index if not exists idx_business_activity_types_parent
 create index if not exists idx_business_activity_types_legacy_category
   on public.business_activity_types(legacy_category_id);
 
+-- Expanded initial catalog coverage: each existing sector has concrete
+-- activity choices, with specialties represented as children of an activity.
+-- Stable IDs and ON CONFLICT make the seed safe to replay.
+insert into public.business_activity_types
+(id, sector_id, parent_id, legacy_category_id, code, name_ar, name_en, node_type, sort_order)
+values
+-- Accounting & business
+('activity-accounting-office','SEC-ACCOUNTING','group-accounting','CAT-ACCOUNTING','ACCOUNTING_OFFICE','مكتب محاسبة','Accounting Office','ACTIVITY',20),
+('activity-tax-consultant','SEC-ACCOUNTING','group-accounting','CAT-ACCOUNTING','TAX_CONSULTANT','استشارات ضريبية','Tax Consultant','ACTIVITY',30),
+('activity-audit-office','SEC-ACCOUNTING','group-accounting','CAT-ACCOUNTING','AUDIT_OFFICE','مكتب مراجعة وتدقيق','Audit & Assurance Office','ACTIVITY',40),
+('activity-business-consultant','SEC-ACCOUNTING','group-accounting','CAT-ACCOUNTING','BUSINESS_CONSULTANT','استشارات أعمال','Business Consultant','ACTIVITY',50),
+('specialty-accountant-financial','SEC-ACCOUNTING','activity-accountant','CAT-ACCOUNTING','ACCOUNTANT_FINANCIAL','محاسب مالي','Financial Accountant','SPECIALTY',10),
+('specialty-accountant-costs','SEC-ACCOUNTING','activity-accountant','CAT-ACCOUNTING','ACCOUNTANT_COSTS','محاسب تكاليف','Cost Accountant','SPECIALTY',20),
+('specialty-accountant-tax','SEC-ACCOUNTING','activity-accountant','CAT-ACCOUNTING','ACCOUNTANT_TAX','محاسب ضرائب','Tax Accountant','SPECIALTY',30),
+('specialty-accountant-bookkeeping','SEC-ACCOUNTING','activity-accountant','CAT-ACCOUNTING','ACCOUNTANT_BOOKKEEPING','مسك دفاتر','Bookkeeping','SPECIALTY',40),
+-- Automotive
+('activity-auto-mechanic','SEC-AUTO','group-auto','CAT-AUTO','AUTO_MECHANIC','ميكانيكي سيارات','Auto Mechanic','ACTIVITY',30),
+('activity-auto-electrician','SEC-AUTO','group-auto','CAT-AUTO','AUTO_ELECTRICIAN','كهربائي سيارات','Auto Electrician','ACTIVITY',40),
+('activity-car-wash','SEC-AUTO','group-auto','CAT-AUTO','CAR_WASH','مركز غسيل سيارات','Car Wash','ACTIVITY',50),
+('activity-car-dealer','SEC-AUTO','group-auto','CAT-AUTO','CAR_DEALER','معرض سيارات','Car Dealer','ACTIVITY',60),
+('activity-tire-service','SEC-AUTO','group-auto','CAT-AUTO','TIRE_SERVICE','إطارات وبطاريات','Tire & Battery Service','ACTIVITY',70),
+('specialty-auto-mechanic-engine','SEC-AUTO','activity-auto-mechanic','CAT-AUTO','AUTO_ENGINE_REPAIR','صيانة المحرك','Engine Repair','SPECIALTY',10),
+('specialty-auto-mechanic-transmission','SEC-AUTO','activity-auto-mechanic','CAT-AUTO','AUTO_TRANSMISSION_REPAIR','صيانة ناقل الحركة','Transmission Repair','SPECIALTY',20),
+-- Companies & suppliers
+('activity-manufacturer','SEC-COMPANIES','group-companies','CAT-COMPANIES','MANUFACTURER','مصنع ومنتج','Manufacturer','ACTIVITY',20),
+('activity-wholesale-supplier','SEC-COMPANIES','group-companies','CAT-COMPANIES','WHOLESALE_SUPPLIER','مورد وتاجر جملة','Wholesale Supplier','ACTIVITY',30),
+('activity-import-export','SEC-COMPANIES','group-companies','CAT-COMPANIES','IMPORT_EXPORT','استيراد وتصدير','Import & Export','ACTIVITY',40),
+('activity-business-services','SEC-COMPANIES','group-companies','CAT-COMPANIES','BUSINESS_SERVICES','خدمات شركات','Business Services','ACTIVITY',50),
+-- Dental
+('activity-dental-lab','SEC-DENTAL','group-dental','CAT-DENTAL','DENTAL_LAB','معمل تركيبات أسنان','Dental Laboratory','ACTIVITY',20),
+('activity-dental-center','SEC-DENTAL','group-dental','CAT-DENTAL','DENTAL_CENTER','مركز أسنان','Dental Center','ACTIVITY',30),
+('specialty-dental-implants','SEC-DENTAL','activity-dental-doctor','CAT-DENTAL','DENTAL_IMPLANTS','زراعة أسنان','Dental Implants','SPECIALTY',30),
+('specialty-dental-root-canal','SEC-DENTAL','activity-dental-doctor','CAT-DENTAL','DENTAL_ENDODONTICS','علاج جذور الأسنان','Endodontics','SPECIALTY',40),
+-- Education
+('activity-nursery','SEC-EDUCATION','group-education','CAT-EDUCATION','NURSERY','حضانة','Nursery','ACTIVITY',30),
+('activity-language-center','SEC-EDUCATION','group-education','CAT-EDUCATION','LANGUAGE_CENTER','مركز لغات','Language Center','ACTIVITY',40),
+('activity-training-center','SEC-EDUCATION','group-education','CAT-EDUCATION','TRAINING_CENTER','مركز تدريب','Training Center','ACTIVITY',50),
+('activity-driving-school','SEC-EDUCATION','group-education','CAT-EDUCATION','DRIVING_SCHOOL','مدرسة تعليم قيادة','Driving School','ACTIVITY',60),
+('specialty-tutor-math','SEC-EDUCATION','activity-private-tutor','CAT-EDUCATION','TUTOR_MATH','مدرس رياضيات','Math Tutor','SPECIALTY',10),
+('specialty-tutor-science','SEC-EDUCATION','activity-private-tutor','CAT-EDUCATION','TUTOR_SCIENCE','مدرس علوم','Science Tutor','SPECIALTY',20),
+('specialty-tutor-language','SEC-EDUCATION','activity-private-tutor','CAT-EDUCATION','TUTOR_LANGUAGE','مدرس لغات','Language Tutor','SPECIALTY',30),
+-- Software & technology
+('activity-software-company','SEC-ERP','group-erp','CAT-ERP','SOFTWARE_COMPANY','شركة برمجيات','Software Company','ACTIVITY',20),
+('activity-web-developer','SEC-ERP','group-erp','CAT-ERP','WEB_DEVELOPER','تطوير مواقع وتطبيقات','Web & App Development','ACTIVITY',30),
+('activity-it-support','SEC-ERP','group-erp','CAT-ERP','IT_SUPPORT','دعم فني وتقنية معلومات','IT Support','ACTIVITY',40),
+('activity-cybersecurity','SEC-ERP','group-erp','CAT-ERP','CYBERSECURITY','أمن سيبراني','Cybersecurity','ACTIVITY',50),
+-- Fashion and retail
+('activity-tailor','SEC-FASHION','group-fashion','CAT-FASHION','TAILOR','خياط وتفصيل','Tailor','ACTIVITY',20),
+('activity-shoe-store','SEC-FASHION','group-fashion','CAT-FASHION','SHOE_STORE','محل أحذية','Shoe Store','ACTIVITY',30),
+('activity-bag-store','SEC-FASHION','group-fashion','CAT-FASHION','BAG_STORE','محل شنط','Bag Store','ACTIVITY',40),
+('activity-fabrics','SEC-FASHION','group-fashion','CAT-FASHION','FABRIC_STORE','محل أقمشة','Fabric Store','ACTIVITY',50),
+('activity-cosmetics','SEC-FASHION','group-fashion','CAT-FASHION','COSMETICS_STORE','مستحضرات تجميل وعطور','Cosmetics & Perfume Store','ACTIVITY',60),
+('specialty-clothing-children','SEC-FASHION','activity-clothing','CAT-FASHION','CLOTHING_CHILDREN','ملابس أطفال','Children Clothing','SPECIALTY',30),
+('specialty-clothing-sports','SEC-FASHION','activity-clothing','CAT-FASHION','CLOTHING_SPORTS','ملابس رياضية','Sportswear','SPECIALTY',40),
+('specialty-clothing-modest','SEC-FASHION','activity-clothing','CAT-FASHION','CLOTHING_MODEST','ملابس محجبات','Modest Clothing','SPECIALTY',50),
+-- Food, bakery, drinks and catering
+('activity-sweets','SEC-FOOD','group-food','CAT-FOOD','SWEETS_SHOP','حلويات ومخبوزات','Sweets & Bakery','ACTIVITY',40),
+('activity-juice-shop','SEC-FOOD','group-food','CAT-FOOD','JUICE_SHOP','محل عصائر ومشروبات','Juice & Drinks Shop','ACTIVITY',50),
+('activity-ice-cream','SEC-FOOD','group-food','CAT-FOOD','ICE_CREAM_SHOP','آيس كريم','Ice Cream Shop','ACTIVITY',60),
+('activity-home-cooking','SEC-FOOD','group-food','CAT-FOOD','HOME_COOKING','أكلات منزلية','Home Cooking','ACTIVITY',70),
+('activity-catering','SEC-FOOD','group-food','CAT-FOOD','CATERING','تموين حفلات وتجهيز طعام','Catering','ACTIVITY',80),
+('activity-food-truck','SEC-FOOD','group-food','CAT-FOOD','FOOD_TRUCK','عربة طعام','Food Truck','ACTIVITY',90),
+('specialty-restaurant-local','SEC-FOOD','activity-restaurant','CAT-FOOD','RESTAURANT_LOCAL','مطعم أكلات شعبية','Local Cuisine Restaurant','SPECIALTY',60),
+('specialty-restaurant-healthy','SEC-FOOD','activity-restaurant','CAT-FOOD','RESTAURANT_HEALTHY','مطعم صحي','Healthy Restaurant','SPECIALTY',70),
+('specialty-restaurant-vegetarian','SEC-FOOD','activity-restaurant','CAT-FOOD','RESTAURANT_VEGETARIAN','مطعم نباتي','Vegetarian Restaurant','SPECIALTY',80),
+-- Freelance and personal services
+('activity-photographer','SEC-FREELANCER','group-freelancer','CAT-FREELANCER','PHOTOGRAPHER','مصور فوتوغرافي','Photographer','ACTIVITY',20),
+('activity-translator','SEC-FREELANCER','group-freelancer','CAT-FREELANCER','TRANSLATOR','مترجم','Translator','ACTIVITY',30),
+('activity-event-planner','SEC-FREELANCER','group-freelancer','CAT-FREELANCER','EVENT_PLANNER','منظم مناسبات','Event Planner','ACTIVITY',40),
+('activity-personal-assistant','SEC-FREELANCER','group-freelancer','CAT-FREELANCER','PERSONAL_SERVICES','خدمات شخصية ومهنية','Personal & Professional Services','ACTIVITY',50),
+-- Grocery and food shops
+('activity-vegetable-store','SEC-GROCERY','group-grocery','CAT-GROCERY','VEGETABLE_STORE','خضار وفاكهة','Fruit & Vegetable Store','ACTIVITY',30),
+('activity-butcher','SEC-GROCERY','group-grocery','CAT-GROCERY','BUTCHER','جزارة','Butcher','ACTIVITY',40),
+('activity-poultry-store','SEC-GROCERY','group-grocery','CAT-GROCERY','POULTRY_STORE','دواجن','Poultry Shop','ACTIVITY',50),
+('activity-fish-market','SEC-GROCERY','group-grocery','CAT-GROCERY','FISH_MARKET','أسماك ومأكولات بحرية','Fish Market','ACTIVITY',60),
+('activity-dairy-store','SEC-GROCERY','group-grocery','CAT-GROCERY','DAIRY_STORE','ألبان ومنتجاتها','Dairy Store','ACTIVITY',70),
+('activity-spice-store','SEC-GROCERY','group-grocery','CAT-GROCERY','SPICE_STORE','عطارة وتوابل','Spice Store','ACTIVITY',80),
+-- Doctors: more medical specialties
+('specialty-doctor-respiratory','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_RESPIRATORY','طبيب صدر','Pulmonologist','SPECIALTY',140),
+('specialty-doctor-nephrology','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_NEPHROLOGY','طبيب كلى','Nephrologist','SPECIALTY',150),
+('specialty-doctor-gastro','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_GASTROENTEROLOGY','طبيب جهاز هضمي','Gastroenterologist','SPECIALTY',160),
+('specialty-doctor-endocrinology','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_ENDOCRINOLOGY','طبيب غدد صماء','Endocrinologist','SPECIALTY',170),
+('specialty-doctor-rheumatology','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_RHEUMATOLOGY','طبيب روماتيزم','Rheumatologist','SPECIALTY',180),
+('specialty-doctor-family','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_FAMILY_MEDICINE','طبيب أسرة','Family Medicine Doctor','SPECIALTY',190),
+('specialty-doctor-emergency','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_EMERGENCY','طبيب طوارئ','Emergency Physician','SPECIALTY',200),
+('specialty-doctor-nutrition','SEC-HEALTH','activity-doctor','CAT-HEALTH','DOCTOR_NUTRITION','طبيب تغذية علاجية','Clinical Nutrition Physician','SPECIALTY',210),
+-- Hospital specializations
+('activity-childrens-hospital','SEC-HOSPITAL','group-hospital','CAT-HOSPITAL','CHILDRENS_HOSPITAL','مستشفى أطفال','Children Hospital','ACTIVITY',20),
+('activity-maternity-hospital','SEC-HOSPITAL','group-hospital','CAT-HOSPITAL','MATERNITY_HOSPITAL','مستشفى نساء وتوليد','Maternity Hospital','ACTIVITY',30),
+('activity-eye-hospital','SEC-HOSPITAL','group-hospital','CAT-HOSPITAL','EYE_HOSPITAL','مستشفى عيون','Eye Hospital','ACTIVITY',40),
+-- Jobs and HR
+('activity-recruitment-office','SEC-JOBS','group-jobs','CAT-JOBS','RECRUITMENT_OFFICE','مكتب توظيف','Recruitment Office','ACTIVITY',20),
+('activity-hr-consultant','SEC-JOBS','group-jobs','CAT-JOBS','HR_CONSULTANT','استشارات موارد بشرية','HR Consultant','ACTIVITY',30),
+('activity-job-platform','SEC-JOBS','group-jobs','CAT-JOBS','JOB_PLATFORM','منصة توظيف','Job Platform','ACTIVITY',40),
+-- Laboratories
+('activity-specialized-lab','SEC-LABS','group-labs','CAT-LABS','SPECIALIZED_LAB','معمل تحاليل متخصص','Specialized Laboratory','ACTIVITY',20),
+('activity-dental-prosthetics-lab','SEC-LABS','group-labs','CAT-LABS','DENTAL_PROSTHETICS_LAB','معمل تركيبات أسنان','Dental Prosthetics Laboratory','ACTIVITY',30),
+-- Legal services
+('specialty-lawyer-civil','SEC-LEGAL','activity-lawyer','CAT-LEGAL','LAWYER_CIVIL','محامي مدني','Civil Lawyer','SPECIALTY',10),
+('specialty-lawyer-criminal','SEC-LEGAL','activity-lawyer','CAT-LEGAL','LAWYER_CRIMINAL','محامي جنائي','Criminal Lawyer','SPECIALTY',20),
+('specialty-lawyer-family','SEC-LEGAL','activity-lawyer','CAT-LEGAL','LAWYER_FAMILY','محامي أحوال شخصية','Family Lawyer','SPECIALTY',30),
+('specialty-lawyer-companies','SEC-LEGAL','activity-lawyer','CAT-LEGAL','LAWYER_COMPANIES','محامي شركات','Corporate Lawyer','SPECIALTY',40),
+('specialty-lawyer-real-estate','SEC-LEGAL','activity-lawyer','CAT-LEGAL','LAWYER_REAL_ESTATE','محامي عقارات','Real Estate Lawyer','SPECIALTY',50),
+('activity-legal-consultancy','SEC-LEGAL','group-legal','CAT-LEGAL','LEGAL_CONSULTANCY','استشارات قانونية','Legal Consultancy','ACTIVITY',30),
+('activity-arbitration-office','SEC-LEGAL','group-legal','CAT-LEGAL','ARBITRATION_OFFICE','مكتب تحكيم','Arbitration Office','ACTIVITY',40),
+-- Maintenance, trades, refrigeration (never label this as AC technician)
+('specialty-plumber-home','SEC-MAINTENANCE','activity-plumber','CAT-MAINTENANCE','PLUMBER_HOME','سباكة منزلية','Home Plumbing','SPECIALTY',10),
+('specialty-plumber-water-heater','SEC-MAINTENANCE','activity-plumber','CAT-MAINTENANCE','PLUMBER_WATER_HEATER','سخانات وأدوات صحية','Water Heaters & Sanitary','SPECIALTY',20),
+('specialty-electrician-home','SEC-MAINTENANCE','activity-electrician','CAT-MAINTENANCE','ELECTRICIAN_HOME','كهرباء منازل','Home Electrician','SPECIALTY',10),
+('specialty-electrician-commercial','SEC-MAINTENANCE','activity-electrician','CAT-MAINTENANCE','ELECTRICIAN_COMMERCIAL','كهرباء محلات وشركات','Commercial Electrician','SPECIALTY',20),
+('activity-finishing-contractor','SEC-MAINTENANCE','group-maintenance','CAT-MAINTENANCE','FINISHING_CONTRACTOR','تشطيبات وديكور','Finishing & Interior Contractor','ACTIVITY',60),
+('activity-cleaning-company','SEC-MAINTENANCE','group-maintenance','CAT-MAINTENANCE','CLEANING_COMPANY','شركة تنظيف','Cleaning Company','ACTIVITY',70),
+('activity-aluminum-glass','SEC-MAINTENANCE','group-maintenance','CAT-MAINTENANCE','ALUMINUM_GLASS','ألوميتال وزجاج','Aluminum & Glass','ACTIVITY',80),
+('activity-pest-control','SEC-MAINTENANCE','group-maintenance','CAT-MAINTENANCE','PEST_CONTROL','مكافحة حشرات','Pest Control','ACTIVITY',90),
+('specialty-refrigeration-display-cases','SEC-MAINTENANCE','activity-refrigeration-technician','CAT-MAINTENANCE','REFRIGERATION_DISPLAY_CASES','ثلاجات عرض تجارية','Commercial Display Refrigeration','SPECIALTY',40),
+-- Transport and delivery
+('activity-passenger-transport','SEC-MANTIGO','group-mantigo','CAT-MANTIGO','PASSENGER_TRANSPORT','نقل ركاب','Passenger Transport','ACTIVITY',20),
+('activity-freight-transport','SEC-MANTIGO','group-mantigo','CAT-MANTIGO','FREIGHT_TRANSPORT','نقل بضائع','Freight Transport','ACTIVITY',30),
+('activity-shipping-office','SEC-MANTIGO','group-mantigo','CAT-MANTIGO','SHIPPING_OFFICE','شركة شحن','Shipping Office','ACTIVITY',40),
+-- Marketing and media
+('activity-social-media','SEC-MARKETING','group-marketing','CAT-MARKETING','SOCIAL_MEDIA_MANAGEMENT','إدارة صفحات التواصل','Social Media Management','ACTIVITY',30),
+('activity-advertising-agency','SEC-MARKETING','group-marketing','CAT-MARKETING','ADVERTISING_AGENCY','وكالة إعلانات','Advertising Agency','ACTIVITY',40),
+('activity-video-production','SEC-MARKETING','group-marketing','CAT-MARKETING','VIDEO_PRODUCTION','إنتاج وتصوير فيديو','Video Production','ACTIVITY',50),
+('activity-seo-agency','SEC-MARKETING','group-marketing','CAT-MARKETING','SEO_AGENCY','تحسين محركات البحث','SEO Agency','ACTIVITY',60),
+-- Matrimony
+('activity-matrimony-office','SEC-MATRIMONY','group-matrimony','CAT-MATRIMONY','MATRIMONY_OFFICE','مكتب زواج وتوفيق','Matrimony Office','ACTIVITY',20),
+('activity-wedding-services','SEC-MATRIMONY','group-matrimony','CAT-MATRIMONY','WEDDING_SERVICES','خدمات أفراح ومناسبات','Wedding Services','ACTIVITY',30),
+-- Medical centers
+('activity-physiotherapy','SEC-MEDICAL','group-medical','CAT-MEDICAL','PHYSIOTHERAPY_CENTER','مركز علاج طبيعي','Physiotherapy Center','ACTIVITY',20),
+('activity-rehabilitation','SEC-MEDICAL','group-medical','CAT-MEDICAL','REHABILITATION_CENTER','مركز تأهيل','Rehabilitation Center','ACTIVITY',30),
+('activity-speech-therapy','SEC-MEDICAL','group-medical','CAT-MEDICAL','SPEECH_THERAPY','مركز تخاطب','Speech Therapy Center','ACTIVITY',40),
+('activity-nutrition-center','SEC-MEDICAL','group-medical','CAT-MEDICAL','NUTRITION_CENTER','مركز تغذية','Nutrition Center','ACTIVITY',50),
+('activity-mental-health','SEC-MEDICAL','group-medical','CAT-MEDICAL','MENTAL_HEALTH_CENTER','مركز صحة نفسية','Mental Health Center','ACTIVITY',60),
+('activity-urgent-care','SEC-MEDICAL','group-medical','CAT-MEDICAL','URGENT_CARE','رعاية عاجلة','Urgent Care','ACTIVITY',70),
+-- Pharmacy and imaging
+('activity-specialty-pharmacy','SEC-PHARMACY','group-pharmacy','CAT-PHARMACY','SPECIALTY_PHARMACY','صيدلية متخصصة','Specialty Pharmacy','ACTIVITY',20),
+('activity-veterinary-pharmacy','SEC-PHARMACY','group-pharmacy','CAT-PHARMACY','VETERINARY_PHARMACY','صيدلية بيطرية','Veterinary Pharmacy','ACTIVITY',30),
+('activity-xray','SEC-RADIOLOGY','group-radiology','CAT-RADIOLOGY','XRAY_CENTER','مركز أشعة سينية','X-ray Center','ACTIVITY',20),
+('activity-ct-scan','SEC-RADIOLOGY','group-radiology','CAT-RADIOLOGY','CT_CENTER','مركز أشعة مقطعية','CT Center','ACTIVITY',30),
+('activity-mri','SEC-RADIOLOGY','group-radiology','CAT-RADIOLOGY','MRI_CENTER','مركز رنين مغناطيسي','MRI Center','ACTIVITY',40),
+('activity-ultrasound','SEC-RADIOLOGY','group-radiology','CAT-RADIOLOGY','ULTRASOUND_CENTER','مركز موجات فوق صوتية','Ultrasound Center','ACTIVITY',50),
+-- Real estate
+('activity-real-estate-company','SEC-REAL_ESTATE','group-real-estate','CAT-REAL_ESTATE','REAL_ESTATE_COMPANY','شركة تسويق عقاري','Real Estate Marketing Company','ACTIVITY',20),
+('activity-property-management','SEC-REAL_ESTATE','group-real-estate','CAT-REAL_ESTATE','PROPERTY_MANAGEMENT','إدارة عقارات','Property Management','ACTIVITY',30),
+('activity-real-estate-developer','SEC-REAL_ESTATE','group-real-estate','CAT-REAL_ESTATE','REAL_ESTATE_DEVELOPER','مطور عقاري','Real Estate Developer','ACTIVITY',40),
+-- Sports
+('activity-personal-trainer','SEC-SPORTS','group-sports','CAT-SPORTS','PERSONAL_TRAINER','مدرب لياقة شخصية','Personal Trainer','ACTIVITY',20),
+('activity-sports-academy','SEC-SPORTS','group-sports','CAT-SPORTS','SPORTS_ACADEMY','أكاديمية رياضية','Sports Academy','ACTIVITY',30),
+('activity-yoga-studio','SEC-SPORTS','group-sports','CAT-SPORTS','YOGA_STUDIO','استوديو يوغا','Yoga Studio','ACTIVITY',40),
+-- Trips and hospitality
+('activity-tour-operator','SEC-TRIPS','group-trips','CAT-TRIPS','TOUR_OPERATOR','منظم رحلات','Tour Operator','ACTIVITY',20),
+('activity-hotel','SEC-TRIPS','group-trips','CAT-TRIPS','HOTEL','فندق وإقامة','Hotel & Accommodation','ACTIVITY',30),
+('activity-event-venue','SEC-TRIPS','group-trips','CAT-TRIPS','EVENT_VENUE','قاعة مناسبات','Event Venue','ACTIVITY',40),
+-- Used goods
+('activity-used-furniture','SEC-USED_ITEMS','group-used-items','CAT-USED_ITEMS','USED_FURNITURE','أثاث مستعمل','Used Furniture','ACTIVITY',20),
+('activity-used-electronics','SEC-USED_ITEMS','group-used-items','CAT-USED_ITEMS','USED_ELECTRONICS','أجهزة إلكترونية مستعملة','Used Electronics','ACTIVITY',30),
+('activity-used-cars','SEC-USED_ITEMS','group-used-items','CAT-USED_ITEMS','USED_CARS','سيارات مستعملة','Used Cars','ACTIVITY',40),
+('activity-used-clothing','SEC-USED_ITEMS','group-used-items','CAT-USED_ITEMS','USED_CLOTHING','ملابس مستعملة','Used Clothing','ACTIVITY',50),
+-- Veterinary and animals
+('activity-pet-shop','SEC-VETERINARY','group-veterinary','CAT-VETERINARY','PET_SHOP','متجر حيوانات أليفة','Pet Shop','ACTIVITY',20),
+('activity-pet-grooming','SEC-VETERINARY','group-veterinary','CAT-VETERINARY','PET_GROOMING','عناية وتجميل حيوانات','Pet Grooming','ACTIVITY',30),
+('activity-animal-supplies','SEC-VETERINARY','group-veterinary','CAT-VETERINARY','ANIMAL_SUPPLIES','مستلزمات حيوانات','Animal Supplies','ACTIVITY',40),
+('specialty-veterinary-surgery','SEC-VETERINARY','activity-vet','CAT-VETERINARY','VETERINARY_SURGERY','جراحة بيطرية','Veterinary Surgery','SPECIALTY',10),
+('specialty-veterinary-pets','SEC-VETERINARY','activity-vet','CAT-VETERINARY','VETERINARY_PETS','طب حيوانات أليفة','Pet Veterinary','SPECIALTY',20)
+on conflict (id) do nothing;
+
 alter table public.business_activity_types enable row level security;
 alter table public.business_activity_types force row level security;
 revoke all on public.business_activity_types from anon, authenticated;
