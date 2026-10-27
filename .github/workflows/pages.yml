@@ -10,7 +10,8 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  # Keep PR validation in a separate group so it cannot cancel a live main deployment.
+  group: pages-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   validate:
