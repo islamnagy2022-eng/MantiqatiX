@@ -35,6 +35,7 @@ assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and servi
 assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
 assert.match(productionMapper, /stockImage \? 'auto' : 'owner'/, 'legacy stock images must be converted to neutral auto placeholders rather than shown as owner photos');
 assert.match(productionMapper, /isStockImageUrl\(profile\.logoUrl/, 'legacy stock business logos and covers must be suppressed');
+assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
