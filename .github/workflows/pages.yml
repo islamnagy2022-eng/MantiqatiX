@@ -62,6 +62,8 @@ jobs:
           mkdir -p web/vendor
           npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
+      - name: Assert Pages deployment requires full production gate
+        run: node scripts/validate-pages-production-deploy-gate.mjs
       - name: Production verification engine
         run: npm run verify:production
       - name: Syntax check
@@ -243,7 +245,7 @@ jobs:
     # The old MantiqatiX sources remain in /web; this publishes the new React frontend
     # to the single GitHub Pages slot, so the new UI becomes the production root.
     needs: [validate, validate_public_only]
-    if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (needs.validate.result == 'success' || needs.validate_public_only.result == 'success')
+    if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.validate.result == 'success'
     timeout-minutes: 10
     environment:
       name: github-pages
