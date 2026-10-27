@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: read-only ledger comparison confirms all 16 required RC425–RC432 and RC434–RC441 versions are absent from the live Production ledger, even though the complete 52-migration forward chain passes in a disposable schema-checkpoint replay. Replay is not proof that missing migrations can safely be applied out of order to the current live schema. Payment/finance E2E, backup/restore rehearsal, Edge Function runtime parity, SMM anonymous/authenticated negative tests, live Auth security settings, browser/device E2E, monitoring/alert and rollback evidence remain unverified.",
+  "reason": "Production remains BLOCKED: all 16 required RC425–RC432 and RC434–RC441 versions are absent from the live Production ledger, despite passing isolated forward replay. A second blocking mismatch is confirmed in the financial journal boundary: RC449A/RC450 are absent, five required journal columns are missing, and neither current financial journal RPC is executable by service_role under the live ACL. Payment/webhook/finance E2E, backup/restore, critical Edge Function source parity, SMM negative runtime tests, managed Auth security settings, browser/device E2E, monitoring/alert and rollback evidence remain unverified.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -193,5 +193,53 @@
       }
     ],
     "interpretation": "Five critical functions have source drift against main. These findings require review of the linked migration/grant contracts and payment/finance integration tests before any coordinated deployment; do not deploy these functions individually or infer exploitability from source drift alone."
+  },
+  "financial_journal_runtime_prerequisite_check": {
+    "status": "BLOCKING_DRIFT",
+    "checked_at": "2026-10-27",
+    "method": "Read-only PostgreSQL catalog, effective EXECUTE privilege, journal column, and aggregate row-count checks; live Edge Function source comparison. No RPC invoked.",
+    "live_migrations": {
+      "20261010175000_rc449a_financial_journal_schema_prerequisites": false,
+      "20261010180000_rc450_financial_journal_service_role_boundary": false
+    },
+    "rpc_privileges": [
+      {
+        "signature": "post_financial_journal(jsonb,jsonb)",
+        "acl": "{postgres=X/postgres}",
+        "service_role_execute": false,
+        "authenticated_execute": false,
+        "anon_execute": false
+      },
+      {
+        "signature": "post_financial_journal_backend(uuid,jsonb,jsonb)",
+        "acl": "{postgres=X/postgres}",
+        "service_role_execute": false,
+        "authenticated_execute": false,
+        "anon_execute": false
+      }
+    ],
+    "schema_preflight": {
+      "rc449a_existing_legacy_prerequisites_present": true,
+      "rc450_required_columns_present": false,
+      "missing_columns": [
+        "public.journal_entries.entry_number",
+        "public.journal_entries.total_debit",
+        "public.journal_entries.total_credit",
+        "public.journal_entries.posted_at",
+        "public.journal_entry_lines.line_number"
+      ]
+    },
+    "live_row_counts": {
+      "public.journal_entries": 0,
+      "public.journal_entry_lines": 0,
+      "public.general_ledger": 0,
+      "public.payment_intents": 0,
+      "public.subscription_payment_intents": 0,
+      "public.erp_purchase_orders": 0,
+      "public.erp_purchase_receipts": 0,
+      "public.smm_orders": 0,
+      "public.smm_wallet_transactions": 0
+    },
+    "interpretation": "The deployed financial-journal v3 entrypoint calls post_financial_journal using a service-role client, but the live RPC ACL does not grant service_role EXECUTE and required journal columns are absent. Current main instead calls post_financial_journal_backend and expects the reviewed RC450 contract, which is also not executable by service_role until the reviewed grant migration is applied. Do not invoke or deploy this path individually; complete ordered RC449A → RC450 dependencies, migrate/replay in staging, and pass finance E2E before release."
   }
 }
