@@ -4,6 +4,8 @@ import assert from "node:assert/strict";
 const page = fs.readFileSync("web/smm.html", "utf8");
 const gateway = fs.readFileSync("supabase/functions/smm-gateway/index.ts", "utf8");
 
+assert.equal(fs.existsSync("web/smm.js"), false, "The retired interactive SMM client must not return.");
+assert.equal(fs.existsSync("web/smm.css"), false, "The retired SMM storefront stylesheet must not return.");
 assert.match(page, /<meta name="robots" content="noindex,follow">/i,
   "The deferred SMM page must remain excluded from search indexing.");
 assert.match(page, /خارج نطاق الإطلاق الأول/,
