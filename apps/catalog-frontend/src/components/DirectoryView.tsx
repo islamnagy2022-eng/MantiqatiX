@@ -43,8 +43,10 @@ interface CoverSlide {
   badge: string;
   title: string;
   subtitle: string;
-  governorates: string[]; // ['all'] أو تحديد محافظة أو عدة محافظات
+  governorates: string[];
+  businessId?: string;
 }
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
 export const DirectoryView: React.FC = () => {
   const {
@@ -59,154 +61,32 @@ export const DirectoryView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
-  const catalogRequestPhone = String(
-    adminSettings.adminWhatsApp || (window as any).MNTY_SUPPORT?.whatsapp || '201010171770'
-  ).replace(/\D/g, '');
+  const catalogRequestPhone = whatsappDigits(
+    adminSettings.adminWhatsApp || (window as any).MNTY_SUPPORT?.whatsapp || ''
+  );
 
-  // 20 Professional Cover Slides with governorate targeting
-  const coverSlides: CoverSlide[] = [
-    {
-      image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان عام #1 • احجز مساحتك الإعلانية',
-      title: 'احجز مساحتك الإعلانية الأولى في منطقتك وضاعف أرباحك',
-      subtitle: 'انضم إلى مجتمع الأنشطة المحلية واجعل نشاطك أقرب لعملائك في القرى والمراكز.',
-      governorates: ['all'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان عام #2 • سر نجاح مشروعك الرقمي',
-      title: 'كتالوج رقمي فوري يضم 150 منتج وخدمة',
-      subtitle: 'اعرض منتجاتك وأسعارك بالجنيه المصري واستقبل طلبات العملاء مباشرة عبر واتساب.',
-      governorates: ['all'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان عام #3 • احجز مساحتك الآن',
-      title: 'طلباتك تبدأ بمحادثة مباشرة مع صاحب النشاط',
-      subtitle: 'في هذه النسخة يتم الاتفاق على الدفع بين العميل وصاحب النشاط خارج المنصة بعد التواصل عبر واتساب.',
-      governorates: ['all'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان عام #4 • دعاية ودعم احترافي',
-      title: 'QR كود دائم ومستقر لمتجرك أو مطعمك',
-      subtitle: 'رمز استجابة سريع لا يتغير أبداً ومقاوم لتغير نطاق الموقع لخدمة فورية لزبائنك.',
-      governorates: ['all'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان إقليمي #5 • محافظة الدقهلية',
-      title: 'باقات الانتشار والتواجد الرقمي في الدقهلية والمنصورة',
-      subtitle: 'تصميم هويات بصرية، إدارة حملات ممولة، وفيديوهات ذكاء اصطناعي لرفع مبيعاتك.',
-      governorates: ['الدقهلية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان إقليمي #6 • محافظة الدقهلية',
-      title: 'اجعل نشاطك يظهر في صدارة نتائج البحث المحلي بالمنصورة',
-      subtitle: 'ترتيب تلقائي للأنشطة الأقرب لموقع الجغرافيا والخدمة للعميل.',
-      governorates: ['الدقهلية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان إقليمي #7 • محافظة الدقهلية',
-      title: 'دليل المطاعم والمتاجر الكبرى في الدقهلية',
-      subtitle: 'نظام تشغيل مخصص للمطاعم، المتاجر، والصيدليات لتلقي طلبات الدليفري.',
-      governorates: ['الدقهلية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان إقليمي #8 • محافظة الدقهلية',
-      title: 'احجز مساحتك الإعلانية المميزة لمدن ومراكز الدقهلية',
-      subtitle: 'تواصل مع الإدارة الآن لتثبيت إعلانك في واجهة المنصة بالدقهلية.',
-      governorates: ['الدقهلية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان العاصمة #9 • القاهرة والجيزة',
-      title: 'تغطية إعلانية كبرى لمحافظتي القاهرة والجيزة',
-      subtitle: 'أظهر بيانات موقع نشاطك لتسهيل وصول العملاء إليك ومعرفة نطاق الخدمة.',
-      governorates: ['القاهرة', 'الجيزة'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان العاصمة #10 • القاهرة والجيزة',
-      title: 'احفظ صفحة نشاطك كتطبيق موبايل (PWA) بالقاهرة الكبرى',
-      subtitle: 'سهّل وصول العملاء إلى كتالوجك بتثبيته كتطبيق ويب على هواتفهم.',
-      governorates: ['القاهرة', 'الجيزة'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان العاصمة #11 • القاهرة والجيزة',
-      title: 'منصة موثّقة لتعزيز الثقة مع زبائن القاهرة والجيزة',
-      subtitle: 'علامة التوثيق الرسمية تزيد من مصداقية وطلب منتجاتك وخدماتك.',
-      governorates: ['القاهرة', 'الجيزة'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان العاصمة #12 • القاهرة والجيزة',
-      title: 'احجز مساحتك الإعلانية الكبرى بالقاهرة والجيزة',
-      subtitle: 'فريق محترف لدعم خططك التسويقية وزيادة مبيعاتك طوال العام.',
-      governorates: ['القاهرة', 'الجيزة'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الدلتا #13 • الشرقية والغربية',
-      title: 'باقات انتشار واسعة لمحافظتي الشرقية والغربية',
-      subtitle: 'أقل تكلفة وأعلى عائد إعلاني في الزقازيق وطنطا ومراكز الدلتا.',
-      governorates: ['الشرقية', 'الغربية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الدلتا #14 • الشرقية والغربية',
-      title: 'دعوة عامة لأصحاب الورش والمحلات بالشرقية والغربية',
-      subtitle: 'ابدأ اليوم بإنشاء كتالوجك الرقمي وافتح باباً جديداً لطلبات الزبائن.',
-      governorates: ['الشرقية', 'الغربية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الدلتا #15 • الشرقية والغربية',
-      title: 'فيديوهات إعلانية مبهرة لمنتجاتك بالشرقية والغربية',
-      subtitle: 'اجذب انتباه العملاء بمحتوى مرئي عالي الجودة ومصمم خصيصاً للتسويق.',
-      governorates: ['الشرقية', 'الغربية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الدلتا #16 • الشرقية والغربية',
-      title: 'احجز مساحتك الإعلانية المميزة بالدلتا الآن',
-      subtitle: 'تواصل مع الإدارة عبر الواتساب لحجز إعلانك الإقليمي.',
-      governorates: ['الشرقية', 'الغربية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الساحل والقناة #17 • الإسكندرية والقليوبية',
-      title: 'تغطية إعلانية في الإسكندرية والقليوبية',
-      subtitle: 'نظام طلبات طعام سريعة وإضافات مخصصة للمطاعم والمتاجر.',
-      governorates: ['الإسكندرية', 'القليوبية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الساحل والقناة #18 • الإسكندرية والقليوبية',
-      title: 'دعم فني ومتابعة يومية لتشغيل كتالوجك بالإسكندرية وبنها',
-      subtitle: 'نحن معك خطوة بخطوة لضمان استمرارية نجاح وتطور مشروعك.',
-      governorates: ['الإسكندرية', 'القليوبية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الساحل والقناة #19 • الإسكندرية والقليوبية',
-      title: 'حول متجرك التقليدي إلى متجر رقمي ذكي',
-      subtitle: 'الزائرون يبحثون عنك الآن في منطقتك؛ كن أول من يصلون إليه.',
-      governorates: ['الإسكندرية', 'القليوبية'],
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=1600&auto=format&fit=crop&q=80',
-      badge: 'إعلان الساحل والقناة #20 • الإسكندرية والقليوبية',
-      title: 'احجز مساحتك الإعلانية الكبرى في الإسكندرية والقليوبية',
-      subtitle: 'تواصل الآن عبر الواتساب مع الإدارة لتأمين موقع إعلانك الرئيسي!',
-      governorates: ['الإسكندرية', 'القليوبية'],
-    },
-  ];
+  // Featured slides are generated only from real, published business records.
+  const liveFeaturedBusinesses = businesses
+    .filter((business) => Boolean(business.publicEnabled) && !business.isFrozen && Boolean(business.name.trim()))
+    .slice(0, 20);
+  const coverSlides: CoverSlide[] = liveFeaturedBusinesses.length
+    ? liveFeaturedBusinesses.map((business) => ({
+        image: business.coverUrl || BUSINESS_PLACEHOLDER,
+        badge: business.category || 'نشاط محلي',
+        title: business.name,
+        subtitle: business.bio || 'تعرّف على بيانات النشاط ووسائل التواصل المسجلة.',
+        governorates: [business.governorate || 'all'],
+        businessId: business.id,
+      }))
+    : [{
+        image: BUSINESS_PLACEHOLDER,
+        badge: 'دليل الأنشطة المحلية',
+        title: 'اكتشف الأنشطة والخدمات المتاحة',
+        subtitle: 'ستظهر هنا الأنشطة التي نشرت كتالوجاتها وبياناتها الفعلية.',
+        governorates: ['all'],
+      }];
 
+  // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
 
   // Filter slides based on selected governorate
@@ -215,8 +95,8 @@ export const DirectoryView: React.FC = () => {
     const matched = coverSlides.filter(
       (slide) => slide.governorates.includes('all') || slide.governorates.includes(selectedGovFilter)
     );
-    return matched.length > 0 ? matched : coverSlides.filter((slide) => slide.governorates.includes('all'));
-  }, [selectedGovFilter]);
+    return matched.length > 0 ? matched : coverSlides;
+  }, [selectedGovFilter, businesses]);
 
   useEffect(() => {
     setCurrentCoverIndex(0);
@@ -268,15 +148,17 @@ export const DirectoryView: React.FC = () => {
             </h1>
           </div>
 
-          <a
-            href={`https://wa.me/${adminSettings.adminWhatsApp}?text=${encodeURIComponent(`أرغب في حجز مساحة إعلانية مميزة لمحافظة ${selectedGovFilter === 'all' ? 'عامة' : selectedGovFilter} في غلاف الصفحة الرئيسية لمنصة MantiqatiX.`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs py-3 px-6 rounded-2xl shadow-lg shadow-amber-400/25 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
-          >
-            <Megaphone className="w-4 h-4" />
-            <span>احجز مساحتك الإعلانية ({selectedGovFilter === 'all' ? 'لكل المحافظات' : selectedGovFilter})</span>
-          </a>
+          {catalogRequestPhone && (
+            <a
+              href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs py-3 px-6 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>اطلب كتالوج لنشاطك</span>
+            </a>
+          )}
         </div>
       </div>
 
@@ -291,9 +173,13 @@ export const DirectoryView: React.FC = () => {
               }`}
             >
               <img
-                src={slide.image}
+                src={slide.image || BUSINESS_PLACEHOLDER}
                 alt={slide.title}
                 className="w-full h-full object-cover object-center"
+                onError={(event) => {
+                  const image = event.currentTarget;
+                  if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-black/30" />
             </div>
@@ -309,15 +195,22 @@ export const DirectoryView: React.FC = () => {
             <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
               {currentSlide?.subtitle}
             </p>
-            <a
-              href={`https://wa.me/${adminSettings.adminWhatsApp}?text=${encodeURIComponent(`أرغب في حجز المساحة الإعلانية المخصصة لمحافظة (${selectedGovFilter}) - ${currentSlide?.badge} في منصة MantiqatiX.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="pointer-events-auto mt-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs py-2.5 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <span>احجز هذه المساحة الإعلانية عبر الواتساب</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            {currentSlide?.businessId && (
+              <span className="pointer-events-auto mt-2 bg-white/15 border border-white/30 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
+                نشاط منشور فعليًا على المنصة
+              </span>
+            )}
+            {!currentSlide?.businessId && catalogRequestPhone && (
+              <a
+                href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pointer-events-auto mt-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs py-2.5 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <span>اطلب كتالوج لنشاطك</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
           </div>
 
           {/* Slider Dots */}
@@ -329,7 +222,7 @@ export const DirectoryView: React.FC = () => {
                 className={`h-2 rounded-full transition-all cursor-pointer ${
                   idx === currentCoverIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white'
                 }`}
-                aria-label={`انتقل للإعلان ${idx + 1}`}
+                aria-label={`انتقل إلى النشاط ${idx + 1}`}
               />
             ))}
           </div>
@@ -483,12 +376,12 @@ export const DirectoryView: React.FC = () => {
                       {/* Cover Photo & Badges */}
                       <div className="relative h-36 bg-slate-800 overflow-hidden">
                         <img
-                          src={biz.coverUrl}
+                          src={biz.coverUrl || BUSINESS_PLACEHOLDER}
                           alt={biz.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80';
+                            const image = e.currentTarget;
+                            if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -513,12 +406,12 @@ export const DirectoryView: React.FC = () => {
                       <div className="p-5 relative">
                         <div className="absolute -top-10 right-5 w-16 h-16 rounded-2xl bg-white p-1 shadow-md ring-2 ring-white overflow-hidden">
                           <img
-                            src={biz.logoUrl}
+                            src={biz.logoUrl || BUSINESS_PLACEHOLDER}
                             alt={biz.name}
                             className="w-full h-full object-cover rounded-xl bg-slate-100"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=240&auto=format&fit=crop&q=80';
+                              const image = e.currentTarget;
+                              if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
                             }}
                           />
                         </div>
