@@ -3,21 +3,21 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261008222845",
-  "live_ledger_last_name": "rc424_atomic_digital_page_payment_webhook",
+  "live_ledger_last_version": "20261027041549",
+  "live_ledger_last_name": "qadam_alsaad_restore_contact_fields",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
-  "chronological_replay": "PASS — isolated disposable Supabase checkpoint restore and ordered forward migration replay completed successfully in GitHub Actions run 40052022874",
-  "tenant_isolation_tests": "PASS — synthetic two-tenant read-isolation checks completed in the same isolated CI replay; coverage limited to businesses, orders, payment_intents, provider_onboarding_requests",
+  "chronological_replay": "PASS",
+  "tenant_isolation_tests": "PASS",
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
-  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40052022874",
-  "checked_at": "2026-10-24",
-  "reason": "Production remains blocked: successful isolated replay and scoped two-tenant read-isolation checks do not prove required post-RC424 migrations are applied in production. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway parity, and live Auth security settings remain unverified. Do not deploy until each item has evidence and production backup/restore readiness is verified.",
+  "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40453971339",
+  "checked_at": "2026-10-27",
+  "reason": "Production remains BLOCKED. Read-only Production inventory contains 292 migration records and confirms the latest catalog/contact entries, but does not prove all required release migrations (including RC113–RC117 and the recovered post-RC424 chain) are applied to Production. Candidate source replay passed in a disposable Supabase/PostgreSQL environment and tenant-isolation checks passed for orders and payment_intents in both directions; these results do not certify the live database, backup/restore, provider/payment flows, or runtime deployment. Payment/finance E2E, backup/restore rehearsal, Edge Function contracts, SMM gateway parity and live Auth security settings remain NOT VERIFIED. Supabase Security Advisor on 2026-10-27 reports leaked-password protection disabled and contextual anonymous-access-policy warnings. Do not deploy until every required release migration and external/runtime gate is verified.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
-  "auth_security_settings": "NOT VERIFIED",
+  "auth_security_settings": "NOT VERIFIED — Security Advisor observed leaked-password protection disabled on 2026-10-27; owner action and re-check required.",
   "rc424_reconciliation": {
     "ledger_version": "20261008222845",
     "ledger_name": "rc424_atomic_digital_page_payment_webhook",
@@ -30,5 +30,44 @@
     "history_rewritten": false,
     "resolution": "Read-only comparison of supabase_migrations.schema_migrations.statements[1] against the RC424 source file matched exactly. Preserve the applied ledger version; document the filename timestamp difference as a legacy version alias instead of rewriting migration history."
   },
-  "rc424_reconciliation_evidence_checked_at": "2026-10-11"
+  "rc424_reconciliation_evidence_checked_at": "2026-10-11",
+  "current_ledger_inventory": {
+    "migration_records": 292,
+    "latest_entries": [
+      {
+        "version": "20261027010135",
+        "name": "add_qadam_alsaad_homewares_store_and_catalog"
+      },
+      {
+        "version": "20261027041411",
+        "name": "mantiqatix_marketing_contact_details"
+      },
+      {
+        "version": "20261027041549",
+        "name": "qadam_alsaad_restore_contact_fields"
+      }
+    ],
+    "evidence_checked_at": "2026-10-27",
+    "source": "Supabase read-only migration inventory"
+  },
+  "historical_isolated_replay": {
+    "status": "PASS (older independent checkpoint replay; superseded by current candidate evidence)",
+    "run_id": "40052022874"
+  },
+  "isolated_replay_evidence": {
+    "status": "PASS",
+    "run_id": "40453971339",
+    "candidate_commit": "96fda2fbd9d885e727c65a626745d67c3154709d",
+    "checked_current_pr_head": "4eb74e97932ca93c047816ca5e6179dda83339d1",
+    "current_head_delta": "The two commits after the replay candidate changed TODO.md only; no SQL migration source changed in that delta.",
+    "forward_migrations_applied": 50,
+    "tests": [
+      "Tenant A cannot update Tenant B orders or payment intents",
+      "Tenant A can read its own rows and cannot read private Tenant B rows",
+      "Tenant B cannot update Tenant A orders or payment intents",
+      "Tenant B can read its own rows and cannot read private Tenant A rows"
+    ],
+    "transaction_end": "ROLLBACK",
+    "limitation": "Disposable CI environment only; no Production migrations or data writes."
+  }
 }
