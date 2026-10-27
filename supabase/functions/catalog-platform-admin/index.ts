@@ -387,6 +387,32 @@ Deno.serve(async (req: Request) => {
       if ((input.logoUrl && !logoUrl) || (input.coverUrl && !coverUrl)) return response(origin, { error: "INVALID_PROFILE_URL" }, 400);
       const business = await getBusiness(tenantId, businessId);
       if (business.settings?.deleted_at) return response(origin, { error: "BUSINESS_ARCHIVED" }, 409);
+      let selectedActivity: any = null;
+      if (activityTypeId) {
+        const { data, error } = await service.from("business_activity_types")
+          .select("id,sector_id,parent_id,legacy_category_id,code,name_ar,node_type,status")
+          .eq("id", activityTypeId).eq("status", "ACTIVE").maybeSingle();
+        if (error) throw error;
+        if (!data || !["ACTIVITY", "SPECIALTY"].includes(String(data.node_type))) {
+          return response(origin, { error: "INVALID_ACTIVITY_TYPE" }, 400);
+        }
+        const { data: parent, error: parentError } = await service.from("business_activity_types")
+          .select("id,sector_id,parent_id,node_type,status").eq("id", data.parent_id).maybeSingle();
+        if (parentError) throw parentError;
+        const requiredParent = data.node_type === "ACTIVITY" ? "SECTOR_GROUP" : "ACTIVITY";
+        if (!parent || parent.status !== "ACTIVE" || parent.node_type !== requiredParent || String(parent.sector_id) !== String(data.sector_id)) {
+          return response(origin, { error: "INVALID_ACTIVITY_PARENT" }, 400);
+        }
+        if (data.node_type === "SPECIALTY") {
+          const { data: group, error: groupError } = await service.from("business_activity_types")
+            .select("id,sector_id,node_type,status").eq("id", parent.parent_id).maybeSingle();
+          if (groupError) throw groupError;
+          if (!group || group.status !== "ACTIVE" || group.node_type !== "SECTOR_GROUP" || String(group.sector_id) !== String(data.sector_id)) {
+            return response(origin, { error: "INVALID_ACTIVITY_SECTOR" }, 400);
+          }
+        }
+        selectedActivity = data;
+      }
       const oldSettings = business.settings || {};
       const oldProfile = oldSettings.catalog_profile && typeof oldSettings.catalog_profile === "object" ? oldSettings.catalog_profile : {};
       const profile = { ...oldProfile, name_en: nameEn, bio, governorate, markaz, village, working_hours: workingHours, logo_url: logoUrl, cover_url: coverUrl, address, phone };
