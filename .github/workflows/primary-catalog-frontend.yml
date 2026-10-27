@@ -7,6 +7,7 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
       - ".github/workflows/pages.yml"
@@ -33,6 +34,7 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-production-gate-contract.mjs"
       - "scripts/validate-pages-production-deploy-gate.mjs"
       - ".github/workflows/pages.yml"
@@ -84,6 +86,8 @@ jobs:
         run: npm run lint
       - name: Validate Google OAuth session and role contract
         run: node scripts/validate-catalog-google-auth-contract.mjs
+      - name: Verify paid subscription activation gate
+        run: node scripts/validate-paid-subscription-gate.mjs
       - name: Validate that the platform root is preserved
         run: node scripts/validate-pages-production-deploy-gate.mjs
       - name: Build catalog module for its own subpath
