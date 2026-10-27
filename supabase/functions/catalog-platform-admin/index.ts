@@ -75,6 +75,52 @@ Deno.serve(async (req: Request) => {
     const productionTenantIds = productionTenants.map((t: any) => String(t.id));
     if (!productionTenantIds.length) return response(origin, { error: "PRODUCTION_TENANT_REQUIRED" }, 409);
 
+    if (action === "PLATFORM_DASHBOARD_METRICS") {
+      const countQuery = async (query: any) => {
+        const { count, error } = await query;
+        if (error) throw error;
+        return Number(count || 0);
+      };
+      const [businesses, activeBusinesses, inactiveBusinesses, suspendedBusinesses,
+        activeOwners, unassignedBusinesses, customers, activeSubscriptions, pastDueSubscriptions,
+        cancelledSubscriptions, activeGroups, activeActivities, recentAudit] = await Promise.all([
+        countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds)),
+        countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("status", "ACTIVE")),
+        countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("status", "INACTIVE")),
+        countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("status", "SUSPENDED")),
+        countQuery(service.from("user_memberships").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).in("role", ["OWNER", "BUSINESS_OWNER"]).eq("status", "ACTIVE")),
+        countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).not("id", "in", "(select business_id from user_memberships where status = 'ACTIVE' and role in ('OWNER','BUSINESS_OWNER'))")),
+        countQuery(service.from("user_memberships").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("role", "CUSTOMER").eq("status", "ACTIVE")),
+        countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).eq("status", "ACTIVE")),
+        countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("status", ["PAST_DUE", "PAST-DUE", "UNPAID"])),
+        countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("status", ["CANCELLED", "CANCELED"])),
+        countQuery(service.from("business_activity_types").select("id", { count: "exact", head: true }).eq("node_type", "SECTOR_GROUP").eq("status", "ACTIVE")),
+        countQuery(service.from("business_activity_types").select("id", { count: "exact", head: true }).neq("node_type", "SECTOR_GROUP").eq("status", "ACTIVE")),
+        service.from("audit_logs").select("action,entity_type,entity_id,result,created_at").eq("tenant_id", String(platformMemberships[0].tenant_id)).order("created_at", { ascending: false }).limit(8),
+      ]);
+      const auditResult = recentAudit as any;
+      if (auditResult.error) throw auditResult.error;
+      return response(origin, {
+        metrics: {
+          businesses, activeBusinesses, inactiveBusinesses, suspendedBusinesses,
+          activeOwners, unassignedBusinesses, customers,
+          activeSubscriptions, pastDueSubscriptions, cancelledSubscriptions,
+          activeActivityGroups: activeGroups, activeActivities,
+          visits: null, visitsStatus: "NOT_WIRED",
+          commissionAccrued: null, commissionCollected: null, commissionOutstanding: null,
+          claimsDue: null, claimsStatus: "NOT_WIRED",
+        },
+        recentAudit: auditResult.data || [],
+        metricDefinitions: {
+          businesses: "عدد سجلات businesses ضمن نطاقات الإنتاج المصرح بها",
+          customers: "عضويات CUSTOMER النشطة فقط؛ قد لا تمثل عدد الأشخاص الفريدين",
+          activeOwners: "عضويات مالك النشاط النشطة وليست عدد المستخدمين الفريدين",
+          visits: "لا يوجد حتى الآن مصدر زيارات موحد موثق في هذا المسار؛ لا يتم اختلاق أرقام",
+          commissions: "تحتاج ربطًا موثقًا بحالات دفتر الأستاذ والتسويات قبل عرض إجماليات مالية",
+        },
+      });
+    }
+
     if (action === "LIST_ACTIVITY_TYPES") {
       const { data: rows, error } = await service.from("business_activity_types")
         .select("id,sector_id,parent_id,legacy_category_id,code,name_ar,name_en,node_type,status,sort_order,metadata,created_at,updated_at")
