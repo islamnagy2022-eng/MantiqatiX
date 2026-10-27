@@ -20,6 +20,11 @@ const pagesWorkflow = read('.github/workflows/pages.yml');
 
 assert.ok(qadam && qadam.status === 'DATA_READY_LEDGER_DRIFT', 'Qadam catalog must be explicitly data-ready with ledger drift disclosed');
 assert.equal(qadam.owner_membership_active, true, 'Qadam owner membership must be active');
+assert.equal(qadam.business_active, true, 'Qadam business must remain active');
+assert.equal(qadam.catalog_public_enabled, true, 'Qadam public catalog must be enabled');
+assert.equal(qadam.provider_profile_status, 'ACTIVE', 'Qadam provider profile status must be active');
+assert.equal(qadam.contact_fields_complete, true, 'Qadam contact fields must be complete');
+assert.equal(qadam.stock_tracking_enabled_item_count, 0, 'Pilot must not fabricate stock tracking data');
 assert.equal(qadam.active_provider_profile, true, 'Qadam public provider profile must be active');
 assert.equal(qadam.provider_profile_owner_matches_business_owner, true, 'Provider profile must belong to the intended owner');
 assert.equal(qadam.repair_migration_version_recorded, true, 'Scoped owner/profile repair migration must be recorded');
