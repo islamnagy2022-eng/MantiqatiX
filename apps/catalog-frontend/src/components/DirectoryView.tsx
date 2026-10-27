@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
   if (digits.startsWith('00')) digits = digits.slice(2);
@@ -483,12 +485,12 @@ export const DirectoryView: React.FC = () => {
                       {/* Cover Photo & Badges */}
                       <div className="relative h-36 bg-slate-800 overflow-hidden">
                         <img
-                          src={biz.coverUrl}
+                          src={biz.coverUrl || BUSINESS_PLACEHOLDER}
                           alt={biz.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80';
+                            const image = e.currentTarget;
+                            if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -513,12 +515,12 @@ export const DirectoryView: React.FC = () => {
                       <div className="p-5 relative">
                         <div className="absolute -top-10 right-5 w-16 h-16 rounded-2xl bg-white p-1 shadow-md ring-2 ring-white overflow-hidden">
                           <img
-                            src={biz.logoUrl}
+                            src={biz.logoUrl || BUSINESS_PLACEHOLDER}
                             alt={biz.name}
                             className="w-full h-full object-cover rounded-xl bg-slate-100"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src =
-                                'https://images.unsplash.com/photo-1509785307050-d4066910ec1e?w=240&auto=format&fit=crop&q=80';
+                              const image = e.currentTarget;
+                              if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
                             }}
                           />
                         </div>
