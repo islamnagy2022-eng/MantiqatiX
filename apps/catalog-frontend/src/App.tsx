@@ -14,6 +14,7 @@ const MainContent: React.FC = () => {
   const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
+  const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
 
   // Never expose a dashboard without a production role. Guests may view a
   // storefront only through its direct share link, never through a generic tab.
@@ -69,15 +70,17 @@ const MainContent: React.FC = () => {
               <span>•</span>
               <span>العملة: الجنيه المصري ({adminSettings.currency || 'ج.م'})</span>
               <span>•</span>
-              <a
-                href={requestCatalogViaAdminWhatsApp(currentBusiness)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>واتساب إدارة MantiqatiX ({adminSettings.adminWhatsApp})</span>
-              </a>
+              {catalogRequestUrl && (
+                <a
+                  href={catalogRequestUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>واتساب إدارة MantiqatiX ({adminSettings.adminWhatsApp})</span>
+                </a>
+              )}
             </div>
 
             <div className="text-slate-400">
