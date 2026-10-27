@@ -94,7 +94,6 @@ export const AdminDashboard: React.FC = () => {
     exportBackupJSON,
     importBackupJSON,
     confirmAdminPayment,
-    advanceBusinessOverdueDay,
     toggleBusinessFreeze,
     updateBusinessCommissionRate,
     updateBusinessLocation,
@@ -153,7 +152,8 @@ export const AdminDashboard: React.FC = () => {
   // Billing tab filters & feedback
   const [billingGovFilter, setBillingGovFilter] = useState('all');
   const [billingStatusFilter, setBillingStatusFilter] = useState('all');
-  const [billingActionMsg, setBillingActionMsg] = useState<string | null>(null);
+  const [billingActionMsg, setBillingActionMsg] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [billingActionBusyId, setBillingActionBusyId] = useState<string | null>(null);
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
@@ -371,7 +371,7 @@ export const AdminDashboard: React.FC = () => {
             إدارة المشتركين، العمولات، والتصنيف الوظيفي
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-            منظومة سرية للإدارة لتحديد العمولات، تأكيد السداد الشهري، متابعة التجميد بعد مهلة 5 أيام، وتقسيم الأنشطة إلى مجموعات وظيفية مهيأة للتطوير المستمر.
+            إدارة حالات السداد والتجميد اليدوي والعمولات. التنبيهات اليومية والتجميد التلقائي حسب تاريخ الاستحقاق غير معتمدين كوظيفة إنتاجية قبل التحقق من المهمة الخادمية واختبارها.
           </p>
         </div>
 
@@ -612,10 +612,10 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'billing' && (
         <div className="space-y-6">
           {billingActionMsg && (
-            <div className="bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs">
+            <div className={`text-xs p-3.5 rounded-2xl flex items-center justify-between shadow-xs border ${billingActionMsg.type === 'error' ? 'bg-rose-50 border-rose-300 text-rose-950' : 'bg-emerald-50 border-emerald-300 text-emerald-950'}`}>
               <div className="flex items-center gap-2 font-bold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span>{billingActionMsg}</span>
+                <span aria-hidden="true">{billingActionMsg.type === 'success' ? '✓' : '!'}</span>
+                <span>{billingActionMsg.message}</span>
               </div>
               <button
                 onClick={() => setBillingActionMsg(null)}
@@ -639,7 +639,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-xs text-slate-700 leading-relaxed">
                   • <strong>الاشتراك الشهري:</strong> رسوم الاشتراك الشهري الثابتة للمنصة (بدون أي عمولات على الطلبات أو العمليات).
                   <br />
-                  • <strong>قاعدة الـ 5 أيام:</strong> في حال عدم سداد الاشتراك الشهري في موعده، يتلقى المشترك إشعاراً يومياً لمدة 5 أيام، وبعد اليوم الخامس يتم <strong>تجميد نشاط الصفحة تلقائياً</strong> لحين سداد الاشتراك وتأكيده من الإدارة.
+                  • <strong>المهلة والتنبيهات:</strong> تم حذف محاكاة مرور الأيام من الإنتاج. لا تعتبر التنبيهات اليومية أو التجميد التلقائي مفعّلين قبل توافر مهمة خادمية موثقة واجتياز اختبارها.
                 </p>
               </div>
             </div>
@@ -883,47 +883,49 @@ export const AdminDashboard: React.FC = () => {
 
                               {/* 1. Confirm Payment Button */}
                               <button
-                                onClick={() => {
-                                  confirmAdminPayment(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تأكيد سداد النشاط (${biz.name}) بنجاح، وتجديد الاشتراك وفك التجميد.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  setBillingActionMsg(null);
+                                  try {
+                                    await confirmAdminPayment(biz.id);
+                                    setBillingActionMsg({ type: 'success', message: `تم حفظ تأكيد السداد للنشاط (${biz.name}) بعد تأكيد الخادم.` });
+                                  } catch (error) {
+                                    setBillingActionMsg({ type: 'error', message: error instanceof Error ? error.message : 'تعذر حفظ تأكيد السداد لدى الخادم. لم يتم تحديث الحالة في الواجهة.' });
+                                  } finally {
+                                    setBillingActionBusyId(null);
+                                  }
                                 }}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
-                                title="تأكيد سداد المستحقات وتجديد النشاط لشهر قادم"
+                                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                                title="حفظ تأكيد السداد لدى الخادم؛ لا يعتبر الضغط وحده إثباتاً للتحصيل"
                               >
                                 <CheckCheck className="w-3 h-3" />
                                 <span>تأكيد السداد</span>
                               </button>
 
-                              {/* 2. Simulate / Advance Overdue Day Button */}
-                              <button
-                                onClick={() => {
-                                  advanceBusinessOverdueDay(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تسجيل إشعار تأخر يوم إضافي للنشاط (${biz.name}).`
-                                  );
-                                }}
-                                className="bg-amber-100 hover:bg-amber-200 text-amber-900 font-semibold text-[10px] px-2 py-1 rounded-lg transition-colors cursor-pointer"
-                                title="محاكاة مرور يوم تأخير لاختبار إشعار الـ 5 أيام والتجميد الآلي"
-                              >
-                                +يوم تأخير
-                              </button>
-
                               {/* 3. Manual Freeze/Unfreeze toggle */}
                               <button
-                                onClick={() => {
-                                  toggleBusinessFreeze(biz.id);
-                                  setBillingActionMsg(
-                                    `تم تبديل حالة تجميد النشاط (${biz.name}) يدوياً من الإدارة.`
-                                  );
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  if (billingActionBusyId) return;
+                                  setBillingActionBusyId(biz.id);
+                                  setBillingActionMsg(null);
+                                  try {
+                                    await toggleBusinessFreeze(biz.id);
+                                    setBillingActionMsg({ type: 'success', message: `تم حفظ تغيير حالة تجميد النشاط (${biz.name}) بعد تأكيد الخادم.` });
+                                  } catch (error) {
+                                    setBillingActionMsg({ type: 'error', message: error instanceof Error ? error.message : 'تعذر حفظ حالة التجميد لدى الخادم. لم يتم تحديث الحالة في الواجهة.' });
+                                  } finally {
+                                    setBillingActionBusyId(null);
+                                  }
                                 }}
-                                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-50 ${
                                   biz.isFrozen
                                     ? 'bg-slate-800 text-white hover:bg-slate-700'
                                     : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
                                 }`}
-                                title="تجميد أو إلغاء تجميد صفحة النشاط يدوياً"
+                                title="حفظ تجميد أو إلغاء تجميد صفحة النشاط لدى الخادم"
                               >
                                 {biz.isFrozen ? 'فك التجميد' : 'تجميد فوري'}
                               </button>
