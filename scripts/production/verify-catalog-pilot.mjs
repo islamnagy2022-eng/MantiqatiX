@@ -66,9 +66,9 @@ assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim t
 assert.equal(manifest.start_url, '/MantiqatiX/', 'Catalog PWA start URL must use its subpath');
 assert.ok(serviceWorker.includes('mantiqatix-catalog-shell-v2'), 'Catalog service worker must use its own cache namespace');
 assert.ok(serviceWorker.includes("key.startsWith('mantiqatix-catalog-shell-')"), 'Catalog service worker must not delete unrelated platform caches');
-assert.ok(platformIndex.includes("new URL('/MantiqatiX/catalog-app/', current.origin)"), 'Root shell must relay OAuth callbacks to the catalog subpath');
-assert.ok(platformHome.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإلكتروني</a>'), 'Desktop navigation must expose the catalog module');
-assert.ok(platformHome.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'), 'Mobile navigation must expose the catalog module');
+assert.ok(platformIndex.includes("new URL('/MantiqatiX/catalog-app/', current.origin)"), 'Preserved legacy source must retain its compatibility redirect; it is not published as the root UI');
+assert.ok(platformHome.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإلكتروني</a>'), 'Legacy source navigation may retain the catalog link for future development');
+assert.ok(platformHome.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'), 'Legacy source mobile navigation may retain the catalog link for future development');
 
 assert.ok(types.includes("status: 'active' | 'pending' | 'suspended'"), 'Subscriber status must include pending payment');
 assert.ok(app.includes("status: backendStatus === 'ACTIVE' ? 'active' : backendStatus === 'SUSPENDED' ? 'suspended' : 'pending'"), 'New subscribers must not be assumed active');
