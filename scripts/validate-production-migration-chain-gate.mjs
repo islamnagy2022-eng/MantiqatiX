@@ -76,7 +76,11 @@ assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
-assert.equal(REQUIRED_CORE_OBJECTS.length, 16, "release gate must track selected payment/finance core object contracts");
+assert.equal(REQUIRED_CORE_OBJECTS.length, 27, "release gate must require each payment, finance, ERP, and MantiGo core object independently");
+assert.equal(new Set(REQUIRED_CORE_OBJECTS).size, REQUIRED_CORE_OBJECTS.length, "each core object must appear exactly once");
+assert.ok(REQUIRED_CORE_OBJECTS.every(name => !name.includes(" and ") && !name.endsWith("indexes")), "core live object checks must be atomic rather than grouped");
+assert.ok(required.includes("20261027093000_add_qadam_alsaad_homewares_store.sql"), "Qadam owner-activation follow-up migration must be required");
+assert.ok(!required.some(name => name.startsWith("20261009010000_") || name.startsWith("20261027100000_")), "duplicate source-version aliases must not be executed as independent migrations");
 assert.equal(REQUIRED_MIGRATION_ALIASES.length, 2, "release gate must reconcile duplicate source aliases through controlled migration repair");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
@@ -201,7 +205,11 @@ const blockedFixtures = [
   value => { value.qadam_catalog_followup_check.owner_membership_active = false; },
   value => { value.qadam_catalog_followup_check.matching_price_rows = 11; },
   value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.business_employees"); },
-  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); }
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.claim_subscription_provider_intent_creation_backend"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.journal_entries_tenant_entry_number_uidx"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.receive_purchase_stock_with_order_line_backend"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.get_mantigo_admin_dashboard_backend"); }
 ];
 for (const mutate of blockedFixtures) {
   const invalid = clone(validReconciliation);
