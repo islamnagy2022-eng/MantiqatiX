@@ -16,6 +16,13 @@ if (!/const updateBusiness = async \(updated: Business\): Promise<void>/.test(co
   throw new Error('FAIL: owner profile saves must await the production write and catalog refresh and propagate errors.');
 }
 
+const updateStart = context.indexOf('const updateBusiness = async');
+const updateEnd = context.indexOf('const addBusiness = async', updateStart);
+const updateBlock = updateStart >= 0 && updateEnd > updateStart ? context.slice(updateStart, updateEnd) : '';
+if (!updateBlock || /callPlatformAdmin|BUSINESS_SETTINGS_UPDATE/.test(updateBlock)) {
+  throw new Error('FAIL: profile edits must not rewrite billing metadata from a potentially stale client snapshot.');
+}
+
 const saveStart = merchant.indexOf('const handleSaveBusiness = async');
 const saveEnd = merchant.indexOf('const openAddModal =', saveStart);
 if (saveStart < 0 || saveEnd <= saveStart) {
