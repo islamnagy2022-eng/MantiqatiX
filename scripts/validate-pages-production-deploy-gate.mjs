@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const primaryWorkflow = fs.readFileSync('.github/workflows/primary-catalog-frontend.yml', 'utf8');
+const home = fs.readFileSync('web/home.js', 'utf8');
 const lines = workflow.split(/\r?\n/);
 const blockStart = lines.findIndex(line => line === '  deploy:');
 assert.notEqual(blockStart, -1, 'Pages workflow must define deploy job');
@@ -44,5 +45,9 @@ assert.ok(primaryWorkflow.includes('/MantiqatiX/catalog-app/assets/'),
   'The catalog build must target its own subpath');
 assert.ok(primaryWorkflow.includes('Upload catalog build for review (no deployment)'),
   'The primary catalog workflow must validate and upload an artifact without deploying');
+assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإلكتروني</a>'),
+  'The existing platform desktop navigation must link to the catalog module');
+assert.ok(home.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'),
+  'The existing platform mobile navigation must link to the catalog module');
 
 console.log('PAGES_PRODUCTION_DEPLOY_GATE_AND_CATALOG_SUBPATH=PASS');
