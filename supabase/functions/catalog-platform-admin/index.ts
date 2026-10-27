@@ -723,32 +723,22 @@ Deno.serve(async (req: Request) => {
         throw new Error("AUTH_USER_LOOKUP_LIMIT_REACHED");
       };
 
-      let authUser = await findAuthUserByEmail();
-      let createdAuthUser = false;
+      const authUser = await findAuthUserByEmail();
       if (!authUser) {
-        const { data: authResult, error: authError } = await service.auth.admin.createUser({
-          email,
-          email_confirm: true,
-          user_metadata: { full_name: fullName, name: fullName, phone: phone.slice(0, 40), onboarding_source: "catalog-platform-admin" },
-        });
-        if (authError || !authResult.user) {
-          // Another request may have created this email between lookup and insert.
-          authUser = await findAuthUserByEmail();
-          if (!authUser) throw new Error(authError?.message || "AUTH_USER_CREATE_FAILED");
-        } else {
-          authUser = authResult.user;
-          createdAuthUser = true;
-        }
+        return response(origin, {
+          error: "OWNER_ACCOUNT_NOT_FOUND",
+          message: "اطلب من صاحب النشاط التسجيل بحساب Google أولًا. لا تنشئ المنصة حسابًا بلا هوية Google أو كلمة مرور.",
+        }, 404);
+      }
+      if (authUser.is_anonymous || !authUser.email_confirmed_at) {
+        return response(origin, { error: "OWNER_GOOGLE_EMAIL_NOT_VERIFIED" }, 409);
       }
       const userId = String(authUser.id);
 
       const { data: existingMemberships, error: existingMembershipError } = await service.from("user_memberships")
         .select("id,status").eq("user_id", userId).eq("tenant_id", tenantId).eq("business_id", businessId)
         .in("role", ["OWNER", "BUSINESS_OWNER"]).order("created_at", { ascending: true }).limit(1);
-      if (existingMembershipError) {
-        if (createdAuthUser) await service.auth.admin.deleteUser(userId);
-        throw new Error("SUBSCRIBER_MEMBERSHIP_LOOKUP_FAILED");
-      }
+      if (existingMembershipError) throw new Error("SUBSCRIBER_MEMBERSHIP_LOOKUP_FAILED");
       const existingMembership = existingMemberships?.[0];
       if (existingMembership) {
         if (String(existingMembership.status).toUpperCase() !== "ACTIVE") {
@@ -763,15 +753,20 @@ Deno.serve(async (req: Request) => {
         id: membershipId, user_id: userId, tenant_id: tenantId, organization_id: business.organization_id || null,
         business_id: businessId, branch_id: null, role: "BUSINESS_OWNER", status: "ACTIVE", permissions: { catalog: true },
       });
-      if (membershipInsertError) {
-        if (createdAuthUser) await service.auth.admin.deleteUser(userId);
-        throw new Error(membershipInsertError.message || "SUBSCRIBER_MEMBERSHIP_CREATE_FAILED");
+      if (membershipInsertError) throw new Error(membershipInsertError.message || "SUBSCRIBER_MEMBERSHIP_CREATE_FAILED");
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        business_id: businessId, actor_user_id: user.id, action: "BIZCATALOG_SUBSCRIBER_CREATED",
+        entity_type: "user_membership", entity_id: membershipId,
+        old_values: {}, new_values: { tenant_id: tenantId, business_id: businessId, subscriber_user_id: userId, role: "BUSINESS_OWNER", status: "ACTIVE" },
+        result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = await service.from("user_memberships").delete().eq("id", membershipId).eq("user_id", userId);
+        if (rollback.error) console.error("subscriber membership audit rollback failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "SUBSCRIBER_AUDIT_ROLLBACK_FAILED" : "SUBSCRIBER_AUDIT_FAILED_ROLLED_BACK" }, 500);
       }
-      await service.from("audit_logs").insert({
-        actor_user_id: user.id, action: "BIZCATALOG_SUBSCRIBER_CREATED", entity_type: "user_membership",
-        entity_id: membershipId, details: { tenantId, businessId, subscriberUserId: userId, reusedAuthIdentity: !createdAuthUser },
-      }).then(() => {}).catch(() => {});
-      return response(origin, { success: true, membershipId, userId, email, reusedAccount: !createdAuthUser }, 201);
+      return response(origin, { success: true, membershipId, userId, email, reusedAccount: true }, 201);
     }
 
     if (action === "SUBSCRIBER_STATUS") {
