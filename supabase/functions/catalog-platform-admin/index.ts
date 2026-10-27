@@ -368,6 +368,7 @@ Deno.serve(async (req: Request) => {
       const markaz = String(input.markaz || "").trim().slice(0, 100);
       const village = String(input.village || "").trim().slice(0, 100);
       const workingHours = String(input.workingHours || "").trim().slice(0, 300);
+      const nameEn = String(input.nameEn || "").trim().slice(0, 180);
       const safeUrl = (value: unknown, max: number) => {
         const raw = String(value || "").trim().slice(0, max);
         if (!raw) return "";
@@ -387,7 +388,7 @@ Deno.serve(async (req: Request) => {
       if (business.settings?.deleted_at) return response(origin, { error: "BUSINESS_ARCHIVED" }, 409);
       const oldSettings = business.settings || {};
       const oldProfile = oldSettings.catalog_profile && typeof oldSettings.catalog_profile === "object" ? oldSettings.catalog_profile : {};
-      const profile = { ...oldProfile, bio, governorate, markaz, village, working_hours: workingHours, logo_url: logoUrl, cover_url: coverUrl, address, phone };
+      const profile = { ...oldProfile, name_en: nameEn, bio, governorate, markaz, village, working_hours: workingHours, logo_url: logoUrl, cover_url: coverUrl, address, phone };
       const nextSettings = { ...oldSettings, activity_code: providerKind, contact_phone: phone, contact_address: address, catalog_profile: profile };
       const { data: updated, error: businessUpdateError } = await service.from("businesses")
         .update({ name, settings: nextSettings, updated_at: new Date().toISOString() })
@@ -403,7 +404,7 @@ Deno.serve(async (req: Request) => {
       const profileSnapshots = providerProfiles || [];
       if (profileSnapshots.length) {
         const { error: profileUpdateError } = await service.from("marketing_provider_profiles")
-          .update({ name_ar: name, provider_kind: providerKind, description: bio || null, name_en: input.nameEn ? String(input.nameEn).trim().slice(0, 180) : null, updated_at: new Date().toISOString() })
+          .update({ name_ar: name, provider_kind: providerKind, description: bio || null, name_en: nameEn || null, updated_at: new Date().toISOString() })
           .eq("business_id", businessId);
         if (profileUpdateError) {
           const businessRollback = await service.from("businesses").update({ name: business.name, settings: oldSettings, updated_at: business.updated_at }).eq("id", businessId).eq("tenant_id", tenantId);
