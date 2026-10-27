@@ -22,7 +22,7 @@ begin
   elsif v_text ~ '(بقال|سوبر.?ماركت|grocery|supermarket|خضار|فاكهه|فاكهة)' then v_photo := 'photo-1542838132-92c53300491e';
   elsif v_text ~ '(عطر|برفيوم|perfume|fragrance|مكياج|تجميل|cosmetic|makeup|beauty|skincare)' then v_photo := 'photo-1541643600914-78b084683601';
   elsif v_text ~ '(ملابس|ازياء|أزياء|fashion|clothing|apparel|shoes|احذيه|أحذية)' then v_photo := 'photo-1483985988355-763728e1935b';
-  elsif v_text ~ '(سيار|قطع غيار|auto|car|vehicle|automotive)' then v_photo := 'photo-1492144534655-ae79c964c9d7';
+  elsif v_text ~ '(سيار|قطع غيار|automotive|vehicle|auto|(^|[^a-z])car([^a-z]|$))' then v_photo := 'photo-1492144534655-ae79c964c9d7';
   elsif v_text ~ '(عقار|عقارات|real.?estate|property|شقق|منازل|سكن)' then v_photo := 'photo-1560518883-ce09059eeffa';
   elsif v_text ~ '(صيدل|دواء|أدوية|pharmacy|medicine|medical|عياد|طبيب|دكتور|clinic|hospital|صحه|صحة|health|اسنان|أسنان|تحاليل|معمل|اشعه|أشعة)' then v_photo := 'photo-1576091160399-112ba8d25d1d';
   elsif v_text ~ '(صيان|كهرب|سباك|تكييف|ورشه|ورشة|maintenance|repair|plumb|electric|tools)' then v_photo := 'photo-1621905251189-08b45d6a269e';
