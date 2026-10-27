@@ -209,7 +209,11 @@ Deno.serve(async (req: Request) => {
       });
       if (auditError) {
         console.error("activity taxonomy audit write failed", auditError.message);
-        return response(origin, { error: "ACTIVITY_TYPE_SAVED_AUDIT_FAILED", saved: false }, 500);
+        const rollback = previous
+          ? await service.from("business_activity_types").upsert(previous, { onConflict: "id" })
+          : await service.from("business_activity_types").delete().eq("id", id);
+        if (rollback.error) console.error("activity taxonomy compensating rollback failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "ACTIVITY_TYPE_AUDIT_AND_ROLLBACK_FAILED" : "ACTIVITY_TYPE_AUDIT_FAILED_ROLLED_BACK" }, 500);
       }
       return response(origin, { success: true, activityType: saved });
     }
@@ -257,7 +261,10 @@ Deno.serve(async (req: Request) => {
       });
       if (auditError) {
         console.error("activity taxonomy status audit write failed", auditError.message);
-        return response(origin, { error: "ACTIVITY_TYPE_STATUS_AUDIT_FAILED" }, 500);
+        const rollback = await service.from("business_activity_types")
+          .update({ status: previous.status, updated_by: previous.updated_by, updated_at: previous.updated_at }).eq("id", id);
+        if (rollback.error) console.error("activity taxonomy status rollback failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "ACTIVITY_TYPE_STATUS_AUDIT_AND_ROLLBACK_FAILED" : "ACTIVITY_TYPE_STATUS_AUDIT_FAILED_ROLLED_BACK" }, 500);
       }
       return response(origin, { success: true, activityType: saved });
     }
