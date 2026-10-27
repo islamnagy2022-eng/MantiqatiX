@@ -77,7 +77,7 @@ begin
       jsonb_build_object('status','REJECTED','reason',nullif(trim(coalesce(p_rejection_reason,'')),''),'contact_name',v_contact_name,'contact_phone',v_contact_phone),
       'SUCCESS'
     );
-    return jsonb_build_object('status','REJECTED','onboarding_request_id',v_req.id,'contact_phone',v_contact_phone);
+    return jsonb_build_object('status','REJECTED','onboarding_request_id',v_req.id,'contact_name',v_contact_name,'contact_phone',v_contact_phone);
   end if;
 
   -- Each activity request can create its own business membership. This is distinct
@@ -114,7 +114,6 @@ begin
       'source','provider_onboarding',
       'onboarding_request_id',v_req.id,
       'contact_name',v_contact_name,
-      'contact_name',v_contact_name,
       'contact_phone',v_contact_phone
     ),
     v_req.profile_image_path
@@ -145,7 +144,7 @@ begin
     jsonb_build_object(
       'status','APPROVED','business_id',v_business_id,
       'provider_profile_id',v_profile_id,'membership_id',v_membership_id,
-      'contact_phone',v_contact_phone
+      'contact_name',v_contact_name,'contact_phone',v_contact_phone
     ),
     'SUCCESS'
   );
