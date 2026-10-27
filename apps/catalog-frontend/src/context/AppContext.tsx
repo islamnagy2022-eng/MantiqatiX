@@ -510,7 +510,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateSubscriber = async (updated: Subscriber) => {
     if (updated.status === 'active') {
       const business = businesses.find((item) => item.id === updated.businessId);
-      if (!business || (String(business.paymentStatus || '').toLowerCase() !== 'paid' && !business.paymentConfirmedByAdmin)) {
+      if (!business || (String(business.paymentStatus || '').toLowerCase() !== 'paid' || !business.paymentConfirmedByAdmin)) {
         throw new Error('لا يمكن تفعيل الاشتراك قبل تأكيد سداد النشاط من إدارة المنصة.');
       }
     }
