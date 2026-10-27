@@ -331,7 +331,10 @@ const categoryGrid=document.getElementById('mx-category-grid');
           '<form id="mx-activity-request-form" class="mx-activity-basket__form">'+
             '<section class="mx-activity-basket__section"><h3>بيانات المشروع</h3><div class="mx-activity-basket__grid">'+
               '<label class="field"><span>اسم النشاط / المشروع *</span><input id="mx-req-business" required maxlength="180" value="'+escapeHtml(savedDraft.business_name||'')+'" placeholder="اسم النشاط التجاري"></label>'+
-              '<label class="field"><span>القطاع الرئيسي *</span><select id="mx-req-kind" required><option value="">اختر القطاع</option>'+TAXONOMY.map(x=>'<option value="'+escapeHtml(x[3])+'" '+(String(savedDraft.provider_kind||'')===String(x[3])?'selected':'')+'>'+escapeHtml(x[1])+'</option>').join('')+'</select></label>'+
+              '<label class="field"><span>القطاع الرئيسي *</span><select id="mx-req-sector" required><option value="">جارٍ تحميل القطاعات…</option></select></label>'+
+              '<label class="field"><span>النشاط *</span><select id="mx-req-activity" required disabled><option value="">اختر القطاع أولًا</option></select></label>'+
+              '<label class="field"><span>التخصص الفرعي (اختياري)</span><select id="mx-req-specialty" disabled><option value="">اختياري</option></select></label>'+
+              '<select id="mx-req-kind" hidden aria-hidden="true"></select>'+
               '<label class="field"><span>اسم المسؤول عن النشاط *</span><input id="mx-req-contact-name" required maxlength="160" value="'+escapeHtml(savedDraft.contact_name||'')+'" placeholder="الاسم المسؤول عن الطلب"></label>'+
               '<label class="field"><span>رقم الهاتف / واتساب *</span><input id="mx-req-phone" type="tel" inputmode="tel" autocomplete="tel" minlength="8" maxlength="40" pattern="[+0-9() .-]{8,40}" required value="'+escapeHtml(savedDraft.contact_phone||savedDraft.phone||'')+'" placeholder="مثال 01010171770"></label>'+
               '<label class="field"><span>الاسم بالإنجليزية</span><input id="mx-req-name-en" maxlength="180" value="'+escapeHtml(savedDraft.name_en||'')+'" placeholder="Business name"></label>'+
