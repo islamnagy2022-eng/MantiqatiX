@@ -82,41 +82,54 @@ Deno.serve(async (req: Request) => {
         return Number(count || 0);
       };
       const [businesses, activeBusinesses, inactiveBusinesses, suspendedBusinesses,
-        activeOwners, unassignedBusinesses, customers, activeSubscriptions, pastDueSubscriptions,
-        cancelledSubscriptions, activeGroups, activeActivities, recentAudit] = await Promise.all([
+        activeOwners, customers, activeGroups, activeActivities, businessRows, ownerRows, recentAudit] = await Promise.all([
         countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds)),
         countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("status", "ACTIVE")),
         countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("status", "INACTIVE")),
         countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("status", "SUSPENDED")),
         countQuery(service.from("user_memberships").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).in("role", ["OWNER", "BUSINESS_OWNER"]).eq("status", "ACTIVE")),
-        countQuery(service.from("businesses").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).not("id", "in", "(select business_id from user_memberships where status = 'ACTIVE' and role in ('OWNER','BUSINESS_OWNER'))")),
         countQuery(service.from("user_memberships").select("id", { count: "exact", head: true }).in("tenant_id", productionTenantIds).eq("role", "CUSTOMER").eq("status", "ACTIVE")),
-        countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).eq("status", "ACTIVE")),
-        countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("status", ["PAST_DUE", "PAST-DUE", "UNPAID"])),
-        countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("status", ["CANCELLED", "CANCELED"])),
         countQuery(service.from("business_activity_types").select("id", { count: "exact", head: true }).eq("node_type", "SECTOR_GROUP").eq("status", "ACTIVE")),
         countQuery(service.from("business_activity_types").select("id", { count: "exact", head: true }).neq("node_type", "SECTOR_GROUP").eq("status", "ACTIVE")),
+        service.from("businesses").select("id").in("tenant_id", productionTenantIds).limit(10000),
+        service.from("user_memberships").select("business_id").in("tenant_id", productionTenantIds).in("role", ["OWNER", "BUSINESS_OWNER"]).eq("status", "ACTIVE").not("business_id", "is", null).limit(10000),
         service.from("audit_logs").select("action,entity_type,entity_id,result,created_at").eq("tenant_id", String(platformMemberships[0].tenant_id)).order("created_at", { ascending: false }).limit(8),
       ]);
-      const auditResult = recentAudit as any;
-      if (auditResult.error) throw auditResult.error;
+      if ((businessRows as any).error) throw (businessRows as any).error;
+      if ((ownerRows as any).error) throw (ownerRows as any).error;
+      if ((recentAudit as any).error) throw (recentAudit as any).error;
+      const businessesData = (businessRows as any).data || [];
+      const ownedIds = new Set(((ownerRows as any).data || []).map((m: any) => String(m.business_id)));
+      const unassignedBusinesses = businessesData.length < 10000
+        ? businessesData.filter((b: any) => !ownedIds.has(String(b.id))).length
+        : null;
+      const businessIds = businessesData.map((b: any) => String(b.id));
+      let subscriptionMetrics: any = { activeSubscriptions: null, pastDueSubscriptions: null, cancelledSubscriptions: null, status: "NOT_WIRED" };
+      if (businessIds.length > 0 && businessIds.length < 10000) {
+        const [activeSubscriptions, pastDueSubscriptions, cancelledSubscriptions] = await Promise.all([
+          countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("business_id", businessIds).eq("status", "ACTIVE")),
+          countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("business_id", businessIds).in("status", ["PAST_DUE", "PAST-DUE", "UNPAID"])),
+          countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("business_id", businessIds).in("status", ["CANCELLED", "CANCELED"])),
+        ]);
+        subscriptionMetrics = { activeSubscriptions, pastDueSubscriptions, cancelledSubscriptions, status: "LIVE" };
+      }
       return response(origin, {
         metrics: {
-          businesses, activeBusinesses, inactiveBusinesses, suspendedBusinesses,
-          activeOwners, unassignedBusinesses, customers,
-          activeSubscriptions, pastDueSubscriptions, cancelledSubscriptions,
+          businesses, activeBusinesses, inactiveBusinesses, suspendedBusinesses, activeOwners,
+          unassignedBusinesses, customers, ...subscriptionMetrics,
           activeActivityGroups: activeGroups, activeActivities,
           visits: null, visitsStatus: "NOT_WIRED",
           commissionAccrued: null, commissionCollected: null, commissionOutstanding: null,
           claimsDue: null, claimsStatus: "NOT_WIRED",
         },
-        recentAudit: auditResult.data || [],
+        recentAudit: (recentAudit as any).data || [],
         metricDefinitions: {
           businesses: "عدد سجلات businesses ضمن نطاقات الإنتاج المصرح بها",
-          customers: "عضويات CUSTOMER النشطة فقط؛ قد لا تمثل عدد الأشخاص الفريدين",
-          activeOwners: "عضويات مالك النشاط النشطة وليست عدد المستخدمين الفريدين",
-          visits: "لا يوجد حتى الآن مصدر زيارات موحد موثق في هذا المسار؛ لا يتم اختلاق أرقام",
-          commissions: "تحتاج ربطًا موثقًا بحالات دفتر الأستاذ والتسويات قبل عرض إجماليات مالية",
+          customers: "عضويات CUSTOMER النشطة وليست بالضرورة أشخاصًا فريدين",
+          activeOwners: "عضويات مالك النشاط النشطة؛ عدد العضويات وليس عدد الأشخاص الفريدين",
+          unassignedBusinesses: "فرق بين الأنشطة المحملة والأنشطة التي لها عضوية مالك نشطة؛ null إذا تجاوز الاستعلام حد القراءة",
+          visits: "مصدر الزيارات الموحد غير موصول؛ لا يتم اختلاق أرقام",
+          commissions: "إجماليات العمولة لا تُعرض قبل ربط حالات دفتر الأستاذ والتسويات المعتمدة",
         },
       });
     }
