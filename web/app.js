@@ -357,7 +357,8 @@ function setupInstallPrompt(){
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('install-app');if(b)b.hidden=false});
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true});
 }
-async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true}
+async function installApp(){if(!deferredInstallPrompt)return false;const promptEvent=deferredInstallPrompt;deferredInstallPrompt=null;promptEvent.prompt();await promptEvent.userChoice;const b=document.getElementById('install-app');if(b)b.hidden=true;return true}
+window.MNTYInstallApp=installApp;
 function openLandingSector(button){const name=button?.dataset?.sector||'';return selectModule(sectorMapForLanding(name))}
 function sectorMapForLanding(name){
  const map={
