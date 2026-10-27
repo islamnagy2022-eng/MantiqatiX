@@ -136,7 +136,7 @@ Deno.serve(async (req: Request) => {
           id: String(m.id), userId: String(m.user_id), fullName: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || "مشترك"),
           email: String(u?.email || ""), phone: String(u?.user_metadata?.phone || ""), businessId: String(m.business_id),
           businessName: String(b?.name || "نشاط غير متاح"), status: String(m.status).toUpperCase() === "ACTIVE" ? "active" : "suspended",
-          username: String(u?.email || ""), authMethod: "direct_password", inviteStatus: "direct_created", joinedDate: String(m.created_at || "").slice(0, 10),
+          username: String(u?.email || ""), authMethod: "gmail_invite", inviteStatus: "pending", joinedDate: String(m.created_at || "").slice(0, 10),
         };
       }) });
     }
@@ -241,7 +241,9 @@ Deno.serve(async (req: Request) => {
         .select("id,status").eq("user_id", userId).eq("tenant_id", tenantId).eq("business_id", businessId)
         .in("role", ["OWNER", "BUSINESS_OWNER"]).order("created_at", { ascending: true }).limit(1);
       if (existingMembershipError) {
-        if (createdAuthUser) await service.auth.admin.deleteUser(userId);
+        // Keep the Auth identity on database lookup failures. A concurrent request may
+        // already have attached it to another membership; deleting it here could cascade
+        // into valid production data.
         throw new Error("SUBSCRIBER_MEMBERSHIP_LOOKUP_FAILED");
       }
       const existingMembership = existingMemberships?.[0];
@@ -259,7 +261,22 @@ Deno.serve(async (req: Request) => {
         business_id: businessId, branch_id: null, role: "BUSINESS_OWNER", status: "ACTIVE", permissions: { catalog: true },
       });
       if (membershipInsertError) {
-        if (createdAuthUser) await service.auth.admin.deleteUser(userId);
+        // The null-safe unique index on (user_id, business_id, COALESCE(branch_id, ''))
+        // prevents duplicate business-wide memberships. If another request won the race,
+        // return its membership rather than treating the duplicate
+        // as a fatal error. Never delete the Auth user here: another request may have
+        // successfully attached that identity and deletion could cascade into production.
+        const { data: racedMemberships, error: raceLookupError } = await service.from("user_memberships")
+          .select("id,status").eq("user_id", userId).eq("tenant_id", tenantId).eq("business_id", businessId)
+          .in("role", ["OWNER", "BUSINESS_OWNER"]).order("created_at", { ascending: true }).limit(1);
+        if (!raceLookupError && racedMemberships?.[0]) {
+          const racedMembership = racedMemberships[0];
+          if (String(racedMembership.status).toUpperCase() !== "ACTIVE") {
+            const { error: reactivateError } = await service.from("user_memberships").update({ status: "ACTIVE" }).eq("id", racedMembership.id);
+            if (reactivateError) throw new Error("SUBSCRIBER_MEMBERSHIP_REACTIVATION_FAILED");
+          }
+          return response(origin, { success: true, membershipId: racedMembership.id, userId, email, reusedAccount: true, existingMembership: true, recoveredRace: true }, 200);
+        }
         throw new Error(membershipInsertError.message || "SUBSCRIBER_MEMBERSHIP_CREATE_FAILED");
       }
       await service.from("audit_logs").insert({
