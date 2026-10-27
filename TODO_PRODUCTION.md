@@ -464,3 +464,11 @@
 - [x] Production `digital_page_payment_events` has RLS enabled and zero policies, but current effective database privileges show no SELECT/INSERT for `anon`, `authenticated`, or `service_role`; no direct access grant was found. Keep policy count zero pending confirmation of backend event ingestion contract.
 - [ ] Do not merge/deploy PR #411 yet: it remains Draft and not mergeable due stale base; successful isolated replay is not Production migration reconciliation, a live restore rehearsal, nor payment/finance runtime evidence.
 - [ ] Remaining P0 evidence: reconcile all 292 live migration statements/aliases with source; prove Supabase PITR/backup retention and perform isolated restore rehearsal; review exposed SECURITY DEFINER and anonymous RLS policies; enable leaked-password protection in managed Auth after impact review; run provider sandbox payment/webhook + finance E2E; verify Edge Function and SMM deployment parity; browser/device regression; monitoring/alert + rollback drill.
+
+
+## 2026-10-27 — Main production-gate execution evidence
+
+- [x] Latest Main verification run [40454352495](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40454352495) executed the production verifier and returned `PRODUCTION_GATE=BLOCKED`; the catalog/deploy path did not pass validation. This is the intended fail-closed behavior, not a successful production release.
+- [x] The verifier confirmed no missing migration source files and no source timestamp/order conflicts, but correctly blocked on the live reconciliation manifest (`verified=false`, `required_release_migrations_applied=false`) and unresolved payment/finance E2E, backup/restore rehearsal, Edge Function contract, SMM parity, and live Auth security evidence.
+- [ ] Resolve mismatch between the live Supabase ledger (292 entries, latest `20261027041549 qadam_alsaad_restore_contact_fields`) and the stale reconciliation manifest without rewriting historical migration versions. Confirm source-ledger statement identity for each live post-RC424 entry before updating the manifest.
+- [ ] Keep deployment blocked until the reconciled evidence and all remaining P0 checks pass.
