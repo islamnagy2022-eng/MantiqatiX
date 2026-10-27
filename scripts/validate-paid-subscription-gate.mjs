@@ -60,9 +60,11 @@ assert.doesNotMatch(admin, /setActiveAdminTab\('backup'\)/,
   'Unverified backup/restore UI must not be exposed in the catalog pilot');
 assert.doesNotMatch(admin, /setActiveAdminTab\('control_center'\)/,
   'Unverified advanced control-center UI must not be exposed in the catalog pilot');
-assert.match(context, /إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي/,
-  'Unverified Paymob configuration must remain disabled for the catalog pilot');
-assert.match(admin, /if \(!saved\) return;/,
-  'The UI must not show a false success state when Paymob configuration is blocked');
+assert.doesNotMatch(context, /updateBusinessPaymobConfig|merchantApiKey|integrationIdCard/,
+  'The production catalog context must not expose unverified Paymob credential persistence');
+assert.match(admin, /لن تُحفظ مفاتيح Paymob من هذه الواجهة ولن يُفعّل التحصيل الإلكتروني/,
+  'The admin UI must explicitly disclose that online collection is disabled until production verification');
+assert.doesNotMatch(admin, /handleSavePaymobConfig|paymobMerchantApiKey|Integration ID|تفعيل Paymob/,
+  'The admin UI must not expose a fake Paymob credential-save or activation path');
 
 console.log('PAID_SUBSCRIPTION_ACTIVATION_GATE=PASS');
