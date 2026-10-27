@@ -31,6 +31,7 @@ declare
   v_ar public.account_registration_requests%rowtype;
   v_business_id uuid;
   v_profile_id uuid;
+  v_branch_id varchar;
   v_membership_id varchar;
   v_code varchar;
   v_slug varchar;
@@ -104,6 +105,18 @@ begin
     )
   );
 
+  v_branch_id := 'main-' || substr(gen_random_uuid()::text,1,8);
+  insert into public.branches(
+    id,tenant_id,organization_id,business_id,name,code,status,phone,address,settings
+  ) values (
+    v_branch_id,v_req.tenant_id,v_req.organization_id,v_business_id,
+    v_req.business_name || ' - الفرع الرئيسي',
+    'MAIN-' || upper(substr(replace(v_business_id::text,'-',''),1,8)),
+    'ACTIVE',v_contact_phone,
+    nullif(trim(coalesce(v_req.service_areas->0->>'address','')),''),
+    jsonb_build_object('source','provider_onboarding','onboarding_request_id',v_req.id)
+  );
+
   v_profile_id := gen_random_uuid();
   insert into public.marketing_provider_profiles(
     id,provider_kind,business_id,owner_user_id,name_ar,name_en,slug,description,
@@ -146,7 +159,7 @@ begin
     jsonb_build_object('status','PENDING'),
     jsonb_build_object(
       'status','APPROVED','business_id',v_business_id,
-      'provider_profile_id',v_profile_id,'membership_id',v_membership_id,
+      'provider_profile_id',v_profile_id,'branch_id',v_branch_id,'membership_id',v_membership_id,
       'contact_name',v_contact_name,'contact_phone',v_contact_phone,'activity_type_id',v_req.activity_type_id
     ),
     'SUCCESS'
@@ -154,7 +167,7 @@ begin
 
   return jsonb_build_object(
     'status','APPROVED','onboarding_request_id',v_req.id,
-    'business_id',v_business_id,'provider_profile_id',v_profile_id,
+    'business_id',v_business_id,'branch_id',v_branch_id,'provider_profile_id',v_profile_id,
     'membership_id',v_membership_id,'contact_name',v_contact_name,'contact_phone',v_contact_phone
   );
 end;
