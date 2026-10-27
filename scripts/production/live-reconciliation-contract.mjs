@@ -12,6 +12,44 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261010200000", "20261010210000", "20261010220000", "20261011010000",
   "20261014230000", "20261023020000", "20261023030000", "20261023040000",
   "20261023050000", "20261023060000",
+  "20261027030000", "20261027040000", "20261027050000",
+  "20261027060000", "20261027070000", "20261027090000",
+];
+
+export const REQUIRED_CONTROL_CENTER_OBJECTS = [
+  "public.platform_custom_roles",
+  "public.platform_role_assignments",
+  "public.mnty_platform_admin_list_custom_roles",
+  "public.mnty_platform_admin_upsert_custom_role",
+  "public.mnty_platform_admin_assign_custom_role",
+  "public.business_job_positions",
+  "public.business_employees",
+  "public.platform_role_assignments_active_unique",
+  "public.platform_role_assignments_user_scope_idx",
+  "public.business_employees_email_per_business_unique",
+  "public.business_job_positions_business_active_idx",
+  "public.business_employees_business_status_idx",
+  "public.business_employees_user_active_idx",
+  "public.mnty_business_employee_position_upsert",
+  "public.mnty_business_employee_upsert",
+  "public.mnty_platform_has_permission",
+  "public.mnty_platform_admin_list_people",
+  "public.mnty_platform_admin_list_role_assignments",
+  "public.mnty_business_employee_list",
+  "public.mnty_platform_admin_list_audit",
+  "public.mnty_platform_admin_list_businesses",
+  "public.mnty_platform_admin_manage_business",
+  "public.mnty_platform_admin_manage_membership",
+  "public.mnty_default_image_url",
+  "public.mnty_default_business_images_trigger",
+  "public.mnty_default_catalog_item_image_trigger",
+  "public.mnty_default_marketing_service_image_trigger",
+  "public.businesses.mnty_business_default_images",
+  "public.catalog_items.mnty_catalog_item_default_image",
+  "public.marketing_services.mnty_marketing_service_default_image",
+  "public.marketing_services.image_url",
+  "public.marketing_services.image_source",
+  "public.ux_user_memberships_user_business_branch_nullsafe",
 ];
 
 const REQUIRED_EDGE_FUNCTIONS = [
@@ -50,6 +88,14 @@ export function isLiveReconciliationVerified(reconciliation) {
 
   const requiredEdgeParityPassed = REQUIRED_EDGE_FUNCTIONS.every(slug =>
     functions.some(row => row?.slug === slug && row?.exact_match === true)
+  );
+
+  const requiredControlCenterObjectsPassed = REQUIRED_CONTROL_CENTER_OBJECTS.every(name =>
+    objectFindings.some(row =>
+      (row?.name ?? row?.object) === name &&
+      row?.exists === true &&
+      row?.status === "PASS"
+    )
   );
 
   return Boolean(
@@ -103,6 +149,7 @@ export function isLiveReconciliationVerified(reconciliation) {
     objects?.status === "PASS" &&
     objectFindings.length > 0 &&
     objectFindings.every(row => row?.exists === true && row?.status === "PASS") &&
+    requiredControlCenterObjectsPassed &&
 
     // Source parity must cover every deployed critical entrypoint, not just one function.
     edgeParity?.status === "PASS" &&
