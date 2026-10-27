@@ -261,7 +261,7 @@ export const AdminDashboard: React.FC = () => {
       window.alert('أدخل المحافظة والمركز أو القسم والقرية أو الحي الفعلي للنشاط.');
       return;
     }
-    const phoneDigits = newBizOwnerWhatsApp.replace(/\\D/g, '');
+    const phoneDigits = newBizOwnerWhatsApp.replace(/\D/g, '');
     if (phoneDigits.length < 10 || phoneDigits.length > 15) {
       window.alert('أدخل رقم واتساب صحيحًا لصاحب النشاط من 10 إلى 15 رقمًا.');
       return;
@@ -279,7 +279,7 @@ export const AdminDashboard: React.FC = () => {
 
     const matchedCat = categories.find((c) => c.name === newBizCategory);
     const resolvedGroup = newBizFunctionalGroup || matchedCat?.functionalGroupId || 'dining';
-    const slug = name.toLowerCase().replace(/[\\s\\W-]+/g, '-');
+    const slug = name.toLowerCase().replace(/[\s\W-]+/g, '-');
 
     try {
       const createdBizId = await addBusiness({
@@ -1710,7 +1710,7 @@ export const AdminDashboard: React.FC = () => {
                     dir="ltr"
                     value={subPhone}
                     onChange={(e) => setSubPhone(e.target.value)}
-                    placeholder="+201000000000"
+                    placeholder="رقم الهاتف المرتبط بالحساب"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-right"
                   />
                 </div>
@@ -1916,7 +1916,7 @@ export const AdminDashboard: React.FC = () => {
                       min="0"
                       required
                       value={newBizCommission}
-                      onChange={(e) => setNewBizCommission(parseFloat(e.target.value) || 0.01)}
+                      onChange={(e) => setNewBizCommission(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-black text-amber-950"
                     />
                   </div>
