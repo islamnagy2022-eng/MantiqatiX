@@ -28,7 +28,7 @@
 - [x] user_memberships + active role.
 - [x] Feature flag reading.
 - [x] إزالة الأرقام التشغيلية الوهمية من الواجهة.
-- [ ] تطبيق feature flags على visibility/actions مع safe defaults.
+- [🟡] تطبيق feature flags على visibility/actions مع safe defaults — تم تصحيح GLOBAL/SECTOR/TENANT/BUSINESS/BRANCH resolution، وأولوية النطاقات، ومنع فتح الوحدة المتوقفة؛ CI ومراجعة استخدام feature-level guards ما زالا مطلوبين.
 - [x] loading/error states — تمت إضافة حالة تحميل وحالة خطأ مع إعادة المحاولة.
 - [ ] responsive/accessibility review.
 - [ ] تنظيف legacy/duplicate render paths.
