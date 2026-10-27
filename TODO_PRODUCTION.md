@@ -472,3 +472,12 @@
 - [x] The verifier confirmed no missing migration source files and no source timestamp/order conflicts, but correctly blocked on the live reconciliation manifest (`verified=false`, `required_release_migrations_applied=false`) and unresolved payment/finance E2E, backup/restore rehearsal, Edge Function contract, SMM parity, and live Auth security evidence.
 - [ ] Resolve mismatch between the live Supabase ledger (292 entries, latest `20261027041549 qadam_alsaad_restore_contact_fields`) and the stale reconciliation manifest without rewriting historical migration versions. Confirm source-ledger statement identity for each live post-RC424 entry before updating the manifest.
 - [ ] Keep deployment blocked until the reconciled evidence and all remaining P0 checks pass.
+
+
+## 2026-10-27 — PR overlap and continuation coordination
+
+- [x] Reviewed #414 and #416 diffs. They overlap on `web/app.js` and both correct the invalid `scope_type='PLATFORM'` lookup, but #414 adds a reusable resolver + contract test for GLOBAL/SECTOR/TENANT/BUSINESS/BRANCH and guarded UI features. Do not merge both unchanged; consolidate to one validated scope-aware implementation after rebasing on current main.
+- [x] Reviewed #415 saved order/pricing snapshots; it correctly keeps order status mutation server-authoritative and adds a contract test. This remains a UI/data-contract fix, not proof of real order/payment E2E.
+- [x] #413's source-only durable contact migration is valuable because the repair has already been read back from Production, but its PR is dirty after main moved. Rebase/update and rerun exact-head CI before merge; do not replay the data update as an extra Production write.
+- [ ] Reconcile open PRs #413–#416 with current main; review independent behavior/tests, then merge only a current, clean, fully checked PR at a time. Keep #411 Draft until base conflicts and P0 release evidence are addressed.
+- [ ] #347's restored SQL files are byte-identical to canonical source, but full chronological replay on the intended current base and all required acceptance evidence remain preconditions; do not merge solely because its diff is source-only.
