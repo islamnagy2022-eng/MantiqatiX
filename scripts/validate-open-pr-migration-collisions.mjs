@@ -95,7 +95,8 @@ if (!token || !repository || !Number.isInteger(currentPrNumber) || currentPrNumb
 }
 
 async function githubGet(url) {
-  const maxAttempts = 5;
+  const maxAttempts = 4;
+  let anonymousRateLimitFallbackAttempted = false;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const response = await fetch(url, {
@@ -113,23 +114,42 @@ async function githubGet(url) {
         response.headers.get("x-ratelimit-remaining"),
         errorBody
       );
-      const retryable = response.status === 429 || rateLimited403 || [500, 502, 503, 504].includes(response.status);
+
+      // This repository and the PR metadata being inspected are public. When the
+      // Actions installation token is rate-limited, retry the read anonymously
+      // once rather than sleeping for minutes and then failing without checking.
+      // The fallback remains read-only and still fails closed if public access fails.
+      if (rateLimited403 && !anonymousRateLimitFallbackAttempted) {
+        anonymousRateLimitFallbackAttempted = true;
+        console.warn("GitHub installation API quota exhausted; retrying public read without credentials: " + url);
+        const publicResponse = await fetch(url, {
+          headers: {
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
+          }
+        });
+        if (publicResponse.ok) return publicResponse.json();
+        const publicError = await publicResponse.text();
+        throw new Error(
+          "Authenticated API quota exhausted and anonymous public read failed (" +
+          publicResponse.status + "): " + url +
+          (publicError ? " — " + publicError.slice(0, 240) : "")
+        );
+      }
+
+      const retryable = response.status === 429 || [500, 502, 503, 504].includes(response.status);
       if (!retryable || attempt === maxAttempts - 1) {
         throw new Error("GitHub API request failed (" + response.status + "): " + url + (errorBody ? " — " + errorBody.slice(0, 300) : ""));
       }
       const retryAfter = Number(response.headers.get("retry-after") || 0);
-      const resetAt = Number(response.headers.get("x-ratelimit-reset") || 0);
-      const resetDelay = resetAt > 0 ? Math.max(0, resetAt * 1000 - Date.now()) : 0;
       const delayMs = retryAfter > 0
-        ? Math.min(retryAfter * 1000, 60000)
-        : resetDelay > 0 && rateLimited403
-          ? Math.min(resetDelay, 60000)
-          : Math.min(1000 * (2 ** attempt), 15000);
+        ? Math.min(retryAfter * 1000, 15000)
+        : Math.min(500 * (2 ** attempt), 5000);
       console.warn("Retrying transient GitHub API " + response.status + " response in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
       await new Promise(resolve => setTimeout(resolve, delayMs));
     } catch (error) {
       if (attempt === maxAttempts - 1 || !(error instanceof TypeError)) throw error;
-      const delayMs = Math.min(300 * (2 ** attempt), 5000);
+      const delayMs = Math.min(300 * (2 ** attempt), 3000);
       console.warn("Retrying transient GitHub API network error in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
       await new Promise(resolve => setTimeout(resolve, delayMs));
     }
