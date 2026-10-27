@@ -2,23 +2,34 @@
 -- Idempotent by (tenant_id, code) and (business_id, legacy_ref); no stock or orders are fabricated.
 
 insert into public.businesses (tenant_id,name,code,status,settings)
-values (
-  'MNTY-PLATFORM','متجر قدم السعد','MNTY-HOMEWARES-QADAM-ALSAAD','INACTIVE',
+select
+  t.id,'متجر قدم السعد','MNTY-HOMEWARES-QADAM-ALSAAD','INACTIVE',
   jsonb_build_object(
     'brand','MantiqatiX','source','OFFICIAL_PLATFORM_SHOWCASE','showcase',true,
     'managed_by','SUPER_ADMIN','activity_code','HOMEWARES','category_code','HOMEWARES',
     'icon','🏠','headline','أدوات منزلية ومستلزمات المطبخ','catalog_public_enabled',true,
+    'phone','+201011145124','phone_display','+20 10 11145124',
+    'whatsapp_number','201011145124','whatsapp_url','https://wa.me/201011145124',
+    'address','تلا، محافظة المنوفية، مصر','location_label','تلا – المنوفية',
+    'contact',jsonb_build_object('phone','+201011145124','whatsapp','201011145124','address','تلا، محافظة المنوفية، مصر'),
     'catalog_profile',jsonb_build_object(
       'bio','متجر قدم السعد للأدوات المنزلية ومستلزمات المطبخ وأطقم التقديم.',
       'category','أدوات منزلية ومستلزمات المطبخ','show_prices',true,
-      'pricing_display','STARTING_PRICE','location_label','مصر'
+      'pricing_display','STARTING_PRICE','location_label','تلا – المنوفية',
+      'phone','+201011145124','phone_display','+20 10 11145124',
+      'whatsapp_number','201011145124','whatsapp_url','https://wa.me/201011145124',
+      'address','تلا، محافظة المنوفية، مصر'
     ),
     'display_name_ar','متجر قدم السعد','profile_complete',true
   )
-)
+from public.tenants t
+where t.id='MNTY-PLATFORM'
 on conflict (tenant_id,code) do update set
   name=excluded.name,
-  settings=public.businesses.settings || excluded.settings,
+  settings=public.businesses.settings || excluded.settings
+    || jsonb_build_object('phone','+201011145124','phone_display','+20 10 11145124',
+      'whatsapp_number','201011145124','whatsapp_url','https://wa.me/201011145124',
+      'address','تلا، محافظة المنوفية، مصر','location_label','تلا – المنوفية'),
   updated_at=now();
 
 insert into public.user_memberships (id,user_id,tenant_id,business_id,role,permissions,status)
