@@ -62,6 +62,8 @@ jobs:
           mkdir -p web/vendor
           npx --yes esbuild build/supabase-entry.mjs --bundle --format=iife --global-name=MNTYSupabaseBundle --outfile=web/vendor/supabase.js --minify
           test -s web/vendor/supabase.js
+      - name: Assert Pages deployment requires full production gate
+        run: node scripts/validate-pages-production-deploy-gate.mjs
       - name: Production verification engine
         run: npm run verify:production
       - name: Syntax check
