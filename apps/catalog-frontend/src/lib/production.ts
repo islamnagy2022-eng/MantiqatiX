@@ -107,8 +107,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     isVerified: Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified),
     maxProductsLimit: 150, createdAt: String(created).slice(0, 10),
     registrationDate: String(meta.registrationDate || created).slice(0, 10),
-    paymentDueDay: Number(meta.paymentDueDay || 1), paymentDueDate: String(meta.paymentDueDate || created).slice(0, 10),
-    commissionPerOrder: Number(meta.commissionPerOrder ?? INITIAL_ADMIN_SETTINGS.defaultCommissionPerOrder),
+    paymentDueDay: Number(meta.paymentDueDay || 0), paymentDueDate: String(meta.paymentDueDate || ''),
+    commissionPerOrder: Number(meta.commissionPerOrder ?? 0),
     totalOrdersCount: Number(meta.totalOrdersCount || 0), paymentStatus: meta.paymentStatus || 'pending',
     overdueDaysCount: Number(meta.overdueDaysCount || 0), isFrozen: Boolean(meta.isFrozen || String(meta.paymentStatus || '').toLowerCase() === 'frozen'),
     lastPaymentDate: meta.lastPaymentDate, paymentConfirmedByAdmin: Boolean(meta.paymentConfirmedByAdmin),
@@ -118,6 +118,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     organizationId: String(raw.organizationId || raw.organization_id || ''),
     publicEnabled: Boolean(raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
     businessCode: String(raw.code || ''),
+    isOfficialShowcase: raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN',
   } as Business;
 }
 
