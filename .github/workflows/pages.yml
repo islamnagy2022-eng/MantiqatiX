@@ -66,18 +66,19 @@ jobs:
           npm run verify:production
           VERIFY_EXIT=$?
           set -e
-          if [ "${VERIFY_EXIT}" -eq 0 ]; then
-            exit 0
-          fi
           REPORT="artifacts/production-verification/production-verification.json"
           test -s "${REPORT}"
           GATE="$(node -e "const r=require('./${REPORT}');process.stdout.write(String(r.production_gate||''))")"
+          if [ "${GATE}" = "PASS" ] && [ "${VERIFY_EXIT}" -eq 0 ]; then
+            echo "FULL_PLATFORM_GATE=PASS"
+            exit 0
+          fi
           if [ "${GATE}" = "BLOCKED" ]; then
             echo "FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS; continuing only with the scoped catalog frontend."
             exit 0
           fi
-          echo "Production verifier failed without an explicit BLOCKED report; refusing release."
-          exit "${VERIFY_EXIT}"
+          echo "Production verifier failed or returned NOT VERIFIED; refusing release."
+          exit 1
       - name: Syntax check
         run: |
           node scripts/validate-paid-subscription-gate.mjs
