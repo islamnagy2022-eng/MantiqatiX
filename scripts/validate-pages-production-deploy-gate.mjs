@@ -90,6 +90,8 @@ assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
   'Production health checks must monitor the catalog subpath');
 assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
   'Production health checks must verify the existing platform root remains intact');
+assert.match(deployBlock, /Retired production route still reachable:[\\s\\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
+  'Post-deploy verification must assert the demo preview and SMM routes are absent');
 assert.doesNotMatch(healthMonitor, /grep -Fq "\/MantiqatiX\/assets\/" <<<"\$HTML"/,
   'Production health checks must not expect the React catalog app to replace the platform root');
 
