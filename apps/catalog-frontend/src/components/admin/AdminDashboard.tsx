@@ -51,9 +51,7 @@ import {
 import {
   calculateBusinessCommission,
   formatEgyptianLocation,
-  evaluatePaymentFreezeStatus,
   DEFAULT_COMMISSION_PER_ORDER,
-  OVERDUE_GRACE_PERIOD_DAYS,
   DEFAULT_PAYMOB_FEE_PERCENTAGE,
   DEFAULT_PAYMOB_FEE_FIXED,
   calculatePaymobFee,
@@ -724,11 +722,6 @@ export const AdminDashboard: React.FC = () => {
                       const { totalCommission } = calculateBusinessCommission(
                         biz.totalOrdersCount,
                         biz.commissionPerOrder
-                      );
-                      const freezeStatus = evaluatePaymentFreezeStatus(
-                        biz.paymentStatus,
-                        biz.overdueDaysCount,
-                        OVERDUE_GRACE_PERIOD_DAYS
                       );
                       const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
 
