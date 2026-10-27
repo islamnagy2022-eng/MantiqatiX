@@ -558,6 +558,76 @@ Deno.serve(async (req: Request) => {
       return response(origin, { success: true, settings: patch });
     }
 
+    if (action === "ASSIGN_BUSINESS_OWNER") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "");
+      const email = String(body.ownerEmail || "").trim().toLowerCase();
+      const reason = String(body.reason || "").trim().slice(0, 500);
+      if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return response(origin, { error: "VALID_OWNER_EMAIL_REQUIRED" }, 400);
+      }
+      if (reason.length < 3) return response(origin, { error: "OWNER_ASSIGNMENT_REASON_REQUIRED" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      if (business.settings?.deleted_at) return response(origin, { error: "BUSINESS_ARCHIVED" }, 409);
+
+      let authUser: any = null;
+      for (let page = 1; page <= 50; page += 1) {
+        const { data: pageData, error: usersError } = await service.auth.admin.listUsers({ page, perPage: 1000 });
+        if (usersError) throw new Error("OWNER_AUTH_LOOKUP_FAILED");
+        const users = pageData?.users || [];
+        authUser = users.find((candidate: any) => String(candidate.email || "").trim().toLowerCase() === email) || null;
+        if (authUser || users.length < 1000) break;
+      }
+      if (!authUser) return response(origin, { error: "OWNER_ACCOUNT_NOT_FOUND", message: "اطلب من صاحب النشاط إنشاء حساب Google أولًا، ثم أعد تعيين المالك." }, 404);
+      if (authUser.is_anonymous || !authUser.email_confirmed_at) {
+        return response(origin, { error: "OWNER_GOOGLE_EMAIL_NOT_VERIFIED" }, 409);
+      }
+      const { data: existingRows, error: existingError } = await service.from("user_memberships")
+        .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at")
+        .eq("user_id", authUser.id).eq("tenant_id", tenantId).eq("business_id", businessId).limit(5);
+      if (existingError) throw existingError;
+      const existing = (existingRows || []).find((m: any) => ["OWNER", "BUSINESS_OWNER"].includes(String(m.role).toUpperCase()));
+      const conflicting = (existingRows || []).find((m: any) => !["OWNER", "BUSINESS_OWNER"].includes(String(m.role).toUpperCase()));
+      if (!existing && conflicting) return response(origin, { error: "OWNER_MEMBERSHIP_CONFLICT" }, 409);
+
+      const before = existing || null;
+      let membershipId = String(existing?.id || crypto.randomUUID());
+      if (existing) {
+        const { error: updateError } = await service.from("user_memberships").update({
+          role: "BUSINESS_OWNER", status: "ACTIVE",
+          organization_id: business.organization_id || null,
+          permissions: { ...(existing.permissions && typeof existing.permissions === "object" ? existing.permissions : {}), catalog: true },
+        }).eq("id", membershipId);
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await service.from("user_memberships").insert({
+          id: membershipId, user_id: authUser.id, tenant_id: tenantId,
+          organization_id: business.organization_id || null, business_id: businessId,
+          branch_id: null, role: "BUSINESS_OWNER", status: "ACTIVE", permissions: { catalog: true },
+        });
+        if (insertError) throw insertError;
+      }
+      const { error: auditError } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(), tenant_id: tenantId, organization_id: business.organization_id || null,
+        actor_user_id: user.id, action: "BUSINESS_OWNER_ASSIGNED", entity_type: "user_membership", entity_id: membershipId,
+        old_values: before, new_values: {
+          membership_id: membershipId, user_id: authUser.id, owner_email: email,
+          business_id: businessId, role: "BUSINESS_OWNER", status: "ACTIVE", reason,
+        }, result: "SUCCESS",
+      });
+      if (auditError) {
+        const rollback = before
+          ? await service.from("user_memberships").update({ role: before.role, status: before.status, organization_id: before.organization_id, permissions: before.permissions }).eq("id", membershipId)
+          : await service.from("user_memberships").delete().eq("id", membershipId);
+        if (rollback.error) console.error("owner assignment compensation failed", rollback.error.message);
+        return response(origin, { error: rollback.error ? "OWNER_ASSIGNMENT_AUDIT_ROLLBACK_FAILED" : "OWNER_ASSIGNMENT_AUDIT_FAILED_ROLLED_BACK" }, 500);
+      }
+      return response(origin, {
+        success: true, membershipId, businessId, ownerUserId: authUser.id, ownerEmail: email,
+        reusedMembership: Boolean(existing), note: "لا يتم إنشاء كلمة مرور؛ يسجل المالك دخوله بحساب Google نفسه.",
+      });
+    }
+
     if (action === "SET_BUSINESS_STATUS") {
       const tenantId = requireTenant(body.tenantId);
       const businessId = String(body.businessId || "");
