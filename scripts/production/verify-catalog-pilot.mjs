@@ -61,9 +61,9 @@ for (const fn of catalogFunctions.functions || []) {
 assert.equal(expectedCatalogFunctions.size, 0, 'Every scoped catalog Edge Function must be accounted for');
 assert.equal(catalogFunctions.unrelated_functions_deployed, false, 'No unrelated Edge Functions may be deployed by the catalog pilot');
 
-assert.ok(vite.includes("base: '/MantiqatiX/catalog-app/'"), 'Catalog frontend must be built under its own subpath');
-assert.equal(manifest.scope, '/MantiqatiX/catalog-app/', 'Catalog PWA scope must not claim the platform root');
-assert.equal(manifest.start_url, '/MantiqatiX/catalog-app/', 'Catalog PWA start URL must use its subpath');
+assert.ok(vite.includes("base: '/MantiqatiX/'"), 'Catalog frontend must be built under its own subpath');
+assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim the platform root');
+assert.equal(manifest.start_url, '/MantiqatiX/', 'Catalog PWA start URL must use its subpath');
 assert.ok(serviceWorker.includes('mantiqatix-catalog-shell-v2'), 'Catalog service worker must use its own cache namespace');
 assert.ok(serviceWorker.includes("key.startsWith('mantiqatix-catalog-shell-')"), 'Catalog service worker must not delete unrelated platform caches');
 assert.ok(platformIndex.includes("new URL('/MantiqatiX/catalog-app/', current.origin)"), 'Root shell must relay OAuth callbacks to the catalog subpath');
@@ -81,9 +81,9 @@ assert.ok(!admin.includes("setActiveAdminTab('backup')"), 'Unverified backup/res
 assert.ok(!admin.includes("setActiveAdminTab('control_center')"), 'Unverified advanced control-center UI must not be exposed');
 
 assert.ok(report.status === 'BLOCKED' || report.status === 'PASS', 'Full platform gate status must remain explicit');
-assert.ok(pagesWorkflow.includes('Compose existing platform root with catalog as a separate module'), 'Pages artifact must preserve the existing root');
+assert.ok(pagesWorkflow.includes('Publish the electronic catalog as the only production site'), 'Pages artifact must preserve the existing root');
 assert.ok(pagesWorkflow.includes('mantiqatix-composed-pages-site'), 'Pages must publish the composed root plus catalog subpath');
-assert.ok(!pagesWorkflow.includes('primary-catalog-frontend-dist'), 'Catalog build must not replace the existing platform root artifact');
+assert.ok(!pagesWorkflow.includes('cp -a web/'), 'Legacy UI must not be copied into the production artifact');
 
 console.log('CATALOG_PILOT_GATE=PASS');
 console.log(`FULL_PLATFORM_GATE=${report.status}; this scoped gate authorizes only the catalog frontend and paid-subscription guard, not platform-wide certification.`);
