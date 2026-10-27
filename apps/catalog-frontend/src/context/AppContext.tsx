@@ -63,7 +63,7 @@ interface AppContextType {
   deleteBusiness: (id: string) => Promise<void>;
   getStorePublicLink: (business: Business) => string;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
-  confirmAdminPayment: (businessId: string) => void;
+  confirmAdminPayment: (businessId: string) => Promise<void>;
   advanceBusinessOverdueDay: (businessId: string) => void;
   toggleBusinessFreeze: (businessId: string) => void;
   updateBusinessCommissionRate: (businessId: string, rate: number) => void;
@@ -401,7 +401,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!business?.tenantId || authSession.role !== 'admin') return;
     void callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات النشاط.'));
   };
-  const confirmAdminPayment = (businessId: string) => { const today = new Date().toISOString().slice(0, 10); updateBillingSetting(businessId, { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }); setBusinesses((prev) => prev.map((b) => b.id === businessId ? { ...b, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today } : b)); };
+  const confirmAdminPayment = async (businessId: string): Promise<void> => {
+    const business = businesses.find((item) => item.id === businessId);
+    if (!business?.tenantId || authSession.role !== 'admin') return;
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      await callPlatformAdmin({
+        action: 'BUSINESS_SETTINGS_UPDATE',
+        businessId,
+        tenantId: business.tenantId,
+        settings: { paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today },
+      });
+      setBusinesses((prev) => prev.map((item) => item.id === businessId
+        ? { ...item, paymentConfirmedByAdmin: true, paymentStatus: 'paid', overdueDaysCount: 0, isFrozen: false, lastPaymentDate: today }
+        : item));
+      const pending = subscribers.filter((subscriber) => subscriber.businessId === businessId && subscriber.status === 'pending');
+      for (const subscriber of pending) {
+        await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: subscriber.id, status: 'ACTIVE' });
+        setSubscribers((prev) => prev.map((item) => item.id === subscriber.id ? { ...item, status: 'active' } : item));
+      }
+      if (pending.length) window.alert(`تم تأكيد السداد وتفعيل ${pending.length} اشتراك بعد نجاح الحفظ.`);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر تأكيد السداد وتفعيل الاشتراك.');
+    }
+  };
   const advanceBusinessOverdueDay = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const days = Number(b.overdueDaysCount || 0) + 1; const frozen = days > adminSettings.overdueGracePeriodDays; const paymentStatus = frozen ? 'frozen' : 'overdue'; updateBillingSetting(businessId, { overdueDaysCount: days, paymentStatus, isFrozen: frozen }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, overdueDaysCount: days, paymentStatus, isFrozen: frozen } : x)); };
   const toggleBusinessFreeze = (businessId: string) => { const b = businesses.find((x) => x.id === businessId); if (!b) return; const frozen = !b.isFrozen; const paymentStatus = frozen ? 'frozen' : 'pending'; updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus }); setBusinesses((prev) => prev.map((x) => x.id === businessId ? { ...x, isFrozen: frozen, paymentStatus } : x)); };
   const updateBusinessCommissionRate = (businessId: string, rate: number) => updateBillingSetting(businessId, { commissionPerOrder: rate });
@@ -467,16 +490,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       phone: data.phone || '',
     });
     const id = String(result.membershipId || result.id || result.userId);
+    const backendStatus = String(result.status || 'INACTIVE').toUpperCase();
     const created: Subscriber = {
       id,
       fullName: data.fullName.trim(),
       email,
       phone: data.phone,
       businessId: business.id,
-      status: 'active',
+      status: backendStatus === 'ACTIVE' ? 'active' : backendStatus === 'SUSPENDED' ? 'suspended' : 'pending',
       username: email,
       authMethod: 'gmail_invite',
-      inviteStatus: 'direct_created',
+      inviteStatus: 'pending',
       notes: data.notes,
       joinedDate: new Date().toISOString().slice(0, 10),
     };
@@ -484,6 +508,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return created;
   };
   const updateSubscriber = async (updated: Subscriber) => {
+    if (updated.status === 'active') {
+      const business = businesses.find((item) => item.id === updated.businessId);
+      if (!business || (String(business.paymentStatus || '').toLowerCase() !== 'paid' && !business.paymentConfirmedByAdmin)) {
+        throw new Error('لا يمكن تفعيل الاشتراك قبل تأكيد سداد النشاط من إدارة المنصة.');
+      }
+    }
     await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: updated.id, status: updated.status === 'active' ? 'ACTIVE' : updated.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE' });
     setSubscribers((prev) => prev.map((s) => s.id === updated.id ? { ...updated, password: undefined } : s));
   };
@@ -506,7 +536,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 البريد المرتبط بحساب Google: ${sub.email}
 
 طريقة الدخول: اضغط "المتابعة باستخدام Google" واختر نفس حساب Google أعلاه.
-تم حفظ ربط الاشتراك وصلاحيات النشاط في Supabase.`;
+حالة الاشتراك: ${sub.status === 'active' ? 'نشط' : sub.status === 'pending' ? 'بانتظار تأكيد السداد' : 'موقوف'}.
+لا تُفعّل صلاحيات إدارة النشاط إلا بعد تأكيد السداد من إدارة المنصة.`;
   };
   const updateAdminSettings = (settings: Partial<AdminSettings>) => { const safe = { ...settings }; delete (safe as any).adminPassword; setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' })); if (authSession.role === 'admin') void callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe }).catch((e: any) => window.alert(e?.message || 'تعذر حفظ إعدادات المنصة.')); };
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };
