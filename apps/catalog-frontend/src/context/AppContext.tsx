@@ -25,6 +25,7 @@ import {
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
 import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { resolveDefaultImage } from '../utils/defaultImages';
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
 
@@ -391,14 +392,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addProduct = async (data: Omit<Product, 'id'>): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
+    const imageSource = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
+    const imageUrl = imageSource === 'owner'
+      ? data.imageUrl.trim()
+      : resolveDefaultImage({ name: data.name, description: data.description, category: data.category, kind: data.type === 'service' ? 'service' : 'product' });
+    const metadata = { catalog_public: { category: data.category, unit: data.unit || '', image_url: imageUrl, image_source: imageSource, compare_price: data.comparePrice ?? null, is_available: data.isAvailable, track_stock: false, ...(data.requiresQuote ? { show_price: false } : {}) } };
     try {
-      await callCatalogAdmin({ action: 'ITEM_PRICE_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, nameAr: data.name, itemType: data.type === 'service' ? 'SERVICE' : 'PRODUCT', description: data.description, unitPrice: data.price, currency: 'EGP', metadata: { catalog_public: { category: data.category, unit: data.unit || '', image_url: data.imageUrl || '', compare_price: data.comparePrice ?? null, is_available: data.isAvailable, track_stock: false } } });
+      if (data.requiresQuote) {
+        await callCatalogAdmin({ action: 'ITEM_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, nameAr: data.name, itemType: 'SERVICE', description: data.description, taxRate: 0, metadata });
+      } else {
+        await callCatalogAdmin({ action: 'ITEM_PRICE_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, nameAr: data.name, itemType: data.type === 'service' ? 'SERVICE' : 'PRODUCT', description: data.description, unitPrice: data.price, currency: 'EGP', metadata });
+      }
       await refreshBusinessCatalog(data.businessId); return { success: true };
     } catch (e: any) { return { success: false, message: e?.message || 'تعذر حفظ المنتج في قاعدة الإنتاج.' }; }
   };
   const updateProduct = async (updated: Product) => {
-    const business = businesses.find((b) => b.id === updated.businessId); if (!business?.tenantId || !business.branchId) throw new Error('النشاط أو الفرع غير مرتبط ببيانات الإنتاج.');
-    await callCatalogAdmin({ action: 'ITEM_PRICE_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, id: updated.id, nameAr: updated.name, itemType: updated.type === 'service' ? 'SERVICE' : 'PRODUCT', description: updated.description, unitPrice: updated.price, currency: 'EGP', metadata: { catalog_public: { category: updated.category, unit: updated.unit || '', image_url: updated.imageUrl || '', compare_price: updated.comparePrice ?? null, is_available: updated.isAvailable, track_stock: false } } });
+    const business = businesses.find((b) => b.id === updated.businessId);
+    if (!business?.tenantId || !business.branchId) throw new Error('النشاط أو الفرع غير مرتبط ببيانات الإنتاج.');
+    const imageSource = updated.imageSource === 'owner' && Boolean(updated.imageUrl?.trim()) ? 'owner' : 'auto';
+    const imageUrl = imageSource === 'owner'
+      ? updated.imageUrl.trim()
+      : resolveDefaultImage({ name: updated.name, description: updated.description, category: updated.category, kind: updated.type === 'service' ? 'service' : 'product' });
+    const metadata = { catalog_public: { category: updated.category, unit: updated.unit || '', image_url: imageUrl, image_source: imageSource, compare_price: updated.comparePrice ?? null, is_available: updated.isAvailable, track_stock: false, ...(updated.requiresQuote ? { show_price: false } : {}) } };
+    if (updated.requiresQuote) {
+      await callCatalogAdmin({ action: 'ITEM_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, id: updated.id, nameAr: updated.name, itemType: 'SERVICE', description: updated.description, taxRate: 0, metadata });
+    } else {
+      await callCatalogAdmin({ action: 'ITEM_PRICE_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, id: updated.id, nameAr: updated.name, itemType: updated.type === 'service' ? 'SERVICE' : 'PRODUCT', description: updated.description, unitPrice: updated.price, currency: 'EGP', metadata });
+    }
     await refreshBusinessCatalog(updated.businessId);
   };
   const deleteProduct = async (id: string) => {
