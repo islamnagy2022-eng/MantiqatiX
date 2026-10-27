@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "project": "moyhiluyhjsujhwlyeuu",
-  "audited_at": "2026-10-27",
+  "audited_at": "2026-10-28",
   "method": "Read-only live PostgreSQL catalog checks for required object names/signatures and exact function configuration/ACL checks for previously identified critical boundaries. SQL migration sources were parsed from main. This inventory does not assert full behavior equivalence unless an explicit observed difference is documented.",
-  "live_migration_ledger_rows": 292,
-  "latest_live_migration_version": "20261027041549",
+  "live_migration_ledger_rows": 294,
+  "latest_live_migration_version": "20261027223523",
   "required_release_migration_versions": 41,
   "recorded_required_migration_versions": 0,
   "functions": {
@@ -232,9 +232,9 @@
       {
         "migration": "RC451",
         "name": "get_mnty_targeted_advertisements",
-        "status": "PRESENT_SEARCH_PATH_DRIFT",
+        "status": "PRESENT_CONFIG_RECONCILED_BY_FORWARD_REPAIR",
         "live_signature": "get_mnty_targeted_advertisements(character varying,character varying,character varying,double precision,double precision,character varying,integer)",
-        "detail": "Intentionally public SECURITY DEFINER endpoint: anon/authenticated EXECUTE retained; live search_path=public, pg_temp, expected empty by RC451."
+        "detail": "Intentionally public SECURITY DEFINER endpoint: anon/authenticated EXECUTE retained; PUBLIC EXECUTE absent. Live search_path is now empty, verified after forward-only repair 20261027223523 with exact statement/source parity and a successful live RPC call. Original RC451 source version 20261010200000 remains absent from the ledger."
       },
       {
         "migration": "RC453",
@@ -440,8 +440,8 @@
     "The existing financial journal RPCs do not grant service_role EXECUTE",
     "Five critical deployed Edge Function entrypoints differ from current main; smm-gateway entrypoint matches"
   ],
-  "interpretation": "Production remains blocked. The live object evidence is now granular: 60 individual core and feature object contracts, rather than combined labels that could never match a catalog finding. Seven core objects exist by name/signature only; 20 core objects and all 33 RC113–RC117 objects are absent. Exact function bodies/ACLs/search_path and runtime behavior remain separate gates.",
-  "safety": "READ-ONLY evidence only. No Production data, schema, migration ledger, grants, RLS, Auth, Edge Functions, payment intents, or wallets were modified.",
+  "interpretation": "Production remains blocked. The live object inventory is read-only and granular. The RC451 targeted-ad function search_path drift was corrected by the guarded forward-only migration 20261027223523; anon/authenticated EXECUTE remains intentionally enabled and PUBLIC EXECUTE remains absent. The original RC451 version is still absent from the required migration ledger. Twenty core objects and all 33 RC113–RC117 objects remain absent, and critical payment/finance/auth/runtime contracts remain unverified.",
+  "safety": "The inventory itself is read-only. After the audit, a separate guarded forward-only migration 20261027223523 changed only the targeted-ad SECURITY DEFINER function search_path and added its migration ledger entry. Post-deploy checks confirmed exact source/ledger statement parity, preserved anon/authenticated EXECUTE, no PUBLIC EXECUTE, and a successful read-only RPC call. No business data, payment intents, wallets, RLS policies, Auth settings, or Edge Functions were changed.",
   "additional_feature_migrations": [
     {
       "version": "20261027030000",
