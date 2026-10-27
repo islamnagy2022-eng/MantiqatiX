@@ -61,6 +61,8 @@ import {
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
 
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
   retail: <ShoppingBag className="w-4 h-4 text-blue-500" />,
@@ -732,9 +734,13 @@ export const AdminDashboard: React.FC = () => {
                           <td className="py-3.5 px-4 font-bold text-slate-900 max-w-[220px]">
                             <div className="flex items-center gap-2">
                               <img
-                                src={biz.logoUrl}
+                                src={biz.logoUrl || BUSINESS_PLACEHOLDER}
                                 alt={biz.name}
                                 className="w-8 h-8 rounded-lg object-cover bg-slate-100 flex-shrink-0"
+                                onError={(e) => {
+                                  const image = e.currentTarget;
+                                  if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                                }}
                               />
                               <div className="truncate">
                                 <div className="truncate">{biz.name}</div>
