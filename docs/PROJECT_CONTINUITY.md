@@ -628,3 +628,10 @@ This status is intentional and must remain until the open gates above are indepe
 - SMM frontend cleanup is already on main: `web/smm.js` and `web/smm.css` are absent, `web/smm.html` is a noindex notice, and the backend default-deny contract remains tested.
 - The overall release remains BLOCKED because required RC425–RC441 sources/sequence and payment/finance E2E, backup/restore, live Edge Function/Auth parity, browser/device E2E, monitoring/alert and rollback evidence are not complete. Do not bypass the deployment gate.
 - No Production writes, migration execution, Auth/grant/RLS changes, Edge Function deployment, payment/wallet mutation, or deployment occurred.
+
+
+## Latest continuation — 2026-10-27 — live SMM gateway parity
+
+- Production `smm-gateway` read-back: ACTIVE version 13, `verify_jwt=true`, bundle SHA-256 `a45cee9f5c90beba2c2409ba4fe2927f5be3df4965fb3929f5b7d467b3121b72`.
+- All seven deployed TypeScript files exactly match `main`; the deployed source hard gate is `SMM_INITIAL_LAUNCH_DEFERRED=true` and denies actions before processing.
+- Anonymous/authenticated negative runtime tests remain NOT VERIFIED. Do not mark the SMM release gate complete from source parity alone; no function deployment or environment change was made.
