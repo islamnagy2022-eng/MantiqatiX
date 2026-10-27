@@ -2158,6 +2158,14 @@ window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:fal
 if(authRenderLock)return;
 authRenderLock=true;
 try{
+ // Activate a normal CUSTOMER membership for newly authenticated accounts; this is separate from business approval.
+ try {
+  const {data:memberships,error:membershipError}=await sb.from('user_memberships').select('id').eq('user_id',authUser.id).eq('status','ACTIVE').limit(1);
+  if(!membershipError&&!(memberships||[]).length){
+   const {data:activation,error:activationError}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
+   if(activationError||activation?.error)console.warn('Automatic customer membership setup failed',activation?.error||activationError?.message);
+  }
+ } catch (activationError) { console.warn('Automatic customer membership setup failed',activationError); }
  await renderApp({forceWorkspace:force});
  let pending=null;
  try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
