@@ -47,4 +47,17 @@ if (!dashboard.includes("b.paymentStatus === 'paid'") ||
   throw new Error('FAIL: production billing status and pending filter must use the persisted billing state.');
 }
 
+
+if (/إشعار يومي|متبقي \\{5 - biz\\.overdueDaysCount\\} أيام قبل التجميد/.test(dashboard)) {
+  throw new Error('FAIL: production billing view must not claim an automated daily reminder or freeze countdown.');
+}
+if (!dashboard.includes("biz.paymentStatus === 'overdue'") ||
+    !dashboard.includes("biz.paymentStatus === 'pending'") ||
+    !dashboard.includes("حالة التجميد المسجلة في بيانات الإنتاج")) {
+  throw new Error('FAIL: the billing status detail must display the persisted payment/freeze state.');
+}
+if (dashboard.includes("biz.paymentDueDay || 1") || dashboard.includes("biz.paymentDueDate || 'شهري'")) {
+  throw new Error('FAIL: production billing view must not invent a due day or due date.');
+}
+
 console.log('Production billing controls: PASS');
