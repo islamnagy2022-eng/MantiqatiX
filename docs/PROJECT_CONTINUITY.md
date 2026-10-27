@@ -30,7 +30,7 @@
 - Supabase project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
 - Latest documented project commit before this reconciliation branch: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`
-- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`. A read-only LEFT JOIN confirms **0/16** expected RC425–RC432 and RC434–RC441 versions are recorded; later October 26–27 migrations are present despite those gaps. The source chain replays in isolation (52 migrations, run 40494929976), but it is not applied/proven in Production.
+- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`. A read-only LEFT JOIN confirms **0/34** exact migration versions required by the current Production verifier are recorded; later October 26–27 migrations are present despite those gaps. The source chain replays in isolation (52 migrations, run 40494929976), but it is not applied/proven in Production.
 - Final Production Gate: **BLOCKED / NOT CERTIFIED**
 
 ## Latest verified web execution batch — 2026-10-18
@@ -651,5 +651,12 @@ This status is intentional and must remain until the open gates above are indepe
 - Read-only exact `index.ts` comparisons against `main`: `payment-intent` v8 (8,114 vs 10,366 chars), `paymob-webhook` v10 (11,538 vs 12,665), `digital-page-payment-intent` v5 (5,345 vs 6,532), `subscription-payment-intent` v4 (5,196 vs 10,896), and `financial-journal` v3 (1,591 vs 3,387) do not match current source. Relevant function-level differences are recorded in the reconciliation manifest.
 - `financial-journal` live code uses wildcard CORS and calls `post_financial_journal`, while `main` uses an origin allowlist and `post_financial_journal_backend`. The live `paymob-webhook` lacks the explicit finite-amount guard present in `main`; payment intent paths omit shared Paymob correlation helpers found in `main`.
 - `smm-gateway` v13 exact entrypoint match passes, but runtime negative tests remain NOT VERIFIED.
-- Required RC425–RC432 and RC434–RC441 versions are 0/16 in the live migration ledger. The 52-migration disposable replay passed, but neither that replay nor source presence proves safe application to the current Production schema.
+- All 34 exact migration versions required by the Production verifier are 0/34 in the live migration ledger. The 52-migration disposable replay passed, but neither that replay nor source presence proves safe application to the current Production schema.
 - No code deployed; no Production writes, migration operations, grants, Auth settings, payments, or wallet changes performed. Release stays **BLOCKED / NOT CERTIFIED**.
+
+
+## Latest checkpoint — 2026-10-27 — all 34 release versions
+
+- A read-only ledger LEFT JOIN covered all 34 migration IDs enforced by `scripts/production/verify-production.mjs`; **0/34** are present in `supabase_migrations.schema_migrations`. Current source files and disposable replay do not prove Production application.
+- RC451's `get_mnty_targeted_advertisements` remains SECURITY DEFINER with anon/authenticated EXECUTE and live `search_path=public, pg_temp`; RC451's required empty search_path is not applied. Public discovery is intentional; never mass-revoke its EXECUTE as a workaround.
+- The verifier contract was strengthened in PR #428 and is being extended to require all exact 34 versions and RC451 live catalog evidence. Production gate remains `BLOCKED / NOT CERTIFIED`; no Production writes or deployment occurred.
