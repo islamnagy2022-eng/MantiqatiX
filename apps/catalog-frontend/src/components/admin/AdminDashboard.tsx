@@ -136,10 +136,11 @@ export const AdminDashboard: React.FC = () => {
   const [newBizOwnerWhatsApp, setNewBizOwnerWhatsApp] = useState('');
   const [newBizBio, setNewBizBio] = useState('');
   // Egyptian Location Fields
-  const [newBizGov, setNewBizGov] = useState('الدقهلية');
-  const [newBizMarkaz, setNewBizMarkaz] = useState('المنصورة');
-  const [newBizVillage, setNewBizVillage] = useState('حي الجامعة');
-  const [newBizAddress, setNewBizAddress] = useState('شارع المشاية السفلية');
+  const [newBizGov, setNewBizGov] = useState('');
+  const [newBizMarkaz, setNewBizMarkaz] = useState('');
+  const [newBizVillage, setNewBizVillage] = useState('');
+  const [newBizAddress, setNewBizAddress] = useState('');
+  const [newBizWorkingHours, setNewBizWorkingHours] = useState('');
   // Billing & Commission Fields (Admin Only)
   const [newBizDueDay, setNewBizDueDay] = useState(1);
   const [newBizCommission, setNewBizCommission] = useState(0.01);
@@ -178,24 +179,9 @@ export const AdminDashboard: React.FC = () => {
   const [paymobNotesForCustomer, setPaymobNotesForCustomer] = useState('');
   const [paymobSaveSuccess, setPaymobSaveSuccess] = useState(false);
 
-  // New Business Paymob initial configuration
-  const [newBizPaymobEnabled, setNewBizPaymobEnabled] = useState(true);
-  const [newBizPaymobFeePercentage, setNewBizPaymobFeePercentage] = useState(2.75);
-  const [newBizPaymobFeeFixed, setNewBizPaymobFeeFixed] = useState(3.0);
-
-  const openPaymobSettings = (biz: Business) => {
-    setSelectedPaymobBiz(biz);
-    const cfg = biz.paymobConfig || DEFAULT_PAYMOB_CONFIG;
-    setPaymobEnabled(cfg.enabled);
-    setPaymobFeeType(cfg.feeType === 'percentage_and_fixed' ? 'percentage_plus_fixed' : (cfg.feeType || 'percentage_plus_fixed'));
-    setPaymobFeePercentage(cfg.feePercentage);
-    setPaymobFeeFixed(cfg.feeFixed);
-    setPaymobAcceptedChannels(cfg.acceptedChannels || ['card', 'wallet', 'kiosk']);
-    setPaymobMerchantApiKey(cfg.merchantApiKey || '');
-    setPaymobIntegrationIdCard(cfg.integrationIdCard || '');
-    setPaymobIntegrationIdWallet(cfg.integrationIdWallet || '');
-    setPaymobNotesForCustomer(cfg.notesForCustomer || '');
-    setPaymobSaveSuccess(false);
+  // This catalog-first release intentionally does not activate online payments.
+  const openPaymobSettings = (_biz: Business) => {
+    window.alert('الدفع الإلكتروني عبر Paymob غير مفعّل في إصدار الكتالوج الحالي. تتم الطلبات عبر واتساب، ولن يتم حفظ إعدادات دفع غير فعّالة.');
   };
 
   const handleSavePaymobConfig = (e: React.FormEvent) => {
