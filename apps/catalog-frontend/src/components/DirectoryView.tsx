@@ -110,6 +110,9 @@ export const DirectoryView: React.FC = () => {
   }, [activeCoverSlides.length]);
 
   const filteredBusinesses = businesses.filter((biz) => {
+    // Fail closed: the directory must never expose unpublished or frozen businesses,
+    // even when the viewer is a platform administrator with a broader bootstrap scope.
+    if (!biz.publicEnabled || biz.isFrozen) return false;
     const matchesSearch =
       biz.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       biz.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
