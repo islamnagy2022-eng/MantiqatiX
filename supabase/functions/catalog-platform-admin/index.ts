@@ -105,9 +105,27 @@ Deno.serve(async (req: Request) => {
       const safe: Record<string, unknown> = {};
       const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
-      const { error } = await service.from("bizcatalog_platform_settings").upsert({ settings_key: "bizcatalog", settings: safe, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "settings_key" });
+      if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
+        const phone = String(input.adminWhatsApp || "").trim();
+        const digits = phone.replace(/\D/g, "");
+        if (digits.length < 10 || digits.length > 15) return response(origin, { error: "INVALID_ADMIN_WHATSAPP", message: "أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا." }, 400);
+        safe.adminWhatsApp = phone.slice(0, 40);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "defaultCommissionPerOrder")) {
+        const commission = Number(input.defaultCommissionPerOrder);
+        if (!Number.isFinite(commission) || commission < 0 || commission > 1000000) return response(origin, { error: "INVALID_DEFAULT_COMMISSION" }, 400);
+        safe.defaultCommissionPerOrder = commission;
+      }
+      const { data: existing, error: readError } = await service.from("bizcatalog_platform_settings")
+        .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
+      if (readError) throw readError;
+      const current = existing?.settings && typeof existing.settings === "object" && !Array.isArray(existing.settings) ? existing.settings : {};
+      const merged = { ...current, ...safe };
+      const { error } = await service.from("bizcatalog_platform_settings").upsert({
+        settings_key: "bizcatalog", settings: merged, updated_by: user.id, updated_at: new Date().toISOString(),
+      }, { onConflict: "settings_key" });
       if (error) throw error;
-      return response(origin, { success: true, settings: safe });
+      return response(origin, { success: true, settings: merged });
     }
 
     if (action === "LIST_SUBSCRIBERS") {
@@ -144,7 +162,21 @@ Deno.serve(async (req: Request) => {
     if (action === "CREATE_BUSINESS") {
       const input = body.business && typeof body.business === "object" ? body.business : {};
       const name = String(input.name || "").trim();
+      const category = String(input.category || "").trim();
+      const phone = String(input.phone || "").trim();
+      const phoneDigits = phone.replace(/\D/g, "");
+      const governorate = String(input.governorate || "").trim();
+      const markaz = String(input.markaz || "").trim();
+      const village = String(input.village || "").trim();
+      const bio = String(input.bio || "").trim();
+      const address = String(input.address || "").trim();
+      const workingHours = String(input.workingHours || "").trim();
+      const logoUrl = String(input.logoUrl || "").trim();
+      const coverUrl = String(input.coverUrl || "").trim();
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
+      if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
+      if (phoneDigits.length < 10 || phoneDigits.length > 15) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "A valid owner WhatsApp number is required." }, 400);
+      if ([governorate, markaz, village].some((value) => value.length < 2 || value.length > 100)) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
       const tenantId = requireTenant(body.tenantId || productionTenantIds.find((id) => id === "MNTY-PLATFORM") || productionTenantIds[0]);
       const { data: tenant, error: tenantError } = await service.from("tenants").select("id,status").eq("id", tenantId).eq("status", "ACTIVE").maybeSingle();
       if (tenantError) throw tenantError;
@@ -161,9 +193,9 @@ Deno.serve(async (req: Request) => {
         const { data: created, error: createError } = await service.from("businesses").insert({
           tenant_id: tenantId, organization_id: organizationId, name,
           code: `MX-${randomCode}`, status: "ACTIVE",
-          settings: { activity_code: String(input.category || "retail"), catalog_public_enabled: false,
-            catalog_profile: { bio: String(input.bio || "").slice(0, 3000), governorate: String(input.governorate || "").slice(0, 100), markaz: String(input.markaz || "").slice(0, 100), village: String(input.village || "").slice(0, 100), working_hours: String(input.workingHours || "").slice(0, 300), logo_url: String(input.logoUrl || "").slice(0, 1500), cover_url: String(input.coverUrl || "").slice(0, 1500) },
-            bizcatalog: { paymentStatus: "pending", isFrozen: false, commissionPerOrder: 0.01, totalOrdersCount: 0, paymentDueDay: 1, paymentDueDate: new Date().toISOString().slice(0, 10), paymentConfirmedByAdmin: false } },
+          settings: { activity_code: category, catalog_public_enabled: false,
+            catalog_profile: { bio: bio.slice(0, 3000), governorate: governorate.slice(0, 100), markaz: markaz.slice(0, 100), village: village.slice(0, 100), working_hours: workingHours.slice(0, 300), logo_url: logoUrl.slice(0, 1500), cover_url: coverUrl.slice(0, 1500) },
+            bizcatalog: { paymentStatus: "pending", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
         if (createError) throw createError;
         createdBusinessId = String(created.id);
@@ -171,18 +203,18 @@ Deno.serve(async (req: Request) => {
         const { error: branchError } = await service.from("branches").insert({
           id: branchId, tenant_id: tenantId, organization_id: organizationId, business_id: created.id,
           name: `${name} - الفرع الرئيسي`, code: `MAIN-${randomCode}`, status: "ACTIVE",
-          phone: String(input.phone || "").slice(0, 40) || null, address: String(input.address || "").slice(0, 500) || null,
+          phone: phone.slice(0, 40), address: address.slice(0, 500) || null,
           settings: { source: "bizcatalog-manager" },
         });
         if (branchError) throw branchError;
         const { error: providerError } = await service.from("marketing_provider_profiles").insert({
-          provider_kind: String(input.category || "retail").slice(0, 80), business_id: created.id,
+          provider_kind: category.slice(0, 80), business_id: created.id,
           owner_user_id: null, name_ar: name, name_en: null, slug: `${slug}-${randomCode.toLowerCase()}`,
-          description: String(input.bio || "").slice(0, 3000) || null, specialties: [], service_areas: [], portfolio: [],
+          description: bio.slice(0, 3000) || null, specialties: [], service_areas: [], portfolio: [],
           status: "ACTIVE", is_verified: false, is_featured: false, ranking_weight: 0, settings: {},
         });
         if (providerError) throw providerError;
-        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category: String(input.category || "retail"), status: "ACTIVE" } }, 201);
+        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "ACTIVE" } }, 201);
       } catch (error) {
         if (createdBusinessId) {
           await service.from("marketing_provider_profiles").delete().eq("business_id", createdBusinessId);
