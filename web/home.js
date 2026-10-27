@@ -472,7 +472,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
             '<a class="mx-activity-success__whatsapp" id="mx-activity-wa-link" href="'+escapeHtml(waUrl)+'" target="_blank" rel="noopener noreferrer">إرسال نسخة الطلب إلى واتساب الإدارة</a>'+
             '<p class="mx-activity-basket__hint">فتحنا واتساب برسالة جاهزة عند السماح بذلك. اضغط «إرسال» داخل واتساب لإرسال الرسالة فعليًا.</p><button type="button" class="btn btn-outline mx-close-modal">إغلاق</button></div>';
           overlay.querySelectorAll('.mx-close-modal').forEach(btn=>btn.addEventListener('click',close));
-          showStatusToast('تم تسجيل طلب النشاط في لوحة الإدارة.','success');
+          if(typeof showToast==='function')showToast('تم تسجيل طلب النشاط في لوحة الإدارة.','success');
         }catch(err){
           if(waWindow&&!waWindow.closed){try{waWindow.close()}catch(_){}}
           submitBtn.disabled=false;submitBtn.textContent='إرسال الطلب للإدارة';
