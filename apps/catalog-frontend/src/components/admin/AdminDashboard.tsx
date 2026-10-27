@@ -154,57 +154,9 @@ export const AdminDashboard: React.FC = () => {
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsFeedback, setSettingsFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Paymob Administration & Configuration Per Business
+  // Payment gateway configuration is intentionally unavailable in the catalog pilot.
   const [selectedPaymobBiz, setSelectedPaymobBiz] = useState<Business | null>(null);
-  const [paymobEnabled, setPaymobEnabled] = useState(true);
-  const [paymobFeeType, setPaymobFeeType] = useState<'percentage' | 'fixed' | 'percentage_plus_fixed'>('percentage_plus_fixed');
-  const [paymobFeePercentage, setPaymobFeePercentage] = useState(DEFAULT_PAYMOB_FEE_PERCENTAGE);
-  const [paymobFeeFixed, setPaymobFeeFixed] = useState(DEFAULT_PAYMOB_FEE_FIXED);
-  const [paymobAcceptedChannels, setPaymobAcceptedChannels] = useState<PaymobChannel[]>(['card', 'wallet', 'kiosk']);
-  const [paymobMerchantApiKey, setPaymobMerchantApiKey] = useState('');
-  const [paymobIntegrationIdCard, setPaymobIntegrationIdCard] = useState('');
-  const [paymobIntegrationIdWallet, setPaymobIntegrationIdWallet] = useState('');
-  const [paymobNotesForCustomer, setPaymobNotesForCustomer] = useState('');
-  const [paymobSaveSuccess, setPaymobSaveSuccess] = useState(false);
-
-  const openPaymobSettings = (biz: Business) => {
-    setSelectedPaymobBiz(biz);
-    const cfg = biz.paymobConfig || DEFAULT_PAYMOB_CONFIG;
-    setPaymobEnabled(cfg.enabled);
-    setPaymobFeeType(cfg.feeType === 'percentage_and_fixed' ? 'percentage_plus_fixed' : (cfg.feeType || 'percentage_plus_fixed'));
-    setPaymobFeePercentage(cfg.feePercentage);
-    setPaymobFeeFixed(cfg.feeFixed);
-    setPaymobAcceptedChannels(cfg.acceptedChannels || ['card', 'wallet', 'kiosk']);
-    setPaymobMerchantApiKey(cfg.merchantApiKey || '');
-    setPaymobIntegrationIdCard(cfg.integrationIdCard || '');
-    setPaymobIntegrationIdWallet(cfg.integrationIdWallet || '');
-    setPaymobNotesForCustomer(cfg.notesForCustomer || '');
-    setPaymobSaveSuccess(false);
-  };
-
-  const handleSavePaymobConfig = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPaymobBiz) return;
-
-    const saved = updateBusinessPaymobConfig(selectedPaymobBiz.id, {
-      enabled: paymobEnabled,
-      feeType: paymobFeeType,
-      feePercentage: Number(paymobFeePercentage) || 0,
-      feeFixed: Number(paymobFeeFixed) || 0,
-      acceptedChannels: paymobAcceptedChannels.length > 0 ? paymobAcceptedChannels : ['card'],
-      merchantApiKey: paymobMerchantApiKey,
-      integrationIdCard: paymobIntegrationIdCard,
-      integrationIdWallet: paymobIntegrationIdWallet,
-      notesForCustomer: paymobNotesForCustomer,
-    });
-    if (!saved) return;
-
-    setPaymobSaveSuccess(true);
-    setTimeout(() => {
-      setPaymobSaveSuccess(false);
-      setSelectedPaymobBiz(null);
-    }, 1200);
-  };
+  const openPaymobSettings = (biz: Business) => setSelectedPaymobBiz(biz);
 
   // Quick stats
   const totalSubscribers = subscribers.length;
@@ -786,11 +738,10 @@ export const AdminDashboard: React.FC = () => {
                               {/* Paymob Settings Quick Button */}
                               <button
                                 onClick={() => openPaymobSettings(biz)}
-                                className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[10px] px-2 py-1 rounded-lg border border-blue-200 transition-colors cursor-pointer flex items-center gap-1"
-                                title="تحديد وسيلة سداد Paymob ونسبة التكلفة لهذا النشاط"
+                                className="bg-slate-100 text-slate-600 font-bold text-[10px] px-2 py-1 rounded-lg border border-slate-200 cursor-pointer"
+                                title="بوابة الدفع الإلكتروني غير متاحة في الإصدار الحالي"
                               >
-                                <CreditCard className="w-3 h-3 text-blue-600" />
-                                <span>إدارة Paymob</span>
+                                <span>تفاصيل الدفع الإلكتروني</span>
                               </button>
 
                               {/* 1. Confirm Payment Button */}
@@ -1164,17 +1115,9 @@ export const AdminDashboard: React.FC = () => {
                           </span>
                         </div>
 
-                        {/* Paymob Gateway Badge */}
                         <div className="flex items-center justify-between text-slate-600 pt-1 border-t border-slate-100">
-                          <span>بوابة PAYMOB:</span>
-                          {b.paymobConfig?.enabled ? (
-                            <span className="font-extrabold text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                              <CreditCard className="w-3 h-3" />
-                              <span>مفعلة (+{b.paymobConfig.feePercentage}% {b.paymobConfig.feeFixed > 0 ? `+ ${b.paymobConfig.feeFixed}ج.م` : ''})</span>
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">معطلة من الإدارة</span>
-                          )}
+                          <span>الدفع الإلكتروني:</span>
+                          <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">غير متاح في الإصدار الحالي</span>
                         </div>
                       </div>
                     </div>
@@ -1184,15 +1127,10 @@ export const AdminDashboard: React.FC = () => {
                   <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
                     <button
                       onClick={() => openPaymobSettings(b)}
-                      className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 cursor-pointer transition-colors ${
-                        b.paymobConfig?.enabled
-                          ? 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-                          : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                      }`}
-                      title="إعداد وسيلة سداد Paymob وتكلفتها لهذا النشاط"
+                      className="text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors"
+                      title="بوابة الدفع الإلكتروني غير متاحة في الإصدار الحالي"
                     >
-                      <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                      <span>{b.paymobConfig?.enabled ? 'إدارة Paymob' : 'تفعيل Paymob'}</span>
+                      <span>حالة الدفع الإلكتروني</span>
                     </button>
 
                     <button
@@ -1910,416 +1848,26 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* =========================================================================
-          MODAL: PAYMOB CONFIGURATION PER BUSINESS (Admin Controlled)
-         ========================================================================= */}
       {selectedPaymobBiz && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="bg-white text-blue-900 font-black text-xs px-2.5 py-0.5 rounded shadow-xs tracking-wider">
-                    PAYMOB
-                  </span>
-                  <span className="bg-blue-600/60 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded border border-white/20">
-                    محدد حصراً من الإدارة
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedPaymobBiz(null)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <h3 className="font-black text-lg text-white mt-3">
-                تحديد وسيلة سداد PAYMOB وتكلفتها لنشاط: {selectedPaymobBiz.name}
-              </h3>
-              <p className="text-xs text-blue-200 mt-1 leading-relaxed">
-                يتم تحديد وسيلة الاستخدام وقنواتها ونسبة التكلفة المضافة حصراً من قِبل إدارة MantiqatiX لكل نشاط على حدة.
-              </p>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-900 p-5 text-white">
+              <h3 className="font-black text-lg">الدفع الإلكتروني غير متاح</h3>
+              <p className="text-xs text-slate-300 mt-1">النشاط: {selectedPaymobBiz.name}</p>
             </div>
-
-            {/* Modal Body */}
-            <form onSubmit={handleSavePaymobConfig} className="p-6 space-y-5 text-right">
-              {paymobSaveSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-800 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                  <span>تم حفظ وتطبيق إعدادات وسيلة سداد Paymob لهذا النشاط بنجاح!</span>
-                </div>
-              )}
-
-              {/* Toggle Enable/Disable Paymob for this business */}
-              <div className="p-4 rounded-2xl border transition-colors flex items-center justify-between bg-slate-50 border-slate-200">
-                <div>
-                  <div className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5">
-                    <CreditCard className="w-4 h-4 text-blue-600" />
-                    <span>تفعيل وسيلة السداد عبر PAYMOB لهذا النشاط</span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    عند التفعيل، ستظهر وسيلة الدفع الإلكتروني بي موب في سلة المشتريات لزبائن هذا النشاط.
-                  </p>
-                </div>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={paymobEnabled}
-                    onChange={(e) => setPaymobEnabled(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              {paymobEnabled && (
-                <div className="space-y-5 animate-in fade-in duration-200">
-                  {/* Fee Calculation Method */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-slate-800">
-                      نموذج احتساب تكلفة الدفع الإلكتروني (تضاف لإجمالي الفاتورة للعميل):
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                      <label
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                          paymobFeeType === 'percentage_plus_fixed'
-                            ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold shadow-xs ring-1 ring-blue-600/30'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="feeType"
-                          value="percentage_plus_fixed"
-                          checked={paymobFeeType === 'percentage_plus_fixed'}
-                          onChange={() => setPaymobFeeType('percentage_plus_fixed')}
-                          className="sr-only"
-                        />
-                        <div className="font-extrabold text-xs">نسبة + مبلغ ثابت</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">النموذج الشائع في مصر (2.75% + 3 ج.م)</div>
-                      </label>
-
-                      <label
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                          paymobFeeType === 'percentage'
-                            ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold shadow-xs ring-1 ring-blue-600/30'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="feeType"
-                          value="percentage"
-                          checked={paymobFeeType === 'percentage'}
-                          onChange={() => setPaymobFeeType('percentage')}
-                          className="sr-only"
-                        />
-                        <div className="font-extrabold text-xs">نسبة مئوية فقط</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">تعتمد كلياً على قيمة السلة</div>
-                      </label>
-
-                      <label
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                          paymobFeeType === 'fixed'
-                            ? 'bg-blue-50 border-blue-600 text-blue-950 font-bold shadow-xs ring-1 ring-blue-600/30'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="feeType"
-                          value="fixed"
-                          checked={paymobFeeType === 'fixed'}
-                          onChange={() => setPaymobFeeType('fixed')}
-                          className="sr-only"
-                        />
-                        <div className="font-extrabold text-xs">مبلغ ثابت فقط</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">قيمة مقطوعة لكل معاملة</div>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Fee Inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/80 p-4 rounded-2xl border border-slate-200">
-                    {(paymobFeeType === 'percentage' || paymobFeeType === 'percentage_plus_fixed') && (
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                          نسبة تكلفة الدفع (%) <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step="0.05"
-                            min="0"
-                            required
-                            value={paymobFeePercentage}
-                            onChange={(e) => setPaymobFeePercentage(parseFloat(e.target.value) || 0)}
-                            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                            %
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {(paymobFeeType === 'fixed' || paymobFeeType === 'percentage_plus_fixed') && (
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                          المبلغ الثابت المضاف (ج.م) <span className="text-rose-500">*</span>
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="number"
-                            step="0.5"
-                            min="0"
-                            required
-                            value={paymobFeeFixed}
-                            onChange={(e) => setPaymobFeeFixed(parseFloat(e.target.value) || 0)}
-                            className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                            ج.م
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Preset Buttons */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11px] font-bold text-slate-500 ml-1">إعدادات سريعة:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymobFeeType('percentage_plus_fixed');
-                        setPaymobFeePercentage(2.75);
-                        setPaymobFeeFixed(3.0);
-                      }}
-                      className="text-[10.5px] bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      القياسي لمصر (2.75% + 3.00 ج.م)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymobFeeType('percentage');
-                        setPaymobFeePercentage(2.5);
-                        setPaymobFeeFixed(0);
-                      }}
-                      className="text-[10.5px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      2.5% فقط
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymobFeeType('fixed');
-                        setPaymobFeePercentage(0);
-                        setPaymobFeeFixed(5.0);
-                      }}
-                      className="text-[10.5px] bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                    >
-                      5.00 ج.م ثابتة فقط
-                    </button>
-                  </div>
-
-                  {/* Live Simulation Card */}
-                  {(() => {
-                    const sim100 = calculatePaymobFee(100, {
-                      enabled: true,
-                      feeType: paymobFeeType,
-                      feePercentage: Number(paymobFeePercentage) || 0,
-                      feeFixed: Number(paymobFeeFixed) || 0,
-                      acceptedChannels: paymobAcceptedChannels,
-                    });
-                    const sim500 = calculatePaymobFee(500, {
-                      enabled: true,
-                      feeType: paymobFeeType,
-                      feePercentage: Number(paymobFeePercentage) || 0,
-                      feeFixed: Number(paymobFeeFixed) || 0,
-                      acceptedChannels: paymobAcceptedChannels,
-                    });
-
-                    return (
-                      <div className="p-3 bg-amber-50/70 rounded-2xl border border-amber-200/80 text-xs space-y-1.5">
-                        <div className="font-extrabold text-amber-950 flex items-center gap-1.5">
-                          <Sparkles className="w-4 h-4 text-amber-600" />
-                          <span>معاينة فورية لتكلفة الدفع المضافة لطلب العميل:</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-1 text-[11px]">
-                          <div className="bg-white p-2 rounded-xl border border-amber-200">
-                            <span className="text-slate-500 block">طلب بقيمة 100 ج.م:</span>
-                            <span className="font-bold text-amber-900">
-                              رسوم Paymob: +{sim100.fee.toFixed(2)} ج.م
-                            </span>
-                            <div className="font-black text-slate-900 text-xs mt-0.5">
-                              الإجمالي: {sim100.totalWithFee.toFixed(2)} ج.م
-                            </div>
-                          </div>
-
-                          <div className="bg-white p-2 rounded-xl border border-amber-200">
-                            <span className="text-slate-500 block">طلب بقيمة 500 ج.م:</span>
-                            <span className="font-bold text-amber-900">
-                              رسوم Paymob: +{sim500.fee.toFixed(2)} ج.م
-                            </span>
-                            <div className="font-black text-slate-900 text-xs mt-0.5">
-                              الإجمالي: {sim500.totalWithFee.toFixed(2)} ج.م
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Accepted Channels Checkboxes */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-slate-800">
-                      قنوات الدفع المسموح بها لهذا النشاط عبر Paymob:
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-slate-100">
-                        <input
-                          type="checkbox"
-                          checked={paymobAcceptedChannels.includes('card')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPaymobAcceptedChannels((prev) => [...prev, 'card']);
-                            } else {
-                              setPaymobAcceptedChannels((prev) => prev.filter((c) => c !== 'card'));
-                            }
-                          }}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                            <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                            <span>بطاقات ميزة وفيزا</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 block">Meeza, Visa, MC</span>
-                        </div>
-                      </label>
-
-                      <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-slate-100">
-                        <input
-                          type="checkbox"
-                          checked={paymobAcceptedChannels.includes('wallet')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPaymobAcceptedChannels((prev) => [...prev, 'wallet']);
-                            } else {
-                              setPaymobAcceptedChannels((prev) => prev.filter((c) => c !== 'wallet'));
-                            }
-                          }}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                            <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>محافظ الكاش الذكية</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 block">فودافون/أورنج/اتصالات/وي</span>
-                        </div>
-                      </label>
-
-                      <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-slate-100">
-                        <input
-                          type="checkbox"
-                          checked={paymobAcceptedChannels.includes('kiosk')}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setPaymobAcceptedChannels((prev) => [...prev, 'kiosk']);
-                            } else {
-                              setPaymobAcceptedChannels((prev) => prev.filter((c) => c !== 'kiosk'));
-                            }
-                          }}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <div>
-                          <div className="text-xs font-bold text-slate-900 flex items-center gap-1">
-                            <QrCode className="w-3.5 h-3.5 text-amber-600" />
-                            <span>أمان ومصاري</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 block">كود سداد بمنافذ مصر</span>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Merchant Key & Integration ID Notes */}
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
-                    <span className="text-[11px] font-black text-slate-700 block">
-                      بيانات الربط مع حساب النشاط في Paymob (اختياري / معرفات الربط):
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                          Integration ID (بطاقات ميزة / فيزا)
-                        </label>
-                        <input
-                          type="text"
-                          dir="ltr"
-                          placeholder="مثال: 458129"
-                          value={paymobIntegrationIdCard}
-                          onChange={(e) => setPaymobIntegrationIdCard(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                          Integration ID (محافظ كاش)
-                        </label>
-                        <input
-                          type="text"
-                          dir="ltr"
-                          placeholder="مثال: 458130"
-                          value={paymobIntegrationIdWallet}
-                          onChange={(e) => setPaymobIntegrationIdWallet(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-0.5">
-                        ملاحظة للعميل تظهر أسفل وسيلة Paymob في السلة (اختياري)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="مثال: متاح الدفع ببطاقات ميزة البنكية ومحافظ فودافون كاش لسرعة استلام طلبك."
-                        value={paymobNotesForCustomer}
-                        onChange={(e) => setPaymobNotesForCustomer(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit / Cancel Footer */}
-              <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setSelectedPaymobBiz(null)}
-                  className="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 text-xs font-black bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/25 flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>حفظ وتطبيق إعدادات Paymob للنشاط</span>
+            <div className="p-6 space-y-4 text-right">
+              <p className="text-sm text-slate-700 leading-7">
+                لم يتم اعتماد دورة الدفع الإلكتروني واختبارات الإنتاج بعد. لن تُحفظ مفاتيح Paymob من هذه الواجهة ولن يُفعّل التحصيل الإلكتروني في الإصدار الحالي.
+              </p>
+              <p className="text-xs text-slate-500">
+                يمكن تأكيد الاشتراك يدويًا فقط بعد التحقق من السداد الفعلي خارج المنصة.
+              </p>
+              <div className="flex justify-end">
+                <button type="button" onClick={() => setSelectedPaymobBiz(null)} className="px-5 py-2.5 text-xs font-bold text-white bg-slate-900 rounded-xl">
+                  إغلاق
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
