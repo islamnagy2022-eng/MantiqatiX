@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
         : null;
       const businessIds = businessesData.map((b: any) => String(b.id));
       let subscriptionMetrics: any = { activeSubscriptions: null, pastDueSubscriptions: null, cancelledSubscriptions: null, status: "NOT_WIRED" };
-      if (businessIds.length > 0 && businessIds.length < 10000) {
+      if (businessIds.length > 0 && businessIds.length < 500) {
         const [activeSubscriptions, pastDueSubscriptions, cancelledSubscriptions] = await Promise.all([
           countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("business_id", businessIds).eq("status", "ACTIVE")),
           countQuery(service.from("business_subscriptions").select("id", { count: "exact", head: true }).in("business_id", businessIds).in("status", ["PAST_DUE", "PAST-DUE", "UNPAID"])),
