@@ -361,7 +361,8 @@
         "migration": "RC431",
         "object": "public.process_verified_digital_page_payment_backend",
         "exists": true,
-        "detail": "10-argument RPC exists and is service_role-only, but current search_path is public, pg_temp rather than the migration source's empty search_path; compare full body before rollout."
+        "detail": "Function exists, but live search_path is public, pg_temp instead of the source's empty search_path; exact body/ACL must be reconciled before release.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC432",
@@ -385,7 +386,8 @@
         "migration": "RC438",
         "object": "public.update_purchase_order_status_backend(varchar,varchar)",
         "exists": true,
-        "detail": "Old function exists with search_path=public and ACL only to postgres; source contract sets an empty search_path and grants authenticated execution."
+        "detail": "Function exists, but live search_path is public and ACL is postgres-only; source contract expects an empty search_path and authenticated execution. Must be reconciled before release.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC113",
@@ -717,7 +719,8 @@
     "present_control_center_object_contracts": 0,
     "missing_control_center_object_contracts": 33,
     "total_granular_object_contracts": 60,
-    "total_missing_granular_object_contracts": 53
+    "total_missing_granular_object_contracts": 53,
+    "note": "A name/signature match alone is not a release PASS. The two existing RPCs with confirmed search_path/ACL drift remain status BLOCKED until their exact source security contracts are reconciled."
   },
   "security_definer_search_path_check": {
     "status": "BLOCKING_DRIFT",
