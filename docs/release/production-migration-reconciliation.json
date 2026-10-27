@@ -1021,5 +1021,55 @@
     "active_non_showcase_owner_memberships_count_before_guard": 0,
     "paid_subscription_activation_guard_verified_by_read_only_query": true,
     "no_unpaid_non_showcase_owner_memberships_found": true
+  },
+  "catalog_pilot_edge_function_parity_check": {
+    "status": "PASS",
+    "checked_at": "2026-10-28",
+    "checked_via": "Read-only live Edge Function retrieval and exact source comparison against the reviewed branch",
+    "functions": [
+      {
+        "slug": "catalog-platform-admin",
+        "live_version": 3,
+        "verify_jwt": true,
+        "source_exact_match": true,
+        "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
+        "scope": "platform admin gate and subscription membership management"
+      },
+      {
+        "slug": "catalog-admin",
+        "live_version": 14,
+        "verify_jwt": false,
+        "source_exact_match": true,
+        "source_blob_sha": "1166507c0383af2139d3ef4b4ea20371992312d7",
+        "scope": "catalog-only owner/admin routes with route-level bearer/session/role checks"
+      },
+      {
+        "slug": "public-catalog-directory",
+        "live_version": 2,
+        "verify_jwt": false,
+        "source_exact_match": true,
+        "source_blob_sha": "3368a51b26ce7bc9c65d02a86f570e6eda90345d",
+        "scope": "public read-only directory"
+      },
+      {
+        "slug": "public-catalog",
+        "live_version": 2,
+        "verify_jwt": false,
+        "source_exact_match": true,
+        "source_blob_sha": "ae57c2126063931ee95f80b097a82c1742efb7c0",
+        "scope": "public read-only storefront"
+      }
+    ],
+    "unrelated_functions_deployed": false,
+    "excluded_scopes": [
+      "payment-intent",
+      "paymob-webhook",
+      "order-create",
+      "digital-page-payment-intent",
+      "subscription-payment-intent",
+      "financial-journal",
+      "SMM",
+      "MantiGO"
+    ]
   }
 }
