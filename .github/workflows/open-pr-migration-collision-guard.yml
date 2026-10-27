@@ -25,7 +25,7 @@ jobs:
         run: node scripts/validate-open-pr-migration-collisions.mjs --self-test
       - name: Compare changed migrations across open PRs
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: node scripts/validate-open-pr-migration-collisions.mjs
