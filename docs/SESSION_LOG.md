@@ -262,3 +262,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] The web deployment workflow returned success at the workflow level but both `validate_public_only` and `deploy` were skipped; no Production deployment occurred.
 - [ ] Overall release remains `BLOCKED / NOT CERTIFIED`: isolated replay does not prove that the RC425–RC441/post-RC424 migrations have been applied to Production. Payment/finance provider E2E, backup/restore rehearsal, live Auth and Edge Function runtime validation (including SMM negative tests), browser/device regression, monitoring/alerts, and rollback evidence remain NOT VERIFIED.
 - Safety: all test records were created only in a disposable local Supabase instance; no Production write, migration, Auth/grant/RLS edit, Edge Function deployment, payment, or wallet mutation occurred.
+
+
+## 2026-10-27 — Critical Edge Function source drift recheck
+
+- [x] Read-only retrieved current Production function entrypoints and compared each `index.ts` exactly against `main`. Drift remains in `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3; exact sizes, bundle SHA-256 and observed differences are stored in the release reconciliation manifest.
+- [x] `financial-journal` live source uses `Access-Control-Allow-Origin: *` and calls `post_financial_journal`; current `main` uses an origin allowlist and `post_financial_journal_backend`. Live `paymob-webhook` lacks main's `Number.isFinite(amount)` guard; payment-intent sources also differ in Paymob correlation-helper integration.
+- [x] `smm-gateway` v13 entrypoint exactly matches `main`; this is source evidence, not anonymous/authenticated runtime evidence.
+- [ ] Keep all five drifting functions off the deployment path until their migrations/grants are reconciled and payment/webhook/finance sandbox acceptance passes. Do not deploy or change managed Auth settings as part of this source audit.
+- Safety: read-only source retrieval only; no live function changes or Production writes occurred.
