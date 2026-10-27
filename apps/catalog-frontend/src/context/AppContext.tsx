@@ -29,6 +29,25 @@ import { resolveDefaultImage } from '../utils/defaultImages';
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
 
+export type CreateBusinessInput =
+  Pick<Business, 'name' | 'slug' | 'category'> &
+  Partial<Pick<Business,
+    | 'bio'
+    | 'ownerWhatsApp'
+    | 'phone'
+    | 'address'
+    | 'governorate'
+    | 'markaz'
+    | 'village'
+    | 'workingHours'
+    | 'logoUrl'
+    | 'coverUrl'
+    | 'commissionPerOrder'
+    | 'paymentDueDay'
+  >> & {
+    functionalGroupId?: FunctionalGroupId;
+  };
+
 interface AppContextType {
   currentView: ViewMode;
   setCurrentView: (view: ViewMode) => void;
@@ -59,7 +78,7 @@ interface AppContextType {
   subscribers: Subscriber[];
   adminSettings: AdminSettings;
   updateBusiness: (business: Business) => void;
-  addBusiness: (business: Omit<Business, 'id' | 'createdAt'>) => Promise<string>;
+  addBusiness: (business: CreateBusinessInput) => Promise<string>;
   deleteBusiness: (id: string) => Promise<void>;
   getStorePublicLink: (business: Business) => string;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => void;
@@ -363,9 +382,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     })();
   };
 
-  const addBusiness = async (data: Omit<Business, 'id' | 'createdAt'>): Promise<string> => {
+  const addBusiness = async (data: CreateBusinessInput): Promise<string> => {
     if (authSession.role !== 'admin') throw new Error('إضافة الأنشطة متاحة لإدارة المنصة فقط.');
-    const result: any = await callPlatformAdmin({ action: 'CREATE_BUSINESS', business: { name: data.name, category: data.category, bio: data.bio, phone: data.ownerWhatsApp || data.phone || '', address: data.address || '', governorate: data.governorate || '', markaz: data.markaz || '', village: data.village || '', workingHours: data.workingHours || '', logoUrl: data.logoUrl || '', coverUrl: data.coverUrl || '', slug: data.slug || '' } });
+    const name = data.name.trim();
+    if (name.length < 2) throw new Error('اسم النشاط يجب ألا يقل عن حرفين.');
+    const result: any = await callPlatformAdmin({
+      action: 'CREATE_BUSINESS',
+      business: {
+        name,
+        slug: data.slug.trim(),
+        category: data.category.trim(),
+        functionalGroupId: data.functionalGroupId,
+        bio: data.bio?.trim() || '',
+        phone: data.ownerWhatsApp?.trim() || data.phone?.trim() || '',
+        address: data.address?.trim() || '',
+        governorate: data.governorate?.trim() || '',
+        markaz: data.markaz?.trim() || '',
+        village: data.village?.trim() || '',
+        workingHours: data.workingHours?.trim() || '',
+        logoUrl: data.logoUrl?.trim() || '',
+        coverUrl: data.coverUrl?.trim() || '',
+        commissionPerOrder: data.commissionPerOrder,
+        paymentDueDay: data.paymentDueDay,
+      },
+    });
     if (!result?.business?.id) throw new Error('لم يرجع الخادم معرف النشاط المنشأ.');
     await applyUser((await supabase.auth.getUser()).data.user);
     setSelectedBusinessIdState(result.business.id);
