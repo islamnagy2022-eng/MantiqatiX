@@ -255,8 +255,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      const redirectTo = `${window.location.origin}${window.location.pathname}${window.location.search}`;
-      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+      // Always return OAuth to the canonical GitHub Pages app root.
+      // Carrying arbitrary query/hash state into Supabase redirect allowlists can
+      // cause a successful Google consent flow to return without hydrating the app.
+      const basePath = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
+      const redirectTo = new URL(basePath, window.location.origin).toString();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo, queryParams: { prompt: 'select_account' } },
+      });
       if (error) return { success: false, error: error.message || 'تعذر تسجيل الدخول بحساب Google.' };
       return { success: true };
     } catch (error: any) { return { success: false, error: error?.message || 'تعذر بدء تسجيل الدخول بحساب Google.' }; }

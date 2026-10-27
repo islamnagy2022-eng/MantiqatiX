@@ -17,6 +17,9 @@ assert.ok(context.includes("lastAuthLoadKeyRef"), 'INITIAL_SESSION and getSessio
 assert.ok(context.includes("setBusinesses([])") && context.includes("setSubscribers([])"), 'Changing Google identities must clear prior identity data before rehydration.');
 assert.ok(authTypes.includes("isAuthenticated?: boolean;") && authTypes.includes("email?: string;"), 'AuthSession must carry identity state separately from role grants.');
 assert.ok(context.includes("provider: 'google'"), 'Interactive login must use Google OAuth.');
+assert.ok(context.includes("new URL(basePath, window.location.origin).toString()"), 'Google OAuth must return to the canonical app root, not an arbitrary current query/hash URL.');
+assert.ok(context.includes("queryParams: { prompt: 'select_account' }"), 'Google login must allow choosing the intended Google identity explicitly.');
+
 assert.ok(production.includes("isAuthenticated: false"), 'Anonymous sessions must be explicitly unauthenticated.');
 assert.ok(production.includes("isAuthenticated: true") && production.includes("userId: user.id"), 'Valid Google sessions must retain identity even without memberships.');
 assert.ok(production.includes("const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest'"), 'Business permissions must continue to derive from active production memberships.');
