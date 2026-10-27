@@ -35,7 +35,7 @@ function formHtml(){
 function page(){
  if(role()!=='SUPER_ADMIN')return '<section class="card"><h2>غير مصرح</h2><p>إدارة القطاعات والأنشطة متاحة لمالك المنصة المخول فقط.</p></section>';
  const list=treeRows();
- return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM CONTROL</span><h2>إدارة القطاعات والأنشطة</h2><p>هيكل هرمي موحد للقطاعات والأنشطة والتخصصات، منفصل عن الموديولات البرمجية. لا يتم حذف السجلات المرتبطة؛ استخدم الإيقاف أو الأرشفة.</p><div class="hero-actions"><button class="btn btn-light" onclick="window.MNTYTaxonomyAdmin.open()">العودة للوحة الإدارة</button><button class="btn btn-ghost" id="mx-tax-refresh">تحديث البيانات</button></div></div></section>'+
+ return '<section class="hero"><div><span class="eyebrow">MantiqatiX · PLATFORM CONTROL</span><h2>إدارة القطاعات والأنشطة</h2><p>هيكل هرمي موحد للقطاعات والأنشطة والتخصصات، منفصل عن الموديولات البرمجية. لا يتم حذف السجلات المرتبطة؛ استخدم الإيقاف أو الأرشفة.</p><div class="hero-actions"><button class="btn btn-light" onclick="window.MNTYTaxonomyAdmin.back()">العودة للوحة الإدارة</button><button class="btn btn-ghost" id="mx-tax-refresh">تحديث البيانات</button></div></div></section>'+
  '<section class="cards"><div class="card"><div class="muted">العناصر المحملة</div><div class="kpi">'+rows.length+'</div><small>من قاعدة البيانات عبر المسار الإداري المحمي</small></div><div class="card"><div class="muted">المجموعات الرئيسية</div><div class="kpi">'+rows.filter(r=>r.node_type==='SECTOR_GROUP').length+'</div><small>تجميع القطاعات الحالية</small></div><div class="card"><div class="muted">الأنشطة والتخصصات النشطة</div><div class="kpi">'+rows.filter(r=>r.status==='ACTIVE'&&r.node_type!=='SECTOR_GROUP').length+'</div><small>سجلات فعلية وليست أرقام DEMO</small></div></section>'+
  formHtml()+
  '<section class="card" style="padding:18px"><div class="section-head"><div><span class="eyebrow">ACTIVITY REGISTRY</span><h2>سجل القطاعات والأنشطة</h2><p>استخدم البحث لتصفية الاسم أو الرمز. العناصر الأبناء تظهر بمسافة بادئة.</p></div><input id="mx-tax-search" aria-label="بحث التصنيفات" placeholder="بحث بالاسم أو الرمز" style="max-width:280px"></div>'+
@@ -68,8 +68,8 @@ function bind(){
   try{await call('UPSERT_ACTIVITY_TYPE',{activityType:payload});editing=null;await refresh()}catch(err){msg.textContent='تعذر الحفظ: '+(err?.message||'خطأ غير معروف');btn.disabled=false}
  });
 }
-function open(){if(role()!=='SUPER_ADMIN'){window.alert('هذه الشاشة لمالك المنصة المخول فقط.');return}current='إدارة القطاعات والأنشطة';try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}
-window.MNTYTaxonomyAdmin={open,refresh,render:page};
+function back(){current='التحكم الكامل';try{localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}\nfunction open(){if(role()!=='SUPER_ADMIN'){window.alert('هذه الشاشة لمالك المنصة المخول فقط.');return}current='إدارة القطاعات والأنشطة';try{localStorage.setItem('MNTYWorkspaceMode','ADMIN');localStorage.setItem('MNTYWorkspaceCurrent',current)}catch(_){}renderApp({forceWorkspace:true})}
+window.MNTYTaxonomyAdmin={open,back,refresh,render:page};
 const oldEnhanced=window.enhancedPageContent;
 if(typeof oldEnhanced==='function'){
  window.enhancedPageContent=function(){
