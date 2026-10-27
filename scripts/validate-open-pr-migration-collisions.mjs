@@ -128,13 +128,13 @@ async function graphql(query, variables) {
 }
 
 async function getOpenPullRequests(owner, name) {
-  const query = "query($owner: String!, $name: String!, $cursor: String) {\\n" +
-    " repository(owner: $owner, name: $name) {\\n" +
-    "  pullRequests(first: 100, states: OPEN, after: $cursor, orderBy: {field: UPDATED_AT, direction: DESC}) {\\n" +
-    "   pageInfo { hasNextPage endCursor }\\n" +
-    "   nodes { number title url baseRefName baseRepository { nameWithOwner } headRefOid }\\n" +
-    "  }\\n" +
-    " }\\n" +
+  const query = "query($owner: String!, $name: String!, $cursor: String) {\n" +
+    " repository(owner: $owner, name: $name) {\n" +
+    "  pullRequests(first: 100, states: OPEN, after: $cursor, orderBy: {field: UPDATED_AT, direction: DESC}) {\n" +
+    "   pageInfo { hasNextPage endCursor }\n" +
+    "   nodes { number title url baseRefName baseRepository { nameWithOwner } headRefOid }\n" +
+    "  }\n" +
+    " }\n" +
     "}";
   const pulls = [];
   let cursor = null;
@@ -155,8 +155,8 @@ function migrationEntriesForHead(prNumber, headRef) {
     mergeBase, headRef, "--", "supabase/migrations"
   ]);
   const entries = [];
-  for (const line of output.split(/\\r?\\n/).filter(Boolean)) {
-    const [status, file] = line.split("\\t");
+  for (const line of output.split(/\r?\n/).filter(Boolean)) {
+    const [status, file] = line.split("\t");
     if (!file || status === "D") continue;
     const match = migrationPattern.exec(file);
     if (!match) continue;
