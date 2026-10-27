@@ -8,7 +8,7 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {
   return {
-    base: '/MantiqatiX/catalog-app/',
+    base: '/MantiqatiX/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
