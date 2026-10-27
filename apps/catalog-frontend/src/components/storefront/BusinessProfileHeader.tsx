@@ -15,12 +15,12 @@ import {
   QrCode,
 } from 'lucide-react';
 
+const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+
 export const BusinessProfileHeader: React.FC = () => {
   const { currentBusiness } = useApp();
   const [copied, setCopied] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-
-  const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
   // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
   const slides = React.useMemo(() => {
     if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
@@ -195,25 +195,29 @@ export const BusinessProfileHeader: React.FC = () => {
                     <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                     <span>{currentBusiness.address}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 font-medium">
-                    <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>{currentBusiness.workingHours || 'يومياً'}</span>
-                  </div>
+                  {currentBusiness.workingHours && (
+                    <div className="flex items-center gap-1.5 font-medium">
+                      <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <span>{currentBusiness.workingHours}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Quick Actions (WhatsApp & QR Code) */}
             <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
-              <a
-                href={merchantWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>مراسلة صاحب النشاط (واتساب)</span>
-              </a>
+              {merchantWhatsAppUrl && (
+                <a
+                  href={merchantWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>مراسلة صاحب النشاط (واتساب)</span>
+                </a>
+              )}
 
               <a
                 href={currentBusiness.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentBusiness.name + ' ' + currentBusiness.governorate + ' ' + currentBusiness.markaz + ' ' + currentBusiness.address)}`}
