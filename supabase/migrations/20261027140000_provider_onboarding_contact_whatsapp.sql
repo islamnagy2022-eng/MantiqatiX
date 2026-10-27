@@ -4,7 +4,8 @@ begin;
 
 alter table public.provider_onboarding_requests
   add column if not exists contact_phone varchar(40),
-  add column if not exists contact_name varchar(160);
+  add column if not exists contact_name varchar(160),
+  add column if not exists activity_type_id text references public.business_activity_types(id) on update cascade on delete set null;
 
 comment on column public.provider_onboarding_requests.contact_phone is
   'Contact telephone submitted by the activity owner; visible to authorized platform reviewers and used for owner contact/WhatsApp.';
