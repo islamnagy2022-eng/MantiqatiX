@@ -20,6 +20,8 @@ const validateBlock = lines.slice(validateStart, publicOnlyStart).join('\n');
 
 assert.match(validateBlock, /Verify scoped catalog pilot release prerequisites[\s\S]*?node scripts\/production\/verify-catalog-pilot\.mjs/,
   'Pages release must pass the catalog-specific production gate');
+assert.match(validateBlock, /Smoke test the live public catalog and Qadam storefront[\s\S]*?qadam-alsaad-homewares/,
+  'Pages release must prove the actual Qadam storefront is visible through the live public directory');
 assert.match(validateBlock, /npm run verify:production/,
   'Full platform production certification must still run and be reported');
 assert.match(validateBlock, /FULL_PLATFORM_GATE=BLOCKED; CATALOG_PILOT_GATE=PASS/,
