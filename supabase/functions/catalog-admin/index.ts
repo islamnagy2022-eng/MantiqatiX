@@ -64,7 +64,8 @@ const catalogMetadataWithImage = (
   const currentUrl = String(catalog.image_url || "").trim();
   const explicitSource = String(catalog.image_source || "").toLowerCase();
   const legacyStockUrl = /^https:\/\/images\.unsplash\.com\//i.test(currentUrl);
-  const imageSource = explicitSource === "auto" || !currentUrl || legacyStockUrl ? "auto" : "owner";
+  const neutralPlaceholderUrl = /(?:^|\/)catalog-item-placeholder\.svg(?:[?#].*)?$/i.test(currentUrl);
+  const imageSource = explicitSource === "auto" || !currentUrl || legacyStockUrl || neutralPlaceholderUrl ? "auto" : "owner";
   const imageUrl = imageSource === "owner"
     ? currentUrl
     : resolveDefaultImage({
