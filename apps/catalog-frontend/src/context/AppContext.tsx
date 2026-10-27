@@ -550,7 +550,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const clearCart = () => setCartItems([]);
   const submitOrderViaWhatsApp = (customer: CustomerOrderData): { success: boolean; url?: string; error?: string } => {
     if (!cartItems.length) return { success: false, error: 'السلة فارغة، يرجى إضافة منتجات أولا.' };
-    const ownerPhoneDigits = String(currentBusiness?.ownerWhatsApp || '').replace(/\D/g, '');
+    if (!currentBusiness) return { success: false, error: 'النشاط الحالي غير محدد.' };
+    const ownerPhoneDigits = String(currentBusiness.ownerWhatsApp || '').replace(/\D/g, '');
     if (ownerPhoneDigits.length < 10 || ownerPhoneDigits.length > 15) return { success: false, error: 'رقم واتساب صاحب النشاط غير متوفر أو غير صالح.' };
     if (!customer.customerName.trim() || !customer.customerPhone.trim()) return { success: false, error: 'يرجى كتابة الاسم ورقم الهاتف للطلب.' };
     return { success: true, url: generateWhatsAppOrderUrl(currentBusiness.ownerWhatsApp, currentBusiness.name, cartItems, customer, adminSettings.currency || 'ج.م') };
