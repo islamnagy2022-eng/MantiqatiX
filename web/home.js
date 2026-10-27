@@ -478,7 +478,12 @@ const categoryGrid=document.getElementById('mx-category-grid');
         if(submitBtn.disabled)return;
         const draft={
           business_name:overlay.querySelector('#mx-req-business')?.value?.trim()||'',
-          provider_kind:overlay.querySelector('#mx-req-kind')?.value||'',
+          provider_kind:legacyKindSelect?.value||'',
+          activity_group_id:currentGroup()?.id||'',
+          activity_type_id:selectedSpecialty()?.id||selectedActivity()?.id||'',
+          activity_name:selectedActivity()?.name_ar||'',
+          specialty_type_id:selectedSpecialty()?.id||'',
+          specialty_name:selectedSpecialty()?.name_ar||'',
           contact_name:overlay.querySelector('#mx-req-contact-name')?.value?.trim()||'',
           contact_phone:overlay.querySelector('#mx-req-phone')?.value?.trim()||'',
           name_en:overlay.querySelector('#mx-req-name-en')?.value?.trim()||'',
@@ -512,8 +517,13 @@ const categoryGrid=document.getElementById('mx-category-grid');
           const gov=geoRows.find(x=>x.level==='GOVERNORATE'&&String(x.id)===String(draft.governorate_id));
           const ctr=geoRows.find(x=>x.level==='CENTER'&&String(x.id)===String(draft.center_id));
           if(!gov||!ctr||String(ctr.parent_id)!==String(gov.id))throw new Error('اختيار المحافظة والمركز غير صحيح.');
-          const services=String(draft.specialties||'').split(/[،,;]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
+          const services=String(draft.specialties||'').split(/[،,;]/).map(x=>x.trim()).filter(Boolean);
+          for(const label of [draft.activity_name,draft.specialty_name]){
+            if(label&&!services.some(x=>x.toLowerCase()===String(label).toLowerCase()))services.unshift(label);
+          }
+          const selectedActivityId=String(draft.activity_type_id||'').trim();
           const portfolio=String(draft.portfolio||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,20);
+          services.splice(30);
           const areaDetails=(draft.address||'').trim();
           const serviceArea={
             governorate_id:gov.id,governorate_code:gov.code,governorate_name_ar:gov.name_ar,
@@ -528,6 +538,7 @@ const categoryGrid=document.getElementById('mx-category-grid');
             description:draft.description,
             specialties:services,service_areas:[serviceArea],portfolio
           };
+          if(selectedActivityId)payload.activity_type_id=selectedActivityId;
           if(draft.website)payload.portfolio=[...portfolio,draft.website].slice(0,20);
           const {data,error}=await client.functions.invoke('mnty-provider-onboarding-submit',{body:payload});
           if(error||data?.error)throw new Error(data?.error||error?.message||'تعذر إرسال طلب النشاط.');
@@ -537,7 +548,9 @@ const categoryGrid=document.getElementById('mx-category-grid');
             'طلب جديد لإضافة كتالوج نشاط على منصة MantiqatiX',
             'رقم الطلب: '+(requestId||'جارٍ تخصيص الرقم'),
             'اسم النشاط: '+draft.business_name,
-            'القطاع: '+(TAXONOMY.find(x=>String(x[3])===draft.provider_kind)?.[1]||draft.provider_kind),
+            'القطاع: '+(TAXONOMY.find(x=>String(x[3])===draft.provider_kind)?.[1]||currentGroup()?.name_ar||draft.provider_kind),
+            'النشاط: '+(draft.activity_name||'يُراجع ضمن بيانات القطاع'),
+            draft.specialty_name?'التخصص: '+draft.specialty_name:'',
             'مسؤول النشاط: '+draft.contact_name,
             'رقم الهاتف: '+draft.contact_phone,
             'البريد الإلكتروني: '+accountEmail,
