@@ -1,0 +1,46 @@
+name: Platform Admin and Onboarding Typecheck
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, fix/production-launch-hardening-20261027]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-admin-typecheck-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Typecheck privileged and public onboarding functions
+        run: |
+          deno check --no-lock supabase/functions/catalog-platform-admin/index.ts
+          deno check --no-lock supabase/functions/activity-taxonomy-public/index.ts
+          deno check --no-lock supabase/functions/mnty-provider-onboarding-submit/index.ts
+          deno check --no-lock supabase/functions/mnty-provider-onboarding-review/index.ts
+          deno check --no-lock supabase/functions/mnty-customer-registration/index.ts
+      - name: Parse browser scripts
+        run: |
+          node --check web/home.js
+          node --check web/app.js
+          node --check web/platform-admin-taxonomy.js
+          node --check web/platform-admin-businesses.js
+          node --check web/platform-admin-finance.js
+      - name: Run frontend contracts
+        run: |
+          node scripts/validate-sector-rendering.mjs
+          node scripts/validate-marketing-campaign-ui.mjs
