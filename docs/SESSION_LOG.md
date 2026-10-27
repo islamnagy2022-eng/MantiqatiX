@@ -217,3 +217,120 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Updated the payment migration wiring validator to assert that failure-recovery contract.
 - [ ] Current-head GitHub Actions rerun is pending; do not treat previous-head green checks as proof for the latest commit.
 - [ ] Production release remains `BLOCKED`: no production migrations/functions deployed; backup/restore rehearsal, payment/finance E2E, live Auth settings, Edge Function contracts and SMM gateway parity remain unverified.
+
+
+## 2026-10-25 — Paymob webhook exact-cent correlation hardening
+
+- **Scope:** PR #373 feature branch; no production environment or real payment operation was touched.
+- **Finding:** the Paymob webhook previously compared provider amount using a tolerance of `> 0.01`, which could accept a one-cent discrepancy. The RC425 payment-wiring CI also exposed a stale assertion: the normal payment intent path contains four guarded hold/rejection branches, while the validator expected three.
+- **Changes committed:** shared `matchesPaymobAmountCents` helper in `supabase/functions/_shared/paymob-intent-correlation.mjs`; all four webhook payment families now use exact integer-cent matching; added `scripts/test-paymob-amount-correlation.mjs` with matching, one-cent mismatch, fractional-cent, invalid, and unsafe-integer cases; wired that test into `.github/workflows/rc425-mantigo-paymob-atomicity.yml`; updated `scripts/validate-payment-migration-wiring.mjs` to assert the shared helper and correct the guarded-branch count.
+- **Commits:** `1e866f1854dcca31742bea4cf2f5fe68d9979113` (initial webhook exact-cent guard); `35a5ba2bb88bee705f1f9db3cfa3e37167b2a3b2` (initial contract assertion); `87aaea755230519bc0f8413a31aa71b09420dfe0` (correct guarded-branch count); `3f6b366f2e1b89c54fef7d91a644d916d546a62a` (shared helper); `5f91b796379eec003f5e3f3dc54127b0c1bbcedc` (webhook uses shared helper); `0543c3079a0ba87f524af088e4c868e65d23ccc3` (unit tests); `45e0fa95d950d642847d1b308fbf54f4b15f8b76` (CI test wiring); `ef91d2aef65b62e58e2ec74fae915c0d6ca74e41` (shared-helper assertion); `34450cf5debb7ec6935fa2ac1da819b04bebad03` (validator regex escaping).
+- **Observed CI:** the earlier run `40135358301` failed at `Validate Paymob atomicity source wiring`; its log specifically reported the stale assertion `normal payment ambiguous holds and explicit provider rejection must fail closed on zero-row races`. The expected count was corrected from three to four. A new exact-head run set for `34450cf5debb7ec6935fa2ac1da819b04bebad03` was queued at the time of this entry; its final outcomes are **PENDING / NOT YET VERIFIED**.
+- **Not performed:** no local execution is claimed; no Paymob Sandbox, target Supabase runtime, browser E2E, production migration, deployment, PR merge, or live payment was performed.
+- **Next action:** inspect exact-head CI completion and logs; fix any remaining failures before proceeding with payment/webhook runtime acceptance.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+### Follow-up — exact-cent order pricing check
+
+- Reviewed the normal payment-intent creation path and found it still compared the intent amount to `order.total_amount` and `order.total` with a `> 0.01` tolerance. This could allow a one-cent pricing mismatch before the provider request even though the webhook was hardened.
+- Added `matchesCurrencyAmounts` to `supabase/functions/_shared/paymob-intent-correlation.mjs` and replaced both tolerant comparisons in `supabase/functions/payment-intent/index.ts` with exact-cent equality. Zero, invalid, and fractional-cent amounts fail closed.
+- Extended `scripts/test-paymob-amount-correlation.mjs` with exact match, numeric-string, one-cent mismatch, fractional-cent, and zero cases. Extended `scripts/validate-payment-migration-wiring.mjs` to enforce this contract and forbid the old tolerance.
+- Follow-up commits: `81e08332da4ae495717c0eb437e18c14f1168611`, `8dad9a4a73199649568606eea4cedcf120bafe5f`, `993373b2588181b6b1d523c44e6d47967b1b27cc`, `92a3b2e950337712758b4a17ec4adb6b075b3311`, and `d8d815ad7df8c40d7e4d56e1cb9b0f41496060dc`.
+- **Verification caveat:** GitHub Actions runs were available for the earlier commit `34450cf5debb7ec6935fa2ac1da819b04bebad03`, but no PR-triggered run was returned for the latest commit `92a3b2e950337712758b4a17ec4adb6b075b3311`. Therefore the new exact-cent order pricing assertions and tests are **NOT VERIFIED by CI yet**. Do not infer success from source inspection.
+- **Release state remains BLOCKED / NOT CERTIFIED.**
+
+
+### CI update — 2026-10-25
+
+- The previously queued **RC425 MantiGo Paymob Atomicity** job for commit `34450cf5debb7ec6935fa2ac1da819b04bebad03` subsequently completed **SUCCESS**.
+- The **RC431 Digital Page Payment Binding Integration** job also completed **SUCCESS** on that same CI run set.
+- The forward migration chain replay remained **IN PROGRESS** at this check; migration version uniqueness, migration immutability, marketing campaign integration, and some other jobs were still queued.
+- This success validates the RC425 workflow at commit `34450cf5debb7ec6935fa2ac1da819b04bebad03`, not the later order-pricing commits `8dad9a4a73199649568606eea4cedcf120bafe5f` / `92a3b2e950337712758b4a17ec4adb6b075b3311`. The later changes remain **NOT VERIFIED by CI** because no workflow run was returned for those exact SHAs.
+
+
+### Follow-up — subscription webhook replay binding
+
+- Source review found the subscription branch in `paymob-webhook` acknowledged an existing `external_event_id` as idempotent without checking which subscription payment intent owned that event. The RC429/RC430 RPCs already bind duplicate events to `subscription_payment_intent_id`, `provider_order_id`, and `provider_transaction_id`, but the early webhook return could bypass those checks.
+- Changed the early replay check to read `raw_payload` and return `409 SUBSCRIPTION_EVENT_INTENT_MISMATCH` if the stored subscription intent differs from the currently matched intent. Added a source-contract assertion in `scripts/validate-payment-migration-wiring.mjs`.
+- Commits: `6c6f22445a4511575c1dbbcb5c14e5917357f6f0` and `1688b626c9b15cfaabc0b77ecb3c151fb303e011`.
+- The source guard and migration payload shape were inspected. **The new guard has not yet been exercised by CI or an end-to-end webhook replay test.**
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Isolated unit check — exact-cent helpers
+
+- Ran a local Node.js isolated test against a copy of the current shared helper implementation from this branch: **15 assertions passed**, covering exact cents, numeric strings, ±1-cent mismatches, fractional cents, zero/negative/NaN values, unsafe integers, and exact order-price equality.
+- This is **not** a full checkout test, not a run of the repository's full validation script, and not a replacement for CI on the latest commit. The later payment-intent and subscription-webhook edits still require exact-head CI and integration verification.
+
+
+### Follow-up — complete subscription replay correlation
+
+- Tightened the subscription duplicate-event fast path once more: an existing provider event is acknowledged only when the stored subscription intent ID, provider order ID, and provider transaction ID all match the current verified callback. Any mismatch returns `409 SUBSCRIPTION_EVENT_CORRELATION_MISMATCH`.
+- Updated the source-contract assertion to require all three correlations.
+- Commits: `460a279de8ad0fc6b48f8aaf99cdd1d495dd51d9` and `4fa4d6724e47f0bc00f4a54f5844800b6f0457e9`.
+- The update is source-reviewed but still **NOT VERIFIED by exact-head CI or a provider callback replay integration test**.
+
+
+### Follow-up — reject contradictory webhook outcomes
+
+- Further review found that the duplicate-event fast paths could treat a previously stored subscription failure as a successful idempotent replay when the same provider transaction later arrived with a different success/failure outcome. Added a check requiring the stored subscription event type to match the verified callback outcome; conflicts return `409 SUBSCRIPTION_EVENT_TYPE_CONFLICT`.
+- Found the equivalent risk in the normal payment-intent branch: duplicate lookup checked only payment-intent ownership and could acknowledge a contradictory success/failure callback. It now also checks stored event status and returns `409 PAYMENT_EVENT_OUTCOME_CONFLICT` when the recorded outcome contradicts the callback.
+- Added source-contract assertions for both conflict guards.
+- Commits: `40f500fc92a2813b9ce30d59c665b563f28ca194`, `7b6d2b035842f2328e39015ba16dd9c890a26519`, `641e48b4d07bd6198706d9aee5410c0df8617104`, and `66f43c0021677a7688a9d6d15bc62bffdafea5dd`.
+- **Verification status:** source guard assertions are added but have not yet run in CI on these exact commits. No provider callback integration test has been executed for these two new conflict paths.
+
+
+### Follow-up — Paymob integration identity binding
+
+- Added a required `PAYMOB_INTEGRATION_ID` configuration to the webhook. The callback now fails closed with `503 PAYMENT_CALLBACK_NOT_CONFIGURED` if either the HMAC secret or expected integration ID is absent, and rejects a validly signed callback whose `integration_id` differs from the configured integration.
+- Added a source-contract assertion that the integration identity check follows HMAC verification.
+- Commits: `dd15109f7f37d55702b41bd0f77a9aad7ffd645b` and `73c522ca8c27a60037d120b62801796d537e339c`.
+- **Configuration dependency:** verify `PAYMOB_INTEGRATION_ID` is present and matches the production Paymob integration before any deployment. No environment configuration was changed by this work.
+- **Verification:** the change is source-reviewed; exact-head CI is pending and no real provider callback was executed.
+
+
+### Testability follow-up — Paymob replay outcome helpers
+
+- Extracted pure helpers `matchesPaymobEventOutcome` and `matchesPaymobSubscriptionEventType` into the shared correlation module so replay outcome logic can be tested independently of the Edge Function runtime.
+- Added 9 assertions for same-outcome idempotency, contradictory success/failure outcomes, and unknown stored status; updated source wiring assertions to enforce helper usage and the required `PAYMOB_INTEGRATION_ID` check.
+- Commits: `f74bde1877de0d2e0e0e63c994b407e40661a0e9`, `6c86e7485ffacc08c6a9193591cb6aa153079a48`, `3c0aa5c970915c57d81f1b2e01a3216c082b1ded`, `0d74ab471ac6be291dc5bf066d72439dc843f96f`, `82fd11c27b5c1bf69fea1700b3b40f74955b06c3`, and `72aa202b21eaad5b5e4fd15139ff2588b9987cb2`.
+- **CI state at log time:** the latest workflow runs for commit `72aa202b21eaad5b5e4fd15139ff2588b9987cb2` were queued; no final results are claimed for the new tests.
+
+
+### Local isolated verification — replay outcome helpers
+
+- Ran a local Node.js test using a copied implementation of the current shared helper logic: **24 assertions passed** for exact-cent matching, one-cent mismatches, invalid amounts, order-price equality, same-outcome replay, contradictory success/failure callbacks, unknown stored statuses, and subscription event-type conflicts.
+- This verifies the pure helper logic in isolation only. It is **not** a full repository checkout test, not the complete source-wiring validator, and not CI or a live Paymob callback test.
+- The helper now fails closed unless generic payment-event status is exactly `PROCESSED` for a successful callback or `FAILED` for a failed callback; unknown statuses do not qualify as idempotent success.
+
+
+### Final follow-up in this pass — fail-closed status and release TODO
+
+- Tightened `matchesPaymobEventOutcome` to accept only `PROCESSED` for a successful replay or `FAILED` for a failed replay. Unknown/empty statuses now fail closed. Added a test for an unrecognized `CANCELLED` status.
+- Updated `TODO_PRODUCTION.md` with the new Paymob hardening gate, exact-head CI/runtime caveats, and the requirement to verify `PAYMOB_INTEGRATION_ID` in the target Edge Function environment before deployment.
+- Commits: `0c5315948364ccde4b866920d5166f9b7a63ef3e`, `f1fbd3b7174db26b2b14e26ede64c28b2e405c58`, `dd14d93932efb48266303682ca65aded60b8e16e`.
+- **CI status:** RC425, RC431, migration replay/uniqueness/immutability, and other checks for recent heads were still queued at the last poll; there is no exact-head green result yet. Do not infer a pass from the earlier successful run on a different commit.
+- **Release remains BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-25 — Subscription webhook replay correlation correction
+
+- [x] Source review found that the subscription replay guard read `subscription_payment_intent_id` and `provider_transaction_id` from stored `raw_payload`, while the payload writer previously persisted only `merchant_order_id` and `transaction_id`. That mismatch could cause a legitimate duplicate callback to return a correlation conflict rather than an idempotent acknowledgement.
+- [x] Updated the subscription payload writer to persist the explicit correlation keys expected by the replay guard.
+- [x] Added a source-contract assertion requiring the writer and replay reader to agree on those keys.
+- [x] Preserved backward compatibility with previously stored payloads by falling back to the original `merchant_order_id` and `transaction_id` keys; added a source-contract assertion for that fallback.
+- [ ] Exact-head CI for the updated PR head must complete before this correction is considered verified. Source inspection only; no live webhook or production payment was run.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-25 — RC459 exact-cent payment RPC hardening
+
+- [x] Source review found that historical RC425, RC428, RC429, RC430 and RC431 RPC definitions retained a SQL-side tolerance of `0.01` in one or more amount comparisons. The Edge Function performs exact-cent checks, but the authoritative service-role RPCs should independently reject mismatches instead of relying on one caller.
+- [x] Added forward-only migration `20261025010000_rc459_exact_cent_payment_rpcs.sql`, replacing the authoritative payment-intent RPC and five Paymob callback RPC definitions without editing historical migrations.
+- [x] RC459 requires exact numeric equality between payment-intent input and both stored order totals, provider-confirmed amount and persisted intent/order/ledger amounts, and (for MantiGo) payload amount. It rejects fractional-cent values and stale idempotency records with mismatched amount/currency/pricing snapshot.
+- [x] Added RC459 checks to `scripts/validate-payment-migration-wiring.mjs` and the production verifier's required source migration list.
+- [ ] Exact-head CI and chronological forward migration replay must pass before considering RC459 verified. No production migration was applied and no real payment was triggered.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+- [x] Follow-up review hardened the regular-order provider-failure callback to require `orders.total` and `orders.total_amount` to be non-null, exact-cent values equal to one another, and equal to both the persisted payment-intent amount and provider-confirmed amount. Added a corresponding source-contract assertion.

@@ -175,7 +175,7 @@ try{
  const fr=await fq;if(fr.error)throw fr.error;
  (fr.data||[]).forEach(x=>{live.flags[`${x.module_code||''}:${x.feature_code||''}`]=x});
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
-  sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
+  (()=>{const q=sb.from('marketing_leads').select('id,title,status,source,requester_business_id,created_at').order('created_at',{ascending:false}).limit(10);if(live.businessId&&['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'].includes(String(live.role||'').toUpperCase()))q.eq('requester_business_id',live.businessId);return q})(),
   sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
   (()=>{const oq=sb.from('orders').select('id,tenant_id,status,total_amount,currency,customer_id,business_id,customer_name,created_at').order('created_at',{ascending:false}).limit(10);if(['SERVICE_PROVIDER','BUSINESS_OWNER'].includes(String(live.role||'').toUpperCase())&&live.businessId)oq.eq('business_id',live.businessId);else oq.eq('customer_id',uid);return oq})(),
   sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
@@ -1482,15 +1482,75 @@ async function openUnifiedRecordDetails(options={}){
  document.body.appendChild(overlay);const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey)};const onKey=e=>{if(e.key==='Escape')close()};
  overlay.querySelector('.mx-record-drawer__close')?.addEventListener('click',close);overlay.addEventListener('click',e=>{if(e.target===overlay)close()});document.addEventListener('keydown',onKey);return {overlay,close};
 }
+const LEAD_NEXT_STATUSES={
+ OPEN:['CONTACT_ATTEMPTED'],NEW:['CONTACT_ATTEMPTED'],
+ CONTACT_ATTEMPTED:['CONTACTED','FOLLOW_UP_SCHEDULED','NOT_QUALIFIED'],
+ CONTACTED:['QUALIFIED','FOLLOW_UP_SCHEDULED','NOT_QUALIFIED'],
+ FOLLOW_UP_SCHEDULED:['CONTACT_ATTEMPTED','CONTACTED','QUALIFIED','NOT_QUALIFIED','CLOSED'],
+ QUALIFIED:['PROPOSAL','FOLLOW_UP_SCHEDULED','NOT_QUALIFIED'],
+ PROPOSAL:['CONVERTED','FOLLOW_UP_SCHEDULED','NOT_QUALIFIED'],
+ CONVERTED:['RETAINED','CLOSED'],
+ RETAINED:['FOLLOW_UP_SCHEDULED','CLOSED'],
+ NOT_QUALIFIED:['FOLLOW_UP_SCHEDULED','CLOSED']
+};
+const LEAD_STATUS_LABELS={
+ OPEN:'مفتوح',NEW:'جديد',CONTACT_ATTEMPTED:'تمت محاولة التواصل',CONTACTED:'تم التواصل',
+ QUALIFIED:'مؤهل',PROPOSAL:'عرض / مقترح',CONVERTED:'تم التحويل',
+ NOT_QUALIFIED:'غير مؤهل',FOLLOW_UP_SCHEDULED:'متابعة مجدولة',RETAINED:'عميل مستمر',CLOSED:'مغلق'
+};
+function canManageLeadLifecycle(lead){
+ const roles=['SUPER_ADMIN','ADMIN','OWNER','MANAGER','BUSINESS_OWNER'];
+ return Boolean(user?.id&&live.businessId&&roles.includes(String(live.role||'').toUpperCase())&&lead?.requester_business_id===live.businessId);
+}
+async function transitionLeadStatus(leadId,expectedStatus,newStatus,button){
+ if(!user?.id)return authView();
+ const lead=(live.records.leads||[]).find(x=>x.id===leadId);
+ if(!lead||!canManageLeadLifecycle(lead))return showToast('لا تملك صلاحية إدارة هذا الطلب ضمن النشاط المحدد.','error');
+ const expected=String(expectedStatus||'').trim().toUpperCase(), next=String(newStatus||'').trim().toUpperCase();
+ if(!Array.isArray(LEAD_NEXT_STATUSES[expected])||!LEAD_NEXT_STATUSES[expected].includes(next))return showToast('انتقال الحالة غير مسموح. حدّث السجل ثم حاول مرة أخرى.','error');
+ if(!globalThis.crypto?.randomUUID)return showToast('المتصفح لا يدعم إنشاء معرف آمن للطلب.','error');
+ if(button){button.disabled=true;button.dataset.previousText=button.textContent;button.textContent='جارٍ الحفظ…'}
+ try{
+  const {data,error}=await sb.rpc('transition_marketing_lead_backend',{
+   p_actor:user.id,p_lead_id:leadId,p_expected_status:expected,p_new_status:next,p_request_id:crypto.randomUUID()
+  });
+  if(error){
+   const code=String(error.message||error.code||'');
+   if(code.includes('LEAD_STATUS_CONFLICT'))throw new Error('تغيرت حالة الطلب بواسطة مستخدم آخر. أعد فتح التفاصيل ثم حاول مجددًا.');
+   if(code.includes('LEAD_TRANSITION_NOT_ALLOWED')||code.includes('LEAD_STATUS_INVALID'))throw new Error('انتقال الحالة غير مسموح من الحالة الحالية.');
+   if(code.includes('LEAD_NOT_FOUND_OR_FORBIDDEN'))throw new Error('الطلب غير متاح ضمن صلاحيات النشاط الحالي.');
+   if(code.includes('LEAD_IDEMPOTENCY_KEY_CONFLICT'))throw new Error('تعارض في طلب التحديث. أعد فتح التفاصيل وحاول مرة أخرى.');
+   throw new Error('تعذر حفظ الحالة من الخادم. لم يتم تأكيد التحديث.');
+  }
+  if(data?.status!==next)throw new Error('لم يؤكد الخادم الحالة المطلوبة؛ أعد تحميل السجل قبل المتابعة.');
+  const overlay=button?.closest('.mx-record-drawer-overlay');if(overlay)overlay.remove();
+  showToast('تم تحديث حالة الطلب إلى '+(LEAD_STATUS_LABELS[next]||next),'success');
+  await loadLiveData();renderApp();
+ }catch(err){
+  showToast(err?.message||'تعذر تحديث حالة الطلب.','error');
+ }finally{
+  if(button?.isConnected){button.disabled=false;button.textContent=button.dataset.previousText||'تحديث الحالة'}
+ }
+}
 async function openLeadDetails(leadId){
- if(!user?.id||!leadId)return authView();const lead=live.records.leads.find(x=>x.id===leadId);if(!lead)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
- const {data,error}=await sb.from('marketing_leads').select('id,title,description,budget_min,budget_max,currency,required_services,service_area,status,source,assigned_provider_id,created_at,updated_at').eq('id',leadId).eq('requester_user_id',user.id).maybeSingle();
- if(error)return showToast('تعذر تحميل تفاصيل الطلب: '+error.message,'error');if(!data)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
+ if(!user?.id||!leadId)return authView();
+ const lead=(live.records.leads||[]).find(x=>x.id===leadId);
+ if(!lead)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
+ const manager=canManageLeadLifecycle(lead);
+ let q=sb.from('marketing_leads').select('id,title,description,budget_min,budget_max,currency,required_services,service_area,status,source,assigned_provider_id,requester_business_id,created_at,updated_at').eq('id',leadId);
+ if(manager)q=q.eq('requester_business_id',live.businessId);else q=q.eq('requester_user_id',user.id);
+ const {data,error}=await q.maybeSingle();
+ if(error)return showToast('تعذر تحميل تفاصيل الطلب وفق الصلاحيات الحالية.','error');
+ if(!data)return showToast('الطلب غير متاح وفق الصلاحيات الحالية.','error');
  const services=Array.isArray(data.required_services)?data.required_services.map(x=>typeof x==='string'?x:JSON.stringify(x)).join('، '):(data.required_services?JSON.stringify(data.required_services):'—');
  const budget=data.budget_min!=null||data.budget_max!=null?((data.budget_min??'—')+' — '+(data.budget_max??'—')+' '+(data.currency||'')):'—';
- openUnifiedRecordDetails({kicker:'CRM LEAD',title:data.title||'طلب تسويق',desc:data.description||'التفاصيل المتاحة من سجل العميل المحتمل الحالي فقط.',sections:[
- {title:'ملخص الطلب',html:'<div class="mx-record-kv-grid"><div><span>الحالة</span><b>'+esc(data.status||'—')+'</b></div><div><span>المصدر</span><b>'+esc(data.source||'—')+'</b></div><div><span>الميزانية</span><b>'+esc(budget)+'</b></div><div><span>منطقة الخدمة</span><b>'+esc(data.service_area||'—')+'</b></div><div><span>المقدم المعين</span><b>'+esc(data.assigned_provider_id||'—')+'</b></div><div><span>آخر تحديث</span><b>'+esc(data.updated_at?new Date(data.updated_at).toLocaleString('ar-EG'):'—')+'</b></div></div>'},
+ const status=String(data.status||'').toUpperCase();
+ const next=manager?(LEAD_NEXT_STATUSES[status]||[]):[];
+ const actions=next.length?'<div class="mx-lead-lifecycle-actions"><span class="eyebrow">إجراءات الحالة</span><div class="action-bar">'+next.map(s=>'<button type="button" class="btn btn-outline mx-lead-transition" data-lead-id="'+esc(data.id)+'" data-expected-status="'+esc(status)+'" data-new-status="'+esc(s)+'">'+esc(LEAD_STATUS_LABELS[s]||s)+'</button>').join('')+'</div><small class="muted">يتم اعتماد التغيير من الخادم مع التحقق من الصلاحيات وتسجيل التدقيق.</small></div>':'';
+ const detail=openUnifiedRecordDetails({kicker:'CRM LEAD',title:data.title||'طلب تسويق',desc:data.description||'التفاصيل المتاحة من سجل العميل المحتمل الحالي فقط.',actions,sections:[
+ {title:'ملخص الطلب',html:'<div class="mx-record-kv-grid"><div><span>الحالة</span><b>'+esc(LEAD_STATUS_LABELS[status]||data.status||'—')+'</b></div><div><span>المصدر</span><b>'+esc(data.source||'—')+'</b></div><div><span>الميزانية</span><b>'+esc(budget)+'</b></div><div><span>منطقة الخدمة</span><b>'+esc(data.service_area||'—')+'</b></div><div><span>المقدم المعين</span><b>'+esc(data.assigned_provider_id||'—')+'</b></div><div><span>آخر تحديث</span><b>'+esc(data.updated_at?new Date(data.updated_at).toLocaleString('ar-EG'):'—')+'</b></div></div>'},
  {title:'الخدمات المطلوبة',html:'<div class="mx-record-prose">'+esc(services)+'</div>'}]});
+ detail?.overlay?.querySelectorAll('.mx-lead-transition').forEach(button=>button.addEventListener('click',()=>transitionLeadStatus(button.dataset.leadId,button.dataset.expectedStatus,button.dataset.newStatus,button)));
 }
 
 const ORDER_STAFF_ROLES=['OWNER','ADMIN','MANAGER','STAFF','CASHIER','DRIVER','BUSINESS_OWNER','SERVICE_PROVIDER'];

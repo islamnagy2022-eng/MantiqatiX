@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
+import { isValidPaymobAmountCents, matchesPaymobIntention, matchesCurrencyAmounts } from "../_shared/paymob-intent-correlation.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -86,8 +86,8 @@ Deno.serve(async (req) => {
   const amount = Number(intent.amount ?? order.total);
   const pricingVersion = Number(intent.pricing_version ?? order.pricing_version);
   const pricingHash = String(intent.pricing_hash ?? order.pricing_hash);
-  if (!Number.isFinite(amount) || amount <= 0 || Math.abs(amount - Number(order.total_amount)) > 0.01 ||
-      Math.abs(amount - Number(order.total)) > 0.01 || pricingHash !== String(order.pricing_hash) ||
+  if (!Number.isFinite(amount) || amount <= 0 || !matchesCurrencyAmounts(amount, order.total_amount) ||
+      !matchesCurrencyAmounts(amount, order.total) || pricingHash !== String(order.pricing_hash) ||
       pricingVersion !== Number(order.pricing_version)) {
     return json({ error: "Authoritative pricing changed; restart payment", requestId }, 409, requestId);
   }
@@ -121,8 +121,8 @@ Deno.serve(async (req) => {
     });
     provider = await response.json().catch(() => ({})) as Record<string, unknown>;
   } catch {
-    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
-    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: held, error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError || !held) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 502, requestId);
   }
 
@@ -131,14 +131,14 @@ Deno.serve(async (req) => {
   const providerOrderId = String(provider.intention_order_id ?? provider.order_id ?? "");
   if (!response.ok && [400, 401, 403, 404, 422].includes(response.status) &&
       !providerIntentId && !providerClientSecret && !providerOrderId) {
-    const { error: failError } = await setPaymentIntentStatus(paymentIntentId, "FAILED");
-    if (failError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: failed, error: failError } = await setPaymentIntentStatus(paymentIntentId, "FAILED");
+    if (failError || !failed) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_REJECTED", requestId }, 502, requestId);
   }
 
   if (!response.ok || !providerIntentId || !providerClientSecret || !providerOrderId) {
-    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
-    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: held, error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError || !held) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_OUTCOME_UNKNOWN", requestId }, 502, requestId);
   }
 
@@ -146,21 +146,21 @@ Deno.serve(async (req) => {
     provider, amountCents, currency: String(order.currency || "EGP").toUpperCase(), reference: paymentIntentId
   });
   if (!providerCorrelationMatches) {
-    const { error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
-    if (holdError) return json({ error: "PAYMENT_INTENT_FINALIZATION_FAILED", requestId }, 500, requestId);
+    const { data: held, error: holdError } = await setPaymentIntentStatus(paymentIntentId, "PENDING");
+    if (holdError || !held) return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
     return json({ error: "PAYMENT_PROVIDER_INTENT_MISMATCH", requestId }, 502, requestId);
   }
 
-  const { error: updateError } = await admin.from("payment_intents").update({
+  const { data: persisted, error: updateError } = await admin.from("payment_intents").update({
     provider_intent_id: providerIntentId,
     provider_order_id: providerOrderId,
     status: "PENDING",
     updated_at: new Date().toISOString()
-  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion).eq("status", "CREATED");
+  }).eq("id", paymentIntentId).eq("pricing_hash", pricingHash).eq("pricing_version", pricingVersion).eq("status", "CREATED").select("id").maybeSingle();
 
-  if (updateError) {
-    console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError.code }));
-    return json({ error: "Payment intent persistence failed", requestId }, 500, requestId);
+  if (updateError || !persisted) {
+    console.error(JSON.stringify({ requestId, stage: "persist_provider_intent", code: updateError?.code ?? "COMPARE_AND_SET_NO_ROW" }));
+    return json({ error: "PAYMENT_INTENT_REQUIRES_RECONCILIATION", requestId }, 409, requestId);
   }
 
   return json({ id: paymentIntentId, provider: "PAYMOB", status: "PENDING", amount, currency: String(order.currency).toUpperCase(),
@@ -169,5 +169,5 @@ Deno.serve(async (req) => {
 
 async function setPaymentIntentStatus(paymentIntentId: string, status: string) {
   return await admin.from("payment_intents").update({ status, updated_at: new Date().toISOString() })
-    .eq("id", paymentIntentId).eq("status", "CREATED");
+    .eq("id", paymentIntentId).eq("status", "CREATED").select("id").maybeSingle();
 }

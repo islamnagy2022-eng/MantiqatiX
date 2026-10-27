@@ -25,3 +25,34 @@ export function matchesPaymobIntention(input) {
     reference === input.reference && providerId.length > 0 &&
     orderId.length > 0 && clientSecret.length > 0;
 }
+
+export function matchesPaymobAmountCents(expectedAmount, providerAmountCents) {
+  const expected = Number(expectedAmount);
+  const cents = Number(providerAmountCents);
+  if (!Number.isFinite(expected) || expected <= 0 || !Number.isSafeInteger(cents) || cents <= 0) return false;
+  const scaled = expected * 100;
+  const rounded = Math.round(scaled);
+  return Number.isSafeInteger(rounded) && Math.abs(scaled - rounded) < 0.000001 && rounded === cents;
+}
+
+export function matchesCurrencyAmounts(leftAmount, rightAmount) {
+  const left = Number(leftAmount);
+  const right = Number(rightAmount);
+  if (!Number.isFinite(left) || !Number.isFinite(right) || left <= 0 || right <= 0) return false;
+  const leftCents = Math.round(left * 100);
+  const rightCents = Math.round(right * 100);
+  return Number.isSafeInteger(leftCents) && Number.isSafeInteger(rightCents) &&
+    Math.abs(left * 100 - leftCents) < 0.000001 &&
+    Math.abs(right * 100 - rightCents) < 0.000001 &&
+    leftCents === rightCents;
+}
+
+export function matchesPaymobEventOutcome(storedStatus, callbackSuccess) {
+  const status = String(storedStatus ?? "").toUpperCase();
+  return callbackSuccess === true ? status === "PROCESSED" : status === "FAILED";
+}
+
+export function matchesPaymobSubscriptionEventType(storedEventType, callbackSuccess) {
+  const expected = callbackSuccess ? "SUBSCRIPTION_SUCCESS" : "SUBSCRIPTION_FAILURE";
+  return String(storedEventType ?? "") === expected;
+}

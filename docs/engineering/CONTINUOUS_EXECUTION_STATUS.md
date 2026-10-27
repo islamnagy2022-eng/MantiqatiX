@@ -383,3 +383,79 @@ All Supabase production queries were read-only. No production migrations, table 
 ## 2026-10-24 — Final verification campaign deferred
 
 The project instruction is to defer the comprehensive real-world acceptance campaign until all module development and integration work is complete and the release candidate is frozen. Continue engineering, source review, documentation, and existing development CI checks; do not represent CI as final acceptance. Do not start full browser/device E2E, real Paymob/financial transactions, production restore/rollback drills, or live production changes during this build phase. At the final gate, execute a documented end-to-end matrix across auth/RLS/tenant isolation, every module, finance/payments/webhooks/settlements, SMM, notifications, performance/accessibility, supported browsers/devices/Android, backup/restore, monitoring/alerts, and rollback. Use sandbox and isolated environments wherever possible, require explicit authorization for any real-money or production-impacting action, capture reproducible evidence, fix failures, and rerun affected suites. Until every mandatory gate has evidence, release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — CRM lead lifecycle source integration (RC457)
+- Added CRM detail-drawer actions for the allowed next lead statuses; internal management actions are shown only when the record belongs to the active business selected in the session.
+- Customer detail reads remain owner-scoped; internal lead detail reads add a business filter. RLS and the server-side RPC remain authoritative.
+- UI status updates call `transition_marketing_lead_backend` with expected/current state, desired state, actor identity, and a fresh request UUID. The RPC independently checks the actor against `auth.uid()`, membership/business scope, state transitions, row locking, and atomic audit logging.
+- Added static CI guards for direct browser writes, scope filtering, RPC arguments, and safe conflict/forbidden handling.
+- Exact-head CI was queued after the latest source/documentation commit; results are pending. This is not final release testing.
+- RC457 is source-only and has not been applied to production. No production data or configuration was changed.
+- Status: **IMPLEMENTED — NOT VERIFIED**. The comprehensive real-world acceptance campaign remains deferred to the final stage per user instruction. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-24 — Marketing campaign workspace source integration
+- Added a campaigns tab to the existing marketing operations workspace without replacing the current module or schema.
+- Campaign reads are filtered by selected `business_id`; create and status transitions use the existing RC453 server-authoritative RPCs with actor identity supplied from the session and checked again by the backend.
+- The interface explicitly states that campaign creation is internal planning and does not launch external ads. Direct browser mutations of campaign tables are not used.
+- Added static source assertions for campaign scope, RPC use, and table privilege boundaries. Exact-head CI and runtime behavior are not yet certified.
+- Status: **SOURCE INTEGRATED — NOT VERIFIED**. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Marketing partner collaboration source integration
+- Added a partner invitations workspace within the existing marketing module, using the existing `marketing_campaign_participants` schema and RLS policy rather than creating duplicate tables.
+- Campaign managers invite eligible verified partners through `invite_marketing_campaign_partner_backend`; invited provider owners can accept or decline through `respond_marketing_campaign_invitation_backend`.
+- Participant reads intentionally rely on the existing row-level policy to allow both the owning campaign business and the invited provider owner to see only authorized rows. UI checks are not treated as the security boundary.
+- Added static assertions for invitation/response RPC usage and provider ownership checks. Exact-head CI and runtime behavior remain **NOT VERIFIED**.
+- No payment, settlement, or external advertising action is performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-24 — Stacked release path and CI correction
+- PR #373 is stacked on PR #372 so the RC457 lifecycle migration and marketing UI are evaluated alongside the restored migration source chain.
+- The prior exact-head web validation failed because a static assertion did not include the new invitations tab. The assertion was corrected and a new exact-head run is underway.
+- The required migration verifier now carries RC457 after the later timestamped RC525 and RC102–RC106 sources, preserving chronological order.
+- These source changes do not prove live database migration parity or runtime behavior. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — Partner invitation authorization and release-chain correction
+- Fixed a frontend authorization logic bug: invitation creation now validates provider eligibility and cross-business scope without requiring the partner profile owner to equal the inviting manager. Invitation response remains constrained to the signed-in owner of an active, verified provider profile, and backend RPCs remain authoritative.
+- Tightened the source validator so the invite and response handlers are tested independently.
+- Reconciled RC457 with the production source verifier and chronological migration-chain contract; the expected source chain includes RC457 after the restored RC425–RC441 family and the RC525/RC102–RC106 source set.
+- The last code head `e0cdee9694b92cbdb9a32cea79acfcd2ad250a9d` includes the invitation fix and validator guard. The documentation-only head `03d7429c8873cdd02f350bcbfd705f44e0bf9386` has no returned exact-head PR workflow runs, so the earlier marketing contract pass is not treated as current-head verification.
+- PR #373 targets main and depends on the historical migration source restoration in PR #372; it remains open/draft. No production migration, live payment, or deployment was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-24 — RC458 scoped partner directory
+- Found a functional boundary issue: the existing RLS policy intentionally prevents a business manager from reading arbitrary cross-business provider profiles, so the invitation picker could not safely discover external partners by querying the table.
+- Added RC458: `list_marketing_partner_directory_backend` is SECURITY DEFINER with an empty search_path, validates actor identity and manager authority for the selected business, limits search and result count, and returns only provider ID/name/slug/type for active verified partner companies/freelancers. No owner IDs, contact details, or business IDs are returned; the underlying provider-profile RLS policy was not broadened.
+- Updated the invitation UI to use this scoped RPC and kept response actions owner-scoped. Added static contract assertions and included RC458 in both release migration manifests after RC457.
+- CI verification for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` completed all nine PR workflows successfully, including the marketing workspace contract and migration chain gate for 36 required source migrations. The Pages workflow validated the build and explicitly skipped deployment for this pull request. This is structural/CI evidence only; runtime testing against the release Supabase target and production migration rollout are still NOT VERIFIED.
+- No production migration, live payment, or external ad launch was performed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+- Follow-up: added partner-name search to the invitation workspace; the input is capped at 80 characters and the RPC clamps results to 1–50 records. Subsequent CI for code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` passed all nine PR workflows. Only documentation/PR-description changes followed that code head; runtime Supabase validation and production application remain outstanding.
+
+
+- Follow-up UX fix: provider invitation views now resolve campaign names only for campaign IDs found in the signed-in provider's own RLS-visible invitations, requesting only `id,title,status`. Static contract checks enforce this bounded query. CI at code head `ea12b484d552851aedde2c1e1b6ce9813b1e3bda` passed all nine PR workflows; no production deployment occurred.
+
+
+## 2026-10-24 — RC458 behavioral PostgreSQL integration now verified
+- Added an isolated PostgreSQL 16 integration test for the cross-business partner directory. It verifies eligible cross-business profiles are returned while unverified and same-business profiles are excluded; search and result limits work; actor spoofing, cross-business manager access, and overlong search are rejected; and anon/authenticated RPC execute grants are correct.
+- The CI workflow now applies the RC453 fixture/migration and existing lifecycle integration first, then applies RC458 and runs the new RC458 integration assertions.
+- Exact current PR #373 head `b58eac839f7fb2cad814c63795ca1dfde9ee73b3`: all 10 workflows passed, including the PostgreSQL integration job, whose output explicitly reports `RC458 scoped marketing partner directory integration: PASS`.
+- PR #372 head `5a6def775558b1415db53c06d0584ea4cf5738b5`: all 11 workflows passed, including the isolated forward migration chain replay from the captured production-schema checkpoint.
+- The web workflow's validation passed but its deploy job was skipped by the pull-request guard. No production deployment or migration was performed.
+- This closes the RC458 isolated CI integration gap only; it does not establish production project parity, live end-to-end acceptance, or disaster-recovery readiness. Both PRs remain open/draft and unmerged. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 behavioral test added — 2026-10-24
+- Added a disposable PostgreSQL integration test for the RC457 marketing-lead lifecycle RPC, covering successful transition and audit scope, safe idempotent replay, request-key conflict, stale-state conflict, disallowed/invalid transitions, actor spoofing, cross-business denial, missing auth, and grants.
+- CI order is now RC453 fixture + migration/tests → RC457 migration + lifecycle integration → RC458 migration + partner-directory integration. The fixture extension is isolated test setup only.
+- CI for the latest commit is pending/not yet observed; do not claim the new RC457 test passed until the latest head's PostgreSQL job is green. Prior successful CI refers to earlier head.
+- No deployment or production migration was executed. PR #372 and #373 remain unmerged; production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## RC457 behavioral integration verified — 2026-10-24
+- The first PostgreSQL run found an ambiguous `result` reference in the test assertion; the production verification workflow also caught over-escaped regular expressions in the new static validator. Both issues were fixed.
+- Latest verified PR #373 head `951183e686ce3d221a950e875063dc034c5b3f18`: all 10 workflows completed successfully.
+- Marketing Campaign Backend PostgreSQL 16 output explicitly reports RC453, RC457 lifecycle, and RC458 partner-directory integration PASS. The production verification syntax check also passed.
+- The web deploy job remains skipped by the pull-request guard. No production deploy or production migration was performed.
+- Remaining release blockers: target Supabase schema/runtime parity, final E2E acceptance, disaster-recovery/restore evidence, and explicit release authorization. Both PRs remain open/draft; production remains **BLOCKED / NOT CERTIFIED**.

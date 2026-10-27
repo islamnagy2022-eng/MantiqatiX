@@ -29,6 +29,8 @@ jobs:
       - uses: actions/checkout@v6
       - name: Verify encrypted checkout secret crypto
         run: node scripts/test-checkout-secret-crypto.mjs
+      - name: Test exact-cent Paymob webhook amount correlation
+        run: node scripts/test-paymob-amount-correlation.mjs
       - name: Validate Paymob atomicity source wiring
         run: node scripts/validate-payment-migration-wiring.mjs
       - name: Run RC425 atomic payment integration tests
