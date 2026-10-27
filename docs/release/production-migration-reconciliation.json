@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: 41 distinct release-required migration versions are absent from the live ledger; 33 selected new RC113–RC117 module objects are absent; the Qadam catalog follow-up is unrecorded and its owner membership is INACTIVE; and two duplicate source-version aliases need controlled migration-history reconciliation. Existing payment/finance/RPC schema and five critical Edge Function source drifts plus RC451 search_path remain blockers. No Production migration, data write, grant/Auth/RLS change or deployment occurred.",
+  "reason": "Production remains BLOCKED: 41 distinct release-required migration versions are absent from the live ledger. The release verifier now requires 27 atomic core payment/finance/ERP/MantiGo contracts plus 33 RC113–RC117 control-center/hiring/subscriber-admin/default-image contracts as individual passing findings. Live data still shows two source aliases unresolved and Qadam owner membership INACTIVE. RC451 search_path, journal schema/ACL and five critical Edge Function source parity blockers remain open.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -319,43 +319,50 @@
         "migration": "RC425",
         "object": "public.mantigo_payment_provider_events",
         "exists": false,
-        "detail": "Required provider-event idempotency table absent."
+        "detail": "Required provider-event idempotency table absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC425",
         "object": "public.process_verified_mantigo_payment_backend",
         "exists": false,
-        "detail": "Atomic MantiGo payment backend RPC absent."
+        "detail": "Atomic MantiGo payment backend RPC absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC426",
         "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
         "exists": false,
-        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE."
+        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC427",
         "object": "public.uq_payment_intents_one_active_per_order",
         "exists": false,
-        "detail": "Partial unique index for one active payment intent per order absent."
+        "detail": "Partial unique index for one active payment intent per order absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC428",
         "object": "public.process_verified_provider_payment_failure",
         "exists": false,
-        "detail": "Atomic provider-failure webhook RPC absent."
+        "detail": "Atomic provider-failure webhook RPC absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC429",
         "object": "public.process_verified_subscription_payment_failure",
         "exists": false,
-        "detail": "Atomic subscription-failure webhook RPC absent."
+        "detail": "Atomic subscription-failure webhook RPC absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC430",
         "object": "public.process_verified_subscription_payment_backend",
         "exists": false,
-        "detail": "Atomic subscription-success backend RPC absent."
+        "detail": "Atomic subscription-success backend RPC absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC431",
@@ -368,13 +375,15 @@
         "migration": "RC432",
         "object": "public.smm_wallet_transactions_reference_type_uidx",
         "exists": false,
-        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist."
+        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC434",
         "object": "public.receive_purchase_stock_atomic_backend",
         "exists": false,
-        "detail": "Atomic ERP receipt RPC absent."
+        "detail": "Atomic ERP receipt RPC absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC435",
@@ -450,13 +459,15 @@
         "migration": "RC438",
         "object": "public.create_purchase_order_with_lines_backend",
         "exists": false,
-        "detail": "Atomic purchase-order creation-with-lines RPC absent."
+        "detail": "Atomic purchase-order creation-with-lines RPC absent.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC438",
         "object": "public.update_purchase_order_status_backend(varchar,varchar)",
         "exists": true,
-        "detail": "Old function exists with search_path=public and ACL only to postgres; source contract sets an empty search_path and grants authenticated execution."
+        "detail": "Old function exists with search_path=public and ACL only to postgres; source contract sets an empty search_path and grants authenticated execution.",
+        "status": "BLOCKED"
       },
       {
         "migration": "RC441",
@@ -727,7 +738,8 @@
     ],
     "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout.",
     "observed_count": 60,
-    "note": "Every required object is listed atomically. Compound descriptions are not used as substitutes for individual table, index, or RPC checks."
+    "note": "All 60 required live object contracts are listed individually. Each table, index, RPC, column, and trigger is a separate finding; composite descriptions no longer satisfy multiple required contracts.",
+    "non_pass_count": 60
   },
   "security_definer_search_path_check": {
     "status": "BLOCKING_DRIFT",
