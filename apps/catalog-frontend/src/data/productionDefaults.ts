@@ -171,13 +171,13 @@ export const DEFAULT_PAYMOB_CONFIG: PaymobConfig = {
 };
 
 export const INITIAL_ADMIN_SETTINGS: AdminSettings = {
-  adminWhatsApp: '+201010171770',
+  adminWhatsApp: '',
   adminPassword: '',
   currency: 'ج.م',
   platformName: 'MantiqatiX',
   platformEmail: '',
   maxAllowedProductsPerBusiness: 150,
-  defaultCommissionPerOrder: 0.01,
+  defaultCommissionPerOrder: 0,
   overdueGracePeriodDays: 5,
   defaultPaymobFeePercentage: 0,
   defaultPaymobFeeFixed: 0,
