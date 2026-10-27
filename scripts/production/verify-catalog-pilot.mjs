@@ -61,9 +61,9 @@ for (const fn of catalogFunctions.functions || []) {
 assert.equal(expectedCatalogFunctions.size, 0, 'Every scoped catalog Edge Function must be accounted for');
 assert.equal(catalogFunctions.unrelated_functions_deployed, false, 'No unrelated Edge Functions may be deployed by the catalog pilot');
 
-assert.ok(vite.includes("base: '/MantiqatiX/'"), 'Catalog frontend must be built under its own subpath');
-assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must not claim the platform root');
-assert.equal(manifest.start_url, '/MantiqatiX/', 'Catalog PWA start URL must use its subpath');
+assert.ok(vite.includes("base: '/MantiqatiX/'"), 'Catalog frontend must be built at the primary website root');
+assert.equal(manifest.scope, '/MantiqatiX/', 'Catalog PWA scope must own the primary website root');
+assert.equal(manifest.start_url, '/MantiqatiX/', 'Catalog PWA start URL must use the primary website root');
 assert.ok(serviceWorker.includes('mantiqatix-primary-site-v3'), 'Catalog service worker must use its own cache namespace');
 assert.ok(serviceWorker.includes("key.startsWith('mantiqatix-primary-site-')"), 'Catalog service worker must not delete unrelated platform caches');
 assert.ok(app.includes("new URL('/MantiqatiX/', window.location.origin).toString()"), 'Google OAuth must return directly to the primary catalog root.');
