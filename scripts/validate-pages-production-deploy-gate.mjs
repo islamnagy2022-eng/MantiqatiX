@@ -67,6 +67,10 @@ assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإ
   'The existing platform desktop navigation must link to the catalog module');
 assert.ok(home.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'),
   'The existing platform mobile navigation must link to the catalog module');
+assert.doesNotMatch(home, /href="preview\/dashboard\.html"/,
+  'The production navigation must not expose the all-modules preview dashboard');
+assert.doesNotMatch(home, /href="smm\.html"/,
+  'The deferred SMM placeholder must not be exposed as an active production navigation item');
 assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
   'Production health checks must monitor the catalog subpath');
 assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
