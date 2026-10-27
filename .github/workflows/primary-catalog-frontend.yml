@@ -97,7 +97,7 @@ jobs:
         run: node scripts/validate-production-catalog-real-state.mjs
       - name: Verify scoped catalog pilot release prerequisites
         run: node scripts/production/verify-catalog-pilot.mjs
-      - name: Validate that the platform root is preserved
+      - name: Validate catalog-only production root contract
         run: node scripts/validate-pages-production-deploy-gate.mjs
       - name: Build catalog for the primary website root
         working-directory: apps/catalog-frontend
@@ -110,8 +110,8 @@ jobs:
           grep -Fq '/MantiqatiX/assets/' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/config.js' apps/catalog-frontend/dist/index.html
           grep -Fq '/MantiqatiX/' apps/catalog-frontend/dist/manifest.webmanifest
-          grep -Fq 'mantiqatix-catalog-shell-' apps/catalog-frontend/dist/sw.js
-      - name: Smoke test allowlisted Google OAuth root callback relay
+          grep -Fq 'mantiqatix-primary-site-v3' apps/catalog-frontend/dist/sw.js
+      - name: Smoke test Google OAuth direct primary-root callback
         run: |
           set -euo pipefail
           SUPABASE_URL="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseUrl:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
