@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
 import vm from 'node:vm';
 
 const source = fs.readFileSync('web/feature-flags.js', 'utf8');
@@ -23,4 +22,14 @@ assert.equal(flags.moduleEnabled('Unconfigured module', resolved, {}), true, 'un
 assert.equal(flags.featureEnabled('MARKETING', 'QUOTE_REQUEST', resolved), false, 'unconfigured feature must default off');
 assert.equal(flags.scopeMatches({ scope_type: 'WIDGET', scope_id: 'catalog-summary' }, { widgetIds: ['catalog-summary'] }), true, 'widget scope must require exact widget context');
 assert.equal(flags.scopeMatches({ scope_type: 'WIDGET', scope_id: 'catalog-summary' }, {}), false, 'widget flags must not leak into module-wide defaults');
+const appSource = fs.readFileSync('web/app.js', 'utf8');
+const indexSource = fs.readFileSync('web/index.html', 'utf8');
+assert.match(appSource, /scope:'GLOBAL'/, 'app must query the supported GLOBAL scope');
+assert.match(appSource, /scope:'SECTOR'/, 'app must query sector-scoped flags');
+assert.match(appSource, /scope:'TENANT'/, 'app must query tenant-scoped flags');
+assert.match(appSource, /scope:'BUSINESS'/, 'app must query business-scoped flags');
+assert.match(appSource, /scope:'BRANCH'/, 'app must query branch-scoped flags');
+assert.match(appSource, /if\(!moduleEnabled\(name\)\)/, 'module navigation must enforce disabled flags');
+assert.match(appSource, /applyFeatureFlagGuards\(document\.getElementById\('page'\)\)/, 'feature-gated actions must be guarded after render');
+assert.match(indexSource, /feature-flags\.js/, 'feature flag resolver must load before the app');
 console.log('PLATFORM_FEATURE_FLAGS=PASS');
