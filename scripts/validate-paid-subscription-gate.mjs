@@ -6,6 +6,7 @@ const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 const types = fs.readFileSync('apps/catalog-frontend/src/types/index.ts', 'utf8');
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
+const platformApp = fs.readFileSync('web/app.js', 'utf8');
 
 const createStart = backend.indexOf('if (action === "CREATE_SUBSCRIBER")');
 const statusStart = backend.indexOf('if (action === "SUBSCRIBER_STATUS")', createStart);
@@ -56,6 +57,14 @@ assert.match(context, /لا تُفعّل صلاحيات إدارة النشاط 
   'Credential instructions must disclose the payment gate');
 assert.match(admin, /حالة الاشتراك/);
 assert.match(admin, /بانتظار السداد/);
+assert.match(platformApp, /اشتراك أساسي مدفوع/,
+  'Public subscription messaging must not advertise a free subscription');
+assert.match(platformApp, /يبدأ مقدم الخدمة بعد اختيار الاشتراك المدفوع المعتمد وتأكيد السداد/,
+  'Public copy must describe the paid activation requirement');
+assert.doesNotMatch(platformApp, /الباقة المجانية|نماذج مجانية|مجاني<\\/h3>|نظام مجاني|البدء مجانًا/,
+  'The app UI must not advertise a free platform subscription');
+assert.doesNotMatch(platformApp, /خدمات التسويق الرقمي SMM|smmModulePage|href="smm\\.html"/,
+  'Deferred SMM must not be presented as an enabled app module');
 assert.doesNotMatch(admin, /setActiveAdminTab\('backup'\)/,
   'Unverified backup/restore UI must not be exposed in the catalog pilot');
 assert.doesNotMatch(admin, /setActiveAdminTab\('control_center'\)/,
