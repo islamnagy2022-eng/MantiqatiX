@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 
 const migrationPattern = /^supabase\/migrations\/(\d{14})_.+\.sql$/;
 
@@ -86,120 +87,101 @@ if (process.argv.includes("--self-test")) {
   process.exit(0);
 }
 
-const token = process.env.GITHUB_TOKEN;
 const repository = process.env.GITHUB_REPOSITORY;
 const currentPrNumber = Number(process.env.PULL_REQUEST_NUMBER);
-if (!token || !repository || !Number.isInteger(currentPrNumber) || currentPrNumber < 1) {
-  console.error("Missing GITHUB_TOKEN, GITHUB_REPOSITORY, or PULL_REQUEST_NUMBER.");
+const baseRef = process.env.PULL_REQUEST_BASE_REF || "main";
+if (!repository || !Number.isInteger(currentPrNumber) || currentPrNumber < 1 ||
+    !/^[A-Za-z0-9._/-]+$/.test(baseRef) || baseRef.includes("..")) {
+  console.error("Missing or invalid GITHUB_REPOSITORY, PULL_REQUEST_NUMBER, or PULL_REQUEST_BASE_REF.");
   process.exit(2);
 }
 
-async function githubGet(url) {
-  const maxAttempts = 4;
-  let anonymousRateLimitFallbackAttempted = false;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Accept: "application/vnd.github+json",
-          Authorization: "Bearer " + token,
-          "X-GitHub-Api-Version": "2022-11-28"
-        }
-      });
-      if (response.ok) return response.json();
-
-      const errorBody = await response.text();
-      const rateLimited403 = isRateLimited403(
-        response.status,
-        response.headers.get("x-ratelimit-remaining"),
-        errorBody
-      );
-
-      // This repository and the PR metadata being inspected are public. When the
-      // Actions installation token is rate-limited, retry the read anonymously
-      // once rather than sleeping for minutes and then failing without checking.
-      // The fallback remains read-only and still fails closed if public access fails.
-      if (rateLimited403 && !anonymousRateLimitFallbackAttempted) {
-        anonymousRateLimitFallbackAttempted = true;
-        console.warn("GitHub installation API quota exhausted; retrying public read without credentials: " + url);
-        const publicResponse = await fetch(url, {
-          headers: {
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28"
-          }
-        });
-        if (publicResponse.ok) return publicResponse.json();
-        const publicError = await publicResponse.text();
-        throw new Error(
-          "Authenticated API quota exhausted and anonymous public read failed (" +
-          publicResponse.status + "): " + url +
-          (publicError ? " — " + publicError.slice(0, 240) : "")
-        );
-      }
-
-      const retryable = response.status === 429 || [500, 502, 503, 504].includes(response.status);
-      if (!retryable || attempt === maxAttempts - 1) {
-        throw new Error("GitHub API request failed (" + response.status + "): " + url + (errorBody ? " — " + errorBody.slice(0, 300) : ""));
-      }
-      const retryAfter = Number(response.headers.get("retry-after") || 0);
-      const delayMs = retryAfter > 0
-        ? Math.min(retryAfter * 1000, 15000)
-        : Math.min(500 * (2 ** attempt), 5000);
-      console.warn("Retrying transient GitHub API " + response.status + " response in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    } catch (error) {
-      if (attempt === maxAttempts - 1 || !(error instanceof TypeError)) throw error;
-      const delayMs = Math.min(300 * (2 ** attempt), 3000);
-      console.warn("Retrying transient GitHub API network error in " + delayMs + "ms (" + (attempt + 1) + "/" + maxAttempts + "): " + url);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    }
-  }
-  throw new Error("GitHub API request exhausted retry budget: " + url);
+function git(args) {
+  return execFileSync("git", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 32 * 1024 * 1024
+  }).trim();
 }
 
-async function getAllPages(url) {
-  const results = [];
-  let page = 1;
-  while (true) {
-    const separator = url.includes("?") ? "&" : "?";
-    const batch = await githubGet(url + separator + "per_page=100&page=" + page);
-    if (!Array.isArray(batch) || batch.length === 0) break;
-    results.push(...batch);
-    if (batch.length < 100) break;
-    page++;
+function isAncestor(candidateBase, targetRef) {
+  try {
+    git(["merge-base", "--is-ancestor", candidateBase, targetRef]);
+    return true;
+  } catch {
+    return false;
   }
-  return results;
+}
+
+function entriesForMergeRef(prNumber, mergeRef) {
+  const parent = git(["rev-parse", mergeRef + "^1"]);
+  const targetRef = "refs/remotes/origin/" + baseRef;
+  // Only compare PRs whose synthetic merge base belongs to the selected target
+  // branch's history. This keeps feature-branch PRs out of the main release set.
+  if (!isAncestor(parent, targetRef)) return { prNumber, entries: [], comparable: false };
+
+  const output = git([
+    "diff", "--name-status", "--no-renames",
+    mergeRef + "^1", mergeRef, "--", "supabase/migrations"
+  ]);
+  const entries = [];
+  for (const line of output.split(/\r?\n/).filter(Boolean)) {
+    const [status, file] = line.split("\t");
+    if (!file || status === "D") continue;
+    const match = migrationPattern.exec(file);
+    if (!match) continue;
+    const sha = git(["rev-parse", mergeRef + ":" + file]);
+    entries.push({ version: match[1], file, prNumber, sha });
+  }
+  return { prNumber, entries, comparable: true };
 }
 
 try {
-  const current = await githubGet("https://api.github.com/repos/" + repository + "/pulls/" + currentPrNumber);
-  const openPulls = await getAllPages("https://api.github.com/repos/" + repository + "/pulls?state=open");
-  const comparable = openPulls.filter(pr =>
-    pr.base?.ref === current.base?.ref &&
-    pr.base?.repo?.full_name === current.base?.repo?.full_name
-  );
+  // REST API calls can share an installation-wide rate limit across many CI
+  // runs. Enumerate GitHub's read-only PR merge refs through Git instead of
+  // requesting every open PR and its changed-file list via REST.
+  git([
+    "fetch", "--no-tags", "origin",
+    "+refs/heads/" + baseRef + ":refs/remotes/origin/" + baseRef,
+    "+refs/pull/*/merge:refs/remotes/origin/pr-merge/*"
+  ]);
+
+  const refs = git([
+    "for-each-ref", "--format=%(refname)", "refs/remotes/origin/pr-merge/"
+  ]).split(/\r?\n/).filter(Boolean);
+  if (!refs.length) throw new Error("No open pull-request merge refs were available from origin.");
 
   const all = [];
-  for (const pr of comparable) {
-    const files = await getAllPages("https://api.github.com/repos/" + repository + "/pulls/" + pr.number + "/files");
-    const entries = migrationEntries(pr.number, files);
-    if (entries.length) all.push({ prNumber: pr.number, title: pr.title, url: pr.html_url, base: pr.base, entries });
+  let currentFound = false;
+  for (const refName of refs) {
+    const match = /\/pr-merge\/(\d+)$/.exec(refName);
+    if (!match) continue;
+    const prNumber = Number(match[1]);
+    const result = entriesForMergeRef(prNumber, refName);
+    if (prNumber === currentPrNumber) {
+      currentFound = true;
+      if (!result.comparable) throw new Error("Current PR merge base is not in target branch history; cannot safely compare migration versions.");
+    }
+    if (result.comparable && result.entries.length) {
+      all.push({ prNumber, entries: result.entries });
+    } else if (result.comparable) {
+      all.push({ prNumber, entries: [] });
+    }
   }
+  if (!currentFound) throw new Error("Current PR #" + currentPrNumber + " merge ref was not found; refusing to skip collision detection.");
 
   const collisions = crossPullRequestCollisions(all);
   const relevantCollisions = collisionsForPullRequest(collisions, currentPrNumber);
   if (relevantCollisions.length) {
     console.error("Cross-PR migration version collision detected involving the current PR:");
     for (const collision of relevantCollisions) {
-      const left = all.find(pr => pr.prNumber === collision.leftPr);
-      const right = all.find(pr => pr.prNumber === collision.rightPr);
       console.error(
         "- version " + collision.version +
         ": PR #" + collision.leftPr + " " + collision.leftFile +
         " conflicts with PR #" + collision.rightPr + " " + collision.rightFile
       );
-      if (left?.url) console.error("  PR #" + collision.leftPr + ": " + left.url);
-      if (right?.url) console.error("  PR #" + collision.rightPr + ": " + right.url);
+      console.error("  PR #" + collision.leftPr + ": https://github.com/" + repository + "/pull/" + collision.leftPr);
+      console.error("  PR #" + collision.rightPr + ": https://github.com/" + repository + "/pull/" + collision.rightPr);
     }
     console.error("Do not silence this check by renaming an already-applied migration. Reconcile the intended migration history and choose one canonical release path.");
     process.exit(1);
@@ -215,8 +197,8 @@ try {
   console.log(
     "Cross-PR migration collision check PASS for current PR #" + currentPrNumber +
     ": audited " + all.length +
-    " open PR(s) with migration changes targeting " + current.base.ref +
-    "; unrelated existing collisions are warnings."
+    " GitHub pull-request merge ref(s) based on " + baseRef +
+    "; no REST API calls required."
   );
 } catch (error) {
   console.error("Cross-PR migration collision check could not complete:", error instanceof Error ? error.message : "unknown error");
