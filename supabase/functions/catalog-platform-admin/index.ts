@@ -325,10 +325,11 @@ Deno.serve(async (req: Request) => {
       // Only an explicit admin-confirmed paid state can activate pending owner memberships.
       if (String(patch.paymentStatus || "").toLowerCase() === "paid" && patch.paymentConfirmedByAdmin === true) {
         const { error: activationError } = await service.from("user_memberships")
-          .update({ status: "ACTIVE" })
+          .update({ status: "ACTIVE", permissions: { catalog: true, subscription_status: "ACTIVE" } })
           .eq("tenant_id", tenantId)
           .eq("business_id", businessId)
           .eq("status", "INACTIVE")
+          .contains("permissions", { subscription_status: "PENDING_PAYMENT" })
           .in("role", ["OWNER", "BUSINESS_OWNER"]);
         if (activationError) throw new Error("PAID_SUBSCRIPTION_ACTIVATION_FAILED");
       }
