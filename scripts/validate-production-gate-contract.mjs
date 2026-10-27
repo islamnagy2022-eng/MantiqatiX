@@ -33,7 +33,7 @@ const requiredWorkflowMarkers = [
 const requiredPrimaryCatalogMarkers = [
   'Upload catalog build for review (no deployment)',
   'node scripts/validate-pages-production-deploy-gate.mjs',
-  '/MantiqatiX/catalog-app/assets/',
+  '/MantiqatiX/assets/',
 ];
 const primaryCatalogMustNotDeploy = !primaryCatalogWorkflow.includes('actions/deploy-pages@v4')
   && !/pages:\s*write/.test(primaryCatalogWorkflow)
