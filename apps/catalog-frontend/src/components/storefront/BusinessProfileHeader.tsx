@@ -32,11 +32,13 @@ export const BusinessProfileHeader: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   useEffect(() => {
+    setCurrentSlideIndex(0);
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, [slides.length]);
+  }, [slides.length, currentBusiness?.id]);
 
   if (!currentBusiness) {
     return (
