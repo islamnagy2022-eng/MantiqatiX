@@ -250,60 +250,65 @@ export const AdminDashboard: React.FC = () => {
 
   const handleAddBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBizName.trim()) return;
+    const name = newBizName.trim();
+    if (name.length < 2) {
+      window.alert('اكتب اسم النشاط الحقيقي (حرفان على الأقل).');
+      return;
+    }
+    if (![newBizGov, newBizMarkaz, newBizVillage].every((value) => value.trim())) {
+      window.alert('أدخل المحافظة والمركز أو القسم والقرية أو الحي الفعلي للنشاط.');
+      return;
+    }
+    const phoneDigits = newBizOwnerWhatsApp.replace(/\\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      window.alert('أدخل رقم واتساب صحيحًا لصاحب النشاط من 10 إلى 15 رقمًا.');
+      return;
+    }
+    const commissionPerOrder = Number(newBizCommission);
+    if (!Number.isFinite(commissionPerOrder) || commissionPerOrder < 0 || commissionPerOrder > 1000000) {
+      window.alert('قيمة العمولة غير صالحة.');
+      return;
+    }
+    const paymentDueDay = Number(newBizDueDay);
+    if (!Number.isInteger(paymentDueDay) || paymentDueDay < 1 || paymentDueDay > 31) {
+      window.alert('يوم السداد يجب أن يكون رقمًا صحيحًا من 1 إلى 31.');
+      return;
+    }
 
     const matchedCat = categories.find((c) => c.name === newBizCategory);
     const resolvedGroup = newBizFunctionalGroup || matchedCat?.functionalGroupId || 'dining';
-
-    const slug = newBizName
-      .trim()
-      .toLowerCase()
-      .replace(/[\s\W-]+/g, '-');
+    const slug = name.toLowerCase().replace(/[\\s\\W-]+/g, '-');
 
     try {
-    const createdBizId = await addBusiness({
-      name: newBizName,
-      slug: `${slug}-${Date.now().toString().slice(-4)}`,
-      category: newBizCategory,
-      categoryId: matchedCat?.id,
-      functionalGroupId: resolvedGroup,
-      logoUrl:
-        'https://images.unsplash.com/photo-1544816155-12df9643f363?w=240&auto=format&fit=crop&q=80',
-      coverUrl:
-        'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&auto=format&fit=crop&q=80',
-      bio: newBizBio || 'نشاط تجاري معتمد مسجل في منصة MantiqatiX.',
-      ownerWhatsApp: newBizOwnerWhatsApp || '+201000000000',
-      address: newBizAddress,
-      governorate: newBizGov,
-      markaz: newBizMarkaz,
-      village: newBizVillage,
-      workingHours: 'يومياً: 9 ص - 11 م',
-      isVerified: true,
-      maxProductsLimit: 150,
-      registrationDate: new Date().toISOString().split('T')[0],
-      paymentDueDay: Number(newBizDueDay) || 1,
-      paymentDueDate: new Date().toISOString().split('T')[0],
-      commissionPerOrder: Number(newBizCommission) || 0.01,
-      totalOrdersCount: 0,
-      paymentStatus: 'paid',
-      overdueDaysCount: 0,
-      isFrozen: false,
-      lastPaymentDate: new Date().toISOString().split('T')[0],
-      paymentConfirmedByAdmin: true,
-      paymobConfig: {
-        ...DEFAULT_PAYMOB_CONFIG,
-        enabled: newBizPaymobEnabled,
-        feePercentage: Number(newBizPaymobFeePercentage) || 2.75,
-        feeFixed: Number(newBizPaymobFeeFixed) || 3.0,
-      },
-    });
+      const createdBizId = await addBusiness({
+        name,
+        slug: `${slug}-${Date.now().toString().slice(-4)}`,
+        category: newBizCategory,
+        functionalGroupId: resolvedGroup,
+        bio: newBizBio.trim(),
+        ownerWhatsApp: newBizOwnerWhatsApp.trim(),
+        address: newBizAddress.trim(),
+        governorate: newBizGov.trim(),
+        markaz: newBizMarkaz.trim(),
+        village: newBizVillage.trim(),
+        workingHours: newBizWorkingHours.trim(),
+        commissionPerOrder,
+        paymentDueDay,
+      });
 
-    setNewBizName('');
-    setNewBizBio('');
-    setNewBizOwnerWhatsApp('');
-    setIsBizModalOpen(false);
-    setSelectedBusinessId(createdBizId);
-    } catch (error) { window.alert(error instanceof Error ? error.message : 'تعذر إنشاء النشاط في قاعدة الإنتاج.'); }
+      setNewBizName('');
+      setNewBizBio('');
+      setNewBizOwnerWhatsApp('');
+      setNewBizGov('');
+      setNewBizMarkaz('');
+      setNewBizVillage('');
+      setNewBizAddress('');
+      setNewBizWorkingHours('');
+      setIsBizModalOpen(false);
+      setSelectedBusinessId(createdBizId);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر إنشاء النشاط في قاعدة الإنتاج.');
+    }
   };
 
   const handleCreateCategory = (e: React.FormEvent) => {
