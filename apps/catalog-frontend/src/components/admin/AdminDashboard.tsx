@@ -713,9 +713,9 @@ export const AdminDashboard: React.FC = () => {
                       const matchStatus =
                         billingStatusFilter === 'all' ||
                         (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen' || b.overdueDaysCount > 5)) ||
-                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.paymentStatus === 'overdue' && b.overdueDaysCount > 0 && b.overdueDaysCount <= 5) ||
-                        (billingStatusFilter === 'paid' && !b.isFrozen && b.overdueDaysCount === 0 && b.paymentStatus === 'paid') ||
-                        (billingStatusFilter === 'pending' && !b.isFrozen && b.paymentStatus === 'pending' && b.overdueDaysCount === 0);
+                        (billingStatusFilter === 'overdue' && !b.isFrozen && b.paymentStatus !== 'frozen' && b.paymentStatus === 'overdue' && b.overdueDaysCount > 0) ||
+                        (billingStatusFilter === 'paid' && !b.isFrozen && b.paymentStatus !== 'frozen' && b.overdueDaysCount === 0 && b.paymentStatus === 'paid') ||
+                        (billingStatusFilter === 'pending' && !b.isFrozen && b.paymentStatus !== 'frozen' && b.paymentStatus === 'pending' && b.overdueDaysCount === 0);
                       return matchGov && matchStatus;
                     })
                     .map((biz) => {
@@ -787,19 +787,23 @@ export const AdminDashboard: React.FC = () => {
                           {/* Monthly Subscription Status: reflect the persisted production state, never a hardcoded paid badge. */}
                           <td className="py-3.5 px-4">
                             <span className={`font-black block ${
-                              biz.paymentStatus === 'paid' && !biz.isFrozen && biz.overdueDaysCount === 0
-                                ? 'text-emerald-700'
-                                : biz.paymentStatus === 'pending'
-                                  ? 'text-amber-700'
-                                  : 'text-rose-700'
+                              biz.isFrozen || biz.paymentStatus === 'frozen'
+                                ? 'text-rose-700'
+                                : biz.paymentStatus === 'paid' && biz.overdueDaysCount === 0
+                                  ? 'text-emerald-700'
+                                  : biz.paymentStatus === 'pending'
+                                    ? 'text-amber-700'
+                                    : 'text-rose-700'
                             }`}>
-                              {biz.paymentStatus === 'paid' && !biz.isFrozen && biz.overdueDaysCount === 0
-                                ? 'مسدد ومعتمد'
-                                : biz.paymentStatus === 'pending'
-                                  ? 'بانتظار تأكيد السداد'
-                                  : biz.paymentStatus === 'overdue'
-                                    ? 'متأخر عن السداد'
-                                    : 'مجمد لعدم السداد'}
+                              {biz.isFrozen || biz.paymentStatus === 'frozen'
+                                ? 'مجمد لعدم السداد'
+                                : biz.paymentStatus === 'paid' && biz.overdueDaysCount === 0
+                                  ? 'مسدد ومعتمد'
+                                  : biz.paymentStatus === 'pending'
+                                    ? 'بانتظار تأكيد السداد'
+                                    : biz.paymentStatus === 'overdue'
+                                      ? 'متأخر عن السداد'
+                                      : 'الحالة تحتاج مراجعة بيانات الإنتاج'}
                             </span>
                             <span className="text-[10px] text-slate-400">
                               {biz.paymentDueDate ? `موعد الاستحقاق: ${biz.paymentDueDate}` : 'موعد الاستحقاق غير مسجل'}
