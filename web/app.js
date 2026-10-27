@@ -163,9 +163,13 @@ try{
  live.finance=financeRoles.includes(String(live.role||'').toUpperCase())?{}:null;
  if(live.finance){const financeSpecs=[['journal_entries','tenant_id',live.tenantId,'journals'],['commission_transactions','tenant_id',live.tenantId,'commissions'],['payment_intents','tenant_id',live.tenantId,'paymentIntents'],['payment_financial_reconciliations','tenant_id',live.tenantId,'reconciliations'],['settlement_transactions','tenant_id',live.tenantId,'settlements'],['wallet_accounts','tenant_id',live.tenantId,'wallets']];const financeResults=await Promise.all(financeSpecs.map(x=>safeCount(x[0],x[1],x[2])));financeSpecs.forEach((x,i)=>{live.finance[x[3]]=financeResults[i]});}
  const orderRole=String(live.role||'').toUpperCase();
- const orderCountSpec=(orderRole==='SERVICE_PROVIDER'||orderRole==='BUSINESS_OWNER')&&live.businessId
+ const platformOrderAccess=orderRole==='SUPER_ADMIN'&&canSuperAdmin();
+ const useBusinessOrders=Boolean(live.businessId)&&!isCustomerMode();
+ const orderCountSpec=useBusinessOrders
    ? ['orders','business_id',live.businessId,'orders']
-   : ['orders','customer_id',uid,'orders'];
+   : platformOrderAccess
+     ? ['orders',null,null,'orders']
+     : ['orders','customer_id',uid,'orders'];
  const specs=[['advertisements',null,null,'ads'],['marketing_projects',live.businessId?'client_business_id':null,live.businessId,'projects'],['notifications','user_id',uid,'notifications'],['support_tickets','requester_id',uid,'support'],['marketing_leads','requester_user_id',uid,'leads'],['marketing_provider_profiles','owner_user_id',uid,'providers'],orderCountSpec];
  if(live.businessId)specs.push(['businesses','id',live.businessId,'businesses']);
  const results=await Promise.all(specs.map(x=>safeCount(x[0],x[1],x[2])));
@@ -177,7 +181,7 @@ try{
  const [leadsRes,providersRes,ordersRes,notificationsRes,ticketsRes,adsRes,projectsRes,servicesRes]=await Promise.all([
   sb.from('marketing_leads').select('id,title,status,source,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('marketing_provider_profiles').select('id,business_id,name_ar,provider_kind,status,is_verified,created_at').order('created_at',{ascending:false}).limit(10),
-  (()=>{const oq=sb.from('orders').select('id,tenant_id,organization_id,business_id,branch_id,customer_id,assigned_partner_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at,pricing_version,pricing_snapshot,pricing_hash,pricing_authority').order('created_at',{ascending:false}).limit(10);if(['SERVICE_PROVIDER','BUSINESS_OWNER'].includes(String(live.role||'').toUpperCase())&&live.businessId)oq.eq('business_id',live.businessId);else oq.eq('customer_id',uid);return oq})(),
+  (()=>{const oq=sb.from('orders').select('id,tenant_id,organization_id,business_id,branch_id,customer_id,assigned_partner_id,status,subtotal,discount,tax,delivery_fee,total_amount,currency,customer_name,customer_phone,delivery_address,items_json,notes,created_at,updated_at,pricing_version,pricing_snapshot,pricing_hash,pricing_authority').order('created_at',{ascending:false}).limit(10);if(useBusinessOrders)oq.eq('business_id',live.businessId);else if(!platformOrderAccess)oq.eq('customer_id',uid);return oq})(),
   sb.from('notifications').select('id,title,body,read_at,created_at').order('created_at',{ascending:false}).limit(10),
   sb.from('support_tickets').select('id,subject,description,category,priority,status,assigned_user_id,created_at,updated_at,closed_at').order('created_at',{ascending:false}).limit(10),
   sb.from('advertisements').select('id,title,status,approval_status,start_at,end_at,created_at').order('created_at',{ascending:false}).limit(10),
