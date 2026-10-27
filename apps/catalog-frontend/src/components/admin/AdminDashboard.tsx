@@ -1537,7 +1537,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={async () => {
                 if (settingsSaving) return;
                 setSettingsFeedback(null);
-                const phoneDigits = adminPhone.replace(/\\D/g, '');
+                const phoneDigits = adminPhone.replace(/\D/g, '');
                 if (phoneDigits.length < 10 || phoneDigits.length > 15) {
                   setSettingsFeedback({ type: 'error', message: 'أدخل رقم واتساب صحيحًا من 10 إلى 15 رقمًا.' });
                   return;
