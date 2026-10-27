@@ -544,3 +544,10 @@
 - [x] Read-only catalog confirms `get_mnty_targeted_advertisements` remains SECURITY DEFINER and anon/authenticated executable with `search_path=public, pg_temp`; required RC451 (`20261010200000`) is not recorded. Its public read boundary is intentional; do not revoke grants blindly.
 - [x] PR #428 added a strict live-evidence contract; current follow-up enumerates all 34 exact migration versions and adds RC451 proof plus tests that reject stale/missing versions and search_path drift.
 - [ ] Production remains BLOCKED until the complete ordered release chain is safely reconciled with later live migrations, all object/function/ACL drift is fixed and verified, and payment/finance, backup/restore, Auth, browser/device, monitoring and rollback gates pass.
+
+
+## 2026-10-27 — Object-level inventory of the 34 missing migration versions
+
+- [x] Parsed the 34 required SQL migration sources from `main` and checked named function/table/index objects against the live PostgreSQL catalog read-only.
+- [x] Added `docs/release/production-source-object-drift.json`: 39 required function names (21 absent), 4 required tables absent, and 12 of 13 selected required indexes absent. Presence of a same-named function is not treated as equivalent behavior; the inventory identifies legacy signatures/ACL/search_path drift and entries needing body-parity checks.
+- [ ] Production remains BLOCKED. The next safe engineering task is a disposable/staging rehearsal against a snapshot of the *current* live schema and ledger, including the later-dated migrations already applied; do not apply historical migrations directly or mutate live grants/functions to make the inventory green.

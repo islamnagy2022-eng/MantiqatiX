@@ -289,3 +289,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Manifest now records all 34 required versions, the missing-version list, the targeted-ad search_path drift, and advisor counts (one anon-executable SECURITY DEFINER function, 48 authenticated-executable ones, and one RLS-enabled table without policies).
 - [x] The strict contract now requires exact version-list parity and an explicit RC451 live catalog PASS, in addition to RC449A/RC450 journal prerequisites, object state and six critical Edge Function source matches. Synthetic pass/fail fixtures cover the new blockers.
 - [ ] Production remains BLOCKED / NOT CERTIFIED. No Production migration, data write, grant/RLS/Auth change, Edge Function deployment, payment or wallet mutation occurred.
+
+
+## 2026-10-27 — Object-level live schema inventory
+
+- [x] Parsed all 34 required migration SQL files on `main` and cross-checked 39 function names, 4 tables and 13 selected indexes against the live catalog using read-only SQL.
+- [x] Results: 21 of 39 required function names absent; all 4 required tables absent; 12 of 13 selected indexes absent (one matrimony unlock index exists by name). Eighteen function names exist, but some have known wrong signatures/config/ACL, and all remaining existing functions still need body/ACL parity where applicable. Detailed entry-by-entry inventory is in `docs/release/production-source-object-drift.json`.
+- [ ] No Production migration is authorized by this inventory. The live schema contains later-dated October 26–27 migrations, so the remediation must be tested against the current schema/ledger in a disposable or staging clone, with backup/restore and rollback rehearsed first.
+- Safety: no Production write, migration, grant, RLS/Auth change, Edge Function deployment, payment or wallet mutation occurred.
