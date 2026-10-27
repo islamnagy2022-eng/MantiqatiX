@@ -3,10 +3,13 @@
 begin;
 
 alter table public.provider_onboarding_requests
-  add column if not exists contact_phone varchar(40);
+  add column if not exists contact_phone varchar(40),
+  add column if not exists contact_name varchar(160);
 
 comment on column public.provider_onboarding_requests.contact_phone is
   'Contact telephone submitted by the activity owner; visible to authorized platform reviewers and used for owner contact/WhatsApp.';
+comment on column public.provider_onboarding_requests.contact_name is
+  'Contact person name submitted by the activity owner for administrative review and customer-service follow-up.';
 
 create index if not exists idx_provider_onboarding_status_created
   on public.provider_onboarding_requests(status, created_at desc);
@@ -31,6 +34,7 @@ declare
   v_code varchar;
   v_slug varchar;
   v_contact_phone text;
+  v_contact_name text;
 begin
   if not exists (select 1 from private.platform_admins where user_id=p_actor_user_id) then
     raise exception 'platform_admin_required';
@@ -53,6 +57,7 @@ begin
   if not found or v_ar.status <> 'PENDING' then raise exception 'registration_not_pending'; end if;
 
   v_contact_phone := nullif(trim(coalesce(v_req.contact_phone,'')),'');
+  v_contact_name := nullif(trim(coalesce(v_req.contact_name,'')),'');
 
   if p_decision='REJECTED' then
     update public.provider_onboarding_requests
@@ -69,7 +74,7 @@ begin
       gen_random_uuid()::text,v_req.tenant_id,v_req.organization_id,p_actor_user_id,
       'PROVIDER_ONBOARDING_REJECTED','provider_onboarding_request',v_req.id::text,
       jsonb_build_object('status','PENDING'),
-      jsonb_build_object('status','REJECTED','reason',nullif(trim(coalesce(p_rejection_reason,'')),''),'contact_phone',v_contact_phone),
+      jsonb_build_object('status','REJECTED','reason',nullif(trim(coalesce(p_rejection_reason,'')),''),'contact_name',v_contact_name,'contact_phone',v_contact_phone),
       'SUCCESS'
     );
     return jsonb_build_object('status','REJECTED','onboarding_request_id',v_req.id,'contact_phone',v_contact_phone);
@@ -89,6 +94,7 @@ begin
     jsonb_build_object(
       'source','provider_onboarding',
       'onboarding_request_id',v_req.id,
+      'contact_name',v_contact_name,
       'contact_phone',v_contact_phone,
       'provider_kind',v_req.provider_kind,
       'specialties',v_req.specialties,
@@ -107,6 +113,8 @@ begin
     jsonb_build_object(
       'source','provider_onboarding',
       'onboarding_request_id',v_req.id,
+      'contact_name',v_contact_name,
+      'contact_name',v_contact_name,
       'contact_phone',v_contact_phone
     ),
     v_req.profile_image_path
@@ -145,7 +153,7 @@ begin
   return jsonb_build_object(
     'status','APPROVED','onboarding_request_id',v_req.id,
     'business_id',v_business_id,'provider_profile_id',v_profile_id,
-    'membership_id',v_membership_id,'contact_phone',v_contact_phone
+    'membership_id',v_membership_id,'contact_name',v_contact_name,'contact_phone',v_contact_phone
   );
 end;
 $function$;
