@@ -229,6 +229,13 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     }
   }
 
+  // Keep an active membership from looking like a missing subscription when every scoped catalog read fails.
+  // Authorization remains fail-closed: this reports the data-loading failure and grants no additional access.
+  const hasBusinessScopedMembership = roleMemberships.some((m: any) => Boolean(m.business_id));
+  if (!platform && hasBusinessScopedMembership && businesses.length === 0) {
+    throw new Error('تم العثور على عضوية نشطة مرتبطة بنشاط لكن تعذر تحميل كتالوجه من قاعدة الإنتاج. لم يتم تغيير الاشتراك أو منح صلاحيات بديلة. حدّث الصفحة وأعد المحاولة، وإذا استمرت المشكلة فراجع ربط العضوية بالنشاط في Supabase.');
+  }
+
   let subscribers: Subscriber[] = [];
   if (platform) {
     const list: any = await callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' }).catch(() => ({ subscribers: [] }));
