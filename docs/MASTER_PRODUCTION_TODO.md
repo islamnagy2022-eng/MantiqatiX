@@ -1641,7 +1641,7 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Edge Function now delegates all receipt, stock-balance, inventory-ledger, and purchase-line mutation to the line-aware atomic RPC; removed direct multi-request mutation.
 - [x] Added strict request validation and safe error handling; missing/unavailable RPC fails closed with HTTP 503.
 - [x] Updated contract validator to assert the atomic RPC boundary.
-- [x] Required source files for RC425–RC432 and RC434–RC441 are available, and the full post-checkpoint chain passed isolated chronological replay in run 40494929976. Production read-only ledger checks show 0/16 of these exact versions recorded; reconcile current live-schema drift and plan/approve a guarded rollout before any Production apply. Do not cherry-pick RC434 alone or bypass collision guard.
+- [x] Required source files for RC425–RC432 and RC434–RC441 are available, and the full post-checkpoint chain passed isolated chronological replay in run 40494929976. A read-only LEFT JOIN now covers all 34 exact versions required by the current verifier and shows 0/34 recorded; RC449A/RC450 and RC451 schema/grant/search_path checks are also blocked. Reconcile current live-schema drift and plan/approve a guarded rollout before any Production apply. Do not cherry-pick RC434 alone or bypass collision guard.
 - [ ] Resolve legacy approved purchase orders without modeled lines before receiving can be production-ready.
 - [ ] Run Postgres integration tests for atomic rollback, concurrent duplicate receipt, over-receiving, tenant/business isolation, and service-role-only function grants.
 - [ ] Await CI for commit `82a5c17e588abf0d8452397a4c0a4d055c2204bb`; the production gate remains BLOCKED / NOT CERTIFIED.
@@ -1860,3 +1860,10 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
 - [x] Re-ran forward replay successfully in [run 40494929976](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976): 52 migrations applied; RC117 contract and synthetic tenant A/B read isolation/cross-tenant mutation denial passed.
 - [ ] Production Gate remains BLOCKED / NOT CERTIFIED until the required migration set is proven applied in Production and the external payment, restore, Auth/Edge Function, browser/device, monitoring and rollback gates are evidenced. The deployment job was skipped.
+
+
+## 2026-10-27 — Final evidence contract extension
+
+- [x] Exact live ledger inventory expanded from RC425–RC441 (16 IDs) to all **34** required release version IDs used by `verify-production.mjs`; current read-only result is 0/34 recorded.
+- [x] RC451 live function inventory confirmed `get_mnty_targeted_advertisements` still uses `search_path=public, pg_temp`, while the source migration requires an empty search_path. It remains intentionally callable by anon/authenticated; only the search_path should be hardened, without revoking public discovery.
+- [ ] Apply no production migration until all missing versions are reconciled in order against later-dated live versions and an isolated current-schema rehearsal plus backup/rollback plan is approved.
