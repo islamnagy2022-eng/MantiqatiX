@@ -88,7 +88,7 @@ assert.ok(home.includes('افتح الكتالوج الإلكتروني'),
   'The homepage module section must route users to the real catalog module');
 assert.ok(healthMonitor.includes('/MantiqatiX/assets/'),
   'Production health checks must monitor root catalog assets');
-assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
+assert.ok(healthMonitor.includes('MantiqatiX | منصة إدارة الأنشطة والكتالوجات'),
   'Production health checks must verify the existing platform root remains intact');
 assert.match(deployBlock, /Retired production route still reachable:[\s\S]*?MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED/,
   'Post-deploy verification must assert the demo preview and SMM routes are absent');
