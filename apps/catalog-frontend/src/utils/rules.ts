@@ -180,7 +180,8 @@ export function generateAdminCatalogRequestWhatsAppUrl(
   businessCategory: string
 ): string {
   const cleanPhone = cleanPhoneNumber(adminPhone);
-  
+  if (cleanPhone.length < 10 || cleanPhone.length > 15) return '';
+
   let message = `مرحباً إدارة MantiqatiX 👋\n\n`;
   message += `أرغب في الحصول على النسخة الرسمية / الكتالوج الكامل للنشاط التجاري التالي:\n`;
   message += `🏢 *اسم النشاط:* ${businessName}\n`;
