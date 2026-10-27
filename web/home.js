@@ -247,7 +247,10 @@ ${promoMarkup}
     if(installAppButton){
       const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
       if(standalone)installAppButton.hidden=true;
-      installAppButton.addEventListener('click',()=>{
+      installAppButton.addEventListener('click',async()=>{
+        if(typeof window.MNTYInstallApp==='function'){
+          try{if(await window.MNTYInstallApp())return;}catch(_){}
+        }
         const launch=document.getElementById('mnty-install-launch');
         if(launch){launch.click();return;}
         const panel=document.getElementById('mnty-install-panel');
