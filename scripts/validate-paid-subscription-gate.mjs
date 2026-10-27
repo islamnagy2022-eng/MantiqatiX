@@ -52,5 +52,9 @@ assert.match(context, /لا تُفعّل صلاحيات إدارة النشاط 
   'Credential instructions must disclose the payment gate');
 assert.match(admin, /حالة الاشتراك/);
 assert.match(admin, /بانتظار السداد/);
+assert.match(context, /إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي/,
+  'Unverified Paymob configuration must remain disabled for the catalog pilot');
+assert.match(admin, /if \(!saved\) return;/,
+  'The UI must not show a false success state when Paymob configuration is blocked');
 
 console.log('PAID_SUBSCRIPTION_ACTIVATION_GATE=PASS');
