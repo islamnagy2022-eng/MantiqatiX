@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CONTROL_CENTER_OBJECTS } from "./production/live-reconciliation-contract.mjs";
+import { isLiveReconciliationVerified, REQUIRED_RELEASE_MIGRATION_VERSIONS, REQUIRED_CORE_OBJECTS, REQUIRED_CONTROL_CENTER_OBJECTS } from "./production/live-reconciliation-contract.mjs";
 
 const source = fs.readFileSync("scripts/production/verify-production.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/pages.yml", "utf8");
@@ -75,6 +75,7 @@ assert.match(rc451, /alter function public\.get_mnty_targeted_advertisements\([\
 assert.doesNotMatch(rc451, /\b(grant|revoke)\b/i, "RC451 must preserve the intentional public ad-discovery EXECUTE boundary");
 
 assert.match(liveContract, /REQUIRED_RELEASE_MIGRATION_VERSIONS/, "the live ledger contract must enumerate all required migration versions");
+assert.equal(REQUIRED_CORE_OBJECTS.length, 16, "release gate must track selected payment/finance core object contracts");
 assert.equal(REQUIRED_CONTROL_CENTER_OBJECTS.length, 33, "release gate must require every RC113–RC117 feature object");
 assert.match(liveContract, /REQUIRED_CONTROL_CENTER_OBJECTS/, "control-center, hiring, subscriber-admin and default-image objects must be required");
 assert.match(liveContract, /required_release_migration_ledger_check/, "exact live ledger version verification must be required");
@@ -116,6 +117,7 @@ const validReconciliation = {
     status: "PASS",
     observed: [
       { name: "required-object-fixture", exists: true, status: "PASS" },
+      ...REQUIRED_CORE_OBJECTS.map(name => ({ name, exists: true, status: "PASS" })),
       ...REQUIRED_CONTROL_CENTER_OBJECTS.map(name => ({ name, exists: true, status: "PASS" }))
     ]
   },
@@ -165,7 +167,8 @@ const blockedFixtures = [
   value => { value.security_definer_search_path_check.current_search_path = ["search_path=public, pg_temp"]; },
   value => { value.security_definer_search_path_check.migration_version_recorded = false; },
   value => { value.required_release_migration_ledger_check.recorded_required_versions.pop(); },
-  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.business_employees"); }
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.business_employees"); },
+  value => { value.required_release_object_presence_check.observed = value.required_release_object_presence_check.observed.filter(row => (row.name ?? row.object) !== "public.mantigo_payment_provider_events"); }
 ];
 for (const mutate of blockedFixtures) {
   const invalid = clone(validReconciliation);
