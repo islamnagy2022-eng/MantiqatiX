@@ -258,11 +258,10 @@ begin
     update public.marketing_provider_profiles p
       set name_ar=trim(p_name),
           name_en=case when nullif(trim(coalesce(p_settings->'catalog_profile'->>'name_en','')),'') is not null
-            then trim(p_settings->'catalog_profile'->>'name_en') else trim(p_name) end,
+            then trim(p_settings->'catalog_profile'->>'name_en') else p.name_en end,
           description=coalesce(nullif(trim(coalesce(v_business.settings->'catalog_profile'->>'bio','')),''),p.description),
           updated_at=now()
-      where p.business_id=v_business.id
-        and (p.settings->>'managed_by'='SUPER_ADMIN' or p.settings->>'source'='OFFICIAL_PLATFORM_SHOWCASE');
+      where p.business_id=v_business.id;
   elsif v_action='DEACTIVATE' then
     update public.businesses set status='INACTIVE',updated_at=now() where id=p_business_id returning * into v_business;
   else
