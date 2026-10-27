@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const primaryWorkflow = fs.readFileSync('.github/workflows/primary-catalog-frontend.yml', 'utf8');
 const home = fs.readFileSync('web/home.js', 'utf8');
+const platformApp = fs.readFileSync('web/app.js', 'utf8');
 const healthMonitor = fs.readFileSync('.github/workflows/production-health-monitor.yml', 'utf8');
 const lines = workflow.split(/\r?\n/);
 const blockStart = lines.findIndex(line => line === '  deploy:');
@@ -34,6 +35,10 @@ assert.match(validateBlock, /cp -a web\/\.[\s\S]*?cp -a apps\/catalog-frontend\/
   'Composition must combine the existing platform root with the catalog build');
 assert.match(validateBlock, /path: \$\{\{ runner\.temp \}\}\/mantiqatix-composed-site/,
   'The composed site artifact must be uploaded from the runner temp directory');
+assert.ok(validateBlock.includes('rm -rf "${SITE_DIR}/preview"') && validateBlock.includes('rm -f "${SITE_DIR}/smm.html"'),
+  'The Pages artifact must exclude source-only preview demos and deferred SMM placeholder');
+assert.ok(validateBlock.includes('test ! -e "${SITE_DIR}/preview/index.html"') && validateBlock.includes('test ! -e "${SITE_DIR}/smm.html"'),
+  'The composed site must be checked for absent demo and deferred routes');
 assert.match(deployBlock, /needs: \[validate, validate_public_only\]/,
   'Deploy job must retain both validation dependencies so its condition can inspect their results');
 assert.match(deployBlock, /if: always\(\).*needs\.validate\.result == 'success'/,
@@ -58,6 +63,10 @@ assert.ok(home.includes('href="/MantiqatiX/catalog-app/">الكتالوج الإ
   'The existing platform desktop navigation must link to the catalog module');
 assert.ok(home.includes('href="/MantiqatiX/catalog-app/" data-mobile-nav>الكتالوج الإلكتروني</a>'),
   'The existing platform mobile navigation must link to the catalog module');
+assert.doesNotMatch(home, /preview\/|mx-public-module-hub|mx-module-hub|smm\.html/,
+  'The public homepage must not expose demo routes or the deferred SMM page');
+assert.doesNotMatch(platformApp, /href="smm\.html"|smmModulePage|خدمات التسويق الرقمي SMM/,
+  'The app workspace must not expose a deferred SMM route');
 assert.ok(healthMonitor.includes('/MantiqatiX/catalog-app/assets/'),
   'Production health checks must monitor the catalog subpath');
 assert.ok(healthMonitor.includes('MantiqatiX | منصة الخدمات ومقدميها'),
