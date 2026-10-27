@@ -168,3 +168,13 @@ At the start of every continuation:
 - Current `SUBSCRIBER_STATUS` supports `ACTIVE`, `INACTIVE`, and `SUSPENDED` for OWNER/BUSINESS_OWNER memberships, but it is not a complete plan/billing subscription management contract and currently returns no detailed change audit in that handler.
 - Current `DEACTIVATE_BUSINESS` changes status to `INACTIVE` and disables public catalog exposure; there is no paired activate/restore action in the inspected dispatcher, nor an admin deletion action.
 - Security note: platform-wide administrative operations must remain behind the platform authority check. Do not reuse tenant-scoped RLS policies as proof of global admin access, and do not send the service-role key to the client.
+
+## 2026-10-27 — Activity taxonomy request
+- [x] Recorded the user request: provide a full list of activity names where every activity is independent and selectable, e.g. restaurant, doctor specialties, and other service professions.
+- [x] Added proposal: [`docs/product/ACTIVITY_TAXONOMY_PROPOSAL_AR.md`](docs/product/ACTIVITY_TAXONOMY_PROPOSAL_AR.md), with 18 top-level categories and separately coded activity names.
+- [ ] Review the proposal with the platform owner; refine names, merge duplicates/aliases, and approve the taxonomy.
+- [ ] Map the existing 27 active `business_categories` records to the approved activities without losing current business/category links.
+- [ ] Define compatibility for `business_sectors`, modules, business registration, search, subscriptions, and commission scope.
+- [ ] Implement via a new reviewed migration and admin CRUD interface on the fix branch; preserve prior values and create a rollback/forward-fix plan.
+- [ ] Test category CRUD, search/autocomplete, new/existing business registration, permissions/RLS, subscriptions, and commission calculations.
+- [ ] Do not change production taxonomy until migration reconciliation, backup/PITR, and restore rehearsal gates are evidenced.
