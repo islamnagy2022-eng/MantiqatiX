@@ -244,3 +244,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Exact comparison passed for all 7 deployed TypeScript files against `main`: `index.ts`, `launch-gate.ts`, `provider-transport.ts`, `order-status.ts`, `catalog-normalization.ts`, `order-validation.ts`, and `request-validation.ts`.
 - Deployed source contains `SMM_INITIAL_LAUNCH_DEFERRED=true` and fails closed with `SMM_DEFERRED` before request processing. The interactive browser assets remain retired.
 - Runtime negative tests for anonymous and authenticated callers remain NOT VERIFIED; the overall production release gate remains BLOCKED. No function deployment or environment/configuration mutation occurred.
+
+
+## 2026-10-27 — Schema-only checkpoint replay diagnosis
+
+- [x] Inspected Forward Migration Chain Replay run [40493639400](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40493639400): it failed at `20261027010135_add_qadam_alsaad_homewares_store_and_catalog.sql` because the restored checkpoint is schema-only (`data_included=false`) and therefore lacks `MNTY-PLATFORM`.
+- [x] Read-only Production checks confirmed the platform tenant and referenced owner auth identity exist in the live database. No production data was copied or changed.
+- [x] Added `supabase/tests/baselines/production_data_prerequisites_fixture.sql` with only deterministic test data for those pre-existing dependencies, guarded by the explicit disposable flag. Added a local-host URL guard to the replay workflow.
+- [ ] Re-run forward replay and review the next failure or full pass. The current candidate remains NOT VERIFIED until the updated workflow completes; Production Gate stays BLOCKED.
