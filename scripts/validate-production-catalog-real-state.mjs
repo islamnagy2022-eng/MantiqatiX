@@ -1,0 +1,43 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
+const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
+const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+const adminStart = admin.indexOf('const handleAddBusiness');
+const adminEnd = admin.indexOf('const handleCreateCategory', adminStart);
+assert.ok(adminStart >= 0 && adminEnd > adminStart, 'business creation handler must exist');
+const createUi = admin.slice(adminStart, adminEnd);
+
+assert.doesNotMatch(admin, /adminPassInput|كلمة مرور لوحة الإدارة العامة/, 'admin settings must not expose a fake password field');
+assert.doesNotMatch(admin, /advanceBusinessOverdueDay|\+يوم تأخير|محاكاة مرور يوم تأخير/, 'production admin must not simulate overdue days');
+assert.doesNotMatch(createUi, /images\.unsplash\.com|\+201000000000|نشاط تجاري معتمد مسجل/, 'new businesses must not receive fake imagery, phone numbers, or descriptions');
+assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
+assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
+assert.match(createUi, /paymentStatus: 'pending'/, 'new business must remain unpaid until an admin confirms real payment');
+assert.match(createUi, /paymentConfirmedByAdmin: false/, 'new business must not be marked as payment-confirmed by default');
+assert.doesNotMatch(createUi, /paymentStatus: 'paid'|paymentConfirmedByAdmin: true|paymobConfig:/, 'new business must not be auto-paid or auto-enabled for Paymob');
+assert.match(admin, /await confirmAdminPayment\(biz\.id\)/, 'payment confirmation UI must await the backend result');
+assert.match(admin, /تعذر حفظ تأكيد السداد/, 'payment confirmation failure must be visible');
+assert.match(admin, /await toggleBusinessFreeze\(biz\.id\)/, 'manual freeze changes must wait for persistence');
+assert.match(admin, /await updateAdminSettings\(/, 'platform settings UI must await server persistence');
+assert.match(admin, /settingsFeedback\.type === 'success'/, 'settings UI must distinguish saved success from failure');
+
+assert.match(context, /const updateAdminSettings = async/, 'settings persistence must be asynchronous');
+assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state must update only after server-confirmed success');
+assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
+assert.doesNotMatch(context, /const advanceBusinessOverdueDay/, 'overdue-day simulation must be removed from production context');
+
+const createStart = backend.indexOf('if (action === "CREATE_BUSINESS")');
+const createEnd = backend.indexOf('if (action === "CREATE_SUBSCRIBER")', createStart);
+assert.ok(createStart >= 0 && createEnd > createStart, 'server-side business creation action must exist');
+const createServer = backend.slice(createStart, createEnd);
+assert.match(createServer, /INVALID_BUSINESS_WHATSAPP/, 'server must reject missing or invalid owner contact');
+assert.match(createServer, /INVALID_BUSINESS_LOCATION/, 'server must reject missing real location data');
+assert.match(createServer, /catalog_public_enabled: false/, 'new business catalog must remain unpublished until explicitly enabled');
+assert.match(createServer, /bizcatalog: \{ paymentStatus: "pending", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false \}/, 'server must create an unpaid business without fabricated billing schedule or commission');
+assert.match(backend, /INVALID_ADMIN_WHATSAPP/, 'server must validate platform WhatsApp settings');
+assert.match(backend, /INVALID_DEFAULT_COMMISSION/, 'server must validate platform commission input');
+assert.match(backend, /const merged = \{ \.\.\.current, \.\.\.safe \}/, 'partial platform settings saves must preserve existing settings');
+
+console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
