@@ -8,14 +8,12 @@ import {
   CustomerOrderData,
   FunctionalGroup,
   FunctionalGroupId,
-  PaymobConfig,
   Product,
   Subscriber,
 } from '../types';
 import {
   DEFAULT_CATEGORIES,
   DEFAULT_FUNCTIONAL_GROUPS,
-  DEFAULT_PAYMOB_CONFIG,
   INITIAL_ADMIN_SETTINGS,
 } from '../data/productionDefaults';
 import {
@@ -65,8 +63,6 @@ interface AppContextType {
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
   confirmAdminPayment: (businessId: string) => Promise<void>;
   toggleBusinessFreeze: (businessId: string) => Promise<void>;
-  updateBusinessCommissionRate: (businessId: string, rate: number) => void;
-  updateBusinessPaymobConfig: (businessId: string, config: Partial<PaymobConfig>) => boolean;
   businessProducts: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
   updateProduct: (product: Product) => Promise<void>;
@@ -387,10 +383,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return result.business.id;
   };
 
-  const updateBusinessPaymobConfig = (_businessId: string, _config: Partial<PaymobConfig>): boolean => {
-    window.alert('إعدادات Paymob غير متاحة للحفظ في الإصدار الحالي. لن يتم تفعيل الدفع الإلكتروني حتى اجتياز اختبارات الإنتاج.');
-    return false;
-  };
   const updateBusinessLocation = async (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }): Promise<void> => {
     const business = businesses.find((b) => b.id === businessId);
     if (!business) throw new Error('النشاط المطلوب غير موجود في بيانات الإنتاج الحالية.');
@@ -427,7 +419,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await updateBillingSetting(businessId, { isFrozen: frozen, paymentStatus });
     setBusinesses((prev) => prev.map((item) => item.id === businessId ? { ...item, isFrozen: frozen, paymentStatus } : item));
   };
-  const updateBusinessCommissionRate = (businessId: string, rate: number) => updateBillingSetting(businessId, { commissionPerOrder: rate });
   const deleteBusiness = async (id: string) => {
     const business = businesses.find((b) => b.id === id); if (!business?.tenantId) throw new Error('النشاط غير مرتبط بقاعدة الإنتاج.');
     if (authSession.role !== 'admin') throw new Error('تعطيل الأنشطة من اختصاص إدارة المنصة.');
@@ -573,7 +564,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
-    confirmAdminPayment, toggleBusinessFreeze, updateBusinessCommissionRate, updateBusinessPaymobConfig,
+    confirmAdminPayment, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
     exportBackupJSON, downloadBackupFile, importBackupJSON,
