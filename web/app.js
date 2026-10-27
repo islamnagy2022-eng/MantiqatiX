@@ -93,7 +93,7 @@ const sectors=Object.freeze((window.MX_SECTOR_REGISTRY?.CANONICAL_SECTORS||[]).m
  const p=SECTOR_PRESENTATION[s.code]||['◉',s.label,'الخدمات والأنشطة ضمن هذا القطاع'];
  return [p[0],p[1],p[2],s.code,s.backend];
 }));
-let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
+let current='الرئيسية', query='', user=null, deferredInstallPrompt=null, installPromptSetup=false, authBooted=false, authRenderLock=false, authIntent='login', authRegistrationType='CUSTOMER', authSendInFlight=false, authVerificationInFlight=false;
 const live={memberships:[],activeMembershipId:null,role:'CUSTOMER',businessId:null,tenantId:null,organizationId:null,branchId:null,permissions:{},counts:{},flags:{},records:{leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],providerServices:[],registrationRequests:[]},catalogByBusiness:{},moduleData:{},marketingCampaigns:[],marketingCampaignParticipants:[],marketingCampaignProviders:[],marketingCampaignErrors:[],marketingCampaignUnavailable:false,marketingCampaignUnavailableReason:null,myProviderProfile:null,loading:false,error:null};
 const countOrDash=key=>Object.prototype.hasOwnProperty.call(live.counts,key)?String(live.counts[key]):'—';
 async function safeCount(table,column,value){try{let q=sb.from(table).select('*',{count:'exact',head:true});if(column&&value)q=q.eq(column,value);const {count,error}=await q;return error?null:(count??0)}catch(_){return null}}
@@ -186,7 +186,7 @@ try{
  ]);
  live.records.leads=leadsRes.data||[];live.records.providers=providersRes.data||[];live.records.orders=ordersRes.data||[];live.records.notifications=notificationsRes.data||[];live.records.supportTickets=ticketsRes.data||[];live.records.ads=adsRes.data||[];live.records.projects=projectsRes.data||[];live.records.services=servicesRes.data||[];
  if(['SUPER_ADMIN','ADMIN','OWNER'].includes(String(live.role||'').toUpperCase())){
-  const rr=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);
+  const rr=await sb.from('account_registration_requests').select('id,user_id,requested_role,status,reason,metadata,created_at,reviewed_at').in('status',['PENDING','APPROVED','REJECTED']).order('created_at',{ascending:false}).limit(50);
   live.records.registrationRequests=rr.data||[];
  }
  const orderIds=(live.records.orders||[]).map(r=>r.id).filter(Boolean);
@@ -354,10 +354,12 @@ function authView(msg='',emailValue='',mode=authIntent){
 }
 async function logout(){await disableCurrentPushSubscription();const {error}=await sb.auth.signOut();if(error)return showToast('تعذر تسجيل الخروج: '+error.message,'error');user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;localStorage.removeItem('MNTYActiveMembershipId');live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};live.counts={};live.flags={};live.moduleData={};live.records={leads:[],providers:[],orders:[],notifications:[],orderHistory:[],supportTickets:[],ads:[],projects:[],services:[],registrationRequests:[]};window.MXHomeLanding?MXHomeLanding():landingView()}
 function setupInstallPrompt(){
+if(installPromptSetup)return;installPromptSetup=true;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('install-app');if(b)b.hidden=false});
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true});
 }
-async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;const b=document.getElementById('install-app');if(b)b.hidden=true}
+async function installApp(){if(!deferredInstallPrompt)return false;const promptEvent=deferredInstallPrompt;deferredInstallPrompt=null;promptEvent.prompt();await promptEvent.userChoice;const b=document.getElementById('install-app');if(b)b.hidden=true;return true}
+window.MNTYInstallApp=installApp;
 function openLandingSector(button){const name=button?.dataset?.sector||'';return selectModule(sectorMapForLanding(name))}
 function sectorMapForLanding(name){
  const map={
@@ -1859,7 +1861,7 @@ async function accountView(){
  const activeRoles=new Set(memberships.map(m=>String(m.role||'').toUpperCase()));
  const pendingRoles=new Set(requests.filter(r=>r.status==='PENDING').map(r=>String(r.requested_role||'').toUpperCase()));
  const roleOption=(role,label)=>activeRoles.has(role)||pendingRoles.has(role)?'':('<button class="btn btn-outline" id="request-'+role.toLowerCase()+'">'+label+'</button>');
- const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>'<div class="request-row"><span>'+esc(roleLabel(r.requested_role))+'</span><b>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض')+'</b></div>').join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
+ const requestRows=requests.length?'<div class="request-list">'+requests.slice(0,8).map(r=>{const businessRequest=['provider_onboarding','provider_catalog_modal'].includes(String(r.metadata?.source||''));const label=businessRequest?'طلب اعتماد كتالوج النشاط':roleLabel(r.requested_role);const state=businessRequest&&r.status==='PENDING'?'النشاط قيد المراجعة — حسابك فعال':r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':'مرفوض';return '<div class="request-row"><span>'+esc(label)+'</span><b>'+esc(state)+'</b></div>'}).join('')+'</div>':'<p class="muted">لا توجد طلبات عضوية إضافية.</p>';
  const membershipRows=memberships.length?'<div class="mx-membership-grid">'+memberships.map(m=>{
    const role=String(m.role||'CUSTOMER').toUpperCase();
    const active=m.id===live.activeMembershipId;
@@ -1882,8 +1884,8 @@ async function accountView(){
    const {data}=await sb.from('provider_onboarding_requests').select('id,status,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,created_at,rejection_reason').eq('registration_request_id',pendingProvider.id).maybeSingle();
    onboarding=data||null;
  }
- const onboardingHtml=pendingProvider&&!onboarding?`<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>استكمال تسجيل النشاط</h3><p class="muted">أدخل بيانات النشاط الأساسية. لن يتم إنشاء نشاط تشغيلي أو منحه صلاحيات مقدم خدمة إلا بعد مراجعة الإدارة.</p></div><span class="count">مراجعة إدارية</span></div><form id="provider-onboarding-form"><div class="grid2"><label class="field"><span>اسم النشاط *</span><input id="po-business-name" maxlength="180" required placeholder="اسم النشاط أو المنشأة"></label><label class="field"><span>القطاع / نوع مقدم الخدمة *</span><select id="po-kind" required><option value="">اختر النشاط أو نوع مقدم الخدمة</option><option value="FOOD">مطاعم وكافيهات ومطابخ</option><option value="HEALTH">طبيب أو عيادة</option><option value="PHARMACY">صيدلية</option><option value="LABS">معمل تحاليل</option><option value="RADIOLOGY">مركز أشعة</option><option value="HOSPITAL">مستشفى</option><option value="DENTAL">طبيب أو عيادة أسنان</option><option value="VETERINARY">عيادة أو خدمة بيطرية</option><option value="MEDICAL">مركز طبي</option><option value="REAL_ESTATE">شركة أو مكتب عقارات</option><option value="AUTO">سيارات ونقل</option><option value="MAINTENANCE">مقدم خدمات صيانة</option><option value="HOME">خدمات منزلية</option><option value="ACCOUNTING">محاسب أو مكتب محاسبة</option><option value="LEGAL">محامٍ أو مكتب محاماة</option><option value="COMPANIES">شركة أو مقدم خدمات أعمال</option><option value="FACTORIES">مصنع أو مورد</option><option value="EDU">مدرسة أو مدرس أو مركز تدريب</option><option value="DIGITAL">شركة تسويق وإعلان</option><option value="TECH">شركة برمجيات وخدمات تقنية</option><option value="FITNESS">نادي أو مدرب لياقة</option><option value="TRAVEL">شركة سياحة وسفر</option><option value="MANTIGO">مقدم نقل أو سائق MantiGO</option><option value="JOBS">صاحب عمل أو جهة توظيف</option><option value="MATRIMONY">مقدم خدمات زواج ومناسبات</option><option value="USED_ITEMS">بائع أو مقدم خدمة للمستعمل</option><option value="FASHION">متجر أو مقدم خدمات أزياء وخياطة</option><option value="GROCERY">بقالة أو سوبر ماركت</option><option value="FREELANCER">مستقل أو مقدم خدمة احترافية</option></select></label></div><div class="grid2"><label class="field"><span>الاسم بالإنجليزية</span><input id="po-name-en" maxlength="180"></label><label class="field"><span>الخدمات والتخصصات</span><input id="po-specialties" maxlength="1000" list="po-service-options" placeholder="اختر أو اكتب الخدمات والتخصصات"></label></div><datalist id="po-service-options"></datalist><div id="po-service-suggestions" class="mx-provider-service-suggestions" aria-live="polite"></div><label class="field"><span>وصف النشاط</span><textarea id="po-description" maxlength="3000" rows="4" placeholder="وصف مختصر وواضح للنشاط والخدمات"></textarea></label><div class="grid2"><label class="field"><span>المحافظة *</span><select id="po-governorate" required><option value="">اختر المحافظة</option>${providerGovernorates.map(g=>'<option value="'+esc(g.id)+'" data-code="'+esc(g.code)+'" data-name-ar="'+esc(g.name_ar)+'" data-name-en="'+esc(g.name_en||'')+'">'+esc(g.name_ar)+'</option>').join('')}</select></label><label class="field"><span>المركز *</span><select id="po-center" required disabled><option value="">اختر المحافظة أولًا</option></select></label></div><p class="muted" style="margin-top:-8px">تحديد منطقة تقديم الخدمة يتم من خلال المحافظة ثم المركز. لا يتم استخدام الموقع الجغرافي التلقائي بدلًا من الاختيار الإداري.</p><label class="field"><span>روابط/نماذج أعمال (اختياري)</span><textarea id="po-portfolio" maxlength="2000" rows="2" placeholder="رابط واحد لكل سطر"></textarea></label><div class="action-bar"><button class="btn btn-primary" id="po-submit" type="submit" style="width:auto">إرسال بيانات النشاط للمراجعة</button></div></form></section>`:pendingProvider&&onboarding?`<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">PROVIDER ONBOARDING</span><h3>بيانات النشاط</h3><p class="muted">${esc(onboarding.business_name||'—')} · ${esc(onboarding.provider_kind||'—')}</p></div><span class="count">${esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')}</span></div>${onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">تم استلام بيانات النشاط. لا توجد صلاحيات تشغيلية قبل اعتماد الإدارة.</p>'}</section>`:'';
- const requestButtons=roleOption('CUSTOMER','طلب دور عميل')+roleOption('SERVICE_PROVIDER','طلب دور صاحب نشاط / مقدم خدمة');
+ const onboardingHtml=pendingProvider&&!onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">BUSINESS CATALOG</span><h3>طلب كتالوج النشاط</h3><p class="muted">حسابك يعمل كعميل بالفعل. استكمل طلب النشاط من النموذج الموحد، وسيظهر للادارة للموافقة دون تعطيل الدخول إلى حسابك.</p></div><span class="count">لا يلزم اعتماد الحساب</span></div><button class="btn btn-primary" style="width:auto" id="account-open-activity-request">فتح نموذج طلب النشاط</button></section>':pendingProvider&&onboarding?'<section class="card" style="margin-top:18px"><div class="section-head"><div><span class="eyebrow">BUSINESS CATALOG</span><h3>'+esc(onboarding.business_name||'طلب النشاط')+'</h3><p class="muted">'+esc(onboarding.provider_kind||'—')+'</p></div><span class="count">'+esc(onboarding.status==='PENDING'?'قيد المراجعة':onboarding.status==='APPROVED'?'معتمد':'مرفوض')+'</span></div>'+(onboarding.rejection_reason?'<p class="muted">سبب الرفض: '+esc(onboarding.rejection_reason)+'</p>':'<p class="muted">حسابك متاح كالمعتاد. مراجعة الإدارة تخص تفعيل الكتالوج فقط.</p>')+'<button class="btn btn-outline" style="width:auto" id="account-open-activity-request">طلب نشاط آخر</button></section>':'';
+ const requestButtons=roleOption('CUSTOMER','تفعيل حساب عميل')+'<button class="btn btn-outline" id="request-service_provider">طلب كتالوج نشاط</button>';
  const privilegedNote='<p class="muted">الأدوار الإدارية الحساسة مثل Owner وAdmin وManager لا تُمنح بطلب ذاتي؛ يتم ربطها واعتمادها من الإدارة وفق الصلاحيات والسياسات.</p>';
  const profileMeta=user?.user_metadata||{};
  const profileName=profileMeta.full_name||profileMeta.name||user?.email?.split('@')[0]||'مستخدم MantiqatiX';
@@ -1917,7 +1919,8 @@ async function accountView(){
  }));
  const submitRole=async role=>{authRegistrationType=role;await submitRegistrationRequest(role);};
  document.getElementById('request-customer')?.addEventListener('click',()=>submitRole('CUSTOMER'));
- document.getElementById('request-service_provider')?.addEventListener('click',()=>submitRole('SERVICE_PROVIDER'));
+ document.getElementById('request-service_provider')?.addEventListener('click',()=>window.MXOpenActivityRequestModal?window.MXOpenActivityRequestModal():showToast('افتح الصفحة الرئيسية ثم اختر طلب كتالوج نشاط.','error'));
+document.getElementById('account-open-activity-request')?.addEventListener('click',()=>window.MXOpenActivityRequestModal?window.MXOpenActivityRequestModal():showToast('افتح الصفحة الرئيسية ثم اختر طلب كتالوج نشاط.','error'));
  const kindSelect=document.getElementById('po-kind');
  const serviceInput=document.getElementById('po-specialties');
  const serviceList=document.getElementById('po-service-options');
@@ -1988,21 +1991,23 @@ async function accountView(){
  });
 }
 async function providerOnboardingView(){
+  if(typeof window.MXOpenActivityRequestModal==='function')return window.MXOpenActivityRequestModal();
   await accountView();
-  const form=document.getElementById('provider-onboarding-form');
-  if(form){
-    form.scrollIntoView({behavior:'smooth',block:'start'});
-    window.setTimeout(()=>document.getElementById('po-business-name')?.focus(),250);
-  }
+  showToast('افتح الصفحة الرئيسية ثم اختر «طلب كتالوج نشاط».','error');
 }
 window.providerOnboardingView=providerOnboardingView;
 function membershipRequiredView(){
 window.MNTYAuthState={authenticated:true,email:user?.email||'',membership:false};
 const app=document.getElementById('app');
 if(!app)return;
-app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>الحساب تم التحقق منه</h1><p>حسابك مسجل بنجاح، لكن لا توجد عضوية تشغيلية نشطة مرتبطة به حاليًا.</p><div class="mnty-screen-note">يمكنك العودة للواجهة العامة أو تسجيل الخروج. لا يتم منح صلاحيات تشغيلية تلقائيًا قبل ربط العضوية من المسار المعتمد.</div><div class="action-bar"><button class="btn btn-primary" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div></section></main>';
+app.innerHTML='<main class="auth"><section class="auth-card mnty-membership-state"><div class="brand">'+mark()+'<span>MantiqatiX</span></div><div class="gradient-line"></div><span class="eyebrow">ACCOUNT STATUS</span><h1>حسابك مسجل بالفعل</h1><p>تسجيل الدخول بحساب Google لا يحتاج موافقة الإدارة. سنحاول تهيئة عضوية العميل تلقائيًا لهذا الحساب.</p><div class="mnty-screen-note">موافقة الإدارة مطلوبة لاعتماد نشاط تجاري وتشغيل كتالوجه فقط، وليست للدخول إلى حساب العميل.</div><div class="action-bar"><button class="btn btn-primary" id="membership-activate">تفعيل حساب العميل</button><button class="btn btn-outline" id="membership-home">العودة للواجهة العامة</button><button class="btn btn-outline" id="membership-logout">تسجيل الخروج</button></div><p class="muted" id="membership-activate-status" aria-live="polite"></p></section></main>';
 document.getElementById('membership-home')?.addEventListener('click',()=>window.MXHomeLanding?window.MXHomeLanding():landingView());
 document.getElementById('membership-logout')?.addEventListener('click',logout);
+document.getElementById('membership-activate')?.addEventListener('click',async()=>{
+ const button=document.getElementById('membership-activate'),status=document.getElementById('membership-activate-status');button.disabled=true;status.textContent='جارٍ تهيئة الحساب…';
+ try{const {data,error}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});if(error||data?.error)throw new Error(data?.error||error?.message||'تعذر تهيئة الحساب');await renderApp();}
+ catch(error){status.textContent='تعذر تهيئة الحساب: '+(error?.message||'خطأ غير معروف');button.disabled=false;}
+});
 }
 function showToast(message,type='success'){const old=document.getElementById('mx-toast');if(old)old.remove();const d=document.createElement('div');d.id='mx-toast';d.className='mx-toast '+type;d.textContent=message;document.body.appendChild(d);setTimeout(()=>d.remove(),4200)}
 function notificationsWorkspace(){
@@ -2078,11 +2083,11 @@ async function reviewProviderOnboarding(requestId,decision){
 async function loadProviderOnboardingReview(){
  const host=document.getElementById('provider-onboarding-review-list')||document.getElementById('sa-provider-review-list');
  if(!host)return;
- const {data,error}=await sb.from('provider_onboarding_requests').select('id,user_id,registration_request_id,business_name,provider_kind,name_en,description,specialties,service_areas,portfolio,status,created_at,rejection_reason').order('created_at',{ascending:false}).limit(50);
+ const {data,error}=await sb.from('provider_onboarding_requests').select('id,user_id,registration_request_id,business_name,provider_kind,activity_type_id,contact_name,contact_phone,name_en,description,specialties,service_areas,portfolio,status,created_at,rejection_reason').order('created_at',{ascending:false}).limit(50);
  if(error){host.innerHTML='<div class="empty-state">تعذر تحميل طلبات تسجيل الأنشطة: '+esc(error.message)+'</div>';return}
  const rows=data||[];
  if(!rows.length){host.innerHTML='<div class="empty-state">لا توجد طلبات تسجيل نشاط فعلية حاليًا.</div>';return}
- host.innerHTML='<section class="records"><div class="section-head"><div><h3>طلبات تسجيل الأنشطة</h3><p class="muted">'+rows.length+' طلب معروض وفق صلاحيات الإدارة.</p></div></div><div class="table-wrap"><table><thead><tr><th>النشاط</th><th>القطاع</th><th>المستخدم</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+esc(r.business_name)+'</b>'+(r.name_en?'<br><small>'+esc(r.name_en)+'</small>':'')+'</td><td>'+esc(r.provider_kind)+'</td><td>'+esc(r.user_id)+'</td><td>'+esc(r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':r.status==='REJECTED'?'مرفوض':'ملغى')+'</td><td>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</td><td>'+(r.status==='PENDING'?'<div class="mini-actions"><button data-po-approve="'+esc(r.id)+'">اعتماد</button><button data-po-reject="'+esc(r.id)+'">رفض</button></div>':'—')+'</td></tr>').join('')+'</tbody></table></div></section>';
+ host.innerHTML='<section class="records"><div class="section-head"><div><h3>طلبات تسجيل الأنشطة</h3><p class="muted">'+rows.length+' طلب. الحسابات تعمل دون انتظار هذه المراجعة؛ القرار يخص تشغيل النشاط وكتالوجه فقط.</p></div></div><div class="table-wrap"><table><thead><tr><th>النشاط وبيانات الاتصال</th><th>القطاع</th><th>المستخدم</th><th>الحالة</th><th>التاريخ</th><th>التواصل والقرار</th></tr></thead><tbody>'+rows.map(r=>{const digits=String(r.contact_phone||'').replace(/\D/g,'');const waNumber=digits.startsWith('00')?digits.slice(2):digits.startsWith('0')?'20'+digits:digits;const state=r.status==='PENDING'?'قيد المراجعة':r.status==='APPROVED'?'معتمد':r.status==='REJECTED'?'مرفوض':'ملغى';const where=Array.isArray(r.service_areas)?r.service_areas.map(a=>[a?.governorate_name_ar,a?.center_name_ar,a?.address].filter(Boolean).join(' - ')).filter(Boolean).join('، '):'';const details=['طلب كتالوج نشاط على MantiqatiX','رقم الطلب: '+r.id,'اسم النشاط: '+r.business_name,'القطاع: '+r.provider_kind,'النشاط والتخصص: '+(Array.isArray(r.specialties)?r.specialties.join('، '):''),'معرّف التصنيف: '+(r.activity_type_id||'تصنيف عام'),'المسؤول: '+(r.contact_name||'غير مسجل'),'الهاتف: '+(r.contact_phone||'غير مسجل'),'الموقع: '+(where||'غير مسجل'),'الحالة: '+state].join('\n');const adminWa='https://wa.me/201010171770?text='+encodeURIComponent(details);const ownerText='مرحبًا '+(r.contact_name||'بكم')+'، بخصوص طلب نشاط '+r.business_name+' على منصة MantiqatiX. الحالة الحالية: '+state+(r.rejection_reason?'، السبب: '+r.rejection_reason:'')+'.';const ownerWa=waNumber?'https://wa.me/'+waNumber+'?text='+encodeURIComponent(ownerText):'';return '<tr><td><b>'+esc(r.business_name)+'</b>'+(r.name_en?'<br><small>'+esc(r.name_en)+'</small>':'')+'<br><small>النشاط: '+esc(Array.isArray(r.specialties)?r.specialties.slice(0,3).join('، '):'—')+'</small><br><small>المسؤول: '+esc(r.contact_name||'—')+'</small><br><b>'+esc(r.contact_phone||'لا يوجد رقم هاتف')+'</b>'+(where?'<br><small>'+esc(where)+'</small>':'')+'</td><td>'+esc(r.provider_kind)+'</td><td>'+esc(r.user_id)+'</td><td>'+esc(state)+(r.rejection_reason?'<br><small>سبب الرفض: '+esc(r.rejection_reason)+'</small>':'')+'</td><td>'+esc(r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—')+'</td><td><div class="mini-actions">'+(ownerWa?'<a class="btn btn-outline" href="'+esc(ownerWa)+'" target="_blank" rel="noopener noreferrer">واتساب صاحب النشاط</a>':'')+'<a class="btn btn-outline" href="'+esc(adminWa)+'" target="_blank" rel="noopener noreferrer">نسخة لواتساب الإدارة</a>'+(r.status==='PENDING'?'<button data-po-approve="'+esc(r.id)+'">اعتماد</button><button data-po-reject="'+esc(r.id)+'">رفض</button>':'')+'</div></td></tr>'}).join('')+'</tbody></table></div></section>';
  host.querySelectorAll('[data-po-approve]').forEach(b=>b.onclick=()=>reviewProviderOnboarding(b.dataset.poApprove,'APPROVED'));
  host.querySelectorAll('[data-po-reject]').forEach(b=>b.onclick=()=>reviewProviderOnboarding(b.dataset.poReject,'REJECTED'));
 }
@@ -2090,8 +2095,8 @@ function registrationReviewWorkspace(){
  if(!['SUPER_ADMIN','ADMIN','OWNER','MANAGER'].includes(String(live.role||'').toUpperCase())){
    return workspaceHead('REGISTRATION','طلبات التسجيل','هذه المساحة مخصصة للإدارة المعتمدة.','RESTRICTED')+'<div class="empty-state">لا تملك صلاحية مراجعة طلبات التسجيل.</div>';
  }
- const rows=live.records.registrationRequests||[];
- const html=workspaceHead('REGISTRATION','طلبات التسجيل','اعتماد الحسابات والأنشطة يتم عبر سلطة الخادم مع إنشاء العضوية وتسجيل التدقيق.','ADMIN')
+ const rows=(live.records.registrationRequests||[]).filter(r=>!(String(r.requested_role||'').toUpperCase()==='SERVICE_PROVIDER'&&['provider_onboarding','provider_catalog_modal'].includes(String(r.metadata?.source||''))));
+ const html=workspaceHead('REGISTRATION','طلبات التسجيل','تسجيل الدخول وإنشاء حساب العميل لا يحتاجان موافقة إدارية؛ تظهر هنا طلبات الأدوار الإضافية فقط.','ADMIN')
  +workspaceCards([['طلبات معلقة',rows.filter(r=>r.status==='PENDING').length,'طلبات تحتاج قرارًا إداريًا'],['معتمدة',rows.filter(r=>r.status==='APPROVED').length,'طلبات تم ربطها بعضوية'],['مرفوضة',rows.filter(r=>r.status==='REJECTED').length,'طلبات لم يتم اعتمادها']])
  +recordsTable('سجل التسجيلات',rows,[['الدور',r=>r.requested_role==='SERVICE_PROVIDER'?'مقدم خدمة':'عميل'],['الحالة',r=>r.status||'—'],['المستخدم',r=>r.user_id||'—'],['التاريخ',r=>r.created_at?new Date(r.created_at).toLocaleString('ar-EG'):'—'],['إجراء',r=>r.status==='PENDING'?'<div class="mini-actions"><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'APPROVED\')">اعتماد</button><button onclick="reviewRegistration(\''+esc(r.id)+'\',\'REJECTED\')">رفض</button></div>':'—']])
  +'<div id="provider-onboarding-review-list" style="margin-top:18px"><div class="empty-state">جاري تحميل طلبات تسجيل الأنشطة…</div></div>';
@@ -2158,11 +2163,23 @@ window.MNTYAuthState={authenticated:true,email:authUser.email||'',membership:fal
 if(authRenderLock)return;
 authRenderLock=true;
 try{
+ // Activate a normal CUSTOMER membership for newly authenticated accounts; this is separate from business approval.
+ try {
+  const {data:memberships,error:membershipError}=await sb.from('user_memberships').select('id').eq('user_id',authUser.id).eq('tenant_id','MNTY-PLATFORM').eq('role','CUSTOMER').eq('status','ACTIVE').limit(1);
+  if(!membershipError&&!(memberships||[]).length){
+   const {data:activation,error:activationError}=await sb.functions.invoke('mnty-customer-registration',{body:{tenant_id:'MNTY-PLATFORM'}});
+   if(activationError||activation?.error)console.warn('Automatic customer membership setup failed',activation?.error||activationError?.message);
+  }
+ } catch (activationError) { console.warn('Automatic customer membership setup failed',activationError); }
  await renderApp({forceWorkspace:force});
  let pending=null;
  try{pending=JSON.parse(localStorage.getItem('MNTYPendingRegistration')||'null')}catch(_){}
+ let openActivityAfterAuth=false;
  if(pending&&['CUSTOMER','SERVICE_PROVIDER'].includes(String(pending.role||'').toUpperCase())&&(!pending.email||String(pending.email||'').toLowerCase()===String(authUser.email||'').toLowerCase())){
-   await submitRegistrationRequest(String(pending.role).toUpperCase());
+   const pendingRole=String(pending.role).toUpperCase();
+   try{localStorage.removeItem('MNTYPendingRegistration')}catch(_){}
+   if(pendingRole==='CUSTOMER')await submitRegistrationRequest('CUSTOMER');
+   if(pendingRole==='SERVICE_PROVIDER')openActivityAfterAuth=true;
  }
  let pendingProvider=null;
  try{pendingProvider=JSON.parse(localStorage.getItem('MNTYPendingProvider')||'null')}catch(_){}
@@ -2174,6 +2191,11 @@ try{
  try{pendingAdBooking=localStorage.getItem('MNTYOpenAdBooking')==='1'}catch(_){}
  if(pendingAdBooking&&typeof selectModule==='function'){
    try{localStorage.removeItem('MNTYOpenAdBooking');selectModule('التسويق والإعلان')}catch(_){}
+ }
+ let pendingActivityDraft=null;
+ try{pendingActivityDraft=JSON.parse(localStorage.getItem('MNTYPendingActivityDraft')||'null')}catch(_){}
+ if((pendingActivityDraft?.resumeAfterAuth||openActivityAfterAuth)&&typeof window.MXOpenActivityRequestModal==='function'){
+   window.setTimeout(()=>window.MXOpenActivityRequestModal(),350);
  }
 }finally{authRenderLock=false}
 }
@@ -2231,6 +2253,7 @@ if(!restoreAdminWorkspace){const privileged=live.memberships.find(m=>m.status===
  gsi?.addEventListener('input',()=>{clearTimeout(globalSearchTimer);globalSearchTimer=setTimeout(runGlobalSearch,280)});
  gsi?.addEventListener('keydown',e=>{if(e.key==='Escape'){gsi.value='';gso.innerHTML='';gso.classList.remove('is-open')}if(e.key==='Enter'){e.preventDefault();runGlobalSearch()}});
  document.addEventListener('click',e=>{if(!e.target.closest('.mx-global-search-wrap'))gso?.classList.remove('is-open')},{once:true});}
+setupInstallPrompt();
 sb.auth.onAuthStateChange((event,session)=>{
 if(event==='SIGNED_OUT'){
 user=null;window.MNTYAuthState={authenticated:false,email:'',membership:false};window.MNTYActiveMembershipId=null;live.memberships=[];live.activeMembershipId=null;live.role='CUSTOMER';live.businessId=null;live.tenantId=null;live.organizationId=null;live.branchId=null;live.permissions={};current='الرئيسية';query='';

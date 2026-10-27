@@ -441,3 +441,17 @@
 - [ ] احتفظ بالاختبارات الآلية الحالية التي تعمل كجزء من CI كأدلة تطوير منفصلة؛ نجاحها لا يعني أن حملة الاختبارات النهائية قد نُفذت.
 - [ ] في نهاية التطوير، نفّذ حملة موحدة تغطي: المصادقة والجلسات والأدوار، عزل المستأجرين وRLS، جميع تدفقات الموديولات، الطلبات والمخزون والحسابات والمحافظ والمدفوعات وwebhooks والتسويات، SMM، الإشعارات والأتمتة، الأداء وإمكانية الوصول، Android/المتصفحات والأجهزة، النسخ الاحتياطي والاستعادة، المراقبة والتنبيه والتراجع، ثم إصلاح العيوب وإعادة الاختبار وتوثيق الأدلة.
 - [ ] تظل بوابة الإنتاج `BLOCKED / NOT CERTIFIED` حتى تنجح حملة الاختبارات النهائية وتُغلق كل بوابة بدليل قابل للمراجعة. هذا القرار يؤجل الاختبارات الشاملة ولا يحول الاختبارات غير المنفذة إلى PASS.
+
+
+## 2026-10-27 — Production Administration Console (requirements ledger)
+
+Detailed continuation register and acceptance criteria: [`TODO.md`](../TODO.md) (repository root).
+
+- [ ] Inspect previous production admin implementation/history and reuse only verified production-safe components.
+- [ ] Audit current admin dashboard, state source, backend contracts, database entities, commission rules, subscriptions, categories, and RLS. Existing UI presence alone is not proof of live production functionality.
+- [ ] Build a dedicated administration workspace with a real-data dashboard, daily/date-range traffic analytics, business lifecycle management, unclaimed/ownerless business workflow, subscription controls, category management, permission administration, and audit history.
+- [ ] Implement flexible commission rules and immutable ledger snapshots, idempotency, claims, per-business statements, settlement reconciliation, and reports.
+- [ ] Validate all admin operations server-side and at database/RLS boundaries; record actor, reason, timestamps, and before/after state for sensitive actions.
+- [ ] Keep delete/archive/pause/suspend semantics distinct; preserve financial and audit records and use reversible state changes where possible.
+- [ ] Add unit/integration/RLS/E2E tests and verify all dashboard metrics are sourced from production data, not fixtures or hardcoded values.
+- [ ] Do not apply new production migrations or deploy this console until backup/PITR and isolated restore rehearsal are evidenced, migration reconciliation is complete, and the production release gate passes.

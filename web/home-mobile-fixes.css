@@ -291,3 +291,122 @@
     aspect-ratio:16/8.5!important;
   }
 }
+
+
+/* MantiqatiX — seamless top promo marquee, constrained between brand and install CTA */
+.mx-home .mx-ref-promo-rail{
+  position:relative;
+  z-index:120;
+  width:100%;
+  min-height:44px;
+  padding:5px clamp(8px,1.6vw,22px);
+  display:flex;
+  align-items:center;
+  gap:clamp(8px,1.4vw,18px);
+  direction:rtl;
+  overflow:hidden;
+  color:#fff;
+  background:linear-gradient(105deg,#701018 0%,#94151d 46%,#5e0c13 100%);
+  border-bottom:1px solid rgba(246,196,83,.75);
+  box-shadow:0 3px 12px rgba(45,7,10,.14);
+}
+.mx-home .mx-ref-promo-rail__brand{
+  flex:0 0 auto;
+  max-width:245px;
+  padding-inline:9px;
+  color:#f9d879;
+  font-family:Tajawal,Arial,sans-serif;
+  font-size:clamp(10px,.9vw,13px);
+  line-height:1.3;
+  font-weight:950;
+  white-space:nowrap;
+}
+.mx-home .mx-ref-promo-rail__viewport{
+  position:relative;
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  direction:ltr;
+  mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);
+}
+.mx-home .mx-ref-promo-rail__track{
+  display:flex;
+  width:max-content;
+  align-items:center;
+  direction:ltr;
+  animation:mx-ref-promo-loop 105s linear infinite;
+  will-change:transform;
+}
+.mx-home .mx-ref-promo-rail__group{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  gap:clamp(18px,2.4vw,34px);
+  padding-inline-end:clamp(18px,2.4vw,34px);
+}
+.mx-home .mx-ref-promo-rail__item{
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  gap:clamp(8px,1.2vw,15px);
+  direction:rtl;
+  unicode-bidi:plaintext;
+  color:#fffaf0;
+  font:800 clamp(10px,.87vw,12px)/1.5 Tajawal,Arial,sans-serif;
+  white-space:nowrap;
+}
+.mx-home .mx-ref-promo-rail__item::before{
+  content:"✦";
+  display:inline-block;
+  color:#f6c453;
+  font-size:10px;
+}
+.mx-home .mx-ref-promo-rail__install{
+  flex:0 0 auto;
+  min-height:32px;
+  padding:6px 13px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  border:1px solid #ffe8a3;
+  border-radius:999px;
+  background:linear-gradient(135deg,#fff7df,#f4cb65);
+  color:#691019;
+  font:950 11px/1.2 Tajawal,Arial,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+  box-shadow:0 3px 9px rgba(15,3,4,.15);
+}
+.mx-home .mx-ref-promo-rail__install:hover{filter:brightness(1.04);transform:translateY(-1px)}
+.mx-home .mx-ref-promo-rail__install:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.mx-home .mx-ref-promo-rail__install[hidden]{display:none!important}
+@keyframes mx-ref-promo-loop{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+/* The promo rail occupies the first row; the existing header sits immediately below it. */
+.mx-home .mx-ref-header{top:44px!important}
+@media(max-width:900px){
+  .mx-home .mx-ref-promo-rail{min-height:42px;padding:5px 8px;gap:8px}
+  .mx-home .mx-ref-promo-rail__brand{max-width:160px;padding-inline:3px;font-size:10px}
+  .mx-home .mx-ref-promo-rail__install{min-height:30px;padding:5px 9px;font-size:10px}
+  .mx-home .mx-ref-header{top:42px!important}
+}
+@media(max-width:600px){
+  .mx-home .mx-ref-promo-rail{min-height:40px;padding:4px 7px;gap:6px}
+  .mx-home .mx-ref-promo-rail__brand{max-width:112px;font-size:9px;white-space:normal;text-align:center}
+  .mx-home .mx-ref-promo-rail__install{padding:5px 7px;font-size:9px;min-height:28px}
+  .mx-home .mx-ref-promo-rail__viewport{mask-image:linear-gradient(90deg,transparent 0,#000 6px,#000 calc(100% - 6px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 6px,#000 calc(100% - 6px),transparent 100%)}
+  .mx-home .mx-ref-header{top:40px!important}
+}
+@media(max-width:360px){
+  .mx-home .mx-ref-promo-rail{gap:4px;padding-inline:5px}
+  .mx-home .mx-ref-promo-rail__brand{max-width:94px;font-size:8px}
+  .mx-home .mx-ref-promo-rail__install{padding:5px 6px;font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .mx-home .mx-ref-promo-rail__track{animation:none;transform:none}
+  .mx-home .mx-ref-promo-rail__viewport{overflow-x:auto;mask-image:none;-webkit-mask-image:none;scrollbar-width:thin}
+}
