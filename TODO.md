@@ -202,3 +202,6 @@ At the start of every continuation:
 4. Keep PR #411 draft and production deployment blocked until gates pass.
 
 - [x] Current admin/onboarding completion notes: `docs/ADMIN_COMPLETION_CHECKPOINT_20261027.md` (branch-only; release blockers remain open).
+
+- [x] Expanded the hierarchy seed to 27 sectors with 133 activity records and 62 specialty records (including «فني تبريد»); static integrity check found no duplicate IDs/codes or orphan/mismatched parents.
+- [x] Added Deno 2 typecheck CI and corrected strict typing issues discovered in onboarding helpers; final workflow result still pending.
