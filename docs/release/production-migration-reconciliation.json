@@ -27,7 +27,7 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-27",
-  "reason": "Production remains BLOCKED: 41 distinct required migration versions are absent from the live ledger; the 60 atomic core and feature object contracts have only 7 name/signature presences and 53 absent names/signatures. Even the 7 present objects are not certified because body, exact signature, search_path, grants/ACL and runtime behavior are not fully verified. Two source aliases remain unreconciled and Qadam owner membership remains INACTIVE. No Production changes were made.",
+  "reason": "Production remains BLOCKED: 41 required distinct migration versions are absent; 20 of 27 granular core payment/finance/ERP/MantiGo object contracts and all 33 selected RC113–RC117 feature contracts are absent; Qadam owner membership is INACTIVE; duplicate source aliases remain unreconciled; RC451 search_path and finance runtime/Edge parity blockers remain.",
   "edge_function_contracts": "NOT VERIFIED",
   "smm_gateway_parity": "NOT VERIFIED",
   "auth_security_settings": "NOT VERIFIED",
@@ -311,7 +311,7 @@
     "interpretation": "The deployed financial-journal v3 entrypoint calls post_financial_journal using a service-role client, but the live RPC ACL does not grant service_role EXECUTE and required journal columns are absent. Current main instead calls post_financial_journal_backend and expects the reviewed RC450 contract, which is also not executable by service_role until the reviewed grant migration is applied. Do not invoke or deploy this path individually; complete ordered RC449A → RC450 dependencies, migrate/replay in staging, and pass finance E2E before release."
   },
   "required_release_object_presence_check": {
-    "status": "BLOCKED",
+    "status": "MIXED_DRIFT",
     "checked_at": "2026-10-27",
     "method": "Read-only checks of public schema tables/indexes, function signatures, current proconfig and effective role privileges for selected objects introduced or hardened by RC425–RC441. This is a targeted inventory, not a complete physical-schema diff.",
     "observed": [
@@ -319,190 +319,75 @@
         "migration": "RC425",
         "object": "public.mantigo_payment_provider_events",
         "exists": false,
-        "detail": "Required provider-event idempotency table absent.",
-        "status": "BLOCKED"
+        "detail": "Required provider-event idempotency table absent."
       },
       {
         "migration": "RC425",
         "object": "public.process_verified_mantigo_payment_backend",
         "exists": false,
-        "detail": "Atomic MantiGo payment backend RPC absent.",
-        "status": "BLOCKED"
+        "detail": "Atomic MantiGo payment backend RPC absent."
       },
       {
         "migration": "RC426",
         "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
         "exists": false,
-        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE.",
-        "status": "BLOCKED"
+        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE."
       },
       {
         "migration": "RC427",
         "object": "public.uq_payment_intents_one_active_per_order",
         "exists": false,
-        "detail": "Partial unique index for one active payment intent per order absent.",
-        "status": "BLOCKED"
+        "detail": "Partial unique index for one active payment intent per order absent."
       },
       {
         "migration": "RC428",
         "object": "public.process_verified_provider_payment_failure",
         "exists": false,
-        "detail": "Atomic provider-failure webhook RPC absent.",
-        "status": "BLOCKED"
+        "detail": "Atomic provider-failure webhook RPC absent."
       },
       {
         "migration": "RC429",
         "object": "public.process_verified_subscription_payment_failure",
         "exists": false,
-        "detail": "Atomic subscription-failure webhook RPC absent.",
-        "status": "BLOCKED"
+        "detail": "Atomic subscription-failure webhook RPC absent."
       },
       {
         "migration": "RC430",
         "object": "public.process_verified_subscription_payment_backend",
         "exists": false,
-        "detail": "Atomic subscription-success backend RPC absent.",
-        "status": "BLOCKED"
+        "detail": "Atomic subscription-success backend RPC absent."
       },
       {
         "migration": "RC431",
-        "object": "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "object": "public.process_verified_digital_page_payment_backend",
         "exists": true,
-        "detail": "10-argument RPC exists and is service_role-only, but current search_path is public, pg_temp rather than the migration source's empty search_path; full body parity remains to be certified.",
+        "detail": "Function exists, but live search_path is public, pg_temp instead of the source's empty search_path; exact body/ACL must be reconciled before release.",
         "status": "BLOCKED"
       },
       {
         "migration": "RC432",
         "object": "public.smm_wallet_transactions_reference_type_uidx",
         "exists": false,
-        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist.",
-        "status": "BLOCKED"
+        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist."
       },
       {
         "migration": "RC434",
         "object": "public.receive_purchase_stock_atomic_backend",
         "exists": false,
-        "detail": "Atomic ERP receipt RPC absent.",
-        "status": "BLOCKED"
-      },
-      {
-        "migration": "RC435",
-        "object": "public.create_subscription_payment_intent_claimable_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Claimable subscription payment-intent creation RPC is absent."
-      },
-      {
-        "migration": "RC435",
-        "object": "public.claim_subscription_provider_intent_creation_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Subscription provider-intent claim RPC is absent."
-      },
-      {
-        "migration": "RC436",
-        "object": "public.post_financial_journal_atomic_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Atomic journal-posting RPC is absent."
-      },
-      {
-        "migration": "RC436",
-        "object": "public.journal_entry_lines_entry_line_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Journal line uniqueness index is absent."
-      },
-      {
-        "migration": "RC436",
-        "object": "public.journal_entries_tenant_entry_number_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Tenant-scoped journal entry number uniqueness index is absent."
-      },
-      {
-        "migration": "RC437",
-        "object": "public.erp_purchase_order_lines",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Purchase-order line table is absent."
-      },
-      {
-        "migration": "RC437",
-        "object": "public.receive_purchase_stock_with_order_line_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Line-aware receiving RPC is absent."
-      },
-      {
-        "migration": "RC437",
-        "object": "public.set_purchase_order_lines_backend",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Purchase-order line mutation RPC is absent."
-      },
-      {
-        "migration": "RC437",
-        "object": "public.erp_purchase_orders_business_order_number_uidx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Business-scoped purchase-order number uniqueness index is absent."
-      },
-      {
-        "migration": "RC437",
-        "object": "public.erp_purchase_order_lines_scope_idx",
-        "exists": false,
-        "status": "BLOCKED",
-        "detail": "Purchase-order lines scope index is absent."
+        "detail": "Atomic ERP receipt RPC absent."
       },
       {
         "migration": "RC438",
         "object": "public.create_purchase_order_with_lines_backend",
         "exists": false,
-        "detail": "Atomic purchase-order creation-with-lines RPC absent.",
-        "status": "BLOCKED"
+        "detail": "Atomic purchase-order creation-with-lines RPC absent."
       },
       {
         "migration": "RC438",
         "object": "public.update_purchase_order_status_backend(varchar,varchar)",
         "exists": true,
-        "detail": "Old function exists with search_path=public and ACL only to postgres; source contract sets an empty search_path and grants authenticated execution.",
+        "detail": "Function exists, but live search_path is public and ACL is postgres-only; source contract expects an empty search_path and authenticated execution. Must be reconciled before release.",
         "status": "BLOCKED"
-      },
-      {
-        "migration": "RC441",
-        "object": "public.mnty_can_platform_admin",
-        "exists": true,
-        "status": "BLOCKED",
-        "detail": "Function exists but live search_path is public, pg_temp; source contract requires an empty search_path. Caller/ACL review remains required."
-      },
-      {
-        "migration": "RC441",
-        "object": "public.get_mantigo_admin_dashboard_backend",
-        "exists": true,
-        "status": "BLOCKED",
-        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
-      },
-      {
-        "migration": "RC441",
-        "object": "public.get_mantigo_admin_financial_report_backend",
-        "exists": true,
-        "status": "BLOCKED",
-        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
-      },
-      {
-        "migration": "RC441",
-        "object": "public.settle_mantigo_captain_backend",
-        "exists": true,
-        "status": "BLOCKED",
-        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
-      },
-      {
-        "migration": "RC441",
-        "object": "public.expire_stale_mantigo_rides_backend",
-        "exists": true,
-        "status": "BLOCKED",
-        "detail": "Function exists but live search_path is public and service_role EXECUTE is false; compare exact source body and caller ACL before release."
       },
       {
         "migration": "RC113",
@@ -734,85 +619,108 @@
         "exists": false,
         "detail": "Membership business/branch NULL-safe idempotency index is absent.",
         "status": "BLOCKED"
+      },
+      {
+        "name": "public.create_subscription_payment_intent_claimable_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC435 claimable subscription intent RPC absent."
+      },
+      {
+        "name": "public.claim_subscription_provider_intent_creation_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC435 atomic provider-claim RPC absent."
+      },
+      {
+        "name": "public.post_financial_journal_atomic_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 atomic journal RPC absent."
+      },
+      {
+        "name": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 journal line uniqueness index absent."
+      },
+      {
+        "name": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 tenant entry-number uniqueness index absent."
+      },
+      {
+        "name": "public.erp_purchase_order_lines",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line table absent."
+      },
+      {
+        "name": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 line-aware stock receiving RPC absent."
+      },
+      {
+        "name": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line-management RPC absent."
+      },
+      {
+        "name": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 business/order-number uniqueness index absent."
+      },
+      {
+        "name": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line scope index absent."
+      },
+      {
+        "name": "public.mnty_can_platform_admin",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature mnty_can_platform_admin() exists; body, search_path and grants remain separate release checks."
+      },
+      {
+        "name": "public.get_mantigo_admin_dashboard_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature get_mantigo_admin_dashboard_backend(uuid) exists; privilege and body review remain separate release checks."
+      },
+      {
+        "name": "public.get_mantigo_admin_financial_report_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz) exists; privilege and body review remain separate release checks."
+      },
+      {
+        "name": "public.settle_mantigo_captain_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature settle_mantigo_captain_backend(uuid,text,text) exists; privilege and body review remain separate release checks."
+      },
+      {
+        "name": "public.expire_stale_mantigo_rides_backend",
+        "exists": true,
+        "status": "PASS",
+        "detail": "Live catalog signature expire_stale_mantigo_rides_backend(uuid,integer) exists; privilege and body review remain separate release checks."
       }
     ],
     "interpretation": "This is not merely a missing-ledger-row concern: selected effects are physically missing, while some same-named older functions exist with different signatures, ACLs, or search_path. Do not apply the missing files blindly on top of later-dated migrations; the successful isolated replay must be followed by current-schema reconciliation and a rehearsed rollout.",
-    "observed_count": 60,
-    "note": "All 60 required live object contracts are listed individually. Each table, index, RPC, column, and trigger is a separate finding; composite descriptions no longer satisfy multiple required contracts.",
-    "non_pass_count": 60,
-    "catalog_name_presence_check": {
-      "checked_at": "2026-10-27T15:56:24.468448+00:00",
-      "status": "BLOCKED",
-      "required_object_contracts": 60,
-      "present_by_name_or_declared_signature": 7,
-      "missing_by_name_or_declared_signature": 53,
-      "present": [
-        "public.expire_stale_mantigo_rides_backend",
-        "public.get_mantigo_admin_dashboard_backend",
-        "public.get_mantigo_admin_financial_report_backend",
-        "public.mnty_can_platform_admin",
-        "public.process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
-        "public.settle_mantigo_captain_backend",
-        "public.update_purchase_order_status_backend(varchar,varchar)"
-      ],
-      "missing": [
-        "public.business_employees",
-        "public.business_employees_business_status_idx",
-        "public.business_employees_email_per_business_unique",
-        "public.business_employees_user_active_idx",
-        "public.business_job_positions",
-        "public.business_job_positions_business_active_idx",
-        "public.businesses.mnty_business_default_images",
-        "public.catalog_items.mnty_catalog_item_default_image",
-        "public.claim_subscription_provider_intent_creation_backend",
-        "public.create_purchase_order_with_lines_backend",
-        "public.create_subscription_payment_intent_claimable_backend",
-        "public.erp_purchase_order_lines",
-        "public.erp_purchase_order_lines_scope_idx",
-        "public.erp_purchase_orders_business_order_number_uidx",
-        "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
-        "public.journal_entries_tenant_entry_number_uidx",
-        "public.journal_entry_lines_entry_line_uidx",
-        "public.mantigo_payment_provider_events",
-        "public.marketing_services.image_source",
-        "public.marketing_services.image_url",
-        "public.marketing_services.mnty_marketing_service_default_image",
-        "public.mnty_business_employee_list",
-        "public.mnty_business_employee_position_upsert",
-        "public.mnty_business_employee_upsert",
-        "public.mnty_default_business_images_trigger",
-        "public.mnty_default_catalog_item_image_trigger",
-        "public.mnty_default_image_url",
-        "public.mnty_default_marketing_service_image_trigger",
-        "public.mnty_platform_admin_assign_custom_role",
-        "public.mnty_platform_admin_list_audit",
-        "public.mnty_platform_admin_list_businesses",
-        "public.mnty_platform_admin_list_custom_roles",
-        "public.mnty_platform_admin_list_people",
-        "public.mnty_platform_admin_list_role_assignments",
-        "public.mnty_platform_admin_manage_business",
-        "public.mnty_platform_admin_manage_membership",
-        "public.mnty_platform_admin_upsert_custom_role",
-        "public.mnty_platform_has_permission",
-        "public.platform_custom_roles",
-        "public.platform_role_assignments",
-        "public.platform_role_assignments_active_unique",
-        "public.platform_role_assignments_user_scope_idx",
-        "public.post_financial_journal_atomic_backend",
-        "public.process_verified_mantigo_payment_backend",
-        "public.process_verified_provider_payment_failure",
-        "public.process_verified_subscription_payment_backend",
-        "public.process_verified_subscription_payment_failure",
-        "public.receive_purchase_stock_atomic_backend",
-        "public.receive_purchase_stock_with_order_line_backend",
-        "public.set_purchase_order_lines_backend",
-        "public.smm_wallet_transactions_reference_type_uidx",
-        "public.uq_payment_intents_one_active_per_order",
-        "public.ux_user_memberships_user_business_branch_nullsafe"
-      ],
-      "method": "Read-only PostgreSQL catalog query against pg_proc, to_regprocedure, to_regclass, information_schema.columns and information_schema.triggers for all 60 atomic core/feature contracts.",
-      "limitation": "Name/signature presence is necessary but not sufficient for PASS. It does not prove function body parity, exact overload argument identity for name-only checks, SECURITY DEFINER search_path, grants/ACL, RLS behavior, or runtime integration. The release gate therefore keeps all 60 contracts blocked/unverified until each full contract is checked."
-    }
+    "required_core_object_contracts": 27,
+    "present_core_object_contracts": 7,
+    "missing_core_object_contracts": 20,
+    "required_control_center_object_contracts": 33,
+    "present_control_center_object_contracts": 0,
+    "missing_control_center_object_contracts": 33,
+    "total_granular_object_contracts": 60,
+    "total_missing_granular_object_contracts": 53,
+    "note": "A name/signature match alone is not a release PASS. The two existing RPCs with confirmed search_path/ACL drift remain status BLOCKED until their exact source security contracts are reconciled."
   },
   "security_definer_search_path_check": {
     "status": "BLOCKING_DRIFT",
@@ -1017,8 +925,7 @@
     "contact_for_price_product_count": 3,
     "contact_for_price_without_active_price": 3,
     "stock_tracking_enabled_item_count": 0,
-    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect.",
-    "diagnostics": "The source version is distinct and remains unrecorded; the owner membership is INACTIVE. Seeded product data alone does not satisfy this gate."
+    "observed": "The live store, branch, contact fields and 15 catalog rows match the intended seed. All 12 priced products match their source price/mode; 3 contact-for-price products have no active price; no stock tracking or fake orders were created. The owner membership is still INACTIVE, while this migration changes it to ACTIVE, so this distinct migration is required and must not be marked applied without executing/rehearsing its effect."
   },
   "migration_alias_resolution_check": {
     "status": "PENDING_CONTROLLED_REPAIR",
@@ -1047,7 +954,6 @@
         "ledger_repair_applied": false,
         "note": "The source blob is identical to the exact-version 20261027041411 migration already recorded in Production; do not execute the duplicate as an independent migration."
       }
-    ],
-    "diagnostics": "Both source aliases have verified source equivalence but remain unresolved in the live ledger; release must stay blocked until the controlled migration-history repair is completed and verified."
+    ]
   }
 }
