@@ -181,6 +181,14 @@ Deno.serve(async (req: Request) => {
       const { data: previous, error: previousError } = await service.from("business_activity_types")
         .select("*").eq("id", id).maybeSingle();
       if (previousError) throw previousError;
+      if (previous) {
+        const { data: existingChildren, error: existingChildrenError } = await service.from("business_activity_types")
+          .select("id").eq("parent_id", id).limit(1);
+        if (existingChildrenError) throw existingChildrenError;
+        if (existingChildren?.length && (String(previous.sector_id) !== sectorId || String(previous.node_type) !== nodeType)) {
+          return response(origin, { error: "PARENT_WITH_CHILDREN_STRUCTURE_IMMUTABLE" }, 409);
+        }
+      }
       const next = {
         id, sector_id: sectorId, parent_id: parentId,
         legacy_category_id: String(input.legacy_category_id || "").trim() || null,
