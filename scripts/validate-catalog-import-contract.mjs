@@ -22,7 +22,11 @@ const checks = [
   ['CSV preview supports correcting invalid fields before import', /updateRow/.test(panel) && panel.includes('aria-label={`السعر في الصف') && /validateDraftRows\(changed\)/.test(panel)],
   ['draft autosave waits until the selected business draft loads', /readyStorageKey!==storageKey/.test(panel) && /setReadyStorageKey\(storageKey\)/.test(panel)],
   ['catalog capacity is checked before import', /readyRows\.length>remaining/.test(panel)],
-  ['the UI is honest that direct XLSX support is not enabled yet', /XLSX المباشر لم يُفعّل بعد/.test(panel)],
+  ['XLSX files are accepted with a distinct 5 MB cap', /\\.xlsx\\$/.test(panel) && /5 \\* 1024 \\* 1024/.test(panel) && /application\\/vnd\\.openxmlformats-officedocument\\.spreadsheetml\\.sheet/.test(panel)],
+  ['XLSX parsing validates ZIP signatures and only reads workbook XML data', /0x06054b50/.test(panel) && /0x02014b50/.test(panel) && /xl\\/workbook\\.xml/.test(panel) && /xl\\/_rels\\/workbook\\.xml\\.rels/.test(panel)],
+  ['XLSX parser rejects encrypted, multi-disk, oversized and duplicate ZIP entries', /flags & 0x0001/.test(panel) && /diskNo !== 0/.test(panel) && /MAX_XLSX_TOTAL_UNCOMPRESSED/.test(panel) && /entries\\.has\\(name\\)/.test(panel)],
+  ['XLSX parser caps worksheet rows and columns', /sourceRows\\.length > 5001/.test(panel) && /column > 100/.test(panel)],
+  ['the UI labels XLSX support as first-sheet, values-only import', /XLSX \\(الورقة الأولى فقط\\)/.test(panel) && /لا يتم تشغيل الماكرو أو الصيغ/.test(panel)],
 ];
 const failed = checks.filter(([name, passed]) => {
   if (!passed) console.error('FAIL:', name);
