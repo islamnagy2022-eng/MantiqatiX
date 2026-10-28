@@ -324,6 +324,7 @@ const LEGACY_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
 
 export function resolveCanonicalGroupId(categoryName: string, legacyGroupId?: string): FunctionalGroup['id'] {
   const value = String(categoryName || '').toLocaleLowerCase('ar');
+  if (/زراع|مزرعة|مزارع|مشاتل|بذور|أسمدة|شبكات ري|حيوانات|بيطري|أعلاف|استزراع سمكي/.test(value)) return 'agriculture_animals';
   if (/طبيب|طبي|صحة|عياد|صيدل|تحاليل|أشعة|مستشفى|أسنان|تمريض|تغذية|علاج طبيعي|تخاطب|بصريات|رعاية صحية|مختبر/.test(value)) return 'medical_health';
   if (/مطعم|مقهى|كافيه|أغذية|غذاء|حلويات|مخبز|مخبوز|بقالة|سوبر ماركت|جزارة|لحوم|دواجن|أسماك|خضراوات|فاكهة|ألبان|عطارة|قهوة|بن ومحمص/.test(value)) return 'food_grocery';
   if (/ملابس|أزياء|أحذية|حقائب|مجوهرات|ساعات|عطور|تجميل|كوافير|حلاق|خياطة|خياط|ترزي|مكياج|بشرة|أظافر/.test(value)) return 'fashion_beauty';
@@ -336,7 +337,6 @@ export function resolveCanonicalGroupId(categoryName: string, legacyGroupId?: st
   if (/تأمين|تمويل|مدفوعات|دفع إلكتروني|خدمات مالية|تحليل مالي|محلل ائتمان|وسيط تأمين/.test(value)) return 'finance_insurance';
   if (/محام|قانون|محاسب|محاسبة|مراجع حسابات|ترجمة|مترجم|موارد بشرية|استشارات إدارية|استشاري|مستشار/.test(value)) return 'professional_services';
   if (/تاجر|تجارة|متجر|بيع|شراء|جملة|موزع|استيراد|تصدير|قرطاسية|مكتبة|مستعمل|مندوب مبيعات|مشتريات/.test(value)) return 'trade_ecommerce';
-  if (/زراعة|زراعي|مزرعة|مزارع|مشاتل|بذور|أسمدة|ري|حيوانات|بيطري|أعلاف|دواجن|استزراع سمكي/.test(value)) return 'agriculture_animals';
   if (/رياضة|لياقة|جيم|صالة رياضية|سباحة|مدرب كرة|حكم رياضي|يوغا/.test(value)) return 'sports_fitness';
   if (/سياحة|سفر|فنادق|فندق|منتجع|رحلات|مرشد سياحي|ضيافة|أفراح|مناسبات|مؤتمرات|فعاليات|قاعات/.test(value)) return 'tourism_events';
   if (/مصانع|مصنع|صناعة|تصنيع|ورشة|حدادة|حداد|خراطة|لحام|إنتاج صناعي|جودة تصنيع|مشغل ماكينة/.test(value)) return 'industry_workshops';
@@ -351,10 +351,19 @@ export function normalizeCanonicalTaxonomySettings(saved?: Partial<AdminSettings
   const keyOf = (kind: string, name: string) => kind + ':' + normalizeTaxonomyName(name);
   DEFAULT_CATEGORIES.forEach((category) => merged.set(keyOf(category.classificationType || 'activity', category.name), { ...category }));
   const savedCategories = Array.isArray(saved?.categories) ? saved!.categories as ActivityCategory[] : [];
+  const knownProfessionNames = new Set(
+    DEFAULT_CATEGORIES
+      .filter((category) => category.classificationType === 'profession')
+      .flatMap((category) => [category.name, ...(category.specialties || [])])
+      .map(normalizeTaxonomyName),
+  );
   savedCategories.forEach((entry, index) => {
     if (!entry || !String(entry.name || '').trim()) return;
     const name = String(entry.name).trim();
-    const classificationType = entry.classificationType === 'profession' ? 'profession' : 'activity';
+    const normalizedName = normalizeTaxonomyName(name);
+    const classificationType = entry.classificationType === 'profession' ||
+      (entry.classificationType == null && knownProfessionNames.has(normalizedName))
+      ? 'profession' : 'activity';
     const key = keyOf(classificationType, name);
     const existing = merged.get(key);
     const normalized: ActivityCategory = {
