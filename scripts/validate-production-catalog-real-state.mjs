@@ -129,19 +129,19 @@ const rejectionStart = publicationReview.indexOf('const nextSettings = { ...curr
 assert.ok(approvalStart >= 0 && rejectionStart > approvalStart, 'Publication approval and rejection branches must remain separate.');
 const approval = publicationReview.slice(approvalStart, rejectionStart);
 
-assert.match(approval, /An explicit platform-admin decision may publish even when optional owner\\/contact\\/location data is incomplete/,
+assert.match(approval, /An explicit platform-admin decision may publish even when optional owner\/contact\/location data is incomplete/,
   'Explicit admin approval must be allowed even when optional profile fields are missing.');
-assert.match(approval, /\\.select\\("id,status"\\)\\.eq\\("business_id", businessId\\)/,
+assert.match(approval, /\.select\("id,status"\)\.eq\("business_id", businessId\)/,
   'Approval must find and reuse an existing provider profile before creating a new one.');
 assert.match(approval, /providerUpdateError/, 'Provider-profile activation failures must not be silently ignored.');
 assert.match(approval, /createProfileError/, 'Provider-profile creation failures must not be silently ignored.');
-assert.match(approval, /catalog_public_enabled: true[\\s\\S]*publicationStatus: "PUBLISHED"/,
+assert.match(approval, /catalog_public_enabled: true[\s\S]*publicationStatus: "PUBLISHED"/,
   'Approval must persist the public-catalog flag and canonical publication state together.');
 assert.match(approval, /PLATFORM_BUSINESS_PUBLICATION_APPROVED/,
   'Publication approval must leave an audit record.');
-assert.match(approval, /if \\(auditError\\)[\\s\\S]*PUBLICATION_AUDIT_FAILED/,
+assert.match(approval, /if \(auditError\)[\s\S]*PUBLICATION_AUDIT_FAILED/,
   'An audit-write failure must return a clear actionable error rather than silently reporting success.');
-assert.doesNotMatch(approval, /paymentStatus\\s*:\\s*"paid"|paymentConfirmedByAdmin\\s*:\\s*true/,
+assert.doesNotMatch(approval, /paymentStatus\s*:\s*"paid"|paymentConfirmedByAdmin\s*:\s*true/,
   'Publication approval must not fake payment or payment confirmation.');
 
 assert.match(publicDirectoryFunction, /catalog_public_enabled === true/,
@@ -150,11 +150,11 @@ assert.match(publicDirectoryFunction, /operationalStatus === "ACTIVE"/,
   'Public directory must continue respecting operational state.');
 assert.match(publicCatalogFunction, /catalog_public_enabled !== true/,
   'The public storefront must not serve an unpublished catalog.');
-assert.match(directory, /business\\.publicEnabled \\|\\| business\\.isOfficialShowcase/,
+assert.match(directory, /business\.publicEnabled \|\| business\.isOfficialShowcase/,
   'Homepage covers must use published businesses, not unsubmitted drafts.');
-assert.match(context, /await refreshBusinessCatalog\\(updated\\.id\\)/,
+assert.match(context, /await refreshBusinessCatalog\(updated\.id\)/,
   'Business profile changes must refresh from canonical production data after the awaited write.');
-assert.match(context, /await refreshBusinessCatalog\\(updated\\.businessId\\)/,
+assert.match(context, /await refreshBusinessCatalog\(updated\.businessId\)/,
   'Product/service changes must refresh from canonical production data after the awaited write.');
 
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
