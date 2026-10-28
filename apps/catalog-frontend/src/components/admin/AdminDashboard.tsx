@@ -895,6 +895,30 @@ export const AdminDashboard: React.FC = () => {
                                 <span>تأكيد السداد</span>
                               </button>
 
+                              <button
+                                disabled={Boolean(billingActionBusyId)}
+                                onClick={async () => {
+                                  const nextDate = window.prompt('تاريخ استحقاق السداد الجديد (YYYY-MM-DD)', biz.paymentDueDate || getDefaultBusinessPaymentDueDate());
+                                  if (!nextDate) return;
+                                  const parsedDate = new Date(nextDate + 'T00:00:00');
+                                  if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== nextDate) {
+                                    window.alert('أدخل تاريخًا صحيحًا بصيغة YYYY-MM-DD.');
+                                    return;
+                                  }
+                                  setBillingActionBusyId(biz.id);
+                                  try {
+                                    await updateBillingSetting(biz.id, { paymentDueDate: nextDate });
+                                    setBillingActionMsg('تم حفظ موعد السداد الجديد للنشاط ' + biz.name + ': ' + nextDate + '.');
+                                  } catch (error) {
+                                    setBillingActionMsg('تعذر تعديل موعد السداد: ' + (error instanceof Error ? error.message : 'خطأ غير معروف'));
+                                  } finally { setBillingActionBusyId(null); }
+                                }}
+                                className="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold text-[10px] px-2 py-1 rounded-lg cursor-pointer"
+                                title="تعديل موعد الاستحقاق دون تأكيد الدفع"
+                              >
+                                تعديل موعد السداد
+                              </button>
+
                               {/* 3. Manual Freeze/Unfreeze toggle */}
                               <button
                                 disabled={Boolean(billingActionBusyId)}
