@@ -569,7 +569,11 @@ Deno.serve(async (req: Request) => {
       const patch: Record<string, unknown> = {};
       for (const k of allowed) if (Object.prototype.hasOwnProperty.call(incoming, k)) patch[k] = incoming[k];
       const nextSettings = { ...(business.settings || {}), bizcatalog: { ...current, ...patch } };
-      const { error } = await service.from("businesses").update({ settings: nextSettings, updated_at: new Date().toISOString() }).eq("id", businessId).eq("tenant_id", tenantId);
+      const operationalStatus = String(patch.operationalStatus || "").toUpperCase();
+      const nextBusinessStatus = operationalStatus === "ACTIVE" ? "ACTIVE" : operationalStatus === "INACTIVE" ? "INACTIVE" : operationalStatus === "FROZEN" ? "SUSPENDED" : String(business.status || "INACTIVE").toUpperCase();
+      const updatePayload: Record<string, unknown> = { settings: nextSettings, updated_at: new Date().toISOString() };
+      if (["ACTIVE", "INACTIVE", "FROZEN"].includes(operationalStatus)) updatePayload.status = nextBusinessStatus;
+      const { error } = await service.from("businesses").update(updatePayload).eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
 
       // Only an explicit admin-confirmed paid state can activate pending owner memberships.
