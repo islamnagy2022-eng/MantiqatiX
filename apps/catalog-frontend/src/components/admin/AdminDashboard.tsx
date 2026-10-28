@@ -50,6 +50,7 @@ import {
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
 import { resolveDefaultImage } from '../../utils/defaultImages';
+import { callPlatformAdmin } from '../../lib/production';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -220,6 +221,7 @@ export const AdminDashboard: React.FC = () => {
   const [billingActionMsg, setBillingActionMsg] = useState<string | null>(null);
   const [billingActionBusyId, setBillingActionBusyId] = useState<string | null>(null);
   const [businessDeleteBusyId, setBusinessDeleteBusyId] = useState<string | null>(null);
+  const [publicationReviewBusyId, setPublicationReviewBusyId] = useState<string | null>(null);
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
@@ -271,6 +273,22 @@ export const AdminDashboard: React.FC = () => {
       setIsSubModalOpen(false);
     } catch (error) {
       window.alert(error instanceof Error ? error.message : 'تعذر حفظ اشتراك المشترك في Supabase.');
+    }
+  };
+
+  const handlePublicationReview = async (business: Business, decision: 'APPROVE' | 'REJECT') => {
+    const reason = decision === 'REJECT' ? window.prompt('اكتب سبب رفض نشر النشاط ليظهر في سجل الإدارة:') : '';
+    if (decision === 'REJECT' && reason === null) return;
+    if (decision === 'APPROVE' && !window.confirm(`تأكيد الموافقة على نشر «${business.name}»؟ سيظهر الكتالوج للعامة، دون تغيير حالة السداد.`)) return;
+    setPublicationReviewBusyId(business.id);
+    try {
+      await callPlatformAdmin({ action: 'BUSINESS_PUBLICATION_REVIEW', tenantId: business.tenantId || 'MNTY-PLATFORM', businessId: business.id, decision, reason: reason || '' });
+      window.alert(decision === 'APPROVE' ? 'تمت الموافقة على النشر.' : 'تم رفض النشر وحفظ السبب.');
+      window.location.reload();
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر تحديث قرار النشر.');
+    } finally {
+      setPublicationReviewBusyId(null);
     }
   };
 
@@ -1210,6 +1228,39 @@ export const AdminDashboard: React.FC = () => {
               <span>إضافة نشاط تجاري</span>
             </button>
           </div>
+
+          {(() => {
+            const pendingPublication = businesses.filter((business) => String(business.publicationStatus || '').toUpperCase() === 'PENDING_PUBLICATION');
+            return (
+              <section className="rounded-2xl border border-amber-300 bg-amber-50 p-4 space-y-3" aria-labelledby="pending-publication-heading">
+                <div>
+                  <h4 id="pending-publication-heading" className="font-black text-sm text-amber-950">طلبات النشر المعلقة ({pendingPublication.length})</h4>
+                  <p className="mt-1 text-xs text-amber-900">راجع بيانات النشاط قبل الموافقة أو الرفض. الموافقة تنشر الكتالوج ولا تسجل سدادًا.</p>
+                </div>
+                {pendingPublication.length === 0 ? <p className="rounded-xl bg-white p-3 text-xs text-slate-600">لا توجد طلبات نشر معلقة حاليًا.</p> : (
+                  <div className="space-y-3">
+                    {pendingPublication.map((business) => (
+                      <div key={business.id} className="rounded-xl border border-amber-200 bg-white p-3">
+                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-black text-sm text-slate-900">{business.name}</p>
+                            <p className="mt-1 text-xs text-slate-600">{business.category} {business.activitySpecialty ? `— ${business.activitySpecialty}` : ''}</p>
+                            <p className="mt-1 text-xs text-slate-600">{[business.governorate, business.markaz, business.village, business.address].filter(Boolean).join('، ') || 'لم يتم استكمال العنوان'}</p>
+                            <p className="mt-1 text-xs text-slate-500">حالة النشاط: {business.operationalStatus || 'غير محددة'} · السداد: {business.paymentStatus === 'paid' ? 'مدفوع' : 'غير مدفوع'} · تاريخ التسجيل: {business.createdAt || 'غير متاح'}</p>
+                            {business.publicationRejectionReason && <p className="mt-1 text-xs text-rose-700">سبب الرفض السابق: {business.publicationRejectionReason}</p>}
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <button type="button" disabled={publicationReviewBusyId === business.id} onClick={() => void handlePublicationReview(business, 'APPROVE')} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">الموافقة على النشر</button>
+                            <button type="button" disabled={publicationReviewBusyId === business.id} onClick={() => void handlePublicationReview(business, 'REJECT')} className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">رفض النشر</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })()}
 
           {(() => {
             const businessesWithoutOwner = businesses.filter((business) =>
