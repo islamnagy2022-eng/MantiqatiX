@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
+  "https://catalog.tagerflow.com",
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:8080",
