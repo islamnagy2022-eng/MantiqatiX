@@ -35,10 +35,10 @@ export const BusinessSubscriberAdmin: React.FC = () => {
   const [notice,setNotice]=useState<{error:boolean;text:string}|null>(null);
   const load=useCallback(async()=>{
     setLoading(true);setNotice(null);
-    const {data,error}=await supabase.rpc('mnty_platform_admin_list_businesses',{p_search:search.trim()||undefined});
+    const {data,error}=await supabase.functions.invoke('catalog-platform-admin',{body:{action:'LIST_BUSINESSES',search:search.trim()}});
     setLoading(false);
-    if(error){setNotice({error:true,text:error.message||'تعذر تحميل الأنشطة والمشتركين. تحقق من نشر RC116 في بيئة الاختبار.'});return;}
-    const next=Array.isArray(data)?data as BusinessRow[]:[];
+    if(error||!Array.isArray(data?.businesses)){setNotice({error:true,text:data?.message||error?.message||'تعذر تحميل الأنشطة والمشتركين. تحقق من صلاحيات مالك المنصة.'});return;}
+    const next=data.businesses as BusinessRow[];
     setRows(next);
     setDrafts(Object.fromEntries(next.map((b)=>[b.id,draftFor(b)])));
   },[search]);
@@ -64,11 +64,11 @@ export const BusinessSubscriberAdmin: React.FC = () => {
       },
     }:null;
     setSaving(b.id);setNotice(null);
-    const {error}=await supabase.rpc('mnty_platform_admin_manage_business',{
-      p_business_id:b.id,p_name:draft.name,p_settings:settings,p_action:action
-    });
+    const {data,error}=await supabase.functions.invoke('catalog-platform-admin',{body:{
+      action:'BUSINESS_MANAGE',tenantId:b.tenant_id,businessId:b.id,operation:action,name:draft.name,settings
+    }});
     setSaving('');
-    if(error){setNotice({error:true,text:error.message||'تعذر حفظ النشاط.'});return;}
+    if(error||!data?.success){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر حفظ النشاط.'});return;}
     setNotice({error:false,text:action==='UPDATE'?'تم تحديث بيانات النشاط وتصنيفاته وصوره.':action==='DEACTIVATE'?'تم إيقاف النشاط مع الاحتفاظ بسجلاته.':'تمت إعادة تنشيط النشاط.'});
     if(action==='UPDATE')setEditingId(null);
     await load();
@@ -101,12 +101,25 @@ export const BusinessSubscriberAdmin: React.FC = () => {
       role=requestedRole.trim();
       if(!window.confirm('تأكيد تغيير الدور؟ سيتم تسجيل العملية في سجل التدقيق.'))return;
     } else if(!window.confirm(action==='SUSPEND'?'إنهاء عضوية هذا المشترك مع الاحتفاظ بسجلاته؟':'إعادة تفعيل عضوية هذا المشترك؟'))return;
+    const parent=rows.find((row)=>row.memberships?.some((membership)=>membership.id===m.id));
+    if(!parent){setNotice({error:true,text:'تعذر تحديد النشاط المرتبط بهذه العضوية.'});return;}
     setSaving(m.id);setNotice(null);
-    const {error}=await supabase.rpc('mnty_platform_admin_manage_membership',{
-      p_membership_id:m.id,p_action:action,p_role:role||null
-    });
+    let data:any=null; let error:any=null;
+    if(action==='CHANGE_ROLE'){
+      const result=await supabase.functions.invoke('catalog-platform-admin',{body:{
+        action:'SAVE_MEMBERSHIP',tenantId:parent.tenant_id,businessId:parent.id,branchId:'',
+        membershipId:m.id,userId:m.user_id,role,status:m.status==='ACTIVE'?'ACTIVE':'INACTIVE',
+        catalogEnabled:true,catalogWrite:true,accountRestricted:false
+      }});
+      data=result.data;error=result.error;
+    }else{
+      const result=await supabase.functions.invoke('catalog-platform-admin',{body:{
+        action:'SUBSCRIBER_STATUS',membershipId:m.id,status:action==='SUSPEND'?'SUSPENDED':'ACTIVE'
+      }});
+      data=result.data;error=result.error;
+    }
     setSaving('');
-    if(error){setNotice({error:true,text:error.message||'تعذر تعديل العضوية.'});return;}
+    if(error||data?.error){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر تعديل العضوية.'});return;}
     setNotice({error:false,text:action==='SUSPEND'?'تم تعليق العضوية.':action==='RESTORE'?'تمت إعادة تفعيل العضوية.':'تم تغيير دور العضوية.'});
     await load();
   };
