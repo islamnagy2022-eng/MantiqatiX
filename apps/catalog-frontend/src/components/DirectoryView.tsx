@@ -275,58 +275,48 @@ export const DirectoryView: React.FC = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
             <button
               onClick={() => selectGroup('all')}
-              className={`p-4 rounded-2xl border text-right transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                selectedGroupFilter === 'all'
-                  ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                  : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300'
-              }`}
+              className={`group relative isolate min-h-36 sm:min-h-40 overflow-hidden rounded-2xl border text-right transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 hover:shadow-lg ${selectedGroupFilter === 'all' ? 'ring-2 ring-emerald-500 border-emerald-500' : 'border-slate-200'}`}
             >
-              <div className="flex items-center justify-between">
-                <Store className={`w-5 h-5 ${selectedGroupFilter === 'all' ? 'text-emerald-400' : 'text-slate-600'}`} />
-                <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${selectedGroupFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                  {businesses.length}
-                </span>
+              <img src={resolveDefaultImage({name:'سوبر ماركت ومجموعة الأنشطة', category:'سوبر ماركت وبقالة', kind:'cover'})} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className={`absolute inset-0 -z-10 ${selectedGroupFilter === 'all' ? 'bg-gradient-to-t from-slate-950/95 via-slate-900/35 to-emerald-800/15' : 'bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-black/10'}`} />
+              <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
+                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-black text-slate-900 shadow">{businesses.length}</span>
+                <span className="rounded-full bg-white/20 p-2 text-white backdrop-blur-sm"><Store className="h-5 w-5" /></span>
               </div>
-              <div>
-                <div className="font-extrabold text-xs sm:text-sm">كافة الأنشطة</div>
-                <div className={`text-[10px] mt-0.5 ${selectedGroupFilter === 'all' ? 'text-slate-300' : 'text-slate-500'}`}>
-                  جميع القطاعات
-                </div>
+              <div className="absolute inset-x-3 bottom-3 text-white">
+                <div className="font-black text-sm sm:text-base">كافة الأنشطة</div>
+                <div className="mt-1 text-[10px] sm:text-xs text-white/85">جميع القطاعات والمهن</div>
               </div>
             </button>
 
             {functionalGroups.map((group) => {
               const count = businesses.filter((b) => b.functionalGroupId === group.id).length;
               const isSelected = selectedGroupFilter === group.id;
-
+              const image = resolveDefaultImage({ name: group.name, description: group.description, category: group.shortName, kind: 'cover' });
               return (
                 <button
                   key={group.id}
                   onClick={() => selectGroup(group.id)}
-                  className={`p-4 rounded-2xl border text-right transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                    isSelected
-                      ? 'bg-emerald-700 text-white border-emerald-700 shadow-md'
-                      : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300'
-                  }`}
+                  aria-pressed={isSelected}
+                  className={`group relative isolate min-h-36 sm:min-h-40 overflow-hidden rounded-2xl border text-right transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 hover:shadow-lg ${isSelected ? 'ring-2 ring-emerald-500 border-emerald-500' : 'border-slate-200'}`}
                 >
-                  <div className="flex items-center justify-between">
-                    {ICONS_MAP[group.id]}
-                    <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                      {count}
-                    </span>
+                  <img src={image} alt={group.shortName} loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className={`absolute inset-0 -z-10 ${isSelected ? 'bg-gradient-to-t from-emerald-950/95 via-slate-900/40 to-emerald-700/15' : 'bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-black/10'}`} />
+                  <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2">
+                    <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-black text-slate-900 shadow">{count}</span>
+                    <span className="rounded-full bg-white/20 p-2 text-white backdrop-blur-sm">{ICONS_MAP[group.id] || <Layers className="h-5 w-5" />}</span>
                   </div>
-                  <div>
-                    <div className="font-extrabold text-xs sm:text-sm truncate">{group.shortName}</div>
-                    <div className={`text-[10px] mt-0.5 truncate ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
-                      {group.name}
-                    </div>
+                  <div className="absolute inset-x-3 bottom-3 text-white">
+                    <div className="font-black text-sm sm:text-base leading-snug">{group.shortName}</div>
+                    <div className="mt-1 text-[10px] sm:text-xs text-white/85 line-clamp-2">{group.name}</div>
                   </div>
                 </button>
               );
             })}
+          </div>
           </div>
         </div>
 
