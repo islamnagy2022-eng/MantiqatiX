@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   MessageCircle,
   MapPin,
@@ -26,7 +27,7 @@ export const BusinessProfileHeader: React.FC = () => {
     if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
     const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
     if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
-    return [currentBusiness.coverUrl || BUSINESS_PLACEHOLDER];
+    return [currentBusiness.coverUrl || resolveDefaultImage({ name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'cover' })];
   }, [currentBusiness]);
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -89,7 +90,8 @@ export const BusinessProfileHeader: React.FC = () => {
               }`}
               onError={(e) => {
                 const image = e.currentTarget;
-                if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                const fallback = resolveDefaultImage({ name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'cover' });
+                if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30" />
@@ -157,7 +159,7 @@ export const BusinessProfileHeader: React.FC = () => {
               {/* Business Logo */}
               <div className="relative -mt-16 sm:-mt-20 md:-mt-24 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-3xl bg-white p-1.5 shadow-2xl ring-4 ring-white flex-shrink-0 overflow-hidden z-20">
                 <img
-                  src={currentBusiness.logoUrl || BUSINESS_PLACEHOLDER}
+                  src={currentBusiness.logoUrl || resolveDefaultImage({ name: currentBusiness.name, description: currentBusiness.bio, category: currentBusiness.category, kind: 'activity' })}
                   alt={`شعار ${currentBusiness.name}`}
                   className={`w-full h-full object-cover rounded-2xl bg-slate-100 ${
                     isFrozen ? 'grayscale opacity-80' : ''
