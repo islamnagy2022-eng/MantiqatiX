@@ -64,6 +64,7 @@ interface AppContextType {
   getStorePublicLink: (business: Business) => string;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
   confirmAdminPayment: (businessId: string) => Promise<void>;
+  updateBillingSetting: (businessId: string, settings: Record<string, unknown>) => Promise<void>;
   toggleBusinessFreeze: (businessId: string) => Promise<void>;
   businessProducts: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
@@ -839,7 +840,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
-    confirmAdminPayment, toggleBusinessFreeze,
+    confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
     exportBackupJSON, downloadBackupFile, importBackupJSON,
