@@ -103,7 +103,7 @@ export const ProfessionalDashboard: React.FC = () => {
 
   const isPlatformAdmin = authSession.role === 'admin';
   const isBusinessMember = authSession.role === 'subscriber';
-  const isBusinessManager = isBusinessManagementRole(authSession);
+  const isBusinessManager = isBusinessManagementRole(authSession) && !authSession.membershipBranchId;
   const canViewCatalog = hasBusinessModulePermission(authSession, 'CATALOG', ['view', 'manage']);
   const canViewOrders = hasBusinessModulePermission(authSession, 'ORDERS', ['view', 'manage']);
   const canViewCustomers = hasBusinessModulePermission(authSession, 'CUSTOMERS', ['view', 'manage']);
