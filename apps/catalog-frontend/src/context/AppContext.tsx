@@ -22,7 +22,7 @@ import {
   generateGmailInviteUrl,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
-import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
@@ -68,6 +68,7 @@ interface AppContextType {
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   addSubscriber: (sub: { fullName: string; email: string; phone: string; businessId: string; username?: string; password?: string; authMethod: 'direct_password' | 'gmail_invite'; notes?: string; }) => Promise<Subscriber>;
+  saveSubscriberMembership: (input: { subscriber: Subscriber; tenantId: string; businessId?: string; branchId?: string; role: string; status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'; catalogEnabled: boolean; catalogWrite: boolean; accountRestricted: boolean; }) => Promise<Subscriber>;
   updateSubscriber: (sub: Subscriber) => Promise<void>;
   deleteSubscriber: (id: string) => Promise<void>;
   sendGmailInvite: (subscriberId: string) => string;
@@ -352,6 +353,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!updated.tenantId || !updated.branchId) {
       throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
     }
+
+    const defaultCover = !updated.coverUrl?.trim() ||
+      /(?:business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(updated.coverUrl);
+    let coverUrl = updated.coverUrl?.trim() || '';
+    if (defaultCover) {
+      const generated = await generateCatalogAiImage({
+        businessId: updated.id,
+        kind: 'activity',
+        name: updated.name,
+        category: updated.category,
+        description: updated.bio,
+      });
+      coverUrl = generated || resolveDefaultImage({
+        name: updated.name, description: updated.bio, category: updated.category, kind: 'cover',
+      });
+    }
+
+    const logoUrl = updated.logoUrl?.trim() || resolveDefaultImage({
+      name: updated.name, description: updated.bio, category: updated.category, kind: 'activity',
+    });
+
     await callCatalogAdmin({
       action: 'BUSINESS_PROFILE_UPSERT',
       tenantId: updated.tenantId,
@@ -365,8 +387,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       markaz: updated.markaz || '',
       village: updated.village || '',
       workingHours: updated.workingHours || '',
-      logoUrl: updated.logoUrl || '',
-      coverUrl: updated.coverUrl || '',
+      logoUrl,
+      coverUrl,
       publicEnabled: Boolean(updated.publicEnabled),
     });
     // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
@@ -423,7 +445,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteBusiness = async (id: string) => {
     const business = businesses.find((b) => b.id === id); if (!business?.tenantId) throw new Error('النشاط غير مرتبط بقاعدة الإنتاج.');
     if (authSession.role !== 'admin') throw new Error('تعطيل الأنشطة من اختصاص إدارة المنصة.');
-    await callPlatformAdmin({ action: 'DEACTIVATE_BUSINESS', businessId: id, tenantId: business.tenantId });
+    await callPlatformAdmin({ action: 'DELETE_BUSINESS', businessId: id, tenantId: business.tenantId });
     setBusinesses((prev) => prev.filter((b) => b.id !== id)); setProducts((prev) => prev.filter((p) => p.businessId !== id));
     if (selectedBusinessId === id) setSelectedBusinessIdState('');
   };
@@ -432,10 +454,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addProduct = async (data: Omit<Product, 'id'>): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
-    const imageSource = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
-    const imageUrl = imageSource === 'owner'
+    let imageSource: 'auto' | 'owner' | 'ai' = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
+    let imageUrl = imageSource === 'owner'
       ? data.imageUrl.trim()
       : resolveDefaultImage({ name: data.name, description: data.description, category: data.category, kind: data.type === 'service' ? 'service' : 'product' });
+    if (imageSource === 'auto') {
+      const generated = await generateCatalogAiImage({
+        businessId: business.id,
+        kind: data.type,
+        name: data.name,
+        category: data.category,
+        description: data.description,
+      });
+      if (generated) {
+        imageUrl = generated;
+        imageSource = 'ai';
+      }
+    }
     const metadata = { catalog_public: { category: data.category, unit: data.unit || '', image_url: imageUrl, image_source: imageSource, compare_price: data.comparePrice ?? null, is_available: data.isAvailable, track_stock: false, ...(data.requiresQuote ? { show_price: false } : {}) } };
     try {
       if (data.requiresQuote) {
@@ -449,10 +484,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateProduct = async (updated: Product) => {
     const business = businesses.find((b) => b.id === updated.businessId);
     if (!business?.tenantId || !business.branchId) throw new Error('النشاط أو الفرع غير مرتبط ببيانات الإنتاج.');
-    const imageSource = updated.imageSource === 'owner' && Boolean(updated.imageUrl?.trim()) ? 'owner' : 'auto';
-    const imageUrl = imageSource === 'owner'
+    const previous = products.find((product) => product.id === updated.id);
+    let imageSource: 'auto' | 'owner' | 'ai' = updated.imageSource === 'ai' && Boolean(updated.imageUrl?.trim())
+      ? 'ai'
+      : updated.imageSource === 'owner' && Boolean(updated.imageUrl?.trim()) ? 'owner' : 'auto';
+    let imageUrl = imageSource === 'owner' || imageSource === 'ai'
       ? updated.imageUrl.trim()
       : resolveDefaultImage({ name: updated.name, description: updated.description, category: updated.category, kind: updated.type === 'service' ? 'service' : 'product' });
+    // Don't spend another image-generation request for price/availability-only edits.
+    // Regenerate only for a new auto image or when its descriptive context changes.
+    const shouldGenerate = imageSource === 'auto' && (
+      !previous ||
+      previous.imageSource !== 'auto' ||
+      previous.name !== updated.name ||
+      previous.description !== updated.description ||
+      previous.category !== updated.category ||
+      previous.type !== updated.type
+    );
+    if (shouldGenerate) {
+      const generated = await generateCatalogAiImage({
+        businessId: business.id,
+        kind: updated.type,
+        name: updated.name,
+        category: updated.category,
+        description: updated.description,
+      });
+      if (generated) {
+        imageUrl = generated;
+        imageSource = 'ai';
+      }
+    }
     const metadata = { catalog_public: { category: updated.category, unit: updated.unit || '', image_url: imageUrl, image_source: imageSource, compare_price: updated.comparePrice ?? null, is_available: updated.isAvailable, track_stock: false, ...(updated.requiresQuote ? { show_price: false } : {}) } };
     if (updated.requiresQuote) {
       await callCatalogAdmin({ action: 'ITEM_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, id: updated.id, nameAr: updated.name, itemType: 'SERVICE', description: updated.description, taxRate: 0, metadata });
@@ -499,6 +560,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSubscribers((prev) => [created, ...prev.filter((s) => s.id !== id)]);
     return created;
   };
+  const saveSubscriberMembership = async (input: {
+    subscriber: Subscriber;
+    tenantId: string;
+    businessId?: string;
+    branchId?: string;
+    role: string;
+    status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+    catalogEnabled: boolean;
+    catalogWrite: boolean;
+    accountRestricted: boolean;
+  }): Promise<Subscriber> => {
+    if (authSession.role !== 'admin') throw new Error('إدارة أدوار الحسابات والصلاحيات متاحة لمالك المنصة فقط.');
+    const source = input.subscriber;
+    if (!source.userId) throw new Error('هذا الصف لا يحتوي على معرّف حساب Supabase صالح.');
+    const result: any = await callPlatformAdmin({
+      action: 'SAVE_MEMBERSHIP',
+      ...(source.isAccountOnly ? {} : { membershipId: source.id }),
+      userId: source.userId,
+      tenantId: input.tenantId,
+      businessId: input.businessId || '',
+      branchId: input.branchId || '',
+      role: input.role,
+      status: input.status,
+      catalogEnabled: input.catalogEnabled,
+      catalogWrite: input.catalogWrite,
+      accountRestricted: input.accountRestricted,
+    });
+    const membership = result?.membership;
+    if (result?.success !== true || !membership?.id) throw new Error('لم يؤكد الخادم حفظ تعيين الدور والصلاحيات.');
+    const mapped: Subscriber = {
+      ...source,
+      id: String(membership.id),
+      userId: String(membership.userId || source.userId),
+      tenantId: String(membership.tenantId || input.tenantId),
+      organizationId: String(membership.organizationId || ''),
+      businessId: String(membership.businessId || ''),
+      businessName: String(membership.businessName || businesses.find((b) => b.id === String(membership.businessId || ''))?.name || ''),
+      branchId: String(membership.branchId || ''),
+      role: String(membership.role || input.role),
+      membershipStatus: String(membership.status || input.status),
+      permissions: membership.permissions && typeof membership.permissions === 'object' ? membership.permissions : {},
+      status: String(membership.status || input.status) === 'ACTIVE' ? 'active' : String(membership.status || input.status) === 'SUSPENDED' ? 'suspended' : 'pending',
+      isAccountOnly: false,
+      password: undefined,
+    };
+    setSubscribers((prev) => [
+      mapped,
+      ...prev.filter((item) => item.id !== source.id && !(item.isAccountOnly && item.userId === mapped.userId)),
+    ]);
+    return mapped;
+  };
+
   const updateSubscriber = async (updated: Subscriber) => {
     if (updated.status === 'active') {
       const business = businesses.find((item) => item.id === updated.businessId);
@@ -510,8 +623,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSubscribers((prev) => prev.map((s) => s.id === updated.id ? { ...updated, password: undefined } : s));
   };
   const deleteSubscriber = async (id: string) => {
+    const target = subscribers.find((s) => s.id === id);
+    if (!target || target.isAccountOnly || id.startsWith('ACCOUNT:')) {
+      throw new Error('هذا حساب Google لم يُسند إلى عضوية بعد. استخدم إدارة الدور لتعيينه أو تقييده.');
+    }
     await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: id, status: 'INACTIVE' });
-    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+    setSubscribers((prev) => prev.map((s) => s.id === id
+      ? { ...s, status: 'pending', membershipStatus: 'INACTIVE', password: undefined }
+      : s));
   };
   const sendGmailInvite = (id: string) => {
     const sub = subscribers.find((s) => s.id === id);
@@ -568,7 +687,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, toggleBusinessFreeze,
-    businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
+    businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
     exportBackupJSON, downloadBackupFile, importBackupJSON,
     authBootstrapError,
