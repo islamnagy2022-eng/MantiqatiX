@@ -587,7 +587,26 @@ Deno.serve(async (req: Request) => {
       if (businessId) {
         business = await getBusiness(tenantId, businessId);
         if (String(business.status || "").toUpperCase() !== "ACTIVE" && status === "ACTIVE") {
-          return response(origin, { error: "BUSINESS_NOT_ACTIVE" }, 409);
+          const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
+          const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
+          const paymentConfirmed = String(billing.paymentStatus || "").toLowerCase() === "paid" && billing.paymentConfirmedByAdmin === true;
+          if (["OWNER", "BUSINESS_OWNER"].includes(role) && (isOfficialShowcase || paymentConfirmed)) {
+            const { error: activateBusinessError } = await service.from("businesses")
+              .update({ status: "ACTIVE", updated_at: new Date().toISOString() })
+              .eq("id", businessId).eq("tenant_id", tenantId);
+            if (activateBusinessError) throw activateBusinessError;
+            business = { ...business, status: "ACTIVE" };
+            await service.from("audit_logs").insert({
+              actor_user_id: user.id, action: "PLATFORM_BUSINESS_ACTIVATED_FOR_OWNER_ASSIGNMENT",
+              entity_type: "business", entity_id: businessId, tenant_id: tenantId,
+              details: { previousStatus: "INACTIVE", newStatus: "ACTIVE", reason: isOfficialShowcase ? "OFFICIAL_SHOWCASE" : "PAYMENT_CONFIRMED" },
+            });
+          } else {
+            return response(origin, {
+              error: "BUSINESS_NOT_ACTIVE",
+              message: "النشاط غير مفعّل. فعّل النشاط أولًا، وتأكد من تأكيد سداد الاشتراك من لوحة المنصة قبل تعيين حالة المالك «نشط»."
+            }, 409);
+          }
         }
       } else if (branchId) {
         return response(origin, { error: "BRANCH_REQUIRES_BUSINESS" }, 400);
