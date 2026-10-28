@@ -129,34 +129,88 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "LIST_SUBSCRIBERS") {
-      const { data: rows, error } = await service.from("user_memberships")
-        .select("id,user_id,tenant_id,organization_id,business_id,role,status,created_at")
-        .in("tenant_id", productionTenantIds).not("business_id", "is", null)
-        .in("role", ["OWNER", "BUSINESS_OWNER"]).limit(500);
-      if (error) throw error;
-      const records = (rows || []).filter((m: any) => isUuid(String(m.business_id || "")));
-      const businessIds = [...new Set(records.map((m: any) => String(m.business_id)))];
-      const { data: businesses, error: businessError } = businessIds.length
-        ? await service.from("businesses").select("id,tenant_id,name").in("id", businessIds)
-        : { data: [], error: null };
-      if (businessError) throw businessError;
-      const businessMap = new Map((businesses || []).map((b: any) => [String(b.id), b]));
-      const userIds = [...new Set(records.map((m: any) => String(m.user_id)))];
-      const userResults = await Promise.all(userIds.map(async (id) => {
-        const result = await service.auth.admin.getUserById(id);
-        return [id, result.data?.user || null] as const;
-      }));
-      const userMap = new Map(userResults);
-      return response(origin, { subscribers: records.map((m: any) => {
+      const { data: membershipRows, error: membershipListError } = await service.from("user_memberships")
+        .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at")
+        .in("tenant_id", productionTenantIds).order("created_at", { ascending: false }).limit(1500);
+      if (membershipListError) throw new Error("SUBSCRIBER_MEMBERSHIP_LIST_FAILED");
+
+      const { data: businessRows, error: businessListError } = await service.from("businesses")
+        .select("id,tenant_id,organization_id,name,code,status")
+        .in("tenant_id", productionTenantIds).limit(1000);
+      if (businessListError) throw new Error("SUBSCRIBER_BUSINESS_LIST_FAILED");
+      const businessMap = new Map((businessRows || []).map((b: any) => [String(b.id), b]));
+
+      // Auth is the source of account identity. Membership rows alone cannot represent
+      // Google accounts that have not yet been assigned a role/activity.
+      const authUsers: any[] = [];
+      for (let page = 1; page <= 50; page += 1) {
+        const { data, error } = await service.auth.admin.listUsers({ page, perPage: 1000 });
+        if (error) throw new Error("AUTH_USER_DIRECTORY_FAILED");
+        const pageUsers = data?.users || [];
+        authUsers.push(...pageUsers.filter((u: any) => !u.is_anonymous));
+        if (pageUsers.length < 1000) break;
+        if (page === 50) throw new Error("AUTH_USER_DIRECTORY_LIMIT_REACHED");
+      }
+      const userMap = new Map(authUsers.map((u: any) => [String(u.id), u]));
+      const rows = (membershipRows || []).filter((m: any) => userMap.has(String(m.user_id)));
+      const ignoredOrphanMemberships = (membershipRows || []).length - rows.length;
+      const assignedUserIds = new Set(rows.map((m: any) => String(m.user_id)));
+
+      const providerOf = (u: any) => {
+        const providers = [
+          u?.app_metadata?.provider,
+          ...(Array.isArray(u?.app_metadata?.providers) ? u.app_metadata.providers : []),
+          ...(Array.isArray(u?.identities) ? u.identities.map((i: any) => i?.provider) : []),
+        ].map((v: unknown) => String(v || "").toLowerCase()).filter(Boolean);
+        return providers.includes("google") ? "google" : providers[0] || "email";
+      };
+      const nameOf = (u: any) => String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.user_metadata?.fullName || u?.email || "حساب بدون اسم");
+      const phoneOf = (u: any) => String(u?.user_metadata?.phone || u?.phone || "");
+      const accountBase = (u: any) => ({
+        userId: String(u.id),
+        fullName: nameOf(u),
+        email: String(u.email || ""),
+        phone: phoneOf(u),
+        provider: providerOf(u),
+        emailConfirmed: Boolean(u.email_confirmed_at),
+        lastSignInAt: String(u.last_sign_in_at || ""),
+        createdAt: String(u.created_at || ""),
+        joinedDate: String(u.created_at || "").slice(0, 10),
+        username: String(u.email || ""),
+        authMethod: providerOf(u) === "google" ? "gmail_invite" : "direct_password",
+        inviteStatus: "pending",
+      });
+      const subscribers = rows.map((m: any) => {
         const u: any = userMap.get(String(m.user_id));
-        const b: any = businessMap.get(String(m.business_id));
+        const b: any = businessMap.get(String(m.business_id || ""));
         return {
-          id: String(m.id), userId: String(m.user_id), fullName: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || "مشترك"),
-          email: String(u?.email || ""), phone: String(u?.user_metadata?.phone || ""), businessId: String(m.business_id),
-          businessName: String(b?.name || "نشاط غير متاح"), status: String(m.status).toUpperCase() === "ACTIVE" ? "active" : String(m.status).toUpperCase() === "INACTIVE" ? "pending" : "suspended",
-          username: String(u?.email || ""), authMethod: "gmail_invite", inviteStatus: "pending", joinedDate: String(m.created_at || "").slice(0, 10),
+          id: String(m.id),
+          ...accountBase(u),
+          tenantId: String(m.tenant_id || ""),
+          organizationId: String(m.organization_id || ""),
+          businessId: String(m.business_id || ""),
+          branchId: String(m.branch_id || ""),
+          businessName: String(b?.name || ""),
+          role: String(m.role || "CUSTOMER").toUpperCase(),
+          status: String(m.status || "INACTIVE").toUpperCase(),
+          membershipStatus: String(m.status || "INACTIVE").toUpperCase(),
+          permissions: m.permissions && typeof m.permissions === "object" && !Array.isArray(m.permissions) ? m.permissions : {},
+          isAccountOnly: false,
+          isPlatformAccount: isPlatformAdmin(m),
         };
-      }) });
+      });
+      for (const u of authUsers) {
+        if (assignedUserIds.has(String(u.id))) continue;
+        subscribers.push({
+          id: `ACCOUNT:${String(u.id)}`,
+          ...accountBase(u),
+          tenantId: "", organizationId: "", businessId: "", branchId: "", businessName: "",
+          role: "CUSTOMER", status: "NONE", membershipStatus: "NONE", permissions: {},
+          isAccountOnly: true, isPlatformAccount: false,
+        });
+      }
+      subscribers.sort((a: any, b: any) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+      return response(origin, { subscribers, ignoredOrphanMemberships, source: "SUPABASE_AUTH_AND_USER_MEMBERSHIPS" });
     }
 
     if (action === "CREATE_BUSINESS") {
@@ -325,10 +379,14 @@ Deno.serve(async (req: Request) => {
       const status = String(body.status || "").toUpperCase();
       if (!membershipId || !["ACTIVE", "INACTIVE", "SUSPENDED"].includes(status)) return response(origin, { error: "INVALID_SUBSCRIBER_STATUS" }, 400);
       const { data: membership, error: findError } = await service.from("user_memberships")
-        .select("id,tenant_id,business_id,role").eq("id", membershipId).maybeSingle();
+        .select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions").eq("id", membershipId).maybeSingle();
       if (findError) throw findError;
-      if (!membership || !productionTenantIds.includes(String(membership.tenant_id)) || !["OWNER", "BUSINESS_OWNER"].includes(String(membership.role).toUpperCase())) throw new Error("SUBSCRIBER_NOT_FOUND");
-      if (status === "ACTIVE") {
+      if (!membership || !productionTenantIds.includes(String(membership.tenant_id))
+        || String(membership.role || "").toUpperCase() === "SUPER_ADMIN" || isPlatformAdmin(membership)) {
+        throw new Error("SUBSCRIBER_NOT_FOUND");
+      }
+      const role = String(membership.role || "").toUpperCase();
+      if (status === "ACTIVE" && membership.business_id && ["OWNER", "BUSINESS_OWNER"].includes(role)) {
         const business = await getBusiness(String(membership.tenant_id), String(membership.business_id));
         const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
         const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
@@ -336,9 +394,128 @@ Deno.serve(async (req: Request) => {
           return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "Confirm the business subscription payment before activating the owner membership." }, 409);
         }
       }
-      const { error } = await service.from("user_memberships").update({ status }).eq("id", membershipId);
+      const { error } = await service.from("user_memberships").update({ status }).eq("id", membershipId).in("tenant_id", productionTenantIds);
       if (error) throw error;
       return response(origin, { success: true, membershipId, status });
+    }
+
+    if (action === "SAVE_MEMBERSHIP") {
+      const tenantId = requireTenant(body.tenantId);
+      const userId = String(body.userId || "").trim();
+      const membershipId = String(body.membershipId || "").trim();
+      const role = String(body.role || "CUSTOMER").trim().toUpperCase();
+      const status = String(body.status || "INACTIVE").trim().toUpperCase();
+      const businessId = String(body.businessId || "").trim();
+      const branchId = String(body.branchId || "").trim();
+      const allowedRoles = new Set([
+        "CUSTOMER", "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "FINANCE", "SALES", "MARKETING",
+        "SUPPORT", "SUPPORT_MANAGER", "EMPLOYEE", "STAFF", "SERVICE_PROVIDER", "PROVIDER_OWNER",
+        "PROVIDER_ADMIN", "BRANCH_MANAGER", "PROVIDER_FINANCE", "PROVIDER_MARKETING",
+        "PROVIDER_OPERATIONS", "PROVIDER_SUPPORT",
+      ]);
+      if (!isUuid(userId) || !allowedRoles.has(role) || !["ACTIVE", "INACTIVE", "SUSPENDED"].includes(status)) {
+        return response(origin, { error: "INVALID_MEMBERSHIP_ASSIGNMENT" }, 400);
+      }
+      const { data: authResult, error: authLookupError } = await service.auth.admin.getUserById(userId);
+      if (authLookupError || !authResult?.user || authResult.user.is_anonymous) return response(origin, { error: "AUTH_USER_NOT_FOUND" }, 404);
+
+      let business: any = null;
+      if (businessId) {
+        business = await getBusiness(tenantId, businessId);
+        if (String(business.status || "").toUpperCase() !== "ACTIVE" && status === "ACTIVE") {
+          return response(origin, { error: "BUSINESS_NOT_ACTIVE" }, 409);
+        }
+      } else if (branchId) {
+        return response(origin, { error: "BRANCH_REQUIRES_BUSINESS" }, 400);
+      }
+      if (branchId) {
+        if (!businessId || !safeBranch(branchId)) return response(origin, { error: "INVALID_BRANCH_ID" }, 400);
+        const { data: branch, error: branchError } = await service.from("branches").select("id")
+          .eq("id", branchId).eq("business_id", businessId).eq("tenant_id", tenantId).eq("status", "ACTIVE").maybeSingle();
+        if (branchError) throw branchError;
+        if (!branch) return response(origin, { error: "BRANCH_NOT_FOUND" }, 404);
+      }
+
+      let existing: any = null;
+      if (membershipId) {
+        const { data, error } = await service.from("user_memberships")
+          .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions")
+          .eq("id", membershipId).maybeSingle();
+        if (error) throw error;
+        existing = data;
+        if (!existing || !productionTenantIds.includes(String(existing.tenant_id))
+          || String(existing.user_id) !== userId
+          || String(existing.role || "").toUpperCase() === "SUPER_ADMIN" || isPlatformAdmin(existing)) {
+          return response(origin, { error: "MEMBERSHIP_NOT_EDITABLE" }, 403);
+        }
+      } else {
+        let existingQuery = service.from("user_memberships")
+          .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions")
+          .eq("user_id", userId).eq("tenant_id", tenantId).limit(1);
+        existingQuery = businessId ? existingQuery.eq("business_id", businessId) : existingQuery.is("business_id", null);
+        existingQuery = branchId ? existingQuery.eq("branch_id", branchId) : existingQuery.is("branch_id", null);
+        const { data, error } = await existingQuery;
+        if (error) throw error;
+        existing = (data || []).find((row: any) => String(row.role || "").toUpperCase() !== "SUPER_ADMIN" && !isPlatformAdmin(row)) || null;
+      }
+
+      const previousPermissions = existing?.permissions && typeof existing.permissions === "object" && !Array.isArray(existing.permissions)
+        ? { ...existing.permissions } : {};
+      delete previousPermissions.scope;
+      delete previousPermissions.full_control;
+      const catalogEnabled = typeof body.catalogEnabled === "boolean" ? body.catalogEnabled : previousPermissions.catalog !== false;
+      const catalogWrite = typeof body.catalogWrite === "boolean" ? body.catalogWrite : previousPermissions.catalog_write !== false && previousPermissions.catalog_read_only !== true;
+      previousPermissions.catalog = catalogEnabled;
+      previousPermissions.catalog_write = catalogWrite;
+      previousPermissions.catalog_read_only = catalogEnabled && !catalogWrite;
+
+      if (status === "ACTIVE" && business && ["OWNER", "BUSINESS_OWNER"].includes(role)) {
+        const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
+        const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
+        if (!isOfficialShowcase && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
+          return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "يجب تأكيد سداد اشتراك النشاط قبل تفعيل دور المالك." }, 409);
+        }
+      }
+
+      const payload: Record<string, unknown> = {
+        tenant_id: tenantId,
+        organization_id: business?.organization_id || existing?.organization_id || null,
+        business_id: businessId || null,
+        branch_id: branchId || null,
+        role,
+        status,
+        permissions: previousPermissions,
+      };
+      let saved: any;
+      if (existing) {
+        const { data, error } = await service.from("user_memberships").update(payload).eq("id", existing.id)
+          .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at").single();
+        if (error) throw error;
+        saved = data;
+      } else {
+        const id = crypto.randomUUID();
+        const { data, error } = await service.from("user_memberships").insert({
+          id, user_id: userId, ...payload,
+        }).select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at").single();
+        if (error) {
+          // Handle a concurrent assignment safely by re-reading the canonical membership.
+          throw new Error("MEMBERSHIP_SAVE_FAILED");
+        }
+        saved = data;
+      }
+      const { data: savedBusiness } = businessId
+        ? await service.from("businesses").select("id,name").eq("id", businessId).maybeSingle()
+        : { data: null };
+      return response(origin, {
+        success: true,
+        membership: {
+          id: String(saved.id), userId: String(saved.user_id), tenantId: String(saved.tenant_id),
+          organizationId: String(saved.organization_id || ""), businessId: String(saved.business_id || ""),
+          branchId: String(saved.branch_id || ""), role: String(saved.role || ""),
+          status: String(saved.status || ""), permissions: saved.permissions || {},
+          businessName: String(savedBusiness?.name || ""), createdAt: saved.created_at,
+        },
+      });
     }
 
     if (action === "BUSINESS_SETTINGS_UPDATE") {
@@ -377,6 +554,30 @@ Deno.serve(async (req: Request) => {
         .eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
       return response(origin, { success: true, businessId, status: "INACTIVE" });
+    }
+
+    if (action === "DELETE_BUSINESS") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "").trim();
+      if (!isUuid(businessId)) return response(origin, { error: "INVALID_BUSINESS_ID" }, 400);
+      await getBusiness(tenantId, businessId);
+      const { data, error } = await service.rpc("mnty_platform_admin_delete_business", {
+        p_tenant_id: tenantId,
+        p_business_id: businessId,
+        p_actor_user_id: user.id,
+      });
+      if (error) {
+        const message = String(error.message || "");
+        if (message.includes("BUSINESS_DELETE_BLOCKED_BY_HISTORY")) {
+          return response(origin, {
+            error: "BUSINESS_DELETE_BLOCKED_BY_HISTORY",
+            message: "لا يمكن حذف النشاط نهائيًا لوجود طلبات أو حركات مخزون/محاسبة أو اتفاقيات مرتبطة به. يمكنك تجميده أو تعطيله مع الحفاظ على السجلات المالية.",
+          }, 409);
+        }
+        if (message.includes("BUSINESS_NOT_FOUND")) return response(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
+        throw error;
+      }
+      return response(origin, data || { success: true, businessId, deleted: true });
     }
 
     return response(origin, { error: "UNSUPPORTED_ACTION" }, 400);
