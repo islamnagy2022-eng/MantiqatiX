@@ -10,6 +10,7 @@ const directory = read('apps/catalog-frontend/src/components/DirectoryView.tsx')
 const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const production = read('apps/catalog-frontend/src/lib/production.ts');
 const backend = read('supabase/functions/catalog-platform-admin/index.ts');
+const publicDirectory = read('supabase/functions/public-catalog-directory/index.ts');
 
 const expectedGroups = [
   'medical_health', 'food_grocery', 'fashion_beauty', 'home_maintenance',
@@ -59,7 +60,12 @@ assert.ok(directory.includes('matchesCategoryKind') && directory.includes('match
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
 assert.ok(context.includes('activityClassificationType: data.categoryClassificationType'), 'The client must send activity/profession type to the server.');
 assert.ok(context.includes('activitySpecialty: data.activitySpecialty'), 'The client must send selected specialty to the server.');
-assert.ok(production.includes('activity_group_code'), 'Production mapping must read saved canonical group metadata.');
+assert.ok(production.includes('raw.activityGroupCode || raw.activity_group_code'), 'Production mapping must read canonical group metadata from the public directory response.');
+assert.ok(production.includes('raw.activityClassificationType'), 'Production mapping must preserve activity/profession type from the public directory response.');
+assert.ok(production.includes('raw.activitySpecialty'), 'Production mapping must preserve specialty from the public directory response.');
+assert.ok(publicDirectory.includes('activityGroupCode: String(business.settings?.activity_group_code'), 'Public directory must return the canonical main group code.');
+assert.ok(publicDirectory.includes('activityClassificationType: String(business.settings?.activity_classification_type'), 'Public directory must return the activity/profession type.');
+assert.ok(publicDirectory.includes('activitySpecialty: String(business.settings?.activity_specialty'), 'Public directory must return the specialty without exposing all business settings.');
 
 for (const groupId of expectedGroups) {
   assert.ok(backend.includes(`"${groupId}"`), `Server allowlist is missing canonical group ${groupId}.`);
