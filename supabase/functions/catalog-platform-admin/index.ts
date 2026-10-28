@@ -267,8 +267,9 @@ Deno.serve(async (req: Request) => {
       const slug = slugify(String(input.slug || name)) || `business-${randomCode.toLowerCase()}`;
       let createdBusinessId = "";
       try {
+        const businessId = crypto.randomUUID();
         const { data: created, error: createError } = await service.from("businesses").insert({
-          tenant_id: tenantId, organization_id: organizationId, name,
+          id: businessId, tenant_id: tenantId, organization_id: organizationId, name,
           code: `MX-${randomCode}`, status: "INACTIVE",
           settings: {
             activity_code: category,
@@ -626,8 +627,9 @@ Deno.serve(async (req: Request) => {
 
     return response(origin, { error: "UNSUPPORTED_ACTION" }, 400);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "CATALOG_PLATFORM_OPERATION_FAILED";
-    console.error("catalog-platform-admin failed", message);
+    const errorRecord = error && typeof error === "object" ? error as Record<string, unknown> : {};
+    const message = error instanceof Error ? error.message : String(errorRecord.message || errorRecord.code || "CATALOG_PLATFORM_OPERATION_FAILED");
+    console.error("catalog-platform-admin failed", { message, code: errorRecord.code, details: errorRecord.details, hint: errorRecord.hint });
     const known = ["TENANT_SCOPE_FORBIDDEN", "BUSINESS_NOT_FOUND", "INVALID_BUSINESS_ID", "TENANT_NOT_ACTIVE", "BUSINESS_NOT_ACTIVE", "SUBSCRIBER_NOT_FOUND", "PRODUCTION_TENANT_REQUIRED"];
     return response(origin, { error: known.includes(message) ? message : "CATALOG_PLATFORM_OPERATION_FAILED" }, known.includes(message) ? 403 : 400);
   }
