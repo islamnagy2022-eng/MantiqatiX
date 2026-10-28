@@ -13,6 +13,7 @@ on:
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
       - "supabase/tests/owner_profile_persistence_integration.sql"
+      - "supabase/tests/rc455_commission_preview_integration.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
   pull_request:
     branches: ["main"]
@@ -26,6 +27,7 @@ on:
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
       - "supabase/tests/owner_profile_persistence_integration.sql"
+      - "supabase/tests/rc455_commission_preview_integration.sql"
       - ".github/workflows/forward-migration-chain-replay.yml"
 
 permissions:
@@ -100,6 +102,9 @@ jobs:
 
           echo "OWNER_PROFILE_PERSISTENCE_INTEGRATION"
           psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/owner_profile_persistence_integration.sql
+
+          echo "RC455_COMMISSION_PREVIEW_INTEGRATION"
+          psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/rc455_commission_preview_integration.sql
 
           psql "$db_url" -v ON_ERROR_STOP=1 -v mantiqati_disposable=on -f supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql
           psql "$db_url" -v ON_ERROR_STOP=1 -f scripts/verify-tenant-isolation.sql
