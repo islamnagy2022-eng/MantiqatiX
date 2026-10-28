@@ -93,6 +93,35 @@ Deno.serve(async (req: Request) => {
       return data;
     };
 
+    // Match the live audit_logs schema: id is required and payloads belong in
+    // old_values/new_values (there is no details column on this production table).
+    const writeAuditLog = async (entry: {
+      tenantId: string;
+      businessId?: string | null;
+      organizationId?: string | null;
+      action: string;
+      entityType: string;
+      entityId: string;
+      oldValues?: Record<string, unknown>;
+      newValues?: Record<string, unknown>;
+      result?: string;
+    }) => {
+      const { error } = await service.from("audit_logs").insert({
+        id: crypto.randomUUID(),
+        tenant_id: entry.tenantId,
+        organization_id: entry.organizationId || null,
+        business_id: entry.businessId || null,
+        actor_user_id: user.id,
+        action: entry.action,
+        entity_type: entry.entityType,
+        entity_id: entry.entityId,
+        old_values: entry.oldValues || {},
+        new_values: entry.newValues || {},
+        result: entry.result || "SUCCESS",
+      });
+      return error;
+    };
+
     if (action === "GET_SETTINGS") {
       const { data, error } = await service.from("bizcatalog_platform_settings")
         .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
@@ -190,7 +219,13 @@ Deno.serve(async (req: Request) => {
         const { error } = await service.from("businesses").update({ name, settings: next, updated_at: new Date().toISOString() })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
-        await service.from("audit_logs").insert({ actor_user_id: user.id, action: "PLATFORM_BUSINESS_UPDATED", entity_type: "business", entity_id: businessId, tenant_id: tenantId, details: { name, fields: ["name","category","description","images"] } });
+        const auditError = await writeAuditLog({
+          tenantId, businessId, organizationId: business.organization_id || null,
+          action: "PLATFORM_BUSINESS_UPDATED", entityType: "business", entityId: businessId,
+          oldValues: { name: business.name, status: business.status },
+          newValues: { name, fields: ["name", "category", "description", "images"] },
+        });
+        if (auditError) throw new Error("PLATFORM_AUDIT_WRITE_FAILED");
         return response(origin, { success: true });
       }
       if (operation === "DEACTIVATE") {
@@ -200,7 +235,13 @@ Deno.serve(async (req: Request) => {
         const { error } = await service.from("businesses").update({ status: "INACTIVE", settings, updated_at: new Date().toISOString() })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
-        await service.from("audit_logs").insert({ actor_user_id: user.id, action: "PLATFORM_BUSINESS_DEACTIVATED", entity_type: "business", entity_id: businessId, tenant_id: tenantId, details: { oldStatus: business.status, newStatus: "INACTIVE" } });
+        const auditError = await writeAuditLog({
+          tenantId, businessId, organizationId: business.organization_id || null,
+          action: "PLATFORM_BUSINESS_DEACTIVATED", entityType: "business", entityId: businessId,
+          oldValues: { status: business.status, catalogPublicEnabled: business.settings?.catalog_public_enabled === true },
+          newValues: { status: "INACTIVE", catalogPublicEnabled: false, publicationStatus: "UNPUBLISHED" },
+        });
+        if (auditError) throw new Error("PLATFORM_AUDIT_WRITE_FAILED");
         return response(origin, { success: true });
       }
       if (operation === "RESTORE") {
@@ -214,7 +255,13 @@ Deno.serve(async (req: Request) => {
         const { error } = await service.from("businesses").update({ status: "ACTIVE", updated_at: new Date().toISOString() })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
-        await service.from("audit_logs").insert({ actor_user_id: user.id, action: "PLATFORM_BUSINESS_RESTORED", entity_type: "business", entity_id: businessId, tenant_id: tenantId, details: { oldStatus: business.status, newStatus: "ACTIVE" } });
+        const auditError = await writeAuditLog({
+          tenantId, businessId, organizationId: business.organization_id || null,
+          action: "PLATFORM_BUSINESS_RESTORED", entityType: "business", entityId: businessId,
+          oldValues: { status: business.status },
+          newValues: { status: "ACTIVE" },
+        });
+        if (auditError) throw new Error("PLATFORM_AUDIT_WRITE_FAILED");
         return response(origin, { success: true });
       }
       return response(origin, { error: "INVALID_BUSINESS_OPERATION" }, 400);
@@ -443,11 +490,16 @@ Deno.serve(async (req: Request) => {
           },
         });
         if (providerError) throw providerError;
-        await service.from("audit_logs").insert({
-          actor_user_id: user.id, action: "PLATFORM_BUSINESS_CREATED", entity_type: "business",
-          entity_id: created.id, tenant_id: tenantId,
-          details: { name, category, subscriptionMode, subscriptionAmount, paymentDueDate: subscriptionMode === "FREE" ? null : paymentDueDate, publicationStatus: "PENDING_PUBLICATION" },
+        const creationAuditError = await writeAuditLog({
+          tenantId, businessId: String(created.id), organizationId: organizationId || null,
+          action: "PLATFORM_BUSINESS_CREATED", entityType: "business", entityId: String(created.id),
+          newValues: {
+            name, category, subscriptionMode, subscriptionAmount,
+            paymentDueDate: subscriptionMode === "FREE" ? null : paymentDueDate,
+            publicationStatus: "PENDING_PUBLICATION",
+          },
         });
+        if (creationAuditError) throw new Error("PLATFORM_AUDIT_WRITE_FAILED");
         return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "INACTIVE", subscriptionMode, subscriptionAmount, paymentStatus: subscriptionMode === "FREE" ? "free" : "pending" } }, 201);
       } catch (error) {
         if (createdBusinessId) {
@@ -547,10 +599,16 @@ Deno.serve(async (req: Request) => {
         }
         throw new Error(membershipInsertError.message || "SUBSCRIBER_MEMBERSHIP_CREATE_FAILED");
       }
-      await service.from("audit_logs").insert({
-        actor_user_id: user.id, action: "BIZCATALOG_SUBSCRIBER_CREATED", entity_type: "user_membership",
-        entity_id: membershipId, details: { tenantId, businessId, subscriberUserId: userId, reusedAuthIdentity: !createdAuthUser },
-      }).then(() => {}).catch(() => {});
+      const membershipAuditError = await writeAuditLog({
+        tenantId, businessId, action: "BIZCATALOG_SUBSCRIBER_CREATED",
+        entityType: "user_membership", entityId: String(membershipId),
+        newValues: { subscriberUserId: userId, reusedAuthIdentity: !createdAuthUser },
+      });
+      if (membershipAuditError) {
+        console.error("subscriber created but audit log write failed", {
+          membershipId, code: membershipAuditError.code, message: membershipAuditError.message,
+        });
+      }
       return response(origin, { success: true, membershipId, userId, email, status: "INACTIVE", paymentRequired: true, reusedAccount: !createdAuthUser }, 201);
     }
 
@@ -619,11 +677,17 @@ Deno.serve(async (req: Request) => {
               .eq("id", businessId).eq("tenant_id", tenantId);
             if (activateBusinessError) throw activateBusinessError;
             business = { ...business, status: "ACTIVE" };
-            await service.from("audit_logs").insert({
-              actor_user_id: user.id, action: "PLATFORM_BUSINESS_ACTIVATED_FOR_OWNER_ASSIGNMENT",
-              entity_type: "business", entity_id: businessId, tenant_id: tenantId,
-              details: { previousStatus: "INACTIVE", newStatus: "ACTIVE", reason: isOfficialShowcase ? "OFFICIAL_SHOWCASE" : paymentConfirmed ? "PAYMENT_CONFIRMED" : "ADMIN_APPROVED_FREE_ACTIVATION" },
+            const auditError = await writeAuditLog({
+              tenantId, businessId, organizationId: business.organization_id || null,
+              action: "PLATFORM_BUSINESS_ACTIVATED_FOR_OWNER_ASSIGNMENT",
+              entityType: "business", entityId: businessId,
+              oldValues: { status: "INACTIVE" },
+              newValues: {
+                status: "ACTIVE",
+                reason: isOfficialShowcase ? "OFFICIAL_SHOWCASE" : paymentConfirmed ? "PAYMENT_CONFIRMED" : "ADMIN_APPROVED_FREE_ACTIVATION",
+              },
             });
+            if (auditError) throw new Error("PLATFORM_AUDIT_WRITE_FAILED");
           } else {
             return response(origin, {
               error: "BUSINESS_NOT_ACTIVE",
@@ -767,10 +831,20 @@ Deno.serve(async (req: Request) => {
         const { error } = await service.from("businesses").update({ status: "ACTIVE", settings: nextSettings, updated_at: now })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
-        const { error: auditError } = await service.from("audit_logs").insert({
-          actor_user_id: user.id, action: "PLATFORM_BUSINESS_PUBLICATION_APPROVED",
-          entity_type: "business", entity_id: businessId, tenant_id: tenantId,
-          details: { publicationStatus: "PUBLISHED", providerProfileId, ownerRequired: false, approvedWithIncompleteOptionalData: true },
+        const auditError = await writeAuditLog({
+          tenantId, businessId, organizationId: business.organization_id || null,
+          action: "PLATFORM_BUSINESS_PUBLICATION_APPROVED",
+          entityType: "business", entityId: businessId,
+          oldValues: {
+            status: business.status,
+            catalogPublicEnabled: currentSettings.catalog_public_enabled === true,
+            publicationStatus: currentBizcatalog.publicationStatus || null,
+          },
+          newValues: {
+            status: "ACTIVE", catalogPublicEnabled: true, publicationStatus: "PUBLISHED",
+            providerProfileId, providerProfileStatus: "ACTIVE", ownerRequired: false,
+            approvedWithIncompleteOptionalData: true,
+          },
         });
         if (auditError) {
           console.error("publication state saved but audit log write failed", { businessId, code: auditError.code, message: auditError.message });
@@ -786,10 +860,19 @@ Deno.serve(async (req: Request) => {
       const { error } = await service.from("businesses").update({ status: "INACTIVE", settings: nextSettings, updated_at: new Date().toISOString() })
         .eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
-      const { error: rejectionAuditError } = await service.from("audit_logs").insert({
-        actor_user_id: user.id, action: "PLATFORM_BUSINESS_PUBLICATION_REJECTED",
-        entity_type: "business", entity_id: businessId, tenant_id: tenantId,
-        details: { publicationStatus: "REJECTED", reason: reason || "لم يتم توضيح السبب" },
+      const rejectionAuditError = await writeAuditLog({
+        tenantId, businessId, organizationId: business.organization_id || null,
+        action: "PLATFORM_BUSINESS_PUBLICATION_REJECTED",
+        entityType: "business", entityId: businessId,
+        oldValues: {
+          status: business.status,
+          catalogPublicEnabled: currentSettings.catalog_public_enabled === true,
+          publicationStatus: currentBizcatalog.publicationStatus || null,
+        },
+        newValues: {
+          status: "INACTIVE", catalogPublicEnabled: false,
+          publicationStatus: "REJECTED", reason: reason || "لم يتم توضيح السبب",
+        },
       });
       if (rejectionAuditError) {
         console.error("rejection state saved but audit log write failed", { businessId, code: rejectionAuditError.code, message: rejectionAuditError.message });
@@ -872,7 +955,7 @@ Deno.serve(async (req: Request) => {
     const errorRecord = error && typeof error === "object" ? error as Record<string, unknown> : {};
     const message = error instanceof Error ? error.message : String(errorRecord.message || errorRecord.code || "CATALOG_PLATFORM_OPERATION_FAILED");
     console.error("catalog-platform-admin failed", { message, code: errorRecord.code, details: errorRecord.details, hint: errorRecord.hint });
-    const known = ["TENANT_SCOPE_FORBIDDEN", "BUSINESS_NOT_FOUND", "INVALID_BUSINESS_ID", "TENANT_NOT_ACTIVE", "BUSINESS_NOT_ACTIVE", "SUBSCRIBER_NOT_FOUND", "PRODUCTION_TENANT_REQUIRED"];
+    const known = ["TENANT_SCOPE_FORBIDDEN", "BUSINESS_NOT_FOUND", "INVALID_BUSINESS_ID", "TENANT_NOT_ACTIVE", "BUSINESS_NOT_ACTIVE", "SUBSCRIBER_NOT_FOUND", "PRODUCTION_TENANT_REQUIRED", "PLATFORM_AUDIT_WRITE_FAILED"];
     if (message === "LEGAL_BUSINESS_OWNER_REQUIRED") {
       return response(origin, {
         error: message,
