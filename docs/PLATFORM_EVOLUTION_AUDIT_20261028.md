@@ -49,11 +49,10 @@ The live Supabase schema exposes these relevant tables with RLS enabled:
 5. Reuse existing subscription tables and payment intents; verify constraints and lifecycle before UI changes.
 6. Add integration and negative authorization tests before any production migration or deployment.
 
-## Status
-- Audit: DONE (initial, read-only).
-- Catalog registration UX implementation: TODO.
-- Expanded commission rule schema/API/UI: TODO.
-- Production migration or financial behavior change: NOT PERFORMED.
-- Live browser E2E and deployment verification: NOT VERIFIED.
-
-This document records observed repository/database foundations only. It is not a production readiness certificate.
+## Status — follow-on work
+- Initial read-only audit: DONE.
+- Flexible commission draft schema, tenant-scoped RPC, draft UI, audit trigger/history: IMPLEMENTED in RC452. Additive migration applied to production; live schema and RPC presence verified.
+- Commission calculation activation: BLOCKED by design until the payment engine supports all scopes, events, effective dates, bounds, exemption, reversals, and combined formulas.
+- Catalog CSV import: IMPLEMENTED as a preview-first path with local draft autosave/resume, duplicate validation, sequential server-authoritative writes, and retryable failures.
+- Direct XLSX import, AI image suggestions requiring user approval, complete multi-step publication workflow, and cross-device drafts: NOT YET IMPLEMENTED.
+- Live authenticated browser E2E: NOT VERIFIED. This is not a production readiness certificate.
