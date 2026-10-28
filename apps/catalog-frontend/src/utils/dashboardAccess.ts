@@ -24,7 +24,13 @@ export const hasBusinessModulePermission = (
   moduleName: string,
   allowedActions: string[] = ['view'],
 ): boolean => {
-  if (session.role === 'admin' || isBusinessManagementRole(session)) return true;
+  if (session.role === 'admin') return true;
+  if (isBusinessManagementRole(session)) {
+    // The broad legacy UI and business-level reports are not branch-aware yet.
+    // Branch-scoped managers are limited to the branch-aware catalog and employee RPCs.
+    if (!session.membershipBranchId) return true;
+    return ['HOME', 'CATALOG', 'EMPLOYEES'].includes(moduleName.toUpperCase());
+  }
   // RC115's server resolver reads scoped permissions from EMPLOYEE/STAFF memberships
   // (or platform_role_assignments); a raw MANAGER/FINANCE/etc user_membership row
   // is not a supported grant source, so the UI must fail closed for those roles.
