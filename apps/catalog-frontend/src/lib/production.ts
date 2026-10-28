@@ -8,10 +8,11 @@ if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
   throw new Error('تعذر تحميل إعدادات الاتصال الإنتاجي لمنصة MantiqatiX');
 }
 
-export type CatalogAiImageKind = 'activity' | 'product' | 'service';
+export type CatalogAiImageKind = 'activity' | 'cover' | 'product' | 'service';
 
 export async function generateCatalogAiImage(input: {
   businessId: string;
+  branchId?: string;
   kind: CatalogAiImageKind;
   name: string;
   category?: string;
@@ -22,6 +23,7 @@ export async function generateCatalogAiImage(input: {
       body: {
         action: 'generate_catalog_image',
         businessId: input.businessId,
+        branchId: input.branchId || '',
         imageKind: input.kind,
         name: input.name,
         category: input.category || '',
