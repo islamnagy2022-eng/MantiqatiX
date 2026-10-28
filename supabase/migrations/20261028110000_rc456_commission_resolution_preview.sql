@@ -117,7 +117,7 @@ begin
         )
         or (
           v_context_scope <> 'TENANT'
-          and v_context_scope not in ('CATEGORY','BUSINESS')
+          and v_context_scope <> 'BUSINESS'
           and r.scope_type = v_context_scope
           and r.scope_ref = v_context_ref
           and (r.business_id is null or r.business_id = p_business_id)
@@ -181,7 +181,7 @@ end;
 $function$;
 
 revoke all on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, text, numeric) from public, anon;
-grant execute on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, numeric) to authenticated;
+grant execute on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, text, numeric) to authenticated;
 
-comment on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, numeric) is
+comment on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, text, numeric) is
 'Read-only scope/priority simulation across inactive commission drafts. Uses explicit priority, scope specificity, updated timestamp, then stable rule id; never participates in payments.';
