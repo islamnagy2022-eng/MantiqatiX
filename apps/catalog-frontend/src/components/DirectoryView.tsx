@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Business, FunctionalGroup, ActivityCategory } from '../types';
 import {
@@ -113,6 +113,9 @@ export const DirectoryView: React.FC = () => {
 
   // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
+  // Match the cover container to each image's real aspect ratio instead of cropping it to a fixed height.
+  const [coverAspectRatio, setCoverAspectRatio] = useState('650 / 228');
+  const coverImageRefs = useRef<Array<HTMLImageElement | null>>([]);
 
   // Filter slides based on selected governorate
   const activeCoverSlides = selectedGovFilter === 'all'
@@ -130,6 +133,13 @@ export const DirectoryView: React.FC = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, [activeCoverSlides.length]);
+
+  useEffect(() => {
+    const image = coverImageRefs.current[currentCoverIndex];
+    if (image?.naturalWidth && image?.naturalHeight) {
+      setCoverAspectRatio(`${image.naturalWidth} / ${image.naturalHeight}`);
+    }
+  }, [currentCoverIndex, activeCoverSlides[currentCoverIndex]?.image]);
 
   const filteredBusinesses = businesses.filter((biz) => {
     // Fail closed: the directory must never expose unpublished or frozen businesses,
@@ -199,7 +209,7 @@ export const DirectoryView: React.FC = () => {
         {/* 2. One full-width cover carousel showing only currently available activities. */}
         <section aria-label="الأنشطة المتاحة حاليًا" className="space-y-3">
           {activeCoverSlides.length > 0 ? (
-            <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
+            <div style={{ aspectRatio: coverAspectRatio }} className="relative w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
               {activeCoverSlides.map((slide, idx) => (
                 <div
                   key={slide.businessId || `${slide.title}-${idx}`}
@@ -220,10 +230,18 @@ export const DirectoryView: React.FC = () => {
                     className="absolute inset-0 block h-full w-full cursor-pointer text-left focus-visible:ring-4 focus-visible:ring-emerald-400"
                   >
                     <img
+                      ref={(image) => { coverImageRefs.current[idx] = image; }}
                       src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
                       alt={slide.title}
-                      className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+                      className="h-full w-full object-contain object-center transition-transform duration-700 group-hover:scale-[1.01]"
                       loading={idx === currentCoverIndex ? 'eager' : 'lazy'}
+                      onLoad={(event) => {
+                        if (idx !== currentCoverIndex) return;
+                        const { naturalWidth, naturalHeight } = event.currentTarget;
+                        if (naturalWidth > 0 && naturalHeight > 0) {
+                          setCoverAspectRatio(`${naturalWidth} / ${naturalHeight}`);
+                        }
+                      }}
                       onError={(event) => {
                         const image = event.currentTarget;
                         const fallback = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });

@@ -189,11 +189,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('store') || params.get('businessId') || '';
     const requestedView = params.get('view');
-    const defaultView: ViewMode = boot.authSession.role === 'admin'
-      ? 'super_admin'
-      : boot.authSession.role === 'subscriber'
-        ? 'merchant_admin'
-        : 'directory';
+    // A newly signed-in account always lands on the public home directory.
+    // Explicit, role-authorized dashboard routes are still restorable on refresh.
+    const defaultView: ViewMode = 'directory';
 
     // A share URL must continue to open its public catalog for signed-in and guest
     // users alike, but it must never bypass the public-catalog API's publication gate.
@@ -224,13 +222,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    const safeRequestedView: ViewMode = boot.authSession.role === 'admin'
-      ? requestedView === 'directory' || requestedView === 'merchant_admin' || requestedView === 'super_admin'
-        ? requestedView
-        : 'super_admin'
-      : boot.authSession.role === 'subscriber'
-        ? requestedView === 'directory' ? 'directory' : 'merchant_admin'
-        : 'directory';
+    const safeRequestedView: ViewMode = requestedView === 'directory'
+      ? 'directory'
+      : boot.authSession.role === 'admin'
+        ? requestedView === 'merchant_admin' || requestedView === 'super_admin' ? requestedView : 'directory'
+        : boot.authSession.role === 'subscriber'
+          ? requestedView === 'merchant_admin' ? 'merchant_admin' : 'directory'
+          : 'directory';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -422,7 +420,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSubscribers(boot.subscribers);
         setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
         setSelectedBusinessIdState(boot.authSession.businessId || boot.businesses[0]?.id || '');
-        setCurrentView(boot.authSession.role === 'admin' ? 'super_admin' : boot.authSession.role === 'subscriber' ? 'merchant_admin' : 'directory');
+        setCurrentView('directory');
         return { success: true, message: 'تم إنشاء الحساب. تفعيل صلاحيات صاحب النشاط يحتاج اعتماد إدارة المنصة.' };
       }
       return {

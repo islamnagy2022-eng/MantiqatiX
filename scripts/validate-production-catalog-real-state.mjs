@@ -119,3 +119,9 @@ assert.match(backend, /INVALID_DEFAULT_COMMISSION/, 'server must validate platfo
 assert.match(backend, /const merged = \{ \.\.\.current, \.\.\.safe \}/, 'partial platform settings saves must preserve existing settings');
 
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
+
+assert.match(directory, /const \[coverAspectRatio, setCoverAspectRatio\] = useState\('650 \/ 228'\)/, 'Home cover must have a responsive fallback based on the cover image aspect ratio');
+assert.match(directory, /style=\{\{ aspectRatio: coverAspectRatio \}\}/, 'Home cover height must follow the active image aspect ratio instead of a fixed height');
+assert.match(directory, /image\.naturalWidth[\s\S]{0,220}image\.naturalHeight/, 'Home cover must adapt to the actual dimensions of the loaded activity image');
+assert.match(directory, /object-contain object-center/, 'Home cover images must remain fully visible without cropping');
+assert.doesNotMatch(directory, /w-full h-64 sm:h-80 md:h-96/, 'Home cover must not force a fixed responsive height');
