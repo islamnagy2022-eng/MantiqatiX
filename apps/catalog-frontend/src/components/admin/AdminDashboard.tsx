@@ -1047,10 +1047,10 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-black text-base text-slate-900">
-                  جدول التصنيفات التجارية ومجموعاتها الوظيفية
+                  دليل الأنشطة والمهن ومجموعاتها الرئيسية
                 </h3>
                 <p className="text-xs text-slate-500">
-                  يمكنك مراجعة جميع التصنيفات وتعديل المجموعات الوظيفية المقترنة بها أو إضافة تصنيفات جديدة.
+                  يمكنك مراجعة الأنشطة والمهن وتخصصاتها، أو إضافة تصنيف جديد وربطه بإحدى المجموعات الرئيسية الـ18.
                 </p>
               </div>
 
@@ -1068,7 +1068,7 @@ export const AdminDashboard: React.FC = () => {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
                     <th className="py-3 px-4">اسم التصنيف</th>
-                    <th className="py-3 px-4">التصنيف الوظيفي التابع له</th>
+                    <th className="py-3 px-4">المجموعة الرئيسية</th>
                     <th className="py-3 px-4">الوصف</th>
                     <th className="py-3 px-4">الأنشطة المرتبطة</th>
                     <th className="py-3 px-4 text-center">إجراءات</th>
@@ -2171,7 +2171,7 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                 </select>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  سيتم تمكين الخصائص والموديلات التخصصية لهذا القطاع تلقائياً على هذا التصنيف.
+                  هذا الاختيار يحدد مكان التصنيف في الدليل فقط؛ ولا يفعّل أي وحدة تشغيلية أو صلاحية تلقائيًا.
                 </p>
               </div>
 
