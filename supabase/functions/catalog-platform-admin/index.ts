@@ -263,6 +263,56 @@ Deno.serve(async (req: Request) => {
         .eq("tenant_id", tenantId).eq("status", "ACTIVE").limit(1);
       if (orgError) throw orgError;
       const organizationId = platformMembership?.organization_id || orgs?.[0]?.id || null;
+      // Idempotency guard: repeated submits for the same tenant, normalized name,
+      // category and owner phone reuse the existing activity instead of creating a duplicate.
+      // This is intentionally read-only and never changes billing/publication state.
+      const normalizeBusinessName = (value: unknown) => String(value || "")
+        .normalize("NFKD")
+        .replace(/[\\u0300-\\u036f\\u064B-\\u065F\\u0670]/g, "")
+        .replace(/[أإآ]/g, "ا")
+        .replace(/ى/g, "ي")
+        .toLocaleLowerCase("ar")
+        .replace(/[^\\p{L}\\p{N}]+/gu, "");
+      const normalizedName = normalizeBusinessName(name);
+      const { data: sameTenantBusinesses, error: duplicateReadError } = await service.from("businesses")
+        .select("id,tenant_id,organization_id,name,code,status,settings,created_at")
+        .eq("tenant_id", tenantId)
+        .limit(1000);
+      if (duplicateReadError) throw duplicateReadError;
+      const nameAndCategoryMatches = (sameTenantBusinesses || []).filter((row: any) =>
+        normalizeBusinessName(row.name) === normalizedName &&
+        normalizeBusinessName(row.settings?.category_code || row.settings?.activity_code) === normalizeBusinessName(category));
+      if (nameAndCategoryMatches.length) {
+        const candidateIds = nameAndCategoryMatches.map((row: any) => String(row.id));
+        const { data: candidateBranches, error: branchReadError } = await service.from("branches")
+          .select("id,business_id,phone,status,created_at")
+          .in("business_id", candidateIds)
+          .order("created_at", { ascending: true })
+          .limit(2000);
+        if (branchReadError) throw branchReadError;
+        const submittedPhone = phoneDigits;
+        const matching = nameAndCategoryMatches
+          .filter((row: any) => (candidateBranches || []).some((branch: any) =>
+            String(branch.business_id) === String(row.id) &&
+            String(branch.phone || "").replace(/\\D/g, "") === submittedPhone))
+          .sort((a: any, b: any) => String(a.created_at || "").localeCompare(String(b.created_at || "")));
+        if (matching.length) {
+          const existing = matching[0];
+          const existingBranch = (candidateBranches || []).find((branch: any) => String(branch.business_id) === String(existing.id));
+          const existingSlug = slugify(String(input.slug || existing.name)) || `business-${String(existing.code || existing.id).toLowerCase()}`;
+          return response(origin, {
+            business: {
+              id: existing.id, tenantId, organizationId: existing.organization_id || organizationId,
+              branchId: existingBranch?.id || "", name: existing.name,
+              slug: existingSlug, category, status: existing.status,
+            },
+            duplicateRequest: true,
+            mergedExisting: true,
+            message: "تم دمج الطلب المكرر مع النشاط الموجود بالفعل.",
+          }, 200);
+        }
+      }
+
       const randomCode = crypto.randomUUID().slice(0, 8).toUpperCase();
       const slug = slugify(String(input.slug || name)) || `business-${randomCode.toLowerCase()}`;
       let createdBusinessId = "";
