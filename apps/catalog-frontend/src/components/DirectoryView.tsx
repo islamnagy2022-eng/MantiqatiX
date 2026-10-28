@@ -230,7 +230,12 @@ export const DirectoryView: React.FC = () => {
                         if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
                       }}
                     />
-                    <span className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-black/20" aria-hidden="true" />
+                    <span className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-950/10 to-transparent" aria-hidden="true" />
+                    <span className="absolute inset-x-5 bottom-6 sm:inset-x-8 sm:bottom-8 z-10 text-right text-white drop-shadow-lg">
+                      <span className="inline-flex rounded-full border border-white/70 bg-black/35 px-3 py-1 text-xs sm:text-sm font-bold backdrop-blur-sm">{slide.badge}</span>
+                      <span className="mt-2 block text-2xl sm:text-4xl font-black leading-tight">{slide.title}</span>
+                      <span className="mt-2 block max-w-2xl text-sm sm:text-base font-semibold leading-relaxed text-white">{slide.subtitle}</span>
+                    </span>
                   </button>
                 </div>
               ))}
