@@ -145,6 +145,8 @@ assert.match(backend, /const creationAuditError = await writeAuditLog/,
   'Activity creation must check whether its production audit row was recorded.');
 assert.match(storefrontCatalog, /const buildQuoteUrl = \(product: Product\): string \| null/,
   'Quote links must be disabled when no verified contact number is available.');
+assert.match(storefrontCatalog, /digits = digits\.startsWith\('00'\)[\s\S]{0,150}\? '20' \+ digits\.slice\(1\)/,
+  'Egyptian local quote phone numbers must be normalized to the international +20 format.');
 assert.match(storefrontCatalog, /if \(digits\.length < 10 \|\| digits\.length > 15\) return null/,
   'Quote link builder must reject missing or malformed contact numbers.');
 assert.doesNotMatch(storefrontCatalog, /201010171770/,
