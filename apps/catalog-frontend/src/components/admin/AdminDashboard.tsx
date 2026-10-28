@@ -62,6 +62,7 @@ const ICONS_MAP: Record<string, React.ReactNode> = {
 export const AdminDashboard: React.FC = () => {
   const {
     subscribers,
+    authSession,
     businesses,
     products,
     adminSettings,
@@ -70,6 +71,7 @@ export const AdminDashboard: React.FC = () => {
     addCategory,
     deleteCategory,
     addSubscriber,
+    saveSubscriberMembership,
     updateSubscriber,
     deleteSubscriber,
     sendGmailInvite,
@@ -105,6 +107,34 @@ export const AdminDashboard: React.FC = () => {
   const [subPhone, setSubPhone] = useState('');
   const [subBizId, setSubBizId] = useState(businesses[0]?.id || '');
   const [subNotes, setSubNotes] = useState('');
+
+  // Live Supabase account role / business assignment controls.
+  const [isSubscriberAccessModalOpen, setIsSubscriberAccessModalOpen] = useState(false);
+  const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
+  const [subAccessTenantId, setSubAccessTenantId] = useState('MNTY-PLATFORM');
+  const [subAccessBusinessId, setSubAccessBusinessId] = useState('');
+  const [subAccessBranchId, setSubAccessBranchId] = useState('');
+  const [subAccessRole, setSubAccessRole] = useState('CUSTOMER');
+  const [subAccessStatus, setSubAccessStatus] = useState<'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('INACTIVE');
+  const [subAccessCatalogEnabled, setSubAccessCatalogEnabled] = useState(false);
+  const [subAccessCatalogWrite, setSubAccessCatalogWrite] = useState(false);
+  const [subAccessSaving, setSubAccessSaving] = useState(false);
+  const [subAccessFeedback, setSubAccessFeedback] = useState<string | null>(null);
+
+  const openSubscriberAccessEditor = (subscriber: Subscriber) => {
+    const assignedBusiness = businesses.find((business) => business.id === subscriber.businessId);
+    setEditingSubscriber(subscriber);
+    setSubAccessTenantId(subscriber.tenantId || assignedBusiness?.tenantId || businesses[0]?.tenantId || 'MNTY-PLATFORM');
+    setSubAccessBusinessId(subscriber.businessId || '');
+    setSubAccessBranchId(subscriber.branchId || '');
+    setSubAccessRole(String(subscriber.role || 'CUSTOMER').toUpperCase() === 'SUPER_ADMIN' ? 'CUSTOMER' : String(subscriber.role || 'CUSTOMER').toUpperCase());
+    const status = String(subscriber.membershipStatus || (subscriber.status === 'active' ? 'ACTIVE' : subscriber.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE')).toUpperCase();
+    setSubAccessStatus(status === 'ACTIVE' || status === 'SUSPENDED' ? status : 'INACTIVE');
+    setSubAccessCatalogEnabled(subscriber.permissions?.catalog !== false && subscriber.permissions?.account_restricted !== true);
+    setSubAccessCatalogWrite(subscriber.permissions?.catalog_write !== false && subscriber.permissions?.catalog_read_only !== true);
+    setSubAccessFeedback(null);
+    setIsSubscriberAccessModalOpen(true);
+  };
 
   // Credentials copied popup/feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
