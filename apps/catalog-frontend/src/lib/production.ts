@@ -1,6 +1,6 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
-import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS } from '../data/productionDefaults';
+import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId } from '../data/productionDefaults';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
@@ -104,12 +104,8 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
   return { business, products: mapProducts(businessId, business.tenantId || '', business.branchId, body.items || [], body.prices || []) };
 }
 
-function groupFromCategory(category: string): FunctionalGroupId {
-  if (/مطاعم|قهوة|حلويات|غذاء|أغذية|مخبز/.test(category)) return 'dining';
-  if (/خدمات|استوديو|تصميم|تسويق|رقمي/.test(category)) return 'services';
-  if (/صيدل|طب|عياد|صحة/.test(category)) return 'healthcare';
-  if (/صيان|ورش|حداد|نجار|تكييف/.test(category)) return 'crafts_maintenance';
-  return 'retail';
+function groupFromCategory(category: string, groupCode?: string): FunctionalGroupId {
+  return resolveCanonicalGroupId(category, groupCode);
 }
 
 export function mapBusiness(raw: any, provider: any): Business {
@@ -125,8 +121,10 @@ export function mapBusiness(raw: any, provider: any): Business {
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
-    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category)?.id,
-    functionalGroupId: groupFromCategory(category),
+    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
+    functionalGroupId: groupFromCategory(category, String(raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || '')),
+    categoryClassificationType: raw.settings?.activity_classification_type === 'profession' ? 'profession' : 'activity',
+    activitySpecialty: String(raw.settings?.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     bio: String(profile.bio || raw.bio || provider?.description || ''),
@@ -327,7 +325,12 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       subscribers = [];
     }
     const settingsResult: any = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
-    if (settingsResult?.settings) Object.assign(adminSettings, settingsResult.settings, { adminPassword: '' });
+    if (settingsResult?.settings) Object.assign(
+      adminSettings,
+      settingsResult.settings,
+      normalizeCanonicalTaxonomySettings(settingsResult.settings),
+      { adminPassword: '' },
+    );
   }
 
   const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest';

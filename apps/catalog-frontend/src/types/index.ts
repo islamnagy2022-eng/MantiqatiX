@@ -1,9 +1,22 @@
 export type FunctionalGroupId =
-  | 'dining'
-  | 'retail'
-  | 'services'
-  | 'healthcare'
-  | 'crafts_maintenance';
+  | 'medical_health'
+  | 'food_grocery'
+  | 'fashion_beauty'
+  | 'home_maintenance'
+  | 'construction_decor'
+  | 'auto_transport'
+  | 'real_estate'
+  | 'education_training'
+  | 'technology_communications'
+  | 'professional_services'
+  | 'marketing_media'
+  | 'trade_ecommerce'
+  | 'agriculture_animals'
+  | 'sports_fitness'
+  | 'tourism_events'
+  | 'finance_insurance'
+  | 'industry_workshops'
+  | 'public_community';
 
 export interface FunctionalGroup {
   id: FunctionalGroupId;
@@ -26,6 +39,10 @@ export interface ActivityCategory {
   functionalGroupId: FunctionalGroupId;
   description?: string;
   icon?: string;
+  /** Activity is a business/service type; profession is an occupation. */
+  classificationType?: 'activity' | 'profession';
+  /** Optional third-level specializations displayed after the activity/profession. */
+  specialties?: string[];
   isCustom?: boolean;
 }
 
@@ -49,9 +66,11 @@ export interface Business {
   id: string;
   name: string;
   slug: string;
-  category: string; // Name of category (backward compatibility)
+  category: string; // Name of activity/profession, optionally followed by a specialty
   categoryId?: string; // ID of category
-  functionalGroupId: FunctionalGroupId; // التصنيف الوظيفي (dining, retail, services, etc.)
+  functionalGroupId: FunctionalGroupId; // Canonical main directory group
+  categoryClassificationType?: 'activity' | 'profession';
+  activitySpecialty?: string;
   logoUrl: string;
   coverUrl: string;
   coverImages?: string[]; // من 1 إلى صورتين لصاحب النشاط لعرضها في السلايدر المتغير

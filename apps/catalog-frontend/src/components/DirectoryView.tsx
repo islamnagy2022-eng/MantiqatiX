@@ -31,11 +31,24 @@ const whatsappDigits = (value: unknown): string => {
 };
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
-  dining: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
-  retail: <ShoppingBag className="w-5 h-5 text-blue-500" />,
-  services: <CalendarCheck2 className="w-5 h-5 text-purple-500" />,
-  healthcare: <HeartPulse className="w-5 h-5 text-emerald-500" />,
-  crafts_maintenance: <Wrench className="w-5 h-5 text-orange-500" />,
+  medical_health: <HeartPulse className="w-5 h-5 text-emerald-500" />,
+  food_grocery: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
+  fashion_beauty: <ShoppingBag className="w-5 h-5 text-pink-500" />,
+  home_maintenance: <Wrench className="w-5 h-5 text-orange-500" />,
+  construction_decor: <Store className="w-5 h-5 text-stone-500" />,
+  auto_transport: <Store className="w-5 h-5 text-sky-500" />,
+  real_estate: <Store className="w-5 h-5 text-teal-500" />,
+  education_training: <CalendarCheck2 className="w-5 h-5 text-indigo-500" />,
+  technology_communications: <Layers className="w-5 h-5 text-cyan-500" />,
+  professional_services: <CalendarCheck2 className="w-5 h-5 text-violet-500" />,
+  marketing_media: <Store className="w-5 h-5 text-fuchsia-500" />,
+  trade_ecommerce: <ShoppingBag className="w-5 h-5 text-blue-500" />,
+  agriculture_animals: <Store className="w-5 h-5 text-lime-600" />,
+  sports_fitness: <HeartPulse className="w-5 h-5 text-red-500" />,
+  tourism_events: <CalendarCheck2 className="w-5 h-5 text-purple-500" />,
+  finance_insurance: <Layers className="w-5 h-5 text-emerald-600" />,
+  industry_workshops: <Wrench className="w-5 h-5 text-slate-500" />,
+  public_community: <CalendarCheck2 className="w-5 h-5 text-rose-500" />,
 };
 
 interface CoverSlide {
@@ -61,6 +74,9 @@ export const DirectoryView: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [selectedCategoryKind, setSelectedCategoryKind] = useState<'all' | 'activity' | 'profession'>('all');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
   const catalogRequestPhone = whatsappDigits(
     adminSettings.adminWhatsApp || (window as any).MNTY_SUPPORT?.whatsapp || ''
@@ -97,6 +113,21 @@ export const DirectoryView: React.FC = () => {
     })),
   ];
 
+  // The directory uses the same canonical taxonomy as the administration forms.
+  const selectGroup = (groupId: string) => {
+    setSelectedGroupFilter(groupId);
+    setSelectedCategoryKind('all');
+    setSelectedCategoryId('all');
+    setSelectedSpecialty('all');
+  };
+  const availableCategories = categories.filter((category) =>
+    (selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter) &&
+    (selectedCategoryKind === 'all' || (category.classificationType || 'activity') === selectedCategoryKind)
+  );
+  const selectedTaxonomyCategory = categories.find((category) => category.id === selectedCategoryId);
+  const categoryForBusiness = (business: Business) =>
+    categories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — '));
+
   // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
 
@@ -132,11 +163,20 @@ export const DirectoryView: React.FC = () => {
 
     const matchesGroup =
       selectedGroupFilter === 'all' || biz.functionalGroupId === selectedGroupFilter;
+    const matchedCategory = categoryForBusiness(biz);
+    const matchesCategoryKind = selectedCategoryKind === 'all' ||
+      (matchedCategory?.classificationType || biz.categoryClassificationType || 'activity') === selectedCategoryKind;
+    const matchesCategory = selectedCategoryId === 'all' ||
+      Boolean(matchedCategory && selectedTaxonomyCategory && matchedCategory.name === selectedTaxonomyCategory.name);
+    const storedSpecialty = String(biz.activitySpecialty || '');
+    const categorySuffix = matchedCategory ? biz.category.slice(matchedCategory.name.length).replace(/^\s*—\s*/, '') : '';
+    const matchesSpecialty = selectedSpecialty === 'all' ||
+      storedSpecialty === selectedSpecialty || categorySuffix === selectedSpecialty;
 
     const matchesGov =
       selectedGovFilter === 'all' || biz.governorate === selectedGovFilter;
 
-    return matchesSearch && matchesGroup && matchesGov;
+    return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov;
   }).sort((a, b) => {
     const targetGov = selectedGovFilter === 'all' ? 'الدقهلية' : selectedGovFilter;
     const aProx = a.governorate === targetGov ? 0 : 1;
@@ -302,7 +342,7 @@ export const DirectoryView: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <button
-              onClick={() => setSelectedGroupFilter('all')}
+              onClick={() => selectGroup('all')}
               className={`p-4 rounded-2xl border text-right transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
                 selectedGroupFilter === 'all'
                   ? 'bg-slate-900 text-white border-slate-900 shadow-md'
@@ -330,7 +370,7 @@ export const DirectoryView: React.FC = () => {
               return (
                 <button
                   key={group.id}
-                  onClick={() => setSelectedGroupFilter(group.id)}
+                  onClick={() => selectGroup(group.id)}
                   className={`p-4 rounded-2xl border text-right transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
                     isSelected
                       ? 'bg-emerald-700 text-white border-emerald-700 shadow-md'
@@ -353,6 +393,68 @@ export const DirectoryView: React.FC = () => {
               );
             })}
           </div>
+        </div>
+
+        {/* Activity / profession / specialty filters driven by the canonical taxonomy */}
+        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label className="block text-xs font-bold text-slate-700">
+            نوع التصنيف
+            <select
+              value={selectedCategoryKind}
+              onChange={(e) => {
+                setSelectedCategoryKind(e.target.value as 'all' | 'activity' | 'profession');
+                setSelectedCategoryId('all');
+                setSelectedSpecialty('all');
+              }}
+              className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-bold"
+            >
+              <option value="all">الأنشطة والمهن</option>
+              <option value="activity">الأنشطة</option>
+              <option value="profession">المهن</option>
+            </select>
+          </label>
+          <label className="block text-xs font-bold text-slate-700">
+            النشاط أو المهنة
+            <select
+              value={selectedCategoryId}
+              onChange={(e) => {
+                setSelectedCategoryId(e.target.value);
+                setSelectedSpecialty('all');
+              }}
+              className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-bold"
+            >
+              <option value="all">كل الأنشطة والمهن</option>
+              {functionalGroups
+                .filter((group) => selectedGroupFilter === 'all' || group.id === selectedGroupFilter)
+                .map((group) => {
+                  const groupCategories = availableCategories.filter((category) => category.functionalGroupId === group.id);
+                  if (!groupCategories.length) return null;
+                  return (
+                    <optgroup key={group.id} label={group.name}>
+                      {groupCategories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {(category.classificationType === 'profession' ? 'مهنة: ' : 'نشاط: ') + category.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+            </select>
+          </label>
+          <label className="block text-xs font-bold text-slate-700">
+            التخصص الدقيق
+            <select
+              value={selectedSpecialty}
+              disabled={!selectedTaxonomyCategory?.specialties?.length}
+              onChange={(e) => setSelectedSpecialty(e.target.value)}
+              className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-bold disabled:opacity-50"
+            >
+              <option value="all">كل التخصصات</option>
+              {(selectedTaxonomyCategory?.specialties || []).map((specialty) => (
+                <option key={specialty} value={specialty}>{specialty}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {/* Search & Location Filter Bar */}

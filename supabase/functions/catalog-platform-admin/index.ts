@@ -217,6 +217,16 @@ Deno.serve(async (req: Request) => {
       const input = body.business && typeof body.business === "object" ? body.business : {};
       const name = String(input.name || "").trim();
       const category = String(input.category || "").trim();
+      const activityGroupCode = String(input.activityGroupCode || "").trim().toLowerCase();
+      const activityClassificationType = String(input.activityClassificationType || "activity").trim().toLowerCase();
+      const activitySpecialty = String(input.activitySpecialty || "").trim();
+      const canonicalActivityGroups = new Set([
+        "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
+        "construction_decor", "auto_transport", "real_estate", "education_training",
+        "technology_communications", "professional_services", "marketing_media",
+        "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
+        "finance_insurance", "industry_workshops", "public_community",
+      ]);
       const phone = String(input.phone || "").trim();
       const phoneDigits = phone.replace(/\D/g, "");
       const governorate = String(input.governorate || "").trim();
@@ -237,6 +247,9 @@ Deno.serve(async (req: Request) => {
       }
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
+      if (activityGroupCode && !canonicalActivityGroups.has(activityGroupCode)) return response(origin, { error: "INVALID_ACTIVITY_GROUP" }, 400);
+      if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
+      if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length < 10 || phoneDigits.length > 15) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "A valid owner WhatsApp number is required." }, 400);
       if ([governorate, markaz, village].some((value) => value.length < 2 || value.length > 100)) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
       const parsedDueDate = new Date(`${paymentDueDate}T00:00:00.000Z`);
@@ -258,7 +271,13 @@ Deno.serve(async (req: Request) => {
         const { data: created, error: createError } = await service.from("businesses").insert({
           tenant_id: tenantId, organization_id: organizationId, name,
           code: `MX-${randomCode}`, status: "ACTIVE",
-          settings: { activity_code: category, catalog_public_enabled: publishNow,
+          settings: {
+            activity_code: category,
+            category_code: category,
+            ...(activityGroupCode ? { activity_group_code: activityGroupCode } : {}),
+            activity_classification_type: activityClassificationType,
+            activity_specialty: activitySpecialty || null,
+            catalog_public_enabled: publishNow,
             catalog_profile: { bio: bio.slice(0, 3000), governorate: governorate.slice(0, 100), markaz: markaz.slice(0, 100), village: village.slice(0, 100), working_hours: workingHours.slice(0, 300), logo_url: logoUrl.slice(0, 1500), cover_url: coverUrl.slice(0, 1500) },
             bizcatalog: { paymentStatus: "pending", paymentDueDate, paymentGracePeriodDays, publicationStatus: publishNow ? "PUBLISHED_UNPAID" : "PENDING_PUBLICATION", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
@@ -275,8 +294,13 @@ Deno.serve(async (req: Request) => {
         const { error: providerError } = await service.from("marketing_provider_profiles").insert({
           provider_kind: category.slice(0, 80), business_id: created.id,
           owner_user_id: null, name_ar: name, name_en: null, slug: `${slug}-${randomCode.toLowerCase()}`,
-          description: bio.slice(0, 3000) || null, specialties: [], service_areas: [], portfolio: [],
-          status: "ACTIVE", is_verified: false, is_featured: false, ranking_weight: 0, settings: {},
+          description: bio.slice(0, 3000) || null, specialties: activitySpecialty ? [activitySpecialty] : [], service_areas: [], portfolio: [],
+          status: "ACTIVE", is_verified: false, is_featured: false, ranking_weight: 0,
+          settings: {
+            ...(activityGroupCode ? { activity_group_code: activityGroupCode } : {}),
+            activity_classification_type: activityClassificationType,
+            activity_specialty: activitySpecialty || null,
+          },
         });
         if (providerError) throw providerError;
         return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "ACTIVE" } }, 201);

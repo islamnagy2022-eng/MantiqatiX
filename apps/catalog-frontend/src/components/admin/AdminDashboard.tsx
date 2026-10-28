@@ -60,11 +60,24 @@ const getDefaultBusinessPaymentDueDate = () => {
 };
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
-  dining: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
-  retail: <ShoppingBag className="w-4 h-4 text-blue-500" />,
-  services: <CalendarCheck2 className="w-4 h-4 text-purple-500" />,
-  healthcare: <HeartPulse className="w-4 h-4 text-emerald-500" />,
-  crafts_maintenance: <Wrench className="w-4 h-4 text-orange-500" />,
+  medical_health: <HeartPulse className="w-4 h-4 text-emerald-500" />,
+  food_grocery: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
+  fashion_beauty: <ShoppingBag className="w-4 h-4 text-pink-500" />,
+  home_maintenance: <Wrench className="w-4 h-4 text-orange-500" />,
+  construction_decor: <Building2 className="w-4 h-4 text-stone-500" />,
+  auto_transport: <Store className="w-4 h-4 text-sky-500" />,
+  real_estate: <Store className="w-4 h-4 text-teal-500" />,
+  education_training: <CalendarCheck2 className="w-4 h-4 text-indigo-500" />,
+  technology_communications: <Layers className="w-4 h-4 text-cyan-500" />,
+  professional_services: <CalendarCheck2 className="w-4 h-4 text-violet-500" />,
+  marketing_media: <Store className="w-4 h-4 text-fuchsia-500" />,
+  trade_ecommerce: <ShoppingBag className="w-4 h-4 text-blue-500" />,
+  agriculture_animals: <Store className="w-4 h-4 text-lime-600" />,
+  sports_fitness: <HeartPulse className="w-4 h-4 text-red-500" />,
+  tourism_events: <CalendarCheck2 className="w-4 h-4 text-purple-500" />,
+  finance_insurance: <Layers className="w-4 h-4 text-emerald-600" />,
+  industry_workshops: <Wrench className="w-4 h-4 text-slate-500" />,
+  public_community: <CalendarCheck2 className="w-4 h-4 text-rose-500" />,
 };
 
 export const AdminDashboard: React.FC = () => {
@@ -159,8 +172,9 @@ export const AdminDashboard: React.FC = () => {
   // Business Modal
   const [isBizModalOpen, setIsBizModalOpen] = useState(false);
   const [newBizName, setNewBizName] = useState('');
-  const [newBizCategory, setNewBizCategory] = useState(categories[0]?.name || 'مطاعم ومقاهي');
-  const [newBizFunctionalGroup, setNewBizFunctionalGroup] = useState<FunctionalGroupId>('dining');
+  const [newBizCategory, setNewBizCategory] = useState(categories.find((c) => c.functionalGroupId === 'medical_health' && c.classificationType !== 'profession')?.name || categories[0]?.name || 'عيادات طبية');
+  const [newBizSpecialty, setNewBizSpecialty] = useState('');
+  const [newBizFunctionalGroup, setNewBizFunctionalGroup] = useState<FunctionalGroupId>('medical_health');
   const [newBizOwnerWhatsApp, setNewBizOwnerWhatsApp] = useState('');
   const [newBizBio, setNewBizBio] = useState('');
   // Egyptian Location Fields
@@ -175,7 +189,9 @@ export const AdminDashboard: React.FC = () => {
   // New Category Creation state
   const [isNewCatModalOpen, setIsNewCatModalOpen] = useState(false);
   const [newCatName, setNewCatName] = useState('');
-  const [newCatGroup, setNewCatGroup] = useState<FunctionalGroupId>('dining');
+  const [newCatGroup, setNewCatGroup] = useState<FunctionalGroupId>('medical_health');
+  const [newCatType, setNewCatType] = useState<'activity' | 'profession'>('activity');
+  const [newCatSpecialties, setNewCatSpecialties] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
 
   // Billing tab filters & feedback
@@ -263,8 +279,11 @@ export const AdminDashboard: React.FC = () => {
       return;
     }
 
-    const matchedCat = categories.find((c) => c.name === newBizCategory);
-    const resolvedGroup = newBizFunctionalGroup || matchedCat?.functionalGroupId || 'dining';
+    const matchedCat = categories.find((c) => c.name === newBizCategory && c.functionalGroupId === newBizFunctionalGroup);
+    const resolvedGroup = matchedCat?.functionalGroupId || newBizFunctionalGroup || 'medical_health';
+    const selectedBusinessCategory = newBizSpecialty.trim()
+      ? `${matchedCat?.name || newBizCategory} — ${newBizSpecialty.trim()}`
+      : (matchedCat?.name || newBizCategory);
 
     const slug = newBizName
       .trim()
@@ -275,9 +294,11 @@ export const AdminDashboard: React.FC = () => {
     const createdBizId = await addBusiness({
       name: newBizName,
       slug: `${slug}-${Date.now().toString().slice(-4)}`,
-      category: newBizCategory,
+      category: selectedBusinessCategory,
       categoryId: matchedCat?.id,
       functionalGroupId: resolvedGroup,
+      categoryClassificationType: matchedCat?.classificationType || 'activity',
+      activitySpecialty: newBizSpecialty.trim() || undefined,
       logoUrl: '',
       coverUrl: '',
       bio: newBizBio.trim(),
@@ -303,6 +324,9 @@ export const AdminDashboard: React.FC = () => {
     });
 
     setNewBizName('');
+    setNewBizCategory(categories.find((c) => c.functionalGroupId === 'medical_health' && c.classificationType !== 'profession')?.name || 'عيادات طبية');
+    setNewBizFunctionalGroup('medical_health');
+    setNewBizSpecialty('');
     setNewBizBio('');
     setNewBizOwnerWhatsApp('');
     setNewBizGov('');
@@ -317,19 +341,28 @@ export const AdminDashboard: React.FC = () => {
     } catch (error) { window.alert(error instanceof Error ? error.message : 'تعذر إنشاء النشاط في قاعدة الإنتاج.'); }
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
+  const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
 
-    addCategory({
-      name: newCatName.trim(),
-      functionalGroupId: newCatGroup,
-      description: newCatDesc.trim() || undefined,
-    });
-
-    setNewCatName('');
-    setNewCatDesc('');
-    setIsNewCatModalOpen(false);
+    const specialties = newCatSpecialties.split(/[،,]/).map((item) => item.trim()).filter(Boolean);
+    try {
+      await addCategory({
+        name: newCatName.trim(),
+        functionalGroupId: newCatGroup,
+        classificationType: newCatType,
+        specialties,
+        description: newCatDesc.trim() || undefined,
+      });
+      setNewCatName('');
+      setNewCatDesc('');
+      setNewCatType('activity');
+      setNewCatSpecialties('');
+      setNewCatGroup('medical_health');
+      setIsNewCatModalOpen(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر حفظ التصنيف في إعدادات المنصة.');
+    }
   };
 
   const handleCopyCredentials = (subId: string) => {
@@ -905,7 +938,7 @@ export const AdminDashboard: React.FC = () => {
               className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer self-start md:self-auto"
             >
               <FolderPlus className="w-4 h-4" />
-              <span>إضافة تصنيف تجاري جديد</span>
+              <span>إضافة تصنيف جديد</span>
             </button>
           </div>
 
@@ -1019,10 +1052,10 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-black text-base text-slate-900">
-                  جدول التصنيفات التجارية ومجموعاتها الوظيفية
+                  دليل الأنشطة والمهن ومجموعاتها الرئيسية
                 </h3>
                 <p className="text-xs text-slate-500">
-                  يمكنك مراجعة جميع التصنيفات وتعديل المجموعات الوظيفية المقترنة بها أو إضافة تصنيفات جديدة.
+                  يمكنك مراجعة الأنشطة والمهن وتخصصاتها، أو إضافة تصنيف جديد وربطه بإحدى المجموعات الرئيسية الـ18.
                 </p>
               </div>
 
@@ -1040,7 +1073,7 @@ export const AdminDashboard: React.FC = () => {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
                     <th className="py-3 px-4">اسم التصنيف</th>
-                    <th className="py-3 px-4">التصنيف الوظيفي التابع له</th>
+                    <th className="py-3 px-4">المجموعة الرئيسية</th>
                     <th className="py-3 px-4">الوصف</th>
                     <th className="py-3 px-4">الأنشطة المرتبطة</th>
                     <th className="py-3 px-4 text-center">إجراءات</th>
@@ -1050,12 +1083,18 @@ export const AdminDashboard: React.FC = () => {
                   {categories.map((cat) => {
                     const group = functionalGroups.find((g) => g.id === cat.functionalGroupId);
                     const bizCount = businesses.filter(
-                      (b) => b.categoryId === cat.id || b.category === cat.name
+                      (b) => b.categoryId === cat.id || b.category === cat.name || b.category.startsWith(cat.name + ' — ')
                     ).length;
 
                     return (
                       <tr key={cat.id} className="hover:bg-slate-50/70">
-                        <td className="py-3 px-4 font-bold text-slate-900">{cat.name}</td>
+                        <td className="py-3 px-4 font-bold text-slate-900">
+                          <div>{cat.name}</div>
+                          <span className={`inline-flex mt-1 rounded-md px-2 py-0.5 text-[10px] font-black ${cat.classificationType === 'profession' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>
+                            {cat.classificationType === 'profession' ? 'مهنة' : 'نشاط'}
+                          </span>
+                          {cat.specialties?.length ? <small className="block mt-1 text-slate-400 font-normal">{cat.specialties.length} تخصصات دقيقة</small> : null}
+                        </td>
                         <td className="py-3 px-4">
                           {group ? (
                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${group.badgeColor}`}>
@@ -1077,7 +1116,7 @@ export const AdminDashboard: React.FC = () => {
                             <button
                               onClick={() => {
                                 if (window.confirm(`هل أنت متأكد من حذف تصنيف (${cat.name})؟`)) {
-                                  deleteCategory(cat.id);
+                                  void deleteCategory(cat.id).catch((error) => window.alert(error instanceof Error ? error.message : 'تعذر حذف التصنيف من إعدادات المنصة.'));
                                 }
                               }}
                               className="text-rose-500 hover:text-rose-700 font-bold p-1"
@@ -1904,42 +1943,54 @@ export const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-black text-slate-700 mb-1">
-                    التصنيف التجاري للنشاط
-                  </label>
-                  <select
-                    value={newBizCategory}
-                    onChange={(e) => {
-                      setNewBizCategory(e.target.value);
-                      const matched = categories.find((c) => c.name === e.target.value);
-                      if (matched) setNewBizFunctionalGroup(matched.functionalGroupId);
-                    }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-black text-slate-700 mb-1">
-                    المجموعة الوظيفية المخصصة
+                    المجموعة الرئيسية
                   </label>
                   <select
                     value={newBizFunctionalGroup}
-                    onChange={(e) => setNewBizFunctionalGroup(e.target.value as FunctionalGroupId)}
+                    onChange={(e) => {
+                      const groupId = e.target.value as FunctionalGroupId;
+                      const nextCategory = categories.find((c) => c.functionalGroupId === groupId);
+                      setNewBizFunctionalGroup(groupId);
+                      setNewBizCategory(nextCategory?.name || '');
+                      setNewBizSpecialty('');
+                    }}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
                   >
                     {functionalGroups.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 mb-1">
+                    التصنيف — النشاط أو المهنة
+                  </label>
+                  <select
+                    value={newBizCategory}
+                    onChange={(e) => { setNewBizCategory(e.target.value); setNewBizSpecialty(''); }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
+                  >
+                    {categories.filter((c) => c.functionalGroupId === newBizFunctionalGroup).map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {(c.classificationType === 'profession' ? 'مهنة: ' : 'نشاط: ') + c.name}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
+              {(() => {
+                const selected = categories.find((c) => c.name === newBizCategory && c.functionalGroupId === newBizFunctionalGroup);
+                if (!selected?.specialties?.length) return null;
+                return (
+                  <div>
+                    <label className="block text-[11px] font-black text-slate-700 mb-1">التخصص الدقيق (اختياري)</label>
+                    <select value={newBizSpecialty} onChange={(e) => setNewBizSpecialty(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold">
+                      <option value="">بدون تحديد تخصص دقيق</option>
+                      {selected.specialties.map((specialty) => <option key={specialty} value={specialty}>{specialty}</option>)}
+                    </select>
+                  </div>
+                );
+              })()}
 
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
@@ -2083,21 +2134,35 @@ export const AdminDashboard: React.FC = () => {
             <form onSubmit={handleCreateCategory} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  اسم التصنيف التجاري <span className="text-rose-500">*</span>
+                  اسم النشاط أو المهنة <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="مثال: مخابز وحلويات أو عيادات أسنان"
+                  placeholder="مثال: صيدلية أو طبيب أو مطعم"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  المجموعة الوظيفية التي ينتمي إليها <span className="text-rose-500">*</span>
+                  نوع التصنيف <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={newCatType}
+                  onChange={(e) => setNewCatType(e.target.value as 'activity' | 'profession')}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
+                >
+                  <option value="activity">نشاط</option>
+                  <option value="profession">مهنة</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black text-slate-700 mb-1">
+                  المجموعة الرئيسية <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={newCatGroup}
@@ -2111,8 +2176,21 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                 </select>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  سيتم تمكين الخصائص والموديلات التخصصية لهذا القطاع تلقائياً على هذا التصنيف.
+                  هذا الاختيار يحدد مكان التصنيف في الدليل فقط؛ ولا يفعّل أي وحدة تشغيلية أو صلاحية تلقائيًا.
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black text-slate-700 mb-1">
+                  التخصصات الدقيقة (اختياري)
+                </label>
+                <input
+                  type="text"
+                  value={newCatSpecialties}
+                  onChange={(e) => setNewCatSpecialties(e.target.value)}
+                  placeholder="افصل بين التخصصات بفاصلة، مثل: طبيب عيون، طبيب قلب"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                />
               </div>
 
               <div>
