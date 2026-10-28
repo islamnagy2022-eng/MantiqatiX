@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 
 const CATALOG_ITEM_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}catalog-item-placeholder.svg`;
 import { filterProducts, formatPrice } from '../../utils/rules';
@@ -248,12 +249,13 @@ export const CatalogSection: React.FC = () => {
                 {/* Product Image & Badges */}
                 <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden">
                   <img
-                    src={product.imageUrl}
+                    src={product.imageUrl || resolveDefaultImage({ name: product.name, description: product.description, category: product.category, kind: product.type === 'service' ? 'service' : 'product' })}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                       const image = e.currentTarget;
-                      if (!image.src.endsWith('/catalog-item-placeholder.svg')) image.src = CATALOG_ITEM_PLACEHOLDER;
+                      const fallback = resolveDefaultImage({ name: product.name, description: product.description, category: product.category, kind: product.type === 'service' ? 'service' : 'product' });
+                      if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
                     }}
                   />
 
