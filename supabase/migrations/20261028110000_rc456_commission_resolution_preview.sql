@@ -7,6 +7,7 @@ create or replace function public.preview_commission_rule_resolution(
   p_module_id varchar,
   p_scope_type text,
   p_scope_ref text,
+  p_category_ref text,
   p_eligibility_event text,
   p_gross_amount numeric
 ) returns jsonb
@@ -21,6 +22,7 @@ declare
   v_event text := upper(trim(coalesce(p_eligibility_event,'')));
   v_context_scope text := upper(trim(coalesce(p_scope_type,'')));
   v_context_ref text := nullif(trim(coalesce(p_scope_ref,'')),'');
+  v_category_ref text := nullif(trim(coalesce(p_category_ref,'')),'');
   v_winner_id varchar;
   v_winner_preview jsonb;
   v_candidates jsonb;
@@ -108,7 +110,14 @@ begin
           and r.scope_ref = p_business_id::text
         )
         or (
+          v_category_ref is not null
+          and r.scope_type = 'CATEGORY'
+          and r.scope_ref = v_category_ref
+          and (r.business_id is null or r.business_id = p_business_id)
+        )
+        or (
           v_context_scope <> 'TENANT'
+          and v_context_scope not in ('CATEGORY','BUSINESS')
           and r.scope_type = v_context_scope
           and r.scope_ref = v_context_ref
           and (r.business_id is null or r.business_id = p_business_id)
@@ -171,7 +180,7 @@ begin
 end;
 $function$;
 
-revoke all on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, numeric) from public, anon;
+revoke all on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, text, numeric) from public, anon;
 grant execute on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, numeric) to authenticated;
 
 comment on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, numeric) is
