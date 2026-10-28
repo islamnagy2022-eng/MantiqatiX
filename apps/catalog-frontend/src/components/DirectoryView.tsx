@@ -445,7 +445,7 @@ export const DirectoryView: React.FC = () => {
 
         {/* Businesses Grid (Sorted by Proximity) */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
               <Store className="w-5 h-5 text-emerald-600" />
               <span>الأنشطة والخدمات المتاحة ({filteredBusinesses.length})</span>
@@ -480,18 +480,18 @@ export const DirectoryView: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
               {filteredBusinesses.map((biz) => {
                 const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
 
                 return (
                   <div
                     key={biz.id}
-                    className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all group"
+                    className="min-w-0 bg-white rounded-xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md sm:hover:shadow-xl transition-all group"
                   >
                     <div>
                       {/* Cover Photo & Badges */}
-                      <div className="relative h-36 bg-slate-800 overflow-hidden">
+                      <div className="relative h-20 sm:h-36 bg-slate-800 overflow-hidden">
                         <img
                           src={biz.coverUrl || BUSINESS_PLACEHOLDER}
                           alt={biz.name}
@@ -506,7 +506,7 @@ export const DirectoryView: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                         {/* Top Badges */}
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                        <div className="absolute top-1 right-1 sm:top-3 sm:right-3 flex flex-wrap items-center gap-1">
                           {biz.isVerified && (
                             <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" />
@@ -514,7 +514,7 @@ export const DirectoryView: React.FC = () => {
                             </span>
                           )}
                           {group && (
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${group.badgeColor}`}>
+                            <span className={`hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${group.badgeColor}`}>
                               {group.shortName}
                             </span>
                           )}
@@ -522,8 +522,8 @@ export const DirectoryView: React.FC = () => {
                       </div>
 
                       {/* Logo & Basic Info */}
-                      <div className="p-5 relative">
-                        <div className="absolute -top-10 right-5 w-16 h-16 rounded-2xl bg-white p-1 shadow-md ring-2 ring-white overflow-hidden">
+                      <div className="p-2 sm:p-5 relative">
+                        <div className="absolute -top-5 right-2 sm:-top-10 sm:right-5 w-8 h-8 sm:w-16 sm:h-16 rounded-lg sm:rounded-2xl bg-white p-0.5 sm:p-1 shadow-sm sm:shadow-md ring-1 sm:ring-2 ring-white overflow-hidden">
                           <img
                             src={biz.logoUrl || resolveDefaultImage({ name: biz.name, description: biz.bio, category: biz.category, kind: 'activity' })}
                             alt={biz.name}
@@ -538,21 +538,21 @@ export const DirectoryView: React.FC = () => {
                           />
                         </div>
 
-                        <div className="pt-4 space-y-2">
+                        <div className="pt-4 sm:pt-4 space-y-1 sm:space-y-2">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-black text-base text-slate-900 group-hover:text-emerald-700 transition-colors">
+                            <h3 className="w-full break-words font-black text-xs sm:text-base text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
                               {biz.name}
                             </h3>
-                            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            <span className="hidden sm:inline-block text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                               {biz.category}
                             </span>
                           </div>
 
-                          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                          <p className="hidden sm:block text-xs text-slate-500 line-clamp-2 leading-relaxed">
                             {biz.bio}
                           </p>
 
-                          <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium pt-1">
+                          <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 font-medium pt-1">
                             <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             <span>{formatEgyptianLocation(biz.governorate, biz.markaz, biz.village)}</span>
                           </div>
@@ -561,7 +561,7 @@ export const DirectoryView: React.FC = () => {
                     </div>
 
                     {/* Action Footer */}
-                    <div className="p-5 pt-0 flex items-center justify-between gap-3 border-t border-slate-100 mt-2">
+                    <div className="p-1.5 sm:p-5 sm:pt-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-1 sm:gap-3 border-t border-slate-100 mt-1 sm:mt-2">
                       {whatsappDigits(biz.ownerWhatsApp) ? (
                         <a
                           href={`https://wa.me/${whatsappDigits(biz.ownerWhatsApp)}?text=${encodeURIComponent(
@@ -569,10 +569,10 @@ export const DirectoryView: React.FC = () => {
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                          className="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black text-[10px] sm:text-xs py-2 sm:py-2.5 px-1 sm:px-3 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 transition-colors"
                         >
-                          <MessageCircle className="w-4 h-4 text-emerald-600" />
-                          <span>مراسلة واتساب</span>
+                          <MessageCircle className="hidden sm:block w-4 h-4 text-emerald-600" />
+                          <span>واتساب</span>
                         </a>
                       ) : (
                         <span className="flex-1 text-center text-xs text-slate-400 py-2.5">رقم التواصل غير متاح</span>
@@ -584,9 +584,9 @@ export const DirectoryView: React.FC = () => {
                             setSelectedBusinessId(biz.id);
                             setCurrentView('public_storefront');
                           }}
-                          className="flex-1 bg-slate-900 hover:bg-emerald-600 text-white font-black text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                          className="flex-1 bg-slate-900 hover:bg-emerald-600 text-white font-black text-[10px] sm:text-xs py-2 sm:py-2.5 px-1 sm:px-3 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-xs"
                         >
-                          <span>عرض الكتالوج</span>
+                          <span>الكتالوج</span>
                           <ArrowRight className="w-3.5 h-3.5 rotate-180" />
                         </button>
                       ) : (
