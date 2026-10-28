@@ -27,6 +27,23 @@ Deno.serve(async(req)=>{
   if(!membership&&!superAdmin)return response({error:"BUSINESS_CREATE_ROLE_REQUIRED"},403);
   const {data:existing}=await supabase.from("approval_requests").select("id,business_id,status").eq("tenant_id",tenantId).eq("requested_by",user.id).eq("entity_type","BUSINESS").eq("request_type","CREATE").eq("status","PENDING").limit(1);
   if(existing?.length)return response({error:"PENDING_BUSINESS_REQUEST_EXISTS",businessId:existing[0].business_id??null},409);
+  // Reject a duplicate business submission across users as well as repeated clicks.
+  const normalize=(v:unknown)=>String(v??"").normalize("NFKC").trim().replace(/\\s+/g," ").toLocaleLowerCase("ar");
+  const phoneKey=phone.replace(/\\D/g,"");
+  const {data:businessesForDedup,error:dedupError}=await supabase.from("businesses")
+    .select("id,name,settings").eq("tenant_id",tenantId).limit(1000);
+  if(dedupError)throw dedupError;
+  const candidate= (businessesForDedup||[]).find((b:any)=>{
+    const st=b.settings&&typeof b.settings==="object"?b.settings:{};
+    const existingPhone=String(st.phone??"").replace(/\\D/g,"");
+    return normalize(b.name)===normalize(name)
+      && normalize(st.sector)===normalize(sector)
+      && normalize(st.address)===normalize(address)
+      && normalize(st.city)===normalize(city)
+      && normalize(st.district)===normalize(district)
+      && existingPhone===phoneKey;
+  });
+  if(candidate)return response({error:"DUPLICATE_BUSINESS",message:"هذه بيانات نشاط مسجلة بالفعل؛ لم يتم إنشاء سجل جديد.",businessId:candidate.id},409);
   const code=safeCode(name),resolvedOrganizationId=organizationId||membership?.organization_id||null;
   const {data:business,error}=await supabase.from("businesses").insert({tenant_id:tenantId,organization_id:resolvedOrganizationId,name,code,status:"INACTIVE",settings:{sector,address,phone,city,district,registration_source:"web",approval_status:"PENDING"}}).select("id,name,code,status,tenant_id,organization_id").single();
   if(error)throw error;
