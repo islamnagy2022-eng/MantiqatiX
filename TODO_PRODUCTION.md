@@ -612,3 +612,15 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Add regression coverage for duplicate prevention, owner isolation, publication/deactivation visibility, social links, public URLs, QR codes, and catalog-home routing.
 - [ ] Run build, lint/typecheck, available automated tests, and a real browser pass. Record separate statuses for source change, CI, deployment, and live behavior.
 - [ ] Reconcile these tasks with existing issues/TODO sections so there is one clear source of truth; close an item only with evidence, and use NOT VERIFIED/WAIT/BLOCKED where appropriate.
+
+
+## P0 — Easy end-to-end activity creation from platform administration
+- [ ] Replace the current long single-screen activity form with a mobile-first guided wizard (1. Activity basics, 2. Owner account, 3. Location/contact, 4. Logo/cover/media, 5. Products/services, 6. Billing, 7. Review and save). Allow saving a draft and resuming later.
+- [ ] Create the activity, primary branch, provider profile, and owner membership as one safe server-side workflow with rollback/compensation on partial failure. Owner selection must reuse an existing Auth identity by email; if no identity exists, create the account using the established secure onboarding flow without exposing passwords or service-role secrets.
+- [ ] After creation, open the activity management page automatically with clear completion checklist and status for missing fields, owner assignment, images, products/services, permanent URL, QR code, billing, and publication.
+- [ ] Make image upload work from the admin screen; preserve user uploads, and use clearly marked temporary placeholders only where supported. Do not require administrators to paste image URLs.
+- [ ] Allow optional product/service entry during onboarding and allow skipping this step to complete it later from the activity page.
+- [ ] Keep operational activation, payment confirmation, and public publication as separate explicit actions. Never mark an unpaid activity as paid or publish without the platform approval flow.
+- [ ] Add duplicate-submit/idempotency protection, clear Arabic field-level errors, progress indicator, draft preservation, and success/failure recovery without creating duplicate activities or orphaned owner memberships.
+- [ ] Add automated coverage for existing/new owner identity, duplicate submissions, partial failure cleanup, activity/branch/profile linkage, image upload, draft resume, publication approval, payment-state separation, owner isolation, and mobile layout.
+- [ ] Verify production end-to-end from the actual administration UI before marking this section VERIFIED. Existing activity creation currently uses a long modal and must not be described as a completed guided workflow until this is implemented and tested.
