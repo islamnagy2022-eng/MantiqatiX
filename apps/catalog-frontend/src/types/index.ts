@@ -108,11 +108,24 @@ export interface Product {
 }
 
 export interface Subscriber {
+  /** Membership ID, or ACCOUNT:<user-id> for a real Auth account without memberships. */
   id: string;
+  userId?: string;
   fullName: string;
   email: string;
   phone: string;
   businessId: string;
+  businessName?: string;
+  tenantId?: string;
+  organizationId?: string;
+  branchId?: string;
+  role?: string;
+  permissions?: Record<string, unknown>;
+  membershipStatus?: string;
+  provider?: string;
+  emailConfirmed?: boolean;
+  lastSignInAt?: string;
+  isAccountOnly?: boolean;
   status: 'active' | 'pending' | 'suspended';
   // Credentials assigned by Admin
   username?: string;
@@ -170,4 +183,8 @@ export interface AuthSession {
   subscriberId?: string;
   businessId?: string;
   subscriberName?: string;
+  /** Visible platform-admin diagnostic when the live subscriber directory could not be loaded. */
+  subscriberDirectoryError?: string;
+  /** Number of membership rows skipped because their Supabase Auth identity no longer exists. */
+  ignoredOrphanMemberships?: number;
 }
