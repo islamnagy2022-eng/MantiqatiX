@@ -5,10 +5,12 @@ import { BusinessProfileHeader } from './components/storefront/BusinessProfileHe
 import { CatalogSection } from './components/storefront/CatalogSection';
 import { MerchantDashboard } from './components/merchant/MerchantDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
+import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
 const MainContent: React.FC = () => {
   const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
@@ -23,7 +25,10 @@ const MainContent: React.FC = () => {
     : currentView === 'super_admin' && authSession.role !== 'admin'
       ? 'directory'
       : currentView === 'merchant_admin' &&
-          (!['subscriber', 'admin'].includes(authSession.role) || !currentBusiness)
+          (!canAccessMerchantDashboard(authSession) || !currentBusiness)
+        ? 'directory'
+        : currentView === 'professional_dashboard' &&
+          !canAccessProfessionalDashboard(authSession)
         ? 'directory'
         : currentView === 'public_storefront' &&
             authSession.role === 'guest' && !hasDirectPublicCatalogLink
@@ -54,6 +59,8 @@ const MainContent: React.FC = () => {
         {visibleView === 'merchant_admin' && <MerchantDashboard />}
 
         {visibleView === 'super_admin' && <AdminDashboard />}
+
+        {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
       </main>
 
       <CartDrawer />

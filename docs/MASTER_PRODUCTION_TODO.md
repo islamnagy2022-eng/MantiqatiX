@@ -229,6 +229,23 @@
 - [ ] Production configuration/secrets
 - [ ] Post-release smoke + monitoring
 
+## Additive professional dashboard — 2026-10-28
+
+34. Professional Dashboard module — IMPLEMENTED ON FEATURE BRANCH / CI CONTRACTS VERIFIED / BROWSER E2E NOT VERIFIED
+    - Branch: `feat/professional-dashboard-additive-20261028`; Draft PR #483.
+    - Rebased on current `main` baseline `b5e5b22cc4bbef93e2d184a39c00e971115af253`; `main` itself has not been modified directly. The PR compares cleanly with current main and has no commits behind it; the tree diff contains only dashboard-related code, tests, validators and documentation.
+    - Added isolated React component at `apps/catalog-frontend/src/modules/dashboard/ProfessionalDashboard.tsx`.
+    - Registered `professional_dashboard` in the existing view model, URL restoration, App.tsx rendering and role-gated Navbar navigation; existing public catalog, storefront, merchant and admin views remain present.
+    - Added responsive RTL overview cards, operational/publishing status, category distribution, recorded business-creation trends, stored-state alerts, activity search/filter by name/status/category/governorate, and links into existing admin/merchant tabs.
+    - Added optional `merchantTab` deep links while preserving the existing merchant default `products` tab; route parameters are cleared outside their dashboard context.
+    - Preserved requested URLs while auth bootstraps; membership role and permissions are carried from the selected business membership. Selection prefers explicit OWNER/BUSINESS_OWNER/ADMIN membership, then tenant-wide OWNER only within the matching tenant, then lower-scope memberships. A `MANAGER` role alone does not grant broad access.
+    - Limited employee access uses permission-aware sections and a read-only employee view when only view access exists; limited memberships are denied access to the broad legacy merchant dashboard.
+    - Reuses existing AppContext state; no database migration, production write, mock transaction, fabricated audit event, revenue claim, secret or seed data was added.
+    - Added `scripts/validate-professional-dashboard.mjs` and `scripts/test-professional-dashboard-access.ts` for routing/scoping checks and runtime permission cases. Updated `scripts/validate-catalog-google-auth-contract.mjs` to test the centralized membership permission guards instead of the removed literal role expression.
+    - **PASS — exact source head `1131b669bf1ab5bf303162638f535e01f0ae043f`:** [Pages validation run 40774776775](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776775) passed TypeScript/lint, catalog build, dashboard static contract, runtime permission matrix, OAuth/public-catalog smoke tests, production-gate reporting, syntax validators and artifact composition. [Primary Catalog Frontend Validation run 40774776818](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776818), [Legacy Catalog Module Validation run 40774776772](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776772), [Backend-only Module Boundary run 40774776728](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776728), [Module Professionalization run 40774776870](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776870), [MantiGO privacy run 40774776773](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776773), [RC425 atomicity run 40774776799](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776799), [SMM deferred storefront contract run 40774776883](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776883), and [flexible commission contract run 40774777126](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774777126) passed.
+    - **Important:** the actual Pages `deploy` job was skipped because this commit ran on the feature branch. No production deployment occurred.
+    - **NOT VERIFIED:** authenticated browser E2E and direct refresh of dashboard routes; live guest/owner/employee negative-role tests; direct API/RLS tenant isolation for dashboard/employee functions; keyboard/mobile accessibility; deployed UI and QR/share-link regression.
+    - Overall production status remains `BLOCKED / NOT CERTIFIED` for existing platform-level migration, finance and Edge Function drift. Keep PR #483 draft until the remaining browser/RLS checks are completed; passing static/CI contracts are not production certification.
 # Execution rule
 
 1. P0 الأمني أولاً.

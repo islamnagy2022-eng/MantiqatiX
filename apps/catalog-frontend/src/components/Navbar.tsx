@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { FloatingAppInstallButton } from './common/FloatingAppInstallButton';
+import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 import {
   Store,
   LayoutDashboard,
@@ -302,7 +303,7 @@ export const Navbar: React.FC = () => {
               )}
 
               {/* Merchant Dashboard Tab */}
-              {(authSession.role === 'subscriber' || authSession.role === 'admin') && (
+              {canAccessMerchantDashboard(authSession) && (
                 <button
                   onClick={() => setCurrentView('merchant_admin')}
                   className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
@@ -317,6 +318,22 @@ export const Navbar: React.FC = () => {
                       ? 'لوحة تحكم نشاطي'
                       : 'لوحة صاحب النشاط'}
                   </span>
+                </button>
+              )}
+
+              {/* Additive Professional Dashboard: keep all existing dashboard links intact. */}
+              {canAccessProfessionalDashboard(authSession) && (
+                <button
+                  onClick={() => setCurrentView('professional_dashboard')}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                    currentView === 'professional_dashboard'
+                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                  aria-current={currentView === 'professional_dashboard' ? 'page' : undefined}
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>الداشبورد الاحترافية</span>
                 </button>
               )}
 

@@ -24,7 +24,7 @@ assert.ok(context.includes("queryParams: { prompt: 'select_account' }"), 'Google
 assert.ok(production.includes("isAuthenticated: false"), 'Anonymous sessions must be explicitly unauthenticated.');
 assert.ok(production.includes("isAuthenticated: true") && production.includes("userId: user.id"), 'Valid Google sessions must retain identity even without memberships.');
 assert.ok(production.includes("const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest'"), 'Business permissions must continue to derive from active production memberships.');
-assert.ok(app.includes("authSession.role !== 'admin'") && app.includes("!['subscriber', 'admin'].includes(authSession.role)"), 'Dashboard rendering must remain role-gated.');
+assert.ok(app.includes("authSession.role !== 'admin'") && app.includes("!canAccessMerchantDashboard(authSession)") && app.includes("!canAccessProfessionalDashboard(authSession)"), 'Dashboard rendering must remain gated by the centralized membership permission checks.');
 assert.ok(navbar.includes("authSession.isAuthenticated && authSession.role === 'guest'"), 'Signed-in Google accounts without active memberships must see a clear non-subscribed state.');
 assert.ok(navbar.includes("authSession.role === 'guest' && !authBootstrapError && !authLoading"), 'The guest membership warning must stay hidden until session bootstrap has completed successfully.');
 assert.ok(navbar.includes("!authSession.isAuthenticated && !authLoading"), 'Only anonymous visitors may see the login action; loading must not flash a guest CTA.');

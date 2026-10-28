@@ -26,8 +26,9 @@ import {
 } from '../utils/rules';
 import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { resolveDefaultImage } from '../utils/defaultImages';
+import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -120,7 +121,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
@@ -132,6 +133,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     url.searchParams.delete('store');
     url.searchParams.delete('businessId');
     url.searchParams.delete('manage');
+    if (view !== 'merchant_admin') url.searchParams.delete('merchantTab');
+    if (view !== 'super_admin') url.searchParams.delete('controlTab');
     if (view === 'public_storefront') {
       url.searchParams.delete('view');
       url.searchParams.delete('tab');
@@ -165,7 +168,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
-    if (authSession.role === 'subscriber' && currentView === 'merchant_admin') {
+    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
       // Never fall back to another public business if the subscriber's authorized
       // business is missing from the current production bootstrap.
       return businesses.find((b) => b.id === authSession.businessId);
@@ -224,11 +227,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const safeRequestedView: ViewMode = requestedView === 'directory'
       ? 'directory'
-      : boot.authSession.role === 'admin'
-        ? requestedView === 'merchant_admin' || requestedView === 'super_admin' ? requestedView : 'directory'
-        : boot.authSession.role === 'subscriber'
-          ? requestedView === 'merchant_admin' ? 'merchant_admin' : 'directory'
-          : 'directory';
+      : requestedView === 'super_admin' && boot.authSession.role === 'admin'
+        ? 'super_admin'
+        : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
+          ? 'merchant_admin'
+          : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
+            ? 'professional_dashboard'
+            : 'directory';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -276,7 +281,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSubscribers([]);
         setSelectedBusinessIdState('');
         setCartItems([]);
-        setCurrentView('directory');
+        // Hide any privileged view while the new identity is loading without
+        // rewriting the URL; applyUser must inspect the original requested route
+        // after the role has been resolved and authorize or reject it.
+        setCurrentViewState('directory');
         setAuthBootstrapError('');
         setAuthLoading(true);
       } else if (force) {

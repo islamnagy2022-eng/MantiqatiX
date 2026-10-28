@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { BriefcaseBusiness, Plus, RefreshCw, Save, Users, X, UserRoundCheck, ShieldCheck, AlertTriangle } from 'lucide-react';
 import type { Business } from '../../types';
+import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 
 type Position = {
@@ -24,7 +25,9 @@ const moduleChoices = [
 const fieldClass = 'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50';
 
-export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ business }) => {
+export const BusinessEmployeeManager: React.FC<{ business?: Business; readOnly?: boolean }> = ({ business, readOnly = false }) => {
+  const { authSession } = useApp();
+  const membershipBranchId = authSession.role === 'subscriber' ? authSession.membershipBranchId || null : null;
   const [positions, setPositions] = useState<Position[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,18 +54,18 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
       return;
     }
     setLoading(true); setNotice(null);
-    const { data, error } = await supabase.rpc('mnty_business_employee_list', {
-      p_tenant_id: business.tenantId, p_business_id: business.id,
+    const { data, error } = await supabase.rpc('mnty_business_employee_list_scoped', {
+      p_tenant_id: business.tenantId, p_business_id: business.id, p_branch_id: membershipBranchId,
     });
     setLoading(false);
     if (error || data?.error) {
-      setNotice({ type: 'error', text: 'تعذر تحميل الموظفين والوظائف. تأكد من صلاحية إدارة النشاط وتطبيق ترحيل RC115.' });
+      setNotice({ type: 'error', text: 'تعذر تحميل الموظفين والوظائف. تحقق من نطاق العضوية وصلاحياتها وتطبيق ترحيل RC457.' });
       return;
     }
     setPositions(Array.isArray(data?.positions) ? data.positions : []);
     setEmployees(Array.isArray(data?.employees) ? data.employees : []);
     setEmployeePosition((previous) => previous || data?.positions?.find((p: Position) => p.is_active)?.id || '');
-  }, [business?.id, business?.tenantId]);
+  }, [business?.id, business?.tenantId, membershipBranchId]);
 
   useEffect(() => { void loadData(); }, [loadData]);
 
@@ -93,7 +96,7 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
       p_tenant_id: business.tenantId, p_business_id: business.id, p_title: title.trim(),
       p_description: description.trim(), p_department: department.trim(), p_employment_type: employmentType,
       p_permission_template: { modules: permissionModules }, p_is_hiring: isHiring,
-      p_is_active: isPositionActive, p_branch_id: null, p_position_id: positionEditId || null,
+      p_is_active: isPositionActive, p_branch_id: membershipBranchId, p_position_id: positionEditId || null,
     });
     setSaving(false);
     if (error) { setNotice({ type: 'error', text: error.message || 'تعذر حفظ الوظيفة.' }); return; }
@@ -121,7 +124,7 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
     const { error } = await supabase.rpc('mnty_business_employee_upsert', {
       p_tenant_id: business.tenantId, p_business_id: business.id, p_job_position_id: employeePosition,
       p_full_name: employeeName.trim(), p_email: employeeEmail.trim().toLowerCase(), p_phone: employeePhone.trim(),
-      p_user_id: null, p_status: employeeStatus, p_permission_overrides: {}, p_branch_id: null,
+      p_user_id: null, p_status: employeeStatus, p_permission_overrides: {}, p_branch_id: membershipBranchId,
       p_employee_id: employeeEditId || null,
     });
     setSaving(false);
@@ -156,9 +159,10 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
       </header>
 
       {notice && <div role="status" className={'rounded-xl border p-3 text-sm '+(notice.type==='error'?'border-rose-200 bg-rose-50 text-rose-800':'border-emerald-200 bg-emerald-50 text-emerald-800')}>{notice.text}</div>}
+      {readOnly && <p className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm leading-6 text-sky-900">وضع عرض فقط: يمكنك مشاهدة الوظائف والموظفين المسموح بهم. التعديل والتفعيل يتطلبان صلاحيات مستقلة.</p>}
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <form onSubmit={savePosition} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className={readOnly ? 'grid gap-6' : 'grid gap-6 xl:grid-cols-2'}>
+        {!readOnly && <form onSubmit={savePosition} className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><BriefcaseBusiness className="h-5 w-5 text-emerald-700" />{positionEditId?'تعديل وظيفة':'إنشاء وظيفة'}</h3>
             {positionEditId && <button type="button" onClick={resetPosition} className="text-xs font-bold text-slate-500">إلغاء التعديل</button>}
@@ -186,14 +190,14 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
             ))}
           </div>
           <button disabled={saving || loading || !title.trim()} className={buttonClass}><Save className="h-4 w-4" />{saving?'جار الحفظ…':'حفظ الوظيفة'}</button>
-        </form>
+        </form>}
 
         <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><BriefcaseBusiness className="h-5 w-5 text-emerald-700" />الوظائف المسجلة ({positions.length})</h3>
           {positions.length===0 && <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">لا توجد وظائف بعد. أنشئ وظيفة لتبدأ بإضافة الموظفين.</p>}
           {positions.map((position)=><div key={position.id} className="flex flex-col gap-3 rounded-2xl border border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div><div className="font-black text-slate-900">{position.title}</div><div className="mt-1 text-xs text-slate-500">{position.department||'بدون قسم'} · {position.employment_type} · {position.is_hiring?'التوظيف مفتوح':'التوظيف مغلق'}</div><div className="mt-1 text-[11px] text-slate-500">{position.is_active?'نشطة':'غير نشطة'} · {(Object.keys(position.permission_template?.modules||{})).length} موديول بصلاحيات معرفة</div></div>
-            <button type="button" onClick={()=>editPosition(position)} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700">تعديل</button>
+            {!readOnly && <button type="button" onClick={()=>editPosition(position)} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700">تعديل</button>}
           </div>)}
         </div>
       </div>
@@ -201,9 +205,9 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
       <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div><h3 className="flex items-center gap-2 text-lg font-black text-slate-900"><Users className="h-5 w-5 text-indigo-700" />سجل الموظفين ({employees.length})</h3><p className="mt-1 text-xs leading-5 text-slate-500">الحالات: دعوة، نشط، موقوف، منتهٍ. تفعيل الموظف يتطلب حساب Supabase مؤكدًا بنفس البريد الإلكتروني.</p></div>
-          <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />التغيير يسجل في سجل العمليات</div>
+          {!readOnly && <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800"><AlertTriangle className="h-4 w-4 shrink-0" />التغيير يسجل في سجل العمليات</div>}
         </div>
-        <form onSubmit={saveEmployee} className="grid gap-3 rounded-2xl bg-slate-50 p-4 md:grid-cols-2 xl:grid-cols-5">
+        {!readOnly && <form onSubmit={saveEmployee} className="grid gap-3 rounded-2xl bg-slate-50 p-4 md:grid-cols-2 xl:grid-cols-5">
           <input required maxLength={160} value={employeeName} onChange={(e)=>setEmployeeName(e.target.value)} className={fieldClass} placeholder="اسم الموظف" aria-label="اسم الموظف" />
           <input required type="email" maxLength={254} value={employeeEmail} onChange={(e)=>setEmployeeEmail(e.target.value)} className={fieldClass} placeholder="بريد حساب Google" aria-label="بريد حساب Google" />
           <input value={employeePhone} onChange={(e)=>setEmployeePhone(e.target.value)} className={fieldClass} placeholder="رقم الهاتف" aria-label="رقم الهاتف" />
@@ -213,11 +217,11 @@ export const BusinessEmployeeManager: React.FC<{ business?: Business }> = ({ bus
             <button disabled={saving||loading||positions.filter(p=>p.is_active).length===0} className={buttonClass}><UserRoundCheck className="h-4 w-4" />{saving?'جار الحفظ…':employeeEditId?'تحديث الموظف':'إضافة الموظف'}</button>
             {employeeEditId && <button type="button" onClick={resetEmployee} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700"><X className="h-4 w-4" />إلغاء</button>}
           </div>
-        </form>
+        </form>}
         {employees.length===0 ? <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">لا يوجد موظفون مسجلون لهذا النشاط.</p> :
-          <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-right text-sm"><thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="p-3">الموظف</th><th className="p-3">الوظيفة</th><th className="p-3">الحالة</th><th className="p-3">الحساب</th><th className="p-3">الإجراء</th></tr></thead><tbody>{employees.map((employee)=><tr key={employee.id} className="border-t border-slate-100"><td className="p-3"><div className="font-bold text-slate-900">{employee.full_name}</div><div className="text-xs text-slate-500">{employee.email}</div></td><td className="p-3">{employee.position_title}</td><td className="p-3"><span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold">{({INVITED:'بانتظار التفعيل',ACTIVE:'نشط',SUSPENDED:'موقوف',ENDED:'منتهٍ'} as Record<string,string>)[employee.status]||employee.status}</span></td><td className="p-3 text-xs text-slate-500">{employee.user_id?'مرتبط بحساب':'غير مرتبط'}</td><td className="p-3"><button type="button" onClick={()=>editEmployee(employee)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold">تعديل الحالة</button></td></tr>)}</tbody></table></div>}
+          <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-right text-sm"><thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="p-3">الموظف</th><th className="p-3">الوظيفة</th><th className="p-3">الحالة</th><th className="p-3">الحساب</th>{!readOnly && <th className="p-3">الإجراء</th>}</tr></thead><tbody>{employees.map((employee)=><tr key={employee.id} className="border-t border-slate-100"><td className="p-3"><div className="font-bold text-slate-900">{employee.full_name}</div><div className="text-xs text-slate-500">{employee.email}</div></td><td className="p-3">{employee.position_title}</td><td className="p-3"><span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold">{({INVITED:'بانتظار التفعيل',ACTIVE:'نشط',SUSPENDED:'موقوف',ENDED:'منتهٍ'} as Record<string,string>)[employee.status]||employee.status}</span></td><td className="p-3 text-xs text-slate-500">{employee.user_id?'مرتبط بحساب':'غير مرتبط'}</td>{!readOnly && <td className="p-3"><button type="button" onClick={()=>editEmployee(employee)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold">تعديل الحالة</button></td>}</tr>)}</tbody></table></div>}
       </section>
-      <p className="text-[11px] leading-5 text-slate-500">ملاحظة أمنية: إخفاء عناصر الواجهة لا يمنح صلاحيات. كل عملية هنا تمر عبر RPC محمية. بوابة الصلاحيات المركزية متاحة لربط الموديولات، لكن الوحدات التي لم تستدعها بعد تحتاج دمجًا واختبارات مستقلة قبل الإطلاق.</p>
+      <p className="text-[11px] leading-5 text-slate-500">ملاحظة أمنية: وضع العرض فقط يخفي أدوات التغيير في هذه الواجهة. تبقى صلاحيات القراءة والكتابة الفعلية مسؤولية RPC وقاعدة البيانات، ويجب اختبارها مستقلاً لكل دور.</p>
     </section>
   );
 };

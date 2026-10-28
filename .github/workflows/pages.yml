@@ -1,7 +1,8 @@
 name: Deploy MantiqatiX Web
 on:
   push:
-    branches: [main]
+    # Also validate the isolated dashboard branch on each source commit; deploy jobs below remain main-only.
+    branches: [main, feat/professional-dashboard-additive-20261028]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -35,6 +36,11 @@ jobs:
           test -s dist/config.js
           test -d dist/assets
           grep -q '/MantiqatiX/assets/' dist/index.html
+      - name: Validate additive professional dashboard contract
+        run: node scripts/validate-professional-dashboard.mjs
+      - name: Test professional dashboard permission matrix
+        working-directory: apps/catalog-frontend
+        run: npx tsx ../../scripts/test-professional-dashboard-access.ts
       - name: Validate Facebook page import ownership and token handling
         run: node scripts/validate-facebook-page-import.mjs
       - name: Validate activity social links and click-to-call

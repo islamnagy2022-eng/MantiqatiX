@@ -23,6 +23,16 @@
 - `docs/MASTER_PRODUCTION_TODO.md` item 10 now distinguishes passing CI from unverified deployed preview/browser E2E.
 - No merge or production deploy occurred. Authenticated browser flow, tenant isolation E2E, PWA offline behavior, and the overall production release remain NOT VERIFIED / BLOCKED.
 
+## Latest dashboard development note — 2026-10-28
+
+- An additive professional dashboard implementation has started on branch `feat/professional-dashboard-additive-20261028`.
+- New component: `apps/catalog-frontend/src/modules/dashboard/ProfessionalDashboard.tsx`.
+- Existing view state, URL parsing, App.tsx rendering, and Navbar navigation have been extended to add `professional_dashboard`; old directory, public storefront, merchant dashboard, and admin dashboard remain in source.
+- Initial dashboard metrics use the existing in-memory AppContext only; no database/schema changes or fake financial data were added.
+- **NOT VERIFIED:** build/lint, workflow CI, browser rendering, role/tenant isolation E2E, production deployment, and regressions. Do not merge/deploy until checked.
+- See the dated entry in `docs/SESSION_LOG.md` and item 34 in `docs/MASTER_PRODUCTION_TODO.md`.
+- Production gate remains **BLOCKED / NOT CERTIFIED**.
+
 ## Current baseline
 
 - Repository: `islamnagy2022-eng/MantiqatiX`
@@ -720,3 +730,45 @@ This status is intentional and must remain until the open gates above are indepe
 - `.github/workflows/pages.yml` now publishes only `apps/catalog-frontend/dist` as the production artifact; the legacy `web/` application is not copied into the published site. Post-deploy checks validate the catalog title, root assets, Supabase config, and that JavaScript/CSS assets are reachable. Legacy preview/SMM routes remain required to return 404.
 - Updated primary catalog CI, health monitoring, production gate contracts, and catalog pilot verification to expect a catalog-only root deployment. Legacy source files remain in GitHub for development and are not the production UI.
 - Changes are still in open PR #453; not merged to main and not deployed. CI and browser Google OAuth verification remain pending.
+
+## Dashboard follow-up — 2026-10-28
+
+- The isolated dashboard now has a responsive RTL section menu, data-backed overview counters, category distribution and creation-date trend, stored-state alerts, and searchable/filterable activities. Admin actions route to existing `businesses`, `subscribers`, and `settings` tabs; owner shortcuts can open existing employee/profile tabs via `merchantTab`.
+- A regression validator is wired into Pages CI at `scripts/validate-professional-dashboard.mjs`.
+- Current branch and Draft PR: `feat/professional-dashboard-additive-20261028`, PR #483. Build/contract results for the newest exact head must be read from Actions before changing state to verified. Browser/RLS tenant-isolation E2E and deployment remain unverified; do not merge/deploy on this evidence alone.
+
+## Dashboard verification update — 2026-10-28
+
+- Exact source/build/static-contract head verified: `4bbf141dad21a919677e34cad60f7b677b17f9a8`.
+- Primary Catalog Frontend Validation passed: [40736278224](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736278224). Pages workflow validation including dashboard static contract passed: [40736278305](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736278305). Module professionalization validation passed: [40736278182](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736278182).
+- These were pull-request validations; production deployment was skipped. Browser E2E, direct API/RLS tenant isolation, keyboard/mobile accessibility, and deployed dashboard behavior remain **NOT VERIFIED**. PR #483 stays draft and isolated from main pending those checks.
+
+## Final dashboard CI update — 2026-10-28
+
+- Exact source head with passing validation: `5690c667f312206d8bd32c001c913ac8628bb0d2`.
+- Primary catalog validation PASS: [40736940379](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736940379). Pages validation and complete syntax-validator step PASS; production deploy intentionally skipped for PR: [40736940282](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736940282). Module professionalization validation PASS: [40736940498](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736940498).
+- Fixed a stale assertion in `scripts/validate-canonical-activity-taxonomy.mjs` to accept responsive icon-card padding variants; no catalog UI behavior was changed by that test-only fix.
+- Remaining NOT VERIFIED gates: authenticated browser E2E/deep-link refresh, denial tests, API/RLS tenant isolation, manual accessibility/mobile review, and live dashboard deployment. PR #483 remains draft and unmerged; full platform production gate remains BLOCKED / NOT CERTIFIED.
+
+## Dashboard integration rebased on current main — 2026-10-28
+
+- Feature branch was rebuilt on current `main` baseline `b5e5b22cc4bbef93e2d184a39c00e971115af253` while preserving the intended 19 changed files; current main was not altered. PR #483 is now one integration commit ahead of main rather than a 67-commit diverged history.
+- Exact rebased source head `fce2f08d92f36d6bc6830fad8f9ac29df618593d` passed Pages workflow validation and dashboard permission matrix, plus backend-only, module professionalization, MantiGO privacy and catalog-admin CORS validation: [Pages run 40773802038](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802038), [backend-only run 40773802088](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802088), [professionalization run 40773802241](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802241), [MantiGO run 40773802071](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802071), [CORS run 40773802329](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802329).
+- The actual deployment job was skipped on the feature branch; no production deployment is claimed. Browser E2E, direct API/RLS tenant isolation, manual accessibility and live QR/share-link regression remain not verified. Keep PR #483 draft; full platform gate remains `BLOCKED / NOT CERTIFIED`.
+
+## Membership-scope follow-up — 2026-10-28
+
+- Selected membership precedence now prefers OWNER/BUSINESS_OWNER/ADMIN for the chosen business, then a tenant-wide OWNER only within the matching tenant, then lower-scope membership rows. This prevents a newer employee membership record from replacing the owner context in the dashboard.
+- Static role/route contract plus runtime permission matrix passed on exact current source head `d243a4fdcb3449bf0b49ba6b7290c123ecd0bce2`: [Pages validation run 40774358276](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358276). Backend-only [40774358272](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358272), module professionalization [40774358297](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358297), and MantiGO privacy [40774358269](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358269) passed as well.
+- PR #483 is mergeable but remains Draft pending authenticated browser E2E, direct API/RLS tenant isolation, mobile/accessibility and live share/QR verification. The Pages deploy job was skipped on feature branch; full platform release remains `BLOCKED / NOT CERTIFIED`.
+
+## Latest validation correction — 2026-10-28
+
+- Updated the primary catalog Google OAuth role contract to assert the centralized role/permission helpers used by the dashboard. This resolves a stale test expectation and retains the security gate rather than weakening it.
+- Exact current source head `1131b669bf1ab5bf303162638f535e01f0ae043f` passed Pages validation [40774776775](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776775), Primary Catalog Frontend [40774776818](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776818), Legacy Catalog [40774776772](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776772), Backend-only [40774776728](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776728), Module Professionalization [40774776870](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776870), MantiGO [40774776773](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776773), RC425 atomicity [40774776799](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776799), SMM deferred storefront [40774776883](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776883), and flexible commission [40774777126](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774777126).
+- Current PR compare: 6 commits ahead, 0 behind, merge state clean. PR remains Draft pending live browser/RLS verification. Actual deployment has not occurred and the overall production gate remains `BLOCKED / NOT CERTIFIED`.
+
+## Final branch-shape correction — 2026-10-28
+
+- Earlier notes refer to the initial post-rebase snapshot. After updating the OAuth role-contract test and adding the final documentation, the current PR tree has 20 changed paths and compares cleanly to current `main` with zero commits behind; `main` was not modified directly.
+- PR #483 remains a Draft/mergeable code change but is not merged. Browser E2E and direct API/RLS tenant-isolation evidence are still missing, and merging would trigger the production Pages flow. Current production remains not deployed and the platform gate remains `BLOCKED / NOT CERTIFIED`.

@@ -162,7 +162,20 @@ export const MerchantDashboard: React.FC = () => {
     ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(permanentStoreUrl)}`
     : '';
 
-  const [activeTab, setActiveTab] = useState<'products' | 'import' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees'>('products');
+  type MerchantDashboardTab = 'products' | 'import' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees';
+  const readMerchantTabFromUrl = (): MerchantDashboardTab => {
+    const requested = new URLSearchParams(window.location.search).get('merchantTab');
+    const allowedTabs: MerchantDashboardTab[] = ['products', 'import', 'branding', 'profile', 'functional_engine', 'qr', 'employees'];
+    return requested && allowedTabs.includes(requested as MerchantDashboardTab) ? requested as MerchantDashboardTab : 'products';
+  };
+  const [activeTab, setActiveTabState] = useState<MerchantDashboardTab>(readMerchantTabFromUrl);
+  const setActiveTab = (tab: MerchantDashboardTab) => {
+    setActiveTabState(tab);
+    const url = new URL(window.location.href);
+    if (tab === 'products') url.searchParams.delete('merchantTab');
+    else url.searchParams.set('merchantTab', tab);
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  };
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Business Profile & Branding state

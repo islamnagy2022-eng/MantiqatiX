@@ -344,7 +344,25 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 
   const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest';
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
-  const chosen = businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id && ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role).toUpperCase()))) || businesses[0];
+  const managementRoles = ['OWNER', 'BUSINESS_OWNER', 'ADMIN'];
+  const chosen = businesses.find((b) => roleMemberships.some((m: any) =>
+    String(m.business_id || '') === b.id &&
+    managementRoles.includes(String(m.role).toUpperCase())
+  )) || businesses.find((b) => roleMemberships.some((m: any) =>
+    String(m.tenant_id || '') === String(b.tenantId || '') &&
+    String(m.role || '').toUpperCase() === 'OWNER' && !m.business_id && !m.branch_id
+  )) || businesses.find((b) => roleMemberships.some((m: any) =>
+    String(m.business_id || '') === b.id && String(m.role || '').toUpperCase() === 'MANAGER'
+  )) || businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id)) || businesses[0];
+  // Prefer the strongest active membership for the chosen business instead of
+  // whichever row happens to appear first in the membership result.
+  // A tenant-wide OWNER is valid only within that owner's tenant.
+  const chosenMembership = chosen
+    ? roleMemberships.find((m: any) => String(m.business_id || '') === chosen.id && managementRoles.includes(String(m.role || '').toUpperCase()))
+      || roleMemberships.find((m: any) => String(m.tenant_id || '') === String(chosen.tenantId || '') && String(m.role || '').toUpperCase() === 'OWNER' && !m.business_id && !m.branch_id)
+      || roleMemberships.find((m: any) => String(m.business_id || '') === chosen.id && String(m.role || '').toUpperCase() === 'MANAGER')
+      || roleMemberships.find((m: any) => String(m.business_id || '') === chosen.id)
+    : own;
   return {
     // Authentication and authorization are separate: a Google user with no
     // active membership is signed in as a customer/guest, never an owner.
@@ -353,9 +371,14 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       isAuthenticated: true,
       userId: user.id,
       email: user.email || undefined,
-      subscriberId: own?.id,
+      subscriberId: chosenMembership?.id || own?.id,
       businessId: chosen?.id,
       subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || ''),
+      membershipRole: String(chosenMembership?.role || '').toUpperCase() || undefined,
+      membershipBranchId: String(chosenMembership?.branch_id || '') || undefined,
+      membershipPermissions: chosenMembership?.permissions && typeof chosenMembership.permissions === 'object'
+        ? chosenMembership.permissions
+        : undefined,
       subscriberDirectoryError: subscriberDirectoryError || undefined,
       ignoredOrphanMemberships,
     },
