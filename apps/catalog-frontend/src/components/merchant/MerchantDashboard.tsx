@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { BusinessEmployeeManager } from './BusinessEmployeeManager';
+import { normalizeSocialUrl } from '../../utils/socialLinks';
 
 
 type FacebookPageOption = { id: string; name: string; link?: string; category?: string };
@@ -158,6 +159,9 @@ export const MerchantDashboard: React.FC = () => {
   const [bizLogoUrl, setBizLogoUrl] = useState(currentBusiness?.logoUrl || '');
   const [bizCoverUrl, setBizCoverUrl] = useState(currentBusiness?.coverUrl || '');
   const [bizOwnerWhatsApp, setBizOwnerWhatsApp] = useState(currentBusiness?.ownerWhatsApp || '');
+  const [bizFacebookUrl, setBizFacebookUrl] = useState(currentBusiness?.facebookUrl || '');
+  const [bizInstagramUrl, setBizInstagramUrl] = useState(currentBusiness?.instagramUrl || '');
+  const [bizTikTokUrl, setBizTikTokUrl] = useState(currentBusiness?.tiktokUrl || '');
   const [bizAddress, setBizAddress] = useState(currentBusiness?.address || '');
   const [bizGov, setBizGov] = useState(currentBusiness?.governorate || '');
   const [bizMarkaz, setBizMarkaz] = useState(currentBusiness?.markaz || '');
@@ -206,6 +210,9 @@ export const MerchantDashboard: React.FC = () => {
     setBizLogoUrl(currentBusiness?.logoUrl || '');
     setBizCoverUrl(currentBusiness?.coverUrl || '');
     setBizOwnerWhatsApp(currentBusiness?.ownerWhatsApp || '');
+    setBizFacebookUrl(currentBusiness?.facebookUrl || '');
+    setBizInstagramUrl(currentBusiness?.instagramUrl || '');
+    setBizTikTokUrl(currentBusiness?.tiktokUrl || '');
     setBizAddress(currentBusiness?.address || '');
     setBizGov(currentBusiness?.governorate || '');
     setBizMarkaz(currentBusiness?.markaz || '');
@@ -375,6 +382,21 @@ export const MerchantDashboard: React.FC = () => {
       setProfileSaveError('اسم النشاط يجب ألا يقل عن حرفين.');
       return;
     }
+    const facebookUrl = normalizeSocialUrl(bizFacebookUrl, 'facebook');
+    const instagramUrl = normalizeSocialUrl(bizInstagramUrl, 'instagram');
+    const tiktokUrl = normalizeSocialUrl(bizTikTokUrl, 'tiktok');
+    if (bizFacebookUrl.trim() && !facebookUrl) {
+      setProfileSaveError('رابط فيسبوك غير صحيح. أدخل رابطًا آمنًا من نطاق Facebook.');
+      return;
+    }
+    if (bizInstagramUrl.trim() && !instagramUrl) {
+      setProfileSaveError('رابط إنستجرام غير صحيح. أدخل رابطًا آمنًا من نطاق Instagram.');
+      return;
+    }
+    if (bizTikTokUrl.trim() && !tiktokUrl) {
+      setProfileSaveError('رابط تيك توك غير صحيح. أدخل رابطًا آمنًا من نطاق TikTok.');
+      return;
+    }
 
     setProfileSaving(true);
     try {
@@ -385,6 +407,9 @@ export const MerchantDashboard: React.FC = () => {
         logoUrl: bizLogoUrl.trim(),
         coverUrl: bizCoverUrl.trim(),
         ownerWhatsApp: bizOwnerWhatsApp.trim(),
+        facebookUrl,
+        instagramUrl,
+        tiktokUrl,
         address: bizAddress.trim(),
         governorate: bizGov.trim(),
         markaz: bizMarkaz.trim(),
@@ -1132,6 +1157,27 @@ export const MerchantDashboard: React.FC = () => {
                   placeholder="يومياً من 9 صباحاً حتى 11 مساءً"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
                 />
+              </div>
+
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">روابط التواصل الاجتماعي</h3>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">أدخل روابط صفحات النشاط فقط. ستظهر كأزرار مباشرة في صفحة الكتالوج، وكل حقل اختياري.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-700">رابط فيسبوك</span>
+                    <input type="url" value={bizFacebookUrl} onChange={(event) => setBizFacebookUrl(event.target.value)} placeholder="https://facebook.com/yourpage" className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs" dir="ltr" />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-700">رابط إنستجرام</span>
+                    <input type="url" value={bizInstagramUrl} onChange={(event) => setBizInstagramUrl(event.target.value)} placeholder="https://instagram.com/yourpage" className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs" dir="ltr" />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-700">رابط تيك توك</span>
+                    <input type="url" value={bizTikTokUrl} onChange={(event) => setBizTikTokUrl(event.target.value)} placeholder="https://tiktok.com/@yourpage" className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs" dir="ltr" />
+                  </label>
+                </div>
               </div>
 
               <div className="md:col-span-2">
