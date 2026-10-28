@@ -42,12 +42,14 @@ import {
   Filter,
   ArrowRight,
   FolderPlus,
+  UserCog,
 } from 'lucide-react';
 import {
   formatEgyptianLocation,
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -62,6 +64,7 @@ const ICONS_MAP: Record<string, React.ReactNode> = {
 export const AdminDashboard: React.FC = () => {
   const {
     subscribers,
+    authSession,
     businesses,
     products,
     adminSettings,
@@ -70,6 +73,7 @@ export const AdminDashboard: React.FC = () => {
     addCategory,
     deleteCategory,
     addSubscriber,
+    saveSubscriberMembership,
     updateSubscriber,
     deleteSubscriber,
     sendGmailInvite,
@@ -86,6 +90,7 @@ export const AdminDashboard: React.FC = () => {
     confirmAdminPayment,
     toggleBusinessFreeze,
     updateBusinessLocation,
+    deleteBusiness,
   } = useApp();
 
   const [activeAdminTab, setActiveAdminTab] = useState<
@@ -105,6 +110,36 @@ export const AdminDashboard: React.FC = () => {
   const [subPhone, setSubPhone] = useState('');
   const [subBizId, setSubBizId] = useState(businesses[0]?.id || '');
   const [subNotes, setSubNotes] = useState('');
+
+  // Live Supabase account role / business assignment controls.
+  const [isSubscriberAccessModalOpen, setIsSubscriberAccessModalOpen] = useState(false);
+  const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
+  const [subAccessTenantId, setSubAccessTenantId] = useState('MNTY-PLATFORM');
+  const [subAccessBusinessId, setSubAccessBusinessId] = useState('');
+  const [subAccessBranchId, setSubAccessBranchId] = useState('');
+  const [subAccessRole, setSubAccessRole] = useState('CUSTOMER');
+  const [subAccessStatus, setSubAccessStatus] = useState<'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('INACTIVE');
+  const [subAccessCatalogEnabled, setSubAccessCatalogEnabled] = useState(false);
+  const [subAccessCatalogWrite, setSubAccessCatalogWrite] = useState(false);
+  const [subAccessAccountRestricted, setSubAccessAccountRestricted] = useState(false);
+  const [subAccessSaving, setSubAccessSaving] = useState(false);
+  const [subAccessFeedback, setSubAccessFeedback] = useState<string | null>(null);
+
+  const openSubscriberAccessEditor = (subscriber: Subscriber) => {
+    const assignedBusiness = businesses.find((business) => business.id === subscriber.businessId);
+    setEditingSubscriber(subscriber);
+    setSubAccessTenantId(subscriber.tenantId || assignedBusiness?.tenantId || businesses[0]?.tenantId || 'MNTY-PLATFORM');
+    setSubAccessBusinessId(subscriber.businessId || '');
+    setSubAccessBranchId(subscriber.branchId || '');
+    setSubAccessRole(String(subscriber.role || 'CUSTOMER').toUpperCase() === 'SUPER_ADMIN' ? 'CUSTOMER' : String(subscriber.role || 'CUSTOMER').toUpperCase());
+    const status = String(subscriber.membershipStatus || (subscriber.status === 'active' ? 'ACTIVE' : subscriber.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE')).toUpperCase();
+    setSubAccessStatus(status === 'ACTIVE' || status === 'SUSPENDED' ? status : 'INACTIVE');
+    setSubAccessCatalogEnabled(!subscriber.isAccountOnly && subscriber.permissions?.catalog !== false && subscriber.permissions?.account_restricted !== true);
+    setSubAccessCatalogWrite(!subscriber.isAccountOnly && subscriber.permissions?.catalog_write !== false && subscriber.permissions?.catalog_read_only !== true);
+    setSubAccessAccountRestricted(subscriber.permissions?.account_restricted === true);
+    setSubAccessFeedback(null);
+    setIsSubscriberAccessModalOpen(true);
+  };
 
   // Credentials copied popup/feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -139,6 +174,7 @@ export const AdminDashboard: React.FC = () => {
   const [billingStatusFilter, setBillingStatusFilter] = useState('all');
   const [billingActionMsg, setBillingActionMsg] = useState<string | null>(null);
   const [billingActionBusyId, setBillingActionBusyId] = useState<string | null>(null);
+  const [businessDeleteBusyId, setBusinessDeleteBusyId] = useState<string | null>(null);
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
@@ -288,6 +324,28 @@ export const AdminDashboard: React.FC = () => {
       navigator.clipboard.writeText(link);
       setCopiedId(biz.id);
       setTimeout(() => setCopiedId(null), 2500);
+    }
+  };
+
+  const handleDeleteBusiness = async (business: Business) => {
+    if (!business.tenantId) {
+      window.alert('لا يمكن حذف النشاط لأن معرّف المستأجر الإنتاجي غير متوفر.');
+      return;
+    }
+    const confirmed = window.confirm(
+      `سيتم حذف نشاط «${business.name}» نهائيًا مع إعداداته والكتالوج والتعيينات المرتبطة به. إذا كان له طلبات أو حركات مالية أو مخزون أو اتفاقيات محفوظة فسيمنع الخادم الحذف للحفاظ على السجلات. هل تريد المتابعة؟`
+    );
+    if (!confirmed || businessDeleteBusyId) return;
+    setBusinessDeleteBusyId(business.id);
+    try {
+      await deleteBusiness(business.id);
+      window.alert(`تم حذف نشاط «${business.name}» نهائيًا من قاعدة البيانات.`);
+    } catch (error) {
+      window.alert(error instanceof Error
+        ? `تعذر حذف النشاط: ${error.message}`
+        : 'تعذر حذف النشاط. لم يتم إزالة النشاط من القائمة المحلية.');
+    } finally {
+      setBusinessDeleteBusyId(null);
     }
   };
 
@@ -1055,9 +1113,13 @@ export const AdminDashboard: React.FC = () => {
                     {/* Cover Photo */}
                     <div className="relative h-28 bg-slate-800">
                       <img
-                        src={b.coverUrl}
+                        src={b.coverUrl || resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'cover' })}
                         alt={b.name}
                         className="w-full h-full object-cover"
+                        onError={(event) => {
+                          const image = event.currentTarget;
+                          image.src = resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'cover' });
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
@@ -1076,7 +1138,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="p-4 relative -mt-8">
                       <div className="flex items-start gap-3">
                         <img
-                          src={b.logoUrl || BUSINESS_PLACEHOLDER}
+                          src={b.logoUrl || resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'activity' })}
                           alt={b.name}
                           className="w-14 h-14 rounded-2xl ring-4 ring-white object-cover bg-white shadow-md flex-shrink-0"
                           onError={(event) => {
@@ -1162,6 +1224,16 @@ export const AdminDashboard: React.FC = () => {
                       <span>معاينة</span>
                       <ExternalLink className="w-3 h-3" />
                     </button>
+                    <button
+                      type="button"
+                      disabled={businessDeleteBusyId === b.id}
+                      onClick={() => { void handleDeleteBusiness(b); }}
+                      className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+                      title="حذف النشاط وبياناته نهائيًا؛ تُحفظ السجلات المالية والتشغيلية"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {businessDeleteBusyId === b.id ? 'جارٍ الحذف...' : 'حذف النشاط'}
+                    </button>
                   </div>
                 </div>
               );
@@ -1195,6 +1267,16 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
+          {authSession.subscriberDirectoryError && (
+            <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-900">
+              تعذر قراءة حسابات Supabase: {authSession.subscriberDirectoryError}
+            </div>
+          )}
+          {(authSession.ignoredOrphanMemberships || 0) > 0 && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">
+              تم تجاهل {authSession.ignoredOrphanMemberships} تعيين قديم لا يرتبط بحساب Auth موجود. لم يتم حذفها تلقائيًا.
+            </div>
+          )}
           <div className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-right border-collapse text-xs">
@@ -1202,6 +1284,7 @@ export const AdminDashboard: React.FC = () => {
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
                     <th className="py-3.5 px-4">المشترك</th>
                     <th className="py-3.5 px-4">النشاط المخصص</th>
+                    <th className="py-3.5 px-4">الدور والصلاحيات</th>
                     <th className="py-3.5 px-4">حساب Google</th>
                     <th className="py-3.5 px-4">حالة الاشتراك</th>
                     <th className="py-3.5 px-4">طريقة التعيين</th>
@@ -1228,6 +1311,22 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           ) : (
                             <span className="text-slate-400">غير مخصص</span>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <div className="font-black text-slate-800">{sub.role || (sub.isAccountOnly ? 'بدون تعيين' : 'غير محدد')}</div>
+                          {sub.isPlatformAccount || String(sub.role || '').toUpperCase() === 'SUPER_ADMIN' ? (
+                            <span className="mt-1 inline-block rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-900">حساب مالك المنصة — محمي</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => openSubscriberAccessEditor(sub)}
+                              className="mt-1 inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[10px] font-black text-indigo-800 hover:bg-indigo-100"
+                            >
+                              <UserCog className="h-3 w-3" />
+                              <span>{sub.isAccountOnly ? 'تعيين دور ونشاط' : 'إدارة الصلاحيات'}</span>
+                            </button>
                           )}
                         </td>
 
@@ -1292,12 +1391,15 @@ export const AdminDashboard: React.FC = () => {
 
                         <td className="py-3.5 px-4 text-center">
                           <button
+                            disabled={Boolean(sub.isAccountOnly || sub.isPlatformAccount || String(sub.role || '').toUpperCase() === 'SUPER_ADMIN')}
+                            title={sub.isAccountOnly ? 'لا يوجد تعيين لتعطيله؛ استخدم إدارة الصلاحيات لتعيين الحساب' : 'تعطيل تعيين هذا الحساب بالنشاط'}
                             onClick={() => {
-                              if (window.confirm(`هل أنت متأكد من حذف المشترك (${sub.fullName})؟`)) {
-                                void deleteSubscriber(sub.id).catch((error) => window.alert(error instanceof Error ? error.message : 'تعذر تعطيل حساب المشترك.'));
+                              if (sub.isAccountOnly || sub.isPlatformAccount || String(sub.role || '').toUpperCase() === 'SUPER_ADMIN') return;
+                              if (window.confirm(`هل تريد تعطيل تعيين (${sub.fullName}) بالنشاط؟ سيظل حساب Supabase موجودًا.`)) {
+                                void deleteSubscriber(sub.id).catch((error) => window.alert(error instanceof Error ? error.message : 'تعذر تعطيل تعيين الحساب.'));
                               }
                             }}
-                            className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                            className="text-slate-400 hover:text-rose-600 disabled:opacity-20 disabled:cursor-not-allowed p-1 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1309,6 +1411,146 @@ export const AdminDashboard: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {isSubscriberAccessModalOpen && editingSubscriber && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="subscriber-access-title">
+              <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 shadow-2xl space-y-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 id="subscriber-access-title" className="text-lg sm:text-xl font-black text-slate-900">إدارة الدور والصلاحيات</h3>
+                    <p className="mt-1 text-xs text-slate-500">{editingSubscriber.fullName} · {editingSubscriber.email}</p>
+                  </div>
+                  <button type="button" onClick={() => { setIsSubscriberAccessModalOpen(false); setEditingSubscriber(null); }} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">إغلاق</button>
+                </div>
+
+                {subAccessFeedback && (
+                  <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-900">{subAccessFeedback}</div>
+                )}
+
+                <form className="space-y-5" onSubmit={async (event) => {
+                  event.preventDefault();
+                  if (subAccessSaving || !editingSubscriber) return;
+                  setSubAccessSaving(true);
+                  setSubAccessFeedback(null);
+                  try {
+                    const selectedBusiness = businesses.find((business) => business.id === subAccessBusinessId);
+                    const tenantId = selectedBusiness?.tenantId || subAccessTenantId;
+                    if (subAccessBusinessId && !selectedBusiness?.tenantId) throw new Error('النشاط المختار غير مرتبط بمستأجر إنتاج معروف.');
+                    await saveSubscriberMembership({
+                      subscriber: editingSubscriber,
+                      tenantId,
+                      businessId: subAccessBusinessId || undefined,
+                      branchId: subAccessBranchId || undefined,
+                      role: subAccessRole,
+                      status: subAccessStatus,
+                      catalogEnabled: subAccessCatalogEnabled,
+                      catalogWrite: subAccessCatalogWrite,
+                      accountRestricted: subAccessAccountRestricted,
+                    });
+                    setIsSubscriberAccessModalOpen(false);
+                    setEditingSubscriber(null);
+                  } catch (error) {
+                    setSubAccessFeedback(error instanceof Error ? error.message : 'تعذر حفظ الدور والصلاحيات في Supabase.');
+                  } finally {
+                    setSubAccessSaving(false);
+                  }
+                }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="block text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>الدور</span>
+                      <select value={subAccessRole} onChange={(event) => setSubAccessRole(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" required>
+                        <option value="CUSTOMER">عميل (CUSTOMER)</option>
+                        <option value="OWNER">مالك نطاق / منشأة (OWNER)</option>
+                        <option value="BUSINESS_OWNER">صاحب نشاط (BUSINESS_OWNER)</option>
+                        <option value="ADMIN">مدير نشاط (ADMIN)</option>
+                        <option value="MANAGER">مدير فرع/تشغيل (MANAGER)</option>
+                        <option value="FINANCE">المالية (FINANCE)</option>
+                        <option value="SALES">المبيعات (SALES)</option>
+                        <option value="MARKETING">التسويق (MARKETING)</option>
+                        <option value="SUPPORT">الدعم (SUPPORT)</option>
+                        <option value="SUPPORT_MANAGER">مدير الدعم (SUPPORT_MANAGER)</option>
+                        <option value="EMPLOYEE">موظف (EMPLOYEE)</option>
+                        <option value="STAFF">طاقم فرع (STAFF)</option>
+                        <option value="SERVICE_PROVIDER">مقدم خدمة (SERVICE_PROVIDER)</option>
+                        <option value="PROVIDER_OWNER">مالك مقدم خدمة (PROVIDER_OWNER)</option>
+                        <option value="PROVIDER_ADMIN">مدير مقدم خدمة (PROVIDER_ADMIN)</option>
+                        <option value="BRANCH_MANAGER">مدير فرع (BRANCH_MANAGER)</option>
+                        <option value="PROVIDER_FINANCE">مالية مقدم خدمة (PROVIDER_FINANCE)</option>
+                        <option value="PROVIDER_MARKETING">تسويق مقدم خدمة (PROVIDER_MARKETING)</option>
+                        <option value="PROVIDER_OPERATIONS">تشغيل مقدم خدمة (PROVIDER_OPERATIONS)</option>
+                        <option value="PROVIDER_SUPPORT">دعم مقدم خدمة (PROVIDER_SUPPORT)</option>
+                      </select>
+                      <span className="block text-[10px] font-normal text-slate-500">دور SUPER_ADMIN محمي ولا يمكن منحه أو تعديله من هذه الشاشة.</span>
+                    </label>
+
+                    <label className="block text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>حالة التعيين</span>
+                      <select value={subAccessStatus} onChange={(event) => setSubAccessStatus(event.target.value as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                        <option value="ACTIVE">نشط (ACTIVE)</option>
+                        <option value="INACTIVE">غير نشط (INACTIVE)</option>
+                        <option value="SUSPENDED">موقوف (SUSPENDED)</option>
+                      </select>
+                    </label>
+
+                    <label className="block sm:col-span-2 text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>النشاط المخصص</span>
+                      <select value={subAccessBusinessId} onChange={(event) => {
+                        const nextId = event.target.value;
+                        setSubAccessBusinessId(nextId);
+                        const match = businesses.find((business) => business.id === nextId);
+                        if (match?.tenantId) setSubAccessTenantId(match.tenantId);
+                        setSubAccessBranchId('');
+                      }} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                        <option value="">بدون نشاط مرتبط (حساب عام/عميل)</option>
+                        {businesses.map((business) => (
+                          <option key={business.id} value={business.id}>{business.name} · {business.category}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="block sm:col-span-2 text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>معرّف الفرع (اختياري)</span>
+                      <input value={subAccessBranchId} onChange={(event) => setSubAccessBranchId(event.target.value.trim())} placeholder="اتركه فارغًا لتعيين الصلاحية على مستوى النشاط" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" />
+                    </label>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900">التحكم في الحساب والكتالوج</h4>
+                      <p className="mt-1 text-[11px] leading-relaxed text-slate-500">يطبّق الخادم القيود على طلبات قراءة الكتالوج وتعديله، وليس على مظهر الشاشة فقط.</p>
+                    </div>
+                    <label className="flex items-start gap-3 text-xs text-slate-800">
+                      <input type="checkbox" checked={subAccessAccountRestricted} onChange={(event) => {
+                        const restricted = event.target.checked;
+                        setSubAccessAccountRestricted(restricted);
+                        if (restricted) {
+                          setSubAccessCatalogEnabled(false);
+                          setSubAccessCatalogWrite(false);
+                          setSubAccessStatus('SUSPENDED');
+                        }
+                      }} className="mt-0.5 h-4 w-4 accent-rose-600" />
+                      <span><strong className="block text-rose-800">تقييد الحساب بالكامل على هذا التعيين</strong><span className="mt-0.5 block text-slate-500">يمنع الوصول إلى الكتالوج عبر هذا الدور. لا يحذف حساب Google من Supabase.</span></span>
+                    </label>
+                    <label className="flex items-start gap-3 text-xs text-slate-800">
+                      <input type="checkbox" checked={subAccessCatalogEnabled} disabled={subAccessAccountRestricted} onChange={(event) => setSubAccessCatalogEnabled(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600 disabled:opacity-40" />
+                      <span><strong className="block">السماح بدخول الكتالوج</strong><span className="mt-0.5 block text-slate-500">أوقف هذا الخيار لمنع الوصول إلى واجهات الكتالوج لهذا التعيين.</span></span>
+                    </label>
+                    <label className="flex items-start gap-3 text-xs text-slate-800">
+                      <input type="checkbox" checked={subAccessCatalogWrite} disabled={!subAccessCatalogEnabled || subAccessAccountRestricted} onChange={(event) => setSubAccessCatalogWrite(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600 disabled:opacity-40" />
+                      <span><strong className="block">السماح بإضافة وتعديل عناصر الكتالوج</strong><span className="mt-0.5 block text-slate-500">عند إيقافه يحتفظ الحساب بقراءة الكتالوج فقط.</span></span>
+                    </label>
+                  </div>
+
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 pt-4">
+                    <button type="button" onClick={() => { setIsSubscriberAccessModalOpen(false); setEditingSubscriber(null); }} className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+                    <button type="submit" disabled={subAccessSaving} className="rounded-xl bg-slate-900 px-6 py-2.5 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-50">
+                      {subAccessSaving ? 'جارٍ حفظ الدور والصلاحيات...' : 'حفظ الصلاحيات والتعيين'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
