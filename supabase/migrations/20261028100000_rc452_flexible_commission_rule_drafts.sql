@@ -191,6 +191,26 @@ begin
     );
   end if;
 
+  if v_action = 'AUDIT' then
+    return jsonb_build_object(
+      'entries', coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'id', a.id, 'commission_rule_id', a.commission_rule_id,
+          'actor_user_id', a.actor_user_id, 'action', a.action,
+          'old_values', a.old_values, 'new_values', a.new_values,
+          'created_at', a.created_at
+        ) order by a.created_at desc)
+        from (
+          select id, commission_rule_id, actor_user_id, action, old_values, new_values, created_at
+          from public.commission_rule_audit
+          where tenant_id = p_tenant_id
+          order by created_at desc
+          limit 100
+        ) a
+      ), '[]'::jsonb)
+    );
+  end if;
+
   if v_action = 'SAVE' then
     if jsonb_typeof(coalesce(p_rule,'{}'::jsonb)) <> 'object' then raise exception 'INVALID_RULE'; end if;
 
