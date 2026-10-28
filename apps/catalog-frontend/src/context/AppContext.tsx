@@ -15,6 +15,7 @@ import {
   DEFAULT_CATEGORIES,
   DEFAULT_FUNCTIONAL_GROUPS,
   INITIAL_ADMIN_SETTINGS,
+  normalizeCanonicalTaxonomySettings,
 } from '../data/productionDefaults';
 import {
   createBackupPayload,
@@ -35,9 +36,9 @@ interface AppContextType {
   currentBusiness: Business | undefined;
   functionalGroups: FunctionalGroup[];
   categories: ActivityCategory[];
-  addCategory: (cat: { name: string; functionalGroupId: FunctionalGroupId; description?: string; classificationType?: 'activity' | 'profession'; specialties?: string[] }) => ActivityCategory;
-  updateCategory: (cat: ActivityCategory) => void;
-  deleteCategory: (id: string) => void;
+  addCategory: (cat: { name: string; functionalGroupId: FunctionalGroupId; description?: string; classificationType?: 'activity' | 'profession'; specialties?: string[] }) => Promise<ActivityCategory>;
+  updateCategory: (cat: ActivityCategory) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
   selectedFunctionalGroupFilter: string;
   setSelectedFunctionalGroupFilter: (id: string) => void;
   selectedCategoryFilter: string;
@@ -331,13 +332,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedBusinessIdState(''); setCurrentView('directory'); setCartItems([]);
   };
 
-  const addCategory = (data: { name: string; functionalGroupId: FunctionalGroupId; description?: string; classificationType?: 'activity' | 'profession'; specialties?: string[] }): ActivityCategory => {
-    const newCat: ActivityCategory = { id: `cat_custom_${crypto.randomUUID()}`, name: data.name.trim(), functionalGroupId: data.functionalGroupId, description: data.description?.trim(), classificationType: data.classificationType || 'activity', specialties: data.specialties || [], isCustom: true };
-    setAdminSettings((prev) => ({ ...prev, categories: [...(prev.categories || DEFAULT_CATEGORIES), newCat], defaultCategories: Array.from(new Set([...(prev.defaultCategories || []), newCat.name])) }));
+  const addCategory = async (data: { name: string; functionalGroupId: FunctionalGroupId; description?: string; classificationType?: 'activity' | 'profession'; specialties?: string[] }): Promise<ActivityCategory> => {
+    const name = data.name.trim();
+    if (name.length < 2 || name.length > 120) throw new Error('اسم النشاط أو المهنة يجب أن يكون من حرفين إلى 120 حرفًا.');
+    const normalized = normalizeCanonicalTaxonomySettings(adminSettings);
+    const classificationType = data.classificationType || 'activity';
+    const duplicate = normalized.categories.some((category) =>
+      category.classificationType === classificationType &&
+      category.name.trim().toLocaleLowerCase('ar') === name.toLocaleLowerCase('ar'));
+    if (duplicate) throw new Error('هذا النشاط أو المهنة موجود بالفعل ضمن التصنيف المختار.');
+    const newCat: ActivityCategory = {
+      id: `cat_custom_${crypto.randomUUID()}`,
+      name,
+      functionalGroupId: data.functionalGroupId,
+      description: data.description?.trim(),
+      classificationType,
+      specialties: (data.specialties || []).map((item) => String(item).trim()).filter(Boolean).slice(0, 100),
+      isCustom: true,
+    };
+    const categories = [...normalized.categories, newCat];
+    const saved = normalizeCanonicalTaxonomySettings({ ...adminSettings, categories, defaultCategories: categories.map((category) => category.name) });
+    await updateAdminSettings({ functionalGroups: saved.functionalGroups, categories: saved.categories, defaultCategories: saved.defaultCategories });
     return newCat;
   };
-  const updateCategory = (updated: ActivityCategory) => setAdminSettings((prev) => ({ ...prev, categories: (prev.categories || DEFAULT_CATEGORIES).map((c) => c.id === updated.id ? updated : c) }));
-  const deleteCategory = (id: string) => setAdminSettings((prev) => { const rest = (prev.categories || DEFAULT_CATEGORIES).filter((c) => c.id !== id); return { ...prev, categories: rest, defaultCategories: rest.map((c) => c.name) }; });
+  const updateCategory = async (updated: ActivityCategory): Promise<void> => {
+    const normalized = normalizeCanonicalTaxonomySettings(adminSettings);
+    const categories = normalized.categories.map((category) => category.id === updated.id
+      ? { ...updated, name: updated.name.trim(), specialties: (updated.specialties || []).map((item) => String(item).trim()).filter(Boolean).slice(0, 100) }
+      : category);
+    const saved = normalizeCanonicalTaxonomySettings({ ...adminSettings, categories, defaultCategories: categories.map((category) => category.name) });
+    await updateAdminSettings({ functionalGroups: saved.functionalGroups, categories: saved.categories, defaultCategories: saved.defaultCategories });
+  };
+  const deleteCategory = async (id: string): Promise<void> => {
+    const normalized = normalizeCanonicalTaxonomySettings(adminSettings);
+    const existing = normalized.categories.find((category) => category.id === id);
+    if (!existing) return;
+    if (!existing.isCustom) throw new Error('لا يمكن حذف التصنيفات الأساسية من الدليل المعتمد.');
+    const categories = normalized.categories.filter((category) => category.id !== id);
+    const saved = normalizeCanonicalTaxonomySettings({ ...adminSettings, categories, defaultCategories: categories.map((category) => category.name) });
+    await updateAdminSettings({ functionalGroups: saved.functionalGroups, categories: saved.categories, defaultCategories: saved.defaultCategories });
+  };
 
   const refreshBusinessCatalog = async (businessId: string) => {
     const business = businesses.find((b) => b.id === businessId);
