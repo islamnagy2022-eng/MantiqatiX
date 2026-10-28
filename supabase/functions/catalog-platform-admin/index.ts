@@ -227,10 +227,21 @@ Deno.serve(async (req: Request) => {
       const workingHours = String(input.workingHours || "").trim();
       const logoUrl = String(input.logoUrl || "").trim();
       const coverUrl = String(input.coverUrl || "").trim();
+      const publishNow = input.publishNow === true;
+      let paymentDueDate = String(input.paymentDueDate || "").trim();
+      const paymentGracePeriodDays = Number(input.paymentGracePeriodDays ?? 7);
+      if (!paymentDueDate) {
+        const defaultDueDate = new Date();
+        defaultDueDate.setUTCDate(defaultDueDate.getUTCDate() + 7);
+        paymentDueDate = defaultDueDate.toISOString().slice(0, 10);
+      }
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
       if (phoneDigits.length < 10 || phoneDigits.length > 15) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "A valid owner WhatsApp number is required." }, 400);
       if ([governorate, markaz, village].some((value) => value.length < 2 || value.length > 100)) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
+      const parsedDueDate = new Date(`${paymentDueDate}T00:00:00.000Z`);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDueDate) || Number.isNaN(parsedDueDate.getTime()) || parsedDueDate.toISOString().slice(0, 10) !== paymentDueDate) return response(origin, { error: "INVALID_PAYMENT_DUE_DATE" }, 400);
+      if (!Number.isInteger(paymentGracePeriodDays) || paymentGracePeriodDays < 0 || paymentGracePeriodDays > 90) return response(origin, { error: "INVALID_PAYMENT_GRACE_PERIOD" }, 400);
       const tenantId = requireTenant(body.tenantId || productionTenantIds.find((id) => id === "MNTY-PLATFORM") || productionTenantIds[0]);
       const { data: tenant, error: tenantError } = await service.from("tenants").select("id,status").eq("id", tenantId).eq("status", "ACTIVE").maybeSingle();
       if (tenantError) throw tenantError;
@@ -247,9 +258,9 @@ Deno.serve(async (req: Request) => {
         const { data: created, error: createError } = await service.from("businesses").insert({
           tenant_id: tenantId, organization_id: organizationId, name,
           code: `MX-${randomCode}`, status: "ACTIVE",
-          settings: { activity_code: category, catalog_public_enabled: false,
+          settings: { activity_code: category, catalog_public_enabled: publishNow,
             catalog_profile: { bio: bio.slice(0, 3000), governorate: governorate.slice(0, 100), markaz: markaz.slice(0, 100), village: village.slice(0, 100), working_hours: workingHours.slice(0, 300), logo_url: logoUrl.slice(0, 1500), cover_url: coverUrl.slice(0, 1500) },
-            bizcatalog: { paymentStatus: "pending", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
+            bizcatalog: { paymentStatus: "pending", paymentDueDate, paymentGracePeriodDays, publicationStatus: publishNow ? "PUBLISHED_UNPAID" : "PENDING_PUBLICATION", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
         if (createError) throw createError;
         createdBusinessId = String(created.id);

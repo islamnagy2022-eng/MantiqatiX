@@ -77,6 +77,7 @@ export interface Business {
   registrationDate: string;
   paymentDueDay: number; // 0 when no due day has been configured
   paymentDueDate: string; // empty when no due date has been configured
+  paymentGracePeriodDays?: number; // Grace-period metadata; does not imply an automatic suspension scheduler.
   commissionPerOrder: number; // legacy field; defaults to 0 until finance is verified
   totalOrdersCount: number;
   paymentStatus: 'paid' | 'pending' | 'overdue' | 'frozen';

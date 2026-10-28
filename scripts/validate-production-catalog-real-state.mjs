@@ -35,6 +35,7 @@ assert.doesNotMatch(admin, /handleSavePaymobConfig|paymobMerchantApiKey|Integrat
 assert.match(productionMapper, /isOfficialShowcase: officialShowcase/, 'official platform showcase records must be mapped explicitly');
 assert.match(productionMapper, /paymentDueDay: Number\(meta\.paymentDueDay \|\| 0\)/, 'missing due day must remain unset instead of defaulting to day one');
 assert.match(productionMapper, /paymentDueDate: String\(meta\.paymentDueDate \|\| ''\)/, 'missing due date must remain unset instead of using registration date');
+assert.match(productionMapper, /paymentGracePeriodDays: Number\(meta\.paymentGracePeriodDays \?\? 0\)/, 'configured payment grace period must survive production normalization');
 assert.doesNotMatch(admin, /advanceBusinessOverdueDay|\+يوم تأخير|محاكاة مرور يوم تأخير/, 'production admin must not simulate overdue days');
 assert.doesNotMatch(createUi, /images\.unsplash\.com|\+201000000000|نشاط تجاري معتمد مسجل/, 'new businesses must not receive fake imagery, phone numbers, or descriptions');
 assert.doesNotMatch(directory, /إعلان عام #1|إعلان إقليمي #5|احجز هذه المساحة الإعلانية/, 'directory hero must not publish fabricated advertisement slides');
@@ -71,6 +72,11 @@ assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/,
 assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
 assert.match(createUi, /paymentStatus: 'pending'/, 'new business must remain unpaid until an admin confirms real payment');
 assert.match(createUi, /paymentConfirmedByAdmin: false/, 'new business must not be marked as payment-confirmed by default');
+assert.match(createUi, /paymentDueDate: newBizPaymentDueDate/, 'new business form must persist its chosen payment due date');
+assert.match(createUi, /paymentGracePeriodDays: gracePeriodDays/, 'new business form must persist its configured grace period');
+assert.match(createUi, /publicEnabled: newBizActivationMode === 'activate_now'/, 'new business form must explicitly choose whether to publish now');
+assert.match(admin, /انتظار تأكيد النشر من الإدارة/, 'business form must offer waiting for explicit publication confirmation');
+assert.match(admin, /التفعيل الفعلي الآن — نشر الكتالوج/, 'business form must offer immediate public catalog activation');
 assert.doesNotMatch(createUi, /paymentStatus: 'paid'|paymentConfirmedByAdmin: true|paymobConfig:/, 'new business must not be auto-paid or auto-enabled for Paymob');
 assert.match(admin, /await confirmAdminPayment\(biz\.id\)/, 'payment confirmation UI must await the backend result');
 assert.match(admin, /تعذر حفظ تأكيد السداد/, 'payment confirmation failure must be visible');
@@ -78,6 +84,9 @@ assert.match(admin, /await toggleBusinessFreeze\(biz\.id\)/, 'manual freeze chan
 assert.match(admin, /await updateAdminSettings\(/, 'platform settings UI must await server persistence');
 assert.match(admin, /settingsFeedback\.type === 'success'/, 'settings UI must distinguish saved success from failure');
 
+assert.match(context, /paymentDueDate: data\.paymentDueDate/, 'create request must carry the selected payment due date');
+assert.match(context, /paymentGracePeriodDays: data\.paymentGracePeriodDays \?\? 7/, 'create request must carry the selected grace period');
+assert.match(context, /publishNow: Boolean\(data\.publicEnabled\)/, 'create request must carry the explicit publication choice');
 assert.match(context, /const updateAdminSettings = async/, 'settings persistence must be asynchronous');
 assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state must update only after server-confirmed success');
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
@@ -93,8 +102,12 @@ assert.ok(createStart >= 0 && createEnd > createStart, 'server-side business cre
 const createServer = backend.slice(createStart, createEnd);
 assert.match(createServer, /INVALID_BUSINESS_WHATSAPP/, 'server must reject missing or invalid owner contact');
 assert.match(createServer, /INVALID_BUSINESS_LOCATION/, 'server must reject missing real location data');
-assert.match(createServer, /catalog_public_enabled: false/, 'new business catalog must remain unpublished until explicitly enabled');
-assert.match(createServer, /bizcatalog: \{ paymentStatus: "pending", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false \}/, 'server must create an unpaid business without fabricated billing schedule or commission');
+assert.match(createServer, /catalog_public_enabled: publishNow/, 'backend must respect the explicit publish-now choice');
+assert.match(createServer, /paymentDueDate, paymentGracePeriodDays, publicationStatus: publishNow \? "PUBLISHED_UNPAID" : "PENDING_PUBLICATION"/, 'backend must persist due date, grace period, and publication state');
+assert.match(createServer, /paymentStatus: "pending"/, 'backend must preserve unpaid status regardless of publication choice');
+assert.match(createServer, /paymentConfirmedByAdmin: false/, 'backend must never self-confirm payment during activity creation');
+assert.match(createServer, /INVALID_PAYMENT_DUE_DATE/, 'backend must validate the chosen payment due date');
+assert.match(createServer, /INVALID_PAYMENT_GRACE_PERIOD/, 'backend must validate the grace period range');
 assert.match(backend, /INVALID_ADMIN_WHATSAPP/, 'server must validate platform WhatsApp settings');
 assert.match(backend, /INVALID_DEFAULT_COMMISSION/, 'server must validate platform commission input');
 assert.match(backend, /const merged = \{ \.\.\.current, \.\.\.safe \}/, 'partial platform settings saves must preserve existing settings');
