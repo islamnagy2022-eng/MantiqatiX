@@ -107,8 +107,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedBusinessId, setSelectedBusinessIdState] = useState('');
-  const routeBusinessIdRef = useRef(new URLSearchParams(window.location.search).get('store') || new URLSearchParams(window.location.search).get('businessId') || '');
+  const initialRouteParams = new URLSearchParams(window.location.search);
+  const [selectedBusinessId, setSelectedBusinessIdState] = useState(initialRouteParams.get('manage') || '');
+  const routeBusinessIdRef = useRef(initialRouteParams.get('store') || initialRouteParams.get('businessId') || initialRouteParams.get('manage') || '');
   const [currentView, setCurrentViewState] = useState<ViewMode>(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
@@ -124,6 +125,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const url = new URL(window.location.href);
     url.searchParams.delete('store');
     url.searchParams.delete('businessId');
+    url.searchParams.delete('manage');
     if (view === 'public_storefront') {
       url.searchParams.delete('view');
       url.searchParams.delete('tab');
@@ -132,6 +134,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       url.searchParams.delete('view');
       if (view !== 'super_admin') url.searchParams.delete('tab');
       if (view !== 'directory' && view !== 'login') url.searchParams.set('view', view);
+      if ((view === 'super_admin' || view === 'merchant_admin') && businessId) {
+        url.searchParams.set('manage', businessId);
+      }
     }
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
     const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -221,7 +226,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         ? requestedView === 'directory' ? 'directory' : 'merchant_admin'
         : 'directory';
 
-    const preferred = boot.authSession.businessId || boot.businesses[0]?.id || '';
+    const requestedManagedId = params.get('manage') || '';
+    const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
+    const preferred = boot.authSession.role === 'admin' && requestedManagedBusiness
+      ? requestedManagedId
+      : boot.authSession.businessId || boot.businesses[0]?.id || '';
     commitSelectedBusinessId(preferred);
     setCurrentView(safeRequestedView);
   };
@@ -315,6 +324,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     commitSelectedBusinessId(id);
     setCartItems([]);
     if (currentView === 'public_storefront') updateBrowserRoute('public_storefront', id);
+    else if (currentView === 'merchant_admin' || currentView === 'super_admin') updateBrowserRoute(currentView, id);
   };
 
   // Restore the in-app view when the user navigates with browser back/forward.
@@ -338,9 +348,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         return;
       }
-      routeBusinessIdRef.current = '';
-      setSelectedBusinessIdState('');
       const requestedView = params.get('view');
+      const requestedManagedId = requestedView === 'super_admin' || requestedView === 'merchant_admin'
+        ? params.get('manage') || ''
+        : '';
+      routeBusinessIdRef.current = requestedManagedId;
+      setSelectedBusinessIdState(requestedManagedId);
       setCurrentViewState(
         requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
           ? requestedView
