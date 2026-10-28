@@ -64,8 +64,11 @@ export const CatalogSection: React.FC = () => {
   const isOperationallyHidden = currentBusiness?.operationalStatus !== 'ACTIVE' || Boolean(currentBusiness?.isFrozen);
 
   const buildQuoteUrl = (product: Product): string | null => {
-    const digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '')
+    let digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '')
       .replace(/\D/g, '');
+    digits = digits.startsWith('00') ? digits.slice(2)
+      : digits.startsWith('0') ? '20' + digits.slice(1)
+      : digits.startsWith('1') && digits.length === 10 ? '20' + digits : digits;
     if (digits.length < 10 || digits.length > 15) return null;
     const message = `مرحبًا، أريد طلب عرض سعر لخدمة ${product.name} من ${currentBusiness?.name || 'MantiqatiX'}.`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
