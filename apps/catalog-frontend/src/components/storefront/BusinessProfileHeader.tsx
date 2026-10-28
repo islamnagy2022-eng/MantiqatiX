@@ -73,7 +73,7 @@ export const BusinessProfileHeader: React.FC = () => {
       )}
 
       {/* 1. Rotating Cover Photo Slider (Changes every 3 seconds) */}
-      <div className="relative w-full h-56 sm:h-72 md:h-84 lg:h-96 bg-slate-900 overflow-hidden group">
+      <div className="relative w-full aspect-[16/9] sm:aspect-[851/315] bg-slate-900 overflow-hidden group">
         {slides.map((imgUrl, idx) => (
           <div
             key={idx}
