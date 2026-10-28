@@ -36,7 +36,7 @@ assert.equal(qadam.migration_version_recorded, false, 'Original seed ledger drif
 
 assert.equal(paidGate?.status, 'PASS', 'Paid subscription activation guard must be deployed and verified');
 assert.equal(paidGate?.function_slug, 'catalog-platform-admin');
-assert.equal(paidGate?.live_function_version, 3, 'Expected deployed catalog admin function version must be recorded');
+assert.equal(paidGate?.live_function_version, 5, 'Expected deployed catalog admin function version must be recorded');
 assert.equal(paidGate?.verify_jwt, true, 'Catalog platform admin must continue requiring JWT verification');
 assert.equal(paidGate?.source_exact_match, true, 'Deployed catalog admin function must match reviewed source exactly');
 assert.equal(paidGate?.unrelated_modules_deployed, false, 'No unrelated backend modules may be deployed by the catalog pilot');
@@ -45,9 +45,9 @@ assert.equal(paidGate?.no_unpaid_non_showcase_owner_memberships_found, true, 'Th
 
 assert.equal(catalogFunctions?.status, 'PASS', 'All scoped catalog Edge Functions must have verified live source parity');
 const expectedCatalogFunctions = new Map([
-  ['catalog-platform-admin', { version: 3, verifyJwt: true }],
-  ['catalog-admin', { version: 14, verifyJwt: false }],
-  ['public-catalog-directory', { version: 2, verifyJwt: false }],
+  ['catalog-platform-admin', { version: 5, verifyJwt: true }],
+  ['catalog-admin', { version: 16, verifyJwt: false }],
+  ['public-catalog-directory', { version: 4, verifyJwt: false }],
   ['public-catalog', { version: 2, verifyJwt: false }],
 ]);
 for (const fn of catalogFunctions.functions || []) {
