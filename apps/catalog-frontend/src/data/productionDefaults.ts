@@ -347,6 +347,9 @@ const BACKEND_CODE_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
 };
 
 export function resolveCanonicalGroupId(categoryName: string, legacyGroupId?: string): FunctionalGroup['id'] {
+  const groupHint = String(legacyGroupId || '').trim().toLowerCase();
+  const canonicalGroup = DEFAULT_FUNCTIONAL_GROUPS.find((group) => group.id === groupHint);
+  if (canonicalGroup) return canonicalGroup.id;
   const rawName = String(categoryName || '').trim();
   const codeCandidate = rawName.split(/[|—–]/)[0].trim().toUpperCase().replace(/[\\s-]+/g, '_');
   if (BACKEND_CODE_GROUP_MAP[codeCandidate]) return BACKEND_CODE_GROUP_MAP[codeCandidate];
