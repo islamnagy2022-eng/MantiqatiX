@@ -108,8 +108,7 @@ Deno.serve(async (req: Request) => {
     if (providerError) throw providerError;
     const providerMap = new Map((providers || []).map((p: any) => [String(p.business_id), p]));
     const publicBusinesses = directoryBusinesses.filter((b: any) => providerMap.has(String(b.id)));
-    const results: any[] = [];
-    for (const business of publicBusinesses.slice(0, 100)) {
+    const buildPublicBusiness = async (business: any): Promise<any | null> => {
       const tenantId = String(business.tenant_id || "");
       const { data: branches, error: branchError } = await db.from("branches")
         .select("id,name,code,status,address,phone").eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE").order("name").limit(100);
@@ -117,7 +116,7 @@ Deno.serve(async (req: Request) => {
       const catalogPublished = business.settings?.catalog_public_enabled === true;
       // A public catalogue needs a real branch. An official showcase card can be
       // displayed without one, since it does not expose products or operations.
-      if (!branches?.length && catalogPublished) continue;
+      if (!branches?.length && catalogPublished) return null;
       const branch: any = branches?.[0] || null;
       const branchId = String(branch?.id || "");
       const provider: any = providerMap.get(String(business.id));
@@ -133,18 +132,18 @@ Deno.serve(async (req: Request) => {
         items = (itemRows || []).filter((i: any) => i.metadata?.catalog_public?.is_available !== false);
         const itemIds = items.map((i: any) => i.id);
         if (itemIds.length) {
-        const now = new Date().toISOString();
-        const { data: p, error: priceError } = await db.from("catalog_item_prices")
-          .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
-          .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
-          .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
-        if (priceError) throw priceError;
-        const hiddenPriceIds = new Set(
-          items.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
-            .map((item: any) => String(item.id))
-        );
-        // Never serialize price rows for catalog entries explicitly marked as quote-only.
-        prices = (p || []).filter((price: any) => !hiddenPriceIds.has(String(price.catalog_item_id)));
+          const now = new Date().toISOString();
+          const { data: p, error: priceError } = await db.from("catalog_item_prices")
+            .select("id,catalog_item_id,branch_id,currency,unit_price,version,status,effective_from,effective_to")
+            .eq("tenant_id", tenantId).in("catalog_item_id", itemIds).eq("status", "ACTIVE")
+            .lte("effective_from", now).or(`effective_to.is.null,effective_to.gte.${now}`).order("version", { ascending: false }).limit(1000);
+          if (priceError) throw priceError;
+          const hiddenPriceIds = new Set(
+            items.filter((item: any) => item.metadata?.catalog_public?.show_price === false)
+              .map((item: any) => String(item.id))
+          );
+          // Never serialize price rows for catalog entries explicitly marked as quote-only.
+          prices = (p || []).filter((price: any) => !hiddenPriceIds.has(String(price.catalog_item_id)));
         }
       }
       const profile = business.settings?.catalog_profile || {};
@@ -160,7 +159,7 @@ Deno.serve(async (req: Request) => {
       const whatsappPhone = cleanPhone.startsWith("00") ? cleanPhone.slice(2)
         : cleanPhone.startsWith("0") ? "20" + cleanPhone.slice(1)
         : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
-      results.push({
+      return {
         id: business.id, tenantId, organizationId: business.organization_id,
         status: business.status, operationalStatus: business.status,
         bizcatalog: business.settings?.bizcatalog || {},
@@ -176,7 +175,18 @@ Deno.serve(async (req: Request) => {
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
         operationalStatus: String(business.settings?.bizcatalog?.operationalStatus || (business.settings?.bizcatalog?.isFrozen ? 'FROZEN' : 'ACTIVE')).toUpperCase(),
         paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
-      });
+      };
+    };
+
+    // Limit concurrency to avoid a long serial N+1 request chain without flooding
+    // PostgREST when the directory contains many businesses.
+    const results: any[] = [];
+    const batchSize = 8;
+    const publicBusinessList = publicBusinesses.slice(0, 100);
+    for (let offset = 0; offset < publicBusinessList.length; offset += batchSize) {
+      const batch = publicBusinessList.slice(offset, offset + batchSize);
+      const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
+      results.push(...built.filter((business: any) => business !== null));
     }
     return response(origin, { businesses: results, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
   } catch (error) {
