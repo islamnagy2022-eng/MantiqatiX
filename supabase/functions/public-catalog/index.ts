@@ -57,8 +57,14 @@ Deno.serve(async (req: Request) => {
     if (!business || String(business.status || "").toUpperCase() !== "ACTIVE") {
       return response(origin, { error: "BUSINESS_NOT_PUBLIC" }, 404);
     }
-    const operationalStatus = String(business.settings?.bizcatalog?.operationalStatus || (business.settings?.bizcatalog?.isFrozen ? "FROZEN" : "ACTIVE")).toUpperCase();
-    if (operationalStatus !== "ACTIVE") return response(origin, { error: "BUSINESS_NOT_PUBLIC" }, 404);
+    const bizcatalog = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
+      ? business.settings.bizcatalog : {};
+    const operationalStatus = String(bizcatalog.operationalStatus || (bizcatalog.isFrozen ? "FROZEN" : "ACTIVE")).toUpperCase();
+    const operationallyActive = operationalStatus === "ACTIVE"
+      && bizcatalog.isFrozen !== true
+      && String(bizcatalog.paymentStatus || "").toLowerCase() !== "frozen";
+    // Publication authorizes the public profile page; the operating state separately
+    // determines whether products/services are exposed below.
     if (business.settings?.catalog_public_enabled !== true) {
       return response(origin, { error: "CATALOG_NOT_PUBLISHED" }, 404);
     }
@@ -97,14 +103,17 @@ Deno.serve(async (req: Request) => {
       .eq("status", "ACTIVE")
       .order("name_ar", { ascending: true })
       .limit(150);
-    const [globalItemResult, branchItemResult] = await Promise.all([
-      itemQuery().is("branch_id", null),
-      itemQuery().eq("branch_id", branchId),
-    ]);
-    if (globalItemResult.error || branchItemResult.error) throw globalItemResult.error || branchItemResult.error;
-    const rawItems = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
-      .slice(0, 150)
-      .sort((a: any, b: any) => String(a.name_ar || "").localeCompare(String(b.name_ar || ""), "ar"));
+    let rawItems: any[] = [];
+    if (operationallyActive) {
+      const [globalItemResult, branchItemResult] = await Promise.all([
+        itemQuery().is("branch_id", null),
+        itemQuery().eq("branch_id", branchId),
+      ]);
+      if (globalItemResult.error || branchItemResult.error) throw globalItemResult.error || branchItemResult.error;
+      rawItems = [...(globalItemResult.data || []), ...(branchItemResult.data || [])]
+        .slice(0, 150)
+        .sort((a: any, b: any) => String(a.name_ar || "").localeCompare(String(b.name_ar || ""), "ar"));
+    }
 
     const itemIds = rawItems.map((item: any) => item.id);
     let prices: any[] = [], options: any[] = [];
@@ -188,7 +197,7 @@ Deno.serve(async (req: Request) => {
     const profile = business.settings?.catalog_profile || {};
     const selectedBranchPhone = String(selectedBranch.phone || "");
     return response(origin, {
-      business: { id: business.id, name: business.name, code: business.code, operationalStatus: String(business.settings?.bizcatalog?.operationalStatus || "ACTIVE").toUpperCase() },
+      business: { id: business.id, name: business.name, code: business.code, operationalStatus, isOperationallyAvailable: operationallyActive },
       provider: {
         name: provider.name_ar || provider.name_en || business.name,
         nameAr: provider.name_ar,
