@@ -113,6 +113,8 @@ export interface Business {
   tenantId?: string;
   branchId?: string;
   publicEnabled?: boolean;
+  publicationStatus?: 'PENDING_PUBLICATION' | 'PUBLISHED' | 'REJECTED' | string;
+  publicationRejectionReason?: string;
   organizationId?: string;
 }
 
