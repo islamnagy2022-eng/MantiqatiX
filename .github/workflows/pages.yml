@@ -147,6 +147,7 @@ jobs:
           node scripts/test-digital-page-runtime.mjs
           node scripts/validate-1000-stage-gates.mjs
           node scripts/validate-sector-rendering.mjs
+          node scripts/validate-canonical-activity-taxonomy.mjs
           node scripts/validate-module-runtime-coverage.mjs
           node scripts/validate-module-runtime-contracts.mjs
           node scripts/validate-provider-services-contract.mjs
