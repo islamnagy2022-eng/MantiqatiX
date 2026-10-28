@@ -1232,6 +1232,7 @@ export const AdminDashboard: React.FC = () => {
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
                     <th className="py-3.5 px-4">المشترك</th>
                     <th className="py-3.5 px-4">النشاط المخصص</th>
+                    <th className="py-3.5 px-4">الدور والصلاحيات</th>
                     <th className="py-3.5 px-4">حساب Google</th>
                     <th className="py-3.5 px-4">حالة الاشتراك</th>
                     <th className="py-3.5 px-4">طريقة التعيين</th>
@@ -1258,6 +1259,22 @@ export const AdminDashboard: React.FC = () => {
                             </span>
                           ) : (
                             <span className="text-slate-400">غير مخصص</span>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          <div className="font-black text-slate-800">{sub.role || (sub.isAccountOnly ? 'بدون تعيين' : 'غير محدد')}</div>
+                          {sub.isPlatformAccount || String(sub.role || '').toUpperCase() === 'SUPER_ADMIN' ? (
+                            <span className="mt-1 inline-block rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-900">حساب مالك المنصة — محمي</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => openSubscriberAccessEditor(sub)}
+                              className="mt-1 inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[10px] font-black text-indigo-800 hover:bg-indigo-100"
+                            >
+                              <UserCog className="h-3 w-3" />
+                              <span>{sub.isAccountOnly ? 'تعيين دور ونشاط' : 'إدارة الصلاحيات'}</span>
+                            </button>
                           )}
                         </td>
 
@@ -1322,12 +1339,15 @@ export const AdminDashboard: React.FC = () => {
 
                         <td className="py-3.5 px-4 text-center">
                           <button
+                            disabled={Boolean(sub.isAccountOnly || sub.isPlatformAccount || String(sub.role || '').toUpperCase() === 'SUPER_ADMIN')}
+                            title={sub.isAccountOnly ? 'لا يوجد تعيين لتعطيله؛ استخدم إدارة الصلاحيات لتعيين الحساب' : 'تعطيل تعيين هذا الحساب بالنشاط'}
                             onClick={() => {
-                              if (window.confirm(`هل أنت متأكد من حذف المشترك (${sub.fullName})؟`)) {
-                                void deleteSubscriber(sub.id).catch((error) => window.alert(error instanceof Error ? error.message : 'تعذر تعطيل حساب المشترك.'));
+                              if (sub.isAccountOnly || sub.isPlatformAccount || String(sub.role || '').toUpperCase() === 'SUPER_ADMIN') return;
+                              if (window.confirm(`هل تريد تعطيل تعيين (${sub.fullName}) بالنشاط؟ سيظل حساب Supabase موجودًا.`)) {
+                                void deleteSubscriber(sub.id).catch((error) => window.alert(error instanceof Error ? error.message : 'تعذر تعطيل تعيين الحساب.'));
                               }
                             }}
-                            className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                            className="text-slate-400 hover:text-rose-600 disabled:opacity-20 disabled:cursor-not-allowed p-1 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
