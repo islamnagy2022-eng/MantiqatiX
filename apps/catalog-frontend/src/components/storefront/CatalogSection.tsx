@@ -67,8 +67,8 @@ export const CatalogSection: React.FC = () => {
     const digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '')
       .replace(/\D/g, '');
     if (digits.length < 10 || digits.length > 15) return null;
-    const message = \`مرحبًا، أريد طلب عرض سعر لخدمة \${product.name} من \${currentBusiness?.name || 'MantiqatiX'}.\`;
-    return \`https://wa.me/\${digits}?text=\${encodeURIComponent(message)}\`;
+    const message = `مرحبًا، أريد طلب عرض سعر لخدمة ${product.name} من ${currentBusiness?.name || 'MantiqatiX'}.`;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
   };
 
   return (
