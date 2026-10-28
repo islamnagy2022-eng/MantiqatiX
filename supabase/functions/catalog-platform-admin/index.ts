@@ -192,7 +192,7 @@ Deno.serve(async (req: Request) => {
           branchId: String(m.branch_id || ""),
           businessName: String(b?.name || ""),
           role: String(m.role || "CUSTOMER").toUpperCase(),
-          status: String(m.status || "INACTIVE").toUpperCase(),
+          status: String(m.status).toUpperCase() === "ACTIVE" ? "active" : String(m.status).toUpperCase() === "INACTIVE" ? "pending" : "suspended",
           membershipStatus: String(m.status || "INACTIVE").toUpperCase(),
           permissions: m.permissions && typeof m.permissions === "object" && !Array.isArray(m.permissions) ? m.permissions : {},
           isAccountOnly: false,
