@@ -82,20 +82,16 @@ const CoverAdBookingRequest: React.FC = () => {
     setFeedback(null);
     setWhatsAppUrl("");
     try {
-      const { data, error } = await supabase.functions.invoke("marketing-lead-create", {
+      const { data, error } = await supabase.functions.invoke("cover-ad-booking-request", {
         body: {
-          title: "طلب حجز إعلان غلاف: " + currentBusiness.name,
-          description,
-          required_services: [
-            "COVER_AD_BOOKING",
-            "DURATION_" + duration,
-            "PLACEMENT_" + placement,
-            "LOCATION_" + locationScope,
-          ],
-          service_area: selectedLocation,
-          budget_min: 0,
-          budget_max: 0,
-          business_id: currentBusiness.id,
+          businessId: currentBusiness.id,
+          title: title.trim(),
+          duration,
+          placement,
+          locationScope,
+          locationValue: locationScope === "ALL" ? "" : selectedLocation,
+          targetUrl: targetUrl.trim(),
+          notes: notes.trim(),
         },
       });
       if (error || data?.error || data?.ok === false) {
