@@ -105,6 +105,7 @@ export interface Business {
   paymentStatus: 'paid' | 'pending' | 'overdue' | 'frozen';
   overdueDaysCount: number; // recorded count only; no automatic scheduler is enabled
   isFrozen: boolean; // persisted manual freeze state
+  operationalStatus?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; // admin-controlled visibility state
   lastPaymentDate?: string;
   paymentConfirmedByAdmin: boolean;
   isOfficialShowcase?: boolean; // platform-owned directory card; does not automatically enable a module
