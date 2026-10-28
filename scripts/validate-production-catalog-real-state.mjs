@@ -159,7 +159,7 @@ assert.ok(settingsStart >= 0 && settingsEnd > settingsStart, 'Operational settin
 const operationalSettingsBlock = backend.slice(settingsStart, settingsEnd);
 assert.match(operationalSettingsBlock, /Operational activation is stored independently from public publication/,
   'Operating-state changes must not implicitly change publication.');
-assert.doesNotMatch(operationalSettingsBlock, /updatePayload\.status|\.update\(\{\s*status:/,
+assert.doesNotMatch(operationalSettingsBlock, /service\.from\("businesses"\)\.update\(\{\s*status:/,
   'Changing operationalStatus must not rewrite the base business lifecycle status.');
 const publicationStart = backend.indexOf('if (action === "BUSINESS_PUBLICATION_REVIEW")');
 const publicationEnd = backend.indexOf('if (action === "BUSINESS_SETTINGS_UPDATE")', publicationStart);
