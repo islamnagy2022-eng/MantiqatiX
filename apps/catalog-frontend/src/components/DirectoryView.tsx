@@ -62,13 +62,15 @@ const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeho
 
 export const DirectoryView: React.FC = () => {
   const {
-    businesses,
+    directoryBusinesses,
+    directoryLoading,
     functionalGroups,
     categories,
     setSelectedBusinessId,
     setCurrentView,
     adminSettings,
   } = useApp();
+  const businesses = directoryBusinesses;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
@@ -438,14 +440,16 @@ export const DirectoryView: React.FC = () => {
                 <Store className="w-8 h-8" />
               </div>
               <h3 className="font-bold text-slate-800 text-base">
-                {businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
+                {directoryLoading ? 'جارٍ تحميل الأنشطة المنشورة' : businesses.length === 0 ? 'لا توجد أنشطة متاحة للعرض حاليا' : 'لا توجد أنشطة مطابقة للبحث'}
               </h3>
               <p className="text-xs text-slate-500 max-w-lg mx-auto">
-                {businesses.length === 0
+                {directoryLoading
+                  ? 'يتم الآن تحميل الأنشطة المنشورة من المنصة، وستظهر هنا تلقائيًا.'
+                  : businesses.length === 0
                   ? 'ستظهر هنا الأنشطة النشطة المتاحة للزوار. تواصل مع إدارة المنصة إذا كنت تبحث عن نشاط غير موجود.'
                   : 'جرب تغيير كلمات البحث أو تصنيف القطاع أو المحافظة.'}
               </p>
-              {businesses.length === 0 && catalogRequestPhone && (
+              {!directoryLoading && businesses.length === 0 && catalogRequestPhone && (
                 <a
                   href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد تفعيل كتالوج لنشاطي على MantiqatiX')}`}
                   target="_blank"
