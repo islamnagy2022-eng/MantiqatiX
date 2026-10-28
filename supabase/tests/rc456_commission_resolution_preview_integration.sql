@@ -106,7 +106,7 @@ BEGIN
      OR (v_result->'selected_preview'->>'commission_amount')::numeric <> 30 THEN
     RAISE EXCEPTION 'RC456_SPECIFICITY_RESOLUTION_MISMATCH: %',v_result;
   END IF;
-  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_result->'candidates') item WHERE item->>'rule_id'=current_setting('rc456.future_rule')) THEN
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_result->'candidates') AS candidate(item) WHERE item->>'rule_id'=current_setting('rc456.future_rule')) THEN
     RAISE EXCEPTION 'RC456_FUTURE_RULE_WAS_INCLUDED';
   END IF;
 
