@@ -1,31 +1,18 @@
 create or replace function public.mnty_platform_admin_delete_business(
-  p_tenant_id text,
-  p_business_id uuid,
-  p_actor_user_id uuid
+  p_tenant_id text, p_business_id uuid, p_actor_user_id uuid
 )
-returns jsonb
-language plpgsql
-security invoker
-set search_path = ''
+returns jsonb language plpgsql security invoker set search_path = ''
 as $function$
 declare
   v_business public.businesses%rowtype;
   v_branch_ids text[] := array[]::text[];
 begin
-  select b.* into v_business
-    from public.businesses b
-   where b.id = p_business_id
-     and b.tenant_id = p_tenant_id
-   for update;
-  if not found then
-    raise exception using message = 'BUSINESS_NOT_FOUND';
-  end if;
+  select b.* into v_business from public.businesses b
+   where b.id = p_business_id and b.tenant_id = p_tenant_id for update;
+  if not found then raise exception using message = 'BUSINESS_NOT_FOUND'; end if;
 
-  select coalesce(array_agg(br.id::text), array[]::text[])
-    into v_branch_ids
-    from public.branches br
-   where br.tenant_id = p_tenant_id
-     and br.business_id = p_business_id;
+  select coalesce(array_agg(br.id::text), array[]::text[]) into v_branch_ids
+    from public.branches br where br.tenant_id = p_tenant_id and br.business_id = p_business_id;
 
   if exists (select 1 from public.orders o where o.tenant_id = p_tenant_id and o.business_id = p_business_id)
      or exists (select 1 from public.restaurant_orders o where o.business_id = p_business_id)
@@ -50,6 +37,7 @@ begin
   delete from public.restaurant_menu_items i where i.business_id = p_business_id;
   delete from public.restaurant_tables rt where rt.business_id = p_business_id;
   delete from public.fashion_products fp where fp.business_id = p_business_id;
+
   if cardinality(v_branch_ids) > 0 then
     delete from public.warehouses w where w.tenant_id = p_tenant_id and w.branch_id::text = any(v_branch_ids);
   end if;
@@ -60,11 +48,11 @@ begin
   delete from public.branches br where br.tenant_id = p_tenant_id and br.business_id = p_business_id;
   delete from public.businesses b where b.id = p_business_id and b.tenant_id = p_tenant_id;
 
-  insert into public.audit_logs(actor_user_id, action, entity_type, entity_id, details)
+  insert into public.audit_logs(tenant_id, actor_user_id, action, entity_type, entity_id, old_values, new_values, result)
   values (
-    p_actor_user_id, 'BIZCATALOG_BUSINESS_DELETED', 'business', p_business_id::text,
-    pg_catalog.jsonb_build_object('tenant_id', p_tenant_id, 'business_name', v_business.name,
-      'business_code', v_business.code, 'deleted_at', pg_catalog.now())
+    p_tenant_id, p_actor_user_id, 'BIZCATALOG_BUSINESS_DELETED', 'business', p_business_id::text,
+    pg_catalog.jsonb_build_object('name', v_business.name, 'code', v_business.code),
+    pg_catalog.jsonb_build_object('deleted', true), 'SUCCESS'
   );
 
   return pg_catalog.jsonb_build_object('success', true, 'businessId', p_business_id, 'tenantId', p_tenant_id, 'deleted', true);
