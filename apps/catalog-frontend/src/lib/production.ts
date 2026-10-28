@@ -145,7 +145,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     paymentDueDay: Number(meta.paymentDueDay || 0), paymentDueDate: String(meta.paymentDueDate || ''),
     paymentGracePeriodDays: Number(meta.paymentGracePeriodDays ?? 0),
     subscriptionMode: meta.subscriptionMode === 'FREE' ? 'FREE' : 'PAID',
-    subscriptionAmount: Number(meta.subscriptionAmount ?? 0),
+    subscriptionAmount: meta.subscriptionAmount == null ? undefined : Number(meta.subscriptionAmount),
     freeActivationApprovedByAdmin: meta.freeActivationApprovedByAdmin === true,
     commissionPerOrder: Number(meta.commissionPerOrder ?? 0),
     totalOrdersCount: Number(meta.totalOrdersCount || 0), paymentStatus: meta.paymentStatus || 'pending',
