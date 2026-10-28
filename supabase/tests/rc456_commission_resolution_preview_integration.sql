@@ -54,23 +54,23 @@ BEGIN
   INSERT INTO public.commission_rules
     (id,tenant_id,business_id,module_id,rule_type,percentage,fixed_amount,per_item_amount,active,
      rule_name,calculation_mode,scope_type,scope_ref,eligibility_event,rule_priority,
-     effective_from,effective_to,is_exempt,approval_status,version_no,created_by,updated_by)
+     minimum_commission_amount,maximum_commission_amount,effective_from,effective_to,is_exempt,approval_status,version_no,created_by,updated_by)
   VALUES
     (v_tenant_rule,'MNTY-PLATFORM',null,null,'PERCENTAGE',5,0,0,false,
       'RC456 tenant','PERCENTAGE','TENANT',null,'ORDER_PAID',100,
-      null,null,false,'DRAFT',1,v_actor,v_actor),
+      null,null,null,null,false,'DRAFT',1,v_actor,v_actor),
     (v_business_rule,'MNTY-PLATFORM',v_business,null,'PERCENTAGE',8,0,0,false,
       'RC456 business','PERCENTAGE','BUSINESS',v_business::text,'ORDER_PAID',150,
-      null,null,false,'DRAFT',1,v_actor,v_actor),
+      null,null,null,null,false,'DRAFT',1,v_actor,v_actor),
     (v_category_rule,'MNTY-PLATFORM',null,null,'PERCENTAGE',6,0,0,false,
       'RC456 category','PERCENTAGE','CATEGORY',v_category,'ORDER_PAID',200,
-      null,null,false,'DRAFT',1,v_actor,v_actor),
+      null,null,null,null,false,'DRAFT',1,v_actor,v_actor),
     (v_product_rule,'MNTY-PLATFORM',null,null,'COMBINED',10,5,0,false,
       'RC456 product','COMBINED','PRODUCT',v_product::text,'ORDER_PAID',200,
-      null,null,false,'DRAFT',1,v_actor,v_actor),
+      30,null,null,null,false,'DRAFT',1,v_actor,v_actor),
     (v_future_rule,'MNTY-PLATFORM',null,null,'PERCENTAGE',99,0,0,false,
       'RC456 future','PERCENTAGE','PRODUCT',v_product::text,'ORDER_PAID',999,
-      now()+interval '1 day',now()+interval '2 days',false,'DRAFT',1,v_actor,v_actor);
+      null,null,now()+interval '1 day',now()+interval '2 days',false,'DRAFT',1,v_actor,v_actor);
 
   PERFORM set_config('rc456.actor',v_actor::text,true);
   PERFORM set_config('rc456.business',v_business::text,true);
