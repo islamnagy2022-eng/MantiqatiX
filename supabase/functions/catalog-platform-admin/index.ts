@@ -734,34 +734,43 @@ Deno.serve(async (req: Request) => {
       const currentSettings = business.settings && typeof business.settings === "object" ? business.settings : {};
       const currentBizcatalog = currentSettings.bizcatalog && typeof currentSettings.bizcatalog === "object" ? currentSettings.bizcatalog : {};
       if (decision === "APPROVE") {
-        const { count, error: ownerError } = await service.from("user_memberships")
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
-          .in("role", ["OWNER", "BUSINESS_OWNER"]);
-        if (ownerError) throw ownerError;
-        if (!count) return response(origin, { error: "ACTIVE_BUSINESS_OWNER_REQUIRED", message: "يجب تعيين مالك نشط للنشاط قبل الموافقة على النشر." }, 409);
-
-        // Public directory cards require an ACTIVE provider profile as well as an
-        // approved business. Activate the latest profile as part of publication review.
+        // An explicit platform-admin decision may publish even when optional owner/contact/location data is incomplete.
         const { data: providerProfile, error: providerProfileError } = await service.from("marketing_provider_profiles")
           .select("id,status").eq("business_id", businessId)
           .order("updated_at", { ascending: false }).limit(1).maybeSingle();
         if (providerProfileError) throw providerProfileError;
-        if (!providerProfile) return response(origin, {
-          error: "PROVIDER_PROFILE_REQUIRED",
-          message: "لا يمكن نشر النشاط قبل إنشاء ملفه في دليل الأنشطة."
-        }, 409);
-        const { error: providerUpdateError } = await service.from("marketing_provider_profiles")
-          .update({ status: "ACTIVE", updated_at: new Date().toISOString() })
-          .eq("id", providerProfile.id);
-        if (providerUpdateError) throw providerUpdateError;
-
+        let providerProfileId = String(providerProfile?.id || "");
+        if (providerProfileId) {
+          const { error: providerUpdateError } = await service.from("marketing_provider_profiles")
+            .update({ status: "ACTIVE", updated_at: new Date().toISOString() })
+            .eq("id", providerProfileId);
+          if (providerUpdateError) throw providerUpdateError;
+        } else {
+          const profile = currentSettings.catalog_profile && typeof currentSettings.catalog_profile === "object" ? currentSettings.catalog_profile : {};
+          const slug = `${slugify(String(business.name || "business")) || "business"}-${crypto.randomUUID().slice(0, 8).toLowerCase()}`;
+          const { data: createdProfile, error: createProfileError } = await service.from("marketing_provider_profiles").insert({
+            provider_kind: "OFFICIAL", business_id: businessId, owner_user_id: null,
+            name_ar: String(business.name || "نشاط تجاري").slice(0, 200), name_en: null, slug,
+            description: String(profile.bio || "").slice(0, 3000) || null,
+            specialties: currentSettings.activity_specialty ? [String(currentSettings.activity_specialty).slice(0, 120)] : [],
+            service_areas: [], portfolio: [], status: "ACTIVE", is_verified: false, is_featured: false,
+            ranking_weight: 0, settings: { admin_published_with_incomplete_optional_data: true },
+          }).select("id").single();
+          if (createProfileError) throw createProfileError;
+          providerProfileId = String(createdProfile.id);
+        }
+        const now = new Date().toISOString();
         const nextSettings = { ...currentSettings, catalog_public_enabled: true,
-          bizcatalog: { ...currentBizcatalog, publicationStatus: "PUBLISHED", publicationApprovedAt: new Date().toISOString(), publicationApprovedBy: user.id, publicationRejectionReason: "" } };
-        const { error } = await service.from("businesses").update({ status: "ACTIVE", settings: nextSettings, updated_at: new Date().toISOString() })
+          bizcatalog: { ...currentBizcatalog, publicationStatus: "PUBLISHED", publicationApprovedAt: now, publicationApprovedBy: user.id, publicationRejectionReason: "", publicationApprovedWithIncompleteOptionalData: true } };
+        const { error } = await service.from("businesses").update({ status: "ACTIVE", settings: nextSettings, updated_at: now })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
-        return response(origin, { success: true, businessId, decision, status: "ACTIVE", publicationStatus: "PUBLISHED", providerProfileStatus: "ACTIVE" });
+        await service.from("audit_logs").insert({
+          actor_user_id: user.id, action: "PLATFORM_BUSINESS_PUBLICATION_APPROVED",
+          entity_type: "business", entity_id: businessId, tenant_id: tenantId,
+          details: { publicationStatus: "PUBLISHED", providerProfileId, ownerRequired: false, approvedWithIncompleteOptionalData: true },
+        });
+        return response(origin, { success: true, businessId, decision, status: "ACTIVE", publicationStatus: "PUBLISHED", providerProfileStatus: "ACTIVE", providerProfileId });
       }
       const nextSettings = { ...currentSettings, catalog_public_enabled: false,
         bizcatalog: { ...currentBizcatalog, publicationStatus: "REJECTED", publicationRejectionReason: reason || "لم يتم توضيح السبب", publicationRejectedAt: new Date().toISOString(), publicationRejectedBy: user.id } };
