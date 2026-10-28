@@ -1178,6 +1178,41 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
+          {(() => {
+            const businessesWithoutOwner = businesses.filter((business) =>
+              !subscribers.some((subscriber) =>
+                subscriber.businessId === business.id &&
+                ['OWNER', 'BUSINESS_OWNER'].includes(String(subscriber.role || '').toUpperCase()) &&
+                String(subscriber.membershipStatus || subscriber.status || '').toUpperCase() === 'ACTIVE'
+              )
+            );
+            if (!businessesWithoutOwner.length) return null;
+            return (
+              <section className="rounded-2xl border border-amber-300 bg-amber-50 p-4 space-y-3" aria-labelledby="businesses-without-owner-heading">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 id="businesses-without-owner-heading" className="font-black text-sm text-amber-950">أنشطة بدون مالك معيّن ({businessesWithoutOwner.length})</h4>
+                    <p className="mt-1 text-xs leading-relaxed text-amber-900">تظهر هنا الأنشطة التي لم يُعيَّن لها حساب مالك نشط. يمكن استكمال تعيين المالك من إدارة حسابات المشتركين، ولن يتم تفعيل النشاط تلقائيًا.</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {businessesWithoutOwner.map((business) => (
+                    <div key={business.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-amber-200 bg-white p-3">
+                      <div>
+                        <p className="text-sm font-black text-slate-900">{business.name}</p>
+                        <p className="mt-0.5 text-xs text-amber-800">لم يتم تعيين مالك للنشاط</p>
+                      </div>
+                      <button type="button" onClick={() => { setSubBizId(business.id); setActiveAdminTab('subscribers'); setIsSubModalOpen(true); }} className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white hover:bg-slate-700">
+                        إدارة حساب المالك
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {businesses.map((b) => {
               const productCount = products.filter((p) => p.businessId === b.id).length;
