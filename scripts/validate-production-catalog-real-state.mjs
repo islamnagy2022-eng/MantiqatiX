@@ -80,7 +80,7 @@ assert.match(admin, /التفعيل الفعلي الآن — نشر الكتا�
 assert.doesNotMatch(createUi, /paymentStatus: 'paid'|paymentConfirmedByAdmin: true|paymobConfig:/, 'new business must not be auto-paid or auto-enabled for Paymob');
 assert.match(admin, /await confirmAdminPayment\(biz\.id\)/, 'payment confirmation UI must await the backend result');
 assert.match(admin, /تعذر حفظ تأكيد السداد/, 'payment confirmation failure must be visible');
-assert.match(admin, /await toggleBusinessFreeze\(biz\.id\)/, 'manual freeze changes must wait for persistence');
+assert.match(admin, /const handleOperationalStatusChange = async[\s\S]*await updateBillingSetting\(business\.id, \{[\s\S]*isFrozen: status === 'FROZEN'/, 'manual freeze changes must await the persisted operational-status update');
 assert.match(admin, /await updateAdminSettings\(/, 'platform settings UI must await server persistence');
 assert.match(admin, /settingsFeedback\.type === 'success'/, 'settings UI must distinguish saved success from failure');
 
