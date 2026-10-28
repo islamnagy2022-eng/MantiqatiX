@@ -576,3 +576,35 @@
 - [x] Updated the reconciliation manifest to use exact object names, preventing false mismatches caused by a combined label that cannot match any catalog row.
 - [ ] Keep Production blocked: 0/41 distinct required migration versions recorded; 0/2 source aliases reconciled; Qadam owner membership INACTIVE; RC451 search_path, finance schema/EXECUTE, Edge Function parity, rollback and runtime evidence still open.
 - Safety: no Production writes or deployments. This change only improves the release gate's object-by-object evidence.
+
+
+## 2026-10-28 — Catalog frontend and business-management request audit
+
+Scope: user requests recorded in the recent catalog/frontend and business-management sessions. A source-code change is not treated as a deployed or browser-verified feature. Preserve the global Production Gate status above as BLOCKED / NOT CERTIFIED until its own release evidence passes.
+
+### Catalog UI and publishing
+- [x] Functional-group cards changed from image backgrounds to Lucide SVG icons with light card surfaces, selected-group styling, and per-group icon choices in `apps/catalog-frontend/src/components/DirectoryView.tsx`; commit `1a93658e7846a6b0917e0307bedac333077942f0`.
+- [ ] Run the catalog frontend's actual lint/typecheck and production build after the icon update; record command output and fix any failures.
+- [ ] Verify in a real browser that the icon cards render correctly, remain legible in Arabic/RTL, preserve counts and group filtering, and adapt to mobile/tablet/desktop layouts including the intended ten columns on wide screens.
+- [ ] Verify the deployed GitHub Pages URL serves the intended new electronic catalog as the primary experience, not the legacy `web/` application; reconcile the Pages workflows/publishers and the Production gate before deployment.
+- [ ] Browser-verify the home COVER carousel: show currently available activities, one card/slide at a time; clicking an activity's image opens its own public page; retain the requested no-title/no-text/no-shadow overlay treatment.
+- [ ] Verify persistent public links and QR-code generation/opening for every eligible activity; fix generation, routing, and scan behavior and add regression tests.
+- [ ] Verify that signing in with any authorized account lands on the requested catalog home screen while retaining role-based security checks.
+- [ ] Restore/check expected existing ad, interface, and default product imagery; new activities without suitable uploaded images should use a safe, appropriate placeholder until the owner uploads real assets. Do not overwrite existing business images without cause.
+- [ ] Let business owners add/edit their social-profile URLs and display each supported network as a clickable icon; validate URLs and keep ownership boundaries enforced.
+
+### Activity administration, owners, and duplicate prevention
+- [ ] Implement/verify the platform-admin activity management workflow to publish, edit, hide/unpublish, and deactivate activities, with server-side authorization, status validation, and audit history; expose owners only the controls permitted for their own activity.
+- [ ] Prevent repeated clicks/submissions for the same business/activity from creating duplicate records: add UI in-flight protection plus server/database idempotency or uniqueness controls where supported; test retries, double-clicks, and concurrent submits.
+- [ ] Reject repeated identical submitted records according to the agreed duplicate policy, but inspect affected records before merging or deleting; preserve one valid working record and retain auditable references to any duplicate that must be retired.
+- [ ] Resolve the requested duplicate account/file renaming sequence (duplicates labeled `11`, then sequential names `1`, `2`, `3`) by identifying the exact entity and file set first. **BLOCKED pending record-level identification**; do not mass-rename accounts or files based on ambiguous naming alone.
+- [ ] Verify every newly created activity has the correct owner association. For activities without an owner, implement the approved platform-owner fallback using the platform's canonical user/member ID—not a hardcoded or misspelled email address—and log the assignment.
+- [ ] Investigate the reported case where the newly added `Sameh Market` activity did not appear. Verify owner association, ACTIVE operational status, public-enabled/published status, and directory query/filter behavior; do not change live data without confirming the exact record.
+- [ ] Reconcile requested activity/owner activation with payment recording. A claimed cash payment of EGP 0.01 must have a real auditable payment/receipt record linked to the correct owner/business before it is shown as paid; do not fabricate a transaction or infer payment from ACTIVE status. Verify the relevant membership is ACTIVE and the activity's public visibility separately.
+- [ ] Resolve the Qadam Al-Saad owner membership currently recorded elsewhere in this TODO as INACTIVE, using the approved owner identity and reviewed migration/release path; do not perform an unreviewed Production database write.
+- [ ] Audit the requested “Vision” catalog addition: locate the original requested scope and determine the missing implementation path before marking it done; avoid activating unrelated modules.
+
+### Validation and completion criteria
+- [ ] Add regression coverage for duplicate prevention, owner isolation, publication/deactivation visibility, social links, public URLs, QR codes, and catalog-home routing.
+- [ ] Run build, lint/typecheck, available automated tests, and a real browser pass. Record separate statuses for source change, CI, deployment, and live behavior.
+- [ ] Reconcile these tasks with existing issues/TODO sections so there is one clear source of truth; close an item only with evidence, and use NOT VERIFIED/WAIT/BLOCKED where appropriate.
