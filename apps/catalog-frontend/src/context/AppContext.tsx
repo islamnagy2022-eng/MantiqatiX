@@ -69,7 +69,7 @@ interface AppContextType {
   updateBillingSetting: (businessId: string, settings: Record<string, unknown>) => Promise<void>;
   toggleBusinessFreeze: (businessId: string) => Promise<void>;
   businessProducts: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => Promise<{ success: boolean; message?: string }>;
+  addProduct: (product: Omit<Product, 'id'> & { deferAiImageGeneration?: boolean }) => Promise<{ success: boolean; message?: string }>;
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   addSubscriber: (sub: { fullName: string; email: string; phone: string; businessId: string; username?: string; password?: string; authMethod: 'direct_password' | 'gmail_invite'; notes?: string; }) => Promise<Subscriber>;
@@ -618,14 +618,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const getStorePublicLink = (business: Business) =>
     generateStorePublicUrl(window.location.origin, business.id, baseUrl);
-  const addProduct = async (data: Omit<Product, 'id'>): Promise<{ success: boolean; message?: string }> => {
+  const addProduct = async (data: Omit<Product, 'id'> & { deferAiImageGeneration?: boolean }): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
     let imageSource: 'auto' | 'owner' | 'ai' = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
     let imageUrl = imageSource === 'owner'
       ? data.imageUrl.trim()
       : resolveDefaultImage({ name: data.name, description: data.description, category: data.category, kind: data.type === 'service' ? 'service' : 'product' });
-    if (imageSource === 'auto') {
+    if (imageSource === 'auto' && data.deferAiImageGeneration !== true) {
       const generated = await generateCatalogAiImage({
         businessId: business.id,
         kind: data.type,

@@ -1,0 +1,44 @@
+name: Flexible commission drafts
+on:
+  pull_request:
+    paths:
+      - 'apps/catalog-frontend/**'
+      - 'supabase/migrations/*rc452_flexible_commission_rule_drafts.sql'
+      - 'scripts/validate-commission-drafts-contract.mjs'
+      - '.github/workflows/commission-drafts.yml'
+  push:
+    branches:
+      - 'feature/rc452-flexible-commission-drafts'
+    paths:
+      - 'apps/catalog-frontend/**'
+      - 'supabase/migrations/*rc452_flexible_commission_rule_drafts.sql'
+      - 'scripts/validate-commission-drafts-contract.mjs'
+      - '.github/workflows/commission-drafts.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: TypeScript, build and security contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/catalog-frontend/package-lock.json
+      - name: Install catalog dependencies
+        working-directory: apps/catalog-frontend
+        run: npm ci
+      - name: Type-check catalog frontend
+        working-directory: apps/catalog-frontend
+        run: npm run lint
+      - name: Build catalog frontend
+        working-directory: apps/catalog-frontend
+        run: npm run build
+      - name: Validate commission draft security contract
+        run: node scripts/validate-commission-drafts-contract.mjs
+      - name: Validate resumable catalog import contract
+        run: node scripts/validate-catalog-import-contract.mjs
