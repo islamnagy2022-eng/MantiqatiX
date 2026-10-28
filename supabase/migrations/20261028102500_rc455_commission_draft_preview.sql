@@ -76,6 +76,20 @@ begin
     raise exception 'UNSUPPORTED_PREVIEW_CALCULATION_MODE';
   end if;
 
+  if coalesce(v_rule.percentage,0) < 0 or coalesce(v_rule.percentage,0) > 100
+     or coalesce(v_rule.percentage,0)::text in ('NaN','Infinity','-Infinity')
+     or coalesce(v_rule.fixed_amount,0) < 0
+     or coalesce(v_rule.fixed_amount,0)::text in ('NaN','Infinity','-Infinity')
+     or (v_rule.minimum_commission_amount is not null and (v_rule.minimum_commission_amount < 0 or v_rule.minimum_commission_amount::text in ('NaN','Infinity','-Infinity')))
+     or (v_rule.maximum_commission_amount is not null and (v_rule.maximum_commission_amount < 0 or v_rule.maximum_commission_amount::text in ('NaN','Infinity','-Infinity'))) then
+    raise exception 'INVALID_DRAFT_RULE_AMOUNT';
+  end if;
+  if v_rule.minimum_commission_amount is not null
+     and v_rule.maximum_commission_amount is not null
+     and v_rule.minimum_commission_amount > v_rule.maximum_commission_amount then
+    raise exception 'INVALID_DRAFT_RULE_BOUNDS';
+  end if;
+
   v_mode := v_rule.calculation_mode;
   v_currently_in_effect :=
     (v_rule.effective_from is null or v_rule.effective_from <= v_now)
