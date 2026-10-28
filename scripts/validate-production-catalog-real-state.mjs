@@ -63,6 +63,8 @@ assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant produc
 assert.doesNotMatch(catalogAdminFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'catalog admin must not generate stock-photo URLs for item imagery');
 assert.match(catalogAdminFunction, /legacyStockUrl = \/\^https:/, 'catalog admin must clear legacy stock-photo URLs when an item is edited');
 assert.match(catalogAdminFunction, /neutralPlaceholderUrl/, 'catalog admin must keep neutral placeholders out of owner image metadata');
+assert.match(catalogAdminFunction, /url\.includes\("\/catalog-ai\/"\)/, 'catalog profile writes must preserve AI-generated source metadata.');
+assert.match(catalogAdminFunction, /logo_image_source: imageSourceForUrl\(savedProfile\.logo_url\)[\s\S]*cover_image_source: imageSourceForUrl\(savedProfile\.cover_url\)/, 'profile metadata must separately identify AI, owner, and default images.');
 assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
 assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}return ""/, 'public directory API must suppress stock-photo URLs except for verified platform-owned showcase activities');
 assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
