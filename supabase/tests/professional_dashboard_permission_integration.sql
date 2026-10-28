@@ -68,7 +68,7 @@ BEGIN
   -- Business owner may read the business roster through the RPC.
   PERFORM set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
   PERFORM set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated","is_anonymous":false}',true);
-  v_result := public.mnty_business_employee_list_scoped('tenant-a','10000000-0000-0000-0000-000000000001',null);
+  v_result := public.mnty_business_employee_list('tenant-a','10000000-0000-0000-0000-000000000001');
   IF jsonb_array_length(v_result->'positions') <> 1 OR jsonb_array_length(v_result->'employees') <> 1 THEN
     RAISE EXCEPTION 'OWNER_ROSTER_READ_FAILED';
   END IF;
@@ -83,6 +83,10 @@ BEGIN
   v_result := public.mnty_business_employee_list_scoped('tenant-a','10000000-0000-0000-0000-000000000001',null);
   IF jsonb_array_length(v_result->'positions') <> 1 OR jsonb_array_length(v_result->'employees') <> 1 THEN
     RAISE EXCEPTION 'TENANT_OWNER_SCOPED_ROSTER_READ_FAILED';
+  END IF;
+  v_result := public.mnty_business_employee_list('tenant-a','10000000-0000-0000-0000-000000000001');
+  IF jsonb_array_length(v_result->'positions') <> 1 OR jsonb_array_length(v_result->'employees') <> 1 THEN
+    RAISE EXCEPTION 'TENANT_OWNER_LEGACY_ROSTER_READ_FAILED';
   END IF;
   v_result := public.mnty_business_employee_position_upsert(
     'tenant-a','10000000-0000-0000-0000-000000000001','Tenant-wide owner position','','','FULL_TIME',
@@ -212,6 +216,15 @@ BEGIN
     IF SQLERRM = 'BRANCH_SCOPED_WHOLE_BUSINESS_READ_UNEXPECTEDLY_SUCCEEDED' THEN RAISE; END IF;
     IF position('BUSINESS_HR_FORBIDDEN' IN SQLERRM)=0 THEN RAISE; END IF;
   END;
+  -- The legacy RPC is also protected: a branch owner cannot call it to read the full roster.
+  BEGIN
+    PERFORM public.mnty_business_employee_list('tenant-a','10000000-0000-0000-0000-000000000001');
+    RAISE EXCEPTION 'BRANCH_OWNER_LEGACY_ROSTER_READ_UNEXPECTEDLY_SUCCEEDED';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'BRANCH_OWNER_LEGACY_ROSTER_READ_UNEXPECTEDLY_SUCCEEDED' THEN RAISE; END IF;
+    IF position('BUSINESS_HR_FORBIDDEN' IN SQLERRM)=0 THEN RAISE; END IF;
+  END;
+
   v_result := public.mnty_business_employee_list_scoped('tenant-a','10000000-0000-0000-0000-000000000001','branch-a-1');
   IF jsonb_array_length(v_result->'positions') <> 1
      OR v_result->'positions'->0->>'title' <> 'Branch-scoped position'
