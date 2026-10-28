@@ -787,8 +787,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateSubscriber = async (updated: Subscriber) => {
     if (updated.status === 'active') {
       const business = businesses.find((item) => item.id === updated.businessId);
-      if (!business || (String(business.paymentStatus || '').toLowerCase() !== 'paid' || !business.paymentConfirmedByAdmin)) {
-        throw new Error('لا يمكن تفعيل الاشتراك قبل تأكيد سداد النشاط من إدارة المنصة.');
+      const freeActivation = business?.subscriptionMode === 'FREE' && business.subscriptionAmount === 0
+        && business.freeActivationApprovedByAdmin === true && String(business.paymentStatus || '').toLowerCase() === 'free';
+      const paidAndConfirmed = String(business?.paymentStatus || '').toLowerCase() === 'paid' && business?.paymentConfirmedByAdmin === true;
+      if (!business || (!freeActivation && !paidAndConfirmed)) {
+        throw new Error('لا يمكن تفعيل الاشتراك قبل تأكيد السداد أو اعتماد التفعيل المجاني من إدارة المنصة.');
       }
     }
     await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: updated.id, status: updated.status === 'active' ? 'ACTIVE' : updated.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE' });
