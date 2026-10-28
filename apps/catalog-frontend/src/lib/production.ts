@@ -154,6 +154,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     branchId: String(branch.id || raw.branchId || raw.selectedBranchId || ''),
     organizationId: String(raw.organizationId || raw.organization_id || ''),
     publicEnabled: Boolean(raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
+    publicationStatus: String(meta.publicationStatus || raw.publicationStatus || ''),
+    publicationRejectionReason: String(meta.publicationRejectionReason || ''),
     catalogPublished: Boolean(raw.catalogPublished ?? raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
     businessCode: String(raw.code || ''),
     isOfficialShowcase: officialShowcase,
