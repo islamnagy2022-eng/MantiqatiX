@@ -172,6 +172,7 @@ Deno.serve(async (req: Request) => {
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
+        operationalStatus: String(business.settings?.bizcatalog?.operationalStatus || (business.settings?.bizcatalog?.isFrozen ? 'FROZEN' : 'ACTIVE')).toUpperCase(),
         paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
       });
     }
