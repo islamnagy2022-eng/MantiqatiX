@@ -37,7 +37,7 @@ const catalogWriteAllowed = (m: any) => {
   return true;
 };
 const decodeGeneratedImage = (encodedValue: unknown): Uint8Array | null => {
-  const encoded = String(encodedValue || "").replace(/^data:image\\/[a-zA-Z0-9.+-]+;base64,/i, "").replace(/\\s/g, "");
+  const encoded = String(encodedValue || "").replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/i, "").replace(/\s/g, "");
   if (!encoded || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded) || encoded.length % 4 !== 0) return null;
   try {
     const binary = atob(encoded);
@@ -193,7 +193,7 @@ Deno.serve(async (req: Request) => {
         "Item/activity name: " + itemName,
         "Category: " + category,
         "Description: " + description,
-      ].join("\\n");
+      ].join("\n");
 
       let upstream: Response;
       try {
