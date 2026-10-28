@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.facebook-page-import]
 verify_jwt = true
+
+[functions.catalog-cover-ads]
+verify_jwt = false
