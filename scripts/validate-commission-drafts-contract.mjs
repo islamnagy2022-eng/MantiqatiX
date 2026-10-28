@@ -19,6 +19,8 @@ const checks = [
   ['UI explicitly communicates rules remain inactive until engine integration', /مسودات غير مفعّلة/.test(ui) && /لا يوجد زر تفعيل/.test(ui)],
   ['admin dashboard exposes the commission manager', /CommissionRulesManager/.test(admin) && /'commissions'/.test(admin)],
   ['no frontend action attempts to activate or apply a commission rule', !/p_action:\s*['"](?:ACTIVATE|APPROVE|APPLY)['"]/.test(ui)],
+  ['commission audit history is available through the scoped draft RPC', /v_action = 'AUDIT'/.test(migration) && /p_action:'AUDIT'/.test(ui)],
+  ['audit history is capped at 100 tenant-scoped records', /where tenant_id = p_tenant_id[\s\S]*?order by created_at desc[\s\S]*?limit 100/.test(migration)],
 ];
 
 const failed = checks.filter(([name, passed]) => {

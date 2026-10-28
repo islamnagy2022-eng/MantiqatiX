@@ -40,3 +40,5 @@ jobs:
         run: npm run build
       - name: Validate commission draft security contract
         run: node scripts/validate-commission-drafts-contract.mjs
+      - name: Validate resumable catalog import contract
+        run: node scripts/validate-catalog-import-contract.mjs

@@ -7,7 +7,7 @@ const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.ts
 
 const checks = [
   ['merchant dashboard exposes the import panel', /CatalogImportPanel/.test(dashboard) && /setActiveTab\('import'\)/.test(dashboard)],
-  ['CSV parser handles quoted cells and escaped quotes', /if \(quoted && source\[i \+ 1\] === '" '\)/.test(panel) || /if \(quoted && source\[i \+ 1\] === '"'/ .test(panel)],
+  ['CSV parser handles quoted cells and escaped quotes', panel.includes("source[i + 1] === '\"'") && panel.includes("value += '\"'; i += 1;")],
   ['import requires name and price headers', /columns\.name == null/.test(panel) && /columns\.price == null/.test(panel)],
   ['price and compare-price values are validated', /Number\.isFinite\(price\)/.test(panel) && /Number\.isFinite\(compare\)/.test(panel)],
   ['HTTPS image links are validated before import', /url\.protocol !== 'https:'/.test(panel)],
