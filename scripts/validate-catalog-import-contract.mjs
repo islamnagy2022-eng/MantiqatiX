@@ -14,7 +14,7 @@ const checks = [
   ['existing catalog items and duplicate file rows are prevented', /existingNames\.has/.test(panel) && /seen\.has\(key\)/.test(panel)],
   ['local drafts are scoped to the current business and persisted', /MNTY_CATALOG_IMPORT_DRAFT_V1:/.test(panel) && /localStorage\.setItem\(storageKey/.test(panel) && /localStorage\.getItem\(storageKey/.test(panel)],
   ['failed imports remain in the draft for retry', /importError:result\.message/.test(panel) && /يمكن إعادة المحاولة/.test(panel)],
-  ['import is explicitly confirmed before server writes', /window\.confirm/.test(panel) && /for\\s*\\(const row of pending\\)/.test(panel)],
+  ['import is explicitly confirmed before server writes', /window\.confirm/.test(panel) && /for\s*\(const row of pending\)/.test(panel)],
   ['product creation stays on the server-authoritative app flow', /await addProduct\(/.test(panel)],
   ['AI image generation is deferred during bulk import', /deferAiImageGeneration:true/.test(panel) && /data\.deferAiImageGeneration !== true/.test(context)],
   ['catalog capacity is checked before import', /readyRows\.length>remaining/.test(panel)],
