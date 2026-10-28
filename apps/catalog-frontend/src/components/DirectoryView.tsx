@@ -49,6 +49,7 @@ interface CoverSlide {
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
+// Primary-root directory: real activity cards, legacy cover adverts, and an always-visible ad enquiry rail.
 export const DirectoryView: React.FC = () => {
   const {
     businesses,
