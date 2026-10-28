@@ -14,6 +14,7 @@ type CatalogDraftRow = {
   unit: string;
   imageUrl: string;
   errors: string[];
+  importError?: string;
 };
 type SavedDraft = { version: 1; filename: string; savedAt: string; rows: CatalogDraftRow[] };
 const STORAGE_PREFIX = 'MNTY_CATALOG_IMPORT_DRAFT_V1:';
@@ -128,7 +129,8 @@ export const CatalogImportPanel: React.FC = () => {
   },[storageKey]);
 
   useEffect(()=>{
-    if(!storageKey||!rows.length)return;
+    if(!storageKey)return;
+    if(!rows.length){if(filename)localStorage.removeItem(storageKey);return;}
     const draft:SavedDraft={version:1,filename,savedAt:new Date().toISOString(),rows};
     try { localStorage.setItem(storageKey,JSON.stringify(draft)); setSavedAt(draft.savedAt); }
     catch { setNotice({type:'error',text:'تعذر حفظ المسودة محليًا؛ قد تكون مساحة تخزين المتصفح ممتلئة.'}); }
@@ -173,10 +175,10 @@ export const CatalogImportPanel: React.FC = () => {
       const result=await addProduct({
         businessId:currentBusiness.id,name:row.name.trim(),type:row.type,category:row.category.trim()||'عام',
         price,comparePrice:compare,description:row.description.trim(),unit:row.unit.trim()||(row.type==='service'?'جلسة':'قطعة'),
-        imageUrl:image,imageSource:image?'owner':'auto',isAvailable:true,
+        imageUrl:image,imageSource:row.imageUrl?'owner':'auto',deferAiImageGeneration:true,isAvailable:true,
       });
       if(result.success){succeeded++;setRows(current=>current.filter(x=>x.rowNumber!==row.rowNumber));}
-      else {failed++;setRows(current=>current.map(x=>x.rowNumber===row.rowNumber?{...x,errors:[...x.errors,result.message||'فشل الحفظ في الخادم.']}:x));}
+      else {failed++;setRows(current=>current.map(x=>x.rowNumber===row.rowNumber?{...x,importError:result.message||'فشل الحفظ في الخادم.'}:x));}
       setProgress({done:succeeded+failed,total:pending.length,failed});
     }
     setWorking(false);
@@ -203,7 +205,7 @@ export const CatalogImportPanel: React.FC = () => {
     </div>
     {!!rows.length&&<div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-black">2 — راجع الصفوف قبل الحفظ</h3><p className="mt-1 text-xs text-slate-500">{rows.length} صف في المسودة، {invalidCount} يحتاج مراجعة أو مكرر.</p></div><button type="button" onClick={clearDraft} disabled={working} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700"><Trash2 className="h-4 w-4"/>مسح المسودة</button></div>
-      <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[850px] text-right text-xs"><thead className="bg-slate-50 text-slate-600"><tr><th className="p-3">صف</th><th className="p-3">الصنف</th><th className="p-3">النوع</th><th className="p-3">التصنيف</th><th className="p-3">السعر</th><th className="p-3">الصورة</th><th className="p-3">الحالة</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map(row=>{const duplicate=existingNames.has(row.name.trim().toLocaleLowerCase());const issues=[...row.errors,...(duplicate?['الاسم موجود بالفعل في كتالوج النشاط.']:[])];return <tr key={row.rowNumber} className={issues.length?'bg-rose-50/50':''}><td className="p-3">{row.rowNumber}</td><td className="p-3 font-bold">{row.name||'—'}<div className="mt-1 max-w-xs truncate font-normal text-slate-500">{row.description}</div>{issues.map((issue,i)=><div key={i} className="mt-1 text-[11px] text-rose-700">{issue}</div>)}</td><td className="p-3">{row.type==='service'?'خدمة':'منتج'}</td><td className="p-3">{row.category}</td><td className="p-3">{row.priceText?row.priceText+' ج.م':'—'}</td><td className="p-3">{row.imageUrl?<a className="text-indigo-700 underline" href={row.imageUrl} target="_blank" rel="noreferrer">فتح الصورة</a>:'صورة مؤقتة'}</td><td className="p-3">{issues.length?<span className="text-rose-700">مراجعة مطلوبة</span>:<span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5"/>جاهز</span>}</td></tr>;})}</tbody></table></div>
+      <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[850px] text-right text-xs"><thead className="bg-slate-50 text-slate-600"><tr><th className="p-3">صف</th><th className="p-3">الصنف</th><th className="p-3">النوع</th><th className="p-3">التصنيف</th><th className="p-3">السعر</th><th className="p-3">الصورة</th><th className="p-3">الحالة</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map(row=>{const duplicate=existingNames.has(row.name.trim().toLocaleLowerCase());const issues=[...row.errors,...(duplicate?['الاسم موجود بالفعل في كتالوج النشاط.']:[])];return <tr key={row.rowNumber} className={issues.length?'bg-rose-50/50':''}><td className="p-3">{row.rowNumber}</td><td className="p-3 font-bold">{row.name||'—'}<div className="mt-1 max-w-xs truncate font-normal text-slate-500">{row.description}</div>{issues.map((issue,i)=><div key={i} className="mt-1 text-[11px] text-rose-700">{issue}</div>)}{row.importError&&<div className="mt-1 text-[11px] font-bold text-amber-800">تعذر الحفظ: {row.importError} — يمكن إعادة المحاولة.</div>}</td><td className="p-3">{row.type==='service'?'خدمة':'منتج'}</td><td className="p-3">{row.category}</td><td className="p-3">{row.priceText?row.priceText+' ج.م':'—'}</td><td className="p-3">{row.imageUrl?<a className="text-indigo-700 underline" href={row.imageUrl} target="_blank" rel="noreferrer">فتح الصورة</a>:'صورة مؤقتة'}</td><td className="p-3">{issues.length?<span className="text-rose-700">مراجعة مطلوبة</span>:<span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5"/>جاهز</span>}</td></tr>;})}</tbody></table></div>
       {progress.total>0&&<div className="rounded-xl bg-slate-50 p-3"><div className="flex items-center justify-between text-xs"><span>تقدم الاستيراد</span><strong>{progress.done} / {progress.total}</strong></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-600 transition-all" style={{width:`${progress.total?progress.done/progress.total*100:0}%`}}/></div><p className="mt-2 text-xs text-slate-500">نجح {progress.done-progress.failed} · فشل {progress.failed}</p></div>}
       <button type="button" onClick={()=>void startImport()} disabled={working||!readyRows.length||readyRows.length>remaining} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">{working?<Loader2 className="h-4 w-4 animate-spin"/>:<CheckCircle2 className="h-4 w-4"/>}{working?'جارٍ حفظ الصفوف بالتتابع…':`3 — اعتماد واستيراد ${readyRows.length} صفًا`}</button>
       {!!(readyRows.length>remaining)&&<p className="text-xs text-rose-700">عدد الصفوف يتجاوز السعة المتبقية؛ لن يبدأ الاستيراد قبل حل ذلك.</p>}
