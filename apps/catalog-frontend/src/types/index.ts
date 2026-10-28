@@ -66,9 +66,11 @@ export interface Business {
   id: string;
   name: string;
   slug: string;
-  category: string; // Name of category (backward compatibility)
+  category: string; // Name of activity/profession, optionally followed by a specialty
   categoryId?: string; // ID of category
-  functionalGroupId: FunctionalGroupId; // التصنيف الوظيفي (dining, retail, services, etc.)
+  functionalGroupId: FunctionalGroupId; // Canonical main directory group
+  categoryClassificationType?: 'activity' | 'profession';
+  activitySpecialty?: string;
   logoUrl: string;
   coverUrl: string;
   coverImages?: string[]; // من 1 إلى صورتين لصاحب النشاط لعرضها في السلايدر المتغير
