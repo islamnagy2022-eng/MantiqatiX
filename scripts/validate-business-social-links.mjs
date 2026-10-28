@@ -32,5 +32,6 @@ const tick = String.fromCharCode(96);
 const telHref = "href={" + tick + "tel:$" + "{dialPhone}" + tick + "}";
 assert.ok(header.includes(telHref), "Phone action must use the device's dialer");
 assert.match(header, /target="_blank" rel="noopener noreferrer"/, "Social links must open safely in a new tab");
+assert.match(header, /opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100/, "Activity cover must stay bright by default and darken only on hover or keyboard focus");
 
 console.log("Business social links and click-to-call contract validation passed.");
