@@ -22,7 +22,10 @@ assert.match(source, /SUBSCRIPTION_FROZEN/, "frozen subscriptions must be blocke
 assert.match(source, /BUSINESS_INACTIVE/, "inactive businesses must be blocked by the server");
 assert.match(source, /String\(m\.branch_id\) === String\(branchId \|\| ""\)/, "branch-scoped memberships must require an exact branch match");
 assert.match(source, /bizcatalog: business\.settings\?\.bizcatalog/, "catalog reads must return persisted subscription state");
-assert.match(source, /const mutationActions = new Set\(\[/, "catalog mutation actions must be enumerated for subscription enforcement");
+assert.match(source, /const catalogMutationActions = new Set\(\[/, "catalog mutation actions must be explicitly enumerated");
+assert.match(source, /const mutationActions = catalogMutationActions;/, "subscription enforcement must use the shared catalog mutation action set");
+assert.match(source, /canUseCatalog\(m, false\)/, "catalog read restrictions must be enforced server-side");
+assert.match(source, /canUseCatalog\(m, true\)/, "catalog write and read-only restrictions must be enforced server-side");
 assert.match(source, /mutationActions\.has\(action\) && !scopedPlatformMembership/, "platform admins may recover frozen or inactive businesses");
 assert.match(source, /catalogSettings\.isFrozen === true/, "frozen subscription state must be enforced server-side");
 assert.match(source, /paymentStatus \|\| ""\)\.toLowerCase\(\) === "frozen"/, "legacy frozen billing state must be enforced server-side");
