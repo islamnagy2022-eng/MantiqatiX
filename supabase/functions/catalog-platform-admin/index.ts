@@ -207,7 +207,8 @@ Deno.serve(async (req: Request) => {
         const settings = business.settings && typeof business.settings === "object" ? business.settings : {};
         const billing = settings.bizcatalog && typeof settings.bizcatalog === "object" ? settings.bizcatalog : {};
         const official = settings.source === "OFFICIAL_PLATFORM_SHOWCASE" || settings.managed_by === "SUPER_ADMIN";
-        if (!official && !(String(billing.paymentStatus || "").toLowerCase() === "paid" && billing.paymentConfirmedByAdmin === true)) {
+        const freeActivation = billing.subscriptionMode === "FREE" && Number(billing.subscriptionAmount) === 0 && billing.freeActivationApprovedByAdmin === true && String(billing.paymentStatus || "").toLowerCase() === "free";
+        if (!official && !freeActivation && !(String(billing.paymentStatus || "").toLowerCase() === "paid" && billing.paymentConfirmedByAdmin === true)) {
           return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "لا يمكن إعادة تنشيط النشاط قبل تأكيد سداد الاشتراك." }, 409);
         }
         const { error } = await service.from("businesses").update({ status: "ACTIVE", updated_at: new Date().toISOString() })
@@ -328,22 +329,23 @@ Deno.serve(async (req: Request) => {
       const workingHours = String(input.workingHours || "").trim();
       const logoUrl = String(input.logoUrl || "").trim();
       const coverUrl = String(input.coverUrl || "").trim();
-            let paymentDueDate = String(input.paymentDueDate || "").trim();
+      const subscriptionMode = String(input.subscriptionMode || "PAID").toUpperCase();
+      const subscriptionAmount = subscriptionMode === "FREE" ? 0 : Number(input.subscriptionAmount);
+      const paymentDueDate = String(input.paymentDueDate || "").trim();
       const paymentGracePeriodDays = Number(input.paymentGracePeriodDays ?? 7);
-      if (!paymentDueDate) {
-        const defaultDueDate = new Date();
-        defaultDueDate.setUTCDate(defaultDueDate.getUTCDate() + 7);
-        paymentDueDate = defaultDueDate.toISOString().slice(0, 10);
-      }
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
       if (activityGroupCode && !canonicalActivityGroups.has(activityGroupCode)) return response(origin, { error: "INVALID_ACTIVITY_GROUP" }, 400);
       if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
-      if (phoneDigits.length < 10 || phoneDigits.length > 15) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "A valid owner WhatsApp number is required." }, 400);
-      if ([governorate, markaz].some((value) => value.length < 2 || value.length > 100) || village.length > 100) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
-      const parsedDueDate = new Date(`${paymentDueDate}T00:00:00.000Z`);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDueDate) || Number.isNaN(parsedDueDate.getTime()) || parsedDueDate.toISOString().slice(0, 10) !== paymentDueDate) return response(origin, { error: "INVALID_PAYMENT_DUE_DATE" }, 400);
+      if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "If provided, the owner WhatsApp number must contain 10 to 15 digits." }, 400);
+      if ([governorate, markaz].some((value) => value.length > 100 || (value.length > 0 && value.length < 2)) || village.length > 100) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
+      if (!["PAID", "FREE"].includes(subscriptionMode)) return response(origin, { error: "INVALID_SUBSCRIPTION_MODE" }, 400);
+      if (subscriptionMode === "PAID" && (!Number.isFinite(subscriptionAmount) || subscriptionAmount <= 0 || subscriptionAmount > 100000000)) return response(origin, { error: "INVALID_SUBSCRIPTION_AMOUNT" }, 400);
+      if (subscriptionMode === "PAID") {
+        const parsedDueDate = new Date(`${paymentDueDate}T00:00:00.000Z`);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDueDate) || Number.isNaN(parsedDueDate.getTime()) || parsedDueDate.toISOString().slice(0, 10) !== paymentDueDate) return response(origin, { error: "INVALID_PAYMENT_DUE_DATE" }, 400);
+      }
       if (!Number.isInteger(paymentGracePeriodDays) || paymentGracePeriodDays < 0 || paymentGracePeriodDays > 90) return response(origin, { error: "INVALID_PAYMENT_GRACE_PERIOD" }, 400);
       const tenantId = requireTenant(body.tenantId || productionTenantIds.find((id) => id === "MNTY-PLATFORM") || productionTenantIds[0]);
       const { data: tenant, error: tenantError } = await service.from("tenants").select("id,status").eq("id", tenantId).eq("status", "ACTIVE").maybeSingle();
@@ -371,11 +373,13 @@ Deno.serve(async (req: Request) => {
         const existingCategory = String(settings.category_code || settings.activity_code || settings.sector || "");
         return normalizeDedup(existing.name) === normalizeDedup(name)
           && normalizeDedup(existingCategory) === normalizeDedup(category)
-          && existingPhone === phoneKey
-          && normalizeDedup(profile.governorate || settings.governorate || "") === normalizeDedup(governorate)
-          && normalizeDedup(profile.markaz || settings.markaz || "") === normalizeDedup(markaz)
-          && normalizeDedup(profile.village || settings.village || "") === normalizeDedup(village)
-          && normalizeDedup(branch?.address || profile.address || settings.address || "") === normalizeDedup(address);
+          && (phoneKey ? existingPhone === phoneKey : (
+            (governorate || markaz || village || address) &&
+            normalizeDedup(profile.governorate || settings.governorate || "") === normalizeDedup(governorate) &&
+            normalizeDedup(profile.markaz || settings.markaz || "") === normalizeDedup(markaz) &&
+            normalizeDedup(profile.village || settings.village || "") === normalizeDedup(village) &&
+            normalizeDedup(branch?.address || profile.address || settings.address || "") === normalizeDedup(address)
+          ));
       });
       if (duplicate) return response(origin, {
         error: "DUPLICATE_BUSINESS",
@@ -403,7 +407,17 @@ Deno.serve(async (req: Request) => {
             activity_specialty: activitySpecialty || null,
             catalog_public_enabled: false,
             catalog_profile: { bio: bio.slice(0, 3000), governorate: governorate.slice(0, 100), markaz: markaz.slice(0, 100), village: village.slice(0, 100), working_hours: workingHours.slice(0, 300), logo_url: logoUrl.slice(0, 1500), cover_url: coverUrl.slice(0, 1500) },
-            bizcatalog: { paymentStatus: "pending", paymentDueDate, paymentGracePeriodDays, publicationStatus: "PENDING_PUBLICATION", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
+            bizcatalog: {
+              subscriptionMode, subscriptionAmount,
+              freeActivationApprovedByAdmin: subscriptionMode === "FREE",
+              freeActivatedByAdmin: subscriptionMode === "FREE" ? user.id : null,
+              freeActivatedAt: subscriptionMode === "FREE" ? new Date().toISOString() : null,
+              paymentStatus: subscriptionMode === "FREE" ? "free" : "pending",
+              paymentDueDate: subscriptionMode === "FREE" ? "" : paymentDueDate,
+              paymentGracePeriodDays: subscriptionMode === "FREE" ? 0 : paymentGracePeriodDays,
+              publicationStatus: "PENDING_PUBLICATION", isFrozen: false, totalOrdersCount: 0,
+              paymentConfirmedByAdmin: false, createdByAdmin: user.id, createdAt: new Date().toISOString()
+            } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
         if (createError) throw createError;
         createdBusinessId = String(created.id);
@@ -427,7 +441,12 @@ Deno.serve(async (req: Request) => {
           },
         });
         if (providerError) throw providerError;
-        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "INACTIVE" } }, 201);
+        await service.from("audit_logs").insert({
+          actor_user_id: user.id, action: "PLATFORM_BUSINESS_CREATED", entity_type: "business",
+          entity_id: created.id, tenant_id: tenantId,
+          details: { name, category, subscriptionMode, subscriptionAmount, paymentDueDate: subscriptionMode === "FREE" ? null : paymentDueDate, publicationStatus: "PENDING_PUBLICATION" },
+        });
+        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "INACTIVE", subscriptionMode, subscriptionAmount, paymentStatus: subscriptionMode === "FREE" ? "free" : "pending" } }, 201);
       } catch (error) {
         if (createdBusinessId) {
           await service.from("marketing_provider_profiles").delete().eq("business_id", createdBusinessId);
@@ -549,7 +568,8 @@ Deno.serve(async (req: Request) => {
         const business = await getBusiness(String(membership.tenant_id), String(membership.business_id));
         const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
         const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
-        if (!isOfficialShowcase && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
+        const freeActivation = billing.subscriptionMode === "FREE" && Number(billing.subscriptionAmount) === 0 && billing.freeActivationApprovedByAdmin === true && String(billing.paymentStatus || "").toLowerCase() === "free";
+        if (!isOfficialShowcase && !freeActivation && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
           return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "Confirm the business subscription payment before activating the owner membership." }, 409);
         }
       }
@@ -590,7 +610,8 @@ Deno.serve(async (req: Request) => {
           const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
           const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
           const paymentConfirmed = String(billing.paymentStatus || "").toLowerCase() === "paid" && billing.paymentConfirmedByAdmin === true;
-          if (["OWNER", "BUSINESS_OWNER"].includes(role) && (isOfficialShowcase || paymentConfirmed)) {
+          const freeActivation = billing.subscriptionMode === "FREE" && Number(billing.subscriptionAmount) === 0 && billing.freeActivationApprovedByAdmin === true && String(billing.paymentStatus || "").toLowerCase() === "free";
+          if (["OWNER", "BUSINESS_OWNER"].includes(role) && (isOfficialShowcase || paymentConfirmed || freeActivation)) {
             const { error: activateBusinessError } = await service.from("businesses")
               .update({ status: "ACTIVE", updated_at: new Date().toISOString() })
               .eq("id", businessId).eq("tenant_id", tenantId);
@@ -599,7 +620,7 @@ Deno.serve(async (req: Request) => {
             await service.from("audit_logs").insert({
               actor_user_id: user.id, action: "PLATFORM_BUSINESS_ACTIVATED_FOR_OWNER_ASSIGNMENT",
               entity_type: "business", entity_id: businessId, tenant_id: tenantId,
-              details: { previousStatus: "INACTIVE", newStatus: "ACTIVE", reason: isOfficialShowcase ? "OFFICIAL_SHOWCASE" : "PAYMENT_CONFIRMED" },
+              details: { previousStatus: "INACTIVE", newStatus: "ACTIVE", reason: isOfficialShowcase ? "OFFICIAL_SHOWCASE" : paymentConfirmed ? "PAYMENT_CONFIRMED" : "ADMIN_APPROVED_FREE_ACTIVATION" },
             });
           } else {
             return response(origin, {
@@ -656,7 +677,8 @@ Deno.serve(async (req: Request) => {
       if (status === "ACTIVE" && business && ["OWNER", "BUSINESS_OWNER"].includes(role)) {
         const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
         const isOfficialShowcase = business.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" || business.settings?.managed_by === "SUPER_ADMIN";
-        if (!isOfficialShowcase && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
+        const freeActivation = billing.subscriptionMode === "FREE" && Number(billing.subscriptionAmount) === 0 && billing.freeActivationApprovedByAdmin === true && String(billing.paymentStatus || "").toLowerCase() === "free";
+        if (!isOfficialShowcase && !freeActivation && (String(billing.paymentStatus || "").toLowerCase() !== "paid" || billing.paymentConfirmedByAdmin !== true)) {
           return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "يجب تأكيد سداد اشتراك النشاط قبل تفعيل دور المالك." }, 409);
         }
       }
