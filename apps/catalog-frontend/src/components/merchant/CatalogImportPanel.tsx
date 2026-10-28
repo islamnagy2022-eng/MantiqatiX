@@ -321,7 +321,7 @@ export const CatalogImportPanel: React.FC = () => {
     if(!currentBusiness?.id||!row.name.trim()){setNotice({type:'error',text:'أدخل اسم الصنف قبل طلب اقتراح صورة.'});return;}
     setSuggestingRows(current=>current.includes(row.rowNumber)?current:[...current,row.rowNumber]);
     setNotice({type:'info',text:`جارٍ إنشاء اقتراح صورة لـ «${row.name}». لن يُعتمد قبل مراجعتك.`});
-    const url=await generateCatalogAiImage({businessId:currentBusiness.id,kind:row.type,name:row.name.trim(),category:row.category,description:row.description});
+    const url=await generateCatalogAiImage({businessId:currentBusiness.id,branchId:currentBusiness.branchId,kind:row.type,name:row.name.trim(),category:row.category,description:row.description});
     setSuggestingRows(current=>current.filter(number=>number!==row.rowNumber));
     if(!url){
       setRows(current=>current.map(item=>item.rowNumber===row.rowNumber?{...item,suggestionError:'تعذر إنشاء صورة مقترحة الآن. يمكنك المحاولة مرة أخرى أو استخدام صورة النشاط الافتراضية.'}:item));
