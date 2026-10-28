@@ -102,7 +102,10 @@ export interface Business {
   paymentGracePeriodDays?: number; // Grace-period metadata; does not imply an automatic suspension scheduler.
   commissionPerOrder: number; // legacy field; defaults to 0 until finance is verified
   totalOrdersCount: number;
-  paymentStatus: 'paid' | 'pending' | 'overdue' | 'frozen';
+  paymentStatus: 'paid' | 'pending' | 'overdue' | 'frozen' | 'free';
+  subscriptionMode?: 'PAID' | 'FREE';
+  subscriptionAmount?: number;
+  freeActivationApprovedByAdmin?: boolean;
   overdueDaysCount: number; // recorded count only; no automatic scheduler is enabled
   isFrozen: boolean; // persisted manual freeze state
   operationalStatus?: 'ACTIVE' | 'INACTIVE' | 'FROZEN'; // admin-controlled visibility state
