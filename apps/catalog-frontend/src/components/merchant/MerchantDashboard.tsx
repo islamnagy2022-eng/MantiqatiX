@@ -589,7 +589,7 @@ export const MerchantDashboard: React.FC = () => {
 
             {/* Live Preview */}
             <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-              <div className="relative h-44 sm:h-52 bg-slate-700">
+              <div className="relative aspect-[16/9] sm:aspect-[851/315] bg-slate-700">
                 <img
                   src={bizCoverUrl}
                   alt="معاينة الغلاف"
