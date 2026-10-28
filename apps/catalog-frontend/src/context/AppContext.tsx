@@ -35,7 +35,7 @@ interface AppContextType {
   currentBusiness: Business | undefined;
   functionalGroups: FunctionalGroup[];
   categories: ActivityCategory[];
-  addCategory: (cat: { name: string; functionalGroupId: FunctionalGroupId; description?: string }) => ActivityCategory;
+  addCategory: (cat: { name: string; functionalGroupId: FunctionalGroupId; description?: string; classificationType?: 'activity' | 'profession'; specialties?: string[] }) => ActivityCategory;
   updateCategory: (cat: ActivityCategory) => void;
   deleteCategory: (id: string) => void;
   selectedFunctionalGroupFilter: string;
@@ -331,8 +331,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedBusinessIdState(''); setCurrentView('directory'); setCartItems([]);
   };
 
-  const addCategory = (data: { name: string; functionalGroupId: FunctionalGroupId; description?: string }): ActivityCategory => {
-    const newCat: ActivityCategory = { id: `cat_custom_${crypto.randomUUID()}`, name: data.name.trim(), functionalGroupId: data.functionalGroupId, description: data.description?.trim(), isCustom: true };
+  const addCategory = (data: { name: string; functionalGroupId: FunctionalGroupId; description?: string; classificationType?: 'activity' | 'profession'; specialties?: string[] }): ActivityCategory => {
+    const newCat: ActivityCategory = { id: `cat_custom_${crypto.randomUUID()}`, name: data.name.trim(), functionalGroupId: data.functionalGroupId, description: data.description?.trim(), classificationType: data.classificationType || 'activity', specialties: data.specialties || [], isCustom: true };
     setAdminSettings((prev) => ({ ...prev, categories: [...(prev.categories || DEFAULT_CATEGORIES), newCat], defaultCategories: Array.from(new Set([...(prev.defaultCategories || []), newCat.name])) }));
     return newCat;
   };
