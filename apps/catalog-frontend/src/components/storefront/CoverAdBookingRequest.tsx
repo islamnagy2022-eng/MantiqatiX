@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "../../context/AppContext";
 import { supabase } from "../../lib/production";
 import { normalizeWhatsAppPhone } from "../../utils/socialLinks";
-import { Calendar, MapPin, MessageCircle, Send } from "lucide-react";
+import { Calendar, MessageCircle, Send } from "lucide-react";
 
 type Duration = "MONTHLY" | "QUARTERLY" | "SEMIANNUAL" | "ANNUAL";
 type Placement = "BUSINESS_COVER" | "HOME_ONLY" | "BOTH";
