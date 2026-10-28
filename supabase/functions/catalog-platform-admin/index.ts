@@ -258,6 +258,39 @@ Deno.serve(async (req: Request) => {
       const { data: tenant, error: tenantError } = await service.from("tenants").select("id,status").eq("id", tenantId).eq("status", "ACTIVE").maybeSingle();
       if (tenantError) throw tenantError;
       if (!tenant) throw new Error("TENANT_NOT_ACTIVE");
+      // Deduplicate identical submissions within a tenant before creating related records.
+      const normalizeDedup = (v: unknown) => String(v ?? "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ar");
+      const phoneKey = phone.replace(/\\D/g, "");
+      const { data: existingBusinesses, error: duplicateLookupError } = await service.from("businesses")
+        .select("id,name,settings").eq("tenant_id", tenantId).limit(1000);
+      if (duplicateLookupError) throw duplicateLookupError;
+      const existingIds = (existingBusinesses || []).map((row: any) => String(row.id));
+      let existingBranches: any[] = [];
+      if (existingIds.length) {
+        const { data, error } = await service.from("branches").select("business_id,phone,address")
+          .eq("tenant_id", tenantId).in("business_id", existingIds).limit(2000);
+        if (error) throw error;
+        existingBranches = data || [];
+      }
+      const duplicate = (existingBusinesses || []).find((existing: any) => {
+        const settings = existing.settings && typeof existing.settings === "object" ? existing.settings : {};
+        const profile = settings.catalog_profile && typeof settings.catalog_profile === "object" ? settings.catalog_profile : {};
+        const branch = existingBranches.find((row: any) => String(row.business_id) === String(existing.id));
+        const existingPhone = String(branch?.phone || settings.phone || "").replace(/\\D/g, "");
+        const existingCategory = String(settings.category_code || settings.activity_code || settings.sector || "");
+        return normalizeDedup(existing.name) === normalizeDedup(name)
+          && normalizeDedup(existingCategory) === normalizeDedup(category)
+          && existingPhone === phoneKey
+          && normalizeDedup(profile.governorate || settings.governorate || "") === normalizeDedup(governorate)
+          && normalizeDedup(profile.markaz || settings.markaz || "") === normalizeDedup(markaz)
+          && normalizeDedup(profile.village || settings.village || "") === normalizeDedup(village)
+          && normalizeDedup(branch?.address || profile.address || settings.address || "") === normalizeDedup(address);
+      });
+      if (duplicate) return response(origin, {
+        error: "DUPLICATE_BUSINESS",
+        message: "هذه بيانات النشاط مسجلة بالفعل؛ لم يتم إنشاء سجل جديد.",
+        businessId: duplicate.id,
+      }, 409);
       const platformMembership = platformMemberships.find((m: any) => String(m.tenant_id) === tenantId);
       const { data: orgs, error: orgError } = await service.from("organizations").select("id")
         .eq("tenant_id", tenantId).eq("status", "ACTIVE").limit(1);
