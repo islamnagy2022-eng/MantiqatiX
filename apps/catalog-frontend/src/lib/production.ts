@@ -172,10 +172,10 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const savedImageSource = String(metadata.image_source || i.imageSource || i.image_source || '').toLowerCase();
     const stockImage = isStockImageUrl(savedImageUrl);
     const neutralPlaceholder = isNeutralPlaceholderUrl(savedImageUrl);
-    const imageSource: 'auto' | 'owner' | 'ai' = savedImageSource === 'ai' && Boolean(savedImageUrl)
-      ? 'ai'
-      : savedImageSource === 'auto' || !savedImageUrl || stockImage || neutralPlaceholder
-        ? 'auto'
+    const imageSource: 'auto' | 'owner' | 'ai' = !savedImageUrl || stockImage || neutralPlaceholder || savedImageSource === 'auto'
+      ? 'auto'
+      : savedImageSource === 'ai'
+        ? 'ai'
         : 'owner';
     const imageUrl = imageSource === 'owner' || imageSource === 'ai'
       ? savedImageUrl
