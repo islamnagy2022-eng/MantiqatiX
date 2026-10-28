@@ -291,7 +291,7 @@ Deno.serve(async (req: Request) => {
         });
         if (branchError) throw branchError;
         const { error: providerError } = await service.from("marketing_provider_profiles").insert({
-          provider_kind: category.slice(0, 80), business_id: created.id,
+          provider_kind: "OFFICIAL", business_id: created.id,
           owner_user_id: null, name_ar: name, name_en: null, slug: `${slug}-${randomCode.toLowerCase()}`,
           description: bio.slice(0, 3000) || null, specialties: activitySpecialty ? [activitySpecialty] : [], service_areas: [], portfolio: [],
           status: "PENDING", is_verified: false, is_featured: false, ranking_weight: 0,
