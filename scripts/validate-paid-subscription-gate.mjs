@@ -25,7 +25,7 @@ assert.doesNotMatch(createBlock, /update\(\{ status: "ACTIVE" \}\)/,
 assert.match(productionMapper, /status: isAccountOnly \? 'pending' : rawStatus === 'ACTIVE' \? 'active' : rawStatus === 'SUSPENDED' \? 'suspended' : 'pending'/,
   'Inactive memberships must appear as pending payment in the admin list');
 
-assert.match(statusBlock, /if \(status === "ACTIVE"\)/,
+assert.match(statusBlock, /if \(status === "ACTIVE" && membership\.business_id && \["OWNER", "BUSINESS_OWNER"\]\.includes\(role\)\)/,
   'Membership activation must have a server-side guard');
 assert.match(statusBlock, /SUBSCRIPTION_PAYMENT_REQUIRED/,
   'Server must reject activation without confirmed payment');
