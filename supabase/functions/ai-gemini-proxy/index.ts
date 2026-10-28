@@ -86,15 +86,15 @@ async function generateAndStoreCatalogImage(args: {
     : `Create a realistic high-quality e-commerce product/service illustration for an Egyptian Arabic catalog. Item: ${subject}. Present the relevant product or scene accurately, centered, studio-quality commercial photography, appealing natural light, clean uncluttered background, accurate proportions, crisp detail. No words, no lettering, no logos, no watermark, no prices, no packaging text. This is a temporary illustrative image until the seller uploads their own photo.`;
 
   const upstream = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1/models/${IMAGE_MODEL}:generateContent`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: imagePrompt }] }],
         generationConfig: {
-          responseModalities: ["IMAGE"],
-          imageConfig: { aspectRatio },
+          responseModalities: ["TEXT", "IMAGE"],
+          responseFormat: { image: { aspectRatio, imageSize: "1K" } },
         },
       }),
     },
