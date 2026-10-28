@@ -958,6 +958,7 @@ export const AdminDashboard: React.FC = () => {
                               </button>
                               )}
 
+                              {!isFreeActivated && (
                               <button
                                 disabled={Boolean(billingActionBusyId)}
                                 onClick={async () => {
@@ -981,6 +982,7 @@ export const AdminDashboard: React.FC = () => {
                               >
                                 تعديل موعد السداد
                               </button>
+                              )}
 
                               <div className="flex items-center gap-1 flex-wrap">
                                 <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'ACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50" title="إعادة تفعيل النشاط وإظهاره إذا كان النشر معتمدًا">تنشيط</button>
