@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
         </div>
       )}
 
-      {authSession.isAuthenticated && authSession.role === 'guest' && !authBootstrapError && (
+      {authSession.isAuthenticated && authSession.role === 'guest' && !authBootstrapError && !authLoading && (
         <div role="status" className="bg-amber-50 border-b border-amber-200 px-3 py-2 text-xs text-amber-950 text-right flex flex-wrap items-center justify-between gap-2" dir="rtl">
           <span>
             تم تسجيل الدخول بحساب Google{authSession.email ? ` (${authSession.email})` : ''}، لكن لا توجد عضوية نشاط نشطة مرتبطة بهذا الحساب. لن تُمنح صلاحيات صاحب النشاط تلقائيًا.
