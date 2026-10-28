@@ -47,6 +47,61 @@
     return digits.length >= 10 && digits.length <= 15 ? digits : "";
   };
 
+  const normalizeDialPhone = (value) => {
+    const raw = String(value || "").trim();
+    const dial = raw.replace(/[^\d+]/g, "");
+    const digits = dial.replace(/\D/g, "");
+    return digits.length >= 10 && digits.length <= 15 ? dial : "";
+  };
+
+  const normalizeSocialUrl = (value, platform) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const candidate = /^https?:\/\//i.test(raw) ? raw : "https://" + raw;
+    const hosts = {
+      facebook: new Set(["facebook.com", "www.facebook.com", "m.facebook.com", "fb.com", "www.fb.com", "fb.me", "fb.watch"]),
+      instagram: new Set(["instagram.com", "www.instagram.com", "instagr.am", "www.instagr.am"]),
+      tiktok: new Set(["tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"]),
+    };
+    try {
+      const url = new URL(candidate);
+      if (url.protocol !== "https:" || !hosts[platform]?.has(url.hostname.toLowerCase()) || url.username || url.password) return "";
+      return url.toString();
+    } catch {
+      return "";
+    }
+  };
+
+  const renderSocialLinks = (profile) => {
+    const root = $("business-social-links");
+    if (!root) return;
+    root.replaceChildren();
+    const options = [
+      { field: "facebookUrl", platform: "facebook", label: "فيسبوك", glyph: "f" },
+      { field: "tiktokUrl", platform: "tiktok", label: "تيك توك", glyph: "♪" },
+      { field: "instagramUrl", platform: "instagram", label: "إنستجرام", glyph: "◎" },
+    ];
+    for (const option of options) {
+      const url = normalizeSocialUrl(profile?.[option.field], option.platform);
+      if (!url) continue;
+      const link = document.createElement("a");
+      link.className = "catalog-btn catalog-social-button catalog-social-" + option.platform;
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.setAttribute("aria-label", "فتح حساب " + option.label + " في نافذة جديدة");
+      const icon = document.createElement("span");
+      icon.className = "catalog-social-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = option.glyph;
+      const label = document.createElement("span");
+      label.textContent = option.label;
+      link.append(icon, label);
+      root.append(link);
+    }
+    root.hidden = root.childElementCount === 0;
+  };
+
   const setState = (message, isError = false) => {
     state.textContent = message;
     state.classList.toggle("error", isError);
@@ -100,6 +155,18 @@
         link.removeAttribute("href");
       }
     }
+    const phoneLink = $("phone-link");
+    const dialPhone = normalizeDialPhone(branch?.phone || currentCatalog?.contactPhone || "");
+    if (phoneLink) {
+      if (dialPhone) {
+        phoneLink.href = "tel:" + dialPhone;
+        phoneLink.hidden = false;
+      } else {
+        phoneLink.hidden = true;
+        phoneLink.removeAttribute("href");
+      }
+    }
+    renderSocialLinks(currentCatalog?.profile || {});
   };
 
   function renderBusiness(catalog) {

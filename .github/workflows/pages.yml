@@ -153,6 +153,7 @@ jobs:
           node scripts/validate-restaurant-module-contract.mjs
           node scripts/validate-sensitive-module-writes.mjs
           node scripts/validate-catalog-production-module.mjs
+          node scripts/validate-legacy-catalog-social-links.mjs
           node scripts/validate-owner-profile-persistence.mjs
           node scripts/validate-home-sponsored-ads.mjs
           node scripts/validate-home-production-content.mjs

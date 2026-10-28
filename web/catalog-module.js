@@ -246,6 +246,10 @@
               <label class="mx-cat-field"><span>مواعيد العمل</span><input id="mx-cat-profile-hours" maxlength="300" value="${esc(profile.workingHours || "")}" ${canEditProfile ? "" : "readonly"}></label>
               <label class="mx-cat-field mx-cat-span-2"><span>رابط الشعار (HTTPS)</span><input id="mx-cat-profile-logo" type="url" maxlength="1500" placeholder="https://..." value="${esc(profile.logoUrl || "")}" ${canEditProfile ? "" : "readonly"}></label>
               <label class="mx-cat-field mx-cat-span-2"><span>رابط صورة الغلاف (HTTPS)</span><input id="mx-cat-profile-cover" type="url" maxlength="1500" placeholder="https://..." value="${esc(profile.coverUrl || "")}" ${canEditProfile ? "" : "readonly"}></label>
+              <label class="mx-cat-field mx-cat-span-2"><span>رابط صفحة فيسبوك</span><input id="mx-cat-profile-facebook" type="url" maxlength="1500" placeholder="https://facebook.com/your-page" value="${esc(profile.facebookUrl || profile.facebook_url || "")}" ${canEditProfile ? "" : "readonly"}></label>
+              <label class="mx-cat-field mx-cat-span-2"><span>رابط إنستجرام</span><input id="mx-cat-profile-instagram" type="url" maxlength="1500" placeholder="https://instagram.com/your-account" value="${esc(profile.instagramUrl || profile.instagram_url || "")}" ${canEditProfile ? "" : "readonly"}></label>
+              <label class="mx-cat-field mx-cat-span-2"><span>رابط تيك توك</span><input id="mx-cat-profile-tiktok" type="url" maxlength="1500" placeholder="https://tiktok.com/@your-account" value="${esc(profile.tiktokUrl || profile.tiktok_url || "")}" ${canEditProfile ? "" : "readonly"}></label>
+              <p class="mx-cat-intro-note mx-cat-span-2">اختياري: أضف روابط حساباتك الرسمية؛ ستظهر للزوار كأزرار قابلة للضغط. تُقبل روابط HTTPS من المنصة الاجتماعية نفسها فقط.</p>
               <label class="mx-cat-check mx-cat-span-2">
                 <input id="mx-cat-profile-public" type="checkbox" ${profile.publicEnabled ? "checked" : ""} ${canEditProfile ? "" : "disabled"}>
                 <span><strong>نشر الكتالوج للعامة</strong><small>عند التفعيل يمكن لأي زائر مشاهدة بيانات النشاط والمنتجات النشطة وأسعارها دون تسجيل دخول. لا يتم عرض أي بيانات طلبات أو عضويات.</small></span>
@@ -636,6 +640,9 @@
             workingHours: content.querySelector("#mx-cat-profile-hours").value.trim(),
             logoUrl: content.querySelector("#mx-cat-profile-logo").value.trim(),
             coverUrl: content.querySelector("#mx-cat-profile-cover").value.trim(),
+            facebookUrl: content.querySelector("#mx-cat-profile-facebook").value.trim(),
+            instagramUrl: content.querySelector("#mx-cat-profile-instagram").value.trim(),
+            tiktokUrl: content.querySelector("#mx-cat-profile-tiktok").value.trim(),
             publicEnabled: content.querySelector("#mx-cat-profile-public").checked,
           });
           setOperationStatus(root, "تم حفظ بيانات النشاط. افتح رابط الكتالوج العام لمراجعة الصفحة.", false, true);
