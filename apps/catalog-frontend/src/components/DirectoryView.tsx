@@ -1,27 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Business, FunctionalGroup, ActivityCategory } from '../types';
+import { Business } from '../types';
 import {
   Store,
-  UtensilsCrossed,
-  ShoppingBag,
-  CalendarCheck2,
-  HeartPulse,
   Wrench,
   Search,
   MapPin,
   Sparkles,
   Layers,
   ArrowRight,
-  ShieldCheck,
   CheckCircle2,
-  Phone,
   MessageCircle,
   Stethoscope,
   Shirt,
   Car,
   Building2,
-  BookOpen,
   Cpu,
   Megaphone,
   ShoppingCart,
