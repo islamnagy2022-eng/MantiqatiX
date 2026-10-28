@@ -58,4 +58,7 @@ export const canAccessProfessionalDashboard = (session: AuthSession): boolean =>
  */
 export const canAccessMerchantDashboard = (session: AuthSession): boolean =>
   session.role === 'admin' ||
-  (session.role === 'subscriber' && Boolean(session.businessId) && isBusinessManagementRole(session));
+  (session.role === 'subscriber' &&
+    Boolean(session.businessId) &&
+    !session.membershipBranchId &&
+    isBusinessManagementRole(session));
