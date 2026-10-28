@@ -32,7 +32,7 @@ assert.doesNotMatch(admin, /اشتراك شهري ثابت|0\.01 جنيه|متب
 assert.match(admin, /isOfficialShowcase \? 'عرض رسمي معفى من رسوم الاشتراك'/, 'official showcase exemption must be distinguished from paid subscriptions');
 assert.match(admin, /غير متاح في الإصدار الحالي/, 'unverified online payment controls must be clearly disabled');
 assert.doesNotMatch(admin, /handleSavePaymobConfig|paymobMerchantApiKey|Integration ID|تفعيل Paymob/, 'admin UI must not collect gateway credentials or offer fake Paymob activation');
-assert.match(productionMapper, /isOfficialShowcase: raw\.settings/, 'official platform showcase records must be mapped explicitly');
+assert.match(productionMapper, /isOfficialShowcase: officialShowcase/, 'official platform showcase records must be mapped explicitly');
 assert.match(productionMapper, /paymentDueDay: Number\(meta\.paymentDueDay \|\| 0\)/, 'missing due day must remain unset instead of defaulting to day one');
 assert.match(productionMapper, /paymentDueDate: String\(meta\.paymentDueDate \|\| ''\)/, 'missing due date must remain unset instead of using registration date');
 assert.doesNotMatch(admin, /advanceBusinessOverdueDay|\+يوم تأخير|محاكاة مرور يوم تأخير/, 'production admin must not simulate overdue days');
@@ -48,8 +48,9 @@ assert.match(defaultImages, /catalog-item-placeholder\.svg/, 'products and servi
 assert.match(productionMapper, /const isStockImageUrl/, 'production mapper must identify legacy stock-image URLs');
 assert.match(productionMapper, /savedImageSource === 'auto' \|\| !savedImageUrl \|\| stockImage \|\| neutralPlaceholder \? 'auto' : 'owner'/, 'legacy stock images and neutral placeholders must be converted to auto placeholders rather than shown as owner photos');
 assert.match(productionMapper, /isNeutralPlaceholderUrl/, 'neutral placeholder images must not be treated as owner uploads');
-assert.match(productionMapper, /isStockImageUrl\(profile\.logoUrl/, 'legacy stock business logos and covers must be suppressed');
+assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
+assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
 assert.doesNotMatch(storefrontHeader, /platformAdCover|isCurrentSlideAd|images\.unsplash\.com/, 'storefront must not inject fabricated platform ad slides or stock cover photos');
 assert.doesNotMatch(storefrontCatalog, /images\.unsplash\.com/, 'public product cards must not use stock-photo fallbacks');
 assert.doesNotMatch(merchantDashboard, /images\.unsplash\.com/, 'merchant product lists must not show stock photos as real items');
@@ -57,7 +58,8 @@ assert.doesNotMatch(catalogAdminFunction, /return `https:\/\/images\.unsplash\.c
 assert.match(catalogAdminFunction, /legacyStockUrl = \/\^https:/, 'catalog admin must clear legacy stock-photo URLs when an item is edited');
 assert.match(catalogAdminFunction, /neutralPlaceholderUrl/, 'catalog admin must keep neutral placeholders out of owner image metadata');
 assert.doesNotMatch(publicDirectoryFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public directory API must not generate stock-photo URLs for businesses');
-assert.match(publicDirectoryFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public directory API must suppress legacy stock-photo URLs stored in production data');
+assert.match(publicDirectoryFunction, /allowLegacyShowcaseImage[\s\S]{0,180}return ""/, 'public directory API must suppress stock-photo URLs except for verified platform-owned showcase activities');
+assert.match(publicDirectoryFunction, /isOfficialShowcase\(b\)/, 'public directory may include platform-owned showcase activity records without enabling their catalog modules');
 assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.com|const rules:/, 'public storefront API must not generate stock-photo URLs for products');
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
@@ -76,7 +78,9 @@ assert.match(context, /const updateAdminSettings = async/, 'settings persistence
 assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state must update only after server-confirmed success');
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
 assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
-assert.match(directory, /if \(!biz\.publicEnabled \|\| biz\.isFrozen\) return false/, 'The public directory must exclude unpublished and frozen businesses even for broader admin sessions');
+assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.isFrozen) return false;"), 'The public directory may show official showcase activity cards but must still hide other unpublished and frozen businesses');
+assert.match(directory, /أعلن معنا هنا/, 'The public directory must include the permanent side advertising card');
+assert.match(directory, /mnty-cover-ad-1\.svg[\s\S]*mnty-cover-ad-2\.svg[\s\S]*mnty-cover-ad-3\.svg/, 'The original cover advertising carousel creatives must remain available');
 assert.doesNotMatch(context, /const advanceBusinessOverdueDay/, 'overdue-day simulation must be removed from production context');
 
 const createStart = backend.indexOf('if (action === "CREATE_BUSINESS")');
