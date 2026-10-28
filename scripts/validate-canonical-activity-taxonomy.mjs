@@ -77,7 +77,7 @@ assert.ok(backend.includes('activity_classification_type: activityClassification
 assert.ok(backend.includes('activity_specialty: activitySpecialty || null'), 'Server must persist specialty metadata without activating modules.');
 
 const iconMapStart = directory.indexOf('const ICONS_MAP: Record<string, React.ReactNode> = {');
-const iconMapEnd = directory.indexOf('\\n};', iconMapStart);
+const iconMapEnd = directory.indexOf('\n};', iconMapStart);
 assert.ok(iconMapStart >= 0 && iconMapEnd > iconMapStart, 'Public directory must define a dedicated functional-group icon map.');
 const iconMap = directory.slice(iconMapStart, iconMapEnd);
 const expectedIcons = {
