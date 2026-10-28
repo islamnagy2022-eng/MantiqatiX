@@ -642,9 +642,20 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] FREE is stored as `paymentStatus: "free"`, `subscriptionMode: "FREE"`, `subscriptionAmount: 0`, with admin identity/time and `freeActivationApprovedByAdmin`; it is not falsely marked paid.
 - [x] Owner membership activation gates recognize the explicit admin-approved free state without bypassing the paid-payment gate for paid subscriptions.
 - [x] Publication approval can create/activate a provider directory profile when missing and does not require an active owner membership when the platform administrator explicitly approves publication; the decision is audited.
-- [x] Deployed `catalog-platform-admin` Edge Function version 18 to Supabase project `moyhiluyhjsujhwlyeuu` with JWT verification enabled.
+- [x] Deployed `catalog-platform-admin` Edge Function version 20 to Supabase project `moyhiluyhjsujhwlyeuu` with JWT verification enabled; verified the deployed source matches GitHub and JWT verification remains enabled.
 - [x] Added frontend UI and production mapping for subscription amount, free status, and due date; free activities hide payment-confirmation and due-date-edit controls. The client-side owner/subscriber activation gate also accepts only the explicit admin-approved free state.
 - [x] Updated static production-state validator to cover optional fields and free-vs-paid subscription state; corrected a stale responsive-card spacing assertion that was blocking the release workflow.
 - [x] Frontend TypeScript check, canonical taxonomy contract, paid/free subscription gate, production-state validator, build, public-directory smoke test, and GitHub Pages deployment all passed for commit `edfe4b3cab77bd45987a1e30fb44a7a06ba9f06e`; post-deploy root verification passed at `https://islamnagy2022-eng.github.io/MantiqatiX/`.
 - [ ] **NOT VERIFIED:** authenticated end-to-end activity creation, free activation, admin publication, public catalog visibility, and owner assignment against production.
 - [ ] **NOT VERIFIED:** real browser/mobile regression and post-deploy smoke tests.
+
+
+## Follow-up publication audit hardening (2026-10-28)
+- [x] Admin approval reuses an existing provider profile or creates one if missing, sets the canonical public-catalog flag and `publicationStatus: "PUBLISHED"`, and does not set payment to paid.
+- [x] Admin publication approval and rejection now both write distinct audit-log actions. If the audit write fails after the state update, the API returns `PUBLICATION_AUDIT_FAILED` instead of reporting a silent success.
+- [x] Extended `validate-production-catalog-real-state.mjs` with source-contract assertions for approval with incomplete optional data, provider-profile reuse/creation, publication-vs-payment separation, audit failure handling, public-directory/storefront gates, and awaited catalog refresh after profile/item changes.
+- [x] Post-deploy Supabase logs showed the health endpoint returning HTTP 200 and the public catalog directory returning HTTP 200 twice after the latest Edge Function deployment. This is a read-only smoke check, not an authenticated publish-and-edit end-to-end test.
+- [x] Fixed the public-only GitHub Actions path classifier so a push with no file diff is marked not applicable instead of failing on `test -s`. A failure on the prior no-content-change documentation commit was a classifier false positive.
+- [ ] Verify the latest GitHub Actions validation and Pages deployment after these source changes.
+- [ ] Complete an authenticated production end-to-end run from the admin UI using an isolated test activity: create with optional fields missing, approve publication, confirm public visibility, edit profile/social links and products/services, then read back the canonical production records. No production activity was created, edited, or deleted during this pass.
+- [ ] Resolve and verify the remaining separation of public publication from operational activation; current approval also sets the business row status to `ACTIVE`, so the full separation requirement is not yet considered closed.
