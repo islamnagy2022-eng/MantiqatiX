@@ -54,9 +54,10 @@ const calculateEndDate = (startDate: string, duration: string): string => {
 
 const isLive = (ad: any, now = new Date()) => {
   if (String(ad?.status || "").toUpperCase() !== "ACTIVE") return false;
-  if (validDate(ad.startDate) && new Date(ad.startDate + "T23:59:59.999Z").getTime() < now.getTime()) return false;
   if (!validDate(ad.startDate) || !validDate(ad.endDate)) return false;
-  return new Date(ad.endDate + "T23:59:59.999Z").getTime() >= now.getTime();
+  const startsAt = new Date(ad.startDate + "T00:00:00.000Z").getTime();
+  const endsAt = new Date(ad.endDate + "T23:59:59.999Z").getTime();
+  return startsAt <= now.getTime() && endsAt >= now.getTime();
 };
 
 const readSettings = async (service: any) => {
