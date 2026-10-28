@@ -814,7 +814,7 @@ export const AdminDashboard: React.FC = () => {
                         billingStatusFilter === 'all' ||
                         (billingStatusFilter === 'frozen' && (b.isFrozen || b.paymentStatus === 'frozen')) ||
                         (billingStatusFilter === 'overdue' && b.paymentStatus === 'overdue') ||
-                        ((billingStatusFilter === 'paid' && b.paymentStatus === 'paid' && b.paymentConfirmedByAdmin) ||
+                         (billingStatusFilter === 'paid' && b.paymentStatus === 'paid' && b.paymentConfirmedByAdmin) ||
                          (billingStatusFilter === 'free' && b.paymentStatus === 'free' && b.subscriptionAmount === 0 && b.freeActivationApprovedByAdmin);
                       return matchGov && matchStatus;
                     })
