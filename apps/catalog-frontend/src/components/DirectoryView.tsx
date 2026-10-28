@@ -231,6 +231,7 @@ export const DirectoryView: React.FC = () => {
                     idx === currentCoverIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                   }`}
                 >
+                  {(idx === currentCoverIndex || idx === (currentCoverIndex + 1) % activeCoverSlides.length) && (
                   <button
                     type="button"
                     onClick={() => {
@@ -263,6 +264,7 @@ export const DirectoryView: React.FC = () => {
                     />
 
                   </button>
+                  )}
                 </div>
               ))}
 
@@ -493,6 +495,8 @@ export const DirectoryView: React.FC = () => {
                         <img
                           src={biz.coverUrl || BUSINESS_PLACEHOLDER}
                           alt={biz.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           onError={(e) => {
                             const image = e.currentTarget;
@@ -523,6 +527,8 @@ export const DirectoryView: React.FC = () => {
                           <img
                             src={biz.logoUrl || resolveDefaultImage({ name: biz.name, description: biz.bio, category: biz.category, kind: 'activity' })}
                             alt={biz.name}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover rounded-xl bg-slate-100"
                             onError={(e) => {
                               const image = e.currentTarget;
