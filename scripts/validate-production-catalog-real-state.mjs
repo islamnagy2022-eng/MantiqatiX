@@ -107,8 +107,9 @@ assert.ok(createStart >= 0 && createEnd > createStart, 'server-side business cre
 const createServer = backend.slice(createStart, createEnd);
 assert.match(createServer, /INVALID_BUSINESS_WHATSAPP/, 'server must reject missing or invalid owner contact');
 assert.match(createServer, /INVALID_BUSINESS_LOCATION/, 'server must reject missing real location data');
-assert.match(createServer, /catalog_public_enabled: publishNow/, 'backend must respect the explicit publish-now choice');
-assert.match(createServer, /paymentDueDate, paymentGracePeriodDays, publicationStatus: publishNow \? "PUBLISHED_UNPAID" : "PENDING_PUBLICATION"/, 'backend must persist due date, grace period, and publication state');
+assert.match(createServer, /catalog_public_enabled: false/, 'new business records must remain unpublished until explicit server-side approval');
+assert.match(createServer, /status: "INACTIVE"/, 'new business records must not activate operationally at creation time');
+assert.match(createServer, /paymentDueDate, paymentGracePeriodDays, publicationStatus: "PENDING_PUBLICATION"/, 'backend must persist due date and grace period while leaving publication pending for approval');
 assert.match(createServer, /paymentStatus: "pending"/, 'backend must preserve unpaid status regardless of publication choice');
 assert.match(createServer, /paymentConfirmedByAdmin: false/, 'backend must never self-confirm payment during activity creation');
 assert.match(createServer, /INVALID_PAYMENT_DUE_DATE/, 'backend must validate the chosen payment due date');
