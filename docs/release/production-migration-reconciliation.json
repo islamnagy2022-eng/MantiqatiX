@@ -1033,11 +1033,11 @@
     "status": "PASS",
     "checked_at": "2026-10-28",
     "function_slug": "catalog-platform-admin",
-    "live_function_version": 3,
+    "live_function_version": 5,
     "verify_jwt": true,
     "source_exact_match": true,
-    "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
-    "deployed_at_utc": "2026-10-27T21:24:16Z",
+    "source_blob_sha": "1d20ef00a2fada182af719b6adad1500a56ff876",
+    "deployed_at_utc": "2026-10-28T01:19:14.713Z",
     "verified_by": "Post-deploy read-only get_edge_function source comparison",
     "behavior_contract": "New business-owner memberships are INACTIVE/PENDING_PAYMENT by default. The server rejects activation unless the business payment status is paid and admin-confirmed, and payment confirmation activates only memberships explicitly marked PENDING_PAYMENT. Official platform showcase businesses are exempt from commercial billing gate.",
     "unrelated_modules_deployed": false,
@@ -1046,7 +1046,8 @@
     "active_official_showcase_memberships_count_before_guard": 24,
     "active_non_showcase_owner_memberships_count_before_guard": 0,
     "paid_subscription_activation_guard_verified_by_read_only_query": true,
-    "no_unpaid_non_showcase_owner_memberships_found": true
+    "no_unpaid_non_showcase_owner_memberships_found": true,
+    "live_bundle_sha256": "6c750a05c5768393229518c136086c15fc2fad9c200b7bb8edcabaaa24a219d9"
   },
   "catalog_pilot_edge_function_parity_check": {
     "status": "PASS",
@@ -1055,34 +1056,37 @@
     "functions": [
       {
         "slug": "catalog-platform-admin",
-        "live_version": 3,
+        "live_version": 5,
         "verify_jwt": true,
         "source_exact_match": true,
-        "source_blob_sha": "04a5657feaee6e888a3d2d77146ed9b0d29d77ab",
-        "scope": "platform admin gate and subscription membership management"
+        "source_blob_sha": "1d20ef00a2fada182af719b6adad1500a56ff876",
+        "scope": "platform admin gate and subscription membership management",
+        "live_bundle_sha256": "6c750a05c5768393229518c136086c15fc2fad9c200b7bb8edcabaaa24a219d9"
       },
       {
         "slug": "catalog-admin",
-        "live_version": 14,
+        "live_version": 16,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "1166507c0383af2139d3ef4b4ea20371992312d7",
-        "scope": "catalog-only owner/admin routes with route-level bearer/session/role checks"
+        "source_blob_sha": "15653a223ec0ac2c4ee68b6a28cd3ab8293e8941",
+        "scope": "catalog-only owner/admin routes with route-level bearer/session/role checks",
+        "live_bundle_sha256": "f06c602b051a5e9d6f26877059c854707c9683e0d5630a56816690d1d342e8b0"
       },
       {
         "slug": "public-catalog-directory",
-        "live_version": 2,
+        "live_version": 4,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "3368a51b26ce7bc9c65d02a86f570e6eda90345d",
-        "scope": "public read-only directory"
+        "source_blob_sha": "d99b61e224c11dabadc048b88d06c417fc6122e2",
+        "scope": "public read-only directory",
+        "live_bundle_sha256": "84840751258d4508db414a66f157e3665a39db698c04fc5e822ceb33209efe5d"
       },
       {
         "slug": "public-catalog",
         "live_version": 2,
         "verify_jwt": false,
         "source_exact_match": true,
-        "source_blob_sha": "ae57c2126063931ee95f80b097a82c1742efb7c0",
+        "source_blob_sha": "current unchanged",
         "scope": "public read-only storefront"
       }
     ],
