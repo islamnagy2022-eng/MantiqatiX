@@ -194,6 +194,9 @@ export const AdminDashboard: React.FC = () => {
   const [newBizFunctionalGroup, setNewBizFunctionalGroup] = useState<FunctionalGroupId>('medical_health');
   const [newBizOwnerWhatsApp, setNewBizOwnerWhatsApp] = useState('');
   const [newBizBio, setNewBizBio] = useState('');
+  const [newBizWorkingHours, setNewBizWorkingHours] = useState('');
+  const [newBizLogoUrl, setNewBizLogoUrl] = useState('');
+  const [newBizCoverUrl, setNewBizCoverUrl] = useState('');
   // Egyptian Location Fields
   const [newBizGov, setNewBizGov] = useState('');
   const [newBizMarkaz, setNewBizMarkaz] = useState('');
@@ -316,15 +319,15 @@ export const AdminDashboard: React.FC = () => {
       functionalGroupId: resolvedGroup,
       categoryClassificationType: matchedCat?.classificationType || 'activity',
       activitySpecialty: newBizSpecialty.trim() || undefined,
-      logoUrl: '',
-      coverUrl: '',
+      logoUrl: newBizLogoUrl.trim(),
+      coverUrl: newBizCoverUrl.trim(),
       bio: newBizBio.trim(),
       ownerWhatsApp: newBizOwnerWhatsApp.trim(),
       address: newBizAddress,
       governorate: newBizGov,
       markaz: newBizMarkaz,
       village: newBizVillage,
-      workingHours: '',
+      workingHours: newBizWorkingHours.trim(),
       isVerified: false,
       maxProductsLimit: 150,
       registrationDate: new Date().toISOString().split('T')[0],
@@ -345,6 +348,9 @@ export const AdminDashboard: React.FC = () => {
     setNewBizFunctionalGroup('medical_health');
     setNewBizSpecialty('');
     setNewBizBio('');
+    setNewBizWorkingHours('');
+    setNewBizLogoUrl('');
+    setNewBizCoverUrl('');
     setNewBizOwnerWhatsApp('');
     setNewBizGov('');
     setNewBizMarkaz('');
@@ -2072,6 +2078,25 @@ export const AdminDashboard: React.FC = () => {
               })()}
 
               <div>
+                <label className="block text-[11px] font-black text-slate-700 mb-1">وصف النشاط والخدمات</label>
+                <textarea value={newBizBio} onChange={(e) => setNewBizBio(e.target.value)} rows={3} maxLength={3000} placeholder="اكتب نبذة عن النشاط والخدمات والمنتجات" className="w-full resize-y bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900" />
+              </div>
+              <div>
+                <label className="block text-[11px] font-black text-slate-700 mb-1">مواعيد العمل (اختياري)</label>
+                <input type="text" value={newBizWorkingHours} onChange={(e) => setNewBizWorkingHours(e.target.value)} maxLength={300} placeholder="مثال: يوميًا من 10 صباحًا إلى 11 مساءً" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 mb-1">رابط شعار النشاط (اختياري)</label>
+                  <input type="url" value={newBizLogoUrl} onChange={(e) => setNewBizLogoUrl(e.target.value)} maxLength={1500} placeholder="https://..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-700 mb-1">رابط صورة الغلاف (اختياري)</label>
+                  <input type="url" value={newBizCoverUrl} onChange={(e) => setNewBizCoverUrl(e.target.value)} maxLength={1500} placeholder="https://..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900" />
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
                   رقم الواتساب الخاص بصاحب النشاط (لاستقبال الطلبات)
                 </label>
@@ -2171,7 +2196,7 @@ export const AdminDashboard: React.FC = () => {
                 <p className="text-[11px] leading-5 text-slate-500">المهلة تُحفظ كإعداد للسداد؛ ولا يعني تحديدها إنشاء فاتورة أو فرض رسوم أو تشغيل إيقاف تلقائي.</p>
               </section>
 
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">لا يسجل هذا النموذج رسومًا ولا يؤكد السداد ولا يفعّل اشتراكًا مدفوعًا. ستظل حالة السداد «غير مدفوع» في الخيارين؛ الاختيار يحدد نشر الكتالوج فقط، مع حفظ تاريخ الاستحقاق ومدة المهلة.</div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">تنبيه توضيحي وليس خطأ: هذا النموذج يحفظ بيانات النشاط ووصفه ومواعيد العمل وروابط الصور والموقع وبيانات النشر. لا يسجل رسومًا ولا يؤكد السداد؛ ستظل حالة السداد «غير مدفوع» حتى تأكيده من الإدارة. اختيار التفعيل يحدد نشر الكتالوج فقط، مع حفظ تاريخ الاستحقاق ومدة المهلة.</div>
 
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <button
