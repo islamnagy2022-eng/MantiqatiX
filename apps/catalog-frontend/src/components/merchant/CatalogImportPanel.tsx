@@ -58,6 +58,144 @@ function parseCsv(text: string): string[][] {
   if (rows.length < 2) throw new Error('الملف لا يحتوي على صفوف أصناف بعد صف العناوين.');
   return rows;
 } 
+
+type ZipEntryInfo = { method: number; compressedSize: number; uncompressedSize: number; localHeaderOffset: number; flags: number };
+const MAX_XLSX_UNCOMPRESSED_ENTRY = 12 * 1024 * 1024;
+const MAX_XLSX_TOTAL_ENTRIES = 512;
+const XLSX_REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+function columnIndexFromReference(reference: string): number {
+  const match = /^([A-Z]+)\d+$/i.exec(reference);
+  if (!match) return -1;
+  let result = 0;
+  for (const letter of match[1].toUpperCase()) result = result * 26 + letter.charCodeAt(0) - 64;
+  return result - 1;
+}
+function parseXml(source: string, label: string): Document {
+  const documentXml = new DOMParser().parseFromString(source, 'application/xml');
+  if (documentXml.getElementsByTagName('parsererror').length) throw new Error('تعذر قراءة ملف Excel (' + label + ').');
+  return documentXml;
+}
+async function inflateZipEntry(data: Uint8Array): Promise<Uint8Array> {
+  if (typeof DecompressionStream === 'undefined') throw new Error('المتصفح لا يدعم فك ضغط XLSX؛ استخدم CSV UTF-8 بدلًا منه.');
+  try {
+    const compression = new DecompressionStream('deflate-raw' as CompressionFormat);
+    const input = new Blob([data.slice().buffer as ArrayBuffer]).stream();
+    return new Uint8Array(await new Response(input.pipeThrough(compression)).arrayBuffer());
+  } catch {
+    throw new Error('تعذر فك ضغط إحدى أوراق ملف Excel. احفظ الملف بصيغة XLSX قياسية أو استخدم CSV UTF-8.');
+  }
+}
+/** Reads the first worksheet's XML only. Workbook code/macros are never executed. */
+async function parseXlsx(arrayBuffer: ArrayBuffer): Promise<string[][]> {
+  const bytes = new Uint8Array(arrayBuffer);
+  const view = new DataView(arrayBuffer);
+  if (bytes.length < 22) throw new Error('ملف XLSX أصغر من الحجم المتوقع أو غير صالح.');
+  const minEocd = Math.max(0, bytes.length - 65557);
+  let eocd = -1;
+  for (let offset = bytes.length - 22; offset >= minEocd; offset -= 1) {
+    if (view.getUint32(offset, true) === 0x06054b50) { eocd = offset; break; }
+  }
+  if (eocd < 0) throw new Error('الملف ليس XLSX قياسيًا أو أن الأرشيف تالف.');
+  const diskNo = view.getUint16(eocd + 4, true);
+  const centralDisk = view.getUint16(eocd + 6, true);
+  const diskEntries = view.getUint16(eocd + 8, true);
+  const entryCount = view.getUint16(eocd + 10, true);
+  const centralSize = view.getUint32(eocd + 12, true);
+  const centralOffset = view.getUint32(eocd + 16, true);
+  if (diskNo !== 0 || centralDisk !== 0 || diskEntries !== entryCount || entryCount === 0 || entryCount > MAX_XLSX_TOTAL_ENTRIES) {
+    throw new Error('ملف Excel متعدد الأجزاء أو يحتوي على عدد غير مدعوم من المكونات.');
+  }
+  if (centralOffset + centralSize > bytes.length || centralOffset >= eocd) throw new Error('فهرس ملف Excel غير صالح.');
+  const decoder = new TextDecoder('utf-8');
+  const entries = new Map<string, ZipEntryInfo>();
+  let cursor = centralOffset;
+  for (let index = 0; index < entryCount; index += 1) {
+    if (cursor + 46 > bytes.length || view.getUint32(cursor, true) !== 0x02014b50) throw new Error('فهرس ZIP داخل ملف Excel غير صالح.');
+    const flags = view.getUint16(cursor + 8, true);
+    const method = view.getUint16(cursor + 10, true);
+    const compressedSize = view.getUint32(cursor + 20, true);
+    const uncompressedSize = view.getUint32(cursor + 24, true);
+    const nameLength = view.getUint16(cursor + 28, true);
+    const extraLength = view.getUint16(cursor + 30, true);
+    const commentLength = view.getUint16(cursor + 32, true);
+    const localHeaderOffset = view.getUint32(cursor + 42, true);
+    const nameStart = cursor + 46;
+    const nextCursor = nameStart + nameLength + extraLength + commentLength;
+    if (nextCursor > bytes.length) throw new Error('اسم أحد مكونات ملف Excel غير مكتمل.');
+    const name = decoder.decode(bytes.slice(nameStart, nameStart + nameLength)).replace(/\\/g, '/');
+    if (name.startsWith('/') || name.split('/').includes('..')) throw new Error('مسارات مكونات ملف Excel غير صالحة.');
+    if ((flags & 0x0001) !== 0) throw new Error('ملف Excel محمي بكلمة مرور؛ أزل الحماية قبل الاستيراد.');
+    if (method !== 0 && method !== 8) throw new Error('طريقة ضغط داخل ملف Excel غير مدعومة.');
+    if (uncompressedSize > MAX_XLSX_UNCOMPRESSED_ENTRY || compressedSize > bytes.length) throw new Error('أحد مكونات Excel يتجاوز حدود الحجم الآمن.');
+    entries.set(name, { method, compressedSize, uncompressedSize, localHeaderOffset, flags });
+    cursor = nextCursor;
+  }
+  const readEntry = async (name: string): Promise<Uint8Array> => {
+    const entry = entries.get(name);
+    if (!entry) throw new Error('ملف Excel لا يحتوي على المكوّن المطلوب: ' + name + '.');
+    const start = entry.localHeaderOffset;
+    if (start + 30 > bytes.length || view.getUint32(start, true) !== 0x04034b50) throw new Error('رأس مكوّن Excel غير صالح.');
+    const nameLength = view.getUint16(start + 26, true);
+    const extraLength = view.getUint16(start + 28, true);
+    const dataStart = start + 30 + nameLength + extraLength;
+    const dataEnd = dataStart + entry.compressedSize;
+    if (dataStart < 0 || dataEnd > bytes.length || dataEnd < dataStart) throw new Error('بيانات مكوّن Excel خارج حدود الملف.');
+    const compressed = bytes.slice(dataStart, dataEnd);
+    const result = entry.method === 0 ? compressed : await inflateZipEntry(compressed);
+    if (result.length !== entry.uncompressedSize) throw new Error('الحجم الفعلي لمكوّن Excel لا يطابق فهرس الملف.');
+    return result;
+  };
+  const readText = async (name: string) => decoder.decode(await readEntry(name));
+  const workbook = parseXml(await readText('xl/workbook.xml'), 'workbook.xml');
+  const firstSheet = workbook.getElementsByTagNameNS('*', 'sheet').item(0);
+  if (!firstSheet) throw new Error('ملف Excel لا يحتوي على ورقة عمل.');
+  const relationId = firstSheet.getAttributeNS(XLSX_REL_NS, 'id') || firstSheet.getAttribute('r:id') || '';
+  if (!relationId) throw new Error('تعذر تحديد أول ورقة عمل في ملف Excel.');
+  const relationships = parseXml(await readText('xl/_rels/workbook.xml.rels'), 'workbook.xml.rels');
+  const relationship = Array.from(relationships.getElementsByTagNameNS('*', 'Relationship')).find(item => item.getAttribute('Id') === relationId);
+  const target = relationship?.getAttribute('Target') || '';
+  if (!target || target.startsWith('/') || target.split('/').includes('..')) throw new Error('مسار ورقة العمل غير صالح.');
+  const sheetPath = ('xl/' + target).replace(/\\/g, '/').replace(/\/+/g, '/');
+  const worksheet = parseXml(await readText(sheetPath), 'worksheet');
+  let sharedStrings: string[] = [];
+  if (entries.has('xl/sharedStrings.xml')) {
+    const shared = parseXml(await readText('xl/sharedStrings.xml'), 'sharedStrings.xml');
+    sharedStrings = Array.from(shared.getElementsByTagNameNS('*', 'si')).map(item =>
+      Array.from(item.getElementsByTagNameNS('*', 't')).map(t => t.textContent || '').join('')
+    );
+  }
+  const sheetData = worksheet.getElementsByTagNameNS('*', 'sheetData').item(0);
+  if (!sheetData) throw new Error('ورقة Excel الأولى لا تحتوي على بيانات صفوف.');
+  const sourceRows = Array.from(sheetData.getElementsByTagNameNS('*', 'row'));
+  if (sourceRows.length > 5001) throw new Error('ملف Excel يحتوي على أكثر من 5000 صف؛ قسّم الملف ثم أعد الاستيراد.');
+  const rows: string[][] = [];
+  for (const sourceRow of sourceRows) {
+    const cells = Array.from(sourceRow.getElementsByTagNameNS('*', 'c'));
+    const row: string[] = [];
+    for (const cell of cells) {
+      const column = columnIndexFromReference(cell.getAttribute('r') || '');
+      if (column < 0 || column > 100) continue;
+      const type = cell.getAttribute('t') || '';
+      let value = '';
+      if (type === 'inlineStr') {
+        const inline = cell.getElementsByTagNameNS('*', 'is').item(0);
+        value = inline ? Array.from(inline.getElementsByTagNameNS('*', 't')).map(t => t.textContent || '').join('') : '';
+      } else {
+        value = cell.getElementsByTagNameNS('*', 'v').item(0)?.textContent || '';
+        if (type === 's') {
+          const sharedIndex = Number(value);
+          value = Number.isInteger(sharedIndex) && sharedIndex >= 0 ? sharedStrings[sharedIndex] || '' : '';
+        } else if (type === 'b') value = value === '1' ? 'TRUE' : 'FALSE';
+      }
+      row[column] = value;
+    }
+    const normalized = row.map(value => value || '');
+    if (normalized.some(value => value.trim() !== '')) rows.push(normalized);
+  }
+  if (rows.length < 2) throw new Error('الورقة الأولى لا تحتوي على صف عناوين وصف بيانات على الأقل.');
+  return rows;
+}
+
 function validateDraftRows(rows: CatalogDraftRow[]): CatalogDraftRow[] {
   const seen = new Set<string>();
   return rows.map((row) => {
@@ -83,8 +221,7 @@ function validateDraftRows(rows: CatalogDraftRow[]): CatalogDraftRow[] {
   });
 }
 
-function createDraftRows(text: string): CatalogDraftRow[] {
-  const table = parseCsv(text);
+function createDraftRowsFromTable(table: string[][]): CatalogDraftRow[] {
   const headers = table[0].map(normalizeHeader);
   const columns: Record<string, number> = {};
   for (const [key, aliases] of Object.entries(headerAliases)) {
@@ -103,6 +240,10 @@ function createDraftRows(text: string): CatalogDraftRow[] {
     return { rowNumber:index+2,name,type,category,priceText,comparePriceText,description,unit,imageUrl,imageSource:imageUrl?'owner':'auto',errors:[] };
   }));
 }
+function createDraftRows(text: string): CatalogDraftRow[] {
+  return createDraftRowsFromTable(parseCsv(text));
+}
+
 function downloadTemplate() {
   const csv = '\uFEFFname,type,category,price,compare_price,description,unit,image_url\r\nمثال منتج,product,عام,100,,وصف المنتج,قطعة,\r\nمثال خدمة,service,خدمات,250,,وصف الخدمة,جلسة,';
   const url = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
@@ -197,12 +338,21 @@ export const CatalogImportPanel: React.FC = () => {
     const file=event.target.files?.[0];
     event.target.value='';
     if(!file)return;
-    if(!/\.csv$/i.test(file.name)&&file.type!=='text/csv'&&file.type!=='application/vnd.ms-excel'){
-      setNotice({type:'error',text:'النسخة الحالية تقبل CSV فقط. حوّل ملف Excel إلى CSV UTF-8 ثم استورده؛ دعم XLSX المباشر لم يُفعّل بعد.'});return;
+    const isXlsx = /\.xlsx$/i.test(file.name);
+    const isCsv = /\.csv$/i.test(file.name) || file.type === 'text/csv' || file.type === 'application/vnd.ms-excel';
+    if (!isCsv && !isXlsx) {
+      setNotice({ type: 'error', text: 'صيغة الملف غير مدعومة. ارفع CSV UTF-8 أو XLSX فقط؛ لن يتم تشغيل ماكرو أو كود داخل الملف.' });
+      return;
     }
-    if(file.size>2*1024*1024){setNotice({type:'error',text:'الحد الأقصى لملف CSV هو 2 ميجابايت.'});return;}
-    try{
-      const parsed=createDraftRows(await file.text());
+    const maxBytes = isXlsx ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setNotice({ type: 'error', text: isXlsx ? 'الحد الأقصى لملف XLSX هو 5 ميجابايت.' : 'الحد الأقصى لملف CSV هو 2 ميجابايت.' });
+      return;
+    }
+    try {
+      const parsed = isXlsx
+        ? createDraftRowsFromTable(await parseXlsx(await file.arrayBuffer()))
+        : createDraftRows(await file.text());
       setRows(parsed);setFilename(file.name);setSavedAt(new Date().toISOString());
       setNotice({type:'info',text:`تمت قراءة ${parsed.length} صفًا للمعاينة فقط؛ لم يُحفظ أي صنف في الكتالوج بعد.`});
       setProgress({done:0,total:0,failed:0});
@@ -249,8 +399,8 @@ export const CatalogImportPanel: React.FC = () => {
     </div>
     {notice&&<div role="status" className={`rounded-xl border p-3 text-sm leading-6 ${notice.type==='error'?'border-rose-200 bg-rose-50 text-rose-800':notice.type==='success'?'border-emerald-200 bg-emerald-50 text-emerald-800':'border-slate-200 bg-slate-50 text-slate-700'}`}>{notice.text}</div>}
     <div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-black text-slate-900">1 — اختر ملف CSV</h3><p className="mt-1 text-xs leading-5 text-slate-500">UTF-8، بحد أقصى 2 ميجابايت. يدعم أسماء الأعمدة العربية أو الإنجليزية.</p></div><button type="button" onClick={downloadTemplate} disabled={working} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4"/>تنزيل نموذج CSV</button></div>
-      <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 p-6 text-center hover:border-indigo-400 hover:bg-indigo-50/30"><FileUp className="h-6 w-6 text-indigo-600"/><span><strong className="block text-sm">اختيار ملف CSV</strong><span className="mt-1 block text-xs text-slate-500">لن يتم الحفظ في قاعدة البيانات عند الاختيار</span></span><input type="file" accept=".csv,text/csv" disabled={working} onChange={onFile} className="sr-only"/></label>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-black text-slate-900">1 — اختر ملف CSV</h3><p className="mt-1 text-xs leading-5 text-slate-500">CSV UTF-8 حتى 2 ميجابايت أو XLSX حتى 5 ميجابايت. تُقرأ أول ورقة فقط؛ يدعم أسماء الأعمدة العربية أو الإنجليزية.</p></div><button type="button" onClick={downloadTemplate} disabled={working} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50"><Download className="h-4 w-4"/>تنزيل نموذج CSV</button></div>
+      <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 p-6 text-center hover:border-indigo-400 hover:bg-indigo-50/30"><FileUp className="h-6 w-6 text-indigo-600"/><span><strong className="block text-sm">اختيار ملف CSV أو XLSX</strong><span className="mt-1 block text-xs text-slate-500">لن يتم الحفظ في قاعدة البيانات عند الاختيار</span></span><input type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={working} onChange={onFile} className="sr-only"/></label>
       {filename&&<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3 text-xs"><span>المسودة: <strong>{filename}</strong></span><span className="text-slate-500">آخر حفظ: {savedAt?new Date(savedAt).toLocaleString('ar-EG'):'—'}</span></div>}
     </div>
     {!!rows.length&&<div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-4">
@@ -260,6 +410,6 @@ export const CatalogImportPanel: React.FC = () => {
       <button type="button" onClick={()=>void startImport()} disabled={working||!readyRows.length||readyRows.length>remaining} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">{working?<Loader2 className="h-4 w-4 animate-spin"/>:<CheckCircle2 className="h-4 w-4"/>}{working?'جارٍ حفظ الصفوف بالتتابع…':`3 — اعتماد واستيراد ${readyRows.length} صفًا`}</button>
       {!!(readyRows.length>remaining)&&<p className="text-xs text-rose-700">عدد الصفوف يتجاوز السعة المتبقية؛ لن يبدأ الاستيراد قبل حل ذلك.</p>}
     </div>}
-    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-950"><strong className="flex items-center gap-2"><AlertTriangle className="h-4 w-4"/>تنبيه</strong><p className="mt-1">المسودة محفوظة محليًا على هذا المتصفح وليست متزامنة مع أجهزة أخرى. النسخة الحالية تستورد CSV فقط؛ دعم XLSX المباشر لم يُفعّل بعد. اقتراحات الصور أصبحت متاحة هنا، وتحتاج اعتمادًا يدويًا قبل استخدامها. الحفظ الفعلي يمر عبر واجهة الخادم المحمية؛ عند تعذر صف تبقى تفاصيل الخطأ في المسودة لإعادة المحاولة.</p></div>
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-950"><strong className="flex items-center gap-2"><AlertTriangle className="h-4 w-4"/>تنبيه</strong><p className="mt-1">المسودة محفوظة محليًا على هذا المتصفح وليست متزامنة مع أجهزة أخرى. يدعم الاستيراد CSV وXLSX (الورقة الأولى فقط)؛ لا يتم تشغيل الماكرو أو الصيغ داخل الملف. اقتراحات الصور أصبحت متاحة هنا، وتحتاج اعتمادًا يدويًا قبل استخدامها. الحفظ الفعلي يمر عبر واجهة الخادم المحمية؛ عند تعذر صف تبقى تفاصيل الخطأ في المسودة لإعادة المحاولة.</p></div>
   </section>;
 };
