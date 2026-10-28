@@ -935,6 +935,7 @@ export const AdminDashboard: React.FC = () => {
                               </button>
 
                               {/* 1. Confirm Payment Button */}
+                              {!isFreeActivated && !isOfficialShowcase && (
                               <button
                                 disabled={Boolean(billingActionBusyId)}
                                 onClick={async () => {
@@ -953,6 +954,7 @@ export const AdminDashboard: React.FC = () => {
                                 <CheckCheck className="w-3 h-3" />
                                 <span>تأكيد السداد</span>
                               </button>
+                              )}
 
                               <button
                                 disabled={Boolean(billingActionBusyId)}
