@@ -84,7 +84,8 @@ export interface Business {
   isFrozen: boolean; // persisted manual freeze state
   lastPaymentDate?: string;
   paymentConfirmedByAdmin: boolean;
-  isOfficialShowcase?: boolean; // platform-owned catalog exempt from commercial subscription
+  isOfficialShowcase?: boolean; // platform-owned directory card; does not automatically enable a module
+  catalogPublished?: boolean; // true only when the public read-only catalogue is explicitly enabled
   tenantId?: string;
   branchId?: string;
   publicEnabled?: boolean;
@@ -104,15 +105,29 @@ export interface Product {
   isAvailable: boolean;
   unit?: string; // e.g. "قطعة", "وجبة", "ساعة", "جلسة", "كجم"
   requiresQuote?: boolean; // service is published without a price; customer requests a quote instead of adding it to cart
-  imageSource?: 'auto' | 'owner'; // automatic defaults update with the item; owner-selected images stay fixed
+  imageSource?: 'auto' | 'owner' | 'ai'; // auto = contextual fallback, ai = persisted generated image, owner = merchant-selected image
 }
 
 export interface Subscriber {
+  /** Membership ID, or ACCOUNT:<user-id> for a real Auth account without a membership. */
   id: string;
+  userId?: string;
   fullName: string;
   email: string;
   phone: string;
   businessId: string;
+  businessName?: string;
+  tenantId?: string;
+  organizationId?: string;
+  branchId?: string;
+  role?: string;
+  permissions?: Record<string, unknown>;
+  membershipStatus?: string;
+  provider?: string;
+  emailConfirmed?: boolean;
+  lastSignInAt?: string;
+  isAccountOnly?: boolean;
+  isPlatformAccount?: boolean;
   status: 'active' | 'pending' | 'suspended';
   // Credentials assigned by Admin
   username?: string;
@@ -170,4 +185,6 @@ export interface AuthSession {
   subscriberId?: string;
   businessId?: string;
   subscriberName?: string;
+  subscriberDirectoryError?: string;
+  ignoredOrphanMemberships?: number;
 }

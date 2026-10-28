@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const backend = fs.readFileSync('supabase/functions/catalog-platform-admin/index.ts', 'utf8');
+const productionMapper = fs.readFileSync('apps/catalog-frontend/src/lib/production.ts', 'utf8');
 const context = fs.readFileSync('apps/catalog-frontend/src/context/AppContext.tsx', 'utf8');
 const types = fs.readFileSync('apps/catalog-frontend/src/types/index.ts', 'utf8');
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
@@ -21,10 +22,10 @@ assert.match(createBlock, /paymentRequired: true/,
   'New subscriber creation must tell the UI that payment is required');
 assert.doesNotMatch(createBlock, /update\(\{ status: "ACTIVE" \}\)/,
   'Reusing an existing inactive membership must not auto-activate it');
-assert.match(backend, /String\(m\.status\)\.toUpperCase\(\) === "INACTIVE" \? "pending"/,
+assert.match(productionMapper, /status: isAccountOnly \? 'pending' : rawStatus === 'ACTIVE' \? 'active' : rawStatus === 'SUSPENDED' \? 'suspended' : 'pending'/,
   'Inactive memberships must appear as pending payment in the admin list');
 
-assert.match(statusBlock, /if \(status === "ACTIVE"\)/,
+assert.match(statusBlock, /if \(status === "ACTIVE" && membership\.business_id && \["OWNER", "BUSINESS_OWNER"\]\.includes\(role\)\)/,
   'Membership activation must have a server-side guard');
 assert.match(statusBlock, /SUBSCRIPTION_PAYMENT_REQUIRED/,
   'Server must reject activation without confirmed payment');

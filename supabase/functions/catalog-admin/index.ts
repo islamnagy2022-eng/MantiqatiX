@@ -2,20 +2,47 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 type DefaultImageKind = "activity" | "product" | "service" | "cover";
-
-interface DefaultImageInput {
-  name?: string | null;
-  description?: string | null;
-  category?: string | null;
-  kind?: DefaultImageKind;
+interface DefaultImageInput { name?: string | null; description?: string | null; category?: string | null; kind?: DefaultImageKind; }
+const IMAGE_PUBLIC_BASE = "https://islamnagy2022-eng.github.io/MantiqatiX/";
+type ArtKey = "food" | "health" | "pharmacy" | "auto" | "education" | "fitness" | "home" | "real-estate" | "travel" | "digital" | "fashion" | "grocery" | "marketing" | "maintenance" | "labs";
+const imageContextText = (input: DefaultImageInput) => [input.name, input.description, input.category].filter(Boolean).join(" ").toLocaleLowerCase();
+function imageArt(input: DefaultImageInput): ArtKey {
+  const t = imageContextText(input);
+  if (/صيدل|دواء|أدوية|pharmacy|medicine/.test(t)) return "pharmacy";
+  if (/معمل|تحاليل|أشعة|مختبر|laborator|radiolog|lab/.test(t)) return "labs";
+  if (/عياد|طبي|طبيب|أسنان|مستشفى|صحة|health|medical|clinic|hospital|dent/.test(t)) return "health";
+  if (/مطعم|مأكولات|أطعمة|غذاء|أغذية|وجبات|مخبز|حلويات|قهوة|كافيه|food|restaurant|bakery|cafe|coffee/.test(t)) return "food";
+  if (/سيار|قطع غيار|ميكانيك|كهرباء سيارات|auto|car|vehicle/.test(t)) return "auto";
+  if (/ملابس|أزياء|موضة|خياطة|بوتيك|fashion|clothing|apparel/.test(t)) return "fashion";
+  if (/بقال|سوبر ماركت|خضروات|فاكهة|مواد غذائية|تسوق|grocery|market|supermarket/.test(t)) return "grocery";
+  if (/تعليم|تدريب|مدرس|دروس|جامعة|كتب|education|training|school|tutor/.test(t)) return "education";
+  if (/جيم|لياقة|رياضة|تمارين|fitness|gym|sport/.test(t)) return "fitness";
+  if (/سفر|سياحة|رحلات|حجز طيران|travel|tourism|flight/.test(t)) return "travel";
+  if (/عقار|عقارات|تشطيب|ديكور|أثاث|منزل|مفروشات|سباكة|نجار|حداد|صيانة|تنظيف|home|furniture|real estate|property|maintenance|repair|plumb|carpenter/.test(t)) return /عقار|عقارات|real estate|property/.test(t) ? "real-estate" : "home";
+  if (/تسويق|إعلان|إعلانات|تصميم|برمجة|رقمي|تكنولوجيا|software|digital|marketing|design|developer|technology/.test(t)) return "digital";
+  if (/خدمات|استشارات|محام|قانون|مكتب|ترجمة|محاسبة|خدمة|service|legal|consult|account/.test(t)) return "marketing";
+  return "grocery";
 }
-
-function resolveDefaultImage(_input: DefaultImageInput = {}): string {
-  return "";
+const activityImageAssets: Record<ArtKey, string> = {
+  food:"legacy/activity/food.svg", health:"legacy/activity/medical.svg", pharmacy:"legacy/activity/pharmacy.svg",
+  auto:"legacy/activity/auto.svg", education:"legacy/activity/education.svg", fitness:"legacy/activity/fitness.svg",
+  home:"legacy/activity/home.svg", "real-estate":"legacy/activity/real-estate.svg", travel:"legacy/activity/travel.svg",
+  digital:"legacy/activity/digital.svg", fashion:"legacy/activities/fashion.svg", grocery:"legacy/activities/grocery.svg",
+  marketing:"legacy/activities/marketing.svg", maintenance:"legacy/activities/maintenance.svg", labs:"legacy/activity/labs.svg",
+};
+const itemImageAssets: Record<ArtKey, string> = {
+  food:"legacy/activities/food.svg", health:"legacy/activities/health.svg", pharmacy:"legacy/activities/health.svg",
+  auto:"legacy/activities/auto.svg", education:"legacy/activities/education.svg", fitness:"legacy/activities/health.svg",
+  home:"legacy/activity/home.svg", "real-estate":"legacy/activity/real-estate.svg", travel:"legacy/activity/travel.svg",
+  digital:"legacy/activities/marketing.svg", fashion:"legacy/activities/fashion.svg", grocery:"legacy/activities/grocery.svg",
+  marketing:"legacy/activities/marketing.svg", maintenance:"legacy/activities/maintenance.svg", labs:"legacy/activities/health.svg",
+};
+function resolveDefaultImage(input: DefaultImageInput = {}): string {
+  const art = imageArt(input);
+  return IMAGE_PUBLIC_BASE + ((input.kind === "activity" || input.kind === "cover") ? activityImageAssets[art] : itemImageAssets[art]);
 }
-
-function resolveDefaultActivityImages(_input: Omit<DefaultImageInput, "kind">) {
-  return { logoUrl: "", coverUrl: "" };
+function resolveDefaultActivityImages(input: Omit<DefaultImageInput, "kind">) {
+  return { logoUrl: resolveDefaultImage({ ...input, kind: "activity" }), coverUrl: resolveDefaultImage({ ...input, kind: "cover" }) };
 }
 
 const allowedOrigin = "https://islamnagy2022-eng.github.io";
@@ -38,8 +65,42 @@ const isPlatformAdmin = (m: any) =>
   m.permissions?.scope === "PLATFORM" &&
   m.permissions?.full_control === true;
 
-const businessRole = (m: any) =>
-  ["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"].includes(String(m.role || "").toUpperCase());
+const BUSINESS_SCOPE_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "FINANCE", "SALES", "MARKETING",
+  "SUPPORT", "SUPPORT_MANAGER", "EMPLOYEE", "STAFF", "SERVICE_PROVIDER", "PROVIDER_OWNER",
+  "PROVIDER_ADMIN", "BRANCH_MANAGER", "PROVIDER_FINANCE", "PROVIDER_MARKETING",
+  "PROVIDER_OPERATIONS", "PROVIDER_SUPPORT",
+];
+const CATALOG_READ_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "STAFF",
+  "SERVICE_PROVIDER", "PROVIDER_OWNER", "PROVIDER_ADMIN", "BRANCH_MANAGER",
+];
+const CATALOG_WRITE_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "PROVIDER_OWNER",
+  "PROVIDER_ADMIN", "BRANCH_MANAGER",
+];
+const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
+
+const mutationActions = new Set([
+  "BUSINESS_PROFILE_UPSERT", "ITEM_PRICE_UPSERT", "ITEM_STATUS_UPDATE",
+  "WAREHOUSE_CREATE", "STOCK_ADJUST", "ITEM_UPSERT", "PRICE_UPSERT", "SETTINGS_UPSERT",
+]);
+
+const canUseCatalog = (membership: any, write = false) => {
+  const role = String(membership?.role || "").toUpperCase();
+  if (!(write ? CATALOG_WRITE_ROLES : CATALOG_READ_ROLES).includes(role)) return false;
+  const p = membership?.permissions && typeof membership.permissions === "object" && !Array.isArray(membership.permissions)
+    ? membership.permissions : {};
+  const modules = p.modules && typeof p.modules === "object" && !Array.isArray(p.modules) ? p.modules : {};
+  const catalog = modules.CATALOG;
+  if (p.account_restricted === true || p.catalog === false || catalog === false) return false;
+  if (catalog && typeof catalog === "object" && catalog.view === false) return false;
+  if (write && (p.catalog_write === false || p.catalog_read_only === true)) return false;
+  if (write && catalog && typeof catalog === "object" && catalog.write === false) return false;
+  if (Array.isArray(catalog) && !catalog.includes("view")) return false;
+  if (write && Array.isArray(catalog) && !catalog.some((action: string) => ["create", "update", "approve", "manage"].includes(action))) return false;
+  return true;
+};
 
 // PostgreSQL UUID columns accept any 128-bit UUID-shaped value. Some existing
 // platform business IDs are legacy values whose version/variant nibbles do not
@@ -65,8 +126,10 @@ const catalogMetadataWithImage = (
   const explicitSource = String(catalog.image_source || "").toLowerCase();
   const legacyStockUrl = /^https:\/\/images\.unsplash\.com\//i.test(currentUrl);
   const neutralPlaceholderUrl = /(?:^|\/)catalog-item-placeholder\.svg(?:[?#].*)?$/i.test(currentUrl);
-  const imageSource = explicitSource === "auto" || !currentUrl || legacyStockUrl || neutralPlaceholderUrl ? "auto" : "owner";
-  const imageUrl = imageSource === "owner"
+  const imageSource = explicitSource === "ai" && Boolean(currentUrl)
+    ? "ai"
+    : explicitSource === "auto" || !currentUrl || legacyStockUrl || neutralPlaceholderUrl ? "auto" : "owner";
+  const imageUrl = imageSource === "owner" || imageSource === "ai"
     ? currentUrl
     : resolveDefaultImage({
       name,
@@ -203,16 +266,14 @@ Deno.serve(async (req: Request) => {
     const catalogSettings = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
       ? business.settings.bizcatalog
       : {};
-    const mutationActions = new Set([
-      "BUSINESS_PROFILE_UPSERT",
-      "ITEM_PRICE_UPSERT",
-      "ITEM_STATUS_UPDATE",
-      "WAREHOUSE_CREATE",
-      "STOCK_ADJUST",
-      "ITEM_UPSERT",
-      "PRICE_UPSERT",
-      "SETTINGS_UPSERT",
-    ]);
+    if (!scopedPlatformMembership && action === "CATALOG_READ"
+      && !businessMemberships.some((m: any) => canUseCatalog(m, false))) {
+      return out(origin, { error: "CATALOG_ACCESS_RESTRICTED", message: "تم تقييد الوصول إلى كتالوج هذا النشاط من إدارة المنصة." }, 403);
+    }
+    if (!scopedPlatformMembership && mutationActions.has(action)
+      && !businessMemberships.some((m: any) => canUseCatalog(m, true))) {
+      return out(origin, { error: "CATALOG_READ_ONLY", message: "هذا الحساب يملك صلاحية العرض فقط أو تم منع التعديل من إدارة المنصة." }, 403);
+    }
     if (mutationActions.has(action) && !scopedPlatformMembership) {
       if (String(business.status || "").toUpperCase() !== "ACTIVE") {
         return out(origin, { error: "BUSINESS_INACTIVE", message: "النشاط غير نشط؛ تواصل مع إدارة المنصة لإعادة التفعيل." }, 409);
