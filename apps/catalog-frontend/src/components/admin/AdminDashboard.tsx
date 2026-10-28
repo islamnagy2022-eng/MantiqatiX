@@ -401,6 +401,23 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleOperationalStatusChange = async (business: Business, status: 'ACTIVE' | 'INACTIVE' | 'FROZEN') => {
+    if (billingActionBusyId) return;
+    setBillingActionBusyId(business.id);
+    const labels = { ACTIVE: 'مفعّل', INACTIVE: 'موقوف', FROZEN: 'مجمّد' };
+    try {
+      await updateBillingSetting(business.id, {
+        operationalStatus: status,
+        isFrozen: status === 'FROZEN',
+      });
+      setBillingActionMsg('تم تغيير حالة نشاط ' + business.name + ' إلى: ' + labels[status] + '.');
+    } catch (error) {
+      setBillingActionMsg('تعذر تغيير حالة النشاط ' + business.name + ': ' + (error instanceof Error ? error.message : 'خطأ غير معروف'));
+    } finally {
+      setBillingActionBusyId(null);
+    }
+  };
+
   const handleDeleteBusiness = async (business: Business) => {
     if (!business.tenantId) {
       window.alert('لا يمكن حذف النشاط لأن معرّف المستأجر الإنتاجي غير متوفر.');
@@ -919,28 +936,11 @@ export const AdminDashboard: React.FC = () => {
                                 تعديل موعد السداد
                               </button>
 
-                              {/* 3. Manual Freeze/Unfreeze toggle */}
-                              <button
-                                disabled={Boolean(billingActionBusyId)}
-                                onClick={async () => {
-                                  if (billingActionBusyId) return;
-                                  setBillingActionBusyId(biz.id);
-                                  try {
-                                    await toggleBusinessFreeze(biz.id);
-                                    setBillingActionMsg(`تم حفظ تغيير حالة تجميد النشاط (${biz.name}) لدى الخادم.`);
-                                  } catch (error) {
-                                    setBillingActionMsg(`تعذر حفظ حالة النشاط (${biz.name}): ${error instanceof Error ? error.message : 'خطأ غير معروف'}`);
-                                  } finally { setBillingActionBusyId(null); }
-                                }}
-                                className={`text-[10px] font-bold px-2 py-1 rounded-lg transition-colors cursor-pointer ${
-                                  biz.isFrozen
-                                    ? 'bg-slate-800 text-white hover:bg-slate-700'
-                                    : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
-                                }`}
-                                title="تجميد أو إلغاء تجميد صفحة النشاط يدوياً"
-                              >
-                                {biz.isFrozen ? 'فك التجميد' : 'تجميد فوري'}
-                              </button>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'ACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50" title="إعادة تفعيل النشاط وإظهاره إذا كان النشر معتمدًا">تنشيط</button>
+                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'INACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 disabled:opacity-50" title="إيقاف النشاط وإخفاؤه عن الدليل العام">إيقاف</button>
+                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'FROZEN')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-200 disabled:opacity-50" title="تجميد النشاط وإخفاء المنتجات والخدمات ومنع ظهوره في البانرات والترشيحات">تجميد</button>
+                              </div>
                             </div>
                           </td>
                         </tr>
