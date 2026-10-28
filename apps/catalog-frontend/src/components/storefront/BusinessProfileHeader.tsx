@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
+import { normalizeDialPhone, normalizeSocialUrl, normalizeWhatsAppPhone } from '../../utils/socialLinks';
 import {
   MessageCircle,
   MapPin,
   Clock,
   Phone,
+  Facebook,
+  Instagram,
+  Music2,
   CheckCircle2,
   Share2,
   Building2,
@@ -56,10 +60,14 @@ export const BusinessProfileHeader: React.FC = () => {
     }
   };
 
-  const cleanOwnerPhone = currentBusiness.ownerWhatsApp.replace(/\D/g, '');
-  const merchantWhatsAppUrl = cleanOwnerPhone.length >= 10 && cleanOwnerPhone.length <= 15
-    ? `https://wa.me/${cleanOwnerPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`)}`
+  const dialPhone = normalizeDialPhone(currentBusiness.phone || currentBusiness.ownerWhatsApp);
+  const whatsappPhone = normalizeWhatsAppPhone(currentBusiness.ownerWhatsApp);
+  const merchantWhatsAppUrl = whatsappPhone
+    ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`)}`
     : '';
+  const facebookUrl = normalizeSocialUrl(currentBusiness.facebookUrl, 'facebook');
+  const instagramUrl = normalizeSocialUrl(currentBusiness.instagramUrl, 'instagram');
+  const tiktokUrl = normalizeSocialUrl(currentBusiness.tiktokUrl, 'tiktok');
   const isFrozen = Boolean(currentBusiness.isFrozen);
 
   return (
@@ -207,8 +215,32 @@ export const BusinessProfileHeader: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions (WhatsApp & QR Code) */}
+            {/* Quick Actions: phone, messaging, social profiles, and QR code */}
             <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
+              {dialPhone && (
+                <a href={`tel:${dialPhone}`} className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`اتصال هاتفي بـ ${currentBusiness.name}`}>
+                  <Phone className="w-4 h-4" />
+                  <span>اتصال هاتفي</span>
+                </a>
+              )}
+              {facebookUrl && (
+                <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-[#1877F2] hover:bg-[#1666cf] text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`صفحة فيسبوك ${currentBusiness.name}`}>
+                  <Facebook className="w-4 h-4" />
+                  <span>فيسبوك</span>
+                </a>
+              )}
+              {tiktokUrl && (
+                <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" className="bg-slate-950 hover:bg-black text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`تيك توك ${currentBusiness.name}`}>
+                  <Music2 className="w-4 h-4" />
+                  <span>تيك توك</span>
+                </a>
+              )}
+              {instagramUrl && (
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`إنستجرام ${currentBusiness.name}`}>
+                  <Instagram className="w-4 h-4" />
+                  <span>إنستجرام</span>
+                </a>
+              )}
               {merchantWhatsAppUrl && (
                 <a
                   href={merchantWhatsAppUrl}

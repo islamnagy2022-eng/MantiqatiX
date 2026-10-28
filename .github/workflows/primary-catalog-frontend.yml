@@ -8,6 +8,7 @@ on:
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-facebook-page-import.mjs"
+      - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
@@ -18,6 +19,7 @@ on:
       - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
+      - "supabase/functions/public-catalog/**"
       - "supabase/functions/_shared/**"
       - "supabase/functions/public-catalog-directory/**"
       - "supabase/functions/facebook-page-import/**"
@@ -40,6 +42,7 @@ on:
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-facebook-page-import.mjs"
+      - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
@@ -49,6 +52,7 @@ on:
       - ".github/workflows/primary-catalog-frontend.yml"
       - "supabase/functions/catalog-platform-admin/**"
       - "supabase/functions/catalog-admin/**"
+      - "supabase/functions/public-catalog/**"
       - "supabase/functions/_shared/**"
       - "supabase/functions/public-catalog-directory/**"
       - "supabase/functions/facebook-page-import/**"
@@ -97,6 +101,8 @@ jobs:
         run: node scripts/validate-catalog-google-auth-contract.mjs
       - name: Validate Facebook page import ownership and token handling
         run: node scripts/validate-facebook-page-import.mjs
+      - name: Validate activity social links and click-to-call
+        run: node scripts/validate-business-social-links.mjs
       - name: Verify paid subscription activation gate
         run: node scripts/validate-paid-subscription-gate.mjs
       - name: Verify production catalog uses real persisted state

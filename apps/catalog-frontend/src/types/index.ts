@@ -58,6 +58,9 @@ export interface Business {
   bio: string;
   ownerWhatsApp: string; // The merchant's WhatsApp for incoming orders
   phone?: string;
+  facebookUrl?: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
   email?: string;
   address: string;
   // Egyptian administrative location breakdown

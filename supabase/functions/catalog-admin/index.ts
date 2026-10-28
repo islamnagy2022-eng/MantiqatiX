@@ -81,6 +81,25 @@ const CATALOG_WRITE_ROLES = [
 ];
 const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
 
+type SocialPlatform = "facebook" | "instagram" | "tiktok";
+const socialHosts: Record<SocialPlatform, Set<string>> = {
+  facebook: new Set(["facebook.com", "www.facebook.com", "m.facebook.com", "fb.com", "www.fb.com", "fb.me", "fb.watch"]),
+  instagram: new Set(["instagram.com", "www.instagram.com", "instagr.am", "www.instagr.am"]),
+  tiktok: new Set(["tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"]),
+};
+const normalizeSocialUrl = (value: unknown, platform: SocialPlatform): string | null => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    const candidate = /^https?:\/\//i.test(raw) ? raw : "https://" + raw;
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" || !socialHosts[platform].has(url.hostname.toLowerCase()) || url.username || url.password) return null;
+    return url.toString().slice(0, 500);
+  } catch {
+    return null;
+  }
+};
+
 const mutationActions = new Set([
   "BUSINESS_PROFILE_UPSERT", "ITEM_PRICE_UPSERT", "ITEM_STATUS_UPDATE",
   "WAREHOUSE_CREATE", "STOCK_ADJUST", "ITEM_UPSERT", "PRICE_UPSERT", "SETTINGS_UPSERT",
@@ -324,6 +343,9 @@ Deno.serve(async (req: Request) => {
               logoUrl: String(profile.logo_url || ""),
               coverUrl: String(profile.cover_url || ""),
               google_maps_url: String(profile.google_maps_url || ""),
+              facebookUrl: String(profile.facebook_url || ""),
+              instagramUrl: String(profile.instagram_url || ""),
+              tiktokUrl: String(profile.tiktok_url || ""),
               publicEnabled: business.settings?.catalog_public_enabled === true,
             },
             bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
@@ -426,6 +448,9 @@ Deno.serve(async (req: Request) => {
             logoUrl: String(profile.logo_url || ""),
             coverUrl: String(profile.cover_url || ""),
             google_maps_url: String(profile.google_maps_url || ""),
+            facebookUrl: String(profile.facebook_url || ""),
+            instagramUrl: String(profile.instagram_url || ""),
+            tiktokUrl: String(profile.tiktok_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
           },
           bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
@@ -462,6 +487,17 @@ Deno.serve(async (req: Request) => {
       if (!roleForBusiness && !scopedPlatformMembership) {
         return out(origin, { error: "CATALOG_PROFILE_WRITE_FORBIDDEN" }, 403);
       }
+      const submittedSocialFields: Record<string, string> = {};
+      for (const [requestKey, columnKey, platform] of [
+        ["facebookUrl", "facebook_url", "facebook"],
+        ["instagramUrl", "instagram_url", "instagram"],
+        ["tiktokUrl", "tiktok_url", "tiktok"],
+      ] as const) {
+        if (!Object.prototype.hasOwnProperty.call(body, requestKey)) continue;
+        const normalizedUrl = normalizeSocialUrl(body[requestKey], platform);
+        if (normalizedUrl === null) return out(origin, { error: "INVALID_SOCIAL_PROFILE_URL", field: requestKey }, 400);
+        submittedSocialFields[columnKey] = normalizedUrl;
+      }
       const { data, error } = await userClient.rpc("upsert_catalog_business_profile_backend", {
         p_tenant_id: tenantId,
         p_business_id: businessId,
@@ -479,6 +515,21 @@ Deno.serve(async (req: Request) => {
         p_public_enabled: body.publicEnabled === true,
       });
       if (error) throw error;
+      if (Object.keys(submittedSocialFields).length > 0) {
+        const { data: businessRow, error: businessReadError } = await service.from("businesses")
+          .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+        if (businessReadError) throw businessReadError;
+        if (!businessRow) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
+        const currentSettings = businessRow.settings && typeof businessRow.settings === "object" && !Array.isArray(businessRow.settings)
+          ? businessRow.settings : {};
+        const currentProfile = currentSettings.catalog_profile && typeof currentSettings.catalog_profile === "object" && !Array.isArray(currentSettings.catalog_profile)
+          ? currentSettings.catalog_profile : {};
+        const nextSettings = { ...currentSettings, catalog_profile: { ...currentProfile, ...submittedSocialFields } };
+        const { error: socialWriteError } = await service.from("businesses").update({
+          settings: nextSettings, updated_at: new Date().toISOString(),
+        }).eq("id", businessId).eq("tenant_id", tenantId);
+        if (socialWriteError) throw socialWriteError;
+      }
       return out(origin, data);
     }
 
