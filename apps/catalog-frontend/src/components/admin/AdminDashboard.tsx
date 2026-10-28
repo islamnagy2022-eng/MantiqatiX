@@ -297,6 +297,8 @@ export const AdminDashboard: React.FC = () => {
       category: selectedBusinessCategory,
       categoryId: matchedCat?.id,
       functionalGroupId: resolvedGroup,
+      categoryClassificationType: matchedCat?.classificationType || 'activity',
+      activitySpecialty: newBizSpecialty.trim() || undefined,
       logoUrl: '',
       coverUrl: '',
       bio: newBizBio.trim(),
