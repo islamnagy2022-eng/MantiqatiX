@@ -120,12 +120,15 @@ export function mapBusiness(raw: any, provider: any): Business {
   const created = raw.createdAt || raw.created_at || new Date().toISOString();
   const id = String(raw.id || raw.businessId || '');
   const name = String(raw.name || provider?.name || provider?.name_ar || 'نشاط تجاري');
+  const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
+  const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
+  const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category)?.id,
     functionalGroupId: groupFromCategory(category),
-    logoUrl: isStockImageUrl(profile.logoUrl || profile.logo_url || raw.logoUrl) ? '' : String(profile.logoUrl || profile.logo_url || raw.logoUrl || ''),
-    coverUrl: isStockImageUrl(profile.coverUrl || profile.cover_url || raw.coverUrl) ? '' : String(profile.coverUrl || profile.cover_url || raw.coverUrl || ''),
+    logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
+    coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     bio: String(profile.bio || raw.bio || provider?.description || ''),
     ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
     phone: String(branch.phone || profile.phone || ''), email: String(raw.email || ''),
@@ -147,8 +150,9 @@ export function mapBusiness(raw: any, provider: any): Business {
     branchId: String(branch.id || raw.branchId || raw.selectedBranchId || ''),
     organizationId: String(raw.organizationId || raw.organization_id || ''),
     publicEnabled: Boolean(raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
+    catalogPublished: Boolean(raw.catalogPublished ?? raw.publicEnabled ?? profile.publicEnabled ?? raw.settings?.catalog_public_enabled),
     businessCode: String(raw.code || ''),
-    isOfficialShowcase: raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN',
+    isOfficialShowcase: officialShowcase,
   } as Business;
 }
 
@@ -222,7 +226,12 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   if (error) throw new Error('تعذر تحميل صلاحيات الحساب من قاعدة الإنتاج.');
   const active = memberships || [];
   const platformMemberships = active.filter(isPlatformAdmin);
-  const roleMemberships = active.filter((m: any) => ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role || '').toUpperCase()));
+  const roleMemberships = active.filter((m: any) => [
+    'OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER', 'FINANCE', 'SALES', 'MARKETING',
+    'SUPPORT', 'SUPPORT_MANAGER', 'EMPLOYEE', 'STAFF', 'SERVICE_PROVIDER', 'PROVIDER_OWNER',
+    'PROVIDER_ADMIN', 'BRANCH_MANAGER', 'PROVIDER_FINANCE', 'PROVIDER_MARKETING',
+    'PROVIDER_OPERATIONS', 'PROVIDER_SUPPORT',
+  ].includes(String(m.role || '').toUpperCase()));
   const platform = platformMemberships.length > 0;
   const permittedRows: any[] = [];
 
@@ -275,9 +284,44 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   }
 
   let subscribers: Subscriber[] = [];
+  let subscriberDirectoryError = '';
+  let ignoredOrphanMemberships = 0;
   if (platform) {
-    const list: any = await callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' }).catch(() => ({ subscribers: [] }));
-    subscribers = Array.isArray(list?.subscribers) ? list.subscribers : [];
+    try {
+      const list: any = await callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' });
+      ignoredOrphanMemberships = Number(list?.ignoredOrphanMemberships || 0);
+      subscribers = (Array.isArray(list?.subscribers) ? list.subscribers : []).map((row: any): Subscriber => {
+        const rawStatus = String(row?.status || row?.membershipStatus || '').toUpperCase();
+        const isAccountOnly = row?.isAccountOnly === true || String(row?.id || '').startsWith('ACCOUNT:');
+        return {
+          id: String(row?.id || ''),
+          userId: String(row?.userId || ''),
+          fullName: String(row?.fullName || row?.email || 'حساب بدون اسم'),
+          email: String(row?.email || ''),
+          phone: String(row?.phone || ''),
+          businessId: String(row?.businessId || ''),
+          businessName: String(row?.businessName || ''),
+          tenantId: String(row?.tenantId || ''),
+          organizationId: String(row?.organizationId || ''),
+          branchId: String(row?.branchId || ''),
+          role: String(row?.role || (isAccountOnly ? 'CUSTOMER' : '')),
+          permissions: row?.permissions && typeof row.permissions === 'object' ? row.permissions : {},
+          membershipStatus: String(row?.membershipStatus || (isAccountOnly ? 'NONE' : rawStatus)),
+          provider: String(row?.provider || 'unknown'),
+          emailConfirmed: Boolean(row?.emailConfirmed),
+          lastSignInAt: row?.lastSignInAt ? String(row.lastSignInAt) : undefined,
+          isAccountOnly,
+          status: isAccountOnly ? 'pending' : rawStatus === 'ACTIVE' ? 'active' : rawStatus === 'SUSPENDED' ? 'suspended' : 'pending',
+          username: String(row?.email || ''),
+          authMethod: String(row?.provider || '').toLowerCase() === 'google' ? 'gmail_invite' : 'direct_password',
+          inviteStatus: 'pending',
+          joinedDate: String(row?.joinedDate || row?.createdAt || '').slice(0, 10),
+        };
+      });
+    } catch (error) {
+      subscriberDirectoryError = error instanceof Error ? error.message : 'تعذر تحميل حسابات Supabase';
+      subscribers = [];
+    }
     const settingsResult: any = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
     if (settingsResult?.settings) Object.assign(adminSettings, settingsResult.settings, { adminPassword: '' });
   }
@@ -296,6 +340,8 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       subscriberId: own?.id,
       businessId: chosen?.id,
       subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || ''),
+      subscriberDirectoryError: subscriberDirectoryError || undefined,
+      ignoredOrphanMemberships,
     },
     businesses, products, subscribers, adminSettings,
   };
