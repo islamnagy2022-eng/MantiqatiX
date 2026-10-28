@@ -292,12 +292,19 @@ try {
   {
     const { context, page, rpcObservation } = await newScenario(browser, roles.branchOwner);
     try {
+      // A branch-scoped OWNER can use the scoped dashboard but not the broad legacy tabs.
+      await page.goto(baseUrl + '?view=merchant_admin', { waitUntil: 'domcontentloaded' });
+      await waitForDeniedDashboard(page);
+      assert.equal(await page.getByText('مركز التحكم', { exact: true }).count(), 0);
+      await page.goto(baseUrl + '?view=professional_dashboard', { waitUntil: 'domcontentloaded' });
       await waitForDashboard(page);
       await page.getByRole('button', { name: 'المستخدمون والصلاحيات' }).click();
       await page.getByText(/الوظائف المسجلة/).waitFor({ state: 'visible' });
       assert.equal(rpcObservation.scopedBranchId, branchId, 'branch owner roster RPC must include the active membership branch');
       assert.equal(await page.getByText('حفظ الوظيفة', { exact: true }).count() > 0, true);
-      results.push('branch-owner-rpc-is-scoped');
+      await page.getByRole('button', { name: 'الإعدادات والإدارة' }).click();
+      assert.equal(await page.getByRole('button', { name: 'فتح إعدادات النشاط الحالية' }).count(), 0, 'branch owner must not get an unscoped legacy settings shortcut');
+      results.push('branch-owner-legacy-route-denied-and-rpc-scoped');
     } finally { await context.close(); }
   }
 
