@@ -122,9 +122,9 @@ export function mapBusiness(raw: any, provider: any): Business {
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
-    functionalGroupId: groupFromCategory(category, String(raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || '')),
-    categoryClassificationType: raw.settings?.activity_classification_type === 'profession' ? 'profession' : 'activity',
-    activitySpecialty: String(raw.settings?.activity_specialty || '') || undefined,
+    functionalGroupId: groupFromCategory(category, String(raw.activityGroupCode || raw.activity_group_code || raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || '')),
+    categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
+    activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     bio: String(profile.bio || raw.bio || provider?.description || ''),
