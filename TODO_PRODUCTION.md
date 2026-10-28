@@ -604,6 +604,10 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Resolve the Qadam Al-Saad owner membership currently recorded elsewhere in this TODO as INACTIVE, using the approved owner identity and reviewed migration/release path; do not perform an unreviewed Production database write.
 - [ ] Audit the requested “Vision” catalog addition: locate the original requested scope and determine the missing implementation path before marking it done; avoid activating unrelated modules.
 
+- [ ] Make the requested administration permissions UI explicit: platform owner has platform-wide authority; platform employees receive only individually assigned platform permissions; each business owner administers only their own business and may assign limited permissions to that business's employees. Enforce authorization server-side/RLS, and cover each role with allow/deny tests and audit history.
+- [ ] For newly created businesses/catalogues/products with no suitable owner-uploaded image, verify the requested AI-generated temporary artwork/fallback path works end-to-end. Preserve all existing and newly uploaded owner images; clearly treat generated visuals as placeholders until replaced, and never mark image generation complete based on a static fallback alone.
+- [ ] Verify the home COVER shows exactly one currently eligible activity per slide (not two simultaneous covers), allows clicking the image to open that activity's public page, and has no overlaid title/name/text or unwanted shadow/overlay. Verify the behavior after data refresh and on narrow screens.
+
 ### Validation and completion criteria
 - [ ] Add regression coverage for duplicate prevention, owner isolation, publication/deactivation visibility, social links, public URLs, QR codes, and catalog-home routing.
 - [ ] Run build, lint/typecheck, available automated tests, and a real browser pass. Record separate statuses for source change, CI, deployment, and live behavior.
