@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, Search, Save, PauseCircle, RotateCcw, Users, Store, PencilLine, X } from 'lucide-react';
+import { RefreshCw, Search, Save, PauseCircle, RotateCcw, Users, Store, PencilLine, X, Globe } from 'lucide-react';
 import { supabase } from '../../lib/production';
 import { resolveDefaultActivityImages } from '../../utils/defaultImages';
 
@@ -78,6 +78,21 @@ export const BusinessSubscriberAdmin: React.FC = () => {
     if(!row)return;
     setDrafts(prev=>({...prev,[id]:{...(prev[id]||draftFor(row)),[key]:value}}));
   };
+  const managePublication=async(b:BusinessRow)=>{
+    const published=b.settings?.catalog_public_enabled===true||String(b.settings?.bizcatalog?.publicationStatus||'').toUpperCase()==='PUBLISHED';
+    const decision=published?'REJECT':'APPROVE';
+    const prompt=published?'إلغاء نشر النشاط وإيقافه عن الظهور العام؟':'نشر النشاط وتفعيله للعامة؟ يجب أن يكون له مالك نشط وأن تكون متطلبات التفعيل مستوفاة.';
+    if(!window.confirm(prompt))return;
+    setSaving(b.id);setNotice(null);
+    const {data,error}=await supabase.functions.invoke('catalog-platform-admin',{body:{
+      action:'BUSINESS_PUBLICATION_REVIEW',tenantId:b.tenant_id,businessId:b.id,
+      decision,reason:published?'تم إلغاء النشر من إدارة المنصة':''
+    }});
+    setSaving('');
+    if(error||!data?.success){setNotice({error:true,text:data?.message||error?.message||data?.error||'تعذر تحديث حالة النشر.'});return;}
+    setNotice({error:false,text:published?'تم إلغاء النشر وإيقاف النشاط.':'تم نشر النشاط وتفعيله.'});
+    await load();
+  };
   const manageMembership=async(m:Membership,action:'SUSPEND'|'RESTORE'|'CHANGE_ROLE')=>{
     let role:string|undefined;
     if(action==='CHANGE_ROLE'){
@@ -121,6 +136,7 @@ export const BusinessSubscriberAdmin: React.FC = () => {
       <div className="flex flex-wrap gap-2">
         <button type="button" disabled={!!saving} onClick={()=>setEditingId(editingId===b.id?null:b.id)} className={buttonClass}><PencilLine className="h-4 w-4"/>{editingId===b.id?'إغلاق التعديل':'تعديل النشاط'}</button>
         {b.status==='ACTIVE'?<button type="button" disabled={!!saving} onClick={()=>void manageBusiness(b,'DEACTIVATE')} className={buttonClass}><PauseCircle className="h-4 w-4"/>إيقاف النشاط</button>:<button type="button" disabled={!!saving} onClick={()=>void manageBusiness(b,'RESTORE')} className={buttonClass}><RotateCcw className="h-4 w-4"/>تفعيل النشاط</button>}
+        <button type="button" disabled={!!saving} onClick={()=>void managePublication(b)} className={buttonClass}><Globe className="h-4 w-4"/>{(b.settings?.catalog_public_enabled===true||String(b.settings?.bizcatalog?.publicationStatus||'').toUpperCase()==='PUBLISHED')?'إلغاء النشر':'نشر النشاط'}</button>
       </div>
       {editingId===b.id&&<div className="space-y-3 rounded-xl border border-indigo-100 bg-indigo-50/40 p-3">
         <div className="grid gap-3 sm:grid-cols-2">
