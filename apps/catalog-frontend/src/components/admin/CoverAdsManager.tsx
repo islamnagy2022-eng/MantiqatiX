@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/production";
 import type { Business } from "../../types";
 import type { CoverAdvertisement, CoverAdvertisementDraft } from "../../types/coverAdvertisements";
-import { Image as ImageIcon, Plus, Save, Trash2, X, Megaphone } from "lucide-react";
+import { Save, Trash2, X } from "lucide-react";
 
 type Props = { businesses: Business[] };
 
@@ -218,7 +218,7 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
               <span className="mb-1 block text-xs font-bold text-slate-700">رفع صورة الإعلان — حتى 3 ميجابايت</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { setSelectedFile(e.target.files?.[0] || null); if (e.target.files?.[0]) setTemplate(""); }} className="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs file:ml-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:font-bold" />
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => { const file = e.target.files?.[0] || null; setSelectedFile(file); if (file) { setTemplate(""); setExternalImageUrl(""); setDraft((prev) => ({ ...prev, imageUrl: "", storagePath: "" })); } }} className="block w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs file:ml-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:font-bold" />
               {selectedFile && <span className="mt-1 block text-[10px] text-emerald-700">{selectedFile.name}</span>}
             </label>
             <label className="block">
@@ -290,12 +290,12 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
               {draft.locationScope !== "ALL" && (
                 <label>
                   <span className="mb-1 block text-xs font-bold text-slate-700">{draft.locationScope === "GOVERNORATE" ? "المحافظة" : "البلدة / المركز / الحي"}</span>
-                  <select required value={draft.locationValue} onChange={(e) => setDraft((prev) => ({ ...prev, locationValue: e.target.value }))} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">
-                    <option value="">اختر الموقع</option>
+                  <input required list="cover-ad-location-options" value={draft.locationValue} onChange={(e) => setDraft((prev) => ({ ...prev, locationValue: e.target.value }))} placeholder={draft.locationScope === "GOVERNORATE" ? "اكتب أو اختر المحافظة" : "اكتب أو اختر البلدة / المركز / الحي"} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs" />
+                  <datalist id="cover-ad-location-options">
                     {(draft.locationScope === "GOVERNORATE"
                       ? [...new Set(businesses.map((business) => business.governorate).filter(Boolean))]
-                      : locations).sort((a, b) => a.localeCompare(b, "ar")).map((location) => <option key={location} value={location}>{location}</option>)}
-                  </select>
+                      : locations).sort((a, b) => a.localeCompare(b, "ar")).map((location) => <option key={location} value={location} />)}
+                  </datalist>
                 </label>
               )}
             </div>
