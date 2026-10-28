@@ -564,7 +564,7 @@ Deno.serve(async (req: Request) => {
       const businessId = String(body.businessId || "");
       const business = await getBusiness(tenantId, businessId);
       const incoming = body.settings && typeof body.settings === "object" ? body.settings : {};
-      const allowed = ["commissionPerOrder", "totalOrdersCount", "paymentStatus", "overdueDaysCount", "isFrozen", "lastPaymentDate", "paymentConfirmedByAdmin", "paymentDueDay", "paymentDueDate"];
+      const allowed = ["commissionPerOrder", "totalOrdersCount", "paymentStatus", "overdueDaysCount", "isFrozen", "operationalStatus", "lastPaymentDate", "paymentConfirmedByAdmin", "paymentDueDay", "paymentDueDate"];
       const current = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
       const patch: Record<string, unknown> = {};
       for (const k of allowed) if (Object.prototype.hasOwnProperty.call(incoming, k)) patch[k] = incoming[k];
