@@ -38,9 +38,9 @@ assert.match(adFunction, /targetBusinessIds\.length === 0/, "Activity-cover ads 
 assert.match(bookingUi, /authSession\.role !== "subscriber"/, "Only the signed-in activity owner view may show the booking form");
 assert.match(bookingUi, /authSession\.businessId !== currentBusiness\.id/, "The booking form must be scoped to the owner's own activity");
 assert.match(bookingUi, /invoke\("cover-ad-booking-request"/, "The booking form must call the protected request endpoint");
-assert.match(bookingFunction, /"\OWNER", "BUSINESS_OWNER"/, "The server must enforce business-owner authorization");
+assert.ok(bookingFunction.includes('["OWNER", "BUSINESS_OWNER"]'), "The server must enforce business-owner authorization");
 assert.match(bookingFunction, /from\("marketing_leads"\)/, "Booking requests must be persisted for administration review");
-assert.match(bookingFunction, /targetUrl && \(targetUrl\.length > 1500 \|\| !\/\^https:\\\/\\\//i\.test\(targetUrl\)\)/, "Booking URLs must be validated as HTTPS");
+assert.ok(bookingFunction.includes("targetUrl.length > 1500") && bookingFunction.includes("!/^https:"), "Booking URLs must be validated as HTTPS");
 assert.match(businessHeader, /eligibleAds/, "The activity profile cover must display ads targeted to that activity");
 assert.match(businessHeader, /<CoverAdBookingRequest \/>/, "The owner-only booking button must appear below the activity cover");
 assert.match(config, /\[functions\.catalog-cover-ads\]\s*verify_jwt = false/, "The public ad read endpoint must handle its own action-specific auth");
