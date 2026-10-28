@@ -81,7 +81,7 @@ export const BusinessProfileHeader: React.FC = () => {
       )}
 
       {/* 1. Rotating Cover Photo Slider (Changes every 3 seconds) */}
-      <div className="mx-auto w-full max-w-[851px] px-3 sm:px-0 py-3 sm:py-4">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="relative w-full aspect-[16/9] sm:aspect-[851/315] rounded-xl bg-slate-900 overflow-hidden group">
         {slides.map((imgUrl, idx) => (
           <div
@@ -120,7 +120,7 @@ export const BusinessProfileHeader: React.FC = () => {
         </div>
 
         {/* Top Floating Badge: Verification & Status */}
-        <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex max-w-[calc(100%-1.5rem)] items-center gap-2">
           {isFrozen ? (
             <span className="bg-rose-600/95 backdrop-blur-md text-white text-xs font-black px-3 py-1.5 rounded-full border border-rose-400 shadow-md flex items-center gap-1.5">
               <Ban className="w-3.5 h-3.5" />
@@ -137,7 +137,7 @@ export const BusinessProfileHeader: React.FC = () => {
         </div>
 
         {/* Share Button top left */}
-        <div className="absolute top-4 left-4 z-20">
+        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 max-w-[calc(100%-1.5rem)]">
           <button
             onClick={handleShare}
             className="bg-white/90 hover:bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-md backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
