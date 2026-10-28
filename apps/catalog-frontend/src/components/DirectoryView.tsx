@@ -10,7 +10,6 @@ import {
   Wrench,
   Search,
   MapPin,
-  ExternalLink,
   Sparkles,
   Layers,
   ArrowRight,
@@ -58,7 +57,6 @@ interface CoverSlide {
   subtitle: string;
   governorates: string[];
   businessId?: string;
-  marketingCreative?: boolean;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -87,31 +85,14 @@ export const DirectoryView: React.FC = () => {
   const liveFeaturedBusinesses = businesses
     .filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && !business.isFrozen && Boolean(business.name.trim()))
     .slice(0, 30);
-  const advertisingSlides: CoverSlide[] = [
-    {
-      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-1.svg`,
-      badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
-    },
-    {
-      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-2.svg`,
-      badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
-    },
-    {
-      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-3.svg`,
-      badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
-    },
-  ];
-  const coverSlides: CoverSlide[] = [
-    ...advertisingSlides,
-    ...liveFeaturedBusinesses.map((business) => ({
+  const coverSlides: CoverSlide[] = liveFeaturedBusinesses.map((business) => ({
       image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
       badge: business.category || 'نشاط محلي',
       title: business.name,
       subtitle: business.bio || (business.catalogPublished ? 'تعرّف على بيانات النشاط وكتالوجه المنشور.' : 'تعرّف على هذا النشاط ضمن دليل MantiqatiX.'),
       governorates: [business.governorate || 'all'],
       businessId: business.id,
-    })),
-  ];
+    }));
 
   // The directory uses the same canonical taxonomy as the administration forms.
   const selectGroup = (groupId: string) => {
@@ -134,21 +115,17 @@ export const DirectoryView: React.FC = () => {
   // Filter slides based on selected governorate
   const activeCoverSlides = selectedGovFilter === 'all'
     ? coverSlides
-    : (() => {
-        const matched = coverSlides.filter(
-          (slide) => slide.governorates.includes('all') || slide.governorates.includes(selectedGovFilter)
-        );
-        return matched.length > 0 ? matched : coverSlides;
-      })();
+    : coverSlides.filter((slide) => slide.governorates.includes(selectedGovFilter));
 
   useEffect(() => {
     setCurrentCoverIndex(0);
-  }, [selectedGovFilter]);
+  }, [selectedGovFilter, activeCoverSlides.length]);
 
   useEffect(() => {
+    if (activeCoverSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentCoverIndex((prev) => (prev + 1) % activeCoverSlides.length);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(timer);
   }, [activeCoverSlides.length]);
 
@@ -218,115 +195,89 @@ export const DirectoryView: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        {/* 2. Restored cover advertising carousel with a permanent side ad rail */}
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-5 items-stretch">
-        <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
-          {activeCoverSlides.map((slide, idx) => (
-            <div
-              key={idx}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                idx === currentCoverIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-              }`}
-            >
-              <img
-                src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
-                alt={slide.title}
-                className="w-full h-full object-cover object-center"
-                onError={(event) => {
-                  const image = event.currentTarget;
-                  const fallback = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
-                  if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-black/30" />
-            </div>
-          ))}
-
-          {!currentSlide?.marketingCreative && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 sm:p-10 text-white space-y-3 pointer-events-none">
-              <span className="bg-amber-400 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
-                {currentSlide?.badge}
-              </span>
-              <h2 className="text-xl sm:text-3xl md:text-4xl font-black max-w-3xl leading-tight">
-                {currentSlide?.title}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
-                {currentSlide?.subtitle}
-              </p>
-              {currentSlide?.businessId && (
-                <span className="pointer-events-auto mt-2 bg-white/15 border border-white/30 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
-                  {businesses.find((business) => business.id === currentSlide.businessId)?.catalogPublished ? 'كتالوج منشور للزوار' : 'نشاط ضمن دليل المنصة'}
-                </span>
-              )}
-              {!currentSlide?.businessId && catalogRequestPhone && (
-                <a
-                  href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pointer-events-auto mt-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs py-2.5 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+        {/* 2. One full-width cover carousel showing only currently available activities. */}
+        <section aria-label="الأنشطة المتاحة حاليًا" className="space-y-3">
+          {activeCoverSlides.length > 0 ? (
+            <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
+              {activeCoverSlides.map((slide, idx) => (
+                <div
+                  key={slide.businessId || `${slide.title}-${idx}`}
+                  aria-hidden={idx !== currentCoverIndex}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    idx === currentCoverIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                  }`}
                 >
-                  <span>اطلب كتالوج لنشاطك</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!slide.businessId) return;
+                      setSelectedBusinessId(slide.businessId);
+                      setCurrentView('public_storefront');
+                    }}
+                    aria-label={`افتح صفحة نشاط ${slide.title}`}
+                    tabIndex={idx === currentCoverIndex ? 0 : -1}
+                    className="absolute inset-0 block h-full w-full cursor-pointer text-left focus-visible:ring-4 focus-visible:ring-emerald-400"
+                  >
+                    <img
+                      src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
+                      alt={slide.title}
+                      className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+                      loading={idx === currentCoverIndex ? 'eager' : 'lazy'}
+                      onError={(event) => {
+                        const image = event.currentTarget;
+                        const fallback = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
+                        if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
+                      }}
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-black/20" aria-hidden="true" />
+                  </button>
+                </div>
+              ))}
+
+              {currentSlide && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 sm:p-10 text-white space-y-3 pointer-events-none">
+                  <span className="bg-amber-400 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
+                    {currentSlide.badge}
+                  </span>
+                  <h2 className="text-xl sm:text-3xl md:text-4xl font-black max-w-3xl leading-tight drop-shadow-lg">
+                    {currentSlide.title}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-100 max-w-2xl leading-relaxed drop-shadow">
+                    {currentSlide.subtitle}
+                  </p>
+                  <span className="mt-2 bg-white/15 border border-white/35 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
+                    اضغط على الصورة لفتح صفحة النشاط
+                  </span>
+                </div>
+              )}
+
+              {activeCoverSlides.length > 1 && (
+                <div className="absolute bottom-3 right-1/2 translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/50 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/20 max-w-[90%] overflow-x-auto no-scrollbar">
+                  {activeCoverSlides.map((slide, idx) => (
+                    <button
+                      key={slide.businessId || `${slide.title}-${idx}`}
+                      type="button"
+                      onClick={() => setCurrentCoverIndex(idx)}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        idx === currentCoverIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white'
+                      }`}
+                      aria-label={`اعرض نشاط ${slide.title}`}
+                      aria-pressed={idx === currentCoverIndex}
+                    />
+                  ))}
+                </div>
               )}
             </div>
+          ) : (
+            <div className="flex min-h-64 sm:min-h-80 md:min-h-96 w-full items-center justify-center rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 px-6 py-12 text-center text-white shadow-xl">
+              <div className="max-w-xl space-y-3">
+                <Store className="mx-auto h-10 w-10 text-emerald-300" />
+                <h2 className="text-xl sm:text-2xl font-black">لا توجد أنشطة متاحة حاليًا</h2>
+                <p className="text-sm leading-relaxed text-white/75">ستظهر هنا تلقائيًا صور الأنشطة المنشورة والمتاحة للزوار.</p>
+              </div>
+            </div>
           )}
-          {currentSlide?.marketingCreative && catalogRequestPhone && (
-            <a
-              href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute bottom-4 left-4 z-30 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black px-4 py-2.5 shadow-xl"
-            >
-              اطلب كتالوج لنشاطك
-            </a>
-          )}
-
-          {/* Slider Dots */}
-          <div className="absolute bottom-3 right-1/2 translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/50 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/20 max-w-[90%] overflow-x-auto no-scrollbar">
-            {activeCoverSlides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentCoverIndex(idx)}
-                className={`h-2 rounded-full transition-all cursor-pointer ${
-                  idx === currentCoverIndex ? 'w-5 bg-amber-400' : 'w-1.5 bg-white/50 hover:bg-white'
-                }`}
-                aria-label={`انتقل إلى النشاط ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        <aside className="relative min-h-[245px] sm:min-h-[290px] lg:min-h-0 rounded-3xl overflow-hidden border border-red-100 bg-slate-950 shadow-xl isolate">
-          <img
-            src={`${import.meta.env.BASE_URL || '/'}legacy/mnty-ad-space-booking-banner.svg`}
-            alt="مساحة إعلانية على MantiqatiX"
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="eager"
-            onError={(event) => { event.currentTarget.style.display = 'none'; }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-red-950/20" />
-          <div className="relative z-10 flex h-full min-h-[245px] sm:min-h-[290px] lg:min-h-[384px] flex-col justify-end p-5 sm:p-7 text-white">
-            <span className="mb-3 inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-black tracking-wide">مساحة إعلانية</span>
-            <h2 className="text-2xl sm:text-3xl font-black leading-tight">أعلن معنا هنا</h2>
-            <p className="mt-2 max-w-sm text-xs sm:text-sm leading-relaxed text-white/85">اعرض نشاطك أمام زوار MantiqatiX واحصل على مساحة مميزة في واجهة الدليل.</p>
-            {catalogRequestPhone ? (
-              <a
-                href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد حجز مساحة إعلانية على MantiqatiX.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3 text-xs sm:text-sm font-black text-white shadow-lg transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <MessageCircle className="h-4 w-4" />
-                أعلن معنا هنا
-              </a>
-            ) : (
-              <div className="mt-5 rounded-xl border border-white/20 bg-white/10 px-3 py-3 text-xs font-bold text-white/80">تواصل مع إدارة المنصة لحجز إعلانك</div>
-            )}
-            <span className="mt-3 text-[10px] text-white/60">الإعلانات المدفوعة تُعرض بوضوح داخل المنصة</span>
-          </div>
-        </aside>
-        </div>
+        </section>
 
         {/* Functional Groups Filter Row */}
         <div className="space-y-4">
@@ -574,7 +525,7 @@ export const DirectoryView: React.FC = () => {
                             onError={(e) => {
                               const image = e.currentTarget;
                               const fallback = resolveDefaultImage({ name: biz.name, description: biz.bio, category: biz.category, kind: 'cover' });
-                             if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
+                        if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
                             }}
                           />
                         </div>

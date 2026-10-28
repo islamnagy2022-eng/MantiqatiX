@@ -92,8 +92,13 @@ assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
 assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
 assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.isFrozen) return false;"), 'The public directory may show official showcase activity cards but must still hide other unpublished and frozen businesses');
-assert.match(directory, /أعلن معنا هنا/, 'The public directory must include the permanent side advertising card');
-assert.match(directory, /mnty-cover-ad-1\.svg[\s\S]*mnty-cover-ad-2\.svg[\s\S]*mnty-cover-ad-3\.svg/, 'The original cover advertising carousel creatives must remain available');
+assert.match(directory, /const coverSlides: CoverSlide\[\] = liveFeaturedBusinesses\.map\(\(business\) =>/ , 'The home cover must be built from available business records only');
+assert.match(directory, /publicEnabled \|\| business\.isOfficialShowcase[\s\S]{0,120}!business\.isFrozen/, 'The cover must exclude frozen and unavailable business records');
+assert.match(directory, /section aria-label="الأنشطة المتاحة حاليًا"[\s\S]*activeCoverSlides\.length > 0/, 'The home cover must be one activity-focused carousel with an empty state');
+assert.match(directory, /setSelectedBusinessId\(slide\.businessId\)[\s\S]{0,100}setCurrentView\('public_storefront'\)/, 'Clicking a cover image must open that activity public page');
+assert.match(directory, /اضغط على الصورة لفتح صفحة النشاط/, 'The cover must communicate that activity images are clickable');
+assert.match(directory, /activeCoverSlides\.length <= 1/, 'The cover autoplay must not start when zero or one activities are available');
+assert.doesNotMatch(directory, /mnty-ad-space-booking-banner\.svg|marketingCreative|advertisingSlides/, 'The homepage must no longer show two separate promotional cover panels');
 assert.doesNotMatch(context, /const advanceBusinessOverdueDay/, 'overdue-day simulation must be removed from production context');
 
 const createStart = backend.indexOf('if (action === "CREATE_BUSINESS")');
