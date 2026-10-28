@@ -825,9 +825,18 @@ Deno.serve(async (req: Request) => {
           if (createProfileError) throw createProfileError;
           providerProfileId = String(createdProfile.id);
         }
+        const storedOperationalStatus = String(currentBizcatalog.operationalStatus || "").toUpperCase();
+        // Publication does not activate operations. Preserve an explicit operating state;
+        // legacy ACTIVE businesses keep their effective state, while newly-created INACTIVE
+        // businesses stay paused until an administrator separately enables operations.
+        const approvedOperationalStatus = ["ACTIVE", "INACTIVE", "FROZEN"].includes(storedOperationalStatus)
+          ? storedOperationalStatus
+          : currentBizcatalog.isFrozen === true
+            ? "FROZEN"
+            : String(business.status || "").toUpperCase() === "ACTIVE" ? "ACTIVE" : "INACTIVE";
         const now = new Date().toISOString();
         const nextSettings = { ...currentSettings, catalog_public_enabled: true,
-          bizcatalog: { ...currentBizcatalog, publicationStatus: "PUBLISHED", publicationApprovedAt: now, publicationApprovedBy: user.id, publicationRejectionReason: "", publicationApprovedWithIncompleteOptionalData: true } };
+          bizcatalog: { ...currentBizcatalog, operationalStatus: approvedOperationalStatus, publicationStatus: "PUBLISHED", publicationApprovedAt: now, publicationApprovedBy: user.id, publicationRejectionReason: "", publicationApprovedWithIncompleteOptionalData: true } };
         const { error } = await service.from("businesses").update({ status: "ACTIVE", settings: nextSettings, updated_at: now })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
@@ -894,11 +903,11 @@ Deno.serve(async (req: Request) => {
       const patch: Record<string, unknown> = {};
       for (const k of allowed) if (Object.prototype.hasOwnProperty.call(incoming, k)) patch[k] = incoming[k];
       const nextSettings = { ...(business.settings || {}), bizcatalog: { ...current, ...patch } };
-      const operationalStatus = String(patch.operationalStatus || "").toUpperCase();
-      const nextBusinessStatus = operationalStatus === "ACTIVE" ? "ACTIVE" : operationalStatus === "INACTIVE" ? "INACTIVE" : operationalStatus === "FROZEN" ? "SUSPENDED" : String(business.status || "INACTIVE").toUpperCase();
-      const updatePayload: Record<string, unknown> = { settings: nextSettings, updated_at: new Date().toISOString() };
-      if (["ACTIVE", "INACTIVE", "FROZEN"].includes(operationalStatus)) updatePayload.status = nextBusinessStatus;
-      const { error } = await service.from("businesses").update(updatePayload).eq("id", businessId).eq("tenant_id", tenantId);
+      // Operational activation is stored independently from public publication.
+      // Do not rewrite businesses.status when an administrator pauses/resumes operations.
+      const { error } = await service.from("businesses").update({
+        settings: nextSettings, updated_at: new Date().toISOString(),
+      }).eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
 
       // Only an explicit admin-confirmed paid state can activate pending owner memberships.
