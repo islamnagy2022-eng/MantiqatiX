@@ -1225,6 +1225,16 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
 
+          {authSession.subscriberDirectoryError && (
+            <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-900">
+              تعذر قراءة حسابات Supabase: {authSession.subscriberDirectoryError}
+            </div>
+          )}
+          {(authSession.ignoredOrphanMemberships || 0) > 0 && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">
+              تم تجاهل {authSession.ignoredOrphanMemberships} تعيين قديم لا يرتبط بحساب Auth موجود. لم يتم حذفها تلقائيًا.
+            </div>
+          )}
           <div className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-right border-collapse text-xs">
@@ -1359,6 +1369,133 @@ export const AdminDashboard: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {isSubscriberAccessModalOpen && editingSubscriber && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="subscriber-access-title">
+              <div className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 shadow-2xl space-y-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 id="subscriber-access-title" className="text-lg sm:text-xl font-black text-slate-900">إدارة الدور والصلاحيات</h3>
+                    <p className="mt-1 text-xs text-slate-500">{editingSubscriber.fullName} · {editingSubscriber.email}</p>
+                  </div>
+                  <button type="button" onClick={() => { setIsSubscriberAccessModalOpen(false); setEditingSubscriber(null); }} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50">إغلاق</button>
+                </div>
+
+                {subAccessFeedback && (
+                  <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-900">{subAccessFeedback}</div>
+                )}
+
+                <form className="space-y-5" onSubmit={async (event) => {
+                  event.preventDefault();
+                  if (subAccessSaving || !editingSubscriber) return;
+                  setSubAccessSaving(true);
+                  setSubAccessFeedback(null);
+                  try {
+                    const selectedBusiness = businesses.find((business) => business.id === subAccessBusinessId);
+                    const tenantId = selectedBusiness?.tenantId || subAccessTenantId;
+                    if (subAccessBusinessId && !selectedBusiness?.tenantId) throw new Error('النشاط المختار غير مرتبط بمستأجر إنتاج معروف.');
+                    await saveSubscriberMembership({
+                      subscriber: editingSubscriber,
+                      tenantId,
+                      businessId: subAccessBusinessId || undefined,
+                      branchId: subAccessBranchId || undefined,
+                      role: subAccessRole,
+                      status: subAccessStatus,
+                      catalogEnabled: subAccessCatalogEnabled,
+                      catalogWrite: subAccessCatalogWrite,
+                    });
+                    setIsSubscriberAccessModalOpen(false);
+                    setEditingSubscriber(null);
+                  } catch (error) {
+                    setSubAccessFeedback(error instanceof Error ? error.message : 'تعذر حفظ الدور والصلاحيات في Supabase.');
+                  } finally {
+                    setSubAccessSaving(false);
+                  }
+                }}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="block text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>الدور</span>
+                      <select value={subAccessRole} onChange={(event) => setSubAccessRole(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" required>
+                        <option value="CUSTOMER">عميل (CUSTOMER)</option>
+                        <option value="OWNER">مالك نطاق / منشأة (OWNER)</option>
+                        <option value="BUSINESS_OWNER">صاحب نشاط (BUSINESS_OWNER)</option>
+                        <option value="ADMIN">مدير نشاط (ADMIN)</option>
+                        <option value="MANAGER">مدير فرع/تشغيل (MANAGER)</option>
+                        <option value="FINANCE">المالية (FINANCE)</option>
+                        <option value="SALES">المبيعات (SALES)</option>
+                        <option value="MARKETING">التسويق (MARKETING)</option>
+                        <option value="SUPPORT">الدعم (SUPPORT)</option>
+                        <option value="SUPPORT_MANAGER">مدير الدعم (SUPPORT_MANAGER)</option>
+                        <option value="EMPLOYEE">موظف (EMPLOYEE)</option>
+                        <option value="STAFF">طاقم فرع (STAFF)</option>
+                        <option value="SERVICE_PROVIDER">مقدم خدمة (SERVICE_PROVIDER)</option>
+                        <option value="PROVIDER_OWNER">مالك مقدم خدمة (PROVIDER_OWNER)</option>
+                        <option value="PROVIDER_ADMIN">مدير مقدم خدمة (PROVIDER_ADMIN)</option>
+                        <option value="BRANCH_MANAGER">مدير فرع (BRANCH_MANAGER)</option>
+                        <option value="PROVIDER_FINANCE">مالية مقدم خدمة (PROVIDER_FINANCE)</option>
+                        <option value="PROVIDER_MARKETING">تسويق مقدم خدمة (PROVIDER_MARKETING)</option>
+                        <option value="PROVIDER_OPERATIONS">تشغيل مقدم خدمة (PROVIDER_OPERATIONS)</option>
+                        <option value="PROVIDER_SUPPORT">دعم مقدم خدمة (PROVIDER_SUPPORT)</option>
+                      </select>
+                      <span className="block text-[10px] font-normal text-slate-500">دور SUPER_ADMIN محمي ولا يمكن منحه أو تعديله من هذه الشاشة.</span>
+                    </label>
+
+                    <label className="block text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>حالة التعيين</span>
+                      <select value={subAccessStatus} onChange={(event) => setSubAccessStatus(event.target.value as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                        <option value="ACTIVE">نشط (ACTIVE)</option>
+                        <option value="INACTIVE">غير نشط (INACTIVE)</option>
+                        <option value="SUSPENDED">موقوف (SUSPENDED)</option>
+                      </select>
+                    </label>
+
+                    <label className="block sm:col-span-2 text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>النشاط المخصص</span>
+                      <select value={subAccessBusinessId} onChange={(event) => {
+                        const nextId = event.target.value;
+                        setSubAccessBusinessId(nextId);
+                        const match = businesses.find((business) => business.id === nextId);
+                        if (match?.tenantId) setSubAccessTenantId(match.tenantId);
+                        setSubAccessBranchId('');
+                      }} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                        <option value="">بدون نشاط مرتبط (حساب عام/عميل)</option>
+                        {businesses.map((business) => (
+                          <option key={business.id} value={business.id}>{business.name} · {business.category}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="block sm:col-span-2 text-xs font-bold text-slate-700 space-y-1.5">
+                      <span>معرّف الفرع (اختياري)</span>
+                      <input value={subAccessBranchId} onChange={(event) => setSubAccessBranchId(event.target.value.trim())} placeholder="اتركه فارغًا لتعيين الصلاحية على مستوى النشاط" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" />
+                    </label>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900">قيود الكتالوج</h4>
+                      <p className="mt-1 text-[11px] leading-relaxed text-slate-500">يطبّق الخادم القيود على طلبات قراءة الكتالوج وتعديله، وليس على مظهر الشاشة فقط.</p>
+                    </div>
+                    <label className="flex items-start gap-3 text-xs text-slate-800">
+                      <input type="checkbox" checked={subAccessCatalogEnabled} onChange={(event) => setSubAccessCatalogEnabled(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600" />
+                      <span><strong className="block">السماح بدخول الكتالوج</strong><span className="mt-0.5 block text-slate-500">أوقف هذا الخيار لمنع الوصول إلى واجهات الكتالوج لهذا التعيين.</span></span>
+                    </label>
+                    <label className="flex items-start gap-3 text-xs text-slate-800">
+                      <input type="checkbox" checked={subAccessCatalogWrite} disabled={!subAccessCatalogEnabled} onChange={(event) => setSubAccessCatalogWrite(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600 disabled:opacity-40" />
+                      <span><strong className="block">السماح بإضافة وتعديل عناصر الكتالوج</strong><span className="mt-0.5 block text-slate-500">عند إيقافه يحتفظ الحساب بقراءة الكتالوج فقط.</span></span>
+                    </label>
+                  </div>
+
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 border-t border-slate-100 pt-4">
+                    <button type="button" onClick={() => { setIsSubscriberAccessModalOpen(false); setEditingSubscriber(null); }} className="rounded-xl border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+                    <button type="submit" disabled={subAccessSaving} className="rounded-xl bg-slate-900 px-6 py-2.5 text-xs font-black text-white hover:bg-slate-800 disabled:opacity-50">
+                      {subAccessSaving ? 'جارٍ حفظ الدور والصلاحيات...' : 'حفظ الصلاحيات والتعيين'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
