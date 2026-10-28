@@ -2,10 +2,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://islamnagy2022-eng.github.io",
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Vary": "Origin",
 };
 
 function reply(body: unknown, status = 200) {
@@ -73,14 +72,13 @@ async function userMayManageBusiness(
 async function generateAndStoreCatalogImage(args: {
   apiKey: string;
   service: ReturnType<typeof createClient>;
-  userId: string;
   businessId: string;
   kind: ImageKind;
   name: string;
   category: string;
   description: string;
 }): Promise<string> {
-  const { apiKey, service, userId, businessId, kind, name, category, description } = args;
+  const { apiKey, service, businessId, kind, name, category, description } = args;
   const aspectRatio = kind === "activity" ? "16:9" : "4:3";
   const subject = [name, category, description].filter(Boolean).join(" — ");
   const imagePrompt = kind === "activity"
@@ -212,7 +210,6 @@ Deno.serve(async (req: Request) => {
       const imageUrl = await generateAndStoreCatalogImage({
         apiKey,
         service,
-        userId: user.id,
         businessId,
         kind,
         name,
