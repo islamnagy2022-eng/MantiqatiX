@@ -786,6 +786,18 @@ Deno.serve(async (req: Request) => {
       const { error } = await service.from("businesses").update({ status: "INACTIVE", settings: nextSettings, updated_at: new Date().toISOString() })
         .eq("id", businessId).eq("tenant_id", tenantId);
       if (error) throw error;
+      const { error: rejectionAuditError } = await service.from("audit_logs").insert({
+        actor_user_id: user.id, action: "PLATFORM_BUSINESS_PUBLICATION_REJECTED",
+        entity_type: "business", entity_id: businessId, tenant_id: tenantId,
+        details: { publicationStatus: "REJECTED", reason: reason || "لم يتم توضيح السبب" },
+      });
+      if (rejectionAuditError) {
+        console.error("rejection state saved but audit log write failed", { businessId, code: rejectionAuditError.code, message: rejectionAuditError.message });
+        return response(origin, {
+          error: "PUBLICATION_AUDIT_FAILED",
+          message: "تم حفظ رفض النشر، لكن تعذر تسجيل سجل التدقيق. أعد إرسال قرار الرفض لتسجيل العملية.",
+        }, 500);
+      }
       return response(origin, { success: true, businessId, decision, status: "INACTIVE", publicationStatus: "REJECTED" });
     }
 
