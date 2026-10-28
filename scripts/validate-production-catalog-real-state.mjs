@@ -120,6 +120,30 @@ assert.match(backend, /INVALID_ADMIN_WHATSAPP/, 'server must validate platform W
 assert.match(backend, /INVALID_DEFAULT_COMMISSION/, 'server must validate platform commission input');
 assert.match(backend, /const merged = \{ \.\.\.current, \.\.\.safe \}/, 'partial platform settings saves must preserve existing settings');
 
+const auditHelperStart = backend.indexOf("const writeAuditLog = async");
+const auditHelperEnd = backend.indexOf('if (action === "GET_SETTINGS")', auditHelperStart);
+assert.ok(auditHelperStart >= 0 && auditHelperEnd > auditHelperStart, 'Production-schema audit writer must exist before platform actions.');
+const auditHelper = backend.slice(auditHelperStart, auditHelperEnd);
+for (const marker of [
+  'id: crypto.randomUUID()',
+  'tenant_id: entry.tenantId',
+  'actor_user_id: user.id',
+  'action: entry.action',
+  'entity_type: entry.entityType',
+  'entity_id: entry.entityId',
+  'old_values: entry.oldValues || {}',
+  'new_values: entry.newValues || {}',
+  'result: entry.result || "SUCCESS"',
+]) {
+  assert.ok(auditHelper.includes(marker), 'Audit writer must satisfy the live audit_logs schema: ' + marker);
+}
+assert.equal((backend.match(/service\\.from\\("audit_logs"\\)\\.insert\\(/g) || []).length, 1,
+  'All platform audit inserts must route through the single schema-correct helper.');
+assert.doesNotMatch(auditHelper, /details:/,
+  'The live audit_logs table has no details column; structured data must be stored in new_values/old_values.');
+assert.match(backend, /const creationAuditError = await writeAuditLog/,
+  'Activity creation must check whether its production audit row was recorded.');
+
 const publicationStart = backend.indexOf('if (action === "BUSINESS_PUBLICATION_REVIEW")');
 const publicationEnd = backend.indexOf('if (action === "BUSINESS_SETTINGS_UPDATE")', publicationStart);
 assert.ok(publicationStart >= 0 && publicationEnd > publicationStart, 'Admin publication review action must exist before billing updates.');
