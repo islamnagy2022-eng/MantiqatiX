@@ -44,6 +44,7 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
   const [draft, setDraft] = useState<CoverAdvertisementDraft>(makeDraft);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [template, setTemplate] = useState("");
+  const [externalImageUrl, setExternalImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
@@ -67,6 +68,7 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
     setDraft(makeDraft());
     setSelectedFile(null);
     setTemplate("");
+    setExternalImageUrl("");
   };
 
   const edit = (ad: CoverAdvertisement) => {
@@ -88,6 +90,7 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
     });
     setSelectedFile(null);
     setTemplate("");
+    setExternalImageUrl(ad.imageUrl.startsWith("https://") ? ad.imageUrl : "");
     setMessage(null);
   };
 
@@ -165,6 +168,7 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
   const chooseTemplate = (value: string) => {
     setTemplate(value);
     setSelectedFile(null);
+    setExternalImageUrl("");
     setDraft((prev) => ({
       ...prev,
       imageUrl: value ? (import.meta.env.BASE_URL || "/") + "legacy/mnty-cover-ad-" + value + ".svg" : (prev.storagePath ? prev.imageUrl : ""),
@@ -234,12 +238,10 @@ const CoverAdsManager: React.FC<Props> = ({ businesses }) => {
             </div>
           )}
 
-          {!selectedFile && !draft.imageUrl && (
-            <label className="block">
-              <span className="mb-1 block text-xs font-bold text-slate-700">رابط صورة آمن (HTTPS) إن كانت مستضافة خارجيًا</span>
-              <input type="url" value="" onChange={(e) => setDraft((prev) => ({ ...prev, imageUrl: e.target.value, storagePath: "" }))} placeholder="https://..." className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs" dir="ltr" />
-            </label>
-          )}
+          <label className="block">
+            <span className="mb-1 block text-xs font-bold text-slate-700">رابط صورة خارجي آمن (HTTPS) — اختياري</span>
+            <input type="url" value={externalImageUrl} onChange={(e) => { setExternalImageUrl(e.target.value); setSelectedFile(null); setTemplate(""); setDraft((prev) => ({ ...prev, imageUrl: e.target.value, storagePath: "" })); }} placeholder="https://..." className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs" dir="ltr" />
+          </label>
 
           <label className="block">
             <span className="mb-1 block text-xs font-bold text-slate-700">رابط الوجهة عند الضغط (اختياري)</span>
