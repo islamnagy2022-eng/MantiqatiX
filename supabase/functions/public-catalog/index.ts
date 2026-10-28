@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
+  "https://catalog.tagerflow.com",
   "http://localhost:8080",
   "http://127.0.0.1:8080",
 ]);
@@ -206,6 +207,9 @@ Deno.serve(async (req: Request) => {
         logoUrl: safeImageUrl(profile.logo_url),
         coverUrl: safeImageUrl(profile.cover_url),
         google_maps_url: String(profile.google_maps_url || ""),
+        facebookUrl: String(profile.facebook_url || ""),
+        instagramUrl: String(profile.instagram_url || ""),
+        tiktokUrl: String(profile.tiktok_url || ""),
         category: String(profile.category || provider.provider_kind || "").slice(0, 100),
       },
       branches: branches.map((branch: any) => ({
