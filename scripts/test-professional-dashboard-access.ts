@@ -28,7 +28,11 @@ assert.equal(canAccessMerchantDashboard(platformAdmin), true, 'platform admin ca
 const owner = makeSession({ membershipRole: 'OWNER', membershipPermissions: {} });
 assert.equal(isBusinessManagementRole(owner), true);
 assert.equal(canAccessProfessionalDashboard(owner), true, 'business owner can open professional dashboard');
-assert.equal(canAccessMerchantDashboard(owner), true, 'business owner can open existing merchant dashboard');
+assert.equal(canAccessMerchantDashboard(owner), true, 'business-wide owner can open existing merchant dashboard');
+
+const branchOwner = makeSession({ membershipRole: 'OWNER', membershipBranchId: 'branch-a', membershipPermissions: {} });
+assert.equal(canAccessProfessionalDashboard(branchOwner), true, 'branch owner can use the scoped professional dashboard');
+assert.equal(canAccessMerchantDashboard(branchOwner), false, 'branch owner cannot enter the broad unscoped legacy dashboard');
 
 const managerWithoutPermissions = makeSession({ membershipRole: 'MANAGER', membershipPermissions: {} });
 assert.equal(isBusinessManagementRole(managerWithoutPermissions), false, 'MANAGER role must not automatically grant full control');
