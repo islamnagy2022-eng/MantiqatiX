@@ -9,7 +9,7 @@ const allowedHosts: Record<SocialPlatform, ReadonlySet<string>> = {
 export function normalizeSocialUrl(value: unknown, platform: SocialPlatform): string {
   const raw = String(value || '').trim();
   if (!raw) return '';
-  const candidate = /^https?:\/\//i.test(raw) ? raw : \`https://\${raw}\`;
+  const candidate = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
   try {
     const url = new URL(candidate);
     if (url.protocol !== 'https:' || !allowedHosts[platform].has(url.hostname.toLowerCase())) return '';
