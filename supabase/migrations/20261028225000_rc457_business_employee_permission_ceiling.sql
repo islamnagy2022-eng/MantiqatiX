@@ -202,6 +202,24 @@ revoke all on function public.mnty_business_employee_list_scoped(varchar,uuid,va
 grant execute on function public.mnty_business_employee_list_scoped(varchar,uuid,varchar) to authenticated;
 comment on function public.mnty_business_employee_list_scoped(varchar,uuid,varchar) is 'RC457 branch-aware roster list. Business-wide owner/member sees the business scope; branch-scoped membership sees only the explicitly matching branch.';
 
+-- Keep the legacy RPC name for existing callers, but route it through the strict
+-- business-wide scope check. Branch-scoped users must call the scoped endpoint
+-- with their explicitly authorized branch; the old endpoint cannot reveal a full roster.
+create or replace function public.mnty_business_employee_list(p_tenant_id varchar, p_business_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  return public.mnty_business_employee_list_scoped(p_tenant_id,p_business_id,null);
+end;
+$function$;
+
+revoke all on function public.mnty_business_employee_list(varchar,uuid) from public, anon;
+grant execute on function public.mnty_business_employee_list(varchar,uuid) to authenticated;
+comment on function public.mnty_business_employee_list(varchar,uuid) is 'RC457 compatibility wrapper. Delegates to the branch-aware function with no branch scope and therefore denies branch-only memberships instead of exposing the whole roster.';
+
 create or replace function public.mnty_business_employee_position_upsert(
   p_tenant_id varchar,
   p_business_id uuid,
