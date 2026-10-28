@@ -568,6 +568,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!business?.tenantId) throw new Error('النشاط غير مرتبط ببيانات الإنتاج.');
     if (authSession.role !== 'admin') throw new Error('تعديل حالة السداد متاح لمالك المنصة فقط.');
     await callPlatformAdmin({ action: 'BUSINESS_SETTINGS_UPDATE', businessId, tenantId: business.tenantId, settings });
+    setBusinesses((prev) => prev.map((item) => item.id === businessId ? { ...item, ...settings } as Business : item));
   };
   const confirmAdminPayment = async (businessId: string): Promise<void> => {
     const business = businesses.find((item) => item.id === businessId);
