@@ -104,8 +104,8 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
   return { business, products: mapProducts(businessId, business.tenantId || '', business.branchId, body.items || [], body.prices || []) };
 }
 
-function groupFromCategory(category: string): FunctionalGroupId {
-  return resolveCanonicalGroupId(category);
+function groupFromCategory(category: string, groupCode?: string): FunctionalGroupId {
+  return resolveCanonicalGroupId(category, groupCode);
 }
 
 export function mapBusiness(raw: any, provider: any): Business {
@@ -122,7 +122,9 @@ export function mapBusiness(raw: any, provider: any): Business {
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
-    functionalGroupId: groupFromCategory(category),
+    functionalGroupId: groupFromCategory(category, String(raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || '')),
+    categoryClassificationType: raw.settings?.activity_classification_type === 'profession' ? 'profession' : 'activity',
+    activitySpecialty: String(raw.settings?.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     bio: String(profile.bio || raw.bio || provider?.description || ''),
