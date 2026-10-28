@@ -60,7 +60,8 @@ export const CatalogSection: React.FC = () => {
     return found ? found.quantity : 0;
   };
 
-  const isFrozen = currentBusiness?.isFrozen || (currentBusiness?.overdueDaysCount && currentBusiness.overdueDaysCount > 5);
+  const isFrozen = currentBusiness?.operationalStatus === 'FROZEN' || currentBusiness?.isFrozen || (currentBusiness?.overdueDaysCount && currentBusiness.overdueDaysCount > 5);
+  const isOperationallyHidden = currentBusiness?.operationalStatus !== 'ACTIVE' || Boolean(currentBusiness?.isFrozen);
 
   const buildQuoteUrl = (product: Product) => {
     let digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '201010171770')
@@ -72,6 +73,13 @@ export const CatalogSection: React.FC = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      {!isOperationallyHidden && null}
+      {isOperationallyHidden && !isFrozen && (
+        <div className="bg-slate-50 border border-slate-300 rounded-2xl p-5 mb-6 text-slate-800">
+          <h3 className="font-black text-base">الكتالوج غير متاح حاليًا</h3>
+          <p className="text-sm mt-1">تم إيقاف النشاط مؤقتًا من إدارة المنصة. المنتجات والخدمات غير معروضة حاليًا.</p>
+        </div>
+      )}
       {/* Frozen Alert Banner */}
       {isFrozen && (
         <div className="bg-rose-50 border-2 border-rose-400 rounded-3xl p-4 sm:p-5 mb-6 flex items-center justify-between gap-3 text-rose-950">
