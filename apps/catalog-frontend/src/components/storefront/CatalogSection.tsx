@@ -60,7 +60,7 @@ export const CatalogSection: React.FC = () => {
     return found ? found.quantity : 0;
   };
 
-  const isFrozen = currentBusiness?.operationalStatus === 'FROZEN' || currentBusiness?.isFrozen || (currentBusiness?.overdueDaysCount && currentBusiness.overdueDaysCount > 5);
+  const isFrozen = currentBusiness?.operationalStatus === 'FROZEN' || Boolean(currentBusiness?.isFrozen);
   const isOperationallyHidden = currentBusiness?.operationalStatus !== 'ACTIVE' || Boolean(currentBusiness?.isFrozen);
 
   const buildQuoteUrl = (product: Product) => {
