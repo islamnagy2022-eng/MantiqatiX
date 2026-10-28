@@ -127,6 +127,7 @@ export interface Subscriber {
   emailConfirmed?: boolean;
   lastSignInAt?: string;
   isAccountOnly?: boolean;
+  isPlatformAccount?: boolean;
   status: 'active' | 'pending' | 'suspended';
   // Credentials assigned by Admin
   username?: string;
