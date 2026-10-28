@@ -173,6 +173,7 @@ export const AdminDashboard: React.FC = () => {
   const [billingStatusFilter, setBillingStatusFilter] = useState('all');
   const [billingActionMsg, setBillingActionMsg] = useState<string | null>(null);
   const [billingActionBusyId, setBillingActionBusyId] = useState<string | null>(null);
+  const [businessDeleteBusyId, setBusinessDeleteBusyId] = useState<string | null>(null);
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
@@ -322,6 +323,28 @@ export const AdminDashboard: React.FC = () => {
       navigator.clipboard.writeText(link);
       setCopiedId(biz.id);
       setTimeout(() => setCopiedId(null), 2500);
+    }
+  };
+
+  const handleDeleteBusiness = async (business: Business) => {
+    if (!business.tenantId) {
+      window.alert('لا يمكن حذف النشاط لأن معرّف المستأجر الإنتاجي غير متوفر.');
+      return;
+    }
+    const confirmed = window.confirm(
+      `سيتم حذف نشاط «${business.name}» نهائيًا مع إعداداته والكتالوج والتعيينات المرتبطة به. إذا كان له طلبات أو حركات مالية أو مخزون أو اتفاقيات محفوظة فسيمنع الخادم الحذف للحفاظ على السجلات. هل تريد المتابعة؟`
+    );
+    if (!confirmed || businessDeleteBusyId) return;
+    setBusinessDeleteBusyId(business.id);
+    try {
+      await deleteBusiness(business.id);
+      window.alert(`تم حذف نشاط «${business.name}» نهائيًا من قاعدة البيانات.`);
+    } catch (error) {
+      window.alert(error instanceof Error
+        ? `تعذر حذف النشاط: ${error.message}`
+        : 'تعذر حذف النشاط. لم يتم إزالة النشاط من القائمة المحلية.');
+    } finally {
+      setBusinessDeleteBusyId(null);
     }
   };
 
@@ -1199,6 +1222,16 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <span>معاينة</span>
                       <ExternalLink className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={businessDeleteBusyId === b.id}
+                      onClick={() => { void handleDeleteBusiness(b); }}
+                      className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+                      title="حذف النشاط وبياناته نهائيًا؛ تُحفظ السجلات المالية والتشغيلية"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {businessDeleteBusyId === b.id ? 'جارٍ الحذف...' : 'حذف النشاط'}
                     </button>
                   </div>
                 </div>
