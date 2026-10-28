@@ -68,7 +68,7 @@ interface AppContextType {
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   addSubscriber: (sub: { fullName: string; email: string; phone: string; businessId: string; username?: string; password?: string; authMethod: 'direct_password' | 'gmail_invite'; notes?: string; }) => Promise<Subscriber>;
-  saveSubscriberMembership: (input: { subscriber: Subscriber; tenantId: string; businessId?: string; branchId?: string; role: string; status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'; catalogEnabled: boolean; catalogWrite: boolean; }) => Promise<Subscriber>;
+  saveSubscriberMembership: (input: { subscriber: Subscriber; tenantId: string; businessId?: string; branchId?: string; role: string; status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'; catalogEnabled: boolean; catalogWrite: boolean; accountRestricted: boolean; }) => Promise<Subscriber>;
   updateSubscriber: (sub: Subscriber) => Promise<void>;
   deleteSubscriber: (id: string) => Promise<void>;
   sendGmailInvite: (subscriberId: string) => string;
@@ -569,6 +569,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
     catalogEnabled: boolean;
     catalogWrite: boolean;
+    accountRestricted: boolean;
   }): Promise<Subscriber> => {
     if (authSession.role !== 'admin') throw new Error('إدارة أدوار الحسابات والصلاحيات متاحة لمالك المنصة فقط.');
     const source = input.subscriber;
@@ -584,6 +585,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: input.status,
       catalogEnabled: input.catalogEnabled,
       catalogWrite: input.catalogWrite,
+      accountRestricted: input.accountRestricted,
     });
     const membership = result?.membership;
     if (result?.success !== true || !membership?.id) throw new Error('لم يؤكد الخادم حفظ تعيين الدور والصلاحيات.');
@@ -621,8 +623,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSubscribers((prev) => prev.map((s) => s.id === updated.id ? { ...updated, password: undefined } : s));
   };
   const deleteSubscriber = async (id: string) => {
+    const target = subscribers.find((s) => s.id === id);
+    if (!target || target.isAccountOnly || id.startsWith('ACCOUNT:')) {
+      throw new Error('هذا حساب Google لم يُسند إلى عضوية بعد. استخدم إدارة الدور لتعيينه أو تقييده.');
+    }
     await callPlatformAdmin({ action: 'SUBSCRIBER_STATUS', membershipId: id, status: 'INACTIVE' });
-    setSubscribers((prev) => prev.filter((s) => s.id !== id));
+    setSubscribers((prev) => prev.map((s) => s.id === id
+      ? { ...s, status: 'pending', membershipStatus: 'INACTIVE', password: undefined }
+      : s));
   };
   const sendGmailInvite = (id: string) => {
     const sub = subscribers.find((s) => s.id === id);
