@@ -69,7 +69,7 @@ BEGIN
       'RC456 product','COMBINED','PRODUCT',v_product::text,'ORDER_PAID',200,
       null,null,false,'DRAFT',1,v_actor,v_actor),
     (v_future_rule,'MNTY-PLATFORM',null,null,'PERCENTAGE',99,0,0,false,
-      'RC456 future','PERCENTAGE','PRODUCT',gen_random_uuid()::text,'ORDER_PAID',999,
+      'RC456 future','PERCENTAGE','PRODUCT',v_product::text,'ORDER_PAID',999,
       now()+interval '1 day',now()+interval '2 days',false,'DRAFT',1,v_actor,v_actor);
 
   PERFORM set_config('rc456.actor',v_actor::text,true);
@@ -105,6 +105,9 @@ BEGIN
      OR v_result->>'selected_rule_id' IS DISTINCT FROM current_setting('rc456.product_rule')
      OR (v_result->'selected_preview'->>'commission_amount')::numeric <> 30 THEN
     RAISE EXCEPTION 'RC456_SPECIFICITY_RESOLUTION_MISMATCH: %',v_result;
+  END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(v_result->'candidates') item WHERE item->>'rule_id'=current_setting('rc456.future_rule')) THEN
+    RAISE EXCEPTION 'RC456_FUTURE_RULE_WAS_INCLUDED';
   END IF;
 
   UPDATE public.commission_rules
