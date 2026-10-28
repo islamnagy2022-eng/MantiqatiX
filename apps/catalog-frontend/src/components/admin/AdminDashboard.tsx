@@ -990,9 +990,9 @@ export const AdminDashboard: React.FC = () => {
                               )}
 
                               <div className="flex items-center gap-1 flex-wrap">
-                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'ACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50" title="إعادة تفعيل النشاط وإظهاره إذا كان النشر معتمدًا">تنشيط</button>
-                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'INACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 disabled:opacity-50" title="إيقاف النشاط وإخفاؤه عن الدليل العام">إيقاف</button>
-                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'FROZEN')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-200 disabled:opacity-50" title="تجميد النشاط وإخفاء المنتجات والخدمات ومنع ظهوره في البانرات والترشيحات">تجميد</button>
+                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'ACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 disabled:opacity-50" title="إعادة إتاحة المنتجات والخدمات والطلبات دون تغيير قرار النشر أو حالة السداد">تنشيط</button>
+                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'INACTIVE')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 disabled:opacity-50" title="إيقاف التشغيل والطلبات مع إبقاء صفحة النشاط المنشورة ظاهرة دون منتجات أو خدمات">إيقاف</button>
+                                <button disabled={Boolean(billingActionBusyId)} onClick={() => void handleOperationalStatusChange(biz, 'FROZEN')} className="text-[10px] font-bold px-2 py-1 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-200 disabled:opacity-50" title="تجميد التشغيل وإخفاء المنتجات والخدمات ومنع ظهوره في البانرات والترشيحات دون إلغاء النشر العام">تجميد</button>
                               </div>
                             </div>
                           </td>
