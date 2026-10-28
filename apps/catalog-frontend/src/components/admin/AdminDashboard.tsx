@@ -2247,16 +2247,30 @@ export const AdminDashboard: React.FC = () => {
                   </span>
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-slate-700">موعد استحقاق السداد</span>
-                    <input type="date" required value={newBizPaymentDueDate} onChange={(event) => setNewBizPaymentDueDate(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+                  <label className="block sm:col-span-2">
+                    <span className="mb-1 block text-xs font-bold text-slate-700">نظام الاشتراك</span>
+                    <select value={newBizSubscriptionMode} onChange={(event) => setNewBizSubscriptionMode(event.target.value as 'PAID' | 'FREE')} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold">
+                      <option value="PAID">اشتراك مدفوع — تحديد القيمة وموعد السداد</option>
+                      <option value="FREE">تفعيل مجاني بقرار الإدارة — القيمة 0</option>
+                    </select>
                   </label>
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-bold text-slate-700">مدة المهلة بعد الاستحقاق (أيام)</span>
-                    <input type="number" required min={0} max={90} step={1} value={newBizGracePeriodDays} onChange={(event) => setNewBizGracePeriodDays(Number(event.target.value))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
-                  </label>
+                  {newBizSubscriptionMode === 'PAID' && <>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-bold text-slate-700">قيمة الاشتراك</span>
+                      <input type="number" min={0.01} step="0.01" required value={newBizSubscriptionAmount} onChange={(event) => setNewBizSubscriptionAmount(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-bold text-slate-700">موعد استحقاق السداد</span>
+                      <input type="date" required value={newBizPaymentDueDate} onChange={(event) => setNewBizPaymentDueDate(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-bold text-slate-700">مدة المهلة بعد الاستحقاق (أيام)</span>
+                      <input type="number" min={0} max={90} step={1} value={newBizGracePeriodDays} onChange={(event) => setNewBizGracePeriodDays(Number(event.target.value))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+                    </label>
+                  </>}
+                  {newBizSubscriptionMode === 'FREE' && <p className="sm:col-span-2 rounded-lg bg-emerald-50 p-3 text-xs font-bold text-emerald-800">سيُحفظ الاشتراك بقيمة 0 وحالة «مفعّل مجانًا» مع تسجيل اعتماد الإدارة. لن يُسجّل كسداد مدفوع، ولن يتغير قرار النشر تلقائيًا.</p>}
                 </div>
-                <p className="text-[11px] leading-5 text-slate-500">المهلة تُحفظ كإعداد للسداد؛ ولا يعني تحديدها إنشاء فاتورة أو فرض رسوم أو تشغيل إيقاف تلقائي.</p>
+                <p className="text-[11px] leading-5 text-slate-500">موعد السداد مطلوب للاشتراك المدفوع فقط. التفعيل المجاني قرار إداري مستقل عن النشر، ولا ينشئ فاتورة أو عملية دفع.</p>
               </section>
 
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">تنبيه توضيحي وليس خطأ: هذا النموذج يحفظ بيانات النشاط ووصفه ومواعيد العمل وروابط الصور والموقع وبيانات النشر. لا يسجل رسومًا ولا يؤكد السداد؛ ستظل حالة السداد «غير مدفوع» حتى تأكيده من الإدارة. اختيار التفعيل يحدد نشر الكتالوج فقط، مع حفظ تاريخ الاستحقاق ومدة المهلة.</div>
