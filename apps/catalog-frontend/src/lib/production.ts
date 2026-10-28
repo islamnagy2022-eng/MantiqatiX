@@ -8,6 +8,36 @@ if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
   throw new Error('تعذر تحميل إعدادات الاتصال الإنتاجي لمنصة MantiqatiX');
 }
 
+export type CatalogAiImageKind = 'activity' | 'product' | 'service';
+
+export async function generateCatalogAiImage(input: {
+  businessId: string;
+  kind: CatalogAiImageKind;
+  name: string;
+  category?: string;
+  description?: string;
+}): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('ai-gemini-proxy', {
+      body: {
+        action: 'generate_catalog_image',
+        businessId: input.businessId,
+        imageKind: input.kind,
+        name: input.name,
+        category: input.category || '',
+        description: input.description || '',
+      },
+    });
+    if (error || typeof data?.imageUrl !== 'string' || !data.imageUrl.startsWith('https://')) {
+      return null;
+    }
+    return data.imageUrl;
+  } catch (error) {
+    console.warn('Catalog AI image generation was unavailable; using contextual artwork.', error);
+    return null;
+  }
+}
+
 export const supabase = createClient(runtime.supabaseUrl, runtime.supabaseKey, {
   auth: {
     persistSession: true,
@@ -138,8 +168,14 @@ export function mapProducts(businessId: string, _tenantId: string, branchId: str
     const savedImageSource = String(metadata.image_source || i.imageSource || i.image_source || '').toLowerCase();
     const stockImage = isStockImageUrl(savedImageUrl);
     const neutralPlaceholder = isNeutralPlaceholderUrl(savedImageUrl);
-    const imageSource: 'auto' | 'owner' = savedImageSource === 'auto' || !savedImageUrl || stockImage || neutralPlaceholder ? 'auto' : 'owner';
-    const imageUrl = imageSource === 'owner' ? savedImageUrl : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
+    const imageSource: 'auto' | 'owner' | 'ai' = savedImageSource === 'ai' && Boolean(savedImageUrl)
+      ? 'ai'
+      : savedImageSource === 'auto' || !savedImageUrl || stockImage || neutralPlaceholder
+        ? 'auto'
+        : 'owner';
+    const imageUrl = imageSource === 'owner' || imageSource === 'ai'
+      ? savedImageUrl
+      : resolveDefaultImage({ name, description, category, kind: itemType === 'SERVICE' ? 'service' : 'product' });
     // Service requests with hidden prices are quotable services, not unavailable products.
     const requiresQuote = itemType === 'SERVICE' && metadata.show_price === false;
     const available = metadata.is_available !== false && (
