@@ -205,7 +205,9 @@ export const AdminDashboard: React.FC = () => {
   const [newBizVillage, setNewBizVillage] = useState('');
   const [newBizAddress, setNewBizAddress] = useState('');
   const [newBizActivationMode, setNewBizActivationMode] = useState<'activate_now' | 'wait_for_confirmation'>('wait_for_confirmation');
-  const [newBizPaymentDueDate, setNewBizPaymentDueDate] = useState(getDefaultBusinessPaymentDueDate);
+  const [newBizSubscriptionMode, setNewBizSubscriptionMode] = useState<'PAID' | 'FREE'>('PAID');
+  const [newBizSubscriptionAmount, setNewBizSubscriptionAmount] = useState('0');
+  const [newBizPaymentDueDate, setNewBizPaymentDueDate] = useState('');
   const [newBizGracePeriodDays, setNewBizGracePeriodDays] = useState(7);
 
   // New Category Creation state
@@ -300,21 +302,17 @@ export const AdminDashboard: React.FC = () => {
       return;
     }
     const phoneDigits = newBizOwnerWhatsApp.replace(/\D/g, '');
-    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-      window.alert('أدخل رقم واتساب حقيقيًا لصاحب النشاط من 10 إلى 15 رقمًا.');
+    if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) {
+      window.alert('إذا أدخلت رقم واتساب، يجب أن يكون من 10 إلى 15 رقمًا.');
       return;
     }
-    if (!newBizGov.trim() || !newBizMarkaz.trim()) {
-      window.alert('أدخل المحافظة والمركز/القسم. القرية أو الحي اختياري إذا لم ينطبق.');
+    if (newBizSubscriptionMode === 'PAID' && (!/^\d{4}-\d{2}-\d{2}$/.test(newBizPaymentDueDate) || Number.isNaN(new Date(`${newBizPaymentDueDate}T00:00:00`).getTime()))) {
+      window.alert('حدد موعد استحقاق السداد للاشتراك غير المجاني.');
       return;
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(newBizPaymentDueDate) || Number.isNaN(new Date(`${newBizPaymentDueDate}T00:00:00`).getTime())) {
-      window.alert('حدد تاريخًا صحيحًا لاستحقاق السداد.');
-      return;
-    }
-    const gracePeriodDays = Number(newBizGracePeriodDays);
-    if (!Number.isInteger(gracePeriodDays) || gracePeriodDays < 0 || gracePeriodDays > 90) {
-      window.alert('مدة المهلة يجب أن تكون عددًا صحيحًا من 0 إلى 90 يومًا.');
+    const subscriptionAmount = newBizSubscriptionMode === 'FREE' ? 0 : Number(newBizSubscriptionAmount);
+    if (newBizSubscriptionMode === 'PAID' && (!Number.isFinite(subscriptionAmount) || subscriptionAmount <= 0)) {
+      window.alert('أدخل قيمة اشتراك أكبر من صفر أو اختر التفعيل المجاني.');
       return;
     }
 
@@ -351,11 +349,13 @@ export const AdminDashboard: React.FC = () => {
       maxProductsLimit: 150,
       registrationDate: new Date().toISOString().split('T')[0],
       paymentDueDay: 0,
-      paymentDueDate: newBizPaymentDueDate,
-      paymentGracePeriodDays: gracePeriodDays,
+      subscriptionMode: newBizSubscriptionMode,
+      subscriptionAmount,
+      paymentDueDate: newBizSubscriptionMode === 'FREE' ? '' : newBizPaymentDueDate,
+      paymentGracePeriodDays: newBizSubscriptionMode === 'FREE' ? 0 : gracePeriodDays,
       commissionPerOrder: 0,
       totalOrdersCount: 0,
-      paymentStatus: 'pending',
+      paymentStatus: newBizSubscriptionMode === 'FREE' ? 'free' : 'pending',
       overdueDaysCount: 0,
       isFrozen: false,
       paymentConfirmedByAdmin: false,
@@ -376,7 +376,9 @@ export const AdminDashboard: React.FC = () => {
     setNewBizVillage('');
     setNewBizAddress('');
     setNewBizActivationMode('wait_for_confirmation');
-    setNewBizPaymentDueDate(getDefaultBusinessPaymentDueDate());
+    setNewBizSubscriptionMode('PAID');
+    setNewBizSubscriptionAmount('0');
+    setNewBizPaymentDueDate('');
     setNewBizGracePeriodDays(7);
     setIsBizModalOpen(false);
     setSelectedBusinessId(createdBizId);
@@ -2185,7 +2187,6 @@ export const AdminDashboard: React.FC = () => {
                     <label className="block text-[10px] font-bold text-slate-600 mb-0.5">المحافظة</label>
                     <input
                       type="text"
-                      required
                       value={newBizGov}
                       onChange={(e) => setNewBizGov(e.target.value)}
                       placeholder="مثال: الدقهلية"
@@ -2196,7 +2197,6 @@ export const AdminDashboard: React.FC = () => {
                     <label className="block text-[10px] font-bold text-slate-600 mb-0.5">المركز / القسم</label>
                     <input
                       type="text"
-                      required
                       value={newBizMarkaz}
                       onChange={(e) => setNewBizMarkaz(e.target.value)}
                       placeholder="مثال: المنصورة"
