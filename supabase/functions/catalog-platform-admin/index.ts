@@ -805,6 +805,12 @@ Deno.serve(async (req: Request) => {
     const message = error instanceof Error ? error.message : String(errorRecord.message || errorRecord.code || "CATALOG_PLATFORM_OPERATION_FAILED");
     console.error("catalog-platform-admin failed", { message, code: errorRecord.code, details: errorRecord.details, hint: errorRecord.hint });
     const known = ["TENANT_SCOPE_FORBIDDEN", "BUSINESS_NOT_FOUND", "INVALID_BUSINESS_ID", "TENANT_NOT_ACTIVE", "BUSINESS_NOT_ACTIVE", "SUBSCRIBER_NOT_FOUND", "PRODUCTION_TENANT_REQUIRED"];
+    if (message === "LEGAL_BUSINESS_OWNER_REQUIRED") {
+      return response(origin, {
+        error: message,
+        message: "لا يمكن تفعيل النشاط قبل ربط حساب مالك نشط به بصلاحية OWNER أو BUSINESS_OWNER. لم يتم تجاوز بوابة الامتثال القانوني.",
+      }, 409);
+    }
     return response(origin, { error: known.includes(message) ? message : "CATALOG_PLATFORM_OPERATION_FAILED" }, known.includes(message) ? 403 : 400);
   }
 });
