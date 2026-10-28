@@ -819,6 +819,7 @@ export const AdminDashboard: React.FC = () => {
                     .map((biz) => {
                       const isOfficialShowcase = Boolean(biz.isOfficialShowcase);
                       const isPaidConfirmed = biz.paymentStatus === 'paid' && biz.paymentConfirmedByAdmin;
+                      const isFreeActivated = biz.paymentStatus === 'free' && biz.subscriptionAmount === 0 && biz.freeActivationApprovedByAdmin;
                       const isFrozen = biz.isFrozen || biz.paymentStatus === 'frozen';
                       const isOverdue = biz.paymentStatus === 'overdue';
                       const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
@@ -878,20 +879,21 @@ export const AdminDashboard: React.FC = () => {
                           <td className="py-3.5 px-4 text-slate-800 font-black">
                             <span>{biz.paymentDueDay > 0 ? `يوم ${biz.paymentDueDay} من الشهر` : 'غير محدد'}</span>
                             <span className="block text-[10px] text-slate-400 font-normal">
-                              {biz.paymentDueDate || 'لم يُحدد موعد سداد'}
-                              <span className="block text-[10px] text-slate-400 font-normal">مهلة السداد: {biz.paymentGracePeriodDays ?? 0} يوم</span>
+                              {isFreeActivated ? 'لا يوجد موعد سداد — تفعيل مجاني' : biz.paymentDueDate || 'لم يُحدد موعد سداد'}
+                              <span className="block text-[10px] text-slate-400 font-normal">{isFreeActivated ? 'قيمة الاشتراك: 0' : `قيمة الاشتراك: ${biz.subscriptionAmount ?? 'غير محددة'}`}</span>
+                              {!isFreeActivated && <span className="block text-[10px] text-slate-400 font-normal">مهلة السداد: {biz.paymentGracePeriodDays ?? 0} يوم</span>}
                             </span>
                           </td>
 
                           <td className="py-3.5 px-4">
                             <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-md text-[11px] border border-slate-200">
-                              {isOfficialShowcase ? 'عرض رسمي معفى' : 'غير محددة'}
+                              {isOfficialShowcase || isFreeActivated ? 'تفعيل مجاني' : 'اشتراك مدفوع'}
                             </span>
                           </td>
 
                           <td className="py-3.5 px-4">
                             <span className={isOfficialShowcase || isPaidConfirmed ? 'font-black block text-emerald-700' : isFrozen ? 'font-black block text-rose-700' : isOverdue ? 'font-black block text-amber-700' : 'font-black block text-slate-700'}>
-                              {isOfficialShowcase ? 'عرض رسمي معفى من رسوم الاشتراك' : isPaidConfirmed ? 'مدفوع ومؤكد' : isFrozen ? 'مجمّد' : isOverdue ? 'متأخر' : 'بانتظار السداد'}
+                              {isOfficialShowcase ? 'عرض رسمي معفى من رسوم الاشتراك' : isFreeActivated ? 'مفعّل مجانًا — القيمة 0' : isPaidConfirmed ? 'مدفوع ومؤكد' : isFrozen ? 'مجمّد' : isOverdue ? 'متأخر' : 'بانتظار السداد'}
                             </span>
                             {isPaidConfirmed && biz.lastPaymentDate && (
                               <span className="text-[10px] text-slate-400 block">آخر سداد: {biz.lastPaymentDate}</span>
@@ -2235,8 +2237,8 @@ export const AdminDashboard: React.FC = () => {
                 <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'activate_now' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
                   <input type="radio" name="newBizActivationMode" value="activate_now" checked={newBizActivationMode === 'activate_now'} onChange={() => setNewBizActivationMode('activate_now')} className="mt-1 accent-emerald-600" />
                   <span>
-                    <span className="block text-xs font-black text-slate-800">التفعيل الفعلي الآن — نشر الكتالوج</span>
-                    <span className="mt-1 block text-[11px] leading-5 text-slate-500">يظهر النشاط للزوار بعد الحفظ، مع بقائه غير مدفوع لحين تأكيد السداد.</span>
+                    <span className="block text-xs font-black text-slate-800">إرسال النشاط للنشر بعد موافقة الإدارة</span>
+                    <span className="mt-1 block text-[11px] leading-5 text-slate-500">لن يظهر النشاط للعامة إلا بعد اعتماد النشر من الإدارة. حالة الاشتراك مستقلة عن النشر.</span>
                   </span>
                 </label>
                 <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'wait_for_confirmation' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white'}`}>
