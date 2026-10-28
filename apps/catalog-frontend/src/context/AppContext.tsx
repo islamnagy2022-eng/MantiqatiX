@@ -816,7 +816,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };
 
   const addToCart = (product: Product, quantity = 1) => {
-    if (currentBusiness?.isFrozen) { window.alert('هذا النشاط موقوف مؤقتا ولا يستقبل طلبات جديدة.'); return; }
+    if (currentBusiness?.operationalStatus !== 'ACTIVE' || currentBusiness?.isFrozen) { window.alert('هذا النشاط موقوف أو مجمّد ولا يستقبل طلبات جديدة.'); return; }
     setCartItems((prev) => { const match = prev.find((item) => item.product.id === product.id); return match ? prev.map((item) => item.product.id === product.id ? { ...item, quantity: item.quantity + quantity } : item) : [...prev, { product, quantity }]; });
     setIsCartOpen(true);
   };
