@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const migrationPath = 'supabase/migrations/20261028093854_rc452_flexible_commission_rule_drafts.sql';
 const migration = fs.readFileSync(migrationPath, 'utf8');
+const previewMigration = fs.readFileSync('supabase/migrations/20261028102500_rc455_commission_draft_preview.sql', 'utf8');
 const ui = fs.readFileSync('apps/catalog-frontend/src/components/admin/CommissionRulesManager.tsx', 'utf8');
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 
@@ -21,6 +22,12 @@ const checks = [
   ['no frontend action attempts to activate or apply a commission rule', !/p_action:\s*['"](?:ACTIVATE|APPROVE|APPLY)['"]/.test(ui)],
   ['commission audit history is available through the scoped draft RPC', /v_action = 'AUDIT'/.test(migration) && /p_action:'AUDIT'/.test(ui)],
   ['audit history is capped at 100 tenant-scoped records', /where tenant_id = p_tenant_id[\s\S]*?order by created_at desc[\s\S]*?limit 100/.test(migration)],
+  ['commission preview is callable only by authenticated users', /AUTH_REQUIRED/.test(previewMigration) && /COMMISSION_RULE_FORBIDDEN/.test(previewMigration) && /grant execute on function public\\.preview_commission_rule_draft.*to authenticated/i.test(previewMigration)],
+  ['preview can only calculate inactive DRAFT rules', /r\\.active = false/.test(previewMigration) && /r\\.approval_status = 'DRAFT'/.test(previewMigration)],
+  ['preview supports percentage fixed combined and exemption formulas', /when 'PERCENTAGE'/.test(previewMigration) && /when 'FIXED'/.test(previewMigration) && /when 'COMBINED'/.test(previewMigration) && /v_rule\\.is_exempt/.test(previewMigration)],
+  ['preview validates monetary bounds and refuses commission above gross', /INVALID_DRAFT_RULE_AMOUNT/.test(previewMigration) && /INVALID_DRAFT_RULE_BOUNDS/.test(previewMigration) && /PREVIEW_COMMISSION_EXCEEDS_GROSS/.test(previewMigration)],
+  ['preview RPC is explicitly non-posting and read-only', /'preview_only', true/.test(previewMigration) && /'applies_to_orders', false/.test(previewMigration) && !/insert into public\\.(orders|commission_transactions|financial_obligations|ledger_entries)|update public\\.(orders|commission_rules|commission_transactions|financial_obligations)|delete from public\\.(orders|commission_rules|commission_transactions|financial_obligations)/i.test(previewMigration)],
+  ['admin UI exposes preview-only simulation and displays net/commission results', /preview_commission_rule_draft/.test(ui) && /معاينة افتراضية فقط/.test(ui) && /provider_net_amount/.test(ui) && /لا تُستخدم في الطلبات/.test(ui)],
 ];
 
 const failed = checks.filter(([name, passed]) => {
