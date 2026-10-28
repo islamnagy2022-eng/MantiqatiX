@@ -6,3 +6,6 @@ verify_jwt = true
 
 [functions.catalog-cover-ads]
 verify_jwt = false
+
+[functions.cover-ad-booking-request]
+verify_jwt = true
