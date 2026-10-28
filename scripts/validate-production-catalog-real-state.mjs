@@ -144,6 +144,12 @@ assert.match(approval, /if \(auditError\)[\s\S]*PUBLICATION_AUDIT_FAILED/,
 assert.doesNotMatch(approval, /paymentStatus\s*:\s*"paid"|paymentConfirmedByAdmin\s*:\s*true/,
   'Publication approval must not fake payment or payment confirmation.');
 
+const rejection = publicationReview.slice(rejectionStart);
+assert.match(rejection, /PLATFORM_BUSINESS_PUBLICATION_REJECTED/,
+  'Publication rejection must be written to the audit log.');
+assert.match(rejection, /if \(rejectionAuditError\)[\s\S]*PUBLICATION_AUDIT_FAILED/,
+  'An audit-write failure after rejection must return a clear actionable error.');
+
 assert.match(publicDirectoryFunction, /catalog_public_enabled === true/,
   'Public directory must derive customer-activity visibility from the persisted publication flag.');
 assert.match(publicDirectoryFunction, /operationalStatus === "ACTIVE"/,
