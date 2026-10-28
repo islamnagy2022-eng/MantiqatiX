@@ -55,7 +55,7 @@ const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeho
 
 const getDefaultBusinessPaymentDueDate = () => {
   const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 7);
+  dueDate.setDate(dueDate.getDate() + 30);
   return `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
 };
 
