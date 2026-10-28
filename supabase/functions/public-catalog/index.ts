@@ -57,6 +57,8 @@ Deno.serve(async (req: Request) => {
     if (!business || String(business.status || "").toUpperCase() !== "ACTIVE") {
       return response(origin, { error: "BUSINESS_NOT_PUBLIC" }, 404);
     }
+    const operationalStatus = String(business.settings?.bizcatalog?.operationalStatus || (business.settings?.bizcatalog?.isFrozen ? "FROZEN" : "ACTIVE")).toUpperCase();
+    if (operationalStatus !== "ACTIVE") return response(origin, { error: "BUSINESS_NOT_PUBLIC" }, 404);
     if (business.settings?.catalog_public_enabled !== true) {
       return response(origin, { error: "CATALOG_NOT_PUBLISHED" }, 404);
     }
@@ -186,7 +188,7 @@ Deno.serve(async (req: Request) => {
     const profile = business.settings?.catalog_profile || {};
     const selectedBranchPhone = String(selectedBranch.phone || "");
     return response(origin, {
-      business: { id: business.id, name: business.name, code: business.code },
+      business: { id: business.id, name: business.name, code: business.code, operationalStatus: String(business.settings?.bizcatalog?.operationalStatus || "ACTIVE").toUpperCase() },
       provider: {
         name: provider.name_ar || provider.name_en || business.name,
         nameAr: provider.name_ar,
