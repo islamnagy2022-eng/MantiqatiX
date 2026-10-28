@@ -35,6 +35,8 @@ jobs:
           test -s dist/config.js
           test -d dist/assets
           grep -q '/MantiqatiX/assets/' dist/index.html
+      - name: Validate Facebook page import ownership and token handling
+        run: node scripts/validate-facebook-page-import.mjs
       - name: Smoke test production Google OAuth redirect
         working-directory: apps/catalog-frontend
         run: |

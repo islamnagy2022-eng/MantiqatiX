@@ -1,2 +1,5 @@
 [functions.public-catalog]
 verify_jwt = false
+
+[functions.facebook-page-import]
+verify_jwt = true
