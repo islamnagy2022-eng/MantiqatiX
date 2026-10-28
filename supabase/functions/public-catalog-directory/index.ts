@@ -96,9 +96,10 @@ Deno.serve(async (req: Request) => {
     if (businessError) throw businessError;
     // Customer-owned catalogues remain opt-in. Platform-owned showcase activities
     // are public directory cards even before their module/catalog is separately enabled.
-    const directoryBusinesses = (businesses || []).filter((b: any) =>
-      b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
-    );
+    const directoryBusinesses = (businesses || []).filter((b: any) => {
+      const operationalStatus = String(b.settings?.bizcatalog?.operationalStatus || (b.settings?.bizcatalog?.isFrozen ? "FROZEN" : "ACTIVE")).toUpperCase();
+      return operationalStatus === "ACTIVE" && (b.settings?.catalog_public_enabled === true || isOfficialShowcase(b));
+    });
     if (!directoryBusinesses.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
     const ids = directoryBusinesses.map((b: any) => b.id);
     const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
