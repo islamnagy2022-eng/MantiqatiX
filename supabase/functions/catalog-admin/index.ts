@@ -81,7 +81,7 @@ const CATALOG_WRITE_ROLES = [
 ];
 const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
 
-const catalogMutationActions = new Set([
+const mutationActions = new Set([
   "BUSINESS_PROFILE_UPSERT", "ITEM_PRICE_UPSERT", "ITEM_STATUS_UPDATE",
   "WAREHOUSE_CREATE", "STOCK_ADJUST", "ITEM_UPSERT", "PRICE_UPSERT", "SETTINGS_UPSERT",
 ]);
@@ -266,7 +266,6 @@ Deno.serve(async (req: Request) => {
     const catalogSettings = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
       ? business.settings.bizcatalog
       : {};
-    const mutationActions = catalogMutationActions;
     if (!scopedPlatformMembership && action === "CATALOG_READ"
       && !businessMemberships.some((m: any) => canUseCatalog(m, false))) {
       return out(origin, { error: "CATALOG_ACCESS_RESTRICTED", message: "تم تقييد الوصول إلى كتالوج هذا النشاط من إدارة المنصة." }, 403);
