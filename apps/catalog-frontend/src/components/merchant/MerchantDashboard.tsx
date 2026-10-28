@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { BusinessEmployeeManager } from './BusinessEmployeeManager';
+import { CatalogImportPanel } from './CatalogImportPanel';
 import { normalizeSocialUrl } from '../../utils/socialLinks';
 
 
@@ -161,7 +162,7 @@ export const MerchantDashboard: React.FC = () => {
     ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(permanentStoreUrl)}`
     : '';
 
-  const [activeTab, setActiveTab] = useState<'products' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'import' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees'>('products');
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Business Profile & Branding state
@@ -628,7 +629,18 @@ export const MerchantDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveTab('branding')}
+          onClick={() => setActiveTab('import')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'import'
+            ? 'bg-indigo-600 text-white shadow-md'
+            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <Upload className="w-4 h-4" />
+          <span>استيراد كتالوج من CSV</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('branding')
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'branding'
               ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
@@ -694,6 +706,7 @@ export const MerchantDashboard: React.FC = () => {
       </div>
 
       {activeTab === 'employees' && <BusinessEmployeeManager business={currentBusiness} />}
+      {activeTab === 'import' && <CatalogImportPanel />}
 
       {/* Tab 1: Products and Catalog Management */}
       {activeTab === 'products' && (
