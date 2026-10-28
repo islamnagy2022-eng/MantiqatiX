@@ -5,8 +5,6 @@ import {
   Store,
   UtensilsCrossed,
   ShoppingBag,
-  CalendarCheck2,
-  HeartPulse,
   Wrench,
   Stethoscope,
   CarFront,
