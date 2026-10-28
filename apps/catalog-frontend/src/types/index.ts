@@ -104,7 +104,7 @@ export interface Product {
   isAvailable: boolean;
   unit?: string; // e.g. "قطعة", "وجبة", "ساعة", "جلسة", "كجم"
   requiresQuote?: boolean; // service is published without a price; customer requests a quote instead of adding it to cart
-  imageSource?: 'auto' | 'owner'; // automatic defaults update with the item; owner-selected images stay fixed
+  imageSource?: 'auto' | 'owner' | 'ai'; // auto = contextual fallback, ai = persisted generated image, owner = merchant-selected image
 }
 
 export interface Subscriber {
