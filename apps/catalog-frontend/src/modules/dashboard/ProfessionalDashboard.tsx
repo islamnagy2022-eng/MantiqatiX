@@ -276,7 +276,7 @@ export const ProfessionalDashboard: React.FC = () => {
 
           {activeSection === 'overview' && (
             <>
-              {(isPlatformAdmin || isBusinessManager) ? (
+              {(isPlatformAdmin || canViewBusinessAdminScreens) ? (
                 <>
                                 <section aria-label="مؤشرات لوحة التحكم" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                                   <MetricCard label={isPlatformAdmin ? 'الأنشطة المسجلة' : 'نشاطك'} value={visibleBusinesses.length} detail="عدد سجلات الأنشطة ضمن نطاق العرض الحالي." icon={<Building2 className="h-5 w-5" />} />
@@ -450,7 +450,7 @@ export const ProfessionalDashboard: React.FC = () => {
               ) : (
                 <p role="status" className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">لا تتضمن عضويتك صلاحية عرض بيانات الإعدادات. لا يتم فتح لوحة الإدارة العامة.</p>
               )}
-              {!isPlatformAdmin && !isBusinessManager && canViewSettings && <p className="mt-3 text-xs leading-5 text-slate-500">عرض فقط؛ تعديل إعدادات النشاط غير متاح من هذه الشاشة لأن وحدة الإعدادات القديمة لا تطبق بعد صلاحيات الموظفين تفصيليًا.</p>}
+              {!isPlatformAdmin && !canViewBusinessAdminScreens && canViewSettings && <p className="mt-3 text-xs leading-5 text-slate-500">عرض فقط؛ تعديل إعدادات النشاط غير متاح من هذه الشاشة لأن وحدة الإعدادات القديمة لا تطبق بعد صلاحيات الموظفين تفصيليًا.</p>}
             </section>
           )}
 
