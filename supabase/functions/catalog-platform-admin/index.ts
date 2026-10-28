@@ -559,6 +559,37 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (action === "BUSINESS_PUBLICATION_REVIEW") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "");
+      const decision = String(body.decision || "").toUpperCase();
+      const reason = String(body.reason || "").trim().slice(0, 1000);
+      if (!["APPROVE", "REJECT"].includes(decision)) return response(origin, { error: "INVALID_PUBLICATION_DECISION" }, 400);
+      const business = await getBusiness(tenantId, businessId);
+      const currentSettings = business.settings && typeof business.settings === "object" ? business.settings : {};
+      const currentBizcatalog = currentSettings.bizcatalog && typeof currentSettings.bizcatalog === "object" ? currentSettings.bizcatalog : {};
+      if (decision === "APPROVE") {
+        const { count, error: ownerError } = await service.from("user_memberships")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId).eq("business_id", businessId).eq("status", "ACTIVE")
+          .in("role", ["OWNER", "BUSINESS_OWNER"]);
+        if (ownerError) throw ownerError;
+        if (!count) return response(origin, { error: "ACTIVE_BUSINESS_OWNER_REQUIRED", message: "يجب تعيين مالك نشط للنشاط قبل الموافقة على النشر." }, 409);
+        const nextSettings = { ...currentSettings, catalog_public_enabled: true,
+          bizcatalog: { ...currentBizcatalog, publicationStatus: "PUBLISHED", publicationApprovedAt: new Date().toISOString(), publicationApprovedBy: user.id, publicationRejectionReason: "" } };
+        const { error } = await service.from("businesses").update({ status: "ACTIVE", settings: nextSettings, updated_at: new Date().toISOString() })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (error) throw error;
+        return response(origin, { success: true, businessId, decision, status: "ACTIVE", publicationStatus: "PUBLISHED" });
+      }
+      const nextSettings = { ...currentSettings, catalog_public_enabled: false,
+        bizcatalog: { ...currentBizcatalog, publicationStatus: "REJECTED", publicationRejectionReason: reason || "لم يتم توضيح السبب", publicationRejectedAt: new Date().toISOString(), publicationRejectedBy: user.id } };
+      const { error } = await service.from("businesses").update({ status: "INACTIVE", settings: nextSettings, updated_at: new Date().toISOString() })
+        .eq("id", businessId).eq("tenant_id", tenantId);
+      if (error) throw error;
+      return response(origin, { success: true, businessId, decision, status: "INACTIVE", publicationStatus: "REJECTED" });
+    }
+
     if (action === "BUSINESS_SETTINGS_UPDATE") {
       const tenantId = requireTenant(body.tenantId);
       const businessId = String(body.businessId || "");
