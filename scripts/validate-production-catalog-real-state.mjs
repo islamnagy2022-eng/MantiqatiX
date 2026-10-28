@@ -73,7 +73,7 @@ assert.doesNotMatch(createUi, /if \(!newBizGov\.trim\(\) \|\| !newBizMarkaz\.tri
 assert.match(createUi, /paymentStatus: newBizSubscriptionMode === 'FREE' \? 'free' : 'pending'/, 'new business must distinguish admin-approved free activation from unpaid subscription');
 assert.match(createUi, /paymentConfirmedByAdmin: false/, 'new business must not be marked as payment-confirmed by default');
 assert.match(createUi, /paymentDueDate: newBizSubscriptionMode === 'FREE' \? '' : newBizPaymentDueDate/, 'paid subscription persists selected due date while free activation has no due date');
-assert.match(createUi, /paymentGracePeriodDays: gracePeriodDays/, 'new business form must persist its configured grace period');
+assert.match(createUi, /paymentGracePeriodDays: newBizSubscriptionMode === 'FREE' \? 0 : gracePeriodDays/, 'paid subscription persists grace period while free activation has none');
 assert.match(createUi, /publicEnabled: newBizActivationMode === 'activate_now'/, 'new business form must explicitly choose whether to publish now');
 assert.match(admin, /انتظار تأكيد النشر من الإدارة/, 'business form must offer waiting for explicit publication confirmation');
 assert.match(admin, /إرسال النشاط للنشر بعد موافقة الإدارة/, 'business form must explain publication remains subject to admin approval');
