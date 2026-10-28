@@ -34,6 +34,12 @@ const MainContent: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-slate-50/70 text-slate-800">
       <Navbar />
 
+      {authLoading && !hasDirectPublicCatalogLink && (
+        <div role="status" aria-live="polite" className="mx-auto mt-3 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
+          جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.
+        </div>
+      )}
+
       <main className="flex-1">
         {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
         {visibleView === 'directory' && <DirectoryView />}
