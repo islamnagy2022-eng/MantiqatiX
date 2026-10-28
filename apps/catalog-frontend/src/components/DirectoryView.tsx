@@ -275,7 +275,7 @@ export const DirectoryView: React.FC = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2">
             <button
               onClick={() => selectGroup('all')}
               className={`group relative isolate min-h-36 sm:min-h-40 overflow-hidden rounded-2xl border text-right transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 hover:shadow-lg ${selectedGroupFilter === 'all' ? 'ring-2 ring-emerald-500 border-emerald-500' : 'border-slate-200'}`}
