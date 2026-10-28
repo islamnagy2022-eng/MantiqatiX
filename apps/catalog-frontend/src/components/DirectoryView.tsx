@@ -66,6 +66,7 @@ export const DirectoryView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [selectedCityFilter, setSelectedCityFilter] = useState<string>('all');
   const [managedCoverAds, setManagedCoverAds] = useState<CoverAdvertisement[]>([]);
 
   useEffect(() => {
@@ -86,15 +87,20 @@ export const DirectoryView: React.FC = () => {
   const liveFeaturedBusinesses = businesses
     .filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && !business.isFrozen && Boolean(business.name.trim()))
     .slice(0, 30);
+  const availableLocalities = [...new Set(businesses
+    .filter((business) => selectedGovFilter === 'all' || business.governorate === selectedGovFilter)
+    .flatMap((business) => [business.markaz, business.village])
+    .filter((value): value is string => Boolean(value?.trim())))].sort((a, b) => a.localeCompare(b, 'ar'));
+
   const homeAdsForLocation = managedCoverAds.filter((ad) => {
     if (ad.status !== 'ACTIVE' || !['HOME_ONLY', 'BOTH'].includes(ad.placement)) return false;
     const today = new Date().toISOString().slice(0, 10);
     if (ad.startDate > today || ad.endDate < today) return false;
     if (ad.locationScope === 'ALL') return true;
-    if (selectedGovFilter === 'all') return false;
-    if (ad.locationScope === 'GOVERNORATE') return ad.locationValue === selectedGovFilter;
+    if (ad.locationScope === 'GOVERNORATE') return selectedGovFilter !== 'all' && ad.locationValue === selectedGovFilter;
+    if (selectedCityFilter === 'all' || ad.locationValue !== selectedCityFilter) return false;
     return businesses.some((business) =>
-      business.governorate === selectedGovFilter &&
+      (selectedGovFilter === 'all' || business.governorate === selectedGovFilter) &&
       (business.markaz === ad.locationValue || business.village === ad.locationValue)
     );
   });
@@ -146,7 +152,7 @@ export const DirectoryView: React.FC = () => {
 
   useEffect(() => {
     setCurrentCoverIndex(0);
-  }, [selectedGovFilter]);
+  }, [selectedGovFilter, selectedCityFilter]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -169,8 +175,9 @@ export const DirectoryView: React.FC = () => {
 
     const matchesGov =
       selectedGovFilter === 'all' || biz.governorate === selectedGovFilter;
+    const matchesCity = selectedCityFilter === 'all' || biz.markaz === selectedCityFilter || biz.village === selectedCityFilter;
 
-    return matchesSearch && matchesGroup && matchesGov;
+    return matchesSearch && matchesGroup && matchesGov && matchesCity;
   }).sort((a, b) => {
     const targetGov = selectedGovFilter === 'all' ? 'الدقهلية' : selectedGovFilter;
     const aProx = a.governorate === targetGov ? 0 : 1;
@@ -410,7 +417,7 @@ export const DirectoryView: React.FC = () => {
             </div>
             <select
               value={selectedGovFilter}
-              onChange={(e) => setSelectedGovFilter(e.target.value)}
+              onChange={(e) => { setSelectedGovFilter(e.target.value); setSelectedCityFilter('all'); }}
               className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
             >
               <option value="all">كافة المحافظات المصرية (إعلانات عامة)</option>
@@ -420,6 +427,18 @@ export const DirectoryView: React.FC = () => {
                 </option>
               ))}
             </select>
+            <div className="mt-3 flex flex-col gap-1.5">
+              <label htmlFor="directory-city-filter" className="text-[11px] font-bold text-slate-600">البلدة / المركز / الحي (لتصفية الإعلانات المحلية)</label>
+              <select
+                id="directory-city-filter"
+                value={selectedCityFilter}
+                onChange={(e) => setSelectedCityFilter(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
+              >
+                <option value="all">كافة البلدات والمراكز</option>
+                {availableLocalities.map((locality) => <option key={locality} value={locality}>{locality}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
