@@ -1,1 +1,27 @@
 @import "tailwindcss";
+
+/* MantiqatiX catalog visual refresh — red/white brand, responsive cards and safe image fallbacks */
+:root { color-scheme: light; --mx-red: #f5222d; --mx-red-dark: #c8102e; --mx-ink: #171717; --mx-muted: #6b7280; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #f8f8f8; color: var(--mx-ink); font-family: Tahoma, Arial, sans-serif; }
+button, input, select { font: inherit; }
+img { max-width: 100%; }
+::selection { background: #ffe1e3; color: #7f1020; }
+
+/* Align previous green-accented utility classes with the official red catalog identity. */
+.text-emerald-300, .text-emerald-400, .text-emerald-500, .text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900 { color: var(--mx-red-dark) !important; }
+.bg-emerald-50 { background-color: #fff1f2 !important; }
+.bg-emerald-100 { background-color: #ffe4e6 !important; }
+.bg-emerald-400, .bg-emerald-500 { background-color: var(--mx-red) !important; }
+.bg-emerald-600, .bg-emerald-700 { background-color: var(--mx-red-dark) !important; }
+.border-emerald-200, .border-emerald-300, .border-emerald-400, .border-emerald-500 { border-color: #fecdd3 !important; }
+.ring-emerald-500 { --tw-ring-color: #fda4af !important; }
+.hover\\:bg-emerald-600:hover { background-color: var(--mx-red-dark) !important; }
+.hover\\:text-emerald-800:hover { color: var(--mx-red-dark) !important; }
+
+/* Shared storefront polish */
+.catalog-card, [class*="rounded-3xl"][class*="shadow"] { transition: box-shadow .2s ease, transform .2s ease; }
+button, a { -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
