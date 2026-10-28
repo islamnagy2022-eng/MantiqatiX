@@ -2,6 +2,8 @@
 window.MANTIQATIX_CONFIG = {
   supabaseUrl: 'https://moyhiluyhjsujhwlyeuu.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1veWhpbHV5aGpzdWpod2x5ZXV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0MTE2NzEsImV4cCI6MjEwMjk4NzY3MX0.NShoR3SRT8bnOdp8izsx0dCNGc8-GpLy057S9dgoszc',
+  // Public Meta App ID only; never place the Meta App Secret in this file.
+  facebookAppId: '',
 };
 window.MNTY_CONFIG = window.MANTIQATIX_CONFIG;
 window.MNTY_SUPPORT = { whatsapp: '' };
