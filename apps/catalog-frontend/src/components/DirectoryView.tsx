@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
+import { supabase } from '../lib/production';
+import type { CoverAdvertisement } from '../types/coverAdvertisements';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -46,6 +48,8 @@ interface CoverSlide {
   governorates: string[];
   businessId?: string;
   marketingCreative?: boolean;
+  isPaidAd?: boolean;
+  targetUrl?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -62,6 +66,17 @@ export const DirectoryView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [managedCoverAds, setManagedCoverAds] = useState<CoverAdvertisement[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    void supabase.functions.invoke('catalog-cover-ads', { body: { action: 'PUBLIC_LIST' } })
+      .then(({ data, error }) => {
+        if (active && !error && Array.isArray(data?.ads)) setManagedCoverAds(data.ads as CoverAdvertisement[]);
+      })
+      .catch(() => { /* Official branded creatives remain the no-ad fallback. */ });
+    return () => { active = false; };
+  }, []);
   const catalogRequestPhone = whatsappDigits(
     adminSettings.adminWhatsApp || (window as any).MNTY_SUPPORT?.whatsapp || ''
   );
@@ -71,22 +86,46 @@ export const DirectoryView: React.FC = () => {
   const liveFeaturedBusinesses = businesses
     .filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && !business.isFrozen && Boolean(business.name.trim()))
     .slice(0, 30);
-  const advertisingSlides: CoverSlide[] = [
+  const homeAdsForLocation = managedCoverAds.filter((ad) => {
+    if (ad.status !== 'ACTIVE' || !['HOME_ONLY', 'BOTH'].includes(ad.placement)) return false;
+    const today = new Date().toISOString().slice(0, 10);
+    if (ad.startDate > today || ad.endDate < today) return false;
+    if (ad.locationScope === 'ALL') return true;
+    if (selectedGovFilter === 'all') return false;
+    if (ad.locationScope === 'GOVERNORATE') return ad.locationValue === selectedGovFilter;
+    return businesses.some((business) =>
+      business.governorate === selectedGovFilter &&
+      (business.markaz === ad.locationValue || business.village === ad.locationValue)
+    );
+  });
+
+  const advertisingSlides: CoverSlide[] = homeAdsForLocation.map((ad) => ({
+    image: ad.imageUrl,
+    badge: 'إعلان مدفوع',
+    title: ad.title,
+    subtitle: 'مساحة إعلانية على منصة MantiqatiX',
+    governorates: ad.locationScope === 'ALL' ? ['all'] : [selectedGovFilter],
+    targetUrl: ad.targetUrl || undefined,
+    isPaidAd: true,
+  }));
+
+  const defaultBrandedSlides: CoverSlide[] = [
     {
-      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-1.svg`,
+      image: (import.meta.env.BASE_URL || '/') + 'legacy/mnty-cover-ad-1.svg',
       badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
     },
     {
-      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-2.svg`,
+      image: (import.meta.env.BASE_URL || '/') + 'legacy/mnty-cover-ad-2.svg',
       badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
     },
     {
-      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-3.svg`,
+      image: (import.meta.env.BASE_URL || '/') + 'legacy/mnty-cover-ad-3.svg',
       badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
     },
   ];
+
   const coverSlides: CoverSlide[] = [
-    ...advertisingSlides,
+    ...(advertisingSlides.length > 0 ? advertisingSlides : defaultBrandedSlides),
     ...liveFeaturedBusinesses.map((business) => ({
       image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
       badge: business.category || 'نشاط محلي',
@@ -103,12 +142,7 @@ export const DirectoryView: React.FC = () => {
   // Filter slides based on selected governorate
   const activeCoverSlides = selectedGovFilter === 'all'
     ? coverSlides
-    : (() => {
-        const matched = coverSlides.filter(
-          (slide) => slide.governorates.includes('all') || slide.governorates.includes(selectedGovFilter)
-        );
-        return matched.length > 0 ? matched : coverSlides;
-      })();
+    : coverSlides.filter((slide) => slide.governorates.includes('all') || slide.governorates.includes(selectedGovFilter));
 
   useEffect(() => {
     setCurrentCoverIndex(0);
@@ -179,7 +213,7 @@ export const DirectoryView: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         {/* 2. Restored cover advertising carousel with a permanent side ad rail */}
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-5 items-stretch">
+        <div className="relative">
         <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
           {activeCoverSlides.map((slide, idx) => (
             <div
@@ -199,6 +233,9 @@ export const DirectoryView: React.FC = () => {
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-black/30" />
+              {slide.targetUrl && (slide.targetUrl.startsWith('https://') || (slide.targetUrl.startsWith('/') && !slide.targetUrl.startsWith('//'))) && (
+                <a href={slide.targetUrl} target={slide.targetUrl.startsWith('https://') ? '_blank' : undefined} rel="noopener noreferrer" className="absolute inset-0 z-10" aria-label={'فتح الإعلان ' + slide.title} />
+              )}
             </div>
           ))}
 
@@ -218,7 +255,7 @@ export const DirectoryView: React.FC = () => {
                   {businesses.find((business) => business.id === currentSlide.businessId)?.catalogPublished ? 'كتالوج منشور للزوار' : 'نشاط ضمن دليل المنصة'}
                 </span>
               )}
-              {!currentSlide?.businessId && catalogRequestPhone && (
+              {!currentSlide?.businessId && !currentSlide?.isPaidAd && catalogRequestPhone && (
                 <a
                   href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
                   target="_blank"
@@ -257,34 +294,32 @@ export const DirectoryView: React.FC = () => {
           </div>
         </div>
 
-        <aside className="relative min-h-[245px] sm:min-h-[290px] lg:min-h-0 rounded-3xl overflow-hidden border border-red-100 bg-slate-950 shadow-xl isolate">
+        <aside className="absolute bottom-4 left-4 z-40 w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden border border-red-300/70 bg-slate-950 shadow-2xl ring-1 ring-white/25">
           <img
-            src={`${import.meta.env.BASE_URL || '/'}legacy/mnty-ad-space-booking-banner.svg`}
+            src={(import.meta.env.BASE_URL || '/') + 'legacy/mnty-ad-space-booking-banner.svg'}
             alt="مساحة إعلانية على MantiqatiX"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover"
             loading="eager"
             onError={(event) => { event.currentTarget.style.display = 'none'; }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-red-950/20" />
-          <div className="relative z-10 flex h-full min-h-[245px] sm:min-h-[290px] lg:min-h-[384px] flex-col justify-end p-5 sm:p-7 text-white">
-            <span className="mb-3 inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-black tracking-wide">مساحة إعلانية</span>
-            <h2 className="text-2xl sm:text-3xl font-black leading-tight">أعلن معنا هنا</h2>
-            <p className="mt-2 max-w-sm text-xs sm:text-sm leading-relaxed text-white/85">اعرض نشاطك أمام زوار MantiqatiX واحصل على مساحة مميزة في واجهة الدليل.</p>
-            {catalogRequestPhone ? (
-              <a
-                href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد حجز مساحة إعلانية على MantiqatiX.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-3 text-xs sm:text-sm font-black text-white shadow-lg transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <MessageCircle className="h-4 w-4" />
-                أعلن معنا هنا
-              </a>
-            ) : (
-              <div className="mt-5 rounded-xl border border-white/20 bg-white/10 px-3 py-3 text-xs font-bold text-white/80">تواصل مع إدارة المنصة لحجز إعلانك</div>
-            )}
-            <span className="mt-3 text-[10px] text-white/60">الإعلانات المدفوعة تُعرض بوضوح داخل المنصة</span>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-red-950/20" />
+          {catalogRequestPhone ? (
+            <a
+              href={'https://wa.me/' + catalogRequestPhone + '?text=' + encodeURIComponent('مرحبًا، أريد معرفة تفاصيل حجز مساحة إعلانية على MantiqatiX.')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center text-white transition hover:bg-black/10"
+            >
+              <span className="rounded-full border border-white/30 bg-white/10 p-2"><MessageCircle className="h-5 w-5" /></span>
+              <span className="text-sm sm:text-base font-black leading-tight">أعلن معنا هنا</span>
+              <span className="text-[9px] sm:text-[10px] leading-4 text-white/75">احجز مساحة لنشاطك</span>
+            </a>
+          ) : (
+            <div className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center text-white">
+              <span className="text-sm sm:text-base font-black leading-tight">أعلن معنا هنا</span>
+              <span className="text-[9px] sm:text-[10px] leading-4 text-white/75">تواصل مع الإدارة</span>
+            </div>
+          )}
         </aside>
         </div>
 
