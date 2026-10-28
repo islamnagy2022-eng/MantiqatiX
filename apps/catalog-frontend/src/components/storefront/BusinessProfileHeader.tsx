@@ -22,7 +22,7 @@ import {
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
 export const BusinessProfileHeader: React.FC = () => {
-  const { currentBusiness } = useApp();
+  const { currentBusiness, getStorePublicLink } = useApp();
   const [copied, setCopied] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
@@ -54,7 +54,7 @@ export const BusinessProfileHeader: React.FC = () => {
 
   const handleShare = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(getStorePublicLink(currentBusiness));
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }

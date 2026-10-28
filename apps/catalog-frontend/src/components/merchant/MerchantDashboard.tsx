@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { Product } from '../../types';
-import { MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
+import { generateStorePublicUrl, MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   Package,
@@ -149,6 +149,17 @@ export const MerchantDashboard: React.FC = () => {
     functionalGroups,
     setCurrentView,
   } = useApp();
+
+  const permanentStoreUrl = currentBusiness
+    ? generateStorePublicUrl(
+        typeof window !== 'undefined' ? window.location.origin : 'https://mantiqatix.com',
+        currentBusiness.id,
+        import.meta.env.BASE_URL || '/'
+      )
+    : '';
+  const permanentQrCodeImageUrl = permanentStoreUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(permanentStoreUrl)}`
+    : '';
 
   const [activeTab, setActiveTab] = useState<'products' | 'branding' | 'profile' | 'functional_engine' | 'qr' | 'employees'>('products');
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
@@ -1340,15 +1351,22 @@ export const MerchantDashboard: React.FC = () => {
           <div className="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-4">
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
-                  typeof window !== 'undefined' ? window.location.origin + '/?store=' + (currentBusiness.slug || currentBusiness.id) : 'https://mantiqatix.com/?store=' + currentBusiness.id
-                )}`}
+                src={permanentQrCodeImageUrl}
                 alt={`QR Code for ${currentBusiness.name}`}
                 className="w-56 h-56 object-contain mx-auto rounded-xl"
               />
             </div>
+            <a
+              href={permanentStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              dir="ltr"
+              className="block max-w-full break-all rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-700 hover:text-emerald-700"
+            >
+              {permanentStoreUrl}
+            </a>
             <p className="text-xs text-slate-600 max-w-md">
-              هذا الرمز مشفر برابط مستقر وثابت لصفحة نشاطك. حتى لو تم تغيير اسم النطاق (Domain) الخاص بمنصة MantiqatiX مستقبلاً، سيظل هذا الرمز يعمل بكفاءة تامة.
+              هذا الرابط الثابت والرمز يفتحان صفحة النشاط نفسها، ويستخدمان معرّف النشاط الدائم لا الاسم القابل للتغيير.
             </p>
           </div>
         </div>

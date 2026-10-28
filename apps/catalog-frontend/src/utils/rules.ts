@@ -286,8 +286,14 @@ export function canSubscriberAccessBusiness(
 /**
  * Generates public customer storefront link with isolated query param
  */
-export function generateStorePublicUrl(origin: string, businessSlugOrId: string): string {
-  return `${origin}/?store=${encodeURIComponent(businessSlugOrId)}`;
+export function generateStorePublicUrl(origin: string, businessId: string, basePath: string = '/'): string {
+  const safeOrigin = new URL(origin).origin;
+  const requestedPath = basePath.trim() || '/';
+  const rootedPath = requestedPath.startsWith('/') ? requestedPath : `/${requestedPath}`;
+  const normalizedPath = rootedPath.endsWith('/') ? rootedPath : `${rootedPath}/`;
+  const url = new URL(normalizedPath, `${safeOrigin}/`);
+  url.searchParams.set('store', businessId);
+  return url.toString();
 }
 
 /**

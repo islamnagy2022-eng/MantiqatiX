@@ -14,10 +14,9 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
 
   if (!isOpen) return null;
 
-  // Generate permanent store public URL
-  // Uses window.location.origin or a stable base fallback, with the business slug (or id)
+  // Permanent links use the stable business ID and the deployed app base path.
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mantiqatix.com';
-  const storeUrl = generateStorePublicUrl(origin, business.slug || business.id);
+  const storeUrl = generateStorePublicUrl(origin, business.id, import.meta.env.BASE_URL || '/');
 
   // QR Code image URL using qrserver API
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(storeUrl)}`;
@@ -101,9 +100,9 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
             />
           </div>
 
-          <div className="text-[11px] font-semibold text-slate-600 bg-white px-3 py-2 rounded-xl border border-slate-200 truncate" dir="ltr">
+          <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="block text-[11px] font-semibold text-slate-600 bg-white px-3 py-2 rounded-xl border border-slate-200 break-all hover:text-emerald-700" dir="ltr">
             {storeUrl}
-          </div>
+          </a>
         </div>
 
         {/* Action Buttons */}
@@ -127,7 +126,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
 
           <a
             href={qrCodeImageUrl}
-            download={`${business.slug}-qrcode.png`}
+            download={`${business.slug || business.id}-qrcode.png`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
