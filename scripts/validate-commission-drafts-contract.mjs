@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 const migrationPath = 'supabase/migrations/20261028093854_rc452_flexible_commission_rule_drafts.sql';
 const migration = fs.readFileSync(migrationPath, 'utf8');
 const previewMigration = fs.readFileSync('supabase/migrations/20261028103744_rc455_commission_draft_preview.sql', 'utf8');
+const resolutionMigration = fs.readFileSync('supabase/migrations/20261028105500_rc456_commission_resolution_preview.sql', 'utf8');
+const resolutionTest = fs.readFileSync('supabase/tests/rc456_commission_resolution_preview_integration.sql', 'utf8');
 const ui = fs.readFileSync('apps/catalog-frontend/src/components/admin/CommissionRulesManager.tsx', 'utf8');
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 
@@ -28,6 +30,13 @@ const checks = [
   ['preview validates monetary bounds and refuses commission above gross', /INVALID_DRAFT_RULE_AMOUNT/.test(previewMigration) && /INVALID_DRAFT_RULE_BOUNDS/.test(previewMigration) && /PREVIEW_COMMISSION_EXCEEDS_GROSS/.test(previewMigration)],
   ['preview RPC is explicitly non-posting and read-only', previewMigration.includes("'preview_only', true") && previewMigration.includes("'applies_to_orders', false") && !['insert into public.orders','insert into public.commission_transactions','insert into public.financial_obligations','update public.orders','update public.commission_transactions','delete from public.commission_rules'].some(statement => previewMigration.toLowerCase().includes(statement))],
   ['admin UI exposes preview-only simulation and displays net/commission results', /preview_commission_rule_draft/.test(ui) && /معاينة افتراضية فقط/.test(ui) && /provider_net_amount/.test(ui) && /لا تُستخدم في الطلبات/.test(ui)],
+  ['scope-resolution preview is authenticated and anon execution is revoked', resolutionMigration.includes('AUTH_REQUIRED') && resolutionMigration.includes('COMMISSION_RULE_FORBIDDEN') && resolutionMigration.includes('grant execute on function public.preview_commission_rule_resolution(varchar, uuid, varchar, text, text, text, text, numeric) to authenticated')],
+  ['resolution preview only considers inactive DRAFT rules', resolutionMigration.includes("r.active = false") && resolutionMigration.includes("r.approval_status = 'DRAFT'")],
+  ['resolution preview filters scope, event, module and effective dates', resolutionMigration.includes("r.eligibility_event = v_event") && resolutionMigration.includes("r.module_id is null or r.module_id = p_module_id") && resolutionMigration.includes("r.effective_from <= now()") && resolutionMigration.includes("r.effective_to >= now()") && resolutionMigration.includes("r.scope_ref = v_category_ref")],
+  ['resolution policy is deterministic: priority, specificity, update timestamp, stable id', resolutionMigration.includes("order by rule_priority desc, specificity_rank desc, updated_at desc, id asc") && resolutionMigration.includes("'priority DESC, specificity DESC, updated_at DESC, rule_id ASC'")],
+  ['resolution preview returns selected rule calculation without posting financial data', resolutionMigration.includes("public.preview_commission_rule_draft(p_tenant_id,v_winner_id,p_gross_amount)") && resolutionMigration.includes("'preview_only',true") && resolutionMigration.includes("'applies_to_orders',false") && !/insert into public\.(orders|commission_transactions|financial_obligations|ledger_entries)|update public\.(orders|commission_rules|commission_transactions|financial_obligations)|delete from public\.(orders|commission_rules|commission_transactions|financial_obligations)/i.test(resolutionMigration)],
+  ['commission manager provides a read-only scope-resolution preview', /preview_commission_rule_resolution/.test(ui) && /معاينة أولوية النطاقات المتداخلة/.test(ui) && /الاختيار الأول/.test(ui) && /تحليل القواعد المتداخلة/.test(ui)],
+  ['scope-resolution integration covers priority, specificity, business/category matching and auth', /RC456_SPECIFICITY_RESOLUTION_MISMATCH/.test(resolutionTest) && /RC456_PRIORITY_RESOLUTION_MISMATCH/.test(resolutionTest) && /RC456_EVENT_FILTER_MISMATCH/.test(resolutionTest) && /COMMISSION_RULE_FORBIDDEN/.test(resolutionTest)],
 ];
 
 const failed = checks.filter(([name, passed]) => {
