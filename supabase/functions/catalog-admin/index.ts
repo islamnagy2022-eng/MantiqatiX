@@ -518,6 +518,38 @@ Deno.serve(async (req: Request) => {
         p_public_enabled: body.publicEnabled === true,
       });
       if (error) throw error;
+
+      // The profile RPC persists the canonical image URL. Record whether each
+      // image is AI-generated, a neutral/category fallback, or owner-supplied
+      // so later mapping does not mistake temporary AI art for an owner upload.
+      const imageSourceForUrl = (value: unknown): "auto" | "ai" | "owner" => {
+        const url = String(value || "").trim().toLowerCase();
+        if (!url) return "auto";
+        if (url.includes("/catalog-ai/")) return "ai";
+        if (/(?:business-placeholder|catalog-item-placeholder)\\.svg|\\/legacy\\/(?:activity|activities)\\//i.test(url)) return "auto";
+        return "owner";
+      };
+      const { data: savedBusiness, error: savedBusinessError } = await service.from("businesses")
+        .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+      if (savedBusinessError) throw savedBusinessError;
+      if (!savedBusiness) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
+      const savedSettings = savedBusiness.settings && typeof savedBusiness.settings === "object" && !Array.isArray(savedBusiness.settings)
+        ? savedBusiness.settings : {};
+      const savedProfile = savedSettings.catalog_profile && typeof savedSettings.catalog_profile === "object" && !Array.isArray(savedSettings.catalog_profile)
+        ? savedSettings.catalog_profile : {};
+      const sourceSettings = {
+        ...savedSettings,
+        catalog_profile: {
+          ...savedProfile,
+          logo_image_source: imageSourceForUrl(savedProfile.logo_url),
+          cover_image_source: imageSourceForUrl(savedProfile.cover_url),
+        },
+      };
+      const { error: imageSourceWriteError } = await service.from("businesses")
+        .update({ settings: sourceSettings, updated_at: new Date().toISOString() })
+        .eq("id", businessId).eq("tenant_id", tenantId);
+      if (imageSourceWriteError) throw imageSourceWriteError;
+
       if (Object.keys(submittedSocialFields).length > 0) {
         const { data: businessRow, error: businessReadError } = await service.from("businesses")
           .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
