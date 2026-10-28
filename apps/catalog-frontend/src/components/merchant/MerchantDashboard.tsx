@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Product } from '../../types';
 import { MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
@@ -86,7 +86,7 @@ export const MerchantDashboard: React.FC = () => {
   const [formComparePrice, setFormComparePrice] = useState<string>('');
   const [formDescription, setFormDescription] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
-  const [formImageSource, setFormImageSource] = useState<'auto' | 'owner'>('auto');
+  const [formImageSource, setFormImageSource] = useState<'auto' | 'owner' | 'ai'>('auto');
   const [formUnit, setFormUnit] = useState('قطعة');
   const [formError, setFormError] = useState('');
 
@@ -114,6 +114,30 @@ export const MerchantDashboard: React.FC = () => {
     setSaveSuccess(false);
     setProfileSaveError('');
   }, [currentBusiness?.id]);
+  
+  // On first owner visit, persist a category-matched local cover when no real cover photo is available.
+  // This is a fallback until the owner uploads a photograph.
+  const autoCoverAttempted = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const business = currentBusiness;
+    if (!business?.id || !business.tenantId || !business.branchId) return;
+    const needsDefaultCover = !business.coverUrl?.trim() ||
+      /(?:business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(business.coverUrl);
+    if (!needsDefaultCover || autoCoverAttempted.current.has(business.id)) return;
+    autoCoverAttempted.current.add(business.id);
+    void updateBusiness({
+      ...business,
+      coverUrl: resolveDefaultImage({
+        name: business.name, description: business.bio, category: business.category, kind: 'cover',
+      }),
+      logoUrl: business.logoUrl?.trim() || resolveDefaultImage({
+        name: business.name, description: business.bio, category: business.category, kind: 'activity',
+      }),
+    }).catch((error) => {
+      console.warn('Automatic activity cover generation deferred; contextual fallback remains available.', error);
+    });
+  }, [currentBusiness?.id, currentBusiness?.coverUrl, currentBusiness?.tenantId, currentBusiness?.branchId]);
+
 
   if (!currentBusiness) {
     return <div className="p-8 text-center text-slate-500">يرجى اختيار نشاط أولاً.</div>;
@@ -194,7 +218,7 @@ export const MerchantDashboard: React.FC = () => {
     setFormPrice(String(p.price));
     setFormComparePrice(p.comparePrice ? String(p.comparePrice) : '');
     setFormDescription(p.description);
-    setFormImageSource(p.imageSource === 'auto' ? 'auto' : 'owner');
+    setFormImageSource(p.imageSource === 'auto' ? 'auto' : p.imageSource === 'ai' ? 'ai' : 'owner');
     setFormImageUrl(p.imageUrl || resolveDefaultImage({ name: p.name, description: p.description, category: p.category, kind: p.type === 'service' ? 'service' : 'product' }));
     setFormUnit(p.unit || (p.type === 'service' ? 'جلسة' : 'قطعة'));
     setFormError('');
@@ -1083,7 +1107,7 @@ export const MerchantDashboard: React.FC = () => {
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   <img src={formImageUrl || resolveDefaultImage({ name: formName, description: formDescription, category: formCategory, kind: formType === 'service' ? 'service' : 'product' })} alt="معاينة الصورة" className="h-16 w-20 rounded-lg border border-slate-200 bg-white object-cover" />
                   <button type="button" onClick={() => setFormImageSource('auto')} className="text-xs font-bold text-emerald-700 underline">استخدام الصورة التلقائية المناسبة للاسم والوصف</button>
-                  <span className="text-[11px] text-slate-500">{formImageSource === 'auto' ? 'صورة تلقائية' : 'صورة مخصصة'}</span>
+                  <span className="text-[11px] text-slate-500">{formImageSource === 'auto' ? 'صورة تلقائية حسب المجال' : formImageSource === 'ai' ? 'صورة مولدة بالذكاء الاصطناعي' : 'صورة مخصصة'}</span>
                 </div>
               </div>
 
