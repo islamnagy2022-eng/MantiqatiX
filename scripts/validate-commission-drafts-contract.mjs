@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const migrationPath = 'supabase/migrations/20261028093854_rc452_flexible_commission_rule_drafts.sql';
 const migration = fs.readFileSync(migrationPath, 'utf8');
-const previewMigration = fs.readFileSync('supabase/migrations/20261028102500_rc455_commission_draft_preview.sql', 'utf8');
+const previewMigration = fs.readFileSync('supabase/migrations/20261028103744_rc455_commission_draft_preview.sql', 'utf8');
 const ui = fs.readFileSync('apps/catalog-frontend/src/components/admin/CommissionRulesManager.tsx', 'utf8');
 const admin = fs.readFileSync('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx', 'utf8');
 
