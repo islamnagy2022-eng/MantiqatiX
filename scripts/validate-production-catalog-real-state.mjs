@@ -18,6 +18,7 @@ const merchantDashboard = fs.readFileSync('apps/catalog-frontend/src/components/
 const catalogAdminFunction = fs.readFileSync('supabase/functions/catalog-admin/index.ts', 'utf8');
 const publicDirectoryFunction = fs.readFileSync('supabase/functions/public-catalog-directory/index.ts', 'utf8');
 const publicCatalogFunction = fs.readFileSync('supabase/functions/public-catalog/index.ts', 'utf8');
+const aiGeminiProxy = fs.readFileSync('supabase/functions/ai-gemini-proxy/index.ts', 'utf8');
 const sharedDefaultImages = fs.readFileSync('supabase/functions/_shared/default-images.ts', 'utf8');
 const adminStart = admin.indexOf('const handleAddBusiness');
 const adminEnd = admin.indexOf('const handleCreateCategory', adminStart);
@@ -211,5 +212,13 @@ assert.match(context, /await refreshBusinessCatalog\(updated\.id\)/,
   'Business profile changes must refresh from canonical production data after the awaited write.');
 assert.match(context, /await refreshBusinessCatalog\(updated\.businessId\)/,
   'Product/service changes must refresh from canonical production data after the awaited write.');
+assert.match(productionMapper, /generateCatalogAiImage\(input: \{[\s\S]*branchId\?: string[\s\S]*imageUrl/, 'AI image helper must return a durable HTTPS asset URL and support branch-scoped requests.');
+assert.match(aiGeminiProxy, /action === "generate_catalog_image"[\s\S]*CATALOG_AI_IMAGE_REQUESTED[\s\S]*IMAGE_BUCKET/, 'AI image requests must be a dedicated authenticated and audited backend branch that persists the result to storage.');
+assert.match(aiGeminiProxy, /catalogWriteAllowed\([\s\S]*catalog_image_permission_denied/, 'Image generation must enforce the business catalog write permission on the server.');
+assert.match(aiGeminiProxy, /image_generation_rate_limited/, 'AI image generation must have a per-user request limit.');
+assert.match(aiGeminiProxy, /v1beta\/interactions[\s\S]*response_format:[\s\S]*aspect_ratio/, 'The image action must call the Gemini image-generation API instead of the text-only generateContent endpoint.');
+assert.match(aiGeminiProxy, /service\.storage\.from\(IMAGE_BUCKET\)\.upload/, 'Generated images must be saved as durable storage assets instead of returned as large inline data.');
+assert.match(aiGeminiProxy, /imageKind === "cover" \? "16:9" : "1:1"/, 'Generated covers and square catalogue images must use suitable aspect ratios.');
+
 
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
