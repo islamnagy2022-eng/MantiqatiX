@@ -56,8 +56,8 @@ const ICONS_MAP: Record<string, React.ReactNode> = {
   agriculture_animals: <Sprout className="h-7 w-7 text-lime-700" strokeWidth={1.8} />,
   sports_fitness: <Dumbbell className="h-7 w-7 text-red-600" strokeWidth={1.8} />,
   tourism_events: <Plane className="h-7 w-7 text-purple-600" strokeWidth={1.8} />,
-  finance_insurance: <Landmark className="h-7 w-7 text-emerald-700" strokeWidth={1.8} />,
-  industry_workshops: <Factory className="h-7 w-7 text-slate-600" strokeWidth={1.8} />,
+  finance_insurance: <Landmark className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-700" strokeWidth={1.8} />,
+  industry_workshops: <Factory className="h-5 w-5 sm:h-7 sm:w-7 text-slate-600" strokeWidth={1.8} />,
   public_community: <Users className="h-7 w-7 text-rose-600" strokeWidth={1.8} />,
 };
 
@@ -308,18 +308,18 @@ export const DirectoryView: React.FC = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-2">
+          <div className="grid grid-cols-5 sm:grid-cols-5 lg:grid-cols-5 xl:grid-cols-10 gap-1.5 sm:gap-2">
             <button
               onClick={() => selectGroup('all')}
               aria-pressed={selectedGroupFilter === 'all'}
-              className={`group flex min-h-36 sm:min-h-40 flex-col items-center justify-center gap-3 rounded-2xl border bg-white p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${selectedGroupFilter === 'all' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
+              className={`group flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${selectedGroupFilter === 'all' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
             >
-              <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${selectedGroupFilter === 'all' ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
+              <span className={`flex h-9 w-9 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl ${selectedGroupFilter === 'all' ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
                 <Store className={`h-7 w-7 ${selectedGroupFilter === 'all' ? 'text-emerald-700' : 'text-slate-600'}`} strokeWidth={1.8} />
               </span>
               <span className="space-y-1">
-                <span className="block text-sm font-black leading-snug text-slate-900">كافة الأنشطة</span>
-                <span className="block text-[11px] text-slate-500">جميع القطاعات والمهن</span>
+                <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">كافة الأنشطة</span>
+                <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">جميع القطاعات والمهن</span>
               </span>
               <span className="absolute right-2 top-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{businesses.length}</span>
             </button>
@@ -332,14 +332,14 @@ export const DirectoryView: React.FC = () => {
                   key={group.id}
                   onClick={() => selectGroup(group.id)}
                   aria-pressed={isSelected}
-                  className={`group relative flex min-h-36 sm:min-h-40 flex-col items-center justify-center gap-3 rounded-2xl border bg-white p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isSelected ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
+                  className={`group relative flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isSelected ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
                 >
-                  <span className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${isSelected ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
-                    {ICONS_MAP[group.id] || <Layers className="h-7 w-7 text-slate-600" strokeWidth={1.8} />}
+                  <span className={`flex h-9 w-9 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl transition-colors ${isSelected ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
+                    {ICONS_MAP[group.id] || <Layers className="h-5 w-5 sm:h-7 sm:w-7 text-slate-600" strokeWidth={1.8} />}
                   </span>
                   <span className="space-y-1">
-                    <span className="block text-sm font-black leading-snug text-slate-900">{group.shortName}</span>
-                    <span className="block text-[11px] leading-snug text-slate-500 line-clamp-2">{group.name}</span>
+                    <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">{group.shortName}</span>
+                    <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">{group.name}</span>
                   </span>
                   <span className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
                 </button>
