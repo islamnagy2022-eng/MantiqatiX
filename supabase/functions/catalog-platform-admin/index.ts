@@ -237,8 +237,7 @@ Deno.serve(async (req: Request) => {
       const workingHours = String(input.workingHours || "").trim();
       const logoUrl = String(input.logoUrl || "").trim();
       const coverUrl = String(input.coverUrl || "").trim();
-      const publishNow = input.publishNow === true;
-      let paymentDueDate = String(input.paymentDueDate || "").trim();
+            let paymentDueDate = String(input.paymentDueDate || "").trim();
       const paymentGracePeriodDays = Number(input.paymentGracePeriodDays ?? 7);
       if (!paymentDueDate) {
         const defaultDueDate = new Date();
@@ -251,7 +250,7 @@ Deno.serve(async (req: Request) => {
       if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length < 10 || phoneDigits.length > 15) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "A valid owner WhatsApp number is required." }, 400);
-      if ([governorate, markaz, village].some((value) => value.length < 2 || value.length > 100)) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
+      if ([governorate, markaz].some((value) => value.length < 2 || value.length > 100) || village.length > 100) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
       const parsedDueDate = new Date(`${paymentDueDate}T00:00:00.000Z`);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDueDate) || Number.isNaN(parsedDueDate.getTime()) || parsedDueDate.toISOString().slice(0, 10) !== paymentDueDate) return response(origin, { error: "INVALID_PAYMENT_DUE_DATE" }, 400);
       if (!Number.isInteger(paymentGracePeriodDays) || paymentGracePeriodDays < 0 || paymentGracePeriodDays > 90) return response(origin, { error: "INVALID_PAYMENT_GRACE_PERIOD" }, 400);
@@ -270,16 +269,16 @@ Deno.serve(async (req: Request) => {
       try {
         const { data: created, error: createError } = await service.from("businesses").insert({
           tenant_id: tenantId, organization_id: organizationId, name,
-          code: `MX-${randomCode}`, status: "ACTIVE",
+          code: `MX-${randomCode}`, status: "INACTIVE",
           settings: {
             activity_code: category,
             category_code: category,
             ...(activityGroupCode ? { activity_group_code: activityGroupCode } : {}),
             activity_classification_type: activityClassificationType,
             activity_specialty: activitySpecialty || null,
-            catalog_public_enabled: publishNow,
+            catalog_public_enabled: false,
             catalog_profile: { bio: bio.slice(0, 3000), governorate: governorate.slice(0, 100), markaz: markaz.slice(0, 100), village: village.slice(0, 100), working_hours: workingHours.slice(0, 300), logo_url: logoUrl.slice(0, 1500), cover_url: coverUrl.slice(0, 1500) },
-            bizcatalog: { paymentStatus: "pending", paymentDueDate, paymentGracePeriodDays, publicationStatus: publishNow ? "PUBLISHED_UNPAID" : "PENDING_PUBLICATION", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
+            bizcatalog: { paymentStatus: "pending", paymentDueDate, paymentGracePeriodDays, publicationStatus: "PENDING_PUBLICATION", isFrozen: false, totalOrdersCount: 0, paymentConfirmedByAdmin: false } },
         }).select("id,tenant_id,organization_id,name,code,status,settings").single();
         if (createError) throw createError;
         createdBusinessId = String(created.id);
@@ -295,7 +294,7 @@ Deno.serve(async (req: Request) => {
           provider_kind: category.slice(0, 80), business_id: created.id,
           owner_user_id: null, name_ar: name, name_en: null, slug: `${slug}-${randomCode.toLowerCase()}`,
           description: bio.slice(0, 3000) || null, specialties: activitySpecialty ? [activitySpecialty] : [], service_areas: [], portfolio: [],
-          status: "ACTIVE", is_verified: false, is_featured: false, ranking_weight: 0,
+          status: "PENDING", is_verified: false, is_featured: false, ranking_weight: 0,
           settings: {
             ...(activityGroupCode ? { activity_group_code: activityGroupCode } : {}),
             activity_classification_type: activityClassificationType,
@@ -303,7 +302,7 @@ Deno.serve(async (req: Request) => {
           },
         });
         if (providerError) throw providerError;
-        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "ACTIVE" } }, 201);
+        return response(origin, { business: { id: created.id, tenantId, organizationId, branchId, name, slug: `${slug}-${randomCode.toLowerCase()}`, category, status: "INACTIVE" } }, 201);
       } catch (error) {
         if (createdBusinessId) {
           await service.from("marketing_provider_profiles").delete().eq("business_id", createdBusinessId);
