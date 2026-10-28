@@ -9,13 +9,19 @@ const headersFor = (origin: string | null) => ({
   "Access-Control-Allow-Methods": "GET, OPTIONS", "Vary": "Origin", "Cache-Control": "no-store",
 });
 const response = (origin: string | null, body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: headersFor(origin) });
-const safeImage = (value: unknown) => {
+const safeImage = (value: unknown, allowLegacyShowcaseImage = false) => {
   const s = String(value || "").trim();
   if (s.length > 1500 || !/^https:\/\//i.test(s)) return "";
-  // Ignore old stock-photo defaults so only owner-supplied images are displayed.
-  if (/^https:\/\/images\.unsplash\.com\//i.test(s)) return "";
+  // Older official showcase cards already have category photos saved in production.
+  // Restore those visuals only for platform-owned showcase activities; ordinary
+  // businesses still require their own supplied images.
+  if (/^https:\/\/images\.unsplash\.com\//i.test(s) && !allowLegacyShowcaseImage) return "";
   return s;
 };
+
+const isOfficialShowcase = (business: any) =>
+  business?.settings?.source === "OFFICIAL_PLATFORM_SHOWCASE" ||
+  business?.settings?.managed_by === "SUPER_ADMIN";
 
 type DefaultImageKind = "activity" | "product" | "service" | "cover";
 interface DefaultImageInput { name?: string | null; description?: string | null; category?: string | null; kind?: DefaultImageKind; }
@@ -88,27 +94,33 @@ Deno.serve(async (req: Request) => {
       .select("id,tenant_id,organization_id,name,code,status,settings")
       .in("tenant_id", productionTenantIds).eq("status", "ACTIVE").limit(250);
     if (businessError) throw businessError;
-    // Do not expose a business in public discovery until its owner explicitly publishes its catalog.
-    const publishedBusinesses = (businesses || []).filter((b: any) => b.settings?.catalog_public_enabled === true);
-    if (!publishedBusinesses.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
-    const ids = publishedBusinesses.map((b: any) => b.id);
+    // Customer-owned catalogues remain opt-in. Platform-owned showcase activities
+    // are public directory cards even before their module/catalog is separately enabled.
+    const directoryBusinesses = (businesses || []).filter((b: any) =>
+      b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
+    );
+    if (!directoryBusinesses.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    const ids = directoryBusinesses.map((b: any) => b.id);
     const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
       .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
       .in("business_id", ids).eq("status", "ACTIVE").limit(250);
     if (providerError) throw providerError;
     const providerMap = new Map((providers || []).map((p: any) => [String(p.business_id), p]));
-    const publicBusinesses = publishedBusinesses.filter((b: any) => providerMap.has(String(b.id)));
+    const publicBusinesses = directoryBusinesses.filter((b: any) => providerMap.has(String(b.id)));
     const results: any[] = [];
     for (const business of publicBusinesses.slice(0, 100)) {
       const tenantId = String(business.tenant_id || "");
       const { data: branches, error: branchError } = await db.from("branches")
         .select("id,name,code,status,address,phone").eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE").order("name").limit(100);
       if (branchError) throw branchError;
-      if (!branches?.length) continue;
-      const branch = branches[0];
-      const branchId = String(branch.id);
-      const provider: any = providerMap.get(String(business.id));
       const catalogPublished = business.settings?.catalog_public_enabled === true;
+      // A public catalogue needs a real branch. An official showcase card can be
+      // displayed without one, since it does not expose products or operations.
+      if (!branches?.length && catalogPublished) continue;
+      const branch: any = branches?.[0] || null;
+      const branchId = String(branch?.id || "");
+      const provider: any = providerMap.get(String(business.id));
+      const officialShowcase = isOfficialShowcase(business);
       let items: any[] = [];
       let prices: any[] = [];
       if (catalogPublished) {
@@ -152,10 +164,11 @@ Deno.serve(async (req: Request) => {
         name: activityName,
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
-        profile: { bio: String(profile.bio || provider?.description || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url) || defaultImages.coverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
-        provider: { kind: activityCategory, description: provider?.description || profile.bio || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
+        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url, officialShowcase) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url, officialShowcase) || defaultImages.coverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
+        provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
-        catalogPublished, publicEnabled: catalogPublished, paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
+        catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
+        paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
       });
     }
     return response(origin, { businesses: results, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });

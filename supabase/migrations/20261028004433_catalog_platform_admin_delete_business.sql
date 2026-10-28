@@ -1,0 +1,107 @@
+create or replace function public.mnty_platform_admin_delete_business(
+  p_tenant_id text,
+  p_business_id uuid,
+  p_actor_user_id uuid
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $function$
+declare
+  v_business public.businesses%rowtype;
+  v_branch_ids text[] := array[]::text[];
+begin
+  select b.* into v_business
+    from public.businesses b
+   where b.id = p_business_id
+     and b.tenant_id = p_tenant_id
+   for update;
+
+  if not found then
+    raise exception using message = 'BUSINESS_NOT_FOUND';
+  end if;
+
+  select coalesce(array_agg(br.id::text), array[]::text[])
+    into v_branch_ids
+    from public.branches br
+   where br.tenant_id = p_tenant_id
+     and br.business_id = p_business_id;
+
+  -- Never destroy operational, payment, referral, or signed-agreement history.
+  -- The admin can freeze/deactivate the activity instead if any of this exists.
+  if exists (select 1 from public.orders o where o.tenant_id = p_tenant_id and o.business_id = p_business_id)
+     or exists (select 1 from public.restaurant_orders o where o.business_id = p_business_id)
+     or exists (select 1 from public.fashion_orders o where o.business_id = p_business_id)
+     or exists (select 1 from public.erp_purchase_orders o where o.tenant_id = p_tenant_id and o.business_id = p_business_id)
+     or exists (select 1 from public.erp_purchase_receipts r where r.tenant_id = p_tenant_id and r.business_id = p_business_id)
+     or exists (select 1 from public.erp_stock_transfers t where t.tenant_id = p_tenant_id and t.business_id = p_business_id)
+     or exists (select 1 from public.refund_transactions r where r.tenant_id = p_tenant_id and r.business_id = p_business_id)
+     or exists (select 1 from public.subscription_payment_intents p where p.tenant_id = p_tenant_id and p.business_id = p_business_id)
+     or exists (select 1 from public.business_referral_events e where e.business_id = p_business_id)
+     or exists (select 1 from public.agreements a where a.business_id = p_business_id)
+     or exists (select 1 from public.inventory_transactions t where t.branch_id::text = any(v_branch_ids))
+     or exists (select 1 from public.journal_entries j where j.branch_id::text = any(v_branch_ids))
+     or exists (select 1 from public.order_status_history h where h.branch_id::text = any(v_branch_ids))
+     or exists (select 1 from public.stock_balances s where s.branch_id::text = any(v_branch_ids)) then
+    raise exception using message = 'BUSINESS_DELETE_BLOCKED_BY_HISTORY';
+  end if;
+
+  -- Remove activity-owned setup data in FK-safe order. Shared tenant, user and
+  -- platform records are not deleted; existing audit rows are preserved.
+  delete from public.user_memberships m
+   where m.tenant_id = p_tenant_id and m.business_id = p_business_id;
+
+  delete from public.departments d
+   where d.tenant_id = p_tenant_id and d.business_id = p_business_id;
+
+  delete from public.restaurant_inventory i where i.business_id = p_business_id;
+  delete from public.restaurant_menu_items i where i.business_id = p_business_id;
+  delete from public.restaurant_tables t where t.business_id = p_business_id;
+  delete from public.fashion_products p where p.business_id = p_business_id;
+
+  if cardinality(v_branch_ids) > 0 then
+    delete from public.warehouses w
+     where w.tenant_id = p_tenant_id and w.branch_id::text = any(v_branch_ids);
+  end if;
+
+  delete from public.catalog_items i
+   where i.tenant_id = p_tenant_id and i.business_id = p_business_id;
+  delete from public.catalog_business_settings s
+   where s.tenant_id = p_tenant_id and s.business_id = p_business_id;
+  delete from public.advertisements a
+   where a.tenant_id = p_tenant_id and a.business_id = p_business_id;
+  delete from public.marketing_provider_profiles p
+   where p.business_id = p_business_id;
+
+  delete from public.branches br
+   where br.tenant_id = p_tenant_id and br.business_id = p_business_id;
+
+  delete from public.businesses b
+   where b.id = p_business_id and b.tenant_id = p_tenant_id;
+
+  insert into public.audit_logs(actor_user_id, action, entity_type, entity_id, details)
+  values (
+    p_actor_user_id,
+    'BIZCATALOG_BUSINESS_DELETED',
+    'business',
+    p_business_id::text,
+    pg_catalog.jsonb_build_object(
+      'tenant_id', p_tenant_id,
+      'business_name', v_business.name,
+      'business_code', v_business.code,
+      'deleted_at', pg_catalog.now()
+    )
+  );
+
+  return pg_catalog.jsonb_build_object(
+    'success', true,
+    'businessId', p_business_id,
+    'tenantId', p_tenant_id,
+    'deleted', true
+  );
+end;
+$function$;
+
+revoke all on function public.mnty_platform_admin_delete_business(text, uuid, uuid) from public, anon, authenticated;
+grant execute on function public.mnty_platform_admin_delete_business(text, uuid, uuid) to service_role;

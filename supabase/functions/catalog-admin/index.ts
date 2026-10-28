@@ -65,8 +65,42 @@ const isPlatformAdmin = (m: any) =>
   m.permissions?.scope === "PLATFORM" &&
   m.permissions?.full_control === true;
 
-const businessRole = (m: any) =>
-  ["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER"].includes(String(m.role || "").toUpperCase());
+const BUSINESS_SCOPE_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "FINANCE", "SALES", "MARKETING",
+  "SUPPORT", "SUPPORT_MANAGER", "EMPLOYEE", "STAFF", "SERVICE_PROVIDER", "PROVIDER_OWNER",
+  "PROVIDER_ADMIN", "BRANCH_MANAGER", "PROVIDER_FINANCE", "PROVIDER_MARKETING",
+  "PROVIDER_OPERATIONS", "PROVIDER_SUPPORT",
+];
+const CATALOG_READ_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "STAFF",
+  "SERVICE_PROVIDER", "PROVIDER_OWNER", "PROVIDER_ADMIN", "BRANCH_MANAGER",
+];
+const CATALOG_WRITE_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "PROVIDER_OWNER",
+  "PROVIDER_ADMIN", "BRANCH_MANAGER",
+];
+const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
+
+const catalogMutationActions = new Set([
+  "BUSINESS_PROFILE_UPSERT", "ITEM_PRICE_UPSERT", "ITEM_STATUS_UPDATE",
+  "WAREHOUSE_CREATE", "STOCK_ADJUST", "ITEM_UPSERT", "PRICE_UPSERT", "SETTINGS_UPSERT",
+]);
+
+const canUseCatalog = (membership: any, write = false) => {
+  const role = String(membership?.role || "").toUpperCase();
+  if (!(write ? CATALOG_WRITE_ROLES : CATALOG_READ_ROLES).includes(role)) return false;
+  const p = membership?.permissions && typeof membership.permissions === "object" && !Array.isArray(membership.permissions)
+    ? membership.permissions : {};
+  const modules = p.modules && typeof p.modules === "object" && !Array.isArray(p.modules) ? p.modules : {};
+  const catalog = modules.CATALOG;
+  if (p.account_restricted === true || p.catalog === false || catalog === false) return false;
+  if (catalog && typeof catalog === "object" && catalog.view === false) return false;
+  if (write && (p.catalog_write === false || p.catalog_read_only === true)) return false;
+  if (write && catalog && typeof catalog === "object" && catalog.write === false) return false;
+  if (Array.isArray(catalog) && !catalog.includes("view")) return false;
+  if (write && Array.isArray(catalog) && !catalog.some((action: string) => ["create", "update", "approve", "manage"].includes(action))) return false;
+  return true;
+};
 
 // PostgreSQL UUID columns accept any 128-bit UUID-shaped value. Some existing
 // platform business IDs are legacy values whose version/variant nibbles do not
@@ -232,16 +266,15 @@ Deno.serve(async (req: Request) => {
     const catalogSettings = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
       ? business.settings.bizcatalog
       : {};
-    const mutationActions = new Set([
-      "BUSINESS_PROFILE_UPSERT",
-      "ITEM_PRICE_UPSERT",
-      "ITEM_STATUS_UPDATE",
-      "WAREHOUSE_CREATE",
-      "STOCK_ADJUST",
-      "ITEM_UPSERT",
-      "PRICE_UPSERT",
-      "SETTINGS_UPSERT",
-    ]);
+    const mutationActions = catalogMutationActions;
+    if (!scopedPlatformMembership && action === "CATALOG_READ"
+      && !businessMemberships.some((m: any) => canUseCatalog(m, false))) {
+      return out(origin, { error: "CATALOG_ACCESS_RESTRICTED", message: "تم تقييد الوصول إلى كتالوج هذا النشاط من إدارة المنصة." }, 403);
+    }
+    if (!scopedPlatformMembership && mutationActions.has(action)
+      && !businessMemberships.some((m: any) => canUseCatalog(m, true))) {
+      return out(origin, { error: "CATALOG_READ_ONLY", message: "هذا الحساب يملك صلاحية العرض فقط أو تم منع التعديل من إدارة المنصة." }, 403);
+    }
     if (mutationActions.has(action) && !scopedPlatformMembership) {
       if (String(business.status || "").toUpperCase() !== "ACTIVE") {
         return out(origin, { error: "BUSINESS_INACTIVE", message: "النشاط غير نشط؛ تواصل مع إدارة المنصة لإعادة التفعيل." }, 409);
