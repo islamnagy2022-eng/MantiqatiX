@@ -59,6 +59,31 @@ interface CoverSlide {
   businessId?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+const FUNCTIONAL_GROUP_COVERS: Record<string, string> = {
+  medical_health: 'legacy/activity/medical.svg',
+  food_grocery: 'legacy/activities/food.svg',
+  fashion_beauty: 'legacy/activities/fashion.svg',
+  home_maintenance: 'legacy/activities/maintenance.svg',
+  construction_decor: 'legacy/activity/home.svg',
+  auto_transport: 'legacy/activity/auto.svg',
+  real_estate: 'legacy/activity/real-estate.svg',
+  education_training: 'legacy/activity/education.svg',
+  technology_communications: 'legacy/activity/digital.svg',
+  professional_services: 'legacy/activities/marketing.svg',
+  marketing_media: 'legacy/activities/marketing.svg',
+  trade_ecommerce: 'legacy/activities/grocery.svg',
+  agriculture_animals: 'legacy/activities/grocery.svg',
+  sports_fitness: 'legacy/activity/fitness.svg',
+  tourism_events: 'legacy/activity/travel.svg',
+  finance_insurance: 'legacy/activity/digital.svg',
+  industry_workshops: 'legacy/activities/maintenance.svg',
+  public_community: 'legacy/activity/education.svg',
+};
+const functionalGroupCover = (groupId: string, name: string, description?: string | null, shortName?: string | null) => {
+  const base = import.meta.env.BASE_URL || '/';
+  const path = FUNCTIONAL_GROUP_COVERS[groupId];
+  return path ? `${base.endsWith('/') ? base : `${base}/`}${path}` : resolveDefaultImage({ name, description, category: shortName, kind: 'cover' });
+};
 
 export const DirectoryView: React.FC = () => {
   const {
@@ -313,7 +338,7 @@ export const DirectoryView: React.FC = () => {
             {functionalGroups.map((group) => {
               const count = businesses.filter((b) => b.functionalGroupId === group.id).length;
               const isSelected = selectedGroupFilter === group.id;
-              const image = resolveDefaultImage({ name: group.name, description: group.description, category: group.shortName, kind: 'cover' });
+              const image = functionalGroupCover(group.id, group.name, group.description, group.shortName);
               return (
                 <button
                   key={group.id}
