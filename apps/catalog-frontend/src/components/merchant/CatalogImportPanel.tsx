@@ -61,6 +61,7 @@ function parseCsv(text: string): string[][] {
 
 type ZipEntryInfo = { method: number; compressedSize: number; uncompressedSize: number; localHeaderOffset: number; flags: number };
 const MAX_XLSX_UNCOMPRESSED_ENTRY = 12 * 1024 * 1024;
+const MAX_XLSX_TOTAL_UNCOMPRESSED = 24 * 1024 * 1024;
 const MAX_XLSX_TOTAL_ENTRIES = 512;
 const XLSX_REL_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
 function columnIndexFromReference(reference: string): number {
@@ -108,6 +109,7 @@ async function parseXlsx(arrayBuffer: ArrayBuffer): Promise<string[][]> {
   if (centralOffset + centralSize > bytes.length || centralOffset >= eocd) throw new Error('فهرس ملف Excel غير صالح.');
   const decoder = new TextDecoder('utf-8');
   const entries = new Map<string, ZipEntryInfo>();
+  let declaredTotalUncompressed = 0;
   let cursor = centralOffset;
   for (let index = 0; index < entryCount; index += 1) {
     if (cursor + 46 > bytes.length || view.getUint32(cursor, true) !== 0x02014b50) throw new Error('فهرس ZIP داخل ملف Excel غير صالح.');
@@ -127,6 +129,9 @@ async function parseXlsx(arrayBuffer: ArrayBuffer): Promise<string[][]> {
     if ((flags & 0x0001) !== 0) throw new Error('ملف Excel محمي بكلمة مرور؛ أزل الحماية قبل الاستيراد.');
     if (method !== 0 && method !== 8) throw new Error('طريقة ضغط داخل ملف Excel غير مدعومة.');
     if (uncompressedSize > MAX_XLSX_UNCOMPRESSED_ENTRY || compressedSize > bytes.length) throw new Error('أحد مكونات Excel يتجاوز حدود الحجم الآمن.');
+    declaredTotalUncompressed += uncompressedSize;
+    if (declaredTotalUncompressed > MAX_XLSX_TOTAL_UNCOMPRESSED) throw new Error('الحجم الإجمالي غير المضغوط لملف Excel يتجاوز الحد الآمن (24 ميجابايت).');
+    if (entries.has(name)) throw new Error('ملف Excel يحتوي على مكوّن مكرر في الأرشيف.');
     entries.set(name, { method, compressedSize, uncompressedSize, localHeaderOffset, flags });
     cursor = nextCursor;
   }
