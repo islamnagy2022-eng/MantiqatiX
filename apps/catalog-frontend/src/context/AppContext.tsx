@@ -170,7 +170,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (selected) return selected;
     return authSession.role === 'admin' ? businesses[0] : undefined;
   })();
-  const businessProducts = products.filter((p) => p.businessId === currentBusiness?.id);
+  const businessProducts = products.filter((p) => p.businessId === currentBusiness?.id && currentBusiness?.operationalStatus === 'ACTIVE' && !currentBusiness?.isFrozen);
 
   const applyUser = async (user: any, isCurrent: () => boolean = () => true) => {
     const boot = await bootstrapProductionUser(user || null);
