@@ -806,6 +806,9 @@ export const AdminDashboard: React.FC = () => {
                               />
                               <div className="truncate">
                                 <div className="truncate">{biz.name}</div>
+                                <span className={`inline-flex mt-1 rounded-md px-1.5 py-0.5 text-[9px] font-black ${biz.operationalStatus === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : biz.operationalStatus === 'FROZEN' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-700'}`}>
+                                  {biz.operationalStatus === 'ACTIVE' ? 'حالة النشاط: مفعّل' : biz.operationalStatus === 'FROZEN' ? 'حالة النشاط: مجمّد' : 'حالة النشاط: موقوف'}
+                                </span>
                                 <div className="text-[10px] text-slate-500 font-normal truncate flex items-center gap-1">
                                   <MapPin className="w-3 h-3 text-emerald-600 flex-shrink-0" />
                                   <span>
