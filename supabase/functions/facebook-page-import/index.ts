@@ -5,6 +5,7 @@ const GRAPH_VERSION = "v26.0";
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
 const ALLOWED_ORIGINS = new Set([
   "https://islamnagy2022-eng.github.io",
+  "https://catalog.tagerflow.com",
   "http://localhost:3000",
   "http://localhost:8080",
   "http://127.0.0.1:3000",
