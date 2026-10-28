@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// Supabase Edge Runtime provides Deno.serve at runtime; no runtime import is needed for its ambient type declarations.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:8080"]);
@@ -164,6 +164,9 @@ Deno.serve(async (req: Request) => {
         name: activityName,
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
+        activityGroupCode: String(business.settings?.activity_group_code || business.settings?.taxonomy_group_code || ""),
+        activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
+        activitySpecialty: String(business.settings?.activity_specialty || ""),
         profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url, officialShowcase) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url, officialShowcase) || defaultImages.coverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
