@@ -197,7 +197,7 @@ export const DirectoryView: React.FC = () => {
               }`}
             >
               <img
-                src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })
+                src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
                 alt={slide.title}
                 className="w-full h-full object-cover object-center"
                 onError={(event) => {
@@ -221,6 +221,22 @@ export const DirectoryView: React.FC = () => {
               <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
                 {currentSlide?.subtitle}
               </p>
+              {currentSlide?.businessId && (
+                <span className="pointer-events-auto mt-2 bg-white/15 border border-white/30 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
+                  نشاط منشور فعليًا على المنصة
+                </span>
+              )}
+              {!currentSlide?.businessId && catalogRequestPhone && (
+                <a
+                  href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pointer-events-auto mt-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs py-2.5 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <span>اطلب كتالوج لنشاطك</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
             </div>
           )}
           {currentSlide?.marketingCreative && catalogRequestPhone && (
@@ -233,23 +249,6 @@ export const DirectoryView: React.FC = () => {
               اطلب كتالوج لنشاطك
             </a>
           )}
-            {currentSlide?.businessId && (
-              <span className="pointer-events-auto mt-2 bg-white/15 border border-white/30 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
-                نشاط منشور فعليًا على المنصة
-              </span>
-            )}
-            {!currentSlide?.marketingCreative && !currentSlide?.businessId && catalogRequestPhone && (
-              <a
-                href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="pointer-events-auto mt-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs py-2.5 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
-              >
-                <span>اطلب كتالوج لنشاطك</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
-          </div>
 
           {/* Slider Dots */}
           <div className="absolute bottom-3 right-1/2 translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/50 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/20 max-w-[90%] overflow-x-auto no-scrollbar">
