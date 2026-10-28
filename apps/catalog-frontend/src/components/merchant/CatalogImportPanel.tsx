@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FileUp, Loader2, Trash2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { resolveDefaultImage } from '../../utils/defaultImages';
+import { generateCatalogAiImage } from '../../lib/production';
 
 type CatalogDraftRow = {
   rowNumber: number;
@@ -13,6 +14,9 @@ type CatalogDraftRow = {
   description: string;
   unit: string;
   imageUrl: string;
+  imageSource?: 'auto' | 'owner' | 'ai';
+  suggestedImageUrl?: string;
+  suggestionError?: string;
   errors: string[];
   importError?: string;
 };
@@ -53,7 +57,32 @@ function parseCsv(text: string): string[][] {
   if (row.some((cell) => cell.length > 0)) rows.push(row);
   if (rows.length < 2) throw new Error('الملف لا يحتوي على صفوف أصناف بعد صف العناوين.');
   return rows;
+} 
+function validateDraftRows(rows: CatalogDraftRow[]): CatalogDraftRow[] {
+  const seen = new Set<string>();
+  return rows.map((row) => {
+    const errors: string[] = [];
+    if (row.name.trim().length < 2) errors.push('اسم الصنف مطلوب (حرفان على الأقل).');
+    const priceText = row.priceText.trim();
+    const price = priceText === '' ? Number.NaN : Number(priceText.replace(/٬/g,'').replace(/,/g,''));
+    if (!Number.isFinite(price) || price < 0) errors.push('السعر مفقود أو غير صالح.');
+    if (row.comparePriceText.trim() !== '') {
+      const compare = Number(row.comparePriceText.replace(/٬/g,'').replace(/,/g,''));
+      if (!Number.isFinite(compare) || compare < 0) errors.push('السعر السابق غير صالح.');
+    }
+    if (row.imageUrl.trim()) {
+      try {
+        const url = new URL(row.imageUrl.trim());
+        if (url.protocol !== 'https:' || url.username || url.password) errors.push('رابط الصورة يجب أن يكون HTTPS صالحًا.');
+      } catch { errors.push('رابط الصورة غير صالح.'); }
+    }
+    const key = row.name.trim().toLocaleLowerCase();
+    if (key && seen.has(key)) errors.push('اسم مكرر داخل ملف الاستيراد.');
+    if (key) seen.add(key);
+    return { ...row, errors };
+  });
 }
+
 function createDraftRows(text: string): CatalogDraftRow[] {
   const table = parseCsv(text);
   const headers = table[0].map(normalizeHeader);
@@ -64,31 +93,15 @@ function createDraftRows(text: string): CatalogDraftRow[] {
   }
   if (columns.name == null) throw new Error('يجب أن يحتوي صف العناوين على name أو name_ar أو «اسم المنتج».');
   if (columns.price == null) throw new Error('يجب أن يحتوي صف العناوين على price أو unit_price أو «السعر».');
-  const seen = new Set<string>();
-  return table.slice(1).map((cells, index) => {
+  return validateDraftRows(table.slice(1).map((cells, index) => {
     const read = (key: string, fallback = '') => columns[key] == null ? fallback : String(cells[columns[key]] ?? '').trim();
     const name = read('name'), rawType = read('type').toLowerCase();
     const type: 'product'|'service' = /service|خدمة|خدمات/.test(rawType) ? 'service' : 'product';
     const category = read('category','عام') || 'عام';
     const priceText = read('price'), comparePriceText = read('compare'), imageUrl = read('image');
     const description = read('description'), unit = read('unit', type === 'service' ? 'جلسة' : 'قطعة');
-    const errors: string[] = [];
-    if (name.length < 2) errors.push('اسم الصنف مطلوب (حرفان على الأقل).');
-    const price = priceText === '' ? Number.NaN : Number(priceText.replace(/٬/g,'').replace(/,/g,''));
-    if (!Number.isFinite(price) || price < 0) errors.push('السعر مفقود أو غير صالح.');
-    if (comparePriceText !== '') {
-      const compare = Number(comparePriceText.replace(/٬/g,'').replace(/,/g,''));
-      if (!Number.isFinite(compare) || compare < 0) errors.push('السعر السابق غير صالح.');
-    }
-    if (imageUrl) {
-      try { const url = new URL(imageUrl); if (url.protocol !== 'https:' || url.username || url.password) errors.push('رابط الصورة يجب أن يكون HTTPS صالحًا.'); }
-      catch { errors.push('رابط الصورة غير صالح.'); }
-    }
-    const key = name.trim().toLocaleLowerCase();
-    if (key && seen.has(key)) errors.push('اسم مكرر داخل ملف الاستيراد.');
-    if (key) seen.add(key);
-    return { rowNumber:index+2,name,type,category,priceText,comparePriceText,description,unit,imageUrl,errors };
-  });
+    return { rowNumber:index+2,name,type,category,priceText,comparePriceText,description,unit,imageUrl,imageSource:imageUrl?'owner':'auto',errors:[] };
+  }));
 }
 function downloadTemplate() {
   const csv = '\uFEFFname,type,category,price,compare_price,description,unit,image_url\r\nمثال منتج,product,عام,100,,وصف المنتج,قطعة,\r\nمثال خدمة,service,خدمات,250,,وصف الخدمة,جلسة,';
@@ -104,6 +117,8 @@ export const CatalogImportPanel: React.FC = () => {
   const [filename,setFilename] = useState('');
   const [rows,setRows] = useState<CatalogDraftRow[]>([]);
   const [savedAt,setSavedAt] = useState('');
+  const [readyStorageKey,setReadyStorageKey] = useState('');
+  const [suggestingRows,setSuggestingRows] = useState<number[]>([]);
   const [working,setWorking] = useState(false);
   const [progress,setProgress] = useState({done:0,total:0,failed:0});
   const [notice,setNotice] = useState<{type:'success'|'error'|'info';text:string}|null>(null);
@@ -113,28 +128,63 @@ export const CatalogImportPanel: React.FC = () => {
   const invalidCount = rows.length - readyRows.length;
 
   useEffect(()=>{
-    if(!storageKey)return;
+    if(!storageKey){setReadyStorageKey('');setRows([]);setFilename('');setSavedAt('');return;}
+    // Keep autosave disabled until this business's draft has been loaded into state.
+    setReadyStorageKey('');
     try {
       const raw=localStorage.getItem(storageKey);
-      if(!raw)return;
+      if(!raw){
+        setRows([]);setFilename('');setSavedAt('');setReadyStorageKey(storageKey);
+        return;
+      }
       const saved=JSON.parse(raw) as SavedDraft;
-      if(saved?.version!==1||!Array.isArray(saved.rows))return;
+      if(saved?.version!==1||!Array.isArray(saved.rows)){
+        setRows([]);setFilename('');setSavedAt('');setReadyStorageKey(storageKey);
+        setNotice({type:'error',text:'صيغة المسودة المحلية غير معروفة؛ تم إيقاف استعادتها دون تغيير بيانات الكتالوج.'});
+        return;
+      }
       setFilename(saved.filename||'');
-      setRows(saved.rows);
+      setRows(validateDraftRows(saved.rows));
       setSavedAt(saved.savedAt||'');
+      setReadyStorageKey(storageKey);
       setNotice({type:'info',text:'استُعيدت المسودة المحفوظة محليًا. راجع الصفوف قبل الاستيراد.'});
-    } catch { setNotice({type:'error',text:'تعذر قراءة المسودة السابقة؛ لم يتم تغيير أي بيانات في الكتالوج.'}); }
+    } catch {
+      setRows([]);setFilename('');setSavedAt('');setReadyStorageKey(storageKey);
+      setNotice({type:'error',text:'تعذر قراءة المسودة السابقة؛ لم يتم تغيير أي بيانات في الكتالوج.'});
+    }
   // Deliberately load only when the selected business changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[storageKey]);
 
   useEffect(()=>{
-    if(!storageKey)return;
+    if(!storageKey||readyStorageKey!==storageKey)return;
     if(!rows.length){if(filename)localStorage.removeItem(storageKey);return;}
     const draft:SavedDraft={version:1,filename,savedAt:new Date().toISOString(),rows};
     try { localStorage.setItem(storageKey,JSON.stringify(draft)); setSavedAt(draft.savedAt); }
     catch { setNotice({type:'error',text:'تعذر حفظ المسودة محليًا؛ قد تكون مساحة تخزين المتصفح ممتلئة.'}); }
-  },[storageKey,filename,rows]);
+  },[storageKey,readyStorageKey,filename,rows]);
+
+  const updateRow=(rowNumber:number,patch:Partial<CatalogDraftRow>)=>{
+    setRows(current=>{
+      const changed=current.map(row=>row.rowNumber===rowNumber?{...row,...patch,importError:undefined,suggestionError:undefined}:row);
+      return validateDraftRows(changed);
+    });
+  };
+
+  const suggestImage=async(row:CatalogDraftRow)=>{
+    if(!currentBusiness?.id||!row.name.trim()){setNotice({type:'error',text:'أدخل اسم الصنف قبل طلب اقتراح صورة.'});return;}
+    setSuggestingRows(current=>current.includes(row.rowNumber)?current:[...current,row.rowNumber]);
+    setNotice({type:'info',text:`جارٍ إنشاء اقتراح صورة لـ «${row.name}». لن يُعتمد قبل مراجعتك.`});
+    const url=await generateCatalogAiImage({businessId:currentBusiness.id,kind:row.type,name:row.name.trim(),category:row.category,description:row.description});
+    setSuggestingRows(current=>current.filter(number=>number!==row.rowNumber));
+    if(!url){
+      setRows(current=>current.map(item=>item.rowNumber===row.rowNumber?{...item,suggestionError:'تعذر إنشاء صورة مقترحة الآن. يمكنك المحاولة مرة أخرى أو استخدام صورة النشاط الافتراضية.'}:item));
+      setNotice({type:'error',text:'تعذر إنشاء اقتراح الصورة. لم يتم تغيير صورة الصنف.'});
+      return;
+    }
+    setRows(current=>current.map(item=>item.rowNumber===row.rowNumber?{...item,suggestedImageUrl:url,suggestionError:undefined}:item));
+    setNotice({type:'info',text:'ظهر اقتراح الصورة للمعاينة فقط؛ اختر «اعتماد الصورة المقترحة» لاستخدامه في الاستيراد.'});
+  };
 
   const clearDraft=()=>{
     if(working)return;
@@ -175,7 +225,7 @@ export const CatalogImportPanel: React.FC = () => {
       const result=await addProduct({
         businessId:currentBusiness.id,name:row.name.trim(),type:row.type,category:row.category.trim()||'عام',
         price,comparePrice:compare,description:row.description.trim(),unit:row.unit.trim()||(row.type==='service'?'جلسة':'قطعة'),
-        imageUrl:image,imageSource:row.imageUrl?'owner':'auto',deferAiImageGeneration:true,isAvailable:true,
+        imageUrl:image,imageSource:row.imageSource || (row.imageUrl?'owner':'auto'),deferAiImageGeneration:true,isAvailable:true,
       });
       if(result.success){succeeded++;setRows(current=>current.filter(x=>x.rowNumber!==row.rowNumber));}
       else {failed++;setRows(current=>current.map(x=>x.rowNumber===row.rowNumber?{...x,importError:result.message||'فشل الحفظ في الخادم.'}:x));}
@@ -205,11 +255,11 @@ export const CatalogImportPanel: React.FC = () => {
     </div>
     {!!rows.length&&<div className="rounded-3xl border border-slate-200 bg-white p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="font-black">2 — راجع الصفوف قبل الحفظ</h3><p className="mt-1 text-xs text-slate-500">{rows.length} صف في المسودة، {invalidCount} يحتاج مراجعة أو مكرر.</p></div><button type="button" onClick={clearDraft} disabled={working} className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700"><Trash2 className="h-4 w-4"/>مسح المسودة</button></div>
-      <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[850px] text-right text-xs"><thead className="bg-slate-50 text-slate-600"><tr><th className="p-3">صف</th><th className="p-3">الصنف</th><th className="p-3">النوع</th><th className="p-3">التصنيف</th><th className="p-3">السعر</th><th className="p-3">الصورة</th><th className="p-3">الحالة</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map(row=>{const duplicate=existingNames.has(row.name.trim().toLocaleLowerCase());const issues=[...row.errors,...(duplicate?['الاسم موجود بالفعل في كتالوج النشاط.']:[])];return <tr key={row.rowNumber} className={issues.length?'bg-rose-50/50':''}><td className="p-3">{row.rowNumber}</td><td className="p-3 font-bold">{row.name||'—'}<div className="mt-1 max-w-xs truncate font-normal text-slate-500">{row.description}</div>{issues.map((issue,i)=><div key={i} className="mt-1 text-[11px] text-rose-700">{issue}</div>)}{row.importError&&<div className="mt-1 text-[11px] font-bold text-amber-800">تعذر الحفظ: {row.importError} — يمكن إعادة المحاولة.</div>}</td><td className="p-3">{row.type==='service'?'خدمة':'منتج'}</td><td className="p-3">{row.category}</td><td className="p-3">{row.priceText?row.priceText+' ج.م':'—'}</td><td className="p-3">{row.imageUrl?<a className="text-indigo-700 underline" href={row.imageUrl} target="_blank" rel="noreferrer">فتح الصورة</a>:'صورة مؤقتة'}</td><td className="p-3">{issues.length?<span className="text-rose-700">مراجعة مطلوبة</span>:<span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5"/>جاهز</span>}</td></tr>;})}</tbody></table></div>
+      <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[1250px] text-right text-xs"><thead className="bg-slate-50 text-slate-600"><tr><th className="p-3">صف</th><th className="p-3">اسم الصنف *</th><th className="p-3">النوع</th><th className="p-3">التصنيف</th><th className="p-3">السعر *</th><th className="p-3">قبل الخصم</th><th className="p-3">الوحدة</th><th className="p-3">الوصف</th><th className="p-3">الصورة</th><th className="p-3">الحالة</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map(row=>{const duplicate=existingNames.has(row.name.trim().toLocaleLowerCase());const issues=[...row.errors,...(duplicate?['الاسم موجود بالفعل في كتالوج النشاط.']:[])];return <tr key={row.rowNumber} className={issues.length?'bg-rose-50/50':''}><td className="p-3">{row.rowNumber}</td><td className="p-2"><input aria-label={`اسم الصنف في الصف ${row.rowNumber}`} value={row.name} onChange={e=>updateRow(row.rowNumber,{name:e.target.value})} className={inputClass}/></td><td className="p-2"><select aria-label={`نوع الصنف في الصف ${row.rowNumber}`} value={row.type} onChange={e=>updateRow(row.rowNumber,{type:e.target.value as 'product'|'service',unit:e.target.value==='service'?'جلسة':'قطعة'})} className={inputClass}><option value="product">منتج</option><option value="service">خدمة</option></select></td><td className="p-2"><input aria-label={`التصنيف في الصف ${row.rowNumber}`} value={row.category} onChange={e=>updateRow(row.rowNumber,{category:e.target.value})} className={inputClass}/></td><td className="p-2"><input aria-label={`السعر في الصف ${row.rowNumber}`} type="number" min="0" step="0.01" value={row.priceText} onChange={e=>updateRow(row.rowNumber,{priceText:e.target.value})} className={inputClass}/></td><td className="p-2"><input aria-label={`السعر السابق في الصف ${row.rowNumber}`} type="number" min="0" step="0.01" value={row.comparePriceText} onChange={e=>updateRow(row.rowNumber,{comparePriceText:e.target.value})} className={inputClass}/></td><td className="p-2"><input aria-label={`الوحدة في الصف ${row.rowNumber}`} value={row.unit} onChange={e=>updateRow(row.rowNumber,{unit:e.target.value})} className={inputClass}/></td><td className="p-2"><textarea aria-label={`الوصف في الصف ${row.rowNumber}`} value={row.description} rows={2} onChange={e=>updateRow(row.rowNumber,{description:e.target.value})} className={inputClass}/></td><td className="p-2"><div className="min-w-[180px] space-y-2">{row.imageUrl&&<a className="block text-indigo-700 underline" href={row.imageUrl} target="_blank" rel="noreferrer">فتح الصورة المستخدمة</a>}<input aria-label={`رابط الصورة في الصف ${row.rowNumber}`} value={row.imageUrl} onChange={e=>updateRow(row.rowNumber,{imageUrl:e.target.value,imageSource:e.target.value.trim()?'owner':'auto'})} placeholder="رابط HTTPS أو اتركه فارغًا" className={inputClass}/>{row.suggestedImageUrl&&<div className="rounded-xl border border-indigo-200 bg-indigo-50 p-2"><img src={row.suggestedImageUrl} alt={`اقتراح صورة مولّد بالذكاء الاصطناعي لـ ${row.name}`} loading="lazy" className="h-24 w-full rounded-lg object-cover bg-white"/><p className="mt-1 text-[10px] text-indigo-900">اقتراح AI — غير معتمد</p><button type="button" onClick={()=>updateRow(row.rowNumber,{imageUrl:row.suggestedImageUrl||'',imageSource:'ai',suggestedImageUrl:undefined})} className="mt-2 w-full rounded-lg bg-indigo-700 px-2 py-2 text-[11px] font-bold text-white">اعتماد الصورة المقترحة</button></div>}<button type="button" onClick={()=>void suggestImage(row)} disabled={working||suggestingRows.includes(row.rowNumber)} className="w-full rounded-lg border border-indigo-200 px-2 py-2 text-[11px] font-bold text-indigo-800 disabled:opacity-50">{suggestingRows.includes(row.rowNumber)?'جارٍ إنشاء الاقتراح…':row.suggestedImageUrl?'إنشاء اقتراح آخر':'اقتراح صورة بالذكاء الاصطناعي'}</button>{row.suggestionError&&<p className="text-[10px] text-rose-700">{row.suggestionError}</p>}{!row.imageUrl&&!row.suggestedImageUrl&&<p className="text-[10px] leading-4 text-slate-500">سيُستخدم رسم افتراضي مناسب للمجال حتى ترفع صورة.</p>}</div></td><td className="p-3"><div>{issues.length?<span className="font-bold text-rose-700">مراجعة مطلوبة</span>:<span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5"/>جاهز</span>}{issues.map((issue,i)=><div key={i} className="mt-1 max-w-[220px] text-[11px] text-rose-700">{issue}</div>)}{row.importError&&<div className="mt-1 max-w-[220px] text-[11px] font-bold text-amber-800">تعذر الحفظ: {row.importError} — يمكن إعادة المحاولة.</div>}</div></td></tr>;})}</tbody></table></div>
       {progress.total>0&&<div className="rounded-xl bg-slate-50 p-3"><div className="flex items-center justify-between text-xs"><span>تقدم الاستيراد</span><strong>{progress.done} / {progress.total}</strong></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-emerald-600 transition-all" style={{width:`${progress.total?progress.done/progress.total*100:0}%`}}/></div><p className="mt-2 text-xs text-slate-500">نجح {progress.done-progress.failed} · فشل {progress.failed}</p></div>}
       <button type="button" onClick={()=>void startImport()} disabled={working||!readyRows.length||readyRows.length>remaining} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">{working?<Loader2 className="h-4 w-4 animate-spin"/>:<CheckCircle2 className="h-4 w-4"/>}{working?'جارٍ حفظ الصفوف بالتتابع…':`3 — اعتماد واستيراد ${readyRows.length} صفًا`}</button>
       {!!(readyRows.length>remaining)&&<p className="text-xs text-rose-700">عدد الصفوف يتجاوز السعة المتبقية؛ لن يبدأ الاستيراد قبل حل ذلك.</p>}
     </div>}
-    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-950"><strong className="flex items-center gap-2"><AlertTriangle className="h-4 w-4"/>تنبيه</strong><p className="mt-1">المسودة محفوظة محليًا على هذا المتصفح وليست متزامنة مع أجهزة أخرى. النسخة الحالية تستورد CSV فقط؛ دعم XLSX المباشر والاقتراحات الذكية التي تتطلب موافقة قبل الترحيل لم يُفعّلا في هذا الجزء. الحفظ الفعلي يمر عبر واجهة الخادم المحمية؛ عند تعذر صف تبقى تفاصيل الخطأ في المسودة لإعادة المحاولة.</p></div>
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-950"><strong className="flex items-center gap-2"><AlertTriangle className="h-4 w-4"/>تنبيه</strong><p className="mt-1">المسودة محفوظة محليًا على هذا المتصفح وليست متزامنة مع أجهزة أخرى. النسخة الحالية تستورد CSV فقط؛ دعم XLSX المباشر لم يُفعّل بعد. اقتراحات الصور أصبحت متاحة هنا، وتحتاج اعتمادًا يدويًا قبل استخدامها. الحفظ الفعلي يمر عبر واجهة الخادم المحمية؛ عند تعذر صف تبقى تفاصيل الخطأ في المسودة لإعادة المحاولة.</p></div>
   </section>;
 };
