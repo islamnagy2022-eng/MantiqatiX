@@ -341,25 +341,28 @@ export const AdminDashboard: React.FC = () => {
     } catch (error) { window.alert(error instanceof Error ? error.message : 'تعذر إنشاء النشاط في قاعدة الإنتاج.'); }
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
+  const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
 
     const specialties = newCatSpecialties.split(/[،,]/).map((item) => item.trim()).filter(Boolean);
-    addCategory({
-      name: newCatName.trim(),
-      functionalGroupId: newCatGroup,
-      classificationType: newCatType,
-      specialties,
-      description: newCatDesc.trim() || undefined,
-    });
-
-    setNewCatName('');
-    setNewCatDesc('');
-    setNewCatType('activity');
-    setNewCatSpecialties('');
-    setNewCatGroup('medical_health');
-    setIsNewCatModalOpen(false);
+    try {
+      await addCategory({
+        name: newCatName.trim(),
+        functionalGroupId: newCatGroup,
+        classificationType: newCatType,
+        specialties,
+        description: newCatDesc.trim() || undefined,
+      });
+      setNewCatName('');
+      setNewCatDesc('');
+      setNewCatType('activity');
+      setNewCatSpecialties('');
+      setNewCatGroup('medical_health');
+      setIsNewCatModalOpen(false);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'تعذر حفظ التصنيف في إعدادات المنصة.');
+    }
   };
 
   const handleCopyCredentials = (subId: string) => {
@@ -1113,7 +1116,7 @@ export const AdminDashboard: React.FC = () => {
                             <button
                               onClick={() => {
                                 if (window.confirm(`هل أنت متأكد من حذف تصنيف (${cat.name})؟`)) {
-                                  deleteCategory(cat.id);
+                                  void deleteCategory(cat.id).catch((error) => window.alert(error instanceof Error ? error.message : 'تعذر حذف التصنيف من إعدادات المنصة.'));
                                 }
                               }}
                               className="text-rose-500 hover:text-rose-700 font-bold p-1"
