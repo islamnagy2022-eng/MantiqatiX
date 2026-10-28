@@ -39,6 +39,7 @@ assert.match(context, /const updateBrowserRoute = \(view: ViewMode/, "View navig
 assert.match(context, /window\.history\.pushState/, "Opening app views must create navigable URLs that survive refresh");
 assert.match(context, /window\.addEventListener\('popstate', restoreRouteFromLocation\)/, "Browser back/forward must restore the selected app route");
 assert.match(context, /requestedView === 'super_admin'/, "Platform-admin route restoration must be explicit");
+assert.match(context, /url\.searchParams\.set\('manage', businessId\)/, "Admin-selected business context must survive refresh");
 assert.match(adminDashboard, /const readAdminTabFromUrl =/, "Admin tabs must hydrate from the URL");
 assert.match(adminDashboard, /url\.searchParams\.set\('tab', tab\)/, "Admin tabs must persist to the URL");
 assert.match(deleteMigration, /ALTER FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) SECURITY DEFINER/i, "Business deletion must execute with secure definer rights after edge authorization");
