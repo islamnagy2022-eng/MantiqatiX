@@ -24,7 +24,7 @@ import {
   generateStorePublicUrl,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
-import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
@@ -55,6 +55,8 @@ interface AppContextType {
   isLoginModalOpen: boolean;
   setIsLoginModalOpen: (open: boolean) => void;
   businesses: Business[];
+  directoryBusinesses: Business[];
+  directoryLoading: boolean;
   products: Product[];
   subscribers: Subscriber[];
   adminSettings: AdminSettings;
@@ -98,6 +100,8 @@ const publicBaseUrl = () => `${window.location.origin}${baseUrl.endsWith('/') ? 
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [directoryBusinesses, setDirectoryBusinesses] = useState<Business[]>([]);
+  const [directoryLoading, setDirectoryLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
@@ -236,6 +240,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     commitSelectedBusinessId(preferred);
     setCurrentView(safeRequestedView);
   };
+
+  // Load the public directory independently from authentication so visitors see published activities immediately.
+  useEffect(() => {
+    let active = true;
+    fetchPublicDirectory()
+      .then((directory) => { if (active) setDirectoryBusinesses(directory.businesses); })
+      .catch((error) => { console.warn('[MantiqatiX public directory]', error); })
+      .finally(() => { if (active) setDirectoryLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -840,7 +854,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryLoading, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
