@@ -49,7 +49,7 @@ Deno.serve(async (req: Request) => {
   const locationValue = String(body.locationValue || "").trim();
   const targetUrl = String(body.targetUrl || "").trim();
   const notes = String(body.notes || "").trim();
-  if (!businessId || businessId.length > 100) return json({ error: "INVALID_BUSINESS" }, 400);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(businessId)) return json({ error: "INVALID_BUSINESS" }, 400);
   if (title.length < 3 || title.length > 180) return json({ error: "INVALID_TITLE" }, 400);
   if (!durations.has(duration)) return json({ error: "INVALID_DURATION" }, 400);
   if (!placements.has(placement)) return json({ error: "INVALID_PLACEMENT" }, 400);
