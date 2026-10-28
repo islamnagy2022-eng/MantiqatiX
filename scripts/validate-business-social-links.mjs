@@ -34,7 +34,7 @@ assert.ok(header.includes(telHref), "Phone action must use the device's dialer")
 assert.match(header, /target="_blank" rel="noopener noreferrer"/, "Social links must open safely in a new tab");
 assert.match(header, /opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100/, "Activity cover must stay bright by default and darken only on hover or keyboard focus");
 const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
-const deleteMigration = fs.readFileSync("supabase/migrations/20261028050000_catalog_platform_admin_delete_least_privilege.sql", "utf8");
+const deleteMigration = fs.readFileSync("supabase/migrations/20261028050134_catalog_platform_admin_delete_least_privilege.sql", "utf8");
 assert.match(context, /const updateBrowserRoute = \(view: ViewMode/, "View navigation must be synchronized with the URL");
 assert.match(context, /window\.history\.pushState/, "Opening app views must create navigable URLs that survive refresh");
 assert.match(context, /window\.addEventListener\('popstate', restoreRouteFromLocation\)/, "Browser back/forward must restore the selected app route");
