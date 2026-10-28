@@ -282,8 +282,8 @@ export const AdminDashboard: React.FC = () => {
       window.alert('أدخل رقم واتساب حقيقيًا لصاحب النشاط من 10 إلى 15 رقمًا.');
       return;
     }
-    if (!newBizGov.trim() || !newBizMarkaz.trim() || !newBizVillage.trim()) {
-      window.alert('أدخل المحافظة والمركز/القسم والقرية/الحي الفعلي للنشاط.');
+    if (!newBizGov.trim() || !newBizMarkaz.trim()) {
+      window.alert('أدخل المحافظة والمركز/القسم. القرية أو الحي اختياري إذا لم ينطبق.');
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(newBizPaymentDueDate) || Number.isNaN(new Date(`${newBizPaymentDueDate}T00:00:00`).getTime())) {
@@ -2119,10 +2119,9 @@ export const AdminDashboard: React.FC = () => {
                     <label className="block text-[10px] font-bold text-slate-600 mb-0.5">القرية / الحي</label>
                     <input
                       type="text"
-                      required
                       value={newBizVillage}
                       onChange={(e) => setNewBizVillage(e.target.value)}
-                      placeholder="مثال: ميت علي"
+                      placeholder="اختياري إذا لم ينطبق"
                       className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold"
                     />
                   </div>
