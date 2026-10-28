@@ -642,9 +642,9 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] FREE is stored as `paymentStatus: "free"`, `subscriptionMode: "FREE"`, `subscriptionAmount: 0`, with admin identity/time and `freeActivationApprovedByAdmin`; it is not falsely marked paid.
 - [x] Owner membership activation gates recognize the explicit admin-approved free state without bypassing the paid-payment gate for paid subscriptions.
 - [x] Publication approval can create/activate a provider directory profile when missing and does not require an active owner membership when the platform administrator explicitly approves publication; the decision is audited.
-- [x] Deployed `catalog-platform-admin` Edge Function version 17 to Supabase project `moyhiluyhjsujhwlyeuu` with JWT verification enabled.
+- [x] Deployed `catalog-platform-admin` Edge Function version 18 to Supabase project `moyhiluyhjsujhwlyeuu` with JWT verification enabled.
 - [x] Added frontend UI and production mapping for subscription amount, free status, and due date; free activities hide payment-confirmation and due-date-edit controls.
-- [x] Updated static production-state validator to cover optional fields and free-vs-paid subscription state.
+- [x] Updated static production-state validator to cover optional fields and free-vs-paid subscription state; corrected a stale responsive-card spacing assertion that was blocking the release workflow.
 - [ ] **NOT VERIFIED:** final catalog TypeScript/build and production validation for the latest commit are still running; do not claim frontend deployment until the release workflow succeeds.
 - [ ] **NOT VERIFIED:** authenticated end-to-end activity creation, free activation, admin publication, public catalog visibility, and owner assignment against production.
 - [ ] **NOT VERIFIED:** real browser/mobile regression and post-deploy smoke tests.
