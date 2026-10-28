@@ -315,6 +315,11 @@ export const AdminDashboard: React.FC = () => {
       window.alert('أدخل قيمة اشتراك أكبر من صفر أو اختر التفعيل المجاني.');
       return;
     }
+    const gracePeriodDays = Number(newBizGracePeriodDays);
+    if (newBizSubscriptionMode === 'PAID' && (!Number.isInteger(gracePeriodDays) || gracePeriodDays < 0 || gracePeriodDays > 90)) {
+      window.alert('مدة المهلة يجب أن تكون عددًا صحيحًا من 0 إلى 90 يومًا.');
+      return;
+    }
 
     const matchedCat = categories.find((c) => c.name === newBizCategory && c.functionalGroupId === newBizFunctionalGroup);
     const resolvedGroup = matchedCat?.functionalGroupId || newBizFunctionalGroup || 'medical_health';
