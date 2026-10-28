@@ -483,13 +483,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateProduct = async (updated: Product) => {
     const business = businesses.find((b) => b.id === updated.businessId);
     if (!business?.tenantId || !business.branchId) throw new Error('النشاط أو الفرع غير مرتبط ببيانات الإنتاج.');
+    const previous = products.find((product) => product.id === updated.id);
     let imageSource: 'auto' | 'owner' | 'ai' = updated.imageSource === 'ai' && Boolean(updated.imageUrl?.trim())
       ? 'ai'
       : updated.imageSource === 'owner' && Boolean(updated.imageUrl?.trim()) ? 'owner' : 'auto';
     let imageUrl = imageSource === 'owner' || imageSource === 'ai'
       ? updated.imageUrl.trim()
       : resolveDefaultImage({ name: updated.name, description: updated.description, category: updated.category, kind: updated.type === 'service' ? 'service' : 'product' });
-    if (imageSource === 'auto') {
+    // Don't spend another image-generation request for price/availability-only edits.
+    // Regenerate only for a new auto image or when its descriptive context changes.
+    const shouldGenerate = imageSource === 'auto' && (
+      !previous ||
+      previous.imageSource !== 'auto' ||
+      previous.name !== updated.name ||
+      previous.description !== updated.description ||
+      previous.category !== updated.category ||
+      previous.type !== updated.type
+    );
+    if (shouldGenerate) {
       const generated = await generateCatalogAiImage({
         businessId: business.id,
         kind: updated.type,
