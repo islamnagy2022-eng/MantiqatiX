@@ -1,6 +1,6 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
-import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS } from '../data/productionDefaults';
+import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId } from '../data/productionDefaults';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
@@ -105,11 +105,7 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
 }
 
 function groupFromCategory(category: string): FunctionalGroupId {
-  if (/مطاعم|قهوة|حلويات|غذاء|أغذية|مخبز/.test(category)) return 'dining';
-  if (/خدمات|استوديو|تصميم|تسويق|رقمي/.test(category)) return 'services';
-  if (/صيدل|طب|عياد|صحة/.test(category)) return 'healthcare';
-  if (/صيان|ورش|حداد|نجار|تكييف/.test(category)) return 'crafts_maintenance';
-  return 'retail';
+  return resolveCanonicalGroupId(category);
 }
 
 export function mapBusiness(raw: any, provider: any): Business {
@@ -125,7 +121,7 @@ export function mapBusiness(raw: any, provider: any): Business {
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
-    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category)?.id,
+    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
     functionalGroupId: groupFromCategory(category),
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
@@ -327,7 +323,12 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       subscribers = [];
     }
     const settingsResult: any = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
-    if (settingsResult?.settings) Object.assign(adminSettings, settingsResult.settings, { adminPassword: '' });
+    if (settingsResult?.settings) Object.assign(
+      adminSettings,
+      settingsResult.settings,
+      normalizeCanonicalTaxonomySettings(settingsResult.settings),
+      { adminPassword: '' },
+    );
   }
 
   const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest';
