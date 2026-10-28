@@ -65,8 +65,21 @@ const isPlatformAdmin = (m: any) =>
   m.permissions?.scope === "PLATFORM" &&
   m.permissions?.full_control === true;
 
-const businessRole = (m: any) =>
-  ["OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "SERVICE_PROVIDER", "PROVIDER_OWNER", "PROVIDER_ADMIN"].includes(String(m.role || "").toUpperCase());
+const BUSINESS_SCOPE_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "FINANCE", "SALES", "MARKETING",
+  "SUPPORT", "SUPPORT_MANAGER", "EMPLOYEE", "STAFF", "SERVICE_PROVIDER", "PROVIDER_OWNER",
+  "PROVIDER_ADMIN", "BRANCH_MANAGER", "PROVIDER_FINANCE", "PROVIDER_MARKETING",
+  "PROVIDER_OPERATIONS", "PROVIDER_SUPPORT",
+];
+const CATALOG_READ_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "STAFF",
+  "SERVICE_PROVIDER", "PROVIDER_OWNER", "PROVIDER_ADMIN", "BRANCH_MANAGER",
+];
+const CATALOG_WRITE_ROLES = [
+  "OWNER", "BUSINESS_OWNER", "ADMIN", "MANAGER", "PROVIDER_OWNER",
+  "PROVIDER_ADMIN", "BRANCH_MANAGER",
+];
+const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
 
 const catalogMutationActions = new Set([
   "BUSINESS_PROFILE_UPSERT", "ITEM_PRICE_UPSERT", "ITEM_STATUS_UPDATE",
@@ -74,6 +87,8 @@ const catalogMutationActions = new Set([
 ]);
 
 const canUseCatalog = (membership: any, write = false) => {
+  const role = String(membership?.role || "").toUpperCase();
+  if (!(write ? CATALOG_WRITE_ROLES : CATALOG_READ_ROLES).includes(role)) return false;
   const p = membership?.permissions && typeof membership.permissions === "object" && !Array.isArray(membership.permissions)
     ? membership.permissions : {};
   const modules = p.modules && typeof p.modules === "object" && !Array.isArray(p.modules) ? p.modules : {};
