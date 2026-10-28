@@ -69,7 +69,7 @@ assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
-assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
+assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\)/, 'business creation must require governorate and district; village is optional when not applicable');
 assert.match(createUi, /paymentStatus: 'pending'/, 'new business must remain unpaid until an admin confirms real payment');
 assert.match(createUi, /paymentConfirmedByAdmin: false/, 'new business must not be marked as payment-confirmed by default');
 assert.match(createUi, /paymentDueDate: newBizPaymentDueDate/, 'new business form must persist its chosen payment due date');
