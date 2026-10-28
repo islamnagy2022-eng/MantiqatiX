@@ -96,10 +96,12 @@ Deno.serve(async (req: Request) => {
     if (businessError) throw businessError;
     // Customer-owned catalogues remain opt-in. Platform-owned showcase activities
     // are public directory cards even before their module/catalog is separately enabled.
-    const directoryBusinesses = (businesses || []).filter((b: any) => {
-      const operationalStatus = String(b.settings?.bizcatalog?.operationalStatus || (b.settings?.bizcatalog?.isFrozen ? "FROZEN" : "ACTIVE")).toUpperCase();
-      return operationalStatus === "ACTIVE" && (b.settings?.catalog_public_enabled === true || isOfficialShowcase(b));
-    });
+    // Directory publication is independent of operational availability.
+    // Paused/frozen businesses may keep their approved profile page, but will not
+    // expose products/services and are filtered out of homepage promotional covers.
+    const directoryBusinesses = (businesses || []).filter((b: any) =>
+      b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
+    );
     if (!directoryBusinesses.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
     const ids = directoryBusinesses.map((b: any) => b.id);
     const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
@@ -114,8 +116,14 @@ Deno.serve(async (req: Request) => {
         .select("id,name,code,status,address,phone").eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE").order("name").limit(100);
       if (branchError) throw branchError;
       const catalogPublished = business.settings?.catalog_public_enabled === true;
-      // A public catalogue needs a real branch. An official showcase card can be
-      // displayed without one, since it does not expose products or operations.
+      const bizcatalog = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
+        ? business.settings.bizcatalog : {};
+      const operationalStatus = String(bizcatalog.operationalStatus || (bizcatalog.isFrozen ? "FROZEN" : "ACTIVE")).toUpperCase();
+      const operationallyActive = operationalStatus === "ACTIVE"
+        && bizcatalog.isFrozen !== true
+        && String(bizcatalog.paymentStatus || "").toLowerCase() !== "frozen";
+      // A public catalogue needs a real branch even while operations are paused;
+      // the approved profile may remain visible without exposing sellable items.
       if (!branches?.length && catalogPublished) return null;
       const branch: any = branches?.[0] || null;
       const branchId = String(branch?.id || "");
@@ -123,7 +131,7 @@ Deno.serve(async (req: Request) => {
       const officialShowcase = isOfficialShowcase(business);
       let items: any[] = [];
       let prices: any[] = [];
-      if (catalogPublished) {
+      if (catalogPublished && operationallyActive) {
         const { data: itemRows, error: itemError } = await db.from("catalog_items")
           .select("id,tenant_id,business_id,branch_id,item_type,name_ar,name_en,description,status,metadata")
           .eq("tenant_id", tenantId).eq("business_id", business.id).eq("status", "ACTIVE")
@@ -161,7 +169,7 @@ Deno.serve(async (req: Request) => {
         : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
       return {
         id: business.id, tenantId, organizationId: business.organization_id,
-        status: business.status, operationalStatus: business.status,
+        status: business.status,
         bizcatalog: business.settings?.bizcatalog || {},
         name: activityName,
         slug: provider?.slug || String(business.code || business.id),
@@ -173,7 +181,8 @@ Deno.serve(async (req: Request) => {
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
-        operationalStatus: String(business.settings?.bizcatalog?.operationalStatus || (business.settings?.bizcatalog?.isFrozen ? 'FROZEN' : 'ACTIVE')).toUpperCase(),
+        operationalStatus,
+        operationallyAvailable: operationallyActive,
         paymentsEnabled: false, accessMode: "PUBLIC_READ_ONLY",
       };
     };
