@@ -128,6 +128,97 @@ Deno.serve(async (req: Request) => {
       return response(origin, { success: true, settings: merged });
     }
 
+    if (action === "LIST_BUSINESSES") {
+      const search = String(body.search || "").trim().toLocaleLowerCase();
+      const { data: businessRows, error: businessError } = await service.from("businesses")
+        .select("id,tenant_id,organization_id,name,code,status,settings,created_at")
+        .in("tenant_id", productionTenantIds).order("created_at", { ascending: false }).limit(1500);
+      if (businessError) throw new Error("BUSINESS_LIST_FAILED");
+      const filteredBusinesses = (businessRows || []).filter((b: any) =>
+        !search || [b.name, b.code, b.id, b.settings?.category_code, b.settings?.activity_code].some((v: any) => String(v || "").toLocaleLowerCase().includes(search))
+      );
+      const ids = filteredBusinesses.map((b: any) => String(b.id));
+      const { data: membershipRows, error: membershipError } = ids.length
+        ? await service.from("user_memberships").select("id,user_id,tenant_id,business_id,role,status").in("business_id", ids).limit(5000)
+        : { data: [], error: null };
+      if (membershipError) throw new Error("BUSINESS_MEMBERSHIP_LIST_FAILED");
+      const userIds = [...new Set((membershipRows || []).map((m: any) => String(m.user_id)))];
+      const userMap = new Map<string, any>();
+      for (let page = 1; page <= 50; page += 1) {
+        const { data, error } = await service.auth.admin.listUsers({ page, perPage: 1000 });
+        if (error) throw new Error("AUTH_USER_DIRECTORY_FAILED");
+        for (const u of data?.users || []) if (userIds.includes(String(u.id))) userMap.set(String(u.id), u);
+        if ((data?.users || []).length < 1000 || userMap.size >= userIds.length) break;
+      }
+      const membershipsByBusiness = new Map<string, any[]>();
+      for (const m of membershipRows || []) {
+        const u = userMap.get(String(m.user_id));
+        const key = String(m.business_id);
+        if (!membershipsByBusiness.has(key)) membershipsByBusiness.set(key, []);
+        membershipsByBusiness.get(key)!.push({
+          id: String(m.id), user_id: String(m.user_id), role: String(m.role || "CUSTOMER"),
+          status: String(m.status || "INACTIVE"), email: String(u?.email || ""),
+          full_name: String(u?.user_metadata?.full_name || u?.user_metadata?.name || u?.email || ""),
+        });
+      }
+      return response(origin, { businesses: filteredBusinesses.map((b: any) => ({
+        ...b, memberships: membershipsByBusiness.get(String(b.id)) || [],
+      })) });
+    }
+
+    if (action === "BUSINESS_MANAGE") {
+      const tenantId = requireTenant(body.tenantId);
+      const businessId = String(body.businessId || "").trim();
+      const operation = String(body.operation || "").toUpperCase();
+      const business = await getBusiness(tenantId, businessId);
+      if (operation === "UPDATE") {
+        const incoming = body.settings && typeof body.settings === "object" && !Array.isArray(body.settings) ? body.settings : {};
+        const current = business.settings && typeof business.settings === "object" ? business.settings : {};
+        const next: Record<string, any> = { ...current };
+        for (const key of ["display_name_ar", "headline", "category_code", "activity_code"]) {
+          if (Object.prototype.hasOwnProperty.call(incoming, key)) next[key] = String(incoming[key] ?? "").slice(0, 200);
+        }
+        const incomingProfile = incoming.catalog_profile && typeof incoming.catalog_profile === "object" ? incoming.catalog_profile : {};
+        const currentProfile = current.catalog_profile && typeof current.catalog_profile === "object" ? current.catalog_profile : {};
+        const profile: Record<string, any> = { ...currentProfile };
+        for (const key of ["category", "bio", "logo_url", "cover_url", "logo_image_source", "cover_image_source"]) {
+          if (Object.prototype.hasOwnProperty.call(incomingProfile, key)) profile[key] = String(incomingProfile[key] ?? "").slice(0, key === "bio" ? 3000 : 1500);
+        }
+        next.catalog_profile = profile;
+        const name = String(body.name || business.name || "").trim().slice(0, 200);
+        if (name.length < 2) return response(origin, { error: "INVALID_BUSINESS_NAME", message: "اسم النشاط مطلوب." }, 400);
+        const { error } = await service.from("businesses").update({ name, settings: next, updated_at: new Date().toISOString() })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (error) throw error;
+        await service.from("audit_logs").insert({ actor_user_id: user.id, action: "PLATFORM_BUSINESS_UPDATED", entity_type: "business", entity_id: businessId, tenant_id: tenantId, details: { name, fields: ["name","category","description","images"] } });
+        return response(origin, { success: true });
+      }
+      if (operation === "DEACTIVATE") {
+        const settings = { ...(business.settings || {}), catalog_public_enabled: false };
+        const billing = settings.bizcatalog && typeof settings.bizcatalog === "object" ? settings.bizcatalog : {};
+        settings.bizcatalog = { ...billing, publicationStatus: "UNPUBLISHED" };
+        const { error } = await service.from("businesses").update({ status: "INACTIVE", settings, updated_at: new Date().toISOString() })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (error) throw error;
+        await service.from("audit_logs").insert({ actor_user_id: user.id, action: "PLATFORM_BUSINESS_DEACTIVATED", entity_type: "business", entity_id: businessId, tenant_id: tenantId, details: { oldStatus: business.status, newStatus: "INACTIVE" } });
+        return response(origin, { success: true });
+      }
+      if (operation === "RESTORE") {
+        const settings = business.settings && typeof business.settings === "object" ? business.settings : {};
+        const billing = settings.bizcatalog && typeof settings.bizcatalog === "object" ? settings.bizcatalog : {};
+        const official = settings.source === "OFFICIAL_PLATFORM_SHOWCASE" || settings.managed_by === "SUPER_ADMIN";
+        if (!official && !(String(billing.paymentStatus || "").toLowerCase() === "paid" && billing.paymentConfirmedByAdmin === true)) {
+          return response(origin, { error: "SUBSCRIPTION_PAYMENT_REQUIRED", message: "لا يمكن إعادة تنشيط النشاط قبل تأكيد سداد الاشتراك." }, 409);
+        }
+        const { error } = await service.from("businesses").update({ status: "ACTIVE", updated_at: new Date().toISOString() })
+          .eq("id", businessId).eq("tenant_id", tenantId);
+        if (error) throw error;
+        await service.from("audit_logs").insert({ actor_user_id: user.id, action: "PLATFORM_BUSINESS_RESTORED", entity_type: "business", entity_id: businessId, tenant_id: tenantId, details: { oldStatus: business.status, newStatus: "ACTIVE" } });
+        return response(origin, { success: true });
+      }
+      return response(origin, { error: "INVALID_BUSINESS_OPERATION" }, 400);
+    }
+
     if (action === "LIST_SUBSCRIBERS") {
       const { data: membershipRows, error: membershipListError } = await service.from("user_memberships")
         .select("id,user_id,tenant_id,organization_id,business_id,branch_id,role,status,permissions,created_at")
