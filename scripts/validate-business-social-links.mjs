@@ -34,7 +34,7 @@ assert.ok(header.includes(telHref), "Phone action must use the device's dialer")
 assert.match(header, /target="_blank" rel="noopener noreferrer"/, "Social links must open safely in a new tab");
 assert.match(header, /opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100/, "Activity cover must stay bright by default and darken only on hover or keyboard focus");
 const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
-const deleteMigration = fs.readFileSync("supabase/migrations/20261028045414_catalog_platform_admin_delete_security_definer.sql", "utf8");
+const deleteMigration = fs.readFileSync("supabase/migrations/20261028050134_catalog_platform_admin_delete_least_privilege.sql", "utf8");
 assert.match(context, /const updateBrowserRoute = \(view: ViewMode/, "View navigation must be synchronized with the URL");
 assert.match(context, /window\.history\.pushState/, "Opening app views must create navigable URLs that survive refresh");
 assert.match(context, /window\.addEventListener\('popstate', restoreRouteFromLocation\)/, "Browser back/forward must restore the selected app route");
@@ -42,7 +42,11 @@ assert.match(context, /requestedView === 'super_admin'/, "Platform-admin route r
 assert.match(context, /url\.searchParams\.set\('manage', businessId\)/, "Admin-selected business context must survive refresh");
 assert.match(adminDashboard, /const readAdminTabFromUrl =/, "Admin tabs must hydrate from the URL");
 assert.match(adminDashboard, /url\.searchParams\.set\('tab', tab\)/, "Admin tabs must persist to the URL");
-assert.match(deleteMigration, /ALTER FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) SECURITY DEFINER/i, "Business deletion must execute with secure definer rights after edge authorization");
+assert.match(deleteMigration, /ALTER FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) SECURITY INVOKER/i, "Business deletion must run as the server caller rather than as the database owner");
+assert.match(deleteMigration, /GRANT SELECT ON[\s\S]*public\.orders[\s\S]*TO service_role/i, "Server-only service role must have the minimal select privileges needed for the history guard");
+assert.match(deleteMigration, /GRANT SELECT, DELETE ON[\s\S]*public\.catalog_business_settings[\s\S]*TO service_role/i, "Service role must receive only required catalog cleanup privileges");
+assert.match(deleteMigration, /REVOKE ALL ON FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) FROM public, anon, authenticated/i, "Deletion RPC must remain unavailable to public client roles");
+assert.doesNotMatch(deleteMigration, /SECURITY DEFINER/i, "The deletion repair must not introduce a privileged definer function");
 assert.match(deleteMigration, /REVOKE ALL ON FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) FROM public, anon, authenticated/i, "Business deletion RPC must not be callable by public client roles");
 
 
