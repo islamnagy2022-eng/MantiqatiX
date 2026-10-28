@@ -45,11 +45,18 @@ function resolveDefaultActivityImages(input: Omit<DefaultImageInput, "kind">) {
   return { logoUrl: resolveDefaultImage({ ...input, kind: "activity" }), coverUrl: resolveDefaultImage({ ...input, kind: "cover" }) };
 }
 
-const allowedOrigin = "https://islamnagy2022-eng.github.io";
+const allowedOrigins = new Set([
+  "https://islamnagy2022-eng.github.io",
+  "https://catalog.tagerflow.com",
+  "http://localhost:3000",
+  "http://localhost:8080",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:8080",
+]);
 
-const cors = (_origin: string | null) => ({
+const cors = (origin: string | null) => ({
   "Content-Type": "application/json",
-  "Access-Control-Allow-Origin": allowedOrigin,
+  "Access-Control-Allow-Origin": origin && allowedOrigins.has(origin) ? origin : "https://islamnagy2022-eng.github.io",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Vary": "Origin",
@@ -80,6 +87,25 @@ const CATALOG_WRITE_ROLES = [
   "PROVIDER_ADMIN", "BRANCH_MANAGER",
 ];
 const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
+
+type SocialPlatform = "facebook" | "instagram" | "tiktok";
+const socialHosts: Record<SocialPlatform, Set<string>> = {
+  facebook: new Set(["facebook.com", "www.facebook.com", "m.facebook.com", "fb.com", "www.fb.com", "fb.me", "fb.watch"]),
+  instagram: new Set(["instagram.com", "www.instagram.com", "instagr.am", "www.instagr.am"]),
+  tiktok: new Set(["tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"]),
+};
+const normalizeSocialUrl = (value: unknown, platform: SocialPlatform): string | null => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    const candidate = /^https?:\/\//i.test(raw) ? raw : "https://" + raw;
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" || !socialHosts[platform].has(url.hostname.toLowerCase()) || url.username || url.password) return null;
+    return url.toString().slice(0, 500);
+  } catch {
+    return null;
+  }
+};
 
 const mutationActions = new Set([
   "BUSINESS_PROFILE_UPSERT", "ITEM_PRICE_UPSERT", "ITEM_STATUS_UPDATE",
@@ -149,7 +175,7 @@ const catalogMetadataWithImage = (
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
-  if (origin && origin !== allowedOrigin) return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
+  if (origin && !allowedOrigins.has(origin)) return out(origin, { error: "ORIGIN_NOT_ALLOWED" }, 403);
   if (req.method === "OPTIONS") return new Response("ok", { status: 200, headers: cors(origin) });
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
 
@@ -324,6 +350,9 @@ Deno.serve(async (req: Request) => {
               logoUrl: String(profile.logo_url || ""),
               coverUrl: String(profile.cover_url || ""),
               google_maps_url: String(profile.google_maps_url || ""),
+              facebookUrl: String(profile.facebook_url || ""),
+              instagramUrl: String(profile.instagram_url || ""),
+              tiktokUrl: String(profile.tiktok_url || ""),
               publicEnabled: business.settings?.catalog_public_enabled === true,
             },
             bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
@@ -426,6 +455,9 @@ Deno.serve(async (req: Request) => {
             logoUrl: String(profile.logo_url || ""),
             coverUrl: String(profile.cover_url || ""),
             google_maps_url: String(profile.google_maps_url || ""),
+            facebookUrl: String(profile.facebook_url || ""),
+            instagramUrl: String(profile.instagram_url || ""),
+            tiktokUrl: String(profile.tiktok_url || ""),
             publicEnabled: business.settings?.catalog_public_enabled === true,
           },
           bizcatalog: business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object"
@@ -462,6 +494,17 @@ Deno.serve(async (req: Request) => {
       if (!roleForBusiness && !scopedPlatformMembership) {
         return out(origin, { error: "CATALOG_PROFILE_WRITE_FORBIDDEN" }, 403);
       }
+      const submittedSocialFields: Record<string, string> = {};
+      for (const [requestKey, columnKey, platform] of [
+        ["facebookUrl", "facebook_url", "facebook"],
+        ["instagramUrl", "instagram_url", "instagram"],
+        ["tiktokUrl", "tiktok_url", "tiktok"],
+      ] as const) {
+        if (!Object.prototype.hasOwnProperty.call(body, requestKey)) continue;
+        const normalizedUrl = normalizeSocialUrl(body[requestKey], platform);
+        if (normalizedUrl === null) return out(origin, { error: "INVALID_SOCIAL_PROFILE_URL", field: requestKey }, 400);
+        submittedSocialFields[columnKey] = normalizedUrl;
+      }
       const { data, error } = await userClient.rpc("upsert_catalog_business_profile_backend", {
         p_tenant_id: tenantId,
         p_business_id: businessId,
@@ -479,6 +522,21 @@ Deno.serve(async (req: Request) => {
         p_public_enabled: body.publicEnabled === true,
       });
       if (error) throw error;
+      if (Object.keys(submittedSocialFields).length > 0) {
+        const { data: businessRow, error: businessReadError } = await service.from("businesses")
+          .select("settings").eq("id", businessId).eq("tenant_id", tenantId).maybeSingle();
+        if (businessReadError) throw businessReadError;
+        if (!businessRow) return out(origin, { error: "BUSINESS_NOT_FOUND" }, 404);
+        const currentSettings = businessRow.settings && typeof businessRow.settings === "object" && !Array.isArray(businessRow.settings)
+          ? businessRow.settings : {};
+        const currentProfile = currentSettings.catalog_profile && typeof currentSettings.catalog_profile === "object" && !Array.isArray(currentSettings.catalog_profile)
+          ? currentSettings.catalog_profile : {};
+        const nextSettings = { ...currentSettings, catalog_profile: { ...currentProfile, ...submittedSocialFields } };
+        const { error: socialWriteError } = await service.from("businesses").update({
+          settings: nextSettings, updated_at: new Date().toISOString(),
+        }).eq("id", businessId).eq("tenant_id", tenantId);
+        if (socialWriteError) throw socialWriteError;
+      }
       return out(origin, data);
     }
 
