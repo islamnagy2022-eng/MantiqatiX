@@ -91,7 +91,7 @@ assert.match(context, /const updateAdminSettings = async/, 'settings persistence
 assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state must update only after server-confirmed success');
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
 assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
-assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.isFrozen) return false;"), 'The public directory may show official showcase activity cards but must still hide other unpublished and frozen businesses');
+assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;"), 'The public directory must hide unpublished, inactive, and frozen businesses except official showcases');
 assert.match(directory, /const coverSlides: CoverSlide\[\] = liveFeaturedBusinesses\.map\(\(business\) =>/ , 'The home cover must be built from available business records only');
 assert.match(directory, /publicEnabled \|\| business\.isOfficialShowcase[\s\S]{0,120}!business\.isFrozen/, 'The cover must exclude frozen and unavailable business records');
 assert.match(directory, /section aria-label="الأنشطة المتاحة حاليًا"[\s\S]*activeCoverSlides\.length > 0/, 'The home cover must be one activity-focused carousel with an empty state');
