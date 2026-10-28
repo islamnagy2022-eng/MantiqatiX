@@ -240,7 +240,7 @@ Deno.serve(async (req: Request) => {
       if (phoneDigits.length < 10 || phoneDigits.length > 15) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "A valid owner WhatsApp number is required." }, 400);
       if ([governorate, markaz, village].some((value) => value.length < 2 || value.length > 100)) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
       const parsedDueDate = new Date(`${paymentDueDate}T00:00:00.000Z`);
-      if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(paymentDueDate) || Number.isNaN(parsedDueDate.getTime()) || parsedDueDate.toISOString().slice(0, 10) !== paymentDueDate) return response(origin, { error: "INVALID_PAYMENT_DUE_DATE" }, 400);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(paymentDueDate) || Number.isNaN(parsedDueDate.getTime()) || parsedDueDate.toISOString().slice(0, 10) !== paymentDueDate) return response(origin, { error: "INVALID_PAYMENT_DUE_DATE" }, 400);
       if (!Number.isInteger(paymentGracePeriodDays) || paymentGracePeriodDays < 0 || paymentGracePeriodDays > 90) return response(origin, { error: "INVALID_PAYMENT_GRACE_PERIOD" }, 400);
       const tenantId = requireTenant(body.tenantId || productionTenantIds.find((id) => id === "MNTY-PLATFORM") || productionTenantIds[0]);
       const { data: tenant, error: tenantError } = await service.from("tenants").select("id,status").eq("id", tenantId).eq("status", "ACTIVE").maybeSingle();
