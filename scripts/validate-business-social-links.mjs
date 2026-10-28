@@ -53,7 +53,6 @@ assert.doesNotMatch(deleteMigration, /SECURITY DEFINER/i, "The deletion repair m
 assert.match(deleteMigration, /REVOKE ALL ON FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) FROM public, anon, authenticated/i, "Business deletion RPC must not be callable by public client roles");
 
 
-console.log("Business social links and click-to-call contract validation passed.");
 
 assert.ok(linkRules.includes("export function generateStorePublicUrl(origin: string, businessId: string, basePath: string = '/')"), 'Permanent URL builder must accept the deployment base path and stable business ID');
 assert.ok(linkRules.includes("new URL(normalizedPath, `${safeOrigin}/`)") , 'Permanent URL builder must join the base path to the site origin safely');
@@ -63,3 +62,5 @@ assert.ok(merchantDashboard.includes('src={permanentQrCodeImageUrl}'), 'Merchant
 assert.ok(!merchantDashboard.includes("window.location.origin + '/?store='"), 'Merchant QR must not point at the GitHub Pages account root');
 assert.ok(header.includes('getStorePublicLink(currentBusiness)'), 'Share button must copy the canonical permanent link');
 assert.ok(adminDashboard.includes('getStorePublicLink(biz)'), 'Platform admin copy action must use the canonical permanent link');
+
+console.log("Business social links, URL routing, and QR contracts passed.");
