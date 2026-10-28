@@ -43,7 +43,7 @@ assert.match(access, /membershipPermissions/);
 assert.match(access, /!session\.membershipBranchId/);
 assert.match(access, /return \['HOME', 'CATALOG', 'EMPLOYEES'\]\.includes\(moduleName\.toUpperCase\(\)\)/);
 assert.match(dashboard, /isBusinessManagementRole\(authSession\) && !authSession\.membershipBranchId/);
-assert.match(browserE2E, /branch owner cannot enter the broad unscoped legacy dashboard/);
+assert.ok(browserE2E.includes("baseUrl + '?view=merchant_admin'"), 'browser E2E must test branch-owner denial of the broad legacy route');
 assert.match(browserE2E, /branch owner must not see unscoped business-wide settings/);
 assert.match(access, /!\['EMPLOYEE', 'STAFF'\]\.includes\(getBusinessMembershipRole\(session\)\)/);
 assert.match(permissionRepair, /mnty_business_employee_permission_ceiling_allows/);
