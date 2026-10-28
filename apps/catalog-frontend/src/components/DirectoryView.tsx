@@ -31,11 +31,24 @@ const whatsappDigits = (value: unknown): string => {
 };
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
-  dining: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
-  retail: <ShoppingBag className="w-5 h-5 text-blue-500" />,
-  services: <CalendarCheck2 className="w-5 h-5 text-purple-500" />,
-  healthcare: <HeartPulse className="w-5 h-5 text-emerald-500" />,
-  crafts_maintenance: <Wrench className="w-5 h-5 text-orange-500" />,
+  medical_health: <HeartPulse className="w-5 h-5 text-emerald-500" />,
+  food_grocery: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
+  fashion_beauty: <ShoppingBag className="w-5 h-5 text-pink-500" />,
+  home_maintenance: <Wrench className="w-5 h-5 text-orange-500" />,
+  construction_decor: <Store className="w-5 h-5 text-stone-500" />,
+  auto_transport: <Store className="w-5 h-5 text-sky-500" />,
+  real_estate: <Store className="w-5 h-5 text-teal-500" />,
+  education_training: <CalendarCheck2 className="w-5 h-5 text-indigo-500" />,
+  technology_communications: <Layers className="w-5 h-5 text-cyan-500" />,
+  professional_services: <CalendarCheck2 className="w-5 h-5 text-violet-500" />,
+  marketing_media: <Store className="w-5 h-5 text-fuchsia-500" />,
+  trade_ecommerce: <ShoppingBag className="w-5 h-5 text-blue-500" />,
+  agriculture_animals: <Store className="w-5 h-5 text-lime-600" />,
+  sports_fitness: <HeartPulse className="w-5 h-5 text-red-500" />,
+  tourism_events: <CalendarCheck2 className="w-5 h-5 text-purple-500" />,
+  finance_insurance: <Layers className="w-5 h-5 text-emerald-600" />,
+  industry_workshops: <Wrench className="w-5 h-5 text-slate-500" />,
+  public_community: <CalendarCheck2 className="w-5 h-5 text-rose-500" />,
 };
 
 interface CoverSlide {
