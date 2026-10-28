@@ -53,6 +53,12 @@ import { resolveDefaultImage } from '../../utils/defaultImages';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
+const getDefaultBusinessPaymentDueDate = () => {
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 7);
+  return `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`;
+};
+
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
   retail: <ShoppingBag className="w-4 h-4 text-blue-500" />,
@@ -162,6 +168,9 @@ export const AdminDashboard: React.FC = () => {
   const [newBizMarkaz, setNewBizMarkaz] = useState('');
   const [newBizVillage, setNewBizVillage] = useState('');
   const [newBizAddress, setNewBizAddress] = useState('');
+  const [newBizActivationMode, setNewBizActivationMode] = useState<'activate_now' | 'wait_for_confirmation'>('wait_for_confirmation');
+  const [newBizPaymentDueDate, setNewBizPaymentDueDate] = useState(getDefaultBusinessPaymentDueDate);
+  const [newBizGracePeriodDays, setNewBizGracePeriodDays] = useState(7);
 
   // New Category Creation state
   const [isNewCatModalOpen, setIsNewCatModalOpen] = useState(false);
@@ -244,6 +253,15 @@ export const AdminDashboard: React.FC = () => {
       window.alert('أدخل المحافظة والمركز/القسم والقرية/الحي الفعلي للنشاط.');
       return;
     }
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(newBizPaymentDueDate) || Number.isNaN(new Date(`${newBizPaymentDueDate}T00:00:00`).getTime())) {
+      window.alert('حدد تاريخًا صحيحًا لاستحقاق السداد.');
+      return;
+    }
+    const gracePeriodDays = Number(newBizGracePeriodDays);
+    if (!Number.isInteger(gracePeriodDays) || gracePeriodDays < 0 || gracePeriodDays > 90) {
+      window.alert('مدة المهلة يجب أن تكون عددًا صحيحًا من 0 إلى 90 يومًا.');
+      return;
+    }
 
     const matchedCat = categories.find((c) => c.name === newBizCategory);
     const resolvedGroup = newBizFunctionalGroup || matchedCat?.functionalGroupId || 'dining';
@@ -273,13 +291,15 @@ export const AdminDashboard: React.FC = () => {
       maxProductsLimit: 150,
       registrationDate: new Date().toISOString().split('T')[0],
       paymentDueDay: 0,
-      paymentDueDate: '',
+      paymentDueDate: newBizPaymentDueDate,
+      paymentGracePeriodDays: gracePeriodDays,
       commissionPerOrder: 0,
       totalOrdersCount: 0,
       paymentStatus: 'pending',
       overdueDaysCount: 0,
       isFrozen: false,
       paymentConfirmedByAdmin: false,
+      publicEnabled: newBizActivationMode === 'activate_now',
     });
 
     setNewBizName('');
@@ -289,6 +309,9 @@ export const AdminDashboard: React.FC = () => {
     setNewBizMarkaz('');
     setNewBizVillage('');
     setNewBizAddress('');
+    setNewBizActivationMode('wait_for_confirmation');
+    setNewBizPaymentDueDate(getDefaultBusinessPaymentDueDate());
+    setNewBizGracePeriodDays(7);
     setIsBizModalOpen(false);
     setSelectedBusinessId(createdBizId);
     } catch (error) { window.alert(error instanceof Error ? error.message : 'تعذر إنشاء النشاط في قاعدة الإنتاج.'); }
@@ -748,6 +771,7 @@ export const AdminDashboard: React.FC = () => {
                             <span>{biz.paymentDueDay > 0 ? `يوم ${biz.paymentDueDay} من الشهر` : 'غير محدد'}</span>
                             <span className="block text-[10px] text-slate-400 font-normal">
                               {biz.paymentDueDate || 'لم يُحدد موعد سداد'}
+                              <span className="block text-[10px] text-slate-400 font-normal">مهلة السداد: {biz.paymentGracePeriodDays ?? 0} يوم</span>
                             </span>
                           </td>
 
@@ -1986,7 +2010,39 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">لا يتم تسجيل رسوم أو تفعيل اشتراك من هذا النموذج. يتم حفظ النشاط كغير مدفوع وغير منشور إلى أن تؤكد الإدارة السداد الفعلي.</div>
+              <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">طريقة التفعيل والنشر</h4>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">اختر هل يظهر الكتالوج للزوار فورًا أم ينتظر موافقة النشر من الإدارة.</p>
+                </div>
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'activate_now' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+                  <input type="radio" name="newBizActivationMode" value="activate_now" checked={newBizActivationMode === 'activate_now'} onChange={() => setNewBizActivationMode('activate_now')} className="mt-1 accent-emerald-600" />
+                  <span>
+                    <span className="block text-xs font-black text-slate-800">التفعيل الفعلي الآن — نشر الكتالوج</span>
+                    <span className="mt-1 block text-[11px] leading-5 text-slate-500">يظهر النشاط للزوار بعد الحفظ، مع بقائه غير مدفوع لحين تأكيد السداد.</span>
+                  </span>
+                </label>
+                <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 ${newBizActivationMode === 'wait_for_confirmation' ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                  <input type="radio" name="newBizActivationMode" value="wait_for_confirmation" checked={newBizActivationMode === 'wait_for_confirmation'} onChange={() => setNewBizActivationMode('wait_for_confirmation')} className="mt-1 accent-blue-600" />
+                  <span>
+                    <span className="block text-xs font-black text-slate-800">انتظار تأكيد النشر من الإدارة</span>
+                    <span className="mt-1 block text-[11px] leading-5 text-slate-500">يُحفظ النشاط غير منشور ويظل مخفيًا عن الزوار حتى تفعّله الإدارة لاحقًا.</span>
+                  </span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-700">موعد استحقاق السداد</span>
+                    <input type="date" required value={newBizPaymentDueDate} onChange={(event) => setNewBizPaymentDueDate(event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-bold text-slate-700">مدة المهلة بعد الاستحقاق (أيام)</span>
+                    <input type="number" required min={0} max={90} step={1} value={newBizGracePeriodDays} onChange={(event) => setNewBizGracePeriodDays(Number(event.target.value))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold" />
+                  </label>
+                </div>
+                <p className="text-[11px] leading-5 text-slate-500">المهلة تُحفظ كإعداد للسداد؛ ولا يعني تحديدها إنشاء فاتورة أو فرض رسوم أو تشغيل إيقاف تلقائي.</p>
+              </section>
+
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">لا يسجل هذا النموذج رسومًا ولا يؤكد السداد ولا يفعّل اشتراكًا مدفوعًا. ستظل حالة السداد «غير مدفوع» في الخيارين؛ الاختيار يحدد نشر الكتالوج فقط، مع حفظ تاريخ الاستحقاق ومدة المهلة.</div>
 
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <button
