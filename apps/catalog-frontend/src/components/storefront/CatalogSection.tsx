@@ -63,12 +63,12 @@ export const CatalogSection: React.FC = () => {
   const isFrozen = currentBusiness?.operationalStatus === 'FROZEN' || Boolean(currentBusiness?.isFrozen);
   const isOperationallyHidden = currentBusiness?.operationalStatus !== 'ACTIVE' || Boolean(currentBusiness?.isFrozen);
 
-  const buildQuoteUrl = (product: Product) => {
-    let digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '201010171770')
-      .replace(/\\D/g, '');
-    if (!digits) digits = '201010171770';
-    const message = `مرحبًا، أريد طلب عرض سعر لخدمة ${product.name} من ${currentBusiness?.name || 'MantiqatiX'}.`;
-    return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  const buildQuoteUrl = (product: Product): string | null => {
+    const digits = String(currentBusiness?.ownerWhatsApp || currentBusiness?.phone || adminSettings.adminWhatsApp || '')
+      .replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 15) return null;
+    const message = \`مرحبًا، أريد طلب عرض سعر لخدمة \${product.name} من \${currentBusiness?.name || 'MantiqatiX'}.\`;
+    return \`https://wa.me/\${digits}?text=\${encodeURIComponent(message)}\`;
   };
 
   return (
@@ -348,16 +348,29 @@ export const CatalogSection: React.FC = () => {
                         <span>النشاط مجمد</span>
                       </button>
                     ) : product.requiresQuote ? (
-                      <a
-                        href={buildQuoteUrl(product)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`اطلب عرض سعر لخدمة ${product.name}`}
-                        className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs whitespace-nowrap"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>اطلب عرض سعر</span>
-                      </a>
+                      buildQuoteUrl(product) ? (
+                        <a
+                          href={buildQuoteUrl(product) || undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`اطلب عرض سعر لخدمة ${product.name}`}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs whitespace-nowrap"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>اطلب عرض سعر</span>
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled
+                          title="لم يضف النشاط رقم تواصل صالحًا بعد"
+                          aria-label="بيانات التواصل غير متاحة لطلب عرض السعر"
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-slate-100 text-slate-500 cursor-not-allowed whitespace-nowrap"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>التواصل غير متاح</span>
+                        </button>
+                      )
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product)}
