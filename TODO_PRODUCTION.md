@@ -643,8 +643,8 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Owner membership activation gates recognize the explicit admin-approved free state without bypassing the paid-payment gate for paid subscriptions.
 - [x] Publication approval can create/activate a provider directory profile when missing and does not require an active owner membership when the platform administrator explicitly approves publication; the decision is audited.
 - [x] Deployed `catalog-platform-admin` Edge Function version 18 to Supabase project `moyhiluyhjsujhwlyeuu` with JWT verification enabled.
-- [x] Added frontend UI and production mapping for subscription amount, free status, and due date; free activities hide payment-confirmation and due-date-edit controls.
+- [x] Added frontend UI and production mapping for subscription amount, free status, and due date; free activities hide payment-confirmation and due-date-edit controls. The client-side owner/subscriber activation gate also accepts only the explicit admin-approved free state.
 - [x] Updated static production-state validator to cover optional fields and free-vs-paid subscription state; corrected a stale responsive-card spacing assertion that was blocking the release workflow.
-- [ ] **NOT VERIFIED:** final catalog TypeScript/build and production validation for the latest commit are still running; do not claim frontend deployment until the release workflow succeeds.
+- [x] Frontend TypeScript check, canonical taxonomy contract, paid/free subscription gate, production-state validator, build, public-directory smoke test, and GitHub Pages deployment all passed for commit `edfe4b3cab77bd45987a1e30fb44a7a06ba9f06e`; post-deploy root verification passed at `https://islamnagy2022-eng.github.io/MantiqatiX/`.
 - [ ] **NOT VERIFIED:** authenticated end-to-end activity creation, free activation, admin publication, public catalog visibility, and owner assignment against production.
 - [ ] **NOT VERIFIED:** real browser/mobile regression and post-deploy smoke tests.
