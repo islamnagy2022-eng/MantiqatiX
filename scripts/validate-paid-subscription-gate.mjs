@@ -51,8 +51,8 @@ assert.match(context, /const pending = subscribers\.filter\(\(subscriber\) => su
   'Client must reflect pending subscriber activation after payment confirmation');
 assert.match(context, /status: backendStatus === 'ACTIVE' \? 'active' : backendStatus === 'SUSPENDED' \? 'suspended' : 'pending'/,
   'Newly assigned subscribers must remain pending by default');
-assert.match(context, /paymentConfirmedByAdmin\)\)\s*\{\s*throw new Error\('لا يمكن تفعيل الاشتراك قبل تأكيد سداد/,
-  'Client must not activate a subscriber without paid and confirmed business state');
+assert.match(context, /freeActivation[\s\S]{0,220}paidAndConfirmed[\s\S]{0,180}لا يمكن تفعيل الاشتراك قبل تأكيد السداد أو اعتماد التفعيل المجاني/,
+  'Client must require either a paid confirmed subscription or an explicit admin-approved free activation');
 assert.match(context, /لا تُفعّل صلاحيات إدارة النشاط إلا بعد تأكيد السداد/,
   'Credential instructions must disclose the payment gate');
 assert.match(admin, /حالة الاشتراك/);
