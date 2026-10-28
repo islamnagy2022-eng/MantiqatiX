@@ -96,7 +96,7 @@ assert.match(directory, /const coverSlides: CoverSlide\[\] = liveFeaturedBusines
 assert.match(directory, /publicEnabled \|\| business\.isOfficialShowcase[\s\S]{0,120}!business\.isFrozen/, 'The cover must exclude frozen and unavailable business records');
 assert.match(directory, /section aria-label="الأنشطة المتاحة حاليًا"[\s\S]*activeCoverSlides\.length > 0/, 'The home cover must be one activity-focused carousel with an empty state');
 assert.match(directory, /setSelectedBusinessId\(slide\.businessId\)[\s\S]{0,100}setCurrentView\('public_storefront'\)/, 'Clicking a cover image must open that activity public page');
-assert.match(directory, /اضغط على الصورة لفتح صفحة النشاط/, 'The cover must communicate that activity images are clickable');
+assert.doesNotMatch(directory, /currentSlide\.badge|currentSlide\.title|currentSlide\.subtitle|اضغط على الصورة لفتح صفحة النشاط/, 'The cover must not render text or badges over activity cover images');
 assert.match(directory, /activeCoverSlides\.length <= 1/, 'The cover autoplay must not start when zero or one activities are available');
 assert.doesNotMatch(directory, /mnty-ad-space-booking-banner\.svg|marketingCreative|advertisingSlides/, 'The homepage must no longer show two separate promotional cover panels');
 assert.doesNotMatch(context, /const advanceBusinessOverdueDay/, 'overdue-day simulation must be removed from production context');

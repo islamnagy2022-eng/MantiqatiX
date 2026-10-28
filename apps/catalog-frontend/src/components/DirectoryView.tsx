@@ -162,7 +162,6 @@ export const DirectoryView: React.FC = () => {
   });
 
   const uniqueGovernorships = Array.from(new Set(businesses.map((b) => b.governorate).filter(Boolean)));
-  const currentSlide = activeCoverSlides[currentCoverIndex] || activeCoverSlides[0];
 
   return (
     <div className="space-y-8 pb-20">
@@ -233,23 +232,6 @@ export const DirectoryView: React.FC = () => {
                   </button>
                 </div>
               ))}
-
-              {currentSlide && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 sm:p-10 text-white space-y-3 pointer-events-none">
-                  <span className="bg-amber-400 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
-                    {currentSlide.badge}
-                  </span>
-                  <h2 className="text-xl sm:text-3xl md:text-4xl font-black max-w-3xl leading-tight drop-shadow-lg">
-                    {currentSlide.title}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-100 max-w-2xl leading-relaxed drop-shadow">
-                    {currentSlide.subtitle}
-                  </p>
-                  <span className="mt-2 bg-white/15 border border-white/35 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
-                    اضغط على الصورة لفتح صفحة النشاط
-                  </span>
-                </div>
-              )}
 
               {activeCoverSlides.length > 1 && (
                 <div className="absolute bottom-3 right-1/2 translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/50 backdrop-blur-xs px-3 py-1.5 rounded-full border border-white/20 max-w-[90%] overflow-x-auto no-scrollbar">
