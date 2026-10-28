@@ -262,7 +262,11 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only "$BEFORE_SHA" "$CURRENT_SHA" > /tmp/changed-files.txt
-          test -s /tmp/changed-files.txt
+          if [ ! -s /tmp/changed-files.txt ]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "PUBLIC_ONLY_GATE=NOT_APPLICABLE; this push has no content diff. The canonical full validation and deploy gate remain authoritative."
+            exit 0
+          fi
           cat /tmp/changed-files.txt
           while IFS= read -r path; do
             case "$path" in
