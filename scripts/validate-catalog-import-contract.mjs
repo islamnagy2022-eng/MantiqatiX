@@ -17,6 +17,10 @@ const checks = [
   ['import is explicitly confirmed before server writes', /window\.confirm/.test(panel) && /for\s*\(const row of pending\)/.test(panel)],
   ['product creation stays on the server-authoritative app flow', /await addProduct\(/.test(panel)],
   ['AI image generation is deferred during bulk import', /deferAiImageGeneration:true/.test(panel) && /data\.deferAiImageGeneration !== true/.test(context)],
+  ['AI image suggestions require explicit human approval before import', /generateCatalogAiImage/.test(panel) && /suggestedImageUrl/.test(panel) && /اعتماد الصورة المقترحة/.test(panel) && /imageSource:'ai'/.test(panel)],
+  ['reviewed AI image source is preserved by the catalog write path', /data\.imageSource === 'ai'/.test(context) && /imageSource === 'owner' \|\| imageSource === 'ai'/.test(context)],
+  ['CSV preview supports correcting invalid fields before import', /updateRow/.test(panel) && /aria-label=\\\"السعر في الصف/.test(panel) && /validateDraftRows\(changed\)/.test(panel)],
+  ['draft autosave waits until the selected business draft loads', /readyStorageKey!==storageKey/.test(panel) && /setReadyStorageKey\(storageKey\)/.test(panel)],
   ['catalog capacity is checked before import', /readyRows\.length>remaining/.test(panel)],
   ['the UI is honest that direct XLSX support is not enabled yet', /XLSX المباشر لم يُفعّل بعد/.test(panel)],
 ];
