@@ -107,11 +107,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedBusinessId, setSelectedBusinessIdState] = useState('');
-  const [currentView, setCurrentView] = useState<ViewMode>(() => {
+  const initialRouteParams = new URLSearchParams(window.location.search);
+  const [selectedBusinessId, setSelectedBusinessIdState] = useState(initialRouteParams.get('manage') || '');
+  const routeBusinessIdRef = useRef(initialRouteParams.get('store') || initialRouteParams.get('businessId') || initialRouteParams.get('manage') || '');
+  const [currentView, setCurrentViewState] = useState<ViewMode>(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.has('store') || params.has('businessId') ? 'public_storefront' : 'directory';
+    if (params.has('store') || params.has('businessId')) return 'public_storefront';
+    const requestedView = params.get('view');
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+      ? requestedView
+      : 'directory';
   });
+
+  // Keep the SPA's visible view in the URL so refreshes and copied links reopen
+  // the same screen. Public storefronts use the existing stable ?store=<businessId> link.
+  const updateBrowserRoute = (view: ViewMode, businessId = routeBusinessIdRef.current) => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('store');
+    url.searchParams.delete('businessId');
+    url.searchParams.delete('manage');
+    if (view === 'public_storefront') {
+      url.searchParams.delete('view');
+      url.searchParams.delete('tab');
+      if (businessId) url.searchParams.set('store', businessId);
+    } else {
+      url.searchParams.delete('view');
+      if (view !== 'super_admin') url.searchParams.delete('tab');
+      if (view !== 'directory' && view !== 'login') url.searchParams.set('view', view);
+      if ((view === 'super_admin' || view === 'merchant_admin') && businessId) {
+        url.searchParams.set('manage', businessId);
+      }
+    }
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) window.history.pushState({ mantiqatixView: view }, '', nextUrl);
+  };
+
+  const setCurrentView = (view: ViewMode) => {
+    setCurrentViewState(view);
+    updateBrowserRoute(view);
+  };
+
+  const commitSelectedBusinessId = (id: string) => {
+    routeBusinessIdRef.current = id;
+    setSelectedBusinessIdState(id);
+  };
   // Prevent overlapping auth events and duplicate INITIAL_SESSION/getSession hydration.
   const authLoadSequence = useRef(0);
   const authUserIdRef = useRef<string | null | undefined>(undefined);
@@ -139,28 +179,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts(boot.products);
     setSubscribers(boot.subscribers);
     setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
+
     const params = new URLSearchParams(window.location.search);
-    const requestedId = params.get('businessId') || params.get('store') || '';
-    if (boot.authSession.role === 'guest' && requestedId) {
-      const byId = boot.businesses.find((b) => b.id === requestedId || b.slug === requestedId);
-      if (byId) { setSelectedBusinessIdState(byId.id); setCurrentView('public_storefront'); }
-      else if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
+    const requestedId = params.get('store') || params.get('businessId') || '';
+    const requestedView = params.get('view');
+    const defaultView: ViewMode = boot.authSession.role === 'admin'
+      ? 'super_admin'
+      : boot.authSession.role === 'subscriber'
+        ? 'merchant_admin'
+        : 'directory';
+
+    // A share URL must continue to open its public catalog for signed-in and guest
+    // users alike, but it must never bypass the public-catalog API's publication gate.
+    if (requestedId) {
+      const byId = boot.businesses.find((b) =>
+        (b.id === requestedId || b.slug === requestedId) &&
+        (b.publicEnabled || b.isOfficialShowcase) &&
+        !b.isFrozen
+      );
+      if (byId) {
+        commitSelectedBusinessId(byId.id);
+        setCurrentView('public_storefront');
+        return;
+      }
+      if (/^[0-9a-f-]{36}$/i.test(requestedId)) {
         const publicCatalog = await fetchPublicCatalog(requestedId).catch(() => null);
         if (!isCurrent()) return;
         if (publicCatalog) {
-          setBusinesses([publicCatalog.business, ...boot.businesses.filter((b) => b.id !== publicCatalog.business.id)]);
-          setProducts([...publicCatalog.products, ...boot.products.filter((p) => p.businessId !== publicCatalog.business.id)]);
-          setSelectedBusinessIdState(publicCatalog.business.id);
+          setBusinesses((prev) => [publicCatalog.business, ...prev.filter((b) => b.id !== publicCatalog.business.id)]);
+          setProducts((prev) => [...prev.filter((p) => p.businessId !== publicCatalog.business.id), ...publicCatalog.products]);
+          commitSelectedBusinessId(publicCatalog.business.id);
           setCurrentView('public_storefront');
-        } else { setSelectedBusinessIdState(''); setCurrentView('directory'); }
-      } else { setSelectedBusinessIdState(''); setCurrentView('directory'); }
-    } else {
-      const preferred = boot.authSession.businessId || boot.businesses[0]?.id || '';
-      setSelectedBusinessIdState(preferred);
-      if (boot.authSession.role === 'admin') setCurrentView('super_admin');
-      else if (boot.authSession.role === 'subscriber') setCurrentView('merchant_admin');
-      else setCurrentView('directory');
+          return;
+        }
+      }
+      commitSelectedBusinessId('');
+      setCurrentView(defaultView);
+      return;
     }
+
+    const safeRequestedView: ViewMode = boot.authSession.role === 'admin'
+      ? requestedView === 'directory' || requestedView === 'merchant_admin' || requestedView === 'super_admin'
+        ? requestedView
+        : 'super_admin'
+      : boot.authSession.role === 'subscriber'
+        ? requestedView === 'directory' ? 'directory' : 'merchant_admin'
+        : 'directory';
+
+    const requestedManagedId = params.get('manage') || '';
+    const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
+    const preferred = boot.authSession.role === 'admin' && requestedManagedBusiness
+      ? requestedManagedId
+      : boot.authSession.businessId || boot.businesses[0]?.id || '';
+    commitSelectedBusinessId(preferred);
+    setCurrentView(safeRequestedView);
   };
 
   useEffect(() => {
@@ -248,7 +320,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
-  const setSelectedBusinessId = (id: string) => { setSelectedBusinessIdState(id); setCartItems([]); };
+  const setSelectedBusinessId = (id: string) => {
+    commitSelectedBusinessId(id);
+    setCartItems([]);
+    if (currentView === 'public_storefront') updateBrowserRoute('public_storefront', id);
+    else if (currentView === 'merchant_admin' || currentView === 'super_admin') updateBrowserRoute(currentView, id);
+  };
+
+  // Restore the in-app view when the user navigates with browser back/forward.
+  useEffect(() => {
+    const restoreRouteFromLocation = () => {
+      const params = new URLSearchParams(window.location.search);
+      const requestedId = params.get('store') || params.get('businessId') || '';
+      if (requestedId) {
+        routeBusinessIdRef.current = requestedId;
+        setSelectedBusinessIdState(requestedId);
+        setCurrentViewState('public_storefront');
+        const known = businesses.some((business) => business.id === requestedId || business.slug === requestedId);
+        if (!known && /^[0-9a-f-]{36}$/i.test(requestedId)) {
+          void fetchPublicCatalog(requestedId).then((catalog) => {
+            if (!catalog) return;
+            routeBusinessIdRef.current = catalog.business.id;
+            setBusinesses((prev) => [catalog.business, ...prev.filter((business) => business.id !== catalog.business.id)]);
+            setProducts((prev) => [...prev.filter((product) => product.businessId !== catalog.business.id), ...catalog.products]);
+            setSelectedBusinessIdState(catalog.business.id);
+          }).catch(() => undefined);
+        }
+        return;
+      }
+      const requestedView = params.get('view');
+      const requestedManagedId = requestedView === 'super_admin' || requestedView === 'merchant_admin'
+        ? params.get('manage') || ''
+        : '';
+      routeBusinessIdRef.current = requestedManagedId;
+      setSelectedBusinessIdState(requestedManagedId);
+      setCurrentViewState(
+        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+          ? requestedView
+          : 'directory'
+      );
+    };
+    window.addEventListener('popstate', restoreRouteFromLocation);
+    return () => window.removeEventListener('popstate', restoreRouteFromLocation);
+  }, [businesses]);
 
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {

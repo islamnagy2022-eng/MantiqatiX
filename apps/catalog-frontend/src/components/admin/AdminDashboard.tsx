@@ -112,9 +112,26 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  const [activeAdminTab, setActiveAdminTab] = useState<
-    'billing' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center'
-  >('billing');
+  type AdminTab = 'billing' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['billing', 'taxonomy', 'businesses', 'subscribers', 'settings', 'backup', 'control_center'];
+  const readAdminTabFromUrl = (): AdminTab => {
+    const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
+    return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
+  };
+  const [activeAdminTab, setActiveAdminTabState] = useState<AdminTab>(readAdminTabFromUrl);
+  const setActiveAdminTab = (tab: AdminTab) => {
+    setActiveAdminTabState(tab);
+    const url = new URL(window.location.href);
+    if (tab === 'billing') url.searchParams.delete('tab');
+    else url.searchParams.set('tab', tab);
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  React.useEffect(() => {
+    const restoreAdminTab = () => setActiveAdminTabState(readAdminTabFromUrl());
+    window.addEventListener('popstate', restoreAdminTab);
+    return () => window.removeEventListener('popstate', restoreAdminTab);
+  }, []);
 
   // Backup & Restore State
   const [backupFeedback, setBackupFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);

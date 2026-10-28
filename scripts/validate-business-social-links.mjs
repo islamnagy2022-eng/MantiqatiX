@@ -33,5 +33,17 @@ const telHref = "href={" + tick + "tel:$" + "{dialPhone}" + tick + "}";
 assert.ok(header.includes(telHref), "Phone action must use the device's dialer");
 assert.match(header, /target="_blank" rel="noopener noreferrer"/, "Social links must open safely in a new tab");
 assert.match(header, /opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100/, "Activity cover must stay bright by default and darken only on hover or keyboard focus");
+const adminDashboard = fs.readFileSync("apps/catalog-frontend/src/components/admin/AdminDashboard.tsx", "utf8");
+const deleteMigration = fs.readFileSync("supabase/migrations/20261028005200_catalog_platform_admin_delete_security_definer.sql", "utf8");
+assert.match(context, /const updateBrowserRoute = \(view: ViewMode/, "View navigation must be synchronized with the URL");
+assert.match(context, /window\.history\.pushState/, "Opening app views must create navigable URLs that survive refresh");
+assert.match(context, /window\.addEventListener\('popstate', restoreRouteFromLocation\)/, "Browser back/forward must restore the selected app route");
+assert.match(context, /requestedView === 'super_admin'/, "Platform-admin route restoration must be explicit");
+assert.match(context, /url\.searchParams\.set\('manage', businessId\)/, "Admin-selected business context must survive refresh");
+assert.match(adminDashboard, /const readAdminTabFromUrl =/, "Admin tabs must hydrate from the URL");
+assert.match(adminDashboard, /url\.searchParams\.set\('tab', tab\)/, "Admin tabs must persist to the URL");
+assert.match(deleteMigration, /ALTER FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) SECURITY DEFINER/i, "Business deletion must execute with secure definer rights after edge authorization");
+assert.match(deleteMigration, /REVOKE ALL ON FUNCTION public\.mnty_platform_admin_delete_business\(text, uuid, uuid\) FROM public, anon, authenticated/i, "Business deletion RPC must not be callable by public client roles");
+
 
 console.log("Business social links and click-to-call contract validation passed.");
