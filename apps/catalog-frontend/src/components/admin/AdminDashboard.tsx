@@ -253,7 +253,7 @@ export const AdminDashboard: React.FC = () => {
       window.alert('أدخل المحافظة والمركز/القسم والقرية/الحي الفعلي للنشاط.');
       return;
     }
-    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(newBizPaymentDueDate) || Number.isNaN(new Date(`${newBizPaymentDueDate}T00:00:00`).getTime())) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(newBizPaymentDueDate) || Number.isNaN(new Date(`${newBizPaymentDueDate}T00:00:00`).getTime())) {
       window.alert('حدد تاريخًا صحيحًا لاستحقاق السداد.');
       return;
     }
