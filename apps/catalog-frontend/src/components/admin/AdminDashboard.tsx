@@ -108,7 +108,6 @@ export const AdminDashboard: React.FC = () => {
     importBackupJSON,
     confirmAdminPayment,
     updateBillingSetting,
-    toggleBusinessFreeze,
     updateBusinessLocation,
     deleteBusiness,
   } = useApp();
