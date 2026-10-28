@@ -137,7 +137,7 @@ for (const marker of [
 ]) {
   assert.ok(auditHelper.includes(marker), 'Audit writer must satisfy the live audit_logs schema: ' + marker);
 }
-assert.equal((backend.match(/service\\.from\\("audit_logs"\\)\\.insert\\(/g) || []).length, 1,
+assert.equal((backend.match(/service\.from\("audit_logs"\)\.insert\(/g) || []).length, 1,
   'All platform audit inserts must route through the single schema-correct helper.');
 assert.doesNotMatch(auditHelper, /details:/,
   'The live audit_logs table has no details column; structured data must be stored in new_values/old_values.');
