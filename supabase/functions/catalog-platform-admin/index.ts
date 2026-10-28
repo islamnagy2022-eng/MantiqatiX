@@ -374,11 +374,13 @@ Deno.serve(async (req: Request) => {
         return normalizeDedup(existing.name) === normalizeDedup(name)
           && normalizeDedup(existingCategory) === normalizeDedup(category)
           && (phoneKey ? existingPhone === phoneKey : (
-            (governorate || markaz || village || address) &&
-            normalizeDedup(profile.governorate || settings.governorate || "") === normalizeDedup(governorate) &&
-            normalizeDedup(profile.markaz || settings.markaz || "") === normalizeDedup(markaz) &&
-            normalizeDedup(profile.village || settings.village || "") === normalizeDedup(village) &&
-            normalizeDedup(branch?.address || profile.address || settings.address || "") === normalizeDedup(address)
+            !(governorate || markaz || village || address) ||
+            (
+              normalizeDedup(profile.governorate || settings.governorate || "") === normalizeDedup(governorate) &&
+              normalizeDedup(profile.markaz || settings.markaz || "") === normalizeDedup(markaz) &&
+              normalizeDedup(profile.village || settings.village || "") === normalizeDedup(village) &&
+              normalizeDedup(branch?.address || profile.address || settings.address || "") === normalizeDedup(address)
+            )
           ));
       });
       if (duplicate) return response(origin, {
