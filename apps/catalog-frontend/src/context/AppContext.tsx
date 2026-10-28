@@ -22,7 +22,7 @@ import {
   generateGmailInviteUrl,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
-import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'login' | 'directory';
@@ -352,6 +352,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!updated.tenantId || !updated.branchId) {
       throw new Error('لا يوجد نطاق إنتاجي صالح لهذا النشاط أو الفرع.');
     }
+
+    const defaultCover = !updated.coverUrl?.trim() ||
+      /(?:business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(updated.coverUrl);
+    let coverUrl = updated.coverUrl?.trim() || '';
+    if (defaultCover) {
+      const generated = await generateCatalogAiImage({
+        businessId: updated.id,
+        kind: 'activity',
+        name: updated.name,
+        category: updated.category,
+        description: updated.bio,
+      });
+      coverUrl = generated || resolveDefaultImage({
+        name: updated.name, description: updated.bio, category: updated.category, kind: 'cover',
+      });
+    }
+
+    const logoUrl = updated.logoUrl?.trim() || resolveDefaultImage({
+      name: updated.name, description: updated.bio, category: updated.category, kind: 'activity',
+    });
+
     await callCatalogAdmin({
       action: 'BUSINESS_PROFILE_UPSERT',
       tenantId: updated.tenantId,
@@ -365,8 +386,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       markaz: updated.markaz || '',
       village: updated.village || '',
       workingHours: updated.workingHours || '',
-      logoUrl: updated.logoUrl || '',
-      coverUrl: updated.coverUrl || '',
+      logoUrl,
+      coverUrl,
       publicEnabled: Boolean(updated.publicEnabled),
     });
     // Profile edits must not rewrite billing metadata from a potentially stale client snapshot.
@@ -432,10 +453,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addProduct = async (data: Omit<Product, 'id'>): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
-    const imageSource = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
-    const imageUrl = imageSource === 'owner'
+    let imageSource: 'auto' | 'owner' | 'ai' = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
+    let imageUrl = imageSource === 'owner'
       ? data.imageUrl.trim()
       : resolveDefaultImage({ name: data.name, description: data.description, category: data.category, kind: data.type === 'service' ? 'service' : 'product' });
+    if (imageSource === 'auto') {
+      const generated = await generateCatalogAiImage({
+        businessId: business.id,
+        kind: data.type,
+        name: data.name,
+        category: data.category,
+        description: data.description,
+      });
+      if (generated) {
+        imageUrl = generated;
+        imageSource = 'ai';
+      }
+    }
     const metadata = { catalog_public: { category: data.category, unit: data.unit || '', image_url: imageUrl, image_source: imageSource, compare_price: data.comparePrice ?? null, is_available: data.isAvailable, track_stock: false, ...(data.requiresQuote ? { show_price: false } : {}) } };
     try {
       if (data.requiresQuote) {
@@ -449,10 +483,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateProduct = async (updated: Product) => {
     const business = businesses.find((b) => b.id === updated.businessId);
     if (!business?.tenantId || !business.branchId) throw new Error('النشاط أو الفرع غير مرتبط ببيانات الإنتاج.');
-    const imageSource = updated.imageSource === 'owner' && Boolean(updated.imageUrl?.trim()) ? 'owner' : 'auto';
-    const imageUrl = imageSource === 'owner'
+    let imageSource: 'auto' | 'owner' | 'ai' = updated.imageSource === 'ai' && Boolean(updated.imageUrl?.trim())
+      ? 'ai'
+      : updated.imageSource === 'owner' && Boolean(updated.imageUrl?.trim()) ? 'owner' : 'auto';
+    let imageUrl = imageSource === 'owner' || imageSource === 'ai'
       ? updated.imageUrl.trim()
       : resolveDefaultImage({ name: updated.name, description: updated.description, category: updated.category, kind: updated.type === 'service' ? 'service' : 'product' });
+    if (imageSource === 'auto') {
+      const generated = await generateCatalogAiImage({
+        businessId: business.id,
+        kind: updated.type,
+        name: updated.name,
+        category: updated.category,
+        description: updated.description,
+      });
+      if (generated) {
+        imageUrl = generated;
+        imageSource = 'ai';
+      }
+    }
     const metadata = { catalog_public: { category: updated.category, unit: updated.unit || '', image_url: imageUrl, image_source: imageSource, compare_price: updated.comparePrice ?? null, is_available: updated.isAvailable, track_stock: false, ...(updated.requiresQuote ? { show_price: false } : {}) } };
     if (updated.requiresQuote) {
       await callCatalogAdmin({ action: 'ITEM_UPSERT', tenantId: business.tenantId, businessId: business.id, branchId: business.branchId, id: updated.id, nameAr: updated.name, itemType: 'SERVICE', description: updated.description, taxRate: 0, metadata });
