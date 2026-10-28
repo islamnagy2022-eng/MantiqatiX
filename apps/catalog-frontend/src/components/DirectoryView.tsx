@@ -20,6 +20,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
+import { resolveDefaultImage } from '../utils/defaultImages';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -44,6 +45,7 @@ interface CoverSlide {
   subtitle: string;
   governorates: string[];
   businessId?: string;
+  marketingCreative?: boolean;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -70,20 +72,39 @@ export const DirectoryView: React.FC = () => {
     .slice(0, 20);
   const coverSlides: CoverSlide[] = liveFeaturedBusinesses.length
     ? liveFeaturedBusinesses.map((business) => ({
-        image: business.coverUrl || BUSINESS_PLACEHOLDER,
+        image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
         badge: business.category || 'نشاط محلي',
         title: business.name,
         subtitle: business.bio || 'تعرّف على بيانات النشاط ووسائل التواصل المسجلة.',
         governorates: [business.governorate || 'all'],
         businessId: business.id,
       }))
-    : [{
-        image: BUSINESS_PLACEHOLDER,
-        badge: 'دليل الأنشطة المحلية',
-        title: 'اكتشف الأنشطة والخدمات المتاحة',
-        subtitle: 'ستظهر هنا الأنشطة التي نشرت كتالوجاتها وبياناتها الفعلية.',
-        governorates: ['all'],
-      }];
+    : [
+        {
+          image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-1.svg`,
+          badge: '',
+          title: '',
+          subtitle: '',
+          governorates: ['all'],
+          marketingCreative: true,
+        },
+        {
+          image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-2.svg`,
+          badge: '',
+          title: '',
+          subtitle: '',
+          governorates: ['all'],
+          marketingCreative: true,
+        },
+        {
+          image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-3.svg`,
+          badge: '',
+          title: '',
+          subtitle: '',
+          governorates: ['all'],
+          marketingCreative: true,
+        },
+      ];
 
   // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
@@ -176,34 +197,48 @@ export const DirectoryView: React.FC = () => {
               }`}
             >
               <img
-                src={slide.image || BUSINESS_PLACEHOLDER}
+                src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })
                 alt={slide.title}
                 className="w-full h-full object-cover object-center"
                 onError={(event) => {
                   const image = event.currentTarget;
-                  if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                  const fallback = resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' });
+                  if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-black/30" />
             </div>
           ))}
 
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 sm:p-10 text-white space-y-3 pointer-events-none">
-            <span className="bg-amber-400 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
-              {currentSlide?.badge}
-            </span>
-            <h2 className="text-xl sm:text-3xl md:text-4xl font-black max-w-3xl leading-tight">
-              {currentSlide?.title}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
-              {currentSlide?.subtitle}
-            </p>
+          {!currentSlide?.marketingCreative && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center p-6 sm:p-10 text-white space-y-3 pointer-events-none">
+              <span className="bg-amber-400 text-slate-950 text-xs font-black px-4 py-1.5 rounded-full shadow-lg">
+                {currentSlide?.badge}
+              </span>
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-black max-w-3xl leading-tight">
+                {currentSlide?.title}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-200 max-w-2xl leading-relaxed">
+                {currentSlide?.subtitle}
+              </p>
+            </div>
+          )}
+          {currentSlide?.marketingCreative && catalogRequestPhone && (
+            <a
+              href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute bottom-4 left-4 z-30 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black px-4 py-2.5 shadow-xl"
+            >
+              اطلب كتالوج لنشاطك
+            </a>
+          )}
             {currentSlide?.businessId && (
               <span className="pointer-events-auto mt-2 bg-white/15 border border-white/30 text-white font-bold text-xs py-2.5 px-6 rounded-xl">
                 نشاط منشور فعليًا على المنصة
               </span>
             )}
-            {!currentSlide?.businessId && catalogRequestPhone && (
+            {!currentSlide?.marketingCreative && !currentSlide?.businessId && catalogRequestPhone && (
               <a
                 href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد طلب كتالوج لنشاطي على MantiqatiX.')}`}
                 target="_blank"
@@ -414,7 +449,8 @@ export const DirectoryView: React.FC = () => {
                             className="w-full h-full object-cover rounded-xl bg-slate-100"
                             onError={(e) => {
                               const image = e.currentTarget;
-                              if (!image.src.endsWith('/business-placeholder.svg')) image.src = BUSINESS_PLACEHOLDER;
+                              const fallback = resolveDefaultImage({ name: biz.name, description: biz.bio, category: biz.category, kind: 'cover' });
+                             if (!image.src.endsWith(fallback.replace(/^.*\//, ''))) image.src = fallback;
                             }}
                           />
                         </div>
