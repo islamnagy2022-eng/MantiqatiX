@@ -49,6 +49,7 @@ import {
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
+import CoverAdsManager from './CoverAdsManager';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
@@ -100,7 +101,7 @@ export const AdminDashboard: React.FC = () => {
   } = useApp();
 
   const [activeAdminTab, setActiveAdminTab] = useState<
-    'billing' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center'
+    'billing' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center' | 'cover_ads'
   >('billing');
 
   // Backup & Restore State
@@ -579,7 +580,16 @@ export const AdminDashboard: React.FC = () => {
           <span>المشتركون وحسابات Google ({subscribers.length})</span>
         </button>
 
-        {/* Tab 5: Settings */}
+        {/* Tab 5: Cover ads */}
+        <button
+          onClick={() => setActiveAdminTab('cover_ads')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${activeAdminTab === 'cover_ads' ? 'bg-red-600 text-white shadow-md' : 'text-slate-700 hover:text-red-700 bg-white border border-slate-200'}`}
+        >
+          <Share2 className="w-4 h-4" />
+          <span>إعلانات الغلاف ومناطق العرض</span>
+        </button>
+
+        {/* Tab 6: Settings */}
         <button
           onClick={() => setActiveAdminTab('settings')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
@@ -598,6 +608,7 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
+      {activeAdminTab === 'cover_ads' && <CoverAdsManager businesses={businesses} />}
 
       {/* =========================================================================
           TAB: BILLING & COMMISSION (Mandatory Request Feature)
