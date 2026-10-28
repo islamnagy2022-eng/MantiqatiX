@@ -526,7 +526,7 @@ Deno.serve(async (req: Request) => {
         const url = String(value || "").trim().toLowerCase();
         if (!url) return "auto";
         if (url.includes("/catalog-ai/")) return "ai";
-        if (/(?:business-placeholder|catalog-item-placeholder)\\.svg|\\/legacy\\/(?:activity|activities)\\//i.test(url)) return "auto";
+        if (/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(url)) return "auto";
         return "owner";
       };
       const { data: savedBusiness, error: savedBusinessError } = await service.from("businesses")
