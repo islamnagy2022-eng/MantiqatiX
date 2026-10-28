@@ -6,6 +6,7 @@ const read = (path) => fs.readFileSync(path, 'utf8');
 const types = read('apps/catalog-frontend/src/types/index.ts');
 const defaults = read('apps/catalog-frontend/src/data/productionDefaults.ts');
 const admin = read('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx');
+const directory = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
 const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const production = read('apps/catalog-frontend/src/lib/production.ts');
 const backend = read('supabase/functions/catalog-platform-admin/index.ts');
@@ -51,6 +52,10 @@ assert.ok(defaults.includes('BACKEND_CODE_GROUP_MAP'), 'Existing backend categor
 assert.ok(admin.includes('التصنيف — النشاط أو المهنة'), 'Admin activity form must expose the activity/profession selector.');
 assert.ok(admin.includes('التخصص الدقيق (اختياري)'), 'Admin activity form must expose an optional specialty selector.');
 assert.ok(admin.includes('categoryClassificationType: matchedCat?.classificationType'), 'Admin-created businesses must retain category classification.');
+assert.ok(directory.includes("const [selectedCategoryKind"), 'Public directory must allow activity/profession filtering.');
+assert.ok(directory.includes('const availableCategories = categories.filter'), 'Public directory category options must respect selected main group and classification kind.');
+assert.ok(directory.includes('التخصص الدقيق'), 'Public directory must allow filtering by an available specialty.');
+assert.ok(directory.includes('matchesCategoryKind') && directory.includes('matchesSpecialty'), 'Directory filters must narrow real business records by kind/category/specialty.');
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
 assert.ok(context.includes('activityClassificationType: data.categoryClassificationType'), 'The client must send activity/profession type to the server.');
 assert.ok(context.includes('activitySpecialty: data.activitySpecialty'), 'The client must send selected specialty to the server.');
