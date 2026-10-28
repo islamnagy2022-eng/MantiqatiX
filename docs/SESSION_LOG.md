@@ -325,3 +325,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Applied the migration to live Supabase as version `20261027223523`; read-only post-check confirmed the live statement matches the checked-in SQL exactly, `search_path=""`, anon/authenticated EXECUTE remain enabled, PUBLIC EXECUTE remains absent, and the live RPC returns 3 rows.
 - The original RC451 version `20261010200000` remains absent from the original required-version ledger list. Its effect is reconciled by the forward repair; no historical migration was edited or marked applied. The full platform gate remains BLOCKED by the other missing migration versions, critical order/payment/finance Edge Function drift, finance prerequisites, and unverified payment/finance E2E, backup/restore, Auth, and SMM runtime evidence.
 - The Supabase security advisor may still count the intentionally anon-callable SECURITY DEFINER RPC; the risky search_path configuration is fixed, and the public-discovery grant was deliberately preserved.
+
+ 
+## 2026-10-28 — Functional-group icon-card redesign
+
+- Updated `apps/catalog-frontend/src/components/DirectoryView.tsx` to replace functional-group cover images with consistent Lucide SVG icons, light cards, accessible selected-state styling, and the existing responsive ten-column extra-large layout.
+- Kept the group counts and selection/filter behavior in the existing directory component; removed the old functional-group cover map and unused icon imports.
+- Added regression assertions in `scripts/validate-canonical-activity-taxonomy.mjs` for the 18 group-to-icon mappings, no return to cover-image cards, the responsive grid, light card styling, and selected-state accessibility.
+- Source was read back from GitHub after commits `1a93658e7846a6b0917e0307bedac333077942f0`, `75148b398a95146d04b24dd67977a8b066cbce1a`, and validator fixes `287e86f65947c759466068ab0cac61cc0467a34f` / `f865cf337d3c7400aeac9f2c4a3a26498a0a0de0`.
+- Exact-head CI status is not available from the current status/run query; local build and browser verification were not run in this environment. Do not mark the visual change as deployed/verified until Pages workflow and live-page checks confirm it.
