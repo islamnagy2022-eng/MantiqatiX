@@ -76,4 +76,36 @@ assert.ok(backend.includes('activity_group_code: activityGroupCode'), 'Server mu
 assert.ok(backend.includes('activity_classification_type: activityClassificationType'), 'Server must persist classification type.');
 assert.ok(backend.includes('activity_specialty: activitySpecialty || null'), 'Server must persist specialty metadata without activating modules.');
 
+const iconMapStart = directory.indexOf('const ICONS_MAP: Record<string, React.ReactNode> = {');
+const iconMapEnd = directory.indexOf('\\n};', iconMapStart);
+assert.ok(iconMapStart >= 0 && iconMapEnd > iconMapStart, 'Public directory must define a dedicated functional-group icon map.');
+const iconMap = directory.slice(iconMapStart, iconMapEnd);
+const expectedIcons = {
+  medical_health: 'Stethoscope',
+  food_grocery: 'Utensils',
+  fashion_beauty: 'Shirt',
+  home_maintenance: 'Wrench',
+  construction_decor: 'Palette',
+  auto_transport: 'Car',
+  real_estate: 'Building2',
+  education_training: 'GraduationCap',
+  technology_communications: 'Cpu',
+  professional_services: 'BriefcaseBusiness',
+  marketing_media: 'Megaphone',
+  trade_ecommerce: 'ShoppingCart',
+  agriculture_animals: 'Sprout',
+  sports_fitness: 'Dumbbell',
+  tourism_events: 'Plane',
+  finance_insurance: 'Landmark',
+  industry_workshops: 'Factory',
+  public_community: 'Users',
+};
+for (const [groupId, iconName] of Object.entries(expectedIcons)) {
+  assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
+}
+assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
+assert.ok(directory.includes('xl:grid-cols-10'), 'Functional group cards should retain ten columns on extra-large screens.');
+assert.ok(directory.includes('bg-white p-3 text-center'), 'Functional group cards should use the consistent light icon-card treatment.');
+assert.ok(directory.includes('aria-pressed={isSelected}'), 'Functional group selection must remain accessible to assistive technology.');
+
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} category entries, activity/profession separation, legacy mapping, admin UI, and server persistence.`);
