@@ -143,7 +143,24 @@ assert.doesNotMatch(auditHelper, /details:/,
   'The live audit_logs table has no details column; structured data must be stored in new_values/old_values.');
 assert.match(backend, /const creationAuditError = await writeAuditLog/,
   'Activity creation must check whether its production audit row was recorded.');
+assert.match(storefrontCatalog, /const buildQuoteUrl = \(product: Product\): string \| null/,
+  'Quote links must be disabled when no verified contact number is available.');
+assert.match(storefrontCatalog, /if \(digits\.length < 10 \|\| digits\.length > 15\) return null/,
+  'Quote link builder must reject missing or malformed contact numbers.');
+assert.doesNotMatch(storefrontCatalog, /201010171770/,
+  'Public storefront quote links must not invent a default WhatsApp phone number.');
+assert.match(storefrontCatalog, /التواصل غير متاح/,
+  'Missing quote contact data must be shown clearly instead of sending customers to a fabricated number.');
 
+
+const settingsStart = backend.indexOf('if (action === "BUSINESS_SETTINGS_UPDATE")');
+const settingsEnd = backend.indexOf('if (action === "DEACTIVATE_BUSINESS")', settingsStart);
+assert.ok(settingsStart >= 0 && settingsEnd > settingsStart, 'Operational settings update must be bounded before business deactivation.');
+const operationalSettingsBlock = backend.slice(settingsStart, settingsEnd);
+assert.match(operationalSettingsBlock, /Operational activation is stored independently from public publication/,
+  'Operating-state changes must not implicitly change publication.');
+assert.doesNotMatch(operationalSettingsBlock, /updatePayload\.status|\.update\(\{\s*status:/,
+  'Changing operationalStatus must not rewrite the base business lifecycle status.');
 const publicationStart = backend.indexOf('if (action === "BUSINESS_PUBLICATION_REVIEW")');
 const publicationEnd = backend.indexOf('if (action === "BUSINESS_SETTINGS_UPDATE")', publicationStart);
 assert.ok(publicationStart >= 0 && publicationEnd > publicationStart, 'Admin publication review action must exist before billing updates.');
@@ -176,8 +193,14 @@ assert.match(rejection, /if \(rejectionAuditError\)[\s\S]*PUBLICATION_AUDIT_FAIL
 
 assert.match(publicDirectoryFunction, /catalog_public_enabled === true/,
   'Public directory must derive customer-activity visibility from the persisted publication flag.');
-assert.match(publicDirectoryFunction, /operationalStatus === "ACTIVE"/,
-  'Public directory must continue respecting operational state.');
+assert.match(publicDirectoryFunction, /b\.settings\?\.catalog_public_enabled === true \|\| isOfficialShowcase\(b\)/,
+  'Directory visibility must follow approved publication, not operational status.');
+assert.match(publicDirectoryFunction, /if \(catalogPublished && operationallyActive\)/,
+  'Directory may return an approved profile while omitting sellable items when operations are paused.');
+assert.match(publicCatalogFunction, /if \(operationallyActive\)/,
+  'Public storefront must omit products/services when operations are paused.');
+assert.doesNotMatch(publicCatalogFunction, /if \(operationalStatus !== "ACTIVE"\) return response/,
+  'Operational pause must not unpublish an approved profile.');
 assert.match(publicCatalogFunction, /catalog_public_enabled !== true/,
   'The public storefront must not serve an unpublished catalog.');
 assert.match(directory, /business\.publicEnabled \|\| business\.isOfficialShowcase/,
