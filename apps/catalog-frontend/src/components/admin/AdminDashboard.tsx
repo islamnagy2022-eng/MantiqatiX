@@ -48,6 +48,7 @@ import {
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
+import { resolveDefaultImage } from '../../utils/defaultImages';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 
@@ -88,6 +89,7 @@ export const AdminDashboard: React.FC = () => {
     confirmAdminPayment,
     toggleBusinessFreeze,
     updateBusinessLocation,
+    deleteBusiness,
   } = useApp();
 
   const [activeAdminTab, setActiveAdminTab] = useState<
@@ -118,6 +120,7 @@ export const AdminDashboard: React.FC = () => {
   const [subAccessStatus, setSubAccessStatus] = useState<'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('INACTIVE');
   const [subAccessCatalogEnabled, setSubAccessCatalogEnabled] = useState(false);
   const [subAccessCatalogWrite, setSubAccessCatalogWrite] = useState(false);
+  const [subAccessAccountRestricted, setSubAccessAccountRestricted] = useState(false);
   const [subAccessSaving, setSubAccessSaving] = useState(false);
   const [subAccessFeedback, setSubAccessFeedback] = useState<string | null>(null);
 
@@ -132,6 +135,7 @@ export const AdminDashboard: React.FC = () => {
     setSubAccessStatus(status === 'ACTIVE' || status === 'SUSPENDED' ? status : 'INACTIVE');
     setSubAccessCatalogEnabled(subscriber.permissions?.catalog !== false && subscriber.permissions?.account_restricted !== true);
     setSubAccessCatalogWrite(subscriber.permissions?.catalog_write !== false && subscriber.permissions?.catalog_read_only !== true);
+    setSubAccessAccountRestricted(subscriber.permissions?.account_restricted === true);
     setSubAccessFeedback(null);
     setIsSubscriberAccessModalOpen(true);
   };
@@ -1085,9 +1089,13 @@ export const AdminDashboard: React.FC = () => {
                     {/* Cover Photo */}
                     <div className="relative h-28 bg-slate-800">
                       <img
-                        src={b.coverUrl}
+                        src={b.coverUrl || resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'cover' })}
                         alt={b.name}
                         className="w-full h-full object-cover"
+                        onError={(event) => {
+                          const image = event.currentTarget;
+                          image.src = resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'cover' });
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
@@ -1106,7 +1114,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="p-4 relative -mt-8">
                       <div className="flex items-start gap-3">
                         <img
-                          src={b.logoUrl || BUSINESS_PLACEHOLDER}
+                          src={b.logoUrl || resolveDefaultImage({ name: b.name, description: b.bio, category: b.category, kind: 'activity' })}
                           alt={b.name}
                           className="w-14 h-14 rounded-2xl ring-4 ring-white object-cover bg-white shadow-md flex-shrink-0"
                           onError={(event) => {
@@ -1403,6 +1411,7 @@ export const AdminDashboard: React.FC = () => {
                       status: subAccessStatus,
                       catalogEnabled: subAccessCatalogEnabled,
                       catalogWrite: subAccessCatalogWrite,
+                      accountRestricted: subAccessAccountRestricted,
                     });
                     setIsSubscriberAccessModalOpen(false);
                     setEditingSubscriber(null);
@@ -1473,15 +1482,27 @@ export const AdminDashboard: React.FC = () => {
 
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-4">
                     <div>
-                      <h4 className="text-sm font-black text-slate-900">قيود الكتالوج</h4>
+                      <h4 className="text-sm font-black text-slate-900">التحكم في الحساب والكتالوج</h4>
                       <p className="mt-1 text-[11px] leading-relaxed text-slate-500">يطبّق الخادم القيود على طلبات قراءة الكتالوج وتعديله، وليس على مظهر الشاشة فقط.</p>
                     </div>
                     <label className="flex items-start gap-3 text-xs text-slate-800">
-                      <input type="checkbox" checked={subAccessCatalogEnabled} onChange={(event) => setSubAccessCatalogEnabled(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600" />
+                      <input type="checkbox" checked={subAccessAccountRestricted} onChange={(event) => {
+                        const restricted = event.target.checked;
+                        setSubAccessAccountRestricted(restricted);
+                        if (restricted) {
+                          setSubAccessCatalogEnabled(false);
+                          setSubAccessCatalogWrite(false);
+                          setSubAccessStatus('SUSPENDED');
+                        }
+                      }} className="mt-0.5 h-4 w-4 accent-rose-600" />
+                      <span><strong className="block text-rose-800">تقييد الحساب بالكامل على هذا التعيين</strong><span className="mt-0.5 block text-slate-500">يمنع الوصول إلى الكتالوج عبر هذا الدور. لا يحذف حساب Google من Supabase.</span></span>
+                    </label>
+                    <label className="flex items-start gap-3 text-xs text-slate-800">
+                      <input type="checkbox" checked={subAccessCatalogEnabled} disabled={subAccessAccountRestricted} onChange={(event) => setSubAccessCatalogEnabled(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600 disabled:opacity-40" />
                       <span><strong className="block">السماح بدخول الكتالوج</strong><span className="mt-0.5 block text-slate-500">أوقف هذا الخيار لمنع الوصول إلى واجهات الكتالوج لهذا التعيين.</span></span>
                     </label>
                     <label className="flex items-start gap-3 text-xs text-slate-800">
-                      <input type="checkbox" checked={subAccessCatalogWrite} disabled={!subAccessCatalogEnabled} onChange={(event) => setSubAccessCatalogWrite(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600 disabled:opacity-40" />
+                      <input type="checkbox" checked={subAccessCatalogWrite} disabled={!subAccessCatalogEnabled || subAccessAccountRestricted} onChange={(event) => setSubAccessCatalogWrite(event.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600 disabled:opacity-40" />
                       <span><strong className="block">السماح بإضافة وتعديل عناصر الكتالوج</strong><span className="mt-0.5 block text-slate-500">عند إيقافه يحتفظ الحساب بقراءة الكتالوج فقط.</span></span>
                     </label>
                   </div>
