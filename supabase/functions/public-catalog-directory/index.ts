@@ -162,6 +162,8 @@ Deno.serve(async (req: Request) => {
         : cleanPhone.startsWith("1") && cleanPhone.length === 10 ? "20" + cleanPhone : cleanPhone;
       results.push({
         id: business.id, tenantId, organizationId: business.organization_id,
+        status: business.status, operationalStatus: business.status,
+        bizcatalog: business.settings?.bizcatalog || {},
         name: activityName,
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
