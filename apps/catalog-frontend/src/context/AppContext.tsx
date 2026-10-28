@@ -398,7 +398,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addBusiness = async (data: Omit<Business, 'id' | 'createdAt'>): Promise<string> => {
     if (authSession.role !== 'admin') throw new Error('إضافة الأنشطة متاحة لإدارة المنصة فقط.');
-    const result: any = await callPlatformAdmin({ action: 'CREATE_BUSINESS', business: { name: data.name, category: data.category, bio: data.bio, phone: data.ownerWhatsApp || data.phone || '', address: data.address || '', governorate: data.governorate || '', markaz: data.markaz || '', village: data.village || '', workingHours: data.workingHours || '', logoUrl: data.logoUrl || '', coverUrl: data.coverUrl || '', slug: data.slug || '' } });
+    const result: any = await callPlatformAdmin({ action: 'CREATE_BUSINESS', business: { name: data.name, category: data.category, bio: data.bio, phone: data.ownerWhatsApp || data.phone || '', address: data.address || '', governorate: data.governorate || '', markaz: data.markaz || '', village: data.village || '', workingHours: data.workingHours || '', logoUrl: data.logoUrl || '', coverUrl: data.coverUrl || '', slug: data.slug || '', publishNow: Boolean(data.publicEnabled), paymentDueDate: data.paymentDueDate, paymentGracePeriodDays: data.paymentGracePeriodDays ?? 7 } });
     if (!result?.business?.id) throw new Error('لم يرجع الخادم معرف النشاط المنشأ.');
     await applyUser((await supabase.auth.getUser()).data.user);
     setSelectedBusinessIdState(result.business.id);
