@@ -322,8 +322,35 @@ const LEGACY_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
   crafts_maintenance: 'home_maintenance',
 };
 
+const BACKEND_CODE_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
+  HEALTH: 'medical_health', MEDICAL: 'medical_health', CLINICS: 'medical_health',
+  PHARMACY: 'medical_health', LABS: 'medical_health', RADIOLOGY: 'medical_health',
+  HOSPITAL: 'medical_health', DENTAL: 'medical_health', PHYSIOTHERAPY: 'medical_health',
+  FOOD: 'food_grocery', RESTAURANTS: 'food_grocery', GROCERY: 'food_grocery',
+  FASHION: 'fashion_beauty', BEAUTY: 'fashion_beauty',
+  HOME: 'home_maintenance', HOMEWARES: 'home_maintenance', MAINTENANCE: 'home_maintenance',
+  CONSTRUCTION: 'construction_decor', CONTRACTORS: 'construction_decor', DECOR: 'construction_decor',
+  AUTO: 'auto_transport', MANTIGO: 'auto_transport', TRANSPORT: 'auto_transport', SHIPPING: 'auto_transport',
+  REAL_ESTATE: 'real_estate',
+  EDU: 'education_training', EDUCATION: 'education_training', SCHOOLS: 'education_training',
+  ERP: 'technology_communications', TECH: 'technology_communications', SOFTWARE: 'technology_communications',
+  ACCOUNTING: 'professional_services', LEGAL: 'professional_services', COMPANIES: 'professional_services',
+  MARKETING: 'marketing_media', DIGITAL: 'marketing_media', MEDIA: 'marketing_media',
+  USED_ITEMS: 'trade_ecommerce', TRADE: 'trade_ecommerce', RETAIL: 'trade_ecommerce',
+  VETERINARY: 'agriculture_animals', AGRICULTURE: 'agriculture_animals', FARMING: 'agriculture_animals',
+  SPORTS: 'sports_fitness', FITNESS: 'sports_fitness',
+  TRIPS: 'tourism_events', TRAVEL: 'tourism_events', TOURISM: 'tourism_events', EVENTS: 'tourism_events',
+  FINANCE: 'finance_insurance', INSURANCE: 'finance_insurance', PAYMENTS: 'finance_insurance',
+  FACTORIES: 'industry_workshops', INDUSTRY: 'industry_workshops', WORKSHOPS: 'industry_workshops',
+  JOBS: 'professional_services', FREELANCER: 'professional_services',
+  MATRIMONY: 'public_community', COMMUNITY: 'public_community', PUBLIC_SERVICES: 'public_community',
+};
+
 export function resolveCanonicalGroupId(categoryName: string, legacyGroupId?: string): FunctionalGroup['id'] {
-  const value = String(categoryName || '').toLocaleLowerCase('ar');
+  const rawName = String(categoryName || '').trim();
+  const codeCandidate = rawName.split(/[|—–]/)[0].trim().toUpperCase().replace(/[\\s-]+/g, '_');
+  if (BACKEND_CODE_GROUP_MAP[codeCandidate]) return BACKEND_CODE_GROUP_MAP[codeCandidate];
+  const value = rawName.toLocaleLowerCase('ar');
   if (/زراع|مزرعة|مزارع|مشاتل|بذور|أسمدة|شبكات ري|حيوانات|بيطري|أعلاف|استزراع سمكي/.test(value)) return 'agriculture_animals';
   if (/طبيب|طبي|صحة|عياد|صيدل|تحاليل|أشعة|مستشفى|أسنان|تمريض|تغذية|علاج طبيعي|تخاطب|بصريات|رعاية صحية|مختبر/.test(value)) return 'medical_health';
   if (/مطعم|مقهى|كافيه|أغذية|غذاء|حلويات|مخبز|مخبوز|بقالة|سوبر ماركت|جزارة|لحوم|دواجن|أسماك|خضراوات|فاكهة|ألبان|عطارة|قهوة|بن ومحمص/.test(value)) return 'food_grocery';
