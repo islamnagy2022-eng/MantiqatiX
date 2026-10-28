@@ -69,7 +69,7 @@ assert.doesNotMatch(publicCatalogFunction, /return `https:\/\/images\.unsplash\.
 assert.match(publicCatalogFunction, /images\\\.unsplash\\\.com[\s\S]{0,180}return ""/, 'public storefront API must explicitly reject legacy stock-photo URLs');
 assert.doesNotMatch(sharedDefaultImages, /images\.unsplash\.com|const rules:/, 'shared catalog image helper must not generate stock-photo URLs');
 assert.match(createUi, /phoneDigits\.length < 10 \|\| phoneDigits\.length > 15/, 'business creation must require a real owner WhatsApp number');
-assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\) \|\| !newBizVillage\.trim\(\)/, 'business creation must require actual location details');
+assert.match(createUi, /!newBizGov\.trim\(\) \|\| !newBizMarkaz\.trim\(\)/, 'business creation must require governorate and district; village is optional when not applicable');
 assert.match(createUi, /paymentStatus: 'pending'/, 'new business must remain unpaid until an admin confirms real payment');
 assert.match(createUi, /paymentConfirmedByAdmin: false/, 'new business must not be marked as payment-confirmed by default');
 assert.match(createUi, /paymentDueDate: newBizPaymentDueDate/, 'new business form must persist its chosen payment due date');
@@ -80,7 +80,7 @@ assert.match(admin, /التفعيل الفعلي الآن — نشر الكتا�
 assert.doesNotMatch(createUi, /paymentStatus: 'paid'|paymentConfirmedByAdmin: true|paymobConfig:/, 'new business must not be auto-paid or auto-enabled for Paymob');
 assert.match(admin, /await confirmAdminPayment\(biz\.id\)/, 'payment confirmation UI must await the backend result');
 assert.match(admin, /تعذر حفظ تأكيد السداد/, 'payment confirmation failure must be visible');
-assert.match(admin, /await toggleBusinessFreeze\(biz\.id\)/, 'manual freeze changes must wait for persistence');
+assert.match(admin, /const handleOperationalStatusChange = async[\s\S]*await updateBillingSetting\(business\.id, \{[\s\S]*isFrozen: status === 'FROZEN'/, 'manual freeze changes must await the persisted operational-status update');
 assert.match(admin, /await updateAdminSettings\(/, 'platform settings UI must await server persistence');
 assert.match(admin, /settingsFeedback\.type === 'success'/, 'settings UI must distinguish saved success from failure');
 
@@ -91,12 +91,12 @@ assert.match(context, /const updateAdminSettings = async/, 'settings persistence
 assert.match(context, /if \(result\?\.success !== true\)/, 'local settings state must update only after server-confirmed success');
 assert.match(context, /const toggleBusinessFreeze = async/, 'manual freeze changes must persist before local state changes');
 assert.match(context, /Freeze is an independent operational flag[\s\S]{0,180}await updateBillingSetting\(businessId, \{ isFrozen: frozen \}\)/, 'Freeze/unfreeze must not overwrite the underlying payment status');
-assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.isFrozen) return false;"), 'The public directory may show official showcase activity cards but must still hide other unpublished and frozen businesses');
+assert.ok(directory.includes("if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;"), 'The public directory must hide unpublished, inactive, and frozen businesses except official showcases');
 assert.match(directory, /const coverSlides: CoverSlide\[\] = liveFeaturedBusinesses\.map\(\(business\) =>/ , 'The home cover must be built from available business records only');
 assert.match(directory, /publicEnabled \|\| business\.isOfficialShowcase[\s\S]{0,120}!business\.isFrozen/, 'The cover must exclude frozen and unavailable business records');
 assert.match(directory, /section aria-label="الأنشطة المتاحة حاليًا"[\s\S]*activeCoverSlides\.length > 0/, 'The home cover must be one activity-focused carousel with an empty state');
 assert.match(directory, /setSelectedBusinessId\(slide\.businessId\)[\s\S]{0,100}setCurrentView\('public_storefront'\)/, 'Clicking a cover image must open that activity public page');
-assert.match(directory, /اضغط على الصورة لفتح صفحة النشاط/, 'The cover must communicate that activity images are clickable');
+assert.doesNotMatch(directory, /currentSlide\.badge|currentSlide\.title|currentSlide\.subtitle|اضغط على الصورة لفتح صفحة النشاط/, 'The cover must not render text or badges over activity cover images');
 assert.match(directory, /activeCoverSlides\.length <= 1/, 'The cover autoplay must not start when zero or one activities are available');
 assert.doesNotMatch(directory, /mnty-ad-space-booking-banner\.svg|marketingCreative|advertisingSlides/, 'The homepage must no longer show two separate promotional cover panels');
 assert.doesNotMatch(context, /const advanceBusinessOverdueDay/, 'overdue-day simulation must be removed from production context');
@@ -107,8 +107,9 @@ assert.ok(createStart >= 0 && createEnd > createStart, 'server-side business cre
 const createServer = backend.slice(createStart, createEnd);
 assert.match(createServer, /INVALID_BUSINESS_WHATSAPP/, 'server must reject missing or invalid owner contact');
 assert.match(createServer, /INVALID_BUSINESS_LOCATION/, 'server must reject missing real location data');
-assert.match(createServer, /catalog_public_enabled: publishNow/, 'backend must respect the explicit publish-now choice');
-assert.match(createServer, /paymentDueDate, paymentGracePeriodDays, publicationStatus: publishNow \? "PUBLISHED_UNPAID" : "PENDING_PUBLICATION"/, 'backend must persist due date, grace period, and publication state');
+assert.match(createServer, /catalog_public_enabled: false/, 'new business records must remain unpublished until explicit server-side approval');
+assert.match(createServer, /status: "INACTIVE"/, 'new business records must not activate operationally at creation time');
+assert.match(createServer, /paymentDueDate, paymentGracePeriodDays, publicationStatus: "PENDING_PUBLICATION"/, 'backend must persist due date and grace period while leaving publication pending for approval');
 assert.match(createServer, /paymentStatus: "pending"/, 'backend must preserve unpaid status regardless of publication choice');
 assert.match(createServer, /paymentConfirmedByAdmin: false/, 'backend must never self-confirm payment during activity creation');
 assert.match(createServer, /INVALID_PAYMENT_DUE_DATE/, 'backend must validate the chosen payment due date');
