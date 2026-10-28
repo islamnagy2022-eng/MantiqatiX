@@ -227,6 +227,11 @@ async function waitForDeniedDashboard(page) {
   assert.equal(await page.locator('nav[aria-label="أقسام الداشبورد"]').count(), 0);
 }
 
+async function assertNoHorizontalOverflow(page, label) {
+  const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  assert.equal(hasOverflow, false, label + ' must not have horizontal overflow');
+}
+
 const browser = await chromium.launch({ headless: true });
 const results = [];
 try {
@@ -250,7 +255,10 @@ try {
       await waitForDashboard(page);
       assert.equal(await page.getByText('مساحة عمل محدودة الصلاحيات', { exact: true }).count(), 0);
       assert.equal(await page.getByText('نشاطك', { exact: true }).count() > 0, true);
-      results.push('owner-route-and-refresh-restored');
+      await assertNoHorizontalOverflow(page, '390px mobile owner dashboard');
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await assertNoHorizontalOverflow(page, '1440px desktop owner dashboard');
+      results.push('owner-route-and-refresh-restored-with-responsive-layout');
     } finally { await context.close(); }
   }
 
@@ -261,6 +269,7 @@ try {
       await waitForDashboard(page);
       await page.getByText('مساحة عمل محدودة الصلاحيات', { exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('إجمالي المشتركين', { exact: true }).count(), 0);
+      await assertNoHorizontalOverflow(page, '390px mobile limited-employee dashboard');
       results.push('employee-view-only-scoped');
     } finally { await context.close(); }
   }
