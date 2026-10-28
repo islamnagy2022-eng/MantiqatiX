@@ -621,8 +621,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addProduct = async (data: Omit<Product, 'id'> & { deferAiImageGeneration?: boolean }): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
-    let imageSource: 'auto' | 'owner' | 'ai' = data.imageSource === 'owner' && Boolean(data.imageUrl?.trim()) ? 'owner' : 'auto';
-    let imageUrl = imageSource === 'owner'
+    // Preserve a user-reviewed AI suggestion or an owner-supplied image URL.
+    // Bulk import can defer automatic generation without discarding an explicitly approved suggestion.
+    let imageSource: 'auto' | 'owner' | 'ai' =
+      (data.imageSource === 'owner' || data.imageSource === 'ai') && Boolean(data.imageUrl?.trim())
+        ? data.imageSource
+        : 'auto';
+    let imageUrl = imageSource === 'owner' || imageSource === 'ai'
       ? data.imageUrl.trim()
       : resolveDefaultImage({ name: data.name, description: data.description, category: data.category, kind: data.type === 'service' ? 'service' : 'product' });
     if (imageSource === 'auto' && data.deferAiImageGeneration !== true) {
