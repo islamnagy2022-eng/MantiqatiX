@@ -70,41 +70,31 @@ export const DirectoryView: React.FC = () => {
   const liveFeaturedBusinesses = businesses
     .filter((business) => Boolean(business.publicEnabled) && !business.isFrozen && Boolean(business.name.trim()))
     .slice(0, 20);
-  const coverSlides: CoverSlide[] = liveFeaturedBusinesses.length
-    ? liveFeaturedBusinesses.map((business) => ({
-        image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
-        badge: business.category || 'نشاط محلي',
-        title: business.name,
-        subtitle: business.bio || 'تعرّف على بيانات النشاط ووسائل التواصل المسجلة.',
-        governorates: [business.governorate || 'all'],
-        businessId: business.id,
-      }))
-    : [
-        {
-          image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-1.svg`,
-          badge: '',
-          title: '',
-          subtitle: '',
-          governorates: ['all'],
-          marketingCreative: true,
-        },
-        {
-          image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-2.svg`,
-          badge: '',
-          title: '',
-          subtitle: '',
-          governorates: ['all'],
-          marketingCreative: true,
-        },
-        {
-          image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-3.svg`,
-          badge: '',
-          title: '',
-          subtitle: '',
-          governorates: ['all'],
-          marketingCreative: true,
-        },
-      ];
+  const advertisingSlides: CoverSlide[] = [
+    {
+      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-1.svg`,
+      badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
+    },
+    {
+      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-2.svg`,
+      badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
+    },
+    {
+      image: `${import.meta.env.BASE_URL || '/'}legacy/mnty-cover-ad-3.svg`,
+      badge: '', title: '', subtitle: '', governorates: ['all'], marketingCreative: true,
+    },
+  ];
+  const coverSlides: CoverSlide[] = [
+    ...advertisingSlides,
+    ...liveFeaturedBusinesses.map((business) => ({
+      image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
+      badge: business.category || 'نشاط محلي',
+      title: business.name,
+      subtitle: business.bio || 'تعرّف على بيانات النشاط ووسائل التواصل المسجلة.',
+      governorates: [business.governorate || 'all'],
+      businessId: business.id,
+    })),
+  ];
 
   // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
@@ -263,6 +253,26 @@ export const DirectoryView: React.FC = () => {
               />
             ))}
           </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
+          <img
+            src={`${import.meta.env.BASE_URL || '/'}legacy/mnty-ad-space-booking-banner.svg`}
+            alt="احجز مساحة إعلانية على MantiqatiX"
+            className="block h-auto w-full object-cover"
+            loading="lazy"
+            onError={(event) => { event.currentTarget.style.display = 'none'; }}
+          />
+          {catalogRequestPhone && (
+            <a
+              href={`https://wa.me/${catalogRequestPhone}?text=${encodeURIComponent('مرحبًا، أريد الاستفسار عن حجز مساحة إعلانية على MantiqatiX.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute bottom-3 left-3 rounded-xl bg-red-600 px-4 py-2 text-xs font-black text-white shadow-lg transition-colors hover:bg-red-700 sm:bottom-5 sm:left-5 sm:px-5 sm:py-3 sm:text-sm"
+            >
+              استفسر عن الإعلانات
+            </a>
+          )}
         </div>
 
         {/* Functional Groups Filter Row */}
