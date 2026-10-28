@@ -83,7 +83,7 @@ export const DirectoryView: React.FC = () => {
   // Published catalogues and platform-owned showcase activities receive directory cards.
   // This does not activate a module or expose products for an unpublished catalogue.
   const liveFeaturedBusinesses = businesses
-    .filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && !business.isFrozen && Boolean(business.name.trim()))
+    .filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && Boolean(business.name.trim()))
     .slice(0, 30);
   const coverSlides: CoverSlide[] = liveFeaturedBusinesses.map((business) => ({
       image: business.coverUrl || resolveDefaultImage({ name: business.name, description: business.bio, category: business.category, kind: 'cover' }),
@@ -132,7 +132,7 @@ export const DirectoryView: React.FC = () => {
   const filteredBusinesses = businesses.filter((biz) => {
     // Fail closed: the directory must never expose unpublished or frozen businesses,
     // even when the viewer is a platform administrator with a broader bootstrap scope.
-    if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.isFrozen) return false;
+    if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;
     const matchesSearch =
       biz.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       biz.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
