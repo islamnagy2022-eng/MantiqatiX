@@ -640,7 +640,7 @@ export const MerchantDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveTab('branding')
+          onClick={() => setActiveTab('branding')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'branding'
               ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
