@@ -49,6 +49,7 @@ import {
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
+import { CommissionRulesManager } from './CommissionRulesManager';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import { callPlatformAdmin } from '../../lib/production';
 
@@ -113,8 +114,8 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'billing' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['billing', 'taxonomy', 'businesses', 'subscribers', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'settings', 'backup', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
     return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
@@ -631,6 +632,15 @@ export const AdminDashboard: React.FC = () => {
           )}
         </button>
 
+        {/* Flexible commission drafts — never activates a financial rule */}
+        <button
+          onClick={() => setActiveAdminTab('commissions')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${activeAdminTab === 'commissions' ? 'bg-indigo-700 text-white shadow-md' : 'text-slate-700 hover:text-indigo-800 bg-white border border-slate-200'}`}
+        >
+          <Coins className="w-4 h-4 text-amber-500" />
+          <span>قواعد العمولات المرنة</span>
+        </button>
+
         {/* Tab 2: Taxonomy & Functional Groups */}
         <button
           onClick={() => setActiveAdminTab('taxonomy')}
@@ -687,6 +697,8 @@ export const AdminDashboard: React.FC = () => {
         
         
       </div>
+
+      {activeAdminTab === 'commissions' && <CommissionRulesManager />}
 
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
 
