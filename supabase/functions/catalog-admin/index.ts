@@ -223,9 +223,12 @@ Deno.serve(async (req: Request) => {
       let query = service.from("businesses")
         .select("id,tenant_id,organization_id,name,code,status,settings")
         .in("tenant_id", authorizedTenants)
-        .eq("status", "ACTIVE")
         .order("name", { ascending: true })
         .limit(250);
+      // Platform administrators need to see inactive and pending businesses to
+      // review payments/publication and restore them. Tenant-level owners remain
+      // restricted to active businesses in this general-purpose list.
+      if (!hasPlatformScope) query = query.eq("status", "ACTIVE");
       if (tenantId) query = query.eq("tenant_id", tenantId);
       const { data: businesses, error } = await query;
       if (error) throw error;
