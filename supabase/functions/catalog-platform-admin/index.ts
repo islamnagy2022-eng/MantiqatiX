@@ -718,12 +718,28 @@ Deno.serve(async (req: Request) => {
           .in("role", ["OWNER", "BUSINESS_OWNER"]);
         if (ownerError) throw ownerError;
         if (!count) return response(origin, { error: "ACTIVE_BUSINESS_OWNER_REQUIRED", message: "يجب تعيين مالك نشط للنشاط قبل الموافقة على النشر." }, 409);
+
+        // Public directory cards require an ACTIVE provider profile as well as an
+        // approved business. Activate the latest profile as part of publication review.
+        const { data: providerProfile, error: providerProfileError } = await service.from("marketing_provider_profiles")
+          .select("id,status").eq("business_id", businessId)
+          .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        if (providerProfileError) throw providerProfileError;
+        if (!providerProfile) return response(origin, {
+          error: "PROVIDER_PROFILE_REQUIRED",
+          message: "لا يمكن نشر النشاط قبل إنشاء ملفه في دليل الأنشطة."
+        }, 409);
+        const { error: providerUpdateError } = await service.from("marketing_provider_profiles")
+          .update({ status: "ACTIVE", updated_at: new Date().toISOString() })
+          .eq("id", providerProfile.id);
+        if (providerUpdateError) throw providerUpdateError;
+
         const nextSettings = { ...currentSettings, catalog_public_enabled: true,
           bizcatalog: { ...currentBizcatalog, publicationStatus: "PUBLISHED", publicationApprovedAt: new Date().toISOString(), publicationApprovedBy: user.id, publicationRejectionReason: "" } };
         const { error } = await service.from("businesses").update({ status: "ACTIVE", settings: nextSettings, updated_at: new Date().toISOString() })
           .eq("id", businessId).eq("tenant_id", tenantId);
         if (error) throw error;
-        return response(origin, { success: true, businessId, decision, status: "ACTIVE", publicationStatus: "PUBLISHED" });
+        return response(origin, { success: true, businessId, decision, status: "ACTIVE", publicationStatus: "PUBLISHED", providerProfileStatus: "ACTIVE" });
       }
       const nextSettings = { ...currentSettings, catalog_public_enabled: false,
         bizcatalog: { ...currentBizcatalog, publicationStatus: "REJECTED", publicationRejectionReason: reason || "لم يتم توضيح السبب", publicationRejectedAt: new Date().toISOString(), publicationRejectedBy: user.id } };
