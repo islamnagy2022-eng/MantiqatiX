@@ -115,19 +115,21 @@ export const MerchantDashboard: React.FC = () => {
     setProfileSaveError('');
   }, [currentBusiness?.id]);
   
-  // On first owner visit, create a category-specific cover when none was supplied.
-  // A per-component guard prevents retries/rerender loops if the AI provider is unavailable.
+  // On first owner visit, persist a category-matched local cover when no real cover photo is available.
+  // This is a fallback until the owner uploads a photograph.
   const autoCoverAttempted = useRef<Set<string>>(new Set());
   useEffect(() => {
     const business = currentBusiness;
     if (!business?.id || !business.tenantId || !business.branchId) return;
     const needsDefaultCover = !business.coverUrl?.trim() ||
-      /(?:business-placeholder\\.svg|catalog-item-placeholder\\.svg|\\/legacy\\/activity\\/|\\/legacy\\/mnty-cover-ad-)/i.test(business.coverUrl);
+      /(?:business-placeholder\.svg|catalog-item-placeholder\.svg|\/legacy\/activity\/|\/legacy\/mnty-cover-ad-)/i.test(business.coverUrl);
     if (!needsDefaultCover || autoCoverAttempted.current.has(business.id)) return;
     autoCoverAttempted.current.add(business.id);
     void updateBusiness({
       ...business,
-      coverUrl: '',
+      coverUrl: resolveDefaultImage({
+        name: business.name, description: business.bio, category: business.category, kind: 'cover',
+      }),
       logoUrl: business.logoUrl?.trim() || resolveDefaultImage({
         name: business.name, description: business.bio, category: business.category, kind: 'activity',
       }),
