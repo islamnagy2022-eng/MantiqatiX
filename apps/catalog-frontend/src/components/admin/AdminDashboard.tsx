@@ -42,6 +42,7 @@ import {
   Filter,
   ArrowRight,
   FolderPlus,
+  UserCog,
 } from 'lucide-react';
 import {
   formatEgyptianLocation,
@@ -133,8 +134,8 @@ export const AdminDashboard: React.FC = () => {
     setSubAccessRole(String(subscriber.role || 'CUSTOMER').toUpperCase() === 'SUPER_ADMIN' ? 'CUSTOMER' : String(subscriber.role || 'CUSTOMER').toUpperCase());
     const status = String(subscriber.membershipStatus || (subscriber.status === 'active' ? 'ACTIVE' : subscriber.status === 'suspended' ? 'SUSPENDED' : 'INACTIVE')).toUpperCase();
     setSubAccessStatus(status === 'ACTIVE' || status === 'SUSPENDED' ? status : 'INACTIVE');
-    setSubAccessCatalogEnabled(subscriber.permissions?.catalog !== false && subscriber.permissions?.account_restricted !== true);
-    setSubAccessCatalogWrite(subscriber.permissions?.catalog_write !== false && subscriber.permissions?.catalog_read_only !== true);
+    setSubAccessCatalogEnabled(!subscriber.isAccountOnly && subscriber.permissions?.catalog !== false && subscriber.permissions?.account_restricted !== true);
+    setSubAccessCatalogWrite(!subscriber.isAccountOnly && subscriber.permissions?.catalog_write !== false && subscriber.permissions?.catalog_read_only !== true);
     setSubAccessAccountRestricted(subscriber.permissions?.account_restricted === true);
     setSubAccessFeedback(null);
     setIsSubscriberAccessModalOpen(true);
