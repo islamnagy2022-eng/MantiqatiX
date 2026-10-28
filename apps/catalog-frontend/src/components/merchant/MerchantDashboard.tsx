@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { supabase } from '../../lib/production';
 import { Product } from '../../types';
 import { MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
@@ -36,6 +37,96 @@ import {
 } from 'lucide-react';
 import { QRCodeModal } from '../common/QRCodeModal';
 import { BusinessEmployeeManager } from './BusinessEmployeeManager';
+
+
+type FacebookPageOption = { id: string; name: string; link?: string; category?: string };
+type FacebookPageProfile = {
+  pageId: string;
+  pageUrl: string;
+  name: string;
+  category: string;
+  logoUrl: string;
+  coverUrl: string;
+  bio: string;
+  address: string;
+  workingHours: string;
+};
+
+let facebookSdkPromise: Promise<any> | null = null;
+let facebookSdkAppId = '';
+
+function getConfiguredFacebookAppId(): string {
+  const config = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG || {};
+  return String(config.facebookAppId || '').trim();
+}
+
+function loadFacebookSdk(appId: string): Promise<any> {
+  const win = window as any;
+  if (win.FB && facebookSdkAppId === appId) return Promise.resolve(win.FB);
+  if (facebookSdkPromise) return facebookSdkPromise;
+
+  facebookSdkPromise = new Promise((resolve, reject) => {
+    let settled = false;
+    const timeout = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      facebookSdkPromise = null;
+      reject(new Error('تعذر تحميل أداة الاتصال الآمن بفيسبوك. تحقق من اتصال الإنترنت وإعدادات المتصفح.'));
+    }, 15000);
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      if (error) {
+        facebookSdkPromise = null;
+        reject(error);
+        return;
+      }
+      if (!win.FB) {
+        facebookSdkPromise = null;
+        reject(new Error('لم يتم تحميل أداة فيسبوك بشكل صحيح.'));
+        return;
+      }
+      try {
+        win.FB.init({ appId, cookie: false, xfbml: false, version: 'v26.0' });
+        facebookSdkAppId = appId;
+        resolve(win.FB);
+      } catch {
+        facebookSdkPromise = null;
+        reject(new Error('تعذر تهيئة تطبيق فيسبوك.'));
+      }
+    };
+    win.fbAsyncInit = () => finish();
+    const existing = document.getElementById('facebook-jssdk') as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener('load', () => finish(), { once: true });
+      existing.addEventListener('error', () => finish(new Error('تعذر تحميل أداة فيسبوك.')), { once: true });
+      if (win.FB) finish();
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'facebook-jssdk';
+    script.src = 'https://connect.facebook.net/en_US/sdk.js';
+    script.async = true;
+    script.defer = true;
+    script.crossOrigin = 'anonymous';
+    script.onload = () => { if (win.FB) finish(); };
+    script.onerror = () => finish(new Error('تعذر تحميل أداة فيسبوك.'));
+    document.head.appendChild(script);
+  });
+  return facebookSdkPromise;
+}
+
+async function invokeFacebookPageImport(body: Record<string, unknown>): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('facebook-page-import', { body });
+  if (error) {
+    let payload: any = null;
+    try { payload = await (error as any).context?.json?.(); } catch { /* Network errors may have no JSON body. */ }
+    throw new Error(String(payload?.message || payload?.error || error.message || 'تعذر الاتصال بفيسبوك.'));
+  }
+  if (data?.error) throw new Error(String(data.message || data.error || 'تعذر استيراد بيانات صفحة فيسبوك.'));
+  return data;
+}
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
   dining: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
@@ -75,6 +166,15 @@ export const MerchantDashboard: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaveError, setProfileSaveError] = useState('');
+  const facebookAppId = getConfiguredFacebookAppId();
+  const [facebookBusy, setFacebookBusy] = useState(false);
+  const [facebookStatus, setFacebookStatus] = useState('');
+  const [facebookError, setFacebookError] = useState('');
+  const [facebookUserAccessToken, setFacebookUserAccessToken] = useState('');
+  const [facebookPages, setFacebookPages] = useState<FacebookPageOption[]>([]);
+  const [facebookSelectedPageId, setFacebookSelectedPageId] = useState('');
+  const [facebookPreview, setFacebookPreview] = useState<FacebookPageProfile | null>(null);
+
 
   // New / Edit Product Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,6 +215,111 @@ export const MerchantDashboard: React.FC = () => {
     setProfileSaveError('');
   }, [currentBusiness?.id]);
   
+
+  useEffect(() => {
+    if (!facebookAppId) return;
+    void loadFacebookSdk(facebookAppId).catch((error) => {
+      setFacebookError(error instanceof Error ? error.message : 'تعذر تحميل أداة فيسبوك.');
+    });
+  }, [facebookAppId]);
+
+  useEffect(() => {
+    setFacebookUserAccessToken('');
+    setFacebookPages([]);
+    setFacebookSelectedPageId('');
+    setFacebookPreview(null);
+    setFacebookStatus('');
+    setFacebookError('');
+  }, [currentBusiness?.id]);
+
+  const handleConnectFacebook = async (): Promise<void> => {
+    setFacebookError('');
+    setFacebookStatus('');
+    setFacebookPreview(null);
+    if (!currentBusiness?.id) {
+      setFacebookError('اختر نشاطاً تجارياً أولاً.');
+      return;
+    }
+    if (!facebookAppId) {
+      setFacebookError('تكامل فيسبوك غير مهيأ بعد. يلزم إعداد تطبيق Meta من إدارة المنصة قبل تفعيل الاتصال.');
+      return;
+    }
+    setFacebookBusy(true);
+    try {
+      const sdk = await loadFacebookSdk(facebookAppId);
+      const response = await new Promise<any>((resolve) => {
+        sdk.login(resolve, {
+          scope: 'pages_show_list,pages_read_engagement',
+          return_scopes: true,
+          auth_type: 'rerequest',
+        });
+      });
+      const token = String(response?.authResponse?.accessToken || '');
+      if (!token) throw new Error('لم يتم منح صلاحية الاتصال. وافق على صلاحيات الصفحة ثم حاول مجدداً.');
+      const result = await invokeFacebookPageImport({
+        action: 'LIST_PAGES',
+        businessId: currentBusiness.id,
+        facebookUserAccessToken: token,
+      });
+      const pages = (Array.isArray(result?.pages) ? result.pages : []) as FacebookPageOption[];
+      setFacebookUserAccessToken(token);
+      setFacebookPages(pages);
+      setFacebookSelectedPageId(pages[0]?.id || '');
+      if (!pages.length) {
+        setFacebookStatus('');
+        throw new Error('لم يعثر فيسبوك على صفحات تديرها بهذا الحساب. استخدم حساباً لديه صلاحية إدارة الصفحة.');
+      }
+      setFacebookStatus(`تم الاتصال. عثرنا على ${pages.length} صفحة يمكنك إدارتها. اختر الصفحة المطلوبة.`);
+    } catch (error) {
+      setFacebookError(error instanceof Error ? error.message : 'تعذر الاتصال بفيسبوك.');
+      setFacebookUserAccessToken('');
+      setFacebookPages([]);
+    } finally {
+      setFacebookBusy(false);
+    }
+  };
+
+  const handleReadFacebookPage = async (): Promise<void> => {
+    setFacebookError('');
+    setFacebookStatus('');
+    setFacebookPreview(null);
+    if (!facebookUserAccessToken || !facebookSelectedPageId || !currentBusiness?.id) {
+      setFacebookError('اتصل بفيسبوك واختر الصفحة المطلوب استيراد بياناتها أولاً.');
+      return;
+    }
+    setFacebookBusy(true);
+    try {
+      const result = await invokeFacebookPageImport({
+        action: 'IMPORT_PAGE',
+        businessId: currentBusiness.id,
+        facebookUserAccessToken,
+        pageId: facebookSelectedPageId,
+      });
+      setFacebookPreview(result.profile as FacebookPageProfile);
+      setFacebookStatus('تمت قراءة بيانات الصفحة. راجع المعاينة ثم اختر استخدام البيانات لنقلها إلى نموذج النشاط.');
+    } catch (error) {
+      setFacebookError(error instanceof Error ? error.message : 'تعذر قراءة بيانات صفحة فيسبوك.');
+    } finally {
+      setFacebookBusy(false);
+    }
+  };
+
+  const handleApplyFacebookProfile = (): void => {
+    if (!facebookPreview) return;
+    const profile = facebookPreview;
+    if (profile.name) setBizName(profile.name);
+    if (profile.logoUrl) setBizLogoUrl(profile.logoUrl);
+    if (profile.coverUrl) setBizCoverUrl(profile.coverUrl);
+    if (profile.bio) setBizBio(profile.bio);
+    if (profile.address) setBizAddress(profile.address);
+    if (profile.workingHours) setBizWorkingHours(profile.workingHours);
+    setFacebookUserAccessToken('');
+    setFacebookPages([]);
+    setFacebookSelectedPageId('');
+    setFacebookPreview(null);
+    setFacebookStatus('نُقلت البيانات المتاحة إلى نموذج النشاط. راجع الحقول واضغط «حفظ التغييرات» لحفظها في الكتالوج.');
+  };
+
   // On first owner visit, persist a category-matched local cover when no real cover photo is available.
   // This is a fallback until the owner uploads a photograph.
   const autoCoverAttempted = useRef<Set<string>>(new Set());
@@ -586,6 +791,121 @@ export const MerchantDashboard: React.FC = () => {
                 يظهر الغلاف والشعار في أعلى صفحة الكتالوج التعريفية لمنح الزوار انطباعاً رسمياً واحترافياً.
               </p>
             </div>
+
+
+            {/* Facebook Page profile import — read-only until the owner applies the preview. */}
+            <section className="rounded-2xl border border-blue-200 bg-blue-50/60 p-4 sm:p-5 space-y-4" aria-labelledby="facebook-import-heading">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 id="facebook-import-heading" className="font-black text-sm text-slate-900">استيراد بيانات النشاط من فيسبوك</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed mt-1">
+                    اقرأ صورة الصفحة الشخصية والغلاف والنبذة والعنوان ومواعيد العمل من صفحة تديرها، ثم راجع البيانات قبل نقلها إلى نموذج النشاط.
+                  </p>
+                </div>
+                <div className="shrink-0 rounded-xl bg-white p-2 border border-blue-100 text-blue-700">
+                  <ExternalLink className="w-5 h-5" />
+                </div>
+              </div>
+
+              {!facebookAppId && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900" role="note">
+                  الربط غير مهيأ بعد: يجب إعداد تطبيق Meta وإضافة App ID إلى إعدادات الواجهة وحفظ App Secret في أسرار Supabase من جهة الخادم. لن تُطلب كلمة مرور فيسبوك داخل المنصة.
+                </div>
+              )}
+
+              {facebookError && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800" role="alert">
+                  {facebookError}
+                </div>
+              )}
+              {facebookStatus && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800" role="status">
+                  {facebookStatus}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  disabled={!facebookAppId || facebookBusy || !currentBusiness?.id}
+                  onClick={() => void handleConnectFacebook()}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-black text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  {facebookBusy ? 'جارٍ الاتصال...' : 'الاتصال بحساب فيسبوك وقراءة الصفحات'}
+                </button>
+                {facebookPages.length > 0 && (
+                  <>
+                    <select
+                      value={facebookSelectedPageId}
+                      onChange={(e) => {
+                        setFacebookSelectedPageId(e.target.value);
+                        setFacebookPreview(null);
+                        setFacebookError('');
+                      }}
+                      disabled={facebookBusy}
+                      aria-label="اختر صفحة فيسبوك"
+                      className="min-w-0 flex-1 rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs text-slate-900"
+                    >
+                      {facebookPages.map((page) => (
+                        <option key={page.id} value={page.id}>
+                          {page.name}{page.category ? ` — ${page.category}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      disabled={facebookBusy || !facebookSelectedPageId}
+                      onClick={() => void handleReadFacebookPage()}
+                      className="rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-xs font-black text-blue-800 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {facebookBusy ? 'جارٍ القراءة...' : 'قراءة بيانات الصفحة'}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {facebookPreview && (
+                <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-black text-sm text-slate-900">معاينة بيانات فيسبوك</div>
+                    {facebookPreview.pageUrl && (
+                      <a href={facebookPreview.pageUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-700 hover:underline">
+                        فتح الصفحة <ExternalLink className="inline w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-14 h-14 shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                        {facebookPreview.logoUrl ? <img src={facebookPreview.logoUrl} alt="صورة الصفحة الشخصية" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] text-slate-500">لا توجد صورة</div>}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[11px] text-slate-500">صورة الصفحة الشخصية / الشعار</div>
+                        <div className="text-xs font-bold text-slate-900 truncate">{facebookPreview.name}</div>
+                      </div>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] text-slate-500 mb-1">صورة الغلاف</div>
+                      <div className="aspect-[16/9] sm:aspect-[851/315] max-h-24 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                        {facebookPreview.coverUrl ? <img src={facebookPreview.coverUrl} alt="غلاف صفحة فيسبوك" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] text-slate-500">لا يوجد غلاف متاح</div>}
+                      </div>
+                    </div>
+                  </div>
+                  {facebookPreview.bio && <p className="text-xs text-slate-700"><strong>نبذة الصفحة:</strong> {facebookPreview.bio}</p>}
+                  {facebookPreview.address && <p className="text-xs text-slate-700"><strong>العنوان:</strong> {facebookPreview.address}</p>}
+                  {facebookPreview.workingHours && <p className="text-xs text-slate-700"><strong>مواعيد العمل:</strong> {facebookPreview.workingHours}</p>}
+                  <p className="text-[11px] leading-relaxed text-slate-500">لن تتغير بيانات النشاط المحفوظة حتى تستخدم البيانات المعروضة ثم تضغط زر حفظ التغييرات في نهاية النموذج.</p>
+                  <button
+                    type="button"
+                    onClick={handleApplyFacebookProfile}
+                    className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-4 py-2.5"
+                  >
+                    استخدام البيانات في نموذج النشاط
+                  </button>
+                </div>
+              )}
+            </section>
 
             {/* Live Preview */}
             <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
