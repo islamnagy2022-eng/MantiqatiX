@@ -302,8 +302,7 @@ try {
       await page.getByText(/الوظائف المسجلة/).waitFor({ state: 'visible' });
       assert.equal(rpcObservation.scopedBranchId, branchId, 'branch owner roster RPC must include the active membership branch');
       assert.equal(await page.getByText('حفظ الوظيفة', { exact: true }).count() > 0, true);
-      await page.getByRole('button', { name: 'الإعدادات والإدارة' }).click();
-      assert.equal(await page.getByRole('button', { name: 'فتح إعدادات النشاط الحالية' }).count(), 0, 'branch owner must not get an unscoped legacy settings shortcut');
+      assert.equal(await page.getByRole('button', { name: 'الإعدادات والإدارة' }).count(), 0, 'branch owner must not see unscoped business-wide settings');
       results.push('branch-owner-legacy-route-denied-and-rpc-scoped');
     } finally { await context.close(); }
   }
