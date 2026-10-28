@@ -416,6 +416,11 @@ Deno.serve(async (req: Request) => {
       if (!isUuid(userId) || !allowedRoles.has(role) || !["ACTIVE", "INACTIVE", "SUSPENDED"].includes(status)) {
         return response(origin, { error: "INVALID_MEMBERSHIP_ASSIGNMENT" }, 400);
       }
+      // Prevent tenant-wide administrative/merchant roles from being granted
+      // accidentally. Every non-customer assignment must be scoped to a business.
+      if (!businessId && role !== "CUSTOMER") {
+        return response(origin, { error: "BUSINESS_REQUIRED_FOR_ROLE", message: "اختر نشاطًا قبل إسناد دور إداري أو تشغيلي." }, 400);
+      }
       const { data: authResult, error: authLookupError } = await service.auth.admin.getUserById(userId);
       if (authLookupError || !authResult?.user || authResult.user.is_anonymous) return response(origin, { error: "AUTH_USER_NOT_FOUND" }, 404);
 
@@ -468,6 +473,7 @@ Deno.serve(async (req: Request) => {
       previousPermissions.catalog = catalogEnabled;
       previousPermissions.catalog_write = catalogWrite;
       previousPermissions.catalog_read_only = catalogEnabled && !catalogWrite;
+      previousPermissions.account_restricted = body.accountRestricted === true;
 
       if (status === "ACTIVE" && business && ["OWNER", "BUSINESS_OWNER"].includes(role)) {
         const billing = business.settings?.bizcatalog && typeof business.settings.bizcatalog === "object" ? business.settings.bizcatalog : {};
