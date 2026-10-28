@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { QRCodeModal } from '../common/QRCodeModal';
+import { supabase } from '../../lib/production';
+import type { CoverAdvertisement } from '../../types/coverAdvertisements';
+import CoverAdBookingRequest from './CoverAdBookingRequest';
+import { normalizeDialPhone, normalizeSocialUrl, normalizeWhatsAppPhone } from '../../utils/socialLinks';
 import {
   MessageCircle,
   MapPin,
   Clock,
   Phone,
+  Facebook,
+  Instagram,
+  Music2,
   CheckCircle2,
   Share2,
   Building2,
@@ -16,29 +23,50 @@ import {
 } from 'lucide-react';
 
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+type BusinessCoverSlide = { imageUrl: string; title: string; targetUrl?: string; advertisement?: boolean };
 
 export const BusinessProfileHeader: React.FC = () => {
   const { currentBusiness } = useApp();
   const [copied, setCopied] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  // Only owner-provided cover images are displayed. Missing images use a neutral local placeholder.
-  const slides = React.useMemo(() => {
-    if (!currentBusiness) return [BUSINESS_PLACEHOLDER];
-    const merchantCovers = (currentBusiness.coverImages || []).filter((url) => Boolean(url && url.trim()));
-    if (merchantCovers.length > 0) return merchantCovers.slice(0, 2);
-    return [currentBusiness.coverUrl || BUSINESS_PLACEHOLDER];
-  }, [currentBusiness]);
-
+  const [managedCoverAds, setManagedCoverAds] = useState<CoverAdvertisement[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   useEffect(() => {
-    setCurrentSlideIndex(0);
-    if (slides.length <= 1) return;
-    const timer = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [slides.length, currentBusiness?.id]);
+    let active = true;
+    void supabase.functions.invoke('catalog-cover-ads', { body: { action: 'PUBLIC_LIST' } })
+      .then(({ data, error }) => {
+        if (active && !error && Array.isArray(data?.ads)) setManagedCoverAds(data.ads as CoverAdvertisement[]);
+      })
+      .catch(() => { /* Keep the activity's own cover if the ad service is unavailable. */ });
+    return () => { active = false; };
+  }, []);
+
+  const slides = React.useMemo<BusinessCoverSlide[]>(() => {
+    if (!currentBusiness) return [{ imageUrl: BUSINESS_PLACEHOLDER, title: 'غلاف النشاط' }];
+    const today = new Date().toISOString().slice(0, 10);
+    const eligibleAds: BusinessCoverSlide[] = managedCoverAds.filter((ad) => {
+      if (ad.status !== 'ACTIVE' || !['BUSINESS_COVER', 'BOTH'].includes(ad.placement)) return false;
+      if (ad.startDate > today || ad.endDate < today) return false;
+      if (!Array.isArray(ad.targetBusinessIds) || !ad.targetBusinessIds.includes(currentBusiness.id)) return false;
+      if (ad.locationScope === 'ALL') return true;
+      if (ad.locationScope === 'GOVERNORATE') return ad.locationValue === currentBusiness.governorate;
+      return ad.locationValue === currentBusiness.markaz || ad.locationValue === currentBusiness.village;
+    }).map((ad) => ({
+      imageUrl: ad.imageUrl,
+      title: ad.title,
+      targetUrl: ad.targetUrl || undefined,
+      advertisement: true,
+    }));
+    const merchantCovers: BusinessCoverSlide[] = (currentBusiness.coverImages || [])
+      .filter((url) => Boolean(url && url.trim()))
+      .slice(0, 2)
+      .map((imageUrl) => ({ imageUrl, title: 'غلاف النشاط' }));
+    const ownCovers: BusinessCoverSlide[] = merchantCovers.length > 0
+      ? merchantCovers
+      : [{ imageUrl: currentBusiness.coverUrl || BUSINESS_PLACEHOLDER, title: 'غلاف ' + currentBusiness.name }];
+    return [...eligibleAds, ...ownCovers];
+  }, [currentBusiness, managedCoverAds]);
 
   if (!currentBusiness) {
     return (
@@ -56,10 +84,14 @@ export const BusinessProfileHeader: React.FC = () => {
     }
   };
 
-  const cleanOwnerPhone = currentBusiness.ownerWhatsApp.replace(/\D/g, '');
-  const merchantWhatsAppUrl = cleanOwnerPhone.length >= 10 && cleanOwnerPhone.length <= 15
-    ? `https://wa.me/${cleanOwnerPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`)}`
+  const dialPhone = normalizeDialPhone(currentBusiness.phone || currentBusiness.ownerWhatsApp);
+  const whatsappPhone = normalizeWhatsAppPhone(currentBusiness.ownerWhatsApp);
+  const merchantWhatsAppUrl = whatsappPhone
+    ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`)}`
     : '';
+  const facebookUrl = normalizeSocialUrl(currentBusiness.facebookUrl, 'facebook');
+  const instagramUrl = normalizeSocialUrl(currentBusiness.instagramUrl, 'instagram');
+  const tiktokUrl = normalizeSocialUrl(currentBusiness.tiktokUrl, 'tiktok');
   const isFrozen = Boolean(currentBusiness.isFrozen);
 
   return (
@@ -82,8 +114,8 @@ export const BusinessProfileHeader: React.FC = () => {
             }`}
           >
             <img
-              src={imgUrl}
-              alt={`غلاف ${currentBusiness.name} - شريحة ${idx + 1}`}
+              src={imgUrl.imageUrl}
+              alt={imgUrl.title || ('غلاف ' + currentBusiness.name + ' - شريحة ' + (idx + 1))}
               className={`w-full h-full object-cover object-center transform transition-transform duration-700 ${
                 isFrozen ? 'grayscale contrast-125 opacity-75' : ''
               }`}
@@ -93,6 +125,12 @@ export const BusinessProfileHeader: React.FC = () => {
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-black/30" />
+            {imgUrl.advertisement && imgUrl.targetUrl && (imgUrl.targetUrl.startsWith('https://') || (imgUrl.targetUrl.startsWith('/') && !imgUrl.targetUrl.startsWith('//'))) && (
+              <a href={imgUrl.targetUrl} target={imgUrl.targetUrl.startsWith('https://') ? '_blank' : undefined} rel="noopener noreferrer" className="absolute inset-0 z-10" aria-label={'فتح الإعلان ' + imgUrl.title} />
+            )}
+            {imgUrl.advertisement && (
+              <span className="absolute bottom-4 right-4 z-20 rounded-full border border-white/20 bg-black/55 px-3 py-1.5 text-[10px] font-black text-white">إعلان</span>
+            )}
           </div>
         ))}
 
@@ -147,6 +185,8 @@ export const BusinessProfileHeader: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <CoverAdBookingRequest />
 
       {/* 2. Profile Details Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -207,8 +247,32 @@ export const BusinessProfileHeader: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions (WhatsApp & QR Code) */}
+            {/* Quick Actions: phone, messaging, social profiles, and QR code */}
             <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap flex-shrink-0 pt-2 md:pt-4">
+              {dialPhone && (
+                <a href={`tel:${dialPhone}`} className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`اتصال هاتفي بـ ${currentBusiness.name}`}>
+                  <Phone className="w-4 h-4" />
+                  <span>اتصال هاتفي</span>
+                </a>
+              )}
+              {facebookUrl && (
+                <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="bg-[#1877F2] hover:bg-[#1666cf] text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`صفحة فيسبوك ${currentBusiness.name}`}>
+                  <Facebook className="w-4 h-4" />
+                  <span>فيسبوك</span>
+                </a>
+              )}
+              {tiktokUrl && (
+                <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" className="bg-slate-950 hover:bg-black text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`تيك توك ${currentBusiness.name}`}>
+                  <Music2 className="w-4 h-4" />
+                  <span>تيك توك</span>
+                </a>
+              )}
+              {instagramUrl && (
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`إنستجرام ${currentBusiness.name}`}>
+                  <Instagram className="w-4 h-4" />
+                  <span>إنستجرام</span>
+                </a>
+              )}
               {merchantWhatsAppUrl && (
                 <a
                   href={merchantWhatsAppUrl}
