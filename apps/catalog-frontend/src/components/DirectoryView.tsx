@@ -317,7 +317,6 @@ export const DirectoryView: React.FC = () => {
               );
             })}
           </div>
-          </div>
         </div>
 
         {/* Activity / profession / specialty filters driven by the canonical taxonomy */}
