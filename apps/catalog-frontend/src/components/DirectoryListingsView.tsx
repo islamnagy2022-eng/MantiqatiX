@@ -87,7 +87,13 @@ export const DirectoryListingsView: React.FC<{
     }
     return true;
   };
-  const inTaxonomyScope = useMemo(() => listings.filter(taxonomyMatches), [listings, functionalGroupId, taxonomyCategoryId, taxonomySpecialty, searchQuery]);
+  // Claimed pages are no longer shown as unverified directory records; their registered business is the canonical public card.
+  const inTaxonomyScope = useMemo(
+    () => listings.filter((listing) => listing.claim_status !== "CLAIMED" && taxonomyMatches(listing)),
+    [listings, functionalGroupId, taxonomyCategoryId, taxonomySpecialty, searchQuery]
+  );
+  // When only a global search is active, do not show an empty unverified-results panel if no public-directory entries match.
+  if (!detailSlug && searchQuery.trim() && !functionalGroupId && !taxonomyCategoryId && inTaxonomyScope.length === 0) return null;
   useEffect(() => {
     if (!detail) return;
     const meta = detail.metadata || {};
