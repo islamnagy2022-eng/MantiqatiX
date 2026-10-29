@@ -805,3 +805,12 @@ This status is intentional and must remain until the open gates above are indepe
 - The main-branch deployment workflow did **not** publish the new dashboard. It stopped at the live dependency gate because required RC113/RC114/RC115/RC457 production database objects are absent/unverified: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40814976763. The deploy job was skipped, and no production schema/data mutation occurred.
 - Required next step is a controlled, reviewed database migration reconciliation and application of the exact missing migrations, followed by fresh read-only live-object verification and a new deployment attempt. Never bypass the guard or mark migrations applied without verifying their actual effects. Full platform status remains `BLOCKED / NOT CERTIFIED`.
 - Remaining dashboard-specific checks after dependency readiness: authenticated production-origin smoke test, real-device mobile/tablet and keyboard/accessibility review, and deployed QR/permanent-link regression.
+
+
+## 2026-10-29 — Dashboard dependency rollout after PR #483 merge
+
+- PR #483 is merged. The production database dependency gap for the professional dashboard was addressed by additive forward migration `20261029041815_professional_dashboard_dependencies_forward_repair`.
+- The migration source is tracked in `supabase/migrations/20261029041815_professional_dashboard_dependencies_forward_repair.sql`; it applies reviewed RC113/RC114/RC115/RC116/RC457 segments in order. RC117 image-field updates were intentionally left out to avoid unrelated production data mutation.
+- Live verification passed for all 11 dashboard objects, four new tables with RLS + FORCE RLS, absence of direct anon/authenticated table grants, intended authenticated RPC grants, and fail-closed permission checks when no authenticated actor is present.
+- `docs/release/production-migration-reconciliation.json` now reflects PASS for the dashboard dependency gate only. The overall production gate remains `BLOCKED / NOT CERTIFIED` due 41 missing full-platform migration versions and unrelated finance/payment, Edge Function parity, backup/restore, Auth, monitoring and rollback evidence.
+- Awaiting post-update GitHub Pages workflow confirmation. Authenticated live-origin checks, real-device mobile/accessibility review and QR/permanent-link regression remain NOT VERIFIED.
