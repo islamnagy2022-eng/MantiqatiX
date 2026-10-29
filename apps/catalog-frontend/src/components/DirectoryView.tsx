@@ -21,6 +21,7 @@ import {
   Sprout,
   Dumbbell,
   Plane,
+  Navigation,
   Landmark,
   Factory,
   Users,
@@ -88,12 +89,52 @@ export const DirectoryView: React.FC = () => {
   const businesses = directoryBusinesses;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
+  const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
+
+  const requestUserLocation = () => {
+    if (!('geolocation' in navigator)) {
+      setLocationMessage('تحديد الموقع غير مدعوم على هذا الجهاز؛ يمكنك متابعة البحث بالموقع اليدوي.');
+      return;
+    }
+    setLocationBusy(true);
+    setLocationMessage('');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setUserCoordinates({ latitude: coords.latitude, longitude: coords.longitude });
+        setSelectedGovFilter('all');
+        setSelectedMarkazFilter('all');
+        setSelectedVillageFilter('all');
+        setSelectedAreaFilter('all');
+        setLocationMessage('تم تحديد موقعك. ستُرتّب النتائج الأقرب أولًا عند توفر إحداثيات موثوقة للنشاط.');
+        setLocationBusy(false);
+      },
+      (error) => {
+        const message = error.code === error.PERMISSION_DENIED
+          ? 'لم تسمح بالوصول إلى الموقع؛ البحث اليدوي ما زال متاحًا.'
+          : error.code === error.TIMEOUT
+            ? 'استغرق تحديد الموقع وقتًا طويلًا؛ جرّب مرة أخرى أو استخدم الاختيار اليدوي.'
+            : 'تعذر تحديد موقعك؛ يمكنك متابعة البحث بالموقع اليدوي.';
+        setLocationMessage(message);
+        setLocationBusy(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  };
   useEffect(() => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
       if (!cancelled && Array.isArray(rows)) setUnconfirmedListings(rows.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
-    }).catch(() => { if (!cancelled) setUnconfirmedListings([]); });
+      if (!cancelled) setDirectoryListingsLoaded(true);
+    }).catch(() => {
+      if (!cancelled) {
+        setUnconfirmedListings([]);
+        setDirectoryListingsLoaded(true);
+      }
+    });
     return () => { cancelled = true; };
   }, []);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
@@ -184,7 +225,30 @@ export const DirectoryView: React.FC = () => {
   }, [activeCoverSlides.length]);
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
-    .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+    .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+
+  // Only use explicit, valid coordinates. Never infer a distance from a text address or map URL.
+  const getCoordinates = (value: unknown): { latitude: number; longitude: number } | null => {
+    if (!value || typeof value !== 'object') return null;
+    const row = value as Record<string, any>;
+    const metadata = row.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+    const location = row.location && typeof row.location === 'object' ? row.location : {};
+    const rawLat = row.latitude ?? row.lat ?? row.latitude_deg ?? metadata.latitude ?? metadata.lat ?? location.latitude ?? location.lat;
+    const rawLng = row.longitude ?? row.lng ?? row.lon ?? row.longitude_deg ?? metadata.longitude ?? metadata.lng ?? metadata.lon ?? location.longitude ?? location.lng ?? location.lon;
+    if (rawLat == null || rawLng == null) return null;
+    const latitude = Number(rawLat);
+    const longitude = Number(rawLng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+    return { latitude, longitude };
+  };
+  const distanceKm = (from: { latitude: number; longitude: number } | null, to: { latitude: number; longitude: number } | null): number | null => {
+    if (!from || !to) return null;
+    const radians = (degrees: number) => degrees * Math.PI / 180;
+    const dLat = radians(to.latitude - from.latitude);
+    const dLon = radians(to.longitude - from.longitude);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(radians(from.latitude)) * Math.cos(radians(to.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+  };
   const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
   const filteredBusinesses = businesses.filter((biz) => {
     // Public safety: never expose unpublished, inactive, or frozen registered businesses.
@@ -213,6 +277,13 @@ export const DirectoryView: React.FC = () => {
     const aVerified = a.isVerified ? 0 : 1;
     const bVerified = b.isVerified ? 0 : 1;
     if (aVerified !== bVerified) return aVerified - bVerified;
+    if (userCoordinates) {
+      const aDistance = distanceKm(userCoordinates, getCoordinates(a));
+      const bDistance = distanceKm(userCoordinates, getCoordinates(b));
+      if (aDistance !== null && bDistance !== null && aDistance !== bDistance) return aDistance - bDistance;
+      if (aDistance !== null && bDistance === null) return -1;
+      if (aDistance === null && bDistance !== null) return 1;
+    }
     const targetGov = selectedGovFilter === 'all' ? '' : normalizeSearch(selectedGovFilter);
     return Number(Boolean(targetGov) && normalizeSearch(b.governorate) === targetGov) -
       Number(Boolean(targetGov) && normalizeSearch(a.governorate) === targetGov);
@@ -235,7 +306,39 @@ export const DirectoryView: React.FC = () => {
     const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(listing.village) === normalizeSearch(selectedVillageFilter);
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(listing.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
-  }).sort((a, b) => normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar'));
+  }).sort((a, b) => {
+    if (userCoordinates) {
+      const aDistance = distanceKm(userCoordinates, getCoordinates(a));
+      const bDistance = distanceKm(userCoordinates, getCoordinates(b));
+      if (aDistance !== null && bDistance !== null && aDistance !== bDistance) return aDistance - bDistance;
+      if (aDistance !== null && bDistance === null) return -1;
+      if (aDistance === null && bDistance !== null) return 1;
+    }
+    return normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar');
+  });
+
+  // If a selected area has no results, widen geography while preserving the text and taxonomy search.
+  useEffect(() => {
+    if (directoryLoading || !directoryListingsLoaded || filteredBusinesses.length + filteredUnconfirmedListings.length > 0) return;
+    if (selectedAreaFilter !== 'all') {
+      setSelectedAreaFilter('all');
+      setLocationMessage('لا توجد نتائج في المنطقة المحددة؛ تم توسيع البحث إلى القرية أو الحي نفسه.');
+    } else if (selectedVillageFilter !== 'all') {
+      setSelectedVillageFilter('all');
+      setLocationMessage('لا توجد نتائج في القرية أو الحي؛ تم توسيع البحث إلى المركز أو المدينة.');
+    } else if (selectedMarkazFilter !== 'all') {
+      setSelectedMarkazFilter('all');
+      setLocationMessage('لا توجد نتائج في المركز أو المدينة؛ تم توسيع البحث إلى المحافظة.');
+    } else if (selectedGovFilter !== 'all') {
+      setSelectedGovFilter('all');
+      setLocationMessage(userCoordinates
+        ? 'لا توجد نتائج في المحافظة؛ تم توسيع البحث إلى المناطق الأخرى وترتيب النتائج ذات الإحداثيات حسب القرب.'
+        : 'لا توجد نتائج في المحافظة؛ تم توسيع البحث إلى بقية المناطق. حدد موقعك لترتيب النتائج حسب المسافة عند توفر الإحداثيات.');
+    }
+  }, [
+    directoryLoading, directoryListingsLoaded, filteredBusinesses.length, filteredUnconfirmedListings.length,
+    selectedAreaFilter, selectedVillageFilter, selectedMarkazFilter, selectedGovFilter, userCoordinates,
+  ]);
 
   const locationRecords = [
     ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
@@ -577,7 +680,13 @@ export const DirectoryView: React.FC = () => {
             />
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 md:w-auto md:min-w-[560px] md:grid-cols-4">
+          <div className="flex w-full flex-col gap-2 md:w-auto md:min-w-[560px]">
+            <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-900 transition hover:bg-emerald-100 disabled:cursor-wait disabled:opacity-60">
+              <Navigation className="h-4 w-4" />
+              {locationBusy ? 'جارٍ تحديد الموقع…' : userCoordinates ? 'تحديث موقعي' : 'حدد موقعي'}
+            </button>
+            {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
               <select value={selectedGovFilter} onChange={(e) => { setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل المحافظات</option>
@@ -602,10 +711,11 @@ export const DirectoryView: React.FC = () => {
                 {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
+            </div>
           </div>
         </div>
 
-        {/* Businesses Grid (Sorted by Proximity) */}
+        {/* Businesses Grid (verified first; distance only when trusted coordinates exist) */}
         <div className="space-y-6">
           <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
@@ -649,7 +759,7 @@ export const DirectoryView: React.FC = () => {
                 return (
                   <div
                     key={biz.id}
-                    className="min-w-0 bg-white rounded-xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md sm:hover:shadow-xl transition-all group"
+                    className={`min-w-0 bg-white rounded-xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md sm:hover:shadow-xl transition-all group ${biz.isVerified ? 'order-1' : 'order-3'}`}
                   >
                     <div>
                       {/* Cover Photo & Badges */}
@@ -718,6 +828,11 @@ export const DirectoryView: React.FC = () => {
                             <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             <span>{formatEgyptianLocation(biz.governorate, biz.markaz, biz.village)}</span>
                           </div>
+                          {userCoordinates && distanceKm(userCoordinates, getCoordinates(biz)) !== null && (
+                            <p className="hidden sm:block text-[11px] font-bold text-emerald-800">
+                              على بُعد {distanceKm(userCoordinates, getCoordinates(biz))!.toFixed(1)} كم
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -763,7 +878,7 @@ export const DirectoryView: React.FC = () => {
                   key={`directory-${listing.id}`}
                   type="button"
                   onClick={() => openDirectoryListing(listing.slug)}
-                  className="min-w-0 overflow-hidden rounded-xl sm:rounded-3xl border border-amber-200 bg-white text-right shadow-xs transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  className="order-2 min-w-0 overflow-hidden rounded-xl sm:rounded-3xl border border-amber-200 bg-white text-right shadow-xs transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   aria-label={`فتح صفحة ${listing.display_name} — بيانات تحتاج إلى تأكيد`}
                 >
                   <div className="relative flex h-20 sm:h-36 items-center justify-center bg-gradient-to-br from-amber-50 via-white to-slate-100">
@@ -774,6 +889,7 @@ export const DirectoryView: React.FC = () => {
                     <h3 className="line-clamp-2 break-words text-xs font-black text-slate-900 sm:text-base">{listing.display_name}</h3>
                     <p className="mt-1 line-clamp-2 text-[10px] text-slate-600 sm:text-xs">{listing.taxonomy_specialty || listing.specialty || 'نشاط محلي'}</p>
                     <p className="mt-2 line-clamp-2 text-[10px] text-slate-500 sm:text-xs">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ') || listing.address || 'الموقع غير مكتمل'}</p>
+                    {userCoordinates && distanceKm(userCoordinates, getCoordinates(listing)) !== null && <p className="mt-2 text-[10px] font-bold text-emerald-800 sm:text-xs">على بُعد {distanceKm(userCoordinates, getCoordinates(listing))!.toFixed(1)} كم</p>}
                     <span className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-2 text-[10px] font-black text-white sm:text-xs">عرض التفاصيل <ArrowRight className="mr-1 inline h-3 w-3" /></span>
                   </div>
                 </button>
