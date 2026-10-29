@@ -31,9 +31,11 @@ assert.equal(canAccessProfessionalDashboard(owner), true, 'business owner can op
 assert.equal(canAccessMerchantDashboard(owner), true, 'business-wide owner can open existing merchant dashboard');
 
 const branchOwner = makeSession({ membershipRole: 'OWNER', membershipBranchId: 'branch-a', membershipPermissions: {} });
+assert.equal(isBusinessManagementRole(branchOwner), false, 'branch owner must not be treated as a business-wide manager');
 assert.equal(canAccessProfessionalDashboard(branchOwner), true, 'branch owner can use the scoped professional dashboard');
 assert.equal(canAccessMerchantDashboard(branchOwner), false, 'branch owner cannot enter the broad unscoped legacy dashboard');
 assert.equal(hasBusinessModulePermission(branchOwner, 'CATALOG', ['view', 'manage']), true, 'branch owner may use branch-scoped catalog view');
+assert.equal(hasBusinessModulePermission(branchOwner, 'CATALOG', ['create', 'update', 'delete']), false, 'branch owner does not receive catalog writes through the read-only dashboard view');
 assert.equal(hasBusinessModulePermission(branchOwner, 'EMPLOYEES', ['create', 'update', 'manage']), true, 'branch owner may manage employees within the branch-scoped RPC');
 assert.equal(hasBusinessModulePermission(branchOwner, 'REPORTS', ['view', 'manage']), false, 'branch owner must not see unscoped business-wide reports');
 assert.equal(hasBusinessModulePermission(branchOwner, 'SETTINGS', ['view', 'manage']), false, 'branch owner must not enter unscoped settings');
@@ -78,4 +80,4 @@ assert.equal(canAccessMerchantDashboard(scopedManager), false);
 assert.equal(hasBusinessModulePermission(scopedManager, 'EMPLOYEES', ['create', 'update', 'manage']), false);
 
 console.log('PROFESSIONAL_DASHBOARD_PERMISSION_MATRIX=PASS');
-console.log('Covered guest, platform admin, owner, limited manager, view-only employee, create-only denial, and missing-business denial.');
+console.log('Covered guest, platform admin, business-wide owner, branch-scoped owner, limited manager, view-only employee, create-only denial, and missing-business denial.');
