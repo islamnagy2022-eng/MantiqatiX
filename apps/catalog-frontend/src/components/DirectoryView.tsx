@@ -798,6 +798,11 @@ export const DirectoryView: React.FC = () => {
                             <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                             <span>{formatEgyptianLocation(biz.governorate, biz.markaz, biz.village)}</span>
                           </div>
+                          {userCoordinates && distanceKm(userCoordinates, getCoordinates(biz)) !== null && (
+                            <p className="hidden sm:block text-[11px] font-bold text-emerald-800">
+                              على بُعد {distanceKm(userCoordinates, getCoordinates(biz))!.toFixed(1)} كم
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -854,6 +859,7 @@ export const DirectoryView: React.FC = () => {
                     <h3 className="line-clamp-2 break-words text-xs font-black text-slate-900 sm:text-base">{listing.display_name}</h3>
                     <p className="mt-1 line-clamp-2 text-[10px] text-slate-600 sm:text-xs">{listing.taxonomy_specialty || listing.specialty || 'نشاط محلي'}</p>
                     <p className="mt-2 line-clamp-2 text-[10px] text-slate-500 sm:text-xs">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ') || listing.address || 'الموقع غير مكتمل'}</p>
+                    {userCoordinates && distanceKm(userCoordinates, getCoordinates(listing)) !== null && <p className="mt-2 text-[10px] font-bold text-emerald-800 sm:text-xs">على بُعد {distanceKm(userCoordinates, getCoordinates(listing))!.toFixed(1)} كم</p>}
                     <span className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-2 text-[10px] font-black text-white sm:text-xs">عرض التفاصيل <ArrowRight className="mr-1 inline h-3 w-3" /></span>
                   </div>
                 </button>
