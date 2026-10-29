@@ -453,3 +453,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The post-merge production workflow correctly refused to publish because the read-only live dependency manifest still reports missing RC113/RC114/RC115/RC457 dashboard tables and RPCs. Deploy workflow: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40814976763. Its frontend build, dashboard contract, permission matrix, public-catalog smoke checks and production-gate semantics passed; the live dependency gate failed closed before the publish steps. The deploy job was skipped. No production database migration or schema/data write was performed.
 - Production reconciliation remains blocked: 41 required full-platform migration versions are not recorded in the live ledger; payment/finance, Edge Function parity, backup/restore and other platform release evidence remain open. Do not bypass the guard or mark migrations applied without a controlled rollout and live verification.
 - Result boundary: dashboard code is merged to `main` and automated preview/E2E checks pass; it is **not live on the production site** because production dependency checks failed closed. Manual real-device accessibility and deployed-origin QR/permanent-link verification also remain open.
+
+
+## 2026-10-29 — Dashboard production dependency rollout
+
+- Applied the forward-only migration `20261029041815_professional_dashboard_dependencies_forward_repair` through the connected Supabase project `moyhiluyhjsujhwlyeuu`.
+- The migration copies the reviewed RC113, RC114, RC115, RC116 and RC457 SQL in dependency order. RC117 was excluded because its image-trigger migration would also alter existing catalog/service image fields beyond the dashboard-specific scope.
+- Recorded the applied SQL under the generated live version in `supabase/migrations/20261029041815_professional_dashboard_dependencies_forward_repair.sql`. No historical migration was changed.
+- Read-only post-check: 304 migration-ledger rows; latest version `20261029041815`; all 11 required dashboard objects present. Four added tables have RLS and FORCE RLS enabled; direct browser-role table grants are absent; intended authenticated RPC grants and fail-closed anonymous permission checks passed.
+- Dashboard-specific dependency manifest was updated to PASS based on these live checks. This does not resolve or certify the separate 41-version full-platform release chain.
+- Deployment status is pending confirmation from the post-update Pages workflow. Real production-origin user/session tests, device/accessibility checks and QR/permanent-link regression remain NOT VERIFIED.
+- No finance/payment, wallet, Edge Function, Auth configuration or historical migration-ledger repair was performed.
