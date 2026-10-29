@@ -74,3 +74,12 @@ Partial execution started: 34 verified insertions across the documented batches 
 - [x] New listings are PUBLISHED/UNCLAIMED, require owner confirmation, and are not represented as owner-verified. For records where a source supplied a phone, it is marked as public-source data, not direct verification with the business.
 - [ ] Continue broad global duplicate checks by normalized phone and normalized name across the entire directory before every further insertion; do not merge distinct branches or shared-contact businesses without evidence.
 - [ ] Revisit agricultural candidate leads (including حجاج and additional village suppliers) for missing phone/location details and confirm all villages are within Berket El Sabaa's administrative scope.
+
+
+### Legal services — local listings batch (2026-10-29)
+
+- [x] Queried existing professional-services records first. Existing مكتب محاماة حمدي حافظ فهمي was found and not duplicated.
+- [x] Added 17 local law-office listings from the Egypt Yellow Pages Berket El Sabaa lawyer directory; names/addresses were retained from the directory and Arabic transliterations are best-effort display names: أحمد محمد جبر; أحمد زكي البهنسي; علاء الشاعر; علاء سمير بدر; عمرو عبد الفتاح بدوي; أشرف إبراهيم عمارة; مكتب العدل (كفر هلال); الدسوقي البرماوي; إيمان عبد الحميد الصاوي; فؤاد محمد لاشين; جمال عيسى; هيثم إبراهيم الشريف; حامد إبراهيم الشريف; هاني أبو طالب; هاني سلامة; هبة حلمي المهدي; إبراهيم أحمد عناني.
+- [x] Phone fields were left blank because the category page did not surface numbers in the retrieved result. Listings are PUBLISHED/UNCLAIMED, with owner confirmation required and no direct phone verification claimed.
+- Source: https://yellowpages.com.eg/en/category/بركة-السبع-محامين/3829.
+- [ ] Verify Arabic spellings, exact office identity, and contact details with the businesses before marking these entries confirmed. A name/address in a public directory is a lead, not proof of current operation or bar membership.
