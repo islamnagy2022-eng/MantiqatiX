@@ -93,6 +93,7 @@ export const DirectoryView: React.FC = () => {
   const [locationBusy, setLocationBusy] = useState(false);
   const [locationMessage, setLocationMessage] = useState('');
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
+  const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
 
   const requestUserLocation = () => {
     if (!('geolocation' in navigator)) {
@@ -127,7 +128,13 @@ export const DirectoryView: React.FC = () => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
       if (!cancelled && Array.isArray(rows)) setUnconfirmedListings(rows.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
-    }).catch(() => { if (!cancelled) setUnconfirmedListings([]); });
+      if (!cancelled) setDirectoryListingsLoaded(true);
+    }).catch(() => {
+      if (!cancelled) {
+        setUnconfirmedListings([]);
+        setDirectoryListingsLoaded(true);
+      }
+    });
     return () => { cancelled = true; };
   }, []);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
@@ -309,6 +316,30 @@ export const DirectoryView: React.FC = () => {
     }
     return normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar');
   });
+
+  // When a selected administrative area has no matching results, progressively broaden the same search.
+  // The search phrase and taxonomy filters stay intact; only the geographic scope is widened.
+  useEffect(() => {
+    if (directoryLoading || !directoryListingsLoaded || filteredBusinesses.length + filteredUnconfirmedListings.length > 0) return;
+    if (selectedAreaFilter !== 'all') {
+      setSelectedAreaFilter('all');
+      setLocationMessage('لا توجد نتائج في المنطقة المحددة؛ تم توسيع البحث إلى القرية أو الحي نفسه.');
+    } else if (selectedVillageFilter !== 'all') {
+      setSelectedVillageFilter('all');
+      setLocationMessage('لا توجد نتائج في القرية أو الحي؛ تم توسيع البحث إلى المركز أو المدينة.');
+    } else if (selectedMarkazFilter !== 'all') {
+      setSelectedMarkazFilter('all');
+      setLocationMessage('لا توجد نتائج في المركز أو المدينة؛ تم توسيع البحث إلى المحافظة.');
+    } else if (selectedGovFilter !== 'all') {
+      setSelectedGovFilter('all');
+      setLocationMessage(userCoordinates
+        ? 'لا توجد نتائج في المحافظة؛ تم توسيع البحث إلى المناطق الأخرى وترتيب النتائج ذات الإحداثيات حسب القرب.'
+        : 'لا توجد نتائج في المحافظة؛ تم توسيع البحث إلى بقية المناطق. حدد موقعك لترتيب النتائج حسب المسافة عند توفر الإحداثيات.');
+    }
+  }, [
+    directoryLoading, directoryListingsLoaded, filteredBusinesses.length, filteredUnconfirmedListings.length,
+    selectedAreaFilter, selectedVillageFilter, selectedMarkazFilter, selectedGovFilter, userCoordinates,
+  ]);
 
   const locationRecords = [
     ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
