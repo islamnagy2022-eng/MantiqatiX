@@ -317,7 +317,7 @@ Deno.serve(async (req: Request) => {
     const now = new Date().toISOString();
     const { error: listingUpdateError } = await service.from("public_directory_listings").update({
       claim_status: "CLAIMED", claimed_user_id: claim.user_id, claimed_business_id: businessId,
-      claimed_at: now, last_verified_at: now, verified_by: user.id,
+      claimed_at: now, last_verified_at: now, verified_by: user.id, outreach_status: "SUBSCRIBED",
     }).eq("id", claim.listing_id);
     if (listingUpdateError) return out(origin, { error: "LISTING_CLAIM_SAVE_FAILED", membershipId }, 500);
     const { error: claimUpdateError } = await service.from("directory_listing_claim_requests").update({
