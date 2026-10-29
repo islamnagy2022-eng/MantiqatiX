@@ -214,6 +214,12 @@ export interface AuthSession {
   subscriberId?: string;
   businessId?: string;
   subscriberName?: string;
+  /** Actual active business membership role; distinct from the broad subscriber session category. */
+  membershipRole?: string;
+  /** Branch scope of the exact active membership; absent means business-wide membership. */
+  membershipBranchId?: string;
+  /** Permission template from the exact selected membership; never grants access by itself unless explicitly checked. */
+  membershipPermissions?: Record<string, unknown>;
   subscriberDirectoryError?: string;
   ignoredOrphanMemberships?: number;
 }

@@ -38,7 +38,25 @@ const primaryClass='inline-flex items-center justify-center gap-2 rounded-xl bg-
 
 export const SuperAdminControlCenter: React.FC = () => {
   const { businesses, currentBusiness, setSelectedBusinessId } = useApp();
-  const [tab,setTab]=useState<'roles'|'assignments'|'employees'|'management'|'audit'>('roles');
+  type ControlTab = 'roles'|'assignments'|'employees'|'management'|'audit';
+  const readControlTabFromUrl = (): ControlTab => {
+    const requested = new URLSearchParams(window.location.search).get('controlTab');
+    const allowed: ControlTab[] = ['roles', 'assignments', 'employees', 'management', 'audit'];
+    return requested && allowed.includes(requested as ControlTab) ? requested as ControlTab : 'roles';
+  };
+  const [tab,setTabState]=useState<ControlTab>(readControlTabFromUrl);
+  const setTab=(next: ControlTab)=>{
+    setTabState(next);
+    const url = new URL(window.location.href);
+    if (next === 'roles') url.searchParams.delete('controlTab');
+    else url.searchParams.set('controlTab', next);
+    window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+  useEffect(()=>{
+    const restoreTab=()=>setTabState(readControlTabFromUrl());
+    window.addEventListener('popstate',restoreTab);
+    return ()=>window.removeEventListener('popstate',restoreTab);
+  },[]);
   const [roles,setRoles]=useState<CustomRole[]>([]);
   const [people,setPeople]=useState<PlatformPerson[]>([]);
   const [assignments,setAssignments]=useState<Assignment[]>([]);

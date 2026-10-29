@@ -99,8 +99,10 @@ check("database_writes_enforce_business_branch_and_limits", () => {
   includes(migration, "upper(m.role::text) = 'OWNER' AND m.business_id IS NULL");
 });
 check("react_privileged_views_require_authorized_session", () => {
+  includes(reactApp, "import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';");
   includes(reactApp, "currentView === 'super_admin' && authSession.role !== 'admin'");
-  includes(reactApp, "!['subscriber', 'admin'].includes(authSession.role) || !currentBusiness");
+  includes(reactApp, "(!canAccessMerchantDashboard(authSession) || !currentBusiness)");
+  includes(reactApp, "!canAccessProfessionalDashboard(authSession)");
   includes(reactApp, "currentView === 'public_storefront' &&");
   includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink");
   includes(reactApp, "{visibleView === 'merchant_admin' && <MerchantDashboard />}");

@@ -216,6 +216,53 @@ const isNeutralPlaceholderUrl = (value: unknown): boolean =>
 const isPlatformAdmin = (m: any) => String(m.role || '').toUpperCase() === 'SUPER_ADMIN'
   && !m.business_id && !m.branch_id && m.permissions?.scope === 'PLATFORM' && m.permissions?.full_control === true;
 
+const BUSINESS_WIDE_MANAGEMENT_ROLES = new Set(['OWNER', 'BUSINESS_OWNER', 'ADMIN']);
+const DASHBOARD_SUPPORTED_MEMBERSHIP_ROLES = new Set(['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'EMPLOYEE', 'STAFF']);
+
+const selectMembershipForBusiness = (
+  memberships: any[],
+  businessId: string,
+  tenantId: string,
+): any | undefined => {
+  const candidates = memberships.filter((membership: any) =>
+    String(membership.business_id || '') === businessId &&
+    String(membership.tenant_id || '') === tenantId &&
+    String(membership.status || '').toUpperCase() === 'ACTIVE'
+  );
+  const tenantOwner = memberships.find((membership: any) =>
+    String(membership.tenant_id || '') === tenantId &&
+    String(membership.role || '').toUpperCase() === 'OWNER' &&
+    !membership.business_id && !membership.branch_id &&
+    String(membership.status || '').toUpperCase() === 'ACTIVE'
+  );
+  // A tenant-wide owner is broader than any per-business employee row and must
+  // define both the catalog bootstrap scope and the session permission context.
+  if (tenantOwner) return tenantOwner;
+  const compare = (a: any, b: any) => {
+    const roleRank = (membership: any) => {
+      const role = String(membership.role || '').toUpperCase();
+      if (role === 'OWNER') return 60;
+      if (role === 'BUSINESS_OWNER') return 59;
+      if (role === 'ADMIN') return 58;
+      if (role === 'EMPLOYEE') return 40;
+      if (role === 'STAFF') return 39;
+      return DASHBOARD_SUPPORTED_MEMBERSHIP_ROLES.has(role) ? 20 : 0;
+    };
+    const roleDifference = roleRank(b) - roleRank(a);
+    if (roleDifference) return roleDifference;
+    const scopeDifference = Number(Boolean(a.branch_id)) - Number(Boolean(b.branch_id));
+    if (scopeDifference) return scopeDifference;
+    return Date.parse(String(b.created_at || '')) - Date.parse(String(a.created_at || ''));
+  };
+  return candidates.sort(compare)[0]
+    || memberships.find((membership: any) =>
+      String(membership.tenant_id || '') === tenantId &&
+      String(membership.role || '').toUpperCase() === 'OWNER' &&
+      !membership.business_id && !membership.branch_id &&
+      String(membership.status || '').toUpperCase() === 'ACTIVE'
+    );
+};
+
 export async function bootstrapProductionUser(user: User | null): Promise<{
   authSession: AuthSession; businesses: Business[]; products: Product[]; subscribers: Subscriber[]; adminSettings: AdminSettings;
 }> {
@@ -270,9 +317,11 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     const tenantId = String(row.tenantId || row.tenant_id || '');
     const businessId = String(row.id || row.businessId || '');
     if (!tenantId || !businessId) continue;
-    const membership = roleMemberships.find((m: any) => String(m.business_id || '') === businessId)
-      || roleMemberships.find((m: any) => String(m.tenant_id) === tenantId && String(m.role).toUpperCase() === 'OWNER' && !m.business_id);
-    const branchId = String(row.branchId || membership?.branch_id || '');
+    const membership = selectMembershipForBusiness(roleMemberships, businessId, tenantId);
+    // For authenticated business members the selected membership is the source of
+    // branch scope. Do not trust the first row returned by PostgREST or a duplicate
+    // placeholder row to choose a wider catalog query.
+    const branchId = platform ? String(row.branchId || '') : String(membership?.branch_id || '');
     try {
       const catalog: any = await callCatalogAdmin({ action: 'CATALOG_READ', tenantId, businessId, ...(branchId ? { branchId } : {}) });
       const b = mapBusiness({
@@ -344,7 +393,23 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 
   const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest';
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
-  const chosen = businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id && ['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'MANAGER'].includes(String(m.role).toUpperCase()))) || businesses[0];
+  const managementRoles = ['OWNER', 'BUSINESS_OWNER', 'ADMIN'];
+  const chosen = businesses.find((b) => roleMemberships.some((m: any) =>
+    String(m.business_id || '') === b.id &&
+    managementRoles.includes(String(m.role).toUpperCase())
+  )) || businesses.find((b) => roleMemberships.some((m: any) =>
+    String(m.tenant_id || '') === String(b.tenantId || '') &&
+    String(m.role || '').toUpperCase() === 'OWNER' && !m.business_id && !m.branch_id
+  )) || businesses.find((b) => roleMemberships.some((m: any) =>
+    String(m.business_id || '') === b.id && String(m.role || '').toUpperCase() === 'MANAGER'
+  )) || businesses.find((b) => roleMemberships.some((m: any) => String(m.business_id || '') === b.id)) || businesses[0];
+  // Prefer the strongest active membership for the chosen business instead of
+  // whichever row happens to appear first in the membership result.
+  // A tenant-wide OWNER is valid only within that owner's tenant.
+  const chosenMembership = chosen
+    ? selectMembershipForBusiness(roleMemberships, chosen.id, String(chosen.tenantId || ''))
+      || roleMemberships.find((m: any) => String(m.business_id || '') === chosen.id)
+    : own;
   return {
     // Authentication and authorization are separate: a Google user with no
     // active membership is signed in as a customer/guest, never an owner.
@@ -353,9 +418,14 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       isAuthenticated: true,
       userId: user.id,
       email: user.email || undefined,
-      subscriberId: own?.id,
+      subscriberId: chosenMembership?.id || own?.id,
       businessId: chosen?.id,
       subscriberName: String(user.user_metadata?.full_name || user.user_metadata?.name || user.email || ''),
+      membershipRole: String(chosenMembership?.role || '').toUpperCase() || undefined,
+      membershipBranchId: String(chosenMembership?.branch_id || '') || undefined,
+      membershipPermissions: chosenMembership?.permissions && typeof chosenMembership.permissions === 'object'
+        ? chosenMembership.permissions
+        : undefined,
       subscriberDirectoryError: subscriberDirectoryError || undefined,
       ignoredOrphanMemberships,
     },

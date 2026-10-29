@@ -126,6 +126,7 @@ export const AdminDashboard: React.FC = () => {
     const url = new URL(window.location.href);
     if (tab === 'billing') url.searchParams.delete('tab');
     else url.searchParams.set('tab', tab);
+    if (tab !== 'control_center') url.searchParams.delete('controlTab');
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   };
 

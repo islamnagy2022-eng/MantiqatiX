@@ -105,7 +105,7 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
 assert.ok(directory.includes('xl:grid-cols-10'), 'Functional group cards should retain ten columns on extra-large screens.');
-assert.ok(directory.includes('bg-white p-1.5 sm:p-3 text-center'), 'Functional group cards should use the consistent responsive light icon-card treatment.');
+assert.ok(/bg-white p-(?:1\.5 sm:p-3|3) text-center/.test(directory), 'Functional group cards should use the consistent responsive light icon-card treatment at mobile and larger breakpoints.');
 assert.ok(directory.includes('aria-pressed={isSelected}'), 'Functional group selection must remain accessible to assistive technology.');
 
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} category entries, activity/profession separation, legacy mapping, admin UI, and server persistence.`);

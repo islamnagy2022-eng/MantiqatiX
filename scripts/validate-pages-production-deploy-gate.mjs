@@ -32,6 +32,10 @@ assert.doesNotMatch(publicOnlyBlock, /Refusing public-only deployment because th
 
 assert.match(validateBlock, /Verify scoped catalog pilot release prerequisites[\s\S]*?node scripts\/production\/verify-catalog-pilot\.mjs/,
   'Pages release must pass the catalog-specific production gate');
+assert.match(validateBlock, /Validate professional dashboard production dependency gate semantics[\s\S]*?node scripts\/validate-professional-dashboard-production-dependencies\.mjs/,
+  'The dashboard release guard behavior must be tested in pull-request CI');
+assert.match(validateBlock, /Gate production deployment on live professional dashboard dependencies[\s\S]*?node scripts\/production\/verify-professional-dashboard-dependencies\.mjs/,
+  'Main deployment must be blocked until the dashboard database dependencies are live and verified');
 assert.match(validateBlock, /Smoke test the live public catalog and Qadam storefront[\s\S]*?qadam-alsaad-homewares/,
   'Pages release must prove the actual Qadam storefront is visible through the live public directory');
 assert.match(validateBlock, /npm run verify:production/,

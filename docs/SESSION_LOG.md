@@ -18,6 +18,17 @@ This is the chronological handoff ledger for material project decisions and exec
 - **Next action:** reconcile RC434 variants and the missing migration chain; fix missing CI scripts from authoritative contracts; isolated full replay; then close SMM/payment/security gaps with tests.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
 
+## 2026-10-28 — Additive professional dashboard implementation started
+
+- **User requirement:** Add a professional dashboard as a new module alongside the current catalog and administration views; do not remove, replace, or disable existing interfaces or functionality.
+- **Repository inspected:** `islamnagy2022-eng/MantiqatiX`, default branch `main`; read `README.md`, `docs/PROJECT_CONTINUITY.md`, `docs/MASTER_PRODUCTION_TODO.md`, catalog frontend package manifest, `App.tsx`, `AppContext.tsx`, `Navbar.tsx`, and current admin/merchant dashboard components.
+- **Action performed on isolated branch:** `feat/professional-dashboard-additive-20261028`.
+- **Implemented in source:** added `apps/catalog-frontend/src/modules/dashboard/ProfessionalDashboard.tsx`; registered `professional_dashboard` in the existing view type and URL parser; mounted it in `App.tsx` with a role guard; added a navigation entry visible to existing `admin` and `subscriber` roles. Existing dashboard links and public directory/storefront code were retained.
+- **Data policy:** the initial screen uses only data already loaded in the existing application context. It does not create demo data or claim financial totals. No database migrations, production data mutations, Supabase policy changes, or deployments were performed.
+- **Not verified:** TypeScript/lint, production build, automated workflows, browser rendering, role/tenant isolation E2E, mobile/accessibility behavior, deployed behavior, and regression against existing catalog links.
+- **Next action:** inspect the branch diff, run CI/build checks, fix any failures, and only then consider a pull request review. No merge or production deployment authorized/performed.
+- **Release status:** production remains **BLOCKED / NOT CERTIFIED**.
+
 ## Logging convention for future sessions
 
 Append a new dated section. Never rewrite or delete historical entries; if a fact is superseded, add a later correction that links to the earlier entry and explains the new evidence. Each session entry should include user decisions, exact code/commit/PR/run references, tests/results, production impact, unresolved risks, and the next executable action.
@@ -334,3 +345,102 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added regression assertions in `scripts/validate-canonical-activity-taxonomy.mjs` for the 18 group-to-icon mappings, no return to cover-image cards, the responsive grid, light card styling, and selected-state accessibility.
 - Source was read back from GitHub after commits `1a93658e7846a6b0917e0307bedac333077942f0`, `75148b398a95146d04b24dd67977a8b066cbce1a`, and validator fixes `287e86f65947c759466068ab0cac61cc0467a34f` / `f865cf337d3c7400aeac9f2c4a3a26498a0a0de0`.
 - Exact-head CI status is not available from the current status/run query; local build and browser verification were not run in this environment. Do not mark the visual change as deployed/verified until Pages workflow and live-page checks confirm it.
+
+
+### Follow-up — subscriber context scoping
+
+- Code review found that the existing `currentBusiness` selector only applied the subscriber-specific business lookup in `merchant_admin`. Extended that same existing scope to `professional_dashboard` so the new view resolves the subscriber's assigned business instead of relying on a global/selected-business fallback.
+- Commit: `f2527d23e33fbf88fc6e66a5c6a5e97ad6c48542`.
+- This is source-level review only; no TypeScript build or tenant-isolation test has yet verified the behavior.
+
+
+## 2026-10-28 — Professional dashboard expanded and regression guard added
+
+- Extended the dashboard beyond the initial scaffold with a responsive RTL sidebar, live-context status counters, category distribution, a six-month chart computed only from recorded business creation dates, status-derived alerts, activity search and filters (name/status/category/governorate), and clear empty/error states.
+- Administrative shortcuts route into the existing admin `businesses`, `subscribers`, and `settings` tabs. Owner shortcuts use a new optional `merchantTab` deep-link parameter for the existing `employees` and `profile` tabs. The default merchant tab remains `products`; the parameter is removed when leaving merchant administration.
+- Added `scripts/validate-professional-dashboard.mjs` and a step in `.github/workflows/pages.yml` to protect the additive route, role gate, subscriber scoping, data-backed metrics, filters and owner deep links.
+- No schema/migration changes, production data mutations, fake financial metrics, invented audit events, secrets, merges or production deployments were performed.
+- TypeScript/build validation is being executed by the PR workflows for the current code; browser E2E, direct API authorization, RLS/tenant isolation, accessibility/manual responsive checks and deployed behavior remain unverified until evidence is collected.
+- PR: [#483](https://github.com/islamnagy2022-eng/MantiqatiX/pull/483) (draft). Branch remains isolated from `main`; overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-28 — Exact-head dashboard build/static CI results
+
+- **Exact tested head:** `4bbf141dad21a919677e34cad60f7b677b17f9a8` on the isolated dashboard branch.
+- **PASS — Primary Catalog Frontend Validation:** [run 40736278224](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736278224). TypeScript check, main catalog build, public root/PWA checks, Google OAuth callback relay smoke test, and public catalog API smoke test passed.
+- **PASS — Deploy MantiqatiX Web validation job:** [run 40736278305](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736278305). The build/type-check step and `Validate additive professional dashboard contract` step passed, as did subsequent validation steps. The actual production deploy job was skipped on the pull_request event.
+- **PASS — Module Professionalization Validation:** [run 40736278182](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736278182).
+- An earlier attempt of the new static validator failed because of incorrect escaping in its regex for the merchant deep-link. The issue was corrected; the cited exact-head run passed the corrected validator.
+- **NOT VERIFIED:** browser E2E/visual tests; direct dashboard route refresh through a real authenticated session; negative role tests; backend authorization/RLS tenant-isolation; manual keyboard/mobile accessibility; production deployment.
+- No merge, production deployment, schema/data change, payment, or credential mutation occurred. Draft PR #483 remains open. Overall platform release status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-28 — Final dashboard branch validation and unrelated CI contract correction
+
+- **Exact tested source head:** `5690c667f312206d8bd32c001c913ac8628bb0d2` on the dashboard feature branch.
+- **PASS — Primary Catalog Frontend Validation:** [run 40736940379](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736940379). TypeScript check, catalog build, root/PWA checks, Google OAuth callback smoke test, and public catalog smoke test passed.
+- **PASS — Deploy MantiqatiX Web validation job:** [run 40736940282](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736940282). Build/type-check, additive dashboard contract, catalog API smokes, production gate reporting, and the full syntax-validator list passed. The real deploy job remained skipped on the pull_request event.
+- **PASS — Module Professionalization Validation:** [run 40736940498](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40736940498), including its validation and Postgres integration jobs.
+- A separate existing validator, `scripts/validate-canonical-activity-taxonomy.mjs`, failed because it required the exact text `bg-white p-3 text-center`, while the branch's functional-group card uses responsive `bg-white p-1.5 sm:p-3 text-center`. Updated the assertion to accept both responsive variants. This changed the validator only; no catalog UI or data behavior changed. The final exact-head syntax validator passed after the correction.
+- **NOT VERIFIED:** authenticated browser E2E and refresh of the dashboard deep link, negative role tests, direct API/Supabase RLS tenant isolation, manual keyboard/mobile accessibility, QR/share-link regression on a real deployed dashboard, and production deployment of PR #483.
+- No merge, production deploy, schema/data mutation, payment, wallet change, or credential change performed. PR #483 remains draft. Full platform gate stays **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-28 — Dashboard integration rebased on current main and CI reverified
+
+- Rebuilt the feature branch tree on current `main` baseline `b5e5b22cc4bbef93e2d184a39c00e971115af253`, preserving all current main changes and layering the 19 intended dashboard/docs/validation files. The feature branch is now one integration commit ahead of main; `main` itself was not changed.
+- Exact source head `fce2f08d92f36d6bc6830fad8f9ac29df618593d` passed the Pages validation workflow: TypeScript/lint, catalog build, dashboard static contract, runtime permission matrix, smoke tests, production-gate reporting, full syntax validators and artifact-composition validation — [run 40773802038](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802038).
+- Supporting workflows also passed: [Backend-only Module Boundary 40773802088](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802088), [Module Professionalization 40773802241](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802241), [MantiGO privacy 40773802071](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802071), and [Catalog Admin CORS 40773802329](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40773802329).
+- The Pages deploy job remained skipped on the feature-branch run. No merge/deploy/production data or schema mutation occurred.
+- Remaining gates: authenticated browser route refresh and denial E2E, direct API/RLS tenant isolation for dashboard/employee operations, keyboard/mobile accessibility, and deployed dashboard/share-link regression. Full production gate remains `BLOCKED / NOT CERTIFIED`; PR #483 stays draft pending those checks.
+
+
+## 2026-10-28 — Final membership-selection fix and exact-head CI rerun
+
+- Fixed selected membership resolution so business-specific OWNER/BUSINESS_OWNER/ADMIN membership takes precedence over a newer employee row; a tenant-wide OWNER is considered only for businesses in the same tenant. Lower-scope MANAGER/employee memberships remain limited.
+- Updated the dashboard contract validator to guard this selected-membership precedence and tenant-wide owner scope.
+- Exact current source head `d243a4fdcb3449bf0b49ba6b7290c123ecd0bce2` passed [Pages validation run 40774358276](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358276): build/type-check, dashboard contract, permission matrix, smoke tests, production gate report, syntax validators and composed-site checks. Supporting workflow runs passed: [Backend-only 40774358272](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358272), [Professionalization 40774358297](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358297), [MantiGO privacy 40774358269](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774358269).
+- The feature branch is based on current main and GitHub reports it as mergeable. The actual deploy job remained skipped on the feature branch; no production deployment occurred.
+- Browser E2E, direct API/RLS tenant isolation, live share/QR behavior and accessibility are still not verified. PR #483 remains Draft; overall platform production gate remains `BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-28 — OAuth role-contract assertion corrected for centralized dashboard guard
+
+- The primary catalog workflow initially failed because `scripts/validate-catalog-google-auth-contract.mjs` asserted the previous inline role condition `!['subscriber', 'admin'].includes(authSession.role)`. Replaced that literal check with assertions for both centralized guards: `canAccessMerchantDashboard(authSession)` and `canAccessProfessionalDashboard(authSession)`; the original role-gating requirement is retained.
+- Exact source head `1131b669bf1ab5bf303162638f535e01f0ae043f` passed Pages validation [run 40774776775](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776775), primary catalog [run 40774776818](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776818), legacy catalog [run 40774776772](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776772), backend-only [run 40774776728](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776728), module professionalization [run 40774776870](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776870), MantiGO privacy [run 40774776773](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776773), RC425 atomicity [run 40774776799](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776799), SMM deferred storefront [run 40774776883](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774776883), and flexible commission contract [run 40774777126](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40774777126).
+- GitHub reports the PR cleanly based on current main (6 commits ahead, 0 behind); it remains Draft because authenticated browser E2E and direct API/RLS tenant isolation have not been tested. The deployment job was skipped on the feature branch; no production deployment occurred. Production gate remains `BLOCKED / NOT CERTIFIED`.
+
+
+## Branch-shape correction — final PR comparison (2026-10-28)
+
+- The earlier entries recorded the initial rebase at its then-current 19-file/6-commit comparison. After adding the OAuth role-contract test update and its documentation, the final PR comparison has **20 changed paths** and is cleanly based on current `main` with no commits behind it. The main branch was not modified directly.
+- Source/code head `1131b669bf1ab5bf303162638f535e01f0ae043f` passed all PR workflows; the final docs-only follow-up also passed Pages, backend-only, module professionalization and MantiGO workflows on `64c9160abcf44f40725d1ee0594bc6b51ab23988`.
+- PR #483 remains Draft. Live browser E2E and API/RLS tenant-isolation checks remain unverified; do not merge into main because the main push would invoke the production Pages deployment path. No production deployment occurred.
+## 2026-10-28 — Dashboard permission hardening and exact-head E2E verification
+
+- Added forward-only migration supabase/migrations/20261028225000_rc457_business_employee_permission_ceiling.sql. It prevents employee/job-position permission templates from exceeding the caller's scoped permission ceiling, requires employee overrides to be subsets of the selected position template, preserves tenant-wide owner scope, and adds a branch-aware mnty_business_employee_list_scoped RPC. Historical RC113–RC115 migrations were not edited.
+- Updated the professional dashboard authorization helper to fail closed for raw MANAGER memberships because the server-side permission resolver does not currently use that membership role as a grant source. The broad legacy merchant dashboard remains limited to explicit supported management roles.
+- Carried the exact selected membership's branch_id through AuthSession into BusinessEmployeeManager; roster reads and create/update calls now pass that scope to guarded RPCs.
+- Added disposable PostgreSQL integration coverage for direct table privileges/FORCE RLS, employee view-vs-write, permission-template escalation, employee override escalation, tenant-wide owner access, branch-only owner boundaries, branch roster filtering, cross-tenant denial, and anonymous/unassigned denial.
+- Added Chromium E2E against the built catalog preview. The suite passed guest direct-route denial, owner route and refresh restoration (including owner membership precedence), scoped employee view-only behavior, read-only roster UI, and unsupported-manager denial.
+- PASS — tested code head 1b00c1afbbfd7509a00627defce1530b927d74ec: [Primary Catalog Frontend Validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40789982603) passed TypeScript/build, production OAuth/public directory smoke checks, PostgreSQL permission integration, and Chromium browser E2E. [Forward migration checkpoint replay](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40789976555), [migration history immutability](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40789982652), [migration version uniqueness](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40789982510), and [open-PR migration collision guard](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40789982601) passed.
+- Production was not changed: the feature-branch Pages deployment job was skipped. PR #483 remains Draft/unmerged until real-origin share/QR regression and manual accessibility/mobile review are completed. The broader production gate stays BLOCKED / NOT CERTIFIED due to unrelated platform release gates.
+
+## 2026-10-29 — Professional dashboard final CI and production dependency gate
+
+- Latest tested source head: \`83e47f39dad8480c94b5c21171ea4ace7827147d\` on \`feat/professional-dashboard-additive-20261028\`; PR #483 remains Draft and unmerged.
+- Primary Catalog Frontend Validation [run 40792920117](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40792920117) passed TypeScript/lint, catalog build, OAuth/public-directory smoke checks, isolated PostgreSQL employee RBAC/tenant/branch integration, and Chromium E2E. Browser tests include branch-scoped OWNER denial of the broad legacy route and verification that employee roster RPCs carry the active branch ID.
+- Migration history immutability [40792920047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40792920047), version uniqueness [40792920079](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40792920079), open-PR migration collision guard [40792919994](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40792919994), backend-only [40792920038](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40792920038), and the Pages PR validation [40792920126](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40792920126) passed. The actual Pages deploy job was skipped because this is a feature-branch/PR validation.
+- Read-only inspection of Supabase production project \`moyhiluyhjsujhwlyeuu\` confirmed that the RC113/RC114 role/employee tables and RC115/RC457 role and employee RPCs are missing. The release reconciliation manifest records 41 required full-platform migration versions missing from its live ledger and full platform gate remains \`BLOCKED\`.
+- Added \`scripts/production/verify-professional-dashboard-dependencies.mjs\` plus \`scripts/validate-professional-dashboard-production-dependencies.mjs\` and wired both into the Pages validation path. The CI semantics test passes: feature/PR validation continues with an explicit BLOCKED dependency notice, while a main push/workflow dispatch fails the production validate gate until live dashboard dependencies are evidenced as present.
+- No production database mutation, migration-ledger repair, merge, or production deployment occurred. Do not blindly apply the remaining release migrations or mark old versions as applied. The app/dashboard code and isolated tests are complete, but live deployment remains blocked on controlled schema/migration reconciliation and real-account/device review.
+
+
+## 2026-10-29 — Membership scope, tenant/branch authorization and replay verified
+
+- Unified the production bootstrap membership selector so the membership that determines the user's dashboard role/branch is also the membership that determines catalog read scope. A tenant-wide OWNER no longer inherits the branch from a weaker employee row returned alongside it.
+- Added browser coverage for that duplicate-membership case, direct owner route refresh, employee view-only UI, branch-scoped owner denial of the legacy unscoped merchant path, and unsupported `MANAGER` membership denial. Exact-head Primary Catalog run [40794290839](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290839) passed TypeScript/build, PostgreSQL RBAC/tenant/branch integration, and Chromium; logs include `PROFESSIONAL_DASHBOARD_BROWSER_E2E=PASS` and `PROFESSIONAL_DASHBOARD_EMPLOYEE_RBAC_POSTGRES=PASS`.
+- Exact-head forward replay [40794290701](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290701) passed: restored checkpoint `20261008222845`, applied 65 later migrations in timestamp order including RC457, and passed RC117, RC455/RC456 and synthetic tenant isolation tests. Replay used a disposable isolated Supabase instance only.
+- Other exact-head checks passed: migration immutability [40794290678](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290678), version uniqueness [40794290552](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290552), collision guard [40794290983](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290983), backend boundary [40794290752](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290752), module professionalization [40794291165](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794291165), MantiGO privacy [40794291170](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794291170), RC425 atomicity [40794290617](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290617), flexible commission [40794290801](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290801), approval atomicity [40794290554](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290554), legacy catalog [40794290613](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290613), SMM storefront contract [40794290869](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40794290869).
+- Refreshed the read-only live production ledger evidence: 303 migration rows, latest `20261028112112`; RC113/RC114 tables and RC115/RC457 functions remain absent. All 41 required full-platform migration source versions remain absent, and selected payment/finance effects still have live-schema drift. The dependency gate correctly keeps real Pages publishing blocked.
+- No production schema change, ledger repair, merge, or deploy occurred. PR #483 stays Draft. Remaining dashboard-specific manual checks are real-device visual/accessibility review, live QR/permanent-link regression, and a real production-origin session review; broader platform release is still `BLOCKED / NOT CERTIFIED`.
