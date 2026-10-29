@@ -2033,3 +2033,5 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 
 - [DONE — read-after-write verified] Added 9 food/grocery listings after comparing candidates with existing records: مطعم أبو رضوى, مخبز علا بركات الله, مطعم الحرمين, مطعم الملكي, مطعم السلطان, مطعم الزعيم, مطعم إيطاليا, كشري فيينا, مطعم سويت هوم. Source: https://yellowpages.com.eg/en/category/berket-el-sabaa-restaurants/3829. Source listing did not provide phones, so none were guessed; records remain PUBLISHED/UNCLAIMED with owner confirmation required.
 - [REVIEW NOTE] Several source candidates already existed (e.g. مطعم الأصلي, مطعم المحلاوي, مطعم جابر عمر, حكاية, كشري الباشا, حلويات ياقوت, مخبز الحرمين) and were not duplicated. Recheck category/address data later where needed.
+
+- [DONE — read-after-write verified] Added 8 supermarkets/markets from Egypt Yellow Pages after duplicate checks: سوبر ماركت أبو عفيفي, سوبر ماركت الإسكندراني, سوبر ماركت الشاذلي, سوبر ماركت الزيات, سوبر ماركت فرح, حمادة ماركت, هاني ماركت, وائل ماركت. Source: https://yellowpages.com.eg/en/category/berket-el-sabaa-supermarkets/3829. Source did not expose phone numbers; fields remain blank, not guessed.
