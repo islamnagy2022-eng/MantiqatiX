@@ -1962,3 +1962,16 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Corrected specialty suffix normalization to strip whitespace around the em dash properly.
 - [x] Commits: `06cac94168d480aa537198938c950c1aae28fed5`, `b47fbf3b0dd3319f13dda211a1b26019446fcdd8`, `437970e4876de8876d1216770b812094490b1520`, `c6c09d4e33722b2e36953f38979fe8f7377c45a2`.
 - [ ] TypeScript/lint, Vite production build, GitHub Pages deployment, and deployed browser/mobile visual validation remain unverified. The commit combined status endpoint returned no status checks; do not claim build/deploy success until Actions or deployed-origin checks confirm it.
+
+
+## 2026-10-29 — Berket El Sabaa directory expansion batch 2
+
+- [x] Read-after-write Production inventory: **222 published directory listings across all 18 functional groups**; 160 have a phone, 222 have an address, and all 222 have a source URL.
+- [x] Added 20 new records in this batch: 5 fitness/gym listings, one real-estate broker, one metal-turning workshop, one family-dispute public-service office, 4 local bank branches (including Tokh Tanabsha), 6 local travel agencies (including two found in the Ministry of Tourism's Menoufia license directory), and 2 additional photo studios.
+- [x] Filled the previously empty phone for جرين هاوس للتنمية الزراعية with 01223992177 from the public 140Online listing; retained it as unconfirmed because a public directory is not direct owner verification.
+- [x] Added canonical finance classification `cat_finance_insurance_banks` in `apps/catalog-frontend/src/data/productionDefaults.ts` for banks and branches, with specialties for commercial, government and agricultural banks. Commit: `88c537962465c288061d490e00baab9783b4152e`.
+- [x] Re-ran production duplicate and taxonomy/group consistency audits after inserts: **0 normalized-name duplicate groups** and **0 group/category prefix mismatches**.
+- [x] Current group counts: agriculture_animals 6; auto_transport 6; construction_decor 7; education_training 8; fashion_beauty 38; finance_insurance 5; food_grocery 19; home_maintenance 11; industry_workshops 2; marketing_media 9; medical_health 44; professional_services 12; public_community 2; real_estate 3; sports_fitness 8; technology_communications 27; tourism_events 8; trade_ecommerce 7.
+- [ ] All new records are published, unclaimed, source-attributed directory leads; they are **not owner-confirmed** and must not increase official business/confirmed activity counts. Some sources list names and addresses without a phone, so those fields remain blank rather than invented.
+- [ ] The new bank classification's frontend build/deployment is pending GitHub Actions. Do not claim it is live until the workflow succeeds and the deployed catalog shows the classification. The latest workflow run is [Primary Catalog Frontend Validation 40830599537](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830599537) and was still in progress at the time of this entry.
+- [ ] Coverage remains a continuing research task, not an assertion of every business in the center. Next sourcing priorities: agricultural/veterinary services, workshops/manufacturing, real estate, regulated financial services, and additional village-level businesses. Continue idempotent inserts and keep each source attached.
