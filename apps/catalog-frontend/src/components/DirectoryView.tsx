@@ -8,6 +8,8 @@ import {
   MapPin,
   Sparkles,
   Layers,
+  Folder,
+  ChevronLeft,
   ArrowRight,
   CheckCircle2,
   MessageCircle,
@@ -160,6 +162,7 @@ export const DirectoryView: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [taxonomyBrowserOpen, setTaxonomyBrowserOpen] = useState(false);
   const [selectedCategoryKind, setSelectedCategoryKind] = useState<'all' | 'activity' | 'profession'>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
@@ -375,6 +378,94 @@ export const DirectoryView: React.FC = () => {
 
   if (listingSlug) return <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />;
 
+  if (taxonomyBrowserOpen) {
+    const activeGroup = functionalGroups.find((group) => group.id === selectedGroupFilter);
+    const activeCategory = categories.find((category) => category.id === selectedCategoryId);
+    const folderCategories = categories.filter((category) =>
+      (selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter) &&
+      (selectedCategoryKind === 'all' || (category.classificationType || 'activity') === selectedCategoryKind)
+    );
+    const goTaxonomyBack = () => {
+      if (selectedCategoryId !== 'all') {
+        setSelectedCategoryId('all');
+        setSelectedSpecialty('all');
+      } else if (selectedGroupFilter !== 'all') {
+        selectGroup('all');
+      } else {
+        setTaxonomyBrowserOpen(false);
+      }
+    };
+    return (
+      <main className="mx-auto min-h-[70vh] max-w-7xl space-y-5 px-3 py-5 sm:px-6 sm:py-8" dir="rtl">
+        <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 p-5 text-white shadow-lg sm:p-8">
+          <button type="button" onClick={goTaxonomyBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15">
+            <ChevronLeft className="h-4 w-4" />
+            {selectedCategoryId !== 'all' ? 'رجوع للمجموعات والتصنيفات' : selectedGroupFilter !== 'all' ? 'رجوع للمجموعات' : 'العودة للكتالوج'}
+          </button>
+          <p className="text-xs font-bold text-emerald-300">MantiqatiX / دليل الأنشطة</p>
+          <h1 className="mt-2 text-2xl font-black sm:text-3xl">
+            {activeCategory ? activeCategory.name : activeGroup ? activeGroup.name : 'مجلدات المجموعات الوظيفية'}
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-white/75">
+            {activeCategory ? 'اختر المجال أو التخصص لعرض الجهات المطابقة.' : activeGroup ? 'اختر التصنيف الذي تريد تصفحه.' : 'افتح أي مجموعة للوصول إلى التصنيفات ثم المجالات والتخصصات.'}
+          </p>
+          <nav aria-label="مسار التصفح" className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold">
+            <button type="button" onClick={() => { selectGroup('all'); setTaxonomyBrowserOpen(true); }} className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/15">كل المجموعات</button>
+            {activeGroup && <><ArrowRight className="h-3 w-3 rotate-180 text-white/60" /><span className="rounded-lg bg-white/15 px-3 py-2">{activeGroup.shortName}</span></>}
+            {activeCategory && <><ArrowRight className="h-3 w-3 rotate-180 text-white/60" /><span className="rounded-lg bg-emerald-400/20 px-3 py-2 text-emerald-100">{activeCategory.name}</span></>}
+          </nav>
+        </header>
+
+        {selectedCategoryId === 'all' && selectedGroupFilter === 'all' ? (
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {functionalGroups.map((group) => {
+              const confirmedCount = businesses.filter((business) => business.functionalGroupId === group.id && Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen).length;
+              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.functional_group_id === group.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              return (
+                <button key={group.id} type="button" onClick={() => { selectGroup(group.id); setTaxonomyBrowserOpen(true); }} className="group flex min-h-36 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md">
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">{ICONS_MAP[group.id] || <Folder className="h-7 w-7" />}</span>
+                  <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{group.name}</span><span className="mt-1 block text-xs text-slate-500">افتح المجموعة لعرض تصنيفاتها</span><span className="mt-2 flex items-center gap-2 text-xs font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق: {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير مؤكد: {unconfirmedCount}</span></span></span>
+                  <ChevronLeft className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-emerald-700" />
+                </button>
+              );
+            })}
+          </section>
+        ) : selectedCategoryId === 'all' ? (
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {folderCategories.map((category) => {
+              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
+              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              return (
+                <button key={category.id} type="button" onClick={() => { setSelectedCategoryId(category.id); setSelectedSpecialty('all'); }} className="group flex min-h-32 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-800"><Folder className="h-6 w-6" /></span>
+                  <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{category.name}</span><span className="mt-1 block text-xs text-slate-500">{category.classificationType === 'profession' ? 'مجلد مهنة' : 'مجلد نشاط'}</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير مؤكد {unconfirmedCount}</span></span></span>
+                  <ChevronLeft className="h-4 w-4 shrink-0 text-slate-400" />
+                </button>
+              );
+            })}
+            {folderCategories.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد تصنيفات مسجلة داخل هذه المجموعة حتى الآن.</p>}
+          </section>
+        ) : (
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <button type="button" onClick={() => { setSelectedSpecialty('all'); setTaxonomyBrowserOpen(false); }} className="flex min-h-28 items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-right hover:bg-emerald-100">
+              <Folder className="h-7 w-7 shrink-0 text-emerald-800" /><span><span className="block font-black text-emerald-950">كل {activeCategory?.classificationType === 'profession' ? 'المجالات' : 'الأنواع'}</span><span className="mt-1 block text-xs text-emerald-800">عرض كل الجهات في هذا التصنيف</span></span>
+            </button>
+            {(activeCategory?.specialties || []).map((specialty) => {
+              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activeCategory?.id && (business.activitySpecialty === specialty || business.category.endsWith(specialty))).length;
+              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activeCategory?.id && listing.taxonomy_specialty === specialty && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              return (
+                <button key={specialty} type="button" onClick={() => { setSelectedSpecialty(specialty); setTaxonomyBrowserOpen(false); }} className="group flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50/50">
+                  <Folder className="h-7 w-7 shrink-0 text-amber-600" /><span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{specialty}</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير مؤكد {unconfirmedCount}</span></span></span><ChevronLeft className="h-4 w-4 shrink-0 text-slate-400" />
+                </button>
+              );
+            })}
+            {!(activeCategory?.specialties || []).length && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد مجالات فرعية مسجلة. استخدم «كل الأنواع» لعرض الجهات التابعة للتصنيف.</p>}
+          </section>
+        )}
+      </main>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-20">
       {/* 1. Full-Width Horizontal Title Bar right under header */}
@@ -489,7 +580,7 @@ export const DirectoryView: React.FC = () => {
 
           <div className="grid grid-cols-5 sm:grid-cols-5 lg:grid-cols-5 xl:grid-cols-10 gap-1.5 sm:gap-2">
             <button
-              onClick={() => selectGroup('all')}
+              onClick={() => { selectGroup('all'); setTaxonomyBrowserOpen(true); }}
               aria-pressed={selectedGroupFilter === 'all'}
               className={`group relative flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${selectedGroupFilter === 'all' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
             >
