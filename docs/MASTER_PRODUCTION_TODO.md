@@ -2053,3 +2053,11 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Filled only previously empty phone fields on the existing October, El Safa, and Hany records using a public directory source; preserved non-empty fields.
 - [x] Added 8 read-after-write verified local auto-parts/agricultural-supply listings, PUBLISHED/UNCLAIMED, with owner confirmation required.
 - [ ] Continue source-based discovery and cross-catalog name/phone matching across all 18 groups; verify village scope and phone numbers with owners before treating records as confirmed.
+
+
+## 2026-10-29 — Local legal services
+
+- [x] Checked existing local legal listings before insertion; existing مكتب محاماة حمدي حافظ فهمي was retained.
+- [x] Added 17 legal-service leads from the local Yellow Pages category, PUBLISHED/UNCLAIMED with phone fields blank where not exposed by the source.
+- [ ] Verify Arabic spellings, current office status, exact identity, and contact information directly before treating any entry as confirmed.
+- [ ] Continue through remaining groups and village-level coverage; don't infer a complete directory from current totals.
