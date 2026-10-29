@@ -2061,3 +2061,10 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Added 17 legal-service leads from the local Yellow Pages category, PUBLISHED/UNCLAIMED with phone fields blank where not exposed by the source.
 - [ ] Verify Arabic spellings, current office status, exact identity, and contact information directly before treating any entry as confirmed.
 - [ ] Continue through remaining groups and village-level coverage; don't infer a complete directory from current totals.
+
+
+## 2026-10-29 — Pharmacy discovery follow-up
+
+- [x] Added 5 pharmacy leads after checking existing records; did not duplicate the existing Dr Abdel Hamid El Gendy, Ahmed Farag, or Dr Mohamed Sabry records.
+- [x] Left phones blank where sources did not publish them; corrected the Ibn Sina phone field to NULL after discovering the source did not provide a number.
+- [ ] Verify public-directory phone numbers and current operating status with each pharmacy owner before changing any verification status.
