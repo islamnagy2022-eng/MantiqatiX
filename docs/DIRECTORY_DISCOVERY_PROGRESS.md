@@ -30,6 +30,13 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 - Existing matching doctors already in the database were not reinserted.
 - Added 1 pharmacy in Genzour after a cross-catalog name/phone check: صيدلية إسلام داوود — 0489136699; source: https://www.dalilmadina.com/city_clinic.aspx?NUM=241. The record is PUBLISHED/UNCLAIMED; owner confirmation required; source phone not directly verified with owner.
 - Added 2 more pharmacies after a cross-catalog name/phone check: صيدلية سهام — 0482913190 (near Berket El Sabaa Hospital) and صيدلية د. أحمد حسن — 0482270049 (Malig village). Source: https://dalil140.com/category/en/pharmacies/el-monofeya/berket-el-sabaa. Both records are PUBLISHED/UNCLAIMED; owner confirmation required; source phone not directly verified with owner.
+
+### Food & grocery group — initial batch
+
+- Used the Egypt Yellow Pages restaurant listing for Berket El Sabaa: https://yellowpages.com.eg/en/category/berket-el-sabaa-restaurants/3829.
+- Compared candidate names against current catalog records. Existing records such as مطعم الأصلي, مطعم المحلاوي, مطعم جابر عمر, حكاية, كشري الباشا, حلويات ياقوت, and مخبز الحرمين were not reinserted.
+- Added 9 listings from source names/addresses where no matching existing record was found: مطعم أبو رضوى; مخبز علا بركات الله; مطعم الحرمين; مطعم الملكي; مطعم السلطان; مطعم الزعيم; مطعم إيطاليا; كشري فيينا; مطعم سويت هوم.
+- Source page did not expose phone numbers in the retrieved listing; phone fields were left empty rather than guessed. All 9 are PUBLISHED/UNCLAIMED with owner confirmation required and source phone verification false.
 - Corrected the existing record for مركز د. محمد أحمد المراكبي للأسنان from the individual-dentist category to the dental-centers activity category, preserving its ID, slug, contact information, source, and status.
 - The pharmacy review also confirmed that four other village pharmacy records from the same source already existed, so they were not duplicated.
 
@@ -45,4 +52,4 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 
 ## Current status
 
-Partial execution started: 6 verified insertions in this session (3 doctors and 3 pharmacies). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
+Partial execution started: 15 verified insertions in this session (3 doctors, 3 pharmacies, 9 food businesses). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
