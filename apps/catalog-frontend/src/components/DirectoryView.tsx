@@ -145,6 +145,8 @@ export const DirectoryView: React.FC = () => {
     (selectedCategoryKind === 'all' || (category.classificationType || 'activity') === selectedCategoryKind)
   );
   const selectedTaxonomyCategory = categories.find((category) => category.id === selectedCategoryId);
+  const selectedTaxonomyCategoryCode = selectedTaxonomyCategory?.id.startsWith(`cat_${selectedTaxonomyCategory.functionalGroupId}_`)
+    ? selectedTaxonomyCategory.id.slice(`cat_${selectedTaxonomyCategory.functionalGroupId}_`.length) : '';
   const categoryForBusiness = (business: Business) =>
     categories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — ') || (category.classificationType === 'profession' && business.category.startsWith(category.name + ' ')));
 
@@ -503,8 +505,8 @@ export const DirectoryView: React.FC = () => {
           <DirectoryListingsView
             onOpen={openDirectoryListing}
             onBack={closeDirectoryListing}
-            listingTypeFilter={selectedTaxonomyCategory ? ({ pharmacies: 'pharmacy', clinics: 'clinic', hospitals: 'hospital', labs: 'laboratory', doctor: 'doctor', dentist: 'doctor', dental_centers: 'clinic', radiology: 'doctor', physio_centers: 'doctor', physio_centers: 'health_provider' } as Record<string, string>)[selectedTaxonomyCategory.id] || null : null}
-            taxonomyCategoryId={selectedTaxonomyCategory?.functionalGroupId === 'medical_health' ? selectedTaxonomyCategory.id : null}
+            listingTypeFilter={selectedTaxonomyCategory ? ({ pharmacies: 'pharmacy', clinics: 'clinic', hospitals: 'hospital', labs: 'laboratory', doctor: 'doctor', dentist: 'doctor', dental_centers: 'clinic', radiology: 'doctor', physio_centers: 'health_provider' } as Record<string, string>)[selectedTaxonomyCategoryCode] || null : null}
+            taxonomyCategoryId={selectedTaxonomyCategory?.functionalGroupId === 'medical_health' ? selectedTaxonomyCategoryCode : null}
             taxonomySpecialty={selectedSpecialty === 'all' ? null : selectedSpecialty}
           />
         )}
