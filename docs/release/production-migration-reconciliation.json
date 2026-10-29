@@ -3,8 +3,8 @@
   "project": "moyhiluyhjsujhwlyeuu",
   "status": "BLOCKED",
   "verified": false,
-  "live_ledger_last_version": "20261027223523",
-  "live_ledger_last_name": "rc451_targeted_ads_search_path_forward_repair",
+  "live_ledger_last_version": "20261028112112",
+  "live_ledger_last_name": "auto_assign_unowned_businesses_to_catalog_owner",
   "rc424_source_filename_version": "20261009010000",
   "source_ledger_identity_reconciled": true,
   "required_release_migrations_applied": false,
@@ -1187,5 +1187,7 @@
       }
     ],
     "interpretation": "The live project lacks the RC113-RC115 control-center/employee dependencies and RC457 permission-ceiling helpers. Do not deploy or merge this dashboard feature until the missing release migrations are reconciled and the required objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
-  }
+  },
+  "live_ledger_checked_at": "2026-10-29",
+  "live_ledger_verification_method": "Read-only SELECT from supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 10 through Supabase MCP; no production writes."
 }
