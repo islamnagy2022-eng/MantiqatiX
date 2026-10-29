@@ -101,6 +101,9 @@ export const DirectoryView: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>('all');
+  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>('all');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [listingSlug, setListingSlug] = useState<string>(() => new URLSearchParams(window.location.search).get('listing') || '');
   const openDirectoryListing = (slug: string) => {
     const url = new URL(window.location.href);
@@ -202,7 +205,10 @@ export const DirectoryView: React.FC = () => {
     const matchesSpecialty = selectedSpecialty === 'all' ||
       storedSpecialty === selectedSpecialty || categorySuffix === selectedSpecialty;
     const matchesGov = selectedGovFilter === 'all' || normalizeSearch(biz.governorate) === normalizeSearch(selectedGovFilter);
-    return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov;
+    const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeSearch(biz.markaz) === normalizeSearch(selectedMarkazFilter);
+    const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(biz.village) === normalizeSearch(selectedVillageFilter);
+    const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(biz.address).includes(normalizeSearch(selectedAreaFilter));
+    return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => {
     const aVerified = a.isVerified ? 0 : 1;
     const bVerified = b.isVerified ? 0 : 1;
@@ -225,10 +231,22 @@ export const DirectoryView: React.FC = () => {
     const matchesCategory = selectedCategoryId === 'all' || listing.taxonomy_category_id === selectedCategoryId;
     const matchesSpecialty = selectedSpecialty === 'all' || normalizeSearch(listing.taxonomy_specialty) === normalizeSearch(selectedSpecialty);
     const matchesGov = selectedGovFilter === 'all' || normalizeSearch(listing.governorate) === normalizeSearch(selectedGovFilter);
-    return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov;
+    const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeSearch(listing.district) === normalizeSearch(selectedMarkazFilter);
+    const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(listing.village) === normalizeSearch(selectedVillageFilter);
+    const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(listing.address).includes(normalizeSearch(selectedAreaFilter));
+    return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar'));
 
-  const uniqueGovernorships = Array.from(new Set(businesses.map((b) => b.governorate).filter(Boolean)));
+  const locationRecords = [
+    ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
+      .map((b) => ({ governorate: b.governorate, markaz: b.markaz, village: b.village, address: b.address })),
+    ...unconfirmedListings.filter((l) => l.listing_status === 'PUBLISHED' && l.claim_status !== 'CLAIMED')
+      .map((l) => ({ governorate: l.governorate, markaz: l.district, village: l.village || '', address: l.address || '' })),
+  ];
+  const uniqueGovernorships = Array.from(new Set(locationRecords.map((b) => b.governorate).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueMarkaz = Array.from(new Set(locationRecords.filter((r) => selectedGovFilter === 'all' || normalizeSearch(r.governorate) === normalizeSearch(selectedGovFilter)).map((r) => r.markaz).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueVillages = Array.from(new Set(locationRecords.filter((r) => (selectedGovFilter === 'all' || normalizeSearch(r.governorate) === normalizeSearch(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeSearch(r.markaz) === normalizeSearch(selectedMarkazFilter))).map((r) => r.village).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueAreas = Array.from(new Set(locationRecords.filter((r) => (selectedGovFilter === 'all' || normalizeSearch(r.governorate) === normalizeSearch(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeSearch(r.markaz) === normalizeSearch(selectedMarkazFilter)) && (selectedVillageFilter === 'all' || normalizeSearch(r.village) === normalizeSearch(selectedVillageFilter))).map((r) => String(r.address || '').trim()).filter((address) => address.length >= 3))).sort((a, b) => a.localeCompare(b, 'ar'));
 
   if (listingSlug) return <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />;
 
@@ -559,23 +577,31 @@ export const DirectoryView: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 font-bold whitespace-nowrap">
-              <MapPin className="w-4 h-4 text-emerald-600" />
-              <span>المحافظة (تصفية الإعلانات والأنشطة):</span>
-            </div>
-            <select
-              value={selectedGovFilter}
-              onChange={(e) => setSelectedGovFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
-            >
-              <option value="all">كافة المحافظات المصرية (إعلانات عامة)</option>
-              {uniqueGovernorships.map((gov) => (
-                <option key={gov} value={gov}>
-                  محافظة {gov}
-                </option>
-              ))}
-            </select>
+          <div className="grid w-full grid-cols-2 gap-2 md:w-auto md:min-w-[560px] md:grid-cols-4">
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
+              <select value={selectedGovFilter} onChange={(e) => { setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+                <option value="all">كل المحافظات</option>
+                {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
+              </select>
+            </label>
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / المدينة
+              <select value={selectedMarkazFilter} onChange={(e) => { setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+                <option value="all">كل المراكز</option>
+                {uniqueMarkaz.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الحي
+              <select value={selectedVillageFilter} onChange={(e) => { setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+                <option value="all">كل القرى والأحياء</option>
+                {uniqueVillages.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المنطقة / العنوان
+              <select value={selectedAreaFilter} onChange={(e) => setSelectedAreaFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+                <option value="all">كل المناطق</option>
+                {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
+              </select>
+            </label>
           </div>
         </div>
 
