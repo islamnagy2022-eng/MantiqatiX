@@ -97,32 +97,54 @@ export const DirectoryView: React.FC = () => {
 
   const requestUserLocation = () => {
     if (!('geolocation' in navigator)) {
-      setLocationMessage('تحديد الموقع غير مدعوم على هذا الجهاز؛ يمكنك متابعة البحث بالموقع اليدوي.');
+      setLocationMessage('تحديد الموقع غير مدعوم على هذا المتصفح؛ يمكنك متابعة البحث بالموقع اليدوي.');
+      return;
+    }
+    if (!window.isSecureContext) {
+      setLocationMessage('تحديد الموقع يحتاج إلى اتصال آمن HTTPS؛ افتح الكتالوج من رابط آمن ثم أعد المحاولة.');
       return;
     }
     setLocationBusy(true);
     setLocationMessage('');
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setUserCoordinates({ latitude: coords.latitude, longitude: coords.longitude });
-        setSelectedGovFilter('all');
-        setSelectedMarkazFilter('all');
-        setSelectedVillageFilter('all');
-        setSelectedAreaFilter('all');
-        setLocationMessage('تم تحديد موقعك. ستُرتّب النتائج الأقرب أولًا عند توفر إحداثيات موثوقة للنشاط.');
-        setLocationBusy(false);
-      },
-      (error) => {
-        const message = error.code === error.PERMISSION_DENIED
-          ? 'لم تسمح بالوصول إلى الموقع؛ البحث اليدوي ما زال متاحًا.'
-          : error.code === error.TIMEOUT
-            ? 'استغرق تحديد الموقع وقتًا طويلًا؛ جرّب مرة أخرى أو استخدم الاختيار اليدوي.'
-            : 'تعذر تحديد موقعك؛ يمكنك متابعة البحث بالموقع اليدوي.';
-        setLocationMessage(message);
-        setLocationBusy(false);
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
-    );
+    try {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          const latitude = Number(coords.latitude);
+          const longitude = Number(coords.longitude);
+          const accuracy = Number(coords.accuracy);
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+              Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+            setLocationMessage('أعاد الجهاز إحداثيات غير صالحة؛ جرّب تحديد الموقع مرة أخرى.');
+            setLocationBusy(false);
+            return;
+          }
+          setUserCoordinates({ latitude, longitude });
+          setSelectedGovFilter('all');
+          setSelectedMarkazFilter('all');
+          setSelectedVillageFilter('all');
+          setSelectedAreaFilter('all');
+          setLocationMessage(Number.isFinite(accuracy) && accuracy > 1000
+            ? 'تم تحديد الموقع، لكن الدقة منخفضة نسبيًا. جرّب مرة أخرى في مكان مفتوح لتحسين النتائج.'
+            : 'تم تحديد موقعك. ستظهر المسافات عند توفر إحداثيات موثوقة للأنشطة، ويمكنك اختيار الموقع الإداري يدويًا.');
+          setLocationBusy(false);
+        },
+        (error) => {
+          const message = error.code === error.PERMISSION_DENIED
+            ? 'لم تسمح بالوصول إلى الموقع؛ يمكنك تفعيل الإذن من إعدادات المتصفح أو استخدام البحث اليدوي.'
+            : error.code === error.TIMEOUT
+              ? 'انتهت مهلة تحديد الموقع؛ تأكد من تشغيل خدمة الموقع ثم جرّب مرة أخرى.'
+              : error.code === error.POSITION_UNAVAILABLE
+                ? 'الموقع الحالي غير متاح من الجهاز الآن؛ تحقق من تشغيل GPS ثم أعد المحاولة.'
+                : 'تعذر تحديد موقعك؛ يمكنك متابعة البحث بالموقع اليدوي.';
+          setLocationMessage(message);
+          setLocationBusy(false);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+      );
+    } catch {
+      setLocationMessage('تعذر بدء طلب تحديد الموقع؛ تحقق من إعدادات المتصفح ثم أعد المحاولة.');
+      setLocationBusy(false);
+    }
   };
   useEffect(() => {
     let cancelled = false;
@@ -317,28 +339,28 @@ export const DirectoryView: React.FC = () => {
     return normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar');
   });
 
-  // If a selected area has no results, widen geography while preserving the text and taxonomy search.
-  useEffect(() => {
-    if (directoryLoading || !directoryListingsLoaded || filteredBusinesses.length + filteredUnconfirmedListings.length > 0) return;
+  // Keep the selected geographic scope stable. Widening is always an explicit visitor action.
+  const hasNoSearchResults = !directoryLoading && directoryListingsLoaded &&
+    filteredBusinesses.length + filteredUnconfirmedListings.length === 0;
+  const canWidenGeographicSearch = selectedAreaFilter !== 'all' ||
+    selectedVillageFilter !== 'all' || selectedMarkazFilter !== 'all' || selectedGovFilter !== 'all';
+  const widenGeographicSearch = () => {
     if (selectedAreaFilter !== 'all') {
       setSelectedAreaFilter('all');
-      setLocationMessage('لا توجد نتائج في المنطقة المحددة؛ تم توسيع البحث إلى القرية أو الحي نفسه.');
+      setLocationMessage('تم توسيع البحث من المنطقة إلى القرية أو الحي. النتائج ستظل مطابقة للنطاق الإداري المحدد.');
     } else if (selectedVillageFilter !== 'all') {
       setSelectedVillageFilter('all');
-      setLocationMessage('لا توجد نتائج في القرية أو الحي؛ تم توسيع البحث إلى المركز أو المدينة.');
+      setLocationMessage('تم توسيع البحث من القرية أو الحي إلى المركز أو المدينة.');
     } else if (selectedMarkazFilter !== 'all') {
       setSelectedMarkazFilter('all');
-      setLocationMessage('لا توجد نتائج في المركز أو المدينة؛ تم توسيع البحث إلى المحافظة.');
+      setLocationMessage('تم توسيع البحث من المركز أو المدينة إلى المحافظة.');
     } else if (selectedGovFilter !== 'all') {
       setSelectedGovFilter('all');
       setLocationMessage(userCoordinates
-        ? 'لا توجد نتائج في المحافظة؛ تم توسيع البحث إلى المناطق الأخرى وترتيب النتائج ذات الإحداثيات حسب القرب.'
-        : 'لا توجد نتائج في المحافظة؛ تم توسيع البحث إلى بقية المناطق. حدد موقعك لترتيب النتائج حسب المسافة عند توفر الإحداثيات.');
+        ? 'تم توسيع البحث إلى جميع المحافظات؛ ستُعرض الأنشطة ذات الإحداثيات الموثوقة حسب القرب.'
+        : 'تم توسيع البحث إلى جميع المحافظات.');
     }
-  }, [
-    directoryLoading, directoryListingsLoaded, filteredBusinesses.length, filteredUnconfirmedListings.length,
-    selectedAreaFilter, selectedVillageFilter, selectedMarkazFilter, selectedGovFilter, userCoordinates,
-  ]);
+  };
 
   const locationRecords = [
     ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
@@ -686,6 +708,11 @@ export const DirectoryView: React.FC = () => {
               {locationBusy ? 'جارٍ تحديد الموقع…' : userCoordinates ? 'تحديث موقعي' : 'حدد موقعي'}
             </button>
             {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
+            {hasNoSearchResults && canWidenGeographicSearch && (
+              <button type="button" onClick={widenGeographicSearch} className="inline-flex min-h-9 items-center justify-center self-start rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100">
+                لا توجد نتائج — توسيع النطاق الجغرافي
+              </button>
+            )}
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
               <select value={selectedGovFilter} onChange={(e) => { setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
