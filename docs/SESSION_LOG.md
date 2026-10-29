@@ -475,3 +475,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - [x] Pinned axe-core WCAG 2.1 A/AA audit passed with no critical or serious violations in four main-content scopes: owner mobile dashboard, owner desktop dashboard, merchant QR tab, QR modal.
 - [ ] Live authenticated production owner/employee sessions, actual camera scan on a physical device, tablet/keyboard manual review and custom-domain checks remain NOT VERIFIED. Mocked-Supabase browser E2E does not claim real-session authorization proof.
 - [ ] The broader production platform remains **BLOCKED / NOT CERTIFIED**; the dashboard-only dependency gate is separate from the unresolved 41-version release migration ledger and finance/payment/Edge Function, backup/restore, Auth, monitoring and rollback gates.
+
+
+## 2026-10-29 — Berket El Sabaa doctors directory and claim workflow
+
+- Deployed 43 initial doctor listing records sourced from public directory pages in Berket El Sabaa, Menoufia. A read-only production query verified 43 rows, all with phone/address fields, and 37 specialty labels filled; the remaining 6 specialty fields are clearly marked as needing confirmation rather than guessed.
+- Applied production migration `20261029120000_public_directory_listings_and_claims`; created public directory listing records and claim request storage, with direct anon/authenticated table grants revoked.
+- Deployed Supabase Edge Function `directory-listings` version 2 with public read, signed-in claim request, admin add/edit and controlled ownership review endpoints.
+- Added shareable individual listing route in the catalog, public list/search/specialty filter, and platform-admin workflow to complete missing details and review claims.
+- [x] Primary frontend validation succeeded; deployed-origin browser regression suite passed on [run 40822443666](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40822443666).
+- [ ] Do not present listed phone/specialty/address as freshly verified by MantiqatiX. Records are based on a public directory and are labeled initial/unverified; direct contact and correction requests are outstanding.
+- [ ] No actual doctor has been contacted and no real claimant has completed the claim flow yet. Ownership transfer remains gated by manual identity/ownership verification and confirmed paid subscription for the selected active business.

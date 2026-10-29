@@ -1927,3 +1927,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Actual authenticated production-account role tests remain NOT VERIFIED. The browser test harness uses synthetic sessions and mocked Supabase responses, so it is not proof of live Auth/RLS behavior for a real account.
 - [ ] Manual physical-device/tablet and keyboard usability review, custom-domain verification, and QR scan with a real camera remain NOT VERIFIED.
 - [ ] Overall platform release remains **BLOCKED / NOT CERTIFIED** due to unrelated missing full-platform migrations and finance/payment, Edge Function parity, backup/restore, Auth, monitoring and rollback evidence.
+
+
+## 2026-10-29 — Public local healthcare directory and ownership-claim workflow
+
+- [x] Applied forward-only migration `20261029120000_public_directory_listings_and_claims` to production project `moyhiluyhjsujhwlyeuu`; adds public directory listings and ownership claim requests with RLS + FORCE RLS, browser table access revoked, service-role access only.
+- [x] Seeded 43 initial public doctor listing pages for Berket El Sabaa, Menoufia. Production read-back: 43/43 have at least one phone and address; 37/43 have a specialty listed as such; 6 specialty labels explicitly require confirmation.
+- [x] Added `directory-listings` Edge Function (production version 2): public listing read endpoints, authenticated claim submission, platform-admin listing management, and ownership approval guardrails.
+- [x] Added public directory listing/profile UI, search/specialty filtering, individual shareable `?listing=<slug>` routes, and platform-admin tab “دليل الأنشطة والمطالبات” for adding/editing listings and reviewing claims. Primary frontend validation passed on commit `775fd8055b36d226fef596312a461751a1047898`; subsequent backend idempotence fix is `ddc1a8a5cf666e51ac93074bd15eddbd99e8199b`.
+- [x] GitHub Pages deployment and deployed-origin browser regression checks passed on run [40822443666](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40822443666).
+- [ ] These directory entries are initial public-source records, not verified medical credentials, current phone verification, or doctor consent. Contact each doctor/clinic and refresh the details before describing the listing as confirmed. Main source used: [Dalil140 — doctors in Berket El Sabaa](https://dalil140.com/category/ar/doctors/el-monofeya/berket-el-sabaa), with its specialty subdirectories.
+- [ ] End-to-end real-account ownership claim and paid-subscription handoff have not yet been manually exercised with a real claimant. The code rejects approval unless an administrator explicitly verifies identity/ownership and chooses an active business with paid subscription confirmed. Do not claim ownership is transferred automatically on payment alone.
