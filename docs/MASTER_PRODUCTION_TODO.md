@@ -1998,3 +1998,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Every public-source lead remains unclaimed/unconfirmed until direct verification. Keep blanks for unknown phones and do not describe public directory numbers as freshly verified.
 - [ ] The bank-category frontend validation passed on run 40830599537, but deployment runs were cancelled by newer pushes and the newest Deploy MantiqatiX Web run [40830767697](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830767697) was queued at the time of this entry. Confirm a successful deploy before claiming the new taxonomy is live.
 - [ ] Continue sourcing all local units and villages; 247 listings is an expanded working directory, not proof of complete coverage of every activity in the center.
+
+
+## 2026-10-29 — Berket El Sabaa directory expansion batch 5
+
+- [x] Added 4 additional public-source records after duplicate checks: two auto-repair shops (أحمد شبل and حمادة) and one Mohamed workshop entry under auto maintenance, plus العطوي للأجهزة المنزلية. Other candidate appliance names were already represented and were not duplicated.
+- [x] Final read-after-write inventory: **251 published directory listings across 18 functional groups**; **191** have a phone; all 251 have an address and source URL. Name-duplicate audit: zero groups; taxonomy/group consistency audit: zero mismatches.
+- [x] Updated current counts: agriculture_animals 8; auto_transport 9; construction_decor 12; education_training 8; fashion_beauty 38; finance_insurance 8; food_grocery 19; home_maintenance 21; industry_workshops 7; marketing_media 9; medical_health 44; professional_services 13; public_community 2; real_estate 3; sports_fitness 8; technology_communications 27; tourism_events 8; trade_ecommerce 7.
+- [x] Source: [Dalil140 — auto repair and servicing in Berket El Sabaa](https://dalil140.com/category/ar/cars-repairing-servicing-equipment/el-monofeya/berket-el-sabaa) and [home appliances in Berket El Sabaa](https://dalil140.com/category/ar/appliances/el-monofeya/berket-el-sabaa).
+- [ ] Deployment of the added bank classification is still pending at [Deploy MantiqatiX Web run 40830850253](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830850253). Verify the latest deploy before claiming it is visible live.
+- [ ] The directory is expanded but not yet exhaustive. Continue systematic sourcing of all villages/hamlets and remaining activities, especially public/community services, agriculture, education, transportation, and village-specific businesses. All source-derived records remain unconfirmed until direct verification.
