@@ -324,7 +324,7 @@ jobs:
     # Full production certification remains mandatory before publish.
     needs: [validate, validate_public_only]
     if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.validate.result == 'success'
-    timeout-minutes: 10
+    timeout-minutes: 25
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -384,3 +384,26 @@ jobs:
             fi
           done
           echo "MANTIQATIX_DEMO_AND_SMM_ROUTES=NOT_PUBLISHED"
+
+      - name: Checkout browser test harness for deployed-origin verification
+        uses: actions/checkout@v6
+      - name: Setup Node for deployed-origin browser checks
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install pinned Playwright and Chromium for deployed-origin browser checks
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/playwright-runner
+          npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1
+          /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
+      - name: Test deployed dashboard routes, mobile layout, membership scopes, and permanent QR links
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          ROOT_URL="${PAGE_URL%/}/"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" >/dev/null
+          PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
+          MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
+          node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
