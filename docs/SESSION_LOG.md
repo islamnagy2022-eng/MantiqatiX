@@ -601,3 +601,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Follow-up review after the dental batch found three newly inserted individual dentists had been categorized as dental clinics/activity records.
 - Corrected those same records in place: د. حسام أحمد سويلم، د. حسام محمد ضيف، and د. ياسر عبد الوهاب المليجي are now `listing_type='doctor'`, taxonomy `cat_medical_health_dentist`, specialty `أسنان عام`.
 - No records were deleted and no phone/address/source fields were overwritten. Existing matching dentists already in the correct dentist/profession taxonomy were retained rather than duplicated.
+
+
+## 2026-10-29 — DIRECTORY DISCOVERY STARTED — BERKET EL SABAA ONLY
+
+- **Scope:** Berket El Sabaa city and its administratively affiliated villages/hamlets/dependencies only; no listings from other Monufia centers should be attributed to this scope.
+- **Repository audit:** `apps/catalog-frontend/src/data/productionDefaults.ts` contains 18 functional groups and 221 category seed entries. This is a code-seed count only; effective live/saved taxonomy still needs separate verification.
+- **Database audit:** `public.public_directory_listings` reported 325 rows and RLS enabled at the time of inspection.
+- **Source research:** public directory page https://dalil140.com/category/ar/doctors/el-monofeya/berket-el-sabaa returned local doctor records and phone/address data.
+- **Executed and read-after-write verified:** inserted three previously absent records after a global normalized name/phone check: د. هيثم البلتاجي عبد القادر (0482913270, 0482998467), د. إيهاب محمد البلشي (0482994199, 0482998880), and د. عادل عبد الكريم بدوي (01112480327). Source records remain PUBLISHED and UNCLAIMED; metadata states owner confirmation is required and source phone is not verified directly with the owner.
+- **Not completed:** no 50-category migration, no full village/hamlet coverage audit, no broad deployment, and no claim that the directory is complete. The previously identified dental-center misclassification for `مركز د. محمد أحمد المراكبي للأسنان` remains open.
+- **Next:** continue medical discovery with cross-catalog duplicate checks; build the verified geographic coverage list; design a safe category mapping before changing any live taxonomy.
