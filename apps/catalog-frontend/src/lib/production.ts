@@ -261,6 +261,7 @@ const selectMembershipForBusiness = (
       !membership.business_id && !membership.branch_id &&
       String(membership.status || '').toUpperCase() === 'ACTIVE'
     );
+};
 
 export async function bootstrapProductionUser(user: User | null): Promise<{
   authSession: AuthSession; businesses: Business[]; products: Product[]; subscribers: Subscriber[]; adminSettings: AdminSettings;
