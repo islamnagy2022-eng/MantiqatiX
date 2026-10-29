@@ -594,3 +594,10 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Applied global duplicate checks on normalized names and digit-normalized primary/secondary phones before insert. Four candidates were skipped because existing records matched by name/phone; no existing non-empty data was overwritten.
 - Post-write verification: **7 listings total in this dental category for Berket El Sabaa; all 7 have a phone, are PUBLISHED and UNCLAIMED, and are marked as requiring owner confirmation**.
 - Sources and source-check timestamps are stored on the records. Phone numbers and business details are public-source leads, not owner-verified. No owner accounts/subscriptions were created; no frontend deployment was performed or claimed.
+
+
+## 2026-10-29 — Dental taxonomy correction (preserve and classify, do not delete)
+
+- Follow-up review after the dental batch found three newly inserted individual dentists had been categorized as dental clinics/activity records.
+- Corrected those same records in place: د. حسام أحمد سويلم، د. حسام محمد ضيف، and د. ياسر عبد الوهاب المليجي are now `listing_type='doctor'`, taxonomy `cat_medical_health_dentist`, specialty `أسنان عام`.
+- No records were deleted and no phone/address/source fields were overwritten. Existing matching dentists already in the correct dentist/profession taxonomy were retained rather than duplicated.
