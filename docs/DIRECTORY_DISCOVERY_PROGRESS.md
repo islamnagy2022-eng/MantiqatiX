@@ -83,3 +83,12 @@ Partial execution started: 34 verified insertions across the documented batches 
 - [x] Phone fields were left blank because the category page did not surface numbers in the retrieved result. Listings are PUBLISHED/UNCLAIMED, with owner confirmation required and no direct phone verification claimed.
 - Source: https://yellowpages.com.eg/en/category/بركة-السبع-محامين/3829.
 - [ ] Verify Arabic spellings, exact office identity, and contact details with the businesses before marking these entries confirmed. A name/address in a public directory is a lead, not proof of current operation or bar membership.
+
+
+### Medical group — pharmacy discovery follow-up (2026-10-29)
+
+- [x] Queried current pharmacy records by name before inserting the next batch; existing records for صيدليات د. عبد الحميد الجندي, صيدلية أحمد فرج, and صيدلية د. محمد صبري were found and not duplicated.
+- [x] Added 5 pharmacy directory leads after checking current records: صيدلية ابن سينا (phone not exposed by source and left blank), صيدلية أحمد سليمان (phone not exposed and left blank), صيدلية مكة (0482994571), صيدلية فتحي الجديدة (0482994595), and صيدلية د. علاء فرج in مليج (0482272400).
+- [x] Source pages: https://healtheg.com/en/Results/Pharmacies/City-monofiya/area-berket-alsab3 and Med.tn pharmacy directory pages for Berket El Sabaa listings. These numbers are public-directory data, not direct owner verification.
+- [x] Corrected an initially entered unsubstantiated phone for صيدلية ابن سينا immediately after review; phone is now NULL because the source did not provide it. Do not treat the record as phone-verified.
+- [ ] Continue the same name + normalized-phone duplicate checks across the whole catalog and verify all source-derived contact details with owners before marking any record confirmed.
