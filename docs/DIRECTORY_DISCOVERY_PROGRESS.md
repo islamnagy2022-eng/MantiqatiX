@@ -29,11 +29,13 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 - Database returned all 3 inserted rows after write.
 - Existing matching doctors already in the database were not reinserted.
 - Added 1 pharmacy in Genzour after a cross-catalog name/phone check: صيدلية إسلام داوود — 0489136699; source: https://www.dalilmadina.com/city_clinic.aspx?NUM=241. The record is PUBLISHED/UNCLAIMED; owner confirmation required; source phone not directly verified with owner.
+- Added 2 more pharmacies after a cross-catalog name/phone check: صيدلية سهام — 0482913190 (near Berket El Sabaa Hospital) and صيدلية د. أحمد حسن — 0482270049 (Malig village). Source: https://dalil140.com/category/en/pharmacies/el-monofeya/berket-el-sabaa. Both records are PUBLISHED/UNCLAIMED; owner confirmation required; source phone not directly verified with owner.
+- Corrected the existing record for مركز د. محمد أحمد المراكبي للأسنان from the individual-dentist category to the dental-centers activity category, preserving its ID, slug, contact information, source, and status.
 - The pharmacy review also confirmed that four other village pharmacy records from the same source already existed, so they were not duplicated.
 
 ## Still open
 
-- Verify and correct the known dental-center classification for `مركز د. محمد أحمد المراكبي للأسنان`; a prior attempt was blocked and must not be represented as complete.
+- [DONE] Corrected the classification for `مركز د. محمد أحمد المراكبي للأسنان` to `cat_medical_health_dental_centers` while preserving the record.
 - Complete a source-backed administrative list of all villages/hamlets/dependencies of Berket El Sabaa.
 - Continue medical discovery by specialty and village; query more than one source and compare against all 325+ current listings before each batch.
 - Review medical listings with incomplete specialty/location metadata.
@@ -43,4 +45,4 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 
 ## Current status
 
-Partial execution started: 4 verified insertions in this session (3 doctors and 1 pharmacy). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
+Partial execution started: 6 verified insertions in this session (3 doctors and 3 pharmacies). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
