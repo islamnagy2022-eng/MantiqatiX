@@ -122,7 +122,7 @@ export const DirectoryView: React.FC = () => {
   );
   const selectedTaxonomyCategory = categories.find((category) => category.id === selectedCategoryId);
   const categoryForBusiness = (business: Business) =>
-    categories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — '));
+    categories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — ') || (category.classificationType === 'profession' && business.category.startsWith(category.name + ' ')));
 
   // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
@@ -330,6 +330,86 @@ export const DirectoryView: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* Hierarchical taxonomy navigation: group -> activity/profession -> specialty -> matching businesses */}
+        <section aria-label="تصفح التصنيفات والتخصصات" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-black text-slate-900">تصفح حسب التصنيف والتخصص</h2>
+              <p className="mt-1 text-xs text-slate-500">افتح المجموعة ثم النشاط أو المهنة، وبعدها اختر التخصص لعرض الجهات المطابقة فقط.</p>
+            </div>
+            {(selectedGroupFilter !== 'all' || selectedCategoryId !== 'all' || selectedSpecialty !== 'all') && (
+              <button type="button" onClick={() => { selectGroup('all'); setSelectedGovFilter('all'); }} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                عرض كل التصنيفات
+              </button>
+            )}
+          </div>
+
+          <nav aria-label="مسار التصنيف" className="flex flex-wrap items-center gap-2 text-xs font-bold">
+            <button type="button" onClick={() => selectGroup('all')} className={`rounded-lg px-3 py-2 ${selectedGroupFilter === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>كل المجموعات</button>
+            {selectedGroupFilter !== 'all' && (
+              <>
+                <ArrowRight className="h-3.5 w-3.5 rotate-180 text-slate-400" />
+                <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className={`rounded-lg px-3 py-2 ${selectedCategoryId === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
+                  {functionalGroups.find((group) => group.id === selectedGroupFilter)?.name || 'المجموعة'}
+                </button>
+              </>
+            )}
+            {selectedTaxonomyCategory && (
+              <>
+                <ArrowRight className="h-3.5 w-3.5 rotate-180 text-slate-400" />
+                <button type="button" onClick={() => setSelectedSpecialty('all')} className={`rounded-lg px-3 py-2 ${selectedSpecialty === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>{selectedTaxonomyCategory.name}</button>
+              </>
+            )}
+            {selectedSpecialty !== 'all' && (
+              <>
+                <ArrowRight className="h-3.5 w-3.5 rotate-180 text-slate-400" />
+                <span className="rounded-lg bg-emerald-100 px-3 py-2 text-emerald-800">{selectedSpecialty}</span>
+              </>
+            )}
+          </nav>
+
+          {selectedCategoryId === 'all' ? (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              {availableCategories
+                .filter((category) => selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter)
+                .filter((category) => (selectedCategoryKind === 'all' || category.classificationType === selectedCategoryKind))
+                .map((category) => {
+                  const count = businesses.filter((business) => {
+                    if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
+                    return categoryForBusiness(business)?.id === category.id;
+                  }).length;
+                  return (
+                    <button key={category.id} type="button" onClick={() => { setSelectedCategoryId(category.id); setSelectedSpecialty('all'); }} className="flex min-h-20 items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-right transition hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                      <span className="min-w-0">
+                        <span className="block text-sm font-black text-slate-900">{category.name}</span>
+                        <span className="mt-1 block text-[11px] text-slate-500">{category.classificationType === 'profession' ? 'مهنة' : 'نشاط'}</span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-black text-emerald-800">{count}</span>
+                    </button>
+                  );
+                })}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-black text-slate-900">{selectedTaxonomyCategory?.classificationType === 'profession' ? 'تخصصات المهنة' : 'أنواع النشاط'}: {selectedTaxonomyCategory?.name}</h3>
+                <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="text-xs font-bold text-emerald-800 underline">رجوع لقائمة التصنيفات</button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                <button type="button" onClick={() => setSelectedSpecialty('all')} aria-pressed={selectedSpecialty === 'all'} className={`rounded-xl border p-3 text-right text-sm font-black transition ${selectedSpecialty === 'all' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
+                  كل {selectedTaxonomyCategory?.classificationType === 'profession' ? 'التخصصات' : 'الأنواع'}
+                </button>
+                {(selectedTaxonomyCategory?.specialties || []).map((specialty) => (
+                  <button key={specialty} type="button" onClick={() => setSelectedSpecialty(specialty)} aria-pressed={selectedSpecialty === specialty} className={`rounded-xl border p-3 text-right text-sm font-bold transition ${selectedSpecialty === specialty ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
+                    {specialty}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500">عدد الجهات المطابقة للاختيار الحالي: <strong className="text-slate-900">{filteredBusinesses.length}</strong></p>
+            </div>
+          )}
+        </section>
 
         {/* Activity / profession / specialty filters driven by the canonical taxonomy */}
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-3">
