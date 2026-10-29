@@ -60,8 +60,11 @@ async function readBody(response: Response): Promise<any> {
 export async function fetchPublicDirectoryListings(slug?: string): Promise<PublicDirectoryListing[] | PublicDirectoryListing | null> {
   const url = new URL(String(productionRuntime.supabaseUrl) + "/functions/v1/directory-listings");
   if (slug) url.searchParams.set("slug", slug);
+  const { data: authData } = await supabase.auth.getSession();
+  const requestHeaders: Record<string, string> = { apikey: String(productionRuntime.supabaseKey) };
+  if (authData.session?.access_token) requestHeaders.Authorization = "Bearer " + authData.session.access_token;
   const response = await fetch(url.toString(), {
-    headers: { apikey: String(productionRuntime.supabaseKey) },
+    headers: requestHeaders,
     cache: "no-store",
   });
   const body = await readBody(response);
