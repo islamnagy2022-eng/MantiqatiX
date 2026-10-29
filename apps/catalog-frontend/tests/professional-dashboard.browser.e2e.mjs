@@ -16,6 +16,13 @@ const employeePositionId = '20000000-0000-0000-0000-000000000001';
 const targetEmployeeId = '30000000-0000-0000-0000-000000000001';
 
 const roles = {
+  businessOwner: {
+    id: '00000000-0000-0000-0000-000000000012',
+    email: 'e2e-business-owner@example.test',
+    role: 'OWNER',
+    businessId,
+    permissions: {},
+  },
   owner: {
     id: '00000000-0000-0000-0000-000000000001',
     email: 'e2e-owner@example.test',
@@ -322,6 +329,40 @@ try {
       results.push('unsupported-manager-grant-denied');
     } finally { await context.close(); }
   }
+
+  // 7. Permanent storefront links and QR images must encode the deployed base path and stable business ID.
+  {
+    const { context, page } = await newScenario(browser, roles.businessOwner);
+    try {
+      await page.goto(baseUrl + '?view=merchant_admin&merchantTab=qr', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: /QR كود نشاط: نشاط اختبار الداشبورد/ }).waitFor({ state: 'visible', timeout: 15000 });
+
+      const publicLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ }).first();
+      const href = await publicLink.getAttribute('href');
+      assert.ok(href, 'merchant QR section must render the permanent public storefront URL');
+
+      const actualUrl = new URL(href);
+      const deployedBase = new URL(baseUrl);
+      assert.equal(actualUrl.origin, deployedBase.origin, 'permanent URL must use the deployed origin');
+      assert.equal(actualUrl.pathname, deployedBase.pathname, 'permanent URL must preserve the deployed application base path');
+      assert.equal(actualUrl.searchParams.get('store'), businessId, 'permanent URL must use the stable business ID');
+
+      const qrImage = page.locator('img[alt="QR Code for نشاط اختبار الداشبورد"]').first();
+      const qrImageSource = await qrImage.getAttribute('src');
+      assert.ok(qrImageSource, 'merchant QR image must have a generated source URL');
+      const qrUrl = new URL(qrImageSource);
+      assert.equal(qrUrl.hostname, 'api.qrserver.com', 'QR image must use the configured QR provider');
+      assert.equal(qrUrl.searchParams.get('data'), actualUrl.toString(), 'QR image data must match the permanent storefront link');
+
+      await page.getByRole('button', { name: /عرض و طباعة الكود بالكامل/ }).click();
+      await page.getByText('QR كود دائم ومستقر', { exact: true }).waitFor({ state: 'visible' });
+      const modalLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ });
+      assert.equal(await modalLink.count(), 2, 'QR section and QR modal must expose the same permanent link');
+      assert.equal(await modalLink.nth(1).getAttribute('href'), actualUrl.toString(), 'QR modal must use the same canonical URL');
+      results.push('permanent-store-link-and-qr-encode-deployed-base-path-and-stable-business-id');
+    } finally { await context.close(); }
+  }
+
 } finally {
   await browser.close();
 }
