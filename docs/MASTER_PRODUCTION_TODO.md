@@ -2103,3 +2103,10 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Duplicate handling: two exact name/address matches with a canonical published record (أبو رضوى and إيطاليا) were retained but set HIDDEN with metadata linking the canonical slug. A near-identical bakery variant remains DRAFT with an explicit review note rather than being merged without proof.
 - [x] Inventory verified: **321 PUBLISHED / 0 without phone; 90 DRAFT / 90 without phone; 2 HIDDEN / 2 without phone**. No no-phone listing is published.
 - [ ] Continue with remaining unrepresented categories and village coverage; public-source phone numbers still require owner confirmation before being considered verified.
+
+
+## 2026-10-29 — Wholesale and food manufacturing listings
+
+- [x] Added 10 source-backed local wholesale/food listings and 6 local food-production/manufacturing listings, with source phone numbers and read-after-write verification; all were inserted PUBLISHED/UNCLAIMED because each has a usable phone.
+- [x] Latest inventory verified: **337 PUBLISHED with 0 missing phone; 90 DRAFT with no phone; 2 HIDDEN no-phone duplicate-review rows**. Phone-required database guard and Edge Function v7 remain active.
+- [ ] Confirm the business names, current activity, and phone numbers directly with owners before marking any sourced lead as owner-confirmed. Continue with other uncovered activities and affiliated villages without inventing numbers or creating duplicates.
