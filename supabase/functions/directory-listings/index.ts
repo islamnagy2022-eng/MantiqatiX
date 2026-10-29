@@ -20,6 +20,8 @@ const out = (origin: string | null, body: unknown, status = 200) =>
 const publicFields = "id,slug,display_name,listing_type,specialty,phone,secondary_phone,address,governorate,district,village,source_name,source_url,source_checked_at,listing_status,claim_status,completeness,metadata,created_at,updated_at";
 const listingTypes = new Set(["doctor","clinic","pharmacy","medical_center","hospital","laboratory","health_provider","business"]);
 const listingStatuses = new Set(["DRAFT","PUBLISHED","HIDDEN"]);
+const outreachStatuses = new Set(["NEW","CONTACTED","INTERESTED","OFFER_SENT","FOLLOW_UP","SUBSCRIPTION_PENDING","SUBSCRIBED","NOT_INTERESTED","CORRECTION_REQUESTED"]);
+const dateOrNull = (value: unknown): string | null => { if (!value) return null; const date = new Date(String(value)); return Number.isNaN(date.getTime()) ? null : date.toISOString(); };
 const slugify = (value: unknown) => {
   const slug = String(value || "").normalize("NFKD").toLowerCase()
     .replace(/[\u064B-\u065F\u0670]/g, "")
@@ -143,6 +145,11 @@ Deno.serve(async (req: Request) => {
       source_url: clean(body.sourceUrl, 1000) || null,
       source_checked_at: body.sourceCheckedAt ? String(body.sourceCheckedAt) : new Date().toISOString(),
       listing_status: listingStatus,
+      outreach_status: outreachStatuses.has(clean(body.outreachStatus || "NEW", 40).toUpperCase()) ? clean(body.outreachStatus || "NEW", 40).toUpperCase() : "NEW",
+      outreach_notes: clean(body.outreachNotes, 3000) || null,
+      last_contacted_at: dateOrNull(body.lastContactedAt),
+      subscription_offer_at: dateOrNull(body.subscriptionOfferAt),
+      next_follow_up_at: dateOrNull(body.nextFollowUpAt),
       completeness: body.completeness && typeof body.completeness === "object" ? body.completeness : {},
       metadata: body.metadata && typeof body.metadata === "object" ? body.metadata : {},
       updated_by: user.id,
