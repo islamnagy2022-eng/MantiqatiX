@@ -417,13 +417,17 @@ export const DirectoryView: React.FC = () => {
                     if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
                     return categoryForBusiness(business)?.id === category.id;
                   }).length;
+                  const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
                   return (
                     <button key={category.id} type="button" onClick={() => { setSelectedCategoryId(category.id); setSelectedSpecialty('all'); }} className="flex min-h-20 items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-right transition hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                       <span className="min-w-0">
                         <span className="block text-sm font-black text-slate-900">{category.name}</span>
                         <span className="mt-1 block text-[11px] text-slate-500">{category.classificationType === 'profession' ? 'مهنة' : 'نشاط'}</span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-black text-emerald-800">{count}</span>
+                      <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
+                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{count}</span>
+                        {unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedCount}</span>}
+                      </span>
                     </button>
                   );
                 })}
@@ -438,11 +442,26 @@ export const DirectoryView: React.FC = () => {
                 <button type="button" onClick={() => setSelectedSpecialty('all')} aria-pressed={selectedSpecialty === 'all'} className={`rounded-xl border p-3 text-right text-sm font-black transition ${selectedSpecialty === 'all' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
                   كل {selectedTaxonomyCategory?.classificationType === 'profession' ? 'التخصصات' : 'الأنواع'}
                 </button>
-                {(selectedTaxonomyCategory?.specialties || []).map((specialty) => (
-                  <button key={specialty} type="button" onClick={() => setSelectedSpecialty(specialty)} aria-pressed={selectedSpecialty === specialty} className={`rounded-xl border p-3 text-right text-sm font-bold transition ${selectedSpecialty === specialty ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
-                    {specialty}
-                  </button>
-                ))}
+                {(selectedTaxonomyCategory?.specialties || []).map((specialty) => {
+                  const confirmedSpecialtyCount = businesses.filter((business) => {
+                    if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
+                    if (categoryForBusiness(business)?.id !== selectedTaxonomyCategory?.id) return false;
+                    const suffix = business.category.slice(categoryForBusiness(business)?.name.length || 0).replace(/^\\s*—\\s*/, '');
+                    return String(business.activitySpecialty || '') === specialty || suffix === specialty;
+                  }).length;
+                  const unconfirmedSpecialtyCount = unconfirmedListings.filter((listing) =>
+                    listing.taxonomy_category_id === selectedTaxonomyCategory?.id && listing.taxonomy_specialty === specialty
+                  ).length;
+                  return (
+                    <button key={specialty} type="button" onClick={() => setSelectedSpecialty(specialty)} aria-pressed={selectedSpecialty === specialty} className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-right text-sm font-bold transition ${selectedSpecialty === specialty ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
+                      <span>{specialty}</span>
+                      <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
+                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{confirmedSpecialtyCount}</span>
+                        {unconfirmedSpecialtyCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedSpecialtyCount}</span>}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
               <p className="text-xs text-slate-500">عدد الجهات المطابقة للاختيار الحالي: <strong className="text-slate-900">{filteredBusinesses.length}</strong></p>
             </div>
