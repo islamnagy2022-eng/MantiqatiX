@@ -601,7 +601,7 @@ export const DirectoryView: React.FC = () => {
               return (
                 <button
                   key={group.id}
-                  onClick={() => selectGroup(group.id)}
+                  onClick={() => { selectGroup(group.id); setTaxonomyBrowserOpen(true); }}
                   aria-pressed={isSelected}
                   className={`group relative flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isSelected ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
                 >
