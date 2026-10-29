@@ -1952,3 +1952,13 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Re-ran normalized-name and normalized-phone duplicate audits after the batch; both returned 0 duplicate groups. Public UI browser validation against the deployed origin remains pending; no frontend code or Edge Function deployment was triggered by this data-only operation.
 - [ ] Research remains incomplete despite all 18 groups having at least one record. Thin groups needing further sourcing include public_community (1), industry_workshops (1), finance_insurance (1), tourism_events (2), real_estate (2), sports_fitness (3), and agriculture_animals (6). Do not claim comprehensive coverage.
 - [ ] One ownership claim remains pending; public-directory data is not owner-confirmed. Real claimant/paid-subscription handoff tests remain separate and incomplete.
+
+
+## 2026-10-29 — Green aligned counters for groups, classifications, and specialties
+
+- [x] Updated `apps/catalog-frontend/src/components/DirectoryView.tsx` so confirmed activity counts and unconfirmed directory-listing counts use adjacent green badges with consistent size/alignment.
+- [x] Applied the same two-counter pattern to functional groups, taxonomy classifications, and specialties. The unconfirmed counter remains visible as zero so the two circles stay aligned even when a category/specialty has no unconfirmed listings.
+- [x] Kept the two count meanings separate: confirmed counts are derived only from public-enabled/official-showcase active non-frozen businesses; unconfirmed counts are published directory listings not yet claimed.
+- [x] Corrected specialty suffix normalization to strip whitespace around the em dash properly.
+- [x] Commits: `06cac94168d480aa537198938c950c1aae28fed5`, `b47fbf3b0dd3319f13dda211a1b26019446fcdd8`, `437970e4876de8876d1216770b812094490b1520`, `c6c09d4e33722b2e36953f38979fe8f7377c45a2`.
+- [ ] TypeScript/lint, Vite production build, GitHub Pages deployment, and deployed browser/mobile visual validation remain unverified. The commit combined status endpoint returned no status checks; do not claim build/deploy success until Actions or deployed-origin checks confirm it.
