@@ -614,3 +614,7 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Next:** continue medical discovery with cross-catalog duplicate checks; build the verified geographic coverage list; design a safe category mapping before changing any live taxonomy.
 
 - **Additional executed and read-after-write verified:** added صيدلية إسلام داوود (0489136699) in قرية جنزور, source https://www.dalilmadina.com/city_clinic.aspx?NUM=241. Cross-checked four other village pharmacy candidates from that source and found they already existed, so they were not reinserted. New listing remains PUBLISHED/UNCLAIMED with owner confirmation required and source phone verification false.
+
+- **Additional pharmacy batch — executed and verified:** inserted صيدلية سهام (0482913190, near Berket El Sabaa Hospital) and صيدلية د. أحمد حسن (0482270049, Malig village) from https://dalil140.com/category/en/pharmacies/el-monofeya/berket-el-sabaa after cross-catalog name/phone checks. Both are PUBLISHED/UNCLAIMED with owner confirmation required and source phone verification false.
+- **Classification correction — executed and verified:** changed `مركز د. محمد أحمد المراكبي للأسنان` from `cat_medical_health_dentist` to `cat_medical_health_dental_centers`; kept the existing record, ID, slug, contact data, source, and statuses. No record was deleted or recreated.
+- Total new records verified during this session: 6 (3 doctors, 3 pharmacies). The wider discovery and taxonomy consolidation remain open.
