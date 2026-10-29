@@ -226,7 +226,9 @@ export const Navbar: React.FC = () => {
                 </a>
               )}
 
-              <div className="shrink-0"><FloatingAppInstallButton currentBusiness={currentBusiness} /></div>\n\n              {/* Marketing Project Button */}
+              <div className="shrink-0"><FloatingAppInstallButton currentBusiness={currentBusiness} /></div>
+
+              {/* Marketing Project Button */}
               <button
                 onClick={() => {
                   setSelectedBusinessId('biz_mantiqatix_marketing');
