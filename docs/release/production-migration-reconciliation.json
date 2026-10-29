@@ -1190,5 +1190,41 @@
     "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
   "live_ledger_checked_at": "2026-10-29",
-  "live_ledger_verification_method": "Read-only SELECT after the forward-only dashboard dependency rollout: 304 recorded migration rows, latest version 20261029041815; expected dashboard objects, RLS, grants and fail-closed unauthenticated permission checks verified."
+  "live_ledger_verification_method": "Read-only SELECT after the forward-only dashboard dependency rollout: 304 recorded migration rows, latest version 20261029041815; expected dashboard objects, RLS, grants and fail-closed unauthenticated permission checks verified.",
+  "professional_dashboard_post_deploy_browser_e2e": {
+    "status": "PASS",
+    "checked_at": "2026-10-29",
+    "workflow_run_id": 40818177045,
+    "workflow_url": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177045",
+    "source_commit": "999f5bcb72a26a244bd10f990ef6ef80e4ec50e7",
+    "deployed_url": "https://islamnagy2022-eng.github.io/MantiqatiX/",
+    "deployment_root_and_assets": "PASS",
+    "retired_demo_and_smm_routes": "NOT_PUBLISHED",
+    "browser_suite": "PASS",
+    "scenarios": [
+      "guest direct-route denial",
+      "owner dashboard route and refresh recovery",
+      "employee view-only workspace",
+      "employee roster read-only mode",
+      "branch-scoped owner denied from broad legacy route and branch ID supplied to scoped roster RPC",
+      "unsupported manager grant denied",
+      "390x844 mobile and 1440x900 desktop horizontal-overflow checks",
+      "permanent storefront URL preserves the deployed /MantiqatiX/ base path and stable business ID",
+      "QR image payload and QR modal link match the canonical permanent URL"
+    ],
+    "accessibility": {
+      "standard": "WCAG 2.1 A/AA automated axe-core audit",
+      "status": "PASS",
+      "audited_scopes": [
+        "owner mobile dashboard",
+        "owner desktop dashboard",
+        "merchant QR tab",
+        "merchant QR modal"
+      ],
+      "result": "No critical or serious violations in the audited main-content scopes.",
+      "color_contrast_fix_commit": "999f5bcb72a26a244bd10f990ef6ef80e4ec50e7",
+      "limitation": "Automated browser tests mocked Supabase API responses; this is not a real authenticated customer/owner session test or a complete WCAG certification. Medium/minor axe findings, physical-device behavior, and custom-domain behavior are not certified."
+    },
+    "verification_boundary": "Dashboard dependency objects were separately verified read-only in production after forward migration 20261029041815. Full platform gate remains BLOCKED / NOT CERTIFIED for the separate release migration ledger, finance/payment, Edge Function parity, backup/restore, Auth, monitoring and rollback evidence."
+  }
 }

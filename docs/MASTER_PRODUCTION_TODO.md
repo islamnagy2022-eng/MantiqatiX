@@ -1916,3 +1916,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Main-branch Pages deployment succeeded on run [40817091710](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40817091710); post-deploy root/assets verification passed at https://islamnagy2022-eng.github.io/MantiqatiX/. Authenticated user/session checks against the deployed dashboard remain NOT VERIFIED.
 - [ ] Complete real-device mobile/tablet, keyboard/accessibility, QR/permanent-link regression and authenticated role checks on the deployed origin.
 - [ ] Full platform gate remains **BLOCKED / NOT CERTIFIED**. The 41-version release-migration reconciliation, finance/payment and Edge Function parity, backup/restore rehearsal, Auth security, monitoring and rollback evidence are still open. No claim of full-platform production readiness is made.
+
+
+## 2026-10-29 — Latest deployed dashboard and accessibility verification
+
+- [x] Latest application commit `999f5bcb72a26a244bd10f990ef6ef80e4ec50e7` passed [Primary Catalog Frontend Validation 40818177042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177042) and [Deploy MantiqatiX Web 40818177045](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177045).
+- [x] Published to https://islamnagy2022-eng.github.io/MantiqatiX/; deployed-root/assets validation passed and retired demo/SMM routes remain unpublished.
+- [x] Browser tests against the deployed-origin frontend passed route denial/restoration, read-only employee scope, branch-owner restrictions, no horizontal overflow at 390x844 and 1440x900, and permanent store URL/QR payload integrity. Supabase responses were mocked for these browser scenarios.
+- [x] Added pinned axe-core WCAG 2.1 A/AA audit to post-deploy CI. Fixed low-contrast quota text and emerald buttons in the merchant QR UI. Latest deployed-origin audit reports no critical or serious violations in the owner mobile/desktop dashboard, QR tab, and QR modal scopes.
+- [ ] Actual authenticated production-account role tests remain NOT VERIFIED. The browser test harness uses synthetic sessions and mocked Supabase responses, so it is not proof of live Auth/RLS behavior for a real account.
+- [ ] Manual physical-device/tablet and keyboard usability review, custom-domain verification, and QR scan with a real camera remain NOT VERIFIED.
+- [ ] Overall platform release remains **BLOCKED / NOT CERTIFIED** due to unrelated missing full-platform migrations and finance/payment, Edge Function parity, backup/restore, Auth, monitoring and rollback evidence.

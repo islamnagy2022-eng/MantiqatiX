@@ -814,3 +814,14 @@ This status is intentional and must remain until the open gates above are indepe
 - Live verification passed for all 11 dashboard objects, four new tables with RLS + FORCE RLS, absence of direct anon/authenticated table grants, intended authenticated RPC grants, and fail-closed permission checks when no authenticated actor is present.
 - `docs/release/production-migration-reconciliation.json` now reflects PASS for the dashboard dependency gate only. The overall production gate remains `BLOCKED / NOT CERTIFIED` due 41 missing full-platform migration versions and unrelated finance/payment, Edge Function parity, backup/restore, Auth, monitoring and rollback evidence.
 - GitHub Pages deployment succeeded on [workflow run 40817091710](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40817091710); post-deploy catalog root/assets checks passed at https://islamnagy2022-eng.github.io/MantiqatiX/. Authenticated live-origin checks, real-device mobile/accessibility review and QR/permanent-link regression remain NOT VERIFIED.
+
+
+## 2026-10-29 — Final dashboard post-deploy verification checkpoint
+
+- PR #483 dashboard code remains merged to `main`; the latest dashboard styling and post-deploy test work is committed at `999f5bcb72a26a244bd10f990ef6ef80e4ec50e7`.
+- [Primary Catalog Frontend Validation 40818177042](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177042) and [Deploy MantiqatiX Web 40818177045](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177045) passed on that exact commit.
+- Current deployment URL: https://islamnagy2022-eng.github.io/MantiqatiX/. The deployment workflow verified the root/title/config/assets; retired preview/SMM routes remain unpublished.
+- Post-deploy Playwright checks ran against the deployed origin and passed guest denial, owner route+refresh, read-only employee, branch-scoped RPC payload/legacy-route denial, unsupported-manager denial, mobile/desktop overflow, canonical permanent URL and QR payload checks.
+- axe-core WCAG 2.1 A/AA checks found no critical or serious violations in owner mobile/desktop main content, merchant QR tab or QR modal after contrast fixes. These checks are automated viewport/browser checks, not full WCAG certification.
+- Auth responses in browser E2E were mocked. Real production-account owner/employee sessions, live authenticated RLS verification, physical camera QR scan, manual device/tablet keyboard review and custom-domain verification remain NOT VERIFIED.
+- Dashboard-specific dependency verification remains PASS; overall platform release remains `BLOCKED / NOT CERTIFIED` for the unrelated release migration, finance/payment, Edge Function parity, backup/restore, Auth, monitoring and rollback gaps.

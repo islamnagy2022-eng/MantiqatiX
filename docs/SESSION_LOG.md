@@ -464,3 +464,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Dashboard-specific dependency manifest was updated to PASS based on these live checks. This does not resolve or certify the separate 41-version full-platform release chain.
 - Main-branch Pages deployment succeeded on run [40817091710](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40817091710); post-deploy root/assets verification passed at https://islamnagy2022-eng.github.io/MantiqatiX/. Real production-origin authenticated user/session tests, device/accessibility checks and QR/permanent-link regression remain NOT VERIFIED.
 - No finance/payment, wallet, Edge Function, Auth configuration or historical migration-ledger repair was performed.
+
+
+## 2026-10-29 — Deployed dashboard regression and WCAG contrast closeout
+
+- [x] Updated merchant dashboard and QR modal contrast: quota status text now uses a readable slate tone; active merchant tabs and QR primary/download actions use darker emerald backgrounds with sufficient text contrast.
+- [x] Exact commit `999f5bcb72a26a244bd10f990ef6ef80e4ec50e7` passed [Primary Catalog Frontend Validation](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177042) and [Pages deployment with post-deploy browser checks](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40818177045).
+- [x] Deployed root and assets checked; preview/SMM routes confirmed not published.
+- [x] Deployed-origin Playwright browser suite passed: guest direct-route denial, owner route/refresh, employee view-only roster, branch scope, unsupported-manager denial, mobile/desktop overflow, permanent URL and QR payload equivalence.
+- [x] Pinned axe-core WCAG 2.1 A/AA audit passed with no critical or serious violations in four main-content scopes: owner mobile dashboard, owner desktop dashboard, merchant QR tab, QR modal.
+- [ ] Live authenticated production owner/employee sessions, actual camera scan on a physical device, tablet/keyboard manual review and custom-domain checks remain NOT VERIFIED. Mocked-Supabase browser E2E does not claim real-session authorization proof.
+- [ ] The broader production platform remains **BLOCKED / NOT CERTIFIED**; the dashboard-only dependency gate is separate from the unresolved 41-version release migration ledger and finance/payment/Edge Function, backup/restore, Auth, monitoring and rollback gates.
