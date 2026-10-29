@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Business } from '../../types';
-import { generateStorePublicUrl } from '../../utils/rules';
+import { generateStorePublicUrl, getCurrentAppBasePath } from '../../utils/rules';
 import { QrCode, Download, Copy, Check, Printer, X, Sparkles } from 'lucide-react';
 
 interface QRCodeModalProps {
@@ -16,7 +16,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
 
   // Permanent links use the stable business ID and the deployed app base path.
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mantiqatix.com';
-  const storeUrl = generateStorePublicUrl(origin, business.id, import.meta.env.BASE_URL || '/');
+  const storeUrl = generateStorePublicUrl(origin, business.id, getCurrentAppBasePath(window.location.pathname));
 
   // QR Code image URL using qrserver API
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(storeUrl)}`;

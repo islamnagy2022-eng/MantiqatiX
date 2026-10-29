@@ -284,6 +284,17 @@ export function canSubscriberAccessBusiness(
 }
 
 /**
+ * Returns the app's actual mounted path so share links work on GitHub Pages
+ * (/MantiqatiX/) and when the SPA is mounted at a custom-domain root (/).
+ */
+export function getCurrentAppBasePath(pathname: string): string {
+  const path = String(pathname || '/');
+  if (path.endsWith('/')) return path;
+  const lastSlash = path.lastIndexOf('/');
+  return path.slice(0, lastSlash + 1) || '/';
+}
+
+/**
  * Generates public customer storefront link with isolated query param
  */
 export function generateStorePublicUrl(origin: string, businessId: string, basePath: string = '/'): string {

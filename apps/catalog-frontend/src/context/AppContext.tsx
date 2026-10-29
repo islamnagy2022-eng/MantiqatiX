@@ -22,6 +22,7 @@ import {
   generateAdminCatalogRequestWhatsAppUrl,
   generateGmailInviteUrl,
   generateStorePublicUrl,
+  getCurrentAppBasePath,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
 import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
@@ -673,7 +674,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const getStorePublicLink = (business: Business) =>
-    generateStorePublicUrl(window.location.origin, business.id, baseUrl);
+    generateStorePublicUrl(window.location.origin, business.id, getCurrentAppBasePath(window.location.pathname));
   const addProduct = async (data: Omit<Product, 'id'> & { deferAiImageGeneration?: boolean }): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };

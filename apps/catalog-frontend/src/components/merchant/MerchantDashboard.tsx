@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/production';
 import { Product } from '../../types';
-import { generateStorePublicUrl, MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
+import { generateStorePublicUrl, getCurrentAppBasePath, MAX_PRODUCTS_PER_BUSINESS } from '../../utils/rules';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import {
   Package,
@@ -155,7 +155,7 @@ export const MerchantDashboard: React.FC = () => {
     ? generateStorePublicUrl(
         typeof window !== 'undefined' ? window.location.origin : 'https://mantiqatix.com',
         currentBusiness.id,
-        import.meta.env.BASE_URL || '/'
+        getCurrentAppBasePath(window.location.pathname)
       )
     : '';
   const permanentQrCodeImageUrl = permanentStoreUrl
