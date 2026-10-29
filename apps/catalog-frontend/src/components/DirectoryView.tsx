@@ -32,6 +32,7 @@ import {
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
+import { fetchPublicDirectoryListings, type PublicDirectoryListing } from '../lib/directoryListings';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -87,6 +88,14 @@ export const DirectoryView: React.FC = () => {
   const businesses = directoryBusinesses;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicDirectoryListings().then((rows) => {
+      if (!cancelled && Array.isArray(rows)) setUnconfirmedListings(rows.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
+    }).catch(() => { if (!cancelled) setUnconfirmedListings([]); });
+    return () => { cancelled = true; };
+  }, []);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [selectedCategoryKind, setSelectedCategoryKind] = useState<'all' | 'activity' | 'profession'>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
@@ -332,11 +341,12 @@ export const DirectoryView: React.FC = () => {
                 <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">كافة الأنشطة</span>
                 <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">جميع القطاعات والمهن</span>
               </span>
-              <span className="absolute right-2 top-2 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{businesses.length}</span>
+              <span className="absolute right-2 top-2 flex items-center gap-1.5"><span title="أنشطة مؤكدة" className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير مؤكدة" className="rounded-full border border-red-500 bg-white px-2 py-0.5 text-[10px] font-bold text-red-600">{unconfirmedListings.length}</span></span>
             </button>
 
             {functionalGroups.map((group) => {
-              const count = businesses.filter((b) => b.functionalGroupId === group.id).length;
+              const count = businesses.filter((b) => b.functionalGroupId === group.id && Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length;
+              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.functional_group_id === group.id).length;
               const isSelected = selectedGroupFilter === group.id;
               return (
                 <button
@@ -352,7 +362,7 @@ export const DirectoryView: React.FC = () => {
                     <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">{group.shortName}</span>
                     <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">{group.name}</span>
                   </span>
-                  <span className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>
+                  <span className="absolute right-2 top-2 flex items-center gap-1.5"><span title="أنشطة مؤكدة" className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>{unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="rounded-full border border-red-500 bg-white px-2 py-0.5 text-[10px] font-bold text-red-600">{unconfirmedCount}</span>}</span>
                 </button>
               );
             })}
