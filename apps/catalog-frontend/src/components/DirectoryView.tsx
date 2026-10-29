@@ -180,17 +180,18 @@ export const DirectoryView: React.FC = () => {
     return () => clearInterval(timer);
   }, [activeCoverSlides.length]);
 
+  const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
+    .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+  const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
   const filteredBusinesses = businesses.filter((biz) => {
-    // Fail closed: the directory must never expose unpublished or frozen businesses,
-    // even when the viewer is a platform administrator with a broader bootstrap scope.
+    // Public safety: never expose unpublished, inactive, or frozen registered businesses.
     if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;
-    const matchesSearch =
-      biz.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      biz.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      biz.bio.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesGroup =
-      selectedGroupFilter === 'all' || biz.functionalGroupId === selectedGroupFilter;
+    const haystack = normalizeSearch([
+      biz.name, biz.category, biz.bio, biz.address, biz.governorate, biz.markaz, biz.village,
+      biz.phone, biz.ownerWhatsApp, biz.activitySpecialty,
+    ].join(' '));
+    const matchesSearch = queryTokens.every((token) => haystack.includes(token));
+    const matchesGroup = selectedGroupFilter === 'all' || biz.functionalGroupId === selectedGroupFilter;
     const matchedCategory = categoryForBusiness(biz);
     const matchesCategoryKind = selectedCategoryKind === 'all' ||
       (matchedCategory?.classificationType || biz.categoryClassificationType || 'activity') === selectedCategoryKind;
@@ -200,17 +201,32 @@ export const DirectoryView: React.FC = () => {
     const categorySuffix = matchedCategory ? biz.category.slice(matchedCategory.name.length).replace(/^\s*—\s*/, '') : '';
     const matchesSpecialty = selectedSpecialty === 'all' ||
       storedSpecialty === selectedSpecialty || categorySuffix === selectedSpecialty;
-
-    const matchesGov =
-      selectedGovFilter === 'all' || biz.governorate === selectedGovFilter;
-
+    const matchesGov = selectedGovFilter === 'all' || normalizeSearch(biz.governorate) === normalizeSearch(selectedGovFilter);
     return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov;
   }).sort((a, b) => {
-    const targetGov = selectedGovFilter === 'all' ? 'الدقهلية' : selectedGovFilter;
-    const aProx = a.governorate === targetGov ? 0 : 1;
-    const bProx = b.governorate === targetGov ? 0 : 1;
-    return aProx - bProx;
+    const aVerified = a.isVerified ? 0 : 1;
+    const bVerified = b.isVerified ? 0 : 1;
+    if (aVerified !== bVerified) return aVerified - bVerified;
+    const targetGov = selectedGovFilter === 'all' ? '' : normalizeSearch(selectedGovFilter);
+    return Number(Boolean(targetGov) && normalizeSearch(b.governorate) === targetGov) -
+      Number(Boolean(targetGov) && normalizeSearch(a.governorate) === targetGov);
   });
+
+  // Public-directory entries and registered businesses share one result stream.
+  // Registered/verified businesses are always rendered first; unclaimed records follow.
+  const filteredUnconfirmedListings = unconfirmedListings.filter((listing) => {
+    if (listing.claim_status === 'CLAIMED' || listing.listing_status !== 'PUBLISHED') return false;
+    const haystack = normalizeSearch([
+      listing.display_name, listing.specialty, listing.taxonomy_specialty, listing.phone,
+      listing.secondary_phone, listing.address, listing.village, listing.district, listing.governorate,
+    ].join(' '));
+    const matchesSearch = queryTokens.every((token) => haystack.includes(token));
+    const matchesGroup = selectedGroupFilter === 'all' || listing.functional_group_id === selectedGroupFilter;
+    const matchesCategory = selectedCategoryId === 'all' || listing.taxonomy_category_id === selectedCategoryId;
+    const matchesSpecialty = selectedSpecialty === 'all' || normalizeSearch(listing.taxonomy_specialty) === normalizeSearch(selectedSpecialty);
+    const matchesGov = selectedGovFilter === 'all' || normalizeSearch(listing.governorate) === normalizeSearch(selectedGovFilter);
+    return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov;
+  }).sort((a, b) => normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar'));
 
   const uniqueGovernorships = Array.from(new Set(businesses.map((b) => b.governorate).filter(Boolean)));
 
@@ -568,11 +584,11 @@ export const DirectoryView: React.FC = () => {
           <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
               <Store className="w-5 h-5 text-emerald-600" />
-              <span>الأنشطة والخدمات المتاحة ({filteredBusinesses.length})</span>
+              <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length})</span>
             </h2>
           </div>
 
-          {filteredBusinesses.length === 0 ? (
+          {filteredBusinesses.length + filteredUnconfirmedListings.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-16 text-center space-y-3">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
                 <Store className="w-8 h-8" />
@@ -585,7 +601,7 @@ export const DirectoryView: React.FC = () => {
                   ? 'يتم الآن تحميل الأنشطة المنشورة من المنصة، وستظهر هنا تلقائيًا.'
                   : businesses.length === 0
                   ? 'ستظهر هنا الأنشطة النشطة المتاحة للزوار. تواصل مع إدارة المنصة إذا كنت تبحث عن نشاط غير موجود.'
-                  : 'جرب تغيير كلمات البحث أو تصنيف القطاع أو المحافظة.'}
+                  : 'جرب تغيير كلمات البحث أو القطاع أو المحافظة أو ابحث باسم المركز أو القرية أو المنطقة.'}
               </p>
               {!directoryLoading && businesses.length === 0 && catalogRequestPhone && (
                 <a
@@ -716,19 +732,29 @@ export const DirectoryView: React.FC = () => {
                   </div>
                 );
               })}
+              {filteredUnconfirmedListings.map((listing) => (
+                <button
+                  key={`directory-${listing.id}`}
+                  type="button"
+                  onClick={() => openDirectoryListing(listing.slug)}
+                  className="min-w-0 overflow-hidden rounded-xl sm:rounded-3xl border border-amber-200 bg-white text-right shadow-xs transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  aria-label={`فتح صفحة ${listing.display_name} — بيانات تحتاج إلى تأكيد`}
+                >
+                  <div className="relative flex h-20 sm:h-36 items-center justify-center bg-gradient-to-br from-amber-50 via-white to-slate-100">
+                    <Store className="h-8 w-8 text-amber-700 sm:h-12 sm:w-12" />
+                    <span className="absolute right-1 top-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-900 sm:right-3 sm:top-3 sm:text-[11px]">بيانات غير مؤكدة</span>
+                  </div>
+                  <div className="p-2 sm:p-5">
+                    <h3 className="line-clamp-2 break-words text-xs font-black text-slate-900 sm:text-base">{listing.display_name}</h3>
+                    <p className="mt-1 line-clamp-2 text-[10px] text-slate-600 sm:text-xs">{listing.taxonomy_specialty || listing.specialty || 'نشاط محلي'}</p>
+                    <p className="mt-2 line-clamp-2 text-[10px] text-slate-500 sm:text-xs">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ') || listing.address || 'الموقع غير مكتمل'}</p>
+                    <span className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-2 text-[10px] font-black text-white sm:text-xs">عرض التفاصيل <ArrowRight className="mr-1 inline h-3 w-3" /></span>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
         </div>
-        {(searchQuery.trim() || selectedGroupFilter !== 'all' || selectedCategoryId !== 'all') && (
-          <DirectoryListingsView
-            onOpen={openDirectoryListing}
-            onBack={closeDirectoryListing}
-            functionalGroupId={selectedGroupFilter === 'all' ? null : selectedGroupFilter}
-            searchQuery={searchQuery}
-            taxonomyCategoryId={selectedCategoryId === 'all' ? null : selectedTaxonomyCategory?.id || null}
-            taxonomySpecialty={selectedSpecialty === 'all' ? null : selectedSpecialty}
-          />
-        )}
       </div>
     </div>
   );
