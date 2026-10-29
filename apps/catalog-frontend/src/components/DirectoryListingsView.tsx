@@ -15,12 +15,13 @@ function phoneHref(value: string | null | undefined) {
 
 export const DirectoryListingsView: React.FC<{
   detailSlug?: string;
-  listingTypeFilter?: string | null;
+  functionalGroupId?: string | null;
+  searchQuery?: string;
   taxonomyCategoryId?: string | null;
   taxonomySpecialty?: string | null;
   onOpen: (slug: string) => void;
   onBack: () => void;
-}> = ({ detailSlug, listingTypeFilter, taxonomyCategoryId, taxonomySpecialty, onOpen, onBack }) => {
+}> = ({ detailSlug, functionalGroupId, searchQuery = "", taxonomyCategoryId, taxonomySpecialty, onOpen, onBack }) => {
   const { authSession, setIsLoginModalOpen, setSelectedBusinessId, setCurrentView } = useApp();
   const [listings, setListings] = useState<PublicDirectoryListing[]>([]);
   const [detail, setDetail] = useState<PublicDirectoryListing | null>(null);
@@ -64,56 +65,29 @@ export const DirectoryListingsView: React.FC<{
     setClaimName(authSession.subscriberName || authSession.email || "");
   }, [authSession.subscriberName, authSession.email]);
 
-  useEffect(() => { setSpecialtyFilter("all"); }, [listingTypeFilter, taxonomyCategoryId, taxonomySpecialty]);
+  useEffect(() => { setSpecialtyFilter("all"); }, [functionalGroupId, taxonomyCategoryId, taxonomySpecialty]);
 
+  const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/\s+/g, " ").trim();
   const taxonomyMatches = (listing: PublicDirectoryListing) => {
-    const raw = String(listing.specialty || "").toLocaleLowerCase();
-    const dental = /أسنان|اسنان|dentist|dental/.test(raw);
-    const physio = /علاج طبيع|physio/.test(raw);
-    if (listingTypeFilter && listing.listing_type !== listingTypeFilter) return false;
-    if (taxonomyCategoryId === "doctor" && (dental || physio)) return false;
-    if (taxonomyCategoryId === "dentist" && !dental) return false;
-    if (taxonomyCategoryId === "radiology" && !/أشعة|اشعة|radiolog/.test(raw)) return false;
-    if (taxonomyCategoryId === "physio_centers" && !physio) return false;
+    if (functionalGroupId && listing.functional_group_id !== functionalGroupId) return false;
+    if (taxonomyCategoryId && listing.taxonomy_category_id !== taxonomyCategoryId) return false;
     if (taxonomySpecialty) {
-      const aliases: Record<string, RegExp> = {
-        "طبيب عيون": /عيون|رمد|ophthalm/,
-        "طبيب قلب": /قلب|cardio/,
-        "طبيب أطفال": /أطفال|اطفال|طفل|pediatr/,
-        "طبيب باطنة": /باطن|داخلي|internal/,
-        "طبيب عظام": /عظام|عظمي|orthop/,
-        "طبيب جلدية": /جلد|dermat/,
-        "طبيب مخ وأعصاب": /مخ|أعصاب|اعصاب|neuro/,
-        "طبيب نفسي": /نفسي|psychiatr/,
-        "طبيب أنف وأذن وحنجرة": /أنف|انف|أذن|اذن|حنجرة|حنجره|ent/,
-        "طبيب نساء وتوليد": /نساء|توليد|obstet|gynae|gyn/,
-        "طبيب مسالك بولية": /مسالك|بولية|urolog/,
-        "طبيب صدر": /صدر|حساسية|مناعة|pulmon/,
-        "طبيب جهاز هضمي": /هضمي|جهاز هضمي|gastro/,
-        "طبيب كلى": /كلى|كلوي|nephro/,
-        "طبيب أورام": /أورام|اورام|oncolo/,
-        "طبيب جراحة عامة": /جراحة($|[^ تجميل])|surgeon/,
-        "طبيب جراحة تجميل": /تجميل|plastic/,
-        "طبيب روماتيزم": /روماتيزم|rheumat/,
-        "طبيب غدد صماء": /غدد|صماء|endocrin/,
-        "أسنان عام": /أسنان|اسنان|dentist|dental/,
-        "تقويم الأسنان": /أسنان|اسنان|تقويم|dental/,
-        "زراعة الأسنان": /أسنان|اسنان|زراعة|dental/,
-        "علاج الجذور": /أسنان|اسنان|جذور|dental/,
-        "جراحة الفم": /أسنان|اسنان|فم|dental/,
-        "أسنان أطفال": /أسنان|اسنان|أطفال|اطفال|dental/,
-        "تركيبات الأسنان": /أسنان|اسنان|تركيبات|dental/,
-        "تجميل الأسنان": /أسنان|اسنان|تجميل|dental/,
-        "علاج اللثة": /أسنان|اسنان|لثة|dental/,
-      };
-      const alias = aliases[taxonomySpecialty];
-      if (alias) return alias.test(raw);
-      const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/\s+/g, " ").trim();
-      return normalize(raw).includes(normalize(taxonomySpecialty)) || normalize(taxonomySpecialty).includes(normalize(raw));
+      const requested = normalize(taxonomySpecialty);
+      const assigned = normalize(String(listing.taxonomy_specialty || ""));
+      if (assigned !== requested) return false;
+    }
+    const query = normalize(searchQuery);
+    if (query) {
+      const haystack = normalize([
+        listing.display_name, listing.specialty, listing.taxonomy_specialty,
+        listing.phone, listing.secondary_phone, listing.address, listing.village,
+        listing.district, listing.governorate
+      ].filter(Boolean).join(" "));
+      if (!haystack.includes(query)) return false;
     }
     return true;
   };
-  const inTaxonomyScope = useMemo(() => listings.filter(taxonomyMatches), [listings, listingTypeFilter, taxonomyCategoryId, taxonomySpecialty]);
+  const inTaxonomyScope = useMemo(() => listings.filter(taxonomyMatches), [listings, functionalGroupId, taxonomyCategoryId, taxonomySpecialty, searchQuery]);
   useEffect(() => {
     if (!detail) return;
     const meta = detail.metadata || {};
@@ -256,11 +230,11 @@ export const DirectoryListingsView: React.FC<{
 
   const allReady = listings.length > 0;
   return (
-    <section aria-label="دليل الأطباء في بركة السبع" className="space-y-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" dir="rtl">
+    <section aria-label="صفحات دليل عامة غير موثقة" className="space-y-5 rounded-3xl border border-amber-200 bg-white p-4 shadow-sm sm:p-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-xl font-black text-slate-900"><Building2 className="h-5 w-5 text-emerald-700" /> {taxonomyCategoryId === "pharmacies" ? "دليل الصيدليات" : taxonomyCategoryId === "clinics" ? "دليل العيادات الطبية" : taxonomyCategoryId === "hospitals" ? "دليل المستشفيات" : taxonomyCategoryId === "labs" ? "دليل معامل التحاليل" : taxonomyCategoryId === "dentist" ? "دليل أطباء الأسنان" : taxonomyCategoryId === "doctor" ? "دليل الأطباء" : "الدليل الطبي في بركة السبع"}</h2>
-          <p className="mt-1 text-xs leading-6 text-slate-500">الصفحات معروضة داخل التصنيف الطبي المختار. بيانات المصدر أولية وقابلة للاستكمال والتصحيح والمطالبة بالملكية بعد التحقق.</p>
+          <h2 className="flex items-center gap-2 text-xl font-black text-slate-900"><Building2 className="h-5 w-5 text-amber-700" /> صفحات دليل أولية — غير معتمدة من الإدارة</h2>
+          <p className="mt-1 text-xs leading-6 text-slate-500">نتائج من مصادر عامة تعرض بعد الأنشطة المسجلة فعليًا. تُرشح حسب المجموعة والتصنيف والتخصص والبحث الحالي، ولا تظهر ضمن الغلاف أو الأنشطة الرئيسية المعتمدة.</p>
         </div>
         <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800">{inTaxonomyScope.length} صفحة في التصنيف</span>
       </div>
