@@ -15,6 +15,7 @@ export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> =
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     const checkInstalled = () => {
@@ -52,10 +53,8 @@ export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> =
     }
 
     if (!installPrompt) {
-      // Browsers that support programmatic PWA installation will fire
-      // beforeinstallprompt. Other browsers do not expose a direct install API.
-      setStatusMessage('التثبيت المباشر غير متاح في هذا المتصفح');
-      window.setTimeout(() => setStatusMessage(''), 3500);
+      // Some mobile browsers do not expose the native install prompt event.
+      setShowHelp(true);
       return;
     }
 
@@ -88,6 +87,20 @@ export const FloatingAppInstallButton: React.FC<FloatingAppInstallButtonProps> =
         {isInstalled ? <Smartphone className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
         <span>{isInstalled ? 'مثبت' : 'تثبيت التطبيق'}</span>
       </button>
+      {showHelp && (
+        <div role="dialog" aria-modal="true" aria-label="طريقة تثبيت منطقتي X" className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 p-4" dir="rtl">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 text-right shadow-2xl">
+            <h2 className="text-lg font-black text-slate-900">تثبيت منطقتي X على جهازك</h2>
+            <p className="mt-2 text-sm text-slate-600">لو نافذة التثبيت لم تظهر، اتبع الخطوات حسب جهازك:</p>
+            <ol className="mt-3 list-decimal space-y-2 pr-5 text-sm font-semibold text-slate-800">
+              <li>على أندرويد: افتح الرابط في Chrome ثم اضغط قائمة ⋮.</li>
+              <li>اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</li>
+              <li>على iPhone: افتح الرابط في Safari ثم «مشاركة» وبعدها «إضافة إلى الشاشة الرئيسية».</li>
+            </ol>
+            <button type="button" onClick={() => setShowHelp(false)} className="mt-4 w-full rounded-xl bg-emerald-700 px-4 py-2.5 font-black text-white">حسنًا</button>
+          </div>
+        </div>
+      )}
       {statusMessage && (
         <div role="status" aria-live="polite" className="absolute left-0 top-full z-[100] mt-2 w-max max-w-[240px] rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-bold text-white shadow-xl">
           {statusMessage}
