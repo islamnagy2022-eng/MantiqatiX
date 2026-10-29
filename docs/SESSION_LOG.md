@@ -585,3 +585,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Post-write read-back: 9 laboratory listings, all 9 with a phone number, all 9 published and unclaimed.
 - Sources are stored per record. Numbers and current operating status are public-source leads and are not owner-verified. Existing record الشروق للأشعة والتحاليل was not duplicated or reclassified.
 - Data-only operation; no frontend deployment or owner/subscription activation performed.
+
+
+## 2026-10-29 — Dental clinics directory expansion
+
+- Added 7 dental clinic/center listings to `public.public_directory_listings` for Berket El Sabaa, under canonical taxonomy category `cat_medical_health_dental_centers` and functional group `medical_health`.
+- Added: د. حسام أحمد سويلم، د. حسام محمد ضيف، عيادة د. خالد شبل عبد الباقي، د. ياسر عبد الوهاب المليجي، مركز رويال للأسنان، عيادة د. محمد وجدي البلشي، and Tabasam Dental Clinic.
+- Applied global duplicate checks on normalized names and digit-normalized primary/secondary phones before insert. Four candidates were skipped because existing records matched by name/phone; no existing non-empty data was overwritten.
+- Post-write verification: **7 listings total in this dental category for Berket El Sabaa; all 7 have a phone, are PUBLISHED and UNCLAIMED, and are marked as requiring owner confirmation**.
+- Sources and source-check timestamps are stored on the records. Phone numbers and business details are public-source leads, not owner-verified. No owner accounts/subscriptions were created; no frontend deployment was performed or claimed.
