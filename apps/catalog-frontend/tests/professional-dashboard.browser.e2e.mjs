@@ -395,6 +395,41 @@ try {
     } finally { await context.close(); }
   }
 
+  // 8. Catalog GPS asks only after click, handles granted/denied permissions, and never persists visitor coordinates.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
+      await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const gpsButton = page.getByRole('button', { name: /حدد موقعي/ });
+      await gpsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await gpsButton.click();
+      await page.getByText(/تم تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      const leakedCoordinates = await page.evaluate(() =>
+        Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
+      );
+      assert.equal(leakedCoordinates, false, 'visitor GPS coordinates must not be persisted to local storage');
+      await assertNoHorizontalOverflow(page, '390px mobile catalog GPS');
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await assertNoHorizontalOverflow(page, '1440px desktop catalog GPS');
+      results.push('catalog-gps-consent-distance-state-not-persisted-responsive');
+    } finally { await context.close(); }
+  }
+
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await context.grantPermissions([], { origin: new URL(baseUrl).origin });
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const gpsButton = page.getByRole('button', { name: /حدد موقعي/ });
+      await gpsButton.waitFor({ state: 'visible', timeout: 15000 });
+      await gpsButton.click();
+      await page.getByText(/لم تسمح بالوصول إلى الموقع|تعذر تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      results.push('catalog-gps-permission-denial-keeps-manual-search-available');
+    } finally { await context.close(); }
+  }
+
 } finally {
   await browser.close();
 }
