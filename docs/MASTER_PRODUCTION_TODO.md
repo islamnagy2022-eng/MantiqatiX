@@ -2027,3 +2027,6 @@ Scope is restricted to Berket El Sabaa city and its administratively affiliated 
 This work is partial; no full taxonomy migration or deployment is claimed.
 
 - [DONE — read-after-write verified] Added one previously absent pharmacy in Genzour: صيدلية إسلام داوود — 0489136699, source https://www.dalilmadina.com/city_clinic.aspx?NUM=241. Before inserting, checked the other pharmacy records from the same source and confirmed four were already present; they were not duplicated.
+
+- [DONE — read-after-write verified] Added two pharmacies from the Berket El Sabaa public directory after global name/phone checks: صيدلية سهام (0482913190; near Berket El Sabaa Hospital) and صيدلية د. أحمد حسن (0482270049; قرية مليج). Source: https://dalil140.com/category/en/pharmacies/el-monofeya/berket-el-sabaa. Both are PUBLISHED/UNCLAIMED with owner confirmation required and phone verification false.
+- [DONE — read-after-write verified] Reclassified `مركز د. محمد أحمد المراكبي للأسنان` from the dentist-profession category to the dental-centers activity category, preserving the same listing ID, slug, contact information, source, and publication/claim states.
