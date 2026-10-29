@@ -1896,3 +1896,12 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Two source-version aliases remain separate from the 41 distinct migrations: RC424 source version `20261009010000` maps to applied ledger version `20261008222845`; `20261027100000_mantiqatix_marketing_contact_details.sql` is an exact source-blob alias of live version `20261027041411`. Both require controlled ledger repair after backup/rehearsal; do not execute duplicate SQL as distinct effects.
 - [ ] Overall status remains `BLOCKED / NOT CERTIFIED`: all 41 distinct required versions are still 0/41 in the live ledger; aliases are 0/2 reconciled; RC451 search_path, finance ACL/schema, five critical Edge Function source drifts, payment/finance E2E, backup/restore, Auth settings, browser/device, monitoring and rollback evidence remain open.
 - Safety: no Production migration, repair, data write, grant/RLS/Auth change, Edge Function deployment, payment or wallet mutation was performed.
+
+
+## 2026-10-29 — Professional dashboard merge and production deployment result
+
+- [x] Merged PR #483 to `main` at `bbd8e6f5c881f3b4744d5e783bb52874406c7600` after exact-head frontend build, dashboard browser E2E and isolated employee RBAC tests passed.
+- [x] Confirmed the main deployment workflow fails closed at `Gate production deployment on live professional dashboard dependencies`; the publish job is skipped while required dashboard tables/RPCs are missing from verified live evidence. No production schema/data writes occurred.
+- [ ] Apply the missing dashboard dependency migrations only through a reviewed, controlled production rollout; verify the actual tables/functions and migration ledger read-only after rollout. Do not bypass the gate or fabricate ledger entries.
+- [ ] Reconcile all 41 required platform release migration versions and the existing payment/finance/Edge Function/backup-restore drift. Full platform remains **BLOCKED / NOT CERTIFIED**.
+- [ ] After dependencies pass, rerun main deployment, verify the dashboard on the authenticated production origin, and complete real-device accessibility plus QR/permanent-link regression.
