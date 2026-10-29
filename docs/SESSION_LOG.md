@@ -509,3 +509,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 
 - Post-write verification completed: 0 normalized-name duplicate groups and 0 duplicate-phone groups; final production read-back is 202 listings in 18 groups, 155 phone values, one pending ownership claim. Public browser validation was not completed in this session, so no claim is made that the deployed UI was visually verified.
+
+
+## 2026-10-29 — Follow-up: taxonomy count badge alignment
+
+- Updated group, classification, and specialty counters in `DirectoryView.tsx`: both confirmed and unconfirmed counters are green, adjacent, and consistently sized/aligned; the unconfirmed counter is always visible including zero.
+- Fixed specialty label suffix normalization for accurate confirmed specialty counts.
+- Commits: `06cac94168d480aa537198938c950c1aae28fed5`, `b47fbf3b0dd3319f13dda211a1b26019446fcdd8`, `437970e4876de8876d1216770b812094490b1520`, `c6c09d4e33722b2e36953f38979fe8f7377c45a2`.
+- Validation status: source diff verified; no commit status checks were returned. Build, Pages deployment and deployed visual verification are still pending/unconfirmed.
