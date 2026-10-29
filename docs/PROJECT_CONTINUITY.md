@@ -772,7 +772,7 @@ This status is intentional and must remain until the open gates above are indepe
 
 - Earlier notes refer to the initial post-rebase snapshot. After updating the OAuth role-contract test and adding the final documentation, the current PR tree has 20 changed paths and compares cleanly to current `main` with zero commits behind; `main` was not modified directly.
 - PR #483 remains a Draft/mergeable code change but is not merged. Browser E2E and direct API/RLS tenant-isolation evidence are still missing, and merging would trigger the production Pages flow. Current production remains not deployed and the platform gate remains `BLOCKED / NOT CERTIFIED`.
-## Latest professional dashboard verification — 2026-10-28
+## Earlier professional dashboard verification — 2026-10-28 (superseded by 2026-10-29 CI)
 
 - PR #483 remains additive and isolated on feat/professional-dashboard-additive-20261028; main has not been modified. Exact tested code head: 1b00c1afbbfd7509a00627defce1530b927d74ec.
 - The missing openExistingUserManager symbol was removed from the dashboard access path and the access section now uses the permission-aware BusinessEmployeeManager. Unsupported MANAGER membership grants fail closed until the backend permission resolver is expanded.
