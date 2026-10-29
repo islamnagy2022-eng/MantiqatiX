@@ -85,6 +85,7 @@ export const DirectoryView: React.FC = () => {
     setSelectedBusinessId,
     setCurrentView,
     adminSettings,
+    products,
   } = useApp();
   const businesses = directoryBusinesses;
 
@@ -296,9 +297,25 @@ export const DirectoryView: React.FC = () => {
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(biz.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => {
-    const aVerified = a.isVerified ? 0 : 1;
-    const bVerified = b.isVerified ? 0 : 1;
-    if (aVerified !== bVerified) return aVerified - bVerified;
+    // Ranking policy: verified businesses remain first; within each verification tier,
+    // prefer real logo + cover assets and products that actually have images.
+    // Do not count generated UI fallbacks/placeholders as uploaded business assets.
+    const hasBusinessImage = (value: unknown) => {
+      const url = String(value || '').trim();
+      return Boolean(url) && !/business-placeholder\.svg|default-image|placeholder/i.test(url);
+    };
+    const productPhotoCount = (businessId: string) => products.filter((product) =>
+      product.businessId === businessId &&
+      Boolean(String(product.imageUrl || '').trim()) &&
+      !/business-placeholder\.svg|product-placeholder\.svg|default-image|placeholder/i.test(String(product.imageUrl || ''))
+    ).length;
+    const completenessScore = (business: Business) =>
+      (hasBusinessImage(business.logoUrl) ? 100 : 0) +
+      (hasBusinessImage(business.coverUrl) ? 100 : 0) +
+      Math.min(productPhotoCount(business.id), 10) * 10;
+    if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+    const completenessDifference = completenessScore(b) - completenessScore(a);
+    if (completenessDifference !== 0) return completenessDifference;
     if (userCoordinates) {
       const aDistance = distanceKm(userCoordinates, getCoordinates(a));
       const bDistance = distanceKm(userCoordinates, getCoordinates(b));
