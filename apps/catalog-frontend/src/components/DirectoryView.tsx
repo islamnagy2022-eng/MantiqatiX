@@ -332,7 +332,7 @@ export const DirectoryView: React.FC = () => {
             <button
               onClick={() => selectGroup('all')}
               aria-pressed={selectedGroupFilter === 'all'}
-              className={`group flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${selectedGroupFilter === 'all' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
+              className={`group relative flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${selectedGroupFilter === 'all' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
             >
               <span className={`flex h-9 w-9 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl ${selectedGroupFilter === 'all' ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
                 <Store className={`h-7 w-7 ${selectedGroupFilter === 'all' ? 'text-emerald-700' : 'text-slate-600'}`} strokeWidth={1.8} />
@@ -341,7 +341,7 @@ export const DirectoryView: React.FC = () => {
                 <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">كافة الأنشطة</span>
                 <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">جميع القطاعات والمهن</span>
               </span>
-              <span className="absolute right-2 top-2 flex items-center gap-1.5"><span title="أنشطة مؤكدة" className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير مؤكدة" className="rounded-full border border-red-500 bg-white px-2 py-0.5 text-[10px] font-bold text-red-600">{unconfirmedListings.length}</span></span>
+              <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{unconfirmedListings.length}</span></span>
             </button>
 
             {functionalGroups.map((group) => {
@@ -362,7 +362,7 @@ export const DirectoryView: React.FC = () => {
                     <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">{group.shortName}</span>
                     <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">{group.name}</span>
                   </span>
-                  <span className="absolute right-2 top-2 flex items-center gap-1.5"><span title="أنشطة مؤكدة" className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>{unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="rounded-full border border-red-500 bg-white px-2 py-0.5 text-[10px] font-bold text-red-600">{unconfirmedCount}</span>}</span>
+                  <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>{unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{unconfirmedCount}</span>}</span>
                 </button>
               );
             })}
