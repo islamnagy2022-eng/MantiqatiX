@@ -21,6 +21,7 @@ import {
   Sprout,
   Dumbbell,
   Plane,
+  Navigation,
   Landmark,
   Factory,
   Users,
@@ -88,7 +89,40 @@ export const DirectoryView: React.FC = () => {
   const businesses = directoryBusinesses;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
+
+  const requestUserLocation = () => {
+    if (!('geolocation' in navigator)) {
+      setLocationMessage('تحديد الموقع غير مدعوم على هذا الجهاز؛ يمكنك متابعة البحث بالموقع اليدوي.');
+      return;
+    }
+    setLocationBusy(true);
+    setLocationMessage('');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setUserCoordinates({ latitude: coords.latitude, longitude: coords.longitude });
+        setSelectedGovFilter('all');
+        setSelectedMarkazFilter('all');
+        setSelectedVillageFilter('all');
+        setSelectedAreaFilter('all');
+        setLocationMessage('تم تحديد موقعك. ستُرتّب النتائج الأقرب أولًا عند توفر إحداثيات موثوقة للنشاط.');
+        setLocationBusy(false);
+      },
+      (error) => {
+        const message = error.code === error.PERMISSION_DENIED
+          ? 'لم تسمح بالوصول إلى الموقع؛ البحث اليدوي ما زال متاحًا.'
+          : error.code === error.TIMEOUT
+            ? 'استغرق تحديد الموقع وقتًا طويلًا؛ جرّب مرة أخرى أو استخدم الاختيار اليدوي.'
+            : 'تعذر تحديد موقعك؛ يمكنك متابعة البحث بالموقع اليدوي.';
+        setLocationMessage(message);
+        setLocationBusy(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  };
   useEffect(() => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
@@ -185,6 +219,29 @@ export const DirectoryView: React.FC = () => {
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+
+  // Only use explicit, valid coordinates. Never infer a distance from a text address or map URL.
+  const getCoordinates = (value: unknown): { latitude: number; longitude: number } | null => {
+    if (!value || typeof value !== 'object') return null;
+    const row = value as Record<string, any>;
+    const metadata = row.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+    const location = row.location && typeof row.location === 'object' ? row.location : {};
+    const rawLat = row.latitude ?? row.lat ?? row.latitude_deg ?? metadata.latitude ?? metadata.lat ?? location.latitude ?? location.lat;
+    const rawLng = row.longitude ?? row.lng ?? row.lon ?? row.longitude_deg ?? metadata.longitude ?? metadata.lng ?? metadata.lon ?? location.longitude ?? location.lng ?? location.lon;
+    if (rawLat == null || rawLng == null) return null;
+    const latitude = Number(rawLat);
+    const longitude = Number(rawLng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+    return { latitude, longitude };
+  };
+  const distanceKm = (from: { latitude: number; longitude: number } | null, to: { latitude: number; longitude: number } | null): number | null => {
+    if (!from || !to) return null;
+    const radians = (degrees: number) => degrees * Math.PI / 180;
+    const dLat = radians(to.latitude - from.latitude);
+    const dLon = radians(to.longitude - from.longitude);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(radians(from.latitude)) * Math.cos(radians(to.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+  };
   const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
   const filteredBusinesses = businesses.filter((biz) => {
     // Public safety: never expose unpublished, inactive, or frozen registered businesses.
@@ -213,6 +270,13 @@ export const DirectoryView: React.FC = () => {
     const aVerified = a.isVerified ? 0 : 1;
     const bVerified = b.isVerified ? 0 : 1;
     if (aVerified !== bVerified) return aVerified - bVerified;
+    if (userCoordinates) {
+      const aDistance = distanceKm(userCoordinates, getCoordinates(a));
+      const bDistance = distanceKm(userCoordinates, getCoordinates(b));
+      if (aDistance !== null && bDistance !== null && aDistance !== bDistance) return aDistance - bDistance;
+      if (aDistance !== null && bDistance === null) return -1;
+      if (aDistance === null && bDistance !== null) return 1;
+    }
     const targetGov = selectedGovFilter === 'all' ? '' : normalizeSearch(selectedGovFilter);
     return Number(Boolean(targetGov) && normalizeSearch(b.governorate) === targetGov) -
       Number(Boolean(targetGov) && normalizeSearch(a.governorate) === targetGov);
@@ -235,7 +299,16 @@ export const DirectoryView: React.FC = () => {
     const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(listing.village) === normalizeSearch(selectedVillageFilter);
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(listing.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
-  }).sort((a, b) => normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar'));
+  }).sort((a, b) => {
+    if (userCoordinates) {
+      const aDistance = distanceKm(userCoordinates, getCoordinates(a));
+      const bDistance = distanceKm(userCoordinates, getCoordinates(b));
+      if (aDistance !== null && bDistance !== null && aDistance !== bDistance) return aDistance - bDistance;
+      if (aDistance !== null && bDistance === null) return -1;
+      if (aDistance === null && bDistance !== null) return 1;
+    }
+    return normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar');
+  });
 
   const locationRecords = [
     ...businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen)
@@ -577,7 +650,13 @@ export const DirectoryView: React.FC = () => {
             />
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 md:w-auto md:min-w-[560px] md:grid-cols-4">
+          <div className="flex w-full flex-col gap-2 md:w-auto md:min-w-[560px]">
+            <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-black text-emerald-900 transition hover:bg-emerald-100 disabled:cursor-wait disabled:opacity-60">
+              <Navigation className="h-4 w-4" />
+              {locationBusy ? 'جارٍ تحديد الموقع…' : userCoordinates ? 'تحديث موقعي' : 'حدد موقعي'}
+            </button>
+            {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
               <select value={selectedGovFilter} onChange={(e) => { setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل المحافظات</option>
@@ -602,10 +681,11 @@ export const DirectoryView: React.FC = () => {
                 {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
+            </div>
           </div>
         </div>
 
-        {/* Businesses Grid (Sorted by Proximity) */}
+        {/* Businesses Grid (verified first; distance only when trusted coordinates exist) */}
         <div className="space-y-6">
           <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
