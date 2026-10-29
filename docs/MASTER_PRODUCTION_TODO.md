@@ -2118,3 +2118,12 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Reused the existing Hamada repair shop and Captain truck-maintenance center rather than creating duplicates.
 - [x] Verified current inventory: 343 PUBLISHED with zero missing phone; 90 phone-less DRAFT; 2 phone-less HIDDEN duplicate-review rows. Publication gate remains active.
 - [ ] Source phone values are not owner-confirmed; keep the metadata review flags. Continue local research and category coverage.
+
+
+## 2026-10-29 — Duplicate audit and appliance-retail taxonomy
+
+- [x] Normalized published-name duplicate audit returns zero groups. The only repeated phone among current published rows is shared by two differently named butcher listings at different addresses; both are retained and flagged for owner verification.
+- [x] Preserved, then hid five confirmed duplicate rows (plus two previously hidden duplicates) with explicit `duplicate_of_slug` metadata. No row was deleted. For the appliance seller, corrected category classification for both canonical and hidden copy instead of leaving it under general homewares.
+- [x] Added taxonomy seed `home_appliances` and moved appliance-retail rows to `cat_home_maintenance_home_appliances` (code commit c40a910fb14fe95a084f15c41e8094f49e38f5e4).
+- [x] Latest verified counts: 341 published with zero missing phones; 87 drafts with no phone; 7 hidden records, of which 5 have no phone. Phone-required publishing is still guarded by database and deployed Edge Function v7.
+- [ ] The latest category code change's CI/build/deployment is not yet verified; confirm it before claiming the category appears in the live frontend.
