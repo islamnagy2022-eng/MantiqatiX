@@ -506,3 +506,6 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Source pages: https://dalil140.com/category/ar/mobile-phones-accessories/el-monofeya/berket-el-sabaa ; https://dalil140.com/category/ar/tea-coffee/el-monofeya/berket-el-sabaa ; https://dalil140.com/category/ar/electric-electronic-devices/el-monofeya/berket-el-sabaa ; https://dalil140.com/category/ar/restaurants/el-monofeya/berket-el-sabaa .
 - All imported records remain unclaimed and explicitly marked as requiring owner confirmation. The data-only operation did not deploy frontend code or modify the directory Edge Function.
 - Remaining verification: re-run duplicate audit after writes; inspect deployed-origin public display and filters; continue sourcing thin groups. Full production gate and real owner handoff remain outside this batch and are not certified by these data changes.
+
+
+- Post-write verification completed: 0 normalized-name duplicate groups and 0 duplicate-phone groups; final production read-back is 202 listings in 18 groups, 155 phone values, one pending ownership claim. Public browser validation was not completed in this session, so no claim is made that the deployed UI was visually verified.
