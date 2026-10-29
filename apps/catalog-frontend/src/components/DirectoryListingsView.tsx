@@ -264,11 +264,12 @@ export const DirectoryListingsView: React.FC<{
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold leading-6 text-amber-950">ملاحظة: الأسماء والأرقام مأخوذة من أدلة عامة وليست تأكيدًا من الأطباء. قبل التواصل أو الاعتماد، يُرجى التأكد من أن الرقم ما زال صحيحًا وأنه يخص العيادة.</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="relative block"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث باسم الطبيب أو العنوان" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-10 pl-3 text-sm" /></label>
-        <select value={specialtyFilter} onChange={(e) => setSpecialtyFilter(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"><option value="all">كل التخصصات</option>{specialties.map((specialty) => <option key={specialty} value={specialty}>{specialty}</option>)}</select>
+        {!taxonomySpecialty && <select value={specialtyFilter} onChange={(e) => setSpecialtyFilter(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"><option value="all">كل التخصصات</option>{specialties.map((specialty) => <option key={specialty} value={specialty}>{specialty}</option>)}</select>}
       </div>
       {loading ? <div className="py-6 text-center text-sm font-bold text-slate-600">جارٍ تحميل صفحات الأطباء…</div> :
         loadError ? <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-800">{loadError}</div> :
         !allReady ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-700">لم تتم إضافة صفحات بعد.</div> :
+        inTaxonomyScope.length === 0 ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-700">لا توجد صفحات مسجلة في هذا التصنيف حتى الآن. يمكن لإدارة المنصة إضافتها من لوحة «دليل الأنشطة والمطالبات» قبل عرض الاشتراك على أصحابها.</div> :
         filtered.length ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((listing) => (
             <article key={listing.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:shadow-sm">
