@@ -554,6 +554,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       name: updated.name,
       bio: updated.bio || '',
       phone: updated.ownerWhatsApp || updated.phone || '',
+      additionalContactPhones: updated.additionalContactPhones || [],
       facebookUrl: updated.facebookUrl || '',
       instagramUrl: updated.instagramUrl || '',
       tiktokUrl: updated.tiktokUrl || '',

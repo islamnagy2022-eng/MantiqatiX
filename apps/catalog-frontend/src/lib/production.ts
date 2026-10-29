@@ -132,6 +132,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     bio: String(profile.bio || raw.bio || provider?.description || ''),
     ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
+    additionalContactPhones: Array.isArray(profile.additional_contact_phones) ? profile.additional_contact_phones.map((value: unknown) => String(value || '')).filter(Boolean) : [],
     phone: String(profile.contact_phone || branch.phone || profile.phone || raw.phone || ''), email: String(raw.email || ''),
     facebookUrl: String(profile.facebook_url || profile.facebookUrl || raw.facebookUrl || ''),
     instagramUrl: String(profile.instagram_url || profile.instagramUrl || raw.instagramUrl || ''),

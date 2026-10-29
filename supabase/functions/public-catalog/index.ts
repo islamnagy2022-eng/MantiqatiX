@@ -220,6 +220,7 @@ Deno.serve(async (req: Request) => {
         facebookUrl: String(profile.facebook_url || ""),
         instagramUrl: String(profile.instagram_url || ""),
         tiktokUrl: String(profile.tiktok_url || ""),
+        additionalContactPhones: Array.isArray(profile.additional_contact_phones) ? profile.additional_contact_phones : [],
         category: String(profile.category || provider.provider_kind || "").slice(0, 100),
       },
       branches: branches.map((branch: any) => ({
