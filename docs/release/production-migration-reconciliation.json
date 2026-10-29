@@ -1115,80 +1115,80 @@
     "full_platform_gate_unblocked": false
   },
   "professional_dashboard_dependency_check": {
-    "status": "BLOCKED",
+    "status": "PASS",
     "checked_at": "2026-10-29",
-    "method": "Read-only Supabase MCP SQL plus migration-ledger inspection against the configured production project; no schema or migration history was changed.",
+    "method": "Verified after applying forward-only dashboard dependency migration 20261029041815_professional_dashboard_dependencies_forward_repair. Live read-only SQL confirmed all 11 required dashboard objects, four new tables with RLS and FORCE RLS enabled, no direct anon/authenticated table privileges, expected authenticated RPC grants, internal helper EXECUTE revoked, and unauthenticated permission checks fail closed. This does not certify the broader platform release gate.",
     "project_ref": "moyhiluyhjsujhwlyeuu",
     "required_objects": [
       {
         "object": "public.platform_custom_roles",
         "kind": "relation",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.platform_role_assignments",
         "kind": "relation",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.business_job_positions",
         "kind": "relation",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.business_employees",
         "kind": "relation",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_platform_has_permission",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_business_employee_list",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_business_employee_list_scoped",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_business_employee_position_upsert",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_business_employee_upsert",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_business_employee_permission_ceiling_allows",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       },
       {
         "object": "public.mnty_business_employee_permissions_subset",
         "kind": "function",
-        "exists": false,
-        "status": "BLOCKED"
+        "exists": true,
+        "status": "PASS"
       }
     ],
-    "interpretation": "The live project lacks the RC113-RC115 control-center/employee dependencies and RC457 permission-ceiling helpers. Do not deploy or merge this dashboard feature until the missing release migrations are reconciled and the required objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
+    "interpretation": "Dashboard-specific live dependencies are installed and verified by read-only queries. Historical migrations were not edited and the 41-version full-platform release chain, finance/payment/Edge Function parity, backup/restore rehearsal, Auth hardening, monitoring, and unrelated release evidence remain BLOCKED. Deployment may proceed only through the existing scoped catalog/dashboard gate; do not mark the full platform production-certified."
   },
   "live_ledger_checked_at": "2026-10-29",
-  "live_ledger_verification_method": "Read-only SELECT from supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 10 through Supabase MCP; no production writes."
+  "live_ledger_verification_method": "Read-only SELECT after the forward-only dashboard dependency rollout: 304 recorded migration rows, latest version 20261029041815; expected dashboard objects, RLS, grants and fail-closed unauthenticated permission checks verified."
 }
