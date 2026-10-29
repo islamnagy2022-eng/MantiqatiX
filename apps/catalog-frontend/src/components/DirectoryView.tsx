@@ -426,7 +426,7 @@ export const DirectoryView: React.FC = () => {
                       </span>
                       <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
                         <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{count}</span>
-                        {unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedCount}</span>}
+                        <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedCount}</span>
                       </span>
                     </button>
                   );
@@ -457,7 +457,7 @@ export const DirectoryView: React.FC = () => {
                       <span>{specialty}</span>
                       <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
                         <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{confirmedSpecialtyCount}</span>
-                        {unconfirmedSpecialtyCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedSpecialtyCount}</span>}
+                        <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedSpecialtyCount}</span>
                       </span>
                     </button>
                   );
