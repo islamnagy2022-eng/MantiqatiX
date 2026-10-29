@@ -206,13 +206,19 @@ Deno.serve(async (req: Request) => {
     if (!taxonomyCategoryId.startsWith("cat_" + functionalGroupId + "_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
       return out(origin, { error: "TAXONOMY_GROUP_MISMATCH", message: "التصنيف المختار لا يتبع المجموعة الوظيفية المحددة." }, 400);
     }
+    const phone = clean(body.phone, 40);
+    const secondaryPhone = clean(body.secondaryPhone, 40);
+    const hasPhone = phone.replace(/\\D/g, "").length >= 7 || secondaryPhone.replace(/\\D/g, "").length >= 7;
+    if (listingStatus === "PUBLISHED" && !hasPhone) {
+      return out(origin, { error: "PHONE_REQUIRED_FOR_PUBLICATION", message: "لا يمكن نشر النشاط قبل إضافة رقم هاتف صحيح من 7 أرقام على الأقل." }, 400);
+    }
     const patch: Record<string, unknown> = {
       slug, display_name: displayName, listing_type: listingType,
       functional_group_id: functionalGroupId,
       taxonomy_category_id: taxonomyCategoryId,
       taxonomy_specialty: taxonomySpecialty,
       specialty: clean(body.specialty || taxonomySpecialty, 160) || null,
-      phone: clean(body.phone, 40) || null, secondary_phone: clean(body.secondaryPhone, 40) || null,
+      phone: phone || null, secondary_phone: secondaryPhone || null,
       address: clean(body.address, 500) || null,
       governorate: clean(body.governorate || "المنوفية", 100),
       district: clean(body.district || "بركة السبع", 100), village: clean(body.village, 100) || null,
