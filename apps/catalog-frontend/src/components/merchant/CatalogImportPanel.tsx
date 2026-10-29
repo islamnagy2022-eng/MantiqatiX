@@ -221,7 +221,7 @@ function validateDraftRows(rows: CatalogDraftRow[]): CatalogDraftRow[] {
         if (url.protocol !== 'https:' || url.username || url.password) errors.push('رابط الصورة يجب أن يكون HTTPS صالحًا.');
       } catch { errors.push('رابط الصورة غير صالح.'); }
     }
-    const key = `${row.name.trim()}::${row.variant.trim()}`.toLocaleLowerCase();
+    const key = `${row.name.trim()}::${(row.variant||'').trim()}`.toLocaleLowerCase();
     if (row.name.trim() && seen.has(key)) errors.push('اسم وحجم مكرران داخل ملف الاستيراد.');
     if (row.name.trim()) seen.add(key);
     return { ...row, errors };
@@ -271,7 +271,7 @@ export const CatalogImportPanel: React.FC = () => {
   const [progress,setProgress] = useState({done:0,total:0,failed:0});
   const [notice,setNotice] = useState<{type:'success'|'error'|'info';text:string}|null>(null);
   const remaining = Math.max(0,(currentBusiness?.maxProductsLimit || 150) - businessProducts.length);
-  const productNameForRow=(row:CatalogDraftRow)=>row.variant.trim()?`${row.name.trim()} - ${row.variant.trim()}`:row.name.trim();
+  const productNameForRow=(row:CatalogDraftRow)=>(row.variant||'').trim()?`${row.name.trim()} - ${(row.variant||'').trim()}`:row.name.trim();
   const existingNames = useMemo(()=>new Set(businessProducts.map(p=>p.name.trim().toLocaleLowerCase())),[businessProducts]);
   const readyRows = useMemo(()=>rows.filter((row)=>row.errors.length===0&&!existingNames.has(productNameForRow(row).toLocaleLowerCase())),[rows,existingNames]);
   const invalidCount = rows.length - readyRows.length;
