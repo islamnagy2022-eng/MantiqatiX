@@ -49,11 +49,29 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
     if (slug) {
-      const { data, error } = await service.from("public_directory_listings").select(publicFields)
+      const { data, error } = await service.from("public_directory_listings")
+        .select(publicFields + ",claimed_user_id,claimed_business_id")
         .eq("slug", slug).eq("listing_status", "PUBLISHED").maybeSingle();
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
       if (!data) return out(origin, { error: "LISTING_NOT_FOUND" }, 404);
-      return out(origin, { listing: data });
+      let canEdit = false;
+      const authHeader = req.headers.get("Authorization") || "";
+      const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+      if (bearer) {
+        const { data: viewerData } = await service.auth.getUser(bearer);
+        const viewer = viewerData?.user;
+        if (viewer && !viewer.is_anonymous) {
+          canEdit = data.claim_status === "CLAIMED" && String(data.claimed_user_id || "") === String(viewer.id);
+          if (!canEdit && data.claim_status === "CLAIMED" && data.claimed_business_id) {
+            const { data: memberships } = await service.from("user_memberships").select("id")
+              .eq("user_id", viewer.id).eq("business_id", data.claimed_business_id).eq("status", "ACTIVE")
+              .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
+            canEdit = Boolean(memberships?.length);
+          }
+        }
+      }
+      const { claimed_user_id: _claimedUserId, claimed_business_id: _claimedBusinessId, ...publicListing } = data;
+      return out(origin, { listing: { ...publicListing, can_edit: canEdit } });
     }
     const type = clean(url.searchParams.get("type"), 40);
     let query = service.from("public_directory_listings").select(publicFields)
@@ -106,6 +124,53 @@ Deno.serve(async (req: Request) => {
       return out(origin, { error: "CLAIM_UNAVAILABLE", message: "سبقك طلب آخر على هذه الصفحة. تواصل مع الإدارة." }, 409);
     }
     return out(origin, { success: true, requestId: request.id, status: request.status }, 201);
+  }
+
+  if (action === "UPDATE_OWNED_LISTING") {
+    const listingId = clean(body.listingId, 80);
+    const { data: listing, error: listingError } = await service.from("public_directory_listings")
+      .select("id,claim_status,claimed_user_id,claimed_business_id,metadata")
+      .eq("id", listingId).eq("listing_status", "PUBLISHED").maybeSingle();
+    if (listingError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
+    if (!listing || listing.claim_status !== "CLAIMED") return out(origin, { error: "LISTING_NOT_CLAIMED" }, 409);
+    let authorized = String(listing.claimed_user_id || "") === String(user.id);
+    if (!authorized && listing.claimed_business_id) {
+      const { data: memberships, error: membershipError } = await service.from("user_memberships").select("id")
+        .eq("user_id", user.id).eq("business_id", listing.claimed_business_id).eq("status", "ACTIVE")
+        .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1);
+      if (membershipError) return out(origin, { error: "OWNER_CHECK_FAILED" }, 500);
+      authorized = Boolean(memberships?.length);
+    }
+    if (!authorized) return out(origin, { error: "LISTING_OWNER_REQUIRED" }, 403);
+    const displayName = clean(body.displayName, 200);
+    const phone = clean(body.phone, 40);
+    const secondaryPhone = clean(body.secondaryPhone, 40);
+    const specialty = clean(body.specialty, 160);
+    const address = clean(body.address, 500);
+    const governorate = clean(body.governorate || "المنوفية", 100);
+    const district = clean(body.district || "بركة السبع", 100);
+    const village = clean(body.village, 100);
+    if (displayName.length < 2) return out(origin, { error: "INVALID_DISPLAY_NAME" }, 400);
+    const metadataInput = body.metadata && typeof body.metadata === "object" && !Array.isArray(body.metadata) ? body.metadata : {};
+    const currentMetadata = listing.metadata && typeof listing.metadata === "object" && !Array.isArray(listing.metadata) ? listing.metadata : {};
+    const metadataPatch: Record<string, unknown> = {};
+    for (const key of ["bio","workingHours","websiteUrl","bookingUrl","services","socialLinks","profileImageUrl"]) {
+      if (Object.prototype.hasOwnProperty.call(metadataInput, key)) metadataPatch[key] = metadataInput[key];
+    }
+    const patch = {
+      display_name: displayName, phone: phone || null, secondary_phone: secondaryPhone || null,
+      specialty: specialty || null, address: address || null, governorate, district, village: village || null,
+      metadata: { ...currentMetadata, ...metadataPatch, contactVerified: true, ownerUpdatedAt: new Date().toISOString() },
+      completeness: {
+        name: true, phone: Boolean(phone || secondaryPhone), specialty: Boolean(specialty), address: Boolean(address),
+        bio: Boolean(metadataPatch.bio), workingHours: Boolean(metadataPatch.workingHours), websiteUrl: Boolean(metadataPatch.websiteUrl),
+      },
+      last_verified_at: new Date().toISOString(), updated_by: user.id,
+    };
+    const { data: saved, error: saveError } = await service.from("public_directory_listings")
+      .update(patch).eq("id", listingId).select(publicFields).single();
+    if (saveError) return out(origin, { error: "OWNED_LISTING_UPDATE_FAILED" }, 500);
+    return out(origin, { success: true, listing: { ...saved, can_edit: true } });
   }
 
   const { data: memberships, error: membershipsError } = await service.from("user_memberships")
