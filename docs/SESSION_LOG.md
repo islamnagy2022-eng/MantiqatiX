@@ -464,3 +464,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Source review confirmed the required forward migrations are present in `main`: RC113 `20261027030000_rc113_super_admin_control_center_foundation.sql`, RC114 `20261027040000_rc114_business_employee_hiring_system.sql`, RC115 `20261027050000_rc115_control_center_integration.sql`, and RC457 `20261028225000_rc457_business_employee_permission_ceiling.sql`. RC113 scope/idempotency follow-up `20261027090000_rc113_user_membership_business_scope_idempotency.sql` is also not present in the live ledger; its unique-index preflight currently reports zero duplicate groups.
 - Next: review the exact migration dependency/order and rollback plan, reconcile the broader 41-version production drift, then request/execute an explicitly controlled rollout and re-check live objects before retrying deployment. Do not bypass the production gate or mark historical migrations applied without proof.
 - Remaining after backend dependency readiness: authenticated production-origin verification, real-device mobile/tablet and keyboard/accessibility review, and deployed QR/permanent-link regression. Full platform remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-29 — Controlled rollout runbook prepared
+
+- Added `docs/release/PROFESSIONAL_DASHBOARD_PRODUCTION_ROLLOUT.md` with the exact RC113/RC114/RC115/RC457 source migrations, membership-scope preflight, backup/rehearsal requirements, source/ledger reconciliation, post-migration read-only checks, and deployment stop conditions.
+- The runbook is **preparation only**. No production migrations were applied and no ledger was repaired. The 41-version full-platform drift and two source-version aliases remain unreconciled; applying only selected migrations without resolving their historical order could worsen drift.
+- Fresh read-only SQL evidence remains unchanged: 11 required dashboard objects absent, latest ledger version `20261028112112`, zero duplicate business-membership scope groups.
+- Documentation cleanup is proposed in [PR #488](https://github.com/islamnagy2022-eng/MantiqatiX/pull/488). Exact-head CI is running; do not merge until its checks finish. The production site remains without the new dashboard until the controlled rollout and live verification pass.
