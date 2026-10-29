@@ -567,3 +567,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Post-write read-back: **44 pharmacy listings total**, **41 with phone numbers**, all 44 published and unclaimed. No duplicate normalized pharmacy names or duplicate phone numbers were returned within the pharmacy category.
 - Listings remain public-source leads, not owner-confirmed data. Three listings currently have no phone number; phone numbers and operating status require confirmation.
 - Data-only operation; no frontend deployment or owner/subscription activation performed.
+
+
+## 2026-10-29 — Pharmacy directory phone completion and live UI path review
+
+- Filled three previously blank pharmacy phone fields only after finding matching public source records: صيدلية ابن سينا (0482994292), صيدلية الشعب (0482996150), and صيدلية الطنطاوي (0482995134). Sources are recorded on each listing and are not owner-verified: https://dalil140.com/company/ar/325098-ibn-sina-pharmacy ; https://dalil140.com/company/ar/324083-el-shaab-pharmacy ; https://dalil140.com/company/ar/324330-el-tantawy-pharmacy .
+- Before each update, checked the phone digits against other directory records and only filled an empty phone field; no existing non-empty phone was overwritten.
+- Post-write production read-back: 44 pharmacy listings, all 44 with phone, all 44 published/unclaimed, and all 44 with source URL. No pharmacy records remain without a phone.
+- Reviewed frontend wiring: `DirectoryView.tsx` loads published unclaimed rows from the `directory-listings` public endpoint, and the canonical taxonomy already defines `cat_medical_health_pharmacies` as the pharmacy category. This confirms the application has a data/rendering path, but does not by itself prove a fresh browser session or a new Pages deployment has displayed the updated data.
+- Sources show public directory phone listings; numbers and operating status remain subject to owner confirmation. No frontend code change or deployment was needed for these data-only updates.
