@@ -2087,3 +2087,10 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Reconciled inventory: **296 PUBLISHED listings (0 without phone); 102 no-phone DRAFT listings**. These DRAFT records stay hidden pending a real phone source; do not invent numbers or expose them publicly.
 - [x] Data policy remains: source phone does not equal owner verification. Keep claim status UNCLAIMED and owner confirmation required.
 - [ ] Continue by sourcing uncovered local categories and affiliated villages, checking normalized names and all primary/secondary phones before insertion, then publish only after successful read-after-write.
+
+
+## 2026-10-29 — New construction and health listings; inventory verification
+
+- [x] Added four source-backed health records with phone numbers and two building-material listings; reused the existing Abou El Nasr record and populated a sourced secondary phone rather than duplicating it.
+- [x] Verified database state: **302 PUBLISHED, 0 published without phone; 102 DRAFT without phone**. Keep the existing 102 drafts hidden until a real phone is found.
+- [ ] Health and building materials remain source-directory leads until owner/contact details and active status are confirmed directly. Continue through uncovered village-level businesses without fabricating contact data.
