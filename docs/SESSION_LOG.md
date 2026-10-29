@@ -480,9 +480,18 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 ## 2026-10-29 — Berket El Sabaa doctors directory and claim workflow
 
 - Deployed 43 initial doctor listing records sourced from public directory pages in Berket El Sabaa, Menoufia. A read-only production query verified 43 rows, all with phone/address fields, and 37 specialty labels filled; the remaining 6 specialty fields are clearly marked as needing confirmation rather than guessed.
-- Applied production migration `20261029120000_public_directory_listings_and_claims`; created public directory listing records and claim request storage, with direct anon/authenticated table grants revoked.
-- Deployed Supabase Edge Function `directory-listings` version 2 with public read, signed-in claim request, admin add/edit and controlled ownership review endpoints.
-- Added shareable individual listing route in the catalog, public list/search/specialty filter, and platform-admin workflow to complete missing details and review claims.
+- Applied production migration `20261029051004_public_directory_listings_and_claim_requests`; created public directory listing records and claim request storage, with direct anon/authenticated table grants revoked.
+- Deployed Supabase Edge Function `directory-listings` version 4 with public read, signed-in claim request, admin add/edit/outreach tracking, controlled ownership review, and verified owner-side profile updates.
+- Integrated listings beneath the medical taxonomy/group and wired specialty filtering to the canonical doctor/dentist categories. Added shareable individual routes, platform-admin contact/subscription-offer follow-up tracking, and post-claim owner profile editing plus a link to the associated activity dashboard/merchant catalog. This makes the pre-subscription record a lead/listing, not a falsely activated business or owner account.
 - [x] Primary frontend validation succeeded; deployed-origin browser regression suite passed on [run 40822443666](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40822443666).
 - [ ] Do not present listed phone/specialty/address as freshly verified by MantiqatiX. Records are based on a public directory and are labeled initial/unverified; direct contact and correction requests are outstanding.
 - [ ] No actual doctor has been contacted and no real claimant has completed the claim flow yet. Ownership transfer remains gated by manual identity/ownership verification and confirmed paid subscription for the selected active business.
+
+
+## 2026-10-29 — Medical directory category integration and owner self-service
+
+- Public listings now render only in the medical-health context; selecting a canonical taxonomy category scopes them by type (doctor, dentist, pharmacy, clinic, lab, radiology, etc.) and selected specialty maps to the public source's specialty labels.
+- Added internal outreach tracking fields (NEW, CONTACTED, INTERESTED, OFFER_SENT, FOLLOW_UP, SUBSCRIPTION_PENDING, SUBSCRIBED, NOT_INTERESTED, CORRECTION_REQUESTED), notes, contacted date, subscription offer date, and next follow-up date. These fields are admin-only and excluded from public directory responses.
+- Added an authenticated post-claim profile update endpoint. A user can edit their page only after the claim is approved and identity/ownership plus paid subscription are confirmed. The listing then exposes a link to the linked activity dashboard/merchant catalog.
+- The directory-listings Edge Function is deployed at production version 4. UI build and deployment for latest commit 0b36fbcb97d407e61744290c1cb4ca9728488b27 are being validated; do not mark the newest UI as live until the matching deployment run completes.
+- Data-quality note remains: 43 first-pass pages were imported from public listings; all have a phone and address, 37 have a listed specialty, and six require specialty confirmation. None is labeled as doctor-verified by MantiqatiX. Real outreach, claimed-account editing, and paid owner handoff still require an actual end-to-end test.
