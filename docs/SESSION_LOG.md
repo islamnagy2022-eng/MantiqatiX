@@ -495,3 +495,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Added an authenticated post-claim profile update endpoint. A user can edit their page only after the claim is approved and identity/ownership plus paid subscription are confirmed. The listing then exposes a link to the linked activity dashboard/merchant catalog.
 - The directory-listings Edge Function is deployed at production version 4. UI build and deployment for latest commit 0b36fbcb97d407e61744290c1cb4ca9728488b27 are being validated; do not mark the newest UI as live until the matching deployment run completes.
 - Data-quality note remains: 43 first-pass pages were imported from public listings; all have a phone and address, 37 have a listed specialty, and six require specialty confirmation. None is labeled as doctor-verified by MantiqatiX. Real outreach, claimed-account editing, and paid owner handoff still require an actual end-to-end test.
+
+
+## 2026-10-29 — Berket El Sabaa directory expansion batch
+
+- Read the latest main head before touching data: `2acd6470f3b7acf2e2667cbeb78f8f01419559dc`.
+- Production table `public.public_directory_listings` was inventoried read-only before writes: 193 rows across 18 groups, 142 phone values, all rows had address and source URL; normalized-name duplicate audit returned no matches.
+- Inserted 9 new public-source records through an idempotent SQL batch that checks normalized names and phone digits before inserting: four mobile stores, one sweets shop, one coffee/tea seller, and three electronics shops. Four existing mobile-store records had their missing phone fields filled from a public directory; no existing non-empty phone was overwritten.
+- Read-after-write totals: 202 rows across all 18 groups, 155 with phone, 202 with address and source URL. Per-group distribution is recorded in `docs/MASTER_PRODUCTION_TODO.md`.
+- Source pages: https://dalil140.com/category/ar/mobile-phones-accessories/el-monofeya/berket-el-sabaa ; https://dalil140.com/category/ar/tea-coffee/el-monofeya/berket-el-sabaa ; https://dalil140.com/category/ar/electric-electronic-devices/el-monofeya/berket-el-sabaa ; https://dalil140.com/category/ar/restaurants/el-monofeya/berket-el-sabaa .
+- All imported records remain unclaimed and explicitly marked as requiring owner confirmation. The data-only operation did not deploy frontend code or modify the directory Edge Function.
+- Remaining verification: re-run duplicate audit after writes; inspect deployed-origin public display and filters; continue sourcing thin groups. Full production gate and real owner handoff remain outside this batch and are not certified by these data changes.
