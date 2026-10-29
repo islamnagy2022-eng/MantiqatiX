@@ -50,6 +50,7 @@ import {
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
 import { CommissionRulesManager } from './CommissionRulesManager';
+import { DirectoryListingsAdmin } from './DirectoryListingsAdmin';
 import { resolveDefaultImage } from '../../utils/defaultImages';
 import { callPlatformAdmin } from '../../lib/production';
 
@@ -114,8 +115,8 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'settings', 'backup', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
     return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
@@ -688,6 +689,19 @@ export const AdminDashboard: React.FC = () => {
           <span>المشتركون وحسابات Google ({subscribers.length})</span>
         </button>
 
+        {/* Public directory listings and ownership claims */}
+        <button
+          onClick={() => setActiveAdminTab('directory_listings')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'directory_listings'
+              ? 'bg-emerald-700 text-white shadow-md'
+              : 'text-slate-700 hover:text-emerald-800 bg-white border border-slate-200'
+          }`}
+        >
+          <Store className="w-4 h-4" />
+          <span>دليل الأنشطة والمطالبات</span>
+        </button>
+
         {/* Tab 5: Settings */}
         <button
           onClick={() => setActiveAdminTab('settings')}
@@ -709,6 +723,8 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'commissions' && <CommissionRulesManager />}
 
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
+
+      {activeAdminTab === 'directory_listings' && <DirectoryListingsAdmin businesses={businesses} />}
 
       {/* =========================================================================
           TAB: BILLING & COMMISSION (Mandatory Request Feature)
