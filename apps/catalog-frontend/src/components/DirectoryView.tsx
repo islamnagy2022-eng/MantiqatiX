@@ -446,7 +446,7 @@ export const DirectoryView: React.FC = () => {
                   const confirmedSpecialtyCount = businesses.filter((business) => {
                     if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
                     if (categoryForBusiness(business)?.id !== selectedTaxonomyCategory?.id) return false;
-                    const suffix = business.category.slice(categoryForBusiness(business)?.name.length || 0).replace(/^\\s*—\\s*/, '');
+                    const suffix = business.category.slice(categoryForBusiness(business)?.name.length || 0).replace(/^\s*—\s*/, '');
                     return String(business.activitySpecialty || '') === specialty || suffix === specialty;
                   }).length;
                   const unconfirmedSpecialtyCount = unconfirmedListings.filter((listing) =>
