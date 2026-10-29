@@ -64,3 +64,13 @@ Partial execution started: 34 verified insertions across the documented batches 
 - Source pages did not expose direct phone numbers in the retrieved content, so phone fields were left empty. Records are PUBLISHED/UNCLAIMED, with owner confirmation required and source phone verification false.
 - The source lists both a Real Estate Registration Mission and a Real Estate Registration Office at the same local court/address. The inserted listing includes a metadata note that the source names may refer to related offices; do not merge or delete without further verification.
 - Current row-count evidence: 348 rows before this batch; 11 rows returned by insert; expected table total is 359 if no concurrent writes occurred. Re-query the total before reporting a definitive current count.
+
+
+### Auto parts + agriculture supplies — next batch (2026-10-29)
+
+- [x] Checked existing local listings before adding new candidates. Existing records for الجودة, الصفا, هاني, أكتوبر, and حجاج were found and retained rather than recreated.
+- [x] Filled missing phone fields for three existing matching auto-parts records from the Dalil140 Berket El Sabaa auto-parts source: أكتوبر (01003811434), الصفا (01009088919; secondary 01001722747), and هاني (01111026219). Existing non-empty phone values were not overwritten. Source: https://dalil140.com/category/en/cars-parts-accessories/el-monofeya/berket-el-sabaa.
+- [x] Inserted 8 read-after-write verified public-source candidates within the administrative scope: أولاد غنيم لقطع غيار السيارات; الكابتن لقطع غيار السيارات (جنزور; phone not surfaced in returned result); المهندس لقطع غيار السيارات (كفر عليم); إبراهيم جودت لقطع غيار السيارات; نوح إيسوزو لقطع غيار السيارات (كفر هلال); العنتر لقطع غيار السيارات والإكسسوارات; شركة الأمل لاستيراد المعدات الزراعية (جنزور); شرف الدين للمبيدات والبذور والأسمدة الزراعية.
+- [x] New listings are PUBLISHED/UNCLAIMED, require owner confirmation, and are not represented as owner-verified. For records where a source supplied a phone, it is marked as public-source data, not direct verification with the business.
+- [ ] Continue broad global duplicate checks by normalized phone and normalized name across the entire directory before every further insertion; do not merge distinct branches or shared-contact businesses without evidence.
+- [ ] Revisit agricultural candidate leads (including حجاج and additional village suppliers) for missing phone/location details and confirm all villages are within Berket El Sabaa's administrative scope.
