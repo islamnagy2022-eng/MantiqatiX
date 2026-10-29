@@ -549,3 +549,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Public-source leads remain unclaimed and unconfirmed. New records do not create owner accounts or activate businesses/subscriptions.
 - Frontend validation for the bank taxonomy passed on run [40830599537](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830599537). Deployment was repeatedly cancelled by newer pushes; the latest deploy run [40830767697](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830767697) was queued at the time of logging. Confirm deployment success before claiming the new category is visible live.
 - Coverage remains incomplete; continue systematic sourcing across all six local units, villages, hamlets and business classifications.
+
+
+## 2026-10-29 — Berket El Sabaa directory expansion batch 5
+
+- Added four new source-attributed listings after name/slug duplicate checks: أحمد شبل لصيانة السيارات, حمادة لصيانة السيارات, ورشة محمد لصيانة السيارات, and العطوي للأجهزة المنزلية. Other candidate home-appliance names were already represented and were not duplicated.
+- Final Production read-back: **251 published listings**, 191 with phone, all 251 with address and source URL. All 18 functional groups are represented; duplicate-name and taxonomy/group consistency audits returned zero mismatches.
+- Current group counts are recorded in the Master Production TODO. Source pages: [auto repair](https://dalil140.com/category/ar/cars-repairing-servicing-equipment/el-monofeya/berket-el-sabaa) and [home appliances](https://dalil140.com/category/ar/appliances/el-monofeya/berket-el-sabaa).
+- Bank taxonomy validation passed on run [40830599537](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830599537), but deployment is still pending on [40830850253](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830850253); do not claim it is live until success.
+- Public-source listings remain unclaimed/unconfirmed. Coverage is still incomplete and should continue village by village and category by category.
