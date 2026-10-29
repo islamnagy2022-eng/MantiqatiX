@@ -760,7 +760,7 @@ export const DirectoryView: React.FC = () => {
                 return (
                   <div
                     key={biz.id}
-                    className="min-w-0 bg-white rounded-xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md sm:hover:shadow-xl transition-all group"
+                    className={`min-w-0 bg-white rounded-xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md sm:hover:shadow-xl transition-all group ${biz.isVerified ? 'order-1' : 'order-3'}`}
                   >
                     <div>
                       {/* Cover Photo & Badges */}
@@ -879,7 +879,7 @@ export const DirectoryView: React.FC = () => {
                   key={`directory-${listing.id}`}
                   type="button"
                   onClick={() => openDirectoryListing(listing.slug)}
-                  className="min-w-0 overflow-hidden rounded-xl sm:rounded-3xl border border-amber-200 bg-white text-right shadow-xs transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  className="order-2 min-w-0 overflow-hidden rounded-xl sm:rounded-3xl border border-amber-200 bg-white text-right shadow-xs transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   aria-label={`فتح صفحة ${listing.display_name} — بيانات تحتاج إلى تأكيد`}
                 >
                   <div className="relative flex h-20 sm:h-36 items-center justify-center bg-gradient-to-br from-amber-50 via-white to-slate-100">
