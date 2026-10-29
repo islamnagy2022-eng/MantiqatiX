@@ -501,16 +501,6 @@ export const DirectoryView: React.FC = () => {
           </label>
         </div>
 
-        {(selectedGroupFilter === 'medical_health' || selectedTaxonomyCategory?.functionalGroupId === 'medical_health') && (
-          <DirectoryListingsView
-            onOpen={openDirectoryListing}
-            onBack={closeDirectoryListing}
-            listingTypeFilter={selectedTaxonomyCategory ? ({ pharmacies: 'pharmacy', clinics: 'clinic', hospitals: 'hospital', labs: 'laboratory', doctor: 'doctor', dentist: 'doctor', dental_centers: 'clinic', radiology: 'doctor', physio_centers: 'health_provider' } as Record<string, string>)[selectedTaxonomyCategoryCode] || null : null}
-            taxonomyCategoryId={selectedTaxonomyCategory?.functionalGroupId === 'medical_health' ? selectedTaxonomyCategoryCode : null}
-            taxonomySpecialty={selectedSpecialty === 'all' ? null : selectedSpecialty}
-          />
-        )}
-
         {/* Search & Location Filter Bar */}
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative flex-1 w-full">
@@ -700,6 +690,16 @@ export const DirectoryView: React.FC = () => {
             </div>
           )}
         </div>
+        {(searchQuery.trim() || selectedGroupFilter !== 'all' || selectedCategoryId !== 'all') && (
+          <DirectoryListingsView
+            onOpen={openDirectoryListing}
+            onBack={closeDirectoryListing}
+            functionalGroupId={selectedGroupFilter === 'all' ? null : selectedGroupFilter}
+            searchQuery={searchQuery}
+            taxonomyCategoryId={selectedCategoryId === 'all' ? null : selectedTaxonomyCategory?.id || null}
+            taxonomySpecialty={selectedSpecialty === 'all' ? null : selectedSpecialty}
+          />
+        )}
       </div>
     </div>
   );
