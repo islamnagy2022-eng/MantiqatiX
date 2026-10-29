@@ -517,3 +517,15 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Fixed specialty label suffix normalization for accurate confirmed specialty counts.
 - Commits: `06cac94168d480aa537198938c950c1aae28fed5`, `b47fbf3b0dd3319f13dda211a1b26019446fcdd8`, `437970e4876de8876d1216770b812094490b1520`, `c6c09d4e33722b2e36953f38979fe8f7377c45a2`.
 - Validation status: source diff verified; no commit status checks were returned. Build, Pages deployment and deployed visual verification are still pending/unconfirmed.
+
+
+## 2026-10-29 — Berket El Sabaa directory expansion batch 2
+
+- Expanded the live directory from 202 to **222 published listings** across all 18 functional groups.
+- Added 20 records sourced from public directories: five additional gyms/fitness businesses; one real-estate broker; one metal-turning workshop; one family-dispute office; four bank branches; six travel agencies; and two photo studios. Duplicate names were checked before insertion.
+- Added `cat_finance_insurance_banks` to canonical frontend taxonomy in commit `88c537962465c288061d490e00baab9783b4152e`. The Primary Catalog Frontend Validation run `40830599537` was in progress at the time of logging; the new category is not claimed deployed until workflow completion.
+- Filled the blank Green House agriculture listing phone from the public 140Online source: 01223992177. It remains explicitly unconfirmed.
+- Production read-back: 222 total; 160 with phone; all 222 with address and source URL. Post-write audits returned zero normalized-name duplicate groups and zero taxonomy/group prefix mismatches.
+- Official-source research included the Ministry of Tourism's Menoufia licensed-tourism directory (New Havana Travel and Citadel Tourism), YellowPages local listings (travel agencies, banks, Al-Safwa real estate), Dalil140 (Queen Gym, technical workshop, bank/travel categories), FindGlocal (local gyms), and Shewaya (photo studios).
+- All additions remain `PUBLISHED` + `UNCLAIMED` public directory leads with source URL and owner-confirmation metadata. Public-source presence is not direct owner confirmation or proof of current operating status. No official business account, owner membership, paid subscription, or operational module was activated by this batch.
+- Coverage remains incomplete. Continue searching and adding verified-source leads across all villages of Berket El Sabaa center, especially agriculture/veterinary services, workshops/manufacturing, real estate, finance and underrepresented village categories.
