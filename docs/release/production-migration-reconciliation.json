@@ -1112,5 +1112,68 @@
     "data_changed": false,
     "grants_changed": false,
     "full_platform_gate_unblocked": false
+  },
+  "professional_dashboard_dependency_check": {
+    "status": "BLOCKED",
+    "checked_at": "2026-10-29",
+    "method": "Read-only Supabase MCP checks against the configured production project using to_regclass/to_regprocedure; no schema or migration history was changed.",
+    "project_ref": "moyhiluyhjsujhwlyeuu",
+    "required_objects": [
+      {
+        "object": "public.platform_custom_roles",
+        "kind": "relation",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.platform_role_assignments",
+        "kind": "relation",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.business_job_positions",
+        "kind": "relation",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.business_employees",
+        "kind": "relation",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_platform_has_permission",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_business_employee_list",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_business_employee_list_scoped",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_business_employee_position_upsert",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_business_employee_upsert",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
+      }
+    ],
+    "interpretation": "The dashboard code and isolated integration tests are ready, but the live project lacks the RC113-RC115 control-center/employee objects and the new RC457 branch-aware roster RPC. Do not deploy or merge this dashboard feature until the missing release migrations are reconciled and these objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
   }
 }
