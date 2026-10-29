@@ -9,14 +9,14 @@ assert.match(view, /navigator\.geolocation\.getCurrentPosition/, 'GPS must use t
 assert.match(view, /onClick=\{requestUserLocation\}/, 'GPS must only be requested after the visitor activates the button');
 assert.match(view, /enableHighAccuracy:\s*true/, 'GPS should request high accuracy where supported');
 assert.match(view, /PERMISSION_DENIED/, 'permission denial must have a handled fallback');
-assert.match(view, /const canWidenGeographicSearch = selectedAreaFilter !== 'all'[\\s\\S]*selectedVillageFilter !== 'all'[\\s\\S]*selectedMarkazFilter !== 'all'[\\s\\S]*selectedGovFilter !== 'all'/,
+assert.match(view, /const canWidenGeographicSearch = selectedAreaFilter !== 'all'[\s\S]*selectedVillageFilter !== 'all'[\s\S]*selectedMarkazFilter !== 'all'[\s\S]*selectedGovFilter !== 'all'/,
   'the interface must offer progressive geographic widening from area to governorate');
-assert.match(view, /onClick=\\{widenGeographicSearch\\}/, 'geographic widening must require an explicit visitor action');
-assert.doesNotMatch(view, /If a selected area has no results, widen geography[\\s\\S]*?useEffect\\(/,
+assert.match(view, /onClick=\{widenGeographicSearch\}/, 'geographic widening must require an explicit visitor action');
+assert.doesNotMatch(view, /If a selected area has no results, widen geography[\s\S]*?useEffect\(/,
   'the selected geographic scope must not change automatically when results are empty');
-assert.match(view, /window\\.isSecureContext/, 'GPS must explain when a secure context is required');
+assert.match(view, /window\.isSecureContext/, 'GPS must explain when a secure context is required');
 assert.match(view, /POSITION_UNAVAILABLE/, 'unavailable device location must have a clear fallback');
-assert.match(view, /coords\\.accuracy/, 'GPS accuracy must be checked and communicated');
+assert.match(view, /coords\.accuracy/, 'GPS accuracy must be checked and communicated');
 assert.match(view, /const aVerified = a\.isVerified \? 0 : 1/, 'verified businesses must rank ahead of unverified businesses');
 assert.match(view, /biz\.isVerified \? 'order-1' : 'order-3'/, 'the unified grid must visually prioritize verified businesses');
 assert.match(view, /bg-red-600/, 'unverified registered activities must use the warning badge color');
