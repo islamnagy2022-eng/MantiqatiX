@@ -12,7 +12,7 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 - Canonical taxonomy source: `apps/catalog-frontend/src/data/productionDefaults.ts`.
 - Code currently defines 18 functional groups and 221 `CATEGORY_SEEDS` entries. This is the source seed count, not a claim about the effective categories loaded by the live UI or saved settings.
 - Medical taxonomy has 17 seeds: 9 activity categories and 8 profession categories.
-- Production table `public.public_directory_listings` has 325 rows at audit time and RLS enabled.
+- Production table `public.public_directory_listings` had 348 rows immediately before the latest administrative-services batch; RLS is enabled.
 - Existing category settings may be merged with canonical defaults, so changing seed definitions alone is not sufficient to guarantee old categories disappear. A mapping and read/write compatibility review is required before consolidation to 50 categories.
 
 ## Work completed in this session
@@ -45,7 +45,7 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 
 - [DONE] Corrected the classification for `مركز د. محمد أحمد المراكبي للأسنان` to `cat_medical_health_dental_centers` while preserving the record.
 - Complete a source-backed administrative list of all villages/hamlets/dependencies of Berket El Sabaa.
-- Continue medical discovery by specialty and village; query more than one source and compare against all 325+ current listings before each batch.
+- Continue medical discovery by specialty and village; query more than one source and compare against all current listings before each batch.
 - Review medical listings with incomplete specialty/location metadata.
 - Design a safe canonical 50-category mapping, including persisted settings and legacy category IDs, before implementing any broad migration.
 - Continue through the other 17 functional groups, only within the stated geographic scope.
@@ -53,4 +53,14 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 
 ## Current status
 
-Partial execution started: 23 verified insertions in this session (3 doctors, 3 pharmacies, 17 food businesses/markets). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
+Partial execution started: 34 verified insertions across the documented batches (3 doctors, 3 pharmacies, 17 food businesses/markets, 11 public/community service listings). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
+
+
+### Public & community services — additional batch (2026-10-29)
+
+- Queried the current database before insertion. Existing matches included مركز شباب الدبايبة and مكتب تسوية المنازعات الأسرية بركة السبع; those were not reinserted.
+- Added 11 records and verified the returned rows after write: الإدارة التعليمية ببركة السبع; مركز شرطة بركة السبع; السجل المدني ببركة السبع; بيت ثقافة بركة السبع; مكتب بريد بركة السبع; مكتب عمل بركة السبع; مأمورية الضرائب العامة ببركة السبع; مكتب الشهر العقاري ببركة السبع; مكتب التأمينات الاجتماعية ببركة السبع; مكتب تموين بركة السبع; وحدة مرور بركة السبع.
+- Source: [Egypt Yellow Pages — public/government services in Berket El Sabaa](https://yellowpages.com.eg/en/category/berket-el-sabaa-ministries-%26-government-organizations/3829), with the civil registry and social insurance profile pages used for cross-reference.
+- Source pages did not expose direct phone numbers in the retrieved content, so phone fields were left empty. Records are PUBLISHED/UNCLAIMED, with owner confirmation required and source phone verification false.
+- The source lists both a Real Estate Registration Mission and a Real Estate Registration Office at the same local court/address. The inserted listing includes a metadata note that the source names may refer to related offices; do not merge or delete without further verification.
+- Current row-count evidence: 348 rows before this batch; 11 rows returned by insert; expected table total is 359 if no concurrent writes occurred. Re-query the total before reporting a definitive current count.
