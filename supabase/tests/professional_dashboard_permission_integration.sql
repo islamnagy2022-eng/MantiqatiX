@@ -280,32 +280,15 @@ BEGIN
   -- The delegated employee can update EMPLOYEES roles but cannot grant FINANCE.MANAGE.
   PERFORM set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000010',true);
   PERFORM set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-000000000010","role":"authenticated","is_anonymous":false}',true);
-  PERFORM public.mnty_business_employee_position_upsert(
+  v_result := public.mnty_business_employee_position_upsert(
     'tenant-a','10000000-0000-0000-0000-000000000001','Restricted employee role','','','FULL_TIME',
     '{"modules":{"EMPLOYEES":["update"]}}',false,true,null,v_elevated_position_id
   );
-  IF EXISTS (
-    SELECT 1 FROM public.business_employees e
-    WHERE e.id=v_elevated_employee_id
-      AND e.permission_overrides <> '{}'::jsonb
-  ) THEN
-    RAISE EXCEPTION 'STALE_EMPLOYEE_OVERRIDE_NOT_REVOKED';
+  IF v_result->>'id' IS DISTINCT FROM v_elevated_position_id::text THEN
+    RAISE EXCEPTION 'POSITION_PERMISSION_REDUCTION_RPC_FAILED';
   END IF;
-  IF EXISTS (
-    SELECT 1 FROM public.user_memberships m
-    WHERE m.id='MNTY-EMPLOYEE-'||replace(v_elevated_employee_id::text,'-','')
-      AND coalesce(m.permissions #> ARRAY['modules','FINANCE'],'[]'::jsonb) ? 'manage'
-  ) THEN
-    RAISE EXCEPTION 'STALE_FINANCE_PERMISSION_SURVIVED_POSITION_REDUCTION';
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM public.audit_logs al
-    WHERE al.action='BUSINESS_JOB_POSITION_UPDATED'
-      AND al.entity_id=v_elevated_position_id::text
-      AND jsonb_array_length(al.new_values->'revoked_employee_overrides')=1
-  ) THEN
-    RAISE EXCEPTION 'STALE_OVERRIDE_REVOCATION_NOT_AUDITED';
-  END IF;
+  -- Direct storage assertions run after RESET ROLE below. The authenticated test
+  -- actor must not be able to read the protected employee/membership/audit tables.
 
   -- Anonymous JWTs are rejected before membership inspection.
   PERFORM set_config('request.jwt.claim.sub','',true);
@@ -321,4 +304,50 @@ END
 $dashboard_permission_tests$;
 
 RESET ROLE;
+DO $dashboard_permission_postcheck$
+DECLARE
+  v_position_id uuid;
+  v_employee_id uuid;
+BEGIN
+  SELECT p.id INTO v_position_id
+  FROM public.business_job_positions p
+  WHERE p.tenant_id='tenant-a'
+    AND p.business_id='10000000-0000-0000-0000-000000000001'
+    AND p.title='Restricted employee role'
+  ORDER BY p.updated_at DESC
+  LIMIT 1;
+  SELECT e.id INTO v_employee_id
+  FROM public.business_employees e
+  WHERE e.tenant_id='tenant-a'
+    AND e.business_id='10000000-0000-0000-0000-000000000001'
+    AND e.email='finance-override-target@example.test'
+    AND e.job_position_id=v_position_id;
+  IF v_position_id IS NULL OR v_employee_id IS NULL THEN
+    RAISE EXCEPTION 'STALE_OVERRIDE_FIXTURE_STATE_NOT_FOUND';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.business_employees e
+    WHERE e.id=v_employee_id AND e.permission_overrides <> '{}'::jsonb
+  ) THEN
+    RAISE EXCEPTION 'STALE_EMPLOYEE_OVERRIDE_NOT_REVOKED';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.user_memberships m
+    WHERE m.id='MNTY-EMPLOYEE-'||replace(v_employee_id::text,'-','')
+      AND coalesce(m.permissions #> ARRAY['modules','FINANCE'],'[]'::jsonb) ? 'manage'
+  ) THEN
+    RAISE EXCEPTION 'STALE_FINANCE_PERMISSION_SURVIVED_POSITION_REDUCTION';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.audit_logs al
+    WHERE al.action='BUSINESS_JOB_POSITION_UPDATED'
+      AND al.entity_id=v_position_id::text
+      AND jsonb_array_length(al.new_values->'revoked_employee_overrides')=1
+      AND al.new_values->'revoked_employee_overrides'->0->>'employee_id'=v_employee_id::text
+  ) THEN
+    RAISE EXCEPTION 'STALE_OVERRIDE_REVOCATION_NOT_AUDITED';
+  END IF;
+END
+$dashboard_permission_postcheck$;
+
 SELECT 'PROFESSIONAL_DASHBOARD_EMPLOYEE_RBAC_INTEGRATION=PASS' AS result;
