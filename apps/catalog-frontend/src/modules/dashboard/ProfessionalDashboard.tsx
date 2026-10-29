@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { Business } from '../../types';
+import { canAccessProfessionalDashboard, hasBusinessModulePermission, isBusinessManagementRole } from '../../utils/dashboardAccess';
 import { BusinessEmployeeManager } from '../../components/merchant/BusinessEmployeeManager';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard, hasBusinessModulePermission, isBusinessManagementRole } from '../../utils/dashboardAccess';
 
@@ -94,7 +95,14 @@ export const ProfessionalDashboard: React.FC = () => {
     setCurrentView,
     setSelectedBusinessId,
   } = useApp();
-  const [section, setSection] = useState<DashboardSection>('overview');
+  const [section, setSectionState] = useState<DashboardSection>('overview');
+  const setSection = (nextSection: DashboardSection) => {
+    if (nextSection === 'activities' && !canManageBusiness) return;
+    if (nextSection === 'reports' && !canViewReports) return;
+    if (nextSection === 'access' && !canViewEmployees) return;
+    if (nextSection === 'settings' && !canManageSettings) return;
+    setSectionState(nextSection);
+  };
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -245,7 +253,7 @@ export const ProfessionalDashboard: React.FC = () => {
           <div className="rounded-2xl bg-slate-900 p-4 text-white">
             <p className="text-[11px] font-bold tracking-wide text-emerald-300">MantiqatiX</p>
             <h2 className="mt-1 text-lg font-black">مركز التحكم</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-300">{isPlatformAdmin ? 'إدارة المنصة' : currentBusiness?.name || 'إدارة النشاط'}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-300">{isPlatformAdmin ? 'إدارة المنصة' : isBusinessManagementRole(authSession) ? currentBusiness?.name || 'إدارة النشاط' : 'مساحة موظف بصلاحيات محددة'}</p>
           </div>
           <nav aria-label="أقسام الداشبورد" className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-1">
             {visibleSectionItems.map((item) => (
@@ -268,7 +276,7 @@ export const ProfessionalDashboard: React.FC = () => {
               <p className="text-xs font-bold tracking-wide text-emerald-300">WORKSPACE / {isPlatformAdmin ? 'PLATFORM' : 'BUSINESS'}</p>
               <h1 className="mt-2 text-2xl font-black sm:text-3xl">{visibleSectionItems.find((item) => item.id === activeSection)?.label || 'لوحة التحكم الاحترافية'}</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                {isPlatformAdmin ? 'ملخص للبيانات المحملة من النظام وروابط إلى أدوات الإدارة الحالية.' : `مساحة ${currentBusiness?.name || 'نشاطك'}، مع حصر العرض في النشاط المرتبط بحسابك.`}
+                {isPlatformAdmin ? 'ملخص للبيانات المحملة من النظام وروابط إلى أدوات الإدارة الحالية.' : isBusinessManagementRole(authSession) ? `مساحة ${currentBusiness?.name || 'نشاطك'}، مع حصر العرض في النشاط المرتبط بحسابك.` : `عرض محدود بصلاحيات عضوية النشاط؛ لا تظهر أقسام الإدارة إلا عند منح الإذن المناسب.`}
               </p>
             </div>
             {activeSection === 'activities' && isPlatformAdmin && <button onClick={() => openBusinessAdmin()} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-emerald-400"><Building2 className="h-4 w-4" /> إدارة / إضافة نشاط</button>}
@@ -439,7 +447,7 @@ export const ProfessionalDashboard: React.FC = () => {
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-start gap-3"><Settings2 className="mt-0.5 h-6 w-6 shrink-0 text-slate-600" /><div><h3 className="font-black text-slate-900">الإعدادات وإدارة النظام</h3><p className="mt-1 text-sm leading-6 text-slate-600">تُدار الإعدادات المعتمدة من شاشة الإدارة الحالية حتى لا يتم إنشاء إعدادات متوازية أو غير محفوظة.</p></div></div>
               {(isPlatformAdmin || isBusinessManager) ? (
-                <button type="button" onClick={() => openBusinessAdmin(undefined, 'settings', 'profile')} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white hover:bg-slate-800">{isPlatformAdmin ? 'فتح إعدادات المنصة الحالية' : 'فتح إعدادات النشاط الحالية'}<ExternalLink className="h-4 w-4" /></button>
+                <button type="button" disabled={!canManageSettings && !canManageBusiness} onClick={() => openBusinessAdmin(undefined, 'settings', 'profile')} className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white hover:bg-slate-800">{isPlatformAdmin ? 'فتح إعدادات المنصة الحالية' : 'فتح إعدادات النشاط الحالية'}<ExternalLink className="h-4 w-4" /></button>
               ) : canViewSettings && currentBusiness ? (
                 <dl className="mt-5 grid gap-3 rounded-2xl bg-slate-50 p-4 sm:grid-cols-2">
                   <div><dt className="text-xs font-bold text-slate-500">اسم النشاط</dt><dd className="mt-1 break-words text-sm font-bold text-slate-900">{currentBusiness.name || 'غير مسجل'}</dd></div>
