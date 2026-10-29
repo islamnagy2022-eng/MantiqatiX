@@ -15,11 +15,16 @@ type FormState = {
   id: string; displayName: string; slug: string; listingType: string; specialty: string;
   phone: string; secondaryPhone: string; address: string; governorate: string; district: string;
   village: string; sourceName: string; sourceUrl: string; listingStatus: string;
+  outreachStatus: string; outreachNotes: string; lastContactedAt: string; subscriptionOfferAt: string; nextFollowUpAt: string;
 };
+const outreachStatusLabels: Record<string, string> = { NEW: "لم يتم التواصل", CONTACTED: "تم التواصل", INTERESTED: "مهتم", OFFER_SENT: "تم عرض الاشتراك", FOLLOW_UP: "متابعة مطلوبة", SUBSCRIPTION_PENDING: "في انتظار الاشتراك", SUBSCRIBED: "مشترك", NOT_INTERESTED: "غير مهتم", CORRECTION_REQUESTED: "طلب تصحيح البيانات" };
+const dateField = (value: string | null | undefined) => value ? value.slice(0, 10) : "";
+
 const emptyForm: FormState = {
   id: "", displayName: "", slug: "", listingType: "doctor", specialty: "", phone: "",
   secondaryPhone: "", address: "", governorate: "المنوفية", district: "بركة السبع",
   village: "", sourceName: "إدخال إدارة المنصة", sourceUrl: "", listingStatus: "DRAFT",
+  outreachStatus: "NEW", outreachNotes: "", lastContactedAt: "", subscriptionOfferAt: "", nextFollowUpAt: "",
 };
 
 export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
@@ -59,6 +64,9 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
       address: listing.address || "", governorate: listing.governorate || "المنوفية", district: listing.district || "بركة السبع",
       village: listing.village || "", sourceName: listing.source_name || "", sourceUrl: listing.source_url || "",
       listingStatus: listing.listing_status || "DRAFT",
+      outreachStatus: listing.outreach_status || "NEW", outreachNotes: listing.outreach_notes || "",
+      lastContactedAt: dateField(listing.last_contacted_at), subscriptionOfferAt: dateField(listing.subscription_offer_at),
+      nextFollowUpAt: dateField(listing.next_follow_up_at),
     });
     setActivePane("listings");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -73,6 +81,8 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
         secondaryPhone: form.secondaryPhone, address: form.address, governorate: form.governorate,
         district: form.district, village: form.village, sourceName: form.sourceName,
         sourceUrl: form.sourceUrl, listingStatus: form.listingStatus,
+        outreachStatus: form.outreachStatus, outreachNotes: form.outreachNotes,
+        lastContactedAt: form.lastContactedAt, subscriptionOfferAt: form.subscriptionOfferAt, nextFollowUpAt: form.nextFollowUpAt,
         completeness: { name: Boolean(form.displayName.trim()), phone: Boolean(form.phone.trim() || form.secondaryPhone.trim()), specialty: Boolean(form.specialty.trim()), address: Boolean(form.address.trim()) },
       });
       setMessage(form.id ? "تم تحديث الصفحة." : "تم إنشاء الصفحة.");
@@ -130,7 +140,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
             <label className="relative block"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث باسم أو تخصص أو رقم" className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-3 text-sm" /></label>
             {loading ? <p className="p-6 text-center text-sm font-bold text-slate-500">جارٍ تحميل الصفحات…</p> : visibleListings.map((listing) => (
               <article key={listing.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="min-w-0"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs text-slate-600">{listing.specialty || "بدون تخصص مسجل"} • {listing.phone || "بدون هاتف"}</p><p className="mt-1 text-[11px] text-slate-500">{listing.district} • النشر: {listing.listing_status} • الملكية: {listing.claim_status}</p>{listing.source_url && <a href={listing.source_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 underline">المصدر <ExternalLink className="h-3 w-3" /></a>}</div>
+                <div className="min-w-0"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs text-slate-600">{listing.specialty || "بدون تخصص مسجل"} • {listing.phone || "بدون هاتف"}</p><p className="mt-1 text-[11px] text-slate-500">{listing.district} • النشر: {listing.listing_status} • الملكية: {listing.claim_status}</p><p className="mt-1 text-[11px] font-bold text-indigo-700">التواصل: {outreachStatusLabels[listing.outreach_status || "NEW"] || listing.outreach_status}</p>{listing.source_url && <a href={listing.source_url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 underline">المصدر <ExternalLink className="h-3 w-3" /></a>}</div>
                 <button type="button" onClick={() => editListing(listing)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Edit className="h-3.5 w-3.5" /> استكمال / تعديل</button>
               </article>
             ))}
@@ -150,6 +160,19 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
             <label className="block text-xs font-bold text-slate-700">القرية / الحي<input value={form.village} onChange={(e) => setForm({ ...form, village: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">اسم مصدر البيانات<input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">رابط المصدر<input type="url" value={form.sourceUrl} onChange={(e) => setForm({ ...form, sourceUrl: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>
+            <div className="space-y-3 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3">
+              <div><h4 className="text-xs font-black text-indigo-950">متابعة التواصل وعرض الاشتراك</h4><p className="mt-1 text-[11px] leading-5 text-indigo-900">هذه متابعة داخلية لإدارة المنصة؛ لا ترسل رسالة تلقائيًا. افتح اتصال الهاتف للتواصل ثم سجّل النتيجة وتاريخ المتابعة.</p></div>
+              <label className="block text-xs font-bold text-slate-700">حالة التواصل<select value={form.outreachStatus} onChange={(e) => setForm({ ...form, outreachStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">
+                <option value="NEW">لم يتم التواصل</option><option value="CONTACTED">تم التواصل</option><option value="INTERESTED">مهتم</option><option value="OFFER_SENT">تم عرض الاشتراك</option><option value="FOLLOW_UP">متابعة مطلوبة</option><option value="SUBSCRIPTION_PENDING">في انتظار الاشتراك</option><option value="SUBSCRIBED">مشترك</option><option value="NOT_INTERESTED">غير مهتم</option><option value="CORRECTION_REQUESTED">طلب تصحيح البيانات</option>
+              </select></label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <label className="block text-xs font-bold text-slate-700">تاريخ التواصل<input type="date" value={form.lastContactedAt} onChange={(e) => setForm({ ...form, lastContactedAt: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2 py-2.5 text-xs" /></label>
+                <label className="block text-xs font-bold text-slate-700">تاريخ عرض الاشتراك<input type="date" value={form.subscriptionOfferAt} onChange={(e) => setForm({ ...form, subscriptionOfferAt: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2 py-2.5 text-xs" /></label>
+                <label className="block text-xs font-bold text-slate-700">موعد المتابعة<input type="date" value={form.nextFollowUpAt} onChange={(e) => setForm({ ...form, nextFollowUpAt: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-2 py-2.5 text-xs" /></label>
+              </div>
+              <label className="block text-xs font-bold text-slate-700">ملاحظات التواصل أو العرض<textarea value={form.outreachNotes} onChange={(e) => setForm({ ...form, outreachNotes: e.target.value })} rows={3} maxLength={3000} placeholder="النتيجة، السعر المعروض، من تواصل، وما المطلوب في المتابعة..." className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label>
+              {form.phone && <a href={`tel:${form.phone.replace(/[^0-9+]/g, "")}`} dir="ltr" className="inline-flex rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800">اتصال بـ {form.displayName || "النشاط"}</a>}
+            </div>
             <button disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50"><Save className="h-4 w-4" /> {busy ? "جارٍ الحفظ…" : "حفظ البيانات"}</button>
           </form>
         </div>
