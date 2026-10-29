@@ -395,7 +395,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/playwright-runner
-          npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1
+          npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1 axe-core@4.10.3
           /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
       - name: Test deployed dashboard routes, mobile layout, membership scopes, and permanent QR links
         env:
@@ -405,5 +405,6 @@ jobs:
           ROOT_URL="${PAGE_URL%/}/"
           curl --fail --silent --show-error --location --retry 5 --retry-delay 3 "${ROOT_URL}" >/dev/null
           PLAYWRIGHT_MODULE=/tmp/playwright-runner/node_modules/playwright/index.mjs \
+          AXE_CORE_SCRIPT=/tmp/playwright-runner/node_modules/axe-core/axe.min.js \
           MANTIQUATIX_E2E_BASE_URL="${ROOT_URL}" \
           node apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs
