@@ -2025,3 +2025,5 @@ Scope is restricted to Berket El Sabaa city and its administratively affiliated 
 - [TODO] Run data/UI tests after each batch and record verified outcomes.
 
 This work is partial; no full taxonomy migration or deployment is claimed.
+
+- [DONE — read-after-write verified] Added one previously absent pharmacy in Genzour: صيدلية إسلام داوود — 0489136699, source https://www.dalilmadina.com/city_clinic.aspx?NUM=241. Before inserting, checked the other pharmacy records from the same source and confirmed four were already present; they were not duplicated.
