@@ -17,7 +17,7 @@ export const getBusinessMembershipRole = (session: AuthSession): string =>
   String(session.membershipRole || '').trim().toUpperCase();
 
 export const isBusinessManagementRole = (session: AuthSession): boolean =>
-  BUSINESS_MANAGEMENT_ROLES.has(getBusinessMembershipRole(session));
+  BUSINESS_MANAGEMENT_ROLES.has(getBusinessMembershipRole(session)) && !session.membershipBranchId;
 
 export const hasBusinessModulePermission = (
   session: AuthSession,
@@ -25,11 +25,19 @@ export const hasBusinessModulePermission = (
   allowedActions: string[] = ['view'],
 ): boolean => {
   if (session.role === 'admin') return true;
-  if (isBusinessManagementRole(session)) {
-    // The broad legacy UI and business-level reports are not branch-aware yet.
-    // Branch-scoped managers are limited to the branch-aware catalog and employee RPCs.
+  const membershipRole = getBusinessMembershipRole(session);
+  if (BUSINESS_MANAGEMENT_ROLES.has(membershipRole)) {
+    // Only a business-wide membership may enter the unscoped legacy business tools.
     if (!session.membershipBranchId) return true;
-    return ['HOME', 'CATALOG', 'EMPLOYEES'].includes(moduleName.toUpperCase());
+    // Branch-scoped owners remain confined to branch-aware catalog and employee APIs.
+    const module = moduleName.toUpperCase();
+    if (module === 'EMPLOYEES') {
+      return allowedActions.some((action) => ['view', 'create', 'update', 'manage'].includes(action.toLowerCase()));
+    }
+    if (module === 'HOME' || module === 'CATALOG') {
+      return allowedActions.some((action) => ['view', 'manage'].includes(action.toLowerCase()));
+    }
+    return false;
   }
   // RC115's server resolver reads scoped permissions from EMPLOYEE/STAFF memberships
   // (or platform_role_assignments); a raw MANAGER/FINANCE/etc user_membership row
