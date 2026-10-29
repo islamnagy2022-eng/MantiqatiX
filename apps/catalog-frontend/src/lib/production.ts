@@ -113,6 +113,14 @@ function parseOptionalCoordinate(value: unknown, min: number, max: number): numb
   return Number.isFinite(number) && number >= min && number <= max ? number : undefined;
 }
 
+function parseFirstOptionalCoordinate(values: unknown[], min: number, max: number): number | undefined {
+  for (const value of values) {
+    const parsed = parseOptionalCoordinate(value, min, max);
+    if (parsed !== undefined) return parsed;
+  }
+  return undefined;
+}
+
 function groupFromCategory(category: string, groupCode?: string): FunctionalGroupId {
   return resolveCanonicalGroupId(category, groupCode);
 }
@@ -120,6 +128,12 @@ function groupFromCategory(category: string, groupCode?: string): FunctionalGrou
 export function mapBusiness(raw: any, provider: any): Business {
   const profile = raw.profile || raw.settings?.catalog_profile || {};
   const branch = raw.branches?.find((x: any) => String(x.id) === String(raw.branchId || raw.selectedBranchId)) || raw.branches?.[0] || raw.branch || {};
+  const branchMetadata = branch.metadata && typeof branch.metadata === 'object' ? branch.metadata : {};
+  const branchLocation = branch.location && typeof branch.location === 'object' ? branch.location : {};
+  const profileMetadata = profile.metadata && typeof profile.metadata === 'object' ? profile.metadata : {};
+  const profileLocation = profile.location && typeof profile.location === 'object' ? profile.location : {};
+  const rawMetadata = raw.metadata && typeof raw.metadata === 'object' ? raw.metadata : {};
+  const rawLocation = raw.location && typeof raw.location === 'object' ? raw.location : {};
   const category = String(raw.category || provider?.kind || provider?.provider_kind || 'أنشطة تجارية');
   const meta = raw.bizcatalog || raw.settings?.bizcatalog || {};
   const created = raw.createdAt || raw.created_at || new Date().toISOString();
@@ -147,8 +161,30 @@ export function mapBusiness(raw: any, provider: any): Business {
     governorate: String(profile.governorate || raw.governorate || ''),
     markaz: String(profile.markaz || raw.markaz || ''), village: String(profile.village || raw.village || ''),
     googleMapsUrl: String(profile.google_maps_url || ''),
-    latitude: parseOptionalCoordinate(branch.latitude ?? branch.lat ?? profile.latitude ?? profile.lat ?? raw.latitude ?? raw.lat, -90, 90),
-    longitude: parseOptionalCoordinate(branch.longitude ?? branch.lng ?? branch.lon ?? profile.longitude ?? profile.lng ?? profile.lon ?? raw.longitude ?? raw.lng ?? raw.lon, -180, 180),
+    // Coordinates may be stored on the selected branch, profile, raw activity, or their metadata/location objects.
+    // Parse candidates independently so an empty/invalid field cannot hide a later valid coordinate.
+    latitude: parseFirstOptionalCoordinate([
+      branch.latitude, branch.lat, branch.latitude_deg, branchMetadata.latitude, branchMetadata.lat, branchMetadata.latitude_deg,
+      branchLocation.latitude, branchLocation.lat, branchLocation.latitude_deg,
+      branchMetadata.location?.latitude, branchMetadata.location?.lat,
+      profile.latitude, profile.lat, profile.latitude_deg, profileMetadata.latitude, profileMetadata.lat, profileMetadata.latitude_deg,
+      profileLocation.latitude, profileLocation.lat, profileLocation.latitude_deg,
+      profileMetadata.location?.latitude, profileMetadata.location?.lat,
+      raw.latitude, raw.lat, raw.latitude_deg, rawMetadata.latitude, rawMetadata.lat, rawMetadata.latitude_deg,
+      rawLocation.latitude, rawLocation.lat, rawLocation.latitude_deg,
+      rawMetadata.location?.latitude, rawMetadata.location?.lat,
+    ], -90, 90),
+    longitude: parseFirstOptionalCoordinate([
+      branch.longitude, branch.lng, branch.lon, branch.longitude_deg, branchMetadata.longitude, branchMetadata.lng, branchMetadata.lon, branchMetadata.longitude_deg,
+      branchLocation.longitude, branchLocation.lng, branchLocation.lon, branchLocation.longitude_deg,
+      branchMetadata.location?.longitude, branchMetadata.location?.lng, branchMetadata.location?.lon,
+      profile.longitude, profile.lng, profile.lon, profile.longitude_deg, profileMetadata.longitude, profileMetadata.lng, profileMetadata.lon, profileMetadata.longitude_deg,
+      profileLocation.longitude, profileLocation.lng, profileLocation.lon, profileLocation.longitude_deg,
+      profileMetadata.location?.longitude, profileMetadata.location?.lng, profileMetadata.location?.lon,
+      raw.longitude, raw.lng, raw.lon, raw.longitude_deg, rawMetadata.longitude, rawMetadata.lng, rawMetadata.lon, rawMetadata.longitude_deg,
+      rawLocation.longitude, rawLocation.lng, rawLocation.lon, rawLocation.longitude_deg,
+      rawMetadata.location?.longitude, rawMetadata.location?.lng, rawMetadata.location?.lon,
+    ], -180, 180),
     workingHours: String(profile.workingHours || profile.working_hours || raw.workingHours || ''),
     isVerified: Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified),
     maxProductsLimit: 150, createdAt: String(created).slice(0, 10),
