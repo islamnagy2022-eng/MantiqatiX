@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(path.join(root, 'docs/release/production-migration-reconciliation.json'), 'utf8'));
 const evidence = manifest.professional_dashboard_dependency_check;
 const verifyScript = path.join(root, 'scripts/production/verify-professional-dashboard-dependencies.mjs');
