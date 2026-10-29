@@ -2127,3 +2127,12 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Added taxonomy seed `home_appliances` and moved appliance-retail rows to `cat_home_maintenance_home_appliances` (code commit c40a910fb14fe95a084f15c41e8094f49e38f5e4).
 - [x] Latest verified counts: 341 published with zero missing phones; 87 drafts with no phone; 7 hidden records, of which 5 have no phone. Phone-required publishing is still guarded by database and deployed Edge Function v7.
 - [ ] The latest category code change's CI/build/deployment is not yet verified; confirm it before claiming the category appears in the live frontend.
+
+
+## 2026-10-29 — Local poultry/veterinary additions and duplicate reconciliation
+
+- [x] Added 4 local poultry outlets and one veterinary clinic with source phone numbers; all were confirmed PUBLISHED/UNCLAIMED after write.
+- [x] Hid two duplicate copies without deleting IDs/slugs/data: a duplicate Oulad Ghoneim car-parts row and a duplicate Nortok Feed row. Corrected the canonical Nortok listing to the animal-feed taxonomy rather than treating it as generic agricultural supplies.
+- [x] Latest verified database totals: 358 published / 0 without phone; 87 draft / 87 without phone; 9 hidden / 5 without phone. Database publication constraint and deployed Edge Function v7 still enforce phone-required publication.
+- [x] Normalized published-name duplicate audit returned zero groups. The only shared primary/secondary number group left is 01225953508 across two different butcher names/addresses; both records are flagged and retained for direct verification.
+- [ ] Do not call public-source phone data owner-verified. Recheck pending CI/deploy for the new home-appliance category before claiming it is visible in the frontend.
