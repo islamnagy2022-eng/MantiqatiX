@@ -205,7 +205,7 @@ Deno.serve(async (req: Request) => {
     const { data: existingMembership, error: existingMembershipError } = await service.from("user_memberships")
       .select("id,user_id,tenant_id,business_id,branch_id,role,status,permissions")
       .eq("user_id", claim.user_id).eq("business_id", businessId).is("branch_id", null)
-      .in("role", ["BUSINESS_OWNER","OWNER"]).limit(1).maybeSingle();
+      .limit(1).maybeSingle();
     if (existingMembershipError) return out(origin, { error: "CLAIM_MEMBERSHIP_LOOKUP_FAILED" }, 500);
     const permissions = {
       ...(existingMembership?.permissions && typeof existingMembership.permissions === "object" ? existingMembership.permissions : {}),
@@ -214,7 +214,7 @@ Deno.serve(async (req: Request) => {
     };
     if (existingMembership) {
       membershipId = String(existingMembership.id);
-      const { error } = await service.from("user_memberships").update({ status: "ACTIVE", permissions })
+      const { error } = await service.from("user_memberships").update({ role: "BUSINESS_OWNER", status: "ACTIVE", permissions })
         .eq("id", membershipId);
       if (error) return out(origin, { error: "CLAIM_MEMBERSHIP_ACTIVATE_FAILED" }, 500);
     } else {
