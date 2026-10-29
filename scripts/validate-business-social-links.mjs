@@ -14,16 +14,17 @@ for (const property of ["facebookUrl?: string", "instagramUrl?: string", "tiktok
   assert.ok(businessTypes.includes(property), "Business model must expose social field " + property);
 }
 for (const platform of ["facebook", "instagram", "tiktok"]) {
-  assert.ok(socialHelper.includes(platform + ".com"), "URL allowlist must include " + platform);
+  assert.ok(socialHelper.includes("new URL(candidate)"), "Social links must be validated as safe HTTP(S) URLs");
 }
 assert.match(merchant, /setBizFacebookUrl\(currentBusiness\?\.facebookUrl \|\| ''\)/, "Owner social links must hydrate from saved activity data");
 assert.match(merchant, /setBizInstagramUrl\(currentBusiness\?\.instagramUrl \|\| ''\)/, "Instagram link must hydrate from production data");
 assert.match(merchant, /setBizTikTokUrl\(currentBusiness\?\.tiktokUrl \|\| ''\)/, "TikTok link must hydrate from production data");
 assert.match(merchant, /facebookUrl,\s*instagramUrl,\s*tiktokUrl/, "Owner form must persist validated social links together");
 assert.match(context, /facebookUrl: updated\.facebookUrl \|\| ''/, "Profile save must transmit Facebook URL");
-assert.match(catalogAdmin, /INVALID_SOCIAL_PROFILE_URL/, "Server must reject social URLs outside their platform allowlist");
+assert.match(catalogAdmin, /INVALID_SOCIAL_PROFILE_URL/, "Server must reject malformed or unsafe social URLs");
 assert.match(catalogAdmin, /catalog_profile: \{ \.\.\.currentProfile, \.\.\.submittedSocialFields \}/, "Server must persist social links without clobbering other profile fields");
 assert.match(publicCatalog, /facebookUrl: String\(profile\.facebook_url \|\| ""\)/, "Public catalog must return saved Facebook URLs");
+assert.match(publicCatalog, /additionalContactPhones: Array\.isArray\(profile\.additional_contact_phones\)/, "Public catalog must return additional contact phone numbers");
 assert.match(mapper, /instagramUrl: String\(profile\.instagram_url \|\| profile\.instagramUrl/, "Runtime mapper must retain social links");
 for (const label of ["اتصال هاتفي", "فيسبوك", "تيك توك", "إنستجرام"]) {
   assert.ok(header.includes(label), "Storefront must render the " + label + " action");
@@ -63,4 +64,6 @@ assert.ok(!merchantDashboard.includes("window.location.origin + '/?store='"), 'M
 assert.ok(header.includes('getStorePublicLink(currentBusiness)'), 'Share button must copy the canonical permanent link');
 assert.ok(adminDashboard.includes('getStorePublicLink(biz)'), 'Platform admin copy action must use the canonical permanent link');
 
-console.log("Business social links, URL routing, and QR contracts passed.");
+assert.match(merchant, /additionalContactPhones/, "Owner can save additional contact phones");
+assert.match(header, /additionalContactPhones\.map/, "Public storefront renders additional contact phone actions");
+console.log("Business social links, contact phones, URL routing, and QR contracts passed.");

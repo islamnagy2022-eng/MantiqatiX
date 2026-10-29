@@ -82,19 +82,14 @@ const CATALOG_WRITE_ROLES = [
 const businessRole = (m: any) => BUSINESS_SCOPE_ROLES.includes(String(m.role || "").toUpperCase());
 
 type SocialPlatform = "facebook" | "instagram" | "tiktok";
-const socialHosts: Record<SocialPlatform, Set<string>> = {
-  facebook: new Set(["facebook.com", "www.facebook.com", "m.facebook.com", "fb.com", "www.fb.com", "fb.me", "fb.watch"]),
-  instagram: new Set(["instagram.com", "www.instagram.com", "instagr.am", "www.instagr.am"]),
-  tiktok: new Set(["tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "vt.tiktok.com"]),
-};
-const normalizeSocialUrl = (value: unknown, platform: SocialPlatform): string | null => {
+const normalizeSocialUrl = (value: unknown, _platform: SocialPlatform): string | null => {
   const raw = String(value || "").trim();
   if (!raw) return "";
   try {
     const candidate = /^https?:\/\//i.test(raw) ? raw : "https://" + raw;
     const url = new URL(candidate);
-    if (url.protocol !== "https:" || !socialHosts[platform].has(url.hostname.toLowerCase()) || url.username || url.password) return null;
-    return url.toString().slice(0, 500);
+    if (!["https:", "http:"].includes(url.protocol) || !url.hostname || url.username || url.password) return null;
+    return url.toString().slice(0, 1000);
   } catch {
     return null;
   }
@@ -490,7 +485,7 @@ Deno.serve(async (req: Request) => {
       if (!roleForBusiness && !scopedPlatformMembership) {
         return out(origin, { error: "CATALOG_PROFILE_WRITE_FORBIDDEN" }, 403);
       }
-      const submittedSocialFields: Record<string, string> = {};
+      const submittedSocialFields: Record<string, string | string[]> = {};
       for (const [requestKey, columnKey, platform] of [
         ["facebookUrl", "facebook_url", "facebook"],
         ["instagramUrl", "instagram_url", "instagram"],
@@ -500,6 +495,14 @@ Deno.serve(async (req: Request) => {
         const normalizedUrl = normalizeSocialUrl(body[requestKey], platform);
         if (normalizedUrl === null) return out(origin, { error: "INVALID_SOCIAL_PROFILE_URL", field: requestKey }, 400);
         submittedSocialFields[columnKey] = normalizedUrl;
+      }
+      if (Object.prototype.hasOwnProperty.call(body, "additionalContactPhones")) {
+        const phones = Array.isArray(body.additionalContactPhones) ? body.additionalContactPhones : [];
+        const normalizedPhones = phones.map((value: unknown) => String(value || "").trim()).filter(Boolean);
+        if (normalizedPhones.length > 20 || normalizedPhones.some((value: string) => { const digits = value.replace(/\D/g, ""); return digits.length < 10 || digits.length > 15; })) {
+          return out(origin, { error: "INVALID_ADDITIONAL_CONTACT_PHONES" }, 400);
+        }
+        submittedSocialFields["additional_contact_phones"] = normalizedPhones;
       }
       const { data, error } = await userClient.rpc("upsert_catalog_business_profile_backend", {
         p_tenant_id: tenantId,
