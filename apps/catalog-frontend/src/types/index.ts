@@ -77,6 +77,7 @@ export interface Business {
   bio: string;
   ownerWhatsApp: string; // The merchant's WhatsApp for incoming orders
   phone?: string;
+  additionalContactPhones?: string[];
   facebookUrl?: string;
   instagramUrl?: string;
   tiktokUrl?: string;

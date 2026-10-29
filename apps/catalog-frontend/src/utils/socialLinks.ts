@@ -1,20 +1,13 @@
 export type SocialPlatform = 'facebook' | 'instagram' | 'tiktok';
 
-const allowedHosts: Record<SocialPlatform, ReadonlySet<string>> = {
-  facebook: new Set(['facebook.com', 'www.facebook.com', 'm.facebook.com', 'fb.com', 'www.fb.com', 'fb.me', 'fb.watch']),
-  instagram: new Set(['instagram.com', 'www.instagram.com', 'instagr.am', 'www.instagr.am']),
-  tiktok: new Set(['tiktok.com', 'www.tiktok.com', 'm.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com']),
-};
-
-export function normalizeSocialUrl(value: unknown, platform: SocialPlatform): string {
+export function normalizeSocialUrl(value: unknown, _platform: SocialPlatform): string {
   const raw = String(value || '').trim();
   if (!raw) return '';
   const candidate = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
   try {
     const url = new URL(candidate);
-    if (url.protocol !== 'https:' || !allowedHosts[platform].has(url.hostname.toLowerCase())) return '';
-    if (url.username || url.password) return '';
-    return url.toString();
+    if (!['https:', 'http:'].includes(url.protocol) || !url.hostname || url.username || url.password) return '';
+    return url.toString().slice(0, 1000);
   } catch {
     return '';
   }

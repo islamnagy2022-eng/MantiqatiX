@@ -65,6 +65,7 @@ export const BusinessProfileHeader: React.FC = () => {
   const merchantWhatsAppUrl = whatsappPhone
     ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(`مرحباً، أود الاستفسار والطلب من نشاطكم: ${currentBusiness.name}`)}`
     : '';
+  const additionalContactPhones = (currentBusiness.additionalContactPhones || []).map(normalizeDialPhone).filter(Boolean);
   const facebookUrl = normalizeSocialUrl(currentBusiness.facebookUrl, 'facebook');
   const instagramUrl = normalizeSocialUrl(currentBusiness.instagramUrl, 'instagram');
   const tiktokUrl = normalizeSocialUrl(currentBusiness.tiktokUrl, 'tiktok');
@@ -243,6 +244,12 @@ export const BusinessProfileHeader: React.FC = () => {
                   <span>إنستجرام</span>
                 </a>
               )}
+              {additionalContactPhones.map((phone, index) => (
+                <a key={`${phone}-${index}`} href={`tel:${phone}`} className="bg-slate-700 hover:bg-slate-800 text-white font-black text-xs sm:text-sm py-3 px-4 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer" aria-label={`اتصال هاتفي إضافي رقم ${index + 1} بـ ${currentBusiness.name}`}>
+                  <Phone className="w-4 h-4" />
+                  <span>اتصال إضافي {index + 1}</span>
+                </a>
+              ))}
               {merchantWhatsAppUrl && (
                 <a
                   href={merchantWhatsAppUrl}

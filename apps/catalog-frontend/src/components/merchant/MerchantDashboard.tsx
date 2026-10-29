@@ -184,6 +184,7 @@ export const MerchantDashboard: React.FC = () => {
   const [bizLogoUrl, setBizLogoUrl] = useState(currentBusiness?.logoUrl || '');
   const [bizCoverUrl, setBizCoverUrl] = useState(currentBusiness?.coverUrl || '');
   const [bizOwnerWhatsApp, setBizOwnerWhatsApp] = useState(currentBusiness?.ownerWhatsApp || '');
+  const [bizAdditionalPhones, setBizAdditionalPhones] = useState<string[]>(currentBusiness?.additionalContactPhones || []);
   const [bizFacebookUrl, setBizFacebookUrl] = useState(currentBusiness?.facebookUrl || '');
   const [bizInstagramUrl, setBizInstagramUrl] = useState(currentBusiness?.instagramUrl || '');
   const [bizTikTokUrl, setBizTikTokUrl] = useState(currentBusiness?.tiktokUrl || '');
@@ -235,6 +236,7 @@ export const MerchantDashboard: React.FC = () => {
     setBizLogoUrl(currentBusiness?.logoUrl || '');
     setBizCoverUrl(currentBusiness?.coverUrl || '');
     setBizOwnerWhatsApp(currentBusiness?.ownerWhatsApp || '');
+    setBizAdditionalPhones(currentBusiness?.additionalContactPhones || []);
     setBizFacebookUrl(currentBusiness?.facebookUrl || '');
     setBizInstagramUrl(currentBusiness?.instagramUrl || '');
     setBizTikTokUrl(currentBusiness?.tiktokUrl || '');
@@ -407,19 +409,16 @@ export const MerchantDashboard: React.FC = () => {
       setProfileSaveError('اسم النشاط يجب ألا يقل عن حرفين.');
       return;
     }
+    const additionalContactPhones = bizAdditionalPhones.map((value) => value.trim()).filter(Boolean);
+    if (additionalContactPhones.some((value) => { const digits = value.replace(/\D/g, ''); return digits.length < 10 || digits.length > 15; })) {
+      setProfileSaveError('راجع أرقام التواصل الإضافية؛ يجب أن يحتوي كل رقم على 10 إلى 15 رقمًا.');
+      return;
+    }
     const facebookUrl = normalizeSocialUrl(bizFacebookUrl, 'facebook');
     const instagramUrl = normalizeSocialUrl(bizInstagramUrl, 'instagram');
     const tiktokUrl = normalizeSocialUrl(bizTikTokUrl, 'tiktok');
-    if (bizFacebookUrl.trim() && !facebookUrl) {
-      setProfileSaveError('رابط فيسبوك غير صحيح. أدخل رابطًا آمنًا من نطاق Facebook.');
-      return;
-    }
-    if (bizInstagramUrl.trim() && !instagramUrl) {
-      setProfileSaveError('رابط إنستجرام غير صحيح. أدخل رابطًا آمنًا من نطاق Instagram.');
-      return;
-    }
-    if (bizTikTokUrl.trim() && !tiktokUrl) {
-      setProfileSaveError('رابط تيك توك غير صحيح. أدخل رابطًا آمنًا من نطاق TikTok.');
+    if ((bizFacebookUrl.trim() && !facebookUrl) || (bizInstagramUrl.trim() && !instagramUrl) || (bizTikTokUrl.trim() && !tiktokUrl)) {
+      setProfileSaveError('الرابط غير صالح. أدخل رابط موقع يبدأ بـ https:// أو http:// أو اسم نطاق صالح.');
       return;
     }
 
@@ -432,6 +431,7 @@ export const MerchantDashboard: React.FC = () => {
         logoUrl: bizLogoUrl.trim(),
         coverUrl: bizCoverUrl.trim(),
         ownerWhatsApp: bizOwnerWhatsApp.trim(),
+        additionalContactPhones,
         facebookUrl,
         instagramUrl,
         tiktokUrl,
@@ -1095,6 +1095,20 @@ export const MerchantDashboard: React.FC = () => {
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl pr-10 pl-3 py-2.5 text-xs text-slate-900 text-right font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:outline-hidden"
                   />
                 </div>
+              </div>
+
+              <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-3 space-y-3">
+                <div>
+                  <p className="text-xs font-black text-slate-800">أرقام تواصل إضافية (اختياري)</p>
+                  <p className="mt-1 text-[11px] text-slate-500">رقم واتساب الأساسي أعلاه هو الذي يستقبل الطلبات. الأرقام التالية تظهر كأزرار اتصال هاتفي إضافية.</p>
+                </div>
+                {bizAdditionalPhones.map((phone, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input type="tel" dir="ltr" value={phone} onChange={(event) => setBizAdditionalPhones((previous) => previous.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} placeholder="+201012345678" aria-label={`رقم تواصل إضافي ${index + 1}`} className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs" />
+                    <button type="button" onClick={() => setBizAdditionalPhones((previous) => previous.filter((_, itemIndex) => itemIndex !== index))} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700">حذف</button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setBizAdditionalPhones((previous) => [...previous, ''])} className="rounded-lg border border-emerald-300 px-3 py-2 text-xs font-black text-emerald-800">+ إضافة رقم تواصل</button>
               </div>
 
               {/* Taxonomy is managed centrally until a dedicated production write contract exists. */}
