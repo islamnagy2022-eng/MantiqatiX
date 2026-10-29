@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
         }
       }
       const { claimed_user_id: _claimedUserId, claimed_business_id: _claimedBusinessId, ...publicListing } = data;
-      return out(origin, { listing: { ...publicListing, can_edit: canEdit } });
+      return out(origin, { listing: { ...publicListing, can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
     }
     const type = clean(url.searchParams.get("type"), 40);
     let query = service.from("public_directory_listings").select(publicFields)
@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
     const { data: saved, error: saveError } = await service.from("public_directory_listings")
       .update(patch).eq("id", listingId).select(publicFields).single();
     if (saveError) return out(origin, { error: "OWNED_LISTING_UPDATE_FAILED" }, 500);
-    return out(origin, { success: true, listing: { ...saved, can_edit: true } });
+    return out(origin, { success: true, listing: { ...saved, can_edit: true, owned_business_id: String(listing.claimed_business_id || "") } });
   }
 
   const { data: memberships, error: membershipsError } = await service.from("user_memberships")

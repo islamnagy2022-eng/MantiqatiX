@@ -18,6 +18,7 @@ export type PublicDirectoryListing = {
   listing_status: string;
   claim_status: string;
   can_edit?: boolean;
+  owned_business_id?: string | null;
   outreach_status?: string;
   outreach_notes?: string | null;
   last_contacted_at?: string | null;
