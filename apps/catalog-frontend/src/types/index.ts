@@ -88,6 +88,8 @@ export interface Business {
   markaz: string;      // المركز / القسم
   village: string;     // القرية / الحي / البلدة
   googleMapsUrl?: string; // رابط موقع النشاط على خرائط جوجل
+  latitude?: number; // إحداثيات النشاط الموثوقة إن كانت محفوظة
+  longitude?: number;
   workingHours: string;
   isVerified: boolean;
   maxProductsLimit: number; // default 150

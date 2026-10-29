@@ -107,6 +107,12 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
   return { business, products: mapProducts(businessId, business.tenantId || '', business.branchId, body.items || [], body.prices || []) };
 }
 
+function parseOptionalCoordinate(value: unknown, min: number, max: number): number | undefined {
+  if (value == null || String(value).trim() === '') return undefined;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= min && number <= max ? number : undefined;
+}
+
 function groupFromCategory(category: string, groupCode?: string): FunctionalGroupId {
   return resolveCanonicalGroupId(category, groupCode);
 }
@@ -141,6 +147,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     governorate: String(profile.governorate || raw.governorate || ''),
     markaz: String(profile.markaz || raw.markaz || ''), village: String(profile.village || raw.village || ''),
     googleMapsUrl: String(profile.google_maps_url || ''),
+    latitude: parseOptionalCoordinate(branch.latitude ?? branch.lat ?? profile.latitude ?? profile.lat ?? raw.latitude ?? raw.lat, -90, 90),
+    longitude: parseOptionalCoordinate(branch.longitude ?? branch.lng ?? branch.lon ?? profile.longitude ?? profile.lng ?? profile.lon ?? raw.longitude ?? raw.lng ?? raw.lon, -180, 180),
     workingHours: String(profile.workingHours || profile.working_hours || raw.workingHours || ''),
     isVerified: Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified),
     maxProductsLimit: 150, createdAt: String(created).slice(0, 10),
