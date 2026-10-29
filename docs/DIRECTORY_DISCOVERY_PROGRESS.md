@@ -37,6 +37,7 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 - Compared candidate names against current catalog records. Existing records such as مطعم الأصلي, مطعم المحلاوي, مطعم جابر عمر, حكاية, كشري الباشا, حلويات ياقوت, and مخبز الحرمين were not reinserted.
 - Added 9 listings from source names/addresses where no matching existing record was found: مطعم أبو رضوى; مخبز علا بركات الله; مطعم الحرمين; مطعم الملكي; مطعم السلطان; مطعم الزعيم; مطعم إيطاليا; كشري فيينا; مطعم سويت هوم.
 - Source page did not expose phone numbers in the retrieved listing; phone fields were left empty rather than guessed. All 9 are PUBLISHED/UNCLAIMED with owner confirmation required and source phone verification false.
+- Used the Egypt Yellow Pages supermarket directory https://yellowpages.com.eg/en/category/berket-el-sabaa-supermarkets/3829 and inserted 8 additional businesses after comparing names against existing records: سوبر ماركت أبو عفيفي; سوبر ماركت الإسكندراني; سوبر ماركت الشاذلي; سوبر ماركت الزيات; سوبر ماركت فرح; حمادة ماركت; هاني ماركت; وائل ماركت. Phone numbers were not shown in the source and were left empty.
 - Corrected the existing record for مركز د. محمد أحمد المراكبي للأسنان from the individual-dentist category to the dental-centers activity category, preserving its ID, slug, contact information, source, and status.
 - The pharmacy review also confirmed that four other village pharmacy records from the same source already existed, so they were not duplicated.
 
@@ -52,4 +53,4 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 
 ## Current status
 
-Partial execution started: 15 verified insertions in this session (3 doctors, 3 pharmacies, 9 food businesses). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
+Partial execution started: 23 verified insertions in this session (3 doctors, 3 pharmacies, 17 food businesses/markets). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
