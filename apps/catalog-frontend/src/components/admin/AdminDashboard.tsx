@@ -724,7 +724,7 @@ export const AdminDashboard: React.FC = () => {
 
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
 
-      {activeAdminTab === 'directory_listings' && <DirectoryListingsAdmin businesses={businesses} />}
+      {activeAdminTab === 'directory_listings' && <DirectoryListingsAdmin businesses={businesses} categories={categories} functionalGroups={functionalGroups} />}
 
       {/* =========================================================================
           TAB: BILLING & COMMISSION (Mandatory Request Feature)

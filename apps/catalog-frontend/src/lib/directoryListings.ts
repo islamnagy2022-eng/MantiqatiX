@@ -5,6 +5,9 @@ export type PublicDirectoryListing = {
   slug: string;
   display_name: string;
   listing_type: string;
+  functional_group_id: string;
+  taxonomy_category_id: string;
+  taxonomy_specialty: string | null;
   specialty: string | null;
   phone: string | null;
   secondary_phone: string | null;

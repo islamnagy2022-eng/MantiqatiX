@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ClipboardList, Edit, ExternalLink, Plus, RefreshCw, Save, Search, UserRoundCheck } from "lucide-react";
-import type { Business } from "../../types";
+import type { ActivityCategory, Business, FunctionalGroup } from "../../types";
 import {
   fetchDirectoryAdminBundle,
   reviewDirectoryClaim,
@@ -10,9 +10,10 @@ import {
   type DirectoryClaimRequest,
 } from "../../lib/directoryListings";
 
-type Props = { businesses: Business[] };
+type Props = { businesses: Business[]; categories: ActivityCategory[]; functionalGroups: FunctionalGroup[] };
 type FormState = {
   id: string; displayName: string; slug: string; listingType: string; specialty: string;
+  functionalGroupId: string; taxonomyCategoryId: string; taxonomySpecialty: string;
   phone: string; secondaryPhone: string; address: string; governorate: string; district: string;
   village: string; sourceName: string; sourceUrl: string; listingStatus: string;
   outreachStatus: string; outreachNotes: string; lastContactedAt: string; subscriptionOfferAt: string; nextFollowUpAt: string;
@@ -21,13 +22,14 @@ const outreachStatusLabels: Record<string, string> = { NEW: "لم يتم الت�
 const dateField = (value: string | null | undefined) => value ? value.slice(0, 10) : "";
 
 const emptyForm: FormState = {
-  id: "", displayName: "", slug: "", listingType: "doctor", specialty: "", phone: "",
+  id: "", displayName: "", slug: "", listingType: "doctor", specialty: "",
+  functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_doctor", taxonomySpecialty: "", phone: "",
   secondaryPhone: "", address: "", governorate: "المنوفية", district: "بركة السبع",
   village: "", sourceName: "إدخال إدارة المنصة", sourceUrl: "", listingStatus: "DRAFT",
   outreachStatus: "NEW", outreachNotes: "", lastContactedAt: "", subscriptionOfferAt: "", nextFollowUpAt: "",
 };
 
-export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
+export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories, functionalGroups }) => {
   const [bundle, setBundle] = useState<DirectoryAdminBundle>({ listings: [], claims: [], businesses: [] });
   const [form, setForm] = useState<FormState>(emptyForm);
   const [search, setSearch] = useState("");
@@ -60,6 +62,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
   const editListing = (listing: PublicDirectoryListing) => {
     setForm({
       id: listing.id, displayName: listing.display_name, slug: listing.slug, listingType: listing.listing_type,
+      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_doctor", taxonomySpecialty: listing.taxonomy_specialty || "",
       specialty: listing.specialty || "", phone: listing.phone || "", secondaryPhone: listing.secondary_phone || "",
       address: listing.address || "", governorate: listing.governorate || "المنوفية", district: listing.district || "بركة السبع",
       village: listing.village || "", sourceName: listing.source_name || "", sourceUrl: listing.source_url || "",
@@ -81,6 +84,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
         secondaryPhone: form.secondaryPhone, address: form.address, governorate: form.governorate,
         district: form.district, village: form.village, sourceName: form.sourceName,
         sourceUrl: form.sourceUrl, listingStatus: form.listingStatus,
+        functionalGroupId: form.functionalGroupId, taxonomyCategoryId: form.taxonomyCategoryId, taxonomySpecialty: form.taxonomySpecialty,
         outreachStatus: form.outreachStatus, outreachNotes: form.outreachNotes,
         lastContactedAt: form.lastContactedAt, subscriptionOfferAt: form.subscriptionOfferAt, nextFollowUpAt: form.nextFollowUpAt,
         completeness: { name: Boolean(form.displayName.trim()), phone: Boolean(form.phone.trim() || form.secondaryPhone.trim()), specialty: Boolean(form.specialty.trim()), address: Boolean(form.address.trim()) },
@@ -153,6 +157,12 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses }) => {
               <label className="block text-xs font-bold text-slate-700">نوع الصفحة<select value={form.listingType} onChange={(e) => setForm({ ...form, listingType: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="doctor">طبيب</option><option value="clinic">عيادة</option><option value="pharmacy">صيدلية</option><option value="medical_center">مركز طبي</option><option value="hospital">مستشفى</option><option value="laboratory">معمل تحاليل</option><option value="health_provider">مقدم خدمة صحية</option><option value="business">نشاط عام</option></select></label>
               <label className="block text-xs font-bold text-slate-700">حالة الظهور<select value={form.listingStatus} onChange={(e) => setForm({ ...form, listingStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="DRAFT">مسودة مخفية</option><option value="PUBLISHED">منشورة للزوار</option><option value="HIDDEN">إخفاء الصفحة</option></select></label>
             </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-bold text-slate-700">المجموعة الوظيفية *<select required value={form.functionalGroupId} onChange={(e) => { const groupId = e.target.value; const firstCategory = categories.find((item) => item.functionalGroupId === groupId); setForm({ ...form, functionalGroupId: groupId, taxonomyCategoryId: firstCategory?.id || "", taxonomySpecialty: "", specialty: "" }); }} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{functionalGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
+              <label className="block text-xs font-bold text-slate-700">التصنيف داخل المجموعة *<select required value={form.taxonomyCategoryId} onChange={(e) => setForm({ ...form, taxonomyCategoryId: e.target.value, taxonomySpecialty: "", specialty: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{categories.filter((item) => item.functionalGroupId === form.functionalGroupId).map((item) => <option key={item.id} value={item.id}>{item.name} — {item.classificationType === "profession" ? "مهنة" : "نشاط"}</option>)}</select></label>
+            </div>
+            {Boolean(categories.find((item) => item.id === form.taxonomyCategoryId)?.specialties?.length) && <label className="block text-xs font-bold text-slate-700">التخصص / النوع الدقيق داخل التصنيف<select value={form.taxonomySpecialty} onChange={(e) => setForm({ ...form, taxonomySpecialty: e.target.value, specialty: e.target.value || form.specialty })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs"><option value="">غير محدد — استكماله لاحقًا</option>{(categories.find((item) => item.id === form.taxonomyCategoryId)?.specialties || []).map((specialty) => <option key={specialty} value={specialty}>{specialty}</option>)}</select></label>}
+
             <label className="block text-xs font-bold text-slate-700">التخصص<input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-bold text-slate-700">رقم الهاتف<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label><label className="block text-xs font-bold text-slate-700">رقم إضافي<input value={form.secondaryPhone} onChange={(e) => setForm({ ...form, secondaryPhone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label></div>
             <label className="block text-xs font-bold text-slate-700">العنوان<textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={2} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
