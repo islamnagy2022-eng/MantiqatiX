@@ -242,6 +242,7 @@ declare
   v_actor uuid := auth.uid();
   v_position public.business_job_positions%rowtype;
   v_old jsonb := '{}'::jsonb;
+  v_revoked_overrides jsonb := '[]'::jsonb;
   v_permission text := case when p_position_id is null then 'EMPLOYEES.CREATE' else 'EMPLOYEES.UPDATE' end;
 begin
   if v_actor is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then raise exception 'AUTH_REQUIRED'; end if;
@@ -276,6 +277,33 @@ begin
     update public.business_job_positions set branch_id=p_branch_id,title=trim(p_title),description=coalesce(p_description,''),department=coalesce(p_department,''),employment_type=p_employment_type,permission_template=p_permission_template,is_hiring=coalesce(p_is_hiring,false),is_active=coalesce(p_is_active,true),updated_by=v_actor,updated_at=now()
     where id=p_position_id returning * into v_position;
   end if;
+  -- A position may narrow or replace its permission template. Clear any old per-employee
+  -- override that is no longer a subset of the new template before syncing memberships.
+  -- This prevents a stale FINANCE.MANAGE (or other old grant) from surviving a role reduction.
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'employee_id',e.id,
+    'permission_overrides',e.permission_overrides
+  ) order by e.id),'[]'::jsonb)
+  into v_revoked_overrides
+  from public.business_employees e
+  where e.job_position_id=v_position.id
+    and e.tenant_id=p_tenant_id and e.business_id=p_business_id
+    and not public.mnty_business_employee_permissions_subset(
+      coalesce(e.permission_overrides,'{}'::jsonb),
+      coalesce(v_position.permission_template,'{}'::jsonb)
+    );
+
+  if jsonb_array_length(v_revoked_overrides) > 0 then
+    update public.business_employees e
+      set permission_overrides='{}'::jsonb, updated_by=v_actor, updated_at=now()
+    where e.job_position_id=v_position.id
+      and e.tenant_id=p_tenant_id and e.business_id=p_business_id
+      and e.id in (
+        select (revoked.value->>'employee_id')::uuid
+        from jsonb_array_elements(v_revoked_overrides) as revoked(value)
+      );
+  end if;
+
   -- Permission and activation changes propagate immediately to memberships linked to this position.
   update public.user_memberships m
     set permissions=coalesce(v_position.permission_template,'{}'::jsonb)||coalesce(e.permission_overrides,'{}'::jsonb),
@@ -288,7 +316,7 @@ begin
 
   insert into public.audit_logs(id,tenant_id,actor_user_id,action,entity_type,entity_id,old_values,new_values,result)
   values(gen_random_uuid()::text,p_tenant_id,v_actor,case when p_position_id is null then 'BUSINESS_JOB_POSITION_CREATED' else 'BUSINESS_JOB_POSITION_UPDATED' end,'business_job_position',v_position.id::text,v_old,
-    jsonb_build_object('business_id',p_business_id,'branch_id',v_position.branch_id,'title',v_position.title,'department',v_position.department,'employment_type',v_position.employment_type,'permission_template',v_position.permission_template,'is_hiring',v_position.is_hiring,'is_active',v_position.is_active),'SUCCESS');
+    jsonb_build_object('business_id',p_business_id,'branch_id',v_position.branch_id,'title',v_position.title,'department',v_position.department,'employment_type',v_position.employment_type,'permission_template',v_position.permission_template,'is_hiring',v_position.is_hiring,'is_active',v_position.is_active,'revoked_employee_overrides',v_revoked_overrides),'SUCCESS');
   return jsonb_build_object('id',v_position.id,'title',v_position.title,'is_hiring',v_position.is_hiring,'is_active',v_position.is_active);
 end;
 $function$;
