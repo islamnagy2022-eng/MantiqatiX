@@ -86,9 +86,12 @@ assert.match(types, /membershipRole\?: string/);
 assert.match(types, /membershipPermissions\?: Record<string, unknown>/);
 
 assert.match(production, /membershipRole: String\(chosenMembership\?\.role \|\| ''\)\.toUpperCase\(\)/);
-assert.match(production, /const managementRoles = \['OWNER', 'BUSINESS_OWNER', 'ADMIN'\]/);
-assert.match(production, /business_id \|\| ''\) === chosen\.id && managementRoles\.includes/);
-assert.match(production, /A tenant-wide OWNER is valid only within that owner's tenant/);
+assert.match(production, /const selectMembershipForBusiness =/);
+assert.match(production, /selectMembershipForBusiness\(roleMemberships, businessId, tenantId\)/);
+assert.match(production, /selectMembershipForBusiness\(roleMemberships, chosen\.id, String\(chosen\.tenantId \|\| ''\)\)/);
+assert.match(production, /const branchId = platform \? String\(row\.branchId \|\| ''\) : String\(membership\?\.branch_id \|\| ''\)/);
+assert.match(browserE2E, /tenant-wide owner must not inherit branch scope from a weaker employee membership/);
+assert.match(browserE2E, /catalogReadRequests\.every\(\(request\) => !request\.branchId\)/);
 assert.match(production, /membershipPermissions: chosenMembership\?\.permissions/);
 assert.match(production, /businesses\.find\(\(b\) => roleMemberships\.some\(\(m: any\) => String\(m\.business_id \|\| ''\) === b\.id\)\)/);
 
