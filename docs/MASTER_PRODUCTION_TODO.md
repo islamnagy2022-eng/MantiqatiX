@@ -1905,3 +1905,14 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [ ] Apply the missing dashboard dependency migrations only through a reviewed, controlled production rollout; verify the actual tables/functions and migration ledger read-only after rollout. Do not bypass the gate or fabricate ledger entries.
 - [ ] Reconcile all 41 required platform release migration versions and the existing payment/finance/Edge Function/backup-restore drift. Full platform remains **BLOCKED / NOT CERTIFIED**.
 - [ ] After dependencies pass, rerun main deployment, verify the dashboard on the authenticated production origin, and complete real-device accessibility plus QR/permanent-link regression.
+
+
+## 2026-10-29 — Dashboard dependency forward repair (live verification)
+
+- [x] Applied forward-only migration `20261029041815_professional_dashboard_dependencies_forward_repair` to the configured Production Supabase project. It introduces only RC113/RC114/RC115/RC116/RC457 dashboard dependencies in source order. RC117 image triggers and its existing-row updates were intentionally excluded from this scoped rollout.
+- [x] Added the exact applied migration source at `supabase/migrations/20261029041815_professional_dashboard_dependencies_forward_repair.sql`; no historical migration files were changed.
+- [x] Read-only live checks confirm all 11 dashboard dependency objects exist; the four new tables have RLS and FORCE RLS enabled; anon/authenticated roles have no direct table SELECT/INSERT privileges; intended authenticated RPCs are executable; internal permission helper RPCs are not executable by browser roles; unauthenticated permission checks return denied.
+- [x] Updated `docs/release/production-migration-reconciliation.json` with the live dashboard-specific evidence only.
+- [ ] Confirm the main-branch Pages deployment workflow completes and verify the deployed dashboard on the authenticated production origin.
+- [ ] Complete real-device mobile/tablet, keyboard/accessibility, QR/permanent-link regression and authenticated role checks on the deployed origin.
+- [ ] Full platform gate remains **BLOCKED / NOT CERTIFIED**. The 41-version release-migration reconciliation, finance/payment and Edge Function parity, backup/restore rehearsal, Auth security, monitoring and rollback evidence are still open. No claim of full-platform production readiness is made.
