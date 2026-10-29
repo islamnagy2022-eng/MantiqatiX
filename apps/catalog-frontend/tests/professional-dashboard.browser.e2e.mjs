@@ -26,6 +26,7 @@ const roles = {
       id: 'membership-employee-business-row',
       role: 'EMPLOYEE',
       businessId,
+      branchId,
       permissions: { modules: { CATALOG: ['view'] } },
       created_at: '2026-02-02T00:00:00.000Z',
     }],
@@ -102,6 +103,7 @@ async function newScenario(browser, scenario = null) {
   }, { key: storageKey, value: session ? JSON.stringify(session) : null });
 
   const rpcObservation = { scopedBranchId: undefined };
+  const catalogReadRequests = [];
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
     const request = route.request();
@@ -194,11 +196,12 @@ async function newScenario(browser, scenario = null) {
       let body = {};
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
       if (body.action === 'CATALOG_READ') {
+        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
         return json({
           business: fakeBusiness,
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
           branches: fakeBusiness.branches,
-          selectedBranchId: branchId,
+          selectedBranchId: body.branchId || null,
           items: [],
           prices: [],
         });
@@ -216,7 +219,7 @@ async function newScenario(browser, scenario = null) {
   });
 
   await page.goto(baseUrl + '?view=professional_dashboard', { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation };
+  return { context, page, rpcObservation, catalogReadRequests };
 }
 
 async function waitForDashboard(page) {
@@ -247,18 +250,21 @@ try {
 
   // 2. Explicit owner membership restores the dashboard after direct URL navigation and refresh.
   {
-    const { context, page } = await newScenario(browser, roles.owner);
+    const { context, page, catalogReadRequests } = await newScenario(browser, roles.owner);
     try {
       await waitForDashboard(page);
       await page.getByText('نشاط اختبار الداشبورد', { exact: true }).first().waitFor({ state: 'visible' });
+      assert.equal(catalogReadRequests.length > 0, true, 'owner bootstrap must load catalog data');
+      assert.equal(catalogReadRequests.every((request) => !request.branchId), true, 'tenant-wide owner must not inherit branch scope from a weaker employee membership');
       await page.reload({ waitUntil: 'domcontentloaded' });
       await waitForDashboard(page);
+      assert.equal(catalogReadRequests.every((request) => !request.branchId), true, 'direct refresh must keep the tenant-wide catalog scope');
       assert.equal(await page.getByText('مساحة عمل محدودة الصلاحيات', { exact: true }).count(), 0);
       assert.equal(await page.getByText('نشاطك', { exact: true }).count() > 0, true);
       await assertNoHorizontalOverflow(page, '390px mobile owner dashboard');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px desktop owner dashboard');
-      results.push('owner-route-and-refresh-restored-with-responsive-layout');
+      results.push('owner-route-refresh-and-membership-scope-restored-with-responsive-layout');
     } finally { await context.close(); }
   }
 
