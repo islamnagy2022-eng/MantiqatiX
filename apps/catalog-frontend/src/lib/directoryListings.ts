@@ -17,6 +17,7 @@ export type PublicDirectoryListing = {
   source_checked_at: string;
   listing_status: string;
   claim_status: string;
+  can_edit?: boolean;
   outreach_status?: string;
   outreach_notes?: string | null;
   last_contacted_at?: string | null;
@@ -119,4 +120,23 @@ export async function reviewDirectoryClaim(input: {
   subscriptionPaid?: boolean;
 }): Promise<any> {
   return callDirectoryAdmin({ action: "REVIEW_CLAIM", ...input });
+}
+
+
+export async function updateOwnedDirectoryListing(input: {
+  listingId: string; displayName: string; specialty: string; phone: string; secondaryPhone: string;
+  address: string; governorate: string; district: string; village: string;
+  bio: string; workingHours: string; websiteUrl: string; bookingUrl: string; services: string; socialLinks: string;
+}): Promise<PublicDirectoryListing> {
+  const response = await callDirectoryAdmin({
+    action: "UPDATE_OWNED_LISTING", listingId: input.listingId, displayName: input.displayName,
+    specialty: input.specialty, phone: input.phone, secondaryPhone: input.secondaryPhone, address: input.address,
+    governorate: input.governorate, district: input.district, village: input.village,
+    metadata: {
+      bio: input.bio, workingHours: input.workingHours, websiteUrl: input.websiteUrl, bookingUrl: input.bookingUrl,
+      services: input.services.split("\\n").map((value) => value.trim()).filter(Boolean),
+      socialLinks: input.socialLinks.split("\\n").map((value) => value.trim()).filter(Boolean),
+    },
+  });
+  return response.listing as PublicDirectoryListing;
 }
