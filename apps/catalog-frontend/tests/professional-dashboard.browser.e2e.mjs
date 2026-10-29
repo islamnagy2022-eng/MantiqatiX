@@ -244,6 +244,34 @@ async function assertNoHorizontalOverflow(page, label) {
 
 const browser = await chromium.launch({ headless: true });
 const results = [];
+
+async function auditAccessibility(page, label) {
+  const axePath = process.env.AXE_CORE_SCRIPT;
+  if (!axePath) return;
+  if (!(await page.evaluate(() => Boolean(window.axe)))) {
+    await page.addScriptTag({ path: axePath });
+  }
+  const audit = await page.evaluate(async () => {
+    const scope = document.querySelector('main') || document.body;
+    const report = await window.axe.run(scope, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+    });
+    return report.violations.map((violation) => ({
+      id: violation.id,
+      impact: violation.impact,
+      help: violation.help,
+      targets: violation.nodes.slice(0, 5).map((node) => node.target),
+    }));
+  });
+  const blocking = audit.filter((violation) => ['critical', 'serious'].includes(violation.impact));
+  assert.equal(
+    blocking.length,
+    0,
+    label + ' must have no critical/serious WCAG 2.1 A/AA violations: ' + JSON.stringify(blocking.slice(0, 10)),
+  );
+  results.push(label + '-axe-no-critical-serious-wcag21-violations');
+}
+
 try {
   // 1. Guest direct URL must not render privileged dashboard UI.
   {
@@ -269,8 +297,10 @@ try {
       assert.equal(await page.getByText('مساحة عمل محدودة الصلاحيات', { exact: true }).count(), 0);
       assert.equal(await page.getByText('نشاطك', { exact: true }).count() > 0, true);
       await assertNoHorizontalOverflow(page, '390px mobile owner dashboard');
+      await auditAccessibility(page, 'owner-mobile-dashboard');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px desktop owner dashboard');
+      await auditAccessibility(page, 'owner-desktop-dashboard');
       results.push('owner-route-refresh-and-membership-scope-restored-with-responsive-layout');
     } finally { await context.close(); }
   }
@@ -347,6 +377,7 @@ try {
       assert.equal(actualUrl.pathname, deployedBase.pathname, 'permanent URL must preserve the deployed application base path');
       assert.equal(actualUrl.searchParams.get('store'), businessId, 'permanent URL must use the stable business ID');
 
+      await auditAccessibility(page, 'merchant-qr-tab');
       const qrImage = page.locator('img[alt="QR Code for نشاط اختبار الداشبورد"]').first();
       const qrImageSource = await qrImage.getAttribute('src');
       assert.ok(qrImageSource, 'merchant QR image must have a generated source URL');
@@ -356,6 +387,7 @@ try {
 
       await page.getByRole('button', { name: /عرض و طباعة الكود بالكامل/ }).click();
       await page.getByText('QR كود دائم ومستقر', { exact: true }).waitFor({ state: 'visible' });
+      await auditAccessibility(page, 'merchant-qr-modal');
       const modalLink = page.locator('a[href*="store="]').filter({ hasText: /store=/ });
       assert.equal(await modalLink.count(), 2, 'QR section and QR modal must expose the same permanent link');
       assert.equal(await modalLink.nth(1).getAttribute('href'), actualUrl.toString(), 'QR modal must use the same canonical URL');
