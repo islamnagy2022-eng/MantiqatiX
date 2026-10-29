@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { Business } from '../../types';
-import { canAccessProfessionalDashboard, hasBusinessModulePermission, isBusinessManagementRole } from '../../utils/dashboardAccess';
 import { BusinessEmployeeManager } from '../../components/merchant/BusinessEmployeeManager';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard, hasBusinessModulePermission, isBusinessManagementRole } from '../../utils/dashboardAccess';
 
@@ -97,7 +96,7 @@ export const ProfessionalDashboard: React.FC = () => {
   } = useApp();
   const [section, setSectionState] = useState<DashboardSection>('overview');
   const setSection = (nextSection: DashboardSection) => {
-    if (nextSection === 'activities' && !canManageBusiness) return;
+    if (nextSection === 'activities' && !(canManageBusiness || canViewCatalog)) return;
     if (nextSection === 'reports' && !canViewReports) return;
     if (nextSection === 'access' && !canViewEmployees) return;
     if (nextSection === 'settings' && !canManageSettings) return;
@@ -112,6 +111,8 @@ export const ProfessionalDashboard: React.FC = () => {
   const isPlatformAdmin = authSession.role === 'admin';
   const isBusinessMember = authSession.role === 'subscriber';
   const isBusinessManager = isBusinessManagementRole(authSession) && !authSession.membershipBranchId;
+  const canManageBusiness = isPlatformAdmin || isBusinessManager;
+  const canManageSettings = isPlatformAdmin || isBusinessManager || hasBusinessModulePermission(authSession, 'SETTINGS', ['manage']);
   const canViewCatalog = hasBusinessModulePermission(authSession, 'CATALOG', ['view', 'manage']);
   const canViewOrders = hasBusinessModulePermission(authSession, 'ORDERS', ['view', 'manage']);
   const canViewCustomers = hasBusinessModulePermission(authSession, 'CUSTOMERS', ['view', 'manage']);
