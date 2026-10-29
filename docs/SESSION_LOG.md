@@ -576,3 +576,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Post-write production read-back: 44 pharmacy listings, all 44 with phone, all 44 published/unclaimed, and all 44 with source URL. No pharmacy records remain without a phone.
 - Reviewed frontend wiring: `DirectoryView.tsx` loads published unclaimed rows from the `directory-listings` public endpoint, and the canonical taxonomy already defines `cat_medical_health_pharmacies` as the pharmacy category. This confirms the application has a data/rendering path, but does not by itself prove a fresh browser session or a new Pages deployment has displayed the updated data.
 - Sources show public directory phone listings; numbers and operating status remain subject to owner confirmation. No frontend code change or deployment was needed for these data-only updates.
+
+
+## 2026-10-29 — Medical laboratory directory expansion
+
+- Added 9 laboratory listings for Berket El Sabaa to `public.public_directory_listings`: معمل الدلتا، مركز الصفا، معمل المدينة، معمل الخبرة، معمل القدس، معامل البرج، معامل المختبر، معمل الأوائل، ومعمل رعاية للتحاليل الطبية (Caer Lab).
+- Used category `cat_medical_health_labs`, functional group `medical_health`, and deterministic phone-based slugs. Before insert, checked normalized display-name matches and phone digits against primary and secondary phone fields across the entire directory; only non-conflicting records were inserted.
+- Post-write read-back: 9 laboratory listings, all 9 with a phone number, all 9 published and unclaimed.
+- Sources are stored per record. Numbers and current operating status are public-source leads and are not owner-verified. Existing record الشروق للأشعة والتحاليل was not duplicated or reclassified.
+- Data-only operation; no frontend deployment or owner/subscription activation performed.
