@@ -92,3 +92,12 @@ Partial execution started: 34 verified insertions across the documented batches 
 - [x] Source pages: https://healtheg.com/en/Results/Pharmacies/City-monofiya/area-berket-alsab3 and Med.tn pharmacy directory pages for Berket El Sabaa listings. These numbers are public-directory data, not direct owner verification.
 - [x] Corrected an initially entered unsubstantiated phone for صيدلية ابن سينا immediately after review; phone is now NULL because the source did not provide it. Do not treat the record as phone-verified.
 - [ ] Continue the same name + normalized-phone duplicate checks across the whole catalog and verify all source-derived contact details with owners before marking any record confirmed.
+
+
+## 2026-10-29 — Phone-required publication gate
+
+- [x] Applied a production database guard: a listing cannot have `listing_status='PUBLISHED'` unless its primary or secondary phone contains at least 7 digits.
+- [x] Moved all existing published listings with no primary or secondary phone to `DRAFT` without deleting records, changing IDs/slugs, or inventing contact data. They remain available for admin completion.
+- [x] Read-after-write verification: **284 PUBLISHED listings, zero without a phone; 105 DRAFT listings without a phone** awaiting verified contact data.
+- [x] Updated and deployed Edge Function `directory-listings` version 7. Its `UPSERT_LISTING` action now rejects publication without a valid phone and returns `PHONE_REQUIRED_FOR_PUBLICATION`.
+- [ ] Continue discovery only with a source-backed phone number; add each eligible record idempotently, verify it after insertion, and publish it immediately only when the phone passes the 7-digit check. A directory number is still not direct owner verification.
