@@ -225,7 +225,7 @@ export const DirectoryView: React.FC = () => {
   }, [activeCoverSlides.length]);
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
-    .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+    .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
 
   // Only use explicit, valid coordinates. Never infer a distance from a text address or map URL.
   const getCoordinates = (value: unknown): { latitude: number; longitude: number } | null => {
