@@ -1118,6 +1118,15 @@
     "status": "BLOCKED",
     "checked_at": "2026-10-29",
     "method": "Read-only Supabase MCP SQL plus migration-ledger inspection against the configured production project; no schema or migration history was changed.",
+    "last_read_only_recheck": {
+      "checked_at": "2026-10-29T04:04:51.927219Z",
+      "project_ref": "moyhiluyhjsujhwlyeuu",
+      "dashboard_dependency_objects_missing": 11,
+      "duplicate_business_membership_scope_groups": 0,
+      "latest_migration_version": "20261028112112",
+      "latest_migration_name": "auto_assign_unowned_businesses_to_catalog_owner",
+      "write_performed": false
+    },
     "project_ref": "moyhiluyhjsujhwlyeuu",
     "required_objects": [
       {
@@ -1187,7 +1196,7 @@
         "status": "BLOCKED"
       }
     ],
-    "interpretation": "The live project lacks the RC113-RC115 control-center/employee dependencies and RC457 permission-ceiling helpers. Do not deploy or merge this dashboard feature until the missing release migrations are reconciled and the required objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
+    "interpretation": "PR #483 is merged and frontend CI/E2E passed, but the live project lacks the RC113-RC115 control-center/employee dependencies and RC457 permission-ceiling helpers. Do not publish the dashboard to production until the missing release migrations are reconciled in a reviewed, controlled rollout and the required objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
   },
   "live_ledger_checked_at": "2026-10-29",
   "live_ledger_verification_method": "Read-only SELECT from supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 10 through Supabase MCP; no production writes."
