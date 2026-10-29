@@ -17,6 +17,11 @@ export type PublicDirectoryListing = {
   source_checked_at: string;
   listing_status: string;
   claim_status: string;
+  outreach_status?: string;
+  outreach_notes?: string | null;
+  last_contacted_at?: string | null;
+  subscription_offer_at?: string | null;
+  next_follow_up_at?: string | null;
   completeness?: Record<string, boolean>;
   metadata?: Record<string, unknown>;
   created_at?: string;

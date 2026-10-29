@@ -499,7 +499,15 @@ export const DirectoryView: React.FC = () => {
           </label>
         </div>
 
-        <DirectoryListingsView onOpen={openDirectoryListing} onBack={closeDirectoryListing} />
+        {(selectedGroupFilter === 'medical_health' || selectedTaxonomyCategory?.functionalGroupId === 'medical_health') && (
+          <DirectoryListingsView
+            onOpen={openDirectoryListing}
+            onBack={closeDirectoryListing}
+            listingTypeFilter={selectedTaxonomyCategory ? ({ pharmacies: 'pharmacy', clinics: 'clinic', hospitals: 'hospital', labs: 'laboratory', doctor: 'doctor', dentist: 'doctor', dental_centers: 'clinic', radiology: 'doctor', physio_centers: 'doctor', physio_centers: 'health_provider' } as Record<string, string>)[selectedTaxonomyCategory.id] || null : null}
+            taxonomyCategoryId={selectedTaxonomyCategory?.functionalGroupId === 'medical_health' ? selectedTaxonomyCategory.id : null}
+            taxonomySpecialty={selectedSpecialty === 'all' ? null : selectedSpecialty}
+          />
+        )}
 
         {/* Search & Location Filter Bar */}
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">

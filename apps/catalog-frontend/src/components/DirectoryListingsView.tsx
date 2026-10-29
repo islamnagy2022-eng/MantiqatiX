@@ -15,9 +15,12 @@ function phoneHref(value: string | null | undefined) {
 
 export const DirectoryListingsView: React.FC<{
   detailSlug?: string;
+  listingTypeFilter?: string | null;
+  taxonomyCategoryId?: string | null;
+  taxonomySpecialty?: string | null;
   onOpen: (slug: string) => void;
   onBack: () => void;
-}> = ({ detailSlug, onOpen, onBack }) => {
+}> = ({ detailSlug, listingTypeFilter, taxonomyCategoryId, taxonomySpecialty, onOpen, onBack }) => {
   const { authSession, setIsLoginModalOpen } = useApp();
   const [listings, setListings] = useState<PublicDirectoryListing[]>([]);
   const [detail, setDetail] = useState<PublicDirectoryListing | null>(null);
@@ -54,12 +57,62 @@ export const DirectoryListingsView: React.FC<{
     setClaimName(authSession.subscriberName || authSession.email || "");
   }, [authSession.subscriberName, authSession.email]);
 
-  const specialties = useMemo(() => Array.from(new Set(listings.map((x) => specialtyLabel(x.specialty)))).sort((a, b) => a.localeCompare(b, "ar")), [listings]);
-  const filtered = useMemo(() => listings.filter((x) => {
+  useEffect(() => { setSpecialtyFilter("all"); }, [listingTypeFilter, taxonomyCategoryId, taxonomySpecialty]);
+
+  const taxonomyMatches = (listing: PublicDirectoryListing) => {
+    const raw = String(listing.specialty || "").toLocaleLowerCase();
+    const dental = /أسنان|اسنان|dentist|dental/.test(raw);
+    const physio = /علاج طبيع|physio/.test(raw);
+    if (listingTypeFilter && listing.listing_type !== listingTypeFilter) return false;
+    if (taxonomyCategoryId === "doctor" && (dental || physio)) return false;
+    if (taxonomyCategoryId === "dentist" && !dental) return false;
+    if (taxonomyCategoryId === "radiology" && !/أشعة|اشعة|radiolog/.test(raw)) return false;
+    if (taxonomyCategoryId === "physio_centers" && !physio) return false;
+    if (taxonomySpecialty) {
+      const aliases: Record<string, RegExp> = {
+        "طبيب عيون": /عيون|رمد|ophthalm/,
+        "طبيب قلب": /قلب|cardio/,
+        "طبيب أطفال": /أطفال|اطفال|طفل|pediatr/,
+        "طبيب باطنة": /باطن|داخلي|internal/,
+        "طبيب عظام": /عظام|عظمي|orthop/,
+        "طبيب جلدية": /جلد|dermat/,
+        "طبيب مخ وأعصاب": /مخ|أعصاب|اعصاب|neuro/,
+        "طبيب نفسي": /نفسي|psychiatr/,
+        "طبيب أنف وأذن وحنجرة": /أنف|انف|أذن|اذن|حنجرة|حنجره|ent/,
+        "طبيب نساء وتوليد": /نساء|توليد|obstet|gynae|gyn/,
+        "طبيب مسالك بولية": /مسالك|بولية|urolog/,
+        "طبيب صدر": /صدر|حساسية|مناعة|pulmon/,
+        "طبيب جهاز هضمي": /هضمي|جهاز هضمي|gastro/,
+        "طبيب كلى": /كلى|كلوي|nephro/,
+        "طبيب أورام": /أورام|اورام|oncolo/,
+        "طبيب جراحة عامة": /جراحة($|[^ تجميل])|surgeon/,
+        "طبيب جراحة تجميل": /تجميل|plastic/,
+        "طبيب روماتيزم": /روماتيزم|rheumat/,
+        "طبيب غدد صماء": /غدد|صماء|endocrin/,
+        "أسنان عام": /أسنان|اسنان|dentist|dental/,
+        "تقويم الأسنان": /أسنان|اسنان|تقويم|dental/,
+        "زراعة الأسنان": /أسنان|اسنان|زراعة|dental/,
+        "علاج الجذور": /أسنان|اسنان|جذور|dental/,
+        "جراحة الفم": /أسنان|اسنان|فم|dental/,
+        "أسنان أطفال": /أسنان|اسنان|أطفال|اطفال|dental/,
+        "تركيبات الأسنان": /أسنان|اسنان|تركيبات|dental/,
+        "تجميل الأسنان": /أسنان|اسنان|تجميل|dental/,
+        "علاج اللثة": /أسنان|اسنان|لثة|dental/,
+      };
+      const alias = aliases[taxonomySpecialty];
+      if (alias) return alias.test(raw);
+      const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/\s+/g, " ").trim();
+      return normalize(raw).includes(normalize(taxonomySpecialty)) || normalize(taxonomySpecialty).includes(normalize(raw));
+    }
+    return true;
+  };
+  const inTaxonomyScope = useMemo(() => listings.filter(taxonomyMatches), [listings, listingTypeFilter, taxonomyCategoryId, taxonomySpecialty]);
+  const specialties = useMemo(() => Array.from(new Set(inTaxonomyScope.map((x) => specialtyLabel(x.specialty)))).sort((a, b) => a.localeCompare(b, "ar")), [inTaxonomyScope]);
+  const filtered = useMemo(() => inTaxonomyScope.filter((x) => {
     const matchesSearch = [x.display_name, x.specialty, x.address, x.village].some((v) => String(v || "").toLocaleLowerCase().includes(search.toLocaleLowerCase()));
     const matchesSpecialty = specialtyFilter === "all" || specialtyLabel(x.specialty) === specialtyFilter;
     return matchesSearch && matchesSpecialty;
-  }), [listings, search, specialtyFilter]);
+  }), [inTaxonomyScope, search, specialtyFilter]);
 
   const handleClaim = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -146,10 +199,10 @@ export const DirectoryListingsView: React.FC<{
     <section aria-label="دليل الأطباء في بركة السبع" className="space-y-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-xl font-black text-slate-900"><Building2 className="h-5 w-5 text-emerald-700" /> دليل الأطباء في بركة السبع</h2>
-          <p className="mt-1 text-xs leading-6 text-slate-500">صفحات تعريفية أولية من مصادر عامة، قابلة للتحديث والمطالبة بالملكية بعد التحقق.</p>
+          <h2 className="flex items-center gap-2 text-xl font-black text-slate-900"><Building2 className="h-5 w-5 text-emerald-700" /> {taxonomyCategoryId === "pharmacies" ? "دليل الصيدليات" : taxonomyCategoryId === "clinics" ? "دليل العيادات الطبية" : taxonomyCategoryId === "hospitals" ? "دليل المستشفيات" : taxonomyCategoryId === "labs" ? "دليل معامل التحاليل" : taxonomyCategoryId === "dentist" ? "دليل أطباء الأسنان" : taxonomyCategoryId === "doctor" ? "دليل الأطباء" : "الدليل الطبي في بركة السبع"}</h2>
+          <p className="mt-1 text-xs leading-6 text-slate-500">الصفحات معروضة داخل التصنيف الطبي المختار. بيانات المصدر أولية وقابلة للاستكمال والتصحيح والمطالبة بالملكية بعد التحقق.</p>
         </div>
-        <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800">{listings.length} صفحة أولية</span>
+        <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800">{inTaxonomyScope.length} صفحة في التصنيف</span>
       </div>
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold leading-6 text-amber-950">ملاحظة: الأسماء والأرقام مأخوذة من أدلة عامة وليست تأكيدًا من الأطباء. قبل التواصل أو الاعتماد، يُرجى التأكد من أن الرقم ما زال صحيحًا وأنه يخص العيادة.</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
