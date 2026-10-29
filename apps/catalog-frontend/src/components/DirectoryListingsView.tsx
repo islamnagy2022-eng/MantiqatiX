@@ -58,7 +58,7 @@ export const DirectoryListingsView: React.FC<{
       if (alive) setLoadError(error instanceof Error ? error.message : "تعذر تحميل الدليل الطبي.");
     }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [detailSlug]);
+  }, [detailSlug, authSession.isAuthenticated]);
 
   useEffect(() => {
     setClaimName(authSession.subscriberName || authSession.email || "");
@@ -210,6 +210,8 @@ export const DirectoryListingsView: React.FC<{
             {typeof detail.metadata?.workingHours === "string" && detail.metadata.workingHours.trim() && <div className="rounded-xl border border-slate-200 p-4"><h2 className="mb-1 text-xs font-black text-slate-700">مواعيد العمل</h2><p className="whitespace-pre-line text-sm text-slate-800">{detail.metadata.workingHours}</p></div>}
             {Array.isArray(detail.metadata?.services) && detail.metadata.services.length > 0 && <div className="rounded-xl border border-slate-200 p-4"><h2 className="mb-2 text-xs font-black text-slate-700">الخدمات</h2><div className="flex flex-wrap gap-2">{detail.metadata.services.map((value, i) => <span key={i} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900">{String(value)}</span>)}</div></div>}
             {typeof detail.metadata?.websiteUrl === "string" && /^https?:\/\//i.test(detail.metadata.websiteUrl) && <a href={detail.metadata.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-800 underline">الموقع الإلكتروني <ExternalLink className="h-4 w-4" /></a>}
+            {typeof detail.metadata?.bookingUrl === "string" && /^https?:\/\//i.test(detail.metadata.bookingUrl) && <a href={detail.metadata.bookingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-800 underline">حجز موعد <ExternalLink className="h-4 w-4" /></a>}
+            {Array.isArray(detail.metadata?.socialLinks) && detail.metadata.socialLinks.some((value) => /^https?:\/\//i.test(String(value || ""))) && <div className="flex flex-wrap gap-2">{detail.metadata.socialLinks.filter((value) => /^https?:\/\//i.test(String(value || ""))).map((value, i) => <a key={i} href={String(value)} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-50">وسيلة تواصل {i + 1} <ExternalLink className="mr-1 inline h-3 w-3" /></a>)}</div>}
             {detail.can_edit && detail.owned_business_id && <button type="button" onClick={() => { setSelectedBusinessId(detail.owned_business_id as string); setCurrentView("merchant_admin"); }} className="mb-3 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white hover:bg-slate-800"><Building2 className="h-4 w-4" /> فتح لوحة النشاط والكتالوج</button>}
             {detail.can_edit && <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-black text-emerald-950">إدارة صفحتك</h2><p className="mt-1 text-xs text-emerald-900">يمكنك الآن استكمال بيانات الصفحة بنفسك. ستظل صلاحياتك محصورة في هذه الصفحة والنشاط المرتبط بها.</p></div><button type="button" onClick={() => setOwnerEditOpen((value) => !value)} className="rounded-xl bg-emerald-700 px-4 py-2 text-xs font-black text-white">{ownerEditOpen ? "إغلاق التعديل" : "تعديل واستكمال البيانات"}</button></div>
