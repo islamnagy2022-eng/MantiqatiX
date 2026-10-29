@@ -620,7 +620,7 @@ export const MerchantDashboard: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2 font-medium">
+          <div className="flex items-center justify-between text-[11px] text-slate-600 mt-2 font-medium">
             <span>المتبقي للإضافة: {remainingQuota} صنف</span>
             <span>{quotaPercent}% مستخدم</span>
           </div>
@@ -633,7 +633,7 @@ export const MerchantDashboard: React.FC = () => {
           onClick={() => setActiveTab('products')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'products'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
@@ -656,7 +656,7 @@ export const MerchantDashboard: React.FC = () => {
           onClick={() => setActiveTab('branding')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'branding'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
@@ -668,7 +668,7 @@ export const MerchantDashboard: React.FC = () => {
           onClick={() => setActiveTab('profile')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'profile'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
@@ -680,7 +680,7 @@ export const MerchantDashboard: React.FC = () => {
           onClick={() => setActiveTab('functional_engine')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'functional_engine'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
@@ -697,7 +697,7 @@ export const MerchantDashboard: React.FC = () => {
           onClick={() => setActiveTab('qr')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'qr'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
@@ -709,7 +709,7 @@ export const MerchantDashboard: React.FC = () => {
           onClick={() => setActiveTab('employees')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'employees'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
@@ -1367,7 +1367,7 @@ export const MerchantDashboard: React.FC = () => {
 
             <button
               onClick={() => setIsQrModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer transition-all"
+              className="bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs px-5 py-3 rounded-xl shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer transition-all"
             >
               <QrCode className="w-4 h-4" />
               <span>عرض و طباعة الكود بالكامل</span>

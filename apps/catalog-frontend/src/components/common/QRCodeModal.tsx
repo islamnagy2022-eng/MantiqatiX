@@ -129,7 +129,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ business, isOpen, onCl
             download={`${business.slug || business.id}-qrcode.png`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-xs py-3 px-4 rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>تحميل QR كود</span>
