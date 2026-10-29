@@ -23,8 +23,12 @@ assert.doesNotMatch(view, /localStorage\.(?:setItem|getItem)\([^\n]*(?:userCoord
   'visitor GPS coordinates must not be persisted in local storage');
 assert.match(types, /latitude\?: number/, 'catalog business type must support optional latitude');
 assert.match(types, /longitude\?: number/, 'catalog business type must support optional longitude');
-assert.match(production, /branch\.latitude \?\? branch\.lat/, 'branch latitude must be mapped from stored records');
-assert.match(production, /branch\.longitude \?\? branch\.lng \?\? branch\.lon/, 'branch longitude must be mapped from stored records');
+assert.match(production, /function parseFirstOptionalCoordinate\([\s\S]*?for \(const value of values\)[\s\S]*?if \(parsed !== undefined\) return parsed/, 'coordinate mapping must fall through empty or invalid fields to the next valid candidate');
+assert.match(production, /branchMetadata\.latitude[\s\S]*?branchLocation\.latitude/, 'branch metadata and nested location coordinates must be mapped');
+assert.match(production, /profileMetadata\.latitude[\s\S]*?profileLocation\.latitude/, 'profile metadata and nested location coordinates must be mapped');
+assert.match(production, /rawMetadata\.latitude[\s\S]*?rawLocation\.latitude/, 'raw activity metadata and nested location coordinates must be mapped');
+assert.match(production, /latitude_deg/, 'alternate explicit latitude fields must be supported');
+assert.match(production, /longitude_deg/, 'alternate explicit longitude fields must be supported');
 assert.match(production, /parseOptionalCoordinate\(/, 'stored coordinates must be range-validated before use');
 
 console.log('Catalog geographic search contract: PASS');
