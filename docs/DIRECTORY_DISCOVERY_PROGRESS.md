@@ -142,3 +142,12 @@ Partial execution started: 34 verified insertions across the documented batches 
 - [x] Latest database inventory: **337 PUBLISHED, zero missing phone; 90 DRAFT records without phone; 2 HIDDEN no-phone records held for duplicate review**. The phone-required database constraint and deployed Edge Function v7 remain active.
 - [x] Sources: [Dalil140 — food producers and processors in Berket El Sabaa](https://dalil140.com/category/ar/food-producers-processors-equipment/el-monofeya/berket-el-sabaa), [Find in Egypt — Egyptian Australian Food Industries](https://www.findinegypt.com/c/the-egyptian-australian-co-for-food-industries-201353), and direct local Google Maps business search links stored on each relevant record.
 - [ ] Public-source contact numbers are not owner-verified. Keep the listings unclaimed and require direct confirmation before marking contact details or active status as verified. Coverage remains in progress, not exhaustive.
+
+
+## 2026-10-29 — Auto-service, tyres, and aluminum workshop batch
+
+- [x] Added six unique local activities with phone numbers after pre-insert name/phone checks: الأمين للإطارات والبطاريات (01224432916); شركة سرور للإطارات والبطاريات والجنوط — كفر عليم (01091411500); خطاب للكاوتش والبطاريات (01016272991); معرض الفايز للإطارات والبطاريات — هورين (01008791696); مسعود غنام لميكانيكا السيارات — كفر عليم (01000336043); ورشة المختار للألوميتال (0482996373; 01006782967). All insertions were read-after-write verified PUBLISHED/UNCLAIMED.
+- [x] Did not duplicate already-existing حمادة لصيانة السيارات or مركز القبطان لصيانة سيارات النقل; their same phone numbers and existing rows were detected before insertion.
+- [x] Latest inventory: **343 PUBLISHED / 0 without phone; 90 DRAFT / 90 without phone; 2 HIDDEN / 2 without phone**. Phone-required DB constraint and deployed directory-listings Edge Function v7 remain active.
+- [x] Sources: [Find in Egypt — Hamada auto service](https://www.findinegypt.com/c/hamada-258787), [Dalil140 — El Mokhtar aluminum workshop](https://dalil140.com/company/en/11621-el-mokhtar-workshop), and local Google Maps business results stored on each listing. Local tire/auto listings were selected from Berket El Sabaa city and affiliated villages; unrelated Cairo/Shibin El Kom listings were excluded.
+- [ ] Public phone values still need direct owner confirmation; continue auditing duplicate names/phones and village-level coverage before marking any record confirmed.
