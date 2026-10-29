@@ -13,7 +13,9 @@ INSERT INTO auth.users(id,email,email_confirmed_at,raw_user_meta_data) VALUES
 ('00000000-0000-0000-0000-000000000006','employee-target@example.test',now(),'{}'),
 ('00000000-0000-0000-0000-000000000007','no-membership@example.test',now(),'{}'),
 ('00000000-0000-0000-0000-000000000008','branch-owner@example.test',now(),'{}'),
-('00000000-0000-0000-0000-000000000009','tenant-owner@example.test',now(),'{}');
+('00000000-0000-0000-0000-000000000009','tenant-owner@example.test',now(),'{}'),
+('00000000-0000-0000-0000-000000000010','employee-update@example.test',now(),'{}'),
+('00000000-0000-0000-0000-000000000011','finance-override-target@example.test',now(),'{}');
 
 INSERT INTO public.businesses(id,tenant_id,organization_id,name) VALUES
 ('10000000-0000-0000-0000-000000000001','tenant-a','org-a','Business A'),
@@ -29,7 +31,8 @@ INSERT INTO public.user_memberships(id,user_id,tenant_id,organization_id,busines
 ('employee-view-b','00000000-0000-0000-0000-000000000004','tenant-b','org-b','10000000-0000-0000-0000-000000000002',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["view"]}}','ACTIVE'),
 ('employee-view-branch-a','00000000-0000-0000-0000-000000000005','tenant-a','org-a','10000000-0000-0000-0000-000000000001','branch-a-1','EMPLOYEE','{"modules":{"EMPLOYEES":["view"]}}','ACTIVE'),
 ('branch-owner-a','00000000-0000-0000-0000-000000000008','tenant-a','org-a','10000000-0000-0000-0000-000000000001','branch-a-1','OWNER','{}','ACTIVE'),
-('tenant-owner-a','00000000-0000-0000-0000-000000000009','tenant-a','org-a',null,null,'OWNER','{}','ACTIVE');
+('tenant-owner-a','00000000-0000-0000-0000-000000000009','tenant-a','org-a',null,null,'OWNER','{}','ACTIVE'),
+('employee-update-a','00000000-0000-0000-0000-000000000010','tenant-a','org-a','10000000-0000-0000-0000-000000000001',null,'EMPLOYEE','{"modules":{"EMPLOYEES":["update"]}}','ACTIVE');
 
 -- Owner-owned seed rows: no browser role has direct table access.
 INSERT INTO public.business_job_positions
@@ -48,6 +51,8 @@ DO $dashboard_permission_tests$
 DECLARE
   v_result jsonb;
   v_id uuid;
+  v_elevated_position_id uuid;
+  v_elevated_employee_id uuid;
   v_error text;
 BEGIN
   -- Direct SELECT stays denied; the UI must use the guarded RPC.
@@ -253,6 +258,54 @@ BEGIN
     IF SQLERRM = 'UNASSIGNED_USER_ROSTER_READ_UNEXPECTEDLY_SUCCEEDED' THEN RAISE; END IF;
     IF position('BUSINESS_HR_FORBIDDEN' IN SQLERRM)=0 THEN RAISE; END IF;
   END;
+
+  -- Narrowing a position must revoke stale per-employee overrides before membership synchronization.
+  PERFORM set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);
+  PERFORM set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated","is_anonymous":false}',true);
+  v_result := public.mnty_business_employee_position_upsert(
+    'tenant-a','10000000-0000-0000-0000-000000000001','Finance-capable position','','','FULL_TIME',
+    '{"modules":{"FINANCE":["manage"],"EMPLOYEES":["view"]}}',false,true,null,null
+  );
+  v_elevated_position_id := (v_result->>'id')::uuid;
+  v_result := public.mnty_business_employee_upsert(
+    'tenant-a','10000000-0000-0000-0000-000000000001',v_elevated_position_id,
+    'Finance Override Target','finance-override-target@example.test','',null,'ACTIVE',
+    '{"modules":{"FINANCE":["manage"]}}',null,null
+  );
+  v_elevated_employee_id := (v_result->>'id')::uuid;
+  IF v_elevated_position_id IS NULL OR v_elevated_employee_id IS NULL THEN
+    RAISE EXCEPTION 'STALE_OVERRIDE_FIXTURE_SETUP_FAILED';
+  END IF;
+
+  -- The delegated employee can update EMPLOYEES roles but cannot grant FINANCE.MANAGE.
+  PERFORM set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000010',true);
+  PERFORM set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-000000000010","role":"authenticated","is_anonymous":false}',true);
+  PERFORM public.mnty_business_employee_position_upsert(
+    'tenant-a','10000000-0000-0000-0000-000000000001','Restricted employee role','','','FULL_TIME',
+    '{"modules":{"EMPLOYEES":["update"]}}',false,true,null,v_elevated_position_id
+  );
+  IF EXISTS (
+    SELECT 1 FROM public.business_employees e
+    WHERE e.id=v_elevated_employee_id
+      AND e.permission_overrides <> '{}'::jsonb
+  ) THEN
+    RAISE EXCEPTION 'STALE_EMPLOYEE_OVERRIDE_NOT_REVOKED';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.user_memberships m
+    WHERE m.id='MNTY-EMPLOYEE-'||replace(v_elevated_employee_id::text,'-','')
+      AND coalesce(m.permissions #> ARRAY['modules','FINANCE'],'[]'::jsonb) ? 'manage'
+  ) THEN
+    RAISE EXCEPTION 'STALE_FINANCE_PERMISSION_SURVIVED_POSITION_REDUCTION';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.audit_logs al
+    WHERE al.action='BUSINESS_JOB_POSITION_UPDATED'
+      AND al.entity_id=v_elevated_position_id::text
+      AND jsonb_array_length(al.new_values->'revoked_employee_overrides')=1
+  ) THEN
+    RAISE EXCEPTION 'STALE_OVERRIDE_REVOCATION_NOT_AUDITED';
+  END IF;
 
   -- Anonymous JWTs are rejected before membership inspection.
   PERFORM set_config('request.jwt.claim.sub','',true);
