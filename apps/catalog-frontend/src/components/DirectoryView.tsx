@@ -273,6 +273,21 @@ export const DirectoryView: React.FC = () => {
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
   };
   const queryTokens = normalizeSearch(searchQuery).split(' ').filter(Boolean);
+  // Rank only configured image URLs; placeholders do not count as real assets.
+  const hasConfiguredImage = (value: unknown) => {
+    const url = String(value || '').trim().toLowerCase();
+    return Boolean(url) && !['business-placeholder.svg', 'product-placeholder.svg', 'default-image', 'placeholder'].some((token) => url.includes(token));
+  };
+  const productPhotoCounts = new Map<string, number>();
+  products.forEach((product) => {
+    if (!hasConfiguredImage(product.imageUrl)) return;
+    productPhotoCounts.set(product.businessId, (productPhotoCounts.get(product.businessId) || 0) + 1);
+  });
+  const completenessScore = (business: Business) =>
+    (hasConfiguredImage(business.logoUrl) ? 100 : 0) +
+    (hasConfiguredImage(business.coverUrl) ? 100 : 0) +
+    Math.min(productPhotoCounts.get(business.id) || 0, 10) * 10;
+
   const filteredBusinesses = businesses.filter((biz) => {
     // Public safety: never expose unpublished, inactive, or frozen registered businesses.
     if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;
@@ -297,22 +312,7 @@ export const DirectoryView: React.FC = () => {
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(biz.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => {
-    // Ranking policy: verified businesses remain first; within each verification tier,
-    // prefer real logo + cover assets and products that actually have images.
-    // Do not count generated UI fallbacks/placeholders as uploaded business assets.
-    const hasBusinessImage = (value: unknown) => {
-      const url = String(value || '').trim();
-      return Boolean(url) && !/business-placeholder\.svg|default-image|placeholder/i.test(url);
-    };
-    const productPhotoCount = (businessId: string) => products.filter((product) =>
-      product.businessId === businessId &&
-      Boolean(String(product.imageUrl || '').trim()) &&
-      !/business-placeholder\.svg|product-placeholder\.svg|default-image|placeholder/i.test(String(product.imageUrl || ''))
-    ).length;
-    const completenessScore = (business: Business) =>
-      (hasBusinessImage(business.logoUrl) ? 100 : 0) +
-      (hasBusinessImage(business.coverUrl) ? 100 : 0) +
-      Math.min(productPhotoCount(business.id), 10) * 10;
+    // Verified activities always lead; visual completeness breaks ties within each tier.
     if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
     const completenessDifference = completenessScore(b) - completenessScore(a);
     if (completenessDifference !== 0) return completenessDifference;
