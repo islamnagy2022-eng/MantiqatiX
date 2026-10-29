@@ -2068,3 +2068,12 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Added 5 pharmacy leads after checking existing records; did not duplicate the existing Dr Abdel Hamid El Gendy, Ahmed Farag, or Dr Mohamed Sabry records.
 - [x] Left phones blank where sources did not publish them; corrected the Ibn Sina phone field to NULL after discovering the source did not provide a number.
 - [ ] Verify public-directory phone numbers and current operating status with each pharmacy owner before changing any verification status.
+
+
+## 2026-10-29 — Enforce phone-required publication
+
+- [x] Production database check constraint blocks `PUBLISHED` records without a primary or secondary phone containing at least 7 digits.
+- [x] Demoted existing no-phone published listings to `DRAFT`; no records deleted and no contact numbers fabricated.
+- [x] Verified current inventory: 284 published listings, all with a phone; 105 no-phone records are drafts.
+- [x] Deployed `directory-listings` Edge Function version 7 with an application-level publication guard.
+- [ ] For every future discovery batch, only insert records with a source-backed phone; publish immediately after read-after-write verification. Keep source attribution and owner-confirmation metadata, and never mark a public-directory phone as owner-verified without direct confirmation.
