@@ -101,3 +101,5 @@ Partial execution started: 34 verified insertions across the documented batches 
 - [x] Read-after-write verification: **284 PUBLISHED listings, zero without a phone; 105 DRAFT listings without a phone** awaiting verified contact data.
 - [x] Updated and deployed Edge Function `directory-listings` version 7. Its `UPSERT_LISTING` action now rejects publication without a valid phone and returns `PHONE_REQUIRED_FOR_PUBLICATION`.
 - [ ] Continue discovery only with a source-backed phone number; add each eligible record idempotently, verify it after insertion, and publish it immediately only when the phone passes the 7-digit check. A directory number is still not direct owner verification.
+
+- [x] Follow-up after the gate was deployed: added **صيدلية سمية سعيد — 0482964400** in جنزور from the public Med.tn directory after checking the database for the phone/name. Insert read-back confirmed `PUBLISHED/UNCLAIMED`; the phone is source-derived, not owner-verified. Based on the prior verified 284 published count plus this one successful insert, expected published total is 285; re-run the inventory count when query checks allow.
