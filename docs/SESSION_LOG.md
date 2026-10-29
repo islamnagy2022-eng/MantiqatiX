@@ -558,3 +558,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Current group counts are recorded in the Master Production TODO. Source pages: [auto repair](https://dalil140.com/category/ar/cars-repairing-servicing-equipment/el-monofeya/berket-el-sabaa) and [home appliances](https://dalil140.com/category/ar/appliances/el-monofeya/berket-el-sabaa).
 - Bank taxonomy validation passed on run [40830599537](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830599537), but deployment is still pending on [40830850253](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830850253); do not claim it is live until success.
 - Public-source listings remain unclaimed/unconfirmed. Coverage is still incomplete and should continue village by village and category by category.
+
+
+## 2026-10-29 — Pharmacy directory expansion batch
+
+- Added 43 pharmacy listings to `public.public_directory_listings` for Berket El Sabaa and surrounding villages, using public directory sources (primarily Dalil140, plus YellowPages, HealthEG and other public map/provider listings).
+- Duplicate prevention was applied before insertion: normalized name check and phone-digit comparison against existing primary and secondary phone fields. Existing pharmacy record for صيدلية احمد سليمان was retained rather than duplicated.
+- Post-write read-back: **44 pharmacy listings total**, **41 with phone numbers**, all 44 published and unclaimed. No duplicate normalized pharmacy names or duplicate phone numbers were returned within the pharmacy category.
+- Listings remain public-source leads, not owner-confirmed data. Three listings currently have no phone number; phone numbers and operating status require confirmation.
+- Data-only operation; no frontend deployment or owner/subscription activation performed.
