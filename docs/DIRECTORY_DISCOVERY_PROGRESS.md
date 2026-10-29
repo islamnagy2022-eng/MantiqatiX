@@ -11,7 +11,7 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 - Repository: `islamnagy2022-eng/MantiqatiX`, default branch `main`.
 - Canonical taxonomy source: `apps/catalog-frontend/src/data/productionDefaults.ts`.
 - Code currently defines 18 functional groups and 221 `CATEGORY_SEEDS` entries. This is the source seed count, not a claim about the effective categories loaded by the live UI or saved settings.
-- Medical taxonomy currently has 17 seeds: 8 activity categories and 9? No: source audit lists 8 activity entries and 9 profession entries only as found in code; verify the exact count before making taxonomy migrations. [Initial extraction from the seed file found 17 total medical seeds.]
+- Medical taxonomy has 17 seeds: 9 activity categories and 8 profession categories.
 - Production table `public.public_directory_listings` has 325 rows at audit time and RLS enabled.
 - Existing category settings may be merged with canonical defaults, so changing seed definitions alone is not sufficient to guarantee old categories disappear. A mapping and read/write compatibility review is required before consolidation to 50 categories.
 
@@ -28,6 +28,8 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 - The new records are `PUBLISHED` and `UNCLAIMED`, with owner confirmation required and source phone verification set to false.
 - Database returned all 3 inserted rows after write.
 - Existing matching doctors already in the database were not reinserted.
+- Added 1 pharmacy in Genzour after a cross-catalog name/phone check: صيدلية إسلام داوود — 0489136699; source: https://www.dalilmadina.com/city_clinic.aspx?NUM=241. The record is PUBLISHED/UNCLAIMED; owner confirmation required; source phone not directly verified with owner.
+- The pharmacy review also confirmed that four other village pharmacy records from the same source already existed, so they were not duplicated.
 
 ## Still open
 
@@ -41,4 +43,4 @@ Only Berket El Sabaa city and the villages, hamlets, and administrative dependen
 
 ## Current status
 
-Partial execution started. This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
+Partial execution started: 4 verified insertions in this session (3 doctors and 1 pharmacy). This is not a completed directory, not a completed 50-category migration, and not a deployment certification.
