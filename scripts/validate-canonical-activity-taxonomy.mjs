@@ -81,31 +81,32 @@ const iconMapEnd = directory.indexOf('\n};', iconMapStart);
 assert.ok(iconMapStart >= 0 && iconMapEnd > iconMapStart, 'Public directory must define a dedicated functional-group icon map.');
 const iconMap = directory.slice(iconMapStart, iconMapEnd);
 const expectedIcons = {
-  medical_health: 'Stethoscope',
-  food_grocery: 'Utensils',
-  fashion_beauty: 'Shirt',
+  medical_health: 'HeartPulse',
+  food_grocery: 'UtensilsCrossed',
+  fashion_beauty: 'ShoppingBag',
   home_maintenance: 'Wrench',
-  construction_decor: 'Palette',
-  auto_transport: 'Car',
-  real_estate: 'Building2',
-  education_training: 'GraduationCap',
-  technology_communications: 'Cpu',
-  professional_services: 'BriefcaseBusiness',
-  marketing_media: 'Megaphone',
-  trade_ecommerce: 'ShoppingCart',
-  agriculture_animals: 'Sprout',
-  sports_fitness: 'Dumbbell',
-  tourism_events: 'Plane',
-  finance_insurance: 'Landmark',
-  industry_workshops: 'Factory',
-  public_community: 'Users',
+  construction_decor: 'Store',
+  auto_transport: 'Store',
+  real_estate: 'Store',
+  education_training: 'CalendarCheck2',
+  technology_communications: 'Layers',
+  professional_services: 'CalendarCheck2',
+  marketing_media: 'Store',
+  trade_ecommerce: 'ShoppingBag',
+  agriculture_animals: 'Store',
+  sports_fitness: 'HeartPulse',
+  tourism_events: 'CalendarCheck2',
+  finance_insurance: 'Layers',
+  industry_workshops: 'Wrench',
+  public_community: 'CalendarCheck2',
 };
 for (const [groupId, iconName] of Object.entries(expectedIcons)) {
   assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
 }
-assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
-assert.ok(directory.includes('xl:grid-cols-10'), 'Functional group cards should retain ten columns on extra-large screens.');
-assert.ok(/bg-white p-(?:1\.5 sm:p-3|3) text-center/.test(directory), 'Functional group cards should use the consistent responsive light icon-card treatment at mobile and larger breakpoints.');
+assert.ok(directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must retain their original image-based cover backgrounds.');
+assert.ok(directory.includes('functionalGroupCover(group.id'), 'Each functional group must resolve its original cover image.');
+assert.ok(directory.includes('grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10'), 'Functional group cards must show three columns on mobile and expand responsively.');
+assert.ok(directory.includes('bg-gradient-to-t from-slate-950/90'), 'Image-based cards must retain a dark overlay so their white labels remain readable.');
 assert.ok(directory.includes('aria-pressed={isSelected}'), 'Functional group selection must remain accessible to assistive technology.');
 
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} category entries, activity/profession separation, legacy mapping, admin UI, and server persistence.`);
