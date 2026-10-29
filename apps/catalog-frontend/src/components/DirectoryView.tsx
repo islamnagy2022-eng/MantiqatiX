@@ -213,7 +213,7 @@ export const DirectoryView: React.FC = () => {
         {/* 2. One full-width cover carousel showing only currently available activities. */}
         <section aria-label="الأنشطة المتاحة حاليًا" className="space-y-3">
           {activeCoverSlides.length > 0 ? (
-            <div className="relative aspect-[4/5] sm:aspect-[650/228] w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
+            <div className="relative aspect-[4/3] sm:aspect-[650/228] w-full rounded-3xl overflow-hidden shadow-2xl bg-slate-900 group">
               {activeCoverSlides.map((slide, idx) => (
                 <div
                   key={slide.businessId || `${slide.title}-${idx}`}
@@ -237,7 +237,7 @@ export const DirectoryView: React.FC = () => {
                     <img
                       src={slide.image || resolveDefaultImage({ name: slide.title, category: slide.badge, kind: 'cover' })}
                       alt={slide.title}
-                      className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
+                      className="h-full w-full object-contain sm:object-cover object-center transition-transform duration-700 group-hover:scale-[1.01]"
                       loading={idx === currentCoverIndex ? 'eager' : 'lazy'}
                       onError={(event) => {
                         const image = event.currentTarget;
