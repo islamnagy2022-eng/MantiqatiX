@@ -2008,3 +2008,20 @@ This checkpoint does not close the production release gate because runtime E2E e
 - [x] Source: [Dalil140 — auto repair and servicing in Berket El Sabaa](https://dalil140.com/category/ar/cars-repairing-servicing-equipment/el-monofeya/berket-el-sabaa) and [home appliances in Berket El Sabaa](https://dalil140.com/category/ar/appliances/el-monofeya/berket-el-sabaa).
 - [ ] Deployment of the added bank classification is still pending at [Deploy MantiqatiX Web run 40830850253](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40830850253). Verify the latest deploy before claiming it is visible live.
 - [ ] The directory is expanded but not yet exhaustive. Continue systematic sourcing of all villages/hamlets and remaining activities, especially public/community services, agriculture, education, transportation, and village-specific businesses. All source-derived records remain unconfirmed until direct verification.
+
+
+# DIRECTORY DISCOVERY — BERKET EL SABAA (2026-10-29)
+
+Scope is restricted to Berket El Sabaa city and its administratively affiliated villages/hamlets/dependencies in Monufia. Do not classify other Monufia centers as local results.
+
+- [PARTIAL] Initial audit: `apps/catalog-frontend/src/data/productionDefaults.ts` contains 18 functional groups and 221 category seed entries. Recheck effective saved settings before any migration; 221 is a code-seed count, not a verified live category count.
+- [PARTIAL] Supabase `public.public_directory_listings` had 325 rows at audit time; RLS is enabled.
+- [DONE — read-after-write verified] Added three public-source medical listings after global name/phone duplicate checks: د. هيثم البلتاجي عبد القادر (0482913270; 0482998467), د. إيهاب محمد البلشي (0482994199; 0482998880), د. عادل عبد الكريم بدوي (01112480327). Source for all: https://dalil140.com/category/ar/doctors/el-monofeya/berket-el-sabaa. Listings are PUBLISHED/UNCLAIMED; owner confirmation required; source phone not directly verified with owner.
+- [TODO] Complete the official/local administrative coverage list for the center, villages, hamlets, and dependencies.
+- [TODO] Continue medical research by specialty and location, checking all current records before every insert.
+- [TODO] Revisit the known misclassification of `مركز د. محمد أحمد المراكبي للأسنان`; it has not been corrected yet.
+- [TODO] Design and test a safe mapping to 50 primary categories. Do not delete legacy categories until references, saved settings, UI, and search compatibility are verified.
+- [TODO] Continue all remaining functional groups within Berket El Sabaa only.
+- [TODO] Run data/UI tests after each batch and record verified outcomes.
+
+This work is partial; no full taxonomy migration or deployment is claimed.
