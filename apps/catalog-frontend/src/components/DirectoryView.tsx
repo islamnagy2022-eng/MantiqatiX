@@ -785,6 +785,11 @@ export const DirectoryView: React.FC = () => {
                               <span>موثّق</span>
                             </span>
                           )}
+                          {!biz.isVerified && (
+                            <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                              <span>غير مؤكد</span>
+                            </span>
+                          )}
                           {group && (
                             <span className={`hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${group.badgeColor}`}>
                               {group.shortName}
