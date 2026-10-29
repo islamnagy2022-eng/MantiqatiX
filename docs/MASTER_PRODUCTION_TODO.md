@@ -2077,3 +2077,5 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Verified current inventory: 284 published listings, all with a phone; 105 no-phone records are drafts.
 - [x] Deployed `directory-listings` Edge Function version 7 with an application-level publication guard.
 - [ ] For every future discovery batch, only insert records with a source-backed phone; publish immediately after read-after-write verification. Keep source attribution and owner-confirmation metadata, and never mark a public-directory phone as owner-verified without direct confirmation.
+
+- [x] After enabling the guard, added one eligible source-backed pharmacy with a phone: صيدلية سمية سعيد (0482964400), جنزور. Read-after-write confirmed it is PUBLISHED/UNCLAIMED. Phone is not directly owner-verified. Prior verified 284 published + one insert = expected 285; recheck inventory count when available.
