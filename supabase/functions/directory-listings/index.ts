@@ -160,7 +160,7 @@ Deno.serve(async (req: Request) => {
     const patch = {
       display_name: displayName, phone: phone || null, secondary_phone: secondaryPhone || null,
       specialty: specialty || null, address: address || null, governorate, district, village: village || null,
-      metadata: { ...currentMetadata, ...metadataPatch, contactVerified: true, ownerUpdatedAt: new Date().toISOString() },
+      metadata: { ...currentMetadata, ...metadataPatch, ownerProfileUpdatedAt: new Date().toISOString() },
       completeness: {
         name: true, phone: Boolean(phone || secondaryPhone), specialty: Boolean(specialty), address: Boolean(address),
         bio: Boolean(metadataPatch.bio), workingHours: Boolean(metadataPatch.workingHours), websiteUrl: Boolean(metadataPatch.websiteUrl),
@@ -238,6 +238,7 @@ Deno.serve(async (req: Request) => {
       .select("*").eq("id", claimId).maybeSingle();
     if (claimError) return out(origin, { error: "CLAIM_READ_FAILED" }, 500);
     if (!claim) return out(origin, { error: "CLAIM_NOT_FOUND" }, 404);
+    if (!["PENDING","REVIEWING"].includes(String(claim.status || "").toUpperCase())) return out(origin, { error: "CLAIM_NOT_PENDING", message: "طلب الاستلام لم يعد مفتوحًا للمراجعة." }, 409);
     if (["REVIEWING","REJECTED"].includes(decision)) {
       const { error } = await service.from("directory_listing_claim_requests").update({
         status: decision, review_note: reviewNote || null, reviewed_by: user.id, reviewed_at: new Date().toISOString(),

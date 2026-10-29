@@ -65,20 +65,14 @@ create unique index if not exists directory_listing_claim_requests_one_open
 
 create or replace function public.set_public_directory_updated_at()
 returns trigger language plpgsql set search_path = public as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
+begin new.updated_at = now(); return new; end;
 $$;
 drop trigger if exists trg_public_directory_listings_updated_at on public.public_directory_listings;
 create trigger trg_public_directory_listings_updated_at
-before update on public.public_directory_listings
-for each row execute function public.set_public_directory_updated_at();
+before update on public.public_directory_listings for each row execute function public.set_public_directory_updated_at();
 drop trigger if exists trg_directory_claim_requests_updated_at on public.directory_listing_claim_requests;
 create trigger trg_directory_claim_requests_updated_at
-before update on public.directory_listing_claim_requests
-for each row execute function public.set_public_directory_updated_at();
-
+before update on public.directory_listing_claim_requests for each row execute function public.set_public_directory_updated_at();
 alter table public.public_directory_listings enable row level security;
 alter table public.public_directory_listings force row level security;
 alter table public.directory_listing_claim_requests enable row level security;
