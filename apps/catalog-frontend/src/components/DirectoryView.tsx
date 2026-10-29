@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
+import { DirectoryListingsView } from './DirectoryListingsView';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -91,6 +92,29 @@ export const DirectoryView: React.FC = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [listingSlug, setListingSlug] = useState<string>(() => new URLSearchParams(window.location.search).get('listing') || '');
+  const openDirectoryListing = (slug: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('store');
+    url.searchParams.delete('businessId');
+    url.searchParams.delete('view');
+    url.searchParams.set('listing', slug);
+    window.history.pushState({ mantiqatixDirectoryListing: slug }, '', url.pathname + url.search + url.hash);
+    setListingSlug(slug);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+  const closeDirectoryListing = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('listing');
+    window.history.pushState({ mantiqatixDirectoryListing: null }, '', url.pathname + url.search + url.hash);
+    setListingSlug('');
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+  useEffect(() => {
+    const syncListingRoute = () => setListingSlug(new URLSearchParams(window.location.search).get('listing') || '');
+    window.addEventListener('popstate', syncListingRoute);
+    return () => window.removeEventListener('popstate', syncListingRoute);
+  }, []);
   const catalogRequestPhone = whatsappDigits(
     adminSettings.adminWhatsApp || (window as any).MNTY_SUPPORT?.whatsapp || ''
   );
@@ -178,6 +202,8 @@ export const DirectoryView: React.FC = () => {
   });
 
   const uniqueGovernorships = Array.from(new Set(businesses.map((b) => b.governorate).filter(Boolean)));
+
+  if (listingSlug) return <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />;
 
   return (
     <div className="space-y-8 pb-20">
@@ -472,6 +498,8 @@ export const DirectoryView: React.FC = () => {
             </select>
           </label>
         </div>
+
+        <DirectoryListingsView onOpen={openDirectoryListing} onBack={closeDirectoryListing} />
 
         {/* Search & Location Filter Bar */}
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
