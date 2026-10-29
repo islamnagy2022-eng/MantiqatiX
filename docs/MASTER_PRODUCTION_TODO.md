@@ -2045,3 +2045,11 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [ ] Investigate whether the Yellow Pages entries “Real Estate Registration Mission” and “Real Estate Registration Office” refer to the same service/location before considering any merge. Preserve the existing record if reclassification is needed.
 - [ ] Continue with source-backed local village coverage and remaining functional groups. Do not claim exhaustive coverage or live deployment until checked.
 - [ ] Recheck live total after any concurrent writes; database showed 348 rows before this batch and returned 11 inserted rows.
+
+
+## 2026-10-29 — Auto parts and agriculture suppliers
+
+- [x] Reused existing records instead of duplicating October, El Safa, Hany, and Haggag listings.
+- [x] Filled only previously empty phone fields on the existing October, El Safa, and Hany records using a public directory source; preserved non-empty fields.
+- [x] Added 8 read-after-write verified local auto-parts/agricultural-supply listings, PUBLISHED/UNCLAIMED, with owner confirmation required.
+- [ ] Continue source-based discovery and cross-catalog name/phone matching across all 18 groups; verify village scope and phone numbers with owners before treating records as confirmed.
