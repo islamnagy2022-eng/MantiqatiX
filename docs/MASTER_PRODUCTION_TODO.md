@@ -2110,3 +2110,11 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Added 10 source-backed local wholesale/food listings and 6 local food-production/manufacturing listings, with source phone numbers and read-after-write verification; all were inserted PUBLISHED/UNCLAIMED because each has a usable phone.
 - [x] Latest inventory verified: **337 PUBLISHED with 0 missing phone; 90 DRAFT with no phone; 2 HIDDEN no-phone duplicate-review rows**. Phone-required database guard and Edge Function v7 remain active.
 - [ ] Confirm the business names, current activity, and phone numbers directly with owners before marking any sourced lead as owner-confirmed. Continue with other uncovered activities and affiliated villages without inventing numbers or creating duplicates.
+
+
+## 2026-10-29 — Added automotive and aluminum service listings
+
+- [x] Added six new local records with public source-backed numbers: four tire/battery shops, one mechanic in Kafr Alim, and one aluminum workshop. All read-after-write results show PUBLISHED/UNCLAIMED.
+- [x] Reused the existing Hamada repair shop and Captain truck-maintenance center rather than creating duplicates.
+- [x] Verified current inventory: 343 PUBLISHED with zero missing phone; 90 phone-less DRAFT; 2 phone-less HIDDEN duplicate-review rows. Publication gate remains active.
+- [ ] Source phone values are not owner-confirmed; keep the metadata review flags. Continue local research and category coverage.
