@@ -61,6 +61,8 @@ assert.match(browserE2E, /rpcObservation\.scopedBranchId, branchId/);
 assert.match(permissionRepair, /mnty_business_employee_list_scoped\(varchar,uuid,varchar\)/);
 
 assert.match(permissionRepair, /mnty_business_employee_permissions_subset/);
+assert.match(permissionRepair, /v_revoked_overrides/);
+assert.match(permissionRepair, /revoked_employee_overrides/);
 assert.ok((permissionRepair.match(/EMPLOYEE_PERMISSION_ESCALATION/g) || []).length >= 2, 'Employee permission creation and overrides must both fail closed on escalation.');
 assert.match(permissionRepair, /v_module\|\|'.'\|\|v_action/);
 
