@@ -2079,3 +2079,11 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [ ] For every future discovery batch, only insert records with a source-backed phone; publish immediately after read-after-write verification. Keep source attribution and owner-confirmation metadata, and never mark a public-directory phone as owner-verified without direct confirmation.
 
 - [x] After enabling the guard, added one eligible source-backed pharmacy with a phone: صيدلية سمية سعيد (0482964400), جنزور. Read-after-write confirmed it is PUBLISHED/UNCLAIMED. Phone is not directly owner-verified. Prior verified 284 published + one insert = expected 285; recheck inventory count when available.
+
+
+## 2026-10-29 — Ongoing source-backed publishing
+
+- [x] Added 5 unique computer listings and 3 unique mobile listings, each with a phone from Dalil140 and read-after-write verification. Updated existing directory records with their public-source phones instead of duplicating them; published eligible former drafts only after a phone was supplied.
+- [x] Reconciled inventory: **296 PUBLISHED listings (0 without phone); 102 no-phone DRAFT listings**. These DRAFT records stay hidden pending a real phone source; do not invent numbers or expose them publicly.
+- [x] Data policy remains: source phone does not equal owner verification. Keep claim status UNCLAIMED and owner confirmation required.
+- [ ] Continue by sourcing uncovered local categories and affiliated villages, checking normalized names and all primary/secondary phones before insertion, then publish only after successful read-after-write.
