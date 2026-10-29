@@ -2094,3 +2094,12 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Added four source-backed health records with phone numbers and two building-material listings; reused the existing Abou El Nasr record and populated a sourced secondary phone rather than duplicating it.
 - [x] Verified database state: **302 PUBLISHED, 0 published without phone; 102 DRAFT without phone**. Keep the existing 102 drafts hidden until a real phone is found.
 - [ ] Health and building materials remain source-directory leads until owner/contact details and active status are confirmed directly. Continue through uncovered village-level businesses without fabricating contact data.
+
+
+## 2026-10-29 — Food listings and duplicate-safe publication
+
+- [x] Published 9 eligible restaurant/bakery drafts after adding source-listed phone numbers; populated source phone/secondary phone fields on existing records instead of duplicating them. Published حمادة ماركت after adding its sourced number.
+- [x] Added 9 new source-backed food listings (spice shops, butchers, fresh produce), all with phones and UNCLAIMED status.
+- [x] Duplicate handling: two exact name/address matches with a canonical published record (أبو رضوى and إيطاليا) were retained but set HIDDEN with metadata linking the canonical slug. A near-identical bakery variant remains DRAFT with an explicit review note rather than being merged without proof.
+- [x] Inventory verified: **321 PUBLISHED / 0 without phone; 90 DRAFT / 90 without phone; 2 HIDDEN / 2 without phone**. No no-phone listing is published.
+- [ ] Continue with remaining unrepresented categories and village coverage; public-source phone numbers still require owner confirmation before being considered verified.
