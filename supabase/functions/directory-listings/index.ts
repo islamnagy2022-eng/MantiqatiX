@@ -17,7 +17,7 @@ const cors = (origin: string | null) => ({
 });
 const out = (origin: string | null, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: cors(origin) });
-const publicFields = "id,slug,display_name,listing_type,specialty,phone,secondary_phone,address,governorate,district,village,source_name,source_url,source_checked_at,listing_status,claim_status,completeness,metadata,created_at,updated_at";
+const publicFields = "id,slug,display_name,listing_type,functional_group_id,taxonomy_category_id,taxonomy_specialty,specialty,phone,secondary_phone,address,governorate,district,village,source_name,source_url,source_checked_at,listing_status,claim_status,completeness,metadata,created_at,updated_at";
 const listingTypes = new Set(["doctor","clinic","pharmacy","medical_center","hospital","laboratory","health_provider","business"]);
 const listingStatuses = new Set(["DRAFT","PUBLISHED","HIDDEN"]);
 const outreachStatuses = new Set(["NEW","CONTACTED","INTERESTED","OFFER_SENT","FOLLOW_UP","SUBSCRIPTION_PENDING","SUBSCRIBED","NOT_INTERESTED","CORRECTION_REQUESTED"]);
@@ -195,13 +195,23 @@ Deno.serve(async (req: Request) => {
     const displayName = clean(body.displayName, 200);
     const listingType = clean(body.listingType || "doctor", 40);
     const listingStatus = clean(body.listingStatus || "DRAFT", 20).toUpperCase();
+    const functionalGroupId = clean(body.functionalGroupId || "medical_health", 80);
+    const taxonomyCategoryId = clean(body.taxonomyCategoryId, 180);
+    const taxonomySpecialty = clean(body.taxonomySpecialty, 160) || null;
     const slug = slugify(body.slug || displayName);
-    if (displayName.length < 2 || !listingTypes.has(listingType) || !listingStatuses.has(listingStatus)) {
-      return out(origin, { error: "INVALID_LISTING", message: "راجع اسم الصفحة وتصنيفها وحالة النشر." }, 400);
+    const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","construction_decor","auto_transport","real_estate","education_training","technology_communications","professional_services","marketing_media","trade_ecommerce","agriculture_animals","sports_fitness","tourism_events","finance_insurance","industry_workshops","public_community"]);
+    if (displayName.length < 2 || !listingTypes.has(listingType) || !listingStatuses.has(listingStatus) || !validGroups.has(functionalGroupId) || taxonomyCategoryId.length < 4) {
+      return out(origin, { error: "INVALID_LISTING", message: "راجع اسم الصفحة والمجموعة الوظيفية والتصنيف وحالة النشر." }, 400);
+    }
+    if (!taxonomyCategoryId.startsWith("cat_" + functionalGroupId + "_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
+      return out(origin, { error: "TAXONOMY_GROUP_MISMATCH", message: "التصنيف المختار لا يتبع المجموعة الوظيفية المحددة." }, 400);
     }
     const patch: Record<string, unknown> = {
       slug, display_name: displayName, listing_type: listingType,
-      specialty: clean(body.specialty, 160) || null,
+      functional_group_id: functionalGroupId,
+      taxonomy_category_id: taxonomyCategoryId,
+      taxonomy_specialty: taxonomySpecialty,
+      specialty: clean(body.specialty || taxonomySpecialty, 160) || null,
       phone: clean(body.phone, 40) || null, secondary_phone: clean(body.secondaryPhone, 40) || null,
       address: clean(body.address, 500) || null,
       governorate: clean(body.governorate || "المنوفية", 100),
