@@ -1116,7 +1116,7 @@
   "professional_dashboard_dependency_check": {
     "status": "BLOCKED",
     "checked_at": "2026-10-29",
-    "method": "Read-only Supabase MCP checks against the configured production project using to_regclass/to_regprocedure; no schema or migration history was changed.",
+    "method": "Read-only Supabase MCP SQL plus migration-ledger inspection against the configured production project; no schema or migration history was changed.",
     "project_ref": "moyhiluyhjsujhwlyeuu",
     "required_objects": [
       {
@@ -1172,8 +1172,20 @@
         "kind": "function",
         "exists": false,
         "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_business_employee_permission_ceiling_allows",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
+      },
+      {
+        "object": "public.mnty_business_employee_permissions_subset",
+        "kind": "function",
+        "exists": false,
+        "status": "BLOCKED"
       }
     ],
-    "interpretation": "The dashboard code and isolated integration tests are ready, but the live project lacks the RC113-RC115 control-center/employee objects and the new RC457 branch-aware roster RPC. Do not deploy or merge this dashboard feature until the missing release migrations are reconciled and these objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
+    "interpretation": "The live project lacks the RC113-RC115 control-center/employee dependencies and RC457 permission-ceiling helpers. Do not deploy or merge this dashboard feature until the missing release migrations are reconciled and the required objects are verified in production. Do not apply the missing migration chain blindly or rewrite historical ledger entries."
   }
 }
