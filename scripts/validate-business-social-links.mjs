@@ -56,8 +56,8 @@ assert.match(deleteMigration, /REVOKE ALL ON FUNCTION public\.mnty_platform_admi
 
 assert.ok(linkRules.includes("export function generateStorePublicUrl(origin: string, businessId: string, basePath: string = '/')"), 'Permanent URL builder must accept the deployment base path and stable business ID');
 assert.ok(linkRules.includes("new URL(normalizedPath, `${safeOrigin}/`)") , 'Permanent URL builder must join the base path to the site origin safely');
-assert.ok(qrModal.includes("generateStorePublicUrl(origin, business.id, import.meta.env.BASE_URL || '/')"), 'QR modal must encode the stable ID under the deployed app path');
-assert.ok(merchantDashboard.includes('generateStorePublicUrl(') && merchantDashboard.includes('currentBusiness.id') && merchantDashboard.includes("import.meta.env.BASE_URL || '/'"), 'Merchant QR must reuse the canonical URL builder');
+assert.ok(qrModal.includes('generateStorePublicUrl(origin, business.id, getCurrentAppBasePath(window.location.pathname))'), 'QR modal must encode the stable ID under the deployed app path');
+assert.ok(merchantDashboard.includes('generateStorePublicUrl(') && merchantDashboard.includes('currentBusiness.id') && merchantDashboard.includes('getCurrentAppBasePath(window.location.pathname)'), 'Merchant QR must reuse the canonical URL builder');
 assert.ok(merchantDashboard.includes('src={permanentQrCodeImageUrl}'), 'Merchant QR image must encode the canonical permanent URL');
 assert.ok(!merchantDashboard.includes("window.location.origin + '/?store='"), 'Merchant QR must not point at the GitHub Pages account root');
 assert.ok(header.includes('getStorePublicLink(currentBusiness)'), 'Share button must copy the canonical permanent link');
