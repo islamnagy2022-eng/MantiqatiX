@@ -2035,3 +2035,13 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [REVIEW NOTE] Several source candidates already existed (e.g. مطعم الأصلي, مطعم المحلاوي, مطعم جابر عمر, حكاية, كشري الباشا, حلويات ياقوت, مخبز الحرمين) and were not duplicated. Recheck category/address data later where needed.
 
 - [DONE — read-after-write verified] Added 8 supermarkets/markets from Egypt Yellow Pages after duplicate checks: سوبر ماركت أبو عفيفي, سوبر ماركت الإسكندراني, سوبر ماركت الشاذلي, سوبر ماركت الزيات, سوبر ماركت فرح, حمادة ماركت, هاني ماركت, وائل ماركت. Source: https://yellowpages.com.eg/en/category/berket-el-sabaa-supermarkets/3829. Source did not expose phone numbers; fields remain blank, not guessed.
+
+
+## 2026-10-29 — Public/community directory expansion
+
+- [x] Queried existing Berket El Sabaa public/community listings before insertion; retained existing youth center and family dispute settlement office without duplication.
+- [x] Inserted and read-after-write verified 11 local public-service records: educational administration, police station, civil registry, culture house, post office, labor bureau, public taxes mission, real estate registration, social insurance bureau, supply bureau, and traffic station.
+- [x] Kept unknown phone fields blank; records are PUBLISHED/UNCLAIMED and explicitly require owner confirmation.
+- [ ] Investigate whether the Yellow Pages entries “Real Estate Registration Mission” and “Real Estate Registration Office” refer to the same service/location before considering any merge. Preserve the existing record if reclassification is needed.
+- [ ] Continue with source-backed local village coverage and remaining functional groups. Do not claim exhaustive coverage or live deployment until checked.
+- [ ] Recheck live total after any concurrent writes; database showed 348 rows before this batch and returned 11 inserted rows.
