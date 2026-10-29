@@ -11,24 +11,11 @@ import {
   ArrowRight,
   CheckCircle2,
   MessageCircle,
-  Stethoscope,
-  Shirt,
-  Car,
-  Building2,
-  Cpu,
-  Megaphone,
-  ShoppingCart,
-  Sprout,
-  Dumbbell,
-  Plane,
+  HeartPulse,
+  UtensilsCrossed,
+  ShoppingBag,
+  CalendarCheck2,
   Navigation,
-  Landmark,
-  Factory,
-  Users,
-  BriefcaseBusiness,
-  Palette,
-  GraduationCap,
-  Utensils,
 } from 'lucide-react';
 import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
@@ -44,24 +31,50 @@ const whatsappDigits = (value: unknown): string => {
 };
 
 const ICONS_MAP: Record<string, React.ReactNode> = {
-  medical_health: <Stethoscope className="h-7 w-7 text-emerald-600" strokeWidth={1.8} />,
-  food_grocery: <Utensils className="h-7 w-7 text-amber-600" strokeWidth={1.8} />,
-  fashion_beauty: <Shirt className="h-7 w-7 text-pink-600" strokeWidth={1.8} />,
-  home_maintenance: <Wrench className="h-7 w-7 text-orange-600" strokeWidth={1.8} />,
-  construction_decor: <Palette className="h-7 w-7 text-stone-600" strokeWidth={1.8} />,
-  auto_transport: <Car className="h-7 w-7 text-sky-600" strokeWidth={1.8} />,
-  real_estate: <Building2 className="h-7 w-7 text-teal-600" strokeWidth={1.8} />,
-  education_training: <GraduationCap className="h-7 w-7 text-indigo-600" strokeWidth={1.8} />,
-  technology_communications: <Cpu className="h-7 w-7 text-cyan-600" strokeWidth={1.8} />,
-  professional_services: <BriefcaseBusiness className="h-7 w-7 text-violet-600" strokeWidth={1.8} />,
-  marketing_media: <Megaphone className="h-7 w-7 text-fuchsia-600" strokeWidth={1.8} />,
-  trade_ecommerce: <ShoppingCart className="h-7 w-7 text-blue-600" strokeWidth={1.8} />,
-  agriculture_animals: <Sprout className="h-7 w-7 text-lime-700" strokeWidth={1.8} />,
-  sports_fitness: <Dumbbell className="h-7 w-7 text-red-600" strokeWidth={1.8} />,
-  tourism_events: <Plane className="h-7 w-7 text-purple-600" strokeWidth={1.8} />,
-  finance_insurance: <Landmark className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-700" strokeWidth={1.8} />,
-  industry_workshops: <Factory className="h-5 w-5 sm:h-7 sm:w-7 text-slate-600" strokeWidth={1.8} />,
-  public_community: <Users className="h-7 w-7 text-rose-600" strokeWidth={1.8} />,
+  medical_health: <HeartPulse className="w-5 h-5 text-emerald-500" />,
+  food_grocery: <UtensilsCrossed className="w-5 h-5 text-amber-500" />,
+  fashion_beauty: <ShoppingBag className="w-5 h-5 text-pink-500" />,
+  home_maintenance: <Wrench className="w-5 h-5 text-orange-500" />,
+  construction_decor: <Store className="w-5 h-5 text-stone-500" />,
+  auto_transport: <Store className="w-5 h-5 text-sky-500" />,
+  real_estate: <Store className="w-5 h-5 text-teal-500" />,
+  education_training: <CalendarCheck2 className="w-5 h-5 text-indigo-500" />,
+  technology_communications: <Layers className="w-5 h-5 text-cyan-500" />,
+  professional_services: <CalendarCheck2 className="w-5 h-5 text-violet-500" />,
+  marketing_media: <Store className="w-5 h-5 text-fuchsia-500" />,
+  trade_ecommerce: <ShoppingBag className="w-5 h-5 text-blue-500" />,
+  agriculture_animals: <Store className="w-5 h-5 text-lime-600" />,
+  sports_fitness: <HeartPulse className="w-5 h-5 text-red-500" />,
+  tourism_events: <CalendarCheck2 className="w-5 h-5 text-purple-500" />,
+  finance_insurance: <Layers className="w-5 h-5 text-emerald-600" />,
+  industry_workshops: <Wrench className="w-5 h-5 text-slate-500" />,
+  public_community: <CalendarCheck2 className="w-5 h-5 text-rose-500" />,
+};
+
+const FUNCTIONAL_GROUP_COVERS: Record<string, string> = {
+  medical_health: 'legacy/activity/medical.svg',
+  food_grocery: 'legacy/activities/food.svg',
+  fashion_beauty: 'legacy/activities/fashion.svg',
+  home_maintenance: 'legacy/activities/maintenance.svg',
+  construction_decor: 'legacy/activity/home.svg',
+  auto_transport: 'legacy/activity/auto.svg',
+  real_estate: 'legacy/activity/real-estate.svg',
+  education_training: 'legacy/activity/education.svg',
+  technology_communications: 'legacy/activity/digital.svg',
+  professional_services: 'legacy/activities/marketing.svg',
+  marketing_media: 'legacy/activities/marketing.svg',
+  trade_ecommerce: 'legacy/activities/grocery.svg',
+  agriculture_animals: 'legacy/activities/grocery.svg',
+  sports_fitness: 'legacy/activity/fitness.svg',
+  tourism_events: 'legacy/activity/travel.svg',
+  finance_insurance: 'legacy/activity/digital.svg',
+  industry_workshops: 'legacy/activities/maintenance.svg',
+  public_community: 'legacy/activity/education.svg',
+};
+const functionalGroupCover = (groupId: string, name: string, description?: string | null, shortName?: string | null) => {
+  const base = import.meta.env.BASE_URL || '/';
+  const path = FUNCTIONAL_GROUP_COVERS[groupId];
+  return path ? `${base.endsWith('/') ? base : `${base}/`}${path}` : resolveDefaultImage({ name, description, category: shortName, kind: 'cover' });
 };
 
 interface CoverSlide {
@@ -465,41 +478,48 @@ export const DirectoryView: React.FC = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-5 sm:grid-cols-5 lg:grid-cols-5 xl:grid-cols-10 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 gap-1.5 sm:gap-2">
             <button
               onClick={() => selectGroup('all')}
               aria-pressed={selectedGroupFilter === 'all'}
-              className={`group relative flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${selectedGroupFilter === 'all' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
+              className={`group relative isolate min-h-28 sm:min-h-36 overflow-hidden rounded-xl sm:rounded-2xl border text-right transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 hover:shadow-lg ${selectedGroupFilter === 'all' ? 'ring-2 ring-emerald-500 border-emerald-500' : 'border-slate-200'}`}
             >
-              <span className={`flex h-9 w-9 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl ${selectedGroupFilter === 'all' ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
-                <Store className={`h-7 w-7 ${selectedGroupFilter === 'all' ? 'text-emerald-700' : 'text-slate-600'}`} strokeWidth={1.8} />
-              </span>
-              <span className="space-y-1">
-                <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">كافة الأنشطة</span>
-                <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">جميع القطاعات والمهن</span>
-              </span>
-              <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{unconfirmedListings.length}</span></span>
+              <img src={resolveDefaultImage({name:'سوبر ماركت ومجموعة الأنشطة', category:'سوبر ماركت وبقالة', kind:'cover'})} alt="" loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className={`absolute inset-0 -z-10 ${selectedGroupFilter === 'all' ? 'bg-gradient-to-t from-slate-950/95 via-slate-900/35 to-emerald-800/15' : 'bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-black/10'}`} />
+              <div className="absolute inset-x-2 sm:inset-x-3 top-2 sm:top-3 flex items-start justify-between gap-1 sm:gap-2">
+                <span className="rounded-full bg-white/95 px-2 py-1 text-[9px] sm:text-[11px] font-black text-slate-900 shadow">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span>
+                <span className="rounded-full bg-white/20 p-1.5 sm:p-2 text-white backdrop-blur-sm"><Store className="h-4 w-4 sm:h-5 sm:w-5" /></span>
+              </div>
+              <div className="absolute inset-x-2 sm:inset-x-3 bottom-2 sm:bottom-3 text-white">
+                <div className="font-black text-[11px] sm:text-sm leading-tight">كافة الأنشطة</div>
+                <div className="mt-1 text-[8px] sm:text-xs text-white/85">جميع القطاعات والمهن</div>
+                {unconfirmedListings.length > 0 && <div className="mt-1 inline-flex rounded-full bg-red-600 px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-white">غير مؤكد: {unconfirmedListings.length}</div>}
+              </div>
             </button>
 
             {functionalGroups.map((group) => {
               const count = businesses.filter((b) => b.functionalGroupId === group.id && Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length;
               const unconfirmedCount = unconfirmedListings.filter((listing) => listing.functional_group_id === group.id).length;
               const isSelected = selectedGroupFilter === group.id;
+              const image = functionalGroupCover(group.id, group.name, group.description, group.shortName);
               return (
                 <button
                   key={group.id}
                   onClick={() => selectGroup(group.id)}
                   aria-pressed={isSelected}
-                  className={`group relative flex min-h-28 sm:min-h-36 flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border bg-white p-1.5 sm:p-3 text-center transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${isSelected ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500' : 'border-slate-200 hover:border-emerald-200'}`}
+                  className={`group relative isolate min-h-28 sm:min-h-36 overflow-hidden rounded-xl sm:rounded-2xl border text-right transition-all cursor-pointer shadow-sm hover:-translate-y-0.5 hover:shadow-lg ${isSelected ? 'ring-2 ring-emerald-500 border-emerald-500' : 'border-slate-200'}`}
                 >
-                  <span className={`flex h-9 w-9 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl transition-colors ${isSelected ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'}`}>
-                    {ICONS_MAP[group.id] || <Layers className="h-5 w-5 sm:h-7 sm:w-7 text-slate-600" strokeWidth={1.8} />}
-                  </span>
-                  <span className="space-y-1">
-                    <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">{group.shortName}</span>
-                    <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">{group.name}</span>
-                  </span>
-                  <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>{unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{unconfirmedCount}</span>}</span>
+                  <img src={image} alt={group.shortName} loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className={`absolute inset-0 -z-10 ${isSelected ? 'bg-gradient-to-t from-emerald-950/95 via-slate-900/40 to-emerald-700/15' : 'bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-black/10'}`} />
+                  <div className="absolute inset-x-2 sm:inset-x-3 top-2 sm:top-3 flex items-start justify-between gap-1 sm:gap-2">
+                    <span className="rounded-full bg-white/95 px-2 py-1 text-[9px] sm:text-[11px] font-black text-slate-900 shadow">{count}</span>
+                    <span className="rounded-full bg-white/20 p-1.5 sm:p-2 text-white backdrop-blur-sm">{ICONS_MAP[group.id] || <Layers className="h-4 w-4 sm:h-5 sm:w-5" />}</span>
+                  </div>
+                  <div className="absolute inset-x-2 sm:inset-x-3 bottom-2 sm:bottom-3 text-white">
+                    <div className="font-black text-[11px] sm:text-sm leading-tight">{group.shortName}</div>
+                    <div className="mt-1 text-[8px] sm:text-xs text-white/85 line-clamp-2">{group.name}</div>
+                    {unconfirmedCount > 0 && <div className="mt-1 inline-flex rounded-full bg-red-600 px-1.5 py-0.5 text-[8px] sm:text-[10px] font-bold text-white">غير مؤكد: {unconfirmedCount}</div>}
+                  </div>
                 </button>
               );
             })}
