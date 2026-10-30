@@ -40,7 +40,14 @@ A read-back query confirmed all 10 records have the intended domain and activity
 - `نورتوك للأعلاف Nortok Feed` was already on the correct group/category code; the missing canonical seed `animal_feed` was added. `الإدارة الزراعية ببركة السبع` was already on the correct group/category code; the missing canonical seed `government_services` was added.
 - Each of the eight changed rows received an `audit_logs` record with action `PLATFORM_DIRECTORY_LISTING_TAXONOMY_RECLASSIFIED` and result `SUCCESS`. Listing publication and claim states, names, phone numbers, source URLs, addresses and metadata were not changed.
 
+## Source validation and deployment evidence
+- Exact-head Primary Catalog Frontend Validation [run 41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819) passed build, employee RBAC PostgreSQL and browser E2E. The browser suite verified folder back-navigation, specialty selection, 390px overflow, and responsive 390/768/1440px layouts.
+- Main Primary Catalog Frontend Validation [run 41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608750) passed build, employee RBAC PostgreSQL and browser E2E.
+- Main Pages deployment [run 41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742) passed deployment, primary catalog root verification and deployed-origin browser checks.
+- The mobile folder return path was stabilized and the final exact-head browser suite passed; the specialty breadcrumb assertion now targets the canonical `مسار المجال والنشاط` navigation rendered after returning to the main directory.
+
 ## Not yet completed
-- Build/typecheck, browser E2E and deployed-origin verification are still required for the source changes.
-- No verification, subscription, owner, publication or contact fields were changed.
+- Add the secure admin taxonomy-mapping interface with dry-run preview and immutable audit history.
+- Review the 18 current functional domains for possible consolidation. Do not change legacy IDs until a compatibility/migration plan and regression tests are approved.
+- No verification, subscription, owner, publication or contact fields were changed by PR #537. Previously audited taxonomy settings updates are documented above and remain separately attributable.
 - Overall platform production gate remains governed by the existing release TODO and is not certified by this scoped work.
