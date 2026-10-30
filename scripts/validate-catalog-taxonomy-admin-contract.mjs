@@ -40,6 +40,9 @@ assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks mus
 assert.ok(context.includes("activityCategoryId: data.categoryId || ''"), 'New activity creation must send the stable taxonomy category ID.');
 assert.ok(edge.includes('const activityCategoryId = String(input.activityCategoryId || "").trim()'), 'Server must read the stable category ID on activity creation.');
 assert.ok(edge.includes('INVALID_ACTIVITY_CATEGORY_ID') && edge.includes('canonicalActivityCategoryType !== activityClassificationType'), 'Server must validate activity category group and classification type.');
+assert.ok(edge.includes('INVALID_OR_UNREGISTERED_CUSTOM_ACTIVITY_CATEGORY') && edge.includes('customDefinition.functionalGroupId'), 'Custom category use must verify an existing platform definition with matching group.');
+assert.ok(edge.includes('TAXONOMY_CATEGORY_GROUP_OR_TYPE_MISMATCH'), 'Saved canonical categories must match their canonical group and classification.');
+assert.ok(edge.includes('INVALID_CUSTOM_TAXONOMY_CATEGORY_ID'), 'Saved custom category IDs must be UUID-backed, not caller-chosen labels.');
 assert.ok(edge.includes('activity_category_id: activityCategoryId') && edge.includes('activity_category_code: canonicalActivityCategoryCode'), 'Server must persist category identity and canonical code.');
 assert.ok(publicDirectory.includes('activityCategoryId: String(business.settings?.activity_category_id || "")'), 'Public directory may expose only the safe stable category ID.');
 assert.ok(publicCatalog.includes('activityCategoryId: String(business.settings?.activity_category_id || "")'), 'Public storefront must return the safe stable category ID.');
