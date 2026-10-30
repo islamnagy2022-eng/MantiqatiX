@@ -944,3 +944,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - [x] Supabase production Edge Function public-catalog deployed as version 5 with verify_jwt=false; deployed source exactly matches GitHub main. Existing public additionalContactPhones contract was retained.
 - [x] Read-only production profile audit: 2 ACTIVE verified profiles (MantiqatiX and متجر قدم السعد); both have valid HTTPS logo and cover URLs; 0 invalid configured values.
 - [x] No provider verification flags, subscription records, business data, schema, migrations, RLS/ACL, payment or financial records were modified in the Edge Function deployment.
+
+
+## 2026-10-30 — Anonymous-session authorization read-only checkpoint
+
+- Re-read production policy predicates and direct table privileges for orders, payments, finance, wallet, settlement, subscriptions, notifications, support, CRM, medical appointments, businesses and memberships.
+- Confirmed RLS and FORCE RLS on the reviewed tables; direct anon SELECT was absent. Some backend-only tables also deny authenticated SELECT and were not included in the simulated query.
+- Ran a transaction-scoped simulation as `authenticated` with synthetic JWT claims `is_anonymous=true` and a non-existent UUID. Zero rows were visible across the sensitive queried tables and user memberships. Two ACTIVE showcase business rows remained visible under the intended public catalog policy.
+- This is a limited PostgreSQL claims simulation, not a real Auth-issued anonymous JWT or Data API E2E. Permanent-user, cross-tenant/business/branch and mutation-spoof tests remain open.
+- Evidence: `docs/audits/ANONYMOUS_SESSION_READONLY_CHECKPOINT_20261030.md`.
+- No production writes, DDL, migrations, grants, RLS/Auth settings, Edge Function deployments, secrets, payments, wallets or financial postings were performed. Overall Production Gate remains BLOCKED / NOT CERTIFIED.
