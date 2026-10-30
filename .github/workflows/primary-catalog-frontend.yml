@@ -12,6 +12,7 @@ on:
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
+      - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
@@ -52,6 +53,7 @@ on:
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
+      - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
@@ -124,6 +126,8 @@ jobs:
         run: node scripts/validate-catalog-membership-bootstrap.mjs
       - name: Verify production catalog uses real persisted state
         run: node scripts/validate-production-catalog-real-state.mjs
+      - name: Verify directory CORS origins exclude retired domain
+        run: node scripts/validate-directory-listings-origin-allowlist.mjs
       - name: Verify scoped catalog pilot release prerequisites
         run: node scripts/production/verify-catalog-pilot.mjs
       - name: Validate that the platform root is preserved
