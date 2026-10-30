@@ -2347,3 +2347,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - PR #505 exact-head CI was queued/in progress at the checkpoint; its checks are not marked passed.
 - No application source, production schema/data, migrations, Auth/RLS, payments, Edge Functions, secrets, or deployment targets were changed by this reconciliation.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Live critical Edge Function parity recheck
+
+- Read-only retrieval from Supabase project `moyhiluyhjsujhwlyeuu` confirmed that six live critical function entrypoints are not byte-identical to their corresponding `main` sources: `order-create` v8, `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3.
+- Exact live SHA-256 hashes and byte counts are recorded in root `TODO_PRODUCTION.md` under the 2026-10-30 parity checkpoint.
+- This is a confirmed source-parity gap; do not infer runtime failure or deploy repository code blindly. Semantic diff and isolated contract/security tests are mandatory before rollout.
+- [ ] Review six semantic diffs and dependencies (RPCs, tables, RLS/grants, caller contracts).
+- [ ] Test authentication/tenant authorization, amount/currency integrity, webhook HMAC/replay/idempotency, ledger posting and reconciliation in an isolated environment.
+- [ ] Establish exact rollback versions and approved rollout plan before any production deploy.
+- Read-only inspection only; no production SQL, migration, Edge Function deployment, payment, or data mutation.
+- Full platform release remains **BLOCKED / NOT CERTIFIED**.
