@@ -167,3 +167,19 @@ The live migration ledger did not contain:
 The live ledger did contain the earlier digital-page claim migrations `20261007003432` and `20261007003440`.
 
 **Updated severity:** subscription checkout source/schema mismatch and financial journal RPC/ACL mismatch are confirmed **CRITICAL release blockers**. No production DDL, grant, migration, RPC mutation, or Edge deployment was performed.
+
+
+## Superseding correction — canonical financial journal path (2026-10-30)
+
+This section supersedes the earlier financial-journal interpretation in this report and in the initial PR #526 summary. A deeper review of the repository's RC449A/RC450 migrations, RC450 runbook, integration tests, and the live RPC body established the following:
+
+1. **RC436 is not the canonical production rollout path.** RC436 introduced an earlier atomic RPC named `post_financial_journal_atomic_backend`. Later work established the production rollout path as RC449A followed by RC450. Do not apply RC436 as a substitute for RC449A/RC450 or switch the Edge Function to the RC436 RPC.
+2. **Current `main` Edge source is correctly aligned by RPC name with RC450.** `supabase/functions/financial-journal/index.ts` calls `post_financial_journal_backend(p_user_id,p_entry,p_lines)`; RC450 defines that same RPC signature, revokes it from `PUBLIC`, `anon`, and `authenticated`, and grants EXECUTE to `service_role`. The earlier claim that current `main` calls a different RC436-only RPC was incorrect and is withdrawn.
+3. **The live database still lacks the canonical rollout migrations.** A fresh read-only migration-ledger query returned no rows for `20261010175000` (RC449A) or `20261010180000` (RC450).
+4. **The live RPC is the older incompatible implementation.** Live `post_financial_journal_backend(uuid,jsonb,jsonb)` has only the postgres ACL; `service_role` EXECUTE is false. Its body requires `p_user_id = auth.uid()`, which is incompatible with the Edge Function's verified-user + service-role RPC call, and it does not enforce RC450's business/branch/organization membership scope. Therefore the deployed/current Edge endpoint cannot successfully use the current production RPC contract as intended.
+5. **The correct remediation is the prepared RC449A → RC450 rollout.** The repository already contains `docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md`, `supabase/tests/rc450_financial_journal_integration.sql`, and `scripts/validate-financial-journal-service-role.mjs`. The runbook explicitly requires RC449A first, RC450 second, schema/ACL verification, then matching Edge deployment. The RC450 integration suite covers tenant/business/branch/organization scope, service-role actor validation, duplicate IDs, balanced lines, and cumulative ledger balances.
+6. **No production migration or grant was run.** The next safe step remains a restorable isolated database rehearsal, followed by an approved migration window. The runbook is prepared but does not authorize production execution.
+
+### Corrected severity and release status
+
+The financial-journal issue remains a **CRITICAL production blocker**, but its root cause is now accurately stated as missing RC449A/RC450 migrations and an old live RPC body/ACL, not a mismatch between current `main` RPC name and RC450. The earlier suggested RC436 RPC switch is withdrawn. Subscription RC435/RC439 remain separate missing migration/schema blockers.

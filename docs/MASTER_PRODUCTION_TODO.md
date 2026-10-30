@@ -2521,3 +2521,10 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Rehearse RC435/RC436/RC439 on a restorable isolated database; validate data preconditions, schema, grants, function definitions, rollback/restore and integration tests before proposing production rollout.
 - [ ] Align Edge source with the approved atomic financial journal RPC; do not grant legacy RPCs as a shortcut.
 - Keep production release BLOCKED / NOT CERTIFIED.
+
+
+### Financial journal correction — canonical RC449A/RC450 sequence
+- Canonical production sequence is RC449A (20261010175000) followed by RC450 (20261010180000), not RC436 as a substitute.
+- Current main financial-journal Edge RPC call matches RC450. The actual live blocker is that both migrations are absent and the live RPC body/ACL is old: service_role EXECUTE=false and actor binding requires auth.uid().
+- RC450 runbook, integration tests and validator already exist. Rehearse the exact sequence on a restorable isolated database before proposing production rollout. Never grant the legacy RPC or apply RC436 as a shortcut.
+- Report correction is recorded in docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md. Release remains BLOCKED.
