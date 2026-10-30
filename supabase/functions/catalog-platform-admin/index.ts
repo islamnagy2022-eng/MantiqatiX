@@ -512,7 +512,8 @@ Deno.serve(async (req: Request) => {
             )) {
             return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_OR_TYPE_MISMATCH" }, 400);
           }
-          if (id.startsWith("cat_custom_") && !/^cat_custom_[0-9a-f-]{36}$/i.test(id)) {
+          if (id.startsWith("cat_custom_") &&
+              (!/^cat_custom_[0-9a-f-]{36}$/i.test(id) || category?.isCustom !== true)) {
             return response(origin, { error: "INVALID_CUSTOM_TAXONOMY_CATEGORY_ID" }, 400);
           }
           if (id.startsWith("cat_") && !canonicalKind &&
