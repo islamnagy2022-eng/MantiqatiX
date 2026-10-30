@@ -119,14 +119,7 @@ begin
   select count(*) into audit_before from public.catalog_taxonomy_mapping_audit;
 
   -- Force a second-table failure. The earlier business update and audit insert must roll back.
-  create or replace function public.rc459_force_listing_failure()
-  returns trigger language plpgsql as $function$
-  begin raise exception 'RC459_FORCED_TRANSACTION_FAILURE'; end;
-  $function$;
-  create trigger rc459_force_listing_failure
-  before update on public.public_directory_listings
-  for each row execute function public.rc459_force_listing_failure();
-
+  perform pg_catalog.set_config('rc459.force_failure','on',true);
   rejected := false;
   begin
     perform public.mnty_catalog_taxonomy_mapping_apply(
@@ -138,9 +131,8 @@ begin
     if sqlerrm <> 'RC459_FORCED_TRANSACTION_FAILURE' then raise; end if;
     rejected := true;
   end;
+  perform pg_catalog.set_config('rc459.force_failure','off',true);
   if not rejected then raise exception 'RC459_ATOMIC_FAILURE_NOT_OBSERVED'; end if;
-  drop trigger rc459_force_listing_failure on public.public_directory_listings;
-  drop function public.rc459_force_listing_failure();
 
   if (select settings->>'activity_category_code' from public.businesses where id=business_a) <> 'cafes'
      or (select taxonomy_category_id from public.public_directory_listings where id=listing_a) <> 'cat_food_grocery_cafes'
