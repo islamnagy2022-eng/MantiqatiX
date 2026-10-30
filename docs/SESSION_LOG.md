@@ -641,3 +641,14 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - **Not performed:** no application UI/source changes, no database schema/migration or production data changes, no Auth/RLS/grant changes, no Edge Function deployment, no payment, no release deployment. No build or browser E2E is claimed.
 - **Next action:** cross-reference all valid requirements 00–19 and `docs/TODO_MASTER_DEVELOPMENT.md` against the active TODO task IDs; then select the highest-priority executable code task only after current branch/PR/source/runtime evidence review.
 - **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Duplicate taxonomy PR reconciled
+
+- Re-fetched PR #499 and confirmed it was open, based on an old main SHA, and reported not mergeable.
+- Fetched merged PR #500 and confirmed it delivered the same folder-style taxonomy navigation; read the current main `DirectoryView.tsx` around the taxonomy browser and confirmed the feature is already present.
+- Closed PR #499 as superseded by merged PR #500. The close action explicitly records that any distinct residual fix must be reintroduced against current main with fresh CI; no branch rebase or merge was attempted.
+- PR #505 remains open as the documentation-only owner-specification/TODO-governance PR. Exact-head workflows were queued/in progress at the time checked; combined commit status returned no status records, so CI is not claimed passed.
+- TODO action: deployed browser/device verification of the merged taxonomy browser remains open. The catalog UI was not changed in this checkpoint.
+- No production DB/schema/migration/Auth/RLS/payment/Edge Function/deployment change was performed.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
