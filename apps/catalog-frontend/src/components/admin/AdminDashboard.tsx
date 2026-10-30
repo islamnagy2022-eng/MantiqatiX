@@ -86,6 +86,7 @@ const ICONS_MAP: Record<string, React.ReactNode> = {
 export const AdminDashboard: React.FC = () => {
   const {
     subscribers,
+    subscribersLoading,
     authSession,
     businesses,
     products,
@@ -1514,6 +1515,11 @@ export const AdminDashboard: React.FC = () => {
             <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs font-bold text-rose-900">
               تعذر قراءة حسابات Supabase: {authSession.subscriberDirectoryError}
             </div>
+          )}
+          {subscribersLoading && (
+            <p role="status" aria-live="polite" className="text-xs font-semibold text-sky-700">
+              جاري تحميل سجل المشتركين في الخلفية؛ يمكنك متابعة استخدام المنصة أثناء التحميل.
+            </p>
           )}
           {(authSession.ignoredOrphanMemberships || 0) > 0 && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">
