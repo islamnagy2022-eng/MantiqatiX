@@ -34,6 +34,13 @@ create table public.public_directory_listings (
   updated_at timestamptz not null default now()
 );
 
+create table public.bizcatalog_platform_settings (
+  settings_key text primary key,
+  settings jsonb not null default '{}'::jsonb,
+  updated_by uuid references auth.users(id),
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.rc459_force_listing_failure()
 returns trigger
 language plpgsql
