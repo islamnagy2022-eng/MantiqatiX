@@ -678,3 +678,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Use current main/live contracts as truth. RC40 and dated specifications are requirements/reference sources, not proof that a feature or schema is currently deployed.
 - [ ] Continue module-by-module: map each task to existing code, data contracts, RLS/RBAC, APIs/Edge Functions, and tests before adding anything new.
 - [ ] Record exact commit, PR, CI, deployment, and runtime evidence separately. Unverified behavior remains NOT VERIFIED; overall production status remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-10-30 — PR overlap reconciliation
+
+- [x] **PR #499 closed as superseded/duplicate** after confirming that PR #500 is already merged and the current `main` contains the folder-style taxonomy browser in `DirectoryView.tsx`. No duplicate navigation implementation was merged.
+- [x] Existing `main` source was read back around the taxonomy browser branch; the folder navigation is present in the merged source.
+- [ ] Verify the merged taxonomy navigation in the deployed public website with browser/device coverage. Source presence and prior PR merge are not proof of current runtime behavior.
+- [ ] Preserve the current homepage, card layout, verified-first ordering, geographic search, and storefront flows during any follow-up. Reintroduce only a specific missing behavior as a minimal change against current `main`.
+- PR #505 remains the documentation/governance PR for owner specifications and TODO alignment; its exact-head CI was still queued/in progress at this checkpoint. No merge or deployment is claimed.
+- No application source, production database, migrations, Supabase settings, secrets, payments, or deployment targets were changed in this reconciliation.
+- Production status remains **BLOCKED / NOT CERTIFIED**.
