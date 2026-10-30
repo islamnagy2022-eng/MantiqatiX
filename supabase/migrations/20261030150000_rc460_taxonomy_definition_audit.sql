@@ -36,6 +36,19 @@ begin
     return new;
   end if;
 
+  if not exists (
+    select 1
+    from public.user_memberships m
+    where m.user_id = v_actor
+      and upper(coalesce(m.role,'')) = 'SUPER_ADMIN'
+      and upper(coalesce(m.status,'')) = 'ACTIVE'
+      and m.business_id is null
+      and m.branch_id is null
+      and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
+  ) then
+    raise exception 'PLATFORM_ADMIN_REQUIRED_FOR_TAXONOMY_AUDIT';
+  end if;
+
   v_after := jsonb_build_object(
     'categories', coalesce(new.settings->'categories','null'::jsonb),
     'functionalGroups', coalesce(new.settings->'functionalGroups','null'::jsonb),
