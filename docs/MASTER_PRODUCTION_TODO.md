@@ -16,7 +16,7 @@
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
    - Google OAuth browser lifecycle, session refresh/expiry/logout, membership approval, customer/provider/owner/admin and tenant/business/branch isolation remain open.
-   - Leaked Password Protection is disabled and requires authorized Supabase Auth dashboard action plus Advisor recheck.
+   - Current Supabase organization plan is FREE. Supabase documents leaked-password protection as Pro Plan and above; this gate therefore needs an eligible plan, enabling the Auth setting, and a fresh Advisor recheck. No plan or Auth setting was changed. [Supabase password security](https://supabase.com/docs/guides/auth/password-security).
 
 2. Customer/provider/order/notification E2E — NOT VERIFIED
    - CI source/contract and isolated database tests do not prove a real customer→correct provider→status→notification journey across separate tenants.
