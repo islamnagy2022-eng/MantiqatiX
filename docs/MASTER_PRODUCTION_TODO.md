@@ -2449,3 +2449,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] The 67 authenticated SECDEF functions break down as 30 search_path=public, 17 public, pg_temp, 19 empty, and 1 public, auth trigger function. RC440 addresses the 30 exact-public functions; its live migration application remains blocked until the ordered chain is reconciled.
 - [ ] Leaked Password Protection still needs an authorized Auth dashboard change and Advisor verification. Do not change Auth or grants from this audit.
 - [ ] Full production remains blocked by migration ledger/object drift, payment/finance E2E, backup/restore, six critical Edge Function mismatches and Auth hardening.
+
+---
+
+## 2026-10-30 — RC440 integration coverage
+
+- [x] PR #521 merged a dedicated PostgreSQL 16 workflow for RC440. The post-merge main workflow [41003030610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030610) passed.
+- [x] Test proves public/pg_temp search_path ordering prevents temporary-table shadowing, preserves intended anon/authenticated EXECUTE grants, skips already-hardened functions, and excludes service_role-only functions.
+- [ ] Test success does not mean the migration ran in Production. The 30 live exact-public search_path functions remain pending RC440 application through the full ordered rollout.
+- [ ] Leaked Password Protection, payment/finance E2E, backup/restore and six critical Edge Function parity gaps remain open. Release remains **BLOCKED / NOT CERTIFIED**.
