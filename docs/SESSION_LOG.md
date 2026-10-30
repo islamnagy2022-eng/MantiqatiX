@@ -742,3 +742,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - RC425 crypto/wiring, RC435–RC439 PostgreSQL integration, build, dashboard browser E2E, employee RBAC, RC450, approval audit, targeted ads, matrimony privacy and MantiGO privacy checks passed on PR #518.
 - The merge changes repository source only. No Supabase Edge Function deployment or environment-secret change was made; live subscription function remains v4. Keep V1 key available, and do not enable V2 until V2 secret is configured and staging recovery is verified.
 - No production migrations, provider calls, payment/finance mutations or Edge Function deployments occurred. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-30 — Supabase Security Advisor and current-main verification
+
+- Main after PR #519: 5fd3d3589282e07232311154bd95d35c9a91cc71. Web deployment [41002621137](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41002621137) and Production Health Monitor [41002621047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41002621047) passed.
+- Fresh Security Advisor: 8 RLS-enabled/no-policy tables; 3 anon SECURITY DEFINER findings; 67 authenticated SECURITY DEFINER findings; leaked-password protection disabled.
+- All 8 no-policy tables have no direct anon/authenticated table privileges; 6 also have no direct service_role table privileges, 2 are service_role-only. Seven FORCE RLS; digital_page_payment_events does not, but has no direct table privileges to anon/authenticated/service_role. Preserve deny-by-default/RPC-only model; no broad policies added.
+- The 3 anon SECDEF warnings: 2 are trigger-returning functions attached to triggers; the public targeted-ad discovery RPC has empty search_path and is intentionally public. The default-owner trigger is deferred AFTER INSERT on businesses; its search_path remains a review item.
+- The 67 authenticated SECDEF functions have 30 exact search_path=public, 17 public, pg_temp, 19 empty, and 1 public, auth trigger function. Anon/authenticated cannot CREATE in public/auth. RC440 is the reviewed hardening migration for the 30 exact-public functions; not applied live and must remain in the ordered rollout chain.
+- Leaked Password Protection remains disabled; requires authorized dashboard configuration and subsequent Advisor verification.
+- No production writes or configuration changes were made. No bulk grants/policies revoked or added. Full release remains **BLOCKED / NOT CERTIFIED**.
