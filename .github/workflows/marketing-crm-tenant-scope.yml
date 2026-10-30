@@ -1,9 +1,11 @@
 name: Marketing CRM Tenant Scope
 on:
+  workflow_dispatch:
   push:
     branches:
       - "**"
     paths:
+      - "docs/release/production-migration-reconciliation.json"
       - "supabase/migrations/20261010210000_rc452_marketing_crm_tenant_scope.sql"
       - "supabase/tests/rc452_marketing_crm_scope_*.sql"
       - "scripts/validate-marketing-crm-tenant-scope.mjs"
