@@ -866,3 +866,10 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - No production Edge Function, SQL, migration, grant, RLS/Auth setting, secret, payment, wallet, settlement, or financial record was changed.
 - Next: inspect live SQL RPC definitions/ACL/search_path; restore isolated schema; run payment and finance adversarial tests; then produce a reviewed per-function rollout/rollback plan.
 - Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Live database contract follow-up
+- Read-only pg_proc, information_schema.columns, ACL and migration-ledger queries confirmed production lacks RC435 claimable subscription RPCs/state columns and RC439 encrypted checkout columns; migration versions 20261009210000 and 20261010010000 are absent.
+- RC436 migration 20261009220000 is also absent. Both existing live journal RPCs (post_financial_journal, post_financial_journal_backend) have no service-role EXECUTE grant. RC436 defines a different atomic RPC with a service-role grant, but current main Edge source still calls the non-granted post_financial_journal_backend function.
+- Evidence and exact contracts are appended to docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
+- No production DDL, grant, migration, RPC mutation, Edge deployment, payment, or journal posting was performed. Next: isolated restore + RC435/436/439 rehearsal, tests, source correction and rollback plan.
