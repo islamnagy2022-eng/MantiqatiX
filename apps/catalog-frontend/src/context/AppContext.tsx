@@ -260,9 +260,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let active = true;
     const loadSession = async (session: any, force = false) => {
       const incomingUserId = session?.user?.id || null;
-      const sessionKey = incomingUserId
-        ? `${incomingUserId}:${String(session?.access_token || 'no-token')}`
-        : 'signed-out';
+      // A token refresh does not change the signed-in identity or its memberships.
+      // Key the bootstrap by user ID so rotating access tokens cannot reload every
+      // business catalog and subscription in the background.
+      const sessionKey = incomingUserId || 'signed-out';
       if (!force && lastAuthLoadKeyRef.current === sessionKey) return;
       lastAuthLoadKeyRef.current = sessionKey;
 
@@ -332,7 +333,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         event === 'INITIAL_SESSION' ||
         event === 'SIGNED_IN' ||
         event === 'SIGNED_OUT' ||
-        event === 'TOKEN_REFRESHED' ||
         event === 'USER_UPDATED' ||
         event === 'PASSWORD_RECOVERY'
       ) {
