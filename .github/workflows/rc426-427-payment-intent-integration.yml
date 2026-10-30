@@ -1,0 +1,53 @@
+name: RC426–RC427 Digital Page and Order Payment Intent
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql"
+      - "supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql"
+      - "supabase/tests/rc426_427_payment_intent_fixture.sql"
+      - "supabase/tests/rc426_427_payment_intent_integration.sql"
+      - ".github/workflows/rc426-427-payment-intent-integration.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql"
+      - "supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql"
+      - "supabase/tests/rc426_427_payment_intent_fixture.sql"
+      - "supabase/tests/rc426_427_payment_intent_integration.sql"
+      - ".github/workflows/rc426-427-payment-intent-integration.yml"
+permissions:
+  contents: read
+jobs:
+  rc426-427-payment-intent-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc426_427_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc426_427_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply disposable fixture, then RC426 and RC427
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc426_427_payment_intent_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009130000_rc426_digital_page_provider_order_binding.sql "$pg_container:/tmp/rc426.sql"
+          docker cp supabase/migrations/20261009140000_rc427_one_active_payment_intent_per_order.sql "$pg_container:/tmp/rc427.sql"
+          docker cp supabase/tests/rc426_427_payment_intent_integration.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_427_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_427_test -v ON_ERROR_STOP=1 -f /tmp/rc426.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_427_test -v ON_ERROR_STOP=1 -f /tmp/rc427.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc426_427_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
