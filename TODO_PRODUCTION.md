@@ -1313,3 +1313,13 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
   - RC450 financial-journal isolated PostgreSQL 16 integration job [39091702874](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39091702874): PASS; job explicitly applied RC450 to disposable PostgreSQL and ran behavioral tests. PR #169 test correction is merged as `3d7669ca0043db847dfe14fe1b81b86329c4377f`.
 - [x] These tests establish the tested source/fixture contracts only. They do not establish that Production's later-dated schema is compatible with historical RC435/RC439/RC449A/RC450, do not repair the missing live RPCs/columns/grants, and do not authorize applying those migrations out of order.
 - [ ] Still required: exact-production-schema disposable restore, forward-only reconciliation migration, migration replay/rollback, and payment/finance sandbox acceptance.
+
+
+## 2026-10-31 — Fresh Supabase Advisor snapshot and anonymous-auth source triage
+
+- [x] Re-ran Supabase Security Advisor: 8 RLS-enabled/no-policy INFO; 3 anon-executable SECURITY DEFINER WARN; 67 authenticated-executable SECURITY DEFINER WARN; 90 `auth_allow_anonymous_sign_ins` policy findings; 1 leaked-password-protection-disabled Auth warning.
+- [x] Re-ran Performance Advisor: 129 unindexed-FK INFO; 375 auth/RLS init-plan WARN; 73 unused-index INFO; 28 multiple-permissive-policy WARN.
+- [x] Repository-wide source search found no `signInAnonymously` call in current main. This does not prove no external client or legacy consumer relies on anonymous sign-ins; do not disable the project setting without product-owner confirmation and a deployed-session regression plan.
+- [x] Existing live policy audit explains that the 90 labels are not 90 direct `anon` table grants. They are policies attached to the `authenticated` Postgres role while Supabase anonymous sign-in is enabled; anonymous-authenticated sessions must be distinguished by the JWT `is_anonymous` claim. Keep per-policy/role review and anonymous-JWT adversarial testing open.
+- [ ] Leaked Password Protection remains a managed Auth setting and cannot be changed through the available connected Supabase actions. An authorized project owner must enable it in Supabase Auth settings and then rerun Advisor and password signup regression.
+- [ ] Do not mass-rewrite the 90 policy findings, bulk-revoke the 67 SECURITY DEFINER functions, add broad policies to the 8 fail-closed tables, or mass-create indexes for the performance findings. Resolve by caller/tenant/query-specific review with regression tests.
