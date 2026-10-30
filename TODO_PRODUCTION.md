@@ -1225,3 +1225,16 @@ These policies currently depend on reading `marketing_provider_profiles` to prov
 
 
 - [x] Documentation checkpoint PR #553 merged as `d7ec37d2a970d6d4111e363c4f762e366826d446`; it records the complete RC520 column/grant/source/policy dependency inventory and the target security architecture. This is documentation only, not a database fix.
+
+
+### RC520 — live function-definition and ACL dependency review (read-only, 2026-10-31)
+- [x] Read-only `pg_proc` inventory captured every current public/private function body containing `marketing_provider_profiles`, including SECURITY DEFINER flag, function configuration/search_path, and ACL. No function body or row data was modified.
+- [x] `private.review_provider_onboarding_atomic(uuid,uuid,text,text)`: SECURITY DEFINER, empty search_path, EXECUTE limited to postgres/service_role; creates the provider profile as part of the atomic onboarding approval workflow.
+- [x] `public.create_medical_appointment_backend(uuid,text,uuid,text,bigint,text)`: SECURITY DEFINER, `search_path=public, pg_temp`, EXECUTE for authenticated only. Source binds supplied user to `auth.uid()`, validates active provider/business and active tenant membership, and rejects duplicate appointment IDs or occupied slots. Search-path hardening and deployed-source parity remain separate review items.
+- [x] `public.create_order_backend(...)`: SECURITY DEFINER, `search_path=public`, EXECUTE for postgres/service_role only. Its source verifies an active provider for the requested business and performs server-authoritative order pricing/idempotency.
+- [x] `public.upsert_catalog_business_profile_backend(...)`: SECURITY DEFINER, `search_path=public`, EXECUTE for postgres/authenticated. Its source rejects anonymous sessions, binds identity through `auth.uid()`, checks active tenant/business membership and platform scope, then updates the selected provider profile.
+- [x] `public.find_mnty_nearby_provider_businesses(...)` and `public.find_mnty_nearest_provider_businesses(...)`: SECURITY DEFINER with `search_path=public`; live ACL is postgres-only, so no anon/authenticated EXECUTE remains. Do not re-enable based on historical source.
+- [x] `public.mnty_platform_admin_delete_business(...)`: invoker (not SECURITY DEFINER), empty search_path, postgres/service_role EXECUTE; service-role backend deletes provider rows as part of a protected business deletion workflow.
+- [ ] Before any profile-table grant/policy migration, compare these exact live definitions with the matching current-main migration/function sources and include their owner/ACL/search_path expectations in isolated replay tests. SECURITY DEFINER execution paths do not justify exposing base-table SELECT to client roles.
+- [ ] Separately harden/verify the medical appointment function's non-empty search_path under its own reviewed forward-only migration; do not bundle unrelated behavior changes into the provider-profile privacy fix.
+- Safety: metadata and function source inspection only. No production SQL writes, DDL, grants, RLS, Auth, Edge Function, payment, or finance changes.
