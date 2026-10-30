@@ -2551,3 +2551,17 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Continue the original catalog acceptance gates: authenticated create/publish/edit/readback, tenant isolation, duplicate prevention, permanent links/QR scans, social links and authenticated AI image generation.
 - **Request-to-TODO rule:** every new owner request must be captured in the canonical TODO register, linked to its parent goal/module, assigned a stable reference, and tracked through implementation, tests, deployment and post-deploy verification. Do not close a request at code merge alone.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for the unrelated live security, migration, Edge Function, finance/payment and recovery gates.
+
+ 
+## 2026-10-30 — PR #533 deployed; PR #534 separates external URLs from display fallbacks
+
+- [x] Main Pages deployment [41015430795](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015430795) succeeded on main commit `50c1318abaef0958d25a3ddbde59a44365182660`; the deploy job, public-root verification and deployed-origin browser checks completed successfully. This confirmed the initial PR #533 source was deployed.
+- [x] Follow-up review found a semantic issue: using `logoUrl` / `coverUrl` for external-link controls could expose generated/default display images as if they were owner-provided external URLs.
+- [x] PR [#534](https://github.com/islamnagy2022-eng/MantiqatiX/pull/534) merged as `9cb40af9886e5141702576a7a20f300b78fcff4e`. Added explicit `externalLogoUrl` / `externalCoverUrl` fields, kept display fallback images separate, and exposed those fields through both public directory and direct public-storefront read APIs.
+- [x] Added browser E2E cases for verified profiles with both external URLs, logo-only, cover-only, no external URLs, and unverified profiles; also tested direct storefront URL hydration.
+- [x] Exact-head Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed build/typecheck, Playwright browser E2E and isolated PostgreSQL RBAC.
+- [x] Exact-head Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed; its deploy job was skipped as expected for a pull-request event.
+- [ ] Verify the post-merge main Pages deployment and deployed-origin browser run for PR #534 before marking this final correction production-verified.
+- [ ] Audit verified activity profiles for valid external logo/cover URL coverage; missing URLs must not display empty controls or generated fallback links.
+- The scoped external-link correction is isolated from production data and does not change provider verification status, subscription state, layout, verified-first ranking or existing display images.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
