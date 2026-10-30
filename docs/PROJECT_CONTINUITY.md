@@ -880,3 +880,14 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - No production schema/data, migration, Supabase settings, Auth/RLS/grants, Edge Function, secret, payment or financial mutation occurred.
 - Production Gate remains **BLOCKED / NOT CERTIFIED**.
 - **Next resume:** verify post-merge Pages deployment and the deployed-origin browser suite; then continue module acceptance/TODO reconciliation from `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md`.
+
+
+## 2026-10-30 — Latest continuation checkpoint: read-only security and Edge parity
+
+- Latest read-only report: [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md`](audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md).
+- Supabase project ACTIVE_HEALTHY, PostgreSQL 17.6.1.155; 308 production migration records through 20261029083845.
+- Security Advisor: 8 RLS-enabled/no-policy tables, 3 anon and 67 authenticated SECURITY DEFINER warnings, 90 anonymous-access table findings, Leaked Password Protection disabled.
+- Policy inventory: 19 explicit anon/public policies; 483 authenticated policies, 283 with textual `is_anonymous` reference and 200 without. This is a review queue, not a proven vulnerability count. Finance examples generally rely on active membership/tenant/role checks; anonymous JWT runtime tests are still needed.
+- Exact text parity absent for six critical deployed Edge Functions: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. No function was deployed.
+- Next: policy-by-policy anonymous JWT tests; SECURITY DEFINER ACL/search-path/caller review; semantic diff + isolated tests for six functions; live ledger/object-contract reconciliation; authorized leaked-password protection setting; verify post-merge Pages deployment for PR #525.
+- No production mutation. Production remains BLOCKED / NOT CERTIFIED.
