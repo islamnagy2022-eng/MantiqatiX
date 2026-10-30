@@ -17,6 +17,8 @@ const publicDirectory = read('supabase/functions/public-catalog-directory/index.
 const publicCatalog = read('supabase/functions/public-catalog/index.ts');
 const definitionAuditMigration = read('supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql');
 const definitionAuditIntegration = read('supabase/tests/rc460_taxonomy_definition_audit_integration.sql');
+const customMappingMigration = read('supabase/migrations/20261030160000_rc461_custom_taxonomy_mapping.sql');
+const customMappingIntegration = read('supabase/tests/rc461_custom_taxonomy_mapping_integration.sql');
 
 const groups = [
   'medical_health','food_grocery','fashion_beauty','home_maintenance',
@@ -120,5 +122,18 @@ assert.ok(integration.includes('tenant_admin_id') && integration.includes('inact
   integration.includes('business_scoped_admin_id') && integration.includes('branch_scoped_admin_id'),
   'Integration must cover tenant-scoped, inactive, business-scoped, and branch-scoped Super Admin denials.');
 assert.ok(integration.includes('RC459_UNAUTHORIZED_ROLE_NOT_REJECTED'), 'Integration must prove rejected roles cannot preview.');
+assert.ok(customMappingMigration.includes('mnty_catalog_taxonomy_custom_category'), 'Custom category mappings must resolve against the platform-owned category registry.');
+assert.ok(customMappingMigration.includes('TAXONOMY_CUSTOM_SOURCE_NOT_FOUND') && customMappingMigration.includes('TAXONOMY_CUSTOM_TARGET_NOT_FOUND'), 'Custom category source and destination IDs must be checked against saved metadata.');
+assert.ok(customMappingMigration.includes("category->>'isCustom' = 'true'"), 'Only categories explicitly registered as custom may use custom-ID mapping.');
+assert.ok(customMappingMigration.includes("category->>'functionalGroupId' = p_group_id"), 'Custom category registry validation must bind the category to its functional group.');
+assert.ok(customMappingMigration.includes("category->>'classificationType'"), 'Custom category registry validation must enforce classification type.');
+assert.ok(customMappingMigration.includes("b.settings->>'activity_category_id' = p_source_category_id"), 'Business rows with custom category IDs must be included in the preview and commit.');
+assert.ok(customMappingMigration.includes("- 'activity_category_code'"), 'Applying a custom category must not leave a stale canonical category code.');
+assert.ok(customMappingMigration.includes("lock table public.bizcatalog_platform_settings in share mode"), 'Custom category registry must not change between preview validation and transactional apply.');
+assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TO_CANONICAL_APPLY_INVALID') && customMappingIntegration.includes('RC461_CANONICAL_TO_CUSTOM_BUSINESS_ID_INVALID'), 'Integration must cover custom-to-canonical and canonical-to-custom mappings.');
+assert.ok(customMappingIntegration.includes('RC461_UNKNOWN_CUSTOM_SOURCE_NOT_REJECTED') && customMappingIntegration.includes('RC461_CUSTOM_TARGET_TYPE_MISMATCH_NOT_REJECTED'), 'Integration must reject fabricated custom IDs and classification-type mismatches.');
+assert.ok(dashboard.includes('/^cat_custom_[0-9a-f-]{36}$/i.test(category.id)'), 'Admin UI must include persisted custom categories in source/target selectors.');
+assert.ok(edge.includes('entry?.isCustom === true') && edge.includes('TAXONOMY_CUSTOM_TARGET_NOT_FOUND'), 'Edge Function must verify a saved custom category definition before calling the RPC.');
+assert.ok(edge.includes('entry?.id === activityCategoryId') && edge.includes('INVALID_ACTIVITY_CATEGORY_ID'), 'New activities may not reference fabricated or unregistered custom categories.');
 
 console.log('CATALOG_TAXONOMY_ADMIN_CONTRACT=PASS — server RBAC, safe preview, stale digest, atomic apply, immutable audit, and no direct audit-table access.');
