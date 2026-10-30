@@ -953,3 +953,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Next: verify post-merge main Pages deployment and deployed-origin browser result; audit external URL coverage for verified profiles.
 - Preserve existing layout, default image display, mobile grid, verified-first ranking and public route behavior.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
+
+
+## 2026-10-30 — Final verification: external brand links deployed
+
+- Main Pages run [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) succeeded on 31ef40faa136f036ebd7220e682152a79deae139, including production deploy, primary-root verification and deployed-origin browser suite.
+- Supabase production public-catalog-directory is version 9 and public-catalog is version 5; both have verify_jwt=false unchanged and exact source parity with main.
+- Read-only production audit found 2 ACTIVE verified provider profiles; both have valid HTTPS logo and cover URLs. No invalid configured URL values were found.
+- PR #534 browser E2E passed both public directory cards and direct storefront hydration, including both URLs / logo-only / cover-only / no URLs / unverified cases.
+- The external logo/cover feature is now deployed in the frontend and both public read APIs. Existing default images remain for display only and are not presented as external links.
+- Preserve the existing UI and verified-first ranking. Overall platform Production Gate remains BLOCKED / NOT CERTIFIED for unrelated P0 security, migration, Edge/payment/finance and backup/restore gates.
