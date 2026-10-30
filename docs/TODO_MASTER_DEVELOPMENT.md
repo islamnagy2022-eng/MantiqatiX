@@ -802,3 +802,17 @@ The complete mapping is maintained in [`docs/specifications/SPECIFICATION_TODO_T
 - Use the global register for platform/release state and `TODO_PRODUCTION.md` for website/catalog execution detail; link to canonical tasks instead of duplicating them.
 - No module is VERIFIED merely because its requirement has been mapped. Preserve PARTIAL / OPEN / BLOCKED states until evidence satisfies its acceptance criteria.
 - Website/catalog continuation is additive and UI-preserving. Android remains deferred and is not part of this website execution.
+
+
+---
+
+# 34) TAXONOMY FOLDER BROWSER — CI VERIFICATION
+
+### Status: IMPLEMENTED IN MAIN / EXACT-HEAD CI PASS / DEPLOYED-ORIGIN CHECK PENDING
+
+- [x] PR #524 merged with regression coverage for the existing group → category → specialty folder browser. No UI component or styling was changed.
+- [x] Exact-head Primary Catalog Frontend Validation run [41005124723](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124723) passed: build/typecheck, canonical taxonomy and geographic contracts, PostgreSQL RBAC and Playwright.
+- [x] Browser assertions cover group and category folders, specialty selection, breadcrumb/back navigation, return to catalog, and 390/768/1440 px overflow checks.
+- [ ] Confirm the main-branch Pages deployment and deployed-origin browser job after merge. The Pages workflow is configured to run the same Playwright suite against the deployed origin.
+- [ ] Keep manual physical-device, accessibility, keyboard and visual review open; CI browser coverage is not a substitute for owner review.
+- Preserve the current homepage, group-card design, 10-column desktop layout, RTL, counts, verified-first behavior, geographic filters and storefront routes.
