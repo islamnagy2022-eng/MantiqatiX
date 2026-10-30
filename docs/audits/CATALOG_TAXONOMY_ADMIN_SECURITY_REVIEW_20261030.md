@@ -50,3 +50,7 @@ This review is source-only. No production settings, business/listing rows, migra
 - **Not yet verified at this checkpoint:** exact latest-head workflow completion; anonymous/customer/provider/employee/inactive/platform-scope negative JWT matrix; authoritative target-category membership validation. No Production DDL, Edge deployment, settings change, or row update occurred.
 
 - Follow-up source review found that new activity creation previously stored the category label/group but omitted the stable category ID; custom categories could therefore become difficult to usage-check. The feature branch now transmits `activityCategoryId`, validates canonical IDs against the 226-entry server-owned ID/type map (or validates the generated `cat_custom_<UUID>` format), persists `activity_category_id` and canonical `activity_category_code`, and returns the safe ID through public directory/storefront hydration.
+
+## Remaining distinction
+- RC459 writes an append-only immutable audit event for every explicit bulk mapping commit, in the same transaction as the business/listing taxonomy updates.
+- Generic category definition create/update/delete requests still use the platform settings save path. That path now validates IDs/types/duplicates and blocks changes to referenced categories, but it does **not yet** write its own transactional append-only definition-change audit. This remains an explicit TODO and must not be described as completed.
