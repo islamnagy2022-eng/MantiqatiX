@@ -880,3 +880,10 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Current main financial-journal Edge source calls the same post_financial_journal_backend(uuid,jsonb,jsonb) RPC defined by RC450. This source name is correct.
 - Live ledger lacks both RC449A and RC450. The old live RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted service-role Edge flow and lacks RC450 business/branch/organization scope.
 - The earlier recommendation to switch current Edge source to post_financial_journal_atomic_backend is withdrawn. No production change was made.
+
+
+### RLS / Anonymous JWT / SECURITY DEFINER follow-up
+- Fresh Security Advisor and read-only catalogs reviewed on 2026-10-30. Findings: 90 anonymous policy warnings, 67 authenticated SECURITY DEFINER functions, 3 anon-executable SECURITY DEFINER functions, 8 RLS-enabled/no-policy INFO findings, leaked-password protection disabled.
+- Eight no-policy tables have no direct anon/authenticated grants; six have no service_role table privileges, two are service_role-only. Two anon-executable definer warnings are trigger-only; targeted-ad lookup is intentionally public read-only with bounded results.
+- 483 authenticated policies: 283 explicitly reference is_anonymous, 200 do not; 215 reference auth.uid(), 103 membership. 67 definer functions: 60 auth.uid, 27 membership, 23 explicit actor comparison, 37 safe/explicit search_path, 30 search_path=public only. Static scan found no unqualified public table references in those 30; no exploitability conclusion without adversarial tests.
+- Report: docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md. No production ACL, RLS, Auth, data or function change.
