@@ -87,7 +87,7 @@ assert.match(admin, /const handleOperationalStatusChange = async[\s\S]*await upd
 assert.match(admin, /await updateAdminSettings\(/, 'platform settings UI must await server persistence');
 assert.match(admin, /settingsFeedback\.type === 'success'/, 'settings UI must distinguish saved success from failure');
 
-assert.match(context, /subscriptionMode: data\.subscriptionMode \|\| 'PAID', subscriptionAmount: data\.subscriptionAmount \?\? 0, paymentDueDate: data\.paymentDueDate/, 'create request carries subscription mode, amount and due date');
+assert.match(context, /const createBusinessPayload = \\{[\\s\\S]*subscriptionMode: data\\.subscriptionMode \\|\\| 'PAID'[\\s\\S]*subscriptionAmount: data\\.subscriptionAmount \\?\\? 0[\\s\\S]*paymentDueDate: data\\.paymentDueDate[\\s\\S]*\\};[\\s\\S]*callPlatformAdmin\\(\\{ action: 'CREATE_BUSINESS', business: createBusinessPayload \\}\\)/, 'create request carries subscription mode, amount and due date in the canonical guarded payload');
 assert.match(context, /paymentGracePeriodDays: data\.paymentGracePeriodDays \?\? 7/, 'create request must carry the selected grace period');
 assert.match(context, /publishNow: Boolean\(data\.publicEnabled\)/, 'create request must carry the explicit publication choice');
 assert.match(context, /const updateAdminSettings = async/, 'settings persistence must be asynchronous');
