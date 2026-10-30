@@ -97,6 +97,8 @@ assert.ok(definitionAuditMigration.includes('catalog_taxonomy_definition_audit')
 assert.ok(definitionAuditMigration.includes('after insert or update of settings, updated_by'), 'Taxonomy definition audit must be atomic with settings insert/update.');
 assert.ok(definitionAuditMigration.includes("set search_path = ''"), 'Taxonomy audit trigger function must use an empty search_path.');
 assert.ok(definitionAuditMigration.includes('CATALOG_TAXONOMY_DEFINITION_AUDIT_APPEND_ONLY'), 'Taxonomy definition audit must reject UPDATE/DELETE.');
+assert.ok(definitionAuditMigration.includes('PLATFORM_ADMIN_REQUIRED_FOR_TAXONOMY_AUDIT'), 'Taxonomy definition audit trigger must independently require a platform-wide admin actor.');
+assert.ok(definitionAuditIntegration.includes('RC460_UNAUTHORIZED_ACTOR_NOT_REJECTED'), 'Integration must reject taxonomy settings writes with a spoofed/non-admin actor ID.');
 assert.ok(definitionAuditMigration.includes('revoke all on table public.catalog_taxonomy_definition_audit from public, anon, authenticated, service_role'), 'Taxonomy definition audit table must not be directly accessible via API roles.');
 assert.ok(definitionAuditIntegration.includes('RC460_NON_TAXONOMY_CHANGE_WAS_AUDITED'), 'Integration must avoid auditing unrelated settings changes.');
 assert.ok(definitionAuditIntegration.includes('RC460_SETTINGS_PARTIALLY_UPDATED'), 'Integration must prove audit failure rolls back the originating settings update.');
