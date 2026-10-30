@@ -1265,3 +1265,5 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - [ ] Enable leaked-password protection only after reviewing the user-facing sign-in/recovery impact and explicit Auth-setting approval; current setting remains disabled.
 - [x] Performance Advisor snapshot: 129 unindexed foreign keys, 375 RLS initplan findings, 73 unused indexes, and 28 multiple permissive policy findings. Treat these as workload/schema-specific review queues; do not apply blanket index or policy changes.
 - Safety: advisor and function/trigger metadata inspection only. No DDL, grants, policies, Auth settings, data, Edge Functions, payment, or finance changes were made in this advisor pass.
+
+- [x] Post-deploy Supabase function logs confirm `public-catalog-directory` v10 received 2 GET requests with HTTP 200 after deployment (latest 2026-10-30T23:40:15Z; observed p95 execution about 2.1s for this tiny sample). No v6 `public-catalog` invocation appeared in the queried post-deploy log window; storefront endpoint smoke remains open.
