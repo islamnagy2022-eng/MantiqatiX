@@ -1714,5 +1714,64 @@
     },
     "no_production_changes": true,
     "production_gate": "BLOCKED / NOT CERTIFIED"
+  },
+  "security_scope_regression_ci_20261030": {
+    "checked_at": "2026-10-30",
+    "status": "PASS_DISPOSABLE_POSTGRES_ONLY",
+    "postgres_version": 16,
+    "runs": [
+      {
+        "area": "RC452 marketing CRM tenant/business scope",
+        "run_id": 40999748715,
+        "url": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748715",
+        "conclusion": "success",
+        "jobs": [
+          "validate",
+          "marketing-crm-tenant-scope-postgres"
+        ]
+      },
+      {
+        "area": "RC102 provider services owner isolation and write grants",
+        "run_id": 40999748664,
+        "url": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748664",
+        "conclusion": "success",
+        "jobs": [
+          "validate",
+          "provider-services-postgres"
+        ]
+      },
+      {
+        "area": "RC525 digital-page product platform admin scope",
+        "run_id": 40999748714,
+        "url": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748714",
+        "conclusion": "success",
+        "jobs": [
+          "static-policy-contract"
+        ]
+      },
+      {
+        "area": "RC456 SMM service-role access boundary",
+        "run_id": 40999748663,
+        "url": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748663",
+        "conclusion": "success",
+        "jobs": [
+          "validate",
+          "smm-service-role-postgres"
+        ]
+      }
+    ],
+    "coverage": [
+      "RC452: cross-tenant and cross-business read isolation, tenant-level manager access, explicit MNTY-PLATFORM SUPER_ADMIN full_control, assigned-provider/lead-owner access and anti-spoof write denials.",
+      "RC102: authenticated owner INSERT/UPDATE/DELETE, cross-owner mutation denial, anonymous session denial and no anon write grants.",
+      "RC525: global digital_page_products mutations require active MNTY-PLATFORM SUPER_ADMIN with PLATFORM scope and full_control; active public-read policy remains.",
+      "RC456: least-privilege service_role table ACL; client roles denied; credentials and wallet transaction ledger remain RPC-only."
+    ],
+    "limitations": [
+      "These runs apply candidate SQL against disposable PostgreSQL fixtures only; they do not prove the corresponding migrations or grants have been applied to Production.",
+      "They do not certify authenticated browser journeys or live external integrations.",
+      "SMM gateway remains deferred; passing ACL tests is not authorization to enable SMM."
+    ],
+    "production_effect": "NONE",
+    "production_gate": "BLOCKED / NOT CERTIFIED"
   }
 }
