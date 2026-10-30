@@ -177,6 +177,7 @@ Deno.serve(async (req: Request) => {
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
         activityGroupCode: String(business.settings?.activity_group_code || business.settings?.taxonomy_group_code || ""),
+        activityCategoryId: String(business.settings?.activity_category_id || ""),
         activityCategoryCode: String(business.settings?.activity_category_code || ""),
         activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
         activitySpecialty: String(business.settings?.activity_specialty || ""),
