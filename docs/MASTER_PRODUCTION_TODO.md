@@ -2463,3 +2463,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Current UI no-regression constraint remains mandatory. No redesign, replacement, or destructive cleanup is authorized by this mapping.
 - No application/UI source, production database/schema, migration, Auth/RLS, Edge Function, secret, payment, or deployment change was performed. No test or deployment is claimed.
 - Overall production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — PR #524 merge and exact-head verification
+
+- [x] PR #524 merged as `51fad575eb740d61b3de5ea3a856dbf7cc68bbfd`; owner specifications 00–19 are mapped to the existing global, website/catalog, and module TODO registers.
+- [x] Primary Catalog Frontend Validation [41005124723](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124723) passed build/typecheck, taxonomy/geographic/auth/catalog contracts, isolated employee RBAC PostgreSQL integration, and Playwright browser E2E.
+- [x] Playwright now covers the existing PR #500 dedicated folder navigation and passes group/category/specialty selection, back/breadcrumb return paths, and mobile/tablet/desktop overflow checks. No catalog UI code or design was changed.
+- [x] Exact-commit backend boundary, module professionalization, SMM deferred contract, MantiGO privacy, RC425 atomicity and flexible commission workflows passed; run IDs are recorded in `TODO_PRODUCTION.md` and `docs/SESSION_LOG.md`.
+- [ ] Verify post-merge Pages deployment and deployed-origin Playwright result. PR-only Pages run 41005124658 validated source/build but skipped deployment by design; do not infer publication from PR merge.
+- Release blockers from the latest live P0 checkpoint are unchanged. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
