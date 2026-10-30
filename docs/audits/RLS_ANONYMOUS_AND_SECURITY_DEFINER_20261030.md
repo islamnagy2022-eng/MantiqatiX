@@ -124,3 +124,8 @@ The current inventory did not prove an anonymous data leak. It did identify a br
 - Authenticated SECURITY DEFINER execution: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
 - Anonymous Auth/RLS policies: https://supabase.com/docs/guides/database/database-advisors?queryGroups=lint&lint=0012_auth_allow_anonymous_sign_ins
 - Leaked Password Protection: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+
+### Table-level cross-check
+
+A second catalog query found 126 public tables with at least one policy targeting `authenticated`. Of these, 71 have a RESTRICTIVE policy that explicitly checks `is_anonymous`; 55 do not have that particular table-wide restrictive guard. This is not a count of vulnerable tables: a number of the latter tables have explicit anonymous checks in their own permissive policy predicates, while others bind access to `auth.uid()` or active tenant membership. For example, payment and ledger read policies require an active membership with a finance-capable role; owner-read policies bind the row to the session UID; public catalog/read policies intentionally expose only active/published content. These still require isolated JWT tests, especially because policy composition and helper functions affect the final decision.
