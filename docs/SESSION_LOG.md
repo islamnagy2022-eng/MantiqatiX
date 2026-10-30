@@ -752,3 +752,11 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - The 67 authenticated SECDEF functions have 30 exact search_path=public, 17 public, pg_temp, 19 empty, and 1 public, auth trigger function. Anon/authenticated cannot CREATE in public/auth. RC440 is the reviewed hardening migration for the 30 exact-public functions; not applied live and must remain in the ordered rollout chain.
 - Leaked Password Protection remains disabled; requires authorized dashboard configuration and subsequent Advisor verification.
 - No production writes or configuration changes were made. No bulk grants/policies revoked or added. Full release remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-30 — RC440 search_path integration gate
+
+- PR #520 merged the latest read-only Security Advisor classification as cbc474cbfd39afb87061aed3a720ca666effed91.
+- PR #521 merged the RC440 PostgreSQL 16 fixture, behavioral integration test and dedicated CI workflow as fd89faca30aca45622f0a012f283896ef20e4e08.
+- RC440 integration passed on the exact PR head and post-merge main workflow [41003030610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030610). It verifies public/pg_temp ordering, temp-table shadowing prevention, grant preservation, already-hardened exclusion and service_role-only exclusion.
+- Production still has 30 exposed SECURITY DEFINER functions with exact search_path=public; no RC440 migration was applied. Keep it in the full ordered migration rollout.
+- No production schema, grants, Auth/RLS, Edge Functions or financial records were changed. Production remains **BLOCKED / NOT CERTIFIED**.
