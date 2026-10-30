@@ -253,7 +253,7 @@ export const AdminDashboard: React.FC = () => {
   };
   const canonicalTaxonomyCategories = categories.filter((category) =>
     category.id.startsWith(`cat_${category.functionalGroupId}_`) ||
-    /^cat_custom_[0-9a-f-]{36}$/i.test(category.id)
+    /^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(category.id)
   );
   const [taxonomySourceCategoryId, setTaxonomySourceCategoryId] = useState(
     canonicalTaxonomyCategories[0]?.id || ''
