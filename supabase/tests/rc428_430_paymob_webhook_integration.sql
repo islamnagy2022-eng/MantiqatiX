@@ -317,19 +317,8 @@ begin
   where source_payment_intent_id=sub_no_owner;
   if v_subscription_count <> 0 then raise exception 'RC430 created a subscription without an active owner'; end if;
 
-  -- RC428 event + intent mutation are atomic: an injected update failure leaves no event.
-  create or replace function public.rc428_test_reject_atomic_update()
-  returns trigger language plpgsql as $trigger$
-  begin
-    if new.id='pi-atomic' and new.status='FAILED' then
-      raise exception 'RC428_TEST_ATOMIC_UPDATE_FAILURE';
-    end if;
-    return new;
-  end;
-  $trigger$;
-  create trigger rc428_test_atomic_update before update on public.payment_intents
-  for each row execute function public.rc428_test_reject_atomic_update();
-
+  -- RC428 event + intent mutation are atomic: injected update failure leaves no event.
+  perform set_config('mantiqatix_test.rc428_fail','true',true);
   rejected := false;
   begin
     perform public.process_verified_provider_payment_failure(
@@ -341,34 +330,22 @@ begin
     if sqlerrm <> 'RC428_TEST_ATOMIC_UPDATE_FAILURE' then raise; end if;
     rejected := true;
   end;
+  perform set_config('mantiqatix_test.rc428_fail','false',true);
   if not rejected then raise exception 'RC428 atomic failure trigger did not fire'; end if;
   select count(*) into n from public.payment_provider_events where external_event_id='paymob:txn-atomic';
   select status into v_status from public.payment_intents where id='pi-atomic';
   if n <> 0 or v_status <> 'PENDING' then
     raise exception 'RC428 failed operation left partial state: events %, status %',n,v_status;
   end if;
-  drop trigger rc428_test_atomic_update on public.payment_intents;
-  drop function public.rc428_test_reject_atomic_update();
 
   -- RC429 event + status mutation are atomic under an injected update failure.
-  create or replace function public.rc429_test_reject_atomic_update()
-  returns trigger language plpgsql as $trigger$
-  begin
-    if new.id=sub_failure and new.status='FAILED' then
-      raise exception 'RC429_TEST_ATOMIC_UPDATE_FAILURE';
-    end if;
-    return new;
-  end;
-  $trigger$;
-  create trigger rc429_test_atomic_update before update on public.subscription_payment_intents
-  for each row execute function public.rc429_test_reject_atomic_update();
-
   -- Re-arm one subscription intent for the isolated atomic rollback assertion.
   update public.subscription_payment_intents set status='PENDING' where id=sub_failure;
+  perform set_config('mantiqatix_test.rc429_fail','true',true);
   rejected := false;
   begin
     perform public.process_verified_subscription_payment_failure(
-      'evt-r429-atomic','paymob:sub-atomic','40000000-0000-4000-8000-000000004282',
+      'evt-r429-atomic','paymob:sub-atomic',sub_failure,
       'sub-atomic',200,'EGP','sub-order-failure',true,'{}'::jsonb
     );
     raise exception 'TEST_FAILED: RC429 injected update failure unexpectedly committed';
@@ -376,28 +353,16 @@ begin
     if sqlerrm <> 'RC429_TEST_ATOMIC_UPDATE_FAILURE' then raise; end if;
     rejected := true;
   end;
+  perform set_config('mantiqatix_test.rc429_fail','false',true);
   if not rejected then raise exception 'RC429 atomic failure trigger did not fire'; end if;
   select count(*) into n from public.payment_provider_events where external_event_id='paymob:sub-atomic';
   select status into v_status from public.subscription_payment_intents where id=sub_failure;
   if n <> 0 or v_status <> 'PENDING' then
     raise exception 'RC429 failed operation left partial state: events %, status %',n,v_status;
   end if;
-  drop trigger rc429_test_atomic_update on public.subscription_payment_intents;
-  drop function public.rc429_test_reject_atomic_update();
 
   -- RC430 event, intent status and subscription creation are atomic together.
-  create or replace function public.rc430_test_reject_subscription_insert()
-  returns trigger language plpgsql as $trigger$
-  begin
-    if new.business_id=business_four then
-      raise exception 'RC430_TEST_ATOMIC_SUBSCRIPTION_FAILURE';
-    end if;
-    return new;
-  end;
-  $trigger$;
-  create trigger rc430_test_atomic_subscription before insert on public.business_subscriptions
-  for each row execute function public.rc430_test_reject_subscription_insert();
-
+  perform set_config('mantiqatix_test.rc430_fail','true',true);
   rejected := false;
   begin
     perform public.process_verified_subscription_payment_backend(
@@ -409,6 +374,7 @@ begin
     if sqlerrm <> 'RC430_TEST_ATOMIC_SUBSCRIPTION_FAILURE' then raise; end if;
     rejected := true;
   end;
+  perform set_config('mantiqatix_test.rc430_fail','false',true);
   if not rejected then raise exception 'RC430 atomic subscription trigger did not fire'; end if;
   select count(*) into n from public.payment_provider_events where external_event_id='paymob:sub-atomic';
   select status into v_status from public.subscription_payment_intents where id=sub_atomic;
@@ -416,8 +382,6 @@ begin
   if n <> 0 or v_status <> 'PENDING' or v_subscription_count <> 0 then
     raise exception 'RC430 failure left partial state: events %, intent %, subscriptions %',n,v_status,v_subscription_count;
   end if;
-  drop trigger rc430_test_atomic_subscription on public.business_subscriptions;
-  drop function public.rc430_test_reject_subscription_insert();
 
   raise notice 'RC428–RC430 Paymob webhook atomicity integration: PASS';
 end;
