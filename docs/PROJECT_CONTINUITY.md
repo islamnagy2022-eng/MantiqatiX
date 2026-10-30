@@ -924,3 +924,9 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - 90 anonymous-policy warnings, 67 authenticated-executable SECURITY DEFINER functions, 3 anon-executable definer warnings, 8 RLS-enabled/no-policy INFO findings, and leaked password protection disabled.
 - No-policy tables have no direct anon/authenticated grants; trigger-only definer functions and bounded public ad lookup were distinguished from ordinary RPCs. No broad ACL or RLS fix applied.
 - Next: isolated anonymous JWT and tenant/business/branch adversarial tests, 67-function caller/identity/search_path review, then narrowly scoped fixes. No production security mutation; gate remains BLOCKED.
+
+
+### Release manifest checkpoint — 2026-10-30
+- docs/release/production-migration-reconciliation.json now records current read-only evidence: 308 live migration records; 41 exact required source-version IDs still absent; RC435/RC439 subscription contracts absent; RC449A/RC450 financial journal path absent; RLS/SECURITY DEFINER advisor counts refreshed.
+- Financial journal canonical path is RC449A→RC450; current main Edge RPC name matches RC450. Do not use RC436 as a substitute.
+- Overall release remains BLOCKED pending isolated migration rehearsal, payment/finance E2E, anonymous JWT tests and backup/restore.
