@@ -652,3 +652,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - TODO action: deployed browser/device verification of the merged taxonomy browser remains open. The catalog UI was not changed in this checkpoint.
 - No production DB/schema/migration/Auth/RLS/payment/Edge Function/deployment change was performed.
 - Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Critical Edge Function parity rechecked live (read-only)
+
+- Read the live Supabase function metadata and entrypoint contents for `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`.
+- Compared normalized live `index.ts` content with the matching `main` repository source files. All six are non-identical; live versions are respectively 8, 8, 10, 5, 4, and 3. Exact SHA-256 and byte counts are recorded in `TODO_PRODUCTION.md`.
+- This proves source parity is unresolved, not that live behavior is necessarily broken. No deployment or source overwrite was attempted.
+- Next: semantic diff each function, map contracts and dependencies, write isolated tests for auth, tenant ownership, payment amount/currency integrity, HMAC/replay/idempotency, and journal invariants; then propose a reviewed rollout/rollback plan.
+- Supabase access was read-only. No SQL mutation, migration, payment, wallet action, Auth/RLS change, or production data mutation.
+- Production remains **BLOCKED / NOT CERTIFIED**.
