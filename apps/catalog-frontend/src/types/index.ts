@@ -73,6 +73,8 @@ export interface Business {
   activitySpecialty?: string;
   logoUrl: string;
   coverUrl: string;
+  externalLogoUrl?: string; // Explicit owner/admin-provided external URL; excludes generated display fallback.
+  externalCoverUrl?: string; // Explicit owner/admin-provided external URL; excludes generated display fallback.
   coverImages?: string[]; // من 1 إلى صورتين لصاحب النشاط لعرضها في السلايدر المتغير
   bio: string;
   ownerWhatsApp: string; // The merchant's WhatsApp for incoming orders
