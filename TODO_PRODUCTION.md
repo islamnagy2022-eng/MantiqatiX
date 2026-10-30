@@ -1152,3 +1152,15 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Subscription checkout: RC435/RC439 claimable intent/provider-claim RPCs and five provider-creation/encrypted-secret columns remain absent in the recorded live contract.
 - [ ] Financial journal: canonical RC449A/RC450 schema fields and service-role RPC boundary remain absent; do not substitute the non-canonical RC436 path.
 - [ ] Reconcile each object against the actual stored migration statements and physical schema on an isolated clone. Resolve forward-bundle aliases and old signatures explicitly; never replay missing source migrations blindly or fabricate migration ledger rows.
+
+## 2026-10-31 — RC520 follow-up: exact anonymous provider-profile column inventory
+
+- [x] Re-ran a read-only information_schema.columns + information_schema.role_table_grants query against Production project moyhiluyhjsujhwlyeuu; confirmed 19 columns on public.marketing_provider_profiles and table-level SELECT for anon applies to every column.
+- [x] Confirmed the exact column inventory: id, provider_kind, business_id, owner_user_id, name_ar, name_en, slug, description, specialties, service_areas, portfolio, status, is_verified, is_featured, ranking_weight, settings, created_at, updated_at, profile_image_path.
+- [x] Confirmed the query was metadata-only; no owner UUIDs, settings JSON values, profile records, or other row contents were selected.
+- [x] Reconfirmed the primary apps/catalog-frontend reads public provider data through the curated Edge Function contract; it has no direct marketing_provider_profiles PostgREST query in the checked source. The public Edge Function projections omit owner_user_id and profile-level settings.
+- [ ] Prepare a forward-only, reviewed privilege migration that removes anon's table-wide SELECT and grants only the approved public column allowlist, excluding at minimum owner_user_id and settings. Do not assume column-level grants are compatible with wildcard selects.
+- [ ] Before migration approval, search and test every first-party and known legacy client for select('*'), implicit wildcard, and explicit-column reads; verify public active-only RLS remains effective and public Edge Functions continue to work.
+- [ ] Add isolated PostgreSQL tests proving anon can read only the approved public columns, cannot select owner_user_id or settings, and cannot write; verify authenticated owner/admin/CRM workflows retain required fields and scope.
+- [ ] Verify deployed-origin directory and storefront behavior after the migration in a disposable environment first. Production application remains subject to the chronological migration reconciliation, backup/restore rehearsal, rollback plan, and explicit release approval.
+- Safety: no production DDL, grants, RLS, data, Auth, Edge Function, or financial changes were performed. This is a documentation and verification checkpoint only.
