@@ -34,7 +34,7 @@ begin
     where n.nspname='public'
       and p.proname='audit_catalog_taxonomy_definition_change'
       and p.prosecdef=true
-      and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=%'
+      and p.proconfig @> ARRAY['search_path=""']::text[]
   ) then
     raise exception 'RC460_AUDIT_TRIGGER_SECURITY_CONFIG_INVALID';
   end if;
