@@ -132,6 +132,10 @@ assert.ok(customMappingMigration.includes("- 'activity_category_code'"), 'Applyi
 assert.ok(customMappingMigration.includes("lock table public.bizcatalog_platform_settings in share mode"), 'Custom category registry must not change between preview validation and transactional apply.');
 assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TO_CANONICAL_APPLY_INVALID') && customMappingIntegration.includes('RC461_CANONICAL_TO_CUSTOM_BUSINESS_ID_INVALID'), 'Integration must cover custom-to-canonical and canonical-to-custom mappings.');
 assert.ok(customMappingIntegration.includes('RC461_UNKNOWN_CUSTOM_SOURCE_NOT_REJECTED') && customMappingIntegration.includes('RC461_CUSTOM_TARGET_TYPE_MISMATCH_NOT_REJECTED'), 'Integration must reject fabricated custom IDs and classification-type mismatches.');
+assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TARGET_WRONG_GROUP_NOT_REJECTED'), 'Integration must reject custom categories registered under a different functional group.');
+assert.ok(customMappingIntegration.includes('RC461_STALE_PREVIEW_NOT_REJECTED'), 'Integration must reject stale custom-category mapping previews.');
+assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TO_CUSTOM_APPLY_FAILED'), 'Integration must cover custom-to-custom reclassification.');
+assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TO_CANONICAL_CHANGED_UNRELATED_FIELDS'), 'Integration must preserve unrelated ownership, billing, specialty, publication and contact fields.');
 assert.ok(dashboard.includes('/^cat_custom_[0-9a-f-]{36}$/i.test(category.id)'), 'Admin UI must include persisted custom categories in source/target selectors.');
 assert.ok(edge.includes('entry?.isCustom === true') && edge.includes('TAXONOMY_CUSTOM_TARGET_NOT_FOUND'), 'Edge Function must verify a saved custom category definition before calling the RPC.');
 assert.ok(edge.includes('entry?.id === activityCategoryId') && edge.includes('INVALID_ACTIVITY_CATEGORY_ID'), 'New activities may not reference fabricated or unregistered custom categories.');
