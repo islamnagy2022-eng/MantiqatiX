@@ -375,7 +375,7 @@ Deno.serve(async (req: Request) => {
         value.startsWith(`cat_${groupId}_`) &&
         /^cat_[a-z][a-z0-9_]*_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(value) &&
         canonicalTaxonomyCategoryTypes.has(value);
-      const isCustomCategoryId = (value: string) => /^cat_custom_[0-9a-f-]{36}$/i.test(value);
+      const isCustomCategoryId = (value: string) => /^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
       const canonicalCategoryType = (value: string) => canonicalTaxonomyCategoryTypes.get(value);
 
       let savedCustomCategories: any[] = [];
@@ -516,7 +516,7 @@ Deno.serve(async (req: Request) => {
             return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_OR_TYPE_MISMATCH" }, 400);
           }
           if (id.startsWith("cat_custom_") &&
-              (!/^cat_custom_[0-9a-f-]{36}$/i.test(id) || category?.isCustom !== true)) {
+              (!/^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) || category?.isCustom !== true)) {
             return response(origin, { error: "INVALID_CUSTOM_TAXONOMY_CATEGORY_ID" }, 400);
           }
           if (id.startsWith("cat_") && !canonicalKind &&
@@ -812,7 +812,7 @@ Deno.serve(async (req: Request) => {
       const canonicalActivityCategoryType = canonicalTaxonomyCategoryTypes.get(activityCategoryId);
       const canonicalActivityCategoryCode = canonicalActivityCategoryType && activityGroupCode
         ? activityCategoryId.slice(`cat_${activityGroupCode}_`.length) : "";
-      const customActivityCategoryId = /^cat_custom_[0-9a-f-]{36}$/i.test(activityCategoryId);
+      const customActivityCategoryId = /^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(activityCategoryId);
       const canonicalActivityGroups = new Set([
         "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
         "construction_decor", "auto_transport", "real_estate", "education_training",
