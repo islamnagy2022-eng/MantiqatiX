@@ -1323,3 +1323,13 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - [x] Existing live policy audit explains that the 90 labels are not 90 direct `anon` table grants. They are policies attached to the `authenticated` Postgres role while Supabase anonymous sign-in is enabled; anonymous-authenticated sessions must be distinguished by the JWT `is_anonymous` claim. Keep per-policy/role review and anonymous-JWT adversarial testing open.
 - [ ] Leaked Password Protection remains a managed Auth setting and cannot be changed through the available connected Supabase actions. An authorized project owner must enable it in Supabase Auth settings and then rerun Advisor and password signup regression.
 - [ ] Do not mass-rewrite the 90 policy findings, bulk-revoke the 67 SECURITY DEFINER functions, add broad policies to the 8 fail-closed tables, or mass-create indexes for the performance findings. Resolve by caller/tenant/query-specific review with regression tests.
+
+
+## 2026-10-31 — Fresh read-only production finance preflight
+
+- [x] Re-read the live Supabase migration ledger: **308 records**, latest remains `20261029083845 require_phone_for_published_directory_listings`. No migration was applied.
+- [x] Re-ran a read-only schema/RPC/ACL preflight at `2026-10-31 01:52 Cairo (2026-10-30T23:52:42Z)`. Subscription table still lacks `provider_creation_state`, `provider_creation_claimed_at`, `client_secret_ciphertext`, `client_secret_iv`, and `client_secret_key_version`; only the legacy `create_subscription_payment_intent_backend` RPC is present in the inspected contract set, with service_role EXECUTE. The two claim/recovery RPCs remain absent.
+- [x] Financial journal still lacks `journal_entries.entry_number/total_debit/total_credit/posted_at/updated_at/reversed_by_entry_id` and `journal_entry_lines.line_number`. Both inspected journal RPCs remain service_role EXECUTE=false; current legacy backend function has `search_path=public`. The inspected journal header/line/general-ledger tables each still contain zero rows at this snapshot.
+- [x] These results reconfirm the existing RC435/RC439 and RC449A/RC450 blockers; they do not authorize a production migration, grant, RPC invocation, function deployment, or financial test transaction.
+- [ ] Next executable step remains an **isolated, restorable, schema-faithful rehearsal** of the current production state and a forward-only reconciliation plan. No isolated Supabase branch/project was created because cost/organization confirmation is still pending; no production mutation occurred.
+- **Release remains BLOCKED / NOT CERTIFIED.**
