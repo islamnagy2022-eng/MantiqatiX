@@ -1,0 +1,1 @@
+ALTER TABLE public.public_directory_listings ADD CONSTRAINT public_directory_listings_published_requires_phone CHECK (listing_status <> 'PUBLISHED' OR length(regexp_replace(COALESCE(phone, '') || COALESCE(secondary_phone, ''), '[^0-9]', '', 'g')) >= 7);
