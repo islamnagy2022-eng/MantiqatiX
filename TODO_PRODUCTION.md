@@ -925,3 +925,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Rehearse RC449A then RC450 in a restorable isolated database; only then plan approved production migration and matching Edge deployment.
 - [ ] Do not apply RC436 as a shortcut or grant EXECUTE on the legacy RPC.
 - The financial journal remains CRITICAL / BLOCKED pending the canonical rollout.
+
+
+## 2026-10-30 — RLS / Anonymous JWT / SECURITY DEFINER review
+- [x] Fresh Security Advisor: 90 anonymous-policy warnings, 67 authenticated-executable SECURITY DEFINER functions, 3 anon-executable SECURITY DEFINER functions, 8 RLS-enabled/no-policy INFO findings, and leaked-password protection disabled.
+- [x] Policy inventory: 483 authenticated policies; 283 explicitly mention is_anonymous; 200 do not. 215 reference auth.uid(); 103 reference user_memberships. These are overlapping text indicators, not proof of safety or vulnerability.
+- [x] No-policy table ACL check: none of the eight grant direct table privileges to anon/authenticated; six have no service_role table privileges, and two are service_role-only. No broad RLS policy was added.
+- [x] Triage of anon SECURITY DEFINER: two are trigger-only functions; one is the intentionally public read-only targeted-ad lookup with empty search_path and bounded results. Trigger paths and public response fields still require tests.
+- [x] 67 authenticated SECURITY DEFINER static triage: 60 reference auth.uid(); 27 reference membership; 23 explicitly compare actor IDs; 37 have empty/explicit pg_temp-last paths; 30 use search_path=public only. A static scan found no unqualified public table references in those 30, but temp-object tests and function-by-function review remain open.
+- [x] Detailed evidence and safe test plan: docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md.
+- [ ] Run anonymous JWT and cross-tenant/business/branch adversarial tests on an isolated restorable database; do not create anonymous users or probe sensitive rows in production.
+- [ ] Review all 67 SECURITY DEFINER functions, callers, actor binding, grants, owners and search_path; make narrow fixes only after tests.
+- [ ] Enable Leaked Password Protection through approved Auth configuration and test password flows.
+- Security gate remains BLOCKED / NOT CERTIFIED; no production RLS/ACL/Auth change was made.
