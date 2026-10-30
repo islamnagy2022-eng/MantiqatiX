@@ -990,3 +990,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Added a design-only target architecture to `TODO_PRODUCTION.md`: curated public Edge Functions, owner-bound non-anonymous RPCs, separate tenant/business-scoped CRM reads, a strict ownership helper for RLS/storage policy dependencies, and a final revocation only after disposable PostgreSQL and browser E2E prove all dependent flows.
 - Supabase docs review confirms views default to underlying-owner privilege evaluation unless `security_invoker=true`; a view must not be treated as an automatic RLS-safe replacement. No view or migration was created.
 - No production schema/grants/RLS/data/Auth/Edge Function/payment/finance changes were made. Full Production Gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-31 — Mainline continuation: PR #553/#554 and RC520 security gate
+
+- Merged PR #554 (legacy redirect-only boot guard) as `93d2bd719328d1f56a799ac42ea8a4a7ae8a7183`. Its exact-head CI passed before merge. The Pages deploy job was skipped for PR validation; live deployed-origin redirect and OAuth callback verification are still pending.
+- Merged PR #553 documentation checkpoint as `d7ec37d2a970d6d4111e363c4f762e366826d446`; it records the 19-column inventory, effective grants, direct source consumers, live policy dependencies, and safe target architecture.
+- Updated `TODO_PRODUCTION.md` on main to retire the incorrect anon-only column-allowlist proposal. The actual release target is no direct base-table SELECT for anon/authenticated after public Edge Functions, owner/CRM RPCs and all dependent RLS/storage ownership checks have been migrated and tested.
+- Current mainline read-only Production privileges remain: anon SELECT; authenticated SELECT/INSERT/UPDATE/DELETE; service_role server privileges. Active-public SELECT policy applies to anon and authenticated, so authenticated users can also reach private profile fields. No production DDL/grants/RLS/data/Auth/Edge Function/payment/finance changes were made.
+- Exact live policy dependencies requiring preservation: digital_pages owner INSERT/SELECT/UPDATE; digital_page_sections owner ALL; marketing_provider_services owner-manage ALL; marketing_project_participants assigned-project SELECT; marketing_provider_subscriptions owner SELECT; storage.objects provider-media owner INSERT/UPDATE/DELETE.
+- Production remains BLOCKED / NOT CERTIFIED. A current main-push Pages deployment and live redirect check are not established by the PR validation run.
