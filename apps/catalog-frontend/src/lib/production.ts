@@ -388,6 +388,14 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     }
   }
 
+  // Do not silently downgrade an active business-linked membership to an empty
+  // workspace when every scoped catalog read failed. Fail closed and surface the
+  // data-loading failure; this does not grant access or mutate the subscription.
+  const hasBusinessScopedMembership = roleMemberships.some((m: any) => Boolean(m.business_id));
+  if (!platform && hasBusinessScopedMembership && businesses.length === 0) {
+    throw new Error('تم العثور على عضوية نشطة مرتبطة بنشاط لكن تعذر تحميل كتالوجه من قاعدة الإنتاج. لم يتم تغيير الاشتراك أو منح صلاحيات بديلة. حدّث الصفحة وأعد المحاولة، وإذا استمرت المشكلة فراجع ربط العضوية بالنشاط في Supabase.');
+  }
+
   let subscribers: Subscriber[] = [];
   let subscriberDirectoryError = '';
   let ignoredOrphanMemberships = 0;
