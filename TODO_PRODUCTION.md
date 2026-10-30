@@ -793,3 +793,18 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Still open: complete schema-faithful replay of the whole missing chain, exact migration alias/forward-bundle mapping, backup/restore and rollback rehearsal, Paymob sandbox E2E, AES-GCM runtime/key-rotation test, real authenticated cross-tenant browser E2E, Auth leaked-password protection, and SMM deferred negative runtime evidence.
 - No production SQL writes, migrations, grants, Auth/RLS changes, Edge Function deployments, provider calls, payment/subscription/wallet operations or financial postings were performed during this checkpoint.
 - Overall production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC439 versioned checkout-key rotation implemented (PR #518)
+
+- [x] PR [#518](https://github.com/islamnagy2022-eng/MantiqatiX/pull/518) merged as `5f3415b8b736c2bed6cbb16a749319dc5d552d60`.
+- [x] Subscription checkout encryption now reads active version from `PAYMOB_CHECKOUT_ENCRYPTION_ACTIVE_VERSION` (defaults to `v1` for backward compatibility) and selects key material from versioned server-side secrets such as `PAYMOB_CHECKOUT_ENCRYPTION_KEY_V1` and `..._V2`.
+- [x] New checkout secrets are encrypted using the active key version; existing rows are decrypted using their stored `client_secret_key_version`. Malformed versions and missing keys fail closed.
+- [x] Expanded AES-GCM unit coverage passed on exact PR head: round-trip, unique IV, intent/business associated-data binding, tamper rejection, V1→V2 rotation while retaining V1 decrypt, and missing/malformed key rejection. RC425 crypto step and RC435–RC439 checkout workflow both passed on PR #518.
+- [x] Payment wiring validation, build, professional dashboard browser E2E, employee RBAC PostgreSQL, targeted-ad search-path, matrimony privacy, MantiGO privacy, RC450 journal, and approval-audit checks passed on PR #518.
+- [ ] The change is merged to source only. It does **not** deploy the Supabase Edge Function or change secrets. Live `subscription-payment-intent` remains v4 until a separately approved deployment; do not activate V2 until both V1 and V2 keys are configured in Supabase secrets and staging checkout/recovery is verified.
+- [ ] Production payment migrations and all six critical Edge Function parity mismatches remain separate blockers. Do not treat PR #518 as payment production approval.
+- No production migration, Edge Function deployment, environment-secret update, provider call, checkout, payment, wallet or financial posting was performed.
+- Full production remains **BLOCKED / NOT CERTIFIED**.
