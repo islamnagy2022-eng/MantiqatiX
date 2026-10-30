@@ -129,10 +129,22 @@ export const BusinessProfileHeader: React.FC = () => {
             </span>
           ) : (
             currentBusiness.isVerified && (
-              <span className="bg-emerald-500/90 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>موثّق رسمياً</span>
-              </span>
+              <>
+                <span className="bg-emerald-500/90 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1.5 rounded-full border border-emerald-400/30 shadow-md flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>موثّق رسمياً</span>
+                </span>
+                {currentBusiness.logoUrl && (
+                  <a href={currentBusiness.logoUrl} target="_blank" rel="noopener noreferrer" title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-800 text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-md hover:bg-white">
+                    اللوجو
+                  </a>
+                )}
+                {currentBusiness.coverUrl && (
+                  <a href={currentBusiness.coverUrl} target="_blank" rel="noopener noreferrer" title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-800 text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-md hover:bg-white">
+                    الغلاف
+                  </a>
+                )}
+              </>
             )
           )}
         </div>

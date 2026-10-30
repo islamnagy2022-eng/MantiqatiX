@@ -927,10 +927,22 @@ export const DirectoryView: React.FC = () => {
                         {/* Top Badges */}
                         <div className="absolute top-1 right-1 sm:top-3 sm:right-3 flex flex-wrap items-center gap-1">
                           {biz.isVerified && (
-                            <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>موثّق</span>
-                            </span>
+                            <>
+                              <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>موثّق</span>
+                              </span>
+                              {biz.logoUrl && (
+                                <a href={biz.logoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
+                                  اللوجو
+                                </a>
+                              )}
+                              {biz.coverUrl && (
+                                <a href={biz.coverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
+                                  الغلاف
+                                </a>
+                              )}
+                            </>
                           )}
                           {!biz.isVerified && (
                             <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
