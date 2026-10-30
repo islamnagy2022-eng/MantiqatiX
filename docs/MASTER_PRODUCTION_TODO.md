@@ -2598,3 +2598,17 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] إغلاق Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) بعد استكمال source fix والاختبارات المعزولة.
 - [ ] تطبيق RC458 على Production غير منفذ. يلزم مسار release مع backup/restore وrollback وموافقة صريحة؛ لا تنفذ migration مباشرة.
 - **الحالة:** SOURCE MERGED / ISOLATED VERIFIED / PRODUCTION NOT APPLIED. بوابة المنصة الكلية تظل BLOCKED / NOT CERTIFIED.
+
+
+## CAT-TAXONOMY-ADMIN-SECURITY-20261030 — Secure taxonomy mapping administration
+- [x] Source review confirms an existing admin taxonomy tab, but no dedicated dry-run/preview + transactional mapping workflow.
+- [x] Source review identifies that `catalog-platform-admin` `SAVE_SETTINGS` accepts taxonomy arrays without sufficient server-side structural/reference validation and does not write a dedicated taxonomy audit event.
+- [x] Record implementation design and security boundaries in `docs/audits/CATALOG_TAXONOMY_ADMIN_SECURITY_REVIEW_20261030.md`.
+- [ ] Implement a read-only server-side preview action with duplicate/reference validation, affected-row counts, bounded before/after sample, and preview digest.
+- [ ] Implement a forward-only transactional PostgreSQL RPC/migration that revalidates the preview, applies only approved taxonomy fields, and writes audit history atomically.
+- [ ] Add server-side negative RBAC tests for anonymous/customer/provider/business owner/employee/tenant-scoped admin/inactive membership and positive platform-wide SUPER_ADMIN tests.
+- [ ] Add dry-run zero-write, stale-preview, invalid-ID, duplicate-code, referenced-category deletion, atomic rollback, and data-preservation integration tests.
+- [ ] Add an additive admin UI to the existing taxonomy tab; do not change public directory/storefront UI or remove legacy IDs.
+- [ ] Run isolated forward replay, PostgreSQL integration, build/typecheck, browser E2E, then PR review. Production deployment remains blocked until release gates pass.
+- **Safety:** no Production mutation was performed. No taxonomy data is to be bulk-updated from the UI until preview and transactional commit are both verified.
+- **Status:** ANALYSIS VERIFIED / IMPLEMENTATION TODO / PRODUCTION UNCHANGED.
