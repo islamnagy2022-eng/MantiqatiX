@@ -1,0 +1,53 @@
+name: RC435–RC439 Subscription Intent and Checkout Recovery
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql"
+      - "supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql"
+      - "supabase/tests/rc435_439_subscription_recovery_fixture.sql"
+      - "supabase/tests/rc435_439_subscription_recovery_integration.sql"
+      - ".github/workflows/rc435-439-subscription-recovery-integration.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql"
+      - "supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql"
+      - "supabase/tests/rc435_439_subscription_recovery_fixture.sql"
+      - "supabase/tests/rc435_439_subscription_recovery_integration.sql"
+      - ".github/workflows/rc435-439-subscription-recovery-integration.yml"
+permissions:
+  contents: read
+jobs:
+  rc435-439-subscription-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc435_439_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc435_439_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply disposable fixture, then RC435 and RC439
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc435_439_subscription_recovery_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009210000_rc435_subscription_provider_intent_claim.sql "$pg_container:/tmp/rc435.sql"
+          docker cp supabase/migrations/20261010010000_rc439_encrypted_checkout_recovery.sql "$pg_container:/tmp/rc439.sql"
+          docker cp supabase/tests/rc435_439_subscription_recovery_integration.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc435_439_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc435_439_test -v ON_ERROR_STOP=1 -f /tmp/rc435.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc435_439_test -v ON_ERROR_STOP=1 -f /tmp/rc439.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc435_439_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
