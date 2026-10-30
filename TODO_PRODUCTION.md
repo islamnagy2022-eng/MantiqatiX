@@ -822,3 +822,14 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Do not bulk-revoke the 67 function grants or add policies to the 8 no-policy tables. Review each function's caller/ACL and each table's intended RPC-only access; preserve public ad discovery and required trigger behavior while applying RC440 in the approved ordered chain.
 - No production SQL writes, grants, RLS/Auth changes, Edge Function deployments, provider calls, payments, wallet operations or financial postings were performed.
 - Full production remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
+## 2026-10-30 — RC440 SECURITY DEFINER search_path integration gate merged
+
+- [x] PR [#520](https://github.com/islamnagy2022-eng/MantiqatiX/pull/520) merged as cbc474cbfd39afb87061aed3a720ca666effed91, recording the latest read-only Security Advisor classification.
+- [x] PR [#521](https://github.com/islamnagy2022-eng/MantiqatiX/pull/521) merged as fd89faca30aca45622f0a012f283896ef20e4e08, adding a dedicated PostgreSQL 16 RC440 integration workflow and isolated fixture.
+- [x] RC440 CI passed on the PR head and again on main in [41003030610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030610). Assertions cover anonymous/authenticated function search_path hardening to public, pg_temp; temporary-table shadowing prevention; preservation of intended anon/authenticated EXECUTE grants; unchanged already-hardened functions; and exclusion of service_role-only functions.
+- [ ] This is test coverage only. RC440 has not been applied to Production; read-only inventory still shows 30 authenticated-executable SECURITY DEFINER functions with exact search_path=public. Keep RC440 inside the approved chronological migration plan.
+- No production SQL, migration, grant, RLS/Auth setting, Edge Function deployment, provider call, payment or financial mutation occurred.
+- Production remains **BLOCKED / NOT CERTIFIED**.
