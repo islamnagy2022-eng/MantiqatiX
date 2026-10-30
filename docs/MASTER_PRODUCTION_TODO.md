@@ -2602,13 +2602,18 @@ Use the following hierarchy; these files are complementary, not competing copies
 
 ## CAT-TAXONOMY-ADMIN-SECURITY-20261030 — Secure taxonomy mapping administration
 - [x] Source review confirms an existing admin taxonomy tab, but no dedicated dry-run/preview + transactional mapping workflow.
-- [x] Source review identifies that `catalog-platform-admin` `SAVE_SETTINGS` accepts taxonomy arrays without sufficient server-side structural/reference validation and does not write a dedicated taxonomy audit event.
-- [x] Record implementation design and security boundaries in `docs/audits/CATALOG_TAXONOMY_ADMIN_SECURITY_REVIEW_20261030.md`.
-- [ ] Implement a read-only server-side preview action with duplicate/reference validation, affected-row counts, bounded before/after sample, and preview digest.
-- [ ] Implement a forward-only transactional PostgreSQL RPC/migration that revalidates the preview, applies only approved taxonomy fields, and writes audit history atomically.
-- [ ] Add server-side negative RBAC tests for anonymous/customer/provider/business owner/employee/tenant-scoped admin/inactive membership and positive platform-wide SUPER_ADMIN tests.
-- [ ] Add dry-run zero-write, stale-preview, invalid-ID, duplicate-code, referenced-category deletion, atomic rollback, and data-preservation integration tests.
-- [ ] Add an additive admin UI to the existing taxonomy tab; do not change public directory/storefront UI or remove legacy IDs.
-- [ ] Run isolated forward replay, PostgreSQL integration, build/typecheck, browser E2E, then PR review. Production deployment remains blocked until release gates pass.
-- **Safety:** no Production mutation was performed. No taxonomy data is to be bulk-updated from the UI until preview and transactional commit are both verified.
-- **Status:** ANALYSIS VERIFIED / IMPLEMENTATION TODO / PRODUCTION UNCHANGED.
+- [x] Source review identified weak structural/reference validation in the existing `SAVE_SETTINGS` taxonomy write path; the implementation now validates group/category arrays, rejects duplicate IDs/names and prevents removing or remapping categories still referenced by Production records.
+- [x] Record source risks and the implementation/security design in `docs/audits/CATALOG_TAXONOMY_ADMIN_SECURITY_REVIEW_20261030.md`.
+- [x] Add forward-only migration `20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql` with service-role-only preview/apply RPCs, platform-wide SUPER_ADMIN revalidation, source/target ID validation, row counts, bounded sample, stale-preview digest, transaction locks, exact taxonomy-field updates, and atomic audit insertion.
+- [x] Add append-only `catalog_taxonomy_mapping_audit` with FORCE RLS, no direct API-role table access, before-image of changed taxonomy fields only, and a trigger preventing UPDATE/DELETE.
+- [x] Add `TAXONOMY_MAPPING_PREVIEW` and `TAXONOMY_MAPPING_APPLY` server actions in `catalog-platform-admin`; RPC calls use the service-role client only after user token and active platform-wide role checks.
+- [x] Add additive mapping panel to the existing Super Admin taxonomy tab. The panel displays business/listing counts and sample rows, supports preview cancellation, requires confirmation, and sends the exact preview digest before commit. Public directory/storefront screens are unchanged.
+- [x] Add isolated PostgreSQL fixture, integration test, controlled mid-transaction failure trigger, and GitHub Actions workflow: `supabase/tests/rc459_taxonomy_mapping_fixture.sql`, `supabase/tests/rc459_taxonomy_mapping_integration.sql`, `.github/workflows/rc459-catalog-taxonomy-mapping.yml`.
+- [x] Add browser E2E coverage for admin preview → cancel → fresh preview → confirmed apply and audit confirmation.
+- [x] Add static source-contract validator `scripts/validate-catalog-taxonomy-admin-contract.mjs` to the primary catalog validation workflow.
+- [ ] Extend negative runtime RBAC coverage for anonymous JWT, CUSTOMER, SERVICE_PROVIDER, EMPLOYEE, tenant-scoped admin, inactive SUPER_ADMIN, and a SUPER_ADMIN with business/branch scope; only the non-platform OWNER negative case is present in the current SQL integration.
+- [ ] Run exact-head RC459 PostgreSQL integration, primary catalog build/typecheck/browser E2E, migration history/collision guards, and full isolated migration replay; fix all failures and capture job logs.
+- [ ] Review target category membership against the authoritative canonical taxonomy source; current RPC validates canonical group + category-ID shape, while code-seeded categories are not populated in the live `bizcatalog_platform_settings.categories` array.
+- [ ] Update the audit report with exact-head validation evidence and request review; do not mark complete until CI and adversarial RBAC tests pass.
+- **Safety:** no Production mutation was performed. No migration was applied, no Edge Function was deployed, and no taxonomy data was bulk-updated. The public directory/storefront UI is untouched.
+- **Status:** IMPLEMENTED ON FEATURE BRANCH / VALIDATION IN PROGRESS / PRODUCTION UNCHANGED. Overall platform Production Gate remains BLOCKED / NOT CERTIFIED.
