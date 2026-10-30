@@ -12,71 +12,63 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
-# P0 — حواجز الإطلاق
+# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-30)
 
-1. E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
-   - عميلان ومقدما خدمة من جهتين مختلفتين.
-   - tenant/business/role isolation.
-   - Google OAuth، انتهاء الجلسة، logout، refresh.
-   - منع IDOR والوصول إلى مستخدم/مزود آخر.
+1. Auth and multi-tenant E2E — NOT VERIFIED
+   - Google OAuth browser lifecycle, session refresh/expiry/logout, membership approval, customer/provider/owner/admin and tenant/business/branch isolation remain open.
+   - Leaked Password Protection is disabled and requires authorized Supabase Auth dashboard action plus Advisor recheck.
 
-2. E2E العميل → مقدم الخدمة → الطلب → الحالة → الإشعار — NOT VERIFIED
-   - إنشاء طلب حقيقي.
-   - ظهور الطلب للمزود الصحيح فقط.
-   - انتقالات الحالة.
-   - وصول الإشعار وclick-through.
-   - عزل مزودين من أعمال مختلفة.
+2. Customer/provider/order/notification E2E — NOT VERIFIED
+   - CI source/contract and isolated database tests do not prove a real customer→correct provider→status→notification journey across separate tenants.
 
-3. Paymob production E2E — WAIT
-   - معاملة حقيقية مصرح بها.
-   - HMAC/replay/idempotency.
-   - ربط الدفع بالطلب الصحيح.
-   - حماية السعر/العملة/tenant.
+3. Paymob production E2E — NOT VERIFIED
+   - RC426–RC431 isolated PostgreSQL tests pass; no signed Paymob sandbox E2E or authorized real payment has been performed.
+   - Live RC426 still exposes the legacy four-argument finalizer; the required five-argument order-bound contract is absent.
 
-4. Finance/Settlement E2E — NOT VERIFIED
-   - payment success → commission → payout/settlement.
-   - duplicate webhook.
-   - concurrent/replay.
-   - tenant isolation.
-   - GL posting/account mapping/reconciliation.
+4. Finance/settlement/journal E2E — NOT VERIFIED
+   - RC435–RC439 and RC450 isolated PostgreSQL tests pass; AES-GCM rotation tests pass on source.
+   - Live RC435 claim RPCs/columns and RC439 encrypted-secret columns are absent. Live RC450 journal schema columns and service_role EXECUTE boundary remain absent/mismatched.
+   - No real payment, refund, settlement or ledger posting was created during this audit.
 
-5. Supabase Security Advisor — OPEN / REVIEWED
-   - آخر فحص Production (2026-10-07): public.digital_page_payment_events هو الجدول الوحيد الظاهر كـ RLS enabled بدون policy؛ وهو backend-only/payment-event boundary ومقصود أن يبقى fail-closed.
-   - تحذير SECURITY DEFINER للـ anon: get_mnty_targeted_advertisements — endpoint إعلانات عام مقصود، ويظل يحتاج مراجعة موثقة لا تعطيلًا أعمى.
-   - 40 SECURITY DEFINER functions قابلة للتنفيذ من authenticated؛ تمت مراجعة حدود الممثل/العضوية في المسارات الحرجة، ولا يوجد حتى الآن P0 actor-spoofing defect مثبت، لكن التحذير لا يُعتبر مغلقًا حتى تكتمل المراجعة الفردية.
-   - تحذيرات anonymous-policy ما زالت تحتاج مراجعة سياقية؛ لا تُعتبر وحدها إثباتًا لوصول مجهول فعلي.
-   - leaked-password protection معطل — WAITING FOR OWNER / Dashboard action.
+5. Supabase Security Advisor — OPEN / CLASSIFIED
+   - Latest live counts: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; leaked-password protection disabled.
+   - The 8 no-policy tables deny direct anon/authenticated access; 6 also deny service_role direct access and 2 are service_role-only. Preserve deny-by-default/RPC-only behavior; do not add broad policies.
+   - The 3 anon SECDEF findings are two trigger-returning functions plus the intended public targeted-ad RPC with empty search_path.
+   - Of the 67 authenticated SECDEF functions: 30 have exact search_path=public, 17 public,pg_temp, 19 empty, and 1 public,auth trigger function. RC440 is the reviewed migration for the 30 exact-public functions; its dedicated PostgreSQL 16 integration passed on main run 41003030610, but RC440 is NOT applied live.
 
-6. RLS بلا Policies — PARTIAL / FAIL-CLOSED REVIEW
-   - Production inspection: `user_memberships`, `restaurant_inventory`, `restaurant_menu_items`, `restaurant_orders`, and `restaurant_tables` have RLS enabled and policies present (1 policy on memberships, 8 on each restaurant table).
-   - `digital_page_payment_events` has RLS enabled and 0 policies, remaining fail-closed. Production grant inspection showed no direct SELECT/INSERT/UPDATE/DELETE grants to `service_role` in information_schema (only REFERENCES/TRIGGER/TRUNCATE), so the backend access path still needs explicit verification before closing this gate.
-   - Prior full catalog check recorded 128/128 public base tables with RLS; repeat the full check before final release.
-   - Do not add broad policies just to silence Advisor; verify the intended Edge Function/service-role path and least-privilege grants first.
+6. Production migration and physical-object reconciliation — BLOCKED
+   - Live migration ledger: 308 records through 20261029083845.
+   - 0/41 exact required release migration identifiers are recorded. This does not imply all effects are absent; the 60-object manifest distinguishes present, missing and blocked physical contracts.
+   - Two known exact-source aliases remain pending controlled ledger repair; do not execute duplicate SQL or rewrite historical migration history.
+   - Complete chronological, schema-faithful replay, effect reconciliation, backup/restore and rollback approval are mandatory before any production migration.
 
-7. Leaked Password Protection — WAIT
-   - تفعيلها من Supabase Auth.
-   - إعادة فحص Advisor.
+7. Critical Edge Function source parity — BLOCKED
+   - Six live entrypoints remain different from main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3.
+   - Require per-function semantic diff, schema/ACL dependencies, provider sandbox E2E and rollback plan. No blind batch deploy.
 
-8. Production release build + signing — WAIT
-   - protected release keystore.
-   - release AAB/APK.
-   - signature/checksum verification.
-   - لا أسرار أو keystore في repo.
+8. Backup/restore/DR — NOT VERIFIED
+   - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence.
 
-9. Real-device release test — WAIT
-   - install/update.
-   - auth/session.
-   - customer/provider/owner/admin.
-   - push.
-   - network loss/retry.
-   - location permission عند الحاجة فقط.
+9. Release build/signing and real-device regression — WAIT
+   - Signed Android artifact, protected signing material, install/update, auth/session, role journeys, push, network-loss/retry and device regression remain open.
 
-10. Public web deployment smoke — PARTIAL / browser E2E NOT VERIFIED
-    - Historical GitHub Pages deployment + automated `Verify deployed site`: PASS for commit `569f1245fcd57ab50f30abcb08599409e483392a` (run 37861633528).
-    - Historical Production Health Monitor: PASS for the same commit (run 37861633606); checks GitHub Pages, Supabase health function, and public web assets.
-    - Current PR #316 source/CI validation: PASS on commit `57d9c20c71dab78a01c8ff50ccf69acb1b3c7818` (run 39616640682, validate job successful). The deploy job was skipped correctly for the pull_request event; therefore this does NOT verify the new deployed-preview HTTP smoke checks.
-    - Live preview URLs could not be independently fetched in this session; do not mark deployed-preview smoke as passed on that basis.
-    - Still NOT VERIFIED: interactive authenticated browser session, responsive/accessibility manual audit, PWA/service-worker offline behavior, and end-user auth flow.
+10. Public web deployment smoke — VERIFIED FOR TESTED MAIN SNAPSHOT
+    - Main web deploy [41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838) passed after PR #521, including deployed-origin browser route checks.
+    - Production Health Monitor [41003213146](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003213146) passed after PR #522. The follow-up web deploy for documentation-only main commit 1d80c771e89a7b2693be7c62d0c8bba9d815f678 was in progress at this snapshot.
+    - Full authenticated customer/admin journeys, accessibility/manual device testing and offline/PWA recovery remain NOT VERIFIED.
+
+**Overall Production Gate: BLOCKED / NOT CERTIFIED.** No production migrations, grants, Auth/RLS changes, Edge Function deployments, provider calls or financial mutations were performed in this checkpoint.
+
+## Required production-gate contract markers
+
+The following exact status markers are retained for the automated RC360 release-gate validator; they reflect the current unresolved state, not an assertion that these gates have passed.
+
+- E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
+- Paymob production E2E — WAIT
+- Leaked Password Protection — WAIT
+- Production release build + signing — WAIT
+- Real-device release test — WAIT
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**
 
 # P1 — أولوية عالية
 

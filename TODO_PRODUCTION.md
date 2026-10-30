@@ -3,24 +3,25 @@
 حالات العمل: TODO / IN PROGRESS / WAIT / BLOCKED / DONE / VERIFIED / NOT VERIFIED.  
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
-## P0 — بوابة الإطلاق
-- [🟢] Baseline CI — run #114 نجح على `main` للـcommit `d58e1360a170bce596494b2aeb37b5166fff6a5b`، وتضمن تحقق ملفات الويب وSyntax وMetadata/Security smoke.
-- [ ] Auth production: Google OAuth end-to-end، session refresh/expiry، logout، membership approval، multi-role and tenant isolation. **NOT VERIFIED — CI OAuth handshake passes, but authenticated browser E2E and live Auth security settings remain unverified.**
-- [🟡] Authorization/RLS: 111/111 جدول RLS؛ تمت مراجعة سياسات المسارات الحرجة (orders/support/tickets/notifications/memberships/marketing)، وتم إصلاح `support_tickets_update_staff` لمنع تغيير `tenant_id` أثناء التحديث؛ بقي اختبار E2E بحسابات أدوار متعددة.
-- [🟡] مراجعة SECURITY DEFINER وEXECUTE: العدد «10 وظائف» أدناه توثيق تاريخي وليس جردًا حاليًا. إعادة الفحص الحي يوم 2026-10-27 05:49 UTC سجلت 48 تحذيرًا لوظائف `SECURITY DEFINER` قابلة للتنفيذ من `authenticated` وتحذيرًا واحدًا لـ`anon` على `get_mnty_targeted_advertisements(...)`. هذه التحذيرات ليست وحدها إثباتًا لقابلية الاستغلال؛ يلزم جرد كل توقيع، و`search_path`، والصلاحيات، والمستدعين، ثم اختبارات قبل أي تغيير. راجع issue #98؛ ممنوع السحب الجماعي للصلاحيات.
-- [🟢] Data API grants baseline: anon لديه SELECT على `legal_documents` و`legal_document_versions` فقط ولا يملك INSERT/UPDATE/DELETE؛ authenticated لديه امتيازات محددة ومحمية بـRLS؛ المراجعة التفصيلية لكل مسار تبقى ضمن E2E.
-- [🟡] Database constraints/indexes/integrity: 111/111 لها Primary Key و224 Foreign Keys؛ توجد 155 أعمدة FK بلا index أحادي مطابق وتحتاج مراجعة أداء حسب الاستخدام.
-- [ ] API/Edge Functions/integrations. **NOT VERIFIED — external runtime test pending.**
-- [ ] Website/Admin/Owner/Manager/Employee/Customer E2E. **NOT VERIFIED — requires real test accounts and external browser.**
-- [🟡] Finance backend controls inspected (payment/refund/settlement/order pricing/idempotency); actual provider/payment E2E remains NOT VERIFIED.
+## P0 — بوابة الإطلاق (لقطة تحقق محدثة 2026-10-30)
+
+- [🟢] Main source CI and web deployment: latest confirmed main web deploy after PR #521 passed in [run 41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838), including deployed-origin browser checks. PR #522 is documentation-only; its follow-up main deployment run 41003213178 was still in progress at this snapshot.
+- [ ] Auth production: Google OAuth end-to-end، session refresh/expiry، logout، membership approval، multi-role and tenant isolation. **NOT VERIFIED.** Supabase Auth Leaked Password Protection is currently disabled.
+- [🟡] Authorization/RLS: prior baseline confirmed 111/111 tables with RLS. Latest Security Advisor reports 8 RLS-enabled tables without policies; read-only privilege review found no direct anon/authenticated table access on those 8. Six also have no direct service_role access; two are service_role-only. Preserve deny-by-default/RPC-only contracts; no broad policies added.
+- [🟡] SECURITY DEFINER and EXECUTE: latest live review counts 67 authenticated-executable and 3 anon-executable functions. Authenticated function search_path distribution: 30 exact public, 17 public then pg_temp, 19 empty, and 1 public/auth trigger. The 3 anon warnings are two trigger-returning functions plus the intentional public targeted-ad RPC with empty search_path. RC440 integration passed in isolated PostgreSQL and on main [run 41003030610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030610), but RC440 has NOT been applied to Production. No bulk revokes.
+- [🟢] Data API grants baseline: prior targeted review found no broad anon write grants; per-function/table least-privilege review and adversarial E2E remain open.
+- [🟡] Database integrity: full migration reconciliation remains a blocker. Production ledger has 308 records through 20261029083845; 0/41 exact required release migration IDs are recorded. This is a ledger-identity finding, not proof that every migration effect is absent. The current manifest tracks 60 required object contracts with a mixture of present, missing and blocked effects.
+- [ ] API/Edge Functions/integrations. **NOT VERIFIED for production payment runtime.** Six critical live entrypoints remain different from current repository source: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3.
+- [ ] Website/Admin/Owner/Manager/Employee/Customer E2E. **NOT VERIFIED** with real authorized identities across tenants/branches.
+- [🟡] Finance backend controls: RC426–RC431, RC435–RC439 and RC450 isolated PostgreSQL CI jobs pass. **Paymob sandbox and real payment/finance/settlement E2E remain NOT VERIFIED.** Live RC435/RC439 schema/RPC requirements and RC450 journal schema/ACL requirements remain missing or mismatched.
 - [ ] CRM + Marketing E2E.
 - [ ] Regression كامل.
-- [ ] Backup/Restore/DR test. **NOT VERIFIED — restore evidence not yet produced.**
-- [ ] Monitoring/alerts/logging.
-- [ ] Production configuration/secrets.
-- [ ] Build/Release/Rollback.
-- [ ] External browser/device tests. **NOT VERIFIED — network/browser execution unavailable in current execution environment.**
-- [ ] Release approval موثق.
+- [ ] Backup/Restore/DR test. **NOT VERIFIED — no restore rehearsal evidence.**
+- [🟡] Monitoring/alerts/logging: Production Health Monitor passes; incident classification, alert delivery, recovery drill and measured RPO/RTO remain NOT VERIFIED.
+- [ ] Production configuration/secrets. Checkout key rotation source is merged with V1 default and V1→V2 tests; live subscription Edge Function remains v4, no function deploy or secret update occurred.
+- [ ] Build/Release/Rollback: web CI/deploy is verified, but backend schema/function release sequencing, signed Android build and rollback rehearsal remain open.
+- [ ] External browser/device tests. Deployed-origin browser CI passed for tested routes; real-device, accessibility, offline/PWA and full authenticated role journeys remain NOT VERIFIED.
+- [ ] Release approval موثق. **Overall Production Gate: BLOCKED / NOT CERTIFIED.**
 
 ## P1 — Website / Platform
 - [x] Website baseline/PWA/brand.
