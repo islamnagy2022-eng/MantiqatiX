@@ -866,3 +866,17 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - No production schema/data, migration, Auth/RLS/grants, Edge Functions, secrets, payment or finance changes occurred. No UI redesign or source component changes were made.
 - Production release remains **BLOCKED / NOT CERTIFIED**.
 - **Next resume:** check post-merge Pages deployment and deployed-origin browser outcome; then continue module acceptance/TODO reconciliation using the new SPEC crosswalk.
+
+
+---
+
+## 2026-10-30 — Latest continuation: PR #525 merged
+
+- PR #525 merged to `main` as `3bf212793e61ad6ae47f46e6fa73b0d8b988be4c`.
+- Unconfirmed directory-listing counters now have the requested red treatment; confirmed activity counters remain green. No layout, typography, hierarchy, group ordering, filter or ranking logic was changed.
+- Exact-head Primary Catalog Frontend Validation [41005476492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476492) passed build/typecheck/contracts, isolated employee RBAC PostgreSQL and Playwright red/green indicator checks.
+- Supporting exact-commit backend boundary, module professionalization, MantiGO privacy, RC425 atomicity and flexible commission workflows passed.
+- Pages PR validation 41005476412 passed the validation job but skipped deployment on the PR event. Post-merge deployed-origin verification remains open.
+- No production schema/data, migration, Supabase settings, Auth/RLS/grants, Edge Function, secret, payment or financial mutation occurred.
+- Production Gate remains **BLOCKED / NOT CERTIFIED**.
+- **Next resume:** verify post-merge Pages deployment and the deployed-origin browser suite; then continue module acceptance/TODO reconciliation from `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md`.
