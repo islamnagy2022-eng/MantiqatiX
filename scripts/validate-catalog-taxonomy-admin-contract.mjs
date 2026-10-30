@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 const read = (path) => fs.readFileSync(path, 'utf8');
 const admin = read('apps/catalog-frontend/src/components/admin/AdminDashboard.tsx');
 const edge = read('supabase/functions/catalog-platform-admin/index.ts');
+const defaults = read('apps/catalog-frontend/src/data/productionDefaults.ts');
 const migration = read('supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql');
 const fixture = read('supabase/tests/rc459_taxonomy_mapping_fixture.sql');
 const integration = read('supabase/tests/rc459_taxonomy_mapping_integration.sql');
@@ -29,6 +30,14 @@ assert.ok(edge.includes('service.rpc(rpcName, rpcArgs'), 'Taxonomy operations mu
 assert.ok(edge.includes('TAXONOMY_CATEGORY_IN_USE'), 'SAVE_SETTINGS must block deletion or movement of a referenced category.');
 assert.ok(edge.includes('const oldGroup = allowedTaxonomyGroups.find'), 'Category usage lookup must parse canonical IDs using explicit known group prefixes.');
 assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks must fail closed.');
+assert.ok(edge.includes('const canonicalTaxonomyCategoryIds = new Set<string>'), 'Edge Function must use a server-owned canonical category allowlist.');
+assert.ok(edge.includes('isKnownCanonicalCategory(sourceCategoryId)') && edge.includes('isKnownCanonicalCategory(targetCategoryId)'), 'Both source and target category IDs must be checked against the canonical seed inventory.');
+const seededCategoryCodes = [...defaults.matchAll(/^\\s*s\\('([^']+)','([^']+)','(activity|profession)','/gm)];
+const canonicalAllowlist = edge.slice(edge.indexOf('const canonicalTaxonomyCategoryIds'), edge.indexOf(']);', edge.indexOf('const canonicalTaxonomyCategoryIds')));
+const allowlistedIds = [...canonicalAllowlist.matchAll(/"cat_[a-z0-9_]+"/g)].map((match) => match[0].slice(1, -1));
+assert.equal(seededCategoryCodes.length, 226, 'Canonical seed inventory changed; review the server allowlist.');
+assert.equal(allowlistedIds.length, seededCategoryCodes.length, 'Server canonical allowlist must have one ID per seeded category.');
+assert.equal(new Set(allowlistedIds).size, allowlistedIds.length, 'Server canonical allowlist must not contain duplicate category IDs.');
 
 assert.ok(migration.includes('security definer\nset search_path = \'\''), 'Every taxonomy RPC/trigger must use SECURITY DEFINER with an empty search_path.');
 assert.ok(migration.includes('mnty_catalog_taxonomy_mapping_preview'), 'Migration must install the authoritative preview RPC.');
