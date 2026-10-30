@@ -902,3 +902,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Webhook v10 and order-create v8 remain open for complete semantic/RPC trace. Do not deploy current source blindly.
 - **Next:** verify live RPC signatures/definitions, grants, owners, SECURITY DEFINER and search_path against the current migration manifest; build a restorable isolated database; run payment/webhook/finance adversarial tests; prepare a per-function reviewed rollout and rollback plan.
 - No production Supabase mutation or financial operation was performed. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Confirmed live schema/Edge mismatch — 2026-10-30
+- Production ledger lacks RC435 20261009210000, RC436 20261009220000, and RC439 20261010010000.
+- Subscription claimable RPCs and provider-creation/encrypted-checkout columns required by current main are absent in production.
+- Live journal RPCs lack service-role EXECUTE. RC436 introduces post_financial_journal_atomic_backend with service-role grant, but current main Edge code still calls the older post_financial_journal_backend; do not deploy before aligning and testing this contract.
+- See docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
+- Next: isolated restorable DB rehearsal for RC435/436/439, integration and rollback tests, then correct Edge source. No production mutation performed; release remains BLOCKED.
