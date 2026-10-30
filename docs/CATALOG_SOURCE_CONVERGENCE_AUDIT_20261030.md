@@ -1,6 +1,6 @@
 # MantiqaTix — Catalog Source Convergence Audit
 Date: 2026-10-30
-Status: IMPLEMENTED SOURCE CONVERGENCE MAP; browser verification is pending for the current change.
+Status: DEPLOYED / BROWSER VERIFIED for the catalog convergence scope; full platform Production Gate remains blocked.
 
 ## Objective
 Converge the uploaded legacy catalog snapshot and RC40 reference package into the current website-first MantiqaTix repository without replacing the deployed catalog UI, duplicating business logic, importing demo data, or weakening backend authorization.
@@ -64,10 +64,13 @@ All 20 uploaded Markdown instructions are already preserved together in `docs/sp
 - Existing card badges, category counters, filters, card geometry, homepage, covers, routes, and storefront behavior are not redesigned.
 
 ## Validation contract
-- Exact source/PR validation must pass TypeScript/build, catalog contracts, employee RBAC PostgreSQL, and browser E2E.
-- Browser E2E must assert the new verified/unverified summary is visible and retains green/red semantics.
-- Main Pages deployment and deployed-origin browser tests are separate required evidence after merge.
-- The current known successful main deployment before this change is run `41008394292`; the current primary catalog validation run is `41008394339`. Both passed their recorded jobs. They validate the pre-change baseline, not this new commit.
+- PR [#531](https://github.com/islamnagy2022-eng/MantiqatiX/pull/531) merged as `907e2448584015095de47432ee62ff61b9c1edf7`.
+- Exact-PR Primary Catalog Frontend Validation [run 41013793105](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41013793105) passed build/typecheck, employee RBAC PostgreSQL, and browser E2E, including the new verified/unverified count summary.
+- Exact-PR supporting validation passed: RC425/MantiGO atomicity [41013793056], MantiGO privacy [41013792960], Backend-only/RC450/approval audit [41013793069], Module Professionalization [41013792970], Flexible Commission [41013793079], SMM deferred contract [41013792979].
+- Main Primary Catalog Frontend Validation [run 41013924236](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41013924236) passed build, employee RBAC PostgreSQL, and browser E2E.
+- Main Pages deployment [run 41013924305](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41013924305) passed validation, deployed the catalog to GitHub Pages, verified the primary catalog root, and passed the deployed-origin browser checks for dashboard routes, mobile layout, membership scopes, and permanent QR links.
+- Main supporting checks also passed: Backend-only/RC450/approval audit [41013924357], Module Professionalization [41013924285], MantiGO privacy [41013924219], SMM deferred contract [41013924296], and Production Health Monitor [41013924400].
+- The current deployed site is `https://islamnagy2022-eng.github.io/MantiqaTix/`. The verified-first summary is included in the built and deployed artifact.
 - No Production database, migration, Auth/RLS/grant, Edge Function, secret, payment, wallet, or financial data mutation is authorized by this convergence task.
 
 ## Remaining integration and release gates
