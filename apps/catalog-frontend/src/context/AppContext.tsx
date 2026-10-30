@@ -115,6 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const addBusinessInFlightRef = useRef<Map<string, Promise<string>>>(new Map());
   const initialRouteParams = new URLSearchParams(window.location.search);
   const [selectedBusinessId, setSelectedBusinessIdState] = useState(initialRouteParams.get('manage') || '');
   const routeBusinessIdRef = useRef(initialRouteParams.get('store') || initialRouteParams.get('businessId') || initialRouteParams.get('manage') || '');
@@ -574,58 +575,87 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addBusiness = async (data: Omit<Business, 'id' | 'createdAt'>): Promise<string> => {
     if (authSession.role !== 'admin') throw new Error('إضافة الأنشطة متاحة لإدارة المنصة فقط.');
-    const result: any = await callPlatformAdmin({ action: 'CREATE_BUSINESS', business: { name: data.name, category: data.category, activityGroupCode: data.functionalGroupId, activityClassificationType: data.categoryClassificationType || 'activity', activitySpecialty: data.activitySpecialty || '', bio: data.bio, phone: data.ownerWhatsApp || data.phone || '', address: data.address || '', governorate: data.governorate || '', markaz: data.markaz || '', village: data.village || '', workingHours: data.workingHours || '', logoUrl: data.logoUrl || '', coverUrl: data.coverUrl || '', slug: data.slug || '', publishNow: Boolean(data.publicEnabled), subscriptionMode: data.subscriptionMode || 'PAID', subscriptionAmount: data.subscriptionAmount ?? 0, paymentDueDate: data.paymentDueDate, paymentGracePeriodDays: data.paymentGracePeriodDays ?? 7 } });
-    if (!result?.business?.id) throw new Error('لم يرجع الخادم معرف النشاط المنشأ.');
-    const createdBusiness = result.business as { id: string; tenantId: string; branchId: string };
-    const needsLogo = !data.logoUrl?.trim();
-    const needsCover = !data.coverUrl?.trim();
-    if (needsLogo || needsCover) {
-      const [generatedLogo, generatedCover] = await Promise.all([
-        needsLogo ? generateCatalogAiImage({
-          businessId: createdBusiness.id,
-          branchId: createdBusiness.branchId,
-          kind: 'activity',
-          name: data.name,
-          category: data.category,
-          description: data.bio || '',
-        }) : Promise.resolve(null),
-        needsCover ? generateCatalogAiImage({
-          businessId: createdBusiness.id,
-          branchId: createdBusiness.branchId,
-          kind: 'cover',
-          name: data.name,
-          category: data.category,
-          description: data.bio || '',
-        }) : Promise.resolve(null),
-      ]);
-      if (generatedLogo || generatedCover) {
-        const profileImageSettings: Record<string, string> = {};
-        if (needsLogo) {
-          if (generatedLogo) profileImageSettings.logo_url = generatedLogo;
-          profileImageSettings.logo_image_source = generatedLogo ? 'ai' : 'auto';
-        }
-        if (needsCover) {
-          if (generatedCover) profileImageSettings.cover_url = generatedCover;
-          profileImageSettings.cover_image_source = generatedCover ? 'ai' : 'auto';
-        }
-        try {
-          await callPlatformAdmin({
-            action: 'BUSINESS_MANAGE',
-            tenantId: createdBusiness.tenantId,
+    // Use exactly the payload sent to the server as the in-flight identity. Rapid
+    // repeated submissions of the same form share one Promise; different payloads
+    // remain independent and are never merged by name/phone heuristics here.
+    const createBusinessPayload = {
+      name: data.name, category: data.category, activityGroupCode: data.functionalGroupId,
+      activityClassificationType: data.categoryClassificationType || 'activity',
+      activitySpecialty: data.activitySpecialty || '', bio: data.bio,
+      phone: data.ownerWhatsApp || data.phone || '', address: data.address || '',
+      governorate: data.governorate || '', markaz: data.markaz || '', village: data.village || '',
+      workingHours: data.workingHours || '', logoUrl: data.logoUrl || '', coverUrl: data.coverUrl || '',
+      slug: data.slug || '', publishNow: Boolean(data.publicEnabled),
+      subscriptionMode: data.subscriptionMode || 'PAID', subscriptionAmount: data.subscriptionAmount ?? 0,
+      paymentDueDate: data.paymentDueDate, paymentGracePeriodDays: data.paymentGracePeriodDays ?? 7,
+    };
+    const requestKey = JSON.stringify(createBusinessPayload);
+    const inFlightRequest = addBusinessInFlightRef.current.get(requestKey);
+    if (inFlightRequest) return inFlightRequest;
+
+    const request = (async (): Promise<string> => {
+      const result: any = await callPlatformAdmin({ action: 'CREATE_BUSINESS', business: createBusinessPayload });
+      if (!result?.business?.id) throw new Error('لم يرجع الخادم معرف النشاط المنشأ.');
+      const createdBusiness = result.business as { id: string; tenantId: string; branchId: string };
+      const needsLogo = !data.logoUrl?.trim();
+      const needsCover = !data.coverUrl?.trim();
+      if (needsLogo || needsCover) {
+        const [generatedLogo, generatedCover] = await Promise.all([
+          needsLogo ? generateCatalogAiImage({
             businessId: createdBusiness.id,
-            operation: 'UPDATE',
+            branchId: createdBusiness.branchId,
+            kind: 'activity',
             name: data.name,
-            settings: { catalog_profile: profileImageSettings },
-          });
-        } catch (imageSaveError) {
-          // Creation remains successful; missing imagery falls back to the category artwork.
-          console.warn('The new activity was created, but its AI images could not be linked to the profile.', imageSaveError);
+            category: data.category,
+            description: data.bio || '',
+          }) : Promise.resolve(null),
+          needsCover ? generateCatalogAiImage({
+            businessId: createdBusiness.id,
+            branchId: createdBusiness.branchId,
+            kind: 'cover',
+            name: data.name,
+            category: data.category,
+            description: data.bio || '',
+          }) : Promise.resolve(null),
+        ]);
+        if (generatedLogo || generatedCover) {
+          const profileImageSettings: Record<string, string> = {};
+          if (needsLogo) {
+            if (generatedLogo) profileImageSettings.logo_url = generatedLogo;
+            profileImageSettings.logo_image_source = generatedLogo ? 'ai' : 'auto';
+          }
+          if (needsCover) {
+            if (generatedCover) profileImageSettings.cover_url = generatedCover;
+            profileImageSettings.cover_image_source = generatedCover ? 'ai' : 'auto';
+          }
+          try {
+            await callPlatformAdmin({
+              action: 'BUSINESS_MANAGE',
+              tenantId: createdBusiness.tenantId,
+              businessId: createdBusiness.id,
+              operation: 'UPDATE',
+              name: data.name,
+              settings: { catalog_profile: profileImageSettings },
+            });
+          } catch (imageSaveError) {
+            // Creation remains successful; missing imagery falls back to the category artwork.
+            console.warn('The new activity was created, but its AI images could not be linked to the profile.', imageSaveError);
+          }
         }
       }
+      await applyUser((await supabase.auth.getUser()).data.user);
+      setSelectedBusinessIdState(result.business.id);
+      return result.business.id;
+    })();
+
+    addBusinessInFlightRef.current.set(requestKey, request);
+    try {
+      return await request;
+    } finally {
+      if (addBusinessInFlightRef.current.get(requestKey) === request) {
+        addBusinessInFlightRef.current.delete(requestKey);
+      }
     }
-    await applyUser((await supabase.auth.getUser()).data.user);
-    setSelectedBusinessIdState(result.business.id);
-    return result.business.id;
   };
 
   const updateBusinessLocation = async (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }): Promise<void> => {
