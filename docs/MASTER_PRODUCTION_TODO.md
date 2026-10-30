@@ -2513,3 +2513,11 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Isolated RPC/ACL/schema compatibility and adversarial payment tests are required before any deployed Edge Function can be replaced. Current source review flags subscription payment intent and financial journal as critical drift, with payment-intent and digital-page payment correlation/reconciliation gaps.
 - [ ] Continue webhook and order-create semantic trace; verify live SQL RPC definitions, SECURITY DEFINER attributes, execute grants, search_path, and caller contracts.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**; no production function, database, Auth/RLS, secret, or financial mutation was performed.
+
+
+### Live Edge/SQL contract reconciliation — 2026-10-30
+- [x] Confirmed RC435 and RC439 migrations are absent from the live ledger; required subscription claim RPCs and provider-creation/encrypted-checkout columns are absent from the production schema.
+- [x] Confirmed RC436 is absent from the live ledger; existing financial journal RPCs lack service_role EXECUTE. Current main Edge source calls post_financial_journal_backend, while RC436's service-role-granted atomic contract is post_financial_journal_atomic_backend.
+- [ ] Rehearse RC435/RC436/RC439 on a restorable isolated database; validate data preconditions, schema, grants, function definitions, rollback/restore and integration tests before proposing production rollout.
+- [ ] Align Edge source with the approved atomic financial journal RPC; do not grant legacy RPCs as a shortcut.
+- Keep production release BLOCKED / NOT CERTIFIED.
