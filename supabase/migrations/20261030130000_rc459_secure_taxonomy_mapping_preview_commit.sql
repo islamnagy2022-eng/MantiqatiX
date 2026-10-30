@@ -123,6 +123,7 @@ begin
       'B|' || b.id::text || '|' || coalesce(b.updated_at::text,'') || '|' ||
       coalesce(b.settings->>'activity_group_code','') || '|' ||
       coalesce(b.settings->>'activity_category_code','') || '|' ||
+      coalesce(b.settings->>'activity_category_id','') || '|' ||
       coalesce(b.settings->>'activity_classification_type',''),
       E'\n' order by b.id
     ),'')
@@ -259,6 +260,7 @@ begin
         'id',b.id,
         'activity_group_code',b.settings->>'activity_group_code',
         'activity_category_code',b.settings->>'activity_category_code',
+        'activity_category_id',b.settings->>'activity_category_id',
         'activity_classification_type',b.settings->>'activity_classification_type',
         'updated_at',b.updated_at
       ) order by b.id)
@@ -281,10 +283,12 @@ begin
   update public.businesses b
   set settings = pg_catalog.jsonb_set(
       pg_catalog.jsonb_set(
-        pg_catalog.jsonb_set(coalesce(b.settings,'{}'::jsonb),
-          '{activity_group_code}',to_jsonb(p_target_group_id),true),
-        '{activity_category_code}',to_jsonb(v_target_code),true),
-      '{activity_classification_type}',to_jsonb(p_target_classification_type),true
+        pg_catalog.jsonb_set(
+          pg_catalog.jsonb_set(coalesce(b.settings,'{}'::jsonb),
+            '{activity_group_code}',to_jsonb(p_target_group_id),true),
+          '{activity_category_code}',to_jsonb(v_target_code),true),
+        '{activity_classification_type}',to_jsonb(p_target_classification_type),true),
+      '{activity_category_id}',to_jsonb(p_target_category_id),true
     ),
     updated_at = now()
   where b.settings->>'activity_group_code' = p_source_group_id
