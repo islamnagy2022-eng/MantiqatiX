@@ -983,3 +983,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Post-merge main Pages deployment [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) passed deployment, root verification and deployed-origin browser checks.
 - [x] Read-only production audit: 2 ACTIVE verified profiles, both with HTTPS logo and cover URLs; 0 invalid configured URLs. Fallback images remain display-only.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — RC458 digital-page payment RPC search-path hardening (Issue #269)
+
+- [x] Read-only Production inventory of `claim_digital_page_payment_intent_backend`, `release_digital_page_payment_intent_claim_backend`, and `fulfill_digital_page_publish`: all are postgres-owned SECURITY DEFINER functions with `search_path=public, pg_temp`; authenticated EXECUTE is intentional, anon is not granted.
+- [x] Confirmed the existing caller contract: claim/release bind the supplied user to `auth.uid()`; publication binds actor to `auth.uid()` and checks platform-admin authority. Preserve these checks and the authenticated grants.
+- [x] Prepared forward-only RC458 migration `20261030120000_rc458_digital_page_payment_rpc_empty_search_path.sql`, changing only the function search_path to empty for the three RPCs. No function body, ACL, or production state is changed by the migration source itself.
+- [x] Added disposable PostgreSQL fixture, cross-user / unauthorized-publication / temporary-table-shadow / ACL regression suite, and CI workflow. See `docs/audits/DIGITAL_PAGE_PAYMENT_RPC_SEARCH_PATH_20261030.md`.
+- [ ] Exact-head RC458 CI must pass before merge.
+- [ ] Rehearse RC458 against a restorable isolated Supabase branch/current schema; verify final body, owner, proconfig, ACL and caller behavior. Obtain organization ID and review any branch cost before creating a paid Supabase branch.
+- [ ] Only after isolated replay and approval, prepare a production rollout/rollback plan. Do not apply RC458 directly to Production.
+- Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) remains open until isolated Supabase evidence is attached. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
