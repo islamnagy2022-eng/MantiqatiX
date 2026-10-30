@@ -956,3 +956,37 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - [x] Issue #270 closed for recovery of the 16 RC425–RC441 source migrations and isolated forward-replay acceptance. This does not reconcile the live 41-version ledger drift or authorize production rollout.
 - No Production migration, RPC/ACL, Auth setting, payment, wallet or financial mutation was performed in this work.
 - Overall Production Gate remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-31 — RC520 provider-profile anonymous column exposure checkpoint
+
+- Read-only Production metadata query confirmed anon has table-level SELECT on public.marketing_provider_profiles, covering all 19 current columns.
+- The inventory includes owner_user_id and settings; the query inspected column metadata and grant metadata only. It did not retrieve owner UUIDs or settings values.
+- Primary apps/catalog-frontend source uses the curated public directory Edge Function rather than direct PostgREST reads of this table. The public Edge Function selects an explicit public projection and does not return owner_user_id or profile-level settings.
+- The correct remediation is a compatibility-preserving, forward-only privilege change with an explicit public column allowlist, plus anonymous/owner/admin PostgreSQL tests and deployed-origin E2E. Do not revoke anon table access until all first-party/legacy direct-query consumers have been checked; column-level grants can break wildcard selects.
+- Created documentation-only continuation branch security/anon-provider-profile-column-boundary-20261031. No production schema, grants, policies, data, Auth settings, Edge Functions, payments, or financial records were changed. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-31 — RC520 effective provider-profile access and legacy-route review
+
+- Read-only effective privilege checks confirmed `anon` and `authenticated` both have table-level SELECT on `public.marketing_provider_profiles`; both can currently select `owner_user_id` and `settings`. Authenticated also retains table-level INSERT/UPDATE/DELETE (RLS remains the row/write guard).
+- Live policy metadata shows the active-public SELECT policy applies to `anon,authenticated` and checks only `status = 'ACTIVE'`. The separate CRM manager SELECT policy checks role/status but has no tenant/business predicate. The owner policy scopes owner writes, not the broad public read policy.
+- Canonical `apps/catalog-frontend` source remains direct-table-free and uses curated Edge Functions. The legacy `web/home.js` source still contains direct queries for public counts, owner profile labels, provider details and settings. `web/index.html` redirects to `/MantiqaTiX/catalog-app/`; legacy boot suppression after redirect is not yet proven by a test.
+- Security conclusion: an anon-only column allowlist is insufficient as a complete confidentiality fix because authenticated users also inherit full-row SELECT and the active-public policy. Private fields require a redesigned boundary (private relation or narrowly authorized RPC) plus tenant/business-scoped CRM access, while preserving owner/admin operations.
+- Updated `TODO_PRODUCTION.md` on the existing documentation branch. No code, schema, grants, policies, production data, Auth configuration, Edge Functions, payments or financial records were changed. Overall Production Gate remains BLOCKED / NOT CERTIFIED.
+
+- Reviewed the attached Android `source_RC40.zip` snapshot (internal timestamps 2026-09-27); no direct `marketing_provider_profiles` references were found. Because this is an older snapshot, it does not certify a later Android build or external consumers.
+- Identified the direct legacy web consumers in `web/home.js` and `web/operations-modules.js`. Draft PR #554 now adds a redirect-only boot guard to `web/index.html` and extends the existing Pages validator; exact-head CI is still running, and no merge or deployment is claimed.
+
+- PR #554 exact-head validation passed: Pages workflow [41144995767](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995767), Legacy Catalog validation [41144995735](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995735), and Marketing Workspace Contract [41144995777](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995777). The Pages deploy job was skipped because this is a PR. The legacy redirect guard is CI-verified, not production-deployed.
+
+
+## 2026-10-31 — RC520 provider-profile dependency mapping and PR #554 merge
+
+- PR #554 was marked ready after exact-head CI passed, then squash-merged as `93d2bd719328d1f56a799ac42ea8a4a7ae8a7183`. Main now contains the legacy `/web/` boot guard. This merge did not change Supabase schema/grants/RLS or data.
+- Confirmed on main that the canonical `apps/catalog-frontend` is direct-table-free for provider profiles and uses the curated public Edge Functions. Public functions explicitly project public fields; server-side `catalog-admin`, `api`, and `catalog-platform-admin` use service-role clients.
+- Expanded source inventory found legacy direct profile reads in `web/home.js` (counts, owner display, category lists, detail/profile resolution, including profile `settings`) and `web/operations-modules.js` (owner workspace, generic marketing/medical provider reads, and owner service-area update). The route guard stops the legacy bootstrap on the redirected route, but the source consumers remain to be retired/replaced before treating table grants as safely removable.
+- Read-only live `pg_policies` dependency inventory found provider-profile ownership subqueries in digital_pages owner INSERT/SELECT/UPDATE, digital_page_sections owner ALL, marketing_provider_services owner-manage ALL, marketing_project_participants assigned-project SELECT, marketing_provider_subscriptions owner SELECT, and storage.objects provider-media owner INSERT/UPDATE/DELETE.
+- Backend references include `create_medical_appointment_backend`, the historical nearest-provider discovery function (client EXECUTE was revoked by a later security migration), RC453 marketing campaign owner checks, and trusted service-role Edge Functions. These must be preserved and checked against live function definitions/ACLs before privilege changes.
+- Added a design-only target architecture to `TODO_PRODUCTION.md`: curated public Edge Functions, owner-bound non-anonymous RPCs, separate tenant/business-scoped CRM reads, a strict ownership helper for RLS/storage policy dependencies, and a final revocation only after disposable PostgreSQL and browser E2E prove all dependent flows.
+- Supabase docs review confirms views default to underlying-owner privilege evaluation unless `security_invoker=true`; a view must not be treated as an automatic RLS-safe replacement. No view or migration was created.
+- No production schema/grants/RLS/data/Auth/Edge Function/payment/finance changes were made. Full Production Gate remains BLOCKED / NOT CERTIFIED.

@@ -1152,3 +1152,73 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Subscription checkout: RC435/RC439 claimable intent/provider-claim RPCs and five provider-creation/encrypted-secret columns remain absent in the recorded live contract.
 - [ ] Financial journal: canonical RC449A/RC450 schema fields and service-role RPC boundary remain absent; do not substitute the non-canonical RC436 path.
 - [ ] Reconcile each object against the actual stored migration statements and physical schema on an isolated clone. Resolve forward-bundle aliases and old signatures explicitly; never replay missing source migrations blindly or fabricate migration ledger rows.
+
+## 2026-10-31 — RC520 follow-up: exact anonymous provider-profile column inventory
+
+- [x] Re-ran a read-only information_schema.columns + information_schema.role_table_grants query against Production project moyhiluyhjsujhwlyeuu; confirmed 19 columns on public.marketing_provider_profiles and table-level SELECT for anon applies to every column.
+- [x] Confirmed the exact column inventory: id, provider_kind, business_id, owner_user_id, name_ar, name_en, slug, description, specialties, service_areas, portfolio, status, is_verified, is_featured, ranking_weight, settings, created_at, updated_at, profile_image_path.
+- [x] Confirmed the query was metadata-only; no owner UUIDs, settings JSON values, profile records, or other row contents were selected.
+- [x] Reconfirmed the primary apps/catalog-frontend reads public provider data through the curated Edge Function contract; it has no direct marketing_provider_profiles PostgREST query in the checked source. The public Edge Function projections omit owner_user_id and profile-level settings.
+- [ ] Prepare a forward-only, reviewed privilege migration that removes anon's table-wide SELECT and grants only the approved public column allowlist, excluding at minimum owner_user_id and settings. Do not assume column-level grants are compatible with wildcard selects.
+- [ ] Before migration approval, search and test every first-party and known legacy client for select('*'), implicit wildcard, and explicit-column reads; verify public active-only RLS remains effective and public Edge Functions continue to work.
+- [ ] Add isolated PostgreSQL tests proving anon can read only the approved public columns, cannot select owner_user_id or settings, and cannot write; verify authenticated owner/admin/CRM workflows retain required fields and scope.
+- [ ] Verify deployed-origin directory and storefront behavior after the migration in a disposable environment first. Production application remains subject to the chronological migration reconciliation, backup/restore rehearsal, rollback plan, and explicit release approval.
+- Safety: no production DDL, grants, RLS, data, Auth, Edge Function, or financial changes were performed. This is a documentation and verification checkpoint only.
+
+## 2026-10-31 — RC520 follow-up: effective grants and authenticated exposure
+
+- [x] Rechecked effective privileges with read-only `has_table_privilege` / `has_column_privilege`: `anon` currently has effective table SELECT and can select both `owner_user_id` and `settings`; `authenticated` also has table-level SELECT/INSERT/UPDATE/DELETE and can select those columns. This is an effective-privilege check, not a row-data extraction.
+- [x] Re-read live RLS policy metadata only. `Public can view active marketing providers` applies to both `anon` and `authenticated` with only `status = 'ACTIVE'`; therefore every authenticated user who can reach the table can also read all active profiles under this policy. The additional `CRM managers view marketing providers` policy checks an active privileged role but has no tenant/business predicate. The owner policy scopes owner writes by `auth.uid() = owner_user_id`; it does not narrow the public SELECT policy.
+- [x] Confirmed current main's canonical entry chain redirects the legacy `/web/` entry to `/catalog-app/`. However, legacy `web/home.js` still contains direct profile reads, including queries requesting `owner_user_id` and `settings`; treat it as a compatibility/legacy consumer until the redirect/boot boundary is proven to prevent execution. Do not mark the consumer inventory complete based only on the new frontend source scan.
+- [x] Confirmed the main `apps/catalog-frontend` contract remains direct-table-free and the two public Edge Functions use service-role reads with explicit public profile projections.
+- [ ] P0 security design: do not assume an anon-only column allowlist fully solves profile confidentiality. Authenticated currently has table-wide SELECT and the active-public RLS policy, so private fields remain available to any signed-in user. Design a safe boundary for private profile fields (for example, a private owner/CRM data relation or narrowly authenticated server-side RPCs) while preserving owner editing and CRM workflows; include tenant/business scoping for CRM reads. No column revoke is approved until these consumers and contracts are redesigned and tested.
+- [ ] Verify the legacy redirect cannot start `web/home.js` data requests after navigation begins, or retire that compatibility boot path without changing the canonical catalog UI. Add a regression test for the redirect boundary.
+- Safety: read-only metadata/policy checks only. No production DDL, grants, RLS, data, Auth settings, Edge Functions, payments, or financial changes were made. Production remains BLOCKED / NOT CERTIFIED.
+
+- [x] Reviewed the attached `source_RC40.zip` Android source snapshot (internal file timestamps 2026-09-27): no direct `marketing_provider_profiles` table-name references were found in that snapshot. This is limited historical-source evidence, not proof about a newer Android build or third-party consumers.
+- [🟡] Legacy web redirect hardening is implemented in Draft PR #554: `web/index.html` now exits before legacy bootstrap, and the existing Pages validator asserts the guard precedes config/Supabase loading while preserving OAuth query/hash. Exact-head CI is running; do not mark verified or deployed yet.
+
+- [🟢] PR #554 legacy redirect/boot guard source validation: exact head `db1891e5683137c8a85b36470ff05480686e8e63`; Pages workflow run [41144995767](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995767) passed all validation steps, including catalog build/type-check, OAuth smoke, public catalog/storefront smoke, and the extended provider-exposure validator. Legacy catalog validation [41144995735](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995735) and Marketing Workspace Contract [41144995777](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995777) also passed. Pages deploy job was skipped as expected for a PR; no production deployment is claimed.
+- [ ] After review/merge approval, verify the deployed `/web/` redirect and Google OAuth callback on the live origin. This is separate from the still-open authenticated private-profile exposure and CRM scope blockers.
+
+## 2026-10-31 — RC520 dependency inventory before profile privilege redesign
+
+### Direct source consumers found on main
+- `web/home.js` contains legacy direct PostgREST reads for provider counts (`id,provider_kind`), current-user owner labels (`name_ar,name_en` filtered by `owner_user_id`), category listings (including `service_areas,profile_image_path,settings`), provider details (including `settings`), and slug/id profile resolution. The `/web/` entrypoint redirect guard merged in PR #554 prevents this legacy runtime from starting on the redirect route, but these old call sites still exist in source and must not be treated as a supported public API.
+- `web/operations-modules.js` contains owner service-management reads that request `owner_user_id`, and service-area updates to `marketing_provider_profiles`; its general marketing/medical provider tabs also use a generic `select('*')` path. Before any authenticated table SELECT revocation, replace these with explicit owner/CRM server-side contracts or prove the module is no longer shipped/reachable.
+- Canonical `apps/catalog-frontend` remains direct-table-free for provider profiles and consumes the curated `public-catalog` / `public-catalog-directory` Edge Functions. The two public functions use service-role access and explicit public projections; they do not return `owner_user_id` or profile-level `settings`.
+- Server-side Edge Function consumers found include `catalog-admin`, `api`, and `catalog-platform-admin`; these use service-role clients and explicit projections or server-side writes. Preserve the service_role boundary.
+
+### Live RLS dependency inventory (read-only `pg_policies`)
+The live policy catalog contains provider-profile subqueries in:
+- `digital_pages`: owner INSERT, SELECT, UPDATE policies.
+- `digital_page_sections`: owner ALL policy.
+- `marketing_provider_services`: owner-manage ALL policy.
+- `marketing_project_participants`: assigned-project SELECT policy.
+- `marketing_provider_subscriptions`: owner-subscription SELECT policy.
+- `storage.objects`: provider-media owner INSERT, UPDATE, DELETE policies.
+These policies currently depend on reading `marketing_provider_profiles` to prove ownership. A direct SELECT revoke may break them unless the ownership check is moved to a tightly scoped, reviewed helper or equivalent secure backend contract and tested with the actual Postgres roles. Do not assume a view or grant change is behavior-neutral.
+
+### Other backend dependencies
+- `create_medical_appointment_backend` resolves an active provider profile while creating appointments (SECURITY DEFINER; verify deployed body/ACL before any migration).
+- `find_mnty_nearest_provider_businesses` has a historical public discovery contract, but a later security migration revokes client EXECUTE; verify live ACL and do not re-enable it.
+- Marketing campaign participant authorization joins provider profiles in RC453 source; preserve owner checks and verify exact live migration parity.
+- Public catalog Edge Functions and trusted admin Edge Functions use service_role and must retain only the exact server-side access they need.
+
+### Required target architecture — design only, not yet implemented
+1. Public directory: all customer-facing reads use the existing curated Edge Functions; responses expose only reviewed public fields. No direct `anon` table access.
+2. Provider owner: a dedicated authenticated, non-anonymous, owner-bound RPC returns only the signed-in user's own profile fields needed by the owner workspace. Remove `owner_user_id` from the client response; ownership is enforced server-side.
+3. Owner writes: a dedicated owner-bound RPC handles service-area/profile mutations and returns a minimal success projection; do not depend on table-wide SELECT for UPDATE ... RETURNING.
+4. CRM: a separate role-aware contract returns only the fields needed for CRM, scoped to active tenant/business membership. Platform-wide visibility requires explicit `MNTY-PLATFORM` SUPER_ADMIN + PLATFORM scope + `full_control=true`; never infer platform-wide scope from a role name alone.
+5. RLS/storage dependencies: introduce a narrowly scoped ownership predicate/helper with empty `search_path`, explicit schema-qualified references, strict caller binding, and EXECUTE granted only to the roles that need it; migrate each dependent policy and test owner/non-owner/anonymous behavior before revoking base-table SELECT.
+6. After all source consumers and policy dependencies are migrated, remove `anon` and `authenticated` base-table SELECT and prove public reads, owner editing, CRM, digital-page management, provider-service management, assigned projects, subscriptions, and media storage still work.
+
+### Release gates
+- [x] Live effective privileges rechecked read-only: `anon` and `authenticated` have table-level SELECT; authenticated also has INSERT/UPDATE/DELETE; service_role retains server-side privileges.
+- [x] Read-only live policy dependency inventory captured as above.
+- [ ] Obtain exact current production function definitions/ACLs for every provider-profile dependency and compare with main source.
+- [ ] Implement forward-only migration only after `supabase migration new` and isolated replay tooling are available; do not hand-create migration timestamps or apply DDL through `execute_sql`.
+- [ ] Add disposable PostgreSQL adversarial tests for anon, anonymous-authenticated, normal authenticated owner, non-owner, same-tenant manager, cross-tenant manager, platform admin, and service_role.
+- [ ] Add browser E2E for canonical public directory, owner workspace mutations, CRM, digital pages, provider services, assigned projects/subscriptions, and media upload/delete.
+- [ ] Deploy only after exact-head CI and approval; verify live effective grants/policies and deployed-origin flows.
+- Safety: no production DDL/grants/RLS/data/Auth/Edge Function/payment/finance changes were made during this inventory.
