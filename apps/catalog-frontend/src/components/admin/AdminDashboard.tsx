@@ -87,6 +87,7 @@ export const AdminDashboard: React.FC = () => {
   const {
     subscribers,
     subscribersLoading,
+    refreshPlatformSubscribers,
     authSession,
     businesses,
     products,
@@ -1499,16 +1500,33 @@ export const AdminDashboard: React.FC = () => {
               <p className="text-xs text-slate-500">
                 يتم ربط كل اشتراك بهوية Supabase وفق البريد الإلكتروني. تسجيل الدخول للمشتركين باستخدام Google فقط.
               </p>
+              {!subscribersLoading && (
+                <p className="mt-1 text-xs font-bold text-slate-600" aria-live="polite">
+                  عدد السجلات المحمّلة: {subscribers.length}
+                </p>
+              )}
             </div>
-            <button
-              onClick={() => {
-                setIsSubModalOpen(true);
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>تعيين مشترك جديد</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { void refreshPlatformSubscribers(); }}
+                disabled={subscribersLoading || authSession.role !== 'admin'}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="تحديث قائمة المشتركين"
+              >
+                <RefreshCw className={`h-4 w-4 ${subscribersLoading ? 'animate-spin' : ''}`} />
+                <span>{subscribersLoading ? 'جارٍ التحديث...' : 'تحديث القائمة'}</span>
+              </button>
+              <button
+                onClick={() => {
+                  setIsSubModalOpen(true);
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>تعيين مشترك جديد</span>
+              </button>
+            </div>
           </div>
 
           {authSession.subscriberDirectoryError && (
