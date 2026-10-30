@@ -315,6 +315,24 @@ const selectMembershipForBusiness = (
     );
 };
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      results[index] = await mapper(items[index], index);
+    }
+  }));
+  return results;
+}
+
 export async function bootstrapProductionUser(user: User | null): Promise<{
   authSession: AuthSession; businesses: Business[]; products: Product[]; subscribers: Subscriber[]; adminSettings: AdminSettings;
 }> {
@@ -347,16 +365,18 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 
   if (platform) {
     const tenantIds = [...new Set(platformMemberships.map((m: any) => String(m.tenant_id || '')).filter(Boolean))];
-    for (const tenantId of tenantIds) {
+    const tenantLists = await Promise.all(tenantIds.map(async (tenantId) => {
       const list: any = await callCatalogAdmin({ action: 'BUSINESS_LIST', tenantId });
-      permittedRows.push(...(Array.isArray(list?.businesses) ? list.businesses : []));
-    }
+      return Array.isArray(list?.businesses) ? list.businesses : [];
+    }));
+    permittedRows.push(...tenantLists.flat());
   } else {
     const tenantWideOwnerIds = [...new Set(roleMemberships.filter((m: any) => String(m.role).toUpperCase() === 'OWNER' && !m.business_id && !m.branch_id).map((m: any) => String(m.tenant_id || '')).filter(Boolean))];
-    for (const tenantId of tenantWideOwnerIds) {
+    const tenantLists = await Promise.all(tenantWideOwnerIds.map(async (tenantId) => {
       const list: any = await callCatalogAdmin({ action: 'BUSINESS_LIST', tenantId });
-      permittedRows.push(...(Array.isArray(list?.businesses) ? list.businesses : []));
-    }
+      return Array.isArray(list?.businesses) ? list.businesses : [];
+    }));
+    permittedRows.push(...tenantLists.flat());
     for (const m of roleMemberships.filter((x: any) => x.business_id)) {
       permittedRows.push({ id: m.business_id, tenantId: m.tenant_id, organizationId: m.organization_id, branchId: m.branch_id, name: '', status: 'ACTIVE' });
     }
@@ -365,10 +385,13 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const uniqueRows = [...new Map(permittedRows.map((b: any) => [String(b.id || b.businessId), b])).values()];
   const businesses: Business[] = [];
   const products: Product[] = [];
-  for (const row of uniqueRows.slice(0, 250)) {
+  // Catalog reads are independent per authorized business. A small bounded pool
+  // removes the previous one-request-at-a-time delay without flooding the Edge
+  // Function or changing the tenant/branch scope of any request.
+  const catalogResults = await mapWithConcurrency(uniqueRows.slice(0, 250), 8, async (row) => {
     const tenantId = String(row.tenantId || row.tenant_id || '');
     const businessId = String(row.id || row.businessId || '');
-    if (!tenantId || !businessId) continue;
+    if (!tenantId || !businessId) return null;
     const membership = selectMembershipForBusiness(roleMemberships, businessId, tenantId);
     // For authenticated business members the selected membership is the source of
     // branch scope. Do not trust the first row returned by PostgREST or a duplicate
@@ -376,7 +399,7 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     const branchId = platform ? String(row.branchId || '') : String(membership?.branch_id || '');
     try {
       const catalog: any = await callCatalogAdmin({ action: 'CATALOG_READ', tenantId, businessId, ...(branchId ? { branchId } : {}) });
-      const b = mapBusiness({
+      const business = mapBusiness({
         ...row,
         ...catalog.business,
         id: businessId,
@@ -387,12 +410,18 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
         profile: catalog.business?.profile || row.profile || {},
         bizcatalog: catalog.business?.bizcatalog || row.bizcatalog || {},
       }, catalog.provider);
-      businesses.push(b);
-      products.push(...mapProducts(businessId, tenantId, catalog.selectedBranchId || branchId || '', catalog.items || [], catalog.prices || []));
+      const mappedProducts = mapProducts(businessId, tenantId, catalog.selectedBranchId || branchId || '', catalog.items || [], catalog.prices || []);
+      return { business, products: mappedProducts };
     } catch (e) {
       // A membership may only cover a different branch or a legacy inactive business.
-      console.warn('[MantiqatiX] skipped out-of-scope catalog row', businessId, e instanceof Error ? e.message : 'unavailable');
+      console.warn('[MantiqaX] skipped out-of-scope catalog row', businessId, e instanceof Error ? e.message : 'unavailable');
+      return null;
     }
+  });
+  for (const result of catalogResults) {
+    if (!result) continue;
+    businesses.push(result.business);
+    products.push(...result.products);
   }
 
   // Do not silently downgrade an active business-linked membership to an empty
@@ -408,7 +437,10 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   let ignoredOrphanMemberships = 0;
   if (platform) {
     try {
-      const list: any = await callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' });
+      const [list, settingsResult]: any[] = await Promise.all([
+        callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' }),
+        callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({})),
+      ]);
       ignoredOrphanMemberships = Number(list?.ignoredOrphanMemberships || 0);
       subscribers = (Array.isArray(list?.subscribers) ? list.subscribers : []).map((row: any): Subscriber => {
         const rawStatus = String(row?.status || row?.membershipStatus || '').toUpperCase();
@@ -442,7 +474,6 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       subscriberDirectoryError = error instanceof Error ? error.message : 'تعذر تحميل حسابات Supabase';
       subscribers = [];
     }
-    const settingsResult: any = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
     if (settingsResult?.settings) Object.assign(
       adminSettings,
       settingsResult.settings,
