@@ -932,13 +932,13 @@ export const DirectoryView: React.FC = () => {
                                 <CheckCircle2 className="w-3 h-3" />
                                 <span>موثّق</span>
                               </span>
-                              {biz.logoUrl && (
-                                <a href={biz.logoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
+                              {biz.externalLogoUrl && (
+                                <a href={biz.externalLogoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
                                   اللوجو
                                 </a>
                               )}
-                              {biz.coverUrl && (
-                                <a href={biz.coverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
+                              {biz.externalCoverUrl && (
+                                <a href={biz.externalCoverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
                                   الغلاف
                                 </a>
                               )}
