@@ -871,3 +871,22 @@ For every verified activity, display available external logo and cover URLs imme
 
 ### Global continuity rule
 Every new owner request must become a TODO item linked to the existing parent objective/module; update status and evidence in the canonical registers, and do not close it until all applicable test and release gates pass.
+
+ 
+---
+
+# 21.2) EXTERNAL BRAND URL SEMANTICS — PR #534
+### الحالة: MERGED — POST-MERGE PRODUCTION CHECK OPEN
+### Goal
+Show only owner/admin-configured external logo and cover URLs after the verification badge. Generated/default images remain visual fallbacks and must never be presented as external links.
+
+### Acceptance / TODO
+- [x] Added separate `externalLogoUrl` and `externalCoverUrl` business fields.
+- [x] Public directory response exposes explicit external URLs separately from fallback display images.
+- [x] Direct public-storefront response exposes the same explicit external URL fields.
+- [x] Directory and storefront header actions render only for verified profiles and only for their corresponding non-empty HTTPS external URL.
+- [x] Playwright fixtures cover both URLs, logo-only, cover-only, no URLs, unverified profile, and direct storefront hydration.
+- [x] PR #534 merged as `9cb40af9886e5141702576a7a20f300b78fcff4e`; Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed.
+- [ ] Verify the post-merge Pages deployment and deployed-origin behavior.
+- [ ] Audit verified profile URL coverage; do not manufacture or cross-assign images.
+- [ ] Preserve existing layout, mobile three-column grid, verification-first ordering, display fallbacks and route behavior.
