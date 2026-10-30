@@ -2194,3 +2194,50 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 
 - Automated web deployment of the catalog is successful.
 - The overall platform remains `BLOCKED / NOT CERTIFIED` for production launch due unresolved migration parity/rollout, Auth security settings, per-function and per-table security verification, tenant-isolation and customer/provider/order E2E, real Paymob/finance E2E, backup/restore, SMM negative runtime proof, and real-device/browser/accessibility regression.
+
+
+## 2026-10-30 — Continued production execution (latest verified baseline)
+
+### Merged and deployed catalog/security fixes
+
+- [x] PR #501 merged in commit `0b79c7154d00d1807404f25f6f2a21898f3da012`: fail-closed bootstrap when an active business-scoped membership exists but no authorized business catalog can be loaded. Exact-head catalog build, employee RBAC PostgreSQL integration, Chromium E2E, module/security checks and Production Health Monitor passed; main Pages deployment run `40992263541` completed successfully.
+- [x] PR #502 merged in commit `16cd5474d2de6b2c929af7a18491d2ebb53e4fd2`: two additive forward-only repairs restore RC117 provider-profile activity-name synchronization and remove the obsolete 300-row cap from platform business listing. No historical migration was rewritten.
+- [x] **Forward replay PASS** on exact source head `03d24fe4a333227a214f07fbe06125030179305f`, workflow run `40992569654`: restored checkpoint `20261008222845`, applied **72** later migrations in timestamp order in a disposable isolated Supabase instance, passed RC117 activity/default-image contract, owner-profile persistence, RC455 commission preview, RC456 resolution preview, and synthetic Tenant A/B read/mutation isolation. Replay only; Production effect NONE.
+- [x] Main push replay after PR #502 merge: run `40992913227` completed successfully for merge commit `16cd5474d2de6b2c929af7a18491d2ebb53e4fd2`.
+- [x] PR #503 merged in commit `8ac83571d30402064b046f886e10e15d855a0a23`: duplicate-safe in-flight request guard for admin activity creation. Identical payload submissions while a request is pending share one Promise; different payloads remain independent. Existing server-side duplicate guard remains the second defense. Exact-head Primary Catalog build, PostgreSQL employee RBAC, Chromium E2E and module/security checks passed. This is a front-end in-flight guard, not durable server idempotency across restarts/network replay.
+- [x] PR #504 merged in commit `f8fb87c9d99cdda36f3895bb8392d2a86a22a07c`: removed retired `https://catalog.tagerflow.com` from directory-listings CORS allowlist; retained canonical GitHub Pages and local development origins.
+- [x] Deployed Supabase Edge Function `directory-listings` v8, `verify_jwt=false` unchanged. Read-after-deploy comparison confirms exact entrypoint parity with `main`; retired domain absent. Protected POST handlers continue their manual bearer validation. No endpoint runtime CORS/claim/update request was performed in this session.
+- [ ] Main Pages deployment and full authenticated browser/device smoke for commit `f8fb87c9d99cdda36f3895bb8392d2a86a22a07c` must complete and be checked; Production Health Monitor already passed for that commit. CI build and employee RBAC checks passed; Chromium browser E2E/deploy were still running at last check.
+
+### Fresh production migration and object inventory — 2026-10-30
+
+- [x] Supabase production ledger remains **308 rows**, latest `20261029083845 require_phone_for_published_directory_listings`. The newer RC117 repair migrations `20261030100000` and `20261030110000` exist only in `main`; they were replayed in disposable CI only and were NOT applied to Production.
+- [x] Fresh read-only check of the 41 required original migration-version identifiers in `scripts/production/verify-production.mjs` returned **0/41 exact versions recorded**. This is an exact version-identity gate; do not assume all physical effects are absent, because some are present via bundled/forward repairs. Do not fabricate migration ledger rows or replay all 41 blindly.
+- [x] Fresh targeted physical-object inventory: present are `business_employees`, `business_job_positions`, `platform_custom_roles`, `platform_role_assignments`, `public_directory_listings`, `directory_listing_claim_requests`, `mnty_platform_admin_list_businesses(text)`, `mnty_platform_admin_manage_business(uuid,text,jsonb,text)`, and `post_financial_journal_backend(uuid,jsonb,jsonb)`.
+- [x] The six present role/employee/directory tables above have RLS enabled and FORCE RLS enabled. Existing platform business-management functions use empty search_path and authenticated EXECUTE; no new production ACL change was made.
+- [ ] Fresh targeted missing-object checks still show critical release drift: `mantigo_payment_provider_events`, `erp_purchase_order_lines`, `process_verified_mantigo_payment_backend`, `process_verified_provider_payment_failure`, `process_verified_subscription_payment_failure`, `process_verified_subscription_payment_backend`, `create_subscription_payment_intent_claimable_backend`, `claim_subscription_provider_intent_creation_backend`, `post_financial_journal_atomic_backend`, `receive_purchase_stock_atomic_backend`, `receive_purchase_stock_with_order_line_backend`, `set_purchase_order_lines_backend`, `create_purchase_order_with_lines_backend`, `uq_payment_intents_one_active_per_order`, and `mnty_default_image_url`.
+- [ ] `process_verified_digital_page_payment_backend` exists but live search_path is `public, pg_temp` while reviewed source expects an empty search_path. Verify its body/ACL and callers in staging before considering repair.
+- [ ] Production rollout remains BLOCKED: map each absent required version to an exact equivalent live migration statement or physical effect; rehearse ordered rollout, rollback, and backup/restore on a schema-equivalent isolated environment; only then request explicit approval for a production migration window.
+
+### Critical Edge Function source parity — current status
+
+- [x] `directory-listings` v8 is now exact-match with main after the CORS cleanup.
+- [ ] Six critical live functions still differ from main and must NOT be deployed individually: `order-create` v8, `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3. Their differences involve order validation/branch scope, Paymob amount-intent correlation, finite amount checks, or finance RPC/CORS behavior. They depend on matching migration, schema and grants; stage as one coordinated release with Paymob sandbox E2E and rollback.
+- [ ] Financial-journal current live prerequisite check remains blocked: `post_financial_journal_backend` is not executable by service_role; required journal columns `entry_number`, `total_debit`, `total_credit`, `posted_at`, and `line_number` are absent; RC449A/RC450 ledger versions are absent. Do not invoke the live finance journal path until the ordered schema/grant contract and reconciliation E2E pass.
+- [x] SMM remains intentionally deferred. Live `smm-gateway` v13 is ACTIVE with `verify_jwt=true`, and source hard-gates with `SMM_INITIAL_LAUNCH_DEFERRED=true`; runtime anonymous/authenticated negative requests are still NOT VERIFIED. Do not enable SMM.
+
+### Remaining non-automatable release gates
+
+- [ ] Supabase Auth leaked-password protection and related Auth hardening: still requires owner/dashboard evidence; no setting changed.
+- [ ] Main branch protection/ruleset evidence: the connected GitHub integration returns 403 for the branch-protection read; owner/admin must verify protection and required checks.
+- [ ] Real Paymob payment and webhook replay/idempotency E2E, customer/provider/order lifecycle, settlement/GL reconciliation, and production credentials: not verified; no real payment attempted.
+- [ ] Backup/restore and rollback rehearsal: not verified.
+- [ ] Real Android release signing and device regression; real mobile/browser accessibility and authenticated end-to-end smoke: not verified.
+- [ ] Runtime negative HTTP tests for SMM and the newly deployed directory-listings CORS/claim/update endpoints: not completed because the current execution environment could not resolve the Supabase host for direct HTTP testing.
+- [ ] Creating a Supabase development branch for schema-equivalent rehearsal was quoted at `$0.01344/hour`. No branch was created; obtain owner approval of the recurring hourly cost before doing so.
+
+### Current release decision
+
+- Catalog website deployment and the directory-listings CORS cleanup are deployed.
+- The complete forward migration chain now replays in isolated CI, including the RC117 fixes.
+- The full platform is still `BLOCKED / NOT CERTIFIED` for production until the exact 41-version ledger/object reconciliation, critical Edge Function/schema parity, Auth security settings, real payment/finance E2E, backup/restore, and real-device/browser gates are closed.
