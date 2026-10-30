@@ -743,3 +743,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Keep Production rollout blocked pending a reviewed chronological migration plan, current backup/restore and rollback rehearsal, payment/finance E2E, Auth hardening, Edge Function source/function contract parity, and browser/device evidence.
 - No Production DDL/DML, migration, grant, Auth/RLS change, Edge Function deployment, payment, wallet action or financial posting was performed.
 - Full platform release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC428 → RC429 → RC430 Paymob webhook atomicity tests
+
+- [x] Added a disposable PostgreSQL 16 fixture and integration suite for the provider-failure, subscription-failure, and subscription-success webhook RPCs.
+- [x] Exact source head `69bece6d280f5a720b2219944dbf7ff6a7aaee2b` passed [RC428–RC430 Paymob Webhook Atomicity run 41000540681](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000540681): fixture load, timestamp-ordered RC428 → RC429 → RC430 migrations, and integration assertions all succeeded.
+- [x] Coverage includes service-role-only EXECUTE, signature/tenant/provider/pricing/amount/currency/provider-order checks, exact replay and conflicting replay rejection, final-state non-downgrade, subscription success/failure, `PAID_PENDING_LEGAL` handling, and rollback atomicity for event + intent + subscription writes.
+- [ ] This is isolated CI evidence only. It does not establish Production migration safety, live Paymob HMAC verification, provider sandbox behavior, or live Edge Function parity.
+- [ ] Keep RC425–RC441 and the live `paymob-webhook` rollout blocked pending full chronological migration/effect reconciliation, approved backup/restore + rollback rehearsal, and Paymob sandbox E2E.
+- No Production migration, SQL write, grant/Auth/RLS change, Edge Function deployment, payment, subscription, wallet, or financial record mutation was performed.
+- Production remains **BLOCKED / NOT CERTIFIED**.

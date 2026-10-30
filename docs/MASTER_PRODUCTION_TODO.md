@@ -2389,3 +2389,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Production stays blocked pending complete migration-chain plan, backup/restore + rollback rehearsal, payment/finance E2E, Auth hardening, Edge Function contract parity, and browser/device acceptance.
 - No Production database writes, migrations, grants, Auth/RLS changes, Edge Function deployments, payments, wallet operations or financial postings were performed.
 - Full platform release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC428 → RC429 → RC430 Paymob webhook integration
+
+- [x] Added PostgreSQL 16 disposable integration coverage for the normal provider failure RPC and subscription failure/success RPCs.
+- [x] [RC428–RC430 workflow 41000540681](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000540681) passed on exact source head `69bece6d280f5a720b2219944dbf7ff6a7aaee2b`; all three migrations applied in order and the complete SQL test returned success.
+- [x] Tests verify privileged execution boundary, signed-event binding, provider order and financial correlation, idempotent replay, cross-intent replay denial, no downgrade of final payment state, subscription activation/legal-hold handling, and statement rollback under injected write failures.
+- [ ] Disposable test success does not prove the pending historical migration chain safe for Production. Continue source-to-live effect reconciliation, backup/restore + rollback rehearsal, and Paymob sandbox E2E before any rollout.
+- [ ] Live `paymob-webhook` and related payment Edge Functions remain NOT VERIFIED for deployment; Production release remains **BLOCKED / NOT CERTIFIED**.
+- No Production database/function/payment change was performed.

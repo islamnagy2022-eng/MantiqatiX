@@ -1,0 +1,58 @@
+name: RC428–RC430 Paymob Webhook Atomicity
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql"
+      - "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql"
+      - "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql"
+      - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
+      - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
+      - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql"
+      - "supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql"
+      - "supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql"
+      - "supabase/tests/rc428_430_paymob_webhook_fixture.sql"
+      - "supabase/tests/rc428_430_paymob_webhook_integration.sql"
+      - ".github/workflows/rc428-430-paymob-webhook-atomicity.yml"
+permissions:
+  contents: read
+jobs:
+  rc428-430-webhook-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc428_430_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc428_430_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply disposable fixtures, then RC428 → RC429 → RC430
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc428_430_paymob_webhook_fixture.sql "$pg_container:/tmp/fixture.sql"
+          docker cp supabase/migrations/20261009150000_rc428_atomic_provider_failure_webhook.sql "$pg_container:/tmp/rc428.sql"
+          docker cp supabase/migrations/20261009160000_rc429_atomic_subscription_failure_webhook.sql "$pg_container:/tmp/rc429.sql"
+          docker cp supabase/migrations/20261009170000_rc430_atomic_subscription_success_webhook.sql "$pg_container:/tmp/rc430.sql"
+          docker cp supabase/tests/rc428_430_paymob_webhook_integration.sql "$pg_container:/tmp/integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc428.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc429.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/rc430.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc428_430_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
