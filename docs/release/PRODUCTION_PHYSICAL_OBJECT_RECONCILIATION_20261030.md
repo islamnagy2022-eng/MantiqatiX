@@ -76,3 +76,17 @@ The latest Security Advisor snapshot observed 8 RLS-enabled/no-policy tables, 3 
 Remaining release blockers include the exact 41-version migration identity gate, missing/drifted payment/finance/ERP/marketing effects, six critical Edge Function source mismatches, Auth hardening, real payment/finance E2E, backup/restore rehearsal, rollback rehearsal, and browser/device verification.
 
 **Production remains BLOCKED / NOT CERTIFIED.**
+
+
+
+---
+
+## 2026-10-30 — Security scope regression suites passed (disposable PostgreSQL 16)
+
+- [x] RC452 CRM tenant/business isolation: [run 40999748715](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748715) — validate and PostgreSQL fixture/migration/integration jobs passed.
+- [x] RC102 provider-service owner isolation: [run 40999748664](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748664) — owner insert/update/delete, cross-owner denial, anonymous-session denial, and write grant checks passed.
+- [x] RC525 digital-page product scope: [run 40999748714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748714) — policy catalog checks and behavioral RLS regression passed.
+- [x] RC456 SMM service-role boundary: [run 40999748663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748663) — Deno/static checks and disposable PostgreSQL privilege-boundary assertions passed.
+- [x] Added manual workflow dispatch and tied these four suites to updates of the live production reconciliation manifest so production evidence refreshes trigger regression checks.
+- These are disposable PostgreSQL 16 results only. No Production migration, grant, Auth/RLS setting, Edge Function, payment, wallet or catalog data was changed.
+- SMM remains deferred. Production remains **BLOCKED / NOT CERTIFIED**.
