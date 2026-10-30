@@ -32,13 +32,19 @@ assert.ok(edge.includes('const oldGroup = allowedTaxonomyGroups.find'), 'Categor
 assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks must fail closed.');
 assert.ok(edge.includes('const canonicalTaxonomyCategoryTypes = new Map<string, "activity" | "profession">'), 'Edge Function must use a server-owned canonical category/type allowlist.');
 assert.ok(edge.includes('canonicalCategoryType(sourceCategoryId)') && edge.includes('canonicalCategoryType(targetCategoryId) !== targetClassificationType'), 'Source and target IDs and target classification must match the canonical seed inventory.');
-const seededCategoryCodes = [...defaults.matchAll(/^\\s*s\\('([^']+)','([^']+)','(activity|profession)','/gm)];
+const seededCategoryCodes = defaults.split('\\n')
+  .map((line) => line.trim())
+  .filter((line) => line.startsWith("s('"))
+  .map((line) => {
+    const fields = line.split("'");
+    return { group: fields[1], code: fields[3], type: fields[5] };
+  });
 const canonicalAllowlist = edge.slice(edge.indexOf('const canonicalTaxonomyCategoryTypes'), edge.indexOf(']);', edge.indexOf('const canonicalTaxonomyCategoryTypes')));
 const allowlistedIds = [...canonicalAllowlist.matchAll(/\["(cat_[a-z0-9_]+)", "(activity|profession)"\]/g)].map((match) => ({ id: match[1], type: match[2] }));
 assert.equal(seededCategoryCodes.length, 226, 'Canonical seed inventory changed; review the server allowlist.');
 assert.equal(allowlistedIds.length, seededCategoryCodes.length, 'Server canonical allowlist must have one ID per seeded category.');
 assert.equal(new Set(allowlistedIds.map((entry) => entry.id)).size, allowlistedIds.length, 'Server canonical allowlist must not contain duplicate category IDs.');
-const seedById = new Map(seededCategoryCodes.map((match) => [`cat_${match[1]}_${match[2]}`, match[3]]));
+const seedById = new Map(seededCategoryCodes.map((entry) => [`cat_${entry.group}_${entry.code}`, entry.type]));
 for (const entry of allowlistedIds) assert.equal(entry.type, seedById.get(entry.id), `Classification type drift for ${entry.id}.`);
 
 assert.ok(migration.includes('security definer\nset search_path = \'\''), 'Every taxonomy RPC/trigger must use SECURITY DEFINER with an empty search_path.');
