@@ -2413,3 +2413,17 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] These CI/deployment results do not mean Supabase payment migrations or Edge Functions were deployed. Read-only production checks still show the old RC426 function signature, RC431 search_path drift, missing RC428–430/RC435 RPCs, missing RC435/RC439 columns, and RC450 journal EXECUTE/schema gaps.
 - [ ] Keep financial/payment production rollout BLOCKED until the entire chronological migration chain is reconciled and rehearsed against a schema-faithful disposable snapshot, with backup/restore, rollback, provider sandbox E2E and exact live-source parity evidence.
 - No production database or payment mutation was performed. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Latest payment/finance release evidence (RC435–RC439)
+
+- [x] PR #512 merged: disposable PostgreSQL 16 RC435→RC439 integration passed. It verifies subscription intent ownership/scope, server-priced tier, idempotency, provider claim race/unknown-outcome handling, legacy/correlated intent behavior, service_role-only RPC ACL, and RC439 ciphertext tuple constraints.
+- [x] Limitation: the RC439 database integration does not exercise AES-GCM encrypt/decrypt, key rotation, real Paymob checkout or provider sandbox E2E. Those remain required.
+- [x] PR #513 RC431 digital-page webhook integration passed; PR #514 evidence register update merged.
+- [x] Latest-main web deploy and Production Health Monitor passed on main `0cd3b00ad977bfdf84ff7edcc613acae4ea6138e`.
+- [ ] Fresh production read-only verification still shows 308 migration rows through `20261029083845`; RC435 RPCs/columns and RC439 encrypted-secret columns are absent; legacy RC426 four-argument finalizer remains exposed to authenticated and unavailable to service_role; RC450 journal service_role EXECUTE remains absent.
+- [ ] Six critical live Edge Function entrypoints remain byte-different from current main. Do not batch deploy; require reviewed per-function diff, dependency/ACL check, Paymob sandbox E2E and rollback plan.
+- [ ] Full production remains blocked pending complete ordered migration replay/reconciliation, backup/restore and rollback rehearsal, AES-GCM/key-rotation test, real payment/finance E2E, Auth hardening and browser/device acceptance.
+- No production database or payment mutation occurred. Release remains **BLOCKED / NOT CERTIFIED**.
