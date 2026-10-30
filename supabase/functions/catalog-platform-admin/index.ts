@@ -371,15 +371,42 @@ Deno.serve(async (req: Request) => {
         "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
         "finance_insurance", "industry_workshops", "public_community",
       ].includes(value);
-      const matchesCategory = (value: string, groupId: string) =>
+      const matchesCanonicalCategory = (value: string, groupId: string) =>
         value.startsWith(`cat_${groupId}_`) &&
-        /^cat_[a-z][a-z0-9_]*_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(value);
+        /^cat_[a-z][a-z0-9_]*_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(value) &&
+        canonicalTaxonomyCategoryTypes.has(value);
+      const isCustomCategoryId = (value: string) => /^cat_custom_[0-9a-f-]{36}$/i.test(value);
       const canonicalCategoryType = (value: string) => canonicalTaxonomyCategoryTypes.get(value);
+
+      let savedCustomCategories: any[] = [];
+      if (isCustomCategoryId(sourceCategoryId) || isCustomCategoryId(targetCategoryId)) {
+        const { data: taxonomySettings, error: taxonomySettingsError } = await service
+          .from("bizcatalog_platform_settings").select("settings")
+          .eq("settings_key", "bizcatalog").maybeSingle();
+        if (taxonomySettingsError) throw new Error("CUSTOM_TAXONOMY_REGISTRY_READ_FAILED");
+        savedCustomCategories = Array.isArray(taxonomySettings?.settings?.categories)
+          ? taxonomySettings.settings.categories : [];
+      }
+      const sourceCustom = savedCustomCategories.find((category: any) =>
+        category?.id === sourceCategoryId &&
+        category?.functionalGroupId === sourceGroupId &&
+        category?.isCustom === true &&
+        ["activity", "profession"].includes(String(category?.classificationType || "activity"))
+      );
+      const targetCustom = savedCustomCategories.find((category: any) =>
+        category?.id === targetCategoryId &&
+        category?.functionalGroupId === targetGroupId &&
+        category?.isCustom === true &&
+        category?.classificationType === targetClassificationType
+      );
+      const sourceValid = matchesCanonicalCategory(sourceCategoryId, sourceGroupId) ||
+        Boolean(isCustomCategoryId(sourceCategoryId) && sourceCustom);
+      const targetValid = (
+        matchesCanonicalCategory(targetCategoryId, targetGroupId) &&
+        canonicalCategoryType(targetCategoryId) === targetClassificationType
+      ) || Boolean(isCustomCategoryId(targetCategoryId) && targetCustom);
       if (!validGroup(sourceGroupId) || !validGroup(targetGroupId) ||
-          !matchesCategory(sourceCategoryId, sourceGroupId) ||
-          !matchesCategory(targetCategoryId, targetGroupId) ||
-          !canonicalCategoryType(sourceCategoryId) ||
-          canonicalCategoryType(targetCategoryId) !== targetClassificationType ||
+          !sourceValid || !targetValid ||
           !["activity", "profession"].includes(targetClassificationType)) {
         return response(origin, { error: "INVALID_TAXONOMY_MAPPING" }, 400);
       }
@@ -406,6 +433,9 @@ Deno.serve(async (req: Request) => {
           "TAXONOMY_INVALID_GROUP",
           "TAXONOMY_INVALID_CATEGORY_ID",
           "TAXONOMY_INVALID_CATEGORY_CODE",
+          "TAXONOMY_CUSTOM_SOURCE_NOT_FOUND",
+          "TAXONOMY_CUSTOM_TARGET_NOT_FOUND",
+          "TAXONOMY_CUSTOM_TARGET_TYPE_MISMATCH",
           "TAXONOMY_INVALID_CLASSIFICATION_TYPE",
           "TAXONOMY_MAPPING_IS_NOOP",
           "TAXONOMY_PREVIEW_REQUIRED",
@@ -808,6 +838,20 @@ Deno.serve(async (req: Request) => {
         (canonicalActivityCategoryType && (!activityCategoryId.startsWith(`cat_${activityGroupCode}_`) || canonicalActivityCategoryType !== activityClassificationType))
       )) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
       if (activityCategoryId && !activityGroupCode) return response(origin, { error: "ACTIVITY_CATEGORY_GROUP_REQUIRED" }, 400);
+      if (customActivityCategoryId) {
+        const { data: taxonomySettings, error: taxonomySettingsError } = await service
+          .from("bizcatalog_platform_settings").select("settings")
+          .eq("settings_key", "bizcatalog").maybeSingle();
+        if (taxonomySettingsError) throw new Error("CUSTOM_TAXONOMY_REGISTRY_READ_FAILED");
+        const savedCustomCategory = (Array.isArray(taxonomySettings?.settings?.categories) ? taxonomySettings.settings.categories : [])
+          .find((entry: any) =>
+            entry?.id === activityCategoryId &&
+            entry?.functionalGroupId === activityGroupCode &&
+            entry?.isCustom === true &&
+            entry?.classificationType === activityClassificationType
+          );
+        if (!savedCustomCategory) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
+      }
       if (activityCategoryId && customActivityCategoryId) {
         const { data: categorySettingsRow, error: categorySettingsError } = await service.from("bizcatalog_platform_settings")
           .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
