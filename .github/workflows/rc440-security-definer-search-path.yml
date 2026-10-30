@@ -1,0 +1,57 @@
+name: RC440 SECURITY DEFINER Search Path
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql"
+      - "supabase/tests/rc440_security_definer_fixture.sql"
+      - "supabase/tests/rc440_security_definer_integration.sql"
+      - ".github/workflows/rc440-security-definer-search-path.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql"
+      - "supabase/tests/rc440_security_definer_fixture.sql"
+      - "supabase/tests/rc440_security_definer_integration.sql"
+      - ".github/workflows/rc440-security-definer-search-path.yml"
+permissions:
+  contents: read
+jobs:
+  rc440-security-definer-search-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc440_search_path_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc440_search_path_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Create isolated database roles
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc440_search_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE anon NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc440_search_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE authenticated NOLOGIN'
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc440_search_path_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE service_role NOLOGIN'
+      - name: Apply disposable fixture, RC440, and behavioral assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc440_security_definer_fixture.sql "$pg_container:/tmp/rc440_fixture.sql"
+          docker cp supabase/migrations/20261010020000_rc440_exposed_security_definer_search_path.sql "$pg_container:/tmp/rc440_migration.sql"
+          docker cp supabase/tests/rc440_security_definer_integration.sql "$pg_container:/tmp/rc440_integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc440_search_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc440_search_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc440_search_path_test -v ON_ERROR_STOP=1 -f /tmp/rc440_integration.sql
