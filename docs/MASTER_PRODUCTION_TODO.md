@@ -2162,3 +2162,35 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - [x] Confirmed employee list/upsert/position RPCs use SECURITY DEFINER with fixed empty search_path and actor/membership/tenant/business/branch checks in the inspected definitions. The list wrapper delegates to the scoped implementation; continue reviewing full function bodies and branch-role matrix with negative E2E tests.
 - [ ] Keep the eight no-policy tables fail-closed while validating each Edge/RPC path. In particular, do not create public policies on `public_directory_listings` or `directory_listing_claim_requests`; their intended public access path is the controlled `directory-listings` Edge Function.
 - [ ] Continue the authenticated SECURITY DEFINER review by high-risk groups (payments/orders/wallet/settlement, catalog mutations, membership/role management), checking actor spoofing, tenant/branch scope, fixed search_path, and direct RPC negative cases.
+
+
+## 2026-10-30 — Release execution update after PR #498
+
+- [x] PR #498 (`Prioritize verified activities with complete visual catalogs`) was merged to `main` at commit `f265f8315b6211bd4363071d919848f474bf0dad` after correcting an obsolete geographic-search test assertion.
+- [x] Exact main-commit CI passed: Primary Catalog Frontend Validation (build + Professional Dashboard employee RBAC PostgreSQL + Chromium E2E), Backend-only Module Boundary (financial journal + approval audit PostgreSQL integration), Module Professionalization Validation (targeted ads search-path + matrimony privacy PostgreSQL), MantiGO Open Ride Privacy, and Production Health Monitor.
+- [x] Deploy MantiqatiX Web completed successfully for the same commit. GitHub Pages deployment validation and public-only validation passed. This is automated deployment/health evidence; manual real-device, accessibility, and signed-in browser regression remain separate.
+- [x] Supabase project status read-only check: `ACTIVE_HEALTHY`, PostgreSQL 17.6.1.155.
+
+### Migration parity — fresh read-only inventory
+
+- [x] Current live ledger: 308 rows; latest `20261029083845 require_phone_for_published_directory_listings`.
+- [x] Live ledger has 25 rows at/after baseline checkpoint `20261008222845` (including the checkpoint itself); source tree contains 69 migration SQL files with filename timestamps later than that checkpoint.
+- [ ] A conservative filename/name comparison finds 44 post-checkpoint source migration names with no same-name ledger row. Some source files have equivalent names under different applied timestamps, so this is NOT proof that every unmatched source file is unapplied. Perform a source-history and physical-schema/effect comparison for every unmatched file before rollout.
+- [ ] The originally listed RC425–RC441 historical SQL source files are now present in `main` under `supabase/migrations/`; source recovery is no longer the same blocker as in the original Issue #270 snapshot. Their production ledger/effect mapping and live application status remain open.
+- [x] Prior isolated replay evidence remains available: run `40794290701` restored checkpoint `20261008222845` and applied 65 later migrations in timestamp order, including RC457, in a disposable Supabase instance.
+- [ ] Production rollout is BLOCKED until the 44 unmatched source names are reconciled against historical/applied equivalents, the exact ordered production migration plan is reviewed, and a backup/restore plus rollback rehearsal is proven. Never insert fabricated rows into `supabase_migrations.schema_migrations`; never blindly replay all source files.
+- [ ] A new Supabase development branch is the best available isolated reproduction of the current production schema before applying pending source files. Supabase quoted `$0.01344/hour` for a branch; branch creation is waiting for owner approval of this recurring hourly cost. No branch has been created.
+
+### Additional live security observations
+
+- [x] Security Advisor snapshot remains: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER findings; 67 authenticated-executable SECURITY DEFINER findings. Per-table/per-function classification is in the preceding 2026-10-30 audit entries.
+- [x] Two anon-executable findings (`assign_default_owner_to_unowned_business`, `capture_commission_rule_audit`) were confirmed as trigger-returning functions attached to enabled table triggers; the third (`get_mnty_targeted_advertisements`) is a public advertising-read function. No broad ACL changes were made.
+- [x] Live `smm-gateway` remains ACTIVE v13 with `verify_jwt=true`; deployed source hard-codes `SMM_INITIAL_LAUNCH_DEFERRED=true` and returns `SMM_DEFERRED` before auth/body/action processing. Database row counts before a negative runtime test were zero for `smm_orders`, `smm_wallet_transactions`, and `smm_wallets`.
+- [ ] Live unauthenticated/anon SMM negative POST tests could not be executed from this session because the execution environment could not resolve the Supabase host via DNS. Source/CI evidence is not a substitute for the required runtime response and no-side-effect check. Keep SMM deferred and do not enable the gateway.
+- [ ] Auth leaked-password protection remains an external owner/dashboard check; this session has no authorized Auth configuration-write tool and has not verified the current setting. Do not mark it enabled.
+- [ ] Main branch protection/ruleset could not be read through the connected GitHub integration (403 on branch-protection endpoint); Issue #150 remains open and requires owner/admin settings evidence.
+
+### Current release decision
+
+- Automated web deployment of the catalog is successful.
+- The overall platform remains `BLOCKED / NOT CERTIFIED` for production launch due unresolved migration parity/rollout, Auth security settings, per-function and per-table security verification, tenant-isolation and customer/provider/order E2E, real Paymob/finance E2E, backup/restore, SMM negative runtime proof, and real-device/browser/accessibility regression.
