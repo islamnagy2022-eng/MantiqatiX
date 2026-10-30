@@ -475,7 +475,6 @@ Deno.serve(async (req: Request) => {
                 specialties.some((entry: unknown) => typeof entry !== "string" || entry.trim().length > 120)))) {
             return response(origin, { error: "INVALID_TAXONOMY_CATEGORY_SHAPE" }, 400);
           }
-          const canonicalPrefix = `cat_${groupId}_`;
           if (id.startsWith("cat_") && !isKnownCanonicalCategory(id) &&
               !id.startsWith("cat_custom_") && !id.startsWith("cat_legacy_")) {
             return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_MISMATCH" }, 400);
