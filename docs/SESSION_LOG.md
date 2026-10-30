@@ -705,3 +705,19 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR [#509](https://github.com/islamnagy2022-eng/MantiqatiX/pull/509) opened for review. The test-only change does not touch historical migrations or live function source.
 - Production Supabase was not modified: no migrations, SQL writes, grant/Auth/RLS changes, Edge Function deployments, payments, subscription changes, wallets, or financial rows.
 - Next: obtain successful exact-head PR checks, merge the test-only integration, then continue with RC435/RC439 and full Paymob webhook dependency reconciliation. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Continued payment-path hardening and integration
+
+- Merged PR #510: RC428–RC430 Paymob webhook atomicity tests. PostgreSQL 16 [run 41000675401](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000675401) passed.
+- Merged PR #511: RC426–RC427 digital-page provider-order binding and one-active-intent tests. PostgreSQL 16 [run 41001080309](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001080309) passed.
+- Merged PR #512: RC435–RC439 subscription claim and encrypted checkout recovery tests. PostgreSQL 16 [run 41001231186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001231186) passed.
+- Merged PR #513: RC431 digital-page payment webhook signature and injected atomic rollback tests. PostgreSQL 16 [run 41001381321](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001381321) passed.
+- Main application deploy [run 41001000631](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001000631) passed deployed-origin browser checks. Later PRs in this batch were test-only.
+- Fresh read-only Production check: migration ledger 308 rows through `20261029083845`; 0/41 exact required migration identifiers; current 60-object probe reports 30 missing contracts. Do not infer missing physical effects from ledger alone; map each migration to current live objects and behavior.
+- Live schema still lacks RC435 claim RPCs and RC439 encrypted checkout columns; RC426 five-argument function and RC427 index are absent; RC428–RC430 RPCs are absent. RC431 requires definition/ACL/search_path parity verification.
+- No Production DDL/DML, migration, grant/Auth/RLS change, Edge Function deployment, payment, subscription, wallet operation, or financial posting was performed.
+- Next: complete RC435/RC439 exact-head CI checks and merge, then continue RC431 live contract review, remaining payment dependencies, and production migration-effect reconciliation. Backup/restore + rollback rehearsal remains a hard release blocker.
+- Production remains **BLOCKED / NOT CERTIFIED**.
