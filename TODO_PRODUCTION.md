@@ -756,3 +756,20 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Keep RC425–RC441 and the live `paymob-webhook` rollout blocked pending full chronological migration/effect reconciliation, approved backup/restore + rollback rehearsal, and Paymob sandbox E2E.
 - No Production migration, SQL write, grant/Auth/RLS change, Edge Function deployment, payment, subscription, wallet, or financial record mutation was performed.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Paymob payment-path disposable integration evidence (RC426–RC431, RC435, RC439)
+
+- [x] PR #510 merged RC428 → RC429 → RC430 atomic webhook integration. PostgreSQL 16 workflow [41000675401](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000675401) passed; merge commit `2144759cdfdfc1d9d230ae77570e036c4e4f17f1`.
+- [x] PR #511 merged RC426/RC427 payment-intent tests. PostgreSQL 16 workflow [41001080309](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001080309) passed; merge commit `de2493ed772e23ab3091e2ea1f44ff33c6d495dd`.
+- [x] PR #512 merged RC435/RC439 subscription claim and encrypted checkout recovery tests. PostgreSQL 16 workflow [41001231186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001231186) passed; merge commit `31b7256928b49af9a5f52c4aa69e55db7f1c91f1`.
+- [x] PR #513 merged additional RC431 digital-page webhook signature and atomic rollback tests. PostgreSQL 16 workflow [41001381321](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001381321) passed; merge commit `7d10152bf226fdd08d1dc70ed9c452bc37947bb8`.
+- [x] Main application deployment after PR #510 succeeded in [run 41001000631](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001000631), including deployed-origin browser checks for catalog root, dashboard routes, mobile layout, membership scopes, permanent links and QR.
+- [ ] These are isolated test-only changes. They do not mean the tested migrations/RPCs are applied to Production, nor do they prove live Paymob HMAC/provider sandbox behavior or live Edge Function source parity.
+- [ ] Fresh read-only production reconciliation still shows 308 migration ledger rows through `20261029083845`, with 0/41 exact required release migration identifiers. A 60-object presence check found 30 missing objects, including RC426–RC430 and RC435 contracts; physical effects from later repairs/aliases still require semantic reconciliation.
+- [ ] RC431's live digital-page payment RPC still requires full definition/ACL/search_path parity verification. RC435 claim RPCs and RC439 encrypted checkout columns remain absent from the current live schema inspection.
+- [ ] Continue chronological migration/effect reconciliation, Paymob sandbox E2E, live Edge Function parity review, and backup/restore + rollback rehearsal before any production rollout.
+- No Production Supabase migration, SQL write, grant/Auth/RLS change, Edge Function deployment, payment, subscription, wallet action or financial posting was performed.
+- Production remains **BLOCKED / NOT CERTIFIED**.
