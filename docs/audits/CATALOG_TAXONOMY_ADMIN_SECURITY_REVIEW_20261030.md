@@ -94,3 +94,21 @@
 - Edge Function validates custom source and target entries against the saved registry before calling the privileged RPC. New business creation rejects unknown custom category IDs. Admin source/target selectors include persisted custom definitions.
 - Added disposable PostgreSQL test covering custom→canonical, canonical→custom, fabricated ID rejection, group/type mismatch rejection, audit records, and preservation of specialty, payment/publication, claim/listing status, and phone.
 - Exact-head CI for RC461 is pending. No Production migration, Edge deployment, category mapping, or settings write was performed.
+
+
+## Final-head verification — 2026-10-30
+
+The earlier "final-head validation pending" statements above describe the pre-fix checkpoint and are superseded by the exact code-head results below.
+
+- **PR #540 code head:** `88156e2744704f4db9daac1f990ba24a49753f39`.
+- **Primary Catalog Frontend Validation:** [41030242448](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242448) — PASS. Build/TypeScript, secure taxonomy contract, browser E2E and employee RBAC PostgreSQL all passed.
+- **RC459:** [41030242441](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242441) — PASS.
+- **RC460:** [41030242326](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242326) — PASS.
+- **RC461:** [41030242343](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242343) — PASS.
+- **Forward migration replay:** [41030242487](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242487) — PASS. Restored the captured checkpoint in an isolated Supabase instance, applied all later migrations in timestamp order, and passed the included tenant-isolation checks.
+- **Migration guards:** version uniqueness [41030242356](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242356), history immutability [41030242491](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242491), and cross-PR collision [41030242446](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242446) — PASS.
+- **Other isolated integration checks** in the exact-head PR checks also passed, including approval-action audit, financial journal RC450, RC425 Paymob atomicity, and backend module/privacy boundaries.
+- The validator crash was fixed by changing the undefined `dashboard` reference to the already-loaded `admin` source variable. The secure taxonomy contract then passed; the validator was not disabled.
+- PR #541 was merged as `26ace99b1fe6e23daed484aafcdcef3cf7d18eae`; main Pages deployment [41030176731](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030176731) passed deployment and deployed-origin dashboard/mobile/membership/QR checks.
+- **Production boundary:** RC459–RC461 migrations were tested only in disposable CI databases. No Supabase Production migration, taxonomy mapping write, settings mutation, or Edge Function deployment was performed. The PR deploy job was skipped for the pull-request event. Do not treat isolated replay as authorization to run migrations against Production.
+- **Status:** SOURCE IMPLEMENTED / EXACT-HEAD ISOLATED TESTS PASS / PRODUCTION MIGRATIONS NOT APPLIED / FULL PLATFORM GATE BLOCKED.
