@@ -2601,21 +2601,21 @@ Use the following hierarchy; these files are complementary, not competing copies
 
 
 ## CAT-TAXONOMY-ADMIN-SECURITY-20261030 — Secure taxonomy mapping administration
-- [x] Source review confirms an existing admin taxonomy tab, but no dedicated dry-run/preview + transactional mapping workflow.
-- [x] Source review identified weak structural/reference validation in the existing `SAVE_SETTINGS` taxonomy write path; the implementation now validates group/category arrays, rejects duplicate IDs/names and prevents removing or remapping categories still referenced by Production records.
-- [x] Record source risks and the implementation/security design in `docs/audits/CATALOG_TAXONOMY_ADMIN_SECURITY_REVIEW_20261030.md`.
-- [x] Add forward-only migration `20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql` with service-role-only preview/apply RPCs, platform-wide SUPER_ADMIN revalidation, source/target ID validation, row counts, bounded sample, stale-preview digest, transaction locks, exact taxonomy-field updates, and atomic audit insertion.
-- [x] Add append-only `catalog_taxonomy_mapping_audit` with FORCE RLS, no direct API-role table access, before-image of changed taxonomy fields only, and a trigger preventing UPDATE/DELETE.
-- [x] Add `TAXONOMY_MAPPING_PREVIEW` and `TAXONOMY_MAPPING_APPLY` server actions in `catalog-platform-admin`; RPC calls use the service-role client only after user token and active platform-wide role checks.
-- [x] Add additive mapping panel to the existing Super Admin taxonomy tab. The panel displays business/listing counts and sample rows, supports preview cancellation, requires confirmation, and sends the exact preview digest before commit. Public directory/storefront screens are unchanged.
-- [x] Add isolated PostgreSQL fixture, integration test, controlled mid-transaction failure trigger, and GitHub Actions workflow: `supabase/tests/rc459_taxonomy_mapping_fixture.sql`, `supabase/tests/rc459_taxonomy_mapping_integration.sql`, `.github/workflows/rc459-catalog-taxonomy-mapping.yml`.
-- [x] Add browser E2E coverage for admin preview → cancel → fresh preview → confirmed apply and audit confirmation.
-- [x] Add static source-contract validator `scripts/validate-catalog-taxonomy-admin-contract.mjs` to the primary catalog validation workflow.
-- [x] Close the new-activity category identity gap: creation now sends and server-validates `activityCategoryId`, persists `activity_category_id` plus canonical `activity_category_code`, and both public directory/storefront responses plus direct hydration preserve the safe ID. This prevents future custom categories from losing their foreign-key-like reference.
-- [ ] Extend negative runtime RBAC coverage for anonymous JWT, CUSTOMER, SERVICE_PROVIDER, EMPLOYEE, tenant-scoped admin, inactive SUPER_ADMIN, and a SUPER_ADMIN with business/branch scope; only the non-platform OWNER negative case is present in the current SQL integration.
-- [ ] Run exact-head RC459 PostgreSQL integration, primary catalog build/typecheck/browser E2E, migration history/collision guards, and full isolated migration replay; fix all failures and capture job logs.
-- [ ] Review target category membership against the authoritative canonical taxonomy source; current RPC validates canonical group + category-ID shape, while code-seeded categories are not populated in the live `bizcatalog_platform_settings.categories` array.
-- [ ] Add a transactional, append-only audit path for taxonomy definition create/update/delete operations performed through `SAVE_SETTINGS`. Current hardening validates definitions and blocks deletion of referenced categories, while the new immutable audit table records only explicit bulk mapping commits.
-- [ ] Update the audit report with exact-head validation evidence and request review; do not mark complete until CI and adversarial RBAC tests pass.
-- **Safety:** no Production mutation was performed. No migration was applied, no Edge Function was deployed, and no taxonomy data was bulk-updated. The public directory/storefront UI is untouched.
-- **Status:** IMPLEMENTED ON FEATURE BRANCH / VALIDATION IN PROGRESS / PRODUCTION UNCHANGED. Overall platform Production Gate remains BLOCKED / NOT CERTIFIED.
+- [x] مراجعة مصدرية لتبويب التصنيفات الحالي وحدود صلاحيات `catalog-platform-admin` ومسار `SAVE_SETTINGS`.
+- [x] تقوية `SAVE_SETTINGS`: التحقق الخادمي من المجموعات والحقول والأسماء والمعرفات والأنواع والتكرارات والأحجام، وإيقاف حذف/نقل أي تصنيف ما زالت أنشطة أو سجلات دليل تستخدمه.
+- [x] إنشاء migration أمامية فقط `20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql`، مع RPC منفصل للمعاينة وRPC للحفظ الذري، والتحقق داخل قاعدة البيانات من عضوية SUPER_ADMIN النشطة ذات نطاق PLATFORM الكامل.
+- [x] حماية RPCs عبر `service_role` فقط، مع منع EXECUTE المباشر عن `anon` و`authenticated`، وإعادة فحص صلاحيات المستخدم الفعلي قبل استدعائها من Edge Function.
+- [x] إضافة allowlist خادمية ثابتة تضم 226 تصنيفًا canonical مع نوع كل تصنيف (activity/profession)، ومطابقة آلية لمصدر `productionDefaults.ts`. المعاينة والحفظ يرفضان أي معرف أو نوع لا يطابق هذه القائمة.
+- [x] إضافة `catalog_taxonomy_mapping_audit` بسجل غير قابل للتعديل أو الحذف، وFORCE RLS ومنع الوصول المباشر للأدوار، مع حفظ حقول التصنيف التي تغيرت فقط بدل نسخ إعدادات النشاط كاملة.
+- [x] إضافة بصمة معاينة، وعدّ الأنشطة وسجلات الدليل، وعينة محدودة، وقفل للمعاملة وإعادة تحقق من البصمة قبل الحفظ، ورفض المعاينة القديمة، وتنفيذ التعديلات وسجل التدقيق في معاملة واحدة.
+- [x] تحديث إنشاء النشاط الجديد ليرسل `activityCategoryId`؛ يتحقق الخادم من المعرف والنوع والمجال، ويحفظ `activity_category_id` و`activity_category_code` عند انطباقه. استجابات الدليل والصفحة العامة ومحوّل البيانات تحفظ معرف التصنيف المخصص/الأساسي.
+- [x] إضافة لوحة إدارية جديدة داخل تبويب التصنيف الحالي دون تعديل واجهة الدليل أو المتجر العام: معاينة للعدد والعينة، إلغاء المعاينة، تأكيد صريح، ومنع الحفظ عند تغير البيانات بعد المعاينة.
+- [x] إضافة اختبارات PostgreSQL معزولة تشمل المعاينة بلا كتابة، وعدم صلاحية البصمة القديمة، والتصنيف غير الصحيح، ورفض OWNER/CUSTOMER/SERVICE_PROVIDER/EMPLOYEE وSUPER_ADMIN محدود بالمستأجر أو بحساب/فرع أو غير نشط، واختبار فشل داخل المعاملة والتراجع الكامل، وحفظ بيانات الاشتراك والتوثيق والنشر والهاتف والتخصص.
+- [x] إضافة Workflow مستقل لـ RC459، ومدقق مصدر آلي، واختبار متصفح لتدفق المعاينة ثم الإلغاء ثم المعاينة الجديدة ثم الحفظ المؤكد.
+- [x] اجتياز التحقق على الالتزام `fe237e2375e2cb7ccd9a7c746c7ad28ba335712f`: TypeScript/build، مدقق التصنيفات ومدقق RC459، اختبارات RBAC، Browser E2E، RC459 PostgreSQL، forward migration replay المعزول، migration uniqueness/history/collision، وBackend module boundaries. راجع أرقام التشغيل المسجلة في تقرير التدقيق.
+- [x] مراجعة التصنيفات المستهدفة مقابل مصدر الـ 226 تصنيفًا في الكود، وليس جدول الإعدادات الفارغ في Production؛ لا يعتمد القرار على `bizcatalog_platform_settings.categories`.
+- [ ] إعادة تشغيل الاختبارات على أحدث HEAD بعد فصل حالتي رفض SUPER_ADMIN المرتبط بنشاط عن المرتبط بفرع في fixture؛ يجب أن تنجح RC459 وPrimary Catalog build/browser E2E وforward replay وmigration guards على الالتزام النهائي.
+- [ ] إضافة سجل تدقيق ذري مستقل لعمليات إنشاء/تعديل/حذف تعريف التصنيفات نفسها عبر `SAVE_SETTINGS`. الحماية الحالية تمنع الإدخالات غير الصالحة وحذف تصنيف مستخدم، لكن سجل RC459 الحالي خاص بعمليات إعادة توزيع سجلات الأنشطة والدليل.
+- [ ] مراجعة بشرية للتغييرات واعتمادها قبل الدمج. لا يُطبّق migration ولا تنشر Edge Function قبل مسار الإصدار المعتمد والنسخ الاحتياطي/الاستعادة والموافقة المطلوبة.
+- **السلامة:** لم تُنفذ أي كتابة أو migration أو نشر Edge Function على Production. لم تتغير بيانات الأنشطة أو الدليل. نشر PR إلى الموقع العام غير مسموح؛ مهام deploy الخاصة بالـ PR كانت skipped.
+- **الحالة:** IMPLEMENTED / PRIOR VALIDATION PASS / FINAL-HEAD RECHECK PENDING / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
