@@ -18,6 +18,8 @@
 })();
 </script><div id="app"><main style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:Tajawal,Arial,sans-serif;background:#FBF8F2;color:#241113;direction:rtl"><section style="max-width:520px;text-align:center;background:#fff;border:1px solid #E9DCC4;border-radius:20px;padding:32px;box-shadow:0 10px 30px rgba(16,24,40,.08)"><strong style="font-size:28px">MantiqatiX</strong><small style="display:block;margin-top:6px;color:#8D0D16">منصة الخدمات والاكتشاف</small><p id="boot-status" style="margin:12px 0 0;color:#8D0D16">جارٍ تحميل منصة MantiqatiX…</p></section></main></div><noscript><div style="padding:24px;text-align:center;font-family:Tajawal,Arial,sans-serif;direction:rtl">يرجى تفعيل JavaScript لتشغيل منصة MantiqatiX.</div></noscript><script>
 (function(){
+  // This legacy URL is a redirect-only OAuth compatibility relay. Do not start legacy page boot or Data API requests while navigation is in flight.
+  if (window.location.pathname !== '/MantiqatiX/catalog-app/') return;
   var status=document.getElementById('boot-status');
   function fail(msg){
     if(status){status.textContent=msg;status.style.color='#b42318'}
