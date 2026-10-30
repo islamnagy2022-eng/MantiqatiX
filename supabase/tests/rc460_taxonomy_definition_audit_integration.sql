@@ -2,13 +2,39 @@
 do $test$
 declare
   admin_id constant uuid := '46000000-0000-4000-8000-000000000001';
+  outsider_id constant uuid := '46000000-0000-4000-8000-000000000002';
   before_count integer;
   audit_id uuid;
   insert_audit_id uuid;
   delete_audit_id uuid;
   rejected boolean;
 begin
-  insert into auth.users(id) values (admin_id);
+  insert into auth.users(id) values (admin_id),(outsider_id);
+  insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions)
+  values (
+    '46000000-0000-4000-8000-000000000101',
+    admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE',
+    '{"scope":"PLATFORM","full_control":true}'::jsonb
+  );
+
+  -- A spoofed updated_by without the active platform-wide membership must abort the source write.
+  rejected := false;
+  begin
+    insert into public.bizcatalog_platform_settings(settings_key,settings,updated_by)
+    values (
+      'bizcatalog',
+      '{"categories":[{"id":"cat_food_grocery_fake","name":"Fake"}]}'::jsonb,
+      outsider_id
+    );
+    raise exception 'RC460_UNAUTHORIZED_SETTINGS_WRITE_SUCCEEDED';
+  exception when others then
+    if sqlerrm <> 'PLATFORM_ADMIN_REQUIRED_FOR_TAXONOMY_AUDIT' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC460_UNAUTHORIZED_ACTOR_NOT_REJECTED'; end if;
+  if exists(select 1 from public.bizcatalog_platform_settings where settings_key='bizcatalog') then
+    raise exception 'RC460_UNAUTHORIZED_SETTINGS_ROW_PERSISTED';
+  end if;
 
   insert into public.bizcatalog_platform_settings(settings_key,settings,updated_by)
   values (
