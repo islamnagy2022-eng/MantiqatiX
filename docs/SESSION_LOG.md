@@ -1040,3 +1040,14 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - No production DDL, grants, RLS, Auth, data, Edge Functions, payment, or finance changes were made in this pass.
 
 - Post-deploy function-edge logs show `public-catalog-directory` v10 received two GET requests with HTTP 200 after deployment (latest observed 2026-10-30T23:40:15Z; p95 execution ~2.1s for this two-request sample). No `public-catalog` v6 request appeared in the queried log window, so storefront runtime smoke remains pending.
+
+
+## 2026-10-31 — Live payment/journal prerequisite recheck
+
+- Re-fetched the six critical Production Edge Functions and compared their live entrypoint contents with current main. All remain active but drifted: order-create v8 (10,083 vs 13,988 chars), payment-intent v8 (8,114 vs 10,366), paymob-webhook v10 (11,538 vs 12,665), digital-page-payment-intent v5 (5,345 vs 6,532), subscription-payment-intent v4 (5,196 vs 11,100), financial-journal v3 (1,591 vs 3,387).
+- Read-only Supabase migration ledger returned 308 versions, latest `20261029083845`. Exact versions RC435 `20261009210000`, RC439 `20261010010000`, RC449A `20261010175000`, and RC450 `20261010180000` remain absent.
+- Subscription live schema has provider IDs and idempotency fields but lacks RC439 `client_secret_ciphertext`, `client_secret_iv`, `client_secret_key_version`. The current-main claimable RPCs `create_subscription_payment_intent_claimable_backend` and `claim_subscription_provider_intent_creation_backend` are absent. Only the legacy `create_subscription_payment_intent_backend` exists and is service_role-executable.
+- Financial journal: both live `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` return service_role EXECUTE=false; anon/authenticated EXECUTE=false. The live backend body still requires `p_user_id=auth.uid()`, incompatible with the trusted service-role Edge call without the approved RC450 actor-bound contract. RC449A/RC450 are absent.
+- Appended the evidence and safe next steps to `TODO_PRODUCTION.md` in commit `471eead698b23ec94478d6cef8854328fbfee0f8`.
+- No payments, provider calls, webhook replays, financial postings, schema/grant/RLS/data/Auth changes, or Edge Function deployments were performed.
+- Decision: do not deploy any of the six drifted payment/order/finance Edge Functions or apply missing migrations directly to Production. Next work must be isolated restorable replay and deterministic integration tests, followed by reviewed rollout approval.
