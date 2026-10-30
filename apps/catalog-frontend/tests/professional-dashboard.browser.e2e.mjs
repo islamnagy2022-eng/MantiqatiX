@@ -438,6 +438,24 @@ try {
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      const confirmedBadges = page.locator('[title="أنشطة مؤكدة"]');
+      await confirmedBadges.first().waitFor({ state: 'visible' });
+      const primaryConfirmedClasses = await confirmedBadges.first().getAttribute('class') || '';
+      assert.ok(
+        primaryConfirmedClasses.includes('bg-emerald-100') && primaryConfirmedClasses.includes('text-emerald-800'),
+        'confirmed activity counter must retain its green treatment',
+      );
+      const unconfirmedBadges = page.locator('[title="صفحات دليل غير مؤكدة"]');
+      await unconfirmedBadges.first().waitFor({ state: 'visible' });
+      const unconfirmedBadgeClasses = await unconfirmedBadges.evaluateAll((nodes) =>
+        nodes.map((node) => node.getAttribute('class') || '')
+      );
+      assert.ok(unconfirmedBadgeClasses.length > 0, 'catalog must render unconfirmed listing counters');
+      assert.equal(
+        unconfirmedBadgeClasses.every((classes) => classes.includes('bg-red-50') && classes.includes('text-red-700')),
+        true,
+        'all unconfirmed listing counters must use the requested red treatment',
+      );
       await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
 
       const taxonomyMain = page.locator('main[dir="rtl"]');
