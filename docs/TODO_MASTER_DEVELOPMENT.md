@@ -849,3 +849,25 @@ The complete mapping is maintained in [`docs/specifications/SPECIFICATION_TODO_T
 - [ ] Verify post-merge deployed-origin browser tests; PR CI is not deployment proof.
 - [ ] Obtain authorized Auth dashboard action for Leaked Password Protection and re-run Advisor.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+# 21.1) VERIFIED ACTIVITY EXTERNAL BRAND LINKS — PR #533
+### الحالة: IMPLEMENTED / MERGED — PRODUCTION VERIFICATION OPEN
+### Goal
+For every verified activity, display available external logo and cover URLs immediately after the verified badge, without changing the existing page/card layout or navigation behavior.
+
+### Acceptance / TODO
+- [x] Directory card renders the external `اللوجو` link after the verified badge when `logoUrl` exists.
+- [x] Directory card renders the external `الغلاف` link after the verified badge when `coverUrl` exists.
+- [x] Storefront header follows the same conditional order.
+- [x] Links open safely in a new tab; card click propagation is stopped in the directory card.
+- [x] PR #533 merged as `f38b609b00fd0025793b00ebf7990073dfaff4c9`.
+- [ ] Verify post-merge main deployment and actual deployed-origin rendering.
+- [ ] Add focused browser tests for both URLs, each URL individually, missing URLs, and unverified profiles.
+- [ ] Audit all verified activities for valid URL coverage; never invent or reuse another activity's logo/cover.
+- [ ] Keep existing layout, mobile three-column grid, verified-first ordering and all existing routes unchanged.
+
+### Global continuity rule
+Every new owner request must become a TODO item linked to the existing parent objective/module; update status and evidence in the canonical registers, and do not close it until all applicable test and release gates pass.
