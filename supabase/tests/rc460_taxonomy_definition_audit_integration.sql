@@ -95,6 +95,27 @@ begin
     raise exception 'RC460_INSERT_DEFINITION_AUDIT_MISSING: %',before_count;
   end if;
 
+  -- Existing taxonomy definitions cannot be changed without actor attribution either.
+  rejected := false;
+  begin
+    update public.bizcatalog_platform_settings
+    set settings = jsonb_set(
+          settings,'{categories}',
+          '[{"id":"cat_food_grocery_unattributed","name":"Unattributed"}]'::jsonb,true
+        ),
+        updated_by = null
+    where settings_key = 'bizcatalog';
+    raise exception 'RC460_UNATTRIBUTED_UPDATE_SUCCEEDED';
+  exception when others then
+    if sqlerrm <> 'TAXONOMY_AUDIT_ACTOR_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC460_MISSING_UPDATE_ACTOR_NOT_REJECTED'; end if;
+  if (select settings->'categories' from public.bizcatalog_platform_settings where settings_key='bizcatalog')
+     <> '[{"id":"cat_food_grocery_cafes","name":"Cafes"}]'::jsonb then
+    raise exception 'RC460_UNATTRIBUTED_UPDATE_PERSISTED';
+  end if;
+
   select id into insert_audit_id
   from public.catalog_taxonomy_definition_audit
   where actor_user_id = admin_id and operation = 'INSERT'
