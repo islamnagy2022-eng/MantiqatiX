@@ -119,3 +119,48 @@ begin
   end if;
 end;
 $function$;
+
+
+-- Fault-injection triggers are inert unless their transaction-local test flag is enabled.
+create or replace function public.rc428_test_reject_atomic_update()
+returns trigger language plpgsql as $function$
+begin
+  if current_setting('mantiqatix_test.rc428_fail', true) = 'true'
+     and new.id = 'pi-atomic' and new.status = 'FAILED' then
+    raise exception 'RC428_TEST_ATOMIC_UPDATE_FAILURE';
+  end if;
+  return new;
+end;
+$function$;
+create trigger rc428_test_atomic_update
+before update on public.payment_intents
+for each row execute function public.rc428_test_reject_atomic_update();
+
+create or replace function public.rc429_test_reject_atomic_update()
+returns trigger language plpgsql as $function$
+begin
+  if current_setting('mantiqatix_test.rc429_fail', true) = 'true'
+     and new.id = '40000000-0000-4000-8000-000000004282'::uuid
+     and new.status = 'FAILED' then
+    raise exception 'RC429_TEST_ATOMIC_UPDATE_FAILURE';
+  end if;
+  return new;
+end;
+$function$;
+create trigger rc429_test_atomic_update
+before update on public.subscription_payment_intents
+for each row execute function public.rc429_test_reject_atomic_update();
+
+create or replace function public.rc430_test_reject_subscription_insert()
+returns trigger language plpgsql as $function$
+begin
+  if current_setting('mantiqatix_test.rc430_fail', true) = 'true'
+     and new.business_id = '20000000-0000-4000-8000-000000004284'::uuid then
+    raise exception 'RC430_TEST_ATOMIC_SUBSCRIPTION_FAILURE';
+  end if;
+  return new;
+end;
+$function$;
+create trigger rc430_test_atomic_subscription
+before insert on public.business_subscriptions
+for each row execute function public.rc430_test_reject_subscription_insert();
