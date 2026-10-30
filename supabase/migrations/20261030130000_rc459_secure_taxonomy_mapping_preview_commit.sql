@@ -256,7 +256,11 @@ begin
   select jsonb_build_object(
     'businesses', coalesce((
       select jsonb_agg(jsonb_build_object(
-        'id',b.id,'settings',b.settings,'updated_at',b.updated_at
+        'id',b.id,
+        'activity_group_code',b.settings->>'activity_group_code',
+        'activity_category_code',b.settings->>'activity_category_code',
+        'activity_classification_type',b.settings->>'activity_classification_type',
+        'updated_at',b.updated_at
       ) order by b.id)
       from public.businesses b
       where b.settings->>'activity_group_code' = p_source_group_id
