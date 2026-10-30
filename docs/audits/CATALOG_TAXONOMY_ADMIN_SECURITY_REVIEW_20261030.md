@@ -91,3 +91,11 @@
 - لذلك لا تُعد هذه المراجعة تصريحًا بالدمج أو النشر، ولا تعني أن بوابة جاهزية MantiqatiX الكاملة قد أُغلقت.
 
 **الحالة:** IMPLEMENTED ON FEATURE BRANCH / PRIOR EXACT-HEAD VALIDATION PASS / FINAL-HEAD RECHECK PENDING / PRODUCTION UNCHANGED.
+
+## RC460 implementation
+- Added `20261030150000_rc460_taxonomy_definition_audit.sql`.
+- An AFTER INSERT/UPDATE trigger on `bizcatalog_platform_settings` records taxonomy definition snapshots only when `categories`, `functionalGroups`, or `defaultCategories` change. The settings row write and audit event are in one PostgreSQL transaction.
+- The audit table has FORCE RLS, no direct grants to `public`, `anon`, `authenticated`, or `service_role`, and an append-only trigger rejecting UPDATE/DELETE. The trigger function uses SECURITY DEFINER and an empty search_path.
+- Unrelated platform settings changes are intentionally not recorded. The audit stores taxonomy configuration snapshots, not unrelated settings or business data.
+- Disposable PostgreSQL integration tests cover INSERT/UPDATE events, no audit noise for unrelated settings, append-only behavior, and rollback of the settings update if audit insertion fails.
+- RC459 exact-head checks passed on `fe237e2375e2cb7ccd9a7c746c7ad28ba335712f`: build/typecheck, browser E2E, employee RBAC PostgreSQL, RC459 integration, migration collision/history guards, and full isolated forward migration replay. RC460 was added after that checkpoint and awaits fresh exact-head validation.
