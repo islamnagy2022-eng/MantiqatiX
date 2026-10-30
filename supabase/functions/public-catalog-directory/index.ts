@@ -177,6 +177,7 @@ Deno.serve(async (req: Request) => {
         slug: provider?.slug || String(business.code || business.id),
         code: business.code, category: activityCategory,
         activityGroupCode: String(business.settings?.activity_group_code || business.settings?.taxonomy_group_code || ""),
+        activityCategoryCode: String(business.settings?.activity_category_code || ""),
         activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
         activitySpecialty: String(business.settings?.activity_specialty || ""),
         profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
