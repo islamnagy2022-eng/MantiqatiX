@@ -105,6 +105,9 @@ assert.ok(definitionAuditIntegration.includes('RC460_UNAUTHORIZED_ACTOR_NOT_REJE
 assert.ok(definitionAuditMigration.includes('revoke all on table public.catalog_taxonomy_definition_audit from public, anon, authenticated, service_role'), 'Taxonomy definition audit table must not be directly accessible via API roles.');
 assert.ok(definitionAuditIntegration.includes('RC460_NON_TAXONOMY_CHANGE_WAS_AUDITED'), 'Integration must avoid auditing unrelated settings changes.');
 assert.ok(definitionAuditIntegration.includes('RC460_SETTINGS_PARTIALLY_UPDATED'), 'Integration must prove audit failure rolls back the originating settings update.');
+assert.ok(definitionAuditIntegration.includes('RC460_AUDIT_TABLE_DIRECT_ACCESS_NOT_REVOKED'), 'Integration must verify the immutable audit table has no API-role direct access.');
+assert.ok(definitionAuditIntegration.includes('RC460_AUDIT_RLS_NOT_FORCED'), 'Integration must verify FORCE RLS on the taxonomy definition audit table.');
+assert.ok(definitionAuditIntegration.includes("ARRAY['search_path=\"\"']"), 'Integration must verify the SECURITY DEFINER audit trigger uses an empty search_path.');
 assert.ok(definitionAuditIntegration.includes('RC460_TAXONOMY_DELETE_AUDIT_INVALID'), 'Integration must prove category removal is recorded as a before/after definition update.');
 assert.ok(integration.includes('customer_id') && integration.includes('provider_id') && integration.includes('employee_id'), 'Integration must cover customer, service provider, and employee denials.');
 assert.ok(integration.includes('tenant_admin_id') && integration.includes('inactive_admin_id') &&
