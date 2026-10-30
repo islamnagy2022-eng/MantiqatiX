@@ -2580,8 +2580,21 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] تحديث Browser E2E ليفتح «كافة الأنشطة» ثم يتحقق من التنقل الفعلي مجال→نشاط→تخصص وفق مسميات الواجهة الحالية.
 - [x] تحليل فشل Browser E2E على commit `028504f99737e8a095e7296125ac1ac382e595dd`: اختبار 390px كشف overflow أفقي في شارات أعداد الموثق/غير الموثق داخل بطاقات المجالات بعد الرجوع.
 - [x] إصلاح responsive للبطاقات بجعل صف الشارات `flex-wrap` وتقليل gap على الهاتف؛ commit `f81bbb2923a6de14e0428a9d5fa67308417d34db`.
-- [ ] انتظار CI على commit الإصلاح `f81bbb2923a6de14e0428a9d5fa67308417d34db` والتحقق من build/typecheck وBrowser E2E؛ ثم مراجعة PR ودمجه ونشره والتحقق من واجهة الإنتاج على الهاتف.
+- [x] دمج PR [#537](https://github.com/islamnagy2022-eng/MantiqatiX/pull/537) على main بالالتزام `80eeb41e90c133d5b66dea50853ba4306c6424fa`.
+- [x] اجتياز build وRBAC وBrowser E2E على رأس PR النهائي [41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819)، بما في ذلك العودة من مجلد التخصص إلى المجالات على 390px والتحقق من breadcrumb الصحيح بعد العودة للكتالوج.
+- [x] اجتياز اختبارات main [41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608750) ونشر Pages [41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742)، مع فحص جذر الموقع واختبارات المتصفح على النطاق المنشور.
 - [ ] إضافة واجهة إدارية آمنة لإدارة taxonomy mapping مع سجل تغييرات ومعاينة قبل الحفظ؛ لا تسمح بإعادة توزيع جماعية مباشرة دون dry-run.
 - [ ] المرحلة التالية: مراجعة تداخل المجالات الـ18 الحالية مع المستخدمين الفعليين، وتحديد ما يمكن دمجه في عدد أقل من المجالات دون خلط الأنشطة؛ لا تغيير لمعرّفات legacy إلا بعد خطة توافق وترحيل واختبارات.
-- **حدود التنفيذ:** لم تتغير حالات التوثيق أو الاشتراكات أو الملكية أو النشر أو أرقام التواصل أو الصور. التغييرات الإنتاجية اقتصرت على مفاتيح taxonomy في settings مع سجل تدقيق ذري.
-- الحالة: IMPLEMENTED / PARTIALLY VERIFIED — إصلاح overflow أضيف؛ CI على أحدث commit والنشر لم يكتملَا.
+- **حدود التنفيذ:** لم تتغير حالات التوثيق أو الاشتراكات أو الملكية أو النشر أو أرقام التواصل أو الصور بواسطة PR #537. إعادة توزيع أكواد taxonomy السابقة موثقة أعلاه بسجل تدقيق مستقل.
+- الحالة: MERGED / DEPLOYED / BROWSER VERIFIED — الأعمال الإدارية المتبقية ما زالت مفتوحة.
+
+
+## SEC-RC458-20261030 — Hardening digital-page payment SECURITY DEFINER RPCs
+- [x] فحص Production للـ caller contract والمالك والـ ACL للإجراءات الثلاثة: claim / release / fulfill.
+- [x] دمج PR [#538](https://github.com/islamnagy2022-eng/MantiqatiX/pull/538) بالالتزام `64ce588f2e3854e278cb19f18d90018788714d7e`: empty search_path، حفظ authenticated EXECUTE، وتصحيح مرجع `id` الملتبس في claim RPC.
+- [x] اجتياز RC458 disposable PostgreSQL integration [41019320495](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019320495).
+- [x] اجتياز full isolated Supabase forward replay [41019320366](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019320366): استعادة checkpoint `20261008222845` وتطبيق 73 migration لاحقة بالترتيب، مع اختبارات tenant isolation وRC455/RC456.
+- [x] اجتياز main RC458 integration [41019626515](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019626515) وmain forward replay [41019626775](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019626775).
+- [x] إغلاق Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) بعد استكمال source fix والاختبارات المعزولة.
+- [ ] تطبيق RC458 على Production غير منفذ. يلزم مسار release مع backup/restore وrollback وموافقة صريحة؛ لا تنفذ migration مباشرة.
+- **الحالة:** SOURCE MERGED / ISOLATED VERIFIED / PRODUCTION NOT APPLIED. بوابة المنصة الكلية تظل BLOCKED / NOT CERTIFIED.

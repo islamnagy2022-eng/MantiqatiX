@@ -1783,5 +1783,69 @@
     "required_release_source_versions_found": 0,
     "method": "Supabase list_migrations plus read-only exact-version check against scripts/production/verify-production.mjs manifest",
     "caution": "Do not infer missing schema effects solely from missing original version IDs; reconcile exact stored migration statements and physical schema. Do not replay or fabricate ledger rows."
+  },
+  "rc458_digital_page_payment_rpc_search_path": {
+    "status": "SOURCE_MERGED_ISOLATED_REPLAY_PASS_PRODUCTION_NOT_APPLIED",
+    "checked_at": "2026-10-30",
+    "source_migration": "supabase/migrations/20261030120000_rc458_digital_page_payment_rpc_empty_search_path.sql",
+    "pull_request": 538,
+    "merge_commit": "64ce588f2e3854e278cb19f18d90018788714d7e",
+    "procedures": [
+      "public.claim_digital_page_payment_intent_backend(uuid,uuid,text,text)",
+      "public.release_digital_page_payment_intent_claim_backend(uuid,uuid,text)",
+      "public.fulfill_digital_page_publish(uuid,uuid,uuid)"
+    ],
+    "isolated_postgres_regression": {
+      "workflow_run_id": 41019320495,
+      "status": "PASS",
+      "checks": [
+        "empty function search_path",
+        "authenticated EXECUTE preserved",
+        "anon/service_role/PUBLIC execute absent",
+        "cross-user claim and release denied",
+        "temporary-table shadow resistance",
+        "actor/auth.uid binding",
+        "non-platform-admin publication denied",
+        "idempotent publication and single audit event"
+      ]
+    },
+    "isolated_forward_chain_replay": {
+      "workflow_run_id": 41019320366,
+      "status": "PASS",
+      "checkpoint": "20261008222845",
+      "later_migrations_applied": 73,
+      "rc458_included": true,
+      "tenant_isolation_and_rc455_rc456_assertions": "PASS"
+    },
+    "post_merge_main": {
+      "rc458_workflow_run_id": 41019626515,
+      "forward_chain_run_id": 41019626775,
+      "status": "PASS"
+    },
+    "production": {
+      "live_ledger_has_rc458": false,
+      "production_function_search_path_at_last_read_only_audit": "public, pg_temp",
+      "migration_applied": false,
+      "functions_or_grants_changed": false,
+      "payments_or_financial_data_changed": false,
+      "rollout_authorized": false
+    },
+    "issue_269": {
+      "state": "CLOSED",
+      "closure_scope": "source remediation and isolated verification only; production rollout remains a separate release gate"
+    },
+    "note": "Do not apply RC458 directly to Production. Production rollout requires the global release gate, backup/restore and rollback evidence, and explicit owner approval."
+  },
+  "catalog_taxonomy_reorganization_20261030": {
+    "status": "MERGED_DEPLOYED_BROWSER_VERIFIED",
+    "pull_request": 537,
+    "merge_commit": "80eeb41e90c133d5b66dea50853ba4306c6424fa",
+    "exact_head_browser_validation_run": 41020400819,
+    "main_catalog_validation_run": 41020608750,
+    "main_pages_deployment_run": 41020608742,
+    "verified": "domain → activity → specialty navigation, back navigation, mobile overflow and responsive layout, build, RBAC, deployed-origin root and browser checks",
+    "production_data_change_in_this_pull_request": false,
+    "remaining": "secure admin taxonomy mapping UI with dry-run/audit; evaluate domain consolidation only after legacy compatibility plan",
+    "production_gate_unblocked": false
   }
 }

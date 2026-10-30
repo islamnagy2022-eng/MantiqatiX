@@ -993,8 +993,24 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Added disposable PostgreSQL fixture, cross-user / unauthorized-publication / temporary-table-shadow / ACL regression suite, and CI workflow. See `docs/audits/DIGITAL_PAGE_PAYMENT_RPC_SEARCH_PATH_20261030.md`.
 - [x] First RC458 CI run exposed an ambiguous `id` reference in the claim RPC (output parameter vs table column). Forward migration now aliases `digital_page_orders` in both SELECT and UPDATE; the regression suite asserts the qualified reference.
 - [x] Pinned the forward-replay workflow to Supabase CLI v2.122.0 after its latest-release lookup hit GitHub API throttling; public ECR image pulls were also rate-limited in that first attempt.
-- [ ] Exact-head RC458 CI and full forward-chain replay must pass before merge.
-- [ ] Rehearse RC458 against a restorable isolated Supabase branch/current schema; verify final body, owner, proconfig, ACL and caller behavior. Obtain organization ID and review any branch cost before creating a paid Supabase branch.
-- [ ] Only after isolated replay and approval, prepare a production rollout/rollback plan. Do not apply RC458 directly to Production.
-- Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) remains open until isolated Supabase evidence is attached. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+- [x] PR [#538](https://github.com/islamnagy2022-eng/MantiqatiX/pull/538) merged as `64ce588f2e3854e278cb19f18d90018788714d7e`; RC458 changes the three procedures to empty `search_path`, preserves authenticated EXECUTE, and qualifies the claim RPC table references to fix the discovered ambiguous `id` bug.
+- [x] Disposable PostgreSQL regression [41019320495](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019320495) passed ACL preservation, cross-user claim/release denial, temp-table shadow resistance, actor binding, non-admin publish denial and idempotent admin publication.
+- [x] Full isolated Supabase forward replay [41019320366](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019320366) passed from checkpoint `20261008222845`; 73 later migrations applied in order, including RC458, with owner-profile, RC455/RC456 and two-tenant isolation assertions.
+- [x] Main post-merge RC458 integration [41019626515](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019626515) and full replay [41019626775](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019626775) passed. Migration history immutability, version uniqueness and cross-PR collision checks passed.
+- [x] Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) closed for source remediation and isolated verification only.
+- [ ] Production rollout remains separate and NOT performed. RC458 is not applied to Production. Before any production migration, complete the global release gate, backup/restore and rollback evidence, then obtain explicit approval. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
 
+
+
+## 2026-10-30 — CAT-TAXONOMY-REORG: merge, browser verification and deployment
+
+- [x] PR [#537](https://github.com/islamnagy2022-eng/MantiqatiX/pull/537) merged as `80eeb41e90c133d5b66dea50853ba4306c6424fa`.
+- [x] Canonical hierarchy is now **المجال الرئيسي → النشاط → التخصص/الخدمة**; explicit activity category codes are consumed by the current directory mapper and narrow public directory/storefront APIs.
+- [x] Existing taxonomy identifiers and the current homepage, unified results, verified-first ranking, geography filters, storefront and owner/employee boundaries were preserved.
+- [x] Exact-head browser validation [41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819) passed build, employee RBAC PostgreSQL and browser E2E, including folder back-navigation, specialty selection, 390px mobile overflow checks and 390/768/1440px responsive checks.
+- [x] Main Primary Catalog validation [41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608750) passed build, RBAC and browser E2E.
+- [x] Main Pages deployment [41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742) passed deploy, primary-root verification and deployed-origin browser checks.
+- [x] The taxonomy audit records the previously audited redistribution of 10 business records and 8 public listings; PR #537 itself did not write production data or change verification, subscription, ownership, publication or contact states.
+- [ ] Add the secure admin taxonomy-mapping interface with dry-run preview and audit history.
+- [ ] Evaluate whether the 18 existing functional domains can be consolidated without breaking legacy identifiers or mixing unrelated activities. This requires a compatibility plan and regression tests.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live migrations, payments/finance, Auth, Edge parity and backup/restore gates.

@@ -944,3 +944,15 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - [x] Supabase production Edge Function public-catalog deployed as version 5 with verify_jwt=false; deployed source exactly matches GitHub main. Existing public additionalContactPhones contract was retained.
 - [x] Read-only production profile audit: 2 ACTIVE verified profiles (MantiqatiX and متجر قدم السعد); both have valid HTTPS logo and cover URLs; 0 invalid configured values.
 - [x] No provider verification flags, subscription records, business data, schema, migrations, RLS/ACL, payment or financial records were modified in the Edge Function deployment.
+
+
+
+### 2026-10-30 — RC458 security hardening and catalog taxonomy deployment
+- [x] PR #538 merged: empty search_path for the three digital-page payment SECURITY DEFINER RPCs; claim RPC table alias fixed after disposable tests exposed ambiguous output column `id`.
+- [x] RC458 disposable PostgreSQL regression [41019320495](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019320495) passed. Full isolated Supabase forward replay [41019320366](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019320366) passed from checkpoint 20261008222845 with 73 later migrations, including RC458.
+- [x] Main post-merge RC458 and forward-chain checks [41019626515](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019626515) / [41019626775](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41019626775) passed. Issue #269 closed for source remediation and isolated verification; production rollout remains not applied.
+- [x] PR #537 taxonomy reorganization merged as 80eeb41e90c133d5b66dea50853ba4306c6424fa. Exact-head browser E2E [41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819) passed the domain→activity→specialty folder flow, back-navigation, mobile overflow and responsive checks.
+- [x] Main catalog validation [41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608750) and Pages deployment [41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742) passed, including deployed-origin browser checks.
+- [x] Issue #270 closed for recovery of the 16 RC425–RC441 source migrations and isolated forward-replay acceptance. This does not reconcile the live 41-version ledger drift or authorize production rollout.
+- No Production migration, RPC/ACL, Auth setting, payment, wallet or financial mutation was performed in this work.
+- Overall Production Gate remains BLOCKED / NOT CERTIFIED.
