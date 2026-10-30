@@ -917,3 +917,22 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Audit verified profiles for valid external URL coverage without fabricating assets.
 - New owner requests must be added to the canonical TODO register, linked to the parent goal, and tracked through tests and deployment; no request is considered closed at merge alone.
 - No production schema/migration/Auth/RLS/grant/Edge Function/payment/financial change was made in this PR. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+---
+
+## 2026-10-30 — PR #534 merged: explicit external brand URLs
+
+### Finding and correction
+- Main Pages deployment after PR #533 succeeded in [run 41015430795](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015430795).
+- Post-deploy source review found that external link actions were bound to display `logoUrl` / `coverUrl`, which can contain generated/default image fallbacks. This could incorrectly label a fallback as an external owner-provided link.
+- PR [#534](https://github.com/islamnagy2022-eng/MantiqatiX/pull/534) merged to main as `9cb40af9886e5141702576a7a20f300b78fcff4e`.
+- Added explicit `externalLogoUrl` / `externalCoverUrl` fields and passed them from both `public-catalog-directory` and `public-catalog`. Display fallback image URLs remain separate.
+- Directory cards and storefront headers show external links only for verified profiles with a valid explicit HTTPS URL.
+
+### Verification
+- Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed build/typecheck, Playwright browser E2E and isolated PostgreSQL employee RBAC.
+- Browser coverage includes both URLs, logo-only, cover-only, no URLs, unverified profiles and direct storefront route hydration.
+- Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed. Deploy was skipped for the PR event, as expected.
+- Post-merge main Pages deployment and deployed-origin checks remain open; do not mark production verification complete until the main run succeeds.
+- No production provider data, verification status, subscription, schema, migration, Auth/RLS/grants, payment or financial data was changed by PR #534.
