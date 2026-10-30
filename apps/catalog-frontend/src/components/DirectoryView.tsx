@@ -418,14 +418,14 @@ export const DirectoryView: React.FC = () => {
         <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 p-5 text-white shadow-lg sm:p-8">
           <button type="button" onClick={goTaxonomyBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15">
             <ChevronLeft className="h-4 w-4" />
-            {selectedCategoryId !== 'all' ? 'رجوع للمجالات والأنشطة' : selectedGroupFilter !== 'all' ? 'رجوع للمجموعات' : 'العودة للكتالوج'}
+            {selectedCategoryId !== 'all' ? 'رجوع للمجالات والأنشطة' : selectedGroupFilter !== 'all' ? 'رجوع للمجالات' : 'العودة للكتالوج'}
           </button>
           <p className="text-xs font-bold text-emerald-300">MantiqatiX / دليل الأنشطة</p>
           <h1 className="mt-2 text-2xl font-black sm:text-3xl">
             {activeCategory ? activeCategory.name : activeGroup ? activeGroup.name : 'المجالات الرئيسية'}
           </h1>
           <p className="mt-2 text-sm leading-6 text-white/75">
-            {activeCategory ? 'اختر المجال أو التخصص لعرض الجهات المطابقة.' : activeGroup ? 'اختر التصنيف الذي تريد تصفحه.' : 'اختر المجال، ثم النشاط، ثم التخصص أو الخدمة المطلوبة.'}
+            {activeCategory ? 'اختر التخصص أو الخدمة لعرض الأنشطة المطابقة.' : activeGroup ? 'اختر النشاط الذي تريد تصفحه.' : 'اختر المجال، ثم النشاط، ثم التخصص أو الخدمة المطلوبة.'}
           </p>
           <nav aria-label="مسار التصفح" className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold">
             <button type="button" onClick={() => { selectGroup('all'); setTaxonomyBrowserOpen(true); }} className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/15">كل المجالات</button>
@@ -641,8 +641,8 @@ export const DirectoryView: React.FC = () => {
         <section aria-label="تصفح الأنشطة والتخصصات" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-black text-slate-900">تصفح حسب التصنيف والتخصص</h2>
-              <p className="mt-1 text-xs text-slate-500">افتح المجموعة ثم النشاط أو المهنة، وبعدها اختر التخصص لعرض الجهات المطابقة فقط.</p>
+              <h2 className="text-lg font-black text-slate-900">تصفح حسب النشاط والتخصص</h2>
+              <p className="mt-1 text-xs text-slate-500">اختر المجال، ثم النشاط، ثم التخصص أو الخدمة لعرض النتائج المطابقة فقط.</p>
             </div>
             {(selectedGroupFilter !== 'all' || selectedCategoryId !== 'all' || selectedSpecialty !== 'all') && (
               <button type="button" onClick={() => { selectGroup('all'); setSelectedGovFilter('all'); }} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
@@ -651,7 +651,7 @@ export const DirectoryView: React.FC = () => {
             )}
           </div>
 
-          <nav aria-label="مسار التصنيف" className="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <nav aria-label="مسار المجال والنشاط" className="flex flex-wrap items-center gap-2 text-xs font-bold">
             <button type="button" onClick={() => selectGroup('all')} className={`rounded-lg px-3 py-2 ${selectedGroupFilter === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>كل المجالات</button>
             {selectedGroupFilter !== 'all' && (
               <>
@@ -947,7 +947,7 @@ export const DirectoryView: React.FC = () => {
                           )}
                           {!biz.isVerified && (
                             <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-                              <span>غير مؤكد</span>
+                              <span>غير موثق</span>
                             </span>
                           )}
                           {group && (
