@@ -13,9 +13,11 @@ on:
   push:
     branches: [main]
     paths:
+      - "docs/release/production-migration-reconciliation.json"
       - "supabase/migrations/20261014230000_rc525_digital_page_product_platform_admin_scope.sql"
       - "scripts/validate-digital-page-product-admin-scope.mjs"
       - "supabase/tests/rc525_digital_page_product_platform_admin_scope.sql"
+      - "supabase/tests/fixtures/rc525_platform_admin_scope_setup.sql"
       - ".github/workflows/digital-page-product-platform-admin-scope.yml"
 
 permissions:
