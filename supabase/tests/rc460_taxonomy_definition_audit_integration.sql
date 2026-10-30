@@ -5,6 +5,7 @@ declare
   before_count integer;
   audit_id uuid;
   insert_audit_id uuid;
+  delete_audit_id uuid;
   rejected boolean;
 begin
   insert into auth.users(id) values (admin_id);
@@ -64,6 +65,30 @@ begin
      or (select jsonb_array_length(after_taxonomy->'categories') from public.catalog_taxonomy_definition_audit where id=audit_id) <> 2 then
     raise exception 'RC460_TAXONOMY_UPDATE_AUDIT_INVALID';
   end if;
+
+  -- Deleting a category is represented by an UPDATE snapshot that explicitly shows the removed entry.
+  update public.bizcatalog_platform_settings
+  set settings = jsonb_set(
+        settings,
+        '{categories}',
+        '[{"id":"cat_food_grocery_cafes","name":"Specialty Cafes"}]'::jsonb,
+        true
+      ),
+      updated_by = admin_id,
+      updated_at = now() + interval '3 seconds'
+  where settings_key = 'bizcatalog';
+
+  select id into delete_audit_id
+  from public.catalog_taxonomy_definition_audit
+  where id <> insert_audit_id and id <> audit_id and operation = 'UPDATE'
+  limit 1;
+
+  if delete_audit_id is null
+     or jsonb_array_length((select before_taxonomy->'categories' from public.catalog_taxonomy_definition_audit where id=delete_audit_id)) <> 2
+     or jsonb_array_length((select after_taxonomy->'categories' from public.catalog_taxonomy_definition_audit where id=delete_audit_id)) <> 1 then
+    raise exception 'RC460_TAXONOMY_DELETE_AUDIT_INVALID';
+  end if;
+
 
   -- The audit is append-only.
   rejected := false;
