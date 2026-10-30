@@ -442,7 +442,7 @@ export const DirectoryView: React.FC = () => {
               return (
                 <button key={group.id} type="button" onClick={() => { selectGroup(group.id); setTaxonomyBrowserOpen(true); }} className="group flex min-h-36 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md">
                   <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">{ICONS_MAP[group.id] || <Folder className="h-7 w-7" />}</span>
-                  <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{group.name}</span><span className="mt-1 block text-xs text-slate-500">افتح المجال لعرض الأنشطة التابعة له</span><span className="mt-2 flex items-center gap-2 text-xs font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق: {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق: {unconfirmedCount}</span></span></span>
+                  <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{group.name}</span><span className="mt-1 block text-xs text-slate-500">افتح المجال لعرض الأنشطة التابعة له</span><span className="mt-2 flex flex-wrap items-start gap-1 text-xs font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق: {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق: {unconfirmedCount}</span></span></span>
                   <ChevronLeft className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-emerald-700" />
                 </button>
               );
