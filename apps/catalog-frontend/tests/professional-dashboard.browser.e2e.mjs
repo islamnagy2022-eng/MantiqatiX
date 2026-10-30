@@ -456,7 +456,7 @@ try {
     ];
     const { context, page } = await newScenario(browser, null, fixtures);
     try {
-      await page.getByText('نشاط رابطين خارجيين', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const logoLinks = page.locator('a[title="فتح رابط اللوجو الخارجي"]');
       const coverLinks = page.locator('a[title="فتح رابط الغلاف الخارجي"]');
       assert.equal(await logoLinks.count(), 2, 'only verified activities with explicit external logo URLs should show logo links');
@@ -473,7 +473,7 @@ try {
         assert.match(await link.getAttribute('rel') || '', /noreferrer/);
       }
       await page.goto(baseUrl + '?store=40000000-0000-0000-0000-000000000001', { waitUntil: 'domcontentloaded' });
-      await page.getByText('نشاط رابطين خارجيين', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-logo.svg"]').count(), 1, 'direct storefront load must preserve the external logo URL');
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-cover.svg"]').count(), 1, 'direct storefront load must preserve the external cover URL');
       results.push('verified-external-logo-cover-links-only-with-explicit-urls-in-directory-and-storefront');
