@@ -877,3 +877,19 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Pages PR validation [41005476412](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476412) passed its validation job; public-only validation and deploy were skipped as expected for the pull-request event.
 - [ ] Verify the post-merge main Pages deployment and deployed-origin Playwright outcome. Do not treat PR merge/CI as proof that the live catalog is updated.
 - The change is a minimal, explicitly requested color correction. No database, migration, production data, Auth/RLS/grant, Edge Function, secret, payment, or financial data was changed. Full Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Fresh read-only Security Advisor and Edge Function parity checkpoint
+
+- [x] Read-only Supabase project check: project `moyhiluyhjsujhwlyeuu` is `ACTIVE_HEALTHY`, PostgreSQL `17.6.1.155`; production migration ledger contains 308 records through `20261029083845`.
+- [x] Fresh Security Advisor observed at approximately 04:58:43 UTC: 8 RLS-enabled/no-policy tables (INFO), 3 anon-executable SECURITY DEFINER functions (WARN), 67 authenticated-executable SECURITY DEFINER functions (WARN), 90 `auth_allow_anonymous_sign_ins` table findings (WARN), and Leaked Password Protection disabled (WARN).
+- [x] Read-only `pg_policies` inventory: 485 public-schema policies, 483 targeting `authenticated`, 19 explicitly targeting `anon/public`; 283 authenticated policies textually reference JWT `is_anonymous`, 200 do not. The 19 explicit anon/public policies had zero potentially mutating permissive policies in the aggregate check; public SELECT policies and explicit false-deny policies still require intended-access review.
+- [x] Targeted sensitive-table review found finance reads generally scoped by active tenant membership and finance/owner roles, while some user-owned rows rely on `auth.uid()`. Policies without an explicit `is_anonymous` expression are not automatically vulnerabilities; anonymous JWT adversarial tests are still required.
+- [x] Read-only deployed-source comparison confirms exact text parity is absent for all six critical Edge Functions: `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, `financial-journal v3`. No function was deployed. Text mismatch requires semantic diff and isolated tests; it is not a standalone exploit finding.
+- [x] Full evidence and query scope recorded in [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md`](docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md).
+- [ ] Complete policy-by-policy review and anonymous/permanent JWT runtime tests for the 90 advisor findings; do not blanket-revoke or blanket-add policies.
+- [ ] Review the 70 SECURITY DEFINER findings (ACL, search_path, callers, trigger/public contracts) and prepare semantic parity diffs/tests for the six live Edge Functions.
+- [ ] Reconcile all 308 live migration records with the ordered release manifest and required object contracts; no production migrations were applied.
+- [ ] Enable Leaked Password Protection only through an authorized Supabase Auth dashboard action, then rerun Advisor. No Auth setting was changed.
+- [ ] Verify the post-merge Pages deployment and deployed-origin browser suite for PR #525; PR CI success is not a deployment claim.
+- No production schema/data, migration, grant, RLS/Auth setting, Edge Function, secret, payment, wallet, settlement, or financial mutation was performed. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
