@@ -11,6 +11,11 @@ const fixture = read('supabase/tests/rc459_taxonomy_mapping_fixture.sql');
 const integration = read('supabase/tests/rc459_taxonomy_mapping_integration.sql');
 const browser = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 
+const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
+const production = read('apps/catalog-frontend/src/lib/production.ts');
+const publicDirectory = read('supabase/functions/public-catalog-directory/index.ts');
+const publicCatalog = read('supabase/functions/public-catalog/index.ts');
+
 const groups = [
   'medical_health','food_grocery','fashion_beauty','home_maintenance',
   'construction_decor','auto_transport','real_estate','education_training',
@@ -30,6 +35,14 @@ assert.ok(edge.includes('service.rpc(rpcName, rpcArgs'), 'Taxonomy operations mu
 assert.ok(edge.includes('TAXONOMY_CATEGORY_IN_USE'), 'SAVE_SETTINGS must block deletion or movement of a referenced category.');
 assert.ok(edge.includes('const oldGroup = allowedTaxonomyGroups.find'), 'Category usage lookup must parse canonical IDs using explicit known group prefixes.');
 assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks must fail closed.');
+assert.ok(context.includes("activityCategoryId: data.categoryId || ''"), 'New activity creation must send the stable taxonomy category ID.');
+assert.ok(edge.includes('const activityCategoryId = String(input.activityCategoryId || "").trim()'), 'Server must read the stable category ID on activity creation.');
+assert.ok(edge.includes('INVALID_ACTIVITY_CATEGORY_ID') && edge.includes('canonicalActivityCategoryType !== activityClassificationType'), 'Server must validate activity category group and classification type.');
+assert.ok(edge.includes('activity_category_id: activityCategoryId') && edge.includes('activity_category_code: canonicalActivityCategoryCode'), 'Server must persist category identity and canonical code.');
+assert.ok(publicDirectory.includes('activityCategoryId: String(business.settings?.activity_category_id || "")'), 'Public directory may expose only the safe stable category ID.');
+assert.ok(publicCatalog.includes('activityCategoryId: String(business.settings?.activity_category_id || "")'), 'Public storefront must return the safe stable category ID.');
+assert.ok(production.includes('raw.activityCategoryId || raw.activity_category_id || raw.settings?.activity_category_id'), 'Business hydration must restore canonical and custom category IDs.');
+assert.ok(production.includes('activityCategoryId: body.business?.activityCategoryId'), 'Direct storefront hydration must preserve the stable category ID.');
 assert.ok(edge.includes('const canonicalTaxonomyCategoryTypes = new Map<string, "activity" | "profession">'), 'Edge Function must use a server-owned canonical category/type allowlist.');
 assert.ok(edge.includes('canonicalCategoryType(sourceCategoryId)') && edge.includes('canonicalCategoryType(targetCategoryId) !== targetClassificationType'), 'Source and target IDs and target classification must match the canonical seed inventory.');
 const seededCategoryCodes = defaults.split('\n')
