@@ -563,7 +563,6 @@ try {
       await page.getByRole('heading', { name: 'إدارة ربط التصنيفات وإعادة توزيع السجلات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       await assertNoHorizontalOverflow(page, '390px taxonomy admin mapping panel');
       await page.getByRole('button', { name: 'إنشاء معاينة آمنة', exact: true }).click();
-      await page.getByText('معاينة المعاينة', { exact: false }).waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
       await page.getByText('اكتملت المعاينة دون تعديل أي بيانات.', { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(taxonomyMappingCalls.length, 1, 'one preview RPC must be called');
       assert.equal(taxonomyMappingCalls[0].action, 'TAXONOMY_MAPPING_PREVIEW');
