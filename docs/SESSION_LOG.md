@@ -1051,3 +1051,11 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Appended the evidence and safe next steps to `TODO_PRODUCTION.md` in commit `471eead698b23ec94478d6cef8854328fbfee0f8`.
 - No payments, provider calls, webhook replays, financial postings, schema/grant/RLS/data/Auth changes, or Edge Function deployments were performed.
 - Decision: do not deploy any of the six drifted payment/order/finance Edge Functions or apply missing migrations directly to Production. Next work must be isolated restorable replay and deterministic integration tests, followed by reviewed rollout approval.
+
+
+### RC449A live journal schema/data preflight
+- Confirmed all three journal/ledger tables exist, but RC449A's required header/line columns are absent: journal entry_number, total_debit, total_credit, posted_at, updated_at, reversed_by_entry_id, and journal line_number.
+- Aggregate-only read returned zero rows in journal_entries, journal_entry_lines, and general_ledger. This means no existing journal rows would be backfilled at this moment; it does not eliminate DDL/trigger/locking/recovery risk.
+- Production migration ledger is already advanced through 20261029083845. Historical RC449A/RC450 files must not be applied directly out of order or recorded under fabricated historical versions. A reviewed forward-only reconciliation migration with a CLI-generated new version is required.
+- Logged the evidence in TODO_PRODUCTION.md commit 18ce7a80ad38080049e33aad25bedff3e2e84261.
+- No data, schema, grant, journal, ledger, or payment mutation occurred.
