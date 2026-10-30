@@ -1267,3 +1267,33 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - Safety: advisor and function/trigger metadata inspection only. No DDL, grants, policies, Auth settings, data, Edge Functions, payment, or finance changes were made in this advisor pass.
 
 - [x] Post-deploy Supabase function logs confirm `public-catalog-directory` v10 received 2 GET requests with HTTP 200 after deployment (latest 2026-10-30T23:40:15Z; observed p95 execution about 2.1s for this tiny sample). No v6 `public-catalog` invocation appeared in the queried post-deploy log window; storefront endpoint smoke remains open.
+
+
+## 2026-10-31 — RC435/RC439/RC449A/RC450 live prerequisite recheck (read-only)
+
+### Live Edge Function versions and source parity
+- [x] Re-fetched all six critical live Edge Functions and their current-main entrypoints. All are ACTIVE but none are byte-identical to main:
+  - `order-create` v8, verify_jwt=true: live 10,083 chars vs main 13,988.
+  - `payment-intent` v8, verify_jwt=true: live 8,114 vs main 10,366.
+  - `paymob-webhook` v10, verify_jwt=false: live 11,538 vs main 12,665.
+  - `digital-page-payment-intent` v5, verify_jwt=true: live 5,345 vs main 6,532.
+  - `subscription-payment-intent` v4, verify_jwt=true: live 5,196 vs main 11,100.
+  - `financial-journal` v3, verify_jwt=true: live 1,591 vs main 3,387.
+- [x] Current production migration ledger rechecked: 308 recorded versions; latest is `20261029083845` / `require_phone_for_published_directory_listings`. The required RC435 (`20261009210000`), RC439 (`20261010010000`), RC449A (`20261010175000`), and RC450 (`20261010180000`) versions are all absent. This is exact ledger identity, not a claim that every physical object is absent.
+
+### Subscription checkout — current live blocker
+- [x] `public.create_subscription_payment_intent_backend(uuid,text,text,text,text,uuid)` exists and is executable by service_role only; current main requires `create_subscription_payment_intent_claimable_backend`, which is absent.
+- [x] Current main also requires `claim_subscription_provider_intent_creation_backend(uuid,uuid)`; this function is absent from live `pg_proc`.
+- [x] Live `subscription_payment_intents` has amount/currency/status/provider/provider_intent_id/provider_order_id/provider_transaction_id/idempotency_key, but does not have the RC439 encrypted checkout fields `client_secret_ciphertext`, `client_secret_iv`, `client_secret_key_version`.
+- [ ] Do not deploy current `subscription-payment-intent` v-main until RC435/RC439 schema/functions, encrypted key configuration, Paymob sandbox concurrency/replay tests, and rollback are rehearsed on an isolated restorable database.
+
+### Financial journal — current live blocker
+- [x] Live `post_financial_journal(jsonb,jsonb)` exists, but service_role EXECUTE=false; authenticated/anon EXECUTE=false.
+- [x] Live `post_financial_journal_backend(uuid,jsonb,jsonb)` exists, but service_role EXECUTE=false; authenticated/anon EXECUTE=false. Its current live body requires `p_user_id=auth.uid()`, which is incompatible with a service-role-only Edge Function call unless the reviewed actor-bound contract is applied.
+- [x] Current main Edge Function calls `post_financial_journal_backend`; canonical RC450 requires the schema prerequisites in RC449A and the approved service_role-only grant/actor/tenant scope. Both versions are absent from the live ledger.
+- [ ] Do not invoke or deploy the financial journal endpoint until RC449A → RC450 is rehearsed on an isolated database, the deployed RPC signature/body/ACL match the runbook, and finance regression + reversal/rollback rehearsal pass.
+
+### Scope and safety
+- This checkpoint used read-only `pg_proc`, `has_function_privilege`, `information_schema.columns`, Edge Function source retrieval, and migration-ledger inspection.
+- No live payment intent, Paymob request/webhook, financial journal entry, migration, DDL, grant, RLS, data, Auth setting, or Edge Function deployment was performed in this checkpoint.
+- Production remains **BLOCKED / NOT CERTIFIED**. Next safe action: prepare and run the RC435/RC439/RC449A/RC450 chain in a restorable isolated environment, not Production.
