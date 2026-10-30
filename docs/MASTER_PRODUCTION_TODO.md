@@ -2413,3 +2413,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] These CI/deployment results do not mean Supabase payment migrations or Edge Functions were deployed. Read-only production checks still show the old RC426 function signature, RC431 search_path drift, missing RC428–430/RC435 RPCs, missing RC435/RC439 columns, and RC450 journal EXECUTE/schema gaps.
 - [ ] Keep financial/payment production rollout BLOCKED until the entire chronological migration chain is reconciled and rehearsed against a schema-faithful disposable snapshot, with backup/restore, rollback, provider sandbox E2E and exact live-source parity evidence.
 - No production database or payment mutation was performed. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC435/RC439 subscription checkout verification
+
+- [x] Merged PR #515 (`0cd3b00ad977bfdf84ff7edcc613acae4ea6138e`) with disposable PostgreSQL 16 RC435 → RC439 integration and AES-GCM crypto tests; dedicated workflow [41001775634](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001775634) passed.
+- [ ] Production subscription checkout remains blocked: live version-4 `subscription-payment-intent` does not implement claimable creation, ambiguous-outcome reconciliation, intention correlation, or encrypted checkout-secret recovery; corresponding RC435/RC439 columns/RPCs are absent from the live schema.
+- [ ] Deploy no partial fixes. Reconcile and rehearse the full chronological migration + Edge Function release as one reviewed unit, with backup/restore, rollback, and Paymob sandbox evidence.
+- No production mutation was performed. Release remains **BLOCKED / NOT CERTIFIED**.
