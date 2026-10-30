@@ -106,6 +106,8 @@ assert.ok(definitionAuditMigration.includes('revoke all on table public.catalog_
 assert.ok(definitionAuditIntegration.includes('RC460_NON_TAXONOMY_CHANGE_WAS_AUDITED'), 'Integration must avoid auditing unrelated settings changes.');
 assert.ok(definitionAuditIntegration.includes('RC460_SETTINGS_PARTIALLY_UPDATED'), 'Integration must prove audit failure rolls back the originating settings update.');
 assert.ok(definitionAuditIntegration.includes('RC460_AUDIT_TABLE_DIRECT_ACCESS_NOT_REVOKED'), 'Integration must verify the immutable audit table has no API-role direct access.');
+assert.ok(definitionAuditMigration.includes('TAXONOMY_AUDIT_ACTOR_REQUIRED'), 'Definition changes without actor attribution must fail closed.');
+assert.ok(definitionAuditIntegration.includes('RC460_MISSING_ACTOR_NOT_REJECTED'), 'Integration must verify taxonomy writes without an actor are rejected.');
 assert.ok(definitionAuditIntegration.includes('RC460_AUDIT_RLS_NOT_FORCED'), 'Integration must verify FORCE RLS on the taxonomy definition audit table.');
 assert.ok(definitionAuditIntegration.includes("ARRAY['search_path=\"\"']"), 'Integration must verify the SECURITY DEFINER audit trigger uses an empty search_path.');
 assert.ok(definitionAuditIntegration.includes('RC460_TAXONOMY_DELETE_AUDIT_INVALID'), 'Integration must prove category removal is recorded as a before/after definition update.');
