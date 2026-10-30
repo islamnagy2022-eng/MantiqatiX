@@ -2475,3 +2475,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Exact-commit backend boundary, module professionalization, SMM deferred contract, MantiGO privacy, RC425 atomicity and flexible commission workflows passed; run IDs are recorded in `TODO_PRODUCTION.md` and `docs/SESSION_LOG.md`.
 - [ ] Verify post-merge Pages deployment and deployed-origin Playwright result. PR-only Pages run 41005124658 validated source/build but skipped deployment by design; do not infer publication from PR merge.
 - Release blockers from the latest live P0 checkpoint are unchanged. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — PR #525 catalog confirmation-state counter colors
+
+- [x] PR #525 merged as `3bf212793e61ad6ae47f46e6fa73b0d8b988be4c`.
+- [x] Confirmed activity counters remain green; all four titled unconfirmed directory-listing counters now use red styling. Only badge colors changed; no layout or ranking behavior changed.
+- [x] Primary Catalog Frontend Validation [41005476492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476492) passed build/contracts, PostgreSQL RBAC integration, and Playwright red/green badge assertions.
+- [x] Backend boundary, module professionalization, MantiGO privacy, RC425 atomicity, and flexible commission workflows passed on the exact PR commit.
+- [ ] Post-merge Pages deployment and deployed-origin Playwright verification remain pending; PR-only Pages validation [41005476412](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476412) skipped deployment by design.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
