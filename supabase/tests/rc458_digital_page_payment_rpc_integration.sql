@@ -72,6 +72,11 @@ begin
     raise exception 'RC458_CLAIM_ORDER_OWNER_CHECK_MISSING';
   end if;
 
+  if pg_catalog.pg_get_functiondef('public.claim_digital_page_payment_intent_backend(uuid,uuid,text,text)'::regprocedure)
+     not ilike '%from public.digital_page_orders as o%' then
+    raise exception 'RC458_CLAIM_ORDER_ALIAS_MISSING';
+  end if;
+
   -- The publication function must retain the explicit actor and platform-admin checks.
   if pg_catalog.pg_get_functiondef('public.fulfill_digital_page_publish(uuid,uuid,uuid)'::regprocedure)
      not ilike '%p_actor_user_id <> auth.uid()%' then
