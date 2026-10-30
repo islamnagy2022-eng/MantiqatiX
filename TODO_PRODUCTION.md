@@ -980,6 +980,6 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] PR [#534](https://github.com/islamnagy2022-eng/MantiqatiX/pull/534) merged to `main` as `9cb40af9886e5141702576a7a20f300b78fcff4e`; both public directory and direct public storefront responses now carry explicit external URL fields.
 - [x] Browser E2E covers both URLs, logo-only, cover-only, neither URL, unverified profile, and direct storefront hydration. Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed build, browser E2E and PostgreSQL RBAC.
 - [x] Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed; deployment skipped on PR by design.
-- [ ] Verify the post-merge main Pages deployment and deployed-origin browser outcome for PR #534.
-- [ ] Audit valid external logo/cover URL coverage for all verified profiles; no fallback images may be linked as external assets.
+- [x] Post-merge main Pages deployment [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) passed deployment, root verification and deployed-origin browser checks.
+- [x] Read-only production audit: 2 ACTIVE verified profiles, both with HTTPS logo and cover URLs; 0 invalid configured URLs. Fallback images remain display-only.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
