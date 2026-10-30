@@ -1132,3 +1132,11 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Prioritize RLS initplan and multiple-permissive-policy findings by high-traffic catalog, authentication, order, payment, subscription and finance queries; inspect actual plans and preserve exact authorization semantics before proposing additive SQL.
 - [ ] Review the 129 unindexed foreign keys against table size, write rate, existing composite indexes, and query plans. Add only proven missing indexes concurrently/through the approved migration pipeline; do not create all advisor suggestions indiscriminately.
 - [x] Read-only check only. No production policy/grant/index/RPC changes, no migration, no data mutation, no Edge Function deployment, no Auth setting change. Global Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Anonymous-policy warning reconciliation (same read-only checkpoint)
+
+- [x] Cross-checked `pg_policies` rather than treating the 90 Advisor warnings as 90 direct `anon` grants. The live catalog contains 19 policies whose explicit role arrays include `anon` or `public`: 18 use `{anon,authenticated}`, and one uses `{public}`.
+- [x] The 19 explicit anon/public policies are SELECT-only public catalogue/showcase/active-content reads, or explicit deny policies (`USING false` / `WITH CHECK false`) for ERP/SMM/legacy tables. The one `{public}` policy is an explicit deny policy. No direct anon write policy appeared in this 19-policy result.
+- [ ] The remaining Security Advisor anonymous-policy warnings include policies granted to `authenticated` while Supabase anonymous sign-ins are enabled. Review those policies for explicit `auth.uid()`, `is_anonymous`, ownership and tenant checks; distinguish an anonymous authenticated session from a truly signed-in user before any policy change.
+- [x] On the 8 RLS-enabled/no-policy tables, read-only `information_schema.role_table_grants` showed no direct `anon` or `authenticated` table privileges. Six had only service-role metadata privileges; `directory_listing_claim_requests` and `public_directory_listings` had service_role CRUD. This supports deny-by-default for direct client table access, but does not replace review of RPC/function paths.
