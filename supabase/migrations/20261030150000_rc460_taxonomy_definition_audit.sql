@@ -30,25 +30,6 @@ begin
     return new;
   end if;
 
-  v_actor := new.updated_by;
-  if v_actor is null then
-    -- Non-user bootstrap/seed writes do not impersonate a human actor.
-    return new;
-  end if;
-
-  if not exists (
-    select 1
-    from public.user_memberships m
-    where m.user_id = v_actor
-      and upper(coalesce(m.role,'')) = 'SUPER_ADMIN'
-      and upper(coalesce(m.status,'')) = 'ACTIVE'
-      and m.business_id is null
-      and m.branch_id is null
-      and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
-  ) then
-    raise exception 'PLATFORM_ADMIN_REQUIRED_FOR_TAXONOMY_AUDIT';
-  end if;
-
   v_after := jsonb_build_object(
     'categories', coalesce(new.settings->'categories','null'::jsonb),
     'functionalGroups', coalesce(new.settings->'functionalGroups','null'::jsonb),
@@ -62,8 +43,29 @@ begin
       'defaultCategories', coalesce(old.settings->'defaultCategories','null'::jsonb)
     );
     if v_before = v_after then
+      -- Ordinary platform setting changes do not require taxonomy-specific audit attribution.
       return new;
     end if;
+  end if;
+
+  -- Any actual taxonomy definition change must be attributable to an active
+  -- platform-wide Super Admin. Missing or stale attribution fails closed.
+  v_actor := new.updated_by;
+  if v_actor is null then
+    raise exception 'TAXONOMY_AUDIT_ACTOR_REQUIRED';
+  end if;
+
+  if not exists (
+    select 1
+    from public.user_memberships m
+    where m.user_id = v_actor
+      and upper(coalesce(m.role,'')) = 'SUPER_ADMIN'
+      and upper(coalesce(m.status,'')) = 'ACTIVE'
+      and m.business_id is null
+      and m.branch_id is null
+      and m.permissions @> '{"scope":"PLATFORM","full_control":true}'::jsonb
+  ) then
+    raise exception 'PLATFORM_ADMIN_REQUIRED_FOR_TAXONOMY_AUDIT';
   end if;
 
   insert into public.catalog_taxonomy_definition_audit (
