@@ -15,7 +15,7 @@ export function checkoutSecretKeyEnvName(version) {
 export function getActiveCheckoutSecretVersion(getEnv) {
   if (typeof getEnv !== "function") throw new Error("CHECKOUT_ENCRYPTION_ENV_READER_REQUIRED");
   const configured = getEnv("PAYMOB_CHECKOUT_ENCRYPTION_ACTIVE_VERSION");
-  const version = String(configured ?? "v1").trim().toLowerCase();
+  const version = String(configured ?? "").trim().toLowerCase() || "v1";
   checkoutSecretKeyEnvName(version);
   return version;
 }
