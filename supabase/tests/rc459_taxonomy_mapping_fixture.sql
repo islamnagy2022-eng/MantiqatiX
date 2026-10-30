@@ -33,3 +33,18 @@ create table public.public_directory_listings (
   phone text,
   updated_at timestamptz not null default now()
 );
+
+create or replace function public.rc459_force_listing_failure()
+returns trigger
+language plpgsql
+as $function$
+begin
+  if current_setting('rc459.force_failure',true) = 'on' then
+    raise exception 'RC459_FORCED_TRANSACTION_FAILURE';
+  end if;
+  return new;
+end;
+$function$;
+create trigger rc459_force_listing_failure
+before update on public.public_directory_listings
+for each row execute function public.rc459_force_listing_failure();
