@@ -80,3 +80,12 @@ Already represented in current web/runtime: Restaurant, Fashion, Education, Jobs
 
 ## Verification status
 This matrix is an implementation aid. It does not certify any module. DONE != VERIFIED.
+
+
+## 2026-10-30 — Owner specification alignment and current UI guard
+
+- The owner's full operating specifications 00–19 are persisted at `docs/specifications/OPERATING_SPECIFICATIONS_00_19.md`; apply the relevant domain instruction when working on each module.
+- Preserve the current deployed catalog UI and website-first entry. Do not redesign or replace existing web screens while reusing RC40 concepts.
+- RC40 remains a reference source. Current main, current backend contracts, and verified live evidence remain authoritative.
+- Reuse only through existing secure web/backend contracts. Do not copy Android Room persistence, browser-side writes, legacy data models, or parallel engines/ledgers.
+- The uploaded RC40 archive SHA-256 was verified as `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`.
