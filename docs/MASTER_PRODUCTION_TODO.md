@@ -2316,10 +2316,10 @@ Use the following hierarchy; these files are complementary, not competing copies
 ### Current GitHub continuation checkpoint
 
 - Current `main` baseline inspected for this update: `c47aed3bbf013ca692837f510d08c0b756913deb`.
-- PR #499 has seven successful checks on head `33d27310ec63e9055e3e834a4d2df391c629010b`, but its branch is **2 commits ahead / 13 behind main**, diverged, and GitHub reports it not mergeable. Do not merge it or rebase it blindly.
-- The existing TODO reports PR #500's folder-style navigation change as merged. Compare #499 against the already-merged #500 implementation and close/supersede #499 if it is duplicate; retain only unique, necessary fixes after a clean current-main review and fresh exact-head CI.
+- PR #499 was rechecked against merged PR #500 and the current `main` source; it duplicated the already-merged folder-style taxonomy browser and was closed as superseded. No rebase or duplicate merge was performed.
+- The folder-style taxonomy navigation is present in current `main` through merged PR #500. Runtime/browser/device verification remains open; source presence does not close that gate.
 - Other open PRs include catalog/domain cleanup and fixes (#490, #488, #477, #476, #451, #444, #442, #441, #440, #439, #438, #436, #417, #413 and others). Recheck each PR's current state, base, changed files, exact-head checks, overlap, and production impact before deciding to merge, close, or continue it. This list is a snapshot, not a substitute for a fresh query.
-- PR #499's successful checks do not establish deployment or visual/browser verification. The branch has not been merged or deployed by this documentation update.
+- PR #499 was closed as superseded by PR #500. No deployment or visual/browser verification is inferred from that merge; runtime verification remains open.
 
 ### New TODO governance actions
 
@@ -2335,3 +2335,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - This update is documentation/governance only. No application source, UI, schema, migrations, production data, Supabase settings, Edge Functions, secrets, or deployment targets were changed.
 - No build, browser E2E, database integration, or production test is claimed by this documentation-only change.
 - Global release status remains **BLOCKED / NOT CERTIFIED** until the current P0 evidence is satisfied.
+
+
+---
+
+## 2026-10-30 — PR overlap reconciliation
+
+- [x] PR #499 closed as duplicate/superseded after confirming merged PR #500 already provides the folder-style taxonomy navigation and current main contains that implementation.
+- [ ] Browser/device verification of the merged taxonomy navigation on the deployed public site remains open.
+- [ ] Any distinct behavior found missing from PR #499 must be isolated, reviewed against current main, and reintroduced only as a minimal patch with fresh CI; do not revive or merge the stale branch.
+- PR #505 exact-head CI was queued/in progress at the checkpoint; its checks are not marked passed.
+- No application source, production schema/data, migrations, Auth/RLS, payments, Edge Functions, secrets, or deployment targets were changed by this reconciliation.
+- Production remains **BLOCKED / NOT CERTIFIED**.
