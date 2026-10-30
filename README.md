@@ -17,3 +17,10 @@ Primary customer entry: the electronic catalog build is published directly at `/
 - Read the chronological [Session Log](docs/SESSION_LOG.md) and [Master Production TODO](docs/MASTER_PRODUCTION_TODO.md) before continuing.
 - Use the root [Website/Catalog Production TODO](TODO_PRODUCTION.md) as the detailed catalog execution supplement; reconcile overlapping tasks with the Master TODO rather than creating duplicate trackers.
 - Record every material decision, code change, test, blocker, and next action in the session log. Do not mark a gate verified without evidence.
+
+
+## Session continuation references
+
+- Owner operating specifications 00–19: [`docs/specifications/OPERATING_SPECIFICATIONS_00_19.md`](docs/specifications/OPERATING_SPECIFICATIONS_00_19.md)
+- Specification-to-TODO cross-reference (SPEC-00–SPEC-19): [`docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md`](docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md)
+- Resume from [`docs/PROJECT_CONTINUITY.md`](docs/PROJECT_CONTINUITY.md), then read the latest entries in [`docs/SESSION_LOG.md`](docs/SESSION_LOG.md) and the global/catalog TODO registers.
