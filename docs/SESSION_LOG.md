@@ -1029,3 +1029,12 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Post-deploy `get_edge_function` verification confirmed both live source files match main byte-for-byte and the taxonomy fields are present.
 - Runtime HTTP invocation and deployed browser smoke were not possible in this environment because outbound DNS/network access failed. Exact source parity is confirmed; live response behavior remains a follow-up verification item.
 - No database schema/grants/RLS/data/Auth, payment, wallet, or finance changes were made.
+
+
+## 2026-10-31 — Fresh Supabase Advisor and trigger-function review
+- Fresh Security Advisor snapshot (observed 2026-10-30 23:39:47Z): 8 RLS-enabled/no-policy tables (INFO), 67 authenticated-callable SECURITY DEFINER functions, 3 anon-callable SECURITY DEFINER functions, anonymous sign-ins enabled, and leaked-password protection disabled.
+- Inspected the three anon-callable SECURITY DEFINER definitions and trigger metadata. `assign_default_owner_to_unowned_business()` is attached only to an enabled deferred AFTER INSERT trigger on `businesses`; it has default EXECUTE ACL and `search_path=public,auth`. `capture_commission_rule_audit()` is attached only to an enabled trigger on `commission_rules`; it has default EXECUTE ACL and empty search_path. `get_mnty_targeted_advertisements(...)` is an intended public ad-discovery RPC with empty search_path and bounded limit.
+- No trigger function was directly invoked. No permissions were changed. Plan: revoke client EXECUTE from the two trigger-only functions and harden the assignment trigger's search_path in an isolated forward-only migration, then prove trigger behavior is preserved. Keep the public ad discovery RPC only with its output contract tests.
+- Anonymous sign-in and leaked-password protection remain settings decisions requiring usage/impact review; no dashboard settings were changed.
+- Fresh Performance Advisor snapshot: 129 unindexed foreign keys, 375 RLS initplan findings, 73 unused indexes, 28 multiple permissive policies. No blanket fixes applied.
+- No production DDL, grants, RLS, Auth, data, Edge Functions, payment, or finance changes were made in this pass.
