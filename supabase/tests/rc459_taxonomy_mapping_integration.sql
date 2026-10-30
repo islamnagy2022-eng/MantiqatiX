@@ -201,6 +201,11 @@ begin
         and settings->>'activity_category_code'='restaurants') <> 3 then
     raise exception 'RC459_BUSINESS_RECLASSIFICATION_COUNT_INVALID';
   end if;
+
+  if (select settings->>'activity_category_id' from public.businesses where id=business_a) <> 'cat_food_grocery_restaurants'
+     or (select settings->>'activity_category_id' from public.businesses where id=business_b) <> 'cat_food_grocery_restaurants' then
+    raise exception 'RC459_STABLE_ACTIVITY_CATEGORY_ID_NOT_UPDATED';
+  end if;
   if (select count(*) from public.public_directory_listings
       where taxonomy_category_id='cat_food_grocery_restaurants') <> 3 then
     raise exception 'RC459_LISTING_RECLASSIFICATION_COUNT_INVALID';
