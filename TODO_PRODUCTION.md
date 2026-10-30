@@ -691,3 +691,24 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - PR #505 remains the documentation/governance PR for owner specifications and TODO alignment; its exact-head CI was still queued/in progress at this checkpoint. No merge or deployment is claimed.
 - No application source, production database, migrations, Supabase settings, secrets, payments, or deployment targets were changed in this reconciliation.
 - Production status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Read-only live Edge Function/source parity checkpoint
+
+- Project inspected read-only: `moyhiluyhjsujhwlyeuu`.
+- Retrieved live deployed function metadata and `index.ts` contents, then compared each normalized live entrypoint with the matching `main` source file under `supabase/functions/<name>/index.ts`.
+- The following six critical functions are **NOT BYTE-IDENTICAL** between live and repository source at this checkpoint:
+  | Function | Live version | Live SHA-256 | Live bytes | Main source bytes |
+  |---|---:|---|---:|---:|
+  | `order-create` | 8 | `16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782` | 10,083 | 13,988 |
+  | `payment-intent` | 8 | `d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54` | 8,114 | 10,366 |
+  | `paymob-webhook` | 10 | `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca` | 11,538 | 12,665 |
+  | `digital-page-payment-intent` | 5 | `8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b` | 5,345 | 6,532 |
+  | `subscription-payment-intent` | 4 | `4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5` | 5,196 | 10,896 |
+  | `financial-journal` | 3 | `79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366` | 1,591 | 3,387 |
+- This is a confirmed source-parity gap, not by itself proof that the live behavior is defective. Do not deploy repository versions or overwrite live functions until each diff is reviewed for contract, auth, idempotency, HMAC, ledger, and rollback implications.
+- [ ] Produce a function-by-function semantic diff and map each behavior to callers, database RPCs/tables, RLS/grants, webhook replay/idempotency tests, and rollback version.
+- [ ] Reconcile each live implementation into versioned source only after code review and isolated tests; do not replace live code by blind copying.
+- [ ] Run isolated integration/security tests for all six functions before proposing any production rollout.
+- Read-only inspection only: no function deployment, SQL write, migration, payment, or production data mutation.
+- Production remains **BLOCKED / NOT CERTIFIED**.
