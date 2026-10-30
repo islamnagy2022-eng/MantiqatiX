@@ -4,6 +4,7 @@ declare
   admin_id constant uuid := '46000000-0000-4000-8000-000000000001';
   before_count integer;
   audit_id uuid;
+  insert_audit_id uuid;
   rejected boolean;
 begin
   insert into auth.users(id) values (admin_id);
@@ -18,6 +19,14 @@ begin
   select count(*) into before_count from public.catalog_taxonomy_definition_audit;
   if before_count <> 1 then
     raise exception 'RC460_INSERT_DEFINITION_AUDIT_MISSING: %',before_count;
+  end if;
+
+  select id into insert_audit_id
+  from public.catalog_taxonomy_definition_audit
+  where actor_user_id = admin_id and operation = 'INSERT'
+  limit 1;
+  if insert_audit_id is null then
+    raise exception 'RC460_INSERT_DEFINITION_AUDIT_ID_MISSING';
   end if;
 
   -- Non-taxonomy setting changes must not create taxonomy audit noise.
@@ -43,7 +52,8 @@ begin
 
   select id into audit_id
   from public.catalog_taxonomy_definition_audit
-  order by changed_at desc, id desc
+  where id <> insert_audit_id
+    and operation = 'UPDATE'
   limit 1;
 
   if audit_id is null
