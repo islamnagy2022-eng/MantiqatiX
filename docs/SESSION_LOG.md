@@ -760,3 +760,12 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - RC440 integration passed on the exact PR head and post-merge main workflow [41003030610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030610). It verifies public/pg_temp ordering, temp-table shadowing prevention, grant preservation, already-hardened exclusion and service_role-only exclusion.
 - Production still has 30 exposed SECURITY DEFINER functions with exact search_path=public; no RC440 migration was applied. Keep it in the full ordered migration rollout.
 - No production schema, grants, Auth/RLS, Edge Functions or financial records were changed. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Production gate register refreshed
+
+- Refreshed the top-level P0 summaries in TODO_PRODUCTION.md and docs/MASTER_PRODUCTION_TODO.md to replace stale 2026-10-07 Security Advisor counts and old single-table RLS findings with the 2026-10-30 read-only evidence.
+- Current release blockers are explicitly recorded: 308 live migration rows through 20261029083845; 0/41 exact required release IDs; 60 required physical object contracts with mixed status; six critical Edge Function source mismatches; missing RC435/RC439 subscription contracts; RC450 journal schema/ACL mismatch; leaked-password protection disabled; no backup/restore rehearsal or real payment/finance E2E.
+- RC426–RC431, RC435–RC439, RC450 and RC440 isolated PostgreSQL CI evidence is distinguished from production application and provider E2E.
+- Main web deploy after PR #521 passed [41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838). Production Health Monitor after PR #522 passed [41003213146](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003213146). Main commit 1d80c771e89a7b2693be7c62d0c8bba9d815f678 web deploy was still in progress at this checkpoint.
+- No production writes or deployments were performed by this documentation refresh. Overall release remains BLOCKED / NOT CERTIFIED.
