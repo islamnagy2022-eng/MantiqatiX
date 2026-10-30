@@ -27,11 +27,7 @@ Added forward-only migration:
 
 `supabase/migrations/20261030120000_rc458_digital_page_payment_rpc_empty_search_path.sql`
 
-It applies only:
-
-`ALTER FUNCTION ... SET search_path = ''`
-
-to the three named procedures. Their bodies and grants are not rewritten. Existing application relations and helper functions are schema-qualified; PostgreSQL built-ins remain available through implicit `pg_catalog`.
+It sets an empty `search_path` on the three named procedures. For the claim RPC, `CREATE OR REPLACE` also qualifies the `digital_page_orders` references with an `o` alias. The first disposable test exposed an actual PL/pgSQL ambiguity: `RETURNS TABLE` defines an output variable named `id`, which conflicted with the unqualified `WHERE id = p_order_id`. The forward fix uses `o.id` in both the row-locking SELECT and UPDATE. `CREATE OR REPLACE` preserves the existing owner and ACL; the other two procedures receive configuration-only changes. PostgreSQL built-ins remain available through implicit `pg_catalog`.
 
 ## Regression coverage
 
@@ -43,6 +39,7 @@ Added disposable fixture and integration suite:
 
 The suite checks:
 1. All three functions are still SECURITY DEFINER and have an empty function search_path.
+2. The claim RPC keeps qualified table aliases to avoid the discovered output-column ambiguity.
 2. Authenticated EXECUTE remains; anon, service_role and PUBLIC execution remain absent.
 3. The caller/order-owner checks in the claim RPC remain present and cross-user claim/release attempts fail.
 4. A same-named temporary table cannot shadow the public order data.
@@ -52,7 +49,7 @@ The suite checks:
 ## Safety and remaining gates
 
 - No Production database, function, grant, Auth setting, payment, page or financial data was changed.
-- The workflow uses a disposable PostgreSQL 16 service and is not a substitute for replay against a restorable isolated Supabase branch.
+- The workflow uses a disposable PostgreSQL 16 service and is not a substitute for replay against a restorable isolated Supabase branch. The first run caught the ambiguous `id` reference and failed as intended; the migration and fixture were corrected. The first full-chain replay attempt also hit GitHub release API throttling and public ECR image-pull rate limits; the Supabase CLI dependency is now pinned to v2.122.0 to remove the latest-release lookup.
 - After CI passes, perform full isolated Supabase migration replay and caller regression against the current schema; inspect resulting function ACL/config/body; only then propose a production rollout with rollback evidence.
 - Production rollout is not authorized by this change. Do not apply RC458 directly to Production.
 - Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) remains open until isolated Supabase evidence is attached.
