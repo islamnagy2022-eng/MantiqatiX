@@ -2401,3 +2401,19 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Disposable test success does not prove the pending historical migration chain safe for Production. Continue source-to-live effect reconciliation, backup/restore + rollback rehearsal, and Paymob sandbox E2E before any rollout.
 - [ ] Live `paymob-webhook` and related payment Edge Functions remain NOT VERIFIED for deployment; Production release remains **BLOCKED / NOT CERTIFIED**.
 - No Production database/function/payment change was performed.
+
+
+---
+
+## 2026-10-30 — Paymob payment-path disposable integration evidence
+
+- [x] PR #510: RC428–RC430 PostgreSQL 16 webhook atomicity suite passed [run 41000675401](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000675401); merged as `2144759cdfdfc1d9d230ae77570e036c4e4f17f1`.
+- [x] PR #511: RC426–RC427 provider-order binding and single-active-intent suite passed [run 41001080309](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001080309); merged as `de2493ed772e23ab3091e2ea1f44ff33c6d495dd`.
+- [x] PR #512: RC435–RC439 subscription claim and encrypted checkout tuple suite passed [run 41001231186](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001231186); merged as `31b7256928b49af9a5f52c4aa69e55db7f1c91f1`.
+- [x] PR #513: RC431 digital-page webhook signature and atomic rollback suite passed [run 41001381321](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001381321); merged as `7d10152bf226fdd08d1dc70ed9c452bc37947bb8`.
+- [x] Catalog-only GitHub Pages deployment and deployed-origin browser verification passed in [run 41001000631](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001000631).
+- [ ] These CI suites are disposable PostgreSQL evidence, not Production migration application or live provider verification. No production schema/function/secret/payment state was changed.
+- [ ] Live migration ledger remains 308 rows through `20261029083845`, with 0/41 exact required release identifiers. Current 60-object presence probe found 30 missing contracts; reconcile later forward repairs and aliases semantically before any rollout.
+- [ ] RC431 live RPC parity, RC435 claim RPC and RC439 encrypted checkout schema are still outstanding in Production. Continue live source/function/RPC parity and Paymob sandbox E2E.
+- [ ] Backup/restore and rollback rehearsal remains unverified; do not authorize production migrations or function deployment until it is complete.
+- Overall Production remains **BLOCKED / NOT CERTIFIED**.
