@@ -976,3 +976,5 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 
 - Reviewed the attached Android `source_RC40.zip` snapshot (internal timestamps 2026-09-27); no direct `marketing_provider_profiles` references were found. Because this is an older snapshot, it does not certify a later Android build or external consumers.
 - Identified the direct legacy web consumers in `web/home.js` and `web/operations-modules.js`. Draft PR #554 now adds a redirect-only boot guard to `web/index.html` and extends the existing Pages validator; exact-head CI is still running, and no merge or deployment is claimed.
+
+- PR #554 exact-head validation passed: Pages workflow [41144995767](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995767), Legacy Catalog validation [41144995735](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995735), and Marketing Workspace Contract [41144995777](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41144995777). The Pages deploy job was skipped because this is a PR. The legacy redirect guard is CI-verified, not production-deployed.
