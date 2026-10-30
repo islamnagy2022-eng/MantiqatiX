@@ -16,6 +16,7 @@ on:
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
+      - "scripts/validate-catalog-taxonomy-admin-contract.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
@@ -114,6 +115,8 @@ jobs:
         run: npm run lint
       - name: Validate canonical activity/profession taxonomy
         run: node scripts/validate-canonical-activity-taxonomy.mjs
+      - name: Validate secure catalog taxonomy administration
+        run: node scripts/validate-catalog-taxonomy-admin-contract.mjs
       - name: Validate geographic catalog search and GPS contract
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate Google OAuth session and role contract
