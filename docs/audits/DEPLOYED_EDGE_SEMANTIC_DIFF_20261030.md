@@ -120,3 +120,50 @@ Both deployed and repository sources show authenticated-user validation, anonymo
 ## Release decision
 
 **BLOCKED / NOT CERTIFIED.** Highest priority: subscription payment intent, financial journal actor-bound RPC parity, payment-intent correlation, and digital-page payment claim/reconciliation parity. Continue with isolated schema/RPC contract verification before proposing any production function deployment.
+
+
+## Follow-up: live SQL contract and migration-ledger verification (read-only)
+
+A targeted read-only query against the live project checked the exact RPC names, identity arguments, owners, SECURITY DEFINER flags, search_path settings, execute ACLs, relevant table columns, and migration ledger versions.
+
+### Subscription checkout — schema and RPC prerequisites are absent
+
+Live database currently exposes `create_subscription_payment_intent_backend(uuid,text,text,text,text,uuid)`, but the following functions required by current `main` are absent from `pg_proc`:
+- `create_subscription_payment_intent_claimable_backend(uuid,text,text,text,text,uuid)`
+- `claim_subscription_provider_intent_creation_backend(uuid,uuid)`
+
+Live `subscription_payment_intents` does not contain:
+- `provider_creation_state`
+- `provider_creation_claimed_at`
+- `client_secret_ciphertext`
+- `client_secret_iv`
+- `client_secret_key_version`
+
+The source migrations defining these are present in the repository but are absent from the live migration ledger:
+- `20261009210000_rc435_subscription_provider_intent_claim`
+- `20261010010000_rc439_encrypted_checkout_recovery`
+
+The current live ledger query returned no rows for these versions. Therefore the current `main` subscription function cannot run successfully against the observed production schema as-is. This is a confirmed source/schema contract mismatch, not a hypothetical risk.
+
+### Financial journal — deployed and current-main RPC calls do not match the granted RPC
+
+Live ACL inspection returned:
+- `post_financial_journal(jsonb,jsonb)`: only `postgres` has EXECUTE; `service_role` EXECUTE = false.
+- `post_financial_journal_backend(uuid,jsonb,jsonb)`: only `postgres` has EXECUTE; `service_role` EXECUTE = false.
+- The repository's `20261009220000_rc436_atomic_financial_journal` migration defines `post_financial_journal_atomic_backend(uuid,jsonb,jsonb)` and grants EXECUTE to `service_role`, but this migration version is absent from the live ledger.
+- Current `main` Edge Function source calls `post_financial_journal_backend`, not the RC436 `post_financial_journal_atomic_backend` contract.
+
+The deployed v3 function calls `post_financial_journal`, which also lacks service-role EXECUTE in the observed live ACL. A service-role RPC call to either of those two existing functions is therefore expected to be rejected by PostgreSQL privileges. No production call was made to test this.
+
+The RC159 baseline migration revokes execution from `public`, `anon`, and `authenticated`; the RC436 migration is the later atomic actor-scoped implementation with the explicit service-role grant. The correct resolution is not to grant the old functions blindly. First verify the full RC436 migration against a restored isolated database, align the Edge Function to the atomic RPC signature, add integration tests, then propose a controlled migration and function rollout.
+
+### Exact missing ledger versions
+
+The live migration ledger did not contain:
+- `20261009210000` — RC435 subscription provider intent claim.
+- `20261009220000` — RC436 atomic financial journal.
+- `20261010010000` — RC439 encrypted checkout recovery.
+
+The live ledger did contain the earlier digital-page claim migrations `20261007003432` and `20261007003440`.
+
+**Updated severity:** subscription checkout source/schema mismatch and financial journal RPC/ACL mismatch are confirmed **CRITICAL release blockers**. No production DDL, grant, migration, RPC mutation, or Edge deployment was performed.
