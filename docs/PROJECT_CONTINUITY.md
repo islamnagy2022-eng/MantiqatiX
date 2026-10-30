@@ -910,3 +910,10 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Live journal RPCs lack service-role EXECUTE. RC436 introduces post_financial_journal_atomic_backend with service-role grant, but current main Edge code still calls the older post_financial_journal_backend; do not deploy before aligning and testing this contract.
 - See docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
 - Next: isolated restorable DB rehearsal for RC435/436/439, integration and rollback tests, then correct Edge source. No production mutation performed; release remains BLOCKED.
+
+
+### Financial journal path correction
+- Use RC449A → RC450 as the canonical financial journal rollout. Do not use RC436 as a substitute.
+- Current main Edge Function RPC name matches RC450; live production is blocked because RC449A/RC450 are absent and the old live RPC lacks service_role EXECUTE and RC450 actor/scope semantics.
+- Follow docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md; rehearse on an isolated restorable DB before production approval.
+- Corrected audit evidence is in docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
