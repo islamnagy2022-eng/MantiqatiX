@@ -23,7 +23,7 @@ begin
   cross join lateral jsonb_array_elements(
     case when jsonb_typeof(s.settings->'categories') = 'array'
       then s.settings->'categories' else '[]'::jsonb end
-  ) category
+  ) as entries(category)
   where s.settings_key = 'bizcatalog'
     and category->>'id' = p_category_id
     and category->>'functionalGroupId' = p_group_id
