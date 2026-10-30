@@ -30,14 +30,16 @@ assert.ok(edge.includes('service.rpc(rpcName, rpcArgs'), 'Taxonomy operations mu
 assert.ok(edge.includes('TAXONOMY_CATEGORY_IN_USE'), 'SAVE_SETTINGS must block deletion or movement of a referenced category.');
 assert.ok(edge.includes('const oldGroup = allowedTaxonomyGroups.find'), 'Category usage lookup must parse canonical IDs using explicit known group prefixes.');
 assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks must fail closed.');
-assert.ok(edge.includes('const canonicalTaxonomyCategoryIds = new Set<string>'), 'Edge Function must use a server-owned canonical category allowlist.');
-assert.ok(edge.includes('isKnownCanonicalCategory(sourceCategoryId)') && edge.includes('isKnownCanonicalCategory(targetCategoryId)'), 'Both source and target category IDs must be checked against the canonical seed inventory.');
+assert.ok(edge.includes('const canonicalTaxonomyCategoryTypes = new Map<string, "activity" | "profession">'), 'Edge Function must use a server-owned canonical category/type allowlist.');
+assert.ok(edge.includes('canonicalCategoryType(sourceCategoryId)') && edge.includes('canonicalCategoryType(targetCategoryId) !== targetClassificationType'), 'Source and target IDs and target classification must match the canonical seed inventory.');
 const seededCategoryCodes = [...defaults.matchAll(/^\\s*s\\('([^']+)','([^']+)','(activity|profession)','/gm)];
-const canonicalAllowlist = edge.slice(edge.indexOf('const canonicalTaxonomyCategoryIds'), edge.indexOf(']);', edge.indexOf('const canonicalTaxonomyCategoryIds')));
-const allowlistedIds = [...canonicalAllowlist.matchAll(/"cat_[a-z0-9_]+"/g)].map((match) => match[0].slice(1, -1));
+const canonicalAllowlist = edge.slice(edge.indexOf('const canonicalTaxonomyCategoryTypes'), edge.indexOf(']);', edge.indexOf('const canonicalTaxonomyCategoryTypes')));
+const allowlistedIds = [...canonicalAllowlist.matchAll(/\["(cat_[a-z0-9_]+)", "(activity|profession)"\]/g)].map((match) => ({ id: match[1], type: match[2] }));
 assert.equal(seededCategoryCodes.length, 226, 'Canonical seed inventory changed; review the server allowlist.');
 assert.equal(allowlistedIds.length, seededCategoryCodes.length, 'Server canonical allowlist must have one ID per seeded category.');
-assert.equal(new Set(allowlistedIds).size, allowlistedIds.length, 'Server canonical allowlist must not contain duplicate category IDs.');
+assert.equal(new Set(allowlistedIds.map((entry) => entry.id)).size, allowlistedIds.length, 'Server canonical allowlist must not contain duplicate category IDs.');
+const seedById = new Map(seededCategoryCodes.map((match) => [`cat_${match[1]}_${match[2]}`, match[3]]));
+for (const entry of allowlistedIds) assert.equal(entry.type, seedById.get(entry.id), `Classification type drift for ${entry.id}.`);
 
 assert.ok(migration.includes('security definer\nset search_path = \'\''), 'Every taxonomy RPC/trigger must use SECURITY DEFINER with an empty search_path.');
 assert.ok(migration.includes('mnty_catalog_taxonomy_mapping_preview'), 'Migration must install the authoritative preview RPC.');
