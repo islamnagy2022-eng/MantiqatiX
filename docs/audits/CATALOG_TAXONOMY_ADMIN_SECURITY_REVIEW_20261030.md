@@ -86,3 +86,11 @@
 - بوابة جاهزية MantiqatiX الكاملة تظل **BLOCKED / NOT CERTIFIED**.
 
 **الحالة:** RC459 + RC460 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION PENDING / PRODUCTION UNCHANGED.
+
+## RC461 — Saved custom category mapping
+- Added forward-only migration `20261030160000_rc461_custom_taxonomy_mapping.sql` to extend the RC459 preview/apply RPCs without changing their signatures.
+- A custom ID is accepted only if the `bizcatalog` settings registry contains the exact `cat_custom_<UUID>` ID with `isCustom=true`, the same functional group, and an allowed classification type. Apply rechecks the registry while holding a share lock on the settings table.
+- Preview and commit include business rows keyed by `activity_category_id` even when they have no canonical `activity_category_code`. The digest includes the stable category ID. Committing to a custom category stores its ID and removes a stale canonical code; committing to a canonical category stores the canonical ID and code.
+- Edge Function validates custom source and target entries against the saved registry before calling the privileged RPC. New business creation rejects unknown custom category IDs. Admin source/target selectors include persisted custom definitions.
+- Added disposable PostgreSQL test covering custom→canonical, canonical→custom, fabricated ID rejection, group/type mismatch rejection, audit records, and preservation of specialty, payment/publication, claim/listing status, and phone.
+- Exact-head CI for RC461 is pending. No Production migration, Edge deployment, category mapping, or settings write was performed.
