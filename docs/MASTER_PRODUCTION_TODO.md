@@ -2503,3 +2503,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Enable Leaked Password Protection only through an authorized Supabase Auth dashboard action, then rerun Advisor. No Auth setting was changed.
 - [ ] Verify the post-merge Pages deployment and deployed-origin browser suite for PR #525; PR CI success is not a deployment claim.
 - No production schema/data, migration, grant, RLS/Auth setting, Edge Function, secret, payment, wallet, settlement, or financial mutation was performed. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Deployed-origin verification complete; Edge drift semantically confirmed
+
+- [x] Main deployment [41005969738](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005969738) succeeded on commit `fe01dce043c8c8b5821ad679b561963a23a5357a`; deployed-origin Playwright suite passed.
+- [x] Browser suite confirmed dashboard route guards, owner/employee scopes, unsupported manager denial, permanent QR URL encoding, GPS fallback, taxonomy group/category/specialty navigation, and axe critical/serious checks.
+- [x] Read-only semantic diff report added: [`docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md`](audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md).
+- [ ] Isolated RPC/ACL/schema compatibility and adversarial payment tests are required before any deployed Edge Function can be replaced. Current source review flags subscription payment intent and financial journal as critical drift, with payment-intent and digital-page payment correlation/reconciliation gaps.
+- [ ] Continue webhook and order-create semantic trace; verify live SQL RPC definitions, SECURITY DEFINER attributes, execute grants, search_path, and caller contracts.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**; no production function, database, Auth/RLS, secret, or financial mutation was performed.
