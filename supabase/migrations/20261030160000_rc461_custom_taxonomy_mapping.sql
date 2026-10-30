@@ -14,7 +14,7 @@ declare
   v_category jsonb;
 begin
   if p_category_id is null or p_group_id is null
-     or p_category_id !~ '^cat_custom_[0-9a-fA-F-]{36}$' then
+     or p_category_id !~ '^cat_custom_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$' then
     return null;
   end if;
 
