@@ -887,6 +887,6 @@ Show only owner/admin-configured external logo and cover URLs after the verifica
 - [x] Directory and storefront header actions render only for verified profiles and only for their corresponding non-empty HTTPS external URL.
 - [x] Playwright fixtures cover both URLs, logo-only, cover-only, no URLs, unverified profile, and direct storefront hydration.
 - [x] PR #534 merged as `9cb40af9886e5141702576a7a20f300b78fcff4e`; Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed.
-- [ ] Verify the post-merge Pages deployment and deployed-origin behavior.
-- [ ] Audit verified profile URL coverage; do not manufacture or cross-assign images.
+- [x] Post-merge main Pages deployment [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) passed deployment, root verification and deployed-origin browser checks.
+- [x] Read-only production audit confirmed 2 ACTIVE verified profiles; both have valid HTTPS external logo and cover URLs. No images were fabricated or cross-assigned.
 - [ ] Preserve existing layout, mobile three-column grid, verification-first ordering, display fallbacks and route behavior.
