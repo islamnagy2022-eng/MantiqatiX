@@ -2401,3 +2401,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Disposable test success does not prove the pending historical migration chain safe for Production. Continue source-to-live effect reconciliation, backup/restore + rollback rehearsal, and Paymob sandbox E2E before any rollout.
 - [ ] Live `paymob-webhook` and related payment Edge Functions remain NOT VERIFIED for deployment; Production release remains **BLOCKED / NOT CERTIFIED**.
 - No Production database/function/payment change was performed.
+
+
+---
+
+## 2026-10-30 — Payment/finance release evidence refresh
+
+- [x] Merged isolated RC428–RC430 Paymob webhook atomicity coverage in PR #510; PostgreSQL 16 workflow passed.
+- [x] Merged isolated RC426–RC427 digital-page provider binding and single-active-payment-intent coverage in PR #511; PostgreSQL 16 workflow passed.
+- [x] Existing RC431 digital-page webhook integration passed on current main. Current-main web deployment and Production Health Monitor workflows also passed.
+- [ ] These CI/deployment results do not mean Supabase payment migrations or Edge Functions were deployed. Read-only production checks still show the old RC426 function signature, RC431 search_path drift, missing RC428–430/RC435 RPCs, missing RC435/RC439 columns, and RC450 journal EXECUTE/schema gaps.
+- [ ] Keep financial/payment production rollout BLOCKED until the entire chronological migration chain is reconciled and rehearsed against a schema-faithful disposable snapshot, with backup/restore, rollback, provider sandbox E2E and exact live-source parity evidence.
+- No production database or payment mutation was performed. Overall release remains **BLOCKED / NOT CERTIFIED**.
