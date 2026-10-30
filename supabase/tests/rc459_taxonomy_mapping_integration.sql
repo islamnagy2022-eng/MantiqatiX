@@ -8,7 +8,6 @@ declare
   employee_id constant uuid := '45900000-0000-4000-8000-000000000005';
   tenant_admin_id constant uuid := '45900000-0000-4000-8000-000000000006';
   inactive_admin_id constant uuid := '45900000-0000-4000-8000-000000000007';
-  scoped_admin_id constant uuid := '45900000-0000-4000-8000-000000000008';
   business_scoped_admin_id constant uuid := '45900000-0000-4000-8000-000000000009';
   branch_scoped_admin_id constant uuid := '45900000-0000-4000-8000-000000000010';
   business_a constant uuid := '45900000-0000-4000-8000-000000000011';
@@ -27,7 +26,6 @@ declare
 begin
   insert into auth.users(id) values
     (admin_id),(owner_id),(customer_id),(provider_id),(employee_id),
-    (tenant_admin_id),(inactive_admin_id),(scoped_admin_id),
     (business_scoped_admin_id),(branch_scoped_admin_id);
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions)
   values
@@ -38,7 +36,6 @@ begin
    ('45900000-0000-4000-8000-000000000105',employee_id,'MNTY-PLATFORM','EMPLOYEE','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
    ('45900000-0000-4000-8000-000000000106',tenant_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"TENANT","full_control":true}'::jsonb),
    ('45900000-0000-4000-8000-000000000107',inactive_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','INACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
-   ('45900000-0000-4000-8000-000000000108',scoped_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
    ('45900000-0000-4000-8000-000000000109',business_scoped_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
    ('45900000-0000-4000-8000-000000000110',branch_scoped_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
   update public.user_memberships set business_id='45900000-0000-4000-8000-000000000099'
@@ -92,7 +89,7 @@ begin
   for v_actor in
     select m.user_id
     from public.user_memberships m
-    where m.user_id in (customer_id,provider_id,employee_id,tenant_admin_id,inactive_admin_id,scoped_admin_id,business_scoped_admin_id,branch_scoped_admin_id)
+    where m.user_id in (customer_id,provider_id,employee_id,tenant_admin_id,inactive_admin_id,business_scoped_admin_id,branch_scoped_admin_id)
   loop
     rejected := false;
     begin
