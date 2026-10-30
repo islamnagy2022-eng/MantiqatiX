@@ -1065,3 +1065,11 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Rechecked workflow jobs and individual steps: RC435→RC439 PostgreSQL 16 job [41001833105](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41001833105) passed crypto test and fixture → RC435 → RC439 → integration; PR #512 merged as `31b7256928b49af9a5f52c4aa69e55db7f1c91f1`.
 - RC450 financial-journal PostgreSQL 16 job [39091702874](https://github.com/islamnagy-eng/MantiqaTiX/actions/runs/39091702874) passed its explicit disposable RC450 apply + behavioral test job; PR #169 test correction merged as `3d7669ca0043db847dfe14fe1b81b86329c4377f`.
 - These isolated fixture tests do not prove compatibility with the current later-dated Production schema or apply any live migration. Forward-only reconciliation and backup/restore rehearsal remain mandatory.
+
+
+### Fresh Supabase Advisor refresh — 2026-10-31
+- Security totals: 8 RLS-enabled/no-policy INFO, 3 anon SECURITY DEFINER WARN, 67 authenticated SECURITY DEFINER WARN, 90 anonymous-auth policy warnings, and 1 leaked-password-protection warning.
+- Performance totals: 129 unindexed FKs, 375 RLS init-plan warnings, 73 unused indexes, 28 multiple-permissive-policy groups.
+- Current main source search returned no `signInAnonymously` call. This is not proof the managed Auth setting is unused by external/legacy consumers; no setting was changed.
+- Updated TODO_PRODUCTION.md with these counts and non-bulk remediation guardrails in commit `1136b64a984f7189b9d95313c4c9dbed39f65915`.
+- Leaked Password Protection remains an owner-managed Auth dashboard action; the connected Supabase toolset does not expose an Auth settings mutation operation.
