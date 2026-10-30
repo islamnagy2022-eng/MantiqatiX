@@ -199,6 +199,18 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     if (url.pathname.endsWith('/functions/v1/public-catalog-directory')) {
       return json({ accessMode: 'PUBLIC_DIRECTORY_READ_ONLY', businesses: publicDirectoryBusinesses });
     }
+    if (url.pathname.endsWith('/functions/v1/public-catalog')) {
+      const businessId = url.searchParams.get('businessId');
+      const fixture = publicDirectoryBusinesses.find((business) => business.id === businessId);
+      if (!fixture) return json({ error: 'BUSINESS_NOT_PUBLIC' }, 404);
+      return json({
+        business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
+        provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
+        profile: { ...fixture.profile, category: fixture.category },
+        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
+        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+      });
+    }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
       let body = {};
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
@@ -436,11 +448,11 @@ try {
     const displayLogo = 'https://assets.example.test/fallback-logo.svg';
     const displayCover = 'https://assets.example.test/fallback-cover.svg';
     const fixtures = [
-      { id: 'brand-both', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
-      { id: 'brand-logo-only', name: 'نشاط رابط لوجو فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/logo-only.svg', externalCoverUrl: '' }, provider: { verified: true } },
-      { id: 'brand-cover-only', name: 'نشاط رابط غلاف فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: 'https://cdn.example.test/cover-only.svg' }, provider: { verified: true } },
-      { id: 'brand-no-external', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
-      { id: 'brand-unverified', name: 'نشاط غير موثق بروابط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/unverified-logo.svg', externalCoverUrl: 'https://cdn.example.test/unverified-cover.svg' }, provider: { verified: false } },
+      { id: '40000000-0000-0000-0000-000000000001', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
+      { id: '40000000-0000-0000-0000-000000000002', name: 'نشاط رابط لوجو فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/logo-only.svg', externalCoverUrl: '' }, provider: { verified: true } },
+      { id: '40000000-0000-0000-0000-000000000003', name: 'نشاط رابط غلاف فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: 'https://cdn.example.test/cover-only.svg' }, provider: { verified: true } },
+      { id: '40000000-0000-0000-0000-000000000004', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
+      { id: '40000000-0000-0000-0000-000000000005', name: 'نشاط غير موثق بروابط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/unverified-logo.svg', externalCoverUrl: 'https://cdn.example.test/unverified-cover.svg' }, provider: { verified: false } },
     ];
     const { context, page } = await newScenario(browser, null, fixtures);
     try {
@@ -460,7 +472,11 @@ try {
         assert.match(await link.getAttribute('rel') || '', /noopener/);
         assert.match(await link.getAttribute('rel') || '', /noreferrer/);
       }
-      results.push('verified-external-logo-cover-links-only-with-explicit-urls');
+      await page.goto(baseUrl + '?store=40000000-0000-0000-0000-000000000001', { waitUntil: 'domcontentloaded' });
+      await page.getByText('نشاط رابطين خارجيين', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.locator('a[href="https://cdn.example.test/both-logo.svg"]').count(), 1, 'direct storefront load must preserve the external logo URL');
+      assert.equal(await page.locator('a[href="https://cdn.example.test/both-cover.svg"]').count(), 1, 'direct storefront load must preserve the external cover URL');
+      results.push('verified-external-logo-cover-links-only-with-explicit-urls-in-directory-and-storefront');
     } finally { await context.close(); }
   }
 
