@@ -24,6 +24,234 @@ const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0
 const isPlatformAdmin = (m: any) => String(m.role || "").toUpperCase() === "SUPER_ADMIN"
   && !m.business_id && !m.branch_id
   && m.permissions?.scope === "PLATFORM" && m.permissions?.full_control === true;
+const canonicalTaxonomyCategoryTypes = new Map<string, "activity" | "profession">([
+  ["cat_medical_health_clinics", "activity"],
+  ["cat_medical_health_pharmacies", "activity"],
+  ["cat_medical_health_labs", "activity"],
+  ["cat_medical_health_hospitals", "activity"],
+  ["cat_medical_health_medical_centers", "activity"],
+  ["cat_medical_health_radiology", "activity"],
+  ["cat_medical_health_dental_centers", "activity"],
+  ["cat_medical_health_physio_centers", "activity"],
+  ["cat_medical_health_homecare", "activity"],
+  ["cat_medical_health_nutrition_centers", "activity"],
+  ["cat_medical_health_doctor", "profession"],
+  ["cat_medical_health_dentist", "profession"],
+  ["cat_medical_health_pharmacist", "profession"],
+  ["cat_medical_health_nurse", "profession"],
+  ["cat_medical_health_lab_specialist", "profession"],
+  ["cat_medical_health_radiology_specialist", "profession"],
+  ["cat_medical_health_physiotherapist", "profession"],
+  ["cat_medical_health_nutritionist", "profession"],
+  ["cat_food_grocery_restaurants", "activity"],
+  ["cat_food_grocery_cafes", "activity"],
+  ["cat_food_grocery_bakeries", "activity"],
+  ["cat_food_grocery_sweets", "activity"],
+  ["cat_food_grocery_supermarkets", "activity"],
+  ["cat_food_grocery_fresh_food", "activity"],
+  ["cat_food_grocery_specialty_food", "activity"],
+  ["cat_food_grocery_food_suppliers", "activity"],
+  ["cat_food_grocery_home_kitchens", "activity"],
+  ["cat_food_grocery_chef", "profession"],
+  ["cat_food_grocery_baker", "profession"],
+  ["cat_food_grocery_barista", "profession"],
+  ["cat_fashion_beauty_clothing_stores", "activity"],
+  ["cat_fashion_beauty_wedding_wear", "activity"],
+  ["cat_fashion_beauty_shoes_bags", "activity"],
+  ["cat_fashion_beauty_jewelry_stores", "activity"],
+  ["cat_fashion_beauty_beauty_products", "activity"],
+  ["cat_fashion_beauty_salons", "activity"],
+  ["cat_fashion_beauty_beauty_centers", "activity"],
+  ["cat_fashion_beauty_fashion_designer", "profession"],
+  ["cat_fashion_beauty_tailor", "profession"],
+  ["cat_fashion_beauty_hair_stylist", "profession"],
+  ["cat_fashion_beauty_makeup_artist", "profession"],
+  ["cat_home_maintenance_furniture", "activity"],
+  ["cat_home_maintenance_homewares", "activity"],
+  ["cat_home_maintenance_home_appliances", "activity"],
+  ["cat_home_maintenance_home_textiles", "activity"],
+  ["cat_home_maintenance_appliance_service", "activity"],
+  ["cat_home_maintenance_cleaning_services", "activity"],
+  ["cat_home_maintenance_pest_control", "activity"],
+  ["cat_home_maintenance_moving_services", "activity"],
+  ["cat_home_maintenance_carpenter", "profession"],
+  ["cat_home_maintenance_plumber", "profession"],
+  ["cat_home_maintenance_electrician", "profession"],
+  ["cat_home_maintenance_hvac_technician", "profession"],
+  ["cat_home_maintenance_appliance_technician", "profession"],
+  ["cat_construction_decor_contractors", "activity"],
+  ["cat_construction_decor_finishing_companies", "activity"],
+  ["cat_construction_decor_interior_design", "activity"],
+  ["cat_construction_decor_building_materials", "activity"],
+  ["cat_construction_decor_sanitary_ware", "activity"],
+  ["cat_construction_decor_ceramics_marble", "activity"],
+  ["cat_construction_decor_aluminum_glass", "activity"],
+  ["cat_construction_decor_gypsum_paint", "activity"],
+  ["cat_construction_decor_waterproofing", "activity"],
+  ["cat_construction_decor_civil_engineer", "profession"],
+  ["cat_construction_decor_architect", "profession"],
+  ["cat_construction_decor_interior_designer", "profession"],
+  ["cat_construction_decor_contractor", "profession"],
+  ["cat_construction_decor_painter", "profession"],
+  ["cat_auto_transport_car_showrooms", "activity"],
+  ["cat_auto_transport_auto_maintenance", "activity"],
+  ["cat_auto_transport_auto_parts", "activity"],
+  ["cat_auto_transport_car_wash", "activity"],
+  ["cat_auto_transport_vehicle_rental", "activity"],
+  ["cat_auto_transport_shipping", "activity"],
+  ["cat_auto_transport_courier", "activity"],
+  ["cat_auto_transport_logistics", "activity"],
+  ["cat_auto_transport_driver", "profession"],
+  ["cat_auto_transport_mechanic", "profession"],
+  ["cat_auto_transport_auto_electrician", "profession"],
+  ["cat_auto_transport_delivery_agent", "profession"],
+  ["cat_auto_transport_logistics_specialist", "profession"],
+  ["cat_real_estate_residential_sales", "activity"],
+  ["cat_real_estate_rentals", "activity"],
+  ["cat_real_estate_commercial_real_estate", "activity"],
+  ["cat_real_estate_land_sales", "activity"],
+  ["cat_real_estate_development", "activity"],
+  ["cat_real_estate_property_management", "activity"],
+  ["cat_real_estate_real_estate_agent", "profession"],
+  ["cat_real_estate_property_manager", "profession"],
+  ["cat_real_estate_valuer", "profession"],
+  ["cat_education_training_schools", "activity"],
+  ["cat_education_training_nurseries", "activity"],
+  ["cat_education_training_tutoring_centers", "activity"],
+  ["cat_education_training_universities", "activity"],
+  ["cat_education_training_language_centers", "activity"],
+  ["cat_education_training_vocational_training", "activity"],
+  ["cat_education_training_online_learning", "activity"],
+  ["cat_education_training_teacher", "profession"],
+  ["cat_education_training_lecturer", "profession"],
+  ["cat_education_training_trainer", "profession"],
+  ["cat_education_training_special_education", "profession"],
+  ["cat_technology_communications_software_companies", "activity"],
+  ["cat_technology_communications_web_development", "activity"],
+  ["cat_technology_communications_mobile_apps", "activity"],
+  ["cat_technology_communications_computer_repair", "activity"],
+  ["cat_technology_communications_network_services", "activity"],
+  ["cat_technology_communications_security_systems", "activity"],
+  ["cat_technology_communications_telecom_retail", "activity"],
+  ["cat_technology_communications_cybersecurity_services", "activity"],
+  ["cat_technology_communications_software_developer", "profession"],
+  ["cat_technology_communications_data_analyst", "profession"],
+  ["cat_technology_communications_ai_engineer", "profession"],
+  ["cat_technology_communications_network_engineer", "profession"],
+  ["cat_technology_communications_it_support", "profession"],
+  ["cat_professional_services_law_offices", "activity"],
+  ["cat_professional_services_accounting_offices", "activity"],
+  ["cat_professional_services_business_consulting", "activity"],
+  ["cat_professional_services_translation_offices", "activity"],
+  ["cat_professional_services_hr_services", "activity"],
+  ["cat_professional_services_documentation_services", "activity"],
+  ["cat_professional_services_engineering_consultancy", "activity"],
+  ["cat_professional_services_lawyer", "profession"],
+  ["cat_professional_services_accountant", "profession"],
+  ["cat_professional_services_auditor", "profession"],
+  ["cat_professional_services_translator", "profession"],
+  ["cat_professional_services_hr_specialist", "profession"],
+  ["cat_professional_services_management_consultant", "profession"],
+  ["cat_marketing_media_marketing_agencies", "activity"],
+  ["cat_marketing_media_ad_services", "activity"],
+  ["cat_marketing_media_graphic_design", "activity"],
+  ["cat_marketing_media_photo_video", "activity"],
+  ["cat_marketing_media_printing_signage", "activity"],
+  ["cat_marketing_media_media_pr", "activity"],
+  ["cat_marketing_media_marketer", "profession"],
+  ["cat_marketing_media_ad_manager", "profession"],
+  ["cat_marketing_media_graphic_designer", "profession"],
+  ["cat_marketing_media_photographer", "profession"],
+  ["cat_marketing_media_content_writer", "profession"],
+  ["cat_trade_ecommerce_general_retail", "activity"],
+  ["cat_trade_ecommerce_wholesale", "activity"],
+  ["cat_trade_ecommerce_import_export", "activity"],
+  ["cat_trade_ecommerce_ecommerce_stores", "activity"],
+  ["cat_trade_ecommerce_stationery_books", "activity"],
+  ["cat_trade_ecommerce_office_equipment", "activity"],
+  ["cat_trade_ecommerce_used_goods", "activity"],
+  ["cat_trade_ecommerce_product_distribution", "activity"],
+  ["cat_trade_ecommerce_merchant", "profession"],
+  ["cat_trade_ecommerce_sales_representative", "profession"],
+  ["cat_trade_ecommerce_buyer", "profession"],
+  ["cat_trade_ecommerce_ecommerce_manager", "profession"],
+  ["cat_agriculture_animals_farms", "activity"],
+  ["cat_agriculture_animals_nurseries", "activity"],
+  ["cat_agriculture_animals_agri_supplies", "activity"],
+  ["cat_agriculture_animals_animal_farms", "activity"],
+  ["cat_agriculture_animals_animal_feed", "activity"],
+  ["cat_agriculture_animals_poultry_farms", "activity"],
+  ["cat_agriculture_animals_fish_farms", "activity"],
+  ["cat_agriculture_animals_veterinary_clinics", "activity"],
+  ["cat_agriculture_animals_pet_supplies", "activity"],
+  ["cat_agriculture_animals_agronomist", "profession"],
+  ["cat_agriculture_animals_farmer", "profession"],
+  ["cat_agriculture_animals_veterinarian", "profession"],
+  ["cat_agriculture_animals_animal_care", "profession"],
+  ["cat_agriculture_animals_irrigation_technician", "profession"],
+  ["cat_sports_fitness_gyms", "activity"],
+  ["cat_sports_fitness_sports_academies", "activity"],
+  ["cat_sports_fitness_sports_fields", "activity"],
+  ["cat_sports_fitness_pools", "activity"],
+  ["cat_sports_fitness_yoga_centers", "activity"],
+  ["cat_sports_fitness_sports_equipment", "activity"],
+  ["cat_sports_fitness_fitness_coach", "profession"],
+  ["cat_sports_fitness_swimming_coach", "profession"],
+  ["cat_sports_fitness_football_coach", "profession"],
+  ["cat_sports_fitness_sports_referee", "profession"],
+  ["cat_sports_fitness_yoga_instructor", "profession"],
+  ["cat_tourism_events_travel_agencies", "activity"],
+  ["cat_tourism_events_hotels", "activity"],
+  ["cat_tourism_events_tickets", "activity"],
+  ["cat_tourism_events_religious_travel", "activity"],
+  ["cat_tourism_events_event_halls", "activity"],
+  ["cat_tourism_events_event_planning", "activity"],
+  ["cat_tourism_events_event_rentals", "activity"],
+  ["cat_tourism_events_conferences", "activity"],
+  ["cat_tourism_events_tour_guide", "profession"],
+  ["cat_tourism_events_travel_agent", "profession"],
+  ["cat_tourism_events_hotel_manager", "profession"],
+  ["cat_tourism_events_event_planner_pro", "profession"],
+  ["cat_finance_insurance_insurance_companies", "activity"],
+  ["cat_finance_insurance_banks", "activity"],
+  ["cat_finance_insurance_financial_consulting", "activity"],
+  ["cat_finance_insurance_payment_services", "activity"],
+  ["cat_finance_insurance_licensed_finance", "activity"],
+  ["cat_finance_insurance_financial_reporting", "activity"],
+  ["cat_finance_insurance_insurance_broker", "profession"],
+  ["cat_finance_insurance_financial_analyst", "profession"],
+  ["cat_finance_insurance_financial_adviser", "profession"],
+  ["cat_finance_insurance_credit_analyst", "profession"],
+  ["cat_finance_insurance_payment_operations", "profession"],
+  ["cat_industry_workshops_food_factories", "activity"],
+  ["cat_industry_workshops_garment_factories", "activity"],
+  ["cat_industry_workshops_furniture_factories", "activity"],
+  ["cat_industry_workshops_metal_workshops", "activity"],
+  ["cat_industry_workshops_plastic_factories", "activity"],
+  ["cat_industry_workshops_packaging_factories", "activity"],
+  ["cat_industry_workshops_chemical_factories", "activity"],
+  ["cat_industry_workshops_industrial_maintenance", "activity"],
+  ["cat_industry_workshops_industrial_engineer", "profession"],
+  ["cat_industry_workshops_welder", "profession"],
+  ["cat_industry_workshops_lathe_operator", "profession"],
+  ["cat_industry_workshops_factory_operator", "profession"],
+  ["cat_industry_workshops_quality_inspector", "profession"],
+  ["cat_public_community_security_companies", "activity"],
+  ["cat_public_community_government_services", "activity"],
+  ["cat_public_community_environmental_services", "activity"],
+  ["cat_public_community_social_organizations", "activity"],
+  ["cat_public_community_family_services", "activity"],
+  ["cat_public_community_childcare", "activity"],
+  ["cat_public_community_eldercare", "activity"],
+  ["cat_public_community_office_services", "activity"],
+  ["cat_public_community_personal_services", "activity"],
+  ["cat_public_community_security_officer", "profession"],
+  ["cat_public_community_social_worker", "profession"],
+  ["cat_public_community_environmental_specialist", "profession"],
+  ["cat_public_community_caregiver", "profession"],
+  ["cat_public_community_safety_specialist", "profession"],
+  ["cat_public_community_admin_assistant", "profession"]
+]);
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 Deno.serve(async (req: Request) => {
@@ -129,11 +357,232 @@ Deno.serve(async (req: Request) => {
       return response(origin, { settings: data?.settings || {} });
     }
 
+    if (action === "TAXONOMY_MAPPING_PREVIEW" || action === "TAXONOMY_MAPPING_APPLY") {
+      const sourceGroupId = String(body.sourceGroupId || "").trim();
+      const sourceCategoryId = String(body.sourceCategoryId || "").trim();
+      const targetGroupId = String(body.targetGroupId || "").trim();
+      const targetCategoryId = String(body.targetCategoryId || "").trim();
+      const targetClassificationType = String(body.targetClassificationType || "").trim();
+      const expectedPreviewDigest = String(body.expectedPreviewDigest || "").trim();
+      const validGroup = (value: string) => [
+        "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
+        "construction_decor", "auto_transport", "real_estate", "education_training",
+        "technology_communications", "professional_services", "marketing_media",
+        "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
+        "finance_insurance", "industry_workshops", "public_community",
+      ].includes(value);
+      const matchesCanonicalCategory = (value: string, groupId: string) =>
+        value.startsWith(`cat_${groupId}_`) &&
+        /^cat_[a-z][a-z0-9_]*_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(value) &&
+        canonicalTaxonomyCategoryTypes.has(value);
+      const isCustomCategoryId = (value: string) => /^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+      const canonicalCategoryType = (value: string) => canonicalTaxonomyCategoryTypes.get(value);
+
+      let savedCustomCategories: any[] = [];
+      if (isCustomCategoryId(sourceCategoryId) || isCustomCategoryId(targetCategoryId)) {
+        const { data: taxonomySettings, error: taxonomySettingsError } = await service
+          .from("bizcatalog_platform_settings").select("settings")
+          .eq("settings_key", "bizcatalog").maybeSingle();
+        if (taxonomySettingsError) throw new Error("CUSTOM_TAXONOMY_REGISTRY_READ_FAILED");
+        savedCustomCategories = Array.isArray(taxonomySettings?.settings?.categories)
+          ? taxonomySettings.settings.categories : [];
+      }
+      const sourceCustom = savedCustomCategories.find((category: any) =>
+        category?.id === sourceCategoryId &&
+        category?.functionalGroupId === sourceGroupId &&
+        category?.isCustom === true &&
+        ["activity", "profession"].includes(String(category?.classificationType || "activity"))
+      );
+      const targetCustom = savedCustomCategories.find((category: any) =>
+        category?.id === targetCategoryId &&
+        category?.functionalGroupId === targetGroupId &&
+        category?.isCustom === true &&
+        category?.classificationType === targetClassificationType
+      );
+      const sourceValid = matchesCanonicalCategory(sourceCategoryId, sourceGroupId) ||
+        Boolean(isCustomCategoryId(sourceCategoryId) && sourceCustom);
+      const targetValid = (
+        matchesCanonicalCategory(targetCategoryId, targetGroupId) &&
+        canonicalCategoryType(targetCategoryId) === targetClassificationType
+      ) || Boolean(isCustomCategoryId(targetCategoryId) && targetCustom);
+      if (!validGroup(sourceGroupId) || !validGroup(targetGroupId) ||
+          !sourceValid || !targetValid ||
+          !["activity", "profession"].includes(targetClassificationType)) {
+        return response(origin, { error: "INVALID_TAXONOMY_MAPPING" }, 400);
+      }
+      if (action === "TAXONOMY_MAPPING_APPLY" && !/^[a-f0-9]{32}$/i.test(expectedPreviewDigest)) {
+        return response(origin, { error: "TAXONOMY_PREVIEW_REQUIRED" }, 409);
+      }
+      const rpcName = action === "TAXONOMY_MAPPING_PREVIEW"
+        ? "mnty_catalog_taxonomy_mapping_preview"
+        : "mnty_catalog_taxonomy_mapping_apply";
+      const rpcArgs: Record<string, unknown> = {
+        p_actor_user_id: user.id,
+        p_source_group_id: sourceGroupId,
+        p_source_category_id: sourceCategoryId,
+        p_target_group_id: targetGroupId,
+        p_target_category_id: targetCategoryId,
+        p_target_classification_type: targetClassificationType,
+      };
+      if (action === "TAXONOMY_MAPPING_APPLY") rpcArgs.p_expected_preview_digest = expectedPreviewDigest;
+      const { data, error } = await service.rpc(rpcName, rpcArgs as any);
+      if (error) {
+        const message = String(error.message || "");
+        const code = [
+          "PLATFORM_ADMIN_REQUIRED",
+          "TAXONOMY_INVALID_GROUP",
+          "TAXONOMY_INVALID_CATEGORY_ID",
+          "TAXONOMY_INVALID_CATEGORY_CODE",
+          "TAXONOMY_CUSTOM_SOURCE_NOT_FOUND",
+          "TAXONOMY_CUSTOM_TARGET_NOT_FOUND",
+          "TAXONOMY_CUSTOM_TARGET_TYPE_MISMATCH",
+          "TAXONOMY_CUSTOM_SOURCE_NOT_FOUND",
+          "TAXONOMY_CUSTOM_TARGET_NOT_FOUND",
+          "TAXONOMY_CUSTOM_TARGET_TYPE_MISMATCH",
+          "TAXONOMY_INVALID_CLASSIFICATION_TYPE",
+          "TAXONOMY_MAPPING_IS_NOOP",
+          "TAXONOMY_PREVIEW_REQUIRED",
+          "TAXONOMY_PREVIEW_STALE",
+          "TAXONOMY_NO_MATCHING_RECORDS",
+          "TAXONOMY_APPLY_COUNT_MISMATCH",
+        ].find((candidate) => message.includes(candidate)) || "TAXONOMY_MAPPING_FAILED";
+        const status = code === "PLATFORM_ADMIN_REQUIRED" ? 403
+          : ["TAXONOMY_PREVIEW_REQUIRED", "TAXONOMY_PREVIEW_STALE", "TAXONOMY_NO_MATCHING_RECORDS"].includes(code) ? 409
+          : code === "TAXONOMY_MAPPING_FAILED" ? 500 : 400;
+        return response(origin, { error: code }, status);
+      }
+      return action === "TAXONOMY_MAPPING_PREVIEW"
+        ? response(origin, { success: true, preview: data })
+        : response(origin, { success: true, result: data });
+    }
+
     if (action === "SAVE_SETTINGS") {
       const input = body.settings && typeof body.settings === "object" ? body.settings : {};
       const safe: Record<string, unknown> = {};
       const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
+
+      const allowedTaxonomyGroups = [
+        "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
+        "construction_decor", "auto_transport", "real_estate", "education_training",
+        "technology_communications", "professional_services", "marketing_media",
+        "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
+        "finance_insurance", "industry_workshops", "public_community",
+      ];
+      if (Object.prototype.hasOwnProperty.call(input, "functionalGroups")) {
+        const groups = input.functionalGroups;
+        if (!Array.isArray(groups) || groups.length !== allowedTaxonomyGroups.length) {
+          return response(origin, { error: "INVALID_TAXONOMY_GROUPS" }, 400);
+        }
+        const ids = groups.map((entry: any) => String(entry?.id || ""));
+        if (new Set(ids).size !== ids.length || allowedTaxonomyGroups.some((id) => !ids.includes(id))) {
+          return response(origin, { error: "INVALID_TAXONOMY_GROUP_IDS" }, 400);
+        }
+        for (const group of groups) {
+          if (!group || typeof group.name !== "string" || group.name.trim().length < 2 ||
+              group.name.trim().length > 120 || typeof group.englishName !== "string" ||
+              group.englishName.trim().length > 120) {
+            return response(origin, { error: "INVALID_TAXONOMY_GROUP_SHAPE" }, 400);
+          }
+        }
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "categories")) {
+        const categories = input.categories;
+        if (!Array.isArray(categories) || categories.length < 1 || categories.length > 500) {
+          return response(origin, { error: "INVALID_TAXONOMY_CATEGORIES" }, 400);
+        }
+        const ids = new Set<string>();
+        const names = new Set<string>();
+        for (const category of categories) {
+          const id = String(category?.id || "").trim();
+          const name = String(category?.name || "").trim();
+          const groupId = String(category?.functionalGroupId || "").trim();
+          const kind = String(category?.classificationType || "activity");
+          const normalizedName = name.normalize("NFKC").toLocaleLowerCase("ar-EG");
+          const specialties = category?.specialties;
+          if (!id || id.length > 160 || !/^[A-Za-z0-9_-]+$/.test(id) ||
+              name.length < 2 || name.length > 120 ||
+              !allowedTaxonomyGroups.includes(groupId) ||
+              !["activity", "profession"].includes(kind) ||
+              (specialties != null && (!Array.isArray(specialties) || specialties.length > 100 ||
+                specialties.some((entry: unknown) => typeof entry !== "string" || entry.trim().length > 120)))) {
+            return response(origin, { error: "INVALID_TAXONOMY_CATEGORY_SHAPE" }, 400);
+          }
+          const canonicalKind = canonicalCategoryType(id);
+          if (canonicalKind && (
+              !id.startsWith(`cat_${groupId}_`) ||
+              canonicalKind !== kind
+            )) {
+            return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_OR_TYPE_MISMATCH" }, 400);
+          }
+          if (id.startsWith("cat_custom_") &&
+              (!/^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) || category?.isCustom !== true)) {
+            return response(origin, { error: "INVALID_CUSTOM_TAXONOMY_CATEGORY_ID" }, 400);
+          }
+          if (id.startsWith("cat_") && !canonicalKind &&
+              !id.startsWith("cat_custom_") && !id.startsWith("cat_legacy_")) {
+            return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_MISMATCH" }, 400);
+          }
+          const nameKey = `${kind}:${normalizedName}`;
+          if (ids.has(id) || names.has(nameKey)) {
+            return response(origin, { error: "DUPLICATE_TAXONOMY_CATEGORY" }, 409);
+          }
+          ids.add(id);
+          names.add(nameKey);
+        }
+
+        const { data: storedRow, error: storedError } = await service.from("bizcatalog_platform_settings")
+          .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
+        if (storedError) throw storedError;
+        const storedCategories = Array.isArray(storedRow?.settings?.categories) ? storedRow.settings.categories : [];
+        const incomingById = new Map(categories.map((category: any) => [String(category.id), category]));
+        for (const previous of storedCategories) {
+          const previousId = String(previous?.id || "");
+          if (!previousId) continue;
+          const next = incomingById.get(previousId) as any;
+          const mappingChanged = !next ||
+            String(next.name || "").trim() !== String(previous.name || "").trim() ||
+            String(next.functionalGroupId || "") !== String(previous.functionalGroupId || "") ||
+            String(next.classificationType || "activity") !== String(previous.classificationType || "activity");
+          if (!mappingChanged) continue;
+
+          let businessCount = 0;
+          const oldGroup = allowedTaxonomyGroups.find((group) => previousId.startsWith(`cat_${group}_`));
+          const oldCode = oldGroup ? previousId.slice(`cat_${oldGroup}_`.length) : "";
+          if (oldGroup && /^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(oldCode)) {
+            const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
+              .eq("settings->>activity_group_code", oldGroup)
+              .eq("settings->>activity_category_code", oldCode);
+            if (error) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+            businessCount = Number(count || 0);
+          } else {
+            const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
+              .eq("settings->>activity_category_id", previousId);
+            if (error) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+            businessCount = Number(count || 0);
+          }
+          const { count: listingCount, error: listingError } = await service.from("public_directory_listings")
+            .select("id", { count: "exact", head: true }).eq("taxonomy_category_id", previousId);
+          if (listingError) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+          if (businessCount + Number(listingCount || 0) > 0) {
+            return response(origin, {
+              error: "TAXONOMY_CATEGORY_IN_USE",
+              message: "هذا التصنيف مرتبط بسجلات فعلية. استخدم أداة المعاينة وإعادة التوزيع أولًا، ثم أعد حفظ قائمة التصنيفات.",
+              businessCount,
+              listingCount: Number(listingCount || 0),
+            }, 409);
+          }
+        }
+        safe.categories = categories;
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "defaultCategories")) {
+        const defaults = input.defaultCategories;
+        if (!Array.isArray(defaults) || defaults.length > 500 ||
+            defaults.some((entry: unknown) => typeof entry !== "string" || entry.trim().length < 2 || entry.trim().length > 120) ||
+            new Set(defaults.map((entry: string) => entry.normalize("NFKC").toLocaleLowerCase("ar-EG"))).size !== defaults.length) {
+          return response(origin, { error: "INVALID_DEFAULT_TAXONOMY_CATEGORIES" }, 400);
+        }
+      }
       if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
         const phone = String(input.adminWhatsApp || "").trim();
         const digits = phone.replace(/\D/g, "");
@@ -357,8 +806,13 @@ Deno.serve(async (req: Request) => {
       const name = String(input.name || "").trim();
       const category = String(input.category || "").trim();
       const activityGroupCode = String(input.activityGroupCode || "").trim().toLowerCase();
+      const activityCategoryId = String(input.activityCategoryId || "").trim();
       const activityClassificationType = String(input.activityClassificationType || "activity").trim().toLowerCase();
       const activitySpecialty = String(input.activitySpecialty || "").trim();
+      const canonicalActivityCategoryType = canonicalTaxonomyCategoryTypes.get(activityCategoryId);
+      const canonicalActivityCategoryCode = canonicalActivityCategoryType && activityGroupCode
+        ? activityCategoryId.slice(`cat_${activityGroupCode}_`.length) : "";
+      const customActivityCategoryId = /^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(activityCategoryId);
       const canonicalActivityGroups = new Set([
         "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
         "construction_decor", "auto_transport", "real_estate", "education_training",
@@ -383,6 +837,25 @@ Deno.serve(async (req: Request) => {
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
       if (activityGroupCode && !canonicalActivityGroups.has(activityGroupCode)) return response(origin, { error: "INVALID_ACTIVITY_GROUP" }, 400);
+      if (activityCategoryId && (
+        (!canonicalActivityCategoryType && !customActivityCategoryId) ||
+        (canonicalActivityCategoryType && (!activityCategoryId.startsWith(`cat_${activityGroupCode}_`) || canonicalActivityCategoryType !== activityClassificationType))
+      )) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
+      if (activityCategoryId && !activityGroupCode) return response(origin, { error: "ACTIVITY_CATEGORY_GROUP_REQUIRED" }, 400);
+      if (customActivityCategoryId) {
+        const { data: taxonomySettings, error: taxonomySettingsError } = await service
+          .from("bizcatalog_platform_settings").select("settings")
+          .eq("settings_key", "bizcatalog").maybeSingle();
+        if (taxonomySettingsError) throw new Error("CUSTOM_TAXONOMY_REGISTRY_READ_FAILED");
+        const savedCustomCategory = (Array.isArray(taxonomySettings?.settings?.categories) ? taxonomySettings.settings.categories : [])
+          .find((entry: any) =>
+            entry?.id === activityCategoryId &&
+            entry?.functionalGroupId === activityGroupCode &&
+            entry?.isCustom === true &&
+            entry?.classificationType === activityClassificationType
+          );
+        if (!savedCustomCategory) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
+      }
       if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "If provided, the owner WhatsApp number must contain 10 to 15 digits." }, 400);
@@ -452,6 +925,8 @@ Deno.serve(async (req: Request) => {
             activity_code: category,
             category_code: category,
             ...(activityGroupCode ? { activity_group_code: activityGroupCode } : {}),
+            ...(activityCategoryId ? { activity_category_id: activityCategoryId } : {}),
+            ...(canonicalActivityCategoryCode ? { activity_category_code: canonicalActivityCategoryCode } : {}),
             activity_classification_type: activityClassificationType,
             activity_specialty: activitySpecialty || null,
             catalog_public_enabled: false,

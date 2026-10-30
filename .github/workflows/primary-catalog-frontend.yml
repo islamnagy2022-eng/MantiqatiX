@@ -16,6 +16,19 @@ on:
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
+      - "scripts/validate-catalog-taxonomy-admin-contract.mjs"
+      - "supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql"
+      - "supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql"
+      - "supabase/migrations/20261030160000_rc461_custom_taxonomy_mapping.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_integration.sql"
+      - "supabase/tests/rc460_taxonomy_definition_audit_fixture.sql"
+      - "supabase/tests/rc460_taxonomy_definition_audit_integration.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_integration.sql"
+      - ".github/workflows/rc461-custom-taxonomy-mapping.yml"
+      - "scripts/validate-canonical-activity-taxonomy.mjs"
+      - "scripts/validate-catalog-taxonomy-admin-contract.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
@@ -56,6 +69,18 @@ on:
       - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
+      - "scripts/validate-canonical-activity-taxonomy.mjs"
+      - "scripts/validate-catalog-taxonomy-admin-contract.mjs"
+      - "supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql"
+      - "supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql"
+      - "supabase/migrations/20261030160000_rc461_custom_taxonomy_mapping.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_integration.sql"
+      - "supabase/tests/rc460_taxonomy_definition_audit_fixture.sql"
+      - "supabase/tests/rc460_taxonomy_definition_audit_integration.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_integration.sql"
+      - ".github/workflows/rc461-custom-taxonomy-mapping.yml"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
@@ -114,6 +139,8 @@ jobs:
         run: npm run lint
       - name: Validate canonical activity/profession taxonomy
         run: node scripts/validate-canonical-activity-taxonomy.mjs
+      - name: Validate secure catalog taxonomy administration
+        run: node scripts/validate-catalog-taxonomy-admin-contract.mjs
       - name: Validate geographic catalog search and GPS contract
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate Google OAuth session and role contract

@@ -72,8 +72,10 @@ A source-level inventory of the 67 Advisor functions found:
 - 60 reference `auth.uid()` directly.
 - 27 reference `user_memberships` directly.
 - 23 explicitly compare a caller-supplied actor/admin ID with `auth.uid()`.
-- 37 set an empty search_path or an explicit path ending in `pg_temp` (one trigger helper uses `public, auth`).
-- 30 set `search_path=public` only.
+- 19 use an explicitly empty `search_path`.
+- 17 use `search_path=public, pg_temp`.
+- 1 trigger helper uses `search_path=public, auth`.
+- 30 use exactly `search_path=public` and are the RC440 hardening set.
 
 These counts overlap. Several functions delegate authorization to reviewed helpers, including:
 - `mnty_can` → `mnty_active_membership` (the helper binds membership to `auth.uid()`);
@@ -129,3 +131,34 @@ The current inventory did not prove an anonymous data leak. It did identify a br
 ### Table-level cross-check
 
 A second catalog query found 126 public tables with at least one policy targeting `authenticated`. Of these, 71 have a RESTRICTIVE policy that explicitly checks `is_anonymous`; 55 do not have that particular table-wide restrictive guard. This is not a count of vulnerable tables: a number of the latter tables have explicit anonymous checks in their own permissive policy predicates, while others bind access to `auth.uid()` or active tenant membership. For example, payment and ledger read policies require an active membership with a finance-capable role; owner-read policies bind the row to the session UID; public catalog/read policies intentionally expose only active/published content. These still require isolated JWT tests, especially because policy composition and helper functions affect the final decision.
+
+
+## 2026-10-30 — Follow-up live ACL and trigger-boundary verification
+
+A second read-only catalog pass confirmed the function-level path distribution exactly:
+- 30 functions: `search_path=public` (the existing RC440 target set).
+- 17 functions: `search_path=public, pg_temp`.
+- 19 functions: empty `search_path`.
+- 1 trigger helper: `search_path=public, auth`.
+
+The earlier line that grouped 37 functions as empty-or-pg_temp was inaccurate and has been replaced with the exact distribution above.
+
+### Trigger-only anonymous-executable functions
+
+- `assign_default_owner_to_unowned_business()` is bound to the enabled AFTER INSERT trigger on `public.businesses`.
+- `capture_commission_rule_audit()` is bound to the enabled AFTER INSERT/UPDATE/DELETE trigger on `public.commission_rules`.
+- Both target tables have RLS and FORCE RLS enabled. The live ACL query returned false for direct anon INSERT/UPDATE and for authenticated INSERT/UPDATE/DELETE on these tables. The functions return the PostgreSQL `trigger` pseudo-type and are not ordinary RPC functions.
+- The default-owner function uses schema-qualified references to `public.user_memberships` and `auth.users`; it retains the established default-owner behavior. No attempt was made to remove or rewrite that behavior.
+- The commission audit trigger writes only to the schema-qualified audit table and records INSERT/UPDATE/DELETE before/after values; the audit table is separately protected by FORCE RLS and direct client ACL restrictions.
+
+### Public advertisement RPC
+
+- `get_mnty_targeted_advertisements(...)` remains the intentional anon-callable read endpoint. It uses an empty search_path, schema-qualified source tables, returns only ad creative/navigation and targeting fields, filters to ACTIVE + APPROVED ads within their optional time windows, and clamps `p_limit` to 1–50 (default 3).
+- Its public data exposure is intentional and does not include customer, owner, membership, payment, or private contact records in the inspected function body.
+
+### RC440 status
+
+- RC440 migration source and disposable shadowing integration are present in the repository. The integration passed in CI run [41003030610](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41003030610).
+- RC440 version `20261010020000` is absent from the live migration ledger. Production therefore remains unverified for the RC440 effect; no direct migration or ACL changes were made.
+
+**Boundary:** all Production queries in this follow-up were read-only. No grants, triggers, function definitions, table policies, Auth settings, migrations, or business data were changed.

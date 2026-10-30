@@ -1,0 +1,52 @@
+name: RC459 Secure Catalog Taxonomy Mapping
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_integration.sql"
+      - ".github/workflows/rc459-catalog-taxonomy-mapping.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc459_taxonomy_mapping_integration.sql"
+      - ".github/workflows/rc459-catalog-taxonomy-mapping.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc459-taxonomy-mapping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc459_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc459_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply isolated fixture, forward migration and regression assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc459_taxonomy_mapping_fixture.sql "$pg_container:/tmp/rc459_fixture.sql"
+          docker cp supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql "$pg_container:/tmp/rc459_migration.sql"
+          docker cp supabase/tests/rc459_taxonomy_mapping_integration.sql "$pg_container:/tmp/rc459_integration.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc459_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc459_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc459_integration.sql

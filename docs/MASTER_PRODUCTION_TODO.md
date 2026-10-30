@@ -16,7 +16,7 @@
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
    - Google OAuth browser lifecycle, session refresh/expiry/logout, membership approval, customer/provider/owner/admin and tenant/business/branch isolation remain open.
-   - Leaked Password Protection is disabled and requires authorized Supabase Auth dashboard action plus Advisor recheck.
+   - Current Supabase organization plan is FREE. Supabase documents leaked-password protection as Pro Plan and above; this gate therefore needs an eligible plan, enabling the Auth setting, and a fresh Advisor recheck. No plan or Auth setting was changed. [Supabase password security](https://supabase.com/docs/guides/auth/password-security).
 
 2. Customer/provider/order/notification E2E — NOT VERIFIED
    - CI source/contract and isolated database tests do not prove a real customer→correct provider→status→notification journey across separate tenants.
@@ -47,13 +47,16 @@
    - Require per-function semantic diff, schema/ACL dependencies, provider sandbox E2E and rollback plan. No blind batch deploy.
 
 8. Backup/restore/DR — NOT VERIFIED
-   - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence.
+   - Current Supabase organization plan was read as FREE. Supabase documentation states automatic daily database backups are provided on Pro/Team/Enterprise; Free projects should use regular Supabase CLI `db dump` exports and keep off-site copies. PITR is a Pro/Team/Enterprise add-on. Reference: https://supabase.com/docs/guides/platform/backups
+   - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence. A logical export alone is not a verified backup until a controlled restore and integrity/application checks pass.
+   - Before any Production migration: create an encrypted logical export, retain checksum and timestamp, restore to a separate controlled environment, verify critical tables/RLS/functions/storage metadata, and document measured RPO/RTO. Do not initiate a destructive Production restore.
 
 9. Release build/signing and real-device regression — WAIT
    - Signed Android artifact, protected signing material, install/update, auth/session, role journeys, push, network-loss/retry and device regression remain open.
 
 10. Public web deployment smoke — VERIFIED FOR TESTED MAIN SNAPSHOT
     - Main web deploy [41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838) passed after PR #521, including deployed-origin browser route checks.
+    - Latest main Pages deploy after PR #541 [41030176731](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030176731) passed on `26ace99b1fe6e23daed484aafcdcef3cf7d18eae`, including Pages deployment and deployed-origin dashboard/mobile/membership/QR browser checks.
     - Production Health Monitor [41003213146](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003213146) passed after PR #522. The follow-up web deploy for documentation-only main commit 1d80c771e89a7b2693be7c62d0c8bba9d815f678 was in progress at this snapshot.
     - Full authenticated customer/admin journeys, accessibility/manual device testing and offline/PWA recovery remain NOT VERIFIED.
 
@@ -2583,7 +2586,7 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] دمج PR [#537](https://github.com/islamnagy2022-eng/MantiqatiX/pull/537) على main بالالتزام `80eeb41e90c133d5b66dea50853ba4306c6424fa`.
 - [x] اجتياز build وRBAC وBrowser E2E على رأس PR النهائي [41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819)، بما في ذلك العودة من مجلد التخصص إلى المجالات على 390px والتحقق من breadcrumb الصحيح بعد العودة للكتالوج.
 - [x] اجتياز اختبارات main [41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608750) ونشر Pages [41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742)، مع فحص جذر الموقع واختبارات المتصفح على النطاق المنشور.
-- [ ] إضافة واجهة إدارية آمنة لإدارة taxonomy mapping مع سجل تغييرات ومعاينة قبل الحفظ؛ لا تسمح بإعادة توزيع جماعية مباشرة دون dry-run.
+- [x] أضيفت واجهة إدارية آمنة لإدارة taxonomy mapping داخل تبويب التصنيفات الحالي عبر PR #540 (RC459–RC461): معاينة read-only، أعداد وعينة، بصمة تمنع التطبيق على بيانات متغيرة، تأكيد صريح، وسجل تدقيق. اختبارات PostgreSQL وBrowser E2E والـ forward replay نجحت على HEAD `88156e2744704f4db9daac1f990ba24a49753f39`؛ التنفيذ ما زال على فرع PR ولم تُطبق migrations على Production.
 - [ ] المرحلة التالية: مراجعة تداخل المجالات الـ18 الحالية مع المستخدمين الفعليين، وتحديد ما يمكن دمجه في عدد أقل من المجالات دون خلط الأنشطة؛ لا تغيير لمعرّفات legacy إلا بعد خطة توافق وترحيل واختبارات.
 - **حدود التنفيذ:** لم تتغير حالات التوثيق أو الاشتراكات أو الملكية أو النشر أو أرقام التواصل أو الصور بواسطة PR #537. إعادة توزيع أكواد taxonomy السابقة موثقة أعلاه بسجل تدقيق مستقل.
 - الحالة: MERGED / DEPLOYED / BROWSER VERIFIED — الأعمال الإدارية المتبقية ما زالت مفتوحة.
@@ -2598,3 +2601,86 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] إغلاق Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) بعد استكمال source fix والاختبارات المعزولة.
 - [ ] تطبيق RC458 على Production غير منفذ. يلزم مسار release مع backup/restore وrollback وموافقة صريحة؛ لا تنفذ migration مباشرة.
 - **الحالة:** SOURCE MERGED / ISOLATED VERIFIED / PRODUCTION NOT APPLIED. بوابة المنصة الكلية تظل BLOCKED / NOT CERTIFIED.
+
+
+## CAT-TAXONOMY-ADMIN-SECURITY-20261030 — Secure taxonomy mapping and definition audit
+- [x] مراجعة تبويب التصنيفات الحالي وحدود صلاحيات `catalog-platform-admin` ومسار `SAVE_SETTINGS`.
+- [x] تقوية التحقق الخادمي من المجموعات والحقول والأسماء والمعرفات والأنواع والتكرارات والأحجام، ومنع حذف/نقل أي تصنيف مستخدم في الأنشطة أو سجلات الدليل.
+- [x] إضافة RC459 migration أمامية فقط للمعاينة read-only والحفظ الذري، مع بصمة معاينة، وأعداد، وعينة محدودة، ورفض البصمة القديمة، وأقفال معاملة.
+- [x] حصر RC459 في `service_role` مع إعادة تحقق من جلسة Auth وعضوية SUPER_ADMIN نشطة بنطاق PLATFORM الكامل في Edge Function وقاعدة البيانات.
+- [x] اعتماد allowlist خادمية للـ 226 تصنيفًا canonical مع نوع النشاط/المهنة ومطابقتها بمصدر `productionDefaults.ts`.
+- [x] تحديث إعادة التصنيف لتشمل `activity_category_id` و`activity_category_code` و`activity_group_code` و`activity_classification_type` مع التقاط المعرف المستقر في البصمة وbefore-image. تم الحفاظ على التخصص الدقيق والملكية والاشتراك والتوثيق والنشر والهاتف والصور.
+- [x] حفظ هوية التصنيف عند إنشاء نشاط جديد، وإرجاعها بأمان من الدليل وصفحة النشاط، والحفاظ عليها أثناء hydration.
+- [x] إضافة لوحة معاينة/إلغاء/تأكيد داخل لوحة الإدارة الحالية دون تغيير واجهة الدليل أو المتجر العام.
+- [x] إضافة RC459 immutable audit table مع FORCE RLS ومنع الوصول المباشر ورفض UPDATE/DELETE.
+- [x] إضافة RC460 migration `20261030150000_rc460_taxonomy_definition_audit.sql`: Trigger ذري على `bizcatalog_platform_settings` يسجل تغييرات `categories` و`functionalGroups` و`defaultCategories` فقط، ويهمل تغييرات الإعدادات الأخرى.
+- [x] RC460 يعيد فحص أن `updated_by` يمتلك عضوية SUPER_ADMIN نشطة ونطاق PLATFORM كاملًا داخل Trigger قاعدة البيانات؛ لا يقبل هوية مستخدم مزيفة أو دورًا غير مخول.
+- [x] RC460 audit table محمي بـ FORCE RLS، دون grants مباشرة لـ `public/anon/authenticated/service_role`، وسجل غير قابل للتعديل أو الحذف. حذف تصنيف من مصفوفة الإعدادات يُسجل كتحديث مع before/after snapshots.
+- [x] إضافة اختبارات PostgreSQL معزولة لـ RC459 وRC460 تشمل RBAC، معاينة بلا كتابة، stale digest، حفظ المعرف المستقر، rollback، تغييرات التعريف، عدم تسجيل الضوضاء غير المتعلقة بالتصنيف، ورفض actor غير مخول.
+- [x] إضافة browser E2E لتدفق المعاينة ثم الإلغاء ثم المعاينة الجديدة والحفظ المؤكد، مع اختبار mobile layout.
+- [x] تحديث وصف PR #540 ليعكس التنفيذ ومخاطر النشر الحقيقية؛ يبقى Draft إلى حين نجاح فحوص أحدث HEAD.
+- [x] اجتياز exact-head validation على HEAD `2094761df3513169784dd65f2f260154331f55ec`: Primary Catalog build/typecheck + browser E2E + employee RBAC PostgreSQL نجحت في [41031171074](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41031171074)، وfull isolated forward migration replay نجح في [41031171056](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41031171056). RC459/RC460/RC461 integrations، migration uniqueness/history/collision، وbackend integrations سبق اجتيازها على الكود الوظيفي المطابق؛ آخر commit بعد ذلك كان توثيقيًا فقط.
+- [ ] مراجعة بشرية قبل الدمج. لا تطبق migrations على Production ولا تنشر Edge Functions قبل مسار النسخ الاحتياطي/الاستعادة/التراجع والموافقة المطلوبة.
+- [x] دعم التصنيفات المخصصة `cat_custom_<UUID>` داخل نفس معاينة/حفظ RC459 عبر RC461: التحقق من سجل التصنيف المخصص المحفوظ ومجموعته ونوعه، وبصمة للصفوف المرتبطة، ومعاملة ذرية تحافظ على specialty/الملكية/الاشتراك/التوثيق/النشر/الهاتف/الصور. أداة الإدارة تعرض التصنيفات الأساسية والمخصصة. اختبارات الاتجاهين اجتازت على السلسلة المعزولة، ونجح exact-head build/browser/RBAC/forward replay.
+- **السلامة:** لم تُنفذ أي كتابة أو migration أو نشر Edge Function على Production. لم تتغير بيانات الأنشطة أو الدليل أو الاشتراكات أو الملكية أو التوثيق. مهام النشر المرتبطة بالـ PR لا تسمح بالنشر الإنتاجي.
+- **الحالة:** RC459 + RC460 + RC461 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION IN PROGRESS / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-30 — PR #541 deployed; secure taxonomy mapping RC459–RC461 verified
+
+- [x] PR [#541](https://github.com/islamnagy2022-eng/MantiqatiX/pull/541) merged to `main` as `26ace99b1fe6e23daed484aafcdcef3cf7d18eae`. Public verification labels remain concise; explicit external logo/cover URLs now use accessible external-link icons after the verified badge. Existing directory layout, verified-first ordering, and fallback image behavior are preserved.
+- [x] Exact-head PR #541 Primary Catalog Frontend Validation passed build/typecheck, browser E2E and employee RBAC PostgreSQL. Its PR deploy job was skipped as expected.
+- [x] Main Pages deployment [41030176731](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030176731) succeeded on the merge commit; Pages deploy, primary-root verification and deployed-origin dashboard/mobile/membership/QR browser checks passed.
+- [x] PR #540 branch was aligned with the merged icon/link implementation so its broader catalog E2E does not restore stale selectors or labels.
+- [x] RC459/RC460/RC461 isolated PostgreSQL integrations passed on PR #540 code head `88156e2744704f4db9daac1f990ba24a49753f39`; Primary Catalog build/typecheck/browser E2E and employee RBAC PostgreSQL passed in [41030242448](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242448).
+- [x] Forward migration replay from the captured Production schema checkpoint passed in [41030242487](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242487), including the post-checkpoint migrations and tenant-isolation checks. Migration version uniqueness, history immutability, and cross-PR collision checks passed.
+- [ ] PR #540 still requires merge/release review. Its Pages deploy job is skipped on PR events; merging source does not apply Supabase migrations or deploy Edge Functions.
+- [ ] RC459–RC461 remain NOT APPLIED to Production. A reviewed backup/restore/rollback plan, explicit release approval, migration execution and live-object verification are still required before the admin mapping feature can operate against Production.
+- The full MantiqaTix Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live Auth/security, Edge Function parity, payments/finance, tenant E2E, backup/restore and Android/device release gates.
+
+
+## 2026-10-30 — Production backup capability and taxonomy release dependency
+
+- [x] Read Supabase organization/project metadata: project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on the FREE organization plan; Postgres 17.6.1.155.
+- [x] Confirmed the live migration ledger still ends at `20261029083845`; RC459/RC460/RC461 are not recorded in Production.
+- [x] Read the active `catalog-platform-admin` Edge Function: version 22, `verify_jwt=true`; its deployed source does not contain `TAXONOMY_MAPPING_PREVIEW`, `TAXONOMY_MAPPING_APPLY`, or the RC459 mapping RPC calls. PR #540 remains Draft so its new admin controls cannot be released ahead of their backend/database dependencies.
+- [x] Supabase Security Advisor refreshed at 2026-10-30 09:06 UTC: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER findings; 67 authenticated-executable SECURITY DEFINER findings. Existing contextual classification remains; do not bulk-revoke functions or add broad RLS policies.
+- [ ] Backup/restore prerequisite: the Free plan does not include automatic daily backups according to current Supabase documentation. Configure an encrypted CLI logical dump with an off-site destination or choose an eligible backup plan; then perform a controlled restore rehearsal and measure RPO/RTO before production migrations.
+- [ ] PR #540 release remains WAITING for an approved coordinated migration + Edge Function deployment plan, backup/restore evidence, and explicit production release approval. No Production changes were made in this review.
+
+
+## 2026-10-30 — Exact-head validation closed; authenticated SECURITY DEFINER review tranche
+
+- [x] Confirmed branch head `2094761df3513169784dd65f2f260154331f55ec` and PR #540 remains open/Draft; no merge or Production release was performed.
+- [x] Re-ran exact-head GitHub checks: frontend build, TypeScript, Playwright dashboard/browser E2E and employee RBAC PostgreSQL all succeeded ([41031171074](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41031171074)); full isolated forward migration replay succeeded ([41031171056](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41031171056)).
+- [x] Fresh read-only Production inventory confirmed 67 public SECURITY DEFINER functions executable by authenticated; all 67 have explicit function-level search_path. Exact distribution: 30 `search_path=public`, 17 `search_path=public, pg_temp`, 19 other explicit settings (including empty paths), and 1 `search_path=public, auth` trigger function.
+- [x] Static source triage: 60/67 mention `auth.uid()`; 31/67 mention `user_memberships` or the platform-admin helper; 24/67 mention `auth.jwt()`. These are indicators only, not security proofs.
+- [x] No dynamic-SQL execution pattern was found by the scoped source scan. Two functions matched the role/configuration mutation keyword scan; manual source review showed they are platform-admin membership/custom-role handlers with explicit authenticated actor checks against `private.platform_admins`, not arbitrary `SET ROLE` controls.
+- [x] Reviewed delegated authorization paths for `mnty_business_employee_list` → `mnty_business_employee_list_scoped`, `mnty_can_platform_admin` → `mnty_can` → `mnty_active_membership`, and `preview_commission_backend` → `assert_financial_membership`. The inspected helpers derive identity from `auth.uid()` and/or enforce active membership/finance roles. No change made.
+- [ ] Continue per-function semantic review of the remaining authenticated SECURITY DEFINER set, especially functions with `search_path=public`, trigger execution contracts, and functions whose authorization is delegated to helper routines. Inspect name resolution and temporary-object shadowing in an isolated PostgreSQL harness before changing any search_path.
+- [ ] Do not bulk-revoke EXECUTE, alter ACLs, or mass-change search_path. Any hardening must preserve required trigger and application call contracts and pass isolated caller/tenant tests.
+- Production remained read-only during this audit: no schema, grants, RLS/Auth settings, Edge Functions, business data, or financial records changed.
+
+
+## 2026-10-30 — RC440 production parity discrepancy rechecked
+
+- [x] Corrected the earlier path-distribution note: the live 67 authenticated-callable public SECURITY DEFINER functions are 30 exact `search_path=public`, 17 `search_path=public, pg_temp`, 19 other explicit settings, and 1 `search_path=public, auth` trigger function. The previous count of 48 exact-public functions incorrectly included the 17 already hardened `public, pg_temp` functions.
+- [x] Confirmed `create_job_backend` and `create_payment_intent_backend` are already configured as `search_path=public, pg_temp` in Production; they are not part of the 30-function exact-public set and must not be reported as currently exposed to pg_temp shadowing.
+- [x] Confirmed the existing RC440 migration `20261010020000_rc440_exposed_security_definer_search_path.sql` is already present in repository source and is explicitly included in the production migration-chain gate. Its scope changes only public SECURITY DEFINER functions whose current setting is exactly `search_path=public` and which are executable by anon/authenticated; it preserves EXECUTE grants and already-hardened/service-only functions.
+- [x] RC440 disposable PostgreSQL integration covers temporary-table shadowing, anon/authenticated grant preservation, already-hardened exclusion, and service-only exclusion. CI passed in [41003030610](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41003030610).
+- [x] Read-only Production ledger query confirms RC440 version `20261010020000` is NOT recorded, although RC336 and later migration records exist. This is a live migration/source parity discrepancy; the exact cause is not yet established. Do not infer that the RC440 effect is deployed from source presence or CI success.
+- [x] Static relation-reference triage of the 30 exact-public function bodies found no obvious unqualified table relation references under the scoped SQL-token scan. This heuristic is not a substitute for PostgreSQL behavioral validation; RC440's disposable shadowing test remains the relevant regression proof.
+- [ ] Reconcile the missing RC440 ledger/effect against the captured Production schema checkpoint and full migration manifest. Do not apply RC440 directly or mark it complete in Production until the complete ordered migration chain, backup/restore, and rollback plan are approved.
+- Production remains unchanged and read-only. No migration, ACL, function definition, or business data was modified.
+
+## 2026-10-30 — PR #540 exact-head CI closure and RC440 live-effect recheck
+
+- [x] Rechecked all workflow runs attached to exact PR branch HEAD `71d68b4b90514d8acdc80e6d150ae34ba7e3beb3`. All 16 reported workflows completed with conclusion `success`, including Primary Catalog Frontend Validation, RC459/RC460/RC461 integration, RC425 Paymob atomicity, migration-history immutability, migration-version uniqueness, open-PR migration collision guard, module/backend boundaries, privacy integrations, and forward migration replay from the captured Production schema checkpoint.
+- [x] Forward migration replay run [41033355841](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41033355841) completed successfully: restored the captured checkpoint and applied all subsequent source migrations in timestamp order in a disposable isolated Supabase instance. This is test evidence only; no Production migrations were executed.
+- [x] Primary Catalog Frontend Validation run [41033355755](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41033355755) passed TypeScript/build, taxonomy and geography contracts, OAuth/session/role contracts, Facebook import ownership/token handling, activity social links/click-to-call, subscription activation gate, duplicate-safe creation, fail-closed membership bootstrap, public persisted-state checks, and browser E2E. The PR workflow does not deploy Pages.
+- [x] Re-read the Production migration ledger (308 records; latest `20261029083845`) and the 41-version required release manifest. Exact original IDs for all 41 required source migrations remain absent. This does not prove all effects are absent: some objects were introduced by bundled/forward migrations, while other critical payment, subscription, finance, ERP and RC117 contracts remain physically missing or drifted. Do not replay these files blindly or fabricate ledger rows.
+- [x] Rechecked RC440 against live PostgreSQL after the CI closure: 67 authenticated/anonymous-callable public SECURITY DEFINER functions remain; 30 still have exact `search_path=public`, 17 have `search_path=public, pg_temp`. The original RC440 version `20261010020000` is absent from the live ledger. RC440 isolated shadowing/grant-preservation tests passed previously, but its Production effect is NOT VERIFIED/APPLIED. Do not claim RC440 deployed or apply it independently.
+- [x] Confirmed two migration-history aliases remain pending controlled ledger reconciliation: RC424 source version `20261009010000` aliases the exact already-applied live ledger statement `20261008222845`; marketing-contact source version `20261027100000` aliases exact source blob already recorded as `20261027041411`. Both source effects were verified, but neither alias repair was written to Production. Do not execute either alias SQL again.
+- [ ] Prepare a migration-by-migration reconciliation matrix for the 41 absent source IDs: exact ledger statement alias, equivalent later bundle/forward repair, physically absent object, or same-name but wrong signature/body/ACL/search_path. This must be completed before any production migration/ledger repair proposal.
+- [ ] Continue to hold PR #540 as Draft. Exact-head CI is green, but Production still lacks RC459–RC461 migrations and the active `catalog-platform-admin` Edge Function v22 does not expose their preview/apply actions. No merge, Production migration, Edge deployment, grant change, data change, or financial operation was performed.
+- **Gate:** CI for PR #540 exact HEAD = PASS; Production parity/release = BLOCKED / NOT CERTIFIED.

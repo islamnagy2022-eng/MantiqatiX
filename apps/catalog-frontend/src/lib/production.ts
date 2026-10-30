@@ -96,6 +96,11 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
     tenantId: body.business?.tenantId || body.business?.tenant_id,
     name: body.business?.name,
     category: body.profile?.category || body.provider?.kind,
+    activityCategoryId: body.business?.activityCategoryId,
+    activityGroupCode: body.business?.activityGroupCode,
+    activityCategoryCode: body.business?.activityCategoryCode,
+    activityClassificationType: body.business?.activityClassificationType,
+    activitySpecialty: body.business?.activitySpecialty,
     slug: body.provider?.slug,
     bio: body.profile?.bio || body.provider?.description,
     branches: body.branches,
@@ -141,6 +146,7 @@ export function mapBusiness(raw: any, provider: any): Business {
   const name = String(raw.name || provider?.name || provider?.name_ar || 'نشاط تجاري');
   const functionalGroupId = groupFromCategory(category, String(raw.activityGroupCode || raw.activity_group_code || raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || ''));
   const activityCategoryCode = String(raw.activityCategoryCode || raw.activity_category_code || raw.settings?.activity_category_code || '').trim();
+  const savedActivityCategoryId = String(raw.activityCategoryId || raw.activity_category_id || raw.settings?.activity_category_id || '').trim();
   const canonicalCategoryId = activityCategoryCode ? `cat_${functionalGroupId}_${activityCategoryCode}` : '';
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
   const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
@@ -149,7 +155,7 @@ export function mapBusiness(raw: any, provider: any): Business {
   const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
-    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id || DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id,
+    categoryId: savedActivityCategoryId || DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id || DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id,
     functionalGroupId,
     categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || '') || undefined,

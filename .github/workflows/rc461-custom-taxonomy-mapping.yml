@@ -1,0 +1,60 @@
+name: RC461 Custom Taxonomy Mapping
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql"
+      - "supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql"
+      - "supabase/migrations/20261030160000_rc461_custom_taxonomy_mapping.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_integration.sql"
+      - ".github/workflows/rc461-custom-taxonomy-mapping.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql"
+      - "supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql"
+      - "supabase/migrations/20261030160000_rc461_custom_taxonomy_mapping.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_fixture.sql"
+      - "supabase/tests/rc461_custom_taxonomy_mapping_integration.sql"
+      - ".github/workflows/rc461-custom-taxonomy-mapping.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc461-custom-taxonomy-mapping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc461_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc461_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Apply RC459, RC460, RC461 and custom-category regression assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc461_custom_taxonomy_mapping_fixture.sql "$pg_container:/tmp/rc461_fixture.sql"
+          docker cp supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql "$pg_container:/tmp/rc459.sql"
+          docker cp supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql "$pg_container:/tmp/rc460.sql"
+          docker cp supabase/migrations/20261030160000_rc461_custom_taxonomy_mapping.sql "$pg_container:/tmp/rc461.sql"
+          docker cp supabase/tests/rc461_custom_taxonomy_mapping_integration.sql "$pg_container:/tmp/rc461_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_test -v ON_ERROR_STOP=1 -f /tmp/rc461_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_test -v ON_ERROR_STOP=1 -f /tmp/rc459.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_test -v ON_ERROR_STOP=1 -f /tmp/rc460.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_test -v ON_ERROR_STOP=1 -f /tmp/rc461.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc461_test -v ON_ERROR_STOP=1 -f /tmp/rc461_test.sql

@@ -1,0 +1,114 @@
+# تقرير تأمين إدارة التصنيفات — MantiqatiX
+
+**التاريخ:** 30 أكتوبر 2026  
+**PR:** [#540](https://github.com/islamnagy2022-eng/MantiqatiX/pull/540)  
+**الفرع:** `security/catalog-taxonomy-admin-guardrails-20261030`  
+**نطاق التغيير:** إدارة التصنيفات داخل الكتالوج فقط. واجهة الدليل والمتجر العام لم تتغير.
+
+## 1. ما تم تنفيذه
+
+### RC459 — معاينة وربط التصنيفات وإعادة توزيع السجلات
+أضيفت migration أمامية فقط:
+`supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql`
+
+تشمل:
+- معاينة read-only تُرجع أعداد الأنشطة وسجلات الدليل وعينة محدودة وبصمة للبيانات.
+- حفظًا ذريًا يعيد التحقق من البصمة ويرفض المعاينة القديمة.
+- أقفالًا داخل المعاملة تمنع التغييرات المتزامنة أثناء إعادة التحقق والحفظ.
+- تحديث الحقول التصنيفية فقط في النشاط والدليل.
+- سجل تدقيق immutable يحفظ قبل/بعد الحقول التصنيفية التي تم تغييرها، دون نسخ إعدادات النشاط الكاملة.
+- RPCs مقيدة بـ `service_role` فقط، مع رفض EXECUTE المباشر من `anon` و`authenticated`.
+
+أضيفت قائمة خادمية تضم 226 تصنيفًا canonical مع النوع المحدد لكل تصنيف (activity/profession)، وتتم مطابقتها آليًا مع مصدر `productionDefaults.ts`.
+
+**تصحيح اتساق مهم:** النقل يحدث الآن `activity_category_id` مع `activity_category_code` و`activity_group_code` و`activity_classification_type`. كما دخل المعرف المستقر في بصمة المعاينة ولقطة التدقيق، حتى لا ينتقل النشاط ويظل معروضًا بمعرف التصنيف القديم.
+
+### RC460 — تدقيق تعريفات التصنيفات نفسها
+أضيفت migration:
+`supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql`
+
+- Trigger بعد INSERT/UPDATE على `bizcatalog_platform_settings` يسجل تغييرات `categories` و`functionalGroups` و`defaultCategories` فقط.
+- تغييرات إعدادات المنصة الأخرى لا تولد ضوضاء في سجل taxonomy.
+- سجل التدقيق يكتب داخل معاملة حفظ الإعدادات نفسها؛ فشل تسجيل التدقيق يؤدي إلى التراجع عن حفظ الإعدادات.
+- Trigger قاعدة البيانات يعيد التحقق من أن `updated_by` يملك عضوية SUPER_ADMIN نشطة بنطاق PLATFORM كامل. لا يقبل actor غير موجود في الصلاحيات أو هوية مزيفة.
+- سجل التعريفات محمي بـ FORCE RLS، ولا توجد صلاحيات وصول مباشرة لـ `public` أو `anon` أو `authenticated` أو `service_role`.
+- سجل التدقيق غير قابل للتعديل أو الحذف. إزالة تصنيف من مصفوفة الإعدادات تسجل كتحديث يحفظ قبل/بعد.
+
+### حفظ هوية التصنيف عبر دورة النشاط
+- إنشاء النشاط يرسل `activityCategoryId` إلى الخادم.
+- الخادم يتحقق من المعرف والمجال ونوع التصنيف، ويحفظ `activity_category_id` والرمز canonical عند انطباقه.
+- الدليل العام وصفحة النشاط يعيدان المعرف الآمن، ومحوّل البيانات يحافظ عليه أثناء hydration.
+- التصنيف المخصص يتبع صيغة `cat_custom_<UUID>`; الحماية تمنع حذفه أو نقله عند وجود سجلات تستخدمه.
+
+### واجهة الإدارة
+تمت إضافة لوحة داخل تبويب التصنيفات الحالي تتيح معاينة العدد والعينة، وإلغاء المعاينة، وإعادة المعاينة، ثم التأكيد الصريح. لم تتغير واجهات العملاء العامة.
+
+## 2. الصلاحيات والضمانات
+- Edge Function تتحقق من جلسة Auth وعضوية SUPER_ADMIN النشطة بنطاق PLATFORM/full_control.
+- RPCs تعيد التحقق من هوية المستخدم وعضويته داخل قاعدة البيانات.
+- RC460 يتحقق مرة أخرى من صلاحية actor داخل Trigger إعدادات المنصة قبل تسجيل التغيير.
+- لا تعتمد الحماية على إظهار أو إخفاء الأزرار فقط.
+- لا تتغير الملكية أو الاشتراكات أو التوثيق أو النشر أو الهاتف أو الصور أو التخصص الدقيق أثناء إعادة توزيع التصنيفات.
+
+## 3. الاختبارات
+نجح checkpoint سابق على الالتزام `fe237e2375e2cb7ccd9a7c746c7ad28ba335712f`:
+
+| الفحص | النتيجة السابقة | التشغيل |
+|---|---|---|
+| RC459 PostgreSQL integration | PASS | [41024457491](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457491) |
+| Primary catalog build/typecheck/validators | PASS | [41024457221](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457221) |
+| Browser E2E including preview/cancel/confirm | PASS | ضمن [41024457221](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457221) |
+| Full isolated forward migration replay | PASS | [41024457214](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457214) |
+| Migration uniqueness/history/collision | PASS | [41024457047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457047), [41024457464](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457464), [41024457247](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457247) |
+| Backend module/database integrations | PASS | [41024457230](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41024457230) |
+
+بعد ذلك أضيفت تغييرات إضافية يجب عدم اعتبارها مغطاة تلقائيًا بنتائج checkpoint السابق:
+- فصل اختبار رفض SUPER_ADMIN ذي نطاق النشاط عن ذي نطاق الفرع.
+- RC460 definition audit.
+- رفض actor غير مخول داخل trigger قاعدة البيانات.
+- اختبار إزالة تعريف تصنيف مع حفظ before/after.
+- تحديث RC459 ليغير `activity_category_id` مع باقي حقول التصنيف.
+
+**الحالة الحالية للاختبارات:** إعادة التحقق على أحدث HEAD مطلوبة بعد هذه التغييرات. تشغيلات GitHub Actions الأحدث أُنشئت، ولم تُعامل كنجاح حتى تظهر نتيجة نهائية ناجحة.
+
+## 4. ما يزال مفتوحًا
+1. إكمال إعادة التحقق على أحدث HEAD لكل من RC459 وRC460، وPrimary Catalog build/browser E2E، وforward migration replay، وmigration guards.
+2. أداة إعادة التوزيع الحالية تشمل التصنيفات canonical فقط. دعم نقل التصنيفات المخصصة `cat_custom_<UUID>` ما زال TODO؛ حذف التصنيف المخصص المستخدم مرفوض حاليًا.
+3. مراجعة بشرية للتغييرات قبل الدمج.
+4. تطبيق migrations ونشر Edge Functions يتطلبان release plan مع backup/restore/rollback وموافقة صريحة.
+
+## 5. حد الإنتاج
+- لم تُطبق RC459 أو RC460 على Supabase Production.
+- لم تُنشر Edge Functions على Production.
+- لم تتغير بيانات الأنشطة أو الدليل أو إعدادات المنصة في Production.
+- لم تحدث إعادة توزيع جماعية لأي بيانات.
+- مهام النشر المرتبطة بالـ PR لا تمثل نشرًا إنتاجيًا؛ النشر يظل محجوبًا عن هذا العمل.
+- بوابة جاهزية MantiqatiX الكاملة تظل **BLOCKED / NOT CERTIFIED**.
+
+**الحالة:** RC459 + RC460 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION PENDING / PRODUCTION UNCHANGED.
+
+## RC461 — Saved custom category mapping
+- Added forward-only migration `20261030160000_rc461_custom_taxonomy_mapping.sql` to extend the RC459 preview/apply RPCs without changing their signatures.
+- A custom ID is accepted only if the `bizcatalog` settings registry contains the exact `cat_custom_<UUID>` ID with `isCustom=true`, the same functional group, and an allowed classification type. Apply rechecks the registry while holding a share lock on the settings table.
+- Preview and commit include business rows keyed by `activity_category_id` even when they have no canonical `activity_category_code`. The digest includes the stable category ID. Committing to a custom category stores its ID and removes a stale canonical code; committing to a canonical category stores the canonical ID and code.
+- Edge Function validates custom source and target entries against the saved registry before calling the privileged RPC. New business creation rejects unknown custom category IDs. Admin source/target selectors include persisted custom definitions.
+- Added disposable PostgreSQL test covering custom→canonical, canonical→custom, fabricated ID rejection, group/type mismatch rejection, audit records, and preservation of specialty, payment/publication, claim/listing status, and phone.
+- Exact-head CI for RC461 is pending. No Production migration, Edge deployment, category mapping, or settings write was performed.
+
+
+## Final-head verification — 2026-10-30
+
+The earlier "final-head validation pending" statements above describe the pre-fix checkpoint and are superseded by the exact code-head results below.
+
+- **PR #540 code head:** `88156e2744704f4db9daac1f990ba24a49753f39`.
+- **Primary Catalog Frontend Validation:** [41030242448](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242448) — PASS. Build/TypeScript, secure taxonomy contract, browser E2E and employee RBAC PostgreSQL all passed.
+- **RC459:** [41030242441](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242441) — PASS.
+- **RC460:** [41030242326](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242326) — PASS.
+- **RC461:** [41030242343](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242343) — PASS.
+- **Forward migration replay:** [41030242487](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242487) — PASS. Restored the captured checkpoint in an isolated Supabase instance, applied all later migrations in timestamp order, and passed the included tenant-isolation checks.
+- **Migration guards:** version uniqueness [41030242356](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242356), history immutability [41030242491](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242491), and cross-PR collision [41030242446](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242446) — PASS.
+- **Other isolated integration checks** in the exact-head PR checks also passed, including approval-action audit, financial journal RC450, RC425 Paymob atomicity, and backend module/privacy boundaries.
+- The validator crash was fixed by changing the undefined `dashboard` reference to the already-loaded `admin` source variable. The secure taxonomy contract then passed; the validator was not disabled.
+- PR #541 was merged as `26ace99b1fe6e23daed484aafcdcef3cf7d18eae`; main Pages deployment [41030176731](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030176731) passed deployment and deployed-origin dashboard/mobile/membership/QR checks.
+- **Production boundary:** RC459–RC461 migrations were tested only in disposable CI databases. No Supabase Production migration, taxonomy mapping write, settings mutation, or Edge Function deployment was performed. The PR deploy job was skipped for the pull-request event. Do not treat isolated replay as authorization to run migrations against Production.
+- **Status:** SOURCE IMPLEMENTED / EXACT-HEAD ISOLATED TESTS PASS / PRODUCTION MIGRATIONS NOT APPLIED / FULL PLATFORM GATE BLOCKED.
