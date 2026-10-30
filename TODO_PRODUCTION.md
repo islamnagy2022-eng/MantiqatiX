@@ -915,3 +915,13 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Restore production schema into an isolated database; rehearse RC435/RC436/RC439 migrations and run their full integration/rollback tests. Never apply these migrations directly to production as an exploratory fix.
 - [ ] Correct the financial-journal Edge RPC call to the atomic contract only after source tests prove the argument/actor context and the isolated migration rehearsal passes.
 - Release remains BLOCKED / NOT CERTIFIED. No production SQL, migration, grant, payment, or Edge Function mutation was performed.
+
+
+### Correction to financial-journal rollout interpretation — 2026-10-30
+- [x] Deeper review confirms RC449A → RC450 is the canonical production migration sequence; RC436 is an earlier alternative and must not be applied as a substitute.
+- [x] Current main Edge Function RPC name/signature matches RC450 (post_financial_journal_backend(uuid,jsonb,jsonb)). The earlier note claiming a mismatch with an RC436-only atomic RPC is withdrawn.
+- [x] Read-only live check confirms RC449A 20261010175000 and RC450 20261010180000 are both absent. The live RPC has only postgres EXECUTE ACL, service_role cannot execute, and the old body requires p_user_id=auth.uid() rather than supporting the trusted service-role actor flow and RC450 business/branch/organization scope.
+- [x] Existing reviewed assets: docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md, RC450 integration SQL, and service-role source-contract validator.
+- [ ] Rehearse RC449A then RC450 in a restorable isolated database; only then plan approved production migration and matching Edge deployment.
+- [ ] Do not apply RC436 as a shortcut or grant EXECUTE on the legacy RPC.
+- The financial journal remains CRITICAL / BLOCKED pending the canonical rollout.
