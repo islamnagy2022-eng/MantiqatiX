@@ -743,3 +743,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Keep Production rollout blocked pending a reviewed chronological migration plan, current backup/restore and rollback rehearsal, payment/finance E2E, Auth hardening, Edge Function source/function contract parity, and browser/device evidence.
 - No Production DDL/DML, migration, grant, Auth/RLS change, Edge Function deployment, payment, wallet action or financial posting was performed.
 - Full platform release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Security scope regression suites passed (disposable PostgreSQL 16)
+
+- [x] RC452 CRM tenant/business isolation: [run 40999748715](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748715) — validate and PostgreSQL fixture/migration/integration jobs passed.
+- [x] RC102 provider-service owner isolation: [run 40999748664](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748664) — owner insert/update/delete, cross-owner denial, anonymous-session denial, and write grant checks passed.
+- [x] RC525 digital-page product scope: [run 40999748714](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748714) — policy catalog checks and behavioral RLS regression passed.
+- [x] RC456 SMM service-role boundary: [run 40999748663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40999748663) — Deno/static checks and disposable PostgreSQL privilege-boundary assertions passed.
+- [x] Added manual workflow dispatch and tied these four suites to updates of the live production reconciliation manifest so production evidence refreshes trigger regression checks.
+- These are disposable PostgreSQL 16 results only. No Production migration, grant, Auth/RLS setting, Edge Function, payment, wallet or catalog data was changed.
+- SMM remains deferred. Production remains **BLOCKED / NOT CERTIFIED**.
