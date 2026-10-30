@@ -1059,3 +1059,9 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Production migration ledger is already advanced through 20261029083845. Historical RC449A/RC450 files must not be applied directly out of order or recorded under fabricated historical versions. A reviewed forward-only reconciliation migration with a CLI-generated new version is required.
 - Logged the evidence in TODO_PRODUCTION.md commit 18ce7a80ad38080049e33aad25bedff3e2e84261.
 - No data, schema, grant, journal, ledger, or payment mutation occurred.
+
+
+### Revalidation of isolated migration tests
+- Rechecked workflow jobs and individual steps: RC435→RC439 PostgreSQL 16 job [41001833105](https://github.com/islamnagy-eng/MantiqaTiX/actions/runs/41001833105) passed crypto test and fixture → RC435 → RC439 → integration; PR #512 merged as `31b7256928b49af9a5f52c4aa69e55db7f1c91f1`.
+- RC450 financial-journal PostgreSQL 16 job [39091702874](https://github.com/islamnagy-eng/MantiqaTiX/actions/runs/39091702874) passed its explicit disposable RC450 apply + behavioral test job; PR #169 test correction merged as `3d7669ca0043db847dfe14fe1b81b86329c4377f`.
+- These isolated fixture tests do not prove compatibility with the current later-dated Production schema or apply any live migration. Forward-only reconciliation and backup/restore rehearsal remain mandatory.
