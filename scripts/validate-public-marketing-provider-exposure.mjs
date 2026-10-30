@@ -77,7 +77,7 @@ for (const [block, label] of [
 ]) {
   assert.doesNotMatch(
     block,
-    /owner_user_id|provider\\?\\.settings|\\.\\.\\.\\s*provider/i,
+    /owner_user_id|provider\?\.settings|\.\.\.\s*provider/i,
     label + " must not serialize owner UUID, provider-profile settings, or a raw provider row"
   );
 }
