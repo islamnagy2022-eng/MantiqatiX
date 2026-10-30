@@ -8,9 +8,11 @@ const app = fs.readFileSync('apps/catalog-frontend/src/App.tsx', 'utf8');
 const navbar = fs.readFileSync('apps/catalog-frontend/src/components/Navbar.tsx', 'utf8');
 const modal = fs.readFileSync('apps/catalog-frontend/src/components/auth/LoginModal.tsx', 'utf8');
 
-for (const event of ["'INITIAL_SESSION'", "'SIGNED_IN'", "'SIGNED_OUT'", "'TOKEN_REFRESHED'", "'USER_UPDATED'"]) {
+for (const event of ["'INITIAL_SESSION'", "'SIGNED_IN'", "'SIGNED_OUT'", "'USER_UPDATED'"]) {
   assert.ok(context.includes(`event === ${event}`), `Google auth hydration must handle ${event}`);
 }
+assert.ok(!context.includes("event === 'TOKEN_REFRESHED'"), 'A routine Google access-token refresh must not trigger a full membership/catalog bootstrap.');
+assert.ok(context.includes("const sessionKey = incomingUserId || 'signed-out'"), 'Auth bootstrap deduplication must use stable user identity, not rotating access tokens.');
 assert.ok(context.includes("setAuthBootstrapError("), 'Bootstrap failures must be visible, not silently presented as anonymous.');
 assert.ok(context.includes("isAuthenticated: Boolean(session?.user)"), 'A valid Supabase session must remain distinguishable from an anonymous visitor after bootstrap failure.');
 assert.ok(context.includes("lastAuthLoadKeyRef"), 'INITIAL_SESSION and getSession hydration must avoid duplicate full bootstrap work.');
@@ -21,6 +23,11 @@ assert.ok(context.includes("new URL('/MantiqatiX/', window.location.origin).toSt
 assert.ok(fs.readFileSync('web/index.html', 'utf8').includes("new URL('/MantiqatiX/catalog-app/', current.origin)"), 'The platform root must relay OAuth callback parameters into the catalog subpath before loading its app.');
 assert.ok(context.includes("queryParams: { prompt: 'select_account' }"), 'Google login must allow choosing the intended Google identity explicitly.');
 
+assert.ok(production.includes('async function mapWithConcurrency<T, R>'), 'Authorized catalog hydration must use a bounded concurrent worker pool.');
+assert.ok(production.includes('uniqueRows.slice(0, 250), 8'), 'Catalog reads must use bounded concurrency while preserving the existing row cap.');
+assert.ok(production.includes('Promise.all(tenantIds.map(async (tenantId)'), 'Platform tenant business lists must load concurrently.');
+assert.ok(production.includes('Promise.all(tenantWideOwnerIds.map(async (tenantId)'), 'Tenant-wide owner business lists must load concurrently.');
+assert.ok(production.includes("callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' })") && production.includes("callPlatformAdmin({ action: 'GET_SETTINGS' })"), 'Platform subscriber and settings reads must remain available.');
 assert.ok(production.includes("isAuthenticated: false"), 'Anonymous sessions must be explicitly unauthenticated.');
 assert.ok(production.includes("isAuthenticated: true") && production.includes("userId: user.id"), 'Valid Google sessions must retain identity even without memberships.');
 assert.ok(production.includes("const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest'"), 'Business permissions must continue to derive from active production memberships.');
