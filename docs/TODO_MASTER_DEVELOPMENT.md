@@ -890,3 +890,11 @@ Show only owner/admin-configured external logo and cover URLs after the verifica
 - [x] Post-merge main Pages deployment [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) passed deployment, root verification and deployed-origin browser checks.
 - [x] Read-only production audit confirmed 2 ACTIVE verified profiles; both have valid HTTPS external logo and cover URLs. No images were fabricated or cross-assigned.
 - [ ] Preserve existing layout, mobile three-column grid, verification-first ordering, display fallbacks and route behavior.
+
+
+## 2026-10-30 — Anonymous-session authorization checkpoint
+
+- [x] Added read-only production ACL/RLS inventory for high-sensitivity tables; reviewed tables have RLS + FORCE RLS and no direct anon SELECT.
+- [x] Synthetic `is_anonymous=true` PostgreSQL claims simulation returned zero rows for sensitive queried tables and memberships; two ACTIVE showcase businesses remained publicly visible by design.
+- [ ] Real Auth-issued anonymous JWT/Data API E2E, permanent-user and cross-tenant/business/branch comparisons, and adversarial write tests remain OPEN.
+- Evidence: `docs/audits/ANONYMOUS_SESSION_READONLY_CHECKPOINT_20261030.md`. No production security mutation.
