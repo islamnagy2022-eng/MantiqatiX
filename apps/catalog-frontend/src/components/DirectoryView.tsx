@@ -1048,7 +1048,7 @@ export const DirectoryView: React.FC = () => {
                 >
                   <div className="relative flex h-20 sm:h-36 items-center justify-center bg-gradient-to-br from-amber-50 via-white to-slate-100">
                     <Store className="h-8 w-8 text-amber-700 sm:h-12 sm:w-12" />
-                    <span className="absolute right-1 top-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-900 sm:right-3 sm:top-3 sm:text-[11px]">بيانات غير موثقة</span>
+                    <span className="absolute right-1 top-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-900 sm:right-3 sm:top-3 sm:text-[11px]">غير موثق</span>
                   </div>
                   <div className="p-2 sm:p-5">
                     <h3 className="line-clamp-2 break-words text-xs font-black text-slate-900 sm:text-base">{listing.display_name}</h3>
