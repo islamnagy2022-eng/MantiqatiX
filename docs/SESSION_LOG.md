@@ -956,3 +956,11 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - [x] Issue #270 closed for recovery of the 16 RC425–RC441 source migrations and isolated forward-replay acceptance. This does not reconcile the live 41-version ledger drift or authorize production rollout.
 - No Production migration, RPC/ACL, Auth setting, payment, wallet or financial mutation was performed in this work.
 - Overall Production Gate remains BLOCKED / NOT CERTIFIED.
+
+## 2026-10-31 — RC520 provider-profile anonymous column exposure checkpoint
+
+- Read-only Production metadata query confirmed anon has table-level SELECT on public.marketing_provider_profiles, covering all 19 current columns.
+- The inventory includes owner_user_id and settings; the query inspected column metadata and grant metadata only. It did not retrieve owner UUIDs or settings values.
+- Primary apps/catalog-frontend source uses the curated public directory Edge Function rather than direct PostgREST reads of this table. The public Edge Function selects an explicit public projection and does not return owner_user_id or profile-level settings.
+- The correct remediation is a compatibility-preserving, forward-only privilege change with an explicit public column allowlist, plus anonymous/owner/admin PostgreSQL tests and deployed-origin E2E. Do not revoke anon table access until all first-party/legacy direct-query consumers have been checked; column-level grants can break wildcard selects.
+- Created documentation-only continuation branch security/anon-provider-profile-column-boundary-20261031. No production schema, grants, policies, data, Auth settings, Edge Functions, payments, or financial records were changed. Production remains BLOCKED / NOT CERTIFIED.
