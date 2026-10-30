@@ -51,7 +51,6 @@ begin
     raise exception 'RC459_AUDIT_TABLE_DIRECT_ACCESS_MUST_BE_REVOKED';
   end if;
 
-  execute 'set role service_role';
   rejected := false;
   begin
     perform public.mnty_catalog_taxonomy_mapping_preview(
@@ -202,7 +201,6 @@ begin
   end;
   if not rejected then raise exception 'RC459_AUDIT_IMMUTABILITY_NOT_ENFORCED'; end if;
 
-  execute 'reset role';
 end;
 $test$;
 
