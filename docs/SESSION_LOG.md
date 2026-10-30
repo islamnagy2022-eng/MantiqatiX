@@ -677,3 +677,18 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No production Supabase schema, migration history, data, grants, Auth/RLS, Edge Functions, payments, wallets, or deployment targets were changed.
 - Next: keep production rollout blocked pending reconciliation of the full chronological migration chain, backup/restore + rollback rehearsal, approved change window, and post-deployment verification.
 - Overall production status remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Fresh live physical-object contract audit
+
+- Queried Production Supabase read-only after PR #506 merge. Live migration ledger remains 308 rows through `20261029083845`; the required 41 original release-version identifiers remain 0/41.
+- Corrected the stale RC113–RC116 absence snapshot: live ledger version `20261029041815` has a normalized exact text match to the 83,324-character main source. Its embedded source markers cover RC113, RC114, RC115, RC116 and RC457. The corresponding role/employee tables, indexes and admin/employee RPC signatures are present.
+- Verified platform role/employee tables have RLS + FORCE RLS and no direct anon/authenticated/service_role table privileges. Inspected employee upsert/list and selected platform-admin RPC bodies for actor, membership, tenant/business/branch scoping, permission ceiling and audit controls. Full runtime E2E is still open.
+- Confirmed RC117 image work was intentionally excluded from the dashboard bundle. Default image functions/triggers, trigger attachments and marketing_services image_url/image_source remain absent. Main contains two forward RC117 repairs, but Production's latest ledger version is still 20261029083845.
+- Refreshed critical gaps: RC425 event table/RPC absent; RC426 new signature absent while old four-arg function remains; RC427 index absent; RC428–430 absent; RC431 search_path drift; RC432 unique index absent; RC434/435 absent; RC436/RC449A/RC450 journal schema/RPC/privilege gaps; RC437/438 ERP lines/functions absent or drifted.
+- Confirmed RC452 role-only CRM policies lack tenant/business conditions, RC102 owner-write grants are not effective on marketing_provider_services, RC453 campaign tables/RPCs are absent, RC456 SMM service_role table privileges are absent (gateway stays deferred), and RC525 live digital-page admin-write policy is not the explicit platform-scope contract.
+- Verified RC451 forward repair 20261027223523, dashboard forward bundle 20261029041815 and Qadam follow-up 20261027205405 are present in the live ledger. RC424 and 20261027100000 marketing-contact are duplicate source aliases; preserve their target historical ledger IDs.
+- Added a dedicated read-only reconciliation document and refreshed the machine-readable reconciliation evidence. No production DDL/DML, migration, grant, Auth/RLS mutation, Edge Function deployment, payment, wallet operation or financial posting was performed.
+- Overall release remains **BLOCKED / NOT CERTIFIED**.
