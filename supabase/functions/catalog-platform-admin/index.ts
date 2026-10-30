@@ -197,6 +197,120 @@ Deno.serve(async (req: Request) => {
       const safe: Record<string, unknown> = {};
       const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
+
+      const allowedTaxonomyGroups = [
+        "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
+        "construction_decor", "auto_transport", "real_estate", "education_training",
+        "technology_communications", "professional_services", "marketing_media",
+        "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
+        "finance_insurance", "industry_workshops", "public_community",
+      ];
+      if (Object.prototype.hasOwnProperty.call(input, "functionalGroups")) {
+        const groups = input.functionalGroups;
+        if (!Array.isArray(groups) || groups.length !== allowedTaxonomyGroups.length) {
+          return response(origin, { error: "INVALID_TAXONOMY_GROUPS" }, 400);
+        }
+        const ids = groups.map((entry: any) => String(entry?.id || ""));
+        if (new Set(ids).size !== ids.length || allowedTaxonomyGroups.some((id) => !ids.includes(id))) {
+          return response(origin, { error: "INVALID_TAXONOMY_GROUP_IDS" }, 400);
+        }
+        for (const group of groups) {
+          if (!group || typeof group.name !== "string" || group.name.trim().length < 2 ||
+              group.name.trim().length > 120 || typeof group.englishName !== "string" ||
+              group.englishName.trim().length > 120) {
+            return response(origin, { error: "INVALID_TAXONOMY_GROUP_SHAPE" }, 400);
+          }
+        }
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "categories")) {
+        const categories = input.categories;
+        if (!Array.isArray(categories) || categories.length < 1 || categories.length > 500) {
+          return response(origin, { error: "INVALID_TAXONOMY_CATEGORIES" }, 400);
+        }
+        const ids = new Set<string>();
+        const names = new Set<string>();
+        for (const category of categories) {
+          const id = String(category?.id || "").trim();
+          const name = String(category?.name || "").trim();
+          const groupId = String(category?.functionalGroupId || "").trim();
+          const kind = String(category?.classificationType || "activity");
+          const normalizedName = name.normalize("NFKC").toLocaleLowerCase("ar-EG");
+          const specialties = category?.specialties;
+          if (!id || id.length > 160 || !/^[A-Za-z0-9_-]+$/.test(id) ||
+              name.length < 2 || name.length > 120 ||
+              !allowedTaxonomyGroups.includes(groupId) ||
+              !["activity", "profession"].includes(kind) ||
+              (specialties != null && (!Array.isArray(specialties) || specialties.length > 100 ||
+                specialties.some((entry: unknown) => typeof entry !== "string" || entry.trim().length > 120)))) {
+            return response(origin, { error: "INVALID_TAXONOMY_CATEGORY_SHAPE" }, 400);
+          }
+          const canonicalPrefix = `cat_${groupId}_`;
+          if (id.startsWith("cat_") && !id.startsWith(canonicalPrefix) &&
+              !id.startsWith("cat_custom_") && !id.startsWith("cat_legacy_")) {
+            return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_MISMATCH" }, 400);
+          }
+          const nameKey = `${kind}:${normalizedName}`;
+          if (ids.has(id) || names.has(nameKey)) {
+            return response(origin, { error: "DUPLICATE_TAXONOMY_CATEGORY" }, 409);
+          }
+          ids.add(id);
+          names.add(nameKey);
+        }
+
+        const { data: storedRow, error: storedError } = await service.from("bizcatalog_platform_settings")
+          .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
+        if (storedError) throw storedError;
+        const storedCategories = Array.isArray(storedRow?.settings?.categories) ? storedRow.settings.categories : [];
+        const incomingById = new Map(categories.map((category: any) => [String(category.id), category]));
+        for (const previous of storedCategories) {
+          const previousId = String(previous?.id || "");
+          if (!previousId) continue;
+          const next = incomingById.get(previousId) as any;
+          const mappingChanged = !next ||
+            String(next.name || "").trim() !== String(previous.name || "").trim() ||
+            String(next.functionalGroupId || "") !== String(previous.functionalGroupId || "") ||
+            String(next.classificationType || "activity") !== String(previous.classificationType || "activity");
+          if (!mappingChanged) continue;
+
+          let businessCount = 0;
+          const canonicalMatch = previousId.match(/^cat_([a-z][a-z0-9_]*)_([a-z0-9]+(?:_[a-z0-9]+)*)$/);
+          if (canonicalMatch) {
+            const [, oldGroup, oldCode] = canonicalMatch;
+            if (allowedTaxonomyGroups.includes(oldGroup)) {
+              const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
+                .eq("settings->>activity_group_code", oldGroup)
+                .eq("settings->>activity_category_code", oldCode);
+              if (error) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+              businessCount = Number(count || 0);
+            }
+          } else {
+            const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
+              .eq("settings->>activity_category_id", previousId);
+            if (error) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+            businessCount = Number(count || 0);
+          }
+          const { count: listingCount, error: listingError } = await service.from("public_directory_listings")
+            .select("id", { count: "exact", head: true }).eq("taxonomy_category_id", previousId);
+          if (listingError) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+          if (businessCount + Number(listingCount || 0) > 0) {
+            return response(origin, {
+              error: "TAXONOMY_CATEGORY_IN_USE",
+              message: "هذا التصنيف مرتبط بسجلات فعلية. استخدم أداة المعاينة وإعادة التوزيع أولًا، ثم أعد حفظ قائمة التصنيفات.",
+              businessCount,
+              listingCount: Number(listingCount || 0),
+            }, 409);
+          }
+        }
+        safe.categories = categories;
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "defaultCategories")) {
+        const defaults = input.defaultCategories;
+        if (!Array.isArray(defaults) || defaults.length > 500 ||
+            defaults.some((entry: unknown) => typeof entry !== "string" || entry.trim().length < 2 || entry.trim().length > 120) ||
+            new Set(defaults.map((entry: string) => entry.normalize("NFKC").toLocaleLowerCase("ar-EG"))).size !== defaults.length) {
+          return response(origin, { error: "INVALID_DEFAULT_TAXONOMY_CATEGORIES" }, 400);
+        }
+      }
       if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
         const phone = String(input.adminWhatsApp || "").trim();
         const digits = phone.replace(/\D/g, "");
