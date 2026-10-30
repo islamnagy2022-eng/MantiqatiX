@@ -47,13 +47,16 @@
    - Require per-function semantic diff, schema/ACL dependencies, provider sandbox E2E and rollback plan. No blind batch deploy.
 
 8. Backup/restore/DR — NOT VERIFIED
-   - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence.
+   - Current Supabase organization plan was read as FREE. Supabase documentation states automatic daily database backups are provided on Pro/Team/Enterprise; Free projects should use regular Supabase CLI `db dump` exports and keep off-site copies. PITR is a Pro/Team/Enterprise add-on. Reference: https://supabase.com/docs/guides/platform/backups
+   - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence. A logical export alone is not a verified backup until a controlled restore and integrity/application checks pass.
+   - Before any Production migration: create an encrypted logical export, retain checksum and timestamp, restore to a separate controlled environment, verify critical tables/RLS/functions/storage metadata, and document measured RPO/RTO. Do not initiate a destructive Production restore.
 
 9. Release build/signing and real-device regression — WAIT
    - Signed Android artifact, protected signing material, install/update, auth/session, role journeys, push, network-loss/retry and device regression remain open.
 
 10. Public web deployment smoke — VERIFIED FOR TESTED MAIN SNAPSHOT
     - Main web deploy [41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838) passed after PR #521, including deployed-origin browser route checks.
+    - Latest main Pages deploy after PR #541 [41030176731](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030176731) passed on `26ace99b1fe6e23daed484aafcdcef3cf7d18eae`, including Pages deployment and deployed-origin dashboard/mobile/membership/QR browser checks.
     - Production Health Monitor [41003213146](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003213146) passed after PR #522. The follow-up web deploy for documentation-only main commit 1d80c771e89a7b2693be7c62d0c8bba9d815f678 was in progress at this snapshot.
     - Full authenticated customer/admin journeys, accessibility/manual device testing and offline/PWA recovery remain NOT VERIFIED.
 
@@ -2634,3 +2637,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] PR #540 still requires merge/release review. Its Pages deploy job is skipped on PR events; merging source does not apply Supabase migrations or deploy Edge Functions.
 - [ ] RC459–RC461 remain NOT APPLIED to Production. A reviewed backup/restore/rollback plan, explicit release approval, migration execution and live-object verification are still required before the admin mapping feature can operate against Production.
 - The full MantiqaTix Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live Auth/security, Edge Function parity, payments/finance, tenant E2E, backup/restore and Android/device release gates.
+
+
+## 2026-10-30 — Production backup capability and taxonomy release dependency
+
+- [x] Read Supabase organization/project metadata: project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on the FREE organization plan; Postgres 17.6.1.155.
+- [x] Confirmed the live migration ledger still ends at `20261029083845`; RC459/RC460/RC461 are not recorded in Production.
+- [x] Read the active `catalog-platform-admin` Edge Function: version 22, `verify_jwt=true`; its deployed source does not contain `TAXONOMY_MAPPING_PREVIEW`, `TAXONOMY_MAPPING_APPLY`, or the RC459 mapping RPC calls. PR #540 remains Draft so its new admin controls cannot be released ahead of their backend/database dependencies.
+- [x] Supabase Security Advisor refreshed at 2026-10-30 09:06 UTC: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER findings; 67 authenticated-executable SECURITY DEFINER findings. Existing contextual classification remains; do not bulk-revoke functions or add broad RLS policies.
+- [ ] Backup/restore prerequisite: the Free plan does not include automatic daily backups according to current Supabase documentation. Configure an encrypted CLI logical dump with an off-site destination or choose an eligible backup plan; then perform a controlled restore rehearsal and measure RPO/RTO before production migrations.
+- [ ] PR #540 release remains WAITING for an approved coordinated migration + Edge Function deployment plan, backup/restore evidence, and explicit production release approval. No Production changes were made in this review.
