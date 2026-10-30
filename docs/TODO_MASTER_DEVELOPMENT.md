@@ -789,3 +789,16 @@ Account → Own Business → Menu Plan → Order → Payment → Fulfillment →
 3. Add Menu public content model/section generation and QR/share.
 4. Close service-detail route.
 5. Continue release gates: payment E2E → storage E2E → backup/restore → rollback → browser regression → security → production certification.
+
+
+---
+
+# 33) OWNER SPECIFICATION TRACEABILITY — SPEC-00–SPEC-19
+
+The complete mapping is maintained in [`docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md`](specifications/SPECIFICATION_TODO_TRACEABILITY.md).
+
+- The `SPEC-00`–`SPEC-19` keys are cross-reference IDs, not replacement tasks.
+- Existing module statuses and acceptance criteria in sections #1–#32 remain unchanged.
+- Use the global register for platform/release state and `TODO_PRODUCTION.md` for website/catalog execution detail; link to canonical tasks instead of duplicating them.
+- No module is VERIFIED merely because its requirement has been mapped. Preserve PARTIAL / OPEN / BLOCKED states until evidence satisfies its acceptance criteria.
+- Website/catalog continuation is additive and UI-preserving. Android remains deferred and is not part of this website execution.

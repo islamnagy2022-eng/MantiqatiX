@@ -2450,3 +2450,16 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Test proves public/pg_temp search_path ordering prevents temporary-table shadowing, preserves intended anon/authenticated EXECUTE grants, skips already-hardened functions, and excludes service_role-only functions.
 - [ ] Test success does not mean the migration ran in Production. The 30 live exact-public search_path functions remain pending RC440 application through the full ordered rollout.
 - [ ] Leaked Password Protection, payment/finance E2E, backup/restore and six critical Edge Function parity gaps remain open. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Owner specification traceability map (SPEC-00–SPEC-19)
+
+- [x] Added `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md` as the cross-reference between all 20 owner specifications, the global production register, the website/catalog register, and the module acceptance blueprint.
+- [x] Stable IDs `SPEC-00`–`SPEC-19` identify requirement domains only; existing TODO rows remain canonical and their status was not changed by this mapping.
+- [ ] Reconcile `docs/TODO_MASTER_DEVELOPMENT.md` acceptance criteria with the two canonical TODO registers, linking existing tasks and recording only genuinely missing requirements.
+- [ ] Verify the merged PR #500 taxonomy folder navigation on the deployed catalog with browser coverage; physical-device/accessibility review remains NOT VERIFIED.
+- Current UI no-regression constraint remains mandatory. No redesign, replacement, or destructive cleanup is authorized by this mapping.
+- No application/UI source, production database/schema, migration, Auth/RLS, Edge Function, secret, payment, or deployment change was performed. No test or deployment is claimed.
+- Overall production release remains **BLOCKED / NOT CERTIFIED**.

@@ -838,3 +838,17 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Additional food/grocery batch added nine source-backed Berket El Sabaa listings from Egypt Yellow Pages after checking existing names: مطعم أبو رضوى, مخبز علا بركات الله, مطعم الحرمين, مطعم الملكي, مطعم السلطان, مطعم الزعيم, مطعم إيطاليا, كشري فيينا, مطعم سويت هوم. Phone numbers were not present in the source and were not guessed. Existing matches were not duplicated. Total new records verified in this session: 15 (3 doctors, 3 pharmacies, 9 food businesses); overall discovery remains partial.
 
 - Additional verified food/grocery work: added eight supermarkets/markets from Egypt Yellow Pages after comparing names against the current directory: سوبر ماركت أبو عفيفي, سوبر ماركت الإسكندراني, سوبر ماركت الشاذلي, سوبر ماركت الزيات, سوبر ماركت فرح, حمادة ماركت, هاني ماركت, وائل ماركت. Phone fields remain empty because the source did not expose numbers. Total new listings verified in this session: 23 (3 doctors, 3 pharmacies, 17 food/market records); full discovery remains open.
+
+
+---
+
+## 2026-10-30 — Latest continuation checkpoint: owner specification traceability
+
+- **Baseline:** verified current `main` commit `16b168b40eac01b37a94eed34b757f68a00dd6a5`.
+- **Completed:** created `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md`, mapping owner specifications 00–19 to existing canonical TODO and module acceptance sections via stable `SPEC-00`–`SPEC-19` keys.
+- **Registers updated:** `TODO_PRODUCTION.md`, `docs/MASTER_PRODUCTION_TODO.md`, `docs/TODO_MASTER_DEVELOPMENT.md`, and `docs/SESSION_LOG.md`. Existing checkboxes and statuses were preserved; no feature was marked VERIFIED by documentation mapping.
+- **Branch:** `docs/spec-00-19-traceability-20261030`; first map-file commit `9229d76d235cabb95a1b129fca7225ed3e7ca734`. Follow-up documentation commits are on the same branch.
+- **UI / platform scope:** preserve the current deployed catalog UI exactly; no redesign or replacement. Website/catalog and shared backend contracts only; Android remains deferred.
+- **Unverified:** deployed-origin browser interaction for PR #500 folder-style taxonomy navigation; physical-device/mobile/tablet and accessibility review; all broader P0 production gates.
+- **Production:** `BLOCKED / NOT CERTIFIED`. No production migration, data write, grant/Auth/RLS change, Edge Function deployment, secret change, payment, or financial operation was performed.
+- **Next:** reconcile `docs/TODO_MASTER_DEVELOPMENT.md` acceptance criteria against the two canonical registers using the crosswalk; then add/run taxonomy folder-flow browser coverage without changing the UI. Continue only with evidence-backed, additive fixes.

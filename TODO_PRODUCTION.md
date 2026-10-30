@@ -834,3 +834,17 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] This is test coverage only. RC440 has not been applied to Production; read-only inventory still shows 30 authenticated-executable SECURITY DEFINER functions with exact search_path=public. Keep RC440 inside the approved chronological migration plan.
 - No production SQL, migration, grant, RLS/Auth setting, Edge Function deployment, provider call, payment or financial mutation occurred.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Owner specification cross-reference completed (SPEC-00–SPEC-19)
+
+- [x] Created [docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md](docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md), mapping all 20 persisted owner specifications to the existing global, website/catalog, and module-acceptance TODO registers.
+- [x] Assigned stable cross-reference keys `SPEC-00`–`SPEC-19`; these are mapping keys only and do not replace existing TODOs or mark implementation complete.
+- [x] Preserved the current TODO entries and their existing checkboxes/statuses. No historical tasks were bulk-closed or deleted.
+- [ ] Continue reconciling `docs/TODO_MASTER_DEVELOPMENT.md` acceptance criteria against the global and website/catalog registers; add links rather than duplicate tasks.
+- [ ] Verify the already-merged PR #500 taxonomy folder navigation against the deployed public catalog with browser coverage; real-device/accessibility review remains separate.
+- UI guard remains active: no redesign, no replacement of existing screens, and no removal of current homepage, cards, covers, verified-first ordering, geographic search, or storefront behavior.
+- No application source, UI, database, migrations, production data, Auth/RLS, Edge Functions, secrets, or deployment targets were changed. No browser/runtime test is claimed by this documentation update.
+- Production remains **BLOCKED / NOT CERTIFIED**.
