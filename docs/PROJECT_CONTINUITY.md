@@ -891,3 +891,22 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Exact text parity absent for six critical deployed Edge Functions: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. No function was deployed.
 - Next: policy-by-policy anonymous JWT tests; SECURITY DEFINER ACL/search-path/caller review; semantic diff + isolated tests for six functions; live ledger/object-contract reconciliation; authorized leaked-password protection setting; verify post-merge Pages deployment for PR #525.
 - No production mutation. Production remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-30 — Latest continuation checkpoint: Pages E2E passed; deployed Edge drift confirmed
+
+- Latest deployed commit: `fe01dce043c8c8b5821ad679b561963a23a5357a`; Pages deployment workflow [41005969738](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005969738) completed successfully.
+- Deployed-origin Playwright passed with `PRIMARY_CATALOG_BROWSER_E2E=PASS`, covering dashboard route guards/scopes, mobile/desktop layout, QR/permanent URLs, GPS fallback, taxonomy folder flow, and axe critical/serious checks.
+- New read-only semantic diff: [`docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md`](audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md).
+- Confirmed source drift requiring isolated verification: payment-intent v8 lacks current amount/correlation checks; digital-page-payment-intent v5 lacks current amount/correlation and fail-closed claim reconciliation; subscription-payment-intent v4 lacks current claimable/concurrency and checkout-secret encryption/recovery controls; financial-journal v3 uses older actor-unbound RPC contract and wildcard CORS.
+- Webhook v10 and order-create v8 remain open for complete semantic/RPC trace. Do not deploy current source blindly.
+- **Next:** verify live RPC signatures/definitions, grants, owners, SECURITY DEFINER and search_path against the current migration manifest; build a restorable isolated database; run payment/webhook/finance adversarial tests; prepare a per-function reviewed rollout and rollback plan.
+- No production Supabase mutation or financial operation was performed. Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Confirmed live schema/Edge mismatch — 2026-10-30
+- Production ledger lacks RC435 20261009210000, RC436 20261009220000, and RC439 20261010010000.
+- Subscription claimable RPCs and provider-creation/encrypted-checkout columns required by current main are absent in production.
+- Live journal RPCs lack service-role EXECUTE. RC436 introduces post_financial_journal_atomic_backend with service-role grant, but current main Edge code still calls the older post_financial_journal_backend; do not deploy before aligning and testing this contract.
+- See docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
+- Next: isolated restorable DB rehearsal for RC435/436/439, integration and rollback tests, then correct Edge source. No production mutation performed; release remains BLOCKED.
