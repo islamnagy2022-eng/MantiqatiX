@@ -873,3 +873,10 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - RC436 migration 20261009220000 is also absent. Both existing live journal RPCs (post_financial_journal, post_financial_journal_backend) have no service-role EXECUTE grant. RC436 defines a different atomic RPC with a service-role grant, but current main Edge source still calls the non-granted post_financial_journal_backend function.
 - Evidence and exact contracts are appended to docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
 - No production DDL, grant, migration, RPC mutation, Edge deployment, payment, or journal posting was performed. Next: isolated restore + RC435/436/439 rehearsal, tests, source correction and rollback plan.
+
+
+### Financial journal audit correction
+- Corrected the initial PR #526 interpretation after reviewing RC449A, RC450, its rollout runbook and integration suite. RC449A → RC450 is the canonical path; RC436 is an earlier alternative and is not the production substitute.
+- Current main financial-journal Edge source calls the same post_financial_journal_backend(uuid,jsonb,jsonb) RPC defined by RC450. This source name is correct.
+- Live ledger lacks both RC449A and RC450. The old live RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted service-role Edge flow and lacks RC450 business/branch/organization scope.
+- The earlier recommendation to switch current Edge source to post_financial_journal_atomic_backend is withdrawn. No production change was made.
