@@ -187,7 +187,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const result = await fetchPlatformSubscribers();
       if (sequence !== authLoadSequence.current || authUserIdRef.current !== userId) return;
-      setSubscribers(result.subscribers);
+      if (!result.error) setSubscribers(result.subscribers);
       setAuthSession((previous) => previous.userId === userId && previous.role === 'admin'
         ? {
             ...previous,
@@ -233,7 +233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (boot.authSession.role === 'admin') {
       void fetchPlatformSubscribers().then((result) => {
         if (!isCurrent()) return;
-        setSubscribers(result.subscribers);
+        if (!result.error) setSubscribers(result.subscribers);
         setAuthSession((previous) => previous.userId === boot.authSession.userId
           ? {
               ...previous,
