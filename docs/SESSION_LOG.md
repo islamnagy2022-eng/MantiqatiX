@@ -719,5 +719,5 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Fresh read-only Production check: migration ledger 308 rows through `20261029083845`; 0/41 exact required migration identifiers; current 60-object probe reports 30 missing contracts. Do not infer missing physical effects from ledger alone; map each migration to current live objects and behavior.
 - Live schema still lacks RC435 claim RPCs and RC439 encrypted checkout columns; RC426 five-argument function and RC427 index are absent; RC428–RC430 RPCs are absent. RC431 requires definition/ACL/search_path parity verification.
 - No Production DDL/DML, migration, grant/Auth/RLS change, Edge Function deployment, payment, subscription, wallet operation, or financial posting was performed.
-- Next: complete RC435/RC439 exact-head CI checks and merge, then continue RC431 live contract review, remaining payment dependencies, and production migration-effect reconciliation. Backup/restore + rollback rehearsal remains a hard release blocker.
+- Next: verify post-merge main deployment/health for the latest test-only commits, continue RC431 live contract review and remaining payment dependencies, and complete production migration-effect reconciliation. Backup/restore + rollback rehearsal remains a hard release blocker.
 - Production remains **BLOCKED / NOT CERTIFIED**.
