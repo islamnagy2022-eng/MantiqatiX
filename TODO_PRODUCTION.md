@@ -848,3 +848,18 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - UI guard remains active: no redesign, no replacement of existing screens, and no removal of current homepage, cards, covers, verified-first ordering, geographic search, or storefront behavior.
 - No application source, UI, database, migrations, production data, Auth/RLS, Edge Functions, secrets, or deployment targets were changed. No browser/runtime test is claimed by this documentation update.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — PR #524 merged; taxonomy browser regression verified in CI
+
+- [x] PR [#524](https://github.com/islamnagy2022-eng/MantiqatiX/pull/524) merged to `main` as `51fad575eb740d61b3de5ea3a856dbf7cc68bbfd`.
+- [x] Owner specifications 00–19 cross-reference is now on `main`: `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md`, with updates to the three TODO registers, session log and continuity handoff.
+- [x] Exact-PR Primary Catalog Frontend Validation [run 41005124723](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124723) passed all three jobs: TypeScript/taxonomy/geographic/auth/catalog contracts and production build; isolated PostgreSQL employee RBAC; Playwright browser E2E.
+- [x] The new Playwright cases passed for group → category → specialty navigation, breadcrumb/back navigation, return to catalog, and 390/768/1440 px overflow checks. Existing dashboard browser cases passed in the same suite.
+- [x] Other exact-commit workflows passed: Backend-only Module Boundary [41005124684](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124684), Module Professionalization [41005124752](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124752), SMM deferred contract [41005124687](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124687), MantiGO privacy [41005124756](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124756), RC425 Paymob atomicity [41005124735](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124735), flexible commission drafts [41005124782](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124782).
+- [x] Pages workflow on the PR event passed its validation job in [run 41005124658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124658); `validate_public_only` and `deploy` were skipped as expected for a pull-request event. This is not a production deployment claim.
+- [ ] Confirm the post-merge `main` Pages deployment and its deployed-origin Playwright run. `.github/workflows/pages.yml` already runs this same browser suite against the deployed origin after a successful main deployment; the merged taxonomy tests will therefore be exercised against the deployed catalog when that workflow completes.
+- No application UI, styling, layout, routes, production schema/data, migrations, Auth/RLS/grants, Edge Functions, secrets, payment records or financial data were changed. Test changes only.
+- Current UI no-regression guard remains active. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
