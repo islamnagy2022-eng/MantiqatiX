@@ -769,3 +769,28 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - RC426–RC431, RC435–RC439, RC450 and RC440 isolated PostgreSQL CI evidence is distinguished from production application and provider E2E.
 - Main web deploy after PR #521 passed [41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838). Production Health Monitor after PR #522 passed [41003213146](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003213146). Main commit 1d80c771e89a7b2693be7c62d0c8bba9d815f678 web deploy was still in progress at this checkpoint.
 - No production writes or deployments were performed by this documentation refresh. Overall release remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-10-30 — Owner specification 00–19 crosswalk implemented
+
+### Verified baseline
+- Read the current `main` commit `16b168b40eac01b37a94eed34b757f68a00dd6a5` and re-read the persisted owner specifications 00–19, root TODO, global TODO, module acceptance blueprint, and continuity file.
+- Confirmed the TODO hierarchy: `docs/MASTER_PRODUCTION_TODO.md` is the global platform/release register; `TODO_PRODUCTION.md` is the detailed website/catalog register; `docs/TODO_MASTER_DEVELOPMENT.md` is the module acceptance blueprint.
+
+### Changes performed
+- Created `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md` with stable `SPEC-00`–`SPEC-19` cross-reference keys and mapped each owner specification to existing TODO sections and acceptance criteria.
+- Appended governance updates to `TODO_PRODUCTION.md`, `docs/MASTER_PRODUCTION_TODO.md`, and `docs/TODO_MASTER_DEVELOPMENT.md`; updated this log and the continuity handoff.
+- Preserved all existing task checkboxes and module statuses. The crosswalk does not mark any feature or release gate complete.
+
+### Not performed / limits
+- No application source or UI was changed. No database, migration, production data, Auth/RLS, Edge Function, secret, payment, or deployment operation was performed.
+- No build, browser E2E, real-device, accessibility, or production test is claimed by this documentation-only batch.
+- Current taxonomy folder navigation is present in source through merged PR #500, but deployed-origin browser/device verification remains open.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+### Next action
+1. Reconcile module acceptance criteria against the two canonical TODO registers using the new crosswalk, without duplicating or deleting historical work.
+2. Add/execute deployed-origin browser coverage for the merged taxonomy folder flow if the existing harness supports it; keep physical-device/accessibility review separate.
+3. Continue with the highest executable P0 blocker only after reading its source, live schema/ACL contract, dependencies, and existing tests.
