@@ -250,8 +250,31 @@ async function waitForDeniedDashboard(page) {
 }
 
 async function assertNoHorizontalOverflow(page, label) {
-  const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-  assert.equal(hasOverflow, false, label + ' must not have horizontal overflow');
+  const measurement = await page.evaluate(() => {
+    const offenders = [...document.querySelectorAll('body *')]
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          tag: element.tagName.toLowerCase(),
+          classes: typeof element.className === 'string' ? element.className : '',
+          text: (element.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 90),
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width),
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+        };
+      })
+      .filter((item) => item.width > 0 && (item.left < -1 || item.right > window.innerWidth + 1))
+      .slice(0, 12);
+    return {
+      hasOverflow: document.documentElement.scrollWidth > window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      offenders,
+    };
+  });
+  assert.equal(measurement.hasOverflow, false, label + ' must not have horizontal overflow: ' + JSON.stringify(measurement));
 }
 
 const browser = await chromium.launch({ headless: true });
