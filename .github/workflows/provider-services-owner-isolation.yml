@@ -1,9 +1,11 @@
 name: Provider Services Owner Isolation
 on:
+  workflow_dispatch:
   push:
     branches:
       - "**"
     paths:
+      - "docs/release/production-migration-reconciliation.json"
       - "supabase/migrations/20260928010000_rc99_g5_provider_services_rls_hardening.sql"
       - "supabase/migrations/20261023020000_rc102_provider_services_owner_write_grants.sql"
       - "supabase/tests/rc102_provider_services_*.sql"
