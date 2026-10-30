@@ -991,7 +991,9 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Confirmed the existing caller contract: claim/release bind the supplied user to `auth.uid()`; publication binds actor to `auth.uid()` and checks platform-admin authority. Preserve these checks and the authenticated grants.
 - [x] Prepared forward-only RC458 migration `20261030120000_rc458_digital_page_payment_rpc_empty_search_path.sql`, changing only the function search_path to empty for the three RPCs. No function body, ACL, or production state is changed by the migration source itself.
 - [x] Added disposable PostgreSQL fixture, cross-user / unauthorized-publication / temporary-table-shadow / ACL regression suite, and CI workflow. See `docs/audits/DIGITAL_PAGE_PAYMENT_RPC_SEARCH_PATH_20261030.md`.
-- [ ] Exact-head RC458 CI must pass before merge.
+- [x] First RC458 CI run exposed an ambiguous `id` reference in the claim RPC (output parameter vs table column). Forward migration now aliases `digital_page_orders` in both SELECT and UPDATE; the regression suite asserts the qualified reference.
+- [x] Pinned the forward-replay workflow to Supabase CLI v2.122.0 after its latest-release lookup hit GitHub API throttling; public ECR image pulls were also rate-limited in that first attempt.
+- [ ] Exact-head RC458 CI and full forward-chain replay must pass before merge.
 - [ ] Rehearse RC458 against a restorable isolated Supabase branch/current schema; verify final body, owner, proconfig, ACL and caller behavior. Obtain organization ID and review any branch cost before creating a paid Supabase branch.
 - [ ] Only after isolated replay and approval, prepare a production rollout/rollback plan. Do not apply RC458 directly to Production.
 - Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) remains open until isolated Supabase evidence is attached. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
