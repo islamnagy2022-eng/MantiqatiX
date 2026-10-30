@@ -538,7 +538,7 @@ try {
       await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
       await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).click();
-      const taxonomyBreadcrumb = taxonomyMain.getByRole('navigation', { name: 'مسار المجال والنشاط' });
+      const taxonomyBreadcrumb = page.getByRole('navigation', { name: 'مسار المجال والنشاط' });
       await taxonomyBreadcrumb.getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
       await taxonomyBreadcrumb.getByText('عيادات عامة', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
