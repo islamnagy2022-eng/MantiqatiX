@@ -64,6 +64,25 @@ begin
     raise exception 'RC460_UNAUTHORIZED_SETTINGS_ROW_PERSISTED';
   end if;
 
+  -- A taxonomy write without an attributable actor must fail closed.
+  rejected := false;
+  begin
+    insert into public.bizcatalog_platform_settings(settings_key,settings,updated_by)
+    values (
+      'bizcatalog',
+      '{"categories":[{"id":"cat_food_grocery_unattributed","name":"Unattributed"}]}'::jsonb,
+      null
+    );
+    raise exception 'RC460_UNATTRIBUTED_SETTINGS_WRITE_SUCCEEDED';
+  exception when others then
+    if sqlerrm <> 'TAXONOMY_AUDIT_ACTOR_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC460_MISSING_ACTOR_NOT_REJECTED'; end if;
+  if exists(select 1 from public.bizcatalog_platform_settings where settings_key='bizcatalog') then
+    raise exception 'RC460_UNATTRIBUTED_SETTINGS_ROW_PERSISTED';
+  end if;
+
   insert into public.bizcatalog_platform_settings(settings_key,settings,updated_by)
   values (
     'bizcatalog',
@@ -87,6 +106,7 @@ begin
   -- Non-taxonomy setting changes must not create taxonomy audit noise.
   update public.bizcatalog_platform_settings
   set settings = settings || '{"adminWhatsApp":"+201000000000"}'::jsonb,
+      updated_by = null,
       updated_at = now() + interval '1 second'
   where settings_key = 'bizcatalog';
   if (select count(*) from public.catalog_taxonomy_definition_audit) <> before_count then
