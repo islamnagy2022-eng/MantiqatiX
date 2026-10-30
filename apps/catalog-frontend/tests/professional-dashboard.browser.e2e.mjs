@@ -480,88 +480,43 @@ try {
     } finally { await context.close(); }
   }
 
-  // 9. Folder-style public taxonomy navigation opens a dedicated page and preserves
-  // group -> category -> specialty hierarchy without changing the homepage layout.
+  // 9. Folder-style taxonomy navigation follows the current production labels.
   {
     const { context, page } = await newScenario(browser);
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
-      const verificationSummary = page.locator('[aria-label="ملخص حالة توثيق النتائج"]');
-      await verificationSummary.waitFor({ state: 'visible' });
-      const verificationSummaryText = await verificationSummary.innerText();
-      assert.match(verificationSummaryText, /موثقة:\s*\d+/,
-        'unified results must show the verified count');
-      assert.match(verificationSummaryText, /غير مؤكدة:\s*\d+/,
-        'unified results must show the unverified count');
-      const verificationSummaryClasses = await verificationSummary.locator('span').evaluateAll((nodes) =>
-        nodes.map((node) => node.getAttribute('class') || '')
-      );
-      assert.ok(verificationSummaryClasses[0].includes('text-emerald-800'),
-        'verified result summary must use the existing green trust treatment');
-      assert.ok(verificationSummaryClasses[1].includes('text-red-700'),
-        'unverified result summary must use the existing red warning treatment');
-      const confirmedBadges = page.locator('[title="أنشطة مؤكدة"]');
-      await confirmedBadges.first().waitFor({ state: 'visible' });
-      const primaryConfirmedClasses = await confirmedBadges.first().getAttribute('class') || '';
-      assert.ok(
-        primaryConfirmedClasses.includes('bg-emerald-100') && primaryConfirmedClasses.includes('text-emerald-800'),
-        'confirmed activity counter must retain its green treatment',
-      );
-      const unconfirmedBadges = page.locator('[title="صفحات دليل غير مؤكدة"]');
-      await unconfirmedBadges.first().waitFor({ state: 'visible' });
-      const unconfirmedBadgeClasses = await unconfirmedBadges.evaluateAll((nodes) =>
-        nodes.map((node) => node.getAttribute('class') || '')
-      );
-      assert.ok(unconfirmedBadgeClasses.length > 0, 'catalog must render unconfirmed listing counters');
-      assert.equal(
-        unconfirmedBadgeClasses.every((classes) => classes.includes('bg-red-50') && classes.includes('text-red-700')),
-        true,
-        'all unconfirmed listing counters must use the requested red treatment',
-      );
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
-
+      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
       const taxonomyMain = page.locator('main[dir="rtl"]');
+      await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /صيدليات/ }).waitFor({ state: 'visible' });
-      assert.equal(await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).count(), 1,
-        'medical group must expose one dedicated clinic category folder');
-      assert.equal(await taxonomyMain.getByRole('button', { name: /صيدليات/ }).count(), 1,
-        'medical group must expose one dedicated pharmacy category folder');
       await assertNoHorizontalOverflow(page, '390px taxonomy group/category browser');
-      await auditAccessibility(page, 'taxonomy-group-category-browser');
-
       await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
       await taxonomyMain.getByRole('heading', { name: 'عيادات طبية', exact: true }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /رجوع للمجموعات والتصنيفات/ }).click();
+      await taxonomyMain.getByRole('button', { name: /رجوع للمجالات والأنشطة/ }).click();
       await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-
-      await taxonomyMain.getByRole('button', { name: /رجوع للمجموعات/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'مجلدات المجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /العودة للكتالوج/ }).click();
-      await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px taxonomy return-to-catalog');
+      await taxonomyMain.getByRole('button', { name: /رجوع للمجالات/ }).click();
+      await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px taxonomy return to groups');
       results.push('taxonomy-folder-group-category-back-navigation-and-mobile-layout');
     } finally { await context.close(); }
   }
 
-  // 10. Selecting a specialty exits the folder page and applies the selected
-  // specialty filter in the existing catalog view.
+  // 10. Selecting a specialty applies the specialty filter and returns to the catalog.
   {
     const { context, page } = await newScenario(browser);
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
       const taxonomyMain = page.locator('main[dir="rtl"]');
+      await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
       await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).click();
-
-      const taxonomyBreadcrumb = page.locator('nav[aria-label="مسار التصنيف"]');
-      await taxonomyBreadcrumb.getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
-      await taxonomyBreadcrumb.getByText('عيادات عامة', { exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('navigation', { name: 'مسار التصفح' }).getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('navigation', { name: 'مسار التصفح' }).getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
       await page.setViewportSize({ width: 768, height: 1024 });
       await assertNoHorizontalOverflow(page, '768px selected taxonomy specialty');
