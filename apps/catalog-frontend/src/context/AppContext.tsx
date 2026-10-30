@@ -62,6 +62,7 @@ interface AppContextType {
   products: Product[];
   subscribers: Subscriber[];
   subscribersLoading: boolean;
+  refreshPlatformSubscribers: () => Promise<void>;
   adminSettings: AdminSettings;
   updateBusiness: (business: Business) => Promise<void>;
   addBusiness: (business: Omit<Business, 'id' | 'createdAt'>) => Promise<string>;
@@ -169,6 +170,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const authLoadSequence = useRef(0);
   const authUserIdRef = useRef<string | null | undefined>(undefined);
   const lastAuthLoadKeyRef = useRef<string | null>(null);
+
+  // Manual retry is admin-only and bound to the exact authenticated identity and
+  // auth-load sequence. A late response must never repopulate a newer session.
+  const refreshPlatformSubscribers = async (): Promise<void> => {
+    const userId = authSession.userId;
+    if (
+      authSession.role !== 'admin' ||
+      !userId ||
+      authUserIdRef.current !== userId ||
+      subscribersLoading
+    ) return;
+
+    const sequence = authLoadSequence.current;
+    setSubscribersLoading(true);
+    try {
+      const result = await fetchPlatformSubscribers();
+      if (sequence !== authLoadSequence.current || authUserIdRef.current !== userId) return;
+      setSubscribers(result.subscribers);
+      setAuthSession((previous) => previous.userId === userId && previous.role === 'admin'
+        ? {
+            ...previous,
+            subscriberDirectoryError: result.error,
+            ignoredOrphanMemberships: result.ignoredOrphanMemberships,
+          }
+        : previous);
+    } finally {
+      if (sequence === authLoadSequence.current && authUserIdRef.current === userId) {
+        setSubscribersLoading(false);
+      }
+    }
+  };
+
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
@@ -488,6 +521,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loginAsAdmin = async (_password?: string) => loginWithGoogle();
   const logout = () => {
+    // Invalidate in-flight bootstrap and subscriber-directory requests immediately;
+    // do not wait for the asynchronous SIGNED_OUT event to protect local state.
+    authLoadSequence.current += 1;
+    lastAuthLoadKeyRef.current = null;
+    authUserIdRef.current = null;
+    setSubscribersLoading(false);
     void supabase.auth.signOut();
     setAuthSession({ role: 'guest', isAuthenticated: false }); setBusinesses([]); setProducts([]); setSubscribers([]);
     setSelectedBusinessIdState(''); setCurrentView('directory'); setCartItems([]);
@@ -973,7 +1012,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
