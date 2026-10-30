@@ -863,3 +863,17 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Confirm the post-merge `main` Pages deployment and its deployed-origin Playwright run. `.github/workflows/pages.yml` already runs this same browser suite against the deployed origin after a successful main deployment; the merged taxonomy tests will therefore be exercised against the deployed catalog when that workflow completes.
 - No application UI, styling, layout, routes, production schema/data, migrations, Auth/RLS/grants, Edge Functions, secrets, payment records or financial data were changed. Test changes only.
 - Current UI no-regression guard remains active. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — PR #525 merged: confirmed green / unconfirmed red counters
+
+- [x] PR [#525](https://github.com/islamnagy2022-eng/MantiqatiX/pull/525) merged to `main` as `3bf212793e61ad6ae47f46e6fa73b0d8b988be4c`.
+- [x] Corrected the four titled unconfirmed-directory count markers in `DirectoryView.tsx` to use the red treatment `bg-red-50 text-red-700`.
+- [x] Preserved confirmed activity count styling in green; no layout, typography, spacing, group order, verified-first ranking, filter, or business logic was changed.
+- [x] Exact-PR Primary Catalog Frontend Validation [41005476492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476492) passed all jobs: build/typecheck/contracts, isolated PostgreSQL employee RBAC, and Playwright browser E2E. The new assertions verify all unconfirmed counters are red and the confirmed counter remains green.
+- [x] Supporting exact-commit workflows passed: Backend-only Module Boundary [41005476414](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476414), Module Professionalization [41005476508](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476508), MantiGO privacy [41005476429](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476429), RC425 Paymob atomicity [41005476528](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476528), and Flexible Commission Drafts [41005476427](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476427).
+- [x] Pages PR validation [41005476412](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476412) passed its validation job; public-only validation and deploy were skipped as expected for the pull-request event.
+- [ ] Verify the post-merge main Pages deployment and deployed-origin Playwright outcome. Do not treat PR merge/CI as proof that the live catalog is updated.
+- The change is a minimal, explicitly requested color correction. No database, migration, production data, Auth/RLS/grant, Edge Function, secret, payment, or financial data was changed. Full Production Gate remains **BLOCKED / NOT CERTIFIED**.
