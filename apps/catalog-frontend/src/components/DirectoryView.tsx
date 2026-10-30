@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
   Store,
+  ExternalLink,
   Wrench,
   Search,
   MapPin,
@@ -866,7 +867,7 @@ export const DirectoryView: React.FC = () => {
                 موثقة: {filteredBusinesses.filter((business) => business.isVerified).length}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-red-700">
-                غير مؤكدة: {filteredBusinesses.filter((business) => !business.isVerified).length + filteredUnconfirmedListings.length}
+                غير موثقة: {filteredBusinesses.filter((business) => !business.isVerified).length + filteredUnconfirmedListings.length}
               </span>
             </div>
           </div>
@@ -933,20 +934,20 @@ export const DirectoryView: React.FC = () => {
                                 <span>موثّق</span>
                               </span>
                               {biz.externalLogoUrl && (
-                                <a href={biz.externalLogoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
-                                  اللوجو
+                                <a href={biz.externalLogoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح الرابط الخارجي للصورة التعريفية" aria-label="فتح الرابط الخارجي للصورة التعريفية" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-xs hover:bg-white">
+                                  <ExternalLink className="h-3 w-3" />
                                 </a>
                               )}
                               {biz.externalCoverUrl && (
-                                <a href={biz.externalCoverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
-                                  الغلاف
+                                <a href={biz.externalCoverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح الرابط الخارجي لصورة الغلاف" aria-label="فتح الرابط الخارجي لصورة الغلاف" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-xs hover:bg-white">
+                                  <ExternalLink className="h-3 w-3" />
                                 </a>
                               )}
                             </>
                           )}
                           {!biz.isVerified && (
                             <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-                              <span>غير مؤكد</span>
+                              <span>غير موثق</span>
                             </span>
                           )}
                           {group && (
@@ -1043,11 +1044,11 @@ export const DirectoryView: React.FC = () => {
                   type="button"
                   onClick={() => openDirectoryListing(listing.slug)}
                   className="order-2 min-w-0 overflow-hidden rounded-xl sm:rounded-3xl border border-amber-200 bg-white text-right shadow-xs transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  aria-label={`فتح صفحة ${listing.display_name} — بيانات تحتاج إلى تأكيد`}
+                  aria-label={`فتح صفحة ${listing.display_name} — نشاط غير موثق`}
                 >
                   <div className="relative flex h-20 sm:h-36 items-center justify-center bg-gradient-to-br from-amber-50 via-white to-slate-100">
                     <Store className="h-8 w-8 text-amber-700 sm:h-12 sm:w-12" />
-                    <span className="absolute right-1 top-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-900 sm:right-3 sm:top-3 sm:text-[11px]">بيانات غير مؤكدة</span>
+                    <span className="absolute right-1 top-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[9px] font-black text-amber-900 sm:right-3 sm:top-3 sm:text-[11px]">غير موثق</span>
                   </div>
                   <div className="p-2 sm:p-5">
                     <h3 className="line-clamp-2 break-words text-xs font-black text-slate-900 sm:text-base">{listing.display_name}</h3>
