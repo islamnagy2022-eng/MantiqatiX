@@ -829,3 +829,23 @@ The complete mapping is maintained in [`docs/specifications/SPECIFICATION_TODO_T
 - [x] PR #525 merged; exact-head Primary Catalog Frontend Validation [41005476492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476492) passed build/typecheck, contract checks, isolated PostgreSQL RBAC, and Playwright assertions for red unconfirmed / green confirmed indicators.
 - [ ] Verify the main-branch Pages deployment and deployed-origin browser result after merge.
 - Preserve all existing group ordering, confirmed-first ranking, filter behavior, RTL, card sizing, and page layout. No redesign is included.
+
+
+---
+
+# 36) FRESH SECURITY ADVISOR AND EDGE FUNCTION PARITY CHECKPOINT
+
+### Status: READ-ONLY AUDIT COMPLETE / SECURITY RUNTIME AND DEPLOYMENT GATES OPEN
+
+- [x] Latest read-only evidence is documented in [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md`](audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md).
+- [x] Project ACTIVE_HEALTHY; PostgreSQL 17.6.1.155; 308 migration ledger records through 20261029083845.
+- [x] Advisor reports 8 RLS-enabled/no-policy tables, 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions, 90 anonymous-access table findings, and Leaked Password Protection disabled.
+- [x] Policy inventory identifies 19 explicit anon/public policies and 483 authenticated policies (283 textually reference `is_anonymous`, 200 do not). This does not itself prove 200 vulnerabilities; ownership/membership predicates and runtime anonymous JWT behavior must be tested.
+- [x] Exact text parity is absent for six deployed critical Edge Functions (order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3).
+- [ ] Add isolated anonymous-vs-permanent-user RLS tests for the 90 advisor findings, especially finance, tenant, order, support, marketing, and digital-page records.
+- [ ] Review SECURITY DEFINER ACL/search_path/callers and public/trigger contracts; do not mass-revoke EXECUTE.
+- [ ] Produce semantic diffs and integration tests for six deployed functions before any proposed deployment.
+- [ ] Reconcile live migration ledger and object effects; no production migration is authorized by this audit.
+- [ ] Verify post-merge deployed-origin browser tests; PR CI is not deployment proof.
+- [ ] Obtain authorized Auth dashboard action for Leaked Password Protection and re-run Advisor.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
