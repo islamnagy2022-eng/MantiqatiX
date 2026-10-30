@@ -435,12 +435,14 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   let subscribers: Subscriber[] = [];
   let subscriberDirectoryError = '';
   let ignoredOrphanMemberships = 0;
+  let settingsResult: any = {};
   if (platform) {
     try {
-      const [list, settingsResult]: any[] = await Promise.all([
+      const [list, loadedSettings]: any[] = await Promise.all([
         callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' }),
         callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({})),
       ]);
+      settingsResult = loadedSettings;
       ignoredOrphanMemberships = Number(list?.ignoredOrphanMemberships || 0);
       subscribers = (Array.isArray(list?.subscribers) ? list.subscribers : []).map((row: any): Subscriber => {
         const rawStatus = String(row?.status || row?.membershipStatus || '').toUpperCase();
