@@ -88,7 +88,7 @@ begin
      or p_target_group_id is null or not (p_target_group_id = any(v_allowed_groups)) then
     raise exception 'TAXONOMY_INVALID_GROUP';
   end if;
-  if p_target_classification_type not in ('activity','profession') then
+  if p_target_classification_type is null or p_target_classification_type not in ('activity','profession') then
     raise exception 'TAXONOMY_INVALID_CLASSIFICATION_TYPE';
   end if;
 
