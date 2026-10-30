@@ -2537,3 +2537,17 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Two anon-executable definer warnings are trigger-only helpers; the third is the public bounded read-only targeted-ad lookup. Confirm with isolated tests.
 - Review 67 authenticated definer functions individually. Static inventory: 60 auth.uid, 27 membership, 23 explicit actor comparisons, 37 safer search_path settings, 30 search_path=public only; no unqualified public table references found in the latter static pass. Temp-shadow and caller tests still required.
 - See docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md. Production RLS/Auth/ACL remains unchanged; security gate BLOCKED.
+
+
+## 2026-10-30 — Verified activity external logo/cover links (PR #533)
+
+- [x] Confirmed the production provider profile for **متجر قدم السعد** is ACTIVE and `is_verified=true`; the previous mismatch was that business ACTIVE/subscription state did not itself set the provider profile verification flag.
+- [x] Merged PR [#533](https://github.com/islamnagy2022-eng/MantiqatiX/pull/533) to `main` as `f38b609b00fd0025793b00ebf7990073dfaff4c9`.
+- [x] Added conditional external `اللوجو` and `الغلاف` links immediately after the verification badge in directory cards and storefront headers. Links appear only for verified activities and only when the corresponding URL exists; card-link clicks do not trigger the card navigation.
+- [x] Primary Catalog Frontend Validation run [41015206306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015206306) passed its build/TypeScript, isolated PostgreSQL RBAC and browser jobs. Supporting workflows for module boundaries, professionalization, SMM privacy, Paymob atomicity and flexible commissions also completed successfully.
+- [ ] **NOT VERIFIED in production yet:** the Pages workflow associated with the PR had its deploy job skipped, as expected for a pull-request event. Verify the post-merge `main` deployment and deployed-origin browser behavior before claiming the live site shows these links.
+- [ ] Add focused browser assertions for verified activities with both URLs, logo-only, cover-only, neither URL, and unverified activities; verify keyboard/focus behavior and ensure external links never activate the parent card.
+- [ ] Audit the full verified-activity population for valid external `logo_url` / `cover_url` values; do not invent or copy assets between businesses. Missing links should remain absent, not show empty controls.
+- [ ] Continue the original catalog acceptance gates: authenticated create/publish/edit/readback, tenant isolation, duplicate prevention, permanent links/QR scans, social links and authenticated AI image generation.
+- **Request-to-TODO rule:** every new owner request must be captured in the canonical TODO register, linked to its parent goal/module, assigned a stable reference, and tracked through implementation, tests, deployment and post-deploy verification. Do not close a request at code merge alone.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for the unrelated live security, migration, Edge Function, finance/payment and recovery gates.
