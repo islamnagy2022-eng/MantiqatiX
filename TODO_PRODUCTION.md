@@ -663,3 +663,18 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] VERIFIED 2026-10-28: GitHub Pages run #8890 succeeded on commit `87d088ab01a11e3f6092012a4930d670780fb460`; the `validate` and `deploy` jobs passed, `MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS`, and the live JS/CSS assets were reachable. Primary Catalog Frontend Validation run #770 also passed. Authenticated owner/admin browser E2E, cross-tenant tests, and live transaction E2E remain NOT VERIFIED and still block full production sign-off.
 - [ ] Complete an authenticated production end-to-end run from the admin UI using an isolated test activity: create with optional fields missing, approve publication, confirm public visibility, edit profile/social links and products/services, then read back the canonical production records. No production activity was created, edited, or deleted during this pass.
 - [ ] Verify through the authenticated administration UI that approving publication does not enable product/order operations until operational status is separately set to `ACTIVE`; static assertions and deployed public reads are not a substitute for this end-to-end check.
+
+
+---
+
+## 2026-10-30 — TODO governance alignment with owner specifications 00–19
+
+- [x] The complete owner operating specification set is now persisted at [docs/specifications/OPERATING_SPECIFICATIONS_00_19.md](docs/specifications/OPERATING_SPECIFICATIONS_00_19.md).
+- [x] Root `TODO_PRODUCTION.md` remains the detailed Website/Catalog execution register. The global module and release register remains `docs/MASTER_PRODUCTION_TODO.md`; neither replaces the other.
+- [x] Read the current RC40 → Web reuse guidance at `docs/RC40_MODULE_REUSE_EXECUTION_MATRIX.md`; verified the uploaded RC40 archive SHA-256 as `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`.
+- [ ] Keep all current catalog requirements below this line intact. Reconcile shared requirements with the global TODO by linking task IDs; do not delete or silently mark old requests complete.
+- [ ] Preserve the current deployed catalog UI exactly unless the owner explicitly asks for a visual change. Backend and functional work may continue additively; UI changes require a minimal diff and no-regression review.
+- [ ] Keep the catalog as the primary website; do not republish the legacy website or demo content as the primary entry point.
+- [ ] Use current main/live contracts as truth. RC40 and dated specifications are requirements/reference sources, not proof that a feature or schema is currently deployed.
+- [ ] Continue module-by-module: map each task to existing code, data contracts, RLS/RBAC, APIs/Edge Functions, and tests before adding anything new.
+- [ ] Record exact commit, PR, CI, deployment, and runtime evidence separately. Unverified behavior remains NOT VERIFIED; overall production status remains BLOCKED / NOT CERTIFIED.
