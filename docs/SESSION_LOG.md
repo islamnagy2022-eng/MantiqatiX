@@ -1000,3 +1000,15 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Current mainline read-only Production privileges remain: anon SELECT; authenticated SELECT/INSERT/UPDATE/DELETE; service_role server privileges. Active-public SELECT policy applies to anon and authenticated, so authenticated users can also reach private profile fields. No production DDL/grants/RLS/data/Auth/Edge Function/payment/finance changes were made.
 - Exact live policy dependencies requiring preservation: digital_pages owner INSERT/SELECT/UPDATE; digital_page_sections owner ALL; marketing_provider_services owner-manage ALL; marketing_project_participants assigned-project SELECT; marketing_provider_subscriptions owner SELECT; storage.objects provider-media owner INSERT/UPDATE/DELETE.
 - Production remains BLOCKED / NOT CERTIFIED. A current main-push Pages deployment and live redirect check are not established by the PR validation run.
+
+
+### RC520 — live function definitions and ACLs
+- Read-only `pg_proc` inventory returned all current public/private function bodies containing `marketing_provider_profiles`, including function configuration and ACL.
+- `private.review_provider_onboarding_atomic`: SECURITY DEFINER, empty search_path, postgres/service_role only.
+- `public.create_medical_appointment_backend`: SECURITY DEFINER, search_path `public, pg_temp`, authenticated only; body checks `p_user_id=auth.uid()`, active provider/business, active tenant membership, duplicate appointment ID and slot conflict.
+- `public.create_order_backend`: SECURITY DEFINER, search_path `public`, postgres/service_role only; verifies active provider for business and performs server-side order calculation.
+- `public.upsert_catalog_business_profile_backend`: SECURITY DEFINER, search_path `public`, postgres/authenticated; rejects anonymous JWT, binds identity and validates active tenant/business membership before updating provider data.
+- Both nearest-provider discovery RPCs are SECURITY DEFINER with `search_path=public`, but live EXECUTE is postgres-only. Do not restore historical client grants.
+- `mnty_platform_admin_delete_business` is invoker (not SECURITY DEFINER), empty search_path, postgres/service_role only.
+- These backend functions can retain their service/authorized execution paths without exposing table-wide SELECT to client roles. The medical appointment function's search_path hardening is a separate forward-only task.
+- No production database writes or changes to schema, grants, RLS, data, Auth, Edge Functions, payments, or finance were made.
