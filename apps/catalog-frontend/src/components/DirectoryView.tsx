@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
   Store,
+  ExternalLink,
   Wrench,
   Search,
   MapPin,
@@ -934,13 +935,13 @@ export const DirectoryView: React.FC = () => {
                                 <span>موثّق</span>
                               </span>
                               {biz.externalLogoUrl && (
-                                <a href={biz.externalLogoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
-                                  اللوجو
+                                <a href={biz.externalLogoUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح الرابط الخارجي للصورة التعريفية" aria-label="فتح الرابط الخارجي للصورة التعريفية" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-xs hover:bg-white">
+                                  <ExternalLink className="h-3 w-3" />
                                 </a>
                               )}
                               {biz.externalCoverUrl && (
-                                <a href={biz.externalCoverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs hover:bg-white">
-                                  الغلاف
+                                <a href={biz.externalCoverUrl} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} title="فتح الرابط الخارجي لصورة الغلاف" aria-label="فتح الرابط الخارجي لصورة الغلاف" className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-xs hover:bg-white">
+                                  <ExternalLink className="h-3 w-3" />
                                 </a>
                               )}
                             </>
