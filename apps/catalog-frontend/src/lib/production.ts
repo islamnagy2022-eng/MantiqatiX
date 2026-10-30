@@ -414,7 +414,7 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       return { business, products: mappedProducts };
     } catch (e) {
       // A membership may only cover a different branch or a legacy inactive business.
-      console.warn('[MantiqaX] skipped out-of-scope catalog row', businessId, e instanceof Error ? e.message : 'unavailable');
+      console.warn('[MantiqatiX] skipped out-of-scope catalog row', businessId, e instanceof Error ? e.message : 'unavailable');
       return null;
     }
   });
