@@ -142,6 +142,8 @@ export function mapBusiness(raw: any, provider: any): Business {
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
   const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
+  const externalLogoUrl = String(profile.externalLogoUrl ?? profile.external_logo_url ?? profile.logo_url ?? raw.externalLogoUrl ?? '');
+  const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
@@ -150,6 +152,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
+    externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
+    externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
     ownerWhatsApp: String(branch.phone || profile.phone || raw.ownerWhatsApp || ''),
     additionalContactPhones: Array.isArray(profile.additionalContactPhones || profile.additional_contact_phones) ? (profile.additionalContactPhones || profile.additional_contact_phones).map((value: unknown) => String(value || '')).filter(Boolean) : [],
