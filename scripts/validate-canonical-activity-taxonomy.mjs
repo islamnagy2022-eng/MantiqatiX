@@ -63,6 +63,14 @@ assert.ok(context.includes('activitySpecialty: data.activitySpecialty'), 'The cl
 assert.ok(production.includes('raw.activityGroupCode || raw.activity_group_code'), 'Production mapping must read canonical group metadata from the public directory response.');
 assert.ok(production.includes('raw.activityClassificationType'), 'Production mapping must preserve activity/profession type from the public directory response.');
 assert.ok(production.includes('raw.activitySpecialty'), 'Production mapping must preserve specialty from the public directory response.');
+assert.ok(production.includes('raw.settings?.activity_category_code'), 'Production mapping must read the canonical activity category code.');
+assert.ok(production.includes('canonicalCategoryId'), 'Production mapping must resolve the stable canonical category ID.');
+assert.ok(directory.includes('business.categoryId === category.id'), 'Directory filtering must prefer the canonical category ID.');
+assert.ok(directory.includes('المجالات الرئيسية') && directory.includes('تصفح حسب النشاط والتخصص'), 'Public taxonomy navigation must use customer-readable domain/activity labels.');
+for (const code of ['sanitary_ware', 'medical_centers', 'animal_feed', 'government_services']) {
+  assert.ok(defaults.includes(`'${code}'`), `Canonical taxonomy must include the audited activity code ${code}.`);
+}
+
 assert.ok(publicDirectory.includes('activityGroupCode: String(business.settings?.activity_group_code'), 'Public directory must return the canonical main group code.');
 assert.ok(publicDirectory.includes('activityClassificationType: String(business.settings?.activity_classification_type'), 'Public directory must return the activity/profession type.');
 assert.ok(publicDirectory.includes('activitySpecialty: String(business.settings?.activity_specialty'), 'Public directory must return the specialty without exposing all business settings.');
