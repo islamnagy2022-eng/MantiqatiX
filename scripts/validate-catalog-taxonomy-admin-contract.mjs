@@ -72,5 +72,8 @@ assert.ok(integration.includes('RC459_FORCED_TRANSACTION_FAILURE'), 'Integration
 assert.ok(integration.includes('RC459_PARTIAL_WRITE_AFTER_FAILURE'), 'Integration must prove rollback removes partial effects.');
 assert.ok(integration.includes('RC459_UNRELATED_DATA_WAS_CHANGED'), 'Integration must protect non-taxonomy business/listing fields.');
 assert.ok(integration.includes('RC459_AUDIT_IMMUTABILITY_NOT_ENFORCED'), 'Integration must test append-only audit behavior.');
+assert.ok(integration.includes('customer_id') && integration.includes('provider_id') && integration.includes('employee_id'), 'Integration must cover customer, service provider, and employee denials.');
+assert.ok(integration.includes('tenant_admin_id') && integration.includes('inactive_admin_id') && integration.includes('scoped_admin_id'), 'Integration must cover tenant-scoped, inactive, and business/branch-scoped Super Admin denials.');
+assert.ok(integration.includes('RC459_UNAUTHORIZED_ROLE_NOT_REJECTED'), 'Integration must prove rejected roles cannot preview.');
 
 console.log('CATALOG_TAXONOMY_ADMIN_CONTRACT=PASS — server RBAC, safe preview, stale digest, atomic apply, immutable audit, and no direct audit-table access.');
