@@ -15,6 +15,8 @@ const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const production = read('apps/catalog-frontend/src/lib/production.ts');
 const publicDirectory = read('supabase/functions/public-catalog-directory/index.ts');
 const publicCatalog = read('supabase/functions/public-catalog/index.ts');
+const definitionAuditMigration = read('supabase/migrations/20261030150000_rc460_taxonomy_definition_audit.sql');
+const definitionAuditIntegration = read('supabase/tests/rc460_taxonomy_definition_audit_integration.sql');
 
 const groups = [
   'medical_health','food_grocery','fashion_beauty','home_maintenance',
@@ -91,6 +93,13 @@ assert.ok(integration.includes('RC459_FORCED_TRANSACTION_FAILURE'), 'Integration
 assert.ok(integration.includes('RC459_PARTIAL_WRITE_AFTER_FAILURE'), 'Integration must prove rollback removes partial effects.');
 assert.ok(integration.includes('RC459_UNRELATED_DATA_WAS_CHANGED'), 'Integration must protect non-taxonomy business/listing fields.');
 assert.ok(integration.includes('RC459_AUDIT_IMMUTABILITY_NOT_ENFORCED'), 'Integration must test append-only audit behavior.');
+assert.ok(definitionAuditMigration.includes('catalog_taxonomy_definition_audit'), 'Taxonomy definition changes must have a dedicated audit table.');
+assert.ok(definitionAuditMigration.includes('after insert or update of settings, updated_by'), 'Taxonomy definition audit must be atomic with settings insert/update.');
+assert.ok(definitionAuditMigration.includes('security definer\nset search_path = \'''\''), 'Taxonomy audit trigger function must use an empty search_path.');
+assert.ok(definitionAuditMigration.includes('CATALOG_TAXONOMY_DEFINITION_AUDIT_APPEND_ONLY'), 'Taxonomy definition audit must reject UPDATE/DELETE.');
+assert.ok(definitionAuditMigration.includes('revoke all on table public.catalog_taxonomy_definition_audit from public, anon, authenticated, service_role'), 'Taxonomy definition audit table must not be directly accessible via API roles.');
+assert.ok(definitionAuditIntegration.includes('RC460_NON_TAXONOMY_CHANGE_WAS_AUDITED'), 'Integration must avoid auditing unrelated settings changes.');
+assert.ok(definitionAuditIntegration.includes('RC460_SETTINGS_PARTIALLY_UPDATED'), 'Integration must prove audit failure rolls back the originating settings update.');
 assert.ok(integration.includes('customer_id') && integration.includes('provider_id') && integration.includes('employee_id'), 'Integration must cover customer, service provider, and employee denials.');
 assert.ok(integration.includes('tenant_admin_id') && integration.includes('inactive_admin_id') &&
   integration.includes('business_scoped_admin_id') && integration.includes('branch_scoped_admin_id'),
