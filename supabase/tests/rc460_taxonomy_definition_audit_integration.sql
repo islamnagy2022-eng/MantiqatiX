@@ -10,6 +10,34 @@ declare
   rejected boolean;
 begin
   insert into auth.users(id) values (admin_id),(outsider_id);
+
+  if has_table_privilege('anon','public.catalog_taxonomy_definition_audit','SELECT')
+     or has_table_privilege('authenticated','public.catalog_taxonomy_definition_audit','SELECT')
+     or has_table_privilege('service_role','public.catalog_taxonomy_definition_audit','SELECT')
+     or has_table_privilege('anon','public.catalog_taxonomy_definition_audit','INSERT')
+     or has_table_privilege('authenticated','public.catalog_taxonomy_definition_audit','INSERT')
+     or has_table_privilege('service_role','public.catalog_taxonomy_definition_audit','INSERT') then
+    raise exception 'RC460_AUDIT_TABLE_DIRECT_ACCESS_NOT_REVOKED';
+  end if;
+
+  if not exists (
+    select 1 from pg_catalog.pg_class c
+    where c.oid = 'public.catalog_taxonomy_definition_audit'::regclass
+      and c.relrowsecurity = true and c.relforcerowsecurity = true
+  ) then
+    raise exception 'RC460_AUDIT_RLS_NOT_FORCED';
+  end if;
+
+  if not exists (
+    select 1 from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public'
+      and p.proname='audit_catalog_taxonomy_definition_change'
+      and p.prosecdef=true
+      and coalesce(array_to_string(p.proconfig,','),'') like '%search_path=%'
+  ) then
+    raise exception 'RC460_AUDIT_TRIGGER_SECURITY_CONFIG_INVALID';
+  end if;
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions)
   values (
     '46000000-0000-4000-8000-000000000101',
