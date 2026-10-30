@@ -1297,3 +1297,11 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - This checkpoint used read-only `pg_proc`, `has_function_privilege`, `information_schema.columns`, Edge Function source retrieval, and migration-ledger inspection.
 - No live payment intent, Paymob request/webhook, financial journal entry, migration, DDL, grant, RLS, data, Auth setting, or Edge Function deployment was performed in this checkpoint.
 - Production remains **BLOCKED / NOT CERTIFIED**. Next safe action: prepare and run the RC435/RC439/RC449A/RC450 chain in a restorable isolated environment, not Production.
+
+
+### RC449A preflight — live journal schema/data baseline (read-only, 2026-10-31)
+- [x] Confirmed live `journal_entries`, `journal_entry_lines`, and `general_ledger` tables exist.
+- [x] Confirmed RC449A-required fields are absent from live schema: `journal_entries.entry_number`, `total_debit`, `total_credit`, `posted_at`, `updated_at`, `reversed_by_entry_id`, and `journal_entry_lines.line_number`. Existing `general_ledger.posted_at` and `running_balance` are present.
+- [x] Aggregate-only read found 0 rows in `journal_entries`, 0 in `journal_entry_lines`, and 0 in `general_ledger` at this checkpoint. Therefore RC449A's data backfill would currently affect zero existing journal/ledger rows, but its DDL, trigger interactions, lock duration, and rollback still require isolated rehearsal.
+- [ ] Since the live migration ledger already contains later versions through `20261029083845`, do not apply historical RC449A/RC450 files directly or fabricate old migration ledger entries. Build a forward-only reconciliation release with a newly generated migration version after reviewing the exact current schema and the canonical RC449A/RC450 effects; follow the Supabase CLI migration-generation process.
+- [ ] Run the generated forward repair against a disposable PostgreSQL 16 restore with the exact production schema, then run RC450 integration tests and validate zero duplicate ledger lines, balanced journals, actor/tenant/business/branch scope, and role grants before any production window.
