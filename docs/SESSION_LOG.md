@@ -794,3 +794,30 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 1. Reconcile module acceptance criteria against the two canonical TODO registers using the new crosswalk, without duplicating or deleting historical work.
 2. Add/execute deployed-origin browser coverage for the merged taxonomy folder flow if the existing harness supports it; keep physical-device/accessibility review separate.
 3. Continue with the highest executable P0 blocker only after reading its source, live schema/ACL contract, dependencies, and existing tests.
+
+
+---
+
+## 2026-10-30 — PR #524 merged and taxonomy folder browser CI passed
+
+### Changes merged
+- Merged PR [#524](https://github.com/islamnagy2022-eng/MantiqatiX/pull/524) to `main`; merge commit `51fad575eb740d61b3de5ea3a856dbf7cc68bbfd`.
+- Added `docs/specifications/SPECIFICATION_TODO_TRACEABILITY.md` to map all owner specifications 00–19 to the three active TODO registers.
+- Updated `TODO_PRODUCTION.md`, `docs/MASTER_PRODUCTION_TODO.md`, `docs/TODO_MASTER_DEVELOPMENT.md`, `docs/SESSION_LOG.md` and `docs/PROJECT_CONTINUITY.md` with cross-reference governance and the latest continuation status.
+- Extended only the Playwright test file `apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs`; no UI source or visual design was changed.
+
+### Verified evidence
+- Primary Catalog Frontend Validation [41005124723](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124723) passed all jobs: build/contracts, isolated employee RBAC PostgreSQL integration, and Playwright browser E2E.
+- New browser scenarios passed group → category → specialty navigation, back/breadcrumb paths, return to catalog, and 390/768/1440 px overflow checks.
+- Other passing exact-commit workflows: Backend-only Module Boundary 41005124684; Module Professionalization 41005124752; SMM Deferred Storefront Contract 41005124687; MantiGO Open Ride Privacy 41005124756; RC425 MantiGo Paymob Atomicity 41005124735; Flexible Commission Drafts 41005124782.
+- Pages PR workflow [41005124658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005124658) passed its validation job. Public-only validation and deploy jobs were skipped on the PR event as designed.
+
+### Not yet verified / not performed
+- Main-branch post-merge deployment and deployed-origin Playwright outcome have not yet been confirmed. The Pages workflow's deployed-origin step invokes the same browser test file after a successful main deployment.
+- No manual physical-device, keyboard/accessibility or real account role review is claimed.
+- No production database or Supabase resources, schema, migrations, policies/grants, Auth settings, Edge Functions, secrets, payments or financial records were changed.
+
+### Next action
+1. Verify the main-branch Pages deploy and post-deploy Playwright run; update the browser test only if an observed deployed-origin defect appears.
+2. Continue the cross-register reconciliation by matching module acceptance criteria against existing TODO entries without duplicate tasks or historical bulk edits.
+3. Keep full platform release BLOCKED until the existing live migration, payment/finance, Edge Function, Auth and backup/restore gates are separately evidenced.
