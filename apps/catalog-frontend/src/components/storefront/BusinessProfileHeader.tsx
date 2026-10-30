@@ -134,13 +134,13 @@ export const BusinessProfileHeader: React.FC = () => {
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>موثّق رسمياً</span>
                 </span>
-                {currentBusiness.logoUrl && (
-                  <a href={currentBusiness.logoUrl} target="_blank" rel="noopener noreferrer" title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-800 text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-md hover:bg-white">
+                {currentBusiness.externalLogoUrl && (
+                  <a href={currentBusiness.externalLogoUrl} target="_blank" rel="noopener noreferrer" title="فتح رابط اللوجو الخارجي" className="bg-white/95 text-slate-800 text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-md hover:bg-white">
                     اللوجو
                   </a>
                 )}
-                {currentBusiness.coverUrl && (
-                  <a href={currentBusiness.coverUrl} target="_blank" rel="noopener noreferrer" title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-800 text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-md hover:bg-white">
+                {currentBusiness.externalCoverUrl && (
+                  <a href={currentBusiness.externalCoverUrl} target="_blank" rel="noopener noreferrer" title="فتح رابط الغلاف الخارجي" className="bg-white/95 text-slate-800 text-[11px] font-bold px-2.5 py-1.5 rounded-full shadow-md hover:bg-white">
                     الغلاف
                   </a>
                 )}

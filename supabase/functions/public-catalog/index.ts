@@ -216,6 +216,8 @@ Deno.serve(async (req: Request) => {
         workingHours: String(profile.working_hours || ""),
         logoUrl: safeImageUrl(profile.logo_url),
         coverUrl: safeImageUrl(profile.cover_url),
+        externalLogoUrl: safeImageUrl(profile.logo_url),
+        externalCoverUrl: safeImageUrl(profile.cover_url),
         google_maps_url: String(profile.google_maps_url || ""),
         facebookUrl: String(profile.facebook_url || ""),
         instagramUrl: String(profile.instagram_url || ""),
