@@ -983,3 +983,13 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Post-merge main Pages deployment [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) passed deployment, root verification and deployed-origin browser checks.
 - [x] Read-only production audit: 2 ACTIVE verified profiles, both with HTTPS logo and cover URLs; 0 invalid configured URLs. Fallback images remain display-only.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Anonymous-session read-only authorization checkpoint
+
+- [x] Read-only ACL/RLS check: reviewed sensitive tables have RLS + FORCE RLS; no direct SELECT privilege for `anon`.
+- [x] Synthetic anonymous-claims SELECT simulation returned zero rows for orders, payment intents, finance/ledger/wallet, subscriptions, notifications, support, marketing leads and memberships.
+- [x] Public ACTIVE-showcase business SELECT returned 2 rows as intended.
+- [x] Detailed evidence: `docs/audits/ANONYMOUS_SESSION_READONLY_CHECKPOINT_20261030.md`.
+- [ ] Real Auth-issued anonymous JWT + Data API E2E, permanent-user and cross-tenant/business/branch comparisons, and adversarial write tests remain NOT VERIFIED.
+- No production mutation. Security and overall production gates remain BLOCKED / NOT CERTIFIED.
