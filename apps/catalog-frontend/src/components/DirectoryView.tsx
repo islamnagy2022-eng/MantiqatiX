@@ -852,11 +852,23 @@ export const DirectoryView: React.FC = () => {
 
         {/* Businesses Grid (verified first; distance only when trusted coordinates exist) */}
         <div className="space-y-6">
-          <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-black text-lg text-slate-900 flex items-center gap-2">
               <Store className="w-5 h-5 text-emerald-600" />
               <span>نتائج البحث الموحدة ({filteredBusinesses.length + filteredUnconfirmedListings.length})</span>
             </h2>
+            <div
+              aria-label="ملخص حالة توثيق النتائج"
+              className="flex flex-wrap items-center gap-2 text-[10px] font-bold sm:text-xs"
+            >
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-emerald-800">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                موثقة: {filteredBusinesses.filter((business) => business.isVerified).length}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-red-700">
+                غير مؤكدة: {filteredBusinesses.filter((business) => !business.isVerified).length + filteredUnconfirmedListings.length}
+              </span>
+            </div>
           </div>
 
           {filteredBusinesses.length + filteredUnconfirmedListings.length === 0 ? (

@@ -947,3 +947,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Corrected the financial-journal note: current main Edge RPC name matches RC450; production is blocked by missing RC449A/RC450 and the old live RPC ACL/body. Deployed Edge v3 remains legacy and must not be restored blindly.
 - [ ] Continue exact stored-statement-to-source reconciliation and physical schema checks for the 41 required versions; do not replay aliases or fabricate migration ledger records.
 - Overall platform gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-30 — Legacy catalog convergence and verified-first result summary
+
+- [x] Audited all supplied sources: owner operating specifications 00–19, RC40 Android/source archive, and the older `bizcatalog-manager (3).zip` React/Vite catalog snapshot. The 20 operating specifications and their SPEC-00…SPEC-19 traceability were already preserved in the repository; RC40 checksum was verified against the uploaded archive bytes.
+- [x] Recorded the old-catalog-to-current-main mapping in `docs/CATALOG_SOURCE_CONVERGENCE_AUDIT_20261030.md`; the current `apps/catalog-frontend` implementation remains canonical. The older `seedData.ts`, AI Studio temporary media, and browser-side Gemini credentials are explicitly excluded from production import.
+- [x] Preserved RC40 reuse rules: reuse domain concepts only through current shared APIs/Edge Functions/RLS/RBAC; do not copy Android Room persistence, legacy direct writes, or parallel business/financial engines.
+- [x] Existing verified-first ranking remains authoritative: verified registered activities sort before unverified registered activities; published unclaimed directory listings remain in the unified result grid after verified businesses. Geographic distance and profile completeness remain secondary sort keys and cannot outrank verification.
+- [x] Added a compact green verified / red unverified count summary above the existing result grid. Unverified count includes unverified registered businesses and published unclaimed directory listings. Existing homepage, cards, three-column mobile grid, taxonomy folders, filters, covers, routes, and storefront were preserved.
+- [ ] Exact-PR TypeScript/build/catalog-contract/RBAC/browser E2E and post-merge deployed-origin browser verification for this change. Do not infer its result from earlier successful runs `41008394292` and `41008394339`.
+- [ ] Continue the remaining catalog E2E tasks already listed above: authenticated create/publish/edit/readback, owner and tenant isolation, duplicate prevention, permanent links/QR scans, social links, and authenticated AI image generation.
+- Production migration/Auth/RLS/Edge Function/payment/finance/backup/restore gates remain governed by the P0 release section above. No production database or financial mutation was performed by this catalog convergence change.
+
