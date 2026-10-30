@@ -930,3 +930,15 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - docs/release/production-migration-reconciliation.json now records current read-only evidence: 308 live migration records; 41 exact required source-version IDs still absent; RC435/RC439 subscription contracts absent; RC449A/RC450 financial journal path absent; RLS/SECURITY DEFINER advisor counts refreshed.
 - Financial journal canonical path is RC449A→RC450; current main Edge RPC name matches RC450. Do not use RC436 as a substitute.
 - Overall release remains BLOCKED pending isolated migration rehearsal, payment/finance E2E, anonymous JWT tests and backup/restore.
+
+
+## 2026-10-30 — Latest continuation checkpoint: PR #533 merged
+
+- PR [#533](https://github.com/islamnagy2022-eng/MantiqatiX/pull/533) merged to `main` as `f38b609b00fd0025793b00ebf7990073dfaff4c9`.
+- Production provider profile for متجر قدم السعد is confirmed ACTIVE and `is_verified=true`.
+- Verified directory cards and storefront headers now show conditional external logo/cover links immediately after the verification badge when each URL exists.
+- Exact-PR Primary Catalog Frontend Validation [41015206306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015206306) passed build/TypeScript, isolated PostgreSQL RBAC and browser jobs; supporting module/backend workflows passed.
+- PR Pages validation succeeded, but the PR event's deploy job was skipped. **Do not claim the live site is updated until the post-merge main deployment and deployed-origin check are confirmed.**
+- Next: verify the main Pages deployment; add focused E2E for both/one/no URLs and unverified profiles; audit URL coverage for all verified activities; preserve the existing UI and mobile layout.
+- Every new owner request must be added to the canonical TODO register and linked to its parent goal; close only after applicable tests and deployment verification.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated security, migration, Edge Function, finance/payment and backup/restore gates.
