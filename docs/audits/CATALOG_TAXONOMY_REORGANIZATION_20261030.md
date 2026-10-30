@@ -7,6 +7,7 @@ Adopt a customer-readable hierarchy: **Main domain → Activity → Specialty/se
 - Renamed the directory folder language from administrative labels (groups/classifications) to customer language (domains/activities).
 - Added canonical activity categories `sanitary_ware` under `construction_decor`, `medical_centers` under `medical_health`, `animal_feed` under `agriculture_animals`, and `government_services` under `public_community`.
 - Production business mapping now reads `settings.activity_category_code` and resolves the canonical category ID `cat_<group>_<code>` when the name-based legacy mapping is unavailable.
+- The public directory and storefront Edge Functions return the explicit category code (and the existing group/type/specialty fields) as a narrow public contract; they do not expose the full business settings JSON.
 - Directory category matching now prefers the explicit canonical `categoryId`, with the legacy name matcher retained as fallback.
 
 ## Production data redistribution
