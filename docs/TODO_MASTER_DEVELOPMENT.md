@@ -816,3 +816,16 @@ The complete mapping is maintained in [`docs/specifications/SPECIFICATION_TODO_T
 - [ ] Confirm the main-branch Pages deployment and deployed-origin browser job after merge. The Pages workflow is configured to run the same Playwright suite against the deployed origin.
 - [ ] Keep manual physical-device, accessibility, keyboard and visual review open; CI browser coverage is not a substitute for owner review.
 - Preserve the current homepage, group-card design, 10-column desktop layout, RTL, counts, verified-first behavior, geographic filters and storefront routes.
+
+
+---
+
+# 35) VERIFIED / UNVERIFIED DIRECTORY COUNT INDICATORS
+
+### Status: SOURCE MERGED / EXACT-HEAD CI PASS / DEPLOYED-ORIGIN CHECK PENDING
+
+- [x] Confirmed activity count badges retain green styling.
+- [x] Unconfirmed directory-listing count badges use red styling across the catalog group/category/specialty counters.
+- [x] PR #525 merged; exact-head Primary Catalog Frontend Validation [41005476492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476492) passed build/typecheck, contract checks, isolated PostgreSQL RBAC, and Playwright assertions for red unconfirmed / green confirmed indicators.
+- [ ] Verify the main-branch Pages deployment and deployed-origin browser result after merge.
+- Preserve all existing group ordering, confirmed-first ranking, filter behavior, RTL, card sizing, and page layout. No redesign is included.
