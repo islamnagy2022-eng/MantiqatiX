@@ -48,10 +48,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Install Supabase CLI
+      - name: Install pinned Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.122.0
 
       - name: Validate captured checkpoint and static schema inventory
         run: node scripts/tests/production-schema-baseline-static-audit.mjs
