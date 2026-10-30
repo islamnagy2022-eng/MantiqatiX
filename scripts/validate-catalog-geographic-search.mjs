@@ -17,7 +17,7 @@ assert.doesNotMatch(view, /If a selected area has no results, widen geography[\s
 assert.match(view, /window\.isSecureContext/, 'GPS must explain when a secure context is required');
 assert.match(view, /POSITION_UNAVAILABLE/, 'unavailable device location must have a clear fallback');
 assert.match(view, /coords\.accuracy/, 'GPS accuracy must be checked and communicated');
-assert.match(view, /const aVerified = a\.isVerified \? 0 : 1/, 'verified businesses must rank ahead of unverified businesses');
+assert.match(view, /if \(a\.isVerified !== b\.isVerified\) return a\.isVerified \? -1 : 1/, 'verified businesses must rank ahead of unverified businesses');
 assert.match(view, /biz\.isVerified \? 'order-1' : 'order-3'/, 'the unified grid must visually prioritize verified businesses');
 assert.match(view, /bg-red-600/, 'unverified registered activities must use the warning badge color');
 assert.match(view, /غير مؤكد/, 'unverified registered activities must be visibly labeled');
