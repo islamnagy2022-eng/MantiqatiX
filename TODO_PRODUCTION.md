@@ -726,3 +726,20 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Keep RC449A/RC450 production rollout blocked until full chronological migration reconciliation (including earlier missing required releases), backup/restore and rollback rehearsal, approved change window, and post-deployment verification are complete.
 - No Supabase production migration, SQL write, grant/Auth/RLS change, Edge Function deployment, payment, wallet action, or financial posting was performed.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Fresh physical-object reconciliation (read-only)
+
+- [x] Reconfirmed the exact migration ledger: 308 rows, latest `20261029083845`, with 0/41 exact required release-version IDs recorded.
+- [x] Corrected stale RC113–RC116 object-presence evidence. The exact 83,324-character applied forward-bundle statement `20261029041815_professional_dashboard_dependencies_forward_repair` matches its checked-in source and contains RC113, RC114, RC115, RC116 and RC457 source segments. Live role/employee tables, indexes and control-center RPCs are present via that forward bundle; original migration IDs remain absent.
+- [x] Verified the four role/employee tables have RLS + FORCE RLS and no direct anon/authenticated/service_role table privileges. Their controlled RPCs use actor, membership and scope checks; runtime business-owner/admin browser E2E is still a separate gate.
+- [x] Confirmed RC117 default images remain absent in Production: resolver/trigger functions, trigger attachments, and marketing_services image_url/image_source columns are missing. The two RC117 forward repairs in main are not in the live migration ledger.
+- [x] Refreshed physical contracts: RC425 provider-event table/RPC absent; RC426 expected five-arg finalize function absent (old four-arg function remains); RC427 index absent; RC428–430 payment/subscription RPCs absent; RC431 payment RPC search_path drift; RC432 wallet idempotency index absent; RC434/435 RPCs absent; RC436/RC449A/RC450 journal prerequisites and grants absent; RC437/438 ERP line objects absent or drifted.
+- [x] Confirmed additional scope gaps: RC452 live CRM manager policies are role-only rather than tenant/business scoped; RC102 marketing-provider-services owner write grants are absent; RC453 campaign tables/RPCs are absent; RC456 SMM service_role table boundary is absent while SMM remains deferred; RC525 digital-page admin policy does not show the explicit platform-admin scope expected by the reviewed source.
+- [x] Verified RC451 forward repair 20261027223523 and dashboard forward bundle are recorded; Qadam follow-up 20261027205405 is recorded and business/owner/product state is ready. Known RC424 and marketing-contact aliases remain pending ledger reconciliation; duplicate SQL must not be rerun.
+- [ ] Complete a source-to-live semantic reconciliation for every missing required migration and all affected policies/functions before planning any Production changes.
+- [ ] Keep Production rollout blocked pending a reviewed chronological migration plan, current backup/restore and rollback rehearsal, payment/finance E2E, Auth hardening, Edge Function source/function contract parity, and browser/device evidence.
+- No Production DDL/DML, migration, grant, Auth/RLS change, Edge Function deployment, payment, wallet action or financial posting was performed.
+- Full platform release remains **BLOCKED / NOT CERTIFIED**.

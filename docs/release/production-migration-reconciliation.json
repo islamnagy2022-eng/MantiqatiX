@@ -312,8 +312,8 @@
   },
   "financial_journal_runtime_prerequisite_check": {
     "status": "BLOCKING_DRIFT",
-    "checked_at": "2026-10-27",
-    "method": "Read-only PostgreSQL catalog, effective EXECUTE privilege, journal column, and aggregate row-count checks; live Edge Function source comparison. No RPC invoked.",
+    "checked_at": "2026-10-30",
+    "method": "Fresh read-only pg_attribute, pg_proc, effective function privileges, Edge Function source and live migration-ledger checks.",
     "live_migrations": {
       "20261010175000_rc449a_financial_journal_schema_prerequisites": false,
       "20261010180000_rc450_financial_journal_service_role_boundary": false
@@ -356,12 +356,20 @@
       "public.smm_orders": 0,
       "public.smm_wallet_transactions": 0
     },
-    "interpretation": "The deployed financial-journal v3 entrypoint calls post_financial_journal using a service-role client, but the live RPC ACL does not grant service_role EXECUTE and required journal columns are absent. Current main instead calls post_financial_journal_backend and expects the reviewed RC450 contract, which is also not executable by service_role until the reviewed grant migration is applied. Do not invoke or deploy this path individually; complete ordered RC449A → RC450 dependencies, migrate/replay in staging, and pass finance E2E before release."
+    "interpretation": "The disposable PostgreSQL 16 RC449A→RC450 integration job passes, but Production still lacks the schema prerequisites and service_role EXECUTE grant. Do not deploy the function or apply the migrations independently.",
+    "live_edge_function": {
+      "slug": "financial-journal",
+      "version": 3,
+      "verify_jwt": true,
+      "source_exact_match": false,
+      "calls_legacy_rpc": true,
+      "wildcard_cors": true
+    }
   },
   "required_release_object_presence_check": {
-    "status": "MIXED_DRIFT",
-    "checked_at": "2026-10-27",
-    "method": "Read-only checks of public schema tables/indexes, function signatures, current proconfig and effective role privileges for selected objects introduced or hardened by RC425–RC441. This is a targeted inventory, not a complete physical-schema diff.",
+    "status": "MIXED_DRIFT_READ_ONLY_REFRESHED",
+    "checked_at": "2026-10-30",
+    "method": "Fresh read-only checks against live pg_class, pg_attribute, pg_proc, pg_trigger, pg_policies and effective table/function privileges. The dashboard forward-bundle migration was also compared against its exact recorded statement. Existence is not treated as body/runtime certification.",
     "observed": [
       {
         "migration": "RC425",
@@ -409,7 +417,7 @@
         "migration": "RC431",
         "object": "public.process_verified_digital_page_payment_backend",
         "exists": true,
-        "detail": "Function exists, but live search_path is public, pg_temp instead of the source's empty search_path; exact body/ACL must be reconciled before release.",
+        "detail": "Live function exists and service_role EXECUTE is present, but live search_path is public, pg_temp (source expects empty search_path); full body/ACL contract reconciliation and runtime payment/webhook E2E remain open.",
         "status": "BLOCKED"
       },
       {
@@ -434,169 +442,169 @@
         "migration": "RC438",
         "object": "public.update_purchase_order_status_backend(varchar,varchar)",
         "exists": true,
-        "detail": "Function exists, but live search_path is public and ACL is postgres-only; source contract expects an empty search_path and authenticated execution. Must be reconciled before release.",
+        "detail": "Live two-argument function exists, but search_path=public and ACL is postgres-only; authenticated and service_role lack EXECUTE. RC438 source contract is not met.",
         "status": "BLOCKED"
       },
       {
         "migration": "RC113",
         "object": "public.platform_custom_roles",
-        "exists": false,
-        "detail": "Custom platform roles table is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS"
       },
       {
         "migration": "RC113",
         "object": "public.platform_role_assignments",
-        "exists": false,
-        "detail": "Scoped platform role assignments table is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS"
       },
       {
         "migration": "RC113",
         "object": "public.mnty_platform_admin_list_custom_roles",
-        "exists": false,
-        "detail": "Custom role list RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC113",
         "object": "public.mnty_platform_admin_upsert_custom_role",
-        "exists": false,
-        "detail": "Custom role upsert RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check and audit write observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC113",
         "object": "public.mnty_platform_admin_assign_custom_role",
-        "exists": false,
-        "detail": "Scoped custom role assignment RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check, scoped assignment and audit write observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_job_positions",
-        "exists": false,
-        "detail": "Business hiring/position table is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_employees",
-        "exists": false,
-        "detail": "Business employee table is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live relation confirmed. RLS and FORCE RLS are enabled; anon/authenticated/service_role have no direct table privileges. Present through the applied dashboard forward bundle.",
+        "status": "PASS"
       },
       {
         "migration": "RC113",
         "object": "public.platform_role_assignments_active_unique",
-        "exists": false,
-        "detail": "Active scoped role assignment uniqueness index is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
+        "status": "PASS"
       },
       {
         "migration": "RC113",
         "object": "public.platform_role_assignments_user_scope_idx",
-        "exists": false,
-        "detail": "Role assignment scope index is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live index confirmed; exact index definition is present in pg_catalog.",
+        "status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_employees_email_per_business_unique",
-        "exists": false,
-        "detail": "Per-business employee email uniqueness index is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live unique index confirmed.",
+        "status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_job_positions_business_active_idx",
-        "exists": false,
-        "detail": "Business job position index is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live index confirmed.",
+        "status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_employees_business_status_idx",
-        "exists": false,
-        "detail": "Employee business/status index is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live index confirmed.",
+        "status": "PASS"
       },
       {
         "migration": "RC114",
         "object": "public.business_employees_user_active_idx",
-        "exists": false,
-        "detail": "Employee user/active index is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live index confirmed.",
+        "status": "PASS"
       },
       {
         "migration": "RC114/RC115",
         "object": "public.mnty_business_employee_position_upsert",
-        "exists": false,
-        "detail": "Employee position upsert RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks and audit write observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC114/RC115",
         "object": "public.mnty_business_employee_upsert",
-        "exists": false,
-        "detail": "Employee onboarding/upsert RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/tenant/business/branch checks, permission-ceiling check and audit write observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC115",
         "object": "public.mnty_platform_has_permission",
-        "exists": false,
-        "detail": "Platform permission checker RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, auth.uid/anonymous guard and active scoped membership/role-assignment checks observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC115",
         "object": "public.mnty_platform_admin_list_people",
-        "exists": false,
-        "detail": "Platform people list RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC115",
         "object": "public.mnty_platform_admin_list_role_assignments",
-        "exists": false,
-        "detail": "Platform role assignments list RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC115",
         "object": "public.mnty_business_employee_list",
-        "exists": false,
-        "detail": "Business employee list RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live wrapper signature confirmed; delegates to mnty_business_employee_list_scoped, whose body checks auth.uid, anonymous state, active membership, tenant/business/branch scope.",
+        "status": "PASS"
       },
       {
         "migration": "RC115",
         "object": "public.mnty_platform_admin_list_audit",
-        "exists": false,
-        "detail": "Platform admin audit list RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, actor/anonymous check observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC116/RC117",
         "object": "public.mnty_platform_admin_list_businesses",
-        "exists": false,
-        "detail": "Platform business list RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC116/RC117",
         "object": "public.mnty_platform_admin_manage_business",
-        "exists": false,
-        "detail": "Platform business management RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC116",
         "object": "public.mnty_platform_admin_manage_membership",
-        "exists": false,
-        "detail": "Business membership admin RPC is absent.",
-        "status": "BLOCKED"
+        "exists": true,
+        "detail": "Live signature confirmed; SECURITY DEFINER, empty search_path, authenticated EXECUTE, private.platform_admins actor check and audit write observed.",
+        "status": "PASS"
       },
       {
         "migration": "RC117",
@@ -768,7 +776,234 @@
     "missing_control_center_object_contracts": 33,
     "total_granular_object_contracts": 60,
     "total_missing_granular_object_contracts": 53,
-    "note": "A name/signature match alone is not a release PASS. The two existing RPCs with confirmed search_path/ACL drift remain status BLOCKED until their exact source security contracts are reconciled."
+    "note": "A name/signature match alone is not a release PASS. The two existing RPCs with confirmed search_path/ACL drift remain status BLOCKED until their exact source security contracts are reconciled.",
+    "observed_count": 60,
+    "non_pass": [
+      {
+        "migration": "RC425",
+        "object": "public.mantigo_payment_provider_events",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Required provider-event idempotency table absent."
+      },
+      {
+        "migration": "RC425",
+        "object": "public.process_verified_mantigo_payment_backend",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Atomic MantiGo payment backend RPC absent."
+      },
+      {
+        "migration": "RC426",
+        "object": "public.finalize_digital_page_payment_intent_backend(uuid,uuid,text,text,text)",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Expected five-argument claim-token signature absent; only old four-argument signature exists with search_path=public, pg_temp and authenticated EXECUTE."
+      },
+      {
+        "migration": "RC427",
+        "object": "public.uq_payment_intents_one_active_per_order",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Partial unique index for one active payment intent per order absent."
+      },
+      {
+        "migration": "RC428",
+        "object": "public.process_verified_provider_payment_failure",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Atomic provider-failure webhook RPC absent."
+      },
+      {
+        "migration": "RC429",
+        "object": "public.process_verified_subscription_payment_failure",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Atomic subscription-failure webhook RPC absent."
+      },
+      {
+        "migration": "RC430",
+        "object": "public.process_verified_subscription_payment_backend",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Atomic subscription-success backend RPC absent."
+      },
+      {
+        "migration": "RC431",
+        "object": "public.process_verified_digital_page_payment_backend",
+        "exists": true,
+        "status": "BLOCKED",
+        "detail": "Live function exists and service_role EXECUTE is present, but live search_path is public, pg_temp (source expects empty search_path); full body/ACL contract reconciliation and runtime payment/webhook E2E remain open."
+      },
+      {
+        "migration": "RC432",
+        "object": "public.smm_wallet_transactions_reference_type_uidx",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Wallet idempotency unique index absent although the three wallet RPC names exist."
+      },
+      {
+        "migration": "RC434",
+        "object": "public.receive_purchase_stock_atomic_backend",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Atomic ERP receipt RPC absent."
+      },
+      {
+        "migration": "RC438",
+        "object": "public.create_purchase_order_with_lines_backend",
+        "exists": false,
+        "status": "NOT VERIFIED",
+        "detail": "Atomic purchase-order creation-with-lines RPC absent."
+      },
+      {
+        "migration": "RC438",
+        "object": "public.update_purchase_order_status_backend(varchar,varchar)",
+        "exists": true,
+        "status": "BLOCKED",
+        "detail": "Live two-argument function exists, but search_path=public and ACL is postgres-only; authenticated and service_role lack EXECUTE. RC438 source contract is not met."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_image_url",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Name-aware default image resolver is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_business_images_trigger",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Business default-image trigger function is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_catalog_item_image_trigger",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Catalog item default-image trigger function is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.mnty_default_marketing_service_image_trigger",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Marketing service default-image trigger function is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.businesses.mnty_business_default_images",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Business default-image trigger is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.catalog_items.mnty_catalog_item_default_image",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Catalog item default-image trigger is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.mnty_marketing_service_default_image",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Marketing service default-image trigger is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_url",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Marketing services image_url column is absent."
+      },
+      {
+        "migration": "RC117",
+        "object": "public.marketing_services.image_source",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Marketing services image_source column is absent."
+      },
+      {
+        "migration": "RC113",
+        "object": "public.ux_user_memberships_user_business_branch_nullsafe",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "Membership business/branch NULL-safe idempotency index is absent."
+      },
+      {
+        "migration": null,
+        "object": "public.create_subscription_payment_intent_claimable_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC435 claimable subscription intent RPC absent."
+      },
+      {
+        "migration": null,
+        "object": "public.claim_subscription_provider_intent_creation_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC435 atomic provider-claim RPC absent."
+      },
+      {
+        "migration": null,
+        "object": "public.post_financial_journal_atomic_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 atomic journal RPC absent."
+      },
+      {
+        "migration": null,
+        "object": "public.journal_entry_lines_entry_line_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 journal line uniqueness index absent."
+      },
+      {
+        "migration": null,
+        "object": "public.journal_entries_tenant_entry_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC436 tenant entry-number uniqueness index absent."
+      },
+      {
+        "migration": null,
+        "object": "public.erp_purchase_order_lines",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line table absent."
+      },
+      {
+        "migration": null,
+        "object": "public.receive_purchase_stock_with_order_line_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 line-aware stock receiving RPC absent."
+      },
+      {
+        "migration": null,
+        "object": "public.set_purchase_order_lines_backend",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line-management RPC absent."
+      },
+      {
+        "migration": null,
+        "object": "public.erp_purchase_orders_business_order_number_uidx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 business/order-number uniqueness index absent."
+      },
+      {
+        "migration": null,
+        "object": "public.erp_purchase_order_lines_scope_idx",
+        "exists": false,
+        "status": "BLOCKED",
+        "detail": "RC437 purchase order line scope index absent."
+      }
+    ]
   },
   "security_definer_search_path_check": {
     "status": "EFFECT_RECONCILED_FORWARD_REPAIR",
@@ -795,17 +1030,22 @@
     "interpretation": "The RC451 search_path effect is now verified as reconciled by the exact-version forward repair 20261027223523. The original RC451 migration version remains absent, so the original required-version ledger check still reports it missing. This does not unblock the full platform gate."
   },
   "security_advisor_snapshot": {
-    "checked_at": "2026-10-27",
-    "rls_enabled_without_policy_count": 1,
+    "checked_at": "2026-10-30",
+    "rls_enabled_without_policy_count": 8,
     "rls_enabled_without_policy": [
-      {
-        "table": "public.digital_page_payment_events",
-        "interpretation": "INFO only: RLS with no policies denies direct anon/authenticated row access; verify that all intended service access uses service_role/controlled RPC paths."
-      }
+      "public.business_employees",
+      "public.business_job_positions",
+      "public.commission_rule_audit",
+      "public.digital_page_payment_events",
+      "public.directory_listing_claim_requests",
+      "public.platform_custom_roles",
+      "public.platform_role_assignments",
+      "public.public_directory_listings"
     ],
-    "anon_security_definer_executable_count": 1,
-    "authenticated_security_definer_executable_count": 48,
-    "interpretation": "Advisor findings are not a blanket instruction to revoke all security-definer RPC access. Review each function's intended caller, identity checks, search_path and schema/grant contract; no grants were changed during this check."
+    "anon_security_definer_executable_count": 3,
+    "authenticated_security_definer_executable_count": 67,
+    "leaked_password_protection_enabled": false,
+    "interpretation": "Latest read-only Supabase Security Advisor snapshot. RLS-enabled/no-policy is not by itself evidence of public exposure; inspect effective direct grants and controlled RPC paths. Review SECURITY DEFINER per function; no bulk revoke was performed."
   },
   "production_source_object_drift_inventory": {
     "status": "VERIFIED_READ_ONLY",
@@ -1229,19 +1469,37 @@
         "platform_custom_roles",
         "platform_role_assignments",
         "public_directory_listings",
-        "directory_listing_claim_requests"
+        "directory_listing_claim_requests",
+        "marketing_services"
       ],
       "functions": [
         "mnty_platform_admin_list_businesses(text)",
         "mnty_platform_admin_manage_business(uuid,text,jsonb,text)",
         "post_financial_journal_backend(uuid,jsonb,jsonb)",
-        "process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)"
+        "process_verified_digital_page_payment_backend(uuid,text,text,text,boolean,numeric,text,text,text,jsonb)",
+        "mnty_can()",
+        "mnty_can_platform_admin()",
+        "mnty_platform_has_permission(text,character varying,uuid,character varying)",
+        "mnty_platform_admin_list_custom_roles()",
+        "mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)",
+        "mnty_platform_admin_assign_custom_role(uuid,uuid,character varying,uuid,character varying,boolean,uuid)",
+        "mnty_platform_admin_list_people(text)",
+        "mnty_platform_admin_list_role_assignments()",
+        "mnty_platform_admin_list_audit(text)",
+        "mnty_business_employee_list(character varying,uuid)",
+        "mnty_business_employee_position_upsert(character varying,uuid,text,text,text,text,jsonb,boolean,boolean,character varying,uuid)",
+        "mnty_business_employee_upsert(character varying,uuid,uuid,text,text,text,uuid,text,jsonb,character varying,uuid)",
+        "mnty_platform_admin_manage_membership(uuid,text,text)",
+        "create_order_backend(uuid,character varying,uuid,character varying,uuid,character varying,numeric,numeric,numeric,numeric,numeric,character varying,text,text,text,jsonb,text,jsonb)",
+        "update_order_status_backend(uuid,character varying,uuid,character varying,text)"
       ]
     },
     "observed_missing": {
       "tables": [
         "mantigo_payment_provider_events",
-        "erp_purchase_order_lines"
+        "erp_purchase_order_lines",
+        "marketing_campaigns",
+        "marketing_campaign_participants"
       ],
       "functions": [
         "process_verified_mantigo_payment_backend",
@@ -1255,10 +1513,24 @@
         "receive_purchase_stock_with_order_line_backend",
         "set_purchase_order_lines_backend",
         "create_purchase_order_with_lines_backend",
-        "mnty_default_image_url"
+        "mnty_default_image_url",
+        "mnty_default_business_images_trigger",
+        "mnty_default_catalog_item_image_trigger",
+        "mnty_default_marketing_service_image_trigger",
+        "mnty_can_manage_marketing_business",
+        "create_marketing_campaign_backend",
+        "invite_marketing_campaign_partner_backend",
+        "respond_marketing_campaign_invitation_backend",
+        "update_marketing_campaign_status_backend"
       ],
       "indexes": [
-        "uq_payment_intents_one_active_per_order"
+        "uq_payment_intents_one_active_per_order",
+        "ux_user_memberships_user_business_branch_nullsafe",
+        "smm_wallet_transactions_reference_type_uidx",
+        "journal_entries_tenant_entry_number_uidx",
+        "journal_entry_lines_entry_line_uidx",
+        "erp_purchase_orders_business_order_number_uidx",
+        "erp_purchase_order_lines_scope_idx"
       ]
     },
     "drift": {
@@ -1271,5 +1543,176 @@
     },
     "rls": "The six present role/employee/directory tables above were confirmed with RLS=true and FORCE RLS=true in fresh read-only checks.",
     "interpretation": "The earlier 2026-10-27 object inventory is stale for several RC113-RC117 objects. Use this 2026-10-30 targeted snapshot as the current evidence for the listed objects only; it is not a complete all-object schema diff."
+  },
+  "live_object_contract_recheck_20261030": {
+    "checked_at": "2026-10-30",
+    "mode": "READ_ONLY",
+    "overall": "MIXED_DRIFT",
+    "live_ledger": {
+      "count": 308,
+      "latest_version": "20261029083845",
+      "latest_name": "require_phone_for_published_directory_listings",
+      "required_original_versions": 41,
+      "recorded_exact_required_versions": 0,
+      "missing_exact_required_versions": 41
+    },
+    "dashboard_dependency_forward_bundle": {
+      "live_version": "20261029041815",
+      "live_name": "professional_dashboard_dependencies_forward_repair",
+      "repository_source": "supabase/migrations/20261029041815_professional_dashboard_dependencies_forward_repair.sql",
+      "repository_blob_sha": "d603eb0cefc6d02a70e26ec54560b5664988f948",
+      "live_statement_chars": 83324,
+      "source_chars": 83324,
+      "normalized_exact_statement_match": true,
+      "reconciled_source_segments": [
+        "supabase/migrations/20261027030000_rc113_super_admin_control_center_foundation.sql",
+        "supabase/migrations/20261027040000_rc114_business_employee_hiring_system.sql",
+        "supabase/migrations/20261027050000_rc115_control_center_integration.sql",
+        "supabase/migrations/20261027060000_rc116_business_subscriber_admin.sql",
+        "supabase/migrations/20261028225000_rc457_business_employee_permission_ceiling.sql"
+      ],
+      "live_relations": [
+        "public.platform_custom_roles",
+        "public.platform_role_assignments",
+        "public.business_job_positions",
+        "public.business_employees"
+      ],
+      "indexes_present": [
+        "public.platform_role_assignments_active_unique",
+        "public.platform_role_assignments_user_scope_idx",
+        "public.business_employees_email_per_business_unique",
+        "public.business_job_positions_business_active_idx",
+        "public.business_employees_business_status_idx",
+        "public.business_employees_user_active_idx"
+      ],
+      "functions_present": [
+        "public.mnty_platform_has_permission(text,character varying,uuid,character varying)",
+        "public.mnty_platform_admin_list_custom_roles()",
+        "public.mnty_platform_admin_upsert_custom_role(text,text,text,text,jsonb,uuid,boolean)",
+        "public.mnty_platform_admin_assign_custom_role(uuid,uuid,character varying,uuid,character varying,boolean,uuid)",
+        "public.mnty_platform_admin_list_people(text)",
+        "public.mnty_platform_admin_list_role_assignments()",
+        "public.mnty_platform_admin_list_audit(text)",
+        "public.mnty_business_employee_list(character varying,uuid)",
+        "public.mnty_business_employee_position_upsert(character varying,uuid,text,text,text,text,jsonb,boolean,boolean,character varying,uuid)",
+        "public.mnty_business_employee_upsert(character varying,uuid,uuid,text,text,text,uuid,text,jsonb,character varying,uuid)",
+        "public.mnty_platform_admin_list_businesses(text)",
+        "public.mnty_platform_admin_manage_business(uuid,text,jsonb,text)",
+        "public.mnty_platform_admin_manage_membership(uuid,text,text)"
+      ],
+      "table_security": {
+        "rls_enabled": true,
+        "force_rls": true,
+        "anon_direct_privileges": false,
+        "authenticated_direct_privileges": false,
+        "service_role_direct_privileges": false,
+        "controlled_access": "SECURITY DEFINER RPCs with explicit actor and business/branch checks; no direct table API grants on the four listed relations."
+      },
+      "separate_missing_rc113_index": "public.ux_user_memberships_user_business_branch_nullsafe"
+    },
+    "rc117_default_images": {
+      "original_migration_version": "20261027070000",
+      "original_migration_recorded": false,
+      "included_in_dashboard_bundle": false,
+      "required_image_resolver_and_trigger_functions_present": false,
+      "expected_business_catalog_marketing_service_triggers_present": false,
+      "marketing_services_image_url_present": false,
+      "marketing_services_image_source_present": false,
+      "forward_repairs_in_main_only": [
+        "20261030100000_rc117_activity_name_sync_forward_repair.sql",
+        "20261030110000_rc117_restore_untruncated_business_list.sql"
+      ],
+      "production_status": "NOT APPLIED; disposable replay evidence does not equal production deployment."
+    },
+    "critical_missing_or_drifted": {
+      "payment_and_provider": [
+        "RC425: mantigo_payment_provider_events table and process_verified_mantigo_payment_backend RPC absent.",
+        "RC426: expected five-argument finalize_digital_page_payment_intent_backend signature absent; only old four-argument SECURITY DEFINER function exists with search_path=public, pg_temp and authenticated EXECUTE.",
+        "RC427: uq_payment_intents_one_active_per_order absent.",
+        "RC428/RC429/RC430: provider-failure, subscription-failure and subscription-success backend RPCs absent.",
+        "RC432: smm_wallet_transactions_reference_type_uidx absent although three SMM wallet RPC names exist.",
+        "RC434: receive_purchase_stock_atomic_backend absent.",
+        "RC435: create_subscription_payment_intent_claimable_backend and claim_subscription_provider_intent_creation_backend absent."
+      ],
+      "financial_journal": [
+        "RC436 post_financial_journal_atomic_backend and the two tenant/line uniqueness indexes absent.",
+        "RC449A and RC450 exact migration versions absent.",
+        "journal_entries.entry_number, total_debit, total_credit, posted_at and journal_entry_lines.line_number absent.",
+        "Both live legacy post_financial_journal and current post_financial_journal_backend are not executable by service_role.",
+        "Live financial-journal Edge Function v3 calls legacy post_financial_journal, has wildcard CORS, and is not source-identical to main."
+      ],
+      "erp": [
+        "RC437 erp_purchase_order_lines, receive_purchase_stock_with_order_line_backend, set_purchase_order_lines_backend and required indexes absent.",
+        "RC438 create_purchase_order_with_lines_backend absent.",
+        "Existing update_purchase_order_status_backend(varchar,varchar) has search_path=public and postgres-only EXECUTE; authenticated and service_role cannot execute it."
+      ],
+      "marketing": [
+        "RC452 tenant/business-scoped CRM policies are not present: live marketing_leads and marketing_provider_profiles manager-read policies are role-only and do not constrain tenant/business.",
+        "RC102 owner write table grants for marketing_provider_services are absent: authenticated INSERT/UPDATE table privileges are false although the owner-manage RLS policy exists.",
+        "RC453 marketing_campaigns and marketing_campaign_participants tables and all five campaign RPCs are absent."
+      ],
+      "smm": [
+        "RC456 service-role table boundary is absent: service_role has no SELECT/INSERT/UPDATE privileges on the six SMM tables inspected. SMM remains deferred and must not be enabled."
+      ],
+      "digital_pages": [
+        "RC525 current digital_page_products admin-write policy checks an active SUPER_ADMIN/ADMIN membership but does not prove the intended explicit platform-admin scope; the reviewed RC525 policy is not verified live."
+      ],
+      "order_backend": [
+        "create_order_backend and update_order_status_backend are present with service_role EXECUTE and no authenticated/anon EXECUTE; both currently have search_path=public. Full body/source semantic parity and runtime E2E remain open."
+      ]
+    },
+    "verified_forward_repairs": [
+      {
+        "source": "RC451 targeted-ad empty search_path",
+        "forward_version": "20261027223523",
+        "live_recorded": true,
+        "exact_statement_match": true,
+        "post_deploy_search_path": [],
+        "anon_execute": true,
+        "authenticated_execute": true,
+        "public_execute": false,
+        "interpretation": "The intended public discovery caller boundary is retained; the original RC451 source version remains absent from the required ledger."
+      },
+      {
+        "source": "RC113/RC114/RC115/RC116 dashboard dependencies",
+        "forward_version": "20261029041815",
+        "live_recorded": true,
+        "exact_statement_match": true,
+        "interpretation": "Reviewed source segments are applied via the dashboard-scoped forward bundle; original source-version IDs remain absent."
+      },
+      {
+        "source": "Qadam catalog seed follow-up",
+        "forward_version": "20261027205405",
+        "live_recorded": true,
+        "business_active": true,
+        "owner_membership_active": true,
+        "active_products": 15,
+        "active_price_rows": 12,
+        "original_seed_version_recorded": false,
+        "interpretation": "Data readiness and owner membership are repaired, but the original seed-version ledger drift remains; do not re-run its seed SQL."
+      }
+    ],
+    "known_aliases_not_replayed": [
+      {
+        "source_version": "20261009010000",
+        "target_ledger_version": "20261008222845",
+        "reason": "Exact SQL statement alias; preserve the historical ledger version."
+      },
+      {
+        "source_version": "20261027100000",
+        "target_ledger_version": "20261027041411",
+        "reason": "Exact source blob alias; do not execute duplicate SQL."
+      }
+    ],
+    "security_advisor_latest": {
+      "observed_at": "2026-10-30T03:30:48.997Z",
+      "rls_enabled_no_policy_count": 8,
+      "anon_security_definer_executable_count": 3,
+      "authenticated_security_definer_executable_count": 67,
+      "leaked_password_protection": "DISABLED",
+      "interpretation": "Classify each SECURITY DEFINER function and no-policy RLS table individually. Do not bulk-revoke grants or add broad policies."
+    },
+    "no_production_changes": true,
+    "production_gate": "BLOCKED / NOT CERTIFIED"
   }
 }

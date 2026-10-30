@@ -2372,3 +2372,20 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Production remains blocked pending backup/restore and rollback rehearsal, approved change window, exact live migration preflight, reviewed RPC/function parity, and post-deployment acceptance tests.
 - No production Supabase migration, SQL mutation, grant/Auth/RLS change, Edge Function deployment, payment, wallet action, or financial posting was performed.
 - Full platform release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Fresh physical-object reconciliation (read-only)
+
+- [x] Reconfirmed 308 live migration rows through `20261029083845`; all 41 exact original required release identifiers remain absent.
+- [x] Verified that RC113/RC114/RC115/RC116/RC457 dashboard dependencies are physically present through the exact applied forward bundle `20261029041815_professional_dashboard_dependencies_forward_repair` (83,324-character normalized exact statement match). The prior object snapshot that marked these tables/RPCs absent was stale. Their original source version IDs remain absent; the separate user-membership null-safe index is still absent.
+- [x] Four role/employee tables are RLS + FORCE RLS with no direct API table privileges. Controlled RPC signatures exist; selected employee and platform-admin write functions were read for actor/membership/scope/audit checks. This is not full authenticated browser E2E.
+- [x] RC117 default-image resolver/trigger functions, trigger attachments and marketing_services image columns remain absent; the 2026-10-30 forward fixes are in main/disposable replay only, not Production.
+- [x] Confirmed payment/finance/ERP drift: RC425 event table/RPC, RC426 five-arg claim contract, RC427 unique index, RC428–430 webhook RPCs, RC432 wallet index, RC434/435 RPCs, RC436 atomic journal and RC449A/RC450 schema/grants, RC437/438 purchase-order-line objects remain absent or contract-incompatible. RC431's live digital-page payment RPC has search_path drift.
+- [x] Confirmed scope drift: RC452 CRM manager-read policies are not tenant/business scoped; RC102 owner-write grants for marketing_provider_services are absent; RC453 campaign objects are absent; RC456 SMM service_role boundary is absent; RC525 digital_page_products admin-write policy does not demonstrate explicit platform-admin scope.
+- [x] RC451's forward repair (20261027223523) and the dashboard bundle are recorded. Qadam's follow-up repair (20261027205405) is recorded and live data is ready; original seed version remains absent. RC424 and marketing-contact aliases are known duplicate-source mappings and must not be executed again.
+- [ ] Complete source-to-live semantic reconciliation of all remaining required migration effects and aliases before planning Production rollout.
+- [ ] Production stays blocked pending complete migration-chain plan, backup/restore + rollback rehearsal, payment/finance E2E, Auth hardening, Edge Function contract parity, and browser/device acceptance.
+- No Production database writes, migrations, grants, Auth/RLS changes, Edge Function deployments, payments, wallet operations or financial postings were performed.
+- Full platform release remains **BLOCKED / NOT CERTIFIED**.
