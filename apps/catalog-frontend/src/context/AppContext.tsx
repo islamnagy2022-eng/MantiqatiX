@@ -25,7 +25,7 @@ import {
   getCurrentAppBasePath,
   generateWhatsAppOrderUrl,
 } from '../utils/rules';
-import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
+import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlatformSubscribers, fetchPublicCatalog, fetchPublicDirectory, generateCatalogAiImage, mapBusiness, mapProducts, supabase } from '../lib/production';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
@@ -61,6 +61,7 @@ interface AppContextType {
   directoryLoading: boolean;
   products: Product[];
   subscribers: Subscriber[];
+  subscribersLoading: boolean;
   adminSettings: AdminSettings;
   updateBusiness: (business: Business) => Promise<void>;
   addBusiness: (business: Omit<Business, 'id' | 'createdAt'>) => Promise<string>;
@@ -106,6 +107,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [subscribersLoading, setSubscribersLoading] = useState(false);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
   const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest', isAuthenticated: false });
   const [authLoading, setAuthLoading] = useState(true);
@@ -189,7 +191,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBusinesses(boot.businesses);
     setProducts(boot.products);
     setSubscribers(boot.subscribers);
+    setSubscribersLoading(boot.authSession.role === 'admin');
     setAdminSettings({ ...boot.adminSettings, adminPassword: '' });
+
+    // The complete platform subscriber directory can be large. It is not needed
+    // to establish the Google session or authorize the user, so fetch it after
+    // the main workspace is ready and keep failures separate from auth bootstrap.
+    if (boot.authSession.role === 'admin') {
+      void fetchPlatformSubscribers().then((result) => {
+        if (!isCurrent()) return;
+        setSubscribers(result.subscribers);
+        setAuthSession((previous) => previous.userId === boot.authSession.userId
+          ? {
+              ...previous,
+              subscriberDirectoryError: result.error,
+              ignoredOrphanMemberships: result.ignoredOrphanMemberships,
+            }
+          : previous);
+      }).finally(() => {
+        if (isCurrent()) setSubscribersLoading(false);
+      });
+    }
 
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('store') || params.get('businessId') || '';
@@ -282,6 +304,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setBusinesses([]);
         setProducts([]);
         setSubscribers([]);
+        setSubscribersLoading(false);
         setSelectedBusinessIdState('');
         setCartItems([]);
         // Hide any privileged view while the new identity is loading without
@@ -950,7 +973,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryLoading, products, subscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
