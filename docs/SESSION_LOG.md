@@ -1019,3 +1019,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - The current canonical React catalog is the production customer-facing runtime and remains direct-table-free for `marketing_provider_profiles`; it calls the curated public Edge Functions.
 - `web/home.js` and `web/operations-modules.js` contain old direct provider-table reads, but are excluded from the current production artifact. Keep them excluded from future artifacts and migrate or retire them before any future reintroduction.
 - The actual live exposure is the Supabase Data API table-level SELECT granted to anon and authenticated, combined with the active-public RLS policy. Closing it requires a helper for the live RLS/storage ownership dependencies, owner/CRM contracts, and isolated adversarial tests; no production grant change has been made.
+
+
+## 2026-10-31 — Public taxonomy Edge Function deployment
+
+- Compared Production Edge Function source with current main. `public-catalog-directory` v9 was missing the explicit `activityCategoryCode` field; `public-catalog` v5 was missing the four canonical taxonomy metadata fields expected by the current React catalog mapper.
+- Verified the source change came from merged PR #537 / commit `80eeb41e90c133d5b66dea50853ba4306c6424fa`. The exact-head browser suite passed [41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819); main Pages validation and deployment passed [41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742) / [41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742).
+- Deployed the already-merged current-main source only: `public-catalog-directory` v10 and `public-catalog` v6. Both retained ACTIVE status and `verify_jwt=false`; no auth/CORS/query/authorization behavior was changed. The only response additions were explicit taxonomy fields derived from existing business settings.
+- Post-deploy `get_edge_function` verification confirmed both live source files match main byte-for-byte and the taxonomy fields are present.
+- Runtime HTTP invocation and deployed browser smoke were not possible in this environment because outbound DNS/network access failed. Exact source parity is confirmed; live response behavior remains a follow-up verification item.
+- No database schema/grants/RLS/data/Auth, payment, wallet, or finance changes were made.
