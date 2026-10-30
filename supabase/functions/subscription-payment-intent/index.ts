@@ -1,16 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isValidPaymobAmountCents, matchesPaymobIntention } from "../_shared/paymob-intent-correlation.mjs";
-import { encryptCheckoutSecret, decryptCheckoutSecret } from "../_shared/checkout-secret-crypto.mjs";
+import { encryptCheckoutSecret, decryptCheckoutSecret, getActiveCheckoutSecretVersion, readCheckoutSecretKey } from "../_shared/checkout-secret-crypto.mjs";
 const url=Deno.env.get("SUPABASE_URL")??""; const serviceRole=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??""; const secretKey=Deno.env.get("PAYMOB_SECRET_KEY")??""; const publicKey=Deno.env.get("PAYMOB_PUBLIC_KEY")??""; const integrationId=Deno.env.get("PAYMOB_INTEGRATION_ID")??"";
 const admin=createClient(url,serviceRole,{auth:{persistSession:false,autoRefreshToken:false}});
 const json=(body:unknown,status=200,requestId?:string)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store",...(requestId?{"X-Request-Id":requestId}:{})}});
-const checkoutKeyVersion="v1";
-const checkoutKeySecret=Deno.env.get("PAYMOB_CHECKOUT_ENCRYPTION_KEY_V1")??"";
+const readSecretEnv=(name:string)=>Deno.env.get(name)??"";
+const checkoutKeyVersion=getActiveCheckoutSecretVersion(readSecretEnv);
 const decodeBase64=(v:string)=>Uint8Array.from(atob(v),c=>c.charCodeAt(0));
-async function checkoutCryptoKey(){if(!checkoutKeySecret)throw new Error("CHECKOUT_ENCRYPTION_KEY_MISSING");const raw=decodeBase64(checkoutKeySecret);if(raw.length!==32)throw new Error("CHECKOUT_ENCRYPTION_KEY_INVALID");return crypto.subtle.importKey("raw",raw,{name:"AES-GCM"},false,["encrypt","decrypt"]);}
-async function encryptCheckoutSecretPayload(secret:string,intentId:string,businessId:string){const key=await checkoutCryptoKey();return encryptCheckoutSecret(secret,{key,version:checkoutKeyVersion,intentId,businessId});}
-async function decryptCheckoutSecretPayload(intent:Record<string,unknown>){const key=await checkoutCryptoKey();return decryptCheckoutSecret(intent,{key});}
+async function checkoutCryptoKey(version=checkoutKeyVersion){const raw=decodeBase64(readCheckoutSecretKey(version,readSecretEnv));if(raw.length!==32)throw new Error("CHECKOUT_ENCRYPTION_KEY_INVALID");return crypto.subtle.importKey("raw",raw,{name:"AES-GCM"},false,["encrypt","decrypt"]);}
+async function encryptCheckoutSecretPayload(secret:string,intentId:string,businessId:string){const key=await checkoutCryptoKey(checkoutKeyVersion);return encryptCheckoutSecret(secret,{key,version:checkoutKeyVersion,intentId,businessId});}
+async function decryptCheckoutSecretPayload(intent:Record<string,unknown>){const version=String(intent.client_secret_key_version??"");const key=await checkoutCryptoKey(version);return decryptCheckoutSecret(intent,{key});}
 Deno.serve(async req=>{
  const requestId=req.headers.get("x-request-id")||crypto.randomUUID();
  if(req.method!=="POST")return json({error:"METHOD_NOT_ALLOWED"},405,requestId);
@@ -18,8 +18,8 @@ Deno.serve(async req=>{
  try{
   const {data:{user},error:userError}=await admin.auth.getUser(auth.slice(7)); if(userError||!user||user.is_anonymous)return json({error:"AUTH_REQUIRED"},401,requestId);
   if(!secretKey||!publicKey||!integrationId)return json({error:"PAYMENT_PROVIDER_NOT_CONFIGURED",requestId},503,requestId);
-  if(!checkoutKeySecret)return json({error:"CHECKOUT_SECRET_ENCRYPTION_NOT_CONFIGURED",requestId},503,requestId);
-  try{await checkoutCryptoKey();}catch{return json({error:"CHECKOUT_SECRET_ENCRYPTION_KEY_INVALID",requestId},503,requestId);}
+  try{readCheckoutSecretKey(checkoutKeyVersion,readSecretEnv);}catch{return json({error:"CHECKOUT_SECRET_ENCRYPTION_NOT_CONFIGURED",requestId},503,requestId);}
+  try{await checkoutCryptoKey(checkoutKeyVersion);}catch{return json({error:"CHECKOUT_SECRET_ENCRYPTION_KEY_INVALID",requestId},503,requestId);}
   const body=await req.json().catch(()=>null) as Record<string,unknown>|null; if(!body)return json({error:"INVALID_JSON"},400,requestId);
   const businessId=String(body.businessId??""); const tierCode=String(body.tierCode??"").trim().toUpperCase(); const billingCycle=String(body.billingCycle??"").trim().toUpperCase(); const sector=String(body.sector??"").trim(); const idempotencyKey=String(body.idempotencyKey??"").trim();
   if(!businessId||!tierCode||!["MONTHLY","ANNUAL"].includes(billingCycle)||!idempotencyKey)return json({error:"INVALID_REQUEST"},400,requestId);
