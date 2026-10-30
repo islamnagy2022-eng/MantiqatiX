@@ -2561,7 +2561,7 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Added browser E2E cases for verified profiles with both external URLs, logo-only, cover-only, no external URLs, and unverified profiles; also tested direct storefront URL hydration.
 - [x] Exact-head Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed build/typecheck, Playwright browser E2E and isolated PostgreSQL RBAC.
 - [x] Exact-head Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed; its deploy job was skipped as expected for a pull-request event.
-- [ ] Verify the post-merge main Pages deployment and deployed-origin browser run for PR #534 before marking this final correction production-verified.
-- [ ] Audit verified activity profiles for valid external logo/cover URL coverage; missing URLs must not display empty controls or generated fallback links.
+- [x] Post-merge main Pages deployment [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) succeeded on main commit 31ef40faa136f036ebd7220e682152a79deae139; deploy, primary-root verification and deployed-origin browser suite passed.
+- [x] Read-only production audit found 2 ACTIVE verified provider profiles; both have valid HTTPS logo and cover URLs, with 0 invalid non-HTTPS configured values. Missing links remain hidden by the UI.
 - The scoped external-link correction is isolated from production data and does not change provider verification status, subscription state, layout, verified-first ranking or existing display images.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
