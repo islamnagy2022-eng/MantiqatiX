@@ -2618,6 +2618,6 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] تحديث وصف PR #540 ليعكس التنفيذ ومخاطر النشر الحقيقية؛ يبقى Draft إلى حين نجاح فحوص أحدث HEAD.
 - [ ] اجتياز exact-head validation على أحدث التزام بعد آخر تحديث لـ RC459/RC460: build/typecheck/browser E2E، RC459 وRC460 PostgreSQL، forward migration replay، migration uniqueness/history/collision، وbackend integrations.
 - [ ] مراجعة بشرية قبل الدمج. لا تطبق migrations على Production ولا تنشر Edge Functions قبل مسار النسخ الاحتياطي/الاستعادة/التراجع والموافقة المطلوبة.
-- [ ] دعم إعادة توزيع التصنيفات المخصصة `cat_custom_<UUID>` عبر نفس معاينة/حفظ RC459. الحماية الحالية تمنع حذف أو نقل التصنيف المخصص إذا كان مستخدمًا، لكن أداة إعادة التوزيع الحالية تعرض التصنيفات canonical فقط.
+- [x] دعم التصنيفات المخصصة `cat_custom_<UUID>` داخل نفس معاينة/حفظ RC459 عبر RC461: التحقق من سجل التصنيف المخصص المحفوظ ومجموعته ونوعه، وبصمة للصفوف المرتبطة، ومعاملة ذرية تحافظ على specialty/الملكية/الاشتراك/التوثيق/النشر/الهاتف/الصور. أداة الإدارة تعرض التصنيفات الأساسية والمخصصة. اختبار الاتجاهين مضاف وينتظر نتيجة CI على أحدث HEAD.
 - **السلامة:** لم تُنفذ أي كتابة أو migration أو نشر Edge Function على Production. لم تتغير بيانات الأنشطة أو الدليل أو الاشتراكات أو الملكية أو التوثيق. مهام النشر المرتبطة بالـ PR لا تسمح بالنشر الإنتاجي.
-- **الحالة:** RC459 + RC460 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION PENDING / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
+- **الحالة:** RC459 + RC460 + RC461 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION IN PROGRESS / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
