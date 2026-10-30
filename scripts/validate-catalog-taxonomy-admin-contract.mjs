@@ -32,7 +32,7 @@ assert.ok(edge.includes('const oldGroup = allowedTaxonomyGroups.find'), 'Categor
 assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks must fail closed.');
 assert.ok(edge.includes('const canonicalTaxonomyCategoryTypes = new Map<string, "activity" | "profession">'), 'Edge Function must use a server-owned canonical category/type allowlist.');
 assert.ok(edge.includes('canonicalCategoryType(sourceCategoryId)') && edge.includes('canonicalCategoryType(targetCategoryId) !== targetClassificationType'), 'Source and target IDs and target classification must match the canonical seed inventory.');
-const seededCategoryCodes = defaults.split('\\n')
+const seededCategoryCodes = defaults.split('\n')
   .map((line) => line.trim())
   .filter((line) => line.startsWith("s('"))
   .map((line) => {
