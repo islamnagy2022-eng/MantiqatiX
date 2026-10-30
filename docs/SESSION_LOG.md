@@ -889,3 +889,9 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Report: docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md. No production ACL, RLS, Auth, data or function change.
 
 - Follow-up table-level cross-check: 126 public tables have authenticated policies; 71 have restrictive anonymous guards and 55 do not. The latter are not assumed vulnerable because many have per-policy is_anonymous checks or UID/membership binding; isolated JWT tests remain mandatory.
+
+
+### Production gate manifest refresh — 2026-10-30
+- Updated docs/release/production-migration-reconciliation.json to reflect the fresh 308-row live ledger snapshot, 41 required original source versions absent, current RC449A/RC450 financial journal contract, missing RC435/RC439 subscription contract, and RLS/SECURITY DEFINER advisor snapshot.
+- Explicitly corrected the financial-journal interpretation: current main source matches RC450 RPC name; production schema/ACL is behind and deployed Edge v3 is legacy. RC436 is not the canonical production rollout.
+- No production migration, SQL, ACL, Auth, Edge Function or financial record was changed.

@@ -940,3 +940,10 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - Security gate remains BLOCKED / NOT CERTIFIED; no production RLS/ACL/Auth change was made.
 
 - [x] Follow-up table-level cross-check: 126 public tables have authenticated policies; 71 have a restrictive is_anonymous guard and 55 do not. The 55 are not vulnerabilities by count because some individual permissive predicates explicitly reject anonymous JWTs or bind to auth.uid()/membership. Detailed caveat added to the RLS audit report.
+
+
+## 2026-10-30 — Production gate manifest refresh
+- [x] Refreshed docs/release/production-migration-reconciliation.json with latest read-only ledger snapshot (308 rows, latest 20261029083845), 41 required original release-source versions still absent, corrected RC449A→RC450 financial-journal path, RC435/RC439 missing subscription contracts, and fresh RLS/SECURITY DEFINER advisor snapshot.
+- [x] Corrected the financial-journal note: current main Edge RPC name matches RC450; production is blocked by missing RC449A/RC450 and the old live RPC ACL/body. Deployed Edge v3 remains legacy and must not be restored blindly.
+- [ ] Continue exact stored-statement-to-source reconciliation and physical schema checks for the 41 required versions; do not replay aliases or fabricate migration ledger records.
+- Overall platform gate remains BLOCKED / NOT CERTIFIED.
