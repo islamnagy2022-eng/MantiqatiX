@@ -692,3 +692,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Verified RC451 forward repair 20261027223523, dashboard forward bundle 20261029041815 and Qadam follow-up 20261027205405 are present in the live ledger. RC424 and 20261027100000 marketing-contact are duplicate source aliases; preserve their target historical ledger IDs.
 - Added a dedicated read-only reconciliation document and refreshed the machine-readable reconciliation evidence. No production DDL/DML, migration, grant, Auth/RLS mutation, Edge Function deployment, payment, wallet operation or financial posting was performed.
 - Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — Executed RC428 → RC429 → RC430 disposable Paymob tests
+
+- Created branch `test/rc428-430-paymob-webhook-atomicity-20261030`.
+- Added `supabase/tests/rc428_430_paymob_webhook_fixture.sql`, `supabase/tests/rc428_430_paymob_webhook_integration.sql`, and `.github/workflows/rc428-430-paymob-webhook-atomicity.yml`.
+- Added fault-injection triggers controlled by transaction-local test flags to prove failure rollback; no production pathways are changed by these fixtures.
+- Push workflow [41000540681](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000540681) completed **SUCCESS** on exact head `69bece6d280f5a720b2219944dbf7ff6a7aaee2b`.
+- PR [#509](https://github.com/islamnagy2022-eng/MantiqatiX/pull/509) opened for review. The test-only change does not touch historical migrations or live function source.
+- Production Supabase was not modified: no migrations, SQL writes, grant/Auth/RLS changes, Edge Function deployments, payments, subscription changes, wallets, or financial rows.
+- Next: obtain successful exact-head PR checks, merge the test-only integration, then continue with RC435/RC439 and full Paymob webhook dependency reconciliation. Production remains **BLOCKED / NOT CERTIFIED**.
