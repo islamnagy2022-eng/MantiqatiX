@@ -475,7 +475,17 @@ Deno.serve(async (req: Request) => {
                 specialties.some((entry: unknown) => typeof entry !== "string" || entry.trim().length > 120)))) {
             return response(origin, { error: "INVALID_TAXONOMY_CATEGORY_SHAPE" }, 400);
           }
-          if (id.startsWith("cat_") && !canonicalCategoryType(id) &&
+          const canonicalKind = canonicalCategoryType(id);
+          if (canonicalKind && (
+              !id.startsWith(`cat_${groupId}_`) ||
+              canonicalKind !== kind
+            )) {
+            return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_OR_TYPE_MISMATCH" }, 400);
+          }
+          if (id.startsWith("cat_custom_") && !/^cat_custom_[0-9a-f-]{36}$/i.test(id)) {
+            return response(origin, { error: "INVALID_CUSTOM_TAXONOMY_CATEGORY_ID" }, 400);
+          }
+          if (id.startsWith("cat_") && !canonicalKind &&
               !id.startsWith("cat_custom_") && !id.startsWith("cat_legacy_")) {
             return response(origin, { error: "TAXONOMY_CATEGORY_GROUP_MISMATCH" }, 400);
           }
