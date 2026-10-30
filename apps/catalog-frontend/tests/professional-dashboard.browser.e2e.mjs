@@ -438,6 +438,20 @@ try {
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      const verificationSummary = page.locator('[aria-label="ملخص حالة توثيق النتائج"]');
+      await verificationSummary.waitFor({ state: 'visible' });
+      const verificationSummaryText = await verificationSummary.innerText();
+      assert.match(verificationSummaryText, /موثقة:\\s*\\d+/,
+        'unified results must show the verified count');
+      assert.match(verificationSummaryText, /غير مؤكدة:\\s*\\d+/,
+        'unified results must show the unverified count');
+      const verificationSummaryClasses = await verificationSummary.locator('span').evaluateAll((nodes) =>
+        nodes.map((node) => node.getAttribute('class') || '')
+      );
+      assert.ok(verificationSummaryClasses[0].includes('text-emerald-800'),
+        'verified result summary must use the existing green trust treatment');
+      assert.ok(verificationSummaryClasses[1].includes('text-red-700'),
+        'unverified result summary must use the existing red warning treatment');
       const confirmedBadges = page.locator('[title="أنشطة مؤكدة"]');
       await confirmedBadges.first().waitFor({ state: 'visible' });
       const primaryConfirmedClasses = await confirmedBadges.first().getAttribute('class') || '';
