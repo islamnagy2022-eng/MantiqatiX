@@ -1118,3 +1118,13 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Do not change Production grants/policies directly. Any rollout must be part of the reviewed chronological migration plan, pass isolated tests and deployed-origin public directory E2E, and follow the production approval/backup/rollback gate.
 - [x] This audit was read-only. No production grants, RLS policies, schema, data, Auth settings, secrets, Edge Functions, or financial records changed.
 - Overall Security and Production Gate remain **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Public marketing provider projection guard and main release evidence
+
+- [x] Added `scripts/validate-public-marketing-provider-exposure.mjs` and wired it into Pages production validation. It requires server-side service-role reads, ACTIVE-only explicit public provider columns, no owner UUID/provider-profile settings/raw provider rows in public responses, and confirms the primary catalog frontend uses the curated Edge Functions instead of the provider-profile base table.
+- [x] PR [#550](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/550) merged as `22bccd8f9430e2cb7f90f09896ba49a97a1f7461`. Exact-head checks: 20 success, 2 intentionally skipped; included TypeScript/build, dashboard browser E2E, employee RBAC PostgreSQL, and the new provider exposure contract.
+- [x] Main CI and deployment passed on `22bccd8f9430e2cb7f90f09896ba49a97a1f7461`: primary catalog frontend validation [run 41140247622](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41140247622), Pages deploy and deployed-origin route/mobile/membership/permanent-QR browser checks [run 41140247674](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41140247674), Production Health Monitor [run 41140247794](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41140247794).
+- [ ] Confirmed direct anonymous SELECT on `marketing_provider_profiles` remains a live least-privilege issue: table-level grant exposes `owner_user_id` and `settings` alongside intended public data. The curated Edge Functions do not return these fields, and the new CI guard protects those source projections only.
+- [ ] Reduce/review the direct anonymous table grant through a CLI-generated forward-only migration only after verifying legacy/external consumers, adding isolated Postgres privilege tests and public-directory compatibility tests, and completing ordered migration reconciliation, backup/restore, rollback and production approval. No production grant/policy change was made by PR #550.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
