@@ -917,3 +917,9 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Current main Edge Function RPC name matches RC450; live production is blocked because RC449A/RC450 are absent and the old live RPC lacks service_role EXECUTE and RC450 actor/scope semantics.
 - Follow docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md; rehearse on an isolated restorable DB before production approval.
 - Corrected audit evidence is in docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
+
+
+### Release manifest checkpoint — 2026-10-30
+- docs/release/production-migration-reconciliation.json now records current read-only evidence: 308 live migration records; 41 exact required source-version IDs still absent; RC435/RC439 subscription contracts absent; RC449A/RC450 financial journal path absent; RLS/SECURITY DEFINER advisor counts refreshed.
+- Financial journal canonical path is RC449A→RC450; current main Edge RPC name matches RC450. Do not use RC436 as a substitute.
+- Overall release remains BLOCKED pending isolated migration rehearsal, payment/finance E2E, anonymous JWT tests and backup/restore.
