@@ -197,7 +197,13 @@ Deno.serve(async (req: Request) => {
     const profile = business.settings?.catalog_profile || {};
     const selectedBranchPhone = String(selectedBranch.phone || "");
     return response(origin, {
-      business: { id: business.id, name: business.name, code: business.code, operationalStatus, isOperationallyAvailable: operationallyActive },
+      business: {
+        id: business.id, name: business.name, code: business.code, operationalStatus, isOperationallyAvailable: operationallyActive,
+        activityGroupCode: String(business.settings?.activity_group_code || business.settings?.taxonomy_group_code || ""),
+        activityCategoryCode: String(business.settings?.activity_category_code || ""),
+        activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
+        activitySpecialty: String(business.settings?.activity_specialty || ""),
+      },
       provider: {
         name: provider.name_ar || provider.name_en || business.name,
         nameAr: provider.name_ar,

@@ -20,7 +20,7 @@ assert.match(view, /coords\.accuracy/, 'GPS accuracy must be checked and communi
 assert.match(view, /if \(a\.isVerified !== b\.isVerified\) return a\.isVerified \? -1 : 1/, 'verified businesses must rank ahead of unverified businesses');
 assert.match(view, /biz\.isVerified \? 'order-1' : 'order-3'/, 'the unified grid must visually prioritize verified businesses');
 assert.match(view, /bg-red-600/, 'unverified registered activities must use the warning badge color');
-assert.match(view, /غير مؤكد/, 'unverified registered activities must be visibly labeled');
+assert.match(view, /غير موثق/, 'unverified registered activities must be visibly labeled');
 assert.match(view, /className="order-2 min-w-0 overflow-hidden rounded-xl/, 'unconfirmed directory records must appear after verified results');
 assert.match(view, /distanceKm\(userCoordinates, getCoordinates\(a\)\)/, 'distance ranking must use explicit coordinates');
 assert.match(view, /Math\.abs\(latitude\) > 90 \|\| Math\.abs\(longitude\) > 180/, 'invalid coordinates must be rejected');
