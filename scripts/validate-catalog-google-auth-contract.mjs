@@ -33,6 +33,15 @@ assert.ok(production.includes('export async function fetchPlatformSubscribers()'
 assert.ok(!bootstrapSection.includes("action: 'LIST_SUBSCRIBERS'"), 'Loading the complete subscriber directory must not block Google session bootstrap.');
 assert.ok(context.includes('void fetchPlatformSubscribers().then((result)'), 'The subscriber directory must load asynchronously after the authenticated workspace is ready.');
 assert.ok(context.includes('setSubscribersLoading(boot.authSession.role === \'admin\')'), 'The admin subscriber directory must expose a separate loading state.');
+assert.ok((context.match(/if \(!result\.error\) setSubscribers\(result\.subscribers\);/g) || []).length >= 2, 'Failed background or manual subscriber refreshes must preserve the last successfully loaded directory instead of replacing it with an empty error result.');
+assert.ok(context.includes('sequence !== authLoadSequence.current || authUserIdRef.current !== userId'), 'A stale manual subscriber response must not write into a later identity or auth sequence.');
+assert.ok(context.includes('if (!isCurrent()) return;') && context.includes('void fetchPlatformSubscribers().then((result)'), 'A stale background subscriber response must be discarded after logout or identity switching.');
+const logoutStart = context.indexOf('const logout = () => {');
+const logoutEnd = context.indexOf('const addCategory', logoutStart);
+const logoutBlock = context.slice(logoutStart, logoutEnd);
+assert.ok(logoutBlock.indexOf('authLoadSequence.current += 1') >= 0 && logoutBlock.indexOf('authUserIdRef.current = null') >= 0 && logoutBlock.indexOf('supabase.auth.signOut()') > logoutBlock.indexOf('authUserIdRef.current = null'), 'Logout must invalidate in-flight requests and clear identity before requesting Supabase sign-out.');
+assert.ok(context.includes("authSession.role !== 'admin'") && context.includes("authUserIdRef.current !== userId"), 'Manual subscriber refresh must remain restricted to the current platform-admin identity.');
+
 
 assert.ok(production.includes("isAuthenticated: false"), 'Anonymous sessions must be explicitly unauthenticated.');
 assert.ok(production.includes("isAuthenticated: true") && production.includes("userId: user.id"), 'Valid Google sessions must retain identity even without memberships.');
