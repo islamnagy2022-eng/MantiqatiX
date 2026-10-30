@@ -441,9 +441,9 @@ try {
       const verificationSummary = page.locator('[aria-label="ملخص حالة توثيق النتائج"]');
       await verificationSummary.waitFor({ state: 'visible' });
       const verificationSummaryText = await verificationSummary.innerText();
-      assert.match(verificationSummaryText, /موثقة:\\s*\\d+/,
+      assert.match(verificationSummaryText, /موثقة:\s*\d+/,
         'unified results must show the verified count');
-      assert.match(verificationSummaryText, /غير مؤكدة:\\s*\\d+/,
+      assert.match(verificationSummaryText, /غير مؤكدة:\s*\d+/,
         'unified results must show the unverified count');
       const verificationSummaryClasses = await verificationSummary.locator('span').evaluateAll((nodes) =>
         nodes.map((node) => node.getAttribute('class') || '')
