@@ -963,3 +963,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - PR #534 browser E2E passed both public directory cards and direct storefront hydration, including both URLs / logo-only / cover-only / no URLs / unverified cases.
 - The external logo/cover feature is now deployed in the frontend and both public read APIs. Existing default images remain for display only and are not presented as external links.
 - Preserve the existing UI and verified-first ranking. Overall platform Production Gate remains BLOCKED / NOT CERTIFIED for unrelated P0 security, migration, Edge/payment/finance and backup/restore gates.
+
+
+### Anonymous-session authorization checkpoint — 2026-10-30
+
+- Latest read-only check found no direct anon SELECT grants on the reviewed sensitive tables; RLS + FORCE RLS were enabled across the inventory.
+- Synthetic `is_anonymous=true` claims simulation returned zero rows for sensitive finance/order/CRM/support/notification/subscription tables and memberships. Two ACTIVE showcase business rows remained visible as intended public catalog content.
+- This does not close anonymous-JWT security: use a real Auth-issued anonymous JWT in an isolated/restorable environment, compare permanent-user and cross-tenant/business/branch cases, and test write spoofing.
+- Full evidence: `docs/audits/ANONYMOUS_SESSION_READONLY_CHECKPOINT_20261030.md`.
+- No production security changes were made. Keep release/security gate BLOCKED / NOT CERTIFIED.
