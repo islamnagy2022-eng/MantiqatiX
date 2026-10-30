@@ -139,6 +139,9 @@ export function mapBusiness(raw: any, provider: any): Business {
   const created = raw.createdAt || raw.created_at || new Date().toISOString();
   const id = String(raw.id || raw.businessId || '');
   const name = String(raw.name || provider?.name || provider?.name_ar || 'نشاط تجاري');
+  const functionalGroupId = groupFromCategory(category, String(raw.activityGroupCode || raw.activity_group_code || raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || ''));
+  const activityCategoryCode = String(raw.activityCategoryCode || raw.activity_category_code || raw.settings?.activity_category_code || '').trim();
+  const canonicalCategoryId = activityCategoryCode ? `cat_${functionalGroupId}_${activityCategoryCode}` : '';
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
   const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
@@ -146,8 +149,8 @@ export function mapBusiness(raw: any, provider: any): Business {
   const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
-    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
-    functionalGroupId: groupFromCategory(category, String(raw.activityGroupCode || raw.activity_group_code || raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || '')),
+    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id || DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id,
+    functionalGroupId,
     categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
