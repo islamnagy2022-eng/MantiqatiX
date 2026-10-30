@@ -895,3 +895,25 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Updated docs/release/production-migration-reconciliation.json to reflect the fresh 308-row live ledger snapshot, 41 required original source versions absent, current RC449A/RC450 financial journal contract, missing RC435/RC439 subscription contract, and RLS/SECURITY DEFINER advisor snapshot.
 - Explicitly corrected the financial-journal interpretation: current main source matches RC450 RPC name; production schema/ACL is behind and deployed Edge v3 is legacy. RC436 is not the canonical production rollout.
 - No production migration, SQL, ACL, Auth, Edge Function or financial record was changed.
+
+
+---
+
+## 2026-10-30 — PR #533 merged: verified activity external logo/cover links
+
+### Production data and implementation
+- Confirmed the production profile for متجر قدم السعد is ACTIVE and `marketing_provider_profiles.is_verified=true`. The earlier unverified display came from the provider-profile verification flag being false; ACTIVE business status and paid subscription were not sufficient to imply verification.
+- Merged PR [#533](https://github.com/islamnagy2022-eng/MantiqatiX/pull/533) to `main` as `f38b609b00fd0025793b00ebf7990073dfaff4c9`.
+- Directory cards and storefront headers now conditionally show external `اللوجو` / `الغلاف` links immediately after the verified badge when the corresponding URL exists. Directory links stop propagation so they do not open the parent activity card.
+
+### Verification
+- Primary Catalog Frontend Validation [41015206306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015206306) passed build/TypeScript, isolated PostgreSQL RBAC and browser jobs.
+- Supporting backend-boundary, module professionalization, SMM privacy, RC425 Paymob atomicity and flexible commission workflows passed.
+- The Pages workflow run associated with the PR completed validation, but its `deploy` job was skipped for the PR event. Therefore this is a merged source change, **not yet confirmed as deployed to the live catalog**.
+
+### TODO / next actions
+- Verify the post-merge main Pages deployment and deployed-origin display.
+- Add focused E2E for both external URLs, either URL alone, neither URL, and unverified activities; test keyboard behavior and parent-card click isolation.
+- Audit verified profiles for valid external URL coverage without fabricating assets.
+- New owner requests must be added to the canonical TODO register, linked to the parent goal, and tracked through tests and deployment; no request is considered closed at merge alone.
+- No production schema/migration/Auth/RLS/grant/Edge Function/payment/financial change was made in this PR. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
