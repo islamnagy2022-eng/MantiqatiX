@@ -842,3 +842,8 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - Post-merge main Pages deployment and deployed-origin browser run have not been confirmed. Keep this as NOT VERIFIED until the workflow result is read back.
 - No production database, migration, Auth/RLS/grant, Edge Function, secret, payment or financial record was changed.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Read-only production security and deployed Edge Function parity recheck
+
+The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md`](audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md). Supabase project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; migration ledger has 308 records through 20261029083845. Fresh Advisor: 8 RLS-enabled/no-policy tables, 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions, 90 anonymous-access table findings, and Leaked Password Protection disabled. Read-only policy inventory found 19 explicit anon/public policies and 483 authenticated policies (283 textually reference `is_anonymous`, 200 do not); do not infer vulnerability from the textual count alone. Targeted finance policies use active membership/tenant/role checks; anonymous JWT runtime tests remain open. Exact deployed-source text parity is absent for six critical Edge Functions (versions 8/8/10/5/4/3); no deployment or production change was performed. Overall Production Gate remains BLOCKED / NOT CERTIFIED.
