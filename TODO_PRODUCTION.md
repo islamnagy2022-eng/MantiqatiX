@@ -1052,3 +1052,14 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] PR #543 merged as `5e420c327b2d6197938e5252a61a73617fb8d458`; Pages deployment run [41106764523](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41106764523) passed, and post-deploy Production Health Monitor [41106764621](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41106764621) passed (2026-10-30). Main catalog browser/employee RBAC validation [41106764544](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41106764544) passed.
 - [x] No subscriptions, identities, membership rows, payments, or RLS policies were deleted, merged, or rewritten by this optimization.
 - [ ] Complete real Google-account timing verification for platform admin and business owners; record first-screen readiness separately from subscriber-directory completion.
+
+
+## 2026-10-31 — Subscriber refresh failure resilience
+
+- [x] Review confirmed that `fetchPlatformSubscribers()` returns an empty list together with an error when the backend request fails.
+- [x] Preserve the last successfully loaded subscriber directory on background/manual refresh errors; still expose the error and clear the loading indicator so the platform admin can retry.
+- [x] Extend the Google OAuth contract test to assert stale-response guards for logout/account switching, admin-only manual refresh, and preservation of last-good subscriber data on failed refresh.
+- [ ] Run exact-head TypeScript, production build, Google OAuth contract, auth/session tests, subscriber-directory tests, and deployed-origin validation.
+- [ ] Exercise a controlled failed `LIST_SUBSCRIBERS` response followed by a successful manual retry in an authorized admin browser session.
+- [ ] Real Google-account timing and cross-account verification remain NOT VERIFIED; do not infer results from static contracts or CI.
+- [x] No database migrations, memberships, subscriptions, payments, RLS policies, or production Supabase settings changed.
