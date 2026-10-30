@@ -129,6 +129,69 @@ Deno.serve(async (req: Request) => {
       return response(origin, { settings: data?.settings || {} });
     }
 
+    if (action === "TAXONOMY_MAPPING_PREVIEW" || action === "TAXONOMY_MAPPING_APPLY") {
+      const sourceGroupId = String(body.sourceGroupId || "").trim();
+      const sourceCategoryId = String(body.sourceCategoryId || "").trim();
+      const targetGroupId = String(body.targetGroupId || "").trim();
+      const targetCategoryId = String(body.targetCategoryId || "").trim();
+      const targetClassificationType = String(body.targetClassificationType || "").trim();
+      const expectedPreviewDigest = String(body.expectedPreviewDigest || "").trim();
+      const validGroup = (value: string) => [
+        "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
+        "construction_decor", "auto_transport", "real_estate", "education_training",
+        "technology_communications", "professional_services", "marketing_media",
+        "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
+        "finance_insurance", "industry_workshops", "public_community",
+      ].includes(value);
+      const matchesCategory = (value: string, groupId: string) =>
+        value.startsWith(`cat_${groupId}_`) &&
+        /^cat_[a-z][a-z0-9_]*_[a-z0-9]+(?:_[a-z0-9]+)*$/.test(value);
+      if (!validGroup(sourceGroupId) || !validGroup(targetGroupId) ||
+          !matchesCategory(sourceCategoryId, sourceGroupId) ||
+          !matchesCategory(targetCategoryId, targetGroupId) ||
+          !["activity", "profession"].includes(targetClassificationType)) {
+        return response(origin, { error: "INVALID_TAXONOMY_MAPPING" }, 400);
+      }
+      if (action === "TAXONOMY_MAPPING_APPLY" && !/^[a-f0-9]{32}$/i.test(expectedPreviewDigest)) {
+        return response(origin, { error: "TAXONOMY_PREVIEW_REQUIRED" }, 409);
+      }
+      const rpcName = action === "TAXONOMY_MAPPING_PREVIEW"
+        ? "mnty_catalog_taxonomy_mapping_preview"
+        : "mnty_catalog_taxonomy_mapping_apply";
+      const rpcArgs: Record<string, unknown> = {
+        p_actor_user_id: user.id,
+        p_source_group_id: sourceGroupId,
+        p_source_category_id: sourceCategoryId,
+        p_target_group_id: targetGroupId,
+        p_target_category_id: targetCategoryId,
+        p_target_classification_type: targetClassificationType,
+      };
+      if (action === "TAXONOMY_MAPPING_APPLY") rpcArgs.p_expected_preview_digest = expectedPreviewDigest;
+      const { data, error } = await service.rpc(rpcName, rpcArgs as any);
+      if (error) {
+        const message = String(error.message || "");
+        const code = [
+          "PLATFORM_ADMIN_REQUIRED",
+          "TAXONOMY_INVALID_GROUP",
+          "TAXONOMY_INVALID_CATEGORY_ID",
+          "TAXONOMY_INVALID_CATEGORY_CODE",
+          "TAXONOMY_INVALID_CLASSIFICATION_TYPE",
+          "TAXONOMY_MAPPING_IS_NOOP",
+          "TAXONOMY_PREVIEW_REQUIRED",
+          "TAXONOMY_PREVIEW_STALE",
+          "TAXONOMY_NO_MATCHING_RECORDS",
+          "TAXONOMY_APPLY_COUNT_MISMATCH",
+        ].find((candidate) => message.includes(candidate)) || "TAXONOMY_MAPPING_FAILED";
+        const status = code === "PLATFORM_ADMIN_REQUIRED" ? 403
+          : ["TAXONOMY_PREVIEW_REQUIRED", "TAXONOMY_PREVIEW_STALE", "TAXONOMY_NO_MATCHING_RECORDS"].includes(code) ? 409
+          : code === "TAXONOMY_MAPPING_FAILED" ? 500 : 400;
+        return response(origin, { error: code }, status);
+      }
+      return action === "TAXONOMY_MAPPING_PREVIEW"
+        ? response(origin, { success: true, preview: data })
+        : response(origin, { success: true, result: data });
+    }
+
     if (action === "SAVE_SETTINGS") {
       const input = body.settings && typeof body.settings === "object" ? body.settings : {};
       const safe: Record<string, unknown> = {};
