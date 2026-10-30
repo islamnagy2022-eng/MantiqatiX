@@ -762,8 +762,13 @@ Deno.serve(async (req: Request) => {
       const name = String(input.name || "").trim();
       const category = String(input.category || "").trim();
       const activityGroupCode = String(input.activityGroupCode || "").trim().toLowerCase();
+      const activityCategoryId = String(input.activityCategoryId || "").trim();
       const activityClassificationType = String(input.activityClassificationType || "activity").trim().toLowerCase();
       const activitySpecialty = String(input.activitySpecialty || "").trim();
+      const canonicalActivityCategoryType = canonicalTaxonomyCategoryTypes.get(activityCategoryId);
+      const canonicalActivityCategoryCode = canonicalActivityCategoryType && activityGroupCode
+        ? activityCategoryId.slice(`cat_${activityGroupCode}_`.length) : "";
+      const customActivityCategoryId = /^cat_custom_[0-9a-f-]{36}$/i.test(activityCategoryId);
       const canonicalActivityGroups = new Set([
         "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
         "construction_decor", "auto_transport", "real_estate", "education_training",
@@ -788,6 +793,11 @@ Deno.serve(async (req: Request) => {
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
       if (activityGroupCode && !canonicalActivityGroups.has(activityGroupCode)) return response(origin, { error: "INVALID_ACTIVITY_GROUP" }, 400);
+      if (activityCategoryId && (
+        (!canonicalActivityCategoryType && !customActivityCategoryId) ||
+        (canonicalActivityCategoryType && (!activityCategoryId.startsWith(`cat_${activityGroupCode}_`) || canonicalActivityCategoryType !== activityClassificationType))
+      )) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
+      if (activityCategoryId && !activityGroupCode) return response(origin, { error: "ACTIVITY_CATEGORY_GROUP_REQUIRED" }, 400);
       if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "If provided, the owner WhatsApp number must contain 10 to 15 digits." }, 400);
@@ -857,6 +867,8 @@ Deno.serve(async (req: Request) => {
             activity_code: category,
             category_code: category,
             ...(activityGroupCode ? { activity_group_code: activityGroupCode } : {}),
+            ...(activityCategoryId ? { activity_category_id: activityCategoryId } : {}),
+            ...(canonicalActivityCategoryCode ? { activity_category_code: canonicalActivityCategoryCode } : {}),
             activity_classification_type: activityClassificationType,
             activity_specialty: activitySpecialty || null,
             catalog_public_enabled: false,
