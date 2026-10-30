@@ -2600,22 +2600,24 @@ Use the following hierarchy; these files are complementary, not competing copies
 - **الحالة:** SOURCE MERGED / ISOLATED VERIFIED / PRODUCTION NOT APPLIED. بوابة المنصة الكلية تظل BLOCKED / NOT CERTIFIED.
 
 
-## CAT-TAXONOMY-ADMIN-SECURITY-20261030 — Secure taxonomy mapping administration
-- [x] مراجعة مصدرية لتبويب التصنيفات الحالي وحدود صلاحيات `catalog-platform-admin` ومسار `SAVE_SETTINGS`.
-- [x] تقوية `SAVE_SETTINGS`: التحقق الخادمي من المجموعات والحقول والأسماء والمعرفات والأنواع والتكرارات والأحجام، وإيقاف حذف/نقل أي تصنيف ما زالت أنشطة أو سجلات دليل تستخدمه.
-- [x] إنشاء migration أمامية فقط `20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql`، مع RPC منفصل للمعاينة وRPC للحفظ الذري، والتحقق داخل قاعدة البيانات من عضوية SUPER_ADMIN النشطة ذات نطاق PLATFORM الكامل.
-- [x] حماية RPCs عبر `service_role` فقط، مع منع EXECUTE المباشر عن `anon` و`authenticated`، وإعادة فحص صلاحيات المستخدم الفعلي قبل استدعائها من Edge Function.
-- [x] إضافة allowlist خادمية ثابتة تضم 226 تصنيفًا canonical مع نوع كل تصنيف (activity/profession)، ومطابقة آلية لمصدر `productionDefaults.ts`. المعاينة والحفظ يرفضان أي معرف أو نوع لا يطابق هذه القائمة.
-- [x] إضافة `catalog_taxonomy_mapping_audit` بسجل غير قابل للتعديل أو الحذف، وFORCE RLS ومنع الوصول المباشر للأدوار، مع حفظ حقول التصنيف التي تغيرت فقط بدل نسخ إعدادات النشاط كاملة.
-- [x] إضافة بصمة معاينة، وعدّ الأنشطة وسجلات الدليل، وعينة محدودة، وقفل للمعاملة وإعادة تحقق من البصمة قبل الحفظ، ورفض المعاينة القديمة، وتنفيذ التعديلات وسجل التدقيق في معاملة واحدة.
-- [x] تحديث إنشاء النشاط الجديد ليرسل `activityCategoryId`؛ يتحقق الخادم من المعرف والنوع والمجال، ويحفظ `activity_category_id` و`activity_category_code` عند انطباقه. استجابات الدليل والصفحة العامة ومحوّل البيانات تحفظ معرف التصنيف المخصص/الأساسي.
-- [x] إضافة لوحة إدارية جديدة داخل تبويب التصنيف الحالي دون تعديل واجهة الدليل أو المتجر العام: معاينة للعدد والعينة، إلغاء المعاينة، تأكيد صريح، ومنع الحفظ عند تغير البيانات بعد المعاينة.
-- [x] إضافة اختبارات PostgreSQL معزولة تشمل المعاينة بلا كتابة، وعدم صلاحية البصمة القديمة، والتصنيف غير الصحيح، ورفض OWNER/CUSTOMER/SERVICE_PROVIDER/EMPLOYEE وSUPER_ADMIN محدود بالمستأجر أو بحساب/فرع أو غير نشط، واختبار فشل داخل المعاملة والتراجع الكامل، وحفظ بيانات الاشتراك والتوثيق والنشر والهاتف والتخصص.
-- [x] إضافة Workflow مستقل لـ RC459، ومدقق مصدر آلي، واختبار متصفح لتدفق المعاينة ثم الإلغاء ثم المعاينة الجديدة ثم الحفظ المؤكد.
-- [x] اجتياز التحقق على الالتزام `fe237e2375e2cb7ccd9a7c746c7ad28ba335712f`: TypeScript/build، مدقق التصنيفات ومدقق RC459، اختبارات RBAC، Browser E2E، RC459 PostgreSQL، forward migration replay المعزول، migration uniqueness/history/collision، وBackend module boundaries. راجع أرقام التشغيل المسجلة في تقرير التدقيق.
-- [x] مراجعة التصنيفات المستهدفة مقابل مصدر الـ 226 تصنيفًا في الكود، وليس جدول الإعدادات الفارغ في Production؛ لا يعتمد القرار على `bizcatalog_platform_settings.categories`.
-- [ ] إعادة تشغيل الاختبارات على أحدث HEAD بعد فصل حالتي رفض SUPER_ADMIN المرتبط بنشاط عن المرتبط بفرع في fixture؛ يجب أن تنجح RC459 وPrimary Catalog build/browser E2E وforward replay وmigration guards على الالتزام النهائي.
-- [ ] إضافة سجل تدقيق ذري مستقل لعمليات إنشاء/تعديل/حذف تعريف التصنيفات نفسها عبر `SAVE_SETTINGS`. الحماية الحالية تمنع الإدخالات غير الصالحة وحذف تصنيف مستخدم، لكن سجل RC459 الحالي خاص بعمليات إعادة توزيع سجلات الأنشطة والدليل.
-- [ ] مراجعة بشرية للتغييرات واعتمادها قبل الدمج. لا يُطبّق migration ولا تنشر Edge Function قبل مسار الإصدار المعتمد والنسخ الاحتياطي/الاستعادة والموافقة المطلوبة.
-- **السلامة:** لم تُنفذ أي كتابة أو migration أو نشر Edge Function على Production. لم تتغير بيانات الأنشطة أو الدليل. نشر PR إلى الموقع العام غير مسموح؛ مهام deploy الخاصة بالـ PR كانت skipped.
-- **الحالة:** IMPLEMENTED / PRIOR VALIDATION PASS / FINAL-HEAD RECHECK PENDING / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
+## CAT-TAXONOMY-ADMIN-SECURITY-20261030 — Secure taxonomy mapping and definition audit
+- [x] مراجعة تبويب التصنيفات الحالي وحدود صلاحيات `catalog-platform-admin` ومسار `SAVE_SETTINGS`.
+- [x] تقوية التحقق الخادمي من المجموعات والحقول والأسماء والمعرفات والأنواع والتكرارات والأحجام، ومنع حذف/نقل أي تصنيف مستخدم في الأنشطة أو سجلات الدليل.
+- [x] إضافة RC459 migration أمامية فقط للمعاينة read-only والحفظ الذري، مع بصمة معاينة، وأعداد، وعينة محدودة، ورفض البصمة القديمة، وأقفال معاملة.
+- [x] حصر RC459 في `service_role` مع إعادة تحقق من جلسة Auth وعضوية SUPER_ADMIN نشطة بنطاق PLATFORM الكامل في Edge Function وقاعدة البيانات.
+- [x] اعتماد allowlist خادمية للـ 226 تصنيفًا canonical مع نوع النشاط/المهنة ومطابقتها بمصدر `productionDefaults.ts`.
+- [x] تحديث إعادة التصنيف لتشمل `activity_category_id` و`activity_category_code` و`activity_group_code` و`activity_classification_type` مع التقاط المعرف المستقر في البصمة وbefore-image. تم الحفاظ على التخصص الدقيق والملكية والاشتراك والتوثيق والنشر والهاتف والصور.
+- [x] حفظ هوية التصنيف عند إنشاء نشاط جديد، وإرجاعها بأمان من الدليل وصفحة النشاط، والحفاظ عليها أثناء hydration.
+- [x] إضافة لوحة معاينة/إلغاء/تأكيد داخل لوحة الإدارة الحالية دون تغيير واجهة الدليل أو المتجر العام.
+- [x] إضافة RC459 immutable audit table مع FORCE RLS ومنع الوصول المباشر ورفض UPDATE/DELETE.
+- [x] إضافة RC460 migration `20261030150000_rc460_taxonomy_definition_audit.sql`: Trigger ذري على `bizcatalog_platform_settings` يسجل تغييرات `categories` و`functionalGroups` و`defaultCategories` فقط، ويهمل تغييرات الإعدادات الأخرى.
+- [x] RC460 يعيد فحص أن `updated_by` يمتلك عضوية SUPER_ADMIN نشطة ونطاق PLATFORM كاملًا داخل Trigger قاعدة البيانات؛ لا يقبل هوية مستخدم مزيفة أو دورًا غير مخول.
+- [x] RC460 audit table محمي بـ FORCE RLS، دون grants مباشرة لـ `public/anon/authenticated/service_role`، وسجل غير قابل للتعديل أو الحذف. حذف تصنيف من مصفوفة الإعدادات يُسجل كتحديث مع before/after snapshots.
+- [x] إضافة اختبارات PostgreSQL معزولة لـ RC459 وRC460 تشمل RBAC، معاينة بلا كتابة، stale digest، حفظ المعرف المستقر، rollback، تغييرات التعريف، عدم تسجيل الضوضاء غير المتعلقة بالتصنيف، ورفض actor غير مخول.
+- [x] إضافة browser E2E لتدفق المعاينة ثم الإلغاء ثم المعاينة الجديدة والحفظ المؤكد، مع اختبار mobile layout.
+- [x] تحديث وصف PR #540 ليعكس التنفيذ ومخاطر النشر الحقيقية؛ يبقى Draft إلى حين نجاح فحوص أحدث HEAD.
+- [ ] اجتياز exact-head validation على أحدث التزام بعد آخر تحديث لـ RC459/RC460: build/typecheck/browser E2E، RC459 وRC460 PostgreSQL، forward migration replay، migration uniqueness/history/collision، وbackend integrations.
+- [ ] مراجعة بشرية قبل الدمج. لا تطبق migrations على Production ولا تنشر Edge Functions قبل مسار النسخ الاحتياطي/الاستعادة/التراجع والموافقة المطلوبة.
+- [ ] دعم إعادة توزيع التصنيفات المخصصة `cat_custom_<UUID>` عبر نفس معاينة/حفظ RC459. الحماية الحالية تمنع حذف أو نقل التصنيف المخصص إذا كان مستخدمًا، لكن أداة إعادة التوزيع الحالية تعرض التصنيفات canonical فقط.
+- **السلامة:** لم تُنفذ أي كتابة أو migration أو نشر Edge Function على Production. لم تتغير بيانات الأنشطة أو الدليل أو الاشتراكات أو الملكية أو التوثيق. مهام النشر المرتبطة بالـ PR لا تسمح بالنشر الإنتاجي.
+- **الحالة:** RC459 + RC460 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION PENDING / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
