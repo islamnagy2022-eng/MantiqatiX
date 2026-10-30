@@ -16,9 +16,9 @@ function providerQueryBlock(source, label) {
 }
 
 function assertServerRole(source, label, keyName) {
-  assert.match(source, new RegExp(`const\\s+${keyName}\\s*=\\s*Deno\\.env\\.get\\(["']SUPABASE_SERVICE_ROLE_KEY["']\\)`),
+  assert.match(source, new RegExp(`${keyName}\\\\s*=\\\\s*Deno\\\\.env\\\\.get\\\\(["']SUPABASE_SERVICE_ROLE_KEY["']\\\\)`),
     `${label} must read the service-role key only inside the Edge Function`);
-  assert.match(source, new RegExp(`createClient\\([\\s\\S]{0,240}${keyName}`),
+  assert.match(source, new RegExp(`createClient\\\\([\\\\s\\\\S]{0,240}${keyName}`),
     `${label} must use its server-side service-role client`);
 }
 
