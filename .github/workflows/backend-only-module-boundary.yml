@@ -21,6 +21,7 @@ jobs:
       - run: node scripts/validate-module-runtime-contracts.mjs
       - run: node scripts/validate-sensitive-module-writes.mjs
       - run: node scripts/validate-financial-journal-service-role.mjs
+      - run: node scripts/validate-financial-journal-schema-prerequisites.mjs
 
   approval-action-audit-postgres:
     runs-on: ubuntu-latest
@@ -71,16 +72,23 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
-      - name: Apply RC450 to disposable PostgreSQL and run behavioral tests
+      - name: Apply legacy fixture, then RC449A and RC450 in order
         shell: bash
         run: |
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
-          docker cp supabase/tests/rc450_financial_journal_fixture.sql "$pg_container:/tmp/rc450_fixture.sql"
+          docker cp supabase/tests/rc449a_financial_journal_schema_fixture.sql "$pg_container:/tmp/rc449a_fixture.sql"
+          docker cp supabase/tests/rc449a_rc450_financial_journal_support.sql "$pg_container:/tmp/chain_support.sql"
+          docker cp supabase/migrations/20261010175000_rc449a_financial_journal_schema_prerequisites.sql "$pg_container:/tmp/rc449a_migration.sql"
+          docker cp supabase/tests/rc449a_financial_journal_schema_integration.sql "$pg_container:/tmp/rc449a_test.sql"
           docker cp supabase/migrations/20261010180000_rc450_financial_journal_service_role_boundary.sql "$pg_container:/tmp/rc450_migration.sql"
+          docker cp supabase/tests/rc450_financial_journal_trigger_setup.sql "$pg_container:/tmp/rc450_triggers.sql"
           docker cp supabase/tests/rc450_financial_journal_integration.sql "$pg_container:/tmp/rc450_test.sql"
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc449a_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/chain_support.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc449a_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc449a_test.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_migration.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_triggers.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_test.sql
-
