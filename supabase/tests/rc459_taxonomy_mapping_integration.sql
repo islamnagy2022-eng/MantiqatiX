@@ -48,7 +48,7 @@ begin
 
   insert into public.businesses(id,tenant_id,name,settings)
   values
-    (business_a,'MNTY-PLATFORM','Business A','{"activity_group_code":"food_grocery","activity_category_code":"cafes","activity_classification_type":"activity","activity_specialty":"قهوة مختصة","bizcatalog":{"paymentStatus":"paid"},"unrelated":"keep"}'::jsonb),
+    (business_a,'MNTY-PLATFORM','Business A','{"activity_group_code":"food_grocery","activity_category_code":"cafes","activity_category_id":"cat_food_grocery_cafes","activity_classification_type":"activity","activity_specialty":"قهوة مختصة","bizcatalog":{"paymentStatus":"paid"},"unrelated":"keep"}'::jsonb),
     (business_b,'MNTY-PLATFORM','Business B','{"activity_group_code":"food_grocery","activity_category_code":"cafes","activity_classification_type":"activity","activity_specialty":"مقهى","custom_flag":true}'::jsonb),
     (business_other,'MNTY-PLATFORM','Business Other','{"activity_group_code":"food_grocery","activity_category_code":"restaurants","activity_classification_type":"activity"}'::jsonb);
 
