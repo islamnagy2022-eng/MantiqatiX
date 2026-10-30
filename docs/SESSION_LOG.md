@@ -705,3 +705,17 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - PR [#509](https://github.com/islamnagy2022-eng/MantiqatiX/pull/509) opened for review. The test-only change does not touch historical migrations or live function source.
 - Production Supabase was not modified: no migrations, SQL writes, grant/Auth/RLS changes, Edge Function deployments, payments, subscription changes, wallets, or financial rows.
 - Next: obtain successful exact-head PR checks, merge the test-only integration, then continue with RC435/RC439 and full Paymob webhook dependency reconciliation. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC426–RC431 Paymob CI evidence and production recheck
+
+- Merged PR #510 (`2144759cdfdfc1d9d230ae77570e036c4e4f17f1`) adding disposable PostgreSQL 16 RC428–RC430 tests. Workflow [41000675401](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41000675401) passed.
+- Merged PR #511 (`de2493ed772e23ab3091e2ea1f44ff33c6d495dd`) adding disposable PostgreSQL 16 RC426–RC427 tests. Workflow [41001093795](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001093795) passed.
+- Existing RC431 integration passed on current main in workflow [41001452642](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001452642).
+- Current main is `7d10152bf226fdd08d1dc70ed9c452bc37947bb8`. Web deploy [41001452658](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001452658) passed validation and deploy jobs; Production Health Monitor [41001452657](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001452657) passed. This is web deployment evidence only.
+- Fresh read-only Supabase queries reconfirmed 308 migration records through `20261029083845`. Live RC426 still exposes only the legacy four-argument finalizer with authenticated EXECUTE; live RC431 still uses `search_path=public, pg_temp`; queried RC428/429/430 and RC435 backend RPCs remain absent; RC435 and RC439 subscription columns remain absent; RC450 journal RPCs still lack service_role EXECUTE and required journal columns remain absent.
+- No production SQL writes, migrations, grants, Auth/RLS changes, Edge Function deployments, payments, subscription changes, wallet operations or financial postings were performed.
+- Next: reconcile the entire RC425–RC441 chain and exact forward-bundle effects on a schema-faithful disposable snapshot; do not run production migrations out of order. Continue semantic parity review of the six critical Edge Functions and obtain backup/restore, rollback and provider sandbox evidence.
+- Overall release remains **BLOCKED / NOT CERTIFIED**.
