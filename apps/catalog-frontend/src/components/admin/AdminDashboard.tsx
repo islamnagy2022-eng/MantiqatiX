@@ -230,6 +230,115 @@ export const AdminDashboard: React.FC = () => {
 
   // Taxonomy tab filter
   const [taxonomyGroupFilter, setTaxonomyGroupFilter] = useState<string>('all');
+  type TaxonomyMappingPreview = {
+    sourceGroupId: string;
+    sourceCategoryId: string;
+    targetGroupId: string;
+    targetCategoryId: string;
+    targetClassificationType: 'activity' | 'profession';
+    businessCount: number;
+    listingCount: number;
+    totalCount: number;
+    previewDigest: string;
+    canApply: boolean;
+    sample: Array<{
+      record_type: string;
+      record_id: string;
+      display_name: string;
+      old_group_id: string;
+      old_category_id: string;
+      new_group_id: string;
+      new_category_id: string;
+    }>;
+  };
+  const canonicalTaxonomyCategories = categories.filter((category) =>
+    category.id.startsWith(`cat_${category.functionalGroupId}_`)
+  );
+  const [taxonomySourceCategoryId, setTaxonomySourceCategoryId] = useState(
+    canonicalTaxonomyCategories[0]?.id || ''
+  );
+  const [taxonomyTargetCategoryId, setTaxonomyTargetCategoryId] = useState(
+    canonicalTaxonomyCategories.find((category) => category.id !== canonicalTaxonomyCategories[0]?.id)?.id || ''
+  );
+  const [taxonomyMappingPreview, setTaxonomyMappingPreview] = useState<TaxonomyMappingPreview | null>(null);
+  const [taxonomyMappingBusy, setTaxonomyMappingBusy] = useState(false);
+  const [taxonomyMappingFeedback, setTaxonomyMappingFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const taxonomySourceCategory = canonicalTaxonomyCategories.find((category) => category.id === taxonomySourceCategoryId);
+  const taxonomyTargetCategory = canonicalTaxonomyCategories.find((category) => category.id === taxonomyTargetCategoryId);
+
+  const handleTaxonomyMappingPreview = async () => {
+    if (!taxonomySourceCategory || !taxonomyTargetCategory) {
+      setTaxonomyMappingFeedback({ type: 'error', message: 'اختر تصنيفًا حاليًا وتصنيفًا مستهدفًا صالحين.' });
+      return;
+    }
+    setTaxonomyMappingBusy(true);
+    setTaxonomyMappingFeedback(null);
+    setTaxonomyMappingPreview(null);
+    try {
+      const response = await callPlatformAdmin<{ success: boolean; preview: TaxonomyMappingPreview }>({
+        action: 'TAXONOMY_MAPPING_PREVIEW',
+        sourceGroupId: taxonomySourceCategory.functionalGroupId,
+        sourceCategoryId: taxonomySourceCategory.id,
+        targetGroupId: taxonomyTargetCategory.functionalGroupId,
+        targetCategoryId: taxonomyTargetCategory.id,
+        targetClassificationType: taxonomyTargetCategory.classificationType || 'activity',
+      });
+      if (response?.success !== true || !response.preview?.previewDigest) {
+        throw new Error('لم يُرجع الخادم معاينة موثوقة للتغييرات.');
+      }
+      setTaxonomyMappingPreview(response.preview);
+      setTaxonomyMappingFeedback({
+        type: 'success',
+        message: response.preview.totalCount > 0
+          ? 'اكتملت المعاينة دون تعديل أي بيانات. راجع الأعداد والعينات قبل الاعتماد.'
+          : 'المعاينة اكتملت، لكن لا توجد سجلات تستخدم التصنيف الحالي.',
+      });
+    } catch (error) {
+      setTaxonomyMappingFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'تعذر إنشاء معاينة تغيير التصنيف.',
+      });
+    } finally {
+      setTaxonomyMappingBusy(false);
+    }
+  };
+
+  const handleApplyTaxonomyMapping = async () => {
+    if (!taxonomyMappingPreview?.canApply || !taxonomyMappingPreview.previewDigest) return;
+    const confirmation = window.confirm(
+      `تأكيد إعادة التصنيف؟ سيتم نقل ${taxonomyMappingPreview.businessCount} نشاطًا و${taxonomyMappingPreview.listingCount} سجل دليل إلى التصنيف المستهدف. لن تتغير الملكية أو الاشتراكات أو التوثيق أو النشر أو الهواتف أو الصور أو التخصصات الدقيقة. سيتم رفض التنفيذ تلقائيًا إذا تغيرت البيانات منذ المعاينة.`
+    );
+    if (!confirmation) return;
+    setTaxonomyMappingBusy(true);
+    setTaxonomyMappingFeedback(null);
+    try {
+      const response = await callPlatformAdmin<{ success: boolean; result: { success: boolean; auditId: string; businessCount: number; listingCount: number } }>({
+        action: 'TAXONOMY_MAPPING_APPLY',
+        sourceGroupId: taxonomyMappingPreview.sourceGroupId,
+        sourceCategoryId: taxonomyMappingPreview.sourceCategoryId,
+        targetGroupId: taxonomyMappingPreview.targetGroupId,
+        targetCategoryId: taxonomyMappingPreview.targetCategoryId,
+        targetClassificationType: taxonomyMappingPreview.targetClassificationType,
+        expectedPreviewDigest: taxonomyMappingPreview.previewDigest,
+      });
+      if (response?.success !== true || response.result?.success !== true || !response.result.auditId) {
+        throw new Error('لم يؤكد الخادم تنفيذ التغيير وتسجيله في سجل التدقيق.');
+      }
+      setTaxonomyMappingPreview(null);
+      setTaxonomyMappingFeedback({
+        type: 'success',
+        message: `تم نقل ${response.result.businessCount} نشاطًا و${response.result.listingCount} سجل دليل. رقم سجل التدقيق: ${response.result.auditId}. سيتم تحديث لوحة الإدارة.`,
+      });
+      window.setTimeout(() => window.location.reload(), 900);
+    } catch (error) {
+      setTaxonomyMappingFeedback({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'فشل تطبيق التغيير؛ لم يتم اعتماد النتيجة.',
+      });
+    } finally {
+      setTaxonomyMappingBusy(false);
+    }
+  };
 
   // Admin WhatsApp & Password Settings
   const [adminPhone, setAdminPhone] = useState(adminSettings.adminWhatsApp);
@@ -1053,6 +1162,123 @@ export const AdminDashboard: React.FC = () => {
               <span>إضافة تصنيف جديد</span>
             </button>
           </div>
+
+          {/* Secure single-category mapping: preview is read-only; commit is transactional and audited. */}
+          <section className="rounded-3xl border border-indigo-200 bg-white p-5 sm:p-6 shadow-xs space-y-4" aria-labelledby="taxonomy-mapping-title">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 id="taxonomy-mapping-title" className="font-black text-base text-slate-900">إدارة ربط التصنيفات وإعادة توزيع السجلات</h3>
+                <p className="mt-1 text-xs leading-6 text-slate-600">
+                  اختر تصنيفًا حاليًا ووجهة معتمدة. المعاينة تقرأ الأنشطة وسجلات الدليل فقط ولا تحفظ شيئًا. الحفظ يتطلب معاينة حديثة ويُسجل لقطة تدقيق غير قابلة للتعديل.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-black text-emerald-800">
+                معاينة قبل الحفظ
+              </span>
+            </div>
+            {canonicalTaxonomyCategories.length < 2 ? (
+              <p className="rounded-xl bg-amber-50 p-3 text-xs font-bold text-amber-900">لا توجد تصنيفات قانونية كافية لإنشاء عملية ربط.</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <label className="block space-y-1.5">
+                    <span className="text-xs font-bold text-slate-700">التصنيف الحالي المراد نقله</span>
+                    <select
+                      value={taxonomySourceCategoryId}
+                      disabled={taxonomyMappingBusy}
+                      onChange={(event) => { setTaxonomySourceCategoryId(event.target.value); setTaxonomyMappingPreview(null); setTaxonomyMappingFeedback(null); }}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+                    >
+                      {canonicalTaxonomyCategories.map((category) => {
+                        const group = functionalGroups.find((item) => item.id === category.functionalGroupId);
+                        return <option key={category.id} value={category.id}>{group?.shortName || group?.name || category.functionalGroupId} — {category.name}</option>;
+                      })}
+                    </select>
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-xs font-bold text-slate-700">التصنيف المستهدف</span>
+                    <select
+                      value={taxonomyTargetCategoryId}
+                      disabled={taxonomyMappingBusy}
+                      onChange={(event) => { setTaxonomyTargetCategoryId(event.target.value); setTaxonomyMappingPreview(null); setTaxonomyMappingFeedback(null); }}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+                    >
+                      {canonicalTaxonomyCategories.map((category) => {
+                        const group = functionalGroups.find((item) => item.id === category.functionalGroupId);
+                        return <option key={category.id} value={category.id}>{group?.shortName || group?.name || category.functionalGroupId} — {category.name}</option>;
+                      })}
+                    </select>
+                  </label>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={taxonomyMappingBusy || !taxonomySourceCategory || !taxonomyTargetCategory || taxonomySourceCategoryId === taxonomyTargetCategoryId}
+                    onClick={() => void handleTaxonomyMappingPreview()}
+                    className="rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-black text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {taxonomyMappingBusy ? 'جارٍ الفحص...' : 'إنشاء معاينة آمنة'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!taxonomyMappingPreview || !taxonomyMappingPreview.canApply || taxonomyMappingBusy}
+                    onClick={() => void handleApplyTaxonomyMapping()}
+                    className="rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-black text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    اعتماد التغيير وتسجيله
+                  </button>
+                  {taxonomyMappingPreview ? (
+                    <button
+                      type="button"
+                      disabled={taxonomyMappingBusy}
+                      onClick={() => { setTaxonomyMappingPreview(null); setTaxonomyMappingFeedback(null); }}
+                      className="rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                      إلغاء المعاينة
+                    </button>
+                  ) : null}
+                </div>
+                {taxonomyMappingFeedback ? (
+                  <p role="status" className={`rounded-xl border p-3 text-xs font-bold leading-6 ${taxonomyMappingFeedback.type === 'error' ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>
+                    {taxonomyMappingFeedback.message}
+                  </p>
+                ) : null}
+                {taxonomyMappingPreview ? (
+                  <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      <div className="rounded-xl bg-white p-3"><div className="text-[10px] font-bold text-slate-500">الأنشطة التجارية</div><div className="mt-1 text-2xl font-black text-slate-900">{taxonomyMappingPreview.businessCount}</div></div>
+                      <div className="rounded-xl bg-white p-3"><div className="text-[10px] font-bold text-slate-500">سجلات الدليل العام</div><div className="mt-1 text-2xl font-black text-slate-900">{taxonomyMappingPreview.listingCount}</div></div>
+                      <div className="rounded-xl bg-white p-3"><div className="text-[10px] font-bold text-slate-500">الإجمالي</div><div className="mt-1 text-2xl font-black text-slate-900">{taxonomyMappingPreview.totalCount}</div></div>
+                    </div>
+                    <div className="text-xs text-slate-700">
+                      <strong>من:</strong> {taxonomySourceCategory?.name || taxonomyMappingPreview.sourceCategoryId}
+                      <span className="mx-2 text-slate-400">←</span>
+                      <strong>إلى:</strong> {taxonomyTargetCategory?.name || taxonomyMappingPreview.targetCategoryId}
+                    </div>
+                    <p className="break-all text-[10px] text-slate-500">بصمة المعاينة: {taxonomyMappingPreview.previewDigest}</p>
+                    <div>
+                      <h4 className="mb-2 text-xs font-black text-slate-800">عينة السجلات المتأثرة (حتى 50 سجلًا)</h4>
+                      {taxonomyMappingPreview.sample.length ? (
+                        <ul className="max-h-56 space-y-1 overflow-y-auto rounded-xl bg-white p-3 text-xs">
+                          {taxonomyMappingPreview.sample.map((item) => (
+                            <li key={`${item.record_type}:${item.record_id}`} className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 py-1.5 last:border-0">
+                              <span className="font-bold text-slate-800">{item.display_name}</span>
+                              <span className="text-[10px] text-slate-500">{item.record_type === 'business' ? 'نشاط' : 'دليل عام'}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="rounded-xl bg-white p-3 text-xs text-slate-500">لا توجد سجلات تطابق التصنيف الحالي.</p>
+                      )}
+                    </div>
+                    <p className="text-[11px] leading-5 text-amber-800">
+                      لن تتغير بيانات الملكية والاشتراك والتوثيق والنشر والهاتف والصور والتخصصات الدقيقة. أي تغيير يحدث بعد المعاينة يجعل بصمتها قديمة ويرفض الخادم الحفظ.
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            )}
+          </section>
 
           {/* Functional Groups Grid with Capabilities */}
           <div>
