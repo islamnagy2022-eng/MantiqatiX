@@ -579,7 +579,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // repeated submissions of the same form share one Promise; different payloads
     // remain independent and are never merged by name/phone heuristics here.
     const createBusinessPayload = {
-      name: data.name, category: data.category, activityGroupCode: data.functionalGroupId,
+      name: data.name, category: data.category, activityCategoryId: data.categoryId || '', activityGroupCode: data.functionalGroupId,
       activityClassificationType: data.categoryClassificationType || 'activity',
       activitySpecialty: data.activitySpecialty || '', bio: data.bio,
       phone: data.ownerWhatsApp || data.phone || '', address: data.address || '',
