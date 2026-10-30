@@ -2565,3 +2565,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Read-only production audit found 2 ACTIVE verified provider profiles; both have valid HTTPS logo and cover URLs, with 0 invalid non-HTTPS configured values. Missing links remain hidden by the UI.
 - The scoped external-link correction is isolated from production data and does not change provider verification status, subscription state, layout, verified-first ranking or existing display images.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
+
+
+## 2026-10-30 — Anonymous-session read-only authorization checkpoint
+
+- [x] Read-only production ACL/RLS inventory for high-sensitivity tables: RLS + FORCE RLS enabled across the reviewed inventory; direct SELECT is not granted to `anon`. Tables without authenticated SELECT were not queried under the authenticated simulation.
+- [x] Transaction-scoped simulated anonymous session (`authenticated` role + synthetic `is_anonymous=true` claims, non-existent UUID): zero visible rows across orders, payment intents/events accessible to authenticated, wallet/ledger/journal, settlements, subscription intents, notifications, support tickets, marketing leads and memberships.
+- [x] Public `businesses` query returned 2 rows, consistent with the explicit ACTIVE-showcase public SELECT contract.
+- [x] Evidence recorded in `docs/audits/ANONYMOUS_SESSION_READONLY_CHECKPOINT_20261030.md`.
+- [ ] Real Supabase Auth anonymous JWT E2E, permanent-user comparison, cross-tenant/business/branch tests and write-spoof attempts remain OPEN. The synthetic claim test is not a substitute for real token/Data API testing.
+- No production writes, DDL, migration, grants, RLS/Auth settings, Edge Functions, secrets or financial mutations occurred. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
