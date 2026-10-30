@@ -942,3 +942,14 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Next: verify the main Pages deployment; add focused E2E for both/one/no URLs and unverified profiles; audit URL coverage for all verified activities; preserve the existing UI and mobile layout.
 - Every new owner request must be added to the canonical TODO register and linked to its parent goal; close only after applicable tests and deployment verification.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated security, migration, Edge Function, finance/payment and backup/restore gates.
+
+ 
+## 2026-10-30 — Latest continuation checkpoint: PR #534 external URL semantics fixed
+
+- PR #533 was deployed successfully by main Pages run [41015430795](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015430795).
+- Follow-up review identified that fallback display images could be mistaken for external URLs. PR [#534](https://github.com/islamnagy2022-eng/MantiqatiX/pull/534) merged as `9cb40af9886e5141702576a7a20f300b78fcff4e`.
+- Explicit external logo/cover fields now flow through both public directory and direct public storefront APIs. Display fallback images remain separate; UI actions require verified status and a non-empty configured HTTPS URL.
+- Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed build/typecheck, browser E2E and isolated PostgreSQL RBAC. Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed; deploy skipped on PR by design.
+- Next: verify post-merge main Pages deployment and deployed-origin browser result; audit external URL coverage for verified profiles.
+- Preserve existing layout, default image display, mobile grid, verified-first ranking and public route behavior.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
