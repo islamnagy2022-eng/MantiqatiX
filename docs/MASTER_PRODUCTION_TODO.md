@@ -2427,3 +2427,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] Six critical live Edge Function entrypoints remain byte-different from current main. Do not batch deploy; require reviewed per-function diff, dependency/ACL check, Paymob sandbox E2E and rollback plan.
 - [ ] Full production remains blocked pending complete ordered migration replay/reconciliation, backup/restore and rollback rehearsal, AES-GCM/key-rotation test, real payment/finance E2E, Auth hardening and browser/device acceptance.
 - No production database or payment mutation occurred. Release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC439 checkout key rotation hardening
+
+- [x] PR #518 merged versioned checkout key selection: active key version env with backward-compatible V1 default; versioned server-side key names; encryption with active version and decryption by each row's stored key version; malformed/missing keys fail closed.
+- [x] AES-GCM unit tests passed for round-trip, fresh IV, intent/business binding, tamper detection, V1→V2 rotation and legacy V1 decryption after active version changes. RC425 and RC435–RC439 workflow jobs passed on the PR head.
+- [ ] Source merge only. Live subscription Edge Function remains v4; no Edge Function deploy or Supabase secret update occurred. Before any V2 activation, retain V1 and configure V2 in Supabase secrets, deploy the reviewed function, and verify staging checkout recovery.
+- [ ] Payment schema rollout, Paymob sandbox E2E, backup/restore, six-function parity, Auth hardening and final acceptance remain open. Production remains **BLOCKED / NOT CERTIFIED**.

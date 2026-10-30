@@ -732,3 +732,13 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - All six critical live Edge Function entrypoints remain different from current main: order-create v8, payment-intent v8, paymob-webhook v10, digital-page-payment-intent v5, subscription-payment-intent v4, financial-journal v3. Do not batch deploy.
 - No production migrations, SQL writes, grants, Auth/RLS changes, Edge Function deployments, provider calls, payments, wallet operations or financial postings were performed.
 - Continue with schema-faithful chronological migration reconciliation, per-function semantic diffs, AES-GCM runtime/key-rotation testing, provider sandbox E2E, backup/restore and rollback evidence. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — PR #518 versioned checkout-key rotation
+
+- Merged PR #518 as `5f3415b8b736c2bed6cbb16a749319dc5d552d60`.
+- The subscription Edge Function source now selects the active encryption key version via `PAYMOB_CHECKOUT_ENCRYPTION_ACTIVE_VERSION` (default V1), encrypts with that key, and decrypts old rows using their stored `client_secret_key_version`. Key material is loaded from version-specific server-side secrets; missing/malformed versions fail closed.
+- AES-GCM tests passed on the exact PR head: round-trip, unique IV, associated-data binding to intent/business, tamper rejection, V1→V2 rotation, continued V1 decrypt, and fail-closed missing/malformed key selection.
+- RC425 crypto/wiring, RC435–RC439 PostgreSQL integration, build, dashboard browser E2E, employee RBAC, RC450, approval audit, targeted ads, matrimony privacy and MantiGO privacy checks passed on PR #518.
+- The merge changes repository source only. No Supabase Edge Function deployment or environment-secret change was made; live subscription function remains v4. Keep V1 key available, and do not enable V2 until V2 secret is configured and staging recovery is verified.
+- No production migrations, provider calls, payment/finance mutations or Edge Function deployments occurred. Production remains **BLOCKED / NOT CERTIFIED**.
