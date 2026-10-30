@@ -11,6 +11,7 @@ on:
       - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
+      - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
@@ -51,6 +52,7 @@ on:
       - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
+      - "scripts/validate-business-create-inflight-guard.mjs"
       - "scripts/validate-catalog-membership-bootstrap.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
@@ -120,6 +122,8 @@ jobs:
         run: node scripts/validate-business-social-links.mjs
       - name: Verify paid subscription activation gate
         run: node scripts/validate-paid-subscription-gate.mjs
+      - name: Verify duplicate-safe activity creation requests
+        run: node scripts/validate-business-create-inflight-guard.mjs
       - name: Verify membership bootstrap fails closed
         run: node scripts/validate-catalog-membership-bootstrap.mjs
       - name: Verify production catalog uses real persisted state
