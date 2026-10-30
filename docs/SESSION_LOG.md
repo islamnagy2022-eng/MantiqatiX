@@ -821,3 +821,24 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 1. Verify the main-branch Pages deploy and post-deploy Playwright run; update the browser test only if an observed deployed-origin defect appears.
 2. Continue the cross-register reconciliation by matching module acceptance criteria against existing TODO entries without duplicate tasks or historical bulk edits.
 3. Keep full platform release BLOCKED until the existing live migration, payment/finance, Edge Function, Auth and backup/restore gates are separately evidenced.
+
+
+---
+
+## 2026-10-30 — PR #525 merged: unconfirmed directory counters are red
+
+### Change
+- Merged PR [#525](https://github.com/islamnagy2022-eng/MantiqatiX/pull/525) as `3bf212793e61ad6ae47f46e6fa73b0d8b988be4c`.
+- Corrected unconfirmed directory-listing counter badges in `apps/catalog-frontend/src/components/DirectoryView.tsx` to red (`bg-red-50 text-red-700`); preserved confirmed activity counters in green.
+- No changes to component structure, spacing, layout, routes, counts, verified-first ranking, or filtering behavior.
+
+### Verification
+- Primary Catalog Frontend Validation [41005476492](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005476492) passed all jobs: build/typecheck/taxonomy/geographic/auth/catalog contracts, isolated PostgreSQL employee RBAC, and Playwright browser E2E.
+- Browser tests assert that all titled unconfirmed counters are red and the primary confirmed counter remains green.
+- Supporting exact-commit workflows passed: Backend-only Module Boundary 41005476414; Module Professionalization 41005476508; MantiGO Open Ride Privacy 41005476429; RC425 Paymob Atomicity 41005476528; Flexible Commission Drafts 41005476427.
+- Pages PR validation 41005476412 passed the validation job. Its deploy/public-only jobs were skipped for the PR event by design.
+
+### Remaining verification
+- Post-merge main Pages deployment and deployed-origin browser run have not been confirmed. Keep this as NOT VERIFIED until the workflow result is read back.
+- No production database, migration, Auth/RLS/grant, Edge Function, secret, payment or financial record was changed.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
