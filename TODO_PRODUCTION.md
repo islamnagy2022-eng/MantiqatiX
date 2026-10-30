@@ -925,3 +925,10 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Rehearse RC449A then RC450 in a restorable isolated database; only then plan approved production migration and matching Edge deployment.
 - [ ] Do not apply RC436 as a shortcut or grant EXECUTE on the legacy RPC.
 - The financial journal remains CRITICAL / BLOCKED pending the canonical rollout.
+
+
+## 2026-10-30 — Production gate manifest refresh
+- [x] Refreshed docs/release/production-migration-reconciliation.json with latest read-only ledger snapshot (308 rows, latest 20261029083845), 41 required original release-source versions still absent, corrected RC449A→RC450 financial-journal path, RC435/RC439 missing subscription contracts, and fresh RLS/SECURITY DEFINER advisor snapshot.
+- [x] Corrected the financial-journal note: current main Edge RPC name matches RC450; production is blocked by missing RC449A/RC450 and the old live RPC ACL/body. Deployed Edge v3 remains legacy and must not be restored blindly.
+- [ ] Continue exact stored-statement-to-source reconciliation and physical schema checks for the 41 required versions; do not replay aliases or fabricate migration ledger records.
+- Overall platform gate remains BLOCKED / NOT CERTIFIED.
