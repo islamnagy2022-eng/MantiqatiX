@@ -893,3 +893,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Enable Leaked Password Protection only through an authorized Supabase Auth dashboard action, then rerun Advisor. No Auth setting was changed.
 - [ ] Verify the post-merge Pages deployment and deployed-origin browser suite for PR #525; PR CI success is not a deployment claim.
 - No production schema/data, migration, grant, RLS/Auth setting, Edge Function, secret, payment, wallet, settlement, or financial mutation was performed. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+ 
+
+## 2026-10-30 — Post-deploy browser verification and Edge semantic diff
+
+- [x] Main Pages deployment run [41005969738](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41005969738) completed successfully on `fe01dce043c8c8b5821ad679b561963a23a5357a`; artifact upload, Pages deploy, and primary catalog root verification passed.
+- [x] Deployed-origin Playwright step passed: guest direct-route denial; owner dashboard mobile/desktop; axe critical/serious WCAG 2.1 checks; owner refresh and membership scope; employee view-only/roster read-only; legacy route denial and RPC scoping; unsupported manager grant denial; QR modal/tab accessibility; permanent store URL/QR base-path and stable business ID; GPS consent/manual fallback; taxonomy folder navigation and specialty selection.
+- [x] Confirmed the deployed browser run executed `apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs` and emitted `PRIMARY_CATALOG_BROWSER_E2E=PASS`.
+- [x] Completed a read-only semantic source comparison for six deployed Edge Functions. Report: [`docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md`](docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md).
+- [x] Identified material source-level drift in deployed `payment-intent v8`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, and `financial-journal v3`; webhook and order-create remain under detailed contract review.
+- [ ] Build an isolated restorable schema and verify live RPC definitions/ACLs/search_path against current migrations before any function deployment.
+- [ ] Add/run adversarial and integration tests for provider amount/currency/reference mismatch, missing provider order ID, unknown provider outcomes, duplicate/replayed webhooks, concurrent subscription claims, checkout-secret encryption/recovery, and financial actor-role denial.
+- [ ] Prepare reviewed, one-function-at-a-time deployment/rollback plan only after all database contracts and secrets are verified.
+- The Pages/browser gate is now VERIFIED for this deployed commit. The overall platform Production Gate remains **BLOCKED / NOT CERTIFIED** due to live Edge Function semantic drift, anonymous JWT/RLS review, SECURITY DEFINER review, migration reconciliation, financial/payment E2E, and backup/restore gates. No production Supabase or payment mutation was performed.
