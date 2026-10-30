@@ -663,3 +663,52 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] VERIFIED 2026-10-28: GitHub Pages run #8890 succeeded on commit `87d088ab01a11e3f6092012a4930d670780fb460`; the `validate` and `deploy` jobs passed, `MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS`, and the live JS/CSS assets were reachable. Primary Catalog Frontend Validation run #770 also passed. Authenticated owner/admin browser E2E, cross-tenant tests, and live transaction E2E remain NOT VERIFIED and still block full production sign-off.
 - [ ] Complete an authenticated production end-to-end run from the admin UI using an isolated test activity: create with optional fields missing, approve publication, confirm public visibility, edit profile/social links and products/services, then read back the canonical production records. No production activity was created, edited, or deleted during this pass.
 - [ ] Verify through the authenticated administration UI that approving publication does not enable product/order operations until operational status is separately set to `ACTIVE`; static assertions and deployed public reads are not a substitute for this end-to-end check.
+
+
+---
+
+## 2026-10-30 — TODO governance alignment with owner specifications 00–19
+
+- [x] The complete owner operating specification set is now persisted at [docs/specifications/OPERATING_SPECIFICATIONS_00_19.md](docs/specifications/OPERATING_SPECIFICATIONS_00_19.md).
+- [x] Root `TODO_PRODUCTION.md` remains the detailed Website/Catalog execution register. The global module and release register remains `docs/MASTER_PRODUCTION_TODO.md`; neither replaces the other.
+- [x] Read the current RC40 → Web reuse guidance at `docs/RC40_MODULE_REUSE_EXECUTION_MATRIX.md`; verified the uploaded RC40 archive SHA-256 as `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`.
+- [ ] Keep all current catalog requirements below this line intact. Reconcile shared requirements with the global TODO by linking task IDs; do not delete or silently mark old requests complete.
+- [ ] Preserve the current deployed catalog UI exactly unless the owner explicitly asks for a visual change. Backend and functional work may continue additively; UI changes require a minimal diff and no-regression review.
+- [ ] Keep the catalog as the primary website; do not republish the legacy website or demo content as the primary entry point.
+- [ ] Use current main/live contracts as truth. RC40 and dated specifications are requirements/reference sources, not proof that a feature or schema is currently deployed.
+- [ ] Continue module-by-module: map each task to existing code, data contracts, RLS/RBAC, APIs/Edge Functions, and tests before adding anything new.
+- [ ] Record exact commit, PR, CI, deployment, and runtime evidence separately. Unverified behavior remains NOT VERIFIED; overall production status remains BLOCKED / NOT CERTIFIED.
+
+
+---
+
+## 2026-10-30 — PR overlap reconciliation
+
+- [x] **PR #499 closed as superseded/duplicate** after confirming that PR #500 is already merged and the current `main` contains the folder-style taxonomy browser in `DirectoryView.tsx`. No duplicate navigation implementation was merged.
+- [x] Existing `main` source was read back around the taxonomy browser branch; the folder navigation is present in the merged source.
+- [ ] Verify the merged taxonomy navigation in the deployed public website with browser/device coverage. Source presence and prior PR merge are not proof of current runtime behavior.
+- [ ] Preserve the current homepage, card layout, verified-first ordering, geographic search, and storefront flows during any follow-up. Reintroduce only a specific missing behavior as a minimal change against current `main`.
+- PR #505 remains the documentation/governance PR for owner specifications and TODO alignment; its exact-head CI was still queued/in progress at this checkpoint. No merge or deployment is claimed.
+- No application source, production database, migrations, Supabase settings, secrets, payments, or deployment targets were changed in this reconciliation.
+- Production status remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Read-only live Edge Function/source parity checkpoint
+
+- Project inspected read-only: `moyhiluyhjsujhwlyeuu`.
+- Retrieved live deployed function metadata and `index.ts` contents, then compared each normalized live entrypoint with the matching `main` source file under `supabase/functions/<name>/index.ts`.
+- The following six critical functions are **NOT BYTE-IDENTICAL** between live and repository source at this checkpoint:
+  | Function | Live version | Live SHA-256 | Live bytes | Main source bytes |
+  |---|---:|---|---:|---:|
+  | `order-create` | 8 | `16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782` | 10,083 | 13,988 |
+  | `payment-intent` | 8 | `d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54` | 8,114 | 10,366 |
+  | `paymob-webhook` | 10 | `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca` | 11,538 | 12,665 |
+  | `digital-page-payment-intent` | 5 | `8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b` | 5,345 | 6,532 |
+  | `subscription-payment-intent` | 4 | `4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5` | 5,196 | 10,896 |
+  | `financial-journal` | 3 | `79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366` | 1,591 | 3,387 |
+- This is a confirmed source-parity gap, not by itself proof that the live behavior is defective. Do not deploy repository versions or overwrite live functions until each diff is reviewed for contract, auth, idempotency, HMAC, ledger, and rollback implications.
+- [ ] Produce a function-by-function semantic diff and map each behavior to callers, database RPCs/tables, RLS/grants, webhook replay/idempotency tests, and rollback version.
+- [ ] Reconcile each live implementation into versioned source only after code review and isolated tests; do not replace live code by blind copying.
+- [ ] Run isolated integration/security tests for all six functions before proposing any production rollout.
+- Read-only inspection only: no function deployment, SQL write, migration, payment, or production data mutation.
+- Production remains **BLOCKED / NOT CERTIFIED**.

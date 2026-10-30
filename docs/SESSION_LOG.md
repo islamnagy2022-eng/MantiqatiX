@@ -625,3 +625,40 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 
 - **Supermarket batch — executed and read-after-write verified:** added eight source-backed records from https://yellowpages.com.eg/en/category/berket-el-sabaa-supermarkets/3829 after checking the existing catalog: سوبر ماركت أبو عفيفي, سوبر ماركت الإسكندراني, سوبر ماركت الشاذلي, سوبر ماركت الزيات, سوبر ماركت فرح, حمادة ماركت, هاني ماركت, وائل ماركت. Phone numbers were not available in the source and were left empty. New listings remain PUBLISHED/UNCLAIMED with owner confirmation required.
 - Total new listings read-after-write verified in this session: 23 (3 doctors, 3 pharmacies, 9 restaurant/bakery entries, 8 supermarkets/markets). Broader discovery and 50-category consolidation remain incomplete.
+
+
+## 2026-10-30 — Owner operating specifications and TODO governance persisted
+
+- **User requirement:** Make development sessions use the previously supplied project files while continuously updating TODO, and preserve the current interface without visual redesign.
+- **Repository baseline inspected:** `islamnagy2022-eng/MantiqaTix`, branch `main`, commit `c47aed3bbf013ca692837f510d08c0b756913deb`.
+- **Uploaded specifications reviewed:** owner files 00–19 covering master governance, operations, engineering, finance, marketing, design, CRM, sectors/providers, users/RBAC, database/security, unified web/app/backend, analytics, task operations, automation/notifications, content, monitoring, backup/recovery, QA, release, and governance.
+- **Durable action:** preserved the complete text of specifications 00–19 in `docs/specifications/OPERATING_SPECIFICATIONS_00_19.md` and updated README session-start instructions to require reading it.
+- **RC40 source package:** SHA-256 calculated as `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`, matching the uploaded `.sha256` file. Reviewed RC40 README and schema reconciliation note plus `docs/RC40_MODULE_REUSE_EXECUTION_MATRIX.md`. RC40 remains a reference/baseline, not Production Certified; do not wholesale replace current web source or copy legacy Room/direct-write/security patterns.
+- **TODO governance:** `docs/MASTER_PRODUCTION_TODO.md` remains the global platform/release register; root `TODO_PRODUCTION.md` remains the detailed website/catalog register; `docs/TODO_MASTER_DEVELOPMENT.md` remains the module scope/acceptance blueprint. These are complementary. Historical TODOs are evidence sources to reconcile, not status truth.
+- **UI constraint:** preserve current catalog UI, layout, branding, routes, cards, covers, mobile behavior, and user flows. Future UI changes must be additive-first or minimal, explicitly scoped, and checked for visual/functional regression. No UI source was changed in this session.
+- **PR #499 check:** head `33d27310ec63e9055e3e834a4d2df391c629010b` has seven successful GitHub checks, but the branch is diverged (2 ahead / 13 behind `main`) and is reported not mergeable. Existing main TODO records PR #500's folder-style navigation as merged; compare #499 against #500 before any rebase/merge and do not duplicate the feature. No merge/deploy performed.
+- **Files changed in this docs-only branch:** new `docs/specifications/OPERATING_SPECIFICATIONS_00_19.md`; updated `README.md`, `docs/MASTER_PRODUCTION_TODO.md`, `TODO_PRODUCTION.md`, and `docs/PROJECT_CONTINUITY.md`; this session log entry.
+- **Not performed:** no application UI/source changes, no database schema/migration or production data changes, no Auth/RLS/grant changes, no Edge Function deployment, no payment, no release deployment. No build or browser E2E is claimed.
+- **Next action:** cross-reference all valid requirements 00–19 and `docs/TODO_MASTER_DEVELOPMENT.md` against the active TODO task IDs; then select the highest-priority executable code task only after current branch/PR/source/runtime evidence review.
+- **Release state:** **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Duplicate taxonomy PR reconciled
+
+- Re-fetched PR #499 and confirmed it was open, based on an old main SHA, and reported not mergeable.
+- Fetched merged PR #500 and confirmed it delivered the same folder-style taxonomy navigation; read the current main `DirectoryView.tsx` around the taxonomy browser and confirmed the feature is already present.
+- Closed PR #499 as superseded by merged PR #500. The close action explicitly records that any distinct residual fix must be reintroduced against current main with fresh CI; no branch rebase or merge was attempted.
+- PR #505 remains open as the documentation-only owner-specification/TODO-governance PR. Exact-head workflows were queued/in progress at the time checked; combined commit status returned no status records, so CI is not claimed passed.
+- TODO action: deployed browser/device verification of the merged taxonomy browser remains open. The catalog UI was not changed in this checkpoint.
+- No production DB/schema/migration/Auth/RLS/payment/Edge Function/deployment change was performed.
+- Production release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Critical Edge Function parity rechecked live (read-only)
+
+- Read the live Supabase function metadata and entrypoint contents for `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`.
+- Compared normalized live `index.ts` content with the matching `main` repository source files. All six are non-identical; live versions are respectively 8, 8, 10, 5, 4, and 3. Exact SHA-256 and byte counts are recorded in `TODO_PRODUCTION.md`.
+- This proves source parity is unresolved, not that live behavior is necessarily broken. No deployment or source overwrite was attempted.
+- Next: semantic diff each function, map contracts and dependencies, write isolated tests for auth, tenant ownership, payment amount/currency integrity, HMAC/replay/idempotency, and journal invariants; then propose a reviewed rollout/rollback plan.
+- Supabase access was read-only. No SQL mutation, migration, payment, wallet action, Auth/RLS change, or production data mutation.
+- Production remains **BLOCKED / NOT CERTIFIED**.

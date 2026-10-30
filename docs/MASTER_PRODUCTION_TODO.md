@@ -2273,3 +2273,89 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - Full MantiqatiX platform production certification: **BLOCKED / NOT CERTIFIED**.
 - No Production database migration, ledger repair, payment, wallet, Auth-setting, critical payment Edge Function, or SMM enablement was performed in this checkpoint.
 
+
+
+---
+
+## 2026-10-30 — Owner specifications 00–19 integrated; TODO governance refreshed
+
+### Persisted source documents
+
+- [x] Preserved the owner's uploaded operating specifications 00–19 verbatim in [docs/specifications/OPERATING_SPECIFICATIONS_00_19.md](specifications/OPERATING_SPECIFICATIONS_00_19.md) so future sessions can read them from the repository without relying on prior chat attachments.
+- [x] Verified the uploaded RC40 archive checksum: `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`; it matches the supplied `source_RC40.zip.sha256`.
+- [x] Reviewed the RC40 source-package README, `docs/RC40_SCHEMA_RECONCILIATION.md`, `docs/TODO_PRIORITY.md`, and the repository's [RC40 → Web Reuse Matrix](RC40_MODULE_REUSE_EXECUTION_MATRIX.md).
+- [x] Updated README session-start instructions to require reading the persisted specifications, RC40 reuse matrix, continuity handoff, session log, and TODO registers.
+
+### Source-of-truth and TODO hierarchy
+
+Use the following hierarchy; these files are complementary, not competing copies:
+
+1. Current `main` source + current verified live contracts/evidence = implementation and runtime truth. A document or old CI result never overrides current evidence.
+2. `docs/MASTER_PRODUCTION_TODO.md` = global platform, module, and production-release register.
+3. Root `TODO_PRODUCTION.md` = detailed current website/catalog execution register; reconcile shared tasks with the global register by cross-reference, not by deleting either list.
+4. `docs/TODO_MASTER_DEVELOPMENT.md` = module-by-module functional scope, prompts, and acceptance criteria.
+5. `docs/MASTER_PRODUCTION_TODO_ALL_MODULES_20261006.md`, `docs/MASTER_PRODUCTION_TODO_RC_FINAL_20261006.md`, `docs/TODO_MASTER_DEVELOPMENT_PROMPTS.md`, and other dated TODOs = historical requirement sources. Extract still-valid requirements, compare against current code and evidence, then link or mark superseded with a reason; never bulk-copy stale status claims.
+
+### Non-negotiable UI and architecture guard
+
+- [ ] Preserve the current deployed catalog UI, page hierarchy, visual identity, navigation, activity cards, covers, mobile layout, routes, and current user flows. This is a standing constraint for all subsequent implementation, not a request to freeze backend development.
+- [ ] Use additive-first changes. No redesign, replacement, removal, or disabling of existing working screens/functions unless the owner explicitly requests it or a documented defect requires a minimal, reviewed correction.
+- [ ] Shared backend/schema/API/business-logic changes require impact analysis for every affected client. Website-only UI changes stay website-specific; Android-specific UX must not be copied into the website.
+- [ ] Before each UI-affecting PR, capture/inspect the existing behavior and include a no-regression acceptance checklist. A passing build alone does not prove visual preservation.
+- [ ] Do not change current public site identity or restore a legacy site as the primary entry point. The catalog remains the primary website.
+
+### RC40 reuse boundary
+
+- RC40 is a functional/domain/UX reference baseline, not a Production Certified release.
+- Reuse validated domain workflows, terminology, sector concepts, and engine patterns through the current web/backend contracts.
+- Do not copy Android Room persistence, legacy direct browser writes, obsolete `products`/legacy order models, or any path that bypasses current RLS/RBAC/server-authoritative boundaries.
+- Reuse the existing location adapter, bidding contracts, notification backend, financial journal/settlement core, and sync contracts where they already exist; do not create parallel engines or ledgers.
+- RC40's schema note records a 103-table snapshot with RLS enabled on all 103 tables. Current web TODO records later schema snapshots with different counts. These are dated observations from different baselines, not values to merge or overwrite. Reconcile against the current live schema before making schema claims or migrations.
+- RC40 archive checksum is recorded above; its source contents are not to replace current `main` wholesale.
+
+### Current GitHub continuation checkpoint
+
+- Current `main` baseline inspected for this update: `c47aed3bbf013ca692837f510d08c0b756913deb`.
+- PR #499 was rechecked against merged PR #500 and the current `main` source; it duplicated the already-merged folder-style taxonomy browser and was closed as superseded. No rebase or duplicate merge was performed.
+- The folder-style taxonomy navigation is present in current `main` through merged PR #500. Runtime/browser/device verification remains open; source presence does not close that gate.
+- Other open PRs include catalog/domain cleanup and fixes (#490, #488, #477, #476, #451, #444, #442, #441, #440, #439, #438, #436, #417, #413 and others). Recheck each PR's current state, base, changed files, exact-head checks, overlap, and production impact before deciding to merge, close, or continue it. This list is a snapshot, not a substitute for a fresh query.
+- PR #499 was closed as superseded by PR #500. No deployment or visual/browser verification is inferred from that merge; runtime verification remains open.
+
+### New TODO governance actions
+
+- [ ] Build a cross-reference map from every valid requirement in specifications 00–19 to the relevant section/task IDs in the two active TODO registers.
+- [ ] Reconcile `docs/TODO_MASTER_DEVELOPMENT.md` module acceptance criteria against the global TODO; keep a single canonical task ID per requirement and link from secondary registers.
+- [ ] Inventory dated/historical TODOs and PRs; classify each task as still open, already verified, duplicate, superseded, blocked, or awaiting owner input, with evidence and no destructive mass edits.
+- [ ] For every module, maintain a reuse map: existing UI → existing tables/RPC/Edge Functions → RLS/RBAC → integration tests → release gate.
+- [ ] Maintain an explicit UI no-regression checklist for all changes affecting the catalog and admin surfaces.
+- [ ] Continue the existing policy that DONE/IMPLEMENTED is not VERIFIED, and VERIFIED is not DEPLOYED. Release gates require exact-commit CI plus runtime evidence where applicable.
+
+### Evidence and change scope
+
+- This update is documentation/governance only. No application source, UI, schema, migrations, production data, Supabase settings, Edge Functions, secrets, or deployment targets were changed.
+- No build, browser E2E, database integration, or production test is claimed by this documentation-only change.
+- Global release status remains **BLOCKED / NOT CERTIFIED** until the current P0 evidence is satisfied.
+
+
+---
+
+## 2026-10-30 — PR overlap reconciliation
+
+- [x] PR #499 closed as duplicate/superseded after confirming merged PR #500 already provides the folder-style taxonomy navigation and current main contains that implementation.
+- [ ] Browser/device verification of the merged taxonomy navigation on the deployed public site remains open.
+- [ ] Any distinct behavior found missing from PR #499 must be isolated, reviewed against current main, and reintroduced only as a minimal patch with fresh CI; do not revive or merge the stale branch.
+- PR #505 exact-head CI was queued/in progress at the checkpoint; its checks are not marked passed.
+- No application source, production schema/data, migrations, Auth/RLS, payments, Edge Functions, secrets, or deployment targets were changed by this reconciliation.
+- Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-30 — Live critical Edge Function parity recheck
+
+- Read-only retrieval from Supabase project `moyhiluyhjsujhwlyeuu` confirmed that six live critical function entrypoints are not byte-identical to their corresponding `main` sources: `order-create` v8, `payment-intent` v8, `paymob-webhook` v10, `digital-page-payment-intent` v5, `subscription-payment-intent` v4, and `financial-journal` v3.
+- Exact live SHA-256 hashes and byte counts are recorded in root `TODO_PRODUCTION.md` under the 2026-10-30 parity checkpoint.
+- This is a confirmed source-parity gap; do not infer runtime failure or deploy repository code blindly. Semantic diff and isolated contract/security tests are mandatory before rollout.
+- [ ] Review six semantic diffs and dependencies (RPCs, tables, RLS/grants, caller contracts).
+- [ ] Test authentication/tenant authorization, amount/currency integrity, webhook HMAC/replay/idempotency, ledger posting and reconciliation in an isolated environment.
+- [ ] Establish exact rollback versions and approved rollout plan before any production deploy.
+- Read-only inspection only; no production SQL, migration, Edge Function deployment, payment, or data mutation.
+- Full platform release remains **BLOCKED / NOT CERTIFIED**.
