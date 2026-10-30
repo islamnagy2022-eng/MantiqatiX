@@ -89,3 +89,11 @@ This matrix is an implementation aid. It does not certify any module. DONE != VE
 - RC40 remains a reference source. Current main, current backend contracts, and verified live evidence remain authoritative.
 - Reuse only through existing secure web/backend contracts. Do not copy Android Room persistence, browser-side writes, legacy data models, or parallel engines/ledgers.
 - The uploaded RC40 archive SHA-256 was verified as `e3e564dd8c142028d8aca94fee328c9e1ab6407f02bd98465d335cc0c180a09e`.
+
+
+## 2026-10-30 — Legacy catalog snapshot convergence
+
+- The uploaded `bizcatalog-manager (3).zip` is an earlier React/Vite feature reference, not a replacement baseline.
+- Its app shell, navigation, merchant dashboard, storefront, context, types, directory, and rules are mapped to their current canonical website counterparts in `docs/CATALOG_SOURCE_CONVERGENCE_AUDIT_20261030.md`.
+- Demo `seedData.ts`, temporary AI Studio media, and any browser-side Gemini credentials are excluded from production import.
+- Current catalog source and secure server-backed contracts take precedence. Preserve the current homepage, folder navigation, geographic search, three-column mobile cards, storefront, and verified-first ranking.
