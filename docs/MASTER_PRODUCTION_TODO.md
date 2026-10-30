@@ -2241,3 +2241,35 @@ This work is partial; no full taxonomy migration or deployment is claimed.
 - Catalog website deployment and the directory-listings CORS cleanup are deployed.
 - The complete forward migration chain now replays in isolated CI, including the RC117 fixes.
 - The full platform is still `BLOCKED / NOT CERTIFIED` for production until the exact 41-version ledger/object reconciliation, critical Edge Function/schema parity, Auth security settings, real payment/finance E2E, backup/restore, and real-device/browser gates are closed.
+
+## 2026-10-30 — Latest verified continuation checkpoint (main)
+
+### Catalog and dashboard PR status refresh
+
+- [x] PR #483 Professional Dashboard is MERGED (PR head `81f362912de67ee6cc033a2fc0c6f7660583a4f1`). Dashboard-specific production dependencies were separately verified in the 2026-10-29 read-only checkpoint recorded above; this does not certify unrelated platform modules.
+- [x] PR #498 verified/complete-image ranking is MERGED (PR head `3e800351330a7bda72b9f46056014854a69c879c`). Verified activities remain the first ranking tier; completeness ranking applies within the intended tiers.
+- [x] PR #500 folder-style functional-group/category/specialty navigation is MERGED (merge commit `723cc04df90b44aae6e65924346f2ae6cdb1f8b8`). Automated mobile/browser coverage is not a substitute for owner visual review on a physical phone.
+- [x] Current main head at this checkpoint: `38ffb5063445b8ec50c3d936b2a368a251d77954`.
+- [x] Main Pages deployment run `40993279819` completed SUCCESS for the current main head; deployment job succeeded.
+- [x] Production Health Monitor run `40993279811` completed SUCCESS for the same main head.
+- [x] Module Professionalization Validation run `40993279828` completed SUCCESS for the same main head.
+- [x] Primary Catalog Frontend Validation run `40993238078` completed SUCCESS, including build, professional-dashboard browser E2E and employee RBAC PostgreSQL integration. Its tested head is `9d9890d140905fa6815b9da99f726e3dffe9f5e7`, not the later current main head; do not imply that this particular browser suite ran on `38ffb506`.
+
+### Remaining release blockers — unchanged unless a later evidence record says otherwise
+
+- [ ] Production migration reconciliation remains BLOCKED: read-only ledger check records 308 rows through `20261029083845`, with 0/41 exact required release-version identifiers present. This is an exact-version identity gap, not proof that all corresponding physical effects are absent; map every source migration to exact live statement/effect before any rollout.
+- [ ] Critical live Edge Functions remain drifted from main: `order-create`, `payment-intent`, `paymob-webhook`, `digital-page-payment-intent`, `subscription-payment-intent`, and `financial-journal`. Do not deploy these individually.
+- [ ] Payment/finance production E2E, Paymob callback replay/idempotency, journal/settlement/GL reconciliation remain NOT VERIFIED.
+- [ ] Backup/restore and rollback rehearsal remain NOT VERIFIED.
+- [ ] Supabase Auth leaked-password protection and broader Auth settings still require owner/dashboard evidence; no change is claimed.
+- [ ] Security Advisor requires per-function SECURITY DEFINER and per-table RLS/policy/grant review. Latest 2026-10-30 Advisor output includes 67 authenticated-executable SECURITY DEFINER findings and 8 RLS-enabled/no-policy findings; classify each by intended caller and prove least privilege. Do not revoke broad grants blindly.
+- [ ] SMM stays deferred. Live gateway is ACTIVE v13 with source hard gate, but anonymous/authenticated negative runtime tests are NOT VERIFIED.
+- [ ] Real Android signing/device regression and complete authenticated customer/provider/owner/admin browser/mobile E2E remain NOT VERIFIED.
+- [ ] Branch protection/ruleset evidence still requires repository-owner/admin confirmation; connected integration did not provide the required admin-level branch-protection evidence.
+
+### Release decision
+
+- Catalog website deployment: PASS for current main head `38ffb5063445b8ec50c3d936b2a368a251d77954`.
+- Full MantiqatiX platform production certification: **BLOCKED / NOT CERTIFIED**.
+- No Production database migration, ledger repair, payment, wallet, Auth-setting, critical payment Edge Function, or SMM enablement was performed in this checkpoint.
+
