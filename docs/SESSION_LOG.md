@@ -880,3 +880,9 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Current main financial-journal Edge source calls the same post_financial_journal_backend(uuid,jsonb,jsonb) RPC defined by RC450. This source name is correct.
 - Live ledger lacks both RC449A and RC450. The old live RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted service-role Edge flow and lacks RC450 business/branch/organization scope.
 - The earlier recommendation to switch current Edge source to post_financial_journal_atomic_backend is withdrawn. No production change was made.
+
+
+### Production gate manifest refresh — 2026-10-30
+- Updated docs/release/production-migration-reconciliation.json to reflect the fresh 308-row live ledger snapshot, 41 required original source versions absent, current RC449A/RC450 financial journal contract, missing RC435/RC439 subscription contract, and RLS/SECURITY DEFINER advisor snapshot.
+- Explicitly corrected the financial-journal interpretation: current main source matches RC450 RPC name; production schema/ACL is behind and deployed Edge v3 is legacy. RC436 is not the canonical production rollout.
+- No production migration, SQL, ACL, Auth, Edge Function or financial record was changed.
