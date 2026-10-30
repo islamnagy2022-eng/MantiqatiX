@@ -35,3 +35,16 @@
 
 ## Release boundary
 This review is source-only. No production settings, business/listing rows, migrations, RLS policies, grants, Edge Functions, Auth settings, or audit rows were changed. Do not deploy or apply a migration until isolated PostgreSQL integration, migration replay, RBAC tests, browser E2E, backup/restore rehearsal, and release approval pass.
+
+## Feature-branch implementation checkpoint
+- Added RC459 migration `supabase/migrations/20261030130000_rc459_secure_taxonomy_mapping_preview_commit.sql`:
+  - Read-only preview and transactional apply RPCs, restricted to `service_role`.
+  - Server-side active platform-wide SUPER_ADMIN predicate rechecked in both RPCs.
+  - Deterministic preview digest, bounded sample, affected counts, stale-preview rejection, and locks around validation/apply.
+  - Only taxonomy group/category/classification fields are updated in `businesses.settings`; listing taxonomy group/category fields are changed while specialty, claim, publication, phone, ownership, billing, location and image data stay untouched.
+  - Append-only audit table with FORCE RLS, no direct role grants, and compact before-image containing the fields actually changed.
+- Added server actions to `catalog-platform-admin`, with the existing user-token authentication and platform-wide role gate retained, and added structural/reference guards to generic taxonomy settings saves.
+- Added an additive administration panel to the existing Super Admin taxonomy tab; directory and storefront routes were not changed.
+- Added disposable PostgreSQL fixtures/integration tests, including no-write preview, stale digest, non-platform OWNER rejection, field preservation, append-only audit, and forced mid-transaction rollback.
+- Added browser coverage for preview/cancel/confirmed apply and a static source-contract validator.
+- **Not yet verified at this checkpoint:** exact latest-head workflow completion; anonymous/customer/provider/employee/inactive/platform-scope negative JWT matrix; authoritative target-category membership validation. No Production DDL, Edge deployment, settings change, or row update occurred.
