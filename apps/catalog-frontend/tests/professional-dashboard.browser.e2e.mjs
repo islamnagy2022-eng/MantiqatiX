@@ -523,6 +523,8 @@ try {
       await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /رجوع للمجالات/ }).click();
       await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
+      // Let the folder cards finish their enter/hover layout before measuring document overflow.
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await assertNoHorizontalOverflow(page, '390px taxonomy return to groups');
       results.push('taxonomy-folder-group-category-back-navigation-and-mobile-layout');
     } finally { await context.close(); }
