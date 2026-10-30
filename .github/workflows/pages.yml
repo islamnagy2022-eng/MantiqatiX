@@ -106,6 +106,7 @@ jobs:
         run: |
           node scripts/validate-production-catalog-real-state.mjs
           node scripts/validate-paid-subscription-gate.mjs
+          node scripts/validate-catalog-membership-bootstrap.mjs
           node --check web/rbac.js
           node --check web/feature-flags.js
           node --check web/app.js
