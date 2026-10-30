@@ -3,6 +3,12 @@ do $test$
 declare
   admin_id constant uuid := '45900000-0000-4000-8000-000000000001';
   owner_id constant uuid := '45900000-0000-4000-8000-000000000002';
+  customer_id constant uuid := '45900000-0000-4000-8000-000000000003';
+  provider_id constant uuid := '45900000-0000-4000-8000-000000000004';
+  employee_id constant uuid := '45900000-0000-4000-8000-000000000005';
+  tenant_admin_id constant uuid := '45900000-0000-4000-8000-000000000006';
+  inactive_admin_id constant uuid := '45900000-0000-4000-8000-000000000007';
+  scoped_admin_id constant uuid := '45900000-0000-4000-8000-000000000008';
   business_a constant uuid := '45900000-0000-4000-8000-000000000011';
   business_b constant uuid := '45900000-0000-4000-8000-000000000012';
   business_other constant uuid := '45900000-0000-4000-8000-000000000013';
@@ -15,12 +21,24 @@ declare
   rejected boolean;
   audit_before integer;
   n integer;
+  v_actor uuid;
 begin
-  insert into auth.users(id) values (admin_id),(owner_id);
+  insert into auth.users(id) values
+    (admin_id),(owner_id),(customer_id),(provider_id),(employee_id),
+    (tenant_admin_id),(inactive_admin_id),(scoped_admin_id);
   insert into public.user_memberships(id,user_id,tenant_id,role,status,permissions)
   values
    ('45900000-0000-4000-8000-000000000101',admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
-   ('45900000-0000-4000-8000-000000000102',owner_id,'MNTY-PLATFORM','OWNER','ACTIVE','{"scope":"BUSINESS"}'::jsonb);
+   ('45900000-0000-4000-8000-000000000102',owner_id,'MNTY-PLATFORM','OWNER','ACTIVE','{"scope":"BUSINESS"}'::jsonb),
+   ('45900000-0000-4000-8000-000000000103',customer_id,'MNTY-PLATFORM','CUSTOMER','ACTIVE','{}'::jsonb),
+   ('45900000-0000-4000-8000-000000000104',provider_id,'MNTY-PLATFORM','SERVICE_PROVIDER','ACTIVE','{}'::jsonb),
+   ('45900000-0000-4000-8000-000000000105',employee_id,'MNTY-PLATFORM','EMPLOYEE','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+   ('45900000-0000-4000-8000-000000000106',tenant_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"TENANT","full_control":true}'::jsonb),
+   ('45900000-0000-4000-8000-000000000107',inactive_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','INACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+   ('45900000-0000-4000-8000-000000000108',scoped_admin_id,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb)
+   ;
+  update public.user_memberships set business_id='45900000-0000-4000-8000-000000000099', branch_id='branch-scoped'
+  where user_id=scoped_admin_id;
 
   insert into public.businesses(id,tenant_id,name,settings)
   values
@@ -63,6 +81,26 @@ begin
     rejected := true;
   end;
   if not rejected then raise exception 'RC459_NON_PLATFORM_ADMIN_NOT_REJECTED'; end if;
+
+  -- Reject customer, provider, employee, tenant-scoped, inactive, and branch-scoped platform-role rows.
+  for v_actor in
+    select m.user_id
+    from public.user_memberships m
+    where m.user_id in (customer_id,provider_id,employee_id,tenant_admin_id,inactive_admin_id,scoped_admin_id)
+  loop
+    rejected := false;
+    begin
+      perform public.mnty_catalog_taxonomy_mapping_preview(
+        v_actor,'food_grocery','cat_food_grocery_cafes',
+        'food_grocery','cat_food_grocery_restaurants','activity'
+      );
+      raise exception 'RC459_UNAUTHORIZED_ROLE_PREVIEW_SUCCEEDED';
+    exception when others then
+      if sqlerrm <> 'PLATFORM_ADMIN_REQUIRED' then raise; end if;
+      rejected := true;
+    end;
+    if not rejected then raise exception 'RC459_UNAUTHORIZED_ROLE_NOT_REJECTED: %',v_actor; end if;
+  end loop;
 
   rejected := false;
   begin
