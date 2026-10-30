@@ -1071,6 +1071,16 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Refreshed the Supabase Security Advisor without changing production settings. Snapshot observed at `2026-10-30T22:17:57Z`: 8 RLS-enabled/no-policy tables (INFO); 3 anon-executable SECURITY DEFINER functions (WARN); 67 authenticated-executable SECURITY DEFINER functions (WARN); 90 anonymous-sign-in policy findings across exposed tables (WARN); Supabase Auth Leaked Password Protection remains DISABLED (WARN).
 - [x] Rechecked the production migration ledger: 308 recorded migration rows; latest `20261029083845`. The required release reconciliation remains 0/41 exact required migration IDs recorded. This is a ledger-identity finding, not proof that all migration effects are absent.
 - [x] Read the deployed Supabase Edge Function inventory and fetched each of the six critical live entrypoints plus the matching `main` source file. Live versions remain: `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, `financial-journal v3`. All six deployed entrypoint contents differ from the current `main` source; exact live SHA-256 fingerprints and source blob SHAs were obtained during this audit.
+
+| Edge Function | Live version | `main` source blob SHA | Live entrypoint SHA-256 |
+|---|---:|---|---|
+| `order-create` | 8 | `3a6777683e537dcff1ad30cbd1c89e431f77d926` | `16f9b8bb687c33afeca14d85cb4c43af9948bd8b3ef3178990cc76ca1abea782` |
+| `payment-intent` | 8 | `c88f62db0d3781f949ca5da77590a04590e8ae7d` | `d6b8faee1582c73ead440614cbe983114d1e7f31aa50f69795522fb20e737f54` |
+| `paymob-webhook` | 10 | `b7a386d4b4fd7aa74187df7186e9235046ad660f` | `f26fe1580e66c7f8cb9b885d5bccf4a44e49aa74874b3fe28dd7f9c5ed181cca` |
+| `digital-page-payment-intent` | 5 | `0d0476b0120996d83fff1299e06ea2c037e62e8e` | `8aa3d2e9c025e7b74d4d1847e8a6744bc84a9ded7cfc0c721f9604efd177af4b` |
+| `subscription-payment-intent` | 4 | `c702d7a70ea85727ec5e14695ebf8fb26158514e` | `4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5` |
+| `financial-journal` | 3 | `49706589cc6d77af713ae44bcc0818066de72243` | `79ee18d0544e7cab8fe33fe84c27a5017d1163f411eb5b9e07b99fd79e16e366` |
+
 - [ ] `order-create`: reconcile missing live request-body size bounds and exact selected-branch membership enforcement in the deployed implementation; add adversarial tests for branch-scoped staff versus customer checkout before any rollout.
 - [ ] `payment-intent`: reconcile live behavior with source-side amount-cent precision checks, Paymob intention/reference/amount/currency correlation, and ambiguous provider-outcome handling; run provider sandbox tests and verify pending/reconciliation semantics.
 - [ ] `paymob-webhook`: reconcile provider-order correlation for subscription/digital-page/order/MantiGo references and atomic verified-failure processing. The deployed version contains direct status/ledger updates in paths where current source uses dedicated processing RPCs; verify idempotency, duplicate delivery, failed-payment atomicity, and event/ledger consistency in disposable PostgreSQL plus Paymob sandbox.
