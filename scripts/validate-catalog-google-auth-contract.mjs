@@ -28,6 +28,12 @@ assert.ok(production.includes('uniqueRows.slice(0, 250), 8'), 'Catalog reads mus
 assert.ok(production.includes('Promise.all(tenantIds.map(async (tenantId)'), 'Platform tenant business lists must load concurrently.');
 assert.ok(production.includes('Promise.all(tenantWideOwnerIds.map(async (tenantId)'), 'Tenant-wide owner business lists must load concurrently.');
 assert.ok(production.includes("callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' })") && production.includes("callPlatformAdmin({ action: 'GET_SETTINGS' })"), 'Platform subscriber and settings reads must remain available.');
+const bootstrapSection = production.slice(production.indexOf('export async function bootstrapProductionUser'), production.indexOf('export const productionRuntime'));
+assert.ok(production.includes('export async function fetchPlatformSubscribers()'), 'The platform subscriber directory must have a dedicated loader.');
+assert.ok(!bootstrapSection.includes("action: 'LIST_SUBSCRIBERS'"), 'Loading the complete subscriber directory must not block Google session bootstrap.');
+assert.ok(context.includes('void fetchPlatformSubscribers().then((result)'), 'The subscriber directory must load asynchronously after the authenticated workspace is ready.');
+assert.ok(context.includes('setSubscribersLoading(boot.authSession.role === \'admin\')'), 'The admin subscriber directory must expose a separate loading state.');
+
 assert.ok(production.includes("isAuthenticated: false"), 'Anonymous sessions must be explicitly unauthenticated.');
 assert.ok(production.includes("isAuthenticated: true") && production.includes("userId: user.id"), 'Valid Google sessions must retain identity even without memberships.');
 assert.ok(production.includes("const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest'"), 'Business permissions must continue to derive from active production memberships.');
