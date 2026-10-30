@@ -1,8 +1,10 @@
 name: Digital Page Product Platform Admin Scope
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
+      - "docs/release/production-migration-reconciliation.json"
       - "supabase/migrations/20261014230000_rc525_digital_page_product_platform_admin_scope.sql"
       - "scripts/validate-digital-page-product-admin-scope.mjs"
       - "supabase/tests/rc525_digital_page_product_platform_admin_scope.sql"
@@ -37,8 +39,8 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Validate least-privilege policy contract
