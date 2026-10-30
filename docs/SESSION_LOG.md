@@ -1012,3 +1012,10 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - `mnty_platform_admin_delete_business` is invoker (not SECURITY DEFINER), empty search_path, postgres/service_role only.
 - These backend functions can retain their service/authorized execution paths without exposing table-wide SELECT to client roles. The medical appointment function's search_path hardening is a separate forward-only task.
 - No production database writes or changes to schema, grants, RLS, data, Auth, Edge Functions, payments, or finance were made.
+
+
+### Important production-artifact clarification — PR #554 is source-only
+- Reviewed the actual Pages composition/deploy workflow after merging PR #554. The production artifact is built from `apps/catalog-frontend/dist` only; workflow assertions require that `web/`, `preview/`, and legacy SMM files are absent. Therefore the `web/index.html` guard merged in PR #554 is not included in the live artifact and must not be represented as a deployed-site security fix.
+- The current canonical React catalog is the production customer-facing runtime and remains direct-table-free for `marketing_provider_profiles`; it calls the curated public Edge Functions.
+- `web/home.js` and `web/operations-modules.js` contain old direct provider-table reads, but are excluded from the current production artifact. Keep them excluded from future artifacts and migrate or retire them before any future reintroduction.
+- The actual live exposure is the Supabase Data API table-level SELECT granted to anon and authenticated, combined with the active-public RLS policy. Closing it requires a helper for the live RLS/storage ownership dependencies, owner/CRM contracts, and isolated adversarial tests; no production grant change has been made.
