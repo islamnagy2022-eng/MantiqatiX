@@ -1,0 +1,87 @@
+name: RC459 Digital Page Provider Order Finalizer
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "supabase/migrations/20261030130000_rc459_digital_page_finalize_provider_order_binding.sql"
+      - "supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql"
+      - "supabase/tests/rc431_digital_page_payment_fixture.sql"
+      - "supabase/tests/rc431_digital_page_payment_integration.sql"
+      - "supabase/tests/rc459_digital_page_finalize_fixture.sql"
+      - "supabase/tests/rc459_digital_page_finalize_integration.sql"
+      - "scripts/test-paymob-intent-correlation.mjs"
+      - ".github/workflows/rc459-digital-page-provider-order-finalizer.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/20261030130000_rc459_digital_page_finalize_provider_order_binding.sql"
+      - "supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql"
+      - "supabase/tests/rc431_digital_page_payment_fixture.sql"
+      - "supabase/tests/rc431_digital_page_payment_integration.sql"
+      - "supabase/tests/rc459_digital_page_finalize_fixture.sql"
+      - "supabase/tests/rc459_digital_page_finalize_integration.sql"
+      - "scripts/test-paymob-intent-correlation.mjs"
+      - ".github/workflows/rc459-digital-page-provider-order-finalizer.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rc459-digital-page-provider-binding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mantiqatix_rc459_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mantiqatix_rc459_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test Paymob intention correlation and fail-closed validation
+        run: node scripts/test-paymob-intent-correlation.mjs
+      - name: Create Supabase role stand-ins in disposable PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -c "create role anon nologin; create role authenticated nologin; create role service_role nologin;"
+      - name: Apply RC431 webhook fixture and RC459 checkout compatibility fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc431_digital_page_payment_fixture.sql "$pg_container:/tmp/rc431_fixture.sql"
+          docker cp supabase/tests/rc459_digital_page_finalize_fixture.sql "$pg_container:/tmp/rc459_fixture.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc431_fixture.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc459_fixture.sql
+      - name: Apply canonical webhook binding and RC459 forward migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/migrations/20261009180000_rc431_harden_deployed_digital_page_payment_rpc.sql "$pg_container:/tmp/rc431.sql"
+          docker cp supabase/migrations/20261030130000_rc459_digital_page_finalize_provider_order_binding.sql "$pg_container:/tmp/rc459.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc431.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc459.sql
+      - name: Run webhook and checkout provider-binding regression suites
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker cp supabase/tests/rc431_digital_page_payment_integration.sql "$pg_container:/tmp/rc431_test.sql"
+          docker cp supabase/tests/rc459_digital_page_finalize_integration.sql "$pg_container:/tmp/rc459_test.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc431_test.sql
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_rc459_test -v ON_ERROR_STOP=1 -f /tmp/rc459_test.sql
