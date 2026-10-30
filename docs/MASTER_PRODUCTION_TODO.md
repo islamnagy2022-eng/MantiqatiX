@@ -2437,3 +2437,15 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] AES-GCM unit tests passed for round-trip, fresh IV, intent/business binding, tamper detection, V1→V2 rotation and legacy V1 decryption after active version changes. RC425 and RC435–RC439 workflow jobs passed on the PR head.
 - [ ] Source merge only. Live subscription Edge Function remains v4; no Edge Function deploy or Supabase secret update occurred. Before any V2 activation, retain V1 and configure V2 in Supabase secrets, deploy the reviewed function, and verify staging checkout recovery.
 - [ ] Payment schema rollout, Paymob sandbox E2E, backup/restore, six-function parity, Auth hardening and final acceptance remain open. Production remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
+## 2026-10-30 — Security Advisor follow-up and current-main deployment
+
+- [x] Latest-main web deployment after PR #519 passed [41002621137](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41002621137); Production Health Monitor [41002621047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41002621047) passed.
+- [x] Fresh Security Advisor counts: 8 RLS-enabled/no-policy tables, 3 anon-executable SECURITY DEFINER functions, 67 authenticated-executable SECURITY DEFINER functions, and leaked-password protection disabled.
+- [x] Read-only ACL/RLS review: all 8 no-policy tables deny direct anon/authenticated table access; 6 also deny service_role direct access, 2 are service_role-only. These are RPC-mediated/deny-by-default candidates; do not add broad policies merely to silence the Advisor.
+- [x] The 3 anon SECDEF findings are 2 trigger-returning functions plus the intended public targeted-ad discovery RPC (empty search_path). No blanket revoke.
+- [x] The 67 authenticated SECDEF functions break down as 30 search_path=public, 17 public, pg_temp, 19 empty, and 1 public, auth trigger function. RC440 addresses the 30 exact-public functions; its live migration application remains blocked until the ordered chain is reconciled.
+- [ ] Leaked Password Protection still needs an authorized Auth dashboard change and Advisor verification. Do not change Auth or grants from this audit.
+- [ ] Full production remains blocked by migration ledger/object drift, payment/finance E2E, backup/restore, six critical Edge Function mismatches and Auth hardening.
