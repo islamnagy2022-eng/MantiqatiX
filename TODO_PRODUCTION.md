@@ -808,3 +808,17 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Production payment migrations and all six critical Edge Function parity mismatches remain separate blockers. Do not treat PR #518 as payment production approval.
 - No production migration, Edge Function deployment, environment-secret update, provider call, checkout, payment, wallet or financial posting was performed.
 - Full production remains **BLOCKED / NOT CERTIFIED**.
+
+---
+
+## 2026-10-30 — Fresh Supabase Security Advisor classification (read-only)
+
+- [x] Latest-main web deploy after PR #519 passed: [41002621137](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41002621137). Production Health Monitor passed: [41002621047](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41002621047). Backend-only boundary, Module Professionalization, MantiGO privacy and SMM deferred contract also passed on main 5fd3d3589282e07232311154bd95d35c9a91cc71.
+- [x] Fresh Supabase Security Advisor at 2026-10-30 04:23 UTC: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; leaked-password protection DISABLED.
+- [x] Classified the 8 no-policy tables: all 8 have RLS enabled and no direct anon/authenticated table privileges; 6 also have no direct service_role table privileges, while 2 are service_role-only. Seven have FORCE RLS; digital_page_payment_events does not, but has no direct anon/authenticated/service_role table privileges. Treat these as deny-by-default/RPC-mediated contracts pending per-table caller review, not as a reason to add broad policies.
+- [x] Classified the 3 anon SECURITY DEFINER warnings: assign_default_owner_to_unowned_business() and capture_commission_rule_audit() are trigger-returning functions attached to table triggers, not ordinary client RPCs; get_mnty_targeted_advertisements(...) is the intended public discovery RPC and has empty search_path. The default-owner trigger is attached to deferred AFTER INSERT on businesses; preserve its intended ownership contract but review its fixed search_path separately.
+- [x] Classified all 67 authenticated-executable SECURITY DEFINER functions by function-level search_path: 30 use exactly search_path=public; 17 use search_path=public, pg_temp; 19 use empty search_path; 1 trigger function uses search_path=public, auth. anon and authenticated have no CREATE privilege on public or auth schemas. RC440 is the existing reviewed migration intended to move the 30 exact-public functions to public, pg_temp, preventing implicit temporary-schema precedence; RC440 is still absent from the live ledger and must remain in the full ordered migration plan.
+- [ ] Leaked Password Protection remains DISABLED and requires an authorized Supabase Auth dashboard setting change followed by Advisor recheck. No setting was changed.
+- [ ] Do not bulk-revoke the 67 function grants or add policies to the 8 no-policy tables. Review each function's caller/ACL and each table's intended RPC-only access; preserve public ad discovery and required trigger behavior while applying RC440 in the approved ordered chain.
+- No production SQL writes, grants, RLS/Auth changes, Edge Function deployments, provider calls, payments, wallet operations or financial postings were performed.
+- Full production remains **BLOCKED / NOT CERTIFIED**.
