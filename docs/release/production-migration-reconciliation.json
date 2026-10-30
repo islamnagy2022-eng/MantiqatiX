@@ -28,8 +28,8 @@
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
   "checked_at": "2026-10-30",
-  "reason": "Catalog release and selected catalog fixes have been deployed, but full platform production remains blocked by 41 exact original release-migration version IDs absent from the live ledger, mixed physical schema drift in payments/finance/ERP, six critical Edge Function source mismatches, unverified Auth security settings, real-money payment/finance E2E, backup/restore, real-device/browser regression, and SMM negative runtime proof.",
-  "edge_function_contracts": "PARTIAL — directory-listings v8 and several public/runtime functions now have source parity; six critical order/payment/finance functions remain drifted. Do not deploy those functions individually until their schema, grants, sandbox E2E, and rollback sequence are verified.",
+  "reason": "Catalog pilot is deployed and deployed-origin browser tests pass. Full platform production remains blocked by 41 exact original release-migration source-version IDs absent from the live ledger, verified live Edge Function drift across six critical order/payment/finance functions, missing RC435/RC439 subscription schema contracts, missing canonical RC449A/RC450 financial-journal migrations and service-role RPC boundary, anonymous-JWT/RLS and SECURITY DEFINER adversarial tests, Auth security settings, payment/finance E2E, backup/restore, and SMM negative runtime proof.",
+  "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — leaked-password protection and Auth security settings require owner dashboard evidence; no setting change made.",
   "rc424_reconciliation": {
@@ -264,7 +264,7 @@
         "live_version": 3,
         "verify_jwt": true,
         "exact_match": false,
-        "observed_difference": "Live entrypoint uses wildcard CORS and calls post_financial_journal; main uses an origin allowlist and calls post_financial_journal_backend. Live schema/ACL prerequisites remain missing.",
+        "observed_difference": "Live v3 uses wildcard CORS and calls legacy post_financial_journal; current main uses allow-listed CORS and calls post_financial_journal_backend. The main RPC contract matches canonical RC450, not the earlier RC436-only alternative. Live production lacks RC449A/RC450; the old live post_financial_journal_backend RPC has no service_role EXECUTE and requires p_user_id=auth.uid(), so it is incompatible with the trusted Edge service-role flow.",
         "status": "BLOCKED"
       },
       {
@@ -1714,5 +1714,74 @@
     },
     "no_production_changes": true,
     "production_gate": "BLOCKED / NOT CERTIFIED"
+  },
+  "financial_journal_live_contract": {
+    "status": "CRITICAL_BLOCKED",
+    "checked_at": "2026-10-30",
+    "canonical_migration_order": [
+      "20261010175000_rc449a_financial_journal_schema_prerequisites",
+      "20261010180000_rc450_financial_journal_service_role_boundary"
+    ],
+    "live_ledger_has_rc449a": false,
+    "live_ledger_has_rc450": false,
+    "live_rpc": "post_financial_journal_backend(uuid,jsonb,jsonb)",
+    "live_service_role_execute": false,
+    "live_actor_check": "p_user_id must equal auth.uid()",
+    "main_edge_rpc": "post_financial_journal_backend(uuid,jsonb,jsonb)",
+    "main_source_matches_rc450_rpc_name": true,
+    "deployed_edge_version": 3,
+    "deployed_edge_uses": "legacy post_financial_journal with wildcard CORS",
+    "canonical_runbook": "docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md",
+    "integration_test": "supabase/tests/rc450_financial_journal_integration.sql",
+    "correction": "RC436 post_financial_journal_atomic_backend is not the canonical production rollout path. Do not apply RC436 as a substitute or grant the legacy RPC."
+  },
+  "subscription_checkout_live_contract": {
+    "status": "CRITICAL_BLOCKED",
+    "checked_at": "2026-10-30",
+    "live_ledger_has_rc435": false,
+    "live_ledger_has_rc439": false,
+    "missing_rpc_names": [
+      "create_subscription_payment_intent_claimable_backend",
+      "claim_subscription_provider_intent_creation_backend"
+    ],
+    "missing_columns": [
+      "provider_creation_state",
+      "provider_creation_claimed_at",
+      "client_secret_ciphertext",
+      "client_secret_iv",
+      "client_secret_key_version"
+    ],
+    "source_migrations": [
+      "20261009210000_rc435_subscription_provider_intent_claim",
+      "20261010010000_rc439_encrypted_checkout_recovery"
+    ],
+    "production_effect": "NONE"
+  },
+  "rls_security_advisor_snapshot": {
+    "checked_at": "2026-10-30T05:18:25Z",
+    "anonymous_policy_findings": 90,
+    "authenticated_security_definer_functions": 67,
+    "anon_security_definer_functions": 3,
+    "rls_enabled_without_policies": 8,
+    "leaked_password_protection": "DISABLED",
+    "authenticated_policy_inventory": {
+      "total": 483,
+      "explicit_is_anonymous_guard": 283,
+      "no_explicit_is_anonymous_guard": 200,
+      "mentions_auth_uid": 215,
+      "mentions_user_memberships": 103
+    },
+    "note": "Advisor findings are not vulnerability counts. No-policy tables have no direct anon/authenticated table grants. Two anon-executable SECURITY DEFINER findings are trigger-only functions; one is a bounded public read-only ad lookup. Isolated anonymous JWT and function adversarial tests remain required.",
+    "report": "docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md",
+    "production_effect": "NONE"
+  },
+  "latest_live_ledger_snapshot_20261030": {
+    "status": "READ_ONLY_SNAPSHOT",
+    "live_ledger_count": 308,
+    "latest_version": "20261029083845",
+    "required_release_source_versions": 41,
+    "required_release_source_versions_found": 0,
+    "method": "Supabase list_migrations plus read-only exact-version check against scripts/production/verify-production.mjs manifest",
+    "caution": "Do not infer missing schema effects solely from missing original version IDs; reconcile exact stored migration statements and physical schema. Do not replay or fabricate ledger rows."
   }
 }
