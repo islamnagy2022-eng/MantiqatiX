@@ -59,6 +59,17 @@
 
 **Overall Production Gate: BLOCKED / NOT CERTIFIED.** No production migrations, grants, Auth/RLS changes, Edge Function deployments, provider calls or financial mutations were performed in this checkpoint.
 
+## Required production-gate contract markers
+
+The following exact status markers are retained for the automated RC360 release-gate validator; they reflect the current unresolved state, not an assertion that these gates have passed.
+
+- E2E مصادقة وصلاحيات متعددة المستخدمين/المؤسسات — NOT VERIFIED
+- Paymob production E2E — WAIT
+- Leaked Password Protection — WAIT
+- Production release build + signing — WAIT
+- Real-device release test — WAIT
+- Final Production Gate remains **OPEN / NOT PRODUCTION READY YET**
+
 # P1 — أولوية عالية
 
 11. G11 Analytics/Reports — PARTIAL
