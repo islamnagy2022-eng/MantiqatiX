@@ -1027,6 +1027,17 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Merged after exact-head CI passed; Pages deployment job and post-deploy Production Health Monitor both passed on main commit `ff2f3176017db83e0fb80d1d768fdf79f1d42e1e` (2026-10-30). This is a frontend performance fix; no subscription/payment/financial records or Supabase production settings were changed.
 - [ ] Complete real-account timing verification for platform admin, one-business owner, multi-business owner, and customer-only user; compare sign-in-to-ready timings and confirm no duplicate memberships/subscriptions are created or hidden.
 
+
+## 2026-10-30 — Subscriber directory stale-response protection and manual refresh
+
+- [x] Follow-up review found logout did not immediately invalidate the in-flight auth sequence; a delayed admin subscriber response could theoretically settle before the asynchronous `SIGNED_OUT` event.
+- [x] Logout now increments the auth-load sequence and clears the active identity before calling Supabase sign-out, invalidating pending background directory writes immediately.
+- [x] Added an admin-only manual subscriber-directory refresh guarded by the current user ID and auth sequence; non-admin sessions cannot invoke it through the UI or context action.
+- [x] Added a loaded-record count and explicit refresh/loading state in the existing subscribers tab without changing its overall layout.
+- [ ] Exact-head TypeScript, production build, Google OAuth contract, auth-session, subscriber directory, role/tenant isolation, and browser/mobile E2E checks must pass.
+- [ ] Verify logout during an in-flight `LIST_SUBSCRIBERS` request, account switching, failed directory read followed by manual retry, and successful retry after a later session; confirm no previous-account data is rendered or retained.
+- [ ] No database, subscription, membership, payment, RLS, or production Supabase settings were changed.
+
 ## 2026-10-30 — Defer full platform subscriber directory from Google sign-in
 
 - [x] Additional root-cause review found `bootstrapProductionUser` awaited `LIST_SUBSCRIBERS` and mapped the complete platform subscriber directory before returning the authenticated workspace. This made a large administrative directory part of the critical Google sign-in path.
