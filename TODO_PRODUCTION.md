@@ -938,3 +938,5 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Review all 67 SECURITY DEFINER functions, callers, actor binding, grants, owners and search_path; make narrow fixes only after tests.
 - [ ] Enable Leaked Password Protection through approved Auth configuration and test password flows.
 - Security gate remains BLOCKED / NOT CERTIFIED; no production RLS/ACL/Auth change was made.
+
+- [x] Follow-up table-level cross-check: 126 public tables have authenticated policies; 71 have a restrictive is_anonymous guard and 55 do not. The 55 are not vulnerabilities by count because some individual permissive predicates explicitly reject anonymous JWTs or bind to auth.uid()/membership. Detailed caveat added to the RLS audit report.
