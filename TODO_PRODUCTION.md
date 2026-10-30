@@ -960,3 +960,14 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Continue the remaining catalog E2E tasks already listed above: authenticated create/publish/edit/readback, owner and tenant isolation, duplicate prevention, permanent links/QR scans, social links, and authenticated AI image generation.
 - Production migration/Auth/RLS/Edge Function/payment/finance/backup/restore gates remain governed by the P0 release section above. No production database or financial mutation was performed by this catalog convergence change.
 
+
+
+## 2026-10-30 — Verified activity external brand links (PR #533)
+- [x] قدم السعد provider profile is confirmed `is_verified=true` in production.
+- [x] PR [#533](https://github.com/islamnagy2022-eng/MantiqatiX/pull/533) merged to `main` as `f38b609b00fd0025793b00ebf7990073dfaff4c9`; directory cards and storefront headers now render external logo/cover links immediately after the verification badge when the URLs exist.
+- [x] Primary Catalog Frontend Validation [41015206306](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015206306) passed build/TypeScript, isolated PostgreSQL RBAC and browser jobs.
+- [ ] Post-merge Pages deployment and deployed-origin verification of the logo/cover links. PR-triggered Pages deploy was skipped; do not claim production publication yet.
+- [ ] Focused E2E for both URLs / logo-only / cover-only / no URLs / unverified; confirm no parent-card click propagation.
+- [ ] Audit all verified activities for valid external logo and cover URLs; do not fabricate missing assets.
+- [ ] For every new user request, add a linked item to the canonical TODO register and keep it open until implementation, tests, deployment and applicable production verification are complete.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
