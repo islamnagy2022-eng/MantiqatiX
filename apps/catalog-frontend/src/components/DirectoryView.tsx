@@ -608,7 +608,7 @@ export const DirectoryView: React.FC = () => {
                 <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">كافة الأنشطة</span>
                 <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">جميع القطاعات والمهن</span>
               </span>
-              <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{unconfirmedListings.length}</span></span>
+              <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-[10px] font-bold text-red-700">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-[10px] font-bold text-red-700">{unconfirmedListings.length}</span></span>
             </button>
 
             {functionalGroups.map((group) => {
@@ -629,7 +629,7 @@ export const DirectoryView: React.FC = () => {
                     <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">{group.shortName}</span>
                     <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">{group.name}</span>
                   </span>
-                  <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>{unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{unconfirmedCount}</span>}</span>
+                  <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold ${isSelected ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{count}</span>{unconfirmedCount > 0 && <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-[10px] font-bold text-red-700">{unconfirmedCount}</span>}</span>
                 </button>
               );
             })}
@@ -692,8 +692,8 @@ export const DirectoryView: React.FC = () => {
                         <span className="mt-1 block text-[11px] text-slate-500">{category.classificationType === 'profession' ? 'مهنة' : 'نشاط'}</span>
                       </span>
                       <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
-                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{count}</span>
-                        <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedCount}</span>
+                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{count}</span>
+                        <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{unconfirmedCount}</span>
                       </span>
                     </button>
                   );
@@ -723,8 +723,8 @@ export const DirectoryView: React.FC = () => {
                     <button key={specialty} type="button" onClick={() => setSelectedSpecialty(specialty)} aria-pressed={selectedSpecialty === specialty} className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-right text-sm font-bold transition ${selectedSpecialty === specialty ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
                       <span>{specialty}</span>
                       <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
-                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{confirmedSpecialtyCount}</span>
-                        <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-xs font-black text-emerald-800">{unconfirmedSpecialtyCount}</span>
+                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{confirmedSpecialtyCount}</span>
+                        <span title="صفحات دليل غير مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{unconfirmedSpecialtyCount}</span>
                       </span>
                     </button>
                   );
