@@ -5,6 +5,7 @@ declare
   source_custom constant text := 'cat_custom_11111111-1111-4111-8111-111111111111';
   target_custom constant text := 'cat_custom_22222222-2222-4222-8222-222222222222';
   profession_custom constant text := 'cat_custom_33333333-3333-4333-8333-333333333333';
+  wrong_group_custom constant text := 'cat_custom_55555555-5555-4555-8555-555555555555';
   invalid_custom constant text := 'cat_custom_44444444-4444-4444-8444-444444444444';
   business_a constant uuid := '46100000-0000-4000-8000-000000000011';
   business_b constant uuid := '46100000-0000-4000-8000-000000000012';
@@ -29,7 +30,8 @@ begin
     jsonb_build_object('categories',jsonb_build_array(
       jsonb_build_object('id',source_custom,'name','مقهى مخصص مصدر','functionalGroupId','food_grocery','classificationType','activity','isCustom',true),
       jsonb_build_object('id',target_custom,'name','مقهى مخصص وجهة','functionalGroupId','food_grocery','classificationType','activity','isCustom',true),
-      jsonb_build_object('id',profession_custom,'name','خبير قهوة مخصص','functionalGroupId','food_grocery','classificationType','profession','isCustom',true)
+      jsonb_build_object('id',profession_custom,'name','خبير قهوة مخصص','functionalGroupId','food_grocery','classificationType','profession','isCustom',true),
+      jsonb_build_object('id',wrong_group_custom,'name','تصنيف مخصص بمجال مختلف','functionalGroupId','medical_health','classificationType','activity','isCustom',true)
     )),
     admin_id
   );
@@ -84,6 +86,20 @@ begin
   end;
   if not rejected then raise exception 'RC461_UNKNOWN_CUSTOM_SOURCE_NOT_REJECTED'; end if;
 
+  -- A custom category registered under another functional group is not a valid target.
+  rejected := false;
+  begin
+    perform public.mnty_catalog_taxonomy_mapping_preview(
+      admin_id,'food_grocery',source_custom,
+      'medical_health',wrong_group_custom,'activity'
+    );
+    raise exception 'RC461_CUSTOM_TARGET_WRONG_GROUP_ACCEPTED';
+  exception when others then
+    if sqlerrm <> 'TAXONOMY_CUSTOM_TARGET_NOT_FOUND' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC461_CUSTOM_TARGET_WRONG_GROUP_NOT_REJECTED'; end if;
+
   -- Custom -> canonical: preview has exact row counts, no writes, and preserves stable identity.
   preview := public.mnty_catalog_taxonomy_mapping_preview(
     admin_id,'food_grocery',source_custom,
@@ -136,6 +152,21 @@ begin
     raise exception 'RC461_CANONICAL_TO_CUSTOM_LISTING_ID_INVALID';
   end if;
 
+  -- Registered custom -> another registered custom category.
+  preview := public.mnty_catalog_taxonomy_mapping_preview(
+    admin_id,'food_grocery',target_custom,
+    'food_grocery',source_custom,'activity'
+  );
+  applied := public.mnty_catalog_taxonomy_mapping_apply(
+    admin_id,'food_grocery',target_custom,
+    'food_grocery',source_custom,'activity',preview->>'previewDigest'
+  );
+  if applied->>'success' <> 'true'
+     or (select settings->>'activity_category_id' from public.businesses where id=business_a) <> source_custom
+     or (select taxonomy_category_id from public.public_directory_listings where id=listing_a) <> source_custom then
+    raise exception 'RC461_CUSTOM_TO_CUSTOM_APPLY_FAILED: %',applied;
+  end if;
+
   -- A profession-only custom category cannot receive an activity mapping.
   rejected := false;
   begin
@@ -155,7 +186,7 @@ begin
   where actor_user_id=admin_id
     and source_category_id in (source_custom,'cat_food_grocery_cafes')
     and target_category_id in ('cat_food_grocery_cafes',target_custom);
-  if audit_count <> 2 then
+  if audit_count <> 3 then
     raise exception 'RC461_CUSTOM_MAPPING_AUDIT_COUNT_INVALID: %',audit_count;
   end if;
 end;
