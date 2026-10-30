@@ -96,3 +96,20 @@ assert.doesNotMatch(frontendSource, /marketing_provider_profiles/,
 
 console.log("Public marketing provider exposure contract passed: server-side service-role access, active-only explicit field projection, no owner_user_id/settings in public responses, and primary frontend uses curated Edge Functions.");
 console.log("Database anon table grants remain a separate migration/release item; this source contract does not claim to remove direct PostgREST access.");
+
+
+// The old /web entrypoint is redirect-only. Its compatibility shell must not
+// start the legacy home/app bootstrap (and its direct profile-table queries)
+ // while the browser is navigating to the canonical catalog application.
+const legacyEntry = fs.readFileSync("web/index.html", "utf8");
+const legacyBootGuard = "if (window.location.pathname !== '/MantiqatiX/catalog-app/') return;";
+const guardIndex = legacyEntry.indexOf(legacyBootGuard);
+assert.notEqual(guardIndex, -1,
+  "legacy /web entrypoint must stop before loading the old home/app runtime");
+const legacyConfigLoadIndex = legacyEntry.indexOf("await load('config.js");
+assert.ok(legacyConfigLoadIndex > guardIndex,
+  "legacy boot guard must run before any legacy config/home/Supabase script loads");
+assert.match(legacyEntry, /target\.search = current\.search/,
+  "legacy redirect must preserve OAuth query parameters");
+assert.match(legacyEntry, /target\.hash = current\.hash/,
+  "legacy redirect must preserve OAuth hash parameters");
