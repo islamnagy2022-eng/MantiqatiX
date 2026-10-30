@@ -162,6 +162,8 @@ Deno.serve(async (req: Request) => {
         description: String(profile.bio || provider?.description || business.settings?.headline || ""),
         category: activityCategory,
       });
+      const externalLogoUrl = safeImage(profile.logo_url, officialShowcase);
+      const externalCoverUrl = safeImage(profile.cover_url, officialShowcase);
       const phone = String(branch?.phone || profile.whatsapp_phone || profile.phone || "");
       const cleanPhone = phone.replace(/\D/g, "");
       const whatsappPhone = cleanPhone.startsWith("00") ? cleanPhone.slice(2)
@@ -177,7 +179,7 @@ Deno.serve(async (req: Request) => {
         activityGroupCode: String(business.settings?.activity_group_code || business.settings?.taxonomy_group_code || ""),
         activityClassificationType: String(business.settings?.activity_classification_type || "activity").toLowerCase() === "profession" ? "profession" : "activity",
         activitySpecialty: String(business.settings?.activity_specialty || ""),
-        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: safeImage(profile.logo_url, officialShowcase) || defaultImages.logoUrl, coverUrl: safeImage(profile.cover_url, officialShowcase) || defaultImages.coverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
+        profile: { bio: String(profile.bio || provider?.description || business.settings?.headline || ""), governorate: String(profile.governorate || ""), markaz: String(profile.markaz || ""), village: String(profile.village || ""), workingHours: String(profile.working_hours || ""), logoUrl: externalLogoUrl || defaultImages.logoUrl, coverUrl: externalCoverUrl || defaultImages.coverUrl, externalLogoUrl, externalCoverUrl, google_maps_url: String(profile.google_maps_url || ""), category: activityCategory, whatsappPhone },
         provider: { kind: activityCategory, description: provider?.description || profile.bio || business.settings?.headline || "", slug: provider?.slug || "", verified: Boolean(provider?.is_verified), featured: Boolean(provider?.is_featured) },
         branches: branches || [], selectedBranchId: branchId || null, items, prices, contactPhone: phone,
         catalogPublished, publicEnabled: catalogPublished, isOfficialShowcase: officialShowcase,
