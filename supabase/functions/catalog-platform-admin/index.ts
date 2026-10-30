@@ -273,16 +273,14 @@ Deno.serve(async (req: Request) => {
           if (!mappingChanged) continue;
 
           let businessCount = 0;
-          const canonicalMatch = previousId.match(/^cat_([a-z][a-z0-9_]*)_([a-z0-9]+(?:_[a-z0-9]+)*)$/);
-          if (canonicalMatch) {
-            const [, oldGroup, oldCode] = canonicalMatch;
-            if (allowedTaxonomyGroups.includes(oldGroup)) {
-              const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
-                .eq("settings->>activity_group_code", oldGroup)
-                .eq("settings->>activity_category_code", oldCode);
-              if (error) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
-              businessCount = Number(count || 0);
-            }
+          const oldGroup = allowedTaxonomyGroups.find((group) => previousId.startsWith(`cat_${group}_`));
+          const oldCode = oldGroup ? previousId.slice(`cat_${oldGroup}_`.length) : "";
+          if (oldGroup && /^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(oldCode)) {
+            const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
+              .eq("settings->>activity_group_code", oldGroup)
+              .eq("settings->>activity_category_code", oldCode);
+            if (error) throw new Error("TAXONOMY_USAGE_CHECK_FAILED");
+            businessCount = Number(count || 0);
           } else {
             const { count, error } = await service.from("businesses").select("id", { count: "exact", head: true })
               .eq("settings->>activity_category_id", previousId);
