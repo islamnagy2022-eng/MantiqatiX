@@ -430,7 +430,67 @@ try {
     } finally { await context.close(); }
   }
 
+
+  // 9. Folder-style public taxonomy navigation opens a dedicated page and preserves
+  // group -> category -> specialty hierarchy without changing the homepage layout.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+
+      const taxonomyMain = page.locator('main[dir="rtl"]');
+      await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /صيدليات/ }).waitFor({ state: 'visible' });
+      assert.equal(await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).count(), 1,
+        'medical group must expose one dedicated clinic category folder');
+      assert.equal(await taxonomyMain.getByRole('button', { name: /صيدليات/ }).count(), 1,
+        'medical group must expose one dedicated pharmacy category folder');
+      await assertNoHorizontalOverflow(page, '390px taxonomy group/category browser');
+      await auditAccessibility(page, 'taxonomy-group-category-browser');
+
+      await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
+      await taxonomyMain.getByRole('heading', { name: 'عيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /رجوع للمجموعات والتصنيفات/ }).click();
+      await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
+
+      await taxonomyMain.getByRole('button', { name: /رجوع للمجموعات/ }).click();
+      await taxonomyMain.getByRole('heading', { name: 'مجلدات المجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /العودة للكتالوج/ }).click();
+      await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px taxonomy return-to-catalog');
+      results.push('taxonomy-folder-group-category-back-navigation-and-mobile-layout');
+    } finally { await context.close(); }
+  }
+
+  // 10. Selecting a specialty exits the folder page and applies the selected
+  // specialty filter in the existing catalog view.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
+      const taxonomyMain = page.locator('main[dir="rtl"]');
+      await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
+      await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).click();
+
+      const taxonomyBreadcrumb = page.locator('nav[aria-label="مسار التصنيف"]');
+      await taxonomyBreadcrumb.getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
+      await taxonomyBreadcrumb.getByText('عيادات عامة', { exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
+      await page.setViewportSize({ width: 768, height: 1024 });
+      await assertNoHorizontalOverflow(page, '768px selected taxonomy specialty');
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await assertNoHorizontalOverflow(page, '1440px selected taxonomy specialty');
+      results.push('taxonomy-specialty-selection-returns-to-catalog-and-filters');
+    } finally { await context.close(); }
+  }
+
 } finally {
   await browser.close();
 }
-console.log('PROFESSIONAL_DASHBOARD_BROWSER_E2E=PASS (' + results.join(', ') + ')');
+console.log('PRIMARY_CATALOG_BROWSER_E2E=PASS (' + results.join(', ') + ')');
