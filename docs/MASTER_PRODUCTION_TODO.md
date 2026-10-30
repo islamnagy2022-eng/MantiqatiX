@@ -2528,3 +2528,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Current main financial-journal Edge RPC call matches RC450. The actual live blocker is that both migrations are absent and the live RPC body/ACL is old: service_role EXECUTE=false and actor binding requires auth.uid().
 - RC450 runbook, integration tests and validator already exist. Rehearse the exact sequence on a restorable isolated database before proposing production rollout. Never grant the legacy RPC or apply RC436 as a shortcut.
 - Report correction is recorded in docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md. Release remains BLOCKED.
+
+
+### RLS / Anonymous JWT / SECURITY DEFINER audit — 2026-10-30
+- Latest advisor: 90 anonymous policy findings, 67 authenticated-executable SECURITY DEFINER functions, 3 anon-executable definer functions, 8 RLS-enabled tables without policies, and leaked password protection disabled.
+- 483 authenticated policies: 283 explicitly check is_anonymous; 200 do not. 215 reference auth.uid(); 103 reference membership. Text presence alone cannot certify access controls.
+- Eight no-policy tables have no direct anon/authenticated grants. Six have no service_role table grants; two are service_role-only. This appears to be backend-only by observed ACLs; do not add blanket policies.
+- Two anon-executable definer warnings are trigger-only helpers; the third is the public bounded read-only targeted-ad lookup. Confirm with isolated tests.
+- Review 67 authenticated definer functions individually. Static inventory: 60 auth.uid, 27 membership, 23 explicit actor comparisons, 37 safer search_path settings, 30 search_path=public only; no unqualified public table references found in the latter static pass. Temp-shadow and caller tests still required.
+- See docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md. Production RLS/Auth/ACL remains unchanged; security gate BLOCKED.

@@ -917,3 +917,10 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Current main Edge Function RPC name matches RC450; live production is blocked because RC449A/RC450 are absent and the old live RPC lacks service_role EXECUTE and RC450 actor/scope semantics.
 - Follow docs/runbooks/RC450_FINANCIAL_JOURNAL_ROLLOUT.md; rehearse on an isolated restorable DB before production approval.
 - Corrected audit evidence is in docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md.
+
+
+### Latest security checkpoint — RLS and SECURITY DEFINER
+- Read-only review report: docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md.
+- 90 anonymous-policy warnings, 67 authenticated-executable SECURITY DEFINER functions, 3 anon-executable definer warnings, 8 RLS-enabled/no-policy INFO findings, and leaked password protection disabled.
+- No-policy tables have no direct anon/authenticated grants; trigger-only definer functions and bounded public ad lookup were distinguished from ordinary RPCs. No broad ACL or RLS fix applied.
+- Next: isolated anonymous JWT and tenant/business/branch adversarial tests, 67-function caller/identity/search_path review, then narrowly scoped fixes. No production security mutation; gate remains BLOCKED.
