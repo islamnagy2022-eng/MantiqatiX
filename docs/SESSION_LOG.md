@@ -887,3 +887,5 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Eight no-policy tables have no direct anon/authenticated grants; six have no service_role table privileges, two are service_role-only. Two anon-executable definer warnings are trigger-only; targeted-ad lookup is intentionally public read-only with bounded results.
 - 483 authenticated policies: 283 explicitly reference is_anonymous, 200 do not; 215 reference auth.uid(), 103 membership. 67 definer functions: 60 auth.uid, 27 membership, 23 explicit actor comparison, 37 safe/explicit search_path, 30 search_path=public only. Static scan found no unqualified public table references in those 30; no exploitability conclusion without adversarial tests.
 - Report: docs/audits/RLS_ANONYMOUS_AND_SECURITY_DEFINER_20261030.md. No production ACL, RLS, Auth, data or function change.
+
+- Follow-up table-level cross-check: 126 public tables have authenticated policies; 71 have restrictive anonymous guards and 55 do not. The latter are not assumed vulnerable because many have per-policy is_anonymous checks or UID/membership binding; isolated JWT tests remain mandatory.
