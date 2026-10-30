@@ -101,7 +101,7 @@ function makeSession(scenario) {
   };
 }
 
-async function newScenario(browser, scenario = null) {
+async function newScenario(browser, scenario = null, publicDirectoryBusinesses = []) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const session = scenario ? makeSession(scenario) : null;
   await context.addInitScript(({ key, value }) => {
@@ -197,7 +197,7 @@ async function newScenario(browser, scenario = null) {
       });
     }
     if (url.pathname.endsWith('/functions/v1/public-catalog-directory')) {
-      return json({ accessMode: 'PUBLIC_DIRECTORY_READ_ONLY', businesses: [] });
+      return json({ accessMode: 'PUBLIC_DIRECTORY_READ_ONLY', businesses: publicDirectoryBusinesses });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
       let body = {};
@@ -430,6 +430,39 @@ try {
     } finally { await context.close(); }
   }
 
+
+  // 9. Verified activities expose only explicitly configured external brand URLs.
+  {
+    const displayLogo = 'https://assets.example.test/fallback-logo.svg';
+    const displayCover = 'https://assets.example.test/fallback-cover.svg';
+    const fixtures = [
+      { id: 'brand-both', name: 'نشاط رابطين خارجيين', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/both-logo.svg', externalCoverUrl: 'https://cdn.example.test/both-cover.svg' }, provider: { verified: true } },
+      { id: 'brand-logo-only', name: 'نشاط رابط لوجو فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/logo-only.svg', externalCoverUrl: '' }, provider: { verified: true } },
+      { id: 'brand-cover-only', name: 'نشاط رابط غلاف فقط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: 'https://cdn.example.test/cover-only.svg' }, provider: { verified: true } },
+      { id: 'brand-no-external', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
+      { id: 'brand-unverified', name: 'نشاط غير موثق بروابط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/unverified-logo.svg', externalCoverUrl: 'https://cdn.example.test/unverified-cover.svg' }, provider: { verified: false } },
+    ];
+    const { context, page } = await newScenario(browser, null, fixtures);
+    try {
+      await page.getByText('نشاط رابطين خارجيين', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const logoLinks = page.locator('a[title="فتح رابط اللوجو الخارجي"]');
+      const coverLinks = page.locator('a[title="فتح رابط الغلاف الخارجي"]');
+      assert.equal(await logoLinks.count(), 2, 'only verified activities with explicit external logo URLs should show logo links');
+      assert.equal(await coverLinks.count(), 2, 'only verified activities with explicit external cover URLs should show cover links');
+      assert.equal(await page.locator('a[href="https://cdn.example.test/both-logo.svg"]').count(), 1);
+      assert.equal(await page.locator('a[href="https://cdn.example.test/both-cover.svg"]').count(), 1);
+      assert.equal(await page.locator('a[href="https://cdn.example.test/logo-only.svg"]').count(), 1);
+      assert.equal(await page.locator('a[href="https://cdn.example.test/cover-only.svg"]').count(), 1);
+      assert.equal(await page.locator('a[href*="fallback-"]').count(), 0, 'display fallback images must never be exposed as external links');
+      assert.equal(await page.locator('a[href*="unverified-"]').count(), 0, 'unverified activities must not expose external brand links');
+      for (const link of await [...await logoLinks.all(), ...await coverLinks.all()]) {
+        assert.equal(await link.getAttribute('target'), '_blank', 'external links must open in a new tab');
+        assert.match(await link.getAttribute('rel') || '', /noopener/);
+        assert.match(await link.getAttribute('rel') || '', /noreferrer/);
+      }
+      results.push('verified-external-logo-cover-links-only-with-explicit-urls');
+    } finally { await context.close(); }
+  }
 
   // 9. Folder-style public taxonomy navigation opens a dedicated page and preserves
   // group -> category -> specialty hierarchy without changing the homepage layout.
