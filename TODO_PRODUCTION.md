@@ -906,3 +906,12 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Add/run adversarial and integration tests for provider amount/currency/reference mismatch, missing provider order ID, unknown provider outcomes, duplicate/replayed webhooks, concurrent subscription claims, checkout-secret encryption/recovery, and financial actor-role denial.
 - [ ] Prepare reviewed, one-function-at-a-time deployment/rollback plan only after all database contracts and secrets are verified.
 - The Pages/browser gate is now VERIFIED for this deployed commit. The overall platform Production Gate remains **BLOCKED / NOT CERTIFIED** due to live Edge Function semantic drift, anonymous JWT/RLS review, SECURITY DEFINER review, migration reconciliation, financial/payment E2E, and backup/restore gates. No production Supabase or payment mutation was performed.
+
+
+### Additional live SQL contract findings — 2026-10-30
+- [x] Read-only live pg_proc/ACL/column/ledger checks confirmed current production lacks RC435 subscription claim functions and columns, and RC439 encrypted checkout columns. The corresponding migration versions 20261009210000 and 20261010010000 are absent from the live ledger.
+- [x] Confirmed the RC436 atomic financial journal migration 20261009220000 is absent from the live ledger. The only existing post_financial_journal and post_financial_journal_backend RPCs have no service_role EXECUTE privilege.
+- [x] Confirmed current main financial-journal Edge source still calls post_financial_journal_backend, while RC436 defines the service-role-granted post_financial_journal_atomic_backend; source-to-migration contract must be corrected and tested before deployment.
+- [ ] Restore production schema into an isolated database; rehearse RC435/RC436/RC439 migrations and run their full integration/rollback tests. Never apply these migrations directly to production as an exploratory fix.
+- [ ] Correct the financial-journal Edge RPC call to the atomic contract only after source tests prove the argument/actor context and the isolated migration rehearsal passes.
+- Release remains BLOCKED / NOT CERTIFIED. No production SQL, migration, grant, payment, or Edge Function mutation was performed.
