@@ -2565,3 +2565,11 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Read-only production audit found 2 ACTIVE verified provider profiles; both have valid HTTPS logo and cover URLs, with 0 invalid non-HTTPS configured values. Missing links remain hidden by the UI.
 - The scoped external-link correction is isolated from production data and does not change provider verification status, subscription state, layout, verified-first ranking or existing display images.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
+
+
+## CAT-PUBLIC-VERIFICATION-LABELS-20261030 — تحسين مسميات حالة التوثيق في نتائج الدليل
+- [x] تسجيل طلب المستخدم: لا تظهر عبارة «بيانات غير مؤكدة» للعميل؛ توحيد وصف الأنشطة غير الموثقة إلى «غير موثق» في بطاقات الأنشطة وبطاقات الدليل وملخص العدادات.
+- [x] الاكتفاء بشارة «موثق» للأنشطة الموثقة، وإزالة النصين الظاهرين «اللوجو» و«الغلاف» مع الإبقاء على روابط الصور الخارجية كأيقونات وصول خارجية ذات تسميات وصول واضحة، ودون تغيير مصدر الصور أو حالة التوثيق.
+- [x] الحفاظ على ظهور الأنشطة غير الموثقة داخل نتائج المجالات/التصنيفات ذات الصلة مع استمرار تقديم الأنشطة الموثقة أولاً؛ لا تغيير لقواعد النشر أو الصلاحيات أو البيانات.
+- [ ] استكمال تحقق build/typecheck وBrowser E2E على نفس commit، ثم التحقق من نشر main وسلوك الواجهة المنشورة قبل إغلاق المهمة.
+- الحالة الحالية: IMPLEMENTED — NOT VERIFIED (فرع إصلاح مستقل؛ لم يتم الدمج أو النشر).
