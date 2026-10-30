@@ -856,35 +856,6 @@ Deno.serve(async (req: Request) => {
           );
         if (!savedCustomCategory) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
       }
-      if (customActivityCategoryId) {
-        const { data: taxonomySettings, error: taxonomySettingsError } = await service
-          .from("bizcatalog_platform_settings").select("settings")
-          .eq("settings_key", "bizcatalog").maybeSingle();
-        if (taxonomySettingsError) throw new Error("CUSTOM_TAXONOMY_REGISTRY_READ_FAILED");
-        const savedCustomCategory = (Array.isArray(taxonomySettings?.settings?.categories) ? taxonomySettings.settings.categories : [])
-          .find((entry: any) =>
-            entry?.id === activityCategoryId &&
-            entry?.functionalGroupId === activityGroupCode &&
-            entry?.isCustom === true &&
-            entry?.classificationType === activityClassificationType
-          );
-        if (!savedCustomCategory) return response(origin, { error: "INVALID_ACTIVITY_CATEGORY_ID" }, 400);
-      }
-      if (activityCategoryId && customActivityCategoryId) {
-        const { data: categorySettingsRow, error: categorySettingsError } = await service.from("bizcatalog_platform_settings")
-          .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
-        if (categorySettingsError) throw categorySettingsError;
-        const savedCustomCategories = Array.isArray(categorySettingsRow?.settings?.categories)
-          ? categorySettingsRow.settings.categories : [];
-        const customDefinition = savedCustomCategories.find((entry: any) =>
-          String(entry?.id || "") === activityCategoryId
-        );
-        if (!customDefinition ||
-            String(customDefinition.functionalGroupId || "") !== activityGroupCode ||
-            String(customDefinition.classificationType || "activity") !== activityClassificationType) {
-          return response(origin, { error: "INVALID_OR_UNREGISTERED_CUSTOM_ACTIVITY_CATEGORY" }, 400);
-        }
-      }
       if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "If provided, the owner WhatsApp number must contain 10 to 15 digits." }, 400);
