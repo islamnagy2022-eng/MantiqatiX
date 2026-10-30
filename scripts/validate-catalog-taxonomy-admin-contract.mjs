@@ -42,7 +42,7 @@ assert.ok(edge.includes('TAXONOMY_USAGE_CHECK_FAILED'), 'Failed usage checks mus
 assert.ok(context.includes("activityCategoryId: data.categoryId || ''"), 'New activity creation must send the stable taxonomy category ID.');
 assert.ok(edge.includes('const activityCategoryId = String(input.activityCategoryId || "").trim()'), 'Server must read the stable category ID on activity creation.');
 assert.ok(edge.includes('INVALID_ACTIVITY_CATEGORY_ID') && edge.includes('canonicalActivityCategoryType !== activityClassificationType'), 'Server must validate activity category group and classification type.');
-assert.ok(edge.includes('INVALID_OR_UNREGISTERED_CUSTOM_ACTIVITY_CATEGORY') && edge.includes('customDefinition.functionalGroupId'), 'Custom category use must verify an existing platform definition with matching group.');
+assert.ok(edge.includes('const savedCustomCategory =') && edge.includes('entry?.functionalGroupId === activityGroupCode') && edge.includes('entry?.classificationType === activityClassificationType'), 'New activities must verify a saved custom category with matching group and classification type.');
 assert.ok(edge.includes('TAXONOMY_CATEGORY_GROUP_OR_TYPE_MISMATCH'), 'Saved canonical categories must match their canonical group and classification.');
 assert.ok(edge.includes('INVALID_CUSTOM_TAXONOMY_CATEGORY_ID'), 'Saved custom category IDs must be UUID-backed, not caller-chosen labels.');
 assert.ok(edge.includes('activity_category_id: activityCategoryId') && edge.includes('activity_category_code: canonicalActivityCategoryCode'), 'Server must persist category identity and canonical code.');
@@ -137,7 +137,7 @@ assert.ok(customMappingIntegration.includes('RC461_STALE_PREVIEW_NOT_REJECTED'),
 assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TO_CUSTOM_APPLY_FAILED'), 'Integration must cover custom-to-custom reclassification.');
 assert.ok(customMappingIntegration.includes('RC461_CUSTOM_TO_CANONICAL_CHANGED_UNRELATED_FIELDS'), 'Integration must preserve unrelated ownership, billing, specialty, publication and contact fields.');
 assert.ok(dashboard.includes('/^cat_custom_[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(category.id)'), 'Admin UI must include persisted custom categories in source/target selectors.');
-assert.ok(edge.includes('entry?.isCustom === true') && edge.includes('TAXONOMY_CUSTOM_TARGET_NOT_FOUND'), 'Edge Function must verify a saved custom category definition before calling the RPC.');
+assert.ok(edge.includes('category?.isCustom === true') && edge.includes('TAXONOMY_CUSTOM_TARGET_NOT_FOUND'), 'Edge Function must verify a saved custom category definition before calling the RPC.');
 assert.ok(edge.includes('entry?.id === activityCategoryId') && edge.includes('INVALID_ACTIVITY_CATEGORY_ID'), 'New activities may not reference fabricated or unregistered custom categories.');
 
 console.log('CATALOG_TAXONOMY_ADMIN_CONTRACT=PASS — server RBAC, safe preview, stale digest, atomic apply, immutable audit, and no direct audit-table access.');
