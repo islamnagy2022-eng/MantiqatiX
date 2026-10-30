@@ -1014,3 +1014,14 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Add the secure admin taxonomy-mapping interface with dry-run preview and audit history.
 - [ ] Evaluate whether the 18 existing functional domains can be consolidated without breaking legacy identifiers or mixing unrelated activities. This requires a compatibility plan and regression tests.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live migrations, payments/finance, Auth, Edge parity and backup/restore gates.
+
+## 2026-10-30 — Google OAuth / subscription bootstrap performance
+
+- [x] Root-cause review found that authenticated bootstrap loaded each authorized business catalog sequentially (one `CATALOG_READ` Edge request at a time, up to 250 rows), making Google sign-in latency grow with the number of memberships/businesses.
+- [x] Root-cause review found that `TOKEN_REFRESHED` was treated as a new bootstrap key because the access token was included in the deduplication key. Routine token rotation therefore reloaded memberships, businesses, products, and platform subscriber/settings data despite an unchanged Google user identity.
+- [x] Changed auth bootstrap deduplication to stable user ID and stopped triggering full catalog bootstrap on routine `TOKEN_REFRESHED`; actual identity changes, sign-in/out, and explicit user/password recovery events remain handled.
+- [x] Replaced serial business catalog reads with a bounded 8-worker pool. Tenant business-list requests now run concurrently, and platform subscriber/settings reads run in parallel. Existing 250-row cap, membership selection, branch scope, role checks, and fail-closed behavior are preserved.
+- [x] Extended Google OAuth contract validation to assert token-refresh deduplication and bounded concurrency.
+- [ ] Exact-head TypeScript/build, Google OAuth contract, and browser E2E must pass before merge.
+- [ ] Verify with real Google accounts representing platform admin, one-business owner, multi-business owner, and customer-only user; record sign-in-to-ready timings and ensure no duplicate memberships/subscriptions are created or hidden.
+- [ ] Do not deploy until exact-head CI passes and the review confirms no permission/scope regression. This is a frontend performance fix; no subscription/payment/financial records or Supabase production settings are changed.
