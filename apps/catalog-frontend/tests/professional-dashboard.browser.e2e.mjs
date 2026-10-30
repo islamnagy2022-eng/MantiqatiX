@@ -457,8 +457,8 @@ try {
     const { context, page } = await newScenario(browser, null, fixtures);
     try {
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-      const logoLinks = page.locator('a[title="فتح رابط اللوجو الخارجي"]');
-      const coverLinks = page.locator('a[title="فتح رابط الغلاف الخارجي"]');
+      const logoLinks = page.locator('a[aria-label="فتح الرابط الخارجي للصورة التعريفية"]');
+      const coverLinks = page.locator('a[aria-label="فتح الرابط الخارجي لصورة الغلاف"]');
       assert.equal(await logoLinks.count(), 2, 'only verified activities with explicit external logo URLs should show logo links');
       assert.equal(await coverLinks.count(), 2, 'only verified activities with explicit external cover URLs should show cover links');
       assert.equal(await page.locator('a[href="https://cdn.example.test/both-logo.svg"]').count(), 1);
