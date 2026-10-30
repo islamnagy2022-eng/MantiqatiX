@@ -2565,3 +2565,19 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Read-only production audit found 2 ACTIVE verified provider profiles; both have valid HTTPS logo and cover URLs, with 0 invalid non-HTTPS configured values. Missing links remain hidden by the UI.
 - The scoped external-link correction is isolated from production data and does not change provider verification status, subscription state, layout, verified-first ranking or existing display images.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live security, migration, Edge Function, finance/payment and backup/restore gates.
+
+
+
+## CAT-TAXONOMY-REORG-20261030 — إعادة تنظيم المجالات والأنشطة والتخصصات وإعادة توزيع الأنشطة
+- [x] اعتماد التسلسل الواضح للعميل: **المجال الرئيسي → النشاط → التخصص/الخدمة**، مع الاحتفاظ بمعرّفات المجموعات الحالية لتجنب كسر الروابط والتكاملات.
+- [x] تحسين مسميات واجهة مجلدات الدليل: «المجالات الرئيسية» و«الأنشطة» بدلًا من المصطلحات الإدارية القديمة، مع الإبقاء على صفحة التصفح المستقلة.
+- [x] إضافة تصنيف «أدوات صحية وفلاتر مياه» تحت «البناء والتشطيبات والديكور».
+- [x] إضافة دعم category code صريح في محول بيانات النشاط؛ عند وجوده تُربط البطاقة بالتصنيف القانوني مباشرة بدل الاعتماد على مطابقة نص الاسم فقط.
+- [x] إعادة توزيع سجلات الأنشطة العشرة الموجودة في جدول businesses إلى أكواد المجال/النشاط المناسبة، مع حفظ activity_specialty كما هو لكل سجل، وتسجيل كل تعديل في audit_logs.
+- [x] تحقق قراءة لاحقة: 10/10 سجلات تحمل group/category codes، وكل التخصصات السابقة محفوظة. سجل شعير انتقل من home_maintenance إلى construction_decor / sanitary_ware.
+- [ ] استكمال مراجعة صفحات الدليل المنشورة غير المطالب بها (public directory listings) وإعادة توزيعها حسب taxonomy_category_id دون تغيير حالة النشر أو claim status؛ يلزم تدقيق كل سجل قبل أي تحديث.
+- [ ] إضافة اختبارات unit/browser لربط category code، والتنقل مجال→نشاط→تخصص، والنتائج الموثقة وغير الموثقة، والعدادات، والبحث الجغرافي.
+- [ ] تشغيل build/typecheck وBrowser E2E، مراجعة PR، ثم دمج ونشر والتحقق من واجهة الإنتاج على الهاتف.
+- [ ] إضافة واجهة إدارية آمنة لإدارة taxonomy mapping مع سجل تغييرات ومعاينة قبل الحفظ؛ لا تسمح بإعادة توزيع جماعية مباشرة دون dry-run.
+- **حدود التنفيذ:** لم تتغير حالات التوثيق أو الاشتراكات أو الملكية أو النشر أو أرقام التواصل أو الصور. التغييرات الإنتاجية اقتصرت على مفاتيح taxonomy في settings مع سجل تدقيق ذري.
+- الحالة: IMPLEMENTED / PARTIALLY VERIFIED — واجهة الكود على فرع مستقل؛ اختبار CI والنشر لم يكتملَا.
