@@ -971,3 +971,15 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Audit all verified activities for valid external logo and cover URLs; do not fabricate missing assets.
 - [ ] For every new user request, add a linked item to the canonical TODO register and keep it open until implementation, tests, deployment and applicable production verification are complete.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## 2026-10-30 — PR #534: explicit external logo/cover URLs
+
+- [x] Confirmed PR #533 deployment succeeded on main in Pages run [41015430795](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41015430795).
+- [x] Corrected the distinction between display images and external links: generated/default logo and cover images remain display-only; only explicitly configured HTTPS URLs are exposed as external actions.
+- [x] PR [#534](https://github.com/islamnagy2022-eng/MantiqatiX/pull/534) merged to `main` as `9cb40af9886e5141702576a7a20f300b78fcff4e`; both public directory and direct public storefront responses now carry explicit external URL fields.
+- [x] Browser E2E covers both URLs, logo-only, cover-only, neither URL, unverified profile, and direct storefront hydration. Primary Catalog Frontend Validation [41016181188](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181188) passed build, browser E2E and PostgreSQL RBAC.
+- [x] Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed; deployment skipped on PR by design.
+- [ ] Verify the post-merge main Pages deployment and deployed-origin browser outcome for PR #534.
+- [ ] Audit valid external logo/cover URL coverage for all verified profiles; no fallback images may be linked as external assets.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
