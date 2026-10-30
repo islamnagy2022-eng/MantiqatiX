@@ -538,8 +538,9 @@ try {
       await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
       await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).click();
-      await taxonomyMain.getByRole('navigation', { name: 'مسار التصفح' }).getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('navigation', { name: 'مسار التصفح' }).getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
+      const taxonomyBreadcrumb = taxonomyMain.getByRole('navigation', { name: 'مسار المجال والنشاط' });
+      await taxonomyBreadcrumb.getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
+      await taxonomyBreadcrumb.getByText('عيادات عامة', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
       await page.setViewportSize({ width: 768, height: 1024 });
       await assertNoHorizontalOverflow(page, '768px selected taxonomy specialty');
