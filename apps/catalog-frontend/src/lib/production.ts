@@ -68,6 +68,47 @@ export async function callPlatformAdmin<T = any>(body: Record<string, unknown>):
   return invokeAdminFunction<T>('catalog-platform-admin', body, 'تعذر الاتصال بخدمات إدارة المنصة');
 }
 
+export async function fetchPlatformSubscribers(): Promise<{ subscribers: Subscriber[]; error?: string; ignoredOrphanMemberships: number }> {
+  try {
+    const list: any = await callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' });
+    const subscribers = (Array.isArray(list?.subscribers) ? list.subscribers : []).map((row: any): Subscriber => {
+      const rawStatus = String(row?.status || row?.membershipStatus || '').toUpperCase();
+      const isAccountOnly = row?.isAccountOnly === true || String(row?.id || '').startsWith('ACCOUNT:');
+      return {
+        id: String(row?.id || ''),
+        userId: String(row?.userId || ''),
+        fullName: String(row?.fullName || row?.email || 'حساب بدون اسم'),
+        email: String(row?.email || ''),
+        phone: String(row?.phone || ''),
+        businessId: String(row?.businessId || ''),
+        businessName: String(row?.businessName || ''),
+        tenantId: String(row?.tenantId || ''),
+        organizationId: String(row?.organizationId || ''),
+        branchId: String(row?.branchId || ''),
+        role: String(row?.role || (isAccountOnly ? 'CUSTOMER' : '')),
+        permissions: row?.permissions && typeof row.permissions === 'object' ? row.permissions : {},
+        membershipStatus: String(row?.membershipStatus || (isAccountOnly ? 'NONE' : rawStatus)),
+        provider: String(row?.provider || 'unknown'),
+        emailConfirmed: Boolean(row?.emailConfirmed),
+        lastSignInAt: row?.lastSignInAt ? String(row.lastSignInAt) : undefined,
+        isAccountOnly,
+        status: isAccountOnly ? 'pending' : rawStatus === 'ACTIVE' ? 'active' : rawStatus === 'SUSPENDED' ? 'suspended' : 'pending',
+        username: String(row?.email || ''),
+        authMethod: String(row?.provider || '').toLowerCase() === 'google' ? 'gmail_invite' : 'direct_password',
+        inviteStatus: 'pending',
+        joinedDate: String(row?.joinedDate || row?.createdAt || '').slice(0, 10),
+      };
+    });
+    return { subscribers, ignoredOrphanMemberships: Number(list?.ignoredOrphanMemberships || 0) };
+  } catch (error) {
+    return {
+      subscribers: [],
+      error: error instanceof Error ? error.message : 'تعذر تحميل حسابات Supabase',
+      ignoredOrphanMemberships: 0,
+    };
+  }
+}
+
 export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[] }> {
   const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
   if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
@@ -433,49 +474,9 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   }
 
   let subscribers: Subscriber[] = [];
-  let subscriberDirectoryError = '';
-  let ignoredOrphanMemberships = 0;
   let settingsResult: any = {};
   if (platform) {
-    try {
-      const [list, loadedSettings]: any[] = await Promise.all([
-        callPlatformAdmin({ action: 'LIST_SUBSCRIBERS' }),
-        callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({})),
-      ]);
-      settingsResult = loadedSettings;
-      ignoredOrphanMemberships = Number(list?.ignoredOrphanMemberships || 0);
-      subscribers = (Array.isArray(list?.subscribers) ? list.subscribers : []).map((row: any): Subscriber => {
-        const rawStatus = String(row?.status || row?.membershipStatus || '').toUpperCase();
-        const isAccountOnly = row?.isAccountOnly === true || String(row?.id || '').startsWith('ACCOUNT:');
-        return {
-          id: String(row?.id || ''),
-          userId: String(row?.userId || ''),
-          fullName: String(row?.fullName || row?.email || 'حساب بدون اسم'),
-          email: String(row?.email || ''),
-          phone: String(row?.phone || ''),
-          businessId: String(row?.businessId || ''),
-          businessName: String(row?.businessName || ''),
-          tenantId: String(row?.tenantId || ''),
-          organizationId: String(row?.organizationId || ''),
-          branchId: String(row?.branchId || ''),
-          role: String(row?.role || (isAccountOnly ? 'CUSTOMER' : '')),
-          permissions: row?.permissions && typeof row.permissions === 'object' ? row.permissions : {},
-          membershipStatus: String(row?.membershipStatus || (isAccountOnly ? 'NONE' : rawStatus)),
-          provider: String(row?.provider || 'unknown'),
-          emailConfirmed: Boolean(row?.emailConfirmed),
-          lastSignInAt: row?.lastSignInAt ? String(row.lastSignInAt) : undefined,
-          isAccountOnly,
-          status: isAccountOnly ? 'pending' : rawStatus === 'ACTIVE' ? 'active' : rawStatus === 'SUSPENDED' ? 'suspended' : 'pending',
-          username: String(row?.email || ''),
-          authMethod: String(row?.provider || '').toLowerCase() === 'google' ? 'gmail_invite' : 'direct_password',
-          inviteStatus: 'pending',
-          joinedDate: String(row?.joinedDate || row?.createdAt || '').slice(0, 10),
-        };
-      });
-    } catch (error) {
-      subscriberDirectoryError = error instanceof Error ? error.message : 'تعذر تحميل حسابات Supabase';
-      subscribers = [];
-    }
+    settingsResult = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
     if (settingsResult?.settings) Object.assign(
       adminSettings,
       settingsResult.settings,
@@ -519,8 +520,6 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       membershipPermissions: chosenMembership?.permissions && typeof chosenMembership.permissions === 'object'
         ? chosenMembership.permissions
         : undefined,
-      subscriberDirectoryError: subscriberDirectoryError || undefined,
-      ignoredOrphanMemberships,
     },
     businesses, products, subscribers, adminSettings,
   };
