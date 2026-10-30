@@ -719,3 +719,16 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 - No production SQL writes, migrations, grants, Auth/RLS changes, Edge Function deployments, payments, subscription changes, wallet operations or financial postings were performed.
 - Next: reconcile the entire RC425–RC441 chain and exact forward-bundle effects on a schema-faithful disposable snapshot; do not run production migrations out of order. Continue semantic parity review of the six critical Edge Functions and obtain backup/restore, rollback and provider sandbox evidence.
 - Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC435 → RC439 subscription checkout safety tests merged
+
+- Added disposable PostgreSQL 16 fixture and RC435/RC439 ordered integration tests plus AES-GCM helper tests in PR #515.
+- Dedicated workflow [41001775634](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001775634) completed SUCCESS. The suite verified service-role-only claim RPCs, owner/legal scope, authoritative pricing, idempotent creation, one-time provider claim, ambiguous retry fail-closed behavior, actor binding, correlated recovery, encrypted checkout tuple constraint, and crypto round-trip/context/tamper behavior.
+- Merged PR #515 as `0cd3b00ad977bfdf84ff7edcc613acae4ea6138e`.
+- Read-only live inspection: `subscription-payment-intent` remains v4, 5,196 bytes, and does not use RC435 claimable RPCs or RC439 AES-GCM/correlation helpers. Live subscription table remains without RC435 state columns and RC439 ciphertext/IV/key-version columns.
+- No production SQL, migration, grant, Auth/RLS, Edge Function, payment, subscription, wallet, or journal mutation was performed.
+- Next: continue semantic parity review of the remaining live payment functions and reconcile the full ordered RC425–RC441 production chain. No individual migration or Edge Function should be deployed out of order.
+- Overall release remains **BLOCKED / NOT CERTIFIED**.

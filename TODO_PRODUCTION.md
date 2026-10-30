@@ -774,3 +774,17 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Still required before any payment/finance production migration: disposable replay of the complete dependency chain against a schema-faithful snapshot, reviewed migration ordering, backup/restore and rollback rehearsal, provider sandbox end-to-end acceptance, semantic Edge Function parity review, approved change window, and post-deployment verification.
 - No production Supabase migration, SQL write, grant, Auth/RLS change, Edge Function deployment, payment, subscription, wallet operation, or financial posting was performed during this checkpoint.
 - Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+---
+
+## 2026-10-30 — RC435/RC439 subscription checkout safety integration passed
+
+- [x] Added disposable PostgreSQL 16 fixture and timestamp-ordered RC435 → RC439 integration suite in PR [#515](https://github.com/islamnagy2022-eng/MantiqatiX/pull/515); merged as `0cd3b00ad977bfdf84ff7edcc613acae4ea6138e`.
+- [x] Dedicated workflow [41001775634](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41001775634) passed: AES-GCM checkout-secret crypto round-trip, fresh IV, intent/business context binding and tamper rejection; service-role-only RPC ACLs; owner membership/legal clearance; authoritative tier price/hash; idempotency; inactive/free-tier rejection; single-claim behavior; cross-actor denial; correlated-intent recovery; and RC439 all-or-none ciphertext/IV/key-version constraint.
+- [x] All exact-head PR checks completed successfully, including the dedicated RC435/RC439 PostgreSQL job, Backend-only validation, RC450 financial-journal integration, approval-audit integration, MantiGO privacy, targeted-ads search-path, and matrimony privacy jobs.
+- [x] Fresh read-only live Edge Function inspection confirms `subscription-payment-intent` remains version 4 (SHA-256 `4466345787ea6b10a29b1dd63e9f0ab3cae640e9bb4d8ecb6d09445809e077e5`, 5,196 bytes) and does not contain the RC435 claim RPCs, RC439 AES-GCM encryption/recovery helpers, or Paymob intention-correlation helper used by current main.
+- [ ] Live subscription checkout remains **NOT VERIFIED / DRIFTED** until the complete RC435/RC439 database dependencies and a reviewed matching Edge Function are released together through the chronological production pipeline, followed by provider sandbox E2E and rollback validation.
+- [ ] The current live subscription table still lacks `provider_creation_state`, `provider_creation_claimed_at`, `client_secret_ciphertext`, `client_secret_iv`, and `client_secret_key_version`; no migration was applied to production.
+- No production SQL write, migration, grant, Auth/RLS change, Edge Function deployment, Paymob payment, subscription activation, or financial posting was performed.
+- Overall production release remains **BLOCKED / NOT CERTIFIED**.
