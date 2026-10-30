@@ -64,6 +64,13 @@ const roles = {
     role: 'MANAGER',
     permissions: { modules: { CATALOG: ['view'], EMPLOYEES: ['manage'] } },
   },
+  platformAdmin: {
+    id: '00000000-0000-0000-0000-000000000099',
+    email: 'e2e-platform-admin@example.test',
+    role: 'SUPER_ADMIN',
+    businessId: null,
+    permissions: { scope: 'PLATFORM', full_control: true },
+  },
 };
 
 const fakeBusiness = {
@@ -111,6 +118,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
 
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
+  const taxonomyMappingCalls = [];
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
     const request = route.request();
@@ -229,7 +237,51 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       return json({ businesses: [], items: [], prices: [], branches: [] });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-platform-admin')) {
-      return json({ subscribers: [], settings: {} });
+      let body = {};
+      try { body = request.postDataJSON() || {}; } catch { /* no JSON body */ }
+      if (body.action === 'TAXONOMY_MAPPING_PREVIEW' || body.action === 'TAXONOMY_MAPPING_APPLY') {
+        taxonomyMappingCalls.push({ action: body.action, body });
+        if (body.action === 'TAXONOMY_MAPPING_PREVIEW') {
+          return json({
+            success: true,
+            preview: {
+              sourceGroupId: body.sourceGroupId,
+              sourceCategoryId: body.sourceCategoryId,
+              targetGroupId: body.targetGroupId,
+              targetCategoryId: body.targetCategoryId,
+              targetClassificationType: body.targetClassificationType,
+              businessCount: 2,
+              listingCount: 2,
+              totalCount: 4,
+              previewDigest: '45945945945945945945945945945945',
+              canApply: true,
+              sample: [{
+                record_type: 'business',
+                record_id: businessId,
+                display_name: 'نشاط معاينة',
+                old_group_id: body.sourceGroupId,
+                old_category_id: body.sourceCategoryId,
+                new_group_id: body.targetGroupId,
+                new_category_id: body.targetCategoryId,
+              }],
+            },
+          });
+        }
+        return json({
+          success: true,
+          result: {
+            success: true,
+            auditId: '45900000-0000-4000-8000-000000000077',
+            businessCount: 2,
+            listingCount: 2,
+            totalCount: 4,
+          },
+        });
+      }
+      if (body.action === 'LIST_SUBSCRIBERS') return json({ subscribers: [] });
+      if (body.action === 'GET_SETTINGS') return json({ settings: {} });
+      if (body.action === 'TENANT_LIST') return json({ tenants: [] });
+      return json({ success: true, settings: {} });
     }
     if (url.pathname.startsWith('/rest/v1/')) {
       return json([]);
@@ -238,7 +290,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + '?view=professional_dashboard', { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests };
+  return { context, page, rpcObservation, catalogReadRequests, taxonomyMappingCalls };
 }
 
 async function waitForDashboard(page) {
@@ -503,7 +555,34 @@ try {
     } finally { await context.close(); }
   }
 
-  // 9. Folder-style taxonomy navigation follows the current production labels.
+  // 9. Only a platform-wide admin can access the taxonomy mapping screen; preview is read-only and apply requires fresh digest confirmation.
+  {
+    const { context, page, taxonomyMappingCalls } = await newScenario(browser, roles.platformAdmin);
+    try {
+      await page.goto(baseUrl + '?view=super_admin&tab=taxonomy', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'إدارة ربط التصنيفات وإعادة توزيع السجلات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await assertNoHorizontalOverflow(page, '390px taxonomy admin mapping panel');
+      await page.getByRole('button', { name: 'إنشاء معاينة آمنة', exact: true }).click();
+      await page.getByText('معاينة المعاينة', { exact: false }).waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+      await page.getByText('اكتملت المعاينة دون تعديل أي بيانات.', { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(taxonomyMappingCalls.length, 1, 'one preview RPC must be called');
+      assert.equal(taxonomyMappingCalls[0].action, 'TAXONOMY_MAPPING_PREVIEW');
+      assert.equal(await page.getByText('4', { exact: true }).count() >= 1, true, 'preview must render affected-record counts');
+      await page.getByRole('button', { name: 'إلغاء المعاينة', exact: true }).click();
+      assert.equal(taxonomyMappingCalls.length, 1, 'cancel must not call the apply RPC');
+      await page.getByRole('button', { name: 'إنشاء معاينة آمنة', exact: true }).click();
+      await page.getByText('اكتملت المعاينة دون تعديل أي بيانات.', { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      page.once('dialog', (dialog) => dialog.accept());
+      await page.getByRole('button', { name: 'اعتماد التغيير وتسجيله', exact: true }).click();
+      await page.waitForFunction(() => document.body.textContent.includes('رقم سجل التدقيق'), null, { timeout: 10000 });
+      assert.equal(taxonomyMappingCalls.length, 3, 'one new preview and one apply RPC must be called after cancellation');
+      assert.equal(taxonomyMappingCalls[2].action, 'TAXONOMY_MAPPING_APPLY');
+      assert.match(taxonomyMappingCalls[2].body.expectedPreviewDigest, /^[a-f0-9]{32}$/);
+      results.push('platform-admin-taxonomy-preview-cancel-and-confirmed-apply-flow');
+    } finally { await context.close(); }
+  }
+
+  // 10. Folder-style taxonomy navigation follows the current production labels.
   {
     const { context, page } = await newScenario(browser);
     try {
