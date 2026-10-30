@@ -936,3 +936,11 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Pages PR validation [41016181132](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016181132) passed. Deploy was skipped for the PR event, as expected.
 - Post-merge main Pages deployment and deployed-origin checks remain open; do not mark production verification complete until the main run succeeds.
 - No production provider data, verification status, subscription, schema, migration, Auth/RLS/grants, payment or financial data was changed by PR #534.
+
+
+### Post-merge production deployment and live data audit — 2026-10-30
+- [x] Main Pages run [41016389584](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41016389584) succeeded on 31ef40faa136f036ebd7220e682152a79deae139, including deploy, primary-root verification and deployed-origin browser checks.
+- [x] Supabase production Edge Function public-catalog-directory deployed as version 9 with verify_jwt=false; deployed source exactly matches GitHub main.
+- [x] Supabase production Edge Function public-catalog deployed as version 5 with verify_jwt=false; deployed source exactly matches GitHub main. Existing public additionalContactPhones contract was retained.
+- [x] Read-only production profile audit: 2 ACTIVE verified profiles (MantiqatiX and متجر قدم السعد); both have valid HTTPS logo and cover URLs; 0 invalid configured values.
+- [x] No provider verification flags, subscription records, business data, schema, migrations, RLS/ACL, payment or financial records were modified in the Edge Function deployment.
