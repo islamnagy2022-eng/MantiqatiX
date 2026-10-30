@@ -847,3 +847,22 @@ Append a new dated section. Never rewrite or delete historical entries; if a fac
 ## 2026-10-30 — Read-only production security and deployed Edge Function parity recheck
 
 The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md`](audits/READ_ONLY_SECURITY_EDGE_PARITY_20261030.md). Supabase project is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155; migration ledger has 308 records through 20261029083845. Fresh Advisor: 8 RLS-enabled/no-policy tables, 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions, 90 anonymous-access table findings, and Leaked Password Protection disabled. Read-only policy inventory found 19 explicit anon/public policies and 483 authenticated policies (283 textually reference `is_anonymous`, 200 do not); do not infer vulnerability from the textual count alone. Targeted finance policies use active membership/tenant/role checks; anonymous JWT runtime tests remain open. Exact deployed-source text parity is absent for six critical Edge Functions (versions 8/8/10/5/4/3); no deployment or production change was performed. Overall Production Gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-30 — Deployed-origin suite passed; semantic Edge Function drift documented
+
+### Deployment and browser evidence
+- Main Pages workflow [41005969738](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41005969738) completed successfully for `fe01dce043c8c8b5821ad679b561963a23a5357a`.
+- Deploy, primary catalog root verification, and deployed-origin browser E2E all passed.
+- The deployed browser run emitted `PRIMARY_CATALOG_BROWSER_E2E=PASS`. It covered guest route denial, owner dashboard mobile/desktop and axe checks, owner refresh/membership scope, employee view-only and roster read-only, legacy route denial/RPC scoping, unsupported manager grant denial, QR links, GPS consent/manual search fallback, and taxonomy folder navigation/specialty filtering.
+
+### Security review
+- Retrieved deployed source for six critical functions and compared with `main`.
+- Added [`docs/audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md`](audits/DEPLOYED_EDGE_SEMANTIC_DIFF_20261030.md).
+- Material differences confirmed in payment-intent (missing amount/provider correlation checks and weaker ambiguous-outcome handling), digital-page-payment-intent (missing precision/correlation and weaker claim reconciliation), subscription-payment-intent (older non-claimable flow, no current checkout-secret encryption/recovery, no current correlation checks), and financial-journal (older RPC without explicit actor ID and wildcard CORS).
+- Webhook and order-create remain open for complete RPC-by-RPC semantic trace. These are source-level findings; no exploitability claim is made without isolated tests and SQL contract review.
+
+### Safety and next actions
+- No production Edge Function, SQL, migration, grant, RLS/Auth setting, secret, payment, wallet, settlement, or financial record was changed.
+- Next: inspect live SQL RPC definitions/ACL/search_path; restore isolated schema; run payment and finance adversarial tests; then produce a reviewed per-function rollout/rollback plan.
+- Production Gate remains **BLOCKED / NOT CERTIFIED**.
