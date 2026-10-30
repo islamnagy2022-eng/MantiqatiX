@@ -1026,3 +1026,14 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [ ] Verify with real Google accounts representing platform admin, one-business owner, multi-business owner, and customer-only user; record sign-in-to-ready timings and ensure no duplicate memberships/subscriptions are created or hidden.
 - [x] Merged after exact-head CI passed; Pages deployment job and post-deploy Production Health Monitor both passed on main commit `ff2f3176017db83e0fb80d1d768fdf79f1d42e1e` (2026-10-30). This is a frontend performance fix; no subscription/payment/financial records or Supabase production settings were changed.
 - [ ] Complete real-account timing verification for platform admin, one-business owner, multi-business owner, and customer-only user; compare sign-in-to-ready timings and confirm no duplicate memberships/subscriptions are created or hidden.
+
+## 2026-10-30 — Defer full platform subscriber directory from Google sign-in
+
+- [x] Additional root-cause review found `bootstrapProductionUser` awaited `LIST_SUBSCRIBERS` and mapped the complete platform subscriber directory before returning the authenticated workspace. This made a large administrative directory part of the critical Google sign-in path.
+- [x] Extracted `fetchPlatformSubscribers()` as a separate admin-only data loader; removed `LIST_SUBSCRIBERS` from the blocking authentication bootstrap. The existing `GET_SETTINGS` read remains in bootstrap for platform configuration.
+- [x] Start the subscriber directory request asynchronously after the authenticated admin workspace has been established; keep it tied to the current auth sequence/user so a late response cannot populate a different user's session.
+- [x] Added a separate subscriber-directory loading indicator in the admin subscribers tab; subscriber data, orphan-membership warning and directory errors are applied when the background request completes.
+- [x] Added contract assertions that the main auth bootstrap does not invoke `LIST_SUBSCRIBERS` and that the directory loads asynchronously.
+- [ ] Exact-head TypeScript/build, Google OAuth contract, admin browser E2E, and role/tenant isolation checks must pass.
+- [ ] Verify real platform-admin Google sign-in reaches the home workspace before the subscriber directory finishes; verify the directory subsequently fills accurately and errors are displayed without converting a successful sign-in into an auth failure.
+- [ ] No subscriptions, identities, membership rows, payments, or RLS policies are deleted, merged, or rewritten by this optimization.
