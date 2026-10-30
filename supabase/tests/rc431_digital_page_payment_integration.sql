@@ -3,6 +3,8 @@ do $test$
 declare
   order_one uuid := '10000000-0000-4000-8000-000000004311';
   order_two uuid := '10000000-0000-4000-8000-000000004312';
+  order_three uuid := '10000000-0000-4000-8000-000000004313';
+  v_status text;
   result jsonb;
   rejected boolean;
   n integer;
@@ -20,7 +22,8 @@ begin
   insert into public.digital_page_orders(id,provider,amount,currency,provider_order_id,payment_status,fulfillment_status)
   values
     (order_one,'PAYMOB',125.00,'EGP','paymob-order-one','PENDING','REQUESTED'),
-    (order_two,'PAYMOB',125.00,'EGP','paymob-order-two','PENDING','REQUESTED');
+    (order_two,'PAYMOB',125.00,'EGP','paymob-order-two','PENDING','REQUESTED'),
+    (order_three,'PAYMOB',125.00,'EGP','paymob-order-three','PENDING','REQUESTED');
 
   -- A validly verified transaction must not be assigned using a forged merchant reference
   -- when the signed provider order belongs to a different order.
@@ -41,6 +44,24 @@ begin
   end if;
   if exists(select 1 from public.digital_page_payment_events where external_event_id='paymob:tx-one') then
     raise exception 'provider-order mismatch persisted a payment event';
+  end if;
+
+
+  -- A callback without a verified provider signature cannot create an event or mutate the order.
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      order_three,'paymob:tx-no-signature','TRANSACTION','SUCCEEDED',false,125.00,'EGP',
+      'tx-no-signature','paymob-order-three','{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: invalid signature unexpectedly succeeded';
+  exception when others then
+    if sqlerrm <> 'DIGITAL_PAGE_SIGNATURE_REQUIRED' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'invalid signature was not rejected'; end if;
+  if exists(select 1 from public.digital_page_payment_events where external_event_id='paymob:tx-no-signature') then
+    raise exception 'invalid signature persisted a payment event';
   end if;
 
   -- Event identity is bound to the provider transaction ID.
@@ -166,6 +187,28 @@ begin
   if (select payment_status from public.digital_page_orders where id=order_two) <> 'PENDING' then
     raise exception 'cross-order event reuse changed the second order';
   end if;
+
+  -- A forced order-update failure must roll back the provider event and payment transition together.
+  perform set_config('mantiqatix_test.rc431_fail_update','true',true);
+  rejected := false;
+  begin
+    perform public.process_verified_digital_page_payment_backend(
+      order_three,'paymob:tx-atomic','TRANSACTION','SUCCEEDED',true,125.00,'EGP',
+      'tx-atomic','paymob-order-three','{}'::jsonb
+    );
+    raise exception 'TEST_FAILED: injected order update failure unexpectedly committed';
+  exception when others then
+    if sqlerrm <> 'RC431_TEST_ATOMIC_ORDER_UPDATE_FAILURE' then raise; end if;
+    rejected := true;
+  end;
+  perform set_config('mantiqatix_test.rc431_fail_update','false',true);
+  if not rejected then raise exception 'RC431 atomic failure trigger did not fire'; end if;
+  select count(*) into n from public.digital_page_payment_events where external_event_id='paymob:tx-atomic';
+  select payment_status into v_status from public.digital_page_orders where id=order_three;
+  if n <> 0 or v_status <> 'PENDING' then
+    raise exception 'RC431 atomic rollback left partial state: events %, payment_status %',n,v_status;
+  end if;
+
 end
 $test$;
 

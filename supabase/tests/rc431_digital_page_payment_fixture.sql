@@ -22,3 +22,20 @@ create table public.digital_page_payment_events (
   raw_payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
+
+
+-- Inert fault injection: only fires when a test explicitly enables its transaction-local flag.
+create or replace function public.rc431_test_reject_order_update()
+returns trigger language plpgsql as $function$
+begin
+  if current_setting('mantiqatix_test.rc431_fail_update', true) = 'true'
+     and new.payment_status = 'PAID' then
+    raise exception 'RC431_TEST_ATOMIC_ORDER_UPDATE_FAILURE';
+  end if;
+  return new;
+end;
+$function$;
+
+create trigger rc431_test_atomic_order_update
+before update on public.digital_page_orders
+for each row execute function public.rc431_test_reject_order_update();
