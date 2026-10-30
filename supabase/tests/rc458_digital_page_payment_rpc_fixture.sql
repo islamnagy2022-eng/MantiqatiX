@@ -91,9 +91,9 @@ begin
     raise exception 'FORBIDDEN';
   end if;
 
-  select * into v_order
-  from public.digital_page_orders
-  where id = p_order_id
+  select o.* into v_order
+  from public.digital_page_orders as o
+  where o.id = p_order_id
   for update;
 
   if not found then
@@ -134,15 +134,15 @@ begin
     return;
   end if;
 
-  update public.digital_page_orders
+  update public.digital_page_orders as o
   set metadata = jsonb_set(
-      coalesce(metadata,'{}'::jsonb),
+      coalesce(o.metadata,'{}'::jsonb),
       '{payment_intent_claim}',
       jsonb_build_object('token',p_claim_token,'claimed_at',now()::text),
       true
     ),
     updated_at = now()
-  where id = v_order.id;
+  where o.id = v_order.id;
 
   return query
     select v_order.id,v_order.user_id,v_order.amount,v_order.currency,v_order.payment_status,
