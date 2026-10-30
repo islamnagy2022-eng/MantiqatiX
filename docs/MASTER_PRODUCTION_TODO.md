@@ -2583,7 +2583,7 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] دمج PR [#537](https://github.com/islamnagy2022-eng/MantiqatiX/pull/537) على main بالالتزام `80eeb41e90c133d5b66dea50853ba4306c6424fa`.
 - [x] اجتياز build وRBAC وBrowser E2E على رأس PR النهائي [41020400819](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020400819)، بما في ذلك العودة من مجلد التخصص إلى المجالات على 390px والتحقق من breadcrumb الصحيح بعد العودة للكتالوج.
 - [x] اجتياز اختبارات main [41020608750](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608750) ونشر Pages [41020608742](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41020608742)، مع فحص جذر الموقع واختبارات المتصفح على النطاق المنشور.
-- [ ] إضافة واجهة إدارية آمنة لإدارة taxonomy mapping مع سجل تغييرات ومعاينة قبل الحفظ؛ لا تسمح بإعادة توزيع جماعية مباشرة دون dry-run.
+- [x] أضيفت واجهة إدارية آمنة لإدارة taxonomy mapping داخل تبويب التصنيفات الحالي عبر PR #540 (RC459–RC461): معاينة read-only، أعداد وعينة، بصمة تمنع التطبيق على بيانات متغيرة، تأكيد صريح، وسجل تدقيق. اختبارات PostgreSQL وBrowser E2E والـ forward replay نجحت على HEAD `88156e2744704f4db9daac1f990ba24a49753f39`؛ التنفيذ ما زال على فرع PR ولم تُطبق migrations على Production.
 - [ ] المرحلة التالية: مراجعة تداخل المجالات الـ18 الحالية مع المستخدمين الفعليين، وتحديد ما يمكن دمجه في عدد أقل من المجالات دون خلط الأنشطة؛ لا تغيير لمعرّفات legacy إلا بعد خطة توافق وترحيل واختبارات.
 - **حدود التنفيذ:** لم تتغير حالات التوثيق أو الاشتراكات أو الملكية أو النشر أو أرقام التواصل أو الصور بواسطة PR #537. إعادة توزيع أكواد taxonomy السابقة موثقة أعلاه بسجل تدقيق مستقل.
 - الحالة: MERGED / DEPLOYED / BROWSER VERIFIED — الأعمال الإدارية المتبقية ما زالت مفتوحة.
@@ -2621,3 +2621,16 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] دعم التصنيفات المخصصة `cat_custom_<UUID>` داخل نفس معاينة/حفظ RC459 عبر RC461: التحقق من سجل التصنيف المخصص المحفوظ ومجموعته ونوعه، وبصمة للصفوف المرتبطة، ومعاملة ذرية تحافظ على specialty/الملكية/الاشتراك/التوثيق/النشر/الهاتف/الصور. أداة الإدارة تعرض التصنيفات الأساسية والمخصصة. اختبار الاتجاهين مضاف وينتظر نتيجة CI على أحدث HEAD.
 - **السلامة:** لم تُنفذ أي كتابة أو migration أو نشر Edge Function على Production. لم تتغير بيانات الأنشطة أو الدليل أو الاشتراكات أو الملكية أو التوثيق. مهام النشر المرتبطة بالـ PR لا تسمح بالنشر الإنتاجي.
 - **الحالة:** RC459 + RC460 + RC461 IMPLEMENTED ON FEATURE BRANCH / FINAL-HEAD VALIDATION IN PROGRESS / PRODUCTION UNCHANGED. بوابة Production الكاملة للمنصة تظل BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-30 — PR #541 deployed; secure taxonomy mapping RC459–RC461 verified
+
+- [x] PR [#541](https://github.com/islamnagy2022-eng/MantiqatiX/pull/541) merged to `main` as `26ace99b1fe6e23daed484aafcdcef3cf7d18eae`. Public verification labels remain concise; explicit external logo/cover URLs now use accessible external-link icons after the verified badge. Existing directory layout, verified-first ordering, and fallback image behavior are preserved.
+- [x] Exact-head PR #541 Primary Catalog Frontend Validation passed build/typecheck, browser E2E and employee RBAC PostgreSQL. Its PR deploy job was skipped as expected.
+- [x] Main Pages deployment [41030176731](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030176731) succeeded on the merge commit; Pages deploy, primary-root verification and deployed-origin dashboard/mobile/membership/QR browser checks passed.
+- [x] PR #540 branch was aligned with the merged icon/link implementation so its broader catalog E2E does not restore stale selectors or labels.
+- [x] RC459/RC460/RC461 isolated PostgreSQL integrations passed on PR #540 code head `88156e2744704f4db9daac1f990ba24a49753f39`; Primary Catalog build/typecheck/browser E2E and employee RBAC PostgreSQL passed in [41030242448](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242448).
+- [x] Forward migration replay from the captured Production schema checkpoint passed in [41030242487](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41030242487), including the post-checkpoint migrations and tenant-isolation checks. Migration version uniqueness, history immutability, and cross-PR collision checks passed.
+- [ ] PR #540 still requires merge/release review. Its Pages deploy job is skipped on PR events; merging source does not apply Supabase migrations or deploy Edge Functions.
+- [ ] RC459–RC461 remain NOT APPLIED to Production. A reviewed backup/restore/rollback plan, explicit release approval, migration execution and live-object verification are still required before the admin mapping feature can operate against Production.
+- The full MantiqaTix Production Gate remains **BLOCKED / NOT CERTIFIED** for unrelated live Auth/security, Edge Function parity, payments/finance, tenant E2E, backup/restore and Android/device release gates.
