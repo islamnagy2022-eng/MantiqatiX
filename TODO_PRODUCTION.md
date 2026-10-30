@@ -1034,9 +1034,11 @@ Scope: user requests recorded in the recent catalog/frontend and business-manage
 - [x] Logout now increments the auth-load sequence and clears the active identity before calling Supabase sign-out, invalidating pending background directory writes immediately.
 - [x] Added an admin-only manual subscriber-directory refresh guarded by the current user ID and auth sequence; non-admin sessions cannot invoke it through the UI or context action.
 - [x] Added a loaded-record count and explicit refresh/loading state in the existing subscribers tab without changing its overall layout.
-- [ ] Exact-head TypeScript, production build, Google OAuth contract, auth-session, subscriber directory, role/tenant isolation, and browser/mobile E2E checks must pass.
-- [ ] Verify logout during an in-flight `LIST_SUBSCRIBERS` request, account switching, failed directory read followed by manual retry, and successful retry after a later session; confirm no previous-account data is rendered or retained.
-- [ ] No database, subscription, membership, payment, RLS, or production Supabase settings were changed.
+- [x] Latest `main` commit `16c63134f4e802a59065f736fc304a41b0c7daef`: TypeScript check, production catalog build, Google OAuth session/role contract, membership fail-closed and paid-activation contracts, browser dashboard E2E, and employee RBAC PostgreSQL CI all passed. Evidence: Primary Catalog Frontend Validation [run 41114467609](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41114467609).
+- [x] The same `main` commit was deployed to GitHub Pages; deploy job and deployed-origin browser checks passed [run 41114467653](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41114467653), and Production Health Monitor passed [run 41114467602](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41114467602).
+- [ ] Real-account verification remains open: logout during an in-flight `LIST_SUBSCRIBERS` request, switching between distinct Google identities, failed directory read followed by manual retry, and successful retry after a later session; confirm no previous-account data is rendered or retained.
+- [ ] Record measured sign-in-to-home readiness and subscriber-directory completion timings using authorized Google test accounts for platform admin, one-business owner, multi-business owner, and customer-only user. Do not infer timings from CI.
+- [x] PR #543 and its logout/race-guard follow-up changed frontend/context, admin UI, contract tests, and TODO documentation only; no database migrations, subscription/membership/payment records, RLS policies, or production Supabase settings were changed.
 
 ## 2026-10-30 — Defer full platform subscriber directory from Google sign-in
 
