@@ -1038,3 +1038,5 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Anonymous sign-in and leaked-password protection remain settings decisions requiring usage/impact review; no dashboard settings were changed.
 - Fresh Performance Advisor snapshot: 129 unindexed foreign keys, 375 RLS initplan findings, 73 unused indexes, 28 multiple permissive policies. No blanket fixes applied.
 - No production DDL, grants, RLS, Auth, data, Edge Functions, payment, or finance changes were made in this pass.
+
+- Post-deploy function-edge logs show `public-catalog-directory` v10 received two GET requests with HTTP 200 after deployment (latest observed 2026-10-30T23:40:15Z; p95 execution ~2.1s for this two-request sample). No `public-catalog` v6 request appeared in the queried log window, so storefront runtime smoke remains pending.
