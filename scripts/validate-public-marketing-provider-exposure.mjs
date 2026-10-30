@@ -9,17 +9,17 @@ const PUBLIC_PROVIDER_COLUMNS = "business_id,name_ar,name_en,provider_kind,descr
 
 function providerQueryBlock(source, label) {
   const start = source.indexOf('.from("marketing_provider_profiles")');
-  assert.notEqual(start, -1, `${label} must use the provider profile table through its server-side client`);
+  assert.notEqual(start, -1, label + " must use the provider profile table through its server-side client");
   const end = source.indexOf(";", start);
-  assert.notEqual(end, -1, `${label} provider query must terminate`);
+  assert.notEqual(end, -1, label + " provider query must terminate");
   return source.slice(start, end + 1);
 }
 
 function assertServerRole(source, label, keyName) {
-  assert.match(source, new RegExp(`${keyName}\\\\s*=\\\\s*Deno\\\\.env\\\\.get\\\\(["']SUPABASE_SERVICE_ROLE_KEY["']\\\\)`),
-    `${label} must read the service-role key only inside the Edge Function`);
-  assert.match(source, new RegExp(`createClient\\\\([\\\\s\\\\S]{0,240}${keyName}`),
-    `${label} must use its server-side service-role client`);
+  assert.ok(source.includes('Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")'),
+    label + " must read the service-role key only inside the Edge Function");
+  assert.ok(source.includes("createClient(supabaseUrl, " + keyName + ","),
+    label + " must use its server-side service-role client");
 }
 
 function walkFiles(dir) {
@@ -27,7 +27,7 @@ function walkFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) found.push(...walkFiles(full));
-    else if (/\\.(?:ts|tsx|js|jsx)$/.test(entry.name)) found.push(full);
+    else if (/\.(?:ts|tsx|js|jsx)$/.test(entry.name)) found.push(full);
   }
   return found;
 }
@@ -37,30 +37,30 @@ for (const [source, label] of [
   [catalogFunction, "public-catalog"],
 ]) {
   const query = providerQueryBlock(source, label);
-  assert.ok(query.includes(`.select("${PUBLIC_PROVIDER_COLUMNS}")`),
-    `${label} must request only the approved public provider columns`);
-  assert.match(query, /\\.eq\\(["']status["']\\s*,\\s*["']ACTIVE["']\\)/,
-    `${label} must expose active provider profiles only`);
-  assert.doesNotMatch(query, /owner_user_id|settings|select\\(["']\\*["']\\)/i,
-    `${label} must not read owner UUID, private profile settings, or wildcard profile columns`);
+  assert.ok(query.includes('.select("' + PUBLIC_PROVIDER_COLUMNS + '")'),
+    label + " must request only the approved public provider columns");
+  assert.match(query, /\.eq\(["']status["']\s*,\s*["']ACTIVE["']\)/,
+    label + " must expose active provider profiles only");
+  assert.doesNotMatch(query, /owner_user_id|settings|select\(["']\*["']\)/i,
+    label + " must not read owner UUID, private profile settings, or wildcard profile columns");
 }
 
 assertServerRole(directoryFunction, "public-catalog-directory", "serviceKey");
 assertServerRole(catalogFunction, "public-catalog", "serviceRoleKey");
 
 // Responses must be deliberate public projections, never raw provider/profile rows.
-assert.match(directoryFunction, /provider:\\s*\\{\\s*kind:/,
+assert.match(directoryFunction, /provider:\s*\{\s*kind:/,
   "public-catalog-directory must map the provider response into an explicit public object");
-assert.match(catalogFunction, /provider:\\s*\\{/,
+assert.match(catalogFunction, /provider:\s*\{/,
   "public-catalog must map the provider response into an explicit public object");
 assert.doesNotMatch(
   directoryFunction.slice(directoryFunction.indexOf("const buildPublicBusiness"), directoryFunction.lastIndexOf("return response")),
-  /owner_user_id|provider\\.settings|\\.settings.*provider/i,
+  /owner_user_id|provider\.settings|\.settings.*provider/i,
   "public-catalog-directory must not serialize private provider ownership/settings"
 );
 assert.doesNotMatch(
   catalogFunction.slice(catalogFunction.indexOf("const profile ="), catalogFunction.lastIndexOf("return response")),
-  /owner_user_id|provider\\.settings|\\.settings.*provider/i,
+  /owner_user_id|provider\.settings|\.settings.*provider/i,
   "public-catalog must not serialize private provider ownership/settings"
 );
 
@@ -68,7 +68,7 @@ assert.doesNotMatch(
 // reading the base provider profile table using its public Supabase key.
 const frontendFiles = walkFiles(catalogFrontend);
 assert.ok(frontendFiles.length > 0, "primary catalog frontend source files must be present");
-const frontendSource = frontendFiles.map((file) => fs.readFileSync(file, "utf8")).join("\\n");
+const frontendSource = frontendFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
 assert.match(frontendSource, /public-catalog-directory/,
   "primary catalog must use the curated public directory Edge Function");
 assert.match(frontendSource, /public-catalog/,
