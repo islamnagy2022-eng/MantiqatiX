@@ -91,7 +91,7 @@ begin
   begin
     perform public.mnty_catalog_taxonomy_mapping_preview(
       admin_id,'food_grocery',source_custom,
-      'medical_health',wrong_group_custom,'activity'
+      'food_grocery',wrong_group_custom,'activity'
     );
     raise exception 'RC461_CUSTOM_TARGET_WRONG_GROUP_ACCEPTED';
   exception when others then
