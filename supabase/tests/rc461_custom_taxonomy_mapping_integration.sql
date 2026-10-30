@@ -110,9 +110,29 @@ begin
      or (preview->>'totalCount')::integer <> 4 then
     raise exception 'RC461_CUSTOM_SOURCE_PREVIEW_COUNTS_INVALID: %',preview;
   end if;
+  digest := preview->>'previewDigest';
+  update public.businesses set updated_at=updated_at + interval '1 second' where id=business_a;
+  rejected := false;
+  begin
+    perform public.mnty_catalog_taxonomy_mapping_apply(
+      admin_id,'food_grocery',source_custom,
+      'food_grocery','cat_food_grocery_cafes','activity',digest
+    );
+    raise exception 'RC461_STALE_PREVIEW_WAS_APPLIED';
+  exception when others then
+    if sqlerrm <> 'TAXONOMY_PREVIEW_STALE' then raise; end if;
+    rejected := true;
+  end;
+  if not rejected then raise exception 'RC461_STALE_PREVIEW_NOT_REJECTED'; end if;
+
   if (select settings->>'activity_category_id' from public.businesses where id=business_a) <> source_custom then
     raise exception 'RC461_CUSTOM_SOURCE_PREVIEW_WROTE_DATA';
   end if;
+
+  preview := public.mnty_catalog_taxonomy_mapping_preview(
+    admin_id,'food_grocery',source_custom,
+    'food_grocery','cat_food_grocery_cafes','activity'
+  );
 
   applied := public.mnty_catalog_taxonomy_mapping_apply(
     admin_id,'food_grocery',source_custom,
@@ -183,11 +203,28 @@ begin
 
   select count(*) into audit_count
   from public.catalog_taxonomy_mapping_audit
-  where actor_user_id=admin_id
-    and source_category_id in (source_custom,'cat_food_grocery_cafes')
-    and target_category_id in ('cat_food_grocery_cafes',target_custom);
+  where actor_user_id=admin_id;
   if audit_count <> 3 then
     raise exception 'RC461_CUSTOM_MAPPING_AUDIT_COUNT_INVALID: %',audit_count;
+  end if;
+
+  if has_function_privilege('anon','public.mnty_catalog_taxonomy_mapping_preview(uuid,text,text,text,text,text)','EXECUTE')
+     or has_function_privilege('authenticated','public.mnty_catalog_taxonomy_mapping_preview(uuid,text,text,text,text,text)','EXECUTE')
+     or has_function_privilege('anon','public.mnty_catalog_taxonomy_mapping_apply(uuid,text,text,text,text,text,text)','EXECUTE')
+     or has_function_privilege('authenticated','public.mnty_catalog_taxonomy_mapping_apply(uuid,text,text,text,text,text,text)','EXECUTE') then
+    raise exception 'RC461_PRIVILEGED_RPC_EXPOSED_TO_API_ROLES';
+  end if;
+  if has_table_privilege('anon','public.catalog_taxonomy_mapping_audit','SELECT')
+     or has_table_privilege('authenticated','public.catalog_taxonomy_mapping_audit','SELECT')
+     or has_table_privilege('service_role','public.catalog_taxonomy_mapping_audit','SELECT') then
+    raise exception 'RC461_MAPPING_AUDIT_DIRECT_READ_ALLOWED';
+  end if;
+  if not exists (
+    select 1 from pg_catalog.pg_class c
+    where c.oid='public.catalog_taxonomy_mapping_audit'::regclass
+      and c.relrowsecurity=true and c.relforcerowsecurity=true
+  ) then
+    raise exception 'RC461_MAPPING_AUDIT_RLS_NOT_FORCED';
   end if;
 end;
 $test$;
