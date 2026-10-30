@@ -53,16 +53,34 @@ assert.match(directoryFunction, /provider:\s*\{\s*kind:/,
   "public-catalog-directory must map the provider response into an explicit public object");
 assert.match(catalogFunction, /provider:\s*\{/,
   "public-catalog must map the provider response into an explicit public object");
-assert.doesNotMatch(
-  directoryFunction.slice(directoryFunction.indexOf("const buildPublicBusiness"), directoryFunction.lastIndexOf("return response")),
-  /owner_user_id|provider\.settings|\.settings.*provider/i,
-  "public-catalog-directory must not serialize private provider ownership/settings"
+function providerResponseBlock(source, label, nextProperty) {
+  const start = source.indexOf("provider: {");
+  assert.notEqual(start, -1, label + " must construct an explicit provider response object");
+  const end = source.indexOf(nextProperty, start);
+  assert.notEqual(end, -1, label + " provider response object must end before the next public property");
+  return source.slice(start, end);
+}
+
+const directoryProviderResponse = providerResponseBlock(
+  directoryFunction,
+  "public-catalog-directory",
+  "branches:"
 );
-assert.doesNotMatch(
-  catalogFunction.slice(catalogFunction.indexOf("const profile ="), catalogFunction.lastIndexOf("return response")),
-  /owner_user_id|provider\.settings|\.settings.*provider/i,
-  "public-catalog must not serialize private provider ownership/settings"
+const catalogProviderResponse = providerResponseBlock(
+  catalogFunction,
+  "public-catalog",
+  "profile:"
 );
+for (const [block, label] of [
+  [directoryProviderResponse, "public-catalog-directory"],
+  [catalogProviderResponse, "public-catalog"],
+]) {
+  assert.doesNotMatch(
+    block,
+    /owner_user_id|settings|\.\.\.provider/i,
+    label + " must not serialize owner UUID, private profile settings, or a raw provider row"
+  );
+}
 
 // The primary catalog frontend must call the curated Edge Functions rather than
 // reading the base provider profile table using its public Supabase key.
