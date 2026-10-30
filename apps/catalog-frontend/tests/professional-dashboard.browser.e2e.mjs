@@ -438,6 +438,13 @@ try {
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       await page.getByRole('heading', { name: 'التصنيفات والمجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
+      const confirmedBadges = page.locator('[title="أنشطة مؤكدة"]');
+      await confirmedBadges.first().waitFor({ state: 'visible' });
+      const primaryConfirmedClasses = await confirmedBadges.first().getAttribute('class') || '';
+      assert.ok(
+        primaryConfirmedClasses.includes('bg-emerald-100') && primaryConfirmedClasses.includes('text-emerald-800'),
+        'confirmed activity counter must retain its green treatment',
+      );
       const unconfirmedBadges = page.locator('[title="صفحات دليل غير مؤكدة"]');
       await unconfirmedBadges.first().waitFor({ state: 'visible' });
       const unconfirmedBadgeClasses = await unconfirmedBadges.evaluateAll((nodes) =>
