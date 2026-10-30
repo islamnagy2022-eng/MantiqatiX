@@ -69,6 +69,9 @@ assert.ok(migration.includes('pg_advisory_xact_lock'), 'Commit path must seriali
 assert.ok(migration.includes('lock table public.businesses in share row exclusive mode'), 'Commit path must block concurrent business mutations during validation/apply.');
 assert.ok(migration.includes('lock table public.public_directory_listings in share row exclusive mode'), 'Commit path must block concurrent listing mutations during validation/apply.');
 assert.ok(migration.includes('TAXONOMY_PREVIEW_STALE'), 'Commit must reject a stale preview.');
+assert.ok(migration.includes("'{activity_category_id}',to_jsonb(p_target_category_id),true"), 'Commit must update the stable activity_category_id together with canonical taxonomy codes.');
+assert.ok(migration.includes("'activity_category_id',b.settings->>'activity_category_id'"), 'Preview before-image must capture the stable activity category ID.');
+assert.ok(integration.includes("settings->>'activity_category_id'") && integration.includes("cat_food_grocery_restaurants"), 'Integration must prove the stable activity category ID follows the remapping.');
 assert.ok(migration.includes('before_image') && migration.includes('after_mapping'), 'Audit must persist a before-image and approved mapping.');
 assert.ok(migration.includes('CATALOG_TAXONOMY_AUDIT_APPEND_ONLY'), 'Audit history must reject UPDATE and DELETE.');
 assert.ok(migration.includes('force row level security'), 'Audit table must FORCE RLS.');
