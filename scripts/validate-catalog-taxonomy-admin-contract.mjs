@@ -51,7 +51,7 @@ assert.ok(publicCatalog.includes('activityCategoryId: String(business.settings?.
 assert.ok(production.includes('raw.activityCategoryId || raw.activity_category_id || raw.settings?.activity_category_id'), 'Business hydration must restore canonical and custom category IDs.');
 assert.ok(production.includes('activityCategoryId: body.business?.activityCategoryId'), 'Direct storefront hydration must preserve the stable category ID.');
 assert.ok(edge.includes('const canonicalTaxonomyCategoryTypes = new Map<string, "activity" | "profession">'), 'Edge Function must use a server-owned canonical category/type allowlist.');
-assert.ok(edge.includes('canonicalCategoryType(sourceCategoryId)') && edge.includes('canonicalCategoryType(targetCategoryId) !== targetClassificationType'), 'Source and target IDs and target classification must match the canonical seed inventory.');
+assert.ok(edge.includes('matchesCanonicalCategory(sourceCategoryId, sourceGroupId)') && edge.includes('matchesCanonicalCategory(targetCategoryId, targetGroupId)') && edge.includes('canonicalCategoryType(targetCategoryId) === targetClassificationType'), 'Source and target IDs and target classification must match the canonical seed inventory.');
 const seededCategoryCodes = defaults.split('\n')
   .map((line) => line.trim())
   .filter((line) => line.startsWith("s('"))
