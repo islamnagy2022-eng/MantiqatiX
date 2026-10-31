@@ -98,6 +98,39 @@ assert.equal(observedLegacyCategoryIds.length, 67, 'The live legacy inventory co
 for (const legacyId of observedLegacyCategoryIds) {
   assert.ok(defaults.includes(`${legacyId}:`), `Missing compatibility mapping for ${legacyId}.`);
 }
+
+const legacyCategoryMapStart = defaults.indexOf('const LEGACY_DIRECTORY_CATEGORY_MAP: Record<string, string> = {');
+const legacyCategoryMapEnd = defaults.indexOf('\\n};', legacyCategoryMapStart);
+assert.ok(legacyCategoryMapStart >= 0 && legacyCategoryMapEnd > legacyCategoryMapStart, 'Legacy directory category map must be a parseable explicit map.');
+const legacyCategoryMapSource = defaults.slice(legacyCategoryMapStart, legacyCategoryMapEnd);
+const legacyCategoryMappings = new Map(
+  Array.from(legacyCategoryMapSource.matchAll(/^\\s*(cat_[a-z0-9_]+):\\s*'(cat_[a-z0-9_]+)'/gm),
+    (match) => [match[1], match[2]]),
+);
+const canonicalCategoryIds = new Set(rows.map((row) => `cat_${row.groupId}_${row.code}`));
+assert.equal(legacyCategoryMappings.size, 67, 'The compatibility map must contain all 67 audited legacy directory category IDs.');
+for (const legacyId of observedLegacyCategoryIds) {
+  const targetId = legacyCategoryMappings.get(legacyId);
+  assert.ok(targetId, `Legacy directory category ${legacyId} must have an explicit target.`);
+  assert.ok(canonicalCategoryIds.has(targetId), `Legacy directory category ${legacyId} maps to non-canonical category ${targetId}.`);
+  const targetGroup = expectedGroups.find((groupId) => targetId.startsWith(`cat_${groupId}_`));
+  assert.ok(targetGroup, `Legacy directory category ${legacyId} maps outside the ten canonical groups: ${targetId}.`);
+}
+const legacyGroupMapStart = defaults.indexOf('const LEGACY_GROUP_MAP: Record<string, FunctionalGroup[\\'id\\']> = {');
+const legacyGroupMapEnd = defaults.indexOf('\\n};', legacyGroupMapStart);
+assert.ok(legacyGroupMapStart >= 0 && legacyGroupMapEnd > legacyGroupMapStart, 'Legacy group map must be explicit.');
+const legacyGroupMappings = new Map(
+  Array.from(defaults.slice(legacyGroupMapStart, legacyGroupMapEnd).matchAll(/^\\s*([a-z0-9_]+):\\s*'([a-z0-9_]+)'/gm),
+    (match) => [match[1], match[2]]),
+);
+const legacyGroupsInInventory = [...new Set(observedLegacyCategoryIds.map((legacyId) => {
+  const groupId = observedLegacyGroups.find((candidate) => legacyId.startsWith(`cat_${candidate}_`));
+  assert.ok(groupId, `Could not infer legacy group from category ID ${legacyId}.`);
+  return groupId;
+}))];
+for (const legacyGroup of legacyGroupsInInventory) {
+  assert.ok(expectedGroups.includes(legacyGroupMappings.get(legacyGroup)), `Legacy group ${legacyGroup} must map into the canonical ten.`);
+}
 assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
 assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
 assert.ok(directoryListingsView.includes('resolveCanonicalSpecialty'), 'Legacy specialty labels must match canonical specialty filters through the shared resolver.');
