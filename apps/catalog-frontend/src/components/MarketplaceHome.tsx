@@ -123,7 +123,7 @@ export const MarketplaceHome: React.FC = () => {
     setSelectedBusinessId(business.id);
     setCurrentView('public_storefront');
   };
-  const businessById = useMemo(() => new Map(directoryBusinesses.map((business) => [business.id, business])), [directoryBusinesses]);
+  const businessById = useMemo(() => new Map<string, Business>(directoryBusinesses.map((business) => [business.id, business] as const)), [directoryBusinesses]);
   const eligibleBusinesses = useMemo(() => directoryBusinesses.filter((business) =>
     Boolean(business.publicEnabled || business.isOfficialShowcase) &&
     business.operationalStatus === 'ACTIVE' && !business.isFrozen && Boolean(business.name.trim())
