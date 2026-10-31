@@ -819,9 +819,39 @@ try {
     } finally { await context.close(); }
   }
 
-  // 12. Selecting a specialty returns to the directory with a visible, reversible filter.
+  // 12. Activity opens directly on in-scope entity cards; specialty filters stay inside the module and phone-less listings stay hidden.
   {
-    const { context, page } = await newScenario(browser);
+    const withPhone = {
+      id: 'listing-module-phone-0001',
+      slug: 'clinic-module-phone',
+      display_name: 'عيادة اختبار داخل النشاط',
+      listing_type: 'clinic',
+      functional_group_id: 'medical_health',
+      taxonomy_category_id: 'cat_medical_health_medical_practices',
+      taxonomy_specialty: 'باطنة',
+      specialty: 'باطنة',
+      phone: '01012345678',
+      secondary_phone: null,
+      address: 'شارع الاختبار',
+      governorate: 'المنوفية',
+      district: 'بركة السبع',
+      village: 'قرية الاختبار',
+      source_name: 'Activity module E2E',
+      source_url: null,
+      listing_status: 'PUBLISHED',
+      claim_status: 'UNCLAIMED',
+    };
+    const withoutPhone = {
+      ...withPhone,
+      id: 'listing-module-no-phone-0002',
+      slug: 'clinic-module-no-phone',
+      display_name: 'عيادة اختبار بدون رقم',
+      phone: null,
+      secondary_phone: null,
+    };
+    const { context, page } = await newScenario(browser, null, [], {
+      directoryListingsState: { listings: [withPhone, withoutPhone] },
+    });
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
@@ -829,47 +859,21 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
-      await activityCard.click();
+      await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
+      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await modulePage.getByText('غير موثق', { exact: true }).count(), 1, 'the published unclaimed entity must carry the red unverified badge');
+      assert.equal(await modulePage.getByText('عيادة اختبار بدون رقم', { exact: true }).count(), 0, 'entities without a phone number must not render inside activity module cards');
       await modulePage.getByRole('button', { name: /باطنة/ }).click();
-      await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px selected activity specialty');
+      await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px activity module entity list');
       await page.setViewportSize({ width: 768, height: 1024 });
-      await assertNoHorizontalOverflow(page, '768px selected activity specialty');
+      await assertNoHorizontalOverflow(page, '768px activity module entity list');
       await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
-      results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
-    } finally { await context.close(); }
-  }
-
-// 12. Selecting a specialty returns to the directory with a visible, reversible filter.
-  {
-    const { context, page } = await newScenario(browser);
-    try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
-        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      }
-      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
-      await activityCard.click();
-      const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
-      await modulePage.getByRole('button', { name: /باطنة/ }).click();
-      await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px selected activity specialty');
-      await page.setViewportSize({ width: 768, height: 1024 });
-      await assertNoHorizontalOverflow(page, '768px selected activity specialty');
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
-      results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
+      await assertNoHorizontalOverflow(page, '1440px activity module entity list');
+      results.push('activity-module-renders-geo-filtered-entities');
     } finally { await context.close(); }
   }
 
