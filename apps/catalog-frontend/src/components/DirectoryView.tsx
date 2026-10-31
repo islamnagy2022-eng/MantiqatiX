@@ -646,11 +646,10 @@ export const DirectoryView: React.FC = () => {
         confirmedCount={confirmedCount}
         unconfirmedCount={unconfirmedCount}
         onBack={closeActivityModule}
-        onSelectSpecialty={(specialty) => {
-          setSelectedCategoryId(activityCategory.id);
-          setSelectedSpecialty(specialty);
-          closeActivityModule();
-        }}
+        businesses={filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === activityCategory.id && Boolean(business.phone || business.ownerWhatsApp))}
+        listings={filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && Boolean(listing.phone || listing.secondary_phone))}
+        onOpenListing={openDirectoryListing}
+        onOpenBusiness={(businessId) => { setSelectedBusinessId(businessId); setCurrentView('public_storefront'); }}
       />;
     }
   }
