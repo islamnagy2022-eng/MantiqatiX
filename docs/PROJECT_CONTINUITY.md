@@ -1204,3 +1204,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Current root registry count is one (aggregate only); one-time guard means bootstrap is not currently callable successfully. No identity or registry row contents were read and no invocation attempted.
 - Read-only scan found no other SQL registry writer and no dedicated audited deprovision routine; external privileged service operation remains a question.
 - Issue [#614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks P2 idempotent bootstrap correction and audited revocation/session invalidation. No Production change.
+
+ 
+## Latest continuation — 2026-10-31 (root-registry provenance)
+
+- The sole root-registry row's aggregate created_at is 2026-09-27 13:23:43 UTC; no identity/content was queried.
+- No PLATFORM_BOOTSTRAP audit event exists. Migration ledger search found no direct registry seed/update/delete; the only INSERT text is inside the service_role-only bootstrap function definition. No other SQL routine writer was found.
+- Actual provisioning path remains unknown (possible privileged out-of-band/service operation); do not attribute it to bootstrap without authoritative records. Issue #614 tracks provenance, canonical tenant-safe recovery and audited revocation.
