@@ -1005,3 +1005,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - This confirms the DB-side contract for the hourly probe, not the live HTTP call. The first post-merge GitHub Actions monitor request and failure notification remain NOT VERIFIED because the connected GitHub workflow listing does not expose push-triggered run records.
 - Supabase's current Free inactivity guidance says a few API/database requests per day typically suffice and recognizes API calls as activity; hourly monitor is intended to reduce inactivity-pause risk, not guarantee uptime.
 - Evidence: `docs/audits/DB_MONITOR_READ_PATH_PREFLIGHT_20261031.md`. Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Direct live database connection probe
+
+- Supabase project status returned `ACTIVE_HEALTHY` (PostgreSQL 17.6.1.155, region us-east-2).
+- A live read-only `SELECT 1` succeeded at `2026-10-31 01:57:01.957862+00 UTC`.
+- This proves direct database connectivity at that timestamp only. It does not prove the GitHub Actions PostgREST monitor has run successfully or that notifications are delivered.
+- No business data was selected and no schema, grants, RLS, Auth, Edge Functions, payments, or production records were changed.
+- Evidence: `docs/audits/DB_CONNECTION_PROBE_20261031.md`. Production Gate remains **BLOCKED / NOT CERTIFIED**.
