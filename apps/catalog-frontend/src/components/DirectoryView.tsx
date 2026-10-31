@@ -47,27 +47,6 @@ const whatsappDigits = (value: unknown): string => {
   return digits.length >= 10 && digits.length <= 15 ? digits : '';
 };
 
-const ICONS_MAP: Record<string, React.ReactNode> = {
-  medical_health: <Stethoscope className="h-7 w-7 text-emerald-600" strokeWidth={1.8} />,
-  food_grocery: <Utensils className="h-7 w-7 text-amber-600" strokeWidth={1.8} />,
-  fashion_beauty: <Shirt className="h-7 w-7 text-pink-600" strokeWidth={1.8} />,
-  home_maintenance: <Wrench className="h-7 w-7 text-orange-600" strokeWidth={1.8} />,
-  construction_decor: <Palette className="h-7 w-7 text-stone-600" strokeWidth={1.8} />,
-  auto_transport: <Car className="h-7 w-7 text-sky-600" strokeWidth={1.8} />,
-  real_estate: <Building2 className="h-7 w-7 text-teal-600" strokeWidth={1.8} />,
-  education_training: <GraduationCap className="h-7 w-7 text-indigo-600" strokeWidth={1.8} />,
-  technology_communications: <Cpu className="h-7 w-7 text-cyan-600" strokeWidth={1.8} />,
-  professional_services: <BriefcaseBusiness className="h-7 w-7 text-violet-600" strokeWidth={1.8} />,
-  marketing_media: <Megaphone className="h-7 w-7 text-fuchsia-600" strokeWidth={1.8} />,
-  trade_ecommerce: <ShoppingCart className="h-7 w-7 text-blue-600" strokeWidth={1.8} />,
-  agriculture_animals: <Sprout className="h-7 w-7 text-lime-700" strokeWidth={1.8} />,
-  sports_fitness: <Dumbbell className="h-7 w-7 text-red-600" strokeWidth={1.8} />,
-  tourism_events: <Plane className="h-7 w-7 text-purple-600" strokeWidth={1.8} />,
-  finance_insurance: <Landmark className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-700" strokeWidth={1.8} />,
-  industry_workshops: <Factory className="h-5 w-5 sm:h-7 sm:w-7 text-slate-600" strokeWidth={1.8} />,
-  public_community: <Users className="h-7 w-7 text-rose-600" strokeWidth={1.8} />,
-};
-
 interface CoverSlide {
   image: string;
   badge: string;
@@ -84,7 +63,6 @@ export const DirectoryView: React.FC = () => {
   const {
     directoryBusinesses,
     directoryLoading,
-    functionalGroups,
     categories,
     setSelectedBusinessId,
     setCurrentView,
@@ -216,8 +194,6 @@ export const DirectoryView: React.FC = () => {
   // Visitor-facing taxonomy is activity -> specialty; groups/professions are not navigation layers.
   const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');
   const selectedTaxonomyCategory = categories.find((category) => category.id === selectedCategoryId);
-  const selectedTaxonomyCategoryCode = selectedTaxonomyCategory?.id.startsWith(`cat_${selectedTaxonomyCategory.functionalGroupId}_`)
-    ? selectedTaxonomyCategory.id.slice(`cat_${selectedTaxonomyCategory.functionalGroupId}_`.length) : '';
   const categoryForBusiness = (business: Business) =>
     categories.find((category) => business.categoryId === category.id) ||
     categories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — ') || (category.classificationType === 'profession' && business.category.startsWith(category.name + ' ')));
