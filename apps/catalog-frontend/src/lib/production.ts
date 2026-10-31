@@ -1,5 +1,5 @@
 import { createClient, type User } from '@supabase/supabase-js';
-import type { AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
+import type { ActivityModuleOverrides, AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
@@ -109,7 +109,7 @@ export async function fetchPlatformSubscribers(): Promise<{ subscribers: Subscri
   }
 }
 
-export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[] }> {
+export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[]; activityModuleOverrides: ActivityModuleOverrides }> {
   const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
   if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
   const rows = Array.isArray(data?.businesses) ? data.businesses : [];
@@ -120,7 +120,10 @@ export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; 
     businesses.push(mapped);
     products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
   }
-  return { businesses, products };
+  const activityModuleOverrides = data?.activityModuleOverrides && typeof data.activityModuleOverrides === 'object' && !Array.isArray(data.activityModuleOverrides)
+    ? data.activityModuleOverrides as ActivityModuleOverrides
+    : {};
+  return { businesses, products, activityModuleOverrides };
 }
 
 export async function fetchPublicCatalog(businessId: string, branchId?: string): Promise<{ business: Business; products: Product[] } | null> {
