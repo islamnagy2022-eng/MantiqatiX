@@ -2981,6 +2981,7 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Added `scripts/validate-activity-module-admin.mjs`, `scripts/test-activity-module-overrides.mjs`, and wired the static contract and Node sanitizer tests into catalog validation workflows.
 - [x] Added a sanitized public projection of only `activityModuleOverrides` to `public-catalog-directory`; the complete platform settings object is never returned. Public directory bootstrap now hydrates visitors' activity-module settings only when the public settings read is authoritative.
 - [x] Read-only Supabase inspection confirmed `bizcatalog_platform_settings` exists with its singleton row, and `audit_logs` has the required `id`, `tenant_id`, `actor_user_id`, `action`, `entity_type`, `entity_id`, `old_values`, `new_values`, and `result` columns. No production data was changed.
+- [x] Read-only permission inspection confirmed `bizcatalog_platform_settings` has RLS enabled with a `service_role`-only policy and no `anon`/`authenticated` table grants; `audit_logs` has RLS and FORCE RLS enabled, with service-role insert privilege. Public visitors receive the sanitized projection only through the Edge Function.
 - [x] Confirmed deployed `catalog-platform-admin` and `public-catalog-directory` are still older versions (23 and 10 respectively); this PR's source changes have not been deployed.
 
 ### Safety boundary and open verification
