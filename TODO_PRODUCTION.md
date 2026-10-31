@@ -1578,11 +1578,13 @@ A separate source review found a second platform-root authorization model: the n
 
 - [ ] تشغيل `Deploy MantiqatiX Web` على head الحالي لفرع التحقق بعد تصحيح assertion الثاني، ومراجعة `validate` كاملًا؛ يجب أن يظل `deploy` متخطيًا في PR. لا يُعتمد نجاح التشغيل الأقدم على commit `771d073` كتحقق للإصلاح الأخير.
 
-## 2026-11-01 — Egypt-wide default directory search
+## 2026-11-01 — Egypt-wide directory with nearest-first GPS ranking
 
-- [x] Make every new catalog visit start with all Egypt: governorate, markaz, village/neighborhood, and area filters initialize to `all`, regardless of any previously saved GPS or administrative scope.
-- [x] Remove first-visit GPS consent modal and silent GPS refresh on returning visits. GPS is no longer requested automatically; any remaining location action is explicitly initiated by the visitor.
-- [x] Preserve manual geographic narrowing through the existing governorate, markaz, village/neighborhood, and area selectors. A new visit resets to all Egypt.
-- [x] Preserve the existing result policy: verified activities are sorted before unverified entries, without excluding verified activities from other governorates.
-- [ ] Run exact-head TypeScript, build, taxonomy validator, and browser E2E for the Egypt-wide default, stale saved GPS preference, manual filter behavior, reset-on-new-visit, and 390/1440px layouts.
+- [x] Keep the first-visit location consent prompt; request GPS permission explicitly rather than silently.
+- [x] Use valid Egypt GPS coordinates as an in-memory distance reference only; do not persist precise coordinates.
+- [x] Keep all geographic filters at `all` after GPS detection so the directory continues to include all eligible published activities across Egypt.
+- [x] Sort verified businesses by distance (nearest first), then completeness; keep verified results ahead of unverified directory listings. Listings with known coordinates are also sorted nearest first within their unverified tier.
+- [x] Do not automatically narrow the results to the nearest governorate, district, or village. Keep manual geographic selectors available for deliberate narrowing.
+- [ ] Update browser E2E to grant/deny GPS consent, verify Egypt-wide filters remain `all`, and assert nearest-first ordering for records with coordinates.
+- [ ] Run exact-head TypeScript, build, taxonomy validator, and browser E2E for location consent, Egypt-wide result coverage, nearest-first ranking, manual filters, and 390/1440px layouts.
 - [ ] Verify the same behavior on the published catalog only after CI passes and the approved Pages workflow completes. No production deployment has been made as part of this change.
