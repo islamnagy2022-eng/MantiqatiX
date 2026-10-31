@@ -174,9 +174,8 @@ after insert or update or delete on public.commission_rules
 for each row
 execute function public.capture_commission_rule_audit();
 
-grant usage on schema public, auth to authenticated;
-grant execute on function auth.uid() to authenticated;
-grant insert on public.businesses, public.commission_rules to authenticated;
+grant usage on schema public, auth to service_role;
+grant insert on public.businesses, public.commission_rules to service_role;
 
 -- These are trigger-only functions, not client/server RPC entrypoints.
 -- Explicitly remove inherited PUBLIC and direct API-role EXECUTE.
@@ -233,12 +232,11 @@ begin
 end;
 $acl$;
 
--- Execute actual DML as authenticated after all direct EXECUTE grants have
--- been removed. The deferred owner trigger and immediate audit trigger must
--- still run as their SECURITY DEFINER owners.
+-- Execute actual backend DML as service_role after all direct EXECUTE grants
+-- have been removed. Production grants service_role table writes on these
+-- surfaces, while anon/authenticated do not. Both triggers must still run.
 begin;
-set local role authenticated;
-select pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-00000000a001',true);
+set local role service_role;
 
 insert into public.businesses(id,tenant_id,organization_id)
 values ('20000000-0000-4000-8000-00000000a001','tenant-trigger-fixture','org-trigger-fixture');
@@ -269,7 +267,6 @@ begin
     select 1 from public.commission_rule_audit
     where commission_rule_id='commission-rule-fixture'
       and tenant_id='tenant-trigger-fixture'
-      and actor_user_id='10000000-0000-4000-8000-00000000a001'
       and action='INSERT'
   ) then
     raise exception 'COMMISSION_AUDIT_TRIGGER_DID_NOT_RECORD_INSERT';
