@@ -2754,5 +2754,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Confirmed `digital_pages_admin_manage` is a global `FOR ALL TO authenticated` RLS policy using the weak helper for both USING and WITH CHECK. The authenticated role has SELECT/INSERT/UPDATE/DELETE table grants on `digital_pages`; the policy has no tenant/page-owner predicate. This creates a cross-tenant digital-pages access/mutation path for tenant OWNER memberships while the live helper remains weak.
 - [x] Confirmed `mantigo_financial_config` and `mantigo_rate_limit_config` policies also use the helper, but authenticated currently has no direct table grants on those tables. The separate MantiGO financial-config SECURITY DEFINER RPC still relies on the weak helper.
 - [ ] **P0 / BLOCKED:** full live scope now includes eight global SECURITY DEFINER functions plus the global digital-pages RLS policy. RC441/RC449 source helper hardening is the intended forward-only remediation; neither migration is present in Production.
-- [ ] PR #582 test-only work adds a disposable digital_pages table/RLS policy and verifies tenant OWNER is denied all CRUD while explicit platform SUPER_ADMIN is allowed. Merge only after the dedicated PostgreSQL workflow passes.
+- [x] PR [#582](https://github.com/islamnagy2022-eng/MantiqatiX/pull/582) merged to main as `061f7a4c3cd2dae22186a1f7f5880aa366e49db9` after dedicated PostgreSQL 16 CI passed. Its disposable fixture reproduces `digital_pages_admin_manage` and proves tenant OWNER cannot SELECT/INSERT/UPDATE/DELETE while explicit platform SUPER_ADMIN can.
 - Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`. No live data was read, and no Production mutation or RPC invocation was performed.
+
+
+### PR #582 exact-head validation evidence
+
+- [x] Dedicated MantiGO Platform Admin Scope Hardening [41165149574] passed: static platform-admin contract and disposable PostgreSQL 16 fixture + RC449 migration + expanded RPC/RLS integration.
+- [x] Module Professionalization [41165149540], Backend-only Module Boundary [41165149552], MantiGO Open Ride Privacy [41165149604], RC425 Paymob Atomicity [41165149544], and Deploy MantiqatiX Web validation [41165149619] passed.
+- [x] PR #582 merged with tests and audit documentation only. The Pages production deploy job was skipped on the PR event; no Production database, migration, payment, settlement, wallet, or Edge Function changed.
+- [ ] Production remains **BLOCKED** until the helper fix in RC441/RC449 is applied through an approved, fully rehearsed migration release. The isolated RLS test is evidence for the source contract, not a live Production remediation.
