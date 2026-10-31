@@ -45,3 +45,10 @@ The integration runs inside a transaction and rolls back its fixture data.
 - Include RC463 in the restorable current-schema migration rehearsal.
 - Before any Production rollout, confirm backup/restore, migration ordering, live trigger definitions, role ACLs and rollback.
 - This change does not certify payment, finance, Auth, RLS or platform-wide Production readiness.
+
+
+## Replay checkpoint limitation discovered
+
+The repository's captured schema-only checkpoint was captured 2026-10-17 at migration `20261008222845`, while the live Production catalog now contains a default-owner trigger function that is absent from that checkpoint. The first RC463 forward replay therefore failed preflight at the expected missing-function guard. This demonstrates that the old checkpoint is not a current Production schema restore.
+
+A disposable-only overlay fixture is being added to reproduce this known live-only trigger immediately before RC463 during CI. It uses a synthetic `.example.test` identity and is not a migration, is not production data, and must never be deployed. Passing replay with this overlay will prove the tracked migration chain plus this explicitly modeled object; it will **not** certify a fresh current-Production backup/restore. That gate remains NOT VERIFIED until an authorized current schema/data backup is independently restored and checked.
