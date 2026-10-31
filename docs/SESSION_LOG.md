@@ -1343,3 +1343,14 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Opened PR [#581](https://github.com/islamnagy2022-eng/MantiqatiX/pull/581) to strengthen the RC449 disposable PostgreSQL integration matrix: tenant ADMIN, tenant OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN must be denied by all four global RPCs; all four SECURITY DEFINER RPCs must retain empty `search_path`, authenticated grants and anon denial.
 - PR #581 dedicated workflow `MantiGO Platform Admin Scope Hardening` run [41164835173] is executing against disposable PostgreSQL 16. Do not merge until the run and the remaining required PR CI jobs finish successfully.
 - Overall Production remains **BLOCKED / NOT CERTIFIED**. RC441/RC449 source exists and is being regression-tested, but the live Production ledger has not recorded those migrations. A cost-reviewed isolated restore/schema clone and full chronological replay remain mandatory before controlled Production remediation.
+
+
+## 2026-10-31 — PR #581 merged after dedicated RC449 PostgreSQL regression pass
+
+- PR [#581](https://github.com/islamnagy2022-eng/MantiqatiX/pull/581) merged to main as `1cd13f868fc845598964e5c8daac4d7e8b6b9a7d`.
+- The expanded disposable integration test now exercises tenant ADMIN, tenant OPERATIONS_MANAGER, and tenant-scoped SUPER_ADMIN against each of the four global MantiGO RPCs: dashboard, financial report, captain settlement, and stale ride expiration. All must reject with `PLATFORM_ADMIN_REQUIRED`.
+- Added catalog assertions requiring all four RPCs to remain SECURITY DEFINER with `search_path=""`, retain authenticated EXECUTE, and deny anon EXECUTE.
+- Dedicated MantiGO Platform Admin Scope Hardening [41164835173] passed. Job `platform-admin-postgres` completed successfully; both the static platform-admin contract and the disposable PostgreSQL 16 fixture + RC449 migration + behavioral integration test steps passed.
+- Exact-head supporting PR checks also passed: Module Professionalization [41164835103], Backend-only Module Boundary [41164835132], MantiGO Open Ride Privacy [41164835111], RC425 Paymob Atomicity [41164835212], and Deploy MantiqatiX Web validation [41164835104]. The PR validation workflow did not run the actual production deploy job.
+- No live migration, Production DDL/grant, business data, payment, settlement, wallet, or Edge Function was changed. This establishes isolated source behavior only.
+- **Next gate:** obtain approved, cost-reviewed isolated restore/current Production schema capture and replay the full chronological migration chain. RC441/RC449 are still absent from the live Production migration ledger at last read-only check. Production remains **BLOCKED / NOT CERTIFIED**.
