@@ -167,6 +167,13 @@ assert.ok(!directory.includes('functionalGroups') && !directory.includes('select
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
 assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
 assert.ok(activityModuleView.includes('marketing.contentPillars') && activityModuleView.includes('marketing.campaignIdeas') && activityModuleView.includes('marketing.requiredAssets'), 'Activity marketing page must render domain-specific content pillars, campaign ideas and required assets.');
+assert.ok(directory.includes('selectedGroupFilter') && directory.includes('availableGroups.map'), 'Public directory must preserve functional-group folder navigation before activities.');
+assert.ok(directory.includes('availableCategories.map') && directory.includes('setSelectedGroupFilter(group.id)'), 'Opening a group must reveal its activity categories.');
+assert.ok(activityModuleView.includes('campaignGoal') && activityModuleView.includes('campaignBudget') && activityModuleView.includes('campaignDuration'), 'Each activity must provide an interactive campaign goal, budget and duration planner.');
+assert.ok(activityModuleView.includes('selectedChannels') && activityModuleView.includes('getChannelShare'), 'Campaign planner must support channel selection and normalized budget allocation.');
+assert.ok(activityModuleView.includes('campaignPeriodCount') && activityModuleView.includes('قمع التحويل ومؤشرات الأداء'), 'Campaign planner must generate a duration-aware content calendar and conversion measurement funnel.');
+assert.ok(activityModuleView.includes('parentGroupName'), 'Activity page must provide a return path to its parent functional group when opened from that folder.');
+
 assert.ok(activityModuleView.includes('moduleConfig.capabilities.map'), 'Activity operations page must render capabilities from its activity module configuration.');
 assert.ok(activityModuleRegistry.includes('activityId: category.id') && activityModuleRegistry.includes('activityName: name'), 'Module registry must key each resolved module by the stable canonical activity ID.');
 assert.ok(activityModuleRegistry.includes('ACTIVITY_SPECIFIC_OVERRIDES'), 'Activity registry must include explicit reviewed per-activity overrides.');
