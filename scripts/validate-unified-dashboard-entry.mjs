@@ -54,10 +54,11 @@ assert.match(contextSource, /useEffect\(\(\) => \{\s*if \(currentView !== 'publi
 assert.match(contextSource, /requestedView === 'account_portal' && authSession\.isAuthenticated/, 'browser back/forward may restore the account portal only for an authenticated account');
 assert.match(contextSource, /const switchToPlatformAdminMode = \(\): boolean/, 'platform admin mode must have a separate server-derived grant');
 assert.match(portal, /switchAccountMembership\(mode\.membershipId,\s*mode\.businessId\)/, 'UI must switch by the exact business-membership pair');
-assert.match(e2e, /account-switch-owner-and-branch-scoped-employee-memberships/, 'browser coverage must switch between owner and branch employee modes');
-assert.match(e2e, /membershipId: body\.membershipId/, 'browser fixture must capture the exact membership identity sent to catalog-admin');
-assert.match(e2e, /00000000-0000-0000-0000-000000000011/, 'browser coverage must assert the branch employee membership is not replaced by the wider owner membership');
-assert.match(e2e, /platform-admin-and-business-membership-modes-remain-separate/, 'browser coverage must prove platform and business authority remain separate');
+assert.match(portal, /ACCOUNT_MEMBERSHIP_SWITCH_ENABLED = false/, 'membership switching must remain disabled until the exact-scope Edge Function is deployed');
+assert.match(contextSource, /if \(!ACCOUNT_MEMBERSHIP_SWITCH_ENABLED\) return false/, 'the membership switch action must fail closed while the live backend is older');
+assert.match(e2e, /account-membership-switch-disabled-until-live-exact-membership-edge/, 'browser coverage must prove no membership switch is exposed before backend rollout');
+assert.match(e2e, /membershipId: body\.membershipId/, 'browser fixture must still capture exact membership identity for the future enabled path');
+assert.match(e2e, /platform-admin-remains-separate-while-business-membership-switch-is-gated/, 'browser coverage must prove platform authority remains distinct while business switching is disabled');
 
 const guestBootstrap = production.slice(production.indexOf('export async function bootstrapProductionUser'));
 const guestBlock = guestBootstrap.slice(guestBootstrap.indexOf('if (!user) {'), guestBootstrap.indexOf('\n  }', guestBootstrap.indexOf('if (!user) {')) + 4);
