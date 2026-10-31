@@ -846,6 +846,33 @@ try {
     } finally { await context.close(); }
   }
 
+// 12. Selecting a specialty returns to the directory with a visible, reversible filter.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
+      await activityCard.click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).click();
+      await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px selected activity specialty');
+      await page.setViewportSize({ width: 768, height: 1024 });
+      await assertNoHorizontalOverflow(page, '768px selected activity specialty');
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
+      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
+    } finally { await context.close(); }
+  }
+
 // 13. Domain profiles must expose different marketing plans and operating capabilities.
   {
     const { context, page } = await newScenario(browser);
