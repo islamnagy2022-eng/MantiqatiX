@@ -18,7 +18,7 @@ export type EgyptGeoShiyakha = {
 
 export type EgyptAdministrativeMatch = {
   governorate: EgyptGeoGovernorate;
-  district: EgyptGeoDistrict;
+  district: EgyptGeoDistrict | null;
   shiyakha: EgyptGeoShiyakha | null;
   level: 'SHIYAKHA' | 'DISTRICT' | 'GOVERNORATE';
   distanceKm: number;
@@ -87,7 +87,7 @@ export const resolveEgyptAdministrativeLocation = async (
   latitude: number,
   longitude: number,
 ): Promise<EgyptAdministrativeMatch | null> => {
-  if (!validPoint(latitude, longitude)) return null;
+  if (!validPoint(latitude, longitude) || latitude < 21.5 || latitude > 32.2 || longitude < 24 || longitude > 37.5) return null;
 
   const nearestDistricts = EGYPT_GEO_DISTRICTS
     .map((district) => ({
@@ -106,11 +106,9 @@ export const resolveEgyptAdministrativeLocation = async (
       }))
       .sort((a, b) => a.distanceKm - b.distanceKm)[0];
     if (!nearestGovernorate || nearestGovernorate.distanceKm > 100) return null;
-    const fallbackDistrict = EGYPT_GEO_DISTRICTS.find((district) => district.governorateId === nearestGovernorate.governorate.id);
-    if (!fallbackDistrict) return null;
     return {
       governorate: nearestGovernorate.governorate,
-      district: fallbackDistrict,
+      district: null,
       shiyakha: null,
       level: 'GOVERNORATE',
       distanceKm: nearestGovernorate.distanceKm,
