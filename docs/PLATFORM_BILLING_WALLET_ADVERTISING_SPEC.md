@@ -9,7 +9,7 @@
 
 MantiqaTix is not a sales intermediary. It does not collect, hold, route, split, reconcile, or settle the value of goods/services sold by a business to its customer. Customer-to-business payment agreements and settlements remain outside the platform.
 
-The platform wallet exists solely to collect and settle amounts owed to MantiqaTix for platform services: subscriptions, explicitly configured platform commissions/fees, advertising reservations, and other approved platform charges. Do not calculate a platform commission from merchant customer-sales turnover unless a separate future business decision explicitly authorizes that model and its legal/compliance review.
+The platform wallet exists solely to collect amounts owed to MantiqaTix: subscriptions, explicitly configured platform commissions/fees, advertising reservations, and other approved platform charges. A commission may be calculated from an explicitly selected and disclosed assessment basis, including reported or platform-recorded merchant activity/sales value when contractually approved; the activity value is calculation evidence only. The customer still pays the merchant outside MantiqaTix, and the platform never receives, holds, splits, routes, reconciles or settles those sale proceeds. The only wallet debit is the merchant's separate platform-fee liability.
 
 ## 2. Flexible subscription and commission engine
 
@@ -23,7 +23,7 @@ Support composable, versioned pricing rules:
 
 Each rule must define:
 - Target scope: platform-wide, business/activity, category/specialty, service, package, or a specific subscriber.
-- Charge type and calculation basis. Percentage basis must be explicit and limited to an approved platform fee/service/advertising basis; never silently infer merchant sales.
+- Charge type and calculation basis. Percentage basis must be explicit and versioned; supported bases may include approved platform service value, advertising value, platform-recorded eligible activity, or declared external sales/activity value where contractually approved. Record the source, period, verification status and evidence for any externally reported value. Never infer a sales basis from unrelated order/customer data.
 - Currency (EGP initially), amount/rate, minimum/maximum where applicable, effective start/end, recurrence, due-date rule, grace period, and status.
 - Whether the charge is recurring, one-time, usage-triggered, or manually assessed.
 - Tax treatment as a configurable, reviewed field; do not invent tax calculations.
@@ -71,7 +71,7 @@ Generate subscription and configured platform-fee invoices/charges from immutabl
 - Mark paid only after ledger posting succeeds.
 - If insufficient funds, leave the charge due, notify the account, apply configured grace/suspension policy, and never create a negative balance.
 - Retries must be idempotent and observable.
-- No automatic charge may be created from merchant-to-customer sales.
+- A commission charge may reference an expressly configured and auditable assessment event/value, including approved external-sales reporting, but the merchant-to-customer payment itself must never be collected, held or settled by MantiqaTix. Debit only the resulting platform charge from the merchant's own wallet balance.
 
 Support monthly recurring subscriptions and rule-defined billing intervals. Include due date, grace period, retry schedule, pause/cancel behavior, proration policy (only when explicitly configured), and audit trail.
 
