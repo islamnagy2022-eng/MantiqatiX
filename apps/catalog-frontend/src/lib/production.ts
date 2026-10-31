@@ -208,7 +208,7 @@ export function mapBusiness(raw: any, provider: any): Business {
   const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
-    !/(?:business-placeholder|catalog-item-placeholder)\\.svg|\\/legacy\\/(?:activity|activities)\\//i.test(savedLogo);
+    !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
   const UNVERIFIED_PHARMACY_IMAGE = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10';
   const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
     ? UNVERIFIED_PHARMACY_IMAGE
