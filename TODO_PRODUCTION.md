@@ -30,11 +30,11 @@
 - [x] **GEO-DISC-002 — الاختيار اليدوي:** مصر بالكامل + 27 محافظة + 365 مركزًا/قسمًا + تحميل الشياخات التابعة للمركز المختار (5,716 مستوى فرعي على مستوى المصدر)، إضافة إلى القرى/الأحياء الموجودة بسجلات الدليل. تحميل الشياخات كسول لكل مركز، وليس دفعة واحدة.
 - [x] **GEO-DISC-003 — الخصوصية والرجوع الآمن:** موافقة صريحة داخل الموقع قبل إذن المتصفح، وعدم إعادة الطلب تلقائيًا بعد الرفض/الاختيار اليدوي؛ الزيارات اللاحقة تعيد GPS صامتًا فقط إذا كان الإذن السابق granted. حالات عدم الدعم/HTTPS/timeout/outside-Egypt، لا watchPosition، لا حفظ أو إرسال إحداثيات GPS، والطلب الخارجي يحمل كود المركز فقط مع credentials/referrer مستبعدين ومهلة 8 ثوانٍ.
 - [ ] **GEO-DISC-004 — دقة الحدود:** nearest representative-point matching ليس point-in-polygon. ما زال مطلوبًا مصدر حدود رسمية ADM2/ADM3 بترخيص واضح وتاريخ مرجعي لإثبات أن الموقع داخل القرية/المركز بدل أقرب نقطة فقط.
-- [🟡 PARTIAL] **GEO-DISC-005 — الاختبارات والنشر:** validator ثابت موسع يغطي 27/365/5,716 وسلوك الموافقة والخصوصية ومصدر البيانات، ومربوط في Pages CI. exact-head CI وBrowser E2E والنشر ما زالت بانتظار إثبات.
-- **Data source:** Open Admin Data Egypt 2026.09, published 2026-09-08, CC-BY-4.0; immutable source commit 76b47b22872288c0d8b0c757975980e6986945e8; source attribution is included in the application.
-- **Source branch:** feature/smart-geo-discovery-20261031
+- [x] **GEO-DISC-005 — الاختبارات والنشر:** validator + TypeScript/build + contract + local Playwright E2E passed on final pre-merge head; post-merge CI passed. GitHub Pages deployment succeeded on 2026-10-31, primary catalog root smoke test passed, and deployed-origin dashboard/mobile/QR browser checks passed.
+- **Production merge:** PR #605 merged 2026-10-31; commit `1ae73259131de143c2ca8b619762e9538cf4607b`.
+- **Data source:** Open Admin Data Egypt 2026.09, published 2026-09-08, CC-BY-4.0; immutable source commit `76b47b22872288c0d8b0c757975980e6986945e8`; attribution is shown in the application.
 - **Tracking:** https://github.com/islamnagy2022-eng/MantiqatiX/issues/604
-- لا يتم إغلاق GEO-DISC-001/004/005 قبل اختبارات المتصفح والموبايل والتحقق من النشر، ولا يتم وصف أقرب نقطة بأنها حدود رسمية.
+- لا يتم إغلاق GEO-DISC-001/004 قبل دمج حدود جغرافية رسمية؛ أقرب نقطة حالية تظل ترشيحًا تقريبيًا قابلًا للتعديل.
 ## P1 — Website / Platform
 - [x] Website baseline/PWA/brand.
 - [x] Google OAuth sign-in path; authenticated browser/session lifecycle remains NOT VERIFIED.
