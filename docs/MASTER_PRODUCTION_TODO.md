@@ -3122,3 +3122,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - If called with defaults during a future empty-registry recovery, it would create a parallel tenant. If called with canonical ID, duplicate-key insert fails. The routine is service_role-only with empty search_path and currently blocked by its one-time guard (registry aggregate count=1); no call made.
 - A read-only routine scan found no other SQL writer to the root registry and no dedicated audited revoke/deprovision routine. External service operations remain to be inventoried.
 - P2 task: repair/bootstrap idempotently against canonical tenant, add separate audited revocation with session/token impact review, test in current-schema disposable restore. No Production bootstrap or registry mutation.
+
+ 
+## 2026-10-31 — Root-registry provisioning provenance remains unresolved
+
+- Aggregate-only check: the single `private.platform_admins` row has created_at 2026-09-27 13:23:43 UTC; no user identity/content queried.
+- No `PLATFORM_BOOTSTRAP` audit event found. Migration ledger contains the INSERT only within the bootstrap function definition; no direct seed or registry UPDATE/DELETE migration statement found. Database function scan found the bootstrap routine as the only SQL writer.
+- Do not infer that the private bootstrap function created the live registry row. Recover an authoritative deployment/audit record or document the privileged out-of-band provisioning path. Tracked under Issue #614.
