@@ -581,6 +581,10 @@ try {
       await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
       await page.getByText(/تم تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
       await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      assert.equal(await page.getByLabel('المحافظة').inputValue(), 'all', 'GPS must rank the Egypt-wide directory instead of narrowing it to a governorate');
+      assert.equal(await page.getByLabel('المركز / المدينة').inputValue(), 'all', 'GPS must not silently select a center');
+      assert.equal(await page.getByLabel('القرية / الحي').inputValue(), 'all', 'GPS must not silently select a village');
+      assert.equal(await page.getByLabel('المنطقة / العنوان').inputValue(), 'all', 'GPS must not silently select an address');
       const savedGeoPreference = await page.evaluate(() => JSON.parse(localStorage.getItem('mantiqatix.geo-discovery.v1') || 'null'));
       assert.equal(savedGeoPreference?.completed, true, 'explicit consent must be persisted before the dialog closes');
       assert.equal(savedGeoPreference?.mode, 'auto', 'accepted GPS consent must be remembered as automatic location mode');
@@ -593,6 +597,10 @@ try {
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).waitFor({ state: 'detached', timeout: 5000 });
       await page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
+      assert.equal(await page.getByLabel('المحافظة').inputValue(), 'all', 'returning GPS consent must not restore stale administrative filters');
+      assert.equal(await page.getByLabel('المركز / المدينة').inputValue(), 'all');
+      assert.equal(await page.getByLabel('القرية / الحي').inputValue(), 'all');
+      assert.equal(await page.getByLabel('المنطقة / العنوان').inputValue(), 'all');
       const leakedCoordinatesAfterReload = await page.evaluate(() =>
         Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
       );
