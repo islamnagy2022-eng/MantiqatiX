@@ -541,7 +541,7 @@ try {
     } finally { await context.close(); }
   }
 
-  // 8. Every visit starts Egypt-wide, ignores stale saved geo scope, and never requests GPS automatically.
+  // 8. Every visit starts Egypt-wide; prior consent refreshes GPS for nearest-first ranking without restoring old filters.
   {
     const { context, page } = await newScenario(browser);
     try {
@@ -568,7 +568,7 @@ try {
       assert.equal(await page.getByLabel('المركز / المدينة').inputValue(), 'all', 'default markaz must include all centers');
       assert.equal(await page.getByLabel('القرية / الحي').inputValue(), 'all', 'default village must include all villages and neighborhoods');
       assert.equal(await page.getByLabel('المنطقة / العنوان').inputValue(), 'all', 'default area must include all areas');
-      assert.equal(await page.evaluate(() => window.__mantiqatixGeoCalls || 0), 0, 'GPS must not be requested automatically on page load');
+      assert.equal(await page.evaluate(() => window.__mantiqatixGeoCalls || 0), 1, 'previously granted location consent must refresh the visitor position on return');
       await page.getByLabel('المحافظة').selectOption({ label: 'المنوفية' });
       assert.notEqual(await page.getByLabel('المحافظة').inputValue(), 'all', 'manual governorate narrowing must remain available');
       await page.reload({ waitUntil: 'domcontentloaded' });
@@ -579,7 +579,7 @@ try {
       await assertNoHorizontalOverflow(page, '390px Egypt-wide directory');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px Egypt-wide directory');
-      results.push('egypt-wide-default-no-auto-gps-manual-filters-reset-on-new-visit-responsive');
+      results.push('egypt-wide-default-consented-gps-nearest-first-manual-filters-reset-on-new-visit-responsive');
     } finally { await context.close(); }
   }
 
