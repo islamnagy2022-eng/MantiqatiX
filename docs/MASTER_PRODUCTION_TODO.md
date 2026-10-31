@@ -3031,3 +3031,13 @@ A separate source review found a second platform-root authorization model: the n
 - Opened dedicated security work item **Issue #611**: https://github.com/islamnagy2022-eng/MantiqatiX/issues/611.
 - Scope: reproduce the current authenticated DML grants and permissive ALL policy combination in the isolated current-schema rehearsal, define the canonical platform-admin/tenant-slot authority model, implement least-privilege controls only in isolation, and test anonymous/ordinary-authenticated/tenant-owner/platform-admin/backend actors.
 - Production remains unchanged. Slot writes, booking and pricing activation remain blocked; no blanket revoke or speculative policy migration is approved.
+
+
+## 2026-10-31 — Correction: `ad_spaces` policy versus ACL state
+
+- A second read-only Production catalog query supersedes the earlier P0 wording above: `ad_spaces` has RLS + FORCE RLS; only one authenticated permissive policy exists and it is SELECT-only. The four generic authenticated ALL guards are **RESTRICTIVE**. Count of authenticated permissive write policies (INSERT/UPDATE/DELETE/ALL): **0**.
+- The current RLS policy set therefore denies authenticated DML by default. No real-user write attempt was made, so no exploit is claimed.
+- Excess table ACLs remain: `authenticated` has SELECT/INSERT/UPDATE/DELETE/MAINTAIN; `anon` has MAINTAIN only; `service_role` retains backend table operations.
+- Correct Issue #611 from P0 broad-policy exposure to **P1 least-privilege ACL hardening + runtime verification**. Keep ad-slot booking/pricing writes unavailable until the data model and authorization tests are complete.
+- Next after the current-schema local restore: inspect grant provenance/default privileges; test removing unnecessary `authenticated` INSERT/UPDATE/DELETE/MAINTAIN and `anon` MAINTAIN while preserving authenticated SELECT and service_role operations; add role/API regression tests. No Production grant, RLS, DDL or DML change is authorized by this correction.
+- Latest PR #610 head `186fbb23e0aa4f799e4328a9753203f73945972a`: Primary Catalog Frontend Validation run [41206467742](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467742) passed build/TypeScript, isolated employee RBAC PostgreSQL and browser E2E. Pages run [41206467695](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467695) passed validation but skipped deploy for the PR event. No production deployment occurred; PR #610 remains Draft.
