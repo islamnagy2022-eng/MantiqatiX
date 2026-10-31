@@ -2978,7 +2978,10 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Added server-side allowlist and validation for activity override IDs, fields, lengths, array counts, exactly three capabilities, and total payload size. The browser does not write to `bizcatalog_platform_settings` directly.
 - [x] Added a server-side audit event `PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED` containing the changed activity IDs and changed sections, attributed to the authenticated platform admin and a production tenant scope.
 - [x] The Edge response exposes `auditLogged`; the frontend updates local state only after server-confirmed persistence and warns explicitly if persistence succeeded but audit insertion failed.
-- [x] Added `scripts/validate-activity-module-admin.mjs` and wired it into the primary catalog and Pages validation workflows.
+- [x] Added `scripts/validate-activity-module-admin.mjs`, `scripts/test-activity-module-overrides.mjs`, and wired the static contract and Node sanitizer tests into catalog validation workflows.
+- [x] Added a sanitized public projection of only `activityModuleOverrides` to `public-catalog-directory`; the complete platform settings object is never returned. Public directory bootstrap now hydrates visitors' activity-module settings only when the public settings read is authoritative.
+- [x] Read-only Supabase inspection confirmed `bizcatalog_platform_settings` exists with its singleton row, and `audit_logs` has the required `id`, `tenant_id`, `actor_user_id`, `action`, `entity_type`, `entity_id`, `old_values`, `new_values`, and `result` columns. No production data was changed.
+- [x] Confirmed deployed `catalog-platform-admin` and `public-catalog-directory` are still older versions (23 and 10 respectively); this PR's source changes have not been deployed.
 
 ### Safety boundary and open verification
 - [ ] Exact-head TypeScript/build, validator, backend boundary and browser E2E must pass before this increment is considered verified.
