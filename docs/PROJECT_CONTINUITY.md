@@ -1075,3 +1075,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - PR #610 head 2eac69122b4fa4b67bdf122c3db3db27527bf7d2: TypeScript/build/static catalog and unified-dashboard contracts PASS; PostgreSQL employee/branch RBAC PASS. Browser E2E was still running at last check. Legacy catalog validator, flexible-commission drafts, module professionalization, backend boundary, SMM deferred and MantiGO privacy workflows passed. Deploy workflow validation succeeded, but deploy job was SKIPPED because this was a PR event.
 - No production deployment, finance schema change, wallet/provider activation or advertising booking occurred. Existing CommissionRulesManager remains draft-only pending payment-engine integration.
 - Next: retrieve exact-head browser E2E conclusion, fix any failures, then run deployed-origin role matrix and performance measurements. Continue FIN-ADS-01 with flexible subscription pricing and canonical-ledger review; wallet and ad bookings remain unimplemented.
+
+
+### Exact membership isolation — 2026-10-31
+- During review of owner + employee memberships on one business, found that a generic CATALOG_READ could union same-account membership rows and widen an employee's branch scope.
+- Updated `catalog-admin` to accept optional `membershipId`; when supplied, the Edge Function filters the active membership set to that exact row. The platform-admin scoped bypass is disabled for explicitly membership-bound requests.
+- Account mode switching now sends `membershipId` with tenant/business/branch IDs, reloads the scoped catalog before switching, and replaces the selected business's previous product cache.
+- Browser E2E records and asserts the exact employee membership ID after switching from a tenant-wide owner membership to a branch-scoped employee membership.
+- This is code-only on the PR branch. No Supabase function deployment, database migration, RLS change, or production mutation was performed. A dedicated real Edge Function/PostgreSQL multi-membership isolation test remains required.
