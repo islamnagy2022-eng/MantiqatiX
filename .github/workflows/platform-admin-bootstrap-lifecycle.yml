@@ -2,7 +2,7 @@ name: Platform Admin Bootstrap Lifecycle
 on:
   pull_request:
     paths:
-      - "supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql"
+      - "supabase/migrations/20261031145200_rc463_platform_admin_bootstrap_recovery.sql"
       - "supabase/functions/platform-admin-lifecycle/**"
       - "supabase/tests/rc463_platform_admin_lifecycle_*.sql"
       - "scripts/validate-platform-admin-lifecycle.mjs"
@@ -10,7 +10,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql"
+      - "supabase/migrations/20261031145200_rc463_platform_admin_bootstrap_recovery.sql"
       - "supabase/functions/platform-admin-lifecycle/**"
       - "supabase/tests/rc463_platform_admin_lifecycle_*.sql"
       - "scripts/validate-platform-admin-lifecycle.mjs"
@@ -47,7 +47,7 @@ jobs:
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
           docker cp supabase/tests/rc463_platform_admin_lifecycle_fixture.sql "$pg_container:/tmp/fixture.sql"
-          docker cp supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql "$pg_container:/tmp/rc463.sql"
+          docker cp supabase/migrations/20261031145200_rc463_platform_admin_bootstrap_recovery.sql "$pg_container:/tmp/rc463.sql"
           docker cp supabase/tests/rc463_platform_admin_lifecycle_integration.sql "$pg_container:/tmp/integration.sql"
           docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/fixture.sql
           docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc463.sql
