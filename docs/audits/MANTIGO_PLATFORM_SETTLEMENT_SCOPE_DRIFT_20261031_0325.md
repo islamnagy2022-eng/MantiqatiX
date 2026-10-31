@@ -259,3 +259,12 @@ A separate source review found a second platform-root authorization model: the n
 ## Current-schema baseline gap — 2026-10-31
 
 The existing isolated full-chain replay evidence [41178333682](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41178333682) uses the repository's committed schema-only baseline from 2026-10-17 02:10:22 UTC at version `20261008222845` (283 migration records, `PENDING_REVIEW`). Live Production is now at 308 records through `20261029083845`. This 25-record delta means the successful replay is not a current-Production restore/parity result. Artifact lookups for replay #41178333682 and original capture #38993809648 returned no downloadable artifacts. Fresh authorized capture/restore is still required before RC441 → RC449 → RC462 can be considered for live rollout.
+
+ 
+## Platform-admin bootstrap/revocation lifecycle — 2026-10-31 (read-only)
+
+- The canonical tenant currently has ID `MNTY-PLATFORM`, code `MNTY`, ACTIVE. No tenant exists with ID `MNTY_PLATFORM`; no tenant currently uses code `MNTY-PLATFORM`.
+- Live `private.bootstrap_platform_admin(uuid,varchar,varchar,varchar)` defaults to tenant ID `MNTY_PLATFORM` and tenant code `MNTY-PLATFORM`. It unconditionally inserts the tenant before its one-time registry/membership insertion; it has no path to reuse/validate the existing canonical tenant. A call with defaults during future empty-registry recovery would create a second platform tenant; passing the current canonical ID explicitly would fail on duplicate ID. The routine is service_role-only, empty search_path, and its one-time registry guard currently prevents invocation because registry count is one. No call was made.
+- A cross-database routine scan found no other SQL function that writes/deletes `private.platform_admins`; bootstrap is the only SQL writer found. No dedicated audited revocation routine exists in the inspected database routine set. External privileged service operations may exist and must be inventoried before concluding no revocation path exists.
+- No root identity or registry row contents were queried; only aggregate registry count and tenant metadata were read.
+- [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks P2 correction of bootstrap defaults and design of audited deprovision/revocation. Do not patch or call Production bootstrap; first restore current schema and test atomically in isolation.
