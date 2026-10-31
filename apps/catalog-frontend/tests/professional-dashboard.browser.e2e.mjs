@@ -898,8 +898,8 @@ try {
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
-      await modulePage.getByText('العملاء القريبون', { exact: false }).waitFor({ state: 'visible' });
-      await modulePage.getByText('صور أصلية للمنتجات الفعلية', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByText('السكان القريبون', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByText('صور أصلية للمنتجات والأطباق', { exact: false }).waitFor({ state: 'visible' });
       await modulePage.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
       await modulePage.getByRole('heading', { name: 'القائمة والمنتجات', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
