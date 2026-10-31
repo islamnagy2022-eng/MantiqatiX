@@ -561,9 +561,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       routeBusinessIdRef.current = requestedManagedId;
       setSelectedBusinessIdState(requestedManagedId);
       setCurrentViewState(
-        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
-          ? requestedView
-          : 'directory'
+        requestedView === 'account_portal' && authSession.isAuthenticated
+          ? 'account_portal'
+          : requestedView === 'super_admin' && authSession.role === 'admin'
+            ? 'super_admin'
+            : requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession)
+              ? 'merchant_admin'
+              : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)
+                ? 'professional_dashboard'
+                : 'directory'
       );
     };
     window.addEventListener('popstate', restoreRouteFromLocation);
