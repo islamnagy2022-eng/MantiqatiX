@@ -2810,7 +2810,7 @@ Use the following hierarchy; these files are complementary, not competing copies
 ### CAT-TAX-02 — توافق سجلات دليل الأنشطة القديمة (2026-10-31)
 
 - **IMPLEMENTED ON FEATURE BRANCH / NOT YET MERGED OR DEPLOYED.**
-- جرى فحص قراءة فقط لجدول `public_directory_listings`: 454 سجلًا قائمًا موزعًا على 156 تركيبة مميزة من المجموعة/التصنيف/نوع الصفحة/التخصص. لم تُنفذ أي كتابة أو حذف أو ترحيل على قاعدة الإنتاج.
+- جرى فحص قراءة فقط لجدول `public_directory_listings`: 454 سجلًا قائمًا موزعًا على 156 تركيبة مميزة من المجموعة/التصنيف/نوع الصفحة. لم تُنفذ أي كتابة أو حذف أو ترحيل على قاعدة الإنتاج.
 - تمت إضافة تحويل توافق وقت القراءة لصفحات الدليل والتفاصيل وحزمة لوحة الإدارة، بحيث تتحول معرفات المجموعات والتصنيفات القديمة إلى المعرفات العشر الجديدة دون تغيير نوع الصفحة أو التخصص. أعادت مراجعة SQL للمعرفات القديمة صفر تصنيفات غير مغطاة بخريطة التحويل.
 - تم توحيد معرفات الطبيب وطبيب الأسنان والعيادات ومراكز الأسنان داخل نشاط `medical_practices`، مع الاحتفاظ بنوع السجل والتخصص في حقولهما.
 - تم دمج المخابز والحلويات في نشاط واحد، وإضافة «ضيافة وسياحة ومناسبات» لاستيعاب سجلات السياحة وقاعات المناسبات ضمن حد 5 أنشطة لمجموعة الأغذية والضيافة.
@@ -2824,7 +2824,7 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] إعادة inventory read-only بعد النشر لاستخراج أي معرفات جديدة غير موجودة في خريطة التوافق.
 - [ ] إعداد migration مستقلة مستقبلًا لتوحيد قيم قاعدة البيانات فقط بعد rehearsal قابل للاستعادة، ومراجعة RLS وrollback؛ لا تنفذها ضمن هذا التغيير.
 
-- **Exact-head CI result (code commit `14b30cd1336ee816ab9813d88472abaedbbbd0d2`): PASS.** Primary Catalog Frontend Validation run `41170556709` passed TypeScript, canonical taxonomy (10 groups / 50 activities / all 67 inventoried legacy category IDs), geographic search/GPS, OAuth/role contracts, public directory smoke, browser taxonomy navigation/specialty filtering, and isolated employee RBAC. The browser E2E now verifies the canonical medical activity and specialty labels and passes.
-- **Other exact-head workflows:** Deploy MantiqatiX Web validation `41170556671` passed (deploy job skipped for Draft PR); Module Professionalization `41170556672` passed; Backend-only Module Boundary `41170556663` passed; MantiGO Privacy `41170556677` passed; RC425 atomicity `41170556717` passed; Flexible Commission `41170556721` passed.
+- **Exact-head CI result (code commit `50685ec2e63a266bcf372412d0f351ef72f1c130`): PASS.** Primary Catalog Frontend Validation run `41170672834` passed TypeScript, canonical taxonomy (10 groups / 50 activities / all 67 inventoried legacy category IDs), legacy specialty compatibility, geographic search/GPS, OAuth/role contracts, public directory smoke, browser taxonomy navigation/specialty filtering, and isolated employee RBAC.
+- **Other exact-head workflows:** Deploy MantiqatiX Web validation `41170672812` passed (deploy job skipped for Draft PR); Flexible Commission `41170672777` passed; Module Professionalization `41170672863` passed; Backend-only Module Boundary `41170672946` passed; MantiGO Privacy `41170672881` passed; RC425 atomicity `41170672872` passed.
 - The feature branch is based on current `main` (zero commits behind); PR #588 is Draft and mergeable. No production deployment, Supabase migration, production data write, or Edge Function deployment occurred.
 - **Still blocking production release:** admin edit/save round-trip against the deployed Supabase Edge Function, role-scoped deployed-origin E2E for the directory admin, and explicit release approval.
