@@ -987,3 +987,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - **Backup posture:** no current Production backup was created from this session because no database password/connection string is available through the connected tools. A secure local Supabase CLI backup and restore-rehearsal runbook is added at `docs/operations/FREE_TIER_DATABASE_CONTINUITY.md`. Do not put dump files, credentials, or customer data in this public repository or GitHub Actions artifacts.
 - **Verification status:** workflow source is staged on the branch; a first successful scheduled run against the live database is still pending PR review/merge. Alert delivery via GitHub notifications has not yet been tested. Restore rehearsal and measured RPO/RTO remain open.
 - **Production impact:** NONE. No Production SQL, data, migration ledger, grants, policies, secrets, Auth settings, payments, or Edge Functions were changed. No paid resource was created. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Post-merge status for Supabase Free-tier monitoring
+
+- PR [#567](https://github.com/islamnagy2022-eng/MantiqatiX/pull/567) merged to `main` as `c8c65e7b4d8cf70e83753e9d194b25f18e5395cb`.
+- Exact PR-head checks passed: Deploy MantiqatiX Web validation [41156511347](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511347), RC425 MantiGo Paymob Atomicity [41156511393](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511393), MantiGO Open Ride Privacy [41156511313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511313), Backend-only Module Boundary [41156511407](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511407), and Module Professionalization [41156511364](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511364). The Pages deploy job was skipped on the PR event as intended; this PR did not change frontend assets.
+- The hourly monitor is now on `main` and the push trigger should start a production health run. The connected GitHub workflow-run listing does not expose push-triggered runs, so the first post-merge live database probe is **NOT VERIFIED** in this session; do not claim it passed until the Actions run is inspected.
+- No Production database mutation or paid resource was used. The local backup/restore runbook remains an owner-operated task; no backup or restore rehearsal has been completed.
+- Production Gate remains **BLOCKED / NOT CERTIFIED**.
