@@ -162,7 +162,13 @@ const activityModuleView = read('apps/catalog-frontend/src/modules/activities/Ac
 assert.ok(directory.includes("new URLSearchParams(window.location.search).get('activity')"), 'Each activity module must have a refreshable direct URL.');
 assert.ok(directory.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');"), 'Visitor discovery must expose activities directly and omit standalone profession categories.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an activity must open its dedicated module page.');
-assert.ok(directory.includes('setSelectedCategoryId(activityCategory.id)') && directory.includes('setSelectedSpecialty(specialty)'), 'Choosing a specialty must return to the directory with the activity/specialty filter.');
+assert.ok(directory.includes('businesses={activityBusinesses}') && directory.includes('listings={activityListings}'), 'Activity module must receive the current geo/search-filtered entity records.');
+assert.ok(directory.includes('activityBusinesses.filter((business) => business.isVerified).length'), 'Activity module verified counts must use the same visible records as its cards.');
+assert.ok(activityModuleView.includes("useState<Section>('specialties')"), 'Opening an activity must show its entities and specialties immediately.');
+assert.ok(activityModuleView.includes('setSelectedSpecialty(specialty)'), 'Specialty selection must filter within the activity module.');
+assert.ok(activityModuleView.includes('verifiedBusinesses, ...unverifiedBusinesses') && activityModuleView.includes('visibleListings.map'), 'Activity module must render verified and unverified directory entities.');
+assert.ok(directory.includes("Boolean(listing.phone || listing.secondary_phone)"), 'Activity module records must require a contact phone before being passed into public entity cards.');
+assert.ok(browserE2E.includes('activity-module-renders-geo-filtered-entities'), 'Browser E2E must verify entity cards, specialty filtering and phone requirements inside the module.');
 assert.ok(!directory.includes('functionalGroups') && !directory.includes('selectedGroupFilter') && !directory.includes('matchesCategoryKind'), 'Functional-group navigation/filtering must not appear in public directory UI logic.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
 assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
@@ -246,8 +252,7 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
   assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
-assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Homepage activity cards must show eight compact columns on mobile and larger screens.');
-assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Public activity cards must retain the requested eight-column layout.');
+assert.ok(directory.includes('grid-cols-2') && directory.includes('sm:grid-cols-4') && directory.includes('md:grid-cols-6') && directory.includes('xl:grid-cols-8'), 'Direct activity cards must use the requested responsive 2/4/6/8-column layout.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
 assert.ok(!directory.includes('functionalGroups'), 'Functional groups must not be displayed or filtered in the public directory.');
