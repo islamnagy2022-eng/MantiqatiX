@@ -9,6 +9,7 @@ const defaults = fs.readFileSync('apps/catalog-frontend/src/data/productionDefau
 const publicConfig = fs.readFileSync('apps/catalog-frontend/public/config.js', 'utf8');
 const webConfig = fs.readFileSync('web/config.js', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
+const directoryListingsView = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryListingsView.tsx', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
 const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
@@ -54,13 +55,17 @@ assert.ok(
   'Stock images and neutral placeholders must be rejected before preserving persisted AI-generated image metadata.'
 );
 assert.match(productionMapper, /isNeutralPlaceholderUrl/, 'neutral placeholder images must not be treated as owner uploads');
-assert.ok(productionMapper.includes('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10'), 'unverified pharmacies must use the exact owner-provided shared fallback image');
+assert.ok(defaultImages.includes('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10') && productionMapper.includes('UNVERIFIED_PHARMACY_IMAGE_URL'), 'unverified pharmacies must use the exact shared pharmacy fallback image from the common image registry');
 assert.match(productionMapper, /isPharmacy && !isVerified && !hasOwnerSelectedLogo/, 'pharmacy fallback must be limited to unverified pharmacies without an owner-selected logo');
 assert.match(productionMapper, /logoUrl: pharmacyFallbackLogo \\|\\|/, 'owner/admin-selected pharmacy logos must take precedence over the fallback');
-assert.ok(productionMapper.includes('https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI'), 'unverified doctors must use the exact owner-provided shared fallback image');
+assert.ok(defaultImages.includes('https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI') && productionMapper.includes('UNVERIFIED_DOCTOR_IMAGE_URL'), 'unverified doctors must use the exact shared doctor fallback image from the common image registry');
 assert.match(productionMapper, /isDoctor && !isVerified && !hasOwnerSelectedLogo/, 'doctor fallback must be limited to unverified doctors without an owner-selected logo');
 assert.match(productionMapper, /functionalGroupId === 'medical_health' && classificationType === 'profession'/, 'legacy individual medical professionals normalized under the medical-practices activity must receive the doctor fallback');
 assert.match(productionMapper, /logoUrl: doctorFallbackLogo \\|\\| pharmacyFallbackLogo/, 'custom doctor logos and all pharmacy fallback behavior must be preserved');
+assert.match(directoryListingsView, /listing_type \\|\\| ""\\)\\.toLowerCase\\(\\) === "doctor" && listing\\.claim_status !== "CLAIMED"/, 'unclaimed public doctor directory records must receive the default photo while claimed records do not');
+assert.match(directoryListingsView, /metadata\\?\\.profileImageUrl/, 'an owner-selected directory profile image must take precedence over the doctor default photo');
+assert.match(directoryListingsView, /listingProfileImage\\(detail\\)/, 'unclaimed doctor detail pages must display the default photo');
+assert.match(directoryListingsView, /listingProfileImage\\(listing\\)/, 'unclaimed doctor directory cards must display the default photo');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
