@@ -799,7 +799,7 @@ try {
       await activityGrid.waitFor({ state: 'visible' });
       for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
         await page.setViewportSize(viewport);
-        const columnCount = await activityGrid.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\\s+/).length);
+        const columnCount = await activityGrid.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
         assert.equal(columnCount, 8, 'activity tiles must remain in eight columns at ' + viewport.width + 'px');
         await assertNoHorizontalOverflow(page, viewport.width + 'px eight-column activity grid');
       }
