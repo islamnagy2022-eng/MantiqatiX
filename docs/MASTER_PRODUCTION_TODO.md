@@ -2745,3 +2745,14 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Module Professionalization [41164835103], Backend-only Module Boundary [41164835132], MantiGO Open Ride Privacy [41164835111], RC425 Paymob Atomicity [41164835212], and Deploy MantiqatiX Web validation [41164835104] passed on the PR head.
 - [x] PR #581 merged with tests only. No migration, Production database, payment, settlement, wallet, or Edge Function was changed. PR deploy job did not run a production deployment.
 - [ ] Live Production remains unremediated until RC441/RC449 are applied through an approved, rehearsed migration release. Do not treat disposable CI success as proof of live migration application.
+
+
+## 2026-10-31 — P0 expansion: weak platform-admin helper and digital-pages RLS
+
+- [x] Read-only inspection confirmed live `mnty_can_platform_admin()` delegates to `mnty_can('admin',NULL,NULL,NULL)`; live `mnty_active_membership(NULL,NULL,NULL)` considers all active memberships and `mnty_can('admin')` grants ADMIN permission to tenant OWNER.
+- [x] Found four additional live SECURITY DEFINER callers relying on that weak helper: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`.
+- [x] Confirmed `digital_pages_admin_manage` is a global `FOR ALL TO authenticated` RLS policy using the weak helper for both USING and WITH CHECK. The authenticated role has SELECT/INSERT/UPDATE/DELETE table grants on `digital_pages`; the policy has no tenant/page-owner predicate. This creates a cross-tenant digital-pages access/mutation path for tenant OWNER memberships while the live helper remains weak.
+- [x] Confirmed `mantigo_financial_config` and `mantigo_rate_limit_config` policies also use the helper, but authenticated currently has no direct table grants on those tables. The separate MantiGO financial-config SECURITY DEFINER RPC still relies on the weak helper.
+- [ ] **P0 / BLOCKED:** full live scope now includes eight global SECURITY DEFINER functions plus the global digital-pages RLS policy. RC441/RC449 source helper hardening is the intended forward-only remediation; neither migration is present in Production.
+- [ ] PR #582 test-only work adds a disposable digital_pages table/RLS policy and verifies tenant OWNER is denied all CRUD while explicit platform SUPER_ADMIN is allowed. Merge only after the dedicated PostgreSQL workflow passes.
+- Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`. No live data was read, and no Production mutation or RPC invocation was performed.
