@@ -23,7 +23,7 @@ const dateField = (value: string | null | undefined) => value ? value.slice(0, 1
 
 const emptyForm: FormState = {
   id: "", displayName: "", slug: "", listingType: "doctor", specialty: "",
-  functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_doctor", taxonomySpecialty: "", phone: "",
+  functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_medical_practices", taxonomySpecialty: "", phone: "",
   secondaryPhone: "", address: "", governorate: "المنوفية", district: "بركة السبع",
   village: "", sourceName: "إدخال إدارة المنصة", sourceUrl: "", listingStatus: "DRAFT",
   outreachStatus: "NEW", outreachNotes: "", lastContactedAt: "", subscriptionOfferAt: "", nextFollowUpAt: "",
@@ -62,7 +62,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const editListing = (listing: PublicDirectoryListing) => {
     setForm({
       id: listing.id, displayName: listing.display_name, slug: listing.slug, listingType: listing.listing_type,
-      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_doctor", taxonomySpecialty: listing.taxonomy_specialty || "",
+      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_medical_practices", taxonomySpecialty: listing.taxonomy_specialty || "",
       specialty: listing.specialty || "", phone: listing.phone || "", secondaryPhone: listing.secondary_phone || "",
       address: listing.address || "", governorate: listing.governorate || "المنوفية", district: listing.district || "بركة السبع",
       village: listing.village || "", sourceName: listing.source_name || "", sourceUrl: listing.source_url || "",
@@ -154,7 +154,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
             <label className="block text-xs font-bold text-slate-700">اسم الطبيب / النشاط *<input required minLength={2} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">الرابط المختصر (اختياري)<input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="يُنشأ تلقائيًا عند تركه فارغًا" dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block text-xs font-bold text-slate-700">نوع الصفحة<select value={form.listingType} onChange={(e) => setForm({ ...form, listingType: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="doctor">طبيب</option><option value="clinic">عيادة</option><option value="pharmacy">صيدلية</option><option value="medical_center">مركز طبي</option><option value="hospital">مستشفى</option><option value="laboratory">معمل تحاليل</option><option value="health_provider">مقدم خدمة صحية</option><option value="business">نشاط عام</option></select></label>
+              <label className="block text-xs font-bold text-slate-700">نوع السجل الطبي<select value={form.listingType} onChange={(e) => setForm({ ...form, listingType: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="doctor">ممارس طبي</option><option value="clinic">منشأة / عيادة</option><option value="pharmacy">صيدلية</option><option value="medical_center">مركز طبي</option><option value="hospital">مستشفى</option><option value="laboratory">معمل تحاليل</option><option value="health_provider">مقدم خدمة صحية</option><option value="business">نشاط عام</option></select></label>
               <label className="block text-xs font-bold text-slate-700">حالة الظهور<select value={form.listingStatus} onChange={(e) => setForm({ ...form, listingStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="DRAFT">مسودة مخفية</option><option value="PUBLISHED">منشورة للزوار</option><option value="HIDDEN">إخفاء الصفحة</option></select></label>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
