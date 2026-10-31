@@ -52,7 +52,8 @@ assert.ok(directory.includes('{locationWelcomeDialog}'), 'First-visit consent mu
 
 assert.ok(geo.includes('EGYPT_GEO_DATASET') && geo.includes("license: 'CC-BY-4.0'"), 'Dataset attribution and license must be preserved');
 assert.ok(geo.includes('2026-09-08'), 'Dataset reference date must be preserved');
-assert.ok(geo.includes('raw.githubusercontent.com/open-admin-data/egypt-administrative-divisions'), 'District locality source path must be versioned and attributable');
+assert.ok(geo.includes('raw.githubusercontent.com/open-admin-data/egypt-administrative-divisions/76b47b22872288c0d8b0c757975980e6986945e8'), 'District locality requests must pin the dated source commit');
+assert.ok(geo.includes("sourceCommit: '76b47b22872288c0d8b0c757975980e6986945e8'"), 'The exact dataset source commit must be recorded');
 assert.ok(geo.includes("credentials: 'omit'") && geo.includes("referrerPolicy: 'no-referrer'"), 'Third-party locality requests must omit credentials and referrer');
 assert.ok(geo.includes('district.governorateSlug') && geo.includes('district.slug'), 'Locality fetches must use public district identifiers only');
 assert.ok(geo.includes('AbortController') && geo.includes('8000'), 'Locality requests must have a bounded timeout');
