@@ -105,14 +105,26 @@ check("react_privileged_views_require_authorized_session", () => {
   includes(reactApp, "!canAccessProfessionalDashboard(authSession)");
   includes(reactApp, "currentView === 'public_storefront' &&");
   includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink");
-  includes(reactApp, "{visibleView === 'merchant_admin' && <MerchantDashboard />}");
-  includes(reactApp, "{visibleView === 'super_admin' && <AdminDashboard />}");
+  assert.match(reactApp, /const MerchantDashboard = lazy\\(\\(\\) => import\\('\.\\/components\\/merchant\\/MerchantDashboard'\\)/,
+    "merchant dashboard must stay a deferred module outside the public-directory first bundle");
+  assert.match(reactApp, /visibleView === 'merchant_admin' && \\(\\s*<Suspense fallback=\\{<ScreenFallback \\/>\\}>\\s*<MerchantDashboard \\/>/,
+    "merchant dashboard route must retain its authorization gate and lazy suspense boundary");
+  assert.match(reactApp, /visibleView === 'super_admin' && \\(\\s*<Suspense fallback=\\{<ScreenFallback \\/>\\}>\\s*<AdminDashboard \\/>/,
+    "super admin route must retain its role guard and lazy suspense boundary");
+  includes(reactApp, "currentView === 'account_portal' && !authSession.isAuthenticated",
+    "account portal route must fail closed for signed-out users");
   includes(appContext, "return businesses.find((b) => b.id === authSession.businessId);");
 });
 check("guest_catalog_navigation_is_not_an_owner_entrypoint", () => {
   const navbar = read("apps/catalog-frontend/src/components/Navbar.tsx");
-  includes(navbar, "authSession.role !== 'guest' && (");
-  includes(navbar, "Guests still access a public catalog through its direct shared link.");
+  includes(navbar, "setCurrentView('account_portal')",
+    "authenticated dashboard entry must route through the account portal");
+  includes(navbar, "setCurrentView('directory')",
+    "public navigation must retain a customer directory return path");
+  excludes(navbar, /setCurrentView\\('(merchant_admin|professional_dashboard|super_admin)'\\)/,
+    "public navbar must not expose direct dashboard route buttons");
+  includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink",
+    "guest storefront access must remain limited to explicit direct public catalog links");
 });
 check("edge_function_auth_and_tenant_selection", () => {
   includes(adminFn, 'auth.getUser(token)');
