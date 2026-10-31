@@ -7,6 +7,7 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-unified-dashboard-entry.mjs"
       - "scripts/validate-facebook-page-import.mjs"
       - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-activity-module-admin.mjs"
@@ -53,6 +54,7 @@ on:
       - ".release-transfer/parts/**"
       - "apps/catalog-frontend/**"
       - "scripts/validate-catalog-google-auth-contract.mjs"
+      - "scripts/validate-unified-dashboard-entry.mjs"
       - "scripts/validate-facebook-page-import.mjs"
       - "scripts/validate-business-social-links.mjs"
       - "scripts/validate-catalog-geographic-search.mjs"
@@ -126,6 +128,8 @@ jobs:
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate Google OAuth session and role contract
         run: node scripts/validate-catalog-google-auth-contract.mjs
+      - name: Validate unified dashboard account-entry boundary
+        run: node scripts/validate-unified-dashboard-entry.mjs
       - name: Validate Facebook page import ownership and token handling
         run: node scripts/validate-facebook-page-import.mjs
       - name: Validate activity social links and click-to-call

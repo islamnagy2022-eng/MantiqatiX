@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ActivityCategory,
   AdminSettings,
@@ -29,7 +29,11 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'login' | 'directory';
+
+// Do not switch membership contexts until the live catalog-admin Edge Function
+// enforces the exact membershipId passed by the account portal (currently v20).
+const ACCOUNT_MEMBERSHIP_SWITCH_ENABLED = false;
 
 interface AppContextType {
   currentView: ViewMode;
@@ -47,6 +51,8 @@ interface AppContextType {
   selectedCategoryFilter: string;
   setSelectedCategoryFilter: (id: string) => void;
   authSession: AuthSession;
+  switchAccountMembership: (membershipId: string, businessId: string) => Promise<boolean>;
+  switchToPlatformAdminMode: () => boolean;
   loginAsSubscriber: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAsAdmin: (password?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
@@ -111,6 +117,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subscribersLoading, setSubscribersLoading] = useState(false);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
   const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest', isAuthenticated: false });
+  const authSessionRef = useRef(authSession);
+  useLayoutEffect(() => { authSessionRef.current = authSession; }, [authSession]);
   const [authLoading, setAuthLoading] = useState(true);
   const [authBootstrapError, setAuthBootstrapError] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -126,7 +134,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
@@ -157,15 +165,152 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (nextUrl !== currentUrl) window.history.pushState({ mantiqatixView: view }, '', nextUrl);
   };
 
+  const loadPublicCatalogForRoute = (businessId: string) => {
+    // Public directory data is intentionally separate from authenticated workspace data.
+    // Fetch only the selected public business on demand so signed-out visitors can open
+    // a shared catalogue without duplicating the full public-directory bootstrap.
+    if (!businessId || !/^[0-9a-f-]{36}$/i.test(businessId)) return;
+    if (businesses.some((business) => business.id === businessId)) return;
+    void fetchPublicCatalog(businessId).then((catalog) => {
+      if (!catalog || routeBusinessIdRef.current !== businessId) return;
+      setBusinesses((previous) => [
+        catalog.business,
+        ...previous.filter((business) => business.id !== catalog.business.id),
+      ]);
+      setProducts((previous) => [
+        ...previous.filter((product) => product.businessId !== catalog.business.id),
+        ...catalog.products,
+      ]);
+    }).catch((error) => {
+      console.warn('[MantiqaTix public catalogue]', error);
+    });
+  };
+
   const setCurrentView = (view: ViewMode) => {
     setCurrentViewState(view);
     updateBrowserRoute(view);
   };
 
+  // Direct shared catalogue links and in-app selection use the same single-item loader.
+  // The full public directory remains a separate, single request owned by AppContext.
+  useEffect(() => {
+    if (currentView !== 'public_storefront') return;
+    loadPublicCatalogForRoute(routeBusinessIdRef.current || selectedBusinessId);
+  }, [currentView, selectedBusinessId, businesses]);
+
   const commitSelectedBusinessId = (id: string) => {
     routeBusinessIdRef.current = id;
     setSelectedBusinessIdState(id);
   };
+
+  // Switch only to an exact active membership returned by authenticated bootstrap.
+  // Reload the catalog with that membership's branch scope before exposing its workspace.
+  // This prevents a tenant-wide owner dataset from leaking into a weaker employee view.
+  const switchAccountMembership = async (membershipId: string, businessId: string): Promise<boolean> => {
+    if (!ACCOUNT_MEMBERSHIP_SWITCH_ENABLED) return false;
+    const initialSession = authSessionRef.current;
+    const userId = initialSession.userId;
+    if (!initialSession.isAuthenticated || !userId || !membershipId || !businessId || authUserIdRef.current !== userId) return false;
+    const mode = initialSession.availableMemberships?.find((candidate) =>
+      candidate.membershipId === membershipId && candidate.businessId === businessId
+    );
+    if (!mode) return false;
+    const existingBusiness = businesses.find((candidate) =>
+      candidate.id === mode.businessId && String(candidate.tenantId || '') === mode.tenantId
+    );
+    if (!existingBusiness) return false;
+
+    const catalog: any = await callCatalogAdmin({
+      action: 'CATALOG_READ',
+      tenantId: mode.tenantId,
+      businessId: mode.businessId,
+      membershipId: mode.membershipId,
+      ...(mode.branchId ? { branchId: mode.branchId } : {}),
+    });
+    const latestSession = authSessionRef.current;
+    if (authUserIdRef.current !== userId || latestSession.userId !== userId || !latestSession.isAuthenticated) return false;
+    if (!catalog?.business) throw new Error('تعذر تحميل بيانات النشاط بالنطاق المحدد؛ لم يتم تغيير وضع الحساب.');
+
+    const authorizedMode = latestSession.availableMemberships?.find((candidate) =>
+      candidate.membershipId === membershipId &&
+      candidate.businessId === mode.businessId &&
+      candidate.tenantId === mode.tenantId &&
+      String(candidate.role).toUpperCase() === String(mode.role).toUpperCase() &&
+      String(candidate.branchId || '') === String(mode.branchId || '')
+    );
+    if (!authorizedMode) return false;
+
+    const mappedBusiness = mapBusiness({
+      ...existingBusiness,
+      ...catalog.business,
+      id: mode.businessId,
+      tenantId: mode.tenantId,
+      organizationId: existingBusiness.organizationId || catalog.business?.organizationId,
+      branchId: catalog.selectedBranchId || mode.branchId || '',
+      branches: Array.isArray(catalog.branches) ? catalog.branches : [],
+    }, catalog.provider);
+    const mappedProducts = mapProducts(
+      mode.businessId,
+      mode.tenantId,
+      catalog.selectedBranchId || mode.branchId || '',
+      catalog.items || [],
+      catalog.prices || [],
+    );
+
+    const nextSession: AuthSession = {
+      ...latestSession,
+      role: 'subscriber',
+      businessId: authorizedMode.businessId,
+      subscriberId: authorizedMode.membershipId,
+      membershipRole: authorizedMode.role,
+      membershipBranchId: authorizedMode.branchId,
+      membershipPermissions: authorizedMode.permissions,
+      activeMembershipId: authorizedMode.membershipId,
+    };
+    authSessionRef.current = nextSession;
+    setAuthSession(nextSession);
+
+    setBusinesses((previous) => {
+      if (authUserIdRef.current !== userId) return previous;
+      return previous.map((business) =>
+        business.id === mappedBusiness.id ? mappedBusiness : business
+      );
+    });
+    setProducts((previous) => {
+      if (authUserIdRef.current !== userId) return previous;
+      return [
+        ...previous.filter((product) => product.businessId !== mode.businessId),
+        ...mappedProducts,
+      ];
+    });
+    if (authUserIdRef.current !== userId) return false;
+    commitSelectedBusinessId(mode.businessId);
+    setCartItems([]);
+    setIsCartOpen(false);
+    return true;
+  };
+
+  const switchToPlatformAdminMode = (): boolean => {
+    const previous = authSessionRef.current;
+    const userId = previous.userId;
+    if (!previous.isAuthenticated || !previous.isPlatformAdmin || !userId || authUserIdRef.current !== userId) return false;
+    const nextSession: AuthSession = {
+      ...previous,
+      role: 'admin',
+      businessId: undefined,
+      subscriberId: undefined,
+      membershipRole: undefined,
+      membershipBranchId: undefined,
+      membershipPermissions: undefined,
+      activeMembershipId: undefined,
+    };
+    authSessionRef.current = nextSession;
+    setAuthSession(nextSession);
+    setCartItems([]);
+    setIsCartOpen(false);
+    return true;
+  };
+
   // Prevent overlapping auth events and duplicate INITIAL_SESSION/getSession hydration.
   const authLoadSequence = useRef(0);
   const authUserIdRef = useRef<string | null | undefined>(undefined);
@@ -205,7 +350,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
-    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
+    if (authSession.role === 'subscriber' && (currentView === 'account_portal' || currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
       // Never fall back to another public business if the subscriber's authorized
       // business is missing from the current production bootstrap.
       return businesses.find((b) => b.id === authSession.businessId);
@@ -284,7 +429,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const safeRequestedView: ViewMode = requestedView === 'directory'
       ? 'directory'
-      : requestedView === 'super_admin' && boot.authSession.role === 'admin'
+      : requestedView === 'account_portal' && boot.authSession.isAuthenticated
+        ? 'account_portal'
+        : requestedView === 'super_admin' && boot.authSession.role === 'admin'
         ? 'super_admin'
         : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
           ? 'merchant_admin'
@@ -435,9 +582,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       routeBusinessIdRef.current = requestedManagedId;
       setSelectedBusinessIdState(requestedManagedId);
       setCurrentViewState(
-        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
-          ? requestedView
-          : 'directory'
+        requestedView === 'account_portal' && authSession.isAuthenticated
+          ? 'account_portal'
+          : requestedView === 'super_admin' && authSession.role === 'admin'
+            ? 'super_admin'
+            : requestedView === 'merchant_admin' && canAccessMerchantDashboard(authSession)
+              ? 'merchant_admin'
+              : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(authSession)
+                ? 'professional_dashboard'
+                : 'directory'
       );
     };
     window.addEventListener('popstate', restoreRouteFromLocation);
@@ -1019,7 +1172,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return <AppContext.Provider value={{
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
-    authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
+    authSession, switchAccountMembership, switchToPlatformAdminMode, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,

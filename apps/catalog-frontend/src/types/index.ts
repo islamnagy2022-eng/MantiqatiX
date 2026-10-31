@@ -224,6 +224,16 @@ export interface CustomerOrderData {
 
 export type AuthRole = 'admin' | 'subscriber' | 'guest';
 
+export interface AccountMembershipContext {
+  membershipId: string;
+  tenantId: string;
+  businessId: string;
+  businessName: string;
+  branchId?: string;
+  role: string;
+  permissions?: Record<string, unknown>;
+}
+
 export interface AuthSession {
   role: AuthRole;
   /** True when a valid Supabase session exists, even if it has no business membership. */
@@ -240,6 +250,11 @@ export interface AuthSession {
   membershipBranchId?: string;
   /** Permission template from the exact selected membership; never grants access by itself unless explicitly checked. */
   membershipPermissions?: Record<string, unknown>;
+  /** Platform authority stays separate when the user switches to a real business membership context. */
+  isPlatformAdmin?: boolean;
+  /** Only active membership rows returned by the authenticated bootstrap, mapped to businesses in the same tenant. */
+  availableMemberships?: AccountMembershipContext[];
+  activeMembershipId?: string;
   subscriberDirectoryError?: string;
   ignoredOrphanMemberships?: number;
 }
