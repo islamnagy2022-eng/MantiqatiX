@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ActivityCategory,
   AdminSettings,
@@ -114,7 +114,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
   const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest', isAuthenticated: false });
   const authSessionRef = useRef(authSession);
-  useEffect(() => { authSessionRef.current = authSession; }, [authSession]);
+  useLayoutEffect(() => { authSessionRef.current = authSession; }, [authSession]);
   const [authLoading, setAuthLoading] = useState(true);
   const [authBootstrapError, setAuthBootstrapError] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
