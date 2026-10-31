@@ -24,7 +24,8 @@ for (const label of ['لوحة تحكم نشاطي', 'لوحة صاحب النش
 assert.match(portal, /const isAdmin = authSession\.role === 'admin'/, 'platform admin mode must be session-derived');
 assert.match(portal, /!isAdmin && canAccessMerchantDashboard\(authSession\)/, 'merchant workspace must not be inferred from platform admin mode');
 assert.match(portal, /!isAdmin && canAccessProfessionalDashboard\(authSession\)/, 'employee/professional workspace must use existing session permissions');
-assert.match(portal, /isAdmin\s*\?\s*<AdminDashboard\s*\/>/, 'platform admin workspace must remain a distinct admin component');
+assert.match(portal, /const AdminDashboard = lazy\(\(\) => import\('\.\.\/\.\.\/components\/admin\/AdminDashboard'/, 'admin dashboard must load only when the admin mode is opened');
+assert.match(portal, /isAdmin\s*\?\s*<Suspense fallback=\{<DashboardFallback\/>\}><AdminDashboard\/>/, 'platform admin workspace must remain a distinct lazy dashboard component');
 assert.match(portal, /section==='manage_business' && isAdmin && currentBusiness/, 'platform admins may open the selected business tools under platform authority');
 assert.match(portal, /صلاحية المنصة/, 'platform-admin selected business view must disclose that it does not impersonate the owner');
 assert.match(portal, /hasBusinessModulePermission\(authSession/, 'displayed business permissions must use the centralized permission helper');
