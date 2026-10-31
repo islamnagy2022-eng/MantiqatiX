@@ -1302,3 +1302,14 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Runtime concurrency, multi-tab, and lost-response retry behavior remain NOT VERIFIED. The server check-then-insert is not an atomic DB idempotency guarantee. Draft PR #477 is stale and not safe to merge as-is.
 - Current-main Health Monitor #41162036080 passed the HTTP 200 read-only DB probe. Backend boundary #41162036117, MantiGO privacy #41162036099, Module Professionalization #41162036130, and Pages #41162036127 passed. Deployed-origin browser E2E passed for the tested scope.
 - Full Production Gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-31 — live MantiGO settlement authorization drift recheck (03:25 UTC)
+
+- Read-only live Supabase query confirmed `public.settle_mantigo_captain_backend(uuid,text,text)` is SECURITY DEFINER, has `search_path=public`, and is executable by authenticated (anon cannot execute).
+- The live function binds `p_admin_user_id` to `auth.uid()`, but its subsequent role predicate accepts any active membership with ADMIN, SUPER_ADMIN, OWNER, BUSINESS_OWNER, ACCOUNTANT, FINANCE_MANAGER or FINANCE. It does not require tenant `MNTY-PLATFORM`, explicit PLATFORM scope/full_control, or `mnty_can_platform_admin()`, despite mutating platform-wide MantiGO settlement/journal state.
+- The live migration ledger is 308 records through `20261029083845`; RC441 `20261010030000` and RC449 `20261010170000` are absent.
+- Source fix already exists in RC441/RC449: explicit active platform SUPER_ADMIN with PLATFORM scope and full_control, empty search_path, and guard checks in global dashboard/report/settlement/expiration RPCs. The RC449 isolated integration test covers tenant-role denial, platform-admin success, settlement persistence and replay safety.
+- Classification: **P0 / BLOCKING authorization drift**. This is a confirmed code/privilege condition, not evidence that it has been exploited or that an unauthorized settlement occurred.
+- No Production DDL, grant, Auth/RLS, Edge Function, business data, payment, wallet, settlement or journal mutation was performed. Do not test settlement against live rides.
+- Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`. Remediation remains blocked on an approved, cost-reviewed restorable isolated environment and credential-scrubbed current-Production schema capture, followed by chronological replay, rollback rehearsal and controlled release.
