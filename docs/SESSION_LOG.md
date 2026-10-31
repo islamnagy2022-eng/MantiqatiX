@@ -1386,3 +1386,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Security Advisor reports 67 authenticated-executable SECURITY DEFINER functions. This is an inventory requiring risk-based review, not a finding that all 67 are exploitable. Prioritize global admin, payment/ledger/wallet, identity, and tenant ownership paths.
 - Auth leaked-password protection is disabled; record as an Auth hardening item requiring rollout review.
 - No DDL, grant, policy, Auth setting, business row, RPC mutation, payment, settlement, or production deployment was performed. The earlier P0 platform-admin helper/RLS finding remains unresolved; Production stays BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-31 — Security Advisor refresh and PR reconciliation checkpoint
+
+- Re-read live Supabase migration ledger: 308 rows; latest `20261029083845`.
+- Re-read Security Advisor at 04:13:52 UTC: 8 RLS-enabled/no-policy INFO; 3 anon-executable SECURITY DEFINER; 67 authenticated-executable SECURITY DEFINER; leaked-password protection disabled. These are findings to classify, not permission to mass-revoke.
+- Checked PR #508/#535/#551/#540 workflow runs. Listed runs completed successfully, but #508/#535/#551 could not merge because GitHub reports merge conflicts against current main. Branches are 136/80/65 commits behind respectively; #540 is a draft 77 commits behind.
+- Next: recreate the small documentation/CI deltas on a fresh main-based branch or safely rebase with conflict review, then rerun exact-head CI. Keep #540 draft pending current-schema rehearsal and explicit rollout gate.
+- No Production DDL/DML, grants, RLS/Auth changes, Edge deployments, payment or finance mutations.
+- Production Gate remains **BLOCKED / NOT CERTIFIED**.
