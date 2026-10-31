@@ -845,8 +845,8 @@ try {
       await assertNoHorizontalOverflow(page, '768px selected activity specialty');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'عرض كل أنشطة المجموعة', exact: true }).click();
+      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible' });
       results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
     } finally { await context.close(); }
   }
@@ -872,8 +872,8 @@ try {
       await assertNoHorizontalOverflow(page, '768px selected activity specialty');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'عرض كل أنشطة المجموعة', exact: true }).click();
+      await page.locator('section[aria-label="المجموعات والأنشطة"]').waitFor({ state: 'visible' });
       results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
     } finally { await context.close(); }
   }
