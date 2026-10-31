@@ -2797,3 +2797,19 @@ Use the following hierarchy; these files are complementary, not competing copies
 
 - استُكمل قيد الإنشاء: لوحة الإدارة تعرض النشاط الرئيسي والتخصص فقط؛ لا تعرض اختيار «مهنة» كتصنيف مستقل. واجهة إضافة التصنيفات ترفض إنشاء profession منفصل وتمنع تجاوز 5 عناصر بالمجموعة. حدّثت دالة `catalog-platform-admin` بقائمة السماح ذات المجموعات العشر وترفض الكتابات الجديدة بنوع `profession`؛ السجلات التاريخية لا تُعدّل تلقائياً.
 - **PASS — exact tested head `3a5dc0f3eb4dd938f727aeb5f1b5a2353f7021d5`:** Primary Catalog Frontend Validation run [41168726262](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726262) passed, including the canonical taxonomy contract (`10 groups`, `50 activities`, `5 per group`), build/typecheck, OAuth smoke, public catalog/Qadam smoke, source syntax checks, and production gate contract. Flexible commission TypeScript/build [41168726281](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726281), Backend-only Module Boundary [41168726278](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726278), Module Professionalization [41168726238](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726238), MantiGO Privacy [41168726314](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726314), and RC425 atomicity [41168726237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726237) passed. PR #584 remains Draft; deployment job was skipped on PR, so no production publication occurred.
+
+
+### CAT-TAX-02 — توافق سجلات دليل الأنشطة القديمة (2026-10-31)
+
+- **IMPLEMENTED ON FEATURE BRANCH / NOT YET MERGED OR DEPLOYED.**
+- جرى فحص قراءة فقط لجدول `public_directory_listings`: 156 سجلًا قائمًا موزعًا على معرفات تصنيف قديمة. لم تُنفذ أي كتابة أو حذف أو ترحيل على قاعدة الإنتاج.
+- تمت إضافة تحويل توافق وقت القراءة لصفحات الدليل والتفاصيل وحزمة لوحة الإدارة، بحيث تتحول معرفات المجموعات والتصنيفات القديمة إلى المعرفات العشر الجديدة دون تغيير نوع الصفحة أو التخصص.
+- تم توحيد معرفات الطبيب وطبيب الأسنان والعيادات ومراكز الأسنان داخل نشاط `medical_practices`، مع الاحتفاظ بنوع السجل والتخصص في حقولهما.
+- تم دمج المخابز والحلويات في نشاط واحد، وإضافة «ضيافة وسياحة ومناسبات» لاستيعاب سجلات السياحة وقاعات المناسبات ضمن حد 5 أنشطة لمجموعة الأغذية والضيافة.
+- تمت إضافة توافق أكواد أنشطة الأعمال القديمة مثل `interior_design`, `sanitary_ware`, `homewares`, `plastic_factories`, و`marketing_agencies`.
+- تم تضييق تحقق الكتابات الجديدة في Edge Function الخاص بالدليل إلى المجموعات العشر. لم يتم نشر الدالة على Supabase؛ يلزم نشرها ضمن إصدار معتمد بعد نجاح الاختبارات.
+- [ ] CI على آخر commit والتحقق من عدم وجود كسر TypeScript أو build.
+- [ ] اختبار جميع معرفات التصنيف القديمة المستخرجة من الإنتاج واحدًا واحدًا، والتحقق من ظهور كل سجل في المجموعة والتصنيف الصحيحين.
+- [ ] اختبار فتح السجل القديم من الدليل، وتعديله من لوحة الإدارة، ثم حفظه وإعادة قراءته دون فقد نوع الصفحة أو التخصص أو بيانات الملكية.
+- [ ] إعادة inventory read-only بعد النشر لاستخراج أي معرفات جديدة غير موجودة في خريطة التوافق.
+- [ ] إعداد migration مستقلة مستقبلًا لتوحيد قيم قاعدة البيانات فقط بعد rehearsal قابل للاستعادة، ومراجعة RLS وrollback؛ لا تنفذها ضمن هذا التغيير.
