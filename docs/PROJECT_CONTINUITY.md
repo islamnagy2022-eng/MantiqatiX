@@ -1062,3 +1062,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - No production schema/data/grant/RLS/Auth/Edge Function/payment/advertising/financial changes were made.
 - **Current status:** feature source and TODO are in progress; TypeScript/build, taxonomy + geo validators, browser E2E, and deployed-origin behavior are NOT VERIFIED on the new exact head. Production gate remains BLOCKED / NOT CERTIFIED.
 - Next: run exact-head CI, fix failures without weakening checks, then implement the activity capability registry and secure Marketing & Advertising / domain operations in dependency order.
+
+
+## 2026-10-31 — Exact-head CI checkpoint for Activity Modules
+
+- Replacement PR #608 / branch `feat/activity-modules-current-main-20261031`, head `182bd1a48d4b9e43e8842eb356f12f1449e8d963`.
+- TypeScript, catalog build, canonical taxonomy validator, geographic/GPS consent contract, and employee RBAC PostgreSQL job: **PASS** on the current branch head.
+- Browser E2E run `41192816382`: still **IN PROGRESS** at the latest read. Two earlier runs exposed outdated selectors tied to removed functional-group navigation and non-exact specialty tab matching; both selectors were corrected and a new run started. No final browser pass is claimed yet.
+- PR is Draft and not merged; production deployment is not claimed. Full campaign create/publish, budgets, external channel integrations, leads, metrics, and specialized operations remain TODO pending reviewed production server contracts.
