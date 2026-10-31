@@ -1562,3 +1562,11 @@ A separate source review found a second platform-root authorization model: the n
 - Pages validation [41196288663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288663) passed; deploy job was skipped on PR events. No production deployment is claimed.
 - Other relevant workflows passed: Module Professionalization #41196288659, Backend-only Boundary #41196288717, Privacy #41196288694, RC425 #41196288797, Flexible Commission #41196288767.
 - PR #608 remains Draft. Production marketing backend dependencies RC453/RC452/RC102 remain unresolved; campaign creation/publishing/budgets and SMM must remain disabled. No production DB, Edge, ads, payment, wallet or finance mutation occurred.
+
+## 2026-10-31 — Continue activity module specialization
+
+- Added 150 explicit activity-specific operational capability definitions (three per canonical activity across all 50 seeded activities).
+- Resolver uses the canonical activity ID to select the exact capability set and falls back safely for custom activities. All capabilities remain planned until backed by verified APIs/RPCs and scoped authorization.
+- Activity module cards now expose state-aware accessible labels; pharmacy E2E verifies its three specific operational cards and their planned state.
+- Canonical taxonomy validator now fails if any of the 50 activities lacks exactly three specific capability definitions.
+- Exact-head CI for this increment is pending. No production deployment, database/schema/grant/RLS/Auth changes, Edge function deployment, campaign publishing, advertising spend, or financial mutation.
