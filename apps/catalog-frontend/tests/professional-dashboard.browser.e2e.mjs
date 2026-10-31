@@ -804,6 +804,15 @@ try {
       await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.waitFor({ state: 'visible' });
+      const activityGrid = page.locator('section[aria-label="المجموعات والأنشطة"] div.grid.grid-cols-8.gap-1').first();
+      await activityGrid.waitFor({ state: 'visible' });
+      for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+        await page.setViewportSize(viewport);
+        const columnCount = await activityGrid.evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\\s+/).length);
+        assert.equal(columnCount, 8, 'activity tiles must remain in eight columns at ' + viewport.width + 'px');
+        await assertNoHorizontalOverflow(page, viewport.width + 'px eight-column activity grid');
+      }
+      await page.setViewportSize({ width: 390, height: 844 });
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
