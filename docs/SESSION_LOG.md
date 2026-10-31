@@ -1127,3 +1127,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - [x] PostgreSQL documents that `pg_catalog` is implicitly searched even when omitted from an explicit search_path, so built-ins used by the existing trigger functions continue to resolve while user-controlled `public/auth` schemas are removed from the path ([PostgreSQL schemas documentation](https://www.postgresql.org/docs/18/ddl-schemas.html)).
 - [ ] This is a PostgreSQL fixture/DDL rehearsal, not a production migration. The current runtime does not have the Supabase CLI; the pinned stable CLI bootstrap attempt failed because the runtime could not resolve the external host. Per procedure, no migration filename was hand-created and no production DDL/grant was applied. Create the actual migration with `supabase migration new <name>` in an environment with the pinned CLI, apply/test it only in an approved isolated database, then schedule any Production rollout separately.
 - **Production effect: NONE.** Current live function definitions, grants, trigger definitions, application data, Auth settings and Edge Functions remain unchanged. Global Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Compact current Production schema checkpoint
+
+- [x] Added `docs/audits/PRODUCTION_FINANCE_SCHEMA_CHECKPOINT_20261031.md` from a fresh read-only catalog snapshot at `2026-10-31T00:20:42Z`. It records selected table fields, RLS/FORCE RLS, relevant function ACL/search_path, missing RC435/439 and RC449A/450 contracts, trigger attachments, and aggregate counts. No row-level customer/payment/financial content was read.
+- [x] Reconfirmed 308 migration rows through `20261029083845`; all nine inspected financial/scope relations have RLS and FORCE RLS enabled.
+- [x] Aggregate counts at capture: businesses 10, branches 10, memberships 33, subscription tiers 4; subscription intents and all three journal relations 0.
+- [x] Reconfirmed the two trigger-only SECURITY DEFINER functions still have default EXECUTE ACL and the owner-assignment function still has `search_path=public, auth` in Production. PR #561 is test-only evidence; no production ACL or function alteration occurred.
+- [ ] The historical Oct 17 schema baseline is not current-schema restore evidence. Full current Production schema-faithful disposable rehearsal, backup/restore and RPO/RTO remain open.
+- **No Production mutation. Overall release remains BLOCKED / NOT CERTIFIED.**
