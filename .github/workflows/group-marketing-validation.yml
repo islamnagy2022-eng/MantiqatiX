@@ -1,0 +1,89 @@
+name: Group-first Catalog and Activity Marketing Validation
+
+on:
+  push:
+    branches:
+      - verify/group-marketing-validator-fix-20261101
+    paths:
+      - ".github/workflows/group-marketing-validation.yml"
+      - "apps/catalog-frontend/**"
+      - "scripts/validate-canonical-activity-taxonomy.mjs"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/group-marketing-validation.yml"
+      - "apps/catalog-frontend/**"
+      - "scripts/validate-canonical-activity-taxonomy.mjs"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: group-marketing-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-browser-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact validation commit
+        uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install catalog dependencies
+        working-directory: apps/catalog-frontend
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript check
+        working-directory: apps/catalog-frontend
+        run: npm run lint
+      - name: Build catalog
+        working-directory: apps/catalog-frontend
+        run: |
+          set -euo pipefail
+          npm run build
+          test -s dist/index.html
+          test -s dist/config.js
+          test -d dist/assets
+          grep -Fq '/MantiqatiX/assets/' dist/index.html
+      - name: Validate canonical group and activity taxonomy
+        run: node scripts/validate-canonical-activity-taxonomy.mjs
+      - name: Install pinned browser test runtime
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/playwright-runner
+          npm install --prefix /tmp/playwright-runner --no-audit --no-fund playwright@1.64.1
+          /tmp/playwright-runner/node_modules/.bin/playwright install --with-deps chromium
+      - name: Start local production preview
+        working-directory: apps/catalog-frontend
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/mantiqatix-preview.log 2>&1 &
+          echo $! > /tmp/mantiqatix-preview.pid
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:4173/MantiqatiX/ >/dev/null; then
+              echo "LOCAL_CATALOG_PREVIEW=READY"
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/mantiqatix-preview.log
+          exit 1
+      - name: Run group navigation, parent URL, activity marketing, and responsive browser tests
+        working-directory: apps/catalog-frontend
+        env:
+          PLAYWRIGHT_MODULE: /tmp/playwright-runner/node_modules/playwright/index.mjs
+          MANTIQUATIX_E2E_BASE_URL: http://127.0.0.1:4173/MantiqatiX/
+        run: node tests/professional-dashboard.browser.e2e.mjs
+      - name: Upload local preview and browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: group-marketing-browser-failure-${{ github.run_id }}
+          path: |
+            /tmp/mantiqatix-preview.log
+            apps/catalog-frontend/test-results/
+            apps/catalog-frontend/playwright-report/
+          if-no-files-found: ignore
