@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
@@ -144,6 +144,7 @@ export const DirectoryView: React.FC = () => {
   const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
   const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
   const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
+  const firstVisitGeoPromptStarted = useRef(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -159,7 +160,6 @@ export const DirectoryView: React.FC = () => {
   };
 
   const requestUserLocation = () => {
-    completeGeoSetup('auto');
     if (!('geolocation' in navigator)) {
       completeGeoSetup('manual');
       setLocationMessage('تحديد الموقع غير مدعوم على هذا المتصفح؛ يمكنك متابعة البحث بالموقع اليدوي.');
@@ -254,8 +254,16 @@ export const DirectoryView: React.FC = () => {
     }
   };
 
-  // Restore location silently only when the visitor previously granted browser permission.
-  // A fresh browser prompt is never triggered on page load.
+  // On a first visit, request the browser's native permission immediately.
+  // If the visitor declines, completeGeoSetup('manual') is called by the error callback
+  // and this automatic prompt is not repeated on later visits.
+  useEffect(() => {
+    if (initialGeoPreference?.completed || firstVisitGeoPromptStarted.current) return;
+    firstVisitGeoPromptStarted.current = true;
+    requestUserLocation();
+  }, []);
+
+  // Returning visitors get a silent refresh only after a previous explicit grant.
   useEffect(() => {
     if (!initialGeoPreference?.completed || initialGeoPreference.mode !== 'auto') return;
     if (!navigator.permissions?.query) return;
@@ -605,7 +613,7 @@ export const DirectoryView: React.FC = () => {
                 عرض مصر بالكامل
               </button>
             </div>
-            <p className="mt-4 text-[11px] leading-5 text-slate-500">سيظهر طلب المتصفح الأصلي بعد اختيار السماح. يمكنك الرفض ومتابعة الموقع يدويًا في أي وقت.</p>
+            <p className="mt-4 text-[11px] leading-5 text-slate-500">سيطلب المتصفح إذن الموقع تلقائيًا عند فتح الدليل لأول مرة. يمكنك الرفض ومتابعة الموقع يدويًا في أي وقت.</p>
           </div>
         </div>
 
