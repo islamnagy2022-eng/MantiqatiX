@@ -36,7 +36,7 @@ import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { ActivityModuleView } from '../modules/activities/ActivityModuleView';
 import { fetchPublicDirectoryListings, type PublicDirectoryListing } from '../lib/directoryListings';
-import { resolveCanonicalSpecialty } from '../data/productionDefaults';
+import { DEFAULT_FUNCTIONAL_GROUPS, resolveCanonicalSpecialty } from '../data/productionDefaults';
 import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
 
 const whatsappDigits = (value: unknown): string => {
@@ -290,6 +290,7 @@ export const DirectoryView: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
   const [activityModuleId, setActivityModuleId] = useState<string>(() => new URLSearchParams(window.location.search).get('activity') || '');
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const openActivityModule = (activityId: string) => {
@@ -403,8 +404,9 @@ export const DirectoryView: React.FC = () => {
       businessId: business.id,
     }));
 
-  // Visitor discovery uses the direct activity -> specialty model. Functional groups remain internal administration metadata.
-  const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');
+  // Restore the public folder hierarchy: functional group -> activity -> specialty.
+  const availableGroups = DEFAULT_FUNCTIONAL_GROUPS.filter((group) => categories.some((category) => category.functionalGroupId === group.id && (category.classificationType || 'activity') === 'activity'));
+  const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity' && (selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter));
   const selectedActivityCategory = availableCategories.find((category) => category.id === selectedCategoryId);
   const categoryForBusiness = (business: Business) =>
     categories.find((category) => business.categoryId === category.id) ||
@@ -757,45 +759,52 @@ export const DirectoryView: React.FC = () => {
           )}
         </section>
 
-        <section aria-label="الأنشطة" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <section aria-label="المجموعات والأنشطة" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div><h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />الأنشطة</h2><p className="mt-1 text-xs text-slate-500">اختر النشاط مباشرة لفتح وحدته وصفحته المتخصصة.</p></div>
-            <span className="text-xs font-bold text-slate-500">{availableCategories.length.toLocaleString('ar-EG')} نشاط</span>
-          </div>
-          {selectedActivityCategory && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <p className="text-xs font-bold text-emerald-950">تصفية النتائج حسب: {selectedActivityCategory.name}{selectedSpecialty !== 'all' ? ` — ${selectedSpecialty}` : ''}</p>
-              <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل الأنشطة</button>
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />{selectedGroupFilter === 'all' ? 'المجموعات الوظيفية' : (availableGroups.find((group) => group.id === selectedGroupFilter)?.name || 'أنشطة المجموعة')}</h2>
+              <p className="mt-1 text-xs text-slate-500">{selectedGroupFilter === 'all' ? 'اختر مجموعة لعرض الأنشطة التابعة لها، ثم افتح النشاط لعرض تخصصاته.' : 'اختر النشاط لعرض التخصصات والخدمات التابعة له.'}</p>
             </div>
-          )}
-          <div className="grid grid-cols-8 gap-1">
-            {availableCategories.map((category) => {
-              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
-              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
-              const totalCount = confirmedCount + unconfirmedCount;
-              return <button
-                key={category.id}
-                type="button"
-                onClick={() => openActivityModule(category.id)}
-                aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`}
-                className="group relative flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-0 py-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:min-h-28 sm:gap-1.5 sm:rounded-xl sm:px-1 sm:py-3"
-              >
-                <span className="absolute left-0.5 top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-0.5 text-[8px] font-black tabular-nums text-emerald-800 shadow-sm sm:left-1 sm:top-1 sm:h-5 sm:min-w-5 sm:text-[10px]" title={`إجمالي الأنشطة: ${totalCount}`}>
-                  {totalCount.toLocaleString('ar-EG')}
-                </span>
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-700 transition group-hover:bg-emerald-100 group-hover:text-emerald-800 sm:h-9 sm:w-9 sm:rounded-xl">
-                  {ICONS_MAP[category.functionalGroupId] || <Store className="h-4 w-4 sm:h-5 sm:w-5" />}
-                </span>
-                <span className="line-clamp-2 min-h-0 w-full break-words text-[7px] font-black leading-[9px] text-slate-900 sm:min-h-8 sm:text-[10px] sm:leading-4">{category.name}</span>
-                <span className="hidden flex-wrap items-center justify-center gap-x-1 gap-y-0.5 text-[8px] font-bold sm:flex sm:text-[9px]">
-                  <span className="text-emerald-800">موثق {confirmedCount.toLocaleString('ar-EG')}</span>
-                  <span className="text-red-700">غير موثق {unconfirmedCount.toLocaleString('ar-EG')}</span>
-                </span>
-                <ChevronLeft className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 text-slate-300 transition group-hover:text-emerald-700 sm:bottom-1 sm:right-1 sm:h-3 sm:w-3" />
-              </button>;
-            })}
-            {availableCategories.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد أنشطة مسجلة حاليًا.</p>}
+            <div className="flex items-center gap-2">
+              {selectedGroupFilter !== 'all' && <button type="button" onClick={() => { setSelectedGroupFilter('all'); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">كل المجموعات</button>}
+              <span className="text-xs font-bold text-slate-500">{selectedGroupFilter === 'all' ? availableGroups.length.toLocaleString('ar-EG') + ' مجموعة' : availableCategories.length.toLocaleString('ar-EG') + ' نشاط'}</span>
+            </div>
           </div>
+          {selectedGroupFilter === 'all' ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {availableGroups.map((group) => {
+                const groupCategories = categories.filter((category) => category.functionalGroupId === group.id && (category.classificationType || 'activity') === 'activity');
+                const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && groupCategories.some((category) => categoryForBusiness(business)?.id === category.id)).length;
+                const unconfirmedCount = unconfirmedListings.filter((listing) => listing.functional_group_id === group.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+                const totalCount = confirmedCount + unconfirmedCount;
+                return <button key={group.id} type="button" onClick={() => { setSelectedGroupFilter(group.id); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="group relative flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:min-h-36 sm:p-4">
+                  <span className="absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[10px] font-black text-emerald-800">{totalCount.toLocaleString('ar-EG')}</span>
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 sm:h-14 sm:w-14 sm:rounded-2xl">{ICONS_MAP[group.id] || <Store className="h-7 w-7" />}</span>
+                  <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{group.name}</span><span className="mt-1 block text-[11px] text-slate-500">{groupCategories.length} نشاط</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
+                  <ChevronLeft className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:text-emerald-700" />
+                </button>;
+              })}
+            </div>
+          ) : (
+            <>
+              {selectedActivityCategory && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3"><p className="text-xs font-bold text-emerald-950">تصفية النتائج حسب: {selectedActivityCategory.name}{selectedSpecialty !== 'all' ? ` — ${selectedSpecialty}` : ''}</p><button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل أنشطة المجموعة</button></div>}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {availableCategories.map((category) => {
+                  const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
+                  const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+                  const totalCount = confirmedCount + unconfirmedCount;
+                  return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`} className="group relative flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                    <span className="absolute left-2 top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[9px] font-black text-emerald-800">{totalCount.toLocaleString('ar-EG')}</span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">{ICONS_MAP[category.functionalGroupId] || <Store className="h-5 w-5" />}</span>
+                    <span className="text-xs font-black text-slate-900">{category.name}</span>
+                    <span className="flex flex-wrap justify-center gap-2 text-[10px] font-bold"><span className="text-emerald-800">موثق {confirmedCount}</span><span className="text-red-700">غير موثق {unconfirmedCount}</span></span>
+                    <ChevronLeft className="absolute bottom-2 right-2 h-3 w-3 text-slate-300 group-hover:text-emerald-700" />
+                  </button>;
+                })}
+                {availableCategories.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد أنشطة مسجلة في هذه المجموعة حاليًا.</p>}
+              </div>
+            </>
+          )}
         </section>
 
         {/* Search & Location Filter Bar */}
