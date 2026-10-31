@@ -1049,3 +1049,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Remaining risk: server check-then-insert is not atomic across simultaneous requests. Test concurrent submissions and network-response-loss retry behavior before claiming database-level idempotency. Draft PR #477 is stale and should not be merged as-is because main already contains a more precise client/server guard.
 - Current main `b7b35378bbf5c1fd5ff54afb6be79e316e33624c`: Health Monitor #41162036080, backend boundary #41162036117, MantiGO privacy #41162036099, module professionalization #41162036130, and Pages #41162036127 all passed. Deployed-origin browser E2E passed for the tested scope.
 - Full Production Gate remains BLOCKED / NOT CERTIFIED; the latest verifier artifact reports 24 PASS, 0 FAIL, 1 BLOCKED and does not certify the live migration/payment/backup blockers.
+
+
+## 2026-10-31 — PERF-01 fast first paint and Google session loading (in progress)
+
+- User priority: make page loading and Google-account session restoration the first development priority, without changing existing visual design or weakening authorization.
+- Current-main performance branch splits storefront, merchant/admin/professional dashboards, cart drawer and login modal into on-demand React chunks; cart and login chunks load only when opened.
+- Added an immediate static HTML loading shell before the React bundle is downloaded.
+- Removed a duplicate public-directory request from the signed-out auth bootstrap. AppContext already owns the independent public-directory request; guest bootstrap now returns immediately with no duplicate directory payload.
+- Exact CI, browser regressions, bundle-size comparison, real Google OAuth timings and deployed-origin measurements are pending. Do not claim a measured speed improvement until those checks are recorded.
+- No production deployment or Supabase/Auth/Edge/schema/permission changes occurred. Continue by validating the exact PR head, then profile the authenticated member bootstrap to determine whether multiple CATALOG_READ calls should be hydrated progressively without changing membership scopes.
