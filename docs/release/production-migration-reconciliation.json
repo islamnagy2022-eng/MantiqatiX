@@ -120,11 +120,11 @@
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
     "checked_at": "2026-10-31",
-    "method": "Fresh read-only Supabase list_migrations inventory (308 rows through 20261029083845) cross-checked against all 42 release-required source-version identifiers, including RC463, from the current source contract.",
+    "method": "Fresh read-only Supabase list_migrations inventory (308 rows through 20261029083845) cross-checked by exact version against all 42 release-required identifiers.",
     "live_ledger_count": 308,
     "latest_live_version": "20261029083845",
     "expected_migration_versions": 42,
-    "found_in_live_ledger": 42,
+    "found_in_live_ledger": 0,
     "required_versions": [
       "20261009120000",
       "20261009130000",
@@ -169,8 +169,7 @@
       "20261027093000",
       "20261031100000"
     ],
-    "missing_versions": [],
-    "recorded_required_versions": [
+    "missing_versions": [
       "20261009120000",
       "20261009130000",
       "20261009140000",
@@ -214,7 +213,8 @@
       "20261027093000",
       "20261031100000"
     ],
-    "interpretation": "All 42 required release source-version identifiers, including RC463 (20261031100000), are absent from the current 308-row live migration inventory. This is an exact version-identity result, not proof that every corresponding physical effect is absent; other sections record physical catalog evidence. Do not fabricate migration ledger rows, apply missing migrations blindly, or treat the isolated RC463 rehearsal as Production approval."
+    "recorded_required_versions": [],
+    "interpretation": "The fresh live migration inventory contains none of the 42 required exact source-version identifiers, including RC463 (20261031100000). This exact version-identity result does not prove every corresponding physical effect is absent. Do not fabricate ledger rows, apply missing migrations blindly, or treat the isolated RC463 rehearsal as Production approval."
   },
   "critical_edge_function_source_parity_check": {
     "status": "DRIFT_FOUND",
