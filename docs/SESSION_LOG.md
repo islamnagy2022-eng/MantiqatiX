@@ -1510,3 +1510,13 @@ A separate source review found a second platform-root authorization model: the n
 - A proposed source-recovery migration attempted to copy the live default-owner trigger function verbatim, including a hard-coded personal owner identifier. This is not acceptable in the public repository and is unnecessary for the Production forward migration because the function already exists live.
 - Removed the RC463A production migration from the candidate. Replaced it with a disposable test overlay that uses only a synthetic `.example.test` identity and is applied only in isolated CI immediately before RC463.
 - The production migration remains limited to hardening the already-existing functions; no personal owner identifier is added to source history.
+
+
+### RC463 privacy-safe replay correction — 2026-10-31
+
+- The first full replay exposed that the 2026-10-17 schema-only checkpoint (through 20261008222845, review_status=PENDING_REVIEW) lacks the live-only default-owner trigger function.
+- A proposed migration that copied the live function source and hard-coded owner identity into repository history was removed after privacy review; do not restore it.
+- Final RC463 is conditional: harden only complete matching function+enabled-trigger pairs; skip a fully absent pair in the older checkpoint; fail closed on partial/mismatched state.
+- The isolated PostgreSQL fixture uses synthetic example.test identity and test-only trigger functions to verify both behaviors without publishing the live owner identifier.
+- The exact RC463 test is included in the existing Backend-only Module Boundary workflow and the dedicated PostgreSQL workflow.
+- The exact-head CI and chronological replay are pending. No Production change was made.
