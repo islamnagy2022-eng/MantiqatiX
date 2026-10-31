@@ -250,9 +250,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('store') || params.get('businessId') || '';
     const requestedView = params.get('view');
-    // A newly signed-in account always lands on the public home directory.
-    // Explicit, role-authorized dashboard routes are still restorable on refresh.
-    const defaultView: ViewMode = 'directory';
+    // A newly signed-in account always lands on the marketplace home.
+    // The directory is a separate explicit route, and authorized dashboards remain restorable.
+    const defaultView: ViewMode = 'home';
 
     // A share URL must continue to open its public catalog for signed-in and guest
     // users alike, but it must never bypass the public-catalog API's publication gate.
@@ -283,7 +283,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    const safeRequestedView: ViewMode = requestedView === 'directory'
+    const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
+    const safeRequestedView: ViewMode = requestedView === 'directory' || isDirectoryDeepLink
       ? 'directory'
       : requestedView === 'super_admin' && boot.authSession.role === 'admin'
         ? 'super_admin'
@@ -291,7 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? 'merchant_admin'
           : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
             ? 'professional_dashboard'
-            : 'directory';
+            : 'home';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
