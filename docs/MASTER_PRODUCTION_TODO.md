@@ -2895,3 +2895,18 @@ A separate source review found a second platform-root authorization model: the n
 - Validation must include 10 groups / 50 activities / 5 per group, all 67 legacy category mappings, folder navigation, specialty filtering, geographic search, owner/admin edit-create round trip, non-platform role denial, and mobile/tablet/desktop overflow checks.
 - No database migration is required for this read-compatible taxonomy change. The existing database constraint accepting historical group IDs is intentionally retained. Edge Functions require a separately reviewed deployment step after exact-head CI and live admin-path verification.
 - Status: implementation carried forward onto current main for validation; NOT DONE until exact-head workflows pass. Pages deployment is permitted only after the merged main workflow passes. Edge Function rollout and real SUPER_ADMIN CRUD verification remain separately tracked release gates.
+
+
+## PERF-01 — أولوية سرعة فتح الصفحة وتحميل جلسات Google — 2026-10-31
+
+- **P0 / IN PROGRESS / CI PENDING / NOT DEPLOYED** — يجب تقديم زمن ظهور الدليل واستعادة جلسة Google على أي تحسينات غير حرجة.
+- [x] تحديد ازدواجية تحميل دليل الزوار: AppContext وguest auth bootstrap قد يبدآن الطلب نفسه بالتوازي؛ تم جعل fetchPublicDirectory يشارك الطلب الجاري بدل تنزيل الدليل مرتين، مع الحفاظ على بيانات الأنشطة اللازمة لروابط المتاجر المباشرة بالـ slug.
+- [x] تقسيم شاشات المتجر ولوحات التاجر والإدارة والداشبورد والسلة وتسجيل الدخول إلى lazy chunks؛ لا تُحمّل الشاشات غير المستخدمة ضمن الحزمة الأولى، ولا تُحمّل نافذة الدخول/السلة إلا عند فتحها.
+- [x] إضافة غلاف تحميل HTML أولي يظهر قبل اكتمال تنزيل React bundle لتقليل الشاشة البيضاء والإحساس بالتأخير.
+- [x] بدء جلب إعدادات المنصة بالتوازي مع تحميل كتالوجات الأنشطة في جلسة SUPER_ADMIN بدل انتظار انتهاء الكتالوجات أولًا؛ لا يغير نطاق الصلاحيات.
+- [ ] تشغيل TypeScript/build وBrowser E2E وقياس حجم الحزمة الأولى والـ chunks الناتجة على exact head؛ إثبات أن المسارات والأدوار لم تتأثر.
+- [ ] قياس مسار Google OAuth الفعلي لحساب بلا عضوية وحساب مشترك/مالك مع تسجيل أزمنة: OAuth callback، getSession، memberships، CATALOG_READ، وظهور الصفحة. لا توجد أرقام أداء حقيقية موثقة حتى الآن.
+- [ ] فحص bootstrap المشترك متعدد الأنشطة لتحديد هل انتظار كل CATALOG_READ يؤخر إظهار الجلسة، ثم تصميم hydration تدريجي آمن دون تخفيض الصلاحيات أو خلط نطاق العضويات.
+- [ ] التحقق من زمن تحميل الدليل العام من المصدر المنشور، وCore Web Vitals وLCP/INP/CLS على هاتف حقيقي واتصال متوسط/ضعيف.
+- **قيد أمني:** لا تخفيف لـ RLS أو صلاحيات الجلسة، لا تجاهل أخطاء العضويات، لا تخزين بيانات خاصة في cache عام، ولا تفعيل لوحة قبل اكتمال التحقق من الصلاحيات.
+- **النشر:** لم يحدث نشر أو تغيير Supabase/Auth/Edge/Production. لا تعتبر التعديلات جاهزة للإنتاج قبل CI والقياس وdeployed-origin verification.
