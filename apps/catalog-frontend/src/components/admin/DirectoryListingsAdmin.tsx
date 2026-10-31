@@ -67,6 +67,24 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
     [x.display_name, x.specialty, x.phone, x.address, x.district].some((v) => String(v || "").toLocaleLowerCase().includes(search.toLocaleLowerCase()))
   ), [bundle.listings, search]);
   const openRequests = bundle.claims.filter((x) => ["PENDING", "REVIEWING"].includes(x.status));
+  const listingTypeOptions = form.functionalGroupId === "medical_health"
+    ? [
+        { value: "doctor", label: "ممارس طبي" },
+        { value: "clinic", label: "عيادة / منشأة طبية" },
+        { value: "pharmacy", label: "صيدلية" },
+        { value: "medical_center", label: "مركز طبي" },
+        { value: "hospital", label: "مستشفى" },
+        { value: "laboratory", label: "معمل تحاليل" },
+        { value: "health_provider", label: "مقدم خدمة صحية" },
+        { value: "business", label: "نشاط صحي آخر" },
+      ]
+    : form.functionalGroupId === "agriculture_animals"
+      ? [
+          { value: "business", label: "نشاط / منشأة" },
+          { value: "clinic", label: "عيادة بيطرية" },
+        ]
+      : [{ value: "business", label: "نشاط / منشأة" }];
+
 
   const editListing = (listing: PublicDirectoryListing) => {
     setForm({
@@ -160,15 +178,15 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
           </div>
           <form onSubmit={handleSave} className="h-fit space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between gap-2"><h3 className="font-black text-slate-900">{form.id ? "استكمال بيانات الصفحة" : "إضافة صفحة جديدة"}</h3>{form.id && <button type="button" onClick={() => setForm(emptyForm)} className="text-xs font-bold text-slate-600 underline">جديد</button>}</div>
-            <label className="block text-xs font-bold text-slate-700">اسم الطبيب / النشاط *<input required minLength={2} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
+            <label className="block text-xs font-bold text-slate-700">اسم النشاط أو الجهة *<input required minLength={2} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" /></label>
             <label className="block text-xs font-bold text-slate-700">الرابط المختصر (اختياري)<input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="يُنشأ تلقائيًا عند تركه فارغًا" dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-left" /></label>
             <div className="grid grid-cols-2 gap-3">
-              <label className="block text-xs font-bold text-slate-700">نوع السجل الطبي<select value={form.listingType} onChange={(e) => setForm({ ...form, listingType: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="doctor">ممارس طبي</option><option value="clinic">منشأة / عيادة</option><option value="pharmacy">صيدلية</option><option value="medical_center">مركز طبي</option><option value="hospital">مستشفى</option><option value="laboratory">معمل تحاليل</option><option value="health_provider">مقدم خدمة صحية</option><option value="business">نشاط عام</option></select></label>
+              <label className="block text-xs font-bold text-slate-700">نوع الجهة<select value={form.listingType} onChange={(e) => setForm({ ...form, listingType: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs">{listingTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
               <label className="block text-xs font-bold text-slate-700">حالة الظهور<select value={form.listingStatus} onChange={(e) => setForm({ ...form, listingStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="DRAFT">مسودة مخفية</option><option value="PUBLISHED">منشورة للزوار</option><option value="HIDDEN">إخفاء الصفحة</option></select></label>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block text-xs font-bold text-slate-700">المجموعة الوظيفية *<select required value={form.functionalGroupId} onChange={(e) => { const groupId = e.target.value; const firstCategory = categories.find((item) => item.functionalGroupId === groupId); setForm({ ...form, functionalGroupId: groupId, taxonomyCategoryId: firstCategory?.id || "", taxonomySpecialty: "", specialty: "" }); }} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{functionalGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
-              <label className="block text-xs font-bold text-slate-700">التصنيف داخل المجموعة *<select required value={form.taxonomyCategoryId} onChange={(e) => setForm({ ...form, taxonomyCategoryId: e.target.value, taxonomySpecialty: "", specialty: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{categories.filter((item) => item.functionalGroupId === form.functionalGroupId).map((item) => <option key={item.id} value={item.id}>{item.name} — {item.classificationType === "profession" ? "مهنة" : "نشاط"}</option>)}</select></label>
+              <label className="block text-xs font-bold text-slate-700">المجموعة الوظيفية *<select required value={form.functionalGroupId} onChange={(e) => { const groupId = e.target.value; const firstCategory = categories.find((item) => item.functionalGroupId === groupId); setForm({ ...form, functionalGroupId: groupId, listingType: groupId === "medical_health" ? "doctor" : "business", taxonomyCategoryId: firstCategory?.id || "", taxonomySpecialty: "", specialty: "" }); }} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{functionalGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
+              <label className="block text-xs font-bold text-slate-700">النشاط الرئيسي داخل المجموعة *<select required value={form.taxonomyCategoryId} onChange={(e) => setForm({ ...form, taxonomyCategoryId: e.target.value, taxonomySpecialty: "", specialty: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{categories.filter((item) => item.functionalGroupId === form.functionalGroupId).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             </div>
             {Boolean(categories.find((item) => item.id === form.taxonomyCategoryId)?.specialties?.length) && <label className="block text-xs font-bold text-slate-700">التخصص / النوع الدقيق داخل التصنيف<select value={form.taxonomySpecialty} onChange={(e) => setForm({ ...form, taxonomySpecialty: e.target.value, specialty: e.target.value || form.specialty })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs"><option value="">غير محدد — استكماله لاحقًا</option>{(categories.find((item) => item.id === form.taxonomyCategoryId)?.specialties || []).map((specialty) => <option key={specialty} value={specialty}>{specialty}</option>)}</select></label>}
 
