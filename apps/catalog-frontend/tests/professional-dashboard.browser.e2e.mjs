@@ -1049,6 +1049,12 @@ try {
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: /موظف · نشاط اختبار الداشبورد/ }).click();
       await page.getByText('وضع الموظف', { exact: true }).waitFor({ state: 'visible' });
+      if (!await page.locator('nav[aria-label="أقسام الداشبورد"]').isVisible().catch(() => false)) {
+        console.log('employee-membership-switch-debug', JSON.stringify({
+          catalogReads: catalogReadRequests,
+          portalText: (await page.locator('body').innerText()).slice(0, 7000),
+        }));
+      }
       await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(catalogReadRequests.at(-1)?.branchId, branchId, 'employee mode must reload only its assigned branch');
       assert.equal(catalogReadRequests.at(-1)?.membershipId, '00000000-0000-0000-0000-000000000011', 'employee mode must bind the catalog read to its own membership, not the wider owner membership');
