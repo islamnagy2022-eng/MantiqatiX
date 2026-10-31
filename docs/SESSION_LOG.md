@@ -1654,3 +1654,9 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Read all live migration statements referencing `bookings`: none creates or drops the table. The only recorded reference is `ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY` in `20260919233425_production_security_hardening_v1`.
 - A scan of public SQL function bodies found no `bookings` reference. Focused GitHub search found no direct browser/Edge consumer. This does not exclude dynamic or external dependencies.
 - Creation provenance appears outside current migration creation history; issue #613 updated to require authoritative backup/schema evidence. Preserve the one existing row and table. No mutation or row content read.
+
+ 
+## 2026-10-31 — expanded live dependency scan for `bookings`
+
+- Scanned non-system database catalog definitions for SQL functions/procedures, views, materialized views, triggers, rules, FKs, RLS policy expressions and publication membership. No dependency on `public.bookings` was found; the table is not in either publication.
+- This does not rule out dynamic SQL or external jobs/services. No row content was queried; one row remains untouched. Updated Issue #613 and preserved the table pending historical schema and retention evidence.
