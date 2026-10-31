@@ -160,10 +160,10 @@ assert.ok(!admin.includes('option value="profession">مهنة'), 'Admin must not
 assert.ok(admin.includes('categoryClassificationType: matchedCat?.classificationType'), 'Admin-created businesses must retain category classification.');
 const activityModuleView = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
 assert.ok(directory.includes("new URLSearchParams(window.location.search).get('activity')"), 'Each activity module must have a refreshable direct URL.');
-assert.ok(directory.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');"), 'Visitor discovery must expose activities directly and omit standalone profession categories.');
+assert.ok(directory.includes('const availableCategories = categories.filter') && directory.includes("selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter"), 'Visitor discovery must expose activity folders grouped by canonical functional group, without standalone profession categories.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an activity must open its dedicated module page.');
 assert.ok(directory.includes('setSelectedCategoryId(activityCategory.id)') && directory.includes('setSelectedSpecialty(specialty)'), 'Choosing a specialty must return to the directory with the activity/specialty filter.');
-assert.ok(!directory.includes('functionalGroups') && !directory.includes('selectedGroupFilter') && !directory.includes('matchesCategoryKind'), 'Functional-group navigation/filtering must not appear in public directory UI logic.');
+assert.ok(directory.includes('selectedGroupFilter') && directory.includes('availableGroups.map') && !directory.includes('matchesCategoryKind'), 'Public directory must retain canonical functional-group folder navigation.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
 assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
 assert.ok(activityModuleView.includes('marketing.contentPillars') && activityModuleView.includes('marketing.campaignIdeas') && activityModuleView.includes('marketing.requiredAssets'), 'Activity marketing page must render domain-specific content pillars, campaign ideas and required assets.');
@@ -258,7 +258,7 @@ assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Homepage activity cards
 assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Public activity cards must retain the requested eight-column layout.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
-assert.ok(!directory.includes('functionalGroups'), 'Functional groups must not be displayed or filtered in the public directory.');
+assert.ok(directory.includes('availableGroups.map') && directory.includes('availableCategories.map'), 'Public directory must render group folders first and activities inside the selected group.');
 
 
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} activities (5 per group), specialties, legacy mapping, admin UI, and server persistence.`);
