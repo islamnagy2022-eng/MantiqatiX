@@ -2960,3 +2960,34 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Employee RBAC PostgreSQL job: PASS.
 - [ ] Playwright browser E2E: run `41192816382` was still IN PROGRESS at the latest status read. Earlier E2E attempts exposed and fixed two stale test locators (removed all-activities group button; exact specialty-tab selector). Do not mark E2E PASS until this exact-head job finishes.
 - [ ] Deployed-origin verification: NOT RUN / NOT CLAIMED. Pages deployment jobs are skipped on pull-request events by design.
+
+
+## CAT-ACTIVITY-MODULE-ADMIN-20261031-02 — Super Admin activity module configuration
+
+**Date:** 2026-10-31  
+**Status:** IN PROGRESS — additive editor and server validation implemented in source; exact-head CI and audit durability verification are pending.  
+**Request ledger:** Issue #599.  
+**Branch / PR:** `feat/activity-modules-current-main-20261031` / Draft PR #608.
+
+### Implemented in source
+- [x] Added a visible `إعدادات وحدات الأنشطة` tab to the existing Super Admin dashboard without replacing current tabs.
+- [x] Added `ActivityModulesAdmin.tsx` to select each canonical activity and edit its marketing objective, audience, positioning, content pillars, campaign ideas, and required assets.
+- [x] Added per-activity editing for the existing three capability titles/descriptions. The editor cannot change capability IDs or activate an unverified workflow.
+- [x] Added typed `ActivityModuleOverrides` to `AdminSettings`, persisted through the existing `SAVE_SETTINGS` server-authoritative action.
+- [x] Updated `resolveActivityModuleConfig` and `ActivityModuleView` so saved admin overrides are reflected on public activity module pages.
+- [x] Added server-side allowlist and validation for activity override IDs, fields, lengths, array counts, exactly three capabilities, and total payload size. The browser does not write to `bizcatalog_platform_settings` directly.
+- [x] Added a server-side audit event `PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED` containing the changed activity IDs and changed sections, attributed to the authenticated platform admin and a production tenant scope.
+- [x] The Edge response exposes `auditLogged`; the frontend updates local state only after server-confirmed persistence and warns explicitly if persistence succeeded but audit insertion failed.
+- [x] Added `scripts/validate-activity-module-admin.mjs` and wired it into the primary catalog and Pages validation workflows.
+
+### Safety boundary and open verification
+- [ ] Exact-head TypeScript/build, validator, backend boundary and browser E2E must pass before this increment is considered verified.
+- [ ] Audit insertion currently follows the settings upsert and is not a single database transaction. A failed audit insert is surfaced as `auditLogged=false`, but the settings may already be persisted. Do not claim atomic save+audit until a reviewed transactional server contract exists.
+- [ ] Verify live deployed Edge Function and real authenticated Super Admin save/read/reset behavior only after an explicitly authorized deployment. No deployment was performed by this source change.
+- [ ] Verify role × platform-admin authorization, malformed payload rejection, oversized payload rejection, unknown capability IDs, and audit failure handling with isolated tests.
+- [ ] All activity operations remain `planned`; editing display metadata does not enable orders, appointments, inventory, bookings, campaigns, budgets, or analytics.
+
+### Production impact
+- Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
+- No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
