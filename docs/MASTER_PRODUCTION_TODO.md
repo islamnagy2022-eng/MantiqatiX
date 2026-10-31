@@ -3042,6 +3042,7 @@ A separate source review found a second platform-root authorization model: the n
 - **Status:** SOURCE IMPLEMENTED ON BRANCH; exact-head tests and deployed-origin verification OPEN.
 - **Branch / PR:** `fix/unverified-pharmacy-default-image-20261101` / [PR #628](https://github.com/islamnagy2022-eng/MantiqatiX/pull/628).
 - **Requested fallback:** `https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI`.
+- Refinement: doctor detection also recognizes normalized individual medical professionals (`functionalGroupId === 'medical_health'` and `classificationType === 'profession'`), in addition to explicit doctor type/name markers. This is needed because historical doctor category IDs are read-compatible-mapped into the canonical medical-practices activity while profession-vs-activity remains a preserved distinction.
 - **Acceptance criteria:**
   - Apply only to doctor listings that are not verified and have no owner/admin-selected image.
   - Preserve owner/admin/AI-selected images; a saved replacement takes precedence.
