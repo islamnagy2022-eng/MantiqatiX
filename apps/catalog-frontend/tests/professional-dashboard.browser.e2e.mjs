@@ -961,8 +961,8 @@ try {
     const restaurantActivity = page.getByRole('button', { name: /مطاعم/ }).first();
     await pharmacyActivity.waitFor({ state: 'visible' });
     await restaurantActivity.waitFor({ state: 'visible' });
-    assert.match(await pharmacyActivity.innerText(), /موثق\s*١/, 'canonical pharmacy activity must receive the verified count');
-    assert.match(await restaurantActivity.innerText(), /موثق\s*٠/, 'stale restaurant label must not steal the pharmacy count');
+    assert.match(await pharmacyActivity.innerText(), /موثق\s*1/, 'canonical pharmacy activity must receive the verified count');
+    assert.match(await restaurantActivity.innerText(), /موثق\s*0/, 'stale restaurant label must not steal the pharmacy count');
     await pharmacyActivity.click();
     await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
     results.push('homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels');
