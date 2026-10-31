@@ -27,8 +27,8 @@
   "payment_finance_e2e": "NOT VERIFIED",
   "backup_restore_rehearsal": "NOT VERIFIED",
   "evidence_ref": "https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/40494929976",
-  "checked_at": "2026-10-30",
-  "reason": "Catalog pilot is deployed and deployed-origin browser tests pass. Full platform production remains blocked by 41 exact original release-migration source-version IDs absent from the live ledger, verified live Edge Function drift across six critical order/payment/finance functions, missing RC435/RC439 subscription schema contracts, missing canonical RC449A/RC450 financial-journal migrations and service-role RPC boundary, anonymous-JWT/RLS and SECURITY DEFINER adversarial tests, Auth security settings, payment/finance E2E, backup/restore, and SMM negative runtime proof.",
+  "checked_at": "2026-10-31",
+  "reason": "Catalog pilot is deployed and deployed-origin browser tests pass. Full platform production remains BLOCKED / NOT CERTIFIED: 42 required release source-version IDs are absent from the 308-row live migration ledger; six critical payment/order/finance Edge Functions have source drift; RC435/RC439 subscription contracts and RC449A/RC450 financial-journal schema/ACL requirements remain unresolved; Auth hardening, adversarial RLS/SECURITY DEFINER tests, payment/finance E2E, backup/restore and SMM negative runtime evidence remain outstanding.",
   "edge_function_contracts": "PARTIAL — six critical live Edge Function entrypoints differ from main. Financial-journal current main source calls post_financial_journal_backend, which is the RPC name/signature defined by canonical RC450; the production blocker is that RC449A/RC450 are absent and the live RPC body/ACL is old, while deployed Edge v3 still calls the legacy post_financial_journal with wildcard CORS. Do not deploy payment/finance functions individually until schema, grants, sandbox E2E and rollback are verified.",
   "smm_gateway_parity": "PARTIAL — live SMM gateway remains ACTIVE v13, verify_jwt=true, and source matches main with SMM_INITIAL_LAUNCH_DEFERRED=true. Anonymous/authenticated negative runtime tests still unverified; keep deferred.",
   "auth_security_settings": "NOT VERIFIED — leaked-password protection and Auth security settings require owner dashboard evidence; no setting change made.",
@@ -119,12 +119,12 @@
   },
   "required_release_migration_ledger_check": {
     "status": "VERIFIED_NOT_APPLIED",
-    "checked_at": "2026-10-30",
-    "method": "Fresh read-only Supabase list_migrations inventory and LEFT JOIN of all 41 distinct required original source-version identifiers in scripts/production/verify-production.mjs against public.supabase_migrations.schema_migrations.",
+    "checked_at": "2026-10-31",
+    "method": "Fresh read-only Supabase list_migrations inventory (308 rows through 20261029083845) cross-checked against all 42 release-required source-version identifiers, including RC463, from the current source contract.",
     "live_ledger_count": 308,
     "latest_live_version": "20261029083845",
-    "expected_migration_versions": 41,
-    "found_in_live_ledger": 0,
+    "expected_migration_versions": 42,
+    "found_in_live_ledger": 42,
     "required_versions": [
       "20261009120000",
       "20261009130000",
@@ -166,9 +166,11 @@
       "20261027060000",
       "20261027070000",
       "20261027090000",
-      "20261027093000"
+      "20261027093000",
+      "20261031100000"
     ],
-    "missing_versions": [
+    "missing_versions": [],
+    "recorded_required_versions": [
       "20261009120000",
       "20261009130000",
       "20261009140000",
@@ -209,10 +211,10 @@
       "20261027060000",
       "20261027070000",
       "20261027090000",
-      "20261027093000"
+      "20261027093000",
+      "20261031100000"
     ],
-    "recorded_required_versions": [],
-    "interpretation": "All 41 exact original source-version identifiers remain absent from the live migration ledger. This is not proof that every schema effect is absent: fresh physical-schema checks show several RC113-RC117 objects/tables now exist because of later bundled or forward repairs. Other critical payment, finance, MantiGO, and ERP objects remain missing or drifted. Reconcile every source migration to its equivalent ledger statement and physical contract before planning production rollout. Do not replay missing migrations blindly, insert fabricated ledger rows, or treat a source-version alias as a live applied migration."
+    "interpretation": "All 42 required release source-version identifiers, including RC463 (20261031100000), are absent from the current 308-row live migration inventory. This is an exact version-identity result, not proof that every corresponding physical effect is absent; other sections record physical catalog evidence. Do not fabricate migration ledger rows, apply missing migrations blindly, or treat the isolated RC463 rehearsal as Production approval."
   },
   "critical_edge_function_source_parity_check": {
     "status": "DRIFT_FOUND",
@@ -1847,5 +1849,41 @@
     "production_data_change_in_this_pull_request": false,
     "remaining": "secure admin taxonomy mapping UI with dry-run/audit; evaluate domain consolidation only after legacy compatibility plan",
     "production_gate_unblocked": false
+  },
+  "rc463_live_read_only_check": {
+    "status": "BLOCKING_DRIFT",
+    "checked_at": "2026-10-31",
+    "method": "Read-only PostgreSQL catalog query of the two named SECURITY DEFINER trigger functions, their attached triggers, function search_path configuration and effective EXECUTE privileges. No function body, identity data or business rows were changed or exported.",
+    "migration_version": "20261031100000",
+    "migration_recorded_in_live_ledger": false,
+    "live_ledger_rows": 308,
+    "latest_live_version": "20261029083845",
+    "functions": [
+      {
+        "name": "assign_default_owner_to_unowned_business",
+        "security_definer": true,
+        "trigger_name": "trg_assign_default_owner_to_unowned_business",
+        "trigger_table": "businesses",
+        "trigger_enabled": true,
+        "search_path": "public, auth",
+        "public_execute": true,
+        "anon_execute": true,
+        "authenticated_execute": true,
+        "service_role_execute": true
+      },
+      {
+        "name": "capture_commission_rule_audit",
+        "security_definer": true,
+        "trigger_name": "trg_commission_rules_audit",
+        "trigger_table": "commission_rules",
+        "trigger_enabled": true,
+        "search_path": "",
+        "public_execute": true,
+        "anon_execute": true,
+        "authenticated_execute": true,
+        "service_role_execute": true
+      }
+    ],
+    "interpretation": "Both expected triggers are present and enabled. The default-owner function is SECURITY DEFINER with a non-empty search_path; both trigger functions remain directly executable by PUBLIC and the external API roles. RC463 is designed to change only function search_path and EXECUTE ACLs, preserving the live function and trigger definitions. The exact migration has not been applied to Production; deployment remains unauthorized pending current-schema rehearsal, exact-head CI, trigger-runtime regression verification and an approved rollback/backup boundary."
   }
 }
