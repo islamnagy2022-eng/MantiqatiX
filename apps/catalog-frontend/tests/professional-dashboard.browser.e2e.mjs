@@ -399,6 +399,8 @@ const results = [];
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
     await page.getByRole('heading', { name: /كل الأنشطة والخدمات والعروض/ }).waitFor({ state: 'visible' });
+    await page.getByText('جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.').waitFor({ state: 'detached', timeout: 15000 });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
     const firstVerifiedHomeBusiness = liveDirectory.businesses.find((business) => business.provider?.verified === true && business.status === 'ACTIVE');
     assert.ok(firstVerifiedHomeBusiness, 'homepage E2E must have at least one published verified business fixture');
     await page.getByRole('heading', { name: firstVerifiedHomeBusiness.name, exact: true }).first().waitFor({ state: 'visible', timeout: 15000 });
