@@ -1068,3 +1068,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Specification covers flexible subscription/commission combinations (fixed, percentage, combined), explicit calculation basis and rule versioning; verified wallet top-ups by direct/card/Vodafone Cash and approved external cash; automatic billing with no negative balance; admin exemptions/discounts/deferrals/gifts; and ad-cover slot reservations for monthly/quarterly/half-yearly/yearly/custom durations.
 - Requires append-only auditable ledger, idempotency, server-side tenant/RLS authorization, webhook verification, maker-checker cash approval, advertising inventory conflict prevention, Egypt legal/accounting review, isolated migration replay, provider sandbox, backup/restore and release gates.
 - Status is specification/intake only. No schema, migrations, payment provider, Supabase, Production data, wallet balance, payment, or ad publication was changed or activated.
+
+
+## 2026-10-31 — FIN-ADS-01 initial finance inventory and branch reconciliation warning
+
+- The prior platform audit identifies existing `commission_rules`, `commission_transactions`, `business_subscriptions`, `subscription_tier_prices`, and `subscription_payment_intents`; extend these contracts rather than creating duplicate commission/subscription systems.
+- Commission calculation is not fully activated: existing rule shape lacks some requested scope/effective-date/priority/basis/bounds/version/reversal coverage, and activation was previously blocked pending a complete payment-engine contract.
+- Production finance checkpoint (captured 2026-10-31 00:20:42Z) records partial ledger/journal schema and missing RC435/RC439/RC449A/RC450 migration ledger entries and contract fields. These findings require current-schema reconciliation and a restorable rehearsal; do not run migrations directly against Production.
+- No unified platform wallet has been proven by this initial inventory. A commission transaction table or general ledger is not automatically a spendable user wallet.
+- PR #601 branch was 20 commits ahead / 4 behind main at comparison time, merge-base `6040c54f...`; reconcile before further implementation or final CI. PR remains Draft and not deployed.
