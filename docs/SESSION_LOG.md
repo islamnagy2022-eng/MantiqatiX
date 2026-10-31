@@ -1486,3 +1486,11 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — PERF-01 page speed and Google account loading
+
+- User explicitly prioritized page first-paint speed and Google-account loading as the first development task.
+- Created performance changes on the existing subscriber portal PR #601 branch: apps/catalog-frontend/src/App.tsx now lazy-loads secondary screens and on-demand modal/drawer chunks; apps/catalog-frontend/index.html renders an immediate loading shell; apps/catalog-frontend/src/lib/production.ts no longer fetches the public directory a second time for signed-out bootstrap because AppContext already owns that request.
+- Branch: feat/standalone-subscriber-portal-main-sync-20261031. Latest code commits include 5498deebd593754d86619321c7ea2f0d9de1e6dc, 3071736f9c9a445da315cbb084677ee513463dee, and 61b2353923f38a31b84ce0584812aa0ad9588313.
+- Status: IN PROGRESS / CI PENDING / NOT DEPLOYED. Need exact-head build/TypeScript/E2E, initial bundle/chunk comparison, Google OAuth real-account timing and mobile deployed-origin measurement. No production changes occurred.
