@@ -156,7 +156,7 @@ export async function reviewDirectoryClaim(input: {
 export async function updateOwnedDirectoryListing(input: {
   listingId: string; displayName: string; specialty: string; phone: string; secondaryPhone: string;
   address: string; governorate: string; district: string; village: string;
-  bio: string; workingHours: string; websiteUrl: string; bookingUrl: string; services: string; socialLinks: string;
+  bio: string; workingHours: string; websiteUrl: string; bookingUrl: string; services: string; socialLinks: string; profileImageUrl: string;
 }): Promise<PublicDirectoryListing> {
   const response = await callDirectoryAdmin({
     action: "UPDATE_OWNED_LISTING", listingId: input.listingId, displayName: input.displayName,
@@ -166,6 +166,7 @@ export async function updateOwnedDirectoryListing(input: {
       bio: input.bio, workingHours: input.workingHours, websiteUrl: input.websiteUrl, bookingUrl: input.bookingUrl,
       services: input.services.split("\\n").map((value) => value.trim()).filter(Boolean),
       socialLinks: input.socialLinks.split("\\n").map((value) => value.trim()).filter(Boolean),
+      profileImageUrl: input.profileImageUrl.trim(),
     },
   });
   return response.listing as PublicDirectoryListing;
