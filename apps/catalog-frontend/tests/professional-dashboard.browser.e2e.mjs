@@ -422,7 +422,7 @@ const results = [];
       await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
       await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
     }
-    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).last().click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'home navigation must return to the canonical root route');
     results.push('marketplace-home-root-and-dedicated-search-navigation');
