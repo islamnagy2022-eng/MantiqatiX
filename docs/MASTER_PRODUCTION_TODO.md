@@ -2869,3 +2869,44 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Security Advisor refreshed at 2026-10-31 06:54:55 UTC: 8 RLS-enabled/no-policy INFO findings; 3 anon SECURITY DEFINER warnings; 67 authenticated SECURITY DEFINER warnings; 90 anonymous-policy warnings; 1 leaked-password protection warning. This is an inventory; do not blanket-revoke or add broad policies.
 - [ ] Before any Production rollout: recover authoritative historical bootstrap SQL for `private.platform_admins`; verify the legitimate server-side provisioning/removal path without exposing registry rows; rehearse the exact ordered RC441 → RC449 → RC462 effects against a restorable current Production schema; obtain off-site backup + successful restore/rollback evidence; inspect final live ACL/search_path/function bodies; complete auth/payment/finance and tenant-isolation E2E; and obtain explicit rollout authorization.
 - No Production DDL/DML, grants, RLS/Auth settings, registry-row reads, Edge deployments, payments, refunds, settlements or journal mutations occurred. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — RC42 platform-admin historical migration source recovery
+
+### Exact source recovered from the live migration ledger
+
+- [x] Restored `20260927065218_mnty_platform_admin_authority.sql` from the exact applied `statements[1]` recorded in `supabase_migrations.schema_migrations`; byte length 521; SHA-256 `3412d8d7c239c2eeb3d453ce28eed3391a8bdf43b18c9f8ad6c1b096deb5096d`.
+- [x] Restored `20260927065247_mnty_atomic_registration_review.sql`; byte length 3,243; SHA-256 `272445a4f4eadcdd6e27ee4abaff3fcb144cf437717f9c774b299ee67cb0aad3`.
+- [x] Restored `20260927065347_mnty_platform_bootstrap_authority.sql`; byte length 1,871; SHA-256 `dadf47ca682c6f42013263321814d8592b10d4776bbd358148256c5842908180`.
+- [x] Restored the exact applied alias `20260927140200_lock_platform_admins_rls.sql`; byte length 295; SHA-256 `15efd7c4c69ae573b33e576c683222f6dc8db9abf16131893517466befbf64ef`. The separately tracked `20260927140202_...` file is a distinct source timestamp and is not substituted for the live alias.
+- [x] Added `scripts/validate-platform-admin-migration-source-parity.mjs` and wired it into Migration Version Uniqueness CI to compare the four recovered files against the SHA-256 values derived from the exact live ledger statements.
+
+### Historical owner-bootstrap source intentionally not re-published
+
+- Live ledger version `20260927131555` (`bootstrap_mnty_owner_islam_nagy_v2`) is present; statement byte length 1,286 and SHA-256 `d945cd784a903095e6290e21e28dd5703ed5e3fffa2d0c32fe934614173fe3a6`.
+- Its applied SQL contains a hard-coded personal email and matching owner metadata. The exact statement was inspected read-only but was not reintroduced as a public repository migration file to avoid republishing that personal identifier. Do not edit the applied statement or invent a redacted runnable replacement. A privacy-safe archival strategy needs separate review.
+
+### Current live bootstrap authority contract (read-only)
+
+- `private.platform_admins` exists with RLS enabled and FORCE RLS disabled. Direct SELECT/INSERT for `anon` and `authenticated` are false; `service_role` SELECT/INSERT are true. No registry rows or identities were queried.
+- Live `private.bootstrap_platform_admin(uuid,varchar,varchar,varchar)` is SECURITY DEFINER with empty search_path. EXECUTE is false for anon/authenticated and true for service_role.
+- The live function is a one-time bootstrap: it rejects if any `private.platform_admins` row already exists, checks that the supplied Auth user exists, inserts a new tenant unconditionally, creates a SUPER_ADMIN membership with `permissions='[]'`, then inserts the platform-admin registry row and audit record.
+- **Confirmed source defect:** its default tenant ID is `MNTY_PLATFORM` (underscore), while the canonical production tenant identifier used by the platform is `MNTY-PLATFORM` (hyphen). It also unconditionally inserts the tenant, so it cannot safely be called with the canonical ID if that tenant already exists. The caller would need to pass a deliberate tenant ID and the tenant must not already exist; current production bootstrap eligibility was not checked by reading registry rows.
+- The live ledger also contains reconciliation migration alias `20261002044021` (`20261002090000_super_admin_platform_authority_reconciliation`), whose source on main adds SUPER_ADMIN memberships from the private registry. It does not itself create the root registry entry.
+- Deployed Edge inventory contains `mnty-registration-review` v5 with JWT verification, but no dedicated platform-bootstrap Edge Function. Source search found no checked-in Edge caller for `private.bootstrap_platform_admin`. The registration-review function is a different operation and must not be treated as a bootstrap endpoint.
+- The bootstrap audit row uses the target `p_user_id` as `actor_user_id`; this can misattribute the service-role operator to the target identity. Any replacement path must explicitly model and audit the initiating operator separately from the target account.
+
+### Required next steps — no Production execution
+
+- [ ] Design a fail-closed bootstrap/recovery flow that supports an existing canonical `MNTY-PLATFORM` tenant without duplicate tenant creation, requires an explicit approved target Auth identity, checks the root registry state, and records the actual operator separately from the target.
+- [ ] Decide whether the one-time bootstrap function should remain service-role-only and whether an authenticated Edge gateway is needed. Any gateway must use a server-held allowlist/approval, never trust a client-supplied user ID alone, and have negative tests for anonymous, tenant admin, wrong target, already-bootstrapped and replay cases.
+- [ ] Do not run the current live bootstrap function: its default tenant ID is wrong for the canonical tenant and its insert is unconditional.
+- [ ] Do not query registry rows or attempt bootstrap until the owner explicitly authorizes a controlled identity-verification step and rollback plan.
+- Production DDL/DML, grants, RLS/Auth settings, Edge deployments and registry-row reads were not performed. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — PR #207 duplicate-source coordination
+
+- PR #207 already contained the three RC42 source paths with an extra trailing newline. To preserve the cross-PR collision guard, updated only those three files on the PR #207 draft branch to the exact canonical ledger bytes now used by PR #598. Contents now compare byte-for-byte equal; all other PR #207 files were left untouched.
+- PR #598 is the single candidate release path for the recovered files and exact SHA-256 parity check. PR #207 remains draft/unmerged; its other release work is not approved by this source-only coordination.
+- Fresh exact-head CI on PR #598 is required after this coordination. Do not merge while the cross-PR collision check or full forward replay is pending.
