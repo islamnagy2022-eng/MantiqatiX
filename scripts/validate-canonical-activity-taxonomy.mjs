@@ -246,7 +246,7 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
   assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
-assert.ok(directory.includes('xl:grid-cols-5'), 'Direct activity cards must use a responsive multi-column layout.');
+assert.ok(directory.includes('grid-cols-2') && directory.includes('sm:grid-cols-4') && directory.includes('md:grid-cols-6') && directory.includes('xl:grid-cols-8'), 'Direct activity cards must use the requested responsive 2/4/6/8-column layout.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
 assert.ok(!directory.includes('functionalGroups'), 'Functional groups must not be displayed or filtered in the public directory.');
