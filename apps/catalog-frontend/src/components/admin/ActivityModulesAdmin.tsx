@@ -20,6 +20,10 @@ const toLines = (value: string) => value.split(/\r?\n/).map((item) => item.trim(
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-500';
 const labelClass = 'mb-1.5 block text-xs font-black text-slate-700';
 
+// Keep administrative writes disabled until the atomic settings+audit backend
+// contract is deployed and verified on the live Supabase project.
+const ACTIVITY_MODULE_ADMIN_WRITE_ENABLED = false;
+
 const toDraft = (category: ActivityCategory, overrides: ReturnType<typeof useApp>['adminSettings']['activityModuleOverrides']): EditorDraft => {
   const config = resolveActivityModuleConfig(category, overrides);
   return {
@@ -140,6 +144,20 @@ export const ActivityModulesAdmin: React.FC = () => {
       setSaving(false);
     }
   };
+
+  if (!ACTIVITY_MODULE_ADMIN_WRITE_ENABLED) {
+    return (
+      <section dir="rtl" className="space-y-5">
+        <header className="rounded-3xl bg-gradient-to-l from-slate-950 to-indigo-950 p-5 text-white shadow-lg">
+          <span className="text-xs font-black text-indigo-200">Super Admin · Activity Modules</span>
+          <h2 className="mt-2 text-2xl font-black">إعدادات وحدات الأنشطة</h2>
+        </header>
+        <div role="status" className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm font-bold leading-7 text-amber-950">
+          معاينة إعدادات الأنشطة متاحة، لكن الحفظ الإداري موقوف مؤقتًا حتى نشر واختبار خدمة الحفظ الذري مع سجل التدقيق على Supabase. لم يتم إرسال أي تعديل أو تغيير بيانات الإنتاج.
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section dir="rtl" className="space-y-5">
