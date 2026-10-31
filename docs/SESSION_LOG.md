@@ -1610,3 +1610,44 @@ A separate source review found a second platform-root authorization model: the n
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — Homepage activity classification/display correction
+
+- User reported that activity-based discovery on the homepage was not displaying activities correctly. The request was registered in master ledger Issue #599 and in `docs/MASTER_PRODUCTION_TODO.md` under `CAT-HOMEPAGE-ACTIVITY-DISPLAY-20261031-01`.
+- Read-only Production audit: 10 businesses currently satisfy the public-eligibility predicate in the inspected snapshot; all 10 have an ACTIVE provider profile, an ACTIVE branch, and non-empty activity group/category/specialty codes. This sample does not indicate missing provider/branch records as the cause for those 10.
+- Read-only Production audit also confirmed `public-catalog-directory` Edge Function is deployed at v10 and differs from current `main`: live source does not return the sanitized `activityModuleOverrides` payload now present in main. This is a separate activity-module settings parity item; no Edge deployment was performed.
+- Found and fixed a deterministic frontend mapping defect: `mapBusiness` previously preferred the legacy `category` display string before the canonical `activityGroupCode + activityCategoryCode` result. The canonical ID is now authoritative; legacy label matching is fallback-only. This protects homepage activity counts, module counts and selected-activity filtering from stale legacy labels.
+- Added a browser regression fixture where legacy `category='مطاعم — برجر'` conflicts intentionally with canonical `medical_health / pharmacies`. The test asserts that the verified count appears under `صيدليات`, not `مطاعم`, and that opening the tile routes to the pharmacy module.
+- Extended `scripts/validate-canonical-activity-taxonomy.mjs` to enforce canonical-code precedence and require the regression E2E. Current code/test commits include `c1c85f7b8607477f567eccb7eddd623ebcb206e7`, `1cd8bc6da112d2e723d5acb107e3427221bc1746`, `70f288ba7ec0e5db20f609af0a699024dc96faf5`, and `5ed2d8d6c4b7f98d0992546be055099d6e123426`.
+- Branch: `fix/homepage-activity-taxonomy-display-20261031`. Exact-head CI is pending; do not mark the correction verified or deployed until all required checks complete.
+- No Production database/schema/data/ACL/RLS/Auth/Edge Function/payment/finance mutation or deployment was performed. Full platform gate remains `BLOCKED / NOT CERTIFIED`.
+
+
+### Homepage mobile activity grid follow-up
+
+- The current homepage activity taxonomy grid was using two columns on mobile (`grid-cols-2`), contrary to the accepted three-activities-per-row requirement. Updated it to three columns on phones, four at large screens, and five at extra-large screens; mobile card contents stack compactly while desktop card treatment remains horizontal.
+- Added Playwright coverage at the 390px viewport to assert exactly three activity columns, and extended the canonical taxonomy validator to require this responsive contract.
+- This is included in PR #619. Exact-head validation is pending; no deployed UI change is claimed.
+
+
+### Regression assertion correction
+
+- The first exact-head Playwright run reached the new taxonomy fixture and failed only because the test expected Arabic-Indic digits, while the actual rendered `toLocaleString('ar-EG')` count in the browser was `1` / `0`. The production UI output is unchanged; the test matcher now follows the observed DOM text. The earlier mobile three-column assertion had already passed in that run. Re-run exact-head CI on the corrected test commit before treating the regression as verified.
+
+
+### Exact-head validation result — PR #619
+
+- Final code/test head: `f7d56ccfafea6cf1b04d5a5827d8c76a4e471af0`.
+- Primary Catalog Frontend Validation [41240092695](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092695): TypeScript, production build, canonical taxonomy validator (10 groups / 50 activities), geographic/GPS contract, and other catalog validators PASS; employee RBAC PostgreSQL PASS; Playwright browser E2E PASS.
+- Playwright output explicitly includes `homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels` and `direct-activity-module-route-refresh-specialty-and-back-navigation`; the three-column mobile assertion passed in the same E2E job.
+- Supporting exact-head workflows PASS: Backend-only Module Boundary [41240092718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092718), Module Professionalization [41240092669](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092669), MantiGO Privacy [41240092672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092672), RC425 Paymob Atomicity [41240092667](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092667), Flexible Commission [41240092670](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092670), Pages validation [41240092668](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092668).
+- Pages validation passed but its deployment job was SKIPPED for the PR event. PR #619 remains Draft/unmerged; the code is not live on the production site. Independent review and an authorized merge/deployment are still required.
+- No Production DB/schema/data/ACL/Auth/RLS/Edge/payment/finance mutation or deployment occurred. Live `public-catalog-directory` v10 parity issue (missing sanitized `activityModuleOverrides`) remains separate and open. Overall platform remains `BLOCKED / NOT CERTIFIED`.
+
+
+### Production directory listing coverage audit (read-only)
+
+- `public_directory_listings` snapshot: 357 `PUBLISHED / UNCLAIMED`, one `PUBLISHED / CLAIM_PENDING`, 87 `DRAFT / UNCLAIMED` (all 87 had no phone number), and 9 `HIDDEN / UNCLAIMED` (4 had phone numbers).
+- All 64 distinct stored taxonomy category IDs resolve directly or through the explicit legacy alias map to the canonical 50 categories; no orphan category IDs were found in this inventory.
+- This supports the conclusion that published listing records exist and are covered by the compatibility map; the UI fix remains about stable canonical mapping for business cards and the mobile activity grid. No Production record was changed.

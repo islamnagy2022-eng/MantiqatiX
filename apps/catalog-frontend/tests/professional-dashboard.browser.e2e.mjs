@@ -877,6 +877,11 @@ try {
       }
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.waitFor({ state: 'visible' });
+      const activityGrid = page.locator('section[aria-label="الأنشطة"] .grid').first();
+      const mobileActivityColumns = await activityGrid.evaluate((element) =>
+        getComputedStyle(element).gridTemplateColumns.split(' ').length
+      );
+      assert.equal(mobileActivityColumns, 3, 'homepage must display three activity cards per mobile row');
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
@@ -920,7 +925,51 @@ try {
     } finally { await context.close(); }
   }
 
-// 13. Domain profiles must expose different marketing plans and operating capabilities.
+// 13. Canonical activity codes must outrank conflicting legacy category labels in homepage counts.
+{
+  const conflictingLegacyBusiness = {
+    id: '10000000-0000-0000-0000-000000000777',
+    tenantId: 'tenant-taxonomy-e2e',
+    organizationId: 'org-taxonomy-e2e',
+    name: 'صيدلية اختبار التصنيف',
+    // Deliberately stale legacy label: the stable activity codes below are authoritative.
+    category: 'مطاعم — برجر',
+    activityGroupCode: 'medical_health',
+    activityCategoryCode: 'pharmacies',
+    activityClassificationType: 'activity',
+    activitySpecialty: 'صيدلية عامة',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    isOfficialShowcase: false,
+    provider: { kind: 'OFFICIAL', verified: true, featured: false },
+    profile: { governorate: 'المنوفية', markaz: 'بركة السبع', village: '' },
+    branches: [{ id: 'branch-taxonomy-e2e', tenantId: 'tenant-taxonomy-e2e', name: 'الفرع الرئيسي', status: 'ACTIVE' }],
+    selectedBranchId: 'branch-taxonomy-e2e',
+    catalogPublished: true,
+    bizcatalog: { operationalStatus: 'ACTIVE' },
+  };
+  const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
+  try {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+    if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+      await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+      await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+    }
+    const pharmacyActivity = page.getByRole('button', { name: /صيدليات/ }).first();
+    const restaurantActivity = page.getByRole('button', { name: /مطاعم/ }).first();
+    await pharmacyActivity.waitFor({ state: 'visible' });
+    await restaurantActivity.waitFor({ state: 'visible' });
+    assert.match(await pharmacyActivity.innerText(), /موثق\s*1/, 'canonical pharmacy activity must receive the verified count');
+    assert.match(await restaurantActivity.innerText(), /موثق\s*0/, 'stale restaurant label must not steal the pharmacy count');
+    await pharmacyActivity.click();
+    await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
+    results.push('homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels');
+  } finally { await context.close(); }
+}
+
+// 14. Domain profiles must expose different marketing plans and operating capabilities.
   {
     const { context, page } = await newScenario(browser);
     try {

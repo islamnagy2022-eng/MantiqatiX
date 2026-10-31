@@ -14,6 +14,34 @@
 
 
 
+## CAT-HOMEPAGE-ACTIVITY-DISPLAY-20261031-01 — Correct activity classification and homepage display
+**Date:** 2026-10-31  
+**Status:** VALIDATED IN PR — exact-head CI passed; merge and deployed-origin verification remain open.  
+**Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiQaTiX/issues/599).  
+**Branch:** `fix/homepage-activity-taxonomy-display-20261031`.
+
+### Read-only production findings
+- [x] Confirmed 10 currently public-eligible businesses in the inspected production snapshot. All 10 have an ACTIVE provider profile, an ACTIVE branch, and non-empty activity group/category/specialty codes. This sample does not support missing provider/branch records as the reason those 10 fail to display.
+- [x] Audited `public_directory_listings`: 357 rows are `PUBLISHED / UNCLAIMED`, one is `PUBLISHED / CLAIM_PENDING`, 87 are `DRAFT / UNCLAIMED` (all 87 lack a phone number in the inspected snapshot), and 9 are `HIDDEN / UNCLAIMED` (4 have a phone). All 64 distinct stored taxonomy category IDs in the inventory resolve directly or through the legacy alias map to the canonical 50 categories; no orphan category IDs were found.
+- [x] Confirmed the live public directory Edge Function is v10 and differs from `main`: deployed source does not return the sanitized `activityModuleOverrides` payload present in current `main`. This is a separate activity-module configuration parity item; no Edge deployment is included here.
+- [x] Identified a deterministic client mapping defect in `mapBusiness`: the legacy display/category string was preferred over the stable `activityGroupCode + activityCategoryCode` mapping when choosing `categoryId`. Since homepage counts, activity-module counts and result filtering depend on `categoryId`, a stale label could put a business under the wrong activity.
+- [x] No Production data, database schema, ACL, RLS, Auth, Edge Function, payment or finance mutation was performed.
+
+### Implementation
+- [x] Updated `apps/catalog-frontend/src/lib/production.ts` so the resolved canonical activity ID is authoritative; legacy display-name matching is now fallback-only.
+- [x] Added a browser regression fixture with a deliberately conflicting legacy label (`مطاعم — برجر`) and canonical codes for `medical_health / pharmacies`. The test requires the homepage verified count to appear under `صيدليات`, not `مطاعم`, and verifies navigation to the correct activity module.
+- [x] Restored the requested mobile activity-card layout: three columns at phone widths, expanding to four/five columns on larger screens; cards use a compact stacked mobile layout and retain the existing horizontal desktop treatment.
+- [x] Added Playwright assertion for exactly three homepage activity columns at the 390px mobile viewport; the canonical taxonomy validator now enforces both the responsive grid and the regression test.
+- [x] Added a canonical taxonomy validator assertion requiring the homepage regression E2E.
+- [x] Exact-head TypeScript/build, canonical taxonomy validator, RBAC PostgreSQL and Playwright browser E2E passed on `f7d56ccfafea6cf1b04d5a5827d8c76a4e471af0`: Primary Catalog Validation [41240092695](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092695), browser E2E `PRIMARY_CATALOG_BROWSER_E2E=PASS`, employee RBAC PostgreSQL PASS; canonical taxonomy 10 groups/50 activities PASS. Supporting backend boundary [41240092718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092718), module professionalization [41240092669](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092669), MantiGO privacy [41240092672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092672), RC425 [41240092667](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092667), flexible commission [41240092670](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092670) and Pages validation [41240092668](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092668) all PASS. Pages deployment was SKIPPED because this was a PR run.
+- [ ] Review deployed-origin result after authorized merge/deployment. Do not claim a Production fix before deployed-origin verification.
+- [ ] Independently reconcile and review the live `public-catalog-directory` v10 vs current-main activity-module settings contract before any Edge Function deployment.
+
+### Release boundary
+- Frontend/test changes only. No Production migration, data correction, Edge Function deployment, Auth/RLS/GRANT change, payment or finance mutation.
+- Preserve the canonical public hierarchy: **activity → specialty → business/service**, verified first, unverified after, without exposing functional-group navigation.
+- Overall platform release remains `BLOCKED / NOT CERTIFIED`.
+
 ## CAT-ACTIVITY-MODULES-20261031-01 — Direct activity pages and specialized activity modules
 **Date:** 2026-10-31  
 **Status:** IN PROGRESS — activity-specific configuration registry implemented; exact-head validation is running for the latest registry changes.  

@@ -137,6 +137,7 @@ assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Di
 assert.ok(directoryListingsView.includes('resolveCanonicalSpecialty'), 'Legacy specialty labels must match canonical specialty filters through the shared resolver.');
 assert.ok(browserE2E.includes("name: 'ممارسات وعيادات طبية', exact: true"), 'Browser taxonomy navigation must assert the canonical medical activity label.');
 assert.ok(browserE2E.includes("getByRole('button', { name: /باطنة/ })"), 'Browser taxonomy navigation must assert a canonical medical specialty.');
+assert.ok(browserE2E.includes('homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels'), 'Browser E2E must prove that canonical activity codes control homepage category counts when legacy labels conflict.');
 assert.ok(!browserE2E.includes("getByText('عيادات عامة', { exact: true })"), 'Legacy clinic category labels must not remain in browser assertions.');
 for (const legacySpecialty of ['طبيب اطفال', 'طبيب نساء وتوليد', 'طبيب باطنه', 'مراكز وعيادات اسنان', 'معامل تحاليل', 'علاج طبيعي']) {
   assert.ok(defaults.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
@@ -202,6 +203,12 @@ assert.ok(production.includes('raw.activitySpecialty'), 'Production mapping must
 assert.ok(production.includes('raw.settings?.activity_category_code'), 'Production mapping must read the canonical activity category code.');
 assert.ok(production.includes('canonicalCategoryId'), 'Production mapping must resolve the stable canonical category ID.');
 assert.ok(production.includes('resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode)'), 'Business mapping must resolve legacy activity codes to canonical category IDs.');
+const mappedCategoryIdExpression = production.match(/categoryId:\s*([\s\S]*?),\n\s*functionalGroupId,/)?.[1] || '';
+assert.ok(mappedCategoryIdExpression.includes('canonicalCategoryId'), 'Business mapping must prefer the stable canonical activity ID.');
+assert.ok(
+  mappedCategoryIdExpression.indexOf('canonicalCategoryId') < mappedCategoryIdExpression.indexOf('x.name === category'),
+  'Legacy display/category labels must only be a fallback when no canonical activity code resolves.',
+);
 assert.ok(production.includes('activityGroupCode: body.business?.activityGroupCode'), 'Direct storefront hydration must pass the safe canonical group code into business mapping.');
 assert.ok(production.includes('activityCategoryCode: body.business?.activityCategoryCode'), 'Direct storefront hydration must pass the safe canonical category code into business mapping.');
 assert.ok(production.includes('meta.activity_group_code') && production.includes('meta.activity_category_code'), 'Business mapping must read taxonomy metadata from the safe bizcatalog profile where present.');
@@ -247,6 +254,8 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
 assert.ok(directory.includes('xl:grid-cols-5'), 'Direct activity cards must use a responsive multi-column layout.');
+assert.ok(directory.includes('grid grid-cols-3 gap-2 lg:grid-cols-4 xl:grid-cols-5'), 'Homepage activity cards must show three columns on mobile and expand on larger screens.');
+assert.ok(browserE2E.includes('mobileActivityColumns, 3'), 'Browser E2E must verify the three-column mobile activity grid.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
 assert.ok(!directory.includes('functionalGroups'), 'Functional groups must not be displayed or filtered in the public directory.');
