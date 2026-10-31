@@ -1535,3 +1535,13 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Reimplemented the minimal functional changes on current main in PR [#621](https://github.com/islamnagy2022-eng/MantiqatiX/pull/621): canonical activity-code precedence over legacy category labels; three columns on mobile while preserving the latest 4/6/8 wider breakpoints; Playwright regression and static validator coverage.
 - [ ] PR #621 exact-head CI and review pending. Do not merge or claim deployed until the latest build, browser E2E, taxonomy and RBAC checks pass.
 - [ ] Retire/supersede stale PR #619 only after PR #621 passes and is merged; no production deployment or Edge Function update is included.
+
+
+## 2026-11-01 — Activity module directory records (additive frontend fix)
+- [x] Root cause confirmed: ActivityModuleView previously received only category/counts and could not render real directory entities.
+- [x] Pass the already geo/search-filtered verified businesses and published unclaimed directory listings into the module; preserve the current geographic scope.
+- [x] Render verified entities first and unverified entities with a red badge; require a usable phone number for module listing visibility.
+- [x] Specialty selection now filters records inside the activity module instead of navigating back to the homepage directory.
+- [ ] Exact-head CI, TypeScript/build, taxonomy/static validation, RBAC and browser E2E must pass before merge.
+- [ ] Confirm module navigation, specialty filter, geo-scope preservation and entity detail navigation in browser at 390px/768px/1440px.
+- [ ] No production database, Auth/RLS, Edge Function, payment, or deployment mutation is included. Production Gate remains **BLOCKED / NOT CERTIFIED**.
