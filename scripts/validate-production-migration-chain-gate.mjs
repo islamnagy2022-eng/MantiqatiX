@@ -176,6 +176,15 @@ const validReconciliation = {
     anon_execute: true,
     authenticated_execute: true
   },
+  trigger_only_security_definer_acl_check: {
+    status: "PASS",
+    migration_version: "20261031100000",
+    migration_version_recorded: true,
+    functions: [
+      { function_name: "assign_default_owner_to_unowned_business", security_definer: true, trigger_enabled: true, search_path_empty: true, public_execute: false, anon_execute: false, authenticated_execute: false, service_role_execute: false },
+      { function_name: "capture_commission_rule_audit", security_definer: true, trigger_enabled: true, search_path_empty: true, public_execute: false, anon_execute: false, authenticated_execute: false, service_role_execute: false }
+    ]
+  },
   financial_journal_runtime_prerequisite_check: {
     status: "PASS",
     live_migrations: {
