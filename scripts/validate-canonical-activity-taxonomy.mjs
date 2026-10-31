@@ -259,6 +259,7 @@ assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Public activity cards m
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
 assert.ok(directory.includes('availableGroups.map') && directory.includes('availableCategories.map'), 'Public directory must render group folders first and activities inside the selected group.');
+assert.ok(directory.includes('{group.name}') && directory.includes('{groupCategories.length} نشاط'), 'group-folder cards must retain their names and activity counts after activity-grid layout changes.');
 
 
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} activities (5 per group), specialties, legacy mapping, admin UI, and server persistence.`);
