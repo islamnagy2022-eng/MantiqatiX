@@ -19,14 +19,11 @@ Both functions are SECURITY DEFINER trigger functions, not client RPC endpoints.
 
 ## Change
 
-The migrations:
-
-**RC463A**
-- Fails closed unless the exact required relations/columns are present.
-- Recovers the observed live function bodies and expected trigger definitions without changing business or audit rows.
-- Preserves existing trigger objects/enablement and creates them only when absent.
+The migration:
 
 **RC463**
+- Fails closed on partial/mismatched function/trigger state.
+- Skips a fully absent function/trigger pair in an older captured checkpoint.
 
 1. Fails closed if either function is missing, is not a SECURITY DEFINER trigger function, or its expected trigger is absent/disabled.
 2. Pins both function search paths to the empty path. Function bodies use schema-qualified application objects.
@@ -37,7 +34,7 @@ The public read-only `get_mnty_targeted_advertisements(...)` RPC is explicitly o
 
 ## Verification
 
-The disposable PostgreSQL 16 integration fixture applies the exact migration file, then verifies:
+The disposable PostgreSQL 16 integration fixture creates synthetic trigger functions and triggers, applies the exact migration file, then verifies:
 
 - PUBLIC/anon/authenticated/service_role cannot directly EXECUTE either trigger function.
 - Both functions remain SECURITY DEFINER with empty search_path.
