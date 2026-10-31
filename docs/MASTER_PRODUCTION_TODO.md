@@ -2881,3 +2881,15 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified/Professional Dashboard:** source PR #483 is merged; current main reports `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; deployment and tested deployed-origin owner/employee/branch/QR journeys pass. Remaining scope is the full Super Admin Control Center, module-specific permission enforcement, real-data coverage, complete screen/action matrix and full dashboard E2E. See master issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release state:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Current verifier still reports 0/41 required release migration IDs, 32/60 non-PASS object checks, six critical Edge Function drifts, RC449A/RC450 journal schema/ACL blockers, and payment/finance, Auth hardening and backup/restore evidence outstanding. Catalog pilot PASS does not certify the platform.
 - Open workstreams and PR triage are indexed in master issue #599. Do not treat historical TODO snapshots as current without checking exact main and live evidence.
+
+
+## 2026-10-31 — RC463 trigger-only SECURITY DEFINER ACL hardening (user-authorized execution)
+
+- **Status: IN PROGRESS / NOT PRODUCTION-APPLIED.** User explicitly authorized executing the previously ordered remediation sequence.
+- Scope: secure `public.assign_default_owner_to_unowned_business()` and `public.capture_commission_rule_audit()`, which are trigger-only SECURITY DEFINER functions. Preserve the intentionally public `get_mnty_targeted_advertisements(...)` RPC.
+- New forward-only migration candidate: `supabase/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql`. It verifies both enabled trigger attachments, pins both function search paths to empty, and revokes direct EXECUTE from PUBLIC, anon, authenticated and service_role. It does not modify trigger definitions or application UI.
+- The existing disposable PostgreSQL integration is being changed to apply this exact migration file, then assert no API role can execute either function, both triggers remain enabled, and service_role DML still creates the default-owner membership and commission audit record.
+- Dedicated CI is being updated to mount the full `supabase/` fixture tree so psql can include the exact migration source.
+- Acceptance: isolated PostgreSQL integration PASS; migration version/history/collision guards PASS; exact-head review; no production DDL/grants until the full production rehearsal and explicit rollout authorization.
+- **No Production mutation is authorized by this task.** Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- Remaining sequence: (1) obtain user approval for the priced Supabase development branch after presenting exact cost; (2) rehearse ordered migration chain against an isolated restorable schema; (3) repair/verify finance schema and RPC/ACL in rehearsal; (4) reconcile Edge Function source contracts one-by-one and run sandbox tests; (5) verify real deployed-origin account roles and continue unified Super Admin dashboard E2E.
