@@ -14,6 +14,31 @@
 
 
 
+## CAT-HOMEPAGE-ACTIVITY-DISPLAY-20261031-01 — Correct activity classification and homepage display
+**Date:** 2026-10-31  
+**Status:** IN PROGRESS — mapper precedence corrected; regression E2E added; exact-head CI pending.  
+**Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiQaTiX/issues/599).  
+**Branch:** `fix/homepage-activity-taxonomy-display-20261031`.
+
+### Read-only production findings
+- [x] Confirmed 10 currently public-eligible businesses in the inspected production snapshot. All 10 have an ACTIVE provider profile, an ACTIVE branch, and non-empty activity group/category/specialty codes. This sample does not support missing provider/branch records as the reason those 10 fail to display.
+- [x] Confirmed the live public directory Edge Function is v10 and differs from `main`: deployed source does not return the sanitized `activityModuleOverrides` payload present in current `main`. This is a separate activity-module configuration parity item; no Edge deployment is included here.
+- [x] Identified a deterministic client mapping defect in `mapBusiness`: the legacy display/category string was preferred over the stable `activityGroupCode + activityCategoryCode` mapping when choosing `categoryId`. Since homepage counts, activity-module counts and result filtering depend on `categoryId`, a stale label could put a business under the wrong activity.
+- [x] No Production data, database schema, ACL, RLS, Auth, Edge Function, payment or finance mutation was performed.
+
+### Implementation
+- [x] Updated `apps/catalog-frontend/src/lib/production.ts` so the resolved canonical activity ID is authoritative; legacy display-name matching is now fallback-only.
+- [x] Added a browser regression fixture with a deliberately conflicting legacy label (`مطاعم — برجر`) and canonical codes for `medical_health / pharmacies`. The test requires the homepage verified count to appear under `صيدليات`, not `مطاعم`, and verifies navigation to the correct activity module.
+- [x] Added a canonical taxonomy validator assertion requiring the homepage regression E2E.
+- [ ] Exact-head TypeScript/build, canonical taxonomy validator, RBAC PostgreSQL, Playwright browser E2E and supporting workflow checks.
+- [ ] Review deployed-origin result after authorized merge/deployment. Do not claim a Production fix before deployed-origin verification.
+- [ ] Independently reconcile and review the live `public-catalog-directory` v10 vs current-main activity-module settings contract before any Edge Function deployment.
+
+### Release boundary
+- Frontend/test changes only. No Production migration, data correction, Edge Function deployment, Auth/RLS/GRANT change, payment or finance mutation.
+- Preserve the canonical public hierarchy: **activity → specialty → business/service**, verified first, unverified after, without exposing functional-group navigation.
+- Overall platform release remains `BLOCKED / NOT CERTIFIED`.
+
 ## CAT-ACTIVITY-MODULES-20261031-01 — Direct activity pages and specialized activity modules
 **Date:** 2026-10-31  
 **Status:** IN PROGRESS — activity-specific configuration registry implemented; exact-head validation is running for the latest registry changes.  
