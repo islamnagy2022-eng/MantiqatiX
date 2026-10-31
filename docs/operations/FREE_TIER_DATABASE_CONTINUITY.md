@@ -81,4 +81,4 @@ Do not restore over Production. Use a disposable local PostgreSQL/Supabase envir
 - [Supabase backup and restore with the CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore)
 - [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
 
-**Current status:** Monitoring source staged for review; first live run pending merge. No Production backup or restore rehearsal has yet been evidenced. Production remains **BLOCKED / NOT CERTIFIED**.
+**Current status:** Monitoring was merged in PR [#567](https://github.com/islamnagy2022-eng/MantiqatiX/pull/567) as `c8c65e7b4d8cf70e83753e9d194b25f18e5395cb`. The first post-merge live database probe and GitHub failure-notification delivery remain NOT VERIFIED. No Production backup or restore rehearsal has yet been evidenced. Production remains **BLOCKED / NOT CERTIFIED**.
