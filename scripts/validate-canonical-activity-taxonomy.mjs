@@ -177,11 +177,12 @@ for (const activityId of canonicalActivityIds) {
 }
 assert.ok(activityModuleRegistry.includes('ACTIVITY_CAPABILITY_OVERRIDES'), 'Every activity must resolve an activity-specific operational capability set.');
 const activityCapabilityRegistry = activityModuleRegistry.slice(activityModuleRegistry.indexOf('export const ACTIVITY_CAPABILITY_OVERRIDES'));
-const activityCapabilityLines = activityCapabilityRegistry.split('\\n');
+const activityCapabilityLines = activityCapabilityRegistry.split(String.fromCharCode(10));
 for (const activityId of canonicalActivityIds) {
   const capabilityLine = activityCapabilityLines.find((line) => line.startsWith('  ' + activityId + ': ['));
   assert.ok(capabilityLine, 'Missing activity-specific capability definitions for ' + activityId + '.');
-  assert.equal((capabilityLine.match(/\\{ id:/g) || []).length, 3, 'Each activity must define exactly three reviewed operational capabilities: ' + activityId + '.');
+  assert.equal(capabilityLine.split('{ id:').length - 1, 3, 'Each activity must define exactly three reviewed operational capabilities: ' + activityId + '.');
+}
 }
 assert.ok(activityModuleRegistry.includes("state: 'planned' as const"), 'Activity-specific capabilities must default to planned until backed by authorized workflows.');
 assert.ok(activityModuleRegistry.includes("ACTIVITY_CAPABILITY_OVERRIDES[category.id] || profile.capabilities"), 'Activity resolver must prefer activity-specific capability definitions.');
