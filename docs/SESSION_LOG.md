@@ -1408,3 +1408,8 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - PR #583 was merged after six exact-head workflows succeeded; merge commit `526fd5308bb2017f2b4a83b33c8b029b9fbbc275`. This was documentation-only.
 - Both historical migration files must remain unchanged. Replay both chronologically in disposable full-schema rehearsal; their duplicate `CREATE OR REPLACE` statements are idempotent, but both exact migration IDs remain separate ledger requirements.
 - No Production DDL/DML, grants, RLS/Auth changes, Edge deployments, payment, settlement or journal mutations. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Governance alignment item — platform authority registries
+
+A separate source review found a second platform-root authorization model: the newer Super Admin Control Center RPCs (`mnty_platform_admin_*`) authorize against `private.platform_admins`, while the RC441/RC449 MantiGO/global-digital-page helper authorizes against an active `user_memberships` row in `MNTY-PLATFORM` with `SUPER_ADMIN`, `scope=PLATFORM`, and `full_control=true`. These are distinct authority sources, not the same predicate. The platform-control-center design explicitly describes `private.platform_admins` as the protected root registry; an earlier documented production checkpoint (2026-09-27) recorded zero rows, but that count has not been re-read in this session. Do not infer the current registry contents. Before rollout, decide and test whether both sources must agree, whether one is the canonical root, and how bootstrap/revocation keeps them synchronized. This is a governance consistency gap to resolve, not proof of a privilege escalation. No sensitive registry rows were queried.
