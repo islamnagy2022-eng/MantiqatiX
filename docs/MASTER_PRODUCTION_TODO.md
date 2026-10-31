@@ -2972,3 +2972,11 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Implement verified top-up channels, automatic platform billing and ad-cover reservations only after schema/provider/legal review.
 - [ ] Test idempotency, concurrency, RLS, reconciliation and cash approval; obtain Egypt-specific legal/accounting review before any spendable stored balance.
 - Status: commission draft engine reused; flexible subscription pricing, wallet and ad booking are not implemented or activated.
+
+
+### Exact-head Browser E2E failure triage — 2026-10-31
+- Latest observed PR #610 head before the fix: `923d8c5bfb5203da9325efea8f6a4daed7ed2f94`.
+- Primary Catalog Frontend Validation: build, TypeScript, taxonomy/geographic/Google OAuth/unified-dashboard contracts and PostgreSQL employee RBAC passed.
+- Browser E2E failed at the business-owner entry scenario because the test expected the employee/professional dashboard navigation landmark after opening the owner MerchantDashboard. The owner MerchantDashboard is currently a form workspace headed `إدارة منتجات وكتالوج نشاطك`, not the professional dashboard navigation shell. This was an assertion/fixture mismatch, not evidence of a permission denial.
+- Corrected the browser assertion to wait for the actual owner workspace heading. Owner/employee routes remain separately asserted; no production code authorization was weakened.
+- A new exact-head CI run must verify the correction. Do not mark E2E passed until that run concludes successfully.
