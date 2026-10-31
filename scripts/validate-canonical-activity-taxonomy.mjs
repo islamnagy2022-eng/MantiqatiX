@@ -257,7 +257,7 @@ assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group card
 assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Homepage activity cards must show eight compact columns on mobile and larger screens.');
 assert.ok(directory.includes('grid grid-cols-8 gap-1'), 'Public activity cards must retain the requested eight-column layout.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
-assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
+assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل أنشطة المجموعة'), 'Specialty filters must remain visible and reversible within the selected activity group.');
 assert.ok(directory.includes('availableGroups.map') && directory.includes('availableCategories.map'), 'Public directory must render group folders first and activities inside the selected group.');
 assert.ok(directory.includes('{group.name}') && directory.includes('{groupCategories.length} نشاط'), 'group-folder cards must retain their names and activity counts after activity-grid layout changes.');
 
