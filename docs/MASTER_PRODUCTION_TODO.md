@@ -2598,3 +2598,19 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] إغلاق Issue [#269](https://github.com/islamnagy2022-eng/MantiqatiX/issues/269) بعد استكمال source fix والاختبارات المعزولة.
 - [ ] تطبيق RC458 على Production غير منفذ. يلزم مسار release مع backup/restore وrollback وموافقة صريحة؛ لا تنفذ migration مباشرة.
 - **الحالة:** SOURCE MERGED / ISOLATED VERIFIED / PRODUCTION NOT APPLIED. بوابة المنصة الكلية تظل BLOCKED / NOT CERTIFIED.
+
+
+## Latest production handoff delta — 2026-10-31
+
+- PR #555 merged: read-only finance schema/RPC preflight recorded.
+- PR #556 merged: clarified that the historical checkpoint is not a current Production clone.
+- PR #557 merged: PostgreSQL 16 trigger-only SECURITY DEFINER ACL behavior test.
+- PR #558 merged: docs record for trigger ACL evidence.
+- PR #559 merged: improved RC435/RC439 and RC449A/RC450 disposable fixtures to satisfy additional observed Production constraints; checkout, recovery and journal workflows passed.
+- PR #560 merged: docs record for fixture CI results.
+- PR #561 merged: PostgreSQL 16 test applies exact `ALTER FUNCTION ... SET search_path = ''` and `REVOKE ALL ... FROM PUBLIC, anon, authenticated, service_role`; both existing triggers still fire under service_role DML.
+- PR #562 merged: docs record for trigger test.
+- PR #563 merged: fresh read-only Production finance/schema checkpoint.
+- Test-only PRs and documentation commits did not alter Production. No migration, grant, Auth, RLS, Edge Function, payment, wallet, or journal mutation was performed.
+- Supabase CLI stable `v2.122.0` could not be installed in this runtime: binary download failed and npm bootstrap timed out due external DNS/network access. Do not hand-create migration filenames; create the future migration with `supabase migration new <name>` in an environment with the pinned CLI.
+- First remaining executable gate: obtain an approved, restorable, schema-faithful isolated database for the current Production schema; then rehearse the payment/journal forward-only reconciliation and trigger-only security migration.
