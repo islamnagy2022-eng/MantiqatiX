@@ -113,7 +113,8 @@ for each row execute function public.capture_commission_rule_audit();
 
 
 grant usage on schema public, auth to service_role;
-grant insert on public.businesses, public.commission_rules to service_role;
+grant insert on public.businesses to service_role;
+grant insert, update, delete on public.commission_rules to service_role;
 
 -- Minimal synthetic trigger implementations model the two live trigger contracts.
 -- The migration under test, not this fixture, applies the ACL/search_path hardening.
@@ -179,10 +180,23 @@ values ('20000000-0000-4000-8000-00000000a001','tenant-trigger-fixture','org-tri
 
 set constraints all immediate;
 
+select pg_catalog.set_config(
+  'request.jwt.claim.sub',
+  '10000000-0000-4000-8000-00000000a001',
+  true
+);
+
 insert into public.commission_rules(id,tenant_id,created_by,updated_by)
 values ('commission-rule-fixture','tenant-trigger-fixture',
         '10000000-0000-4000-8000-00000000a001',
         '10000000-0000-4000-8000-00000000a001');
+
+update public.commission_rules
+set tenant_id='tenant-updated-fixture'
+where id='commission-rule-fixture';
+
+delete from public.commission_rules
+where id='commission-rule-fixture';
 
 reset role;
 
@@ -199,13 +213,41 @@ begin
     raise exception 'DEFAULT_OWNER_TRIGGER_DID_NOT_CREATE_ACTIVE_OWNER_MEMBERSHIP';
   end if;
 
+  if (select count(*) from public.commission_rule_audit
+      where commission_rule_id='commission-rule-fixture') <> 3 then
+    raise exception 'COMMISSION_AUDIT_TRIGGER_DID_NOT_RECORD_ALL_THREE_OPERATIONS';
+  end if;
+
   if not exists (
     select 1 from public.commission_rule_audit
     where commission_rule_id='commission-rule-fixture'
       and tenant_id='tenant-trigger-fixture'
       and action='INSERT'
+      and new_values->>'tenant_id'='tenant-trigger-fixture'
   ) then
     raise exception 'COMMISSION_AUDIT_TRIGGER_DID_NOT_RECORD_INSERT';
+  end if;
+
+  if not exists (
+    select 1 from public.commission_rule_audit
+    where commission_rule_id='commission-rule-fixture'
+      and tenant_id='tenant-updated-fixture'
+      and action='UPDATE'
+      and old_values->>'tenant_id'='tenant-trigger-fixture'
+      and new_values->>'tenant_id'='tenant-updated-fixture'
+  ) then
+    raise exception 'COMMISSION_AUDIT_TRIGGER_DID_NOT_RECORD_UPDATE_OLD_AND_NEW_VALUES';
+  end if;
+
+  if not exists (
+    select 1 from public.commission_rule_audit
+    where commission_rule_id='commission-rule-fixture'
+      and tenant_id='tenant-updated-fixture'
+      and action='DELETE'
+      and old_values->>'tenant_id'='tenant-updated-fixture'
+      and new_values is null
+  ) then
+    raise exception 'COMMISSION_AUDIT_TRIGGER_DID_NOT_RECORD_DELETE_OLD_VALUES';
   end if;
 end;
 $behavior$;
