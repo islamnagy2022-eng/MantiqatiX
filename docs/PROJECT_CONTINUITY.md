@@ -1175,3 +1175,8 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Browser E2E exposed a stale expectation for a heading named `الأنشطة` after an unsupported admin route. The current public directory is exposed as `section[aria-label="المجموعات والأنشطة"]`.
 - Updated only the test selector to wait for that real public directory section; kept assertions that the admin tab is hidden and no `ADMIN_LIST` request is sent for unsupported roles.
 - Rerun exact-head browser E2E. Do not merge or claim deployment until it passes. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+### PR #628 browser E2E follow-up — 2026-11-01
+- Latest browser run exposed another stale test assumption: the specialty reset control is `عرض كل أنشطة المجموعة`, not `عرض كل الأنشطة`; the directory landmark is `section[aria-label="المجموعات والأنشطة"]`, not a heading named `الأنشطة`.
+- Updated both duplicated specialty-return assertions to match the real UI. This is test-only; no production UI, role, or authorization behavior was changed. Awaiting fresh CI on the new HEAD.
