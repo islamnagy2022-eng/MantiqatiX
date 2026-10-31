@@ -394,11 +394,16 @@ const results = [];
 
 // Marketplace root is the commercial home; search opens the preserved directory.
 {
-  const { context, page } = await newScenario(browser);
+  const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
   try {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
     await page.getByRole('heading', { name: /كل الأنشطة والخدمات والعروض/ }).waitFor({ state: 'visible' });
+    const firstVerifiedHomeBusiness = liveDirectory.businesses.find((business) => business.provider?.verified === true && business.status === 'ACTIVE');
+    assert.ok(firstVerifiedHomeBusiness, 'homepage E2E must have at least one published verified business fixture');
+    await page.getByRole('heading', { name: firstVerifiedHomeBusiness.name, exact: true }).first().waitFor({ state: 'visible', timeout: 15000 });
+    const featuredCard = page.getByRole('heading', { name: firstVerifiedHomeBusiness.name, exact: true }).first().locator('xpath=ancestor::article[1]');
+    await featuredCard.getByText('موثّق', { exact: true }).waitFor({ state: 'visible' });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'root URL must resolve to the marketplace home');
     for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
