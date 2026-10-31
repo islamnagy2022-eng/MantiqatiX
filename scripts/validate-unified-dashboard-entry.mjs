@@ -51,6 +51,8 @@ assert.match(contextSource, /requestedView === 'account_portal' && authSession\.
 assert.match(contextSource, /const switchToPlatformAdminMode = \(\): boolean/, 'platform admin mode must have a separate server-derived grant');
 assert.match(portal, /switchAccountMembership\(mode\.membershipId,\s*mode\.businessId\)/, 'UI must switch by the exact business-membership pair');
 assert.match(e2e, /account-switch-owner-and-branch-scoped-employee-memberships/, 'browser coverage must switch between owner and branch employee modes');
+assert.match(e2e, /membershipId: body\.membershipId/, 'browser fixture must capture the exact membership identity sent to catalog-admin');
+assert.match(e2e, /membership-employee-business-row/, 'browser coverage must assert the branch employee membership is not replaced by the wider owner membership');
 assert.match(e2e, /platform-admin-and-business-membership-modes-remain-separate/, 'browser coverage must prove platform and business authority remain separate');
 
 const guestBootstrap = production.slice(production.indexOf('export async function bootstrapProductionUser'));
