@@ -1137,3 +1137,15 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - [x] Reconfirmed the two trigger-only SECURITY DEFINER functions still have default EXECUTE ACL and the owner-assignment function still has `search_path=public, auth` in Production. PR #561 is test-only evidence; no production ACL or function alteration occurred.
 - [ ] The historical Oct 17 schema baseline is not current-schema restore evidence. Full current Production schema-faithful disposable rehearsal, backup/restore and RPO/RTO remain open.
 - **No Production mutation. Overall release remains BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-31 — Fresh live finance contract recheck (01:21 UTC)
+
+- [x] Inspected current Production table metadata for subscription checkout and financial journal; no row-level payment/journal data was queried.
+- [x] RC435/RC439 schema and claim RPCs remain missing; legacy subscription intent RPC is present and service_role-executable but does not implement the atomic claim/recovery contract.
+- [x] RC449A journal header/line fields remain missing. Live journal SECURITY DEFINER functions still use `search_path=public`; service_role cannot execute the backend RPC, and its actor check requires `auth.uid()`. No direct ACL adjustment is safe.
+- [x] Rechecked live counts (subscription intents 0; journal entries/lines/general ledger 0) and Advisor findings at 01:21:26 UTC: security 8 RLS/no-policy, 3 anon SD, 67 authenticated SD, leaked-password protection disabled; performance 129 unindexed FKs, 375 auth/RLS init plans, 73 unused indexes, 28 permissive-policy groups.
+- [x] Added audit `docs/audits/PRODUCTION_FINANCE_LIVE_CONTRACT_RECHECK_20261031.md`.
+- [ ] Full current-schema capture/restore remains blocked by unavailable local Supabase CLI in this runtime. The project procedure requires `supabase migration new <name>` for migration authoring; no migration was hand-created.
+- [ ] Next safe work: produce a complete credential-scrubbed schema-only current snapshot in an authorized CLI environment; restore it in a disposable DB; then build and adversarially test a forward-only reconciliation migration. Do not mutate Production first.
+- **Production effect: NONE.** No DDL, grants, RLS, Auth settings, Edge Functions, secrets, payments, or financial rows changed. Production Gate remains **BLOCKED / NOT CERTIFIED**.
