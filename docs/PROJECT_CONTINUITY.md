@@ -2,7 +2,7 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
- > **LATEST SESSION STATE — 2026-10-27:** SMM interactive storefront assets are retired; the public route is a noindex unavailable notice and the server gateway remains default-deny. The three latest live Production migration entries (`20261027010135`, `20261027041411`, `20261027041549`) now have exact-version source files verified character-for-character by read-only SQL comparison. Current main checkpoint before this reconciliation: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`. Production remains **BLOCKED / NOT CERTIFIED**; no deployment is authorized.
+ > **LATEST SESSION STATE — 2026-10-31:** Production remains **BLOCKED / NOT CERTIFIED**. Latest main handoff commit at this checkpoint: `ed6bad03feab6cc6b358534e07f27246f76c2ca7`. The Production migration ledger has 308 rows through `20261029083845`; 0/41 exact required release IDs are present. This does not mean all 41 effects are physically absent: use the new read-only checkpoint `docs/audits/PRODUCTION_FINANCE_SCHEMA_CHECKPOINT_20261031.md` and the reconciliation manifest. RC435/RC439 subscription claim/encrypted-recovery contracts and RC449A/RC450 journal columns/service-role RPC boundary remain absent or incompatible. Six live order/payment/finance Edge entrypoints still differ from main. PRs #559 and #561 added passing PostgreSQL 16 test coverage only; no Production migration/grant/function deploy occurred. PR #563 saved the fresh schema checkpoint. No current-schema restorable Production clone or restore rehearsal exists.
 
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
@@ -33,15 +33,20 @@
 - See the dated entry in `docs/SESSION_LOG.md` and item 34 in `docs/MASTER_PRODUCTION_TODO.md`.
 - Production gate remains **BLOCKED / NOT CERTIFIED**.
 
-## Current baseline
+## Current baseline — refreshed 2026-10-31
 
 - Repository: `islamnagy2022-eng/MantiqatiX`
 - Branch: `main`
-- Supabase project: `moyhiluyhjsujhwlyeuu`
-- Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Latest documented project commit before this reconciliation branch: `743a37b5772ea3af0b6d779b0b75602bd0332ea1`
-- Latest live Production migration inventory: **292 rows**, latest `20261027041549 qadam_alsaad_restore_contact_fields`. A read-only LEFT JOIN confirms **0/34** exact migration versions required by the current Production verifier are recorded; later October 26–27 migrations are present despite those gaps. The source chain replays in isolation (52 migrations, run 40494929976), but it is not applied/proven in Production.
-- Final Production Gate: **BLOCKED / NOT CERTIFIED**
+- Latest main checkpoint: `ed6bad03feab6cc6b358534e07f27246f76c2ca7`
+- Supabase Production project: `moyhiluyhjsujhwlyeuu`
+- Public site: `https://islamnagy2022-eng.github.io/MantiqaTiX/`
+- Live migration ledger: **308 rows**, latest `20261029083845 require_phone_for_published_directory_listings`; **0/41** exact required release version IDs are recorded. Never infer physical absence solely from missing version IDs; reconcile physical object effects and aliases.
+- Confirmed critical gaps: RC435/RC439 subscription claim/encrypted-checkout columns and RPCs absent; RC449A/RC450 journal columns and service_role EXECUTE contract absent/incompatible; six critical live order/payment/finance Edge entrypoints differ from main.
+- Current schema checkpoint: `docs/audits/PRODUCTION_FINANCE_SCHEMA_CHECKPOINT_20261031.md` (read-only, 2026-10-31T00:20:42Z). Nine selected finance/scope tables had both RLS and FORCE RLS enabled. Aggregate capture: 10 businesses, 10 branches, 33 memberships, 4 subscription tiers, 0 subscription intents, 0 journal entries/lines/general-ledger rows.
+- Historical migration replay from checkpoint `20261008222845` passed 72 forward migrations in an isolated disposable environment, but it does **not** equal a clone/restore of the current Production schema through `20261029083845`.
+- No isolated Supabase development branch currently exists. Branch/project creation requires cost estimation using an organization ID supplied by the user and explicit cost approval.
+- The Pages workflow publishes `apps/catalog-frontend/dist`; it does not publish the legacy `web/` tree and does not deploy Supabase Edge Functions. PR validation with a skipped deploy is not a Production deployment.
+- Production Gate: **BLOCKED / NOT CERTIFIED**.
 
 ## Latest verified web execution batch — 2026-10-18
 
@@ -62,7 +67,7 @@
 ### CI / release pipeline
 - Multiple production CI runs through RC247 have been verified successful.
 - Latest verified successful run before this continuity record: `36986515744`.
-- GitHub Pages workflow validates the web release and deploys `./web`; it does **not** deploy Supabase Edge Functions.
+- GitHub Pages workflow validates and deploys `apps/catalog-frontend/dist`; it excludes the legacy `web/` tree and does **not** deploy Supabase Edge Functions. PR deploy jobs are skipped by design.
 
 ### Supabase / database
 - Production is healthy and active.
