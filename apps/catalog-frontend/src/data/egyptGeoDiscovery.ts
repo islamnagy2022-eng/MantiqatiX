@@ -46,7 +46,7 @@ export const loadEgyptDistrictShiyakhas = (district: EgyptGeoDistrict): Promise<
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 8000);
-  const request = fetch(`https://raw.githubusercontent.com/open-admin-data/egypt-administrative-divisions/master/divisions/${encodeURIComponent(district.governorateSlug)}/${encodeURIComponent(district.slug)}/shiyakha.json`, {
+  const request = fetch(`https://raw.githubusercontent.com/open-admin-data/egypt-administrative-divisions/76b47b22872288c0d8b0c757975980e6986945e8/divisions/${encodeURIComponent(district.governorateSlug)}/${encodeURIComponent(district.slug)}/shiyakha.json`, {
     headers: { Accept: 'application/json' },
     credentials: 'omit',
     referrerPolicy: 'no-referrer',
