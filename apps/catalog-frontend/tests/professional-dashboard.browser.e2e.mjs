@@ -845,7 +845,7 @@ try {
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
-      await modulePage.getByRole('button', { name: /التخصصات/ }).click();
+      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
       await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity module');
       await page.reload({ waitUntil: 'domcontentloaded' });
@@ -870,7 +870,7 @@ try {
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('button', { name: /التخصصات/ }).click();
+      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
       await modulePage.getByRole('button', { name: /باطنة/ }).click();
       await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px selected activity specialty');
