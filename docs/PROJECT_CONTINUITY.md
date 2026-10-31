@@ -1036,3 +1036,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Direct privilege checks found no anon/authenticated SELECT/INSERT/UPDATE/DELETE on the eight no-policy tables. Seven have FORCE RLS; digital_page_payment_events does not. directory_listing_claim_requests and public_directory_listings are service_role DML-accessible; the other six are not (service_role TRUNCATE privilege was present on all eight).
 - Three anon-executable SECURITY DEFINER functions were inspected. Two are trigger-returning functions with one trigger binding each. assign_default_owner_to_unowned_business() retains search_path=public, auth; the other two use empty search_path. No ACL or function changes were made.
 - Evidence: docs/audits/LIVE_SUPABASE_SECURITY_RECHECK_20261031_0251.md. No business rows were read. Production Gate remains BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-31 — Duplicate activity guard review and current-main verification
+
+- Reviewed main source: AppContext uses a payload-keyed in-flight Map; identical in-flight submissions share one Promise while different payloads remain independent.
+- The catalog-platform-admin Edge Function has a tenant-scoped duplicate lookup by normalized name/category and phone or fallback location; duplicate matches return HTTP 409 with the existing businessId before insert. Existing activity state is not changed.
+- Dedicated source validator `scripts/validate-business-create-inflight-guard.mjs` passed in Pages validation run #41162036127. This is source-contract evidence, not a real browser/database concurrency test.
+- Remaining risk: server check-then-insert is not atomic across simultaneous requests. Test concurrent submissions and network-response-loss retry behavior before claiming database-level idempotency. Draft PR #477 is stale and should not be merged as-is because main already contains a more precise client/server guard.
+- Current main `b7b35378bbf5c1fd5ff54afb6be79e316e33624c`: Health Monitor #41162036080, backend boundary #41162036117, MantiGO privacy #41162036099, module professionalization #41162036130, and Pages #41162036127 all passed. Deployed-origin browser E2E passed for the tested scope.
+- Full Production Gate remains BLOCKED / NOT CERTIFIED; the latest verifier artifact reports 24 PASS, 0 FAIL, 1 BLOCKED and does not certify the live migration/payment/backup blockers.
