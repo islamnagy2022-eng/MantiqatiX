@@ -801,6 +801,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.waitFor({ state: 'visible' });
       await activityCard.click();
@@ -812,8 +813,10 @@ try {
       await assertNoHorizontalOverflow(page, '390px direct activity module');
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: /العودة إلى الأنشطة/ }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: /العودة إلى الطب والصحة/ }).click();
+      await page.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'كل المجموعات', exact: true }).click();
+      await page.getByRole('heading', { name: 'المجموعات الوظيفية', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity return');
       results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
     } finally { await context.close(); }
@@ -829,6 +832,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
@@ -883,12 +887,17 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
+      await page.getByRole('button', { name: /الأغذية والضيافة/ }).first().click();
       await page.getByRole('button', { name: /مطاعم/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
       await modulePage.getByText('السكان القريبون', { exact: false }).waitFor({ state: 'visible' });
       await modulePage.getByText('صور أصلية للمنتجات والأطباق', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: 'إعداد الخطة التسويقية', exact: true }).click();
+      await modulePage.getByText('مسودة خطة مطاعم', { exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByText('تقويم المحتوى المقترح', { exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByText('قمع التحويل ومؤشرات الأداء', { exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
       await modulePage.getByRole('heading', { name: 'القائمة والمنتجات', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
