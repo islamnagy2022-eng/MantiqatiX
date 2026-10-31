@@ -1188,3 +1188,11 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Aggregate only: private.platform_admins has one row; one registry user is aligned with active MNTY-PLATFORM SUPER_ADMIN scope=PLATFORM/full_control membership. No identity/row content was queried. Registry table is RLS-protected and has no anon/authenticated grants; service_role-only bootstrap EXECUTE remains server-side.
 - Candidate CI for RC462 passed: [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719); full isolated migration replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682). These do not establish Production rollout.
 - P0 next dependency: credential-scrubbed current schema/roles dump → local disposable restore → complete timestamp-ordered replay including RC441 → RC449 → RC462 → adversarial verification → rollback rehearsal → separately approved Production deployment. Global gate remains BLOCKED / NOT CERTIFIED.
+
+ 
+## Latest continuation — 2026-10-31 (current-schema capture gap)
+
+- The committed schema baseline is dated 2026-10-17 02:10:22 UTC, has 283 versions through `20261008222845`, is schema-only/no rows/no custom roles, and remains `PENDING_REVIEW`.
+- Current live Production is at 308 migration records through `20261029083845`; therefore the baseline is 25 recorded migrations behind and cannot certify the physical schema on 2026-10-31.
+- RC462 full replay passed from this older checkpoint, not from the current Production schema. GitHub artifact lookup for both replay run #41178333682 and original capture run #38993809648 returned no downloadable artifacts.
+- Next hard dependency: authorized operator creates a fresh credential-scrubbed roles/schema capture and restores it locally before full ordered migration replay. Keep Production unchanged until restore parity, adversarial tests, rollback and approval are complete.
