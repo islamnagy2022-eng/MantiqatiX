@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Save, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Save, RotateCcw, ShieldCheck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { ActivityCategory } from '../../types';
 import { ACTIVITY_SPECIFIC_OVERRIDES, resolveActivityModuleConfig } from '../../modules/activities/activityModuleRegistry';
@@ -82,6 +82,16 @@ export const ActivityModulesAdmin: React.FC = () => {
     }
     if (draft.capabilities.length !== 3 || draft.capabilities.some((item) => !item.title.trim() || !item.description.trim())) {
       setFeedback({ type: 'error', message: 'يجب الاحتفاظ بالقدرات التشغيلية الثلاث لكل نشاط، مع عنوان ووصف لكل قدرة.' });
+      return;
+    }
+    const listFields = [
+      { label: 'محاور المحتوى', value: toLines(draft.contentPillars) },
+      { label: 'أفكار الحملات', value: toLines(draft.campaignIdeas) },
+      { label: 'الأصول المطلوبة', value: toLines(draft.requiredAssets) },
+    ];
+    const invalidList = listFields.find((field) => field.value.length > 10 || field.value.some((item) => item.length > 180));
+    if (invalidList) {
+      setFeedback({ type: 'error', message: invalidList.label + ': الحد الأقصى 10 عناصر، و180 حرفًا لكل عنصر.' });
       return;
     }
 
