@@ -38,7 +38,7 @@ import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { fetchPublicDirectoryListings, type PublicDirectoryListing } from '../lib/directoryListings';
 import { resolveCanonicalSpecialty } from '../data/productionDefaults';
-import { EGYPT_CENTERS, EGYPT_GOVERNORATES } from '../data/egyptAdministrativeAreas';
+import { EGYPT_GEO_DISTRICTS, EGYPT_GEO_GOVERNORATES, loadEgyptDistrictShiyakhas, resolveEgyptAdministrativeLocation, type EgyptGeoShiyakha } from '../data/egyptGeoDiscovery';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -83,7 +83,7 @@ const GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
 const normalizeGeoName = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
   .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
   .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim()
-  .replace(/^(?:محافظة|مركز|مدينة|قسم)\s*/, '').trim();
+  .replace(/^(?:محافظة|مركز|مدينة|قسم|قرية|شياخة|حي|نجع)\s*/, '').trim();
 
 type StoredGeoPreference = {
   completed: true;
@@ -170,7 +170,7 @@ export const DirectoryView: React.FC = () => {
     setLocationMessage('');
     try {
       navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
+        async ({ coords }) => {
           const latitude = Number(coords.latitude);
           const longitude = Number(coords.longitude);
           const accuracy = Number(coords.accuracy);
@@ -183,18 +183,44 @@ export const DirectoryView: React.FC = () => {
           }
           setUserCoordinates({ latitude, longitude });
           completeGeoSetup('auto');
-          setSelectedGovFilter('all');
-          setSelectedMarkazFilter('all');
-          setSelectedVillageFilter('all');
-          setSelectedAreaFilter('all');
-          setLocationMessage(Number.isFinite(accuracy) && accuracy > 1000
-            ? 'تم تحديد الموقع، لكن الدقة منخفضة نسبيًا. جرّب مرة أخرى في مكان مفتوح لتحسين النتائج.'
-            : 'تم تحديد موقعك. ستظهر المسافات عند توفر إحداثيات موثوقة للأنشطة، ويمكنك اختيار الموقع الإداري يدويًا.');
-          setLocationBusy(false);
+          setLocationMessage('تم تحديد إحداثيات جهازك. جارٍ مطابقة أقرب نطاق إداري…');
+          try {
+            const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
+            if (match) {
+              setSelectedGovFilter(match.governorate.name);
+              setSelectedMarkazFilter(match.district.name);
+              setSelectedVillageFilter(match.shiyakha?.name || 'all');
+              setSelectedAreaFilter('all');
+              const levelLabel = match.level === 'SHIYAKHA'
+                ? 'أقرب قرية/شياخة'
+                : match.level === 'DISTRICT' ? 'أقرب مركز/قسم' : 'أقرب محافظة';
+              const matchedName = match.shiyakha?.name || match.district.name || match.governorate.name;
+              setLocationMessage('تم تقدير ' + levelLabel + ': ' + matchedName +
+                ' (أقرب نقطة بيانات تبعد نحو ' + match.distanceKm.toFixed(1) +
+                ' كم). هذا ترشيح تقريبي من نقاط إدارية وليس إثباتًا بحدود القرية؛ يمكنك تعديله يدويًا.');
+            } else {
+              setSelectedGovFilter('all');
+              setSelectedMarkazFilter('all');
+              setSelectedVillageFilter('all');
+              setSelectedAreaFilter('all');
+              setLocationMessage('تم تحديد موقعك، لكن لم تتوفر نقطة إدارية قريبة بدرجة كافية. يعرض الموقع مصر بالكامل؛ اختر نطاقك يدويًا.');
+            }
+          } catch {
+            setSelectedGovFilter('all');
+            setSelectedMarkazFilter('all');
+            setSelectedVillageFilter('all');
+            setSelectedAreaFilter('all');
+            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة ذات الإحداثيات، لكن تعذر تحميل أسماء المناطق الإدارية. يمكنك اختيار النطاق يدويًا.');
+          } finally {
+            if (Number.isFinite(accuracy) && accuracy > 1000) {
+              setLocationMessage((current) => current + ' دقة GPS منخفضة نسبيًا؛ أعد المحاولة في مكان مفتوح لتحسين الترشيح.');
+            }
+            setLocationBusy(false);
+          }
         },
         (error) => {
           const message = error.code === error.PERMISSION_DENIED
-            ? 'لم تسمح بالوصول إلى الموقع؛ يمكنك تفعيل الإذن من إعدادات المتصفح أو استخدام البحث اليدوي.'
+            ? 'لم تسمح بالوصول إلى الموقع؛ يمكنك استخدام الاختيار الإداري اليدوي.'
             : error.code === error.TIMEOUT
               ? 'انتهت مهلة تحديد الموقع؛ تأكد من تشغيل خدمة الموقع ثم جرّب مرة أخرى.'
               : error.code === error.POSITION_UNAVAILABLE
@@ -249,6 +275,8 @@ export const DirectoryView: React.FC = () => {
   const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
+  const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
   useEffect(() => {
     if (!geoSetupCompleted) return;
@@ -261,6 +289,32 @@ export const DirectoryView: React.FC = () => {
       area: selectedAreaFilter,
     });
   }, [geoSetupCompleted, geoPreferenceMode, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter]);
+
+  const selectedAdministrativeDistrict = EGYPT_GEO_DISTRICTS.find((district) =>
+    normalizeGeoName(district.name) === normalizeGeoName(selectedMarkazFilter) &&
+    (selectedGovFilter === 'all' || normalizeGeoName(district.governorateName) === normalizeGeoName(selectedGovFilter))
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!selectedAdministrativeDistrict) {
+      setAdministrativeShiyakhas([]);
+      setShiyakhaLoadStatus('idle');
+      return () => { cancelled = true; };
+    }
+    setAdministrativeShiyakhas([]);
+    setShiyakhaLoadStatus('loading');
+    loadEgyptDistrictShiyakhas(selectedAdministrativeDistrict).then((rows) => {
+      if (cancelled) return;
+      setAdministrativeShiyakhas(rows);
+      setShiyakhaLoadStatus('ready');
+    }).catch(() => {
+      if (cancelled) return;
+      setAdministrativeShiyakhas([]);
+      setShiyakhaLoadStatus('error');
+    });
+    return () => { cancelled = true; };
+  }, [selectedAdministrativeDistrict?.id]);
 
   const [listingSlug, setListingSlug] = useState<string>(() => new URLSearchParams(window.location.search).get('listing') || '');
   const openDirectoryListing = (slug: string) => {
@@ -406,7 +460,7 @@ export const DirectoryView: React.FC = () => {
       resolveCanonicalSpecialty(categorySuffix, matchedCategory?.id) === requestedSpecialty;
     const matchesGov = selectedGovFilter === 'all' || normalizeAdministrativeName(biz.governorate) === normalizeAdministrativeName(selectedGovFilter);
     const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeAdministrativeName(biz.markaz) === normalizeAdministrativeName(selectedMarkazFilter);
-    const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(biz.village) === normalizeSearch(selectedVillageFilter);
+    const matchesVillage = selectedVillageFilter === 'all' || normalizeAdministrativeName(biz.village) === normalizeAdministrativeName(selectedVillageFilter);
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(biz.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => {
@@ -442,7 +496,7 @@ export const DirectoryView: React.FC = () => {
       resolveCanonicalSpecialty(selectedSpecialty, listing.taxonomy_category_id);
     const matchesGov = selectedGovFilter === 'all' || normalizeAdministrativeName(listing.governorate) === normalizeAdministrativeName(selectedGovFilter);
     const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeAdministrativeName(listing.district) === normalizeAdministrativeName(selectedMarkazFilter);
-    const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(listing.village) === normalizeSearch(selectedVillageFilter);
+    const matchesVillage = selectedVillageFilter === 'all' || normalizeAdministrativeName(listing.village) === normalizeAdministrativeName(selectedVillageFilter);
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(listing.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => {
@@ -485,12 +539,25 @@ export const DirectoryView: React.FC = () => {
     ...unconfirmedListings.filter((l) => l.listing_status === 'PUBLISHED' && l.claim_status !== 'CLAIMED')
       .map((l) => ({ governorate: l.governorate, markaz: l.district, village: l.village || '', address: l.address || '' })),
   ];
-  const uniqueGovernorships = Array.from(new Set([...EGYPT_GOVERNORATES.map((area) => area.name), ...locationRecords.map((record) => record.governorate).filter(Boolean)])).sort((a, b) => a.localeCompare(b, 'ar'));
-  const selectedGovernorateCode = EGYPT_GOVERNORATES.find((area) => normalizeAdministrativeName(area.name) === normalizeAdministrativeName(selectedGovFilter))?.code;
-  const knownCenters = EGYPT_CENTERS.filter((center) => !selectedGovernorateCode || center.governorateCode === selectedGovernorateCode).map((center) => center.name);
-  const listedCenters = locationRecords.filter((record) => selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)).map((record) => String(record.markaz || '').replace(/^مركز\s*/, '').trim()).filter(Boolean);
-  const uniqueMarkaz = Array.from(new Map([...knownCenters, ...listedCenters].map((name) => [normalizeAdministrativeName(name), name])).values()).sort((a, b) => a.localeCompare(b, 'ar'));
-  const uniqueVillages = Array.from(new Set(locationRecords.filter((record) => (selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeAdministrativeName(record.markaz) === normalizeAdministrativeName(selectedMarkazFilter))).map((record) => record.village).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueGovernorships = Array.from(new Map([
+    ...EGYPT_GEO_GOVERNORATES.map((area) => [normalizeAdministrativeName(area.name), area.name] as const),
+    ...locationRecords.map((record) => [normalizeAdministrativeName(record.governorate), String(record.governorate)] as const).filter(([key]) => Boolean(key)),
+  ]).values()).sort((a, b) => a.localeCompare(b, 'ar'));
+  const knownCenters = EGYPT_GEO_DISTRICTS
+    .filter((district) => selectedGovFilter === 'all' || normalizeAdministrativeName(district.governorateName) === normalizeAdministrativeName(selectedGovFilter))
+    .map((district) => district.name);
+  const listedCenters = locationRecords
+    .filter((record) => selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter))
+    .map((record) => String(record.markaz || '').trim()).filter(Boolean);
+  const uniqueMarkaz = Array.from(new Map([...knownCenters, ...listedCenters]
+    .map((name) => [normalizeAdministrativeName(name), name])).values()).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueVillages = Array.from(new Map([
+    ...administrativeShiyakhas.map((row) => [normalizeAdministrativeName(row.name), row.name] as const),
+    ...locationRecords.filter((record) =>
+      (selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)) &&
+      (selectedMarkazFilter === 'all' || normalizeAdministrativeName(record.markaz) === normalizeAdministrativeName(selectedMarkazFilter)))
+      .map((record) => [normalizeAdministrativeName(record.village), String(record.village)] as const).filter(([key]) => Boolean(key)),
+  ]).values()).sort((a, b) => a.localeCompare(b, 'ar'));
   const uniqueAreas = Array.from(new Set(locationRecords.filter((record) => (selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeAdministrativeName(record.markaz) === normalizeAdministrativeName(selectedMarkazFilter)) && (selectedVillageFilter === 'all' || normalizeSearch(record.village) === normalizeSearch(selectedVillageFilter))).map((record) => String(record.address || '').trim()).filter((address) => address.length >= 3))).sort((a, b) => a.localeCompare(b, 'ar'));
 
   if (listingSlug) return <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />;
@@ -594,7 +661,7 @@ export const DirectoryView: React.FC = () => {
             </div>
             <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              اسمح للموقع باستخدام موقع جهازك لترتيب الأنشطة والخدمات التي لها إحداثيات موثوقة من الأقرب إليك. لن نحفظ إحداثياتك الدقيقة أو نرسلها إلى خدمة خرائط خارجية.
+              اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل قائمة شياخات المركز الأقرب باستخدام كود المركز فقط.
             </p>
             <div className="mt-5 grid gap-2">
               <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
@@ -948,6 +1015,7 @@ export const DirectoryView: React.FC = () => {
               <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض مصر بالكامل.'); }} className="text-xs font-bold text-slate-600 underline">مصر بالكامل</button>
             </div>
             {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
+            <p className="text-[10px] leading-4 text-slate-400">أسماء الوحدات الإدارية وإحداثيات نقاطها: Open Admin Data، إصدار 2026.09، رخصة CC BY 4.0. اختيار أقرب نقطة تقديري وليس حدودًا قانونية.</p>
             {hasNoSearchResults && canWidenGeographicSearch && (
               <button type="button" onClick={widenGeographicSearch} className="inline-flex min-h-9 items-center justify-center self-start rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100">
                 لا توجد نتائج — توسيع النطاق الجغرافي
@@ -960,15 +1028,15 @@ export const DirectoryView: React.FC = () => {
                 {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
               </select>
             </label>
-            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / المدينة
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / القسم
               <select value={selectedMarkazFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل المراكز</option>
                 {uniqueMarkaz.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
-            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الحي
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الشياخة / الحي
               <select value={selectedVillageFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
-                <option value="all">كل القرى والأحياء</option>
+                <option value="all">كل القرى والشياخات والأحياء</option>{shiyakhaLoadStatus === 'loading' && <option disabled value="__loading">جارٍ تحميل القرى والشياخات…</option>}
                 {uniqueVillages.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
