@@ -2980,3 +2980,20 @@ A separate source review found a second platform-root authorization model: the n
 - Browser E2E failed at the business-owner entry scenario because the test expected the employee/professional dashboard navigation landmark after opening the owner MerchantDashboard. The owner MerchantDashboard is currently a form workspace headed `إدارة منتجات وكتالوج نشاطك`, not the professional dashboard navigation shell. This was an assertion/fixture mismatch, not evidence of a permission denial.
 - Corrected the browser assertion to wait for the actual owner workspace heading. Owner/employee routes remain separately asserted; no production code authorization was weakened.
 - A new exact-head CI run must verify the correction. Do not mark E2E passed until that run concludes successfully.
+
+
+### FIN-ADS-01 — live schema and ACL gap audit (read-only, 2026-10-31)
+- [x] Queried live public schema, 308 migration records (latest observed `20261029083845`), selected table columns, RLS/FORCE RLS, policies, constraints, function definitions and effective EXECUTE/table privileges. No financial row content was read.
+- [x] Confirmed existing `wallet_accounts` and `wallet_transactions` are both empty; both have RLS + FORCE RLS. Authenticated reads are limited by tenant finance-role policies; direct client writes are not granted. Service role has table DML.
+- [x] Confirmed `create_wallet_transaction_backend` has no EXECUTE grant for service_role and calls `post_financial_journal`, which also has no service_role EXECUTE. Required RC449A/RC450 journal columns remain absent. Do not bypass via direct table writes or broad grants.
+- [x] Confirmed `subscription_tier_prices` contains fixed monthly/annual values only; `business_subscriptions` and `subscription_payment_intents` are empty. The live subscription payment-intent schema is missing RC435/RC439 provider-claim/encrypted-recovery columns and claim RPCs. Current verified subscription callback does not post a platform-wallet debit.
+- [x] Confirmed commission draft manager and resolution preview are present, but draft-only/inactive and preview_only; no rule is activated or applied to order/settlement.
+- [x] Confirmed `ad_spaces` has only HOME_HERO and HOME_SPONSORED; `advertisements` has 0 rows; `platform_global_advertisements` has 4. No duration-based ad reservation/pricing schema was found.
+- [ ] **P0 security:** `ad_spaces` currently has permissive non-anonymous authenticated ALL policies and authenticated INSERT/UPDATE privileges. Reconcile intended platform-admin-only mutation through a reviewed forward-only migration and isolated tests before exposing slot administration. No live policy was changed.
+- [ ] **P0 security:** review tenant-only write policies on `advertisements` for business/branch binding before owner-facing mutation.
+- [ ] Build versioned pricing composition: subscription-only / commission-only / both; fixed / percentage / combined; explicit percentage basis/source; effective period and immutable charge snapshot.
+- [ ] Build platform wallet using canonical journal, pending top-up intents, verified provider events, external-cash maker/checker, idempotent credits/debits, and no-negative-balance enforcement. Reconcile current wallet and journal RPC ACL/body before use.
+- [ ] Add automatic platform billing, grace/retry/notification behavior, admin exemption/discount/defer/gift audit workflow, and advertising monthly/quarterly/half-yearly/annual/custom-month reservations with conflict prevention.
+- [ ] Obtain complete current-production schema-only restore in disposable environment and Egypt-specific legal/accounting review before any stored-value wallet activation.
+- [x] Detailed read-only findings documented in `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
+- **Status:** commission draft UI exists; subscription pricing remains fixed-tier/per-business settings; wallet posting, top-up, auto-debit and ad booking are NOT implemented/activated. Production financial gate remains BLOCKED.
