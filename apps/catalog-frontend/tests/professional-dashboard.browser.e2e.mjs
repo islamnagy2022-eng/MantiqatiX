@@ -1065,6 +1065,9 @@ try {
       assert.ok(!catalogReadRequests.at(-1)?.branchId, 'platform-to-business mode must load only the verified business membership scope');
       await page.getByRole('button', { name: 'إدارة المنصة', exact: true }).click();
       await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'أدوات النشاط المحدد', exact: true }).click();
+      await page.getByRole('heading', { name: 'إدارة منتجات وكتالوج نشاطك' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
       results.push('platform-admin-and-business-membership-modes-remain-separate');
     } finally { await context.close(); }
   }
