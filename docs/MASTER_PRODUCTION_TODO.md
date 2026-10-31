@@ -2643,3 +2643,11 @@ Use the following hierarchy; these files are complementary, not competing copies
     - Store encrypted roles/schema/data dumps outside this public repository; never upload production dumps to public GitHub artifacts.
     - Restore only into a disposable local PostgreSQL/Supabase environment, then verify schema, RLS, grants, critical RPCs, Edge dependencies, and a documented recovery checklist.
     - No backup, restore, rollback, RPO, or RTO claim is complete until actual files and a successful rehearsal are evidenced.
+
+
+### Post-merge correction — 2026-10-31
+
+- PR [#567](https://github.com/islamnagy2022-eng/MantiqatiX/pull/567) is merged as `c8c65e7b4d8cf70e83753e9d194b25f18e5395cb`; the hourly read-only database probe is now present on `main`.
+- All five PR workflow runs passed: [41156511347](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511347), [41156511393](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511393), [41156511313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511313), [41156511407](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511407), [41156511364](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511364). Pages deployment was skipped on the PR event as designed.
+- Replace the earlier “WAIT: merge” note in item 35 with: **merged; first post-merge live database probe and failure-notification delivery still NOT VERIFIED**.
+- Item 36 remains WAIT: no local backup files or restore-rehearsal evidence exist yet.
