@@ -16,7 +16,7 @@
 
 ## CAT-HOMEPAGE-ACTIVITY-DISPLAY-20261031-01 — Correct activity classification and homepage display
 **Date:** 2026-10-31  
-**Status:** IN PROGRESS — mapper precedence corrected; regression E2E added; exact-head CI pending.  
+**Status:** VALIDATED IN PR — exact-head CI passed; merge and deployed-origin verification remain open.  
 **Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiQaTiX/issues/599).  
 **Branch:** `fix/homepage-activity-taxonomy-display-20261031`.
 
@@ -32,7 +32,7 @@
 - [x] Restored the requested mobile activity-card layout: three columns at phone widths, expanding to four/five columns on larger screens; cards use a compact stacked mobile layout and retain the existing horizontal desktop treatment.
 - [x] Added Playwright assertion for exactly three homepage activity columns at the 390px mobile viewport; the canonical taxonomy validator now enforces both the responsive grid and the regression test.
 - [x] Added a canonical taxonomy validator assertion requiring the homepage regression E2E.
-- [ ] Exact-head TypeScript/build, canonical taxonomy validator, RBAC PostgreSQL, Playwright browser E2E and supporting workflow checks.
+- [x] Exact-head TypeScript/build, canonical taxonomy validator, RBAC PostgreSQL and Playwright browser E2E passed on `f7d56ccfafea6cf1b04d5a5827d8c76a4e471af0`: Primary Catalog Validation [41240092695](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092695), browser E2E `PRIMARY_CATALOG_BROWSER_E2E=PASS`, employee RBAC PostgreSQL PASS; canonical taxonomy 10 groups/50 activities PASS. Supporting backend boundary [41240092718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092718), module professionalization [41240092669](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092669), MantiGO privacy [41240092672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092672), RC425 [41240092667](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092667), flexible commission [41240092670](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092670) and Pages validation [41240092668](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092668) all PASS. Pages deployment was SKIPPED because this was a PR run.
 - [ ] Review deployed-origin result after authorized merge/deployment. Do not claim a Production fix before deployed-origin verification.
 - [ ] Independently reconcile and review the live `public-catalog-directory` v10 vs current-main activity-module settings contract before any Edge Function deployment.
 
