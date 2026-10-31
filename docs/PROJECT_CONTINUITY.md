@@ -1070,3 +1070,14 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - TypeScript, catalog build, canonical taxonomy validator, geographic/GPS consent contract, and employee RBAC PostgreSQL job: **PASS** on the current branch head.
 - Browser E2E run `41192816382`: still **IN PROGRESS** at the latest read. Two earlier runs exposed outdated selectors tied to removed functional-group navigation and non-exact specialty tab matching; both selectors were corrected and a new run started. No final browser pass is claimed yet.
 - PR is Draft and not merged; production deployment is not claimed. Full campaign create/publish, budgets, external channel integrations, leads, metrics, and specialized operations remain TODO pending reviewed production server contracts.
+
+
+## 2026-10-31 — Activity-specific marketing and operations registry
+
+- Added `apps/catalog-frontend/src/modules/activities/activityModuleRegistry.ts`, with a typed resolver keyed by canonical activity ID and domain-specific profiles for the ten supported business-domain templates.
+- Each activity module now renders a marketing objective, target audience, positioning, content pillars, campaign ideas, and launch asset checklist; the profile references the exact activity name/ID rather than presenting a generic global page.
+- Operating capability cards now come from the module registry and are explicitly labelled **قيد التجهيز**. No capability is marked active/available before a verified server API, tenant/business/branch authorization, and negative security tests exist.
+- Updated canonical taxonomy static contract and added a browser E2E scenario to compare restaurant marketing/operations against activity-specific capabilities.
+- Existing production constraints remain: RC453 campaign tables/RPCs absent; RC452 manager-read policies not verified tenant/business scoped; RC102 provider-service owner write grants absent. Do not wire campaign/provider mutations until these production contracts are reconciled and authorized. SMM remains deferred.
+- Current exact-head PR #608 validation is running for source/test commit `fdf81ef42ec68eacb42f9cebe76c97b45a7e2881`; run IDs: catalog `41196188567`, Pages validation `41196188571`, module professionalization `41196188606`, and additional repository security workflows `41196188583`, `41196188595`, `41196188562`, `41196188647`. At this checkpoint, TypeScript/build/taxonomy/geographic/browser results are not yet final on this new registry head.
+- No production database/schema/data/grant/RLS/Auth/Edge deployment, campaign mutation, ad spend, payment, or financial operation occurred. PR #608 remains Draft; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
