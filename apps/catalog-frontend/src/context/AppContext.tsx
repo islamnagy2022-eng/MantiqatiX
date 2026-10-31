@@ -47,6 +47,8 @@ interface AppContextType {
   selectedCategoryFilter: string;
   setSelectedCategoryFilter: (id: string) => void;
   authSession: AuthSession;
+  switchAccountMembership: (membershipId: string) => boolean;
+  switchToPlatformAdminMode: () => boolean;
   loginAsSubscriber: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAsAdmin: (password?: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
@@ -166,6 +168,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     routeBusinessIdRef.current = id;
     setSelectedBusinessIdState(id);
   };
+
+  // Switch only to an exact active membership returned by authenticated bootstrap.
+  // The state change is for UI context; every server mutation still authorizes the
+  // signed-in actor against the database membership and tenant/branch scope.
+  const switchAccountMembership = (membershipId: string): boolean => {
+    const userId = authSession.userId;
+    if (!authSession.isAuthenticated || !userId || !membershipId || authUserIdRef.current !== userId) return false;
+    const mode = authSession.availableMemberships?.find((candidate) => candidate.membershipId === membershipId);
+    if (!mode) return false;
+    const business = businesses.find((candidate) =>
+      candidate.id === mode.businessId && String(candidate.tenantId || '') === mode.tenantId
+    );
+    if (!business) return false;
+
+    setAuthSession((previous) => {
+      if (previous.userId !== userId || !previous.isAuthenticated) return previous;
+      const currentAuthorizedMode = previous.availableMemberships?.find((candidate) =>
+        candidate.membershipId === membershipId &&
+        candidate.businessId === mode.businessId &&
+        candidate.tenantId === mode.tenantId
+      );
+      if (!currentAuthorizedMode) return previous;
+      return {
+        ...previous,
+        role: 'subscriber',
+        businessId: currentAuthorizedMode.businessId,
+        subscriberId: currentAuthorizedMode.membershipId,
+        membershipRole: currentAuthorizedMode.role,
+        membershipBranchId: currentAuthorizedMode.branchId,
+        membershipPermissions: currentAuthorizedMode.permissions,
+        activeMembershipId: currentAuthorizedMode.membershipId,
+      };
+    });
+    commitSelectedBusinessId(mode.businessId);
+    setCartItems([]);
+    setIsCartOpen(false);
+    return true;
+  };
+
+  const switchToPlatformAdminMode = (): boolean => {
+    const userId = authSession.userId;
+    if (!authSession.isAuthenticated || !authSession.isPlatformAdmin || !userId || authUserIdRef.current !== userId) return false;
+    setAuthSession((previous) => {
+      if (previous.userId !== userId || !previous.isAuthenticated || !previous.isPlatformAdmin) return previous;
+      return {
+        ...previous,
+        role: 'admin',
+        businessId: undefined,
+        subscriberId: undefined,
+        membershipRole: undefined,
+        membershipBranchId: undefined,
+        membershipPermissions: undefined,
+        activeMembershipId: undefined,
+      };
+    });
+    setCartItems([]);
+    setIsCartOpen(false);
+    return true;
+  };
+
   // Prevent overlapping auth events and duplicate INITIAL_SESSION/getSession hydration.
   const authLoadSequence = useRef(0);
   const authUserIdRef = useRef<string | null | undefined>(undefined);
@@ -205,7 +267,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
-    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
+    if (authSession.role === 'subscriber' && (currentView === 'account_portal' || currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
       // Never fall back to another public business if the subscriber's authorized
       // business is missing from the current production bootstrap.
       return businesses.find((b) => b.id === authSession.businessId);
@@ -1018,7 +1080,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return <AppContext.Provider value={{
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
-    authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
+    authSession, switchAccountMembership, switchToPlatformAdminMode, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
     businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
