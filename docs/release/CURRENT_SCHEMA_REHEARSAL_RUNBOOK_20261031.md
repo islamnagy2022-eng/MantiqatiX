@@ -183,3 +183,6 @@ Stop and leave the rehearsal **BLOCKED** when any of the following occurs:
 4. Verify `ad_spaces` ACL provenance and test least-privilege grant reduction in isolation; add real role-scoped SQL/API tests. Do not characterize it as a permissive RLS write bypass unless new evidence establishes one.
 5. Rehearse RC449A → RC450 and subscription claim/recovery contracts against the current-schema restore.
 6. Only after independent security review, provider sandbox tests, rollback evidence and explicit approval may a separate Production rollout plan be considered.
+
+ 
+- [ ] Reproduce `advertisements` schema/policies and confirm the intended tenant-vs-business-vs-branch authorization matrix. Add synthetic businesses across two tenants and multiple businesses/branches within one tenant; test SELECT/INSERT/UPDATE/DELETE, including attempted tenant_id/business_id reassignment. Verify whether the business FK/composite relationship is needed; preserve the public targeted-ad RPC and trusted backend path.
