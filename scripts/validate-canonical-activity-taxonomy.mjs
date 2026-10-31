@@ -18,6 +18,7 @@ const directoryListingsView = read('apps/catalog-frontend/src/components/Directo
 const browserE2E = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 const directoryView = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
 const directoryListingsEdge = read('supabase/functions/directory-listings/index.ts');
+const activityModuleRegistry = read('apps/catalog-frontend/src/modules/activities/activityModuleRegistry.ts');
 
 const expectedGroups = [
   'medical_health', 'food_grocery', 'fashion_beauty', 'home_maintenance',
@@ -157,10 +158,41 @@ assert.ok(admin.includes('النشاط الرئيسي'), 'Admin business form mu
 assert.ok(admin.includes('التخصص الدقيق (اختياري)'), 'Admin activity form must expose an optional specialty selector.');
 assert.ok(!admin.includes('option value="profession">مهنة'), 'Admin must not offer standalone profession categories.');
 assert.ok(admin.includes('categoryClassificationType: matchedCat?.classificationType'), 'Admin-created businesses must retain category classification.');
-assert.ok(directory.includes("const [selectedCategoryKind"), 'Public directory must allow activity/profession filtering.');
-assert.ok(directory.includes('const availableCategories = categories.filter'), 'Public directory category options must respect selected main group and classification kind.');
-assert.ok(directory.includes('التخصص الدقيق'), 'Public directory must allow filtering by an available specialty.');
-assert.ok(directory.includes('matchesCategoryKind') && directory.includes('matchesSpecialty'), 'Directory filters must narrow real business records by kind/category/specialty.');
+const activityModuleView = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
+assert.ok(directory.includes("new URLSearchParams(window.location.search).get('activity')"), 'Each activity module must have a refreshable direct URL.');
+assert.ok(directory.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');"), 'Visitor discovery must expose activities directly and omit standalone profession categories.');
+assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an activity must open its dedicated module page.');
+assert.ok(directory.includes('setSelectedCategoryId(activityCategory.id)') && directory.includes('setSelectedSpecialty(specialty)'), 'Choosing a specialty must return to the directory with the activity/specialty filter.');
+assert.ok(!directory.includes('functionalGroups') && !directory.includes('selectedGroupFilter') && !directory.includes('matchesCategoryKind'), 'Functional-group navigation/filtering must not appear in public directory UI logic.');
+assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
+assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
+assert.ok(activityModuleView.includes('marketing.contentPillars') && activityModuleView.includes('marketing.campaignIdeas') && activityModuleView.includes('marketing.requiredAssets'), 'Activity marketing page must render domain-specific content pillars, campaign ideas and required assets.');
+assert.ok(activityModuleView.includes('moduleConfig.capabilities.map'), 'Activity operations page must render capabilities from its activity module configuration.');
+assert.ok(activityModuleRegistry.includes('activityId: category.id') && activityModuleRegistry.includes('activityName: name'), 'Module registry must key each resolved module by the stable canonical activity ID.');
+assert.ok(activityModuleRegistry.includes('ACTIVITY_SPECIFIC_OVERRIDES'), 'Activity registry must include explicit reviewed per-activity overrides.');
+const canonicalActivityIds = Array.from(defaults.matchAll(/s\('([^']+)','([^']+)'/g), (match) => 'cat_' + match[1] + '_' + match[2]);
+assert.equal(canonicalActivityIds.length, 50, 'The canonical activity seed must contain the expected 50 activity categories.');
+for (const activityId of canonicalActivityIds) {
+  assert.ok(activityModuleRegistry.includes(activityId + ':'), 'Missing explicit activity module override for ' + activityId + '.');
+}
+assert.ok(activityModuleRegistry.includes('ACTIVITY_CAPABILITY_OVERRIDES'), 'Every activity must resolve an activity-specific operational capability set.');
+const activityCapabilityRegistry = activityModuleRegistry.slice(activityModuleRegistry.indexOf('export const ACTIVITY_CAPABILITY_OVERRIDES'));
+const activityCapabilityLines = activityCapabilityRegistry.split(String.fromCharCode(10));
+for (const activityId of canonicalActivityIds) {
+  const capabilityLine = activityCapabilityLines.find((line) => line.startsWith('  ' + activityId + ': ['));
+  assert.ok(capabilityLine, 'Missing activity-specific capability definitions for ' + activityId + '.');
+  assert.equal(capabilityLine.split('{ id:').length - 1, 3, 'Each activity must define exactly three reviewed operational capabilities: ' + activityId + '.');
+}
+assert.ok(activityModuleRegistry.includes("state: 'planned' as const"), 'Activity-specific capabilities must default to planned until backed by authorized workflows.');
+assert.ok(activityModuleRegistry.includes("ACTIVITY_CAPABILITY_OVERRIDES[category.id] || profile.capabilities"), 'Activity resolver must prefer activity-specific capability definitions.');
+assert.ok(activityModuleRegistry.includes('operationalFocus: override?.operationalFocus'), 'Activity modules must expose an activity-specific operating scope.');
+
+assert.ok(activityModuleRegistry.includes('type DomainProfile') && activityModuleRegistry.includes('domainProfiles:'), 'Module registry must provide typed domain profiles.');
+assert.ok(activityModuleRegistry.includes('campaignIdeas:') && activityModuleRegistry.includes('requiredAssets:') && activityModuleRegistry.includes('contentPillars:'), 'Each domain profile must define campaign ideas, required assets and content pillars.');
+assert.ok(activityModuleRegistry.includes("state: 'planned'"), 'Unintegrated operating capabilities must be visibly marked planned rather than falsely active.');
+assert.ok(!activityModuleRegistry.includes("state: 'available'"), 'No domain operation may be marked available before its server contract and authorization are implemented.');
+assert.ok(activityModuleView.includes('onSelectSpecialty(specialty)'), 'Activity module specialty selection must connect back to the directory.');
+assert.ok(directory.includes('matchesSpecialty'), 'Directory results must still filter real business records by the selected specialty.');
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
 assert.ok(context.includes('activityClassificationType: data.categoryClassificationType'), 'The client must send activity/profession type to the server.');
 assert.ok(context.includes('activitySpecialty: data.activitySpecialty'), 'The client must send selected specialty to the server.');
@@ -174,7 +206,7 @@ assert.ok(production.includes('activityGroupCode: body.business?.activityGroupCo
 assert.ok(production.includes('activityCategoryCode: body.business?.activityCategoryCode'), 'Direct storefront hydration must pass the safe canonical category code into business mapping.');
 assert.ok(production.includes('meta.activity_group_code') && production.includes('meta.activity_category_code'), 'Business mapping must read taxonomy metadata from the safe bizcatalog profile where present.');
 assert.ok(directory.includes('business.categoryId === category.id'), 'Directory filtering must prefer the canonical category ID.');
-assert.ok(directory.includes('المجالات الرئيسية') && directory.includes('تصفح حسب النشاط والتخصص'), 'Public taxonomy navigation must use customer-readable domain/activity labels.');
+assert.ok(directory.includes('aria-label="الأنشطة"') && activityModuleView.includes('وحدة النشاط'), 'Public navigation must expose direct activities and dedicated activity modules.');
 for (const code of ['medical_practices', 'food_retail', 'home_services', 'digital_marketing', 'animal_production']) {
   assert.ok(defaults.includes(`'${code}'`), `Canonical taxonomy must include the audited activity code ${code}.`);
 }
@@ -214,8 +246,10 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
   assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
-assert.ok(directory.includes('xl:grid-cols-10'), 'Functional group cards should retain ten columns on extra-large screens.');
-assert.ok(/bg-white p-(?:1\.5 sm:p-3|3) text-center/.test(directory), 'Functional group cards should use the consistent responsive light icon-card treatment at mobile and larger breakpoints.');
-assert.ok(directory.includes('aria-pressed={isSelected}'), 'Functional group selection must remain accessible to assistive technology.');
+assert.ok(directory.includes('xl:grid-cols-5'), 'Direct activity cards must use a responsive multi-column layout.');
+assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
+assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
+assert.ok(!directory.includes('functionalGroups'), 'Functional groups must not be displayed or filtered in the public directory.');
+
 
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} activities (5 per group), specialties, legacy mapping, admin UI, and server persistence.`);

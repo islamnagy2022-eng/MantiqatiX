@@ -161,6 +161,8 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
   const directoryAdminRequests = [];
+  const platformAdminRequests = [];
+  const platformSettingsState = { settings: options.platformSettings || {} };
   const directoryListingsState = options.directoryListingsState || { listings: [] };
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
@@ -280,7 +282,21 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       return json({ businesses: [], items: [], prices: [], branches: [] });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-platform-admin')) {
-      return json({ subscribers: [], settings: {} });
+      let body = {};
+      try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
+      const action = String(body.action || '').toUpperCase();
+      platformAdminRequests.push({
+        action,
+        settings: body.settings || null,
+        authorization: request.headers().authorization || '',
+      });
+      if (action === 'GET_SETTINGS') return json({ settings: platformSettingsState.settings });
+      if (action === 'SAVE_SETTINGS') {
+        platformSettingsState.settings = { ...platformSettingsState.settings, ...(body.settings || {}) };
+        return json({ success: true, settings: platformSettingsState.settings, auditLogged: true });
+      }
+      if (action === 'LIST_SUBSCRIBERS') return json({ subscribers: [] });
+      return json({ subscribers: [], settings: platformSettingsState.settings });
     }
     if (url.pathname.endsWith('/functions/v1/directory-listings')) {
       let body = {};
@@ -333,7 +349,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   });
 
   await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState };
+  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, platformAdminRequests, platformSettingsState };
 }
 
 async function waitForDashboard(page) {
@@ -706,13 +722,38 @@ try {
       { initialRoute: '?view=super_admin&tab=directory_listings' },
     );
     try {
-      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().waitFor({ state: 'visible', timeout: 15000 });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
     } finally { await context.close(); }
   }
 
+  // Super Admin can edit one canonical activity and persist its marketing/capability copy through the guarded platform settings endpoint.
+  {
+    const { context, page, platformAdminRequests, platformSettingsState } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin&tab=activity_modules' },
+    );
+    try {
+      await page.getByRole('heading', { name: 'إعدادات وحدات الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('status').getByText(
+        'معاينة إعدادات الأنشطة متاحة، لكن الحفظ الإداري موقوف مؤقتًا حتى نشر واختبار خدمة الحفظ الذري مع سجل التدقيق على Supabase. لم يتم إرسال أي تعديل أو تغيير بيانات الإنتاج.',
+        { exact: true },
+      ).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await page.getByLabel('اختر النشاط').count(), 0, 'the unverified editor must not expose editable activity settings');
+      assert.equal(platformAdminRequests.filter((request) => request.action === 'SAVE_SETTINGS').length, 0, 'no settings write may be sent before atomic audit support is deployed');
+      results.push('activity-module-admin-writes-disabled-until-atomic-audit-backend');
+    } finally { await context.close(); }
+  }
+
   // Geographic regression: verified business in a markaz with no village remains discoverable when village is left unselected.
   {
     const zeftaFixture = {
@@ -824,7 +865,7 @@ try {
   }
 
 
-  // 11. Folder-style taxonomy navigation follows the current production labels.
+  // 11. Direct activity cards open a dedicated, refreshable activity module page.
   {
     const { context, page } = await newScenario(browser);
     try {
@@ -834,47 +875,85 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
-      const taxonomyMain = page.locator('main[dir="rtl"]');
-      await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /صيدليات/ }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px taxonomy group/category browser');
-      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /رجوع للمجالات والأنشطة/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /رجوع للمجالات/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
-      // Let the folder cards finish their enter/hover layout before measuring document overflow.
-      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await assertNoHorizontalOverflow(page, '390px taxonomy return to groups');
-      results.push('taxonomy-folder-group-category-back-navigation-and-mobile-layout');
+      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
+      await activityCard.waitFor({ state: 'visible' });
+      await activityCard.click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
+      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px direct activity module');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: /العودة إلى الأنشطة/ }).click();
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px direct activity return');
+      results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
     } finally { await context.close(); }
   }
 
-  // 12. Selecting a specialty applies the specialty filter and returns to the catalog.
+  // 12. Selecting a specialty returns to the directory with a visible, reversible filter.
   {
     const { context, page } = await newScenario(browser);
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
-      const taxonomyMain = page.locator('main[dir="rtl"]');
-      await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).click();
-      await taxonomyMain.getByRole('button', { name: /باطنة/ }).click();
-      const taxonomyBreadcrumb = page.getByRole('navigation', { name: 'مسار المجال والنشاط' });
-      await taxonomyBreadcrumb.getByText('ممارسات وعيادات طبية', { exact: true }).waitFor({ state: 'visible' });
-      await taxonomyBreadcrumb.getByText('باطنة', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
+      await activityCard.click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).click();
+      await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px selected activity specialty');
       await page.setViewportSize({ width: 768, height: 1024 });
-      await assertNoHorizontalOverflow(page, '768px selected taxonomy specialty');
+      await assertNoHorizontalOverflow(page, '768px selected activity specialty');
       await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px selected taxonomy specialty');
-      results.push('taxonomy-specialty-selection-returns-to-catalog-and-filters');
+      await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
+      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
+    } finally { await context.close(); }
+  }
+
+// 13. Domain profiles must expose different marketing plans and operating capabilities.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      await page.getByRole('button', { name: /مطاعم/ }).first().click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
+      await modulePage.getByText('السكان القريبون', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByText('صور أصلية للمنتجات والأطباق', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
+      await modulePage.getByRole('heading', { name: 'القائمة والمنتجات', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByLabel('القائمة والمنتجات: قيد التجهيز', { exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px restaurant activity operations');
+      await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies', { waitUntil: 'domcontentloaded' });
+      const pharmacyModule = page.locator('main[dir="rtl"]');
+      await pharmacyModule.getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
+      await pharmacyModule.getByText('إعلان ساعات العمل والمناوبة', { exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
+      await pharmacyModule.getByText('إدارة ملف الصيدلية وساعات المناوبة', { exact: false }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('heading', { name: 'الأدوية والمستلزمات', exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('heading', { name: 'المناوبات وساعات العمل', exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('heading', { name: 'طلبات التوصيل', exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await pharmacyModule.getByText('قيد التجهيز', { exact: true }).count(), 3, 'All pharmacy operations must remain disabled until verified backend workflows exist.');
+      results.push('activity-module-registry-renders-domain-specific-marketing-and-operations');
+      results.push('activity-module-registry-renders-pharmacy-specific-override');
     } finally { await context.close(); }
   }
 

@@ -1,5 +1,6 @@
 // Supabase Edge Runtime provides Deno.serve at runtime; no runtime import is needed for its ambient type declarations.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
 
 const allowedOrigins = new Set(["https://islamnagy2022-eng.github.io", "http://localhost:3000", "http://localhost:8080", "http://127.0.0.1:3000", "http://127.0.0.1:8080"]);
 const headersFor = (origin: string | null) => ({
@@ -89,7 +90,24 @@ Deno.serve(async (req: Request) => {
       return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
         && !name.includes("isolation test") && !name.includes("اختبار العزل");
     }).map((t: any) => String(t.id)).filter(Boolean);
-    if (!productionTenantIds.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    if (!productionTenantIds.length) return response(origin, { businesses: [], activityModuleOverrides: {}, activityModuleOverridesAvailable: false, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+
+    // Publish only the explicitly public activity-module copy. Never return the
+    // complete platform settings object or private contact/payment configuration.
+    let activityModuleOverrides: Record<string, unknown> = {};
+    let activityModuleOverridesAvailable = false;
+    const { data: platformSettings, error: platformSettingsError } = await db.from("bizcatalog_platform_settings")
+      .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
+    if (platformSettingsError) {
+      console.warn("public activity module settings unavailable", platformSettingsError.message);
+    } else {
+      try {
+        activityModuleOverrides = sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {});
+        activityModuleOverridesAvailable = true;
+      } catch {
+        console.warn("public activity module settings failed validation");
+      }
+    }
     const { data: businesses, error: businessError } = await db.from("businesses")
       .select("id,tenant_id,organization_id,name,code,status,settings")
       .in("tenant_id", productionTenantIds).eq("status", "ACTIVE").limit(250);
@@ -102,7 +120,7 @@ Deno.serve(async (req: Request) => {
     const directoryBusinesses = (businesses || []).filter((b: any) =>
       b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
     );
-    if (!directoryBusinesses.length) return response(origin, { businesses: [], accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    if (!directoryBusinesses.length) return response(origin, { businesses: [], activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
     const ids = directoryBusinesses.map((b: any) => b.id);
     const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
       .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
@@ -200,7 +218,7 @@ Deno.serve(async (req: Request) => {
       const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
       results.push(...built.filter((business: any) => business !== null));
     }
-    return response(origin, { businesses: results, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    return response(origin, { businesses: results, activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
   } catch (error) {
     console.error("public-catalog-directory failed", error instanceof Error ? error.message : "UNKNOWN");
     return response(origin, { error: "PUBLIC_DIRECTORY_UNAVAILABLE" }, 500);

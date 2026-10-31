@@ -1520,3 +1520,93 @@ A separate source review found a second platform-root authorization model: the n
 - The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
 - On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
 - This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
+
+
+## 2026-10-31 — SESSION — Direct activity modules (CAT-ACTIVITY-MODULES-20261031-01)
+
+- **User request:** Flatten public discovery to activity → specialty; open every activity in its own page/module with specialized marketing and operations, preserving all prior catalog requirements.
+- **Request registration:** Added to master ledger issue #599 and canonical Master Production TODO.
+- **Branch:** `feat/activity-modules-current-main-20261031`, created from latest main after the consent-first Egypt geographic discovery update. PR #607 on the earlier base/branch is superseded; it failed TypeScript due to a stale reference and did not preserve the latest main geographic changes. Do not merge PR #607.
+- **Source:** Added `ActivityModuleView.tsx`; ported direct activity grid and `?activity=` route onto current geo-enabled DirectoryView; removed public group navigation/labels but preserved internal group IDs for compatibility.
+- **Module page:** Overview, specialties, domain-aware marketing planning guidance and operations capability map. Marketing guidance is not campaign execution; campaign lifecycle, budgets, channels, leads and analytics remain open pending verified backend contracts and scope authorization.
+- **Tests:** Updated Playwright E2E to handle first-visit Egypt location consent and verify activity route refresh/back, specialty filter clear, and responsive layout. Updated canonical taxonomy static contract. Exact-head tests are still pending on this branch.
+- **Documentation:** Added activity-module architecture spec, canonical TODO entry, continuity and session-log entries.
+- **Production impact:** frontend/tests/docs only. No production migrations, grants, RLS/Auth, Edge deployments, live campaign writes, advertising spend, payments or financial operations.
+- **Status:** IN PROGRESS / NOT VERIFIED. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- **Next action:** open a replacement Draft PR from this latest-main branch, inspect exact-head checks, resolve build/E2E/validator failures, and continue the module capability registry and integrations.
+
+
+## 2026-10-31 — Activity Modules CI checkpoint
+
+- Current-main branch `feat/activity-modules-current-main-20261031`, PR #608, head `182bd1a48d4b9e43e8842eb356f12f1449e8d963`.
+- TypeScript check, primary catalog build, canonical taxonomy validator, geographic discovery/GPS contract, and employee RBAC PostgreSQL test pass.
+- Browser E2E run `41192816382` remains IN PROGRESS. Previous E2E failures were traced to stale selectors: the retired `كافة الأنشطة` functional-group control and a non-exact `التخصصات` button selector. Both were updated; do not claim E2E success until the current run concludes.
+- PR #608 remains Draft/unmerged. No production deployment, schema/data migration, grant/RLS/Auth change, Edge deployment, campaign mutation, advertising spend or financial operation occurred.
+
+
+## 2026-10-31 — SESSION — Activity-specific registry continuation
+
+- Added typed `activityModuleRegistry.ts` keyed by canonical activity ID. Domain profiles now cover medical/health, food/grocery, fashion/beauty, home maintenance, construction/decor, transport, real estate, education/training, technology/communications, professional services, and agriculture/animals.
+- Activity module Marketing section now shows domain-specific objective, audience, positioning, content pillars, campaign ideas, and required launch assets. Operations section is data-driven and all not-yet-integrated capabilities are visibly marked **قيد التجهيز**.
+- Added taxonomy static assertions and a browser E2E check for the restaurant profile (local audience/content requirements plus menu and order capabilities).
+- Do not implement campaign create/publish/budget/channel writes yet: production reconciliation explicitly says RC453 campaign tables/RPCs are absent, RC452 manager-read scoping is not verified, and RC102 provider-service owner write grants are absent. SMM remains deferred.
+- Latest code/test commit: `fdf81ef42ec68eacb42f9cebe76c97b45a7e2881`; PR #608 still Draft. Exact-head CI is running: catalog `41196188567`, Pages validation `41196188571`, module professionalization `41196188606`, plus security workflows `41196188583`, `41196188595`, `41196188562`, `41196188647`. Final exact-head results pending.
+- No production migrations, schema/data/grants/RLS/Auth changes, Edge deployments, marketing mutations, advertising spend, payments, or financial writes.
+
+
+## 2026-10-31 — Activity module registry validation completed
+
+- Registry code/test commit `5ea3a4d4226ed43abc7addf91525607d558afe1e` passed exact-head CI.
+- Catalog run [41196288654](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288654): TypeScript/build/taxonomy/geographic consent/employee RBAC/full browser E2E all **PASS**.
+- Browser E2E verifies the activity module route, refresh/back navigation, specialties and reversible filters, responsive overflow, and restaurant-specific marketing plus menu/orders operations capabilities.
+- Pages validation [41196288663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288663) passed; deploy job was skipped on PR events. No production deployment is claimed.
+- Other relevant workflows passed: Module Professionalization #41196288659, Backend-only Boundary #41196288717, Privacy #41196288694, RC425 #41196288797, Flexible Commission #41196288767.
+- PR #608 remains Draft. Production marketing backend dependencies RC453/RC452/RC102 remain unresolved; campaign creation/publishing/budgets and SMM must remain disabled. No production DB, Edge, ads, payment, wallet or finance mutation occurred.
+
+## 2026-10-31 — Continue activity module specialization
+
+- Added 150 explicit activity-specific operational capability definitions (three per canonical activity across all 50 seeded activities).
+- Resolver uses the canonical activity ID to select the exact capability set and falls back safely for custom activities. All capabilities remain planned until backed by verified APIs/RPCs and scoped authorization.
+- Activity module cards now expose state-aware accessible labels; pharmacy E2E verifies its three specific operational cards and their planned state.
+- Canonical taxonomy validator now fails if any of the 50 activities lacks exactly three specific capability definitions.
+- Exact-head CI for this increment is pending. No production deployment, database/schema/grant/RLS/Auth changes, Edge function deployment, campaign publishing, advertising spend, or financial mutation.
+
+
+## CAT-ACTIVITY-MODULE-ADMIN-20261031-02 — Super Admin activity module configuration
+
+**Date:** 2026-10-31  
+**Status:** SOURCE IMPLEMENTED; exact-head CI VALIDATED on `7e0d8caa79a0b768c8320049c718d5ba581a1895`; production deployment and atomic audit durability remain open.  
+**Request ledger:** Issue #599.  
+**Branch / PR:** `feat/activity-modules-current-main-20261031` / Draft PR #608.
+
+### Implemented in source
+- [x] Added a visible `إعدادات وحدات الأنشطة` tab to the existing Super Admin dashboard without replacing current tabs.
+- [x] Added `ActivityModulesAdmin.tsx` to select each canonical activity and edit its marketing objective, audience, positioning, content pillars, campaign ideas, and required assets.
+- [x] Added per-activity editing for the existing three capability titles/descriptions. The editor cannot change capability IDs or activate an unverified workflow.
+- [x] Added typed `ActivityModuleOverrides` to `AdminSettings`, persisted through the existing `SAVE_SETTINGS` server-authoritative action.
+- [x] Updated `resolveActivityModuleConfig` and `ActivityModuleView` so saved admin overrides are reflected on public activity module pages.
+- [x] Added server-side allowlist and validation for activity override IDs, fields, lengths, array counts, exactly three capabilities, and total payload size. The browser does not write to `bizcatalog_platform_settings` directly.
+- [x] Added a server-side audit event `PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED` containing changed activity IDs, changed sections, and the before/after values for those fields, attributed to the authenticated platform admin and a production tenant scope.
+- [x] The Edge response exposes `auditLogged`; the frontend updates local state only after server-confirmed persistence and warns explicitly if persistence succeeded but audit insertion failed.
+- [x] Added `scripts/validate-activity-module-admin.mjs`, `scripts/test-activity-module-overrides.mjs`, and wired the static contract and Node sanitizer tests into catalog validation workflows.
+- [x] Added a sanitized public projection of only `activityModuleOverrides` to `public-catalog-directory`; the complete platform settings object is never returned. Public directory bootstrap now hydrates visitors' activity-module settings only when the public settings read is authoritative.
+- [x] Read-only Supabase inspection confirmed `bizcatalog_platform_settings` exists with its singleton row, and `audit_logs` has the required `id`, `tenant_id`, `actor_user_id`, `action`, `entity_type`, `entity_id`, `old_values`, `new_values`, and `result` columns. No production data was changed.
+- [x] Read-only permission inspection confirmed `bizcatalog_platform_settings` has RLS enabled with a `service_role`-only policy and no `anon`/`authenticated` table grants; `audit_logs` has RLS and FORCE RLS enabled, with service-role insert privilege. Public visitors receive the sanitized projection only through the Edge Function.
+- [x] Confirmed deployed `catalog-platform-admin` and `public-catalog-directory` are still older versions (23 and 10 respectively); this PR's source changes have not been deployed.
+
+### Safety boundary and open verification
+- [x] Exact-head TypeScript check, canonical taxonomy validator, activity admin static contract, Node sanitizer tests, production catalog build, employee RBAC PostgreSQL, Browser Playwright E2E, backend-only boundary, SMM deferred contract, RC425 Paymob atomicity, flexible commissions, Open Ride privacy, Module Professionalization, and Pages validation all passed on `7e0d8caa79a0b768c8320049c718d5ba581a1895`.
+- [x] Browser E2E includes `super-admin-activity-module-edit-and-save-round-trip`: a platform-admin browser fixture selects the pharmacy activity, changes its marketing objective, verifies the three capabilities remain `planned`, and verifies the authenticated `SAVE_SETTINGS` request and payload. This is a mocked browser contract, not a production database write.
+- [ ] Add a real deployed-origin round-trip test after the reviewed Edge Function deployment; the current live functions are still older versions `catalog-platform-admin v23` and `public-catalog-directory v10`.
+- [ ] Public visitor E2E must verify that a newly saved override is rendered after reload from the public settings projection; current E2E covers the Super Admin save request, while the public settings projection is guarded by static contracts and backend source checks.
+- [ ] Make settings persistence and audit insertion atomic in one reviewed database transaction/RPC before treating the save-and-audit path as fully durable. Current behavior surfaces `auditLogged=false` if the second write fails after the settings upsert.
+- [ ] Add isolated negative tests for unknown capability IDs, unauthorized platform memberships, and forced audit-write failure. Existing Node tests cover malformed IDs, length/array/payload bounds, duplicate capability IDs, and rejected capability-state elevation.
+- [ ] Audit insertion currently follows the settings upsert and is not a single database transaction. A failed audit insert is surfaced as `auditLogged=false`, but the settings may already be persisted. Do not claim atomic save+audit until a reviewed transactional server contract exists.
+- [ ] Verify live deployed Edge Function and real authenticated Super Admin save/read/reset behavior only after an explicitly authorized deployment. No deployment was performed by this source change.
+- [ ] Verify role × platform-admin authorization, malformed payload rejection, oversized payload rejection, unknown capability IDs, and audit failure handling with isolated tests.
+- [ ] All activity operations remain `planned`; editing display metadata does not enable orders, appointments, inventory, bookings, campaigns, budgets, or analytics.
+
+### Production impact
+- Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
+- No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
+- `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.

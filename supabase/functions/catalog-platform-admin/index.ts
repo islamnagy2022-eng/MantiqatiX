@@ -1,5 +1,6 @@
 // Supabase Edge Runtime provides Deno.serve at runtime; no runtime import is needed for its ambient type declarations.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sanitizeActivityModuleOverrides } from "../_shared/activity-module-overrides.mjs";
 
 const allowedOrigins = new Set([
   "https://islamnagy2022-eng.github.io",
@@ -24,6 +25,7 @@ const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0
 const isPlatformAdmin = (m: any) => String(m.role || "").toUpperCase() === "SUPER_ADMIN"
   && !m.business_id && !m.branch_id
   && m.permissions?.scope === "PLATFORM" && m.permissions?.full_control === true;
+
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 Deno.serve(async (req: Request) => {
@@ -132,8 +134,15 @@ Deno.serve(async (req: Request) => {
     if (action === "SAVE_SETTINGS") {
       const input = body.settings && typeof body.settings === "object" ? body.settings : {};
       const safe: Record<string, unknown> = {};
-      const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
+      const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed", "activityModuleOverrides"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
+      if (Object.prototype.hasOwnProperty.call(input, "activityModuleOverrides")) {
+        try {
+          safe.activityModuleOverrides = sanitizeActivityModuleOverrides(input.activityModuleOverrides);
+        } catch {
+          return response(origin, { error: "INVALID_ACTIVITY_MODULE_OVERRIDES", message: "بيانات إعدادات وحدات الأنشطة غير صالحة أو تجاوزت الحدود المسموح بها." }, 400);
+        }
+      }
       if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
         const phone = String(input.adminWhatsApp || "").trim();
         const digits = phone.replace(/\D/g, "");
@@ -154,7 +163,48 @@ Deno.serve(async (req: Request) => {
         settings_key: "bizcatalog", settings: merged, updated_by: user.id, updated_at: new Date().toISOString(),
       }, { onConflict: "settings_key" });
       if (error) throw error;
-      return response(origin, { success: true, settings: merged });
+
+      let auditLogged: boolean | undefined;
+      if (Object.prototype.hasOwnProperty.call(input, "activityModuleOverrides")) {
+        const previousOverrides = current.activityModuleOverrides && typeof current.activityModuleOverrides === "object" && !Array.isArray(current.activityModuleOverrides)
+          ? current.activityModuleOverrides as Record<string, unknown> : {};
+        const nextOverrides = safe.activityModuleOverrides as Record<string, unknown>;
+        const activityIds = [...new Set([...Object.keys(previousOverrides), ...Object.keys(nextOverrides)])];
+        const changedActivities = activityIds.flatMap((activityId) => {
+          const before = previousOverrides[activityId] && typeof previousOverrides[activityId] === "object" ? previousOverrides[activityId] as Record<string, unknown> : {};
+          const after = nextOverrides[activityId] && typeof nextOverrides[activityId] === "object" ? nextOverrides[activityId] as Record<string, unknown> : {};
+          const fields = ["marketing", "capabilities"].filter((field) => JSON.stringify(before[field] ?? null) !== JSON.stringify(after[field] ?? null));
+          return fields.length ? [{
+            activityId,
+            fields,
+            oldValues: Object.fromEntries(fields.map((field) => [field, before[field] ?? null])),
+            newValues: Object.fromEntries(fields.map((field) => [field, after[field] ?? null])),
+          }] : [];
+        });
+        const auditError = await writeAuditLog({
+          tenantId: productionTenantIds[0],
+          action: "PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED",
+          entityType: "activity_module_settings",
+          entityId: "bizcatalog",
+          oldValues: { changedActivities: changedActivities.map(({ activityId, fields, oldValues }) => ({ activityId, fields, ...oldValues })) },
+          newValues: {
+            changedActivities: changedActivities.map(({ activityId, fields, newValues }) => ({ activityId, fields, ...newValues })),
+            configuredActivityCount: Object.keys(nextOverrides).length,
+          },
+        });
+        auditLogged = !auditError;
+        if (auditError) console.error("activity module settings saved but audit logging failed", {
+          code: auditError.code, message: auditError.message, actorUserId: user.id,
+        });
+      }
+      return response(origin, {
+        success: true,
+        settings: merged,
+        ...(auditLogged === undefined ? {} : {
+          auditLogged,
+          ...(auditLogged ? {} : { warning: "PLATFORM_AUDIT_WRITE_FAILED", message: "تم حفظ الإعدادات لكن تعذر تأكيد تسجيل التعديل في سجل العمليات." }),
+        }),
+      });
     }
 
     if (action === "LIST_BUSINESSES") {

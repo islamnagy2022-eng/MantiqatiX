@@ -9,6 +9,8 @@ on:
       - "scripts/validate-catalog-google-auth-contract.mjs"
       - "scripts/validate-facebook-page-import.mjs"
       - "scripts/validate-business-social-links.mjs"
+      - "scripts/validate-activity-module-admin.mjs"
+      - "scripts/test-activity-module-overrides.mjs"
       - "scripts/validate-catalog-geographic-search.mjs"
       - "scripts/validate-paid-subscription-gate.mjs"
       - "scripts/validate-business-create-inflight-guard.mjs"
@@ -16,6 +18,8 @@ on:
       - "scripts/validate-directory-listings-origin-allowlist.mjs"
       - "scripts/validate-production-catalog-real-state.mjs"
       - "scripts/validate-canonical-activity-taxonomy.mjs"
+      - "scripts/validate-activity-module-admin.mjs"
+      - "scripts/test-activity-module-overrides.mjs"
       - "scripts/production/verify-catalog-pilot.mjs"
       - "docs/release/production-migration-reconciliation.json"
       - "scripts/validate-production-gate-contract.mjs"
@@ -114,6 +118,10 @@ jobs:
         run: npm run lint
       - name: Validate canonical activity/profession taxonomy
         run: node scripts/validate-canonical-activity-taxonomy.mjs
+      - name: Validate per-activity admin settings and audit contract
+        run: node scripts/validate-activity-module-admin.mjs
+      - name: Test activity module override payload validation
+        run: node scripts/test-activity-module-overrides.mjs
       - name: Validate geographic catalog search and GPS contract
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate Google OAuth session and role contract
