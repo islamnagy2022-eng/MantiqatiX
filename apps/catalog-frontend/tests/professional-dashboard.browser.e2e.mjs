@@ -879,7 +879,7 @@ try {
     }
     const grid = page.locator('section[aria-label="الأنشطة"] .grid').first();
     const columns = await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
-    assert.equal(columns, 3, 'homepage must display three activity cards per mobile row');
+    assert.equal(columns, 8, 'homepage must display eight activity cards per mobile row');
     const pharmacy = page.getByRole('button', { name: /صيدليات/ }).first();
     const restaurant = page.getByRole('button', { name: /مطاعم/ }).first();
     await pharmacy.waitFor({ state: 'visible' });
@@ -888,7 +888,7 @@ try {
     assert.match(await restaurant.innerText(), /موثق\s*[٠-٩0-9]/);
     await pharmacy.click();
     await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
-    results.push('homepage-canonical-activity-precedence-and-three-column-mobile-grid');
+    results.push('homepage-canonical-activity-precedence-and-eight-column-mobile-grid');
   } finally { await context.close(); }
 }
 
