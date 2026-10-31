@@ -139,6 +139,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     url.searchParams.delete('store');
     url.searchParams.delete('businessId');
     url.searchParams.delete('manage');
+    if (view !== 'directory') {
+      url.searchParams.delete('activity');
+      url.searchParams.delete('listing');
+      url.searchParams.delete('group');
+    }
     if (view !== 'merchant_admin') url.searchParams.delete('merchantTab');
     if (view !== 'super_admin') url.searchParams.delete('controlTab');
     if (view === 'public_storefront') {
