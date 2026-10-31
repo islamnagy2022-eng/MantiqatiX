@@ -1313,3 +1313,12 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Classification: **P0 / BLOCKING authorization drift**. This is a confirmed code/privilege condition, not evidence that it has been exploited or that an unauthorized settlement occurred.
 - No Production DDL, grant, Auth/RLS, Edge Function, business data, payment, wallet, settlement or journal mutation was performed. Do not test settlement against live rides.
 - Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`. Remediation remains blocked on an approved, cost-reviewed restorable isolated environment and credential-scrubbed current-Production schema capture, followed by chronological replay, rollback rehearsal and controlled release.
+
+
+### P0 scope expansion — all four live MantiGO platform RPCs
+
+- A follow-up read-only query inspected the four RPCs covered by RC449: global dashboard, global financial report, captain settlement, and stale ride expiration.
+- All four are live SECURITY DEFINER functions with `search_path=public`, authenticated EXECUTE, no anon EXECUTE, and no call to `mnty_can_platform_admin()`.
+- The role predicates permit broad active tenant roles without requiring `MNTY-PLATFORM` plus explicit platform scope/full_control. Effects include global ride/financial aggregates, global financial report reads, settlement/journal mutation, and global ride expiration/audit/notifications.
+- This confirms the P0 finding is a four-RPC platform authorization boundary defect, not only a settlement-specific issue. No live RPC was invoked and no Production mutation or business-row read occurred.
+- RC449 source remediation already guards all four RPCs; it remains unapplied in Production. Full scope and exact closure are recorded in `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
