@@ -1,7 +1,7 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { ActivityModuleOverrides, AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
 import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
-import { resolveDefaultImage } from '../utils/defaultImages';
+import { resolveDefaultImage, UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
 if (!runtime?.supabaseUrl || !runtime?.supabaseKey) {
@@ -213,9 +213,8 @@ export function mapBusiness(raw: any, provider: any): Business {
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
     !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
-  const UNVERIFIED_PHARMACY_IMAGE = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10';
   const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
-    ? UNVERIFIED_PHARMACY_IMAGE
+    ? UNVERIFIED_PHARMACY_IMAGE_URL
     : '';
   const isDoctor = /طبيب|طبيبة|دكتور|دكتورة|doctor|physician/i.test([
     name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code,
@@ -223,9 +222,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     provider?.kind, provider?.providerKind, provider?.provider_kind,
     raw.providerKind, raw.provider_kind, raw.kind, raw.type, raw.listingType, raw.listing_type,
   ].join(' ')) || (functionalGroupId === 'medical_health' && classificationType === 'profession');
-  const UNVERIFIED_DOCTOR_IMAGE = 'https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI';
   const doctorFallbackLogo = isDoctor && !isVerified && !hasOwnerSelectedLogo
-    ? UNVERIFIED_DOCTOR_IMAGE
+    ? UNVERIFIED_DOCTOR_IMAGE_URL
     : '';
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
