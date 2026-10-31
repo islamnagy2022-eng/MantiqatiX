@@ -744,22 +744,13 @@ try {
     );
     try {
       await page.getByRole('heading', { name: 'إعدادات وحدات الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-      const activitySelect = page.getByLabel('اختر النشاط');
-      await activitySelect.selectOption('cat_medical_health_pharmacies');
-      await page.getByLabel('الهدف التسويقي').fill('E2E — هدف تسويقي مخصص للصيدلية');
-      assert.equal(await page.getByText('قيد التجهيز', { exact: true }).count(), 3, 'all three pharmacy capabilities must stay explicitly planned');
-      await page.getByRole('button', { name: 'حفظ إعدادات النشاط', exact: true }).click();
-      await page.getByRole('status').getByText('تم حفظ إعدادات النشاط من خلال خدمة الإدارة المركزية.', { exact: true })
-        .waitFor({ state: 'visible', timeout: 10000 });
-      const saveRequest = platformAdminRequests.filter((request) => request.action === 'SAVE_SETTINGS').at(-1);
-      assert.ok(saveRequest, 'saving activity module copy must call the platform-admin settings action');
-      assert.equal(saveRequest.authorization, 'Bearer e2e-access-token-not-a-real-credential', 'activity module settings writes must carry the signed-in bearer token');
-      const pharmacyOverride = saveRequest.settings?.activityModuleOverrides?.cat_medical_health_pharmacies;
-      assert.equal(pharmacyOverride?.marketing?.objective, 'E2E — هدف تسويقي مخصص للصيدلية');
-      assert.equal(pharmacyOverride?.capabilities?.length, 3, 'the saved activity must retain its three reviewed capabilities');
-      assert.equal(pharmacyOverride?.capabilities?.some((capability) => Object.hasOwn(capability, 'state')), false, 'the editor must not submit capability activation state');
-      assert.equal(platformSettingsState.settings.activityModuleOverrides.cat_medical_health_pharmacies.marketing.objective, 'E2E — هدف تسويقي مخصص للصيدلية');
-      results.push('super-admin-activity-module-edit-and-save-round-trip');
+      await page.getByRole('status').getByText(
+        'معاينة إعدادات الأنشطة متاحة، لكن الحفظ الإداري موقوف مؤقتًا حتى نشر واختبار خدمة الحفظ الذري مع سجل التدقيق على Supabase. لم يتم إرسال أي تعديل أو تغيير بيانات الإنتاج.',
+        { exact: true },
+      ).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(await page.getByLabel('اختر النشاط').count(), 0, 'the unverified editor must not expose editable activity settings');
+      assert.equal(platformAdminRequests.filter((request) => request.action === 'SAVE_SETTINGS').length, 0, 'no settings write may be sent before atomic audit support is deployed');
+      results.push('activity-module-admin-writes-disabled-until-atomic-audit-backend');
     } finally { await context.close(); }
   }
 
