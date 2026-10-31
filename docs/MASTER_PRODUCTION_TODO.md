@@ -3033,3 +3033,22 @@ A separate source review found a second platform-root authorization model: the n
 - **Tests/evidence:** static regression assertions added; execution pending exact-head CI.
 - **Deployment:** NOT CLAIMED. Deploy only through reviewed merge-to-main workflow after CI.
 - **Next action:** run exact-head catalog validation and browser E2E; verify deployed-origin fallback and replacement-image behavior after merge.
+
+
+## CAT-DOCTOR-DEFAULT-IMAGE-20261101 — صورة افتراضية للأطباء غير الموثقين
+
+- **Request ledger:** GitHub master issue #599; added to PR #628 continuation.
+- **Priority:** P2 — catalog presentation consistency.
+- **Status:** SOURCE IMPLEMENTED ON BRANCH; exact-head tests and deployed-origin verification OPEN.
+- **Branch / PR:** `fix/unverified-pharmacy-default-image-20261101` / [PR #628](https://github.com/islamnagy2022-eng/MantiqatiX/pull/628).
+- **Requested fallback:** `https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI`.
+- **Acceptance criteria:**
+  - Apply only to doctor listings that are not verified and have no owner/admin-selected image.
+  - Preserve owner/admin/AI-selected images; a saved replacement takes precedence.
+  - Verified doctors, pharmacies, and non-doctor activities retain their existing behavior.
+  - No listing data, verification state, database schema, or production mutation.
+  - Regression assertions cover exact URL, unverified doctor scope, and custom-image precedence.
+- **Implementation:** frontend production mapper only; pharmacy fallback remains intact.
+- **Tests/evidence:** static regression assertions added; exact-head CI pending.
+- **Deployment:** NOT CLAIMED. Deploy only through reviewed merge-to-main workflow after CI.
+- **Next action:** run exact-head catalog validation and browser E2E; verify deployed-origin doctor fallback and replacement-image behavior after merge.
