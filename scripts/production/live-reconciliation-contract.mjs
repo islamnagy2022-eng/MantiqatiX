@@ -14,6 +14,7 @@ export const REQUIRED_RELEASE_MIGRATION_VERSIONS = [
   "20261023050000", "20261023060000",
   "20261027030000", "20261027040000", "20261027050000",
   "20261027060000", "20261027070000", "20261027090000", "20261027093000",
+  "20261031100000",
 ];
 
 export const REQUIRED_MIGRATION_ALIASES = [
@@ -112,6 +113,7 @@ const RC449A_VERSION = "20261010175000_rc449a_financial_journal_schema_prerequis
 const RC450_VERSION = "20261010180000_rc450_financial_journal_service_role_boundary";
 const FINANCIAL_JOURNAL_BACKEND_SIGNATURE = "post_financial_journal_backend(uuid,jsonb,jsonb)";
 const RC451_VERSION = "20261010200000";
+const RC463_VERSION = "20261031100000";
 
 export function isLiveReconciliationVerified(reconciliation) {
   if (!reconciliation || typeof reconciliation !== "object") return false;
@@ -120,6 +122,8 @@ export function isLiveReconciliationVerified(reconciliation) {
   const objects = reconciliation.required_release_object_presence_check;
   const edgeParity = reconciliation.critical_edge_function_source_parity_check;
   const finance = reconciliation.financial_journal_runtime_prerequisite_check;
+  const triggerAcl = reconciliation.trigger_only_security_definer_acl_check;
+  const triggerAclFunctions = Array.isArray(triggerAcl?.functions) ? triggerAcl.functions : [];
   const functions = Array.isArray(edgeParity?.functions) ? edgeParity.functions : [];
   const objectFindings = Array.isArray(objects?.observed) ? objects.observed : [];
   const missingVersions = Array.isArray(ledger?.missing_versions) ? ledger.missing_versions : null;
@@ -138,6 +142,22 @@ export function isLiveReconciliationVerified(reconciliation) {
 
   const requiredEdgeParityPassed = REQUIRED_EDGE_FUNCTIONS.every(slug =>
     functions.some(row => row?.slug === slug && row?.exact_match === true)
+  );
+
+  const requiredTriggerAclPassed = [
+    "assign_default_owner_to_unowned_business",
+    "capture_commission_rule_audit"
+  ].every(functionName =>
+    triggerAclFunctions.some(row =>
+      row?.function_name === functionName &&
+      row?.security_definer === true &&
+      row?.trigger_enabled === true &&
+      row?.search_path_empty === true &&
+      row?.public_execute === false &&
+      row?.anon_execute === false &&
+      row?.authenticated_execute === false &&
+      row?.service_role_execute === false
+    )
   );
 
   const requiredLiveObjectsPassed = [...REQUIRED_CORE_OBJECTS, ...REQUIRED_CONTROL_CENTER_OBJECTS].every(name =>
@@ -244,6 +264,13 @@ export function isLiveReconciliationVerified(reconciliation) {
     finance.live_migrations?.[RC450_VERSION] === true &&
     missingColumns !== null &&
     missingColumns.length === 0 &&
-    backendRpc?.service_role_execute === true
+    backendRpc?.service_role_execute === true &&
+
+    // RC463 must close direct API/PUBLIC EXECUTE on both trigger-only SECURITY DEFINER functions.
+    triggerAcl?.status === "PASS" &&
+    triggerAcl.migration_version === RC463_VERSION &&
+    triggerAcl.migration_version_recorded === true &&
+    triggerAclFunctions.length === 2 &&
+    requiredTriggerAclPassed
   );
 }
