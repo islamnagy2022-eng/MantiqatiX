@@ -3024,3 +3024,10 @@ A separate source review found a second platform-root authorization model: the n
 - Added `docs/release/CURRENT_SCHEMA_REHEARSAL_RUNBOOK_20261031.md` with a zero-cost operator-local capture/restore procedure, credential-scrubbing rules, schema parity checklist, ad_spaces test gate and stop conditions. It uses official Supabase CLI `db dump` commands and separately calls out managed auth/storage and migration-history handling.
 - **Execution status:** read-only SQL/catalog/Advisor inspection only. No credentials accessed or stored, no dump file created, no restore run, no branch/project/add-on created, no Production DDL/DML, RLS/GRANT/Auth/Edge changes, payments, wallet movement or journal postings.
 - **Next action:** authorized operator performs credential-scrubbed local schema/roles capture, restores it into a local disposable Supabase stack, and reports hashes plus parity evidence. Only then proceed to exact migration-effect reconciliation and isolated ad_spaces/finance policy tests. Global Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — P0 ad_spaces authorization issue registered
+
+- Opened dedicated security work item **Issue #611**: https://github.com/islamnagy2022-eng/MantiqatiX/issues/611.
+- Scope: reproduce the current authenticated DML grants and permissive ALL policy combination in the isolated current-schema rehearsal, define the canonical platform-admin/tenant-slot authority model, implement least-privilege controls only in isolation, and test anonymous/ordinary-authenticated/tenant-owner/platform-admin/backend actors.
+- Production remains unchanged. Slot writes, booking and pricing activation remain blocked; no blanket revoke or speculative policy migration is approved.
