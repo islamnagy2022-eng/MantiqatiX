@@ -1265,3 +1265,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Other unresolved:** Paymob/finance E2E NOT VERIFIED; backup/restore NOT VERIFIED; Auth managed settings require owner evidence; SMM gateway parity partial and negative runtime tests unverified.
 - **No Production mutation:** no migrations, grants, Auth/RLS changes, Edge deployment, payment provider call or ledger mutation performed.
 - **Production Gate:** **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-31 — latest-main monitor after PR #575
+
+- **Latest main:** `b41c3c312e713f1975bafef6a617ad7159e1b4f8`.
+- **Production Health Monitor:** [run 41160088237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160088237) completed successfully.
+- **Database evidence:** job ID `124415513397` emitted `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS` after the GET to `marketing_provider_profiles?select=business_id&limit=1`; the workflow treats any HTTP status other than 200 as failure.
+- **Notifications:** GitHub failure-notification delivery remains NOT VERIFIED.
+- **Pages:** current-main Pages run [41160088248](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160088248) was still queued/in progress at last inspection. The prior tested application snapshot's Pages deploy and browser E2E passed (run #41159666222).
+- **Backup/restore:** no Production backup or restore rehearsal; owner/operator local action still required.
+- **Safety:** read-only GET; no Production mutation.
