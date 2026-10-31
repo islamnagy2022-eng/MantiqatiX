@@ -3085,3 +3085,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Read-only scan of the live migration ledger found no CREATE TABLE, DROP TABLE or table-shape migration for `public.bookings`. Its only recorded mention is RLS enablement in `20260919233425_production_security_hardening_v1`.
 - Search of public SQL function bodies found no booking reference. Focused GitHub search found no direct browser/Edge source consumer. Current table is only `id` and `created_at`, with one row (contents not read).
 - Creation provenance is therefore unresolved/outside the current recorded migration creation history. This does not prove safe retirement. Issue #613 requires an authoritative schema snapshot/backup, external/dynamic dependency search and retention review. Keep the table and row unchanged.
+
+ 
+## 2026-10-31 — expanded live dependency scan for `bookings`
+
+- Live catalog scan across non-system schemas found no SQL function/procedure, view/materialized view, trigger, rule, FK, RLS policy expression or publication membership referencing `public.bookings`.
+- The two database publications do not include `bookings`. This does not exclude dynamic SQL, external jobs/services or code outside the repository.
+- Preserve the table and its one row until creation provenance, external dependencies and retention requirements are proven. Issue #613 remains P3.
