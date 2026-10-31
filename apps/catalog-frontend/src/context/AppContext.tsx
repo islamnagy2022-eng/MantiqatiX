@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -126,7 +126,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
