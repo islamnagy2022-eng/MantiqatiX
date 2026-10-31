@@ -114,6 +114,8 @@ jobs:
         run: npm run lint
       - name: Validate canonical activity/profession taxonomy
         run: node scripts/validate-canonical-activity-taxonomy.mjs
+      - name: Validate per-activity admin settings and audit contract
+        run: node scripts/validate-activity-module-admin.mjs
       - name: Validate geographic catalog search and GPS contract
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate Google OAuth session and role contract
