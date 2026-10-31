@@ -24,3 +24,10 @@ The registry itself is protected from direct client table access. The remaining 
 
 ## Safety
 No Production DDL/DML, grants, RLS/Auth changes, Edge deployments, registry-row reads, payments, settlements or journal mutations occurred.
+
+
+## Cross-PR source collision reconciliation
+
+- PR #207 already carried the same three RC42 migration paths but with an extra trailing newline, producing different Git blob SHAs from the applied-ledger statements.
+- Updated only those three migration files on PR #207's draft branch to the exact canonical bytes recovered for PR #598. The source contents now compare equal byte-for-byte across both branches; no other PR #207 files were changed.
+- The cross-PR collision guard is expected to treat the identical path/version/blob as one canonical migration source. PR #598 still must pass a fresh exact-head run before merge; PR #207 remains draft and unmerged.
