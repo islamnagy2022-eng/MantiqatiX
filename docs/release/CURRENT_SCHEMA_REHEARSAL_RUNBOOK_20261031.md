@@ -193,3 +193,6 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
  
 - [ ] Reproduce `public.bookings` in the local restore and establish its historical/dynamic callers, row provenance and retention requirements. Verify ordinary authenticated and anon sessions remain denied under its restrictive-only policy set; test any proposed ACL reduction without deleting the existing row. Do not retire the table until dependencies are proven absent.
+
+ 
+- [ ] Reconcile `advertisements.business_id` live constraint state against the recorded `20260808000000_phase04_enterprise_schema_and_rls` SQL (historical `CREATE TABLE IF NOT EXISTS` declared REFERENCES businesses(id) ON DELETE CASCADE). The artifact is missing from tracked GitHub migration files and no later recorded DROP CONSTRAINT was found. Determine whether the relation predated that create or the live schema diverged; require authoritative history or snapshot, never invent a historical migration.
