@@ -1059,3 +1059,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Removed a duplicate public-directory request from the signed-out auth bootstrap. AppContext already owns the independent public-directory request; guest bootstrap now returns immediately with no duplicate directory payload.
 - Exact CI, browser regressions, bundle-size comparison, real Google OAuth timings and deployed-origin measurements are pending. Do not claim a measured speed improvement until those checks are recorded.
 - No production deployment or Supabase/Auth/Edge/schema/permission changes occurred. Continue by validating the exact PR head, then profile the authenticated member bootstrap to determine whether multiple CATALOG_READ calls should be hydrated progressively without changing membership scopes.
+
+
+## 2026-10-31 — FIN-ADS-01 platform billing, wallet and advertising scope
+
+- Added `docs/PLATFORM_BILLING_WALLET_ADVERTISING_SPEC.md` and registered FIN-ADS-01 in `docs/MASTER_PRODUCTION_TODO.md` on PR #601 branch.
+- Business boundary: platform wallet is only for MantiqaTix platform services (subscriptions, approved platform fees/commissions and advertising). The platform is not a sales intermediary and must not receive or settle merchant-to-customer sale proceeds.
+- Specification covers flexible subscription/commission combinations (fixed, percentage, combined), explicit calculation basis and rule versioning; verified wallet top-ups by direct/card/Vodafone Cash and approved external cash; automatic billing with no negative balance; admin exemptions/discounts/deferrals/gifts; and ad-cover slot reservations for monthly/quarterly/half-yearly/yearly/custom durations.
+- Requires append-only auditable ledger, idempotency, server-side tenant/RLS authorization, webhook verification, maker-checker cash approval, advertising inventory conflict prevention, Egypt legal/accounting review, isolated migration replay, provider sandbox, backup/restore and release gates.
+- Status is specification/intake only. No schema, migrations, payment provider, Supabase, Production data, wallet balance, payment, or ad publication was changed or activated.
