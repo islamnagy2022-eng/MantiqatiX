@@ -2944,3 +2944,28 @@ A separate source review found a second platform-root authorization model: the n
 - [x] إضافة غلاف تحميل HTML أولي.
 - [x] إزالة طلب دليل الزوار المكرر من guest auth bootstrap.
 - [ ] إثبات exact-head build/E2E وقياس bundle/LCP/INP/CLS ووقت Google OAuth الفعلي قبل ادعاء تحسن مقاس.
+
+
+### DASH-UNIFIED-02 / PERF-01 — implementation update 2026-10-31
+
+- [x] Unified dashboard entry through "حسابي / اشتراكي"; public directory navigation no longer links directly to merchant, employee/professional or Super Admin dashboards.
+- [x] Platform AdminDashboard is available inside Account Portal; admin can open selected-business tools while retaining platform identity, without owner impersonation.
+- [x] Account modes are built from active authenticated user_memberships and exact membershipId + businessId + tenantId pairs.
+- [x] Switching reloads CATALOG_READ through the authorized Edge Function with the selected membership's branch scope, replaces the selected business products and clears cart state.
+- [x] Admin, merchant and professional dashboards lazy-load only when opened.
+- [x] Browser scenarios added for account-only Google identity, owner/employee branch scope switching, platform/business role separation and public-nav exclusion.
+- [x] TypeScript/build and static authorization contracts passed on head 2eac69122b4fa4b67bdf122c3db3db27527bf7d2; PostgreSQL employee/branch RBAC passed. Browser E2E was still running at last check.
+- [ ] Retrieve exact-head Browser E2E conclusion and resolve any failures.
+- [ ] Deployed-origin role matrix, real Google OAuth timing and mobile Core Web Vitals remain pending.
+- Status: implemented in feature branch, not merged or deployed.
+
+### FIN-ADS-01 — reuse of existing commission module
+
+- [x] Confirmed AdminDashboard already exposes the commissions tab and current CommissionRulesManager; do not create a duplicate commission engine.
+- [x] Existing manager supports percentage, fixed and combined commission drafts; tenant/business/category/product/service/plan/agreement scope; eligibility events; effective periods, priority, bounds, exemption, audit and preview.
+- [x] New rules remain inactive DRAFT; no order or settlement impact until payment-engine integration is reviewed and enabled.
+- [ ] Complete flexible subscription pricing: subscription only, platform fee only or both; fixed, percentage or combined; explicit platform-service calculation basis.
+- [ ] Review canonical ledger and design the platform wallet without duplicating existing finance primitives or reusing SMM wallets for subscribers.
+- [ ] Implement verified top-up channels, automatic platform billing and ad-cover reservations only after schema/provider/legal review.
+- [ ] Test idempotency, concurrency, RLS, reconciliation and cash approval; obtain Egypt-specific legal/accounting review before any spendable stored balance.
+- Status: commission draft engine reused; flexible subscription pricing, wallet and ad booking are not implemented or activated.
