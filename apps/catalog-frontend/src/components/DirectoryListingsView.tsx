@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, MapPin, Phone, Search, ShieldAlert, UserRoundCheck } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
+import { resolveCanonicalSpecialty } from "../data/productionDefaults";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -68,36 +69,12 @@ export const DirectoryListingsView: React.FC<{
   useEffect(() => { setSpecialtyFilter("all"); }, [functionalGroupId, taxonomyCategoryId, taxonomySpecialty]);
 
   const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/\s+/g, " ").trim();
-  const specialtyAliases: Record<string, string> = {
-    "طبيب اطفال": "اطفال", "طب الاطفال": "اطفال", "طبيب نساء وتوليد": "نساء وتوليد",
-    "طبيب جراحه عامه": "جراحه عامه", "طبيب باطنه": "باطنه", "امراض باطنه": "باطنه",
-    "باطنه ومناظير وغدد وسكر": "باطنه", "طبيب عظام": "عظام", "طبيب صدر": "صدر وحساسيه",
-    "صدر وحساسيه ومناعه": "صدر وحساسيه", "طبيب عيون": "عيون", "طب وجراحه العيون": "عيون",
-    "طبيب مسالك بوليه": "مسالك بوليه", "طبيب مخ واعصاب": "مخ واعصاب",
-    "مخ واعصاب وعمود فقري": "مخ واعصاب", "طبيب انف واذن وحنجره": "انف واذن",
-    "انف واذن وحنجره": "انف واذن", "طبيب جراحه تجميل": "جراحه تجميل",
-    "طبيب اورام": "اورام", "اورام وعلاج كيميائي": "اورام",
-    "غدد صماء وسكر": "غدد صماء وسكر", "سكر وغدد صماء": "غدد صماء وسكر",
-    "اسنان عام": "اسنان", "طب الاسنان": "اسنان", "مراكز وعيادات اسنان": "اسنان",
-    "معامل تحاليل": "تحاليل طبيه", "اشعه تشخيصيه": "اشعه", "اشعه وتحاليل": "اشعه",
-    "صيدليه": "صيدليه عامه", "صيدليات": "صيدليه عامه", "صيدليات عامه": "صيدليه عامه",
-    "مستشفيات": "مستشفى عام", "مستشفى": "مستشفى عام",
-    "مركز طبي": "مركز طبي متعدد التخصصات", "مستوصف طبي": "مركز طبي متعدد التخصصات",
-    "مراكز علاج طبيعي وتأهيل": "علاج طبيعي وتأهيل", "علاج طبيعي": "علاج طبيعي وتأهيل",
-    "علاج طبيعي وتخسيس": "علاج طبيعي وتأهيل",
-  };
-  const normalizeSpecialty = (value: string) => {
-    const key = normalize(value);
-    if (specialtyAliases[key]) return specialtyAliases[key];
-    const withoutProfessionPrefix = key.replace(/^(طبيب|دكتور|دكتورة|طبيبة)\s+/, "");
-    return specialtyAliases[withoutProfessionPrefix] || withoutProfessionPrefix;
-  };
   const taxonomyMatches = (listing: PublicDirectoryListing) => {
     if (functionalGroupId && listing.functional_group_id !== functionalGroupId) return false;
     if (taxonomyCategoryId && listing.taxonomy_category_id !== taxonomyCategoryId) return false;
     if (taxonomySpecialty) {
-      const requested = normalizeSpecialty(taxonomySpecialty);
-      const assigned = normalizeSpecialty(String(listing.taxonomy_specialty || listing.specialty || ""));
+      const requested = resolveCanonicalSpecialty(taxonomySpecialty, listing.taxonomy_category_id);
+      const assigned = resolveCanonicalSpecialty(String(listing.taxonomy_specialty || listing.specialty || ""), listing.taxonomy_category_id);
       if (assigned !== requested) return false;
     }
     const query = normalize(searchQuery);
