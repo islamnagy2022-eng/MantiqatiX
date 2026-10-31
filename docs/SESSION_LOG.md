@@ -1610,3 +1610,15 @@ A separate source review found a second platform-root authorization model: the n
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — Homepage activity classification/display correction
+
+- User reported that activity-based discovery on the homepage was not displaying activities correctly. The request was registered in master ledger Issue #599 and in `docs/MASTER_PRODUCTION_TODO.md` under `CAT-HOMEPAGE-ACTIVITY-DISPLAY-20261031-01`.
+- Read-only Production audit: 10 businesses currently satisfy the public-eligibility predicate in the inspected snapshot; all 10 have an ACTIVE provider profile, an ACTIVE branch, and non-empty activity group/category/specialty codes. This sample does not indicate missing provider/branch records as the cause for those 10.
+- Read-only Production audit also confirmed `public-catalog-directory` Edge Function is deployed at v10 and differs from current `main`: live source does not return the sanitized `activityModuleOverrides` payload now present in main. This is a separate activity-module settings parity item; no Edge deployment was performed.
+- Found and fixed a deterministic frontend mapping defect: `mapBusiness` previously preferred the legacy `category` display string before the canonical `activityGroupCode + activityCategoryCode` result. The canonical ID is now authoritative; legacy label matching is fallback-only. This protects homepage activity counts, module counts and selected-activity filtering from stale legacy labels.
+- Added a browser regression fixture where legacy `category='مطاعم — برجر'` conflicts intentionally with canonical `medical_health / pharmacies`. The test asserts that the verified count appears under `صيدليات`, not `مطاعم`, and that opening the tile routes to the pharmacy module.
+- Extended `scripts/validate-canonical-activity-taxonomy.mjs` to enforce canonical-code precedence and require the regression E2E. Current code/test commits include `c1c85f7b8607477f567eccb7eddd623ebcb206e7`, `1cd8bc6da112d2e723d5acb107e3427221bc1746`, `70f288ba7ec0e5db20f609af0a699024dc96faf5`, and `5ed2d8d6c4b7f98d0992546be055099d6e123426`.
+- Branch: `fix/homepage-activity-taxonomy-display-20261031`. Exact-head CI is pending; do not mark the correction verified or deployed until all required checks complete.
+- No Production database/schema/data/ACL/RLS/Auth/Edge Function/payment/finance mutation or deployment was performed. Full platform gate remains `BLOCKED / NOT CERTIFIED`.
