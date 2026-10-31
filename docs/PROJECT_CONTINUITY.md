@@ -1143,3 +1143,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 
 ### Additional integrity check — trigger/constraint compensation
 A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+ 
+## Latest continuation — 2026-10-31 (secondary `bookings` ACL scan)
+
+- The targeted live scan found only two public tables with authenticated DML grants but no authenticated permissive DML policy: `ad_spaces` and `bookings`.
+- `public.bookings` has RLS + FORCE RLS, four RESTRICTIVE-only authenticated guards, no permissive authenticated SELECT/write policy, authenticated DML/MAINTAIN grants, anon MAINTAIN only, and a service_role DML path.
+- Its schema is only `id uuid NOT NULL` plus nullable `created_at`; one row exists. No row content was read. No direct browser/Edge/migration source reference was found in the focused search.
+- Issue [#613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) tracks P3 provenance/dependency/lifecycle review. Do not drop or mutate the row/table before dependency and retention review; no exploit established.
+- Keep Issues #611 and #612 at P2, #613 at P3. Global Production Gate remains BLOCKED / NOT CERTIFIED.
