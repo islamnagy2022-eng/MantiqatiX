@@ -2895,3 +2895,10 @@ A separate source review found a second platform-root authorization model: the n
 - No Production migration/ACL/function/trigger/data change was made. RC463 is not approved for Production by this PR.
 - Remaining global work: restorable current Production schema rehearsal, RC449A/RC450 journal contract reconciliation, six deployed Edge Function parity gaps, backup/restore, Auth hardening, role-scoped deployed-origin tests, and full Super Admin Control Center.
 - Direct merchant-to-customer transfer remains **DEFERRED / NOT IN CURRENT SPRINT** per user instruction.
+
+
+### RC463 replay failure and bounded fixture overlay — 2026-10-31
+
+- [x] Exact-head isolated forward replay reached RC463 but failed its preflight because the 2026-10-17 schema-only checkpoint does not contain the known live default-owner trigger function. The checkpoint is older than the live catalog and has `review_status=PENDING_REVIEW`; it must not be described as a current Production restore.
+- [ ] Add a disposable-only overlay fixture using synthetic identity data to recreate the known live default-owner trigger immediately before RC463 in the replay. This overlay is test scaffolding only, not a migration and not a replacement for a fresh Production schema dump.
+- [ ] Re-run the complete chronological replay and dependent tenant-isolation/commission tests. Keep the current-schema restore and backup/restore gate NOT VERIFIED until an owner-authorized current snapshot and separate data backup restore exist.
