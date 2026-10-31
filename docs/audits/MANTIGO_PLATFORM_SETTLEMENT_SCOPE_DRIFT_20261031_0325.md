@@ -254,3 +254,8 @@ A separate source review found a second platform-root authorization model: the n
 - Preserve migration files. Required chronological replay order is RC441 → RC449 → RC462, but this subset must be embedded in the complete required migration-chain reconciliation, not applied ad hoc.
 - Next dependency remains an authorized credential-scrubbed current-Production schema/roles capture, disposable restore, complete ordered migration replay, and rollback rehearsal. Only then can the controlled Production rollout be separately reviewed and explicitly authorized.
 - No Production DDL/DML, GRANT/REVOKE, RLS/Auth change, Edge deployment, payment, settlement, wallet or journal action was performed. Overall gate remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## Current-schema baseline gap — 2026-10-31
+
+The existing isolated full-chain replay evidence [41178333682](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41178333682) uses the repository's committed schema-only baseline from 2026-10-17 02:10:22 UTC at version `20261008222845` (283 migration records, `PENDING_REVIEW`). Live Production is now at 308 records through `20261029083845`. This 25-record delta means the successful replay is not a current-Production restore/parity result. Artifact lookups for replay #41178333682 and original capture #38993809648 returned no downloadable artifacts. Fresh authorized capture/restore is still required before RC441 → RC449 → RC462 can be considered for live rollout.
