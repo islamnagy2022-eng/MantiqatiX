@@ -1544,3 +1544,12 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Exact-head CI and 390px browser validation must pass before merge.
 - [ ] No Production deployment or database/Auth/RLS/Edge/payment mutation is authorized by this frontend change.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-01 — Activity module directory records (additive frontend fix)
+- [x] Root cause confirmed: ActivityModuleView previously received only category/counts and could not render real directory entities.
+- [x] Pass the already geo/search-filtered verified businesses and published unclaimed directory listings into the module; preserve the current geographic scope.
+- [x] Render verified entities first and unverified entities with a red badge; require a usable phone number for module listing visibility.
+- [x] Specialty selection now filters records inside the activity module instead of navigating back to the homepage directory.
+- [ ] Exact-head CI, TypeScript/build, taxonomy/static validation, RBAC and browser E2E must pass before merge.
+- [ ] Confirm module navigation, specialty filter, geo-scope preservation and entity detail navigation in browser at 390px/768px/1440px.
+- [ ] No production database, Auth/RLS, Edge Function, payment, or deployment mutation is included. Production Gate remains **BLOCKED / NOT CERTIFIED**.
