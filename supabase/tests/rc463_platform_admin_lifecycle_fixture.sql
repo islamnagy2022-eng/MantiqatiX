@@ -86,3 +86,88 @@ create table public.audit_logs (
   result varchar not null default 'SUCCESS',
   created_at timestamptz not null default now()
 );
+ 
+
+-- RC462 preflight contract fixtures: one canonical registry helper, all eight
+-- SECURITY DEFINER global callers, and the digital-pages global policy.
+create or replace function auth.uid()
+returns uuid
+language sql
+stable
+as $function$
+  select nullif(pg_catalog.current_setting('request.jwt.claim.sub',true),'')::uuid
+$function$;
+
+create or replace function public.mnty_can_platform_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select exists (
+    select 1 from private.platform_admins pa where pa.user_id=auth.uid()
+  )
+$function$;
+revoke all on function public.mnty_can_platform_admin() from public, anon;
+grant execute on function public.mnty_can_platform_admin() to authenticated;
+
+create or replace function public.get_mantigo_admin_dashboard_backend(uuid)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create or replace function public.get_mantigo_admin_financial_report_backend(uuid,timestamptz,timestamptz)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create or replace function public.settle_mantigo_captain_backend(uuid,text,text)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create or replace function public.expire_stale_mantigo_rides_backend(uuid,integer)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create or replace function public.admin_create_global_ad(varchar,text,text,timestamptz,timestamptz)
+returns uuid language sql security definer set search_path = ''
+as $function$
+  select case when public.mnty_can_platform_admin() then pg_catalog.gen_random_uuid() else null end
+$function$;
+
+create or replace function public.fulfill_digital_page_publish(uuid,uuid,uuid)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create or replace function public.review_mantigo_captain_application(uuid,uuid,text,text,text,text,jsonb)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create or replace function public.set_mantigo_financial_config_backend(uuid,numeric,text)
+returns jsonb language sql security definer set search_path = ''
+as $function$
+  select pg_catalog.jsonb_build_object('authorized',public.mnty_can_platform_admin())
+$function$;
+
+create table public.digital_pages (
+  id uuid primary key,
+  title text not null
+);
+alter table public.digital_pages enable row level security;
+grant select,insert,update,delete on public.digital_pages to authenticated;
+create policy digital_pages_admin_manage
+on public.digital_pages
+for all to authenticated
+using (public.mnty_can_platform_admin())
+with check (public.mnty_can_platform_admin());
