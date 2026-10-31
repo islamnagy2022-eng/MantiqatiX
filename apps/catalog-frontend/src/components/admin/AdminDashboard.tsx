@@ -47,6 +47,7 @@ import {
 } from '../../utils/rules';
 
 import { SuperAdminControlCenter } from './SuperAdminControlCenter';
+import { ActivityModulesAdmin } from './ActivityModulesAdmin';
 import { CommissionRulesManager } from './CommissionRulesManager';
 import { DirectoryListingsAdmin } from './DirectoryListingsAdmin';
 import { resolveDefaultImage } from '../../utils/defaultImages';
@@ -107,8 +108,8 @@ export const AdminDashboard: React.FC = () => {
     deleteBusiness,
   } = useApp();
 
-  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'settings' | 'backup' | 'control_center';
-  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'settings', 'backup', 'control_center'];
+  type AdminTab = 'billing' | 'commissions' | 'taxonomy' | 'businesses' | 'subscribers' | 'directory_listings' | 'activity_modules' | 'settings' | 'backup' | 'control_center';
+  const ADMIN_TABS: AdminTab[] = ['billing', 'commissions', 'taxonomy', 'businesses', 'subscribers', 'directory_listings', 'activity_modules', 'settings', 'backup', 'control_center'];
   const readAdminTabFromUrl = (): AdminTab => {
     const requested = new URLSearchParams(window.location.search).get('tab') as AdminTab | null;
     return requested && ADMIN_TABS.includes(requested) ? requested : 'billing';
@@ -692,6 +693,19 @@ export const AdminDashboard: React.FC = () => {
           <span>دليل الأنشطة والمطالبات</span>
         </button>
 
+        {/* Per-activity module configuration */}
+        <button
+          onClick={() => setActiveAdminTab('activity_modules')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap ${
+            activeAdminTab === 'activity_modules'
+              ? 'bg-indigo-700 text-white shadow-md'
+              : 'text-slate-700 hover:text-indigo-800 bg-white border border-slate-200'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>إعدادات وحدات الأنشطة</span>
+        </button>
+
         {/* Tab 5: Settings */}
         <button
           onClick={() => setActiveAdminTab('settings')}
@@ -715,6 +729,8 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'control_center' && <SuperAdminControlCenter />}
 
       {activeAdminTab === 'directory_listings' && <DirectoryListingsAdmin businesses={businesses} categories={categories} functionalGroups={functionalGroups} />}
+
+      {activeAdminTab === 'activity_modules' && <ActivityModulesAdmin />}
 
       {/* =========================================================================
           TAB: BILLING & COMMISSION (Mandatory Request Feature)
