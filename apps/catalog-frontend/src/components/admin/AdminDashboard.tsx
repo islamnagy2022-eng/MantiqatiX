@@ -1045,13 +1045,9 @@ export const AdminDashboard: React.FC = () => {
               </p>
             </div>
 
-            <button
-              onClick={() => setIsNewCatModalOpen(true)}
-              className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer self-start md:self-auto"
-            >
-              <FolderPlus className="w-4 h-4" />
-              <span>إضافة تصنيف جديد</span>
-            </button>
+            <div className="rounded-xl border border-indigo-300/30 bg-indigo-800/70 px-4 py-3 text-xs font-bold text-indigo-100 self-start md:self-auto">
+              اكتمل التقسيم المعتمد: 10 مجموعات، وبحد أقصى 5 أنشطة رئيسية لكل مجموعة. التخصصات تندرج داخل النشاط ولا تُنشأ كمجموعات أو تصنيفات موازية.
+            </div>
           </div>
 
           {/* Functional Groups Grid with Capabilities */}
@@ -1099,7 +1095,7 @@ export const AdminDashboard: React.FC = () => {
                       {/* Associated Categories Pills */}
                       <div className="space-y-1.5 mb-4">
                         <span className="text-[11px] font-bold text-slate-400 block">
-                          التصنيفات المندرجة تحت هذا القطاع ({groupCats.length}):
+                          الأنشطة الرئيسية في هذه المجموعة ({groupCats.length}/5):
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {groupCats.map((c) => (
@@ -1164,27 +1160,21 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-black text-base text-slate-900">
-                  دليل الأنشطة والمهن ومجموعاتها الرئيسية
+                  دليل الأنشطة الرئيسية وتخصصاتها
                 </h3>
                 <p className="text-xs text-slate-500">
-                  يمكنك مراجعة الأنشطة والمهن وتخصصاتها، أو إضافة تصنيف جديد وربطه بإحدى المجموعات الرئيسية الـ18.
+                  يمكنك مراجعة الأنشطة وتخصصاتها داخل المجموعات العشر المعتمدة. الحد الأقصى خمسة أنشطة رئيسية لكل مجموعة، وتُدار التفاصيل كتخصصات داخل النشاط المناسب.
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsNewCatModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                <span>إضافة تصنيف جديد</span>
-              </button>
+
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-right text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
-                    <th className="py-3 px-4">اسم التصنيف</th>
+                    <th className="py-3 px-4">النشاط الرئيسي</th>
                     <th className="py-3 px-4">المجموعة الرئيسية</th>
                     <th className="py-3 px-4">الوصف</th>
                     <th className="py-3 px-4">الأنشطة المرتبطة</th>
@@ -1202,8 +1192,8 @@ export const AdminDashboard: React.FC = () => {
                       <tr key={cat.id} className="hover:bg-slate-50/70">
                         <td className="py-3 px-4 font-bold text-slate-900">
                           <div>{cat.name}</div>
-                          <span className={`inline-flex mt-1 rounded-md px-2 py-0.5 text-[10px] font-black ${cat.classificationType === 'profession' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>
-                            {cat.classificationType === 'profession' ? 'مهنة' : 'نشاط'}
+                          <span className="inline-flex mt-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700">
+                            نشاط رئيسي
                           </span>
                           {cat.specialties?.length ? <small className="block mt-1 text-slate-400 font-normal">{cat.specialties.length} تخصصات دقيقة</small> : null}
                         </td>
