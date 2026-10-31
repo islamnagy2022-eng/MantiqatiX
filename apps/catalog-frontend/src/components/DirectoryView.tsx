@@ -8,8 +8,6 @@ import {
   Search,
   MapPin,
   Sparkles,
-  Layers,
-  Folder,
   ChevronLeft,
   ArrowRight,
   CheckCircle2,
