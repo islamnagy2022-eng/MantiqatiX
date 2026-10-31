@@ -3086,3 +3086,8 @@ A separate source review found a second platform-root authorization model: the n
 - Updated the test to wait for the real public directory section, while retaining the security assertions that the admin tab is absent and no `ADMIN_LIST` request is made.
 - This is a test-selector correction only; no application behavior or authorization logic is weakened.
 - **Next:** rerun full browser E2E on the exact updated PR head before merge/deployment.
+
+
+### CAT-PR628-SPECIALTY-RESET-BROWSER-ASSERTION-20261101
+- [x] Correct the browser E2E assertions to use the actual directory control label `عرض كل أنشطة المجموعة` and the stable `section[aria-label="المجموعات والأنشطة"]` landmark after specialty selection. The prior test expected obsolete button/heading labels; no production UI or authorization behavior was weakened.
+- [ ] Re-run latest-head catalog CI and confirm browser E2E passes before merge/deploy.
