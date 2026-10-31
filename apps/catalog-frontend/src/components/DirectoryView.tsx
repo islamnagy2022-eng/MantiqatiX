@@ -563,12 +563,21 @@ export const DirectoryView: React.FC = () => {
     ...EGYPT_GEO_GOVERNORATES.map((area) => [normalizeAdministrativeName(area.name), area.name] as const),
     ...locationRecords.map((record) => [normalizeAdministrativeName(record.governorate), String(record.governorate)] as const).filter(([key]) => Boolean(key)),
   ]).values()).sort((a, b) => a.localeCompare(b, 'ar'));
-  const knownCenters = EGYPT_GEO_DISTRICTS
-    .filter((district) => selectedGovFilter === 'all' || normalizeAdministrativeName(district.governorateName) === normalizeAdministrativeName(selectedGovFilter))
-    .map((district) => district.name);
   const listedCenters = locationRecords
     .filter((record) => selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter))
     .map((record) => String(record.markaz || '').trim()).filter(Boolean);
+  const scopedAdministrativeDistricts = EGYPT_GEO_DISTRICTS
+    .filter((district) => selectedGovFilter === 'all' || normalizeAdministrativeName(district.governorateName) === normalizeAdministrativeName(selectedGovFilter));
+  const knownCenters = scopedAdministrativeDistricts.map((district) => {
+    const sameBaseDistricts = scopedAdministrativeDistricts.filter((candidate) =>
+      normalizeAdministrativeName(candidate.name) === normalizeAdministrativeName(district.name)
+    );
+    const listedAlias = listedCenters.find((name) =>
+      normalizeAdministrativeName(name) === normalizeAdministrativeName(district.name)
+    );
+    // Prefer the directory's familiar label only when it identifies one administrative district unambiguously.
+    return sameBaseDistricts.length === 1 && listedAlias ? listedAlias : district.name;
+  });
   const uniqueMarkaz = Array.from(new Map([
     ...knownCenters.map((name) => [normalizeGeoExactName(name), name] as const),
     ...listedCenters
