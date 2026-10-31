@@ -67,7 +67,7 @@ export const DirectoryListingsView: React.FC<{
 
   useEffect(() => { setSpecialtyFilter("all"); }, [functionalGroupId, taxonomyCategoryId, taxonomySpecialty]);
 
-  const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/\s+/g, " ").trim();
+  const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/\s+/g, " ").trim();
   const specialtyAliases: Record<string, string> = {
     "طبيب اطفال": "اطفال", "طب الاطفال": "اطفال", "طبيب نساء وتوليد": "نساء وتوليد",
     "طبيب جراحه عامه": "جراحه عامه", "طبيب باطنه": "باطنه", "امراض باطنه": "باطنه",
@@ -89,7 +89,7 @@ export const DirectoryListingsView: React.FC<{
   const normalizeSpecialty = (value: string) => {
     const key = normalize(value);
     if (specialtyAliases[key]) return specialtyAliases[key];
-    const withoutProfessionPrefix = key.replace(/^(طبيب|دكتور|دكتورة|طبيبة)\\s+/, "");
+    const withoutProfessionPrefix = key.replace(/^(طبيب|دكتور|دكتورة|طبيبة)\s+/, "");
     return specialtyAliases[withoutProfessionPrefix] || withoutProfessionPrefix;
   };
   const taxonomyMatches = (listing: PublicDirectoryListing) => {
