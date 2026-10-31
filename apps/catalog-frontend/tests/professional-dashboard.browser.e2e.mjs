@@ -596,12 +596,12 @@ try {
       await page.getByText('عيادة اختبار قديمة', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: /استكمال \/ تعديل/ }).click();
       const groupSelect = page.getByLabel('المجموعة الوظيفية *');
-      const categorySelect = page.getByLabel('التصنيف داخل المجموعة *');
+      const categorySelect = page.getByLabel('النشاط الرئيسي داخل المجموعة *');
       const specialtySelect = page.getByLabel('التخصص \/ النوع الدقيق داخل التصنيف');
       assert.equal(await groupSelect.inputValue(), 'medical_health', 'legacy listing must load into its canonical group');
       assert.equal(await categorySelect.inputValue(), 'cat_medical_health_medical_practices', 'legacy doctor category must normalize to the canonical medical activity');
       assert.equal(await specialtySelect.inputValue(), 'أطفال', 'legacy doctor specialty must load as a selectable canonical specialty');
-      await page.getByLabel('اسم الطبيب \/ النشاط *').fill('عيادة اختبار بعد التعديل');
+      await page.getByLabel('اسم النشاط أو الجهة *').fill('عيادة اختبار بعد التعديل');
       await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
       await specialtySelect.selectOption('أطفال');
       await page.getByRole('button', { name: 'حفظ البيانات' }).click();
@@ -619,7 +619,7 @@ try {
       assert.equal(updateRequest.payload.listingStatus, 'PUBLISHED', 'editing taxonomy must preserve publication status');
 
       await page.getByLabel('اسم الطبيب \/ النشاط *').fill('مركز اختبار جديد');
-      await page.getByLabel('نوع السجل الطبي').selectOption('clinic');
+      await page.getByLabel('نوع الجهة').selectOption('clinic');
       await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
       await specialtySelect.selectOption('أطفال');
       await page.getByRole('button', { name: 'حفظ البيانات' }).click();
@@ -632,6 +632,9 @@ try {
       assert.equal(createRequest.payload.functionalGroupId, 'medical_health');
       assert.equal(createRequest.payload.taxonomyCategoryId, 'cat_medical_health_medical_practices');
       assert.equal(createRequest.payload.taxonomySpecialty, 'أطفال');
+      await groupSelect.selectOption('food_grocery');
+      assert.equal(await page.getByLabel('نوع الجهة').inputValue(), 'business', 'non-medical groups must default to a general business record type');
+      assert.equal(await page.getByLabel('نوع الجهة').locator('option').count(), 1, 'non-medical groups must not expose medical-only record types');
       assert.ok(directoryListingsState.listings.some((listing) => listing.id === legacyListing.id && listing.display_name === 'عيادة اختبار بعد التعديل'));
       assert.ok(directoryListingsState.listings.some((listing) => listing.display_name === 'مركز اختبار جديد'));
       results.push('platform-admin-directory-legacy-specialty-edit-and-new-listing-save-round-trip');
