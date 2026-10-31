@@ -1152,3 +1152,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Its schema is only `id uuid NOT NULL` plus nullable `created_at`; one row exists. No row content was read. No direct browser/Edge/migration source reference was found in the focused search.
 - Issue [#613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) tracks P3 provenance/dependency/lifecycle review. Do not drop or mutate the row/table before dependency and retention review; no exploit established.
 - Keep Issues #611 and #612 at P2, #613 at P3. Global Production Gate remains BLOCKED / NOT CERTIFIED.
+
+ 
+## Latest continuation — 2026-10-31 (advertisements FK provenance)
+
+- The live migration ledger stores SQL for `20260808000000_phase04_enterprise_schema_and_rls`, which originally declares `advertisements.business_id` as FK to `businesses(id)` with ON DELETE CASCADE. The artifact is not in the currently tracked GitHub migration tree; the RC42 manifest lists it as missing from GitHub.
+- No later explicit DROP CONSTRAINT or ADD CONSTRAINT for advertisements was found in recorded migration statements. The live physical table has no business FK. Since the historical DDL is CREATE TABLE IF NOT EXISTS, it may simply have skipped the constraint if the table already existed; alternatively the live schema may have diverged outside the ledger. Keep cause **unresolved**.
+- Do not infer a manual drop, fabricate historical SQL, or patch Production. Issue #612 now tracks migration provenance and isolated reconciliation before any new forward repair.
