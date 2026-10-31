@@ -1056,6 +1056,6 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - User priority: make page loading and Google-account session restoration the first development priority, without changing existing visual design or weakening authorization.
 - Current-main performance branch splits storefront, merchant/admin/professional dashboards, cart drawer and login modal into on-demand React chunks; cart and login chunks load only when opened.
 - Added an immediate static HTML loading shell before the React bundle is downloaded.
-- Removed a duplicate public-directory request from the signed-out auth bootstrap. AppContext already owns the independent public-directory request; guest bootstrap now returns immediately with no duplicate directory payload.
+- Coalesced concurrent public-directory requests from AppContext and guest auth bootstrap into one in-flight Edge Function request. The guest bootstrap retains its public business/product data so direct storefront links by slug continue to work.
 - Exact CI, browser regressions, bundle-size comparison, real Google OAuth timings and deployed-origin measurements are pending. Do not claim a measured speed improvement until those checks are recorded.
 - No production deployment or Supabase/Auth/Edge/schema/permission changes occurred. Continue by validating the exact PR head, then profile the authenticated member bootstrap to determine whether multiple CATALOG_READ calls should be hydrated progressively without changing membership scopes.
