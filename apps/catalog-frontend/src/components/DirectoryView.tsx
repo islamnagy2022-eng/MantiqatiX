@@ -1060,13 +1060,13 @@ export const DirectoryView: React.FC = () => {
                 {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
               </select>
             </label>
-            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / القسم
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / المدينة
               <select value={selectedMarkazFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل المراكز</option>
                 {uniqueMarkaz.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
-            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الشياخة / الحي
+            <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الحي
               <select value={selectedVillageFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل القرى والشياخات والأحياء</option>{shiyakhaLoadStatus === 'loading' && <option disabled value="__loading">جارٍ تحميل القرى والشياخات…</option>}
                 {uniqueVillages.map((value) => <option key={value} value={value}>{value}</option>)}
