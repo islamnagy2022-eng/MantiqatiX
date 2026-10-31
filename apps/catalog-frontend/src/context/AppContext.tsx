@@ -159,9 +159,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (nextUrl !== currentUrl) window.history.pushState({ mantiqatixView: view }, '', nextUrl);
   };
 
+  const loadPublicCatalogForRoute = (businessId: string) => {
+    // Public directory data is intentionally separate from authenticated workspace data.
+    // Fetch only the selected public business on demand so signed-out visitors can open
+    // a shared catalogue without duplicating the full public-directory bootstrap.
+    if (!businessId || !/^[0-9a-f-]{36}$/i.test(businessId)) return;
+    if (businesses.some((business) => business.id === businessId)) return;
+    void fetchPublicCatalog(businessId).then((catalog) => {
+      if (!catalog || routeBusinessIdRef.current !== businessId) return;
+      setBusinesses((previous) => [
+        catalog.business,
+        ...previous.filter((business) => business.id !== catalog.business.id),
+      ]);
+      setProducts((previous) => [
+        ...previous.filter((product) => product.businessId !== catalog.business.id),
+        ...catalog.products,
+      ]);
+    }).catch((error) => {
+      console.warn('[MantiqaTix public catalogue]', error);
+    });
+  };
+
   const setCurrentView = (view: ViewMode) => {
     setCurrentViewState(view);
     updateBrowserRoute(view);
+    if (view === 'public_storefront') {
+      loadPublicCatalogForRoute(routeBusinessIdRef.current);
+    }
   };
 
   const commitSelectedBusinessId = (id: string) => {
