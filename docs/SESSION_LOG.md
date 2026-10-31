@@ -1647,3 +1647,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - The ledger's `20260808000000_phase04_enterprise_schema_and_rls` SQL includes a `CREATE TABLE IF NOT EXISTS advertisements` with `business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE`. The original SQL file is absent from the tracked GitHub migration tree (also noted in `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`).
 - No explicit later DROP CONSTRAINT or ADD CONSTRAINT statement was found in the recorded migration set, but the current live physical table has no business_id FK. Since CREATE TABLE IF NOT EXISTS skips all definition changes when a table already exists, the cause may be a pre-existing table at migration time or an out-of-band schema divergence. Cause is not proven.
 - Updated Issue #612 with this reconciliation caveat. Do not reconstruct historical migration or patch Production until an authoritative schema baseline/current-schema isolated restore resolves the discrepancy.
+
+ 
+## 2026-10-31 — `bookings` migration provenance follow-up
+
+- Read all live migration statements referencing `bookings`: none creates or drops the table. The only recorded reference is `ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY` in `20260919233425_production_security_hardening_v1`.
+- A scan of public SQL function bodies found no `bookings` reference. Focused GitHub search found no direct browser/Edge consumer. This does not exclude dynamic or external dependencies.
+- Creation provenance appears outside current migration creation history; issue #613 updated to require authoritative backup/schema evidence. Preserve the one existing row and table. No mutation or row content read.
