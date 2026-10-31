@@ -996,3 +996,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - The hourly monitor is now on `main` and the push trigger should start a production health run. The connected GitHub workflow-run listing does not expose push-triggered runs, so the first post-merge live database probe is **NOT VERIFIED** in this session; do not claim it passed until the Actions run is inspected.
 - No Production database mutation or paid resource was used. The local backup/restore runbook remains an owner-operated task; no backup or restore rehearsal has been completed.
 - Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Read-only database monitor permission preflight
+
+- Confirmed via a read-only PostgreSQL catalog query that `public.marketing_provider_profiles` exists, RLS and FORCE RLS are enabled, anon has SELECT, and an explicit public SELECT policy exists for anon/authenticated.
+- No business/profile rows were read and no Production data/schema/ACL/policy was changed.
+- This confirms the DB-side contract for the hourly probe, not the live HTTP call. The first post-merge GitHub Actions monitor request and failure notification remain NOT VERIFIED because the connected GitHub workflow listing does not expose push-triggered run records.
+- Supabase's current Free inactivity guidance says a few API/database requests per day typically suffice and recognizes API calls as activity; hourly monitor is intended to reduce inactivity-pause risk, not guarantee uptime.
+- Evidence: `docs/audits/DB_MONITOR_READ_PATH_PREFLIGHT_20261031.md`. Production Gate remains **BLOCKED / NOT CERTIFIED**.

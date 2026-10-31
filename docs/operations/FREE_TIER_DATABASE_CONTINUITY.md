@@ -13,6 +13,19 @@ The existing workflow `.github/workflows/production-health-monitor.yml` is sched
 
 The database probe uses the public anon key already published in the frontend configuration. It does not use a service-role key, does not write data, and does not change RLS or schema. A non-200 response fails the workflow.
 
+### Production read-path preflight (2026-10-31)
+
+A read-only catalog query against the existing Production database confirmed:
+
+- `public.marketing_provider_profiles` exists.
+- RLS and FORCE RLS are both enabled.
+- `anon` has SELECT privilege.
+- An explicit `SELECT` policy applies to `anon, authenticated` for public active provider profiles.
+
+No table rows were read during this preflight. This verifies the database-side permission contract for the probe, but it does **not** substitute for an actual HTTP 200 from the deployed workflow. The post-merge live workflow request remains NOT VERIFIED.
+
+Supabase's current inactivity guidance says a few API/database requests each day typically suffice to avoid pausing, and explicitly lists API calls as a way to generate activity. The hourly request is designed to provide that activity; it is not a guarantee against pausing or service interruptions. See [Supabase Free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing).
+
 **Important limits**
 - A successful probe confirms that a small database-backed REST read worked at that moment. It does not certify all database functions, authentication, payments, RLS isolation, or application workflows.
 - The probe may reduce the risk of an inactivity pause, but it cannot guarantee that Supabase Free will never pause. GitHub scheduled workflows can be delayed; if Supabase has already paused the project, the probe may fail and will not itself resume the project.
