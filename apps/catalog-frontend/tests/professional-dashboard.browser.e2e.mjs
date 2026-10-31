@@ -808,6 +808,7 @@ try {
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
+      assert.equal(new URL(page.url()).searchParams.get('group'), 'medical_health', 'activity route must preserve its parent group folder across refreshes');
       await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
       await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px direct activity module');
