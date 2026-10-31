@@ -12,7 +12,7 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
-# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #565)
+# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #571)
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
    - PR #543 moved the full `LIST_SUBSCRIBERS` directory read out of the blocking Google session bootstrap; PR #546 preserves last-good subscriber data on failed refresh and discards stale responses after logout/account switching.
@@ -51,6 +51,7 @@
 
 8. Backup/restore/DR — NOT VERIFIED
    - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence.
+   - PR #571 corrected the official `supabase db dump` CLI reference and recorded the official restore-scope review. This is documentation only: no Production backup was created, no restore was rehearsed, and RPO/RTO remain unmeasured.
 
 9. Release build/signing and real-device regression — WAIT
    - Signed Android artifact, protected signing material, install/update, auth/session, role journeys, push, network-loss/retry and device regression remain open.
