@@ -226,3 +226,31 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Security Advisor refreshed at 2026-10-31 06:54:55 UTC: 8 RLS-enabled/no-policy INFO findings; 3 anon SECURITY DEFINER warnings; 67 authenticated SECURITY DEFINER warnings; 90 anonymous-policy warnings; 1 leaked-password protection warning. This is an inventory; do not blanket-revoke or add broad policies.
 - [ ] Before any Production rollout: recover authoritative historical bootstrap SQL for `private.platform_admins`; verify the legitimate server-side provisioning/removal path without exposing registry rows; rehearse the exact ordered RC441 → RC449 → RC462 effects against a restorable current Production schema; obtain off-site backup + successful restore/rollback evidence; inspect final live ACL/search_path/function bodies; complete auth/payment/finance and tenant-isolation E2E; and obtain explicit rollout authorization.
 - No Production DDL/DML, grants, RLS/Auth settings, registry-row reads, Edge deployments, payments, refunds, settlements or journal mutations occurred. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## Fresh live Production recheck — 2026-10-31 (read-only, after RC462 merge)
+
+### Migration/source status
+- Live migration ledger: **308** records, latest `20261029083845`.
+- Exact IDs are all absent: RC441 `20261010030000`, RC449 `20261010170000`, RC462 `20261031064300`.
+- PR #592 is merged; current main contains its merge commit `911f91f7f7e0f2d70bd290467ac33b53dc4f5b30`. RC462 source is therefore in main, but none of RC441/RC449/RC462 is active in Production.
+- Exact-head isolated tests on RC462 candidate passed: [MantiGO Platform Admin Scope Hardening #41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) and [Forward Migration Chain Replay #41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682). These are fixture/replay evidence, not live deployment.
+
+### Current live authorization state
+- `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and returns `public.mnty_can('admin',NULL,NULL,NULL)`.
+- `mnty_active_membership(NULL,NULL,NULL)` still enumerates all ACTIVE memberships without tenant/business/branch restriction. `mnty_can('admin')` includes the OWNER role in its built-in admin permission list. Therefore the old helper still does not establish platform-root authority.
+- All eight global SECURITY DEFINER entrypoints remain authenticated-executable and anon-denied. The four MantiGO global RPCs retain their broad role predicates; the other four call the weak helper: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`.
+- `public.digital_pages_admin_manage` remains a permissive `FOR ALL TO authenticated` policy using the weak helper for both USING and WITH CHECK. `digital_pages` has RLS enabled (FORCE RLS false) and authenticated SELECT/INSERT/UPDATE/DELETE privileges. Owner-scoped policies also exist, but permissive policies combine by OR; the weak global admin policy remains a cross-tenant path for a tenant OWNER accepted by the helper.
+- No live RPC was invoked and no digital-page, MantiGO, financial or registry row content was read or changed.
+
+### Canonical root registry readiness — aggregate only
+- `private.platform_admins` exists, RLS enabled, no direct anon/authenticated table grants, and a restrictive client-deny policy. service_role has the backend table privileges.
+- Aggregate count only: the registry contains **1** row. No user ID or row contents were queried.
+- Aggregate alignment only: one registry user has an ACTIVE `MNTY-PLATFORM` `SUPER_ADMIN` membership with `scope=PLATFORM` and `full_control=true`. No identity was exposed.
+- `private.bootstrap_platform_admin(...)` exists as SECURITY DEFINER with empty search_path and service_role-only EXECUTE; anon and authenticated EXECUTE are false. This is a server-side one-time path, not a public caller. Focused GitHub search found no tracked source caller for this private bootstrap routine.
+
+### Current decision / required next actions
+- **P0 remains CONFIRMED / NOT REMEDIATED IN PRODUCTION.** RC462's canonical registry predicate is source-merged and isolated-tested, but Production still runs the weak helper and global RLS path.
+- Preserve migration files. Required chronological replay order is RC441 → RC449 → RC462, but this subset must be embedded in the complete required migration-chain reconciliation, not applied ad hoc.
+- Next dependency remains an authorized credential-scrubbed current-Production schema/roles capture, disposable restore, complete ordered migration replay, and rollback rehearsal. Only then can the controlled Production rollout be separately reviewed and explicitly authorized.
+- No Production DDL/DML, GRANT/REVOKE, RLS/Auth change, Edge deployment, payment, settlement, wallet or journal action was performed. Overall gate remains **BLOCKED / NOT CERTIFIED**.
