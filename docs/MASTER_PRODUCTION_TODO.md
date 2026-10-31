@@ -3063,3 +3063,11 @@ A separate source review found a second platform-root authorization model: the n
 - **Regression:** existing canonical taxonomy validator requires the eight-column grid marker twice and should now pass against the activity-grid source.
 - **Safety:** UI change is limited to the existing activity-card grid; no route, data, backend, schema, or production mutation.
 - **Next:** exact-head build, taxonomy validator, browser E2E and deployed-origin checks.
+
+
+### Directory-listing coverage for the doctor default photo
+- The requested default is shared by both registered unverified doctor activities and standalone unclaimed `public_directory_listings` doctor pages.
+- `DirectoryListingsView` now displays a valid owner-provided `metadata.profileImageUrl` first; otherwise, only `listing_type=doctor` with `claim_status` other than `CLAIMED` receives the shared doctor image.
+- Both listing cards and detail pages use the same helper. Claimed pages and other listing types do not receive the default.
+- The two defaults are stored once in `utils/defaultImages.ts`; pharmacy and doctor consumers import from this common registry.
+- Exact-head validation is still pending.
