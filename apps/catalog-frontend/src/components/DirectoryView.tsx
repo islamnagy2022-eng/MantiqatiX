@@ -97,8 +97,18 @@ type StoredGeoPreference = {
   area: string;
 };
 
-// Stored preferences are written only to preserve an explicitly selected scope
-// during the current visit; initial state is intentionally always Egypt-wide.
+// Restore consent status and preference mode only. Saved administrative filters are
+// intentionally ignored so every visit still starts with the complete Egypt-wide directory.
+const readStoredGeoPreference = (): StoredGeoPreference | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY) || 'null');
+    if (parsed?.completed === true && (parsed.mode === 'auto' || parsed.mode === 'manual')) return parsed as StoredGeoPreference;
+  } catch {
+    // Ignore malformed or unavailable browser storage.
+  }
+  return null;
+};
 
 const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
   if (typeof window === 'undefined') return;
@@ -123,9 +133,9 @@ export const DirectoryView: React.FC = () => {
   const businesses = directoryBusinesses;
   // Every new visit starts with the complete Egypt-wide directory. Saved GPS or
   // administrative choices must never silently narrow the visitor's initial results.
-  const [geoSetupCompleted, setGeoSetupCompleted] = useState(false);
-  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>('manual');
-  const [showLocationWelcome, setShowLocationWelcome] = useState(true);
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(() => Boolean(readStoredGeoPreference()?.completed));
+  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(() => readStoredGeoPreference()?.mode || 'manual');
+  const [showLocationWelcome, setShowLocationWelcome] = useState(() => !readStoredGeoPreference()?.completed);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -231,6 +241,14 @@ export const DirectoryView: React.FC = () => {
       setLocationBusy(false);
     }
   };
+
+  // A previously granted automatic-location preference permits a fresh browser
+  // position read on return; saved administrative filters are never restored.
+  useEffect(() => {
+    if (geoSetupCompleted && geoPreferenceMode === 'auto') requestUserLocation();
+    // Intentionally run once on mount using the persisted consent decision.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // GPS consent is requested on first visit. Coordinates rank Egypt-wide results;
   // they never silently narrow the directory to one administrative area.
