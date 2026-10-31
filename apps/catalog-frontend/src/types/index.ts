@@ -178,6 +178,20 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface ActivityModuleSettingsOverride {
+  marketing?: {
+    objective?: string;
+    audience?: string;
+    positioning?: string;
+    contentPillars?: string[];
+    campaignIdeas?: string[];
+    requiredAssets?: string[];
+  };
+  capabilities?: Array<{ id: string; title: string; description: string }>;
+}
+
+export type ActivityModuleOverrides = Record<string, ActivityModuleSettingsOverride>;
+
 export interface AdminSettings {
   adminWhatsApp: string; // Admin WhatsApp for "طلب كتالوج النشاط"
   adminPassword: string; // Always blank; platform admin authenticates with Google OAuth
@@ -192,6 +206,7 @@ export interface AdminSettings {
   overdueGracePeriodDays: number; // 5 أيام إشعار يومي قبل التجميد
   defaultPaymobFeePercentage: number; // تكلفة الدفع الافتراضية عبر Paymob %
   defaultPaymobFeeFixed: number; // تكلفة الدفع الثابتة ج.م
+  activityModuleOverrides?: ActivityModuleOverrides;
 }
 
 export interface CustomerOrderData {
