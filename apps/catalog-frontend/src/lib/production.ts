@@ -434,6 +434,11 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
     'PROVIDER_OPERATIONS', 'PROVIDER_SUPPORT',
   ].includes(String(m.role || '').toUpperCase()));
   const platform = platformMemberships.length > 0;
+  // Platform settings are independent of business catalog reads. Start this
+  // request now so it overlaps with tenant/business discovery and catalog I/O.
+  const platformSettingsPromise = platform
+    ? callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}))
+    : Promise.resolve({});
   const permittedRows: any[] = [];
 
   if (platform) {
@@ -506,9 +511,8 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   }
 
   let subscribers: Subscriber[] = [];
-  let settingsResult: any = {};
+  const settingsResult: any = await platformSettingsPromise;
   if (platform) {
-    settingsResult = await callPlatformAdmin({ action: 'GET_SETTINGS' }).catch(() => ({}));
     if (settingsResult?.settings) Object.assign(
       adminSettings,
       settingsResult.settings,
