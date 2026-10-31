@@ -1512,3 +1512,11 @@ A separate source review found a second platform-root authorization model: the n
 - Contract validator expanded to check 27/365/5716 counts, coordinate validity, parent references, Birkat Al-Sab, permission/privacy behavior, no continuous tracking, source attribution/license/version, bounded locality fetching, and approximate-match thresholds.
 - Remaining NOT DONE: official ADM2/ADM3 polygon-boundary point-in-polygon proof. Representative points are proximity suggestions only. Exact-head CI/browser/device validation and production deployment are not yet confirmed.
 - No Production database/schema/RLS/grant/Edge Function/business data changes.
+
+
+## 2026-10-31 — First-visit automatic browser permission request
+
+- Adjusted the first-visit flow so the browser's native geolocation request is triggered automatically on initial DirectoryView mount; the visitor does not need to press the manual 'حدد موقعي' button first.
+- The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
+- On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
+- This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
