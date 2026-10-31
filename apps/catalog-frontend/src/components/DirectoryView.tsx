@@ -234,9 +234,10 @@ export const DirectoryView: React.FC = () => {
 
   // Visitor discovery uses the direct activity -> specialty model. Functional groups remain internal administration metadata.
   const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');
+  const selectedActivityCategory = availableCategories.find((category) => category.id === selectedCategoryId);
   const categoryForBusiness = (business: Business) =>
-    categories.find((category) => business.categoryId === category.id) ||
-    categories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — ') || (category.classificationType === 'profession' && business.category.startsWith(category.name + ' ')));
+    availableCategories.find((category) => business.categoryId === category.id) ||
+    availableCategories.find((category) => business.category === category.name || business.category.startsWith(category.name + ' — '));
 
   // Governorate filtering is applied to real published business records.
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
@@ -528,6 +529,12 @@ export const DirectoryView: React.FC = () => {
             <div><h2 className="flex items-center gap-2 text-lg font-black text-slate-900"><Store className="h-5 w-5 text-emerald-600" />الأنشطة</h2><p className="mt-1 text-xs text-slate-500">اختر النشاط مباشرة لفتح وحدته وصفحته المتخصصة.</p></div>
             <span className="text-xs font-bold text-slate-500">{availableCategories.length.toLocaleString('ar-EG')} نشاط</span>
           </div>
+          {selectedActivityCategory && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <p className="text-xs font-bold text-emerald-950">تصفية النتائج حسب: {selectedActivityCategory.name}{selectedSpecialty !== 'all' ? ` — ${selectedSpecialty}` : ''}</p>
+              <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل الأنشطة</button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {availableCategories.map((category) => {
               const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
