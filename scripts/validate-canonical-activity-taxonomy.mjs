@@ -114,6 +114,7 @@ assert.ok(directoryListingsAdmin.includes('canonicalSpecialtyLabel'), 'Editing l
 assert.ok(directoryListingsAdmin.includes('resolveCanonicalSpecialty(candidate, categoryId)'), 'The admin edit form must share the canonical specialty resolver.');
 assert.ok(browserE2E.includes('platformAdmin: {'), 'Browser E2E must include an explicit platform-admin identity for directory management.');
 assert.ok(browserE2E.includes('platform-admin-directory-legacy-specialty-edit-and-new-listing-save-round-trip'), 'Browser E2E must cover both edit and create save round trips for directory listings.');
+assert.ok(browserE2E.includes('non-platform-role-denied-directory-admin-route'), 'Browser E2E must verify that non-platform roles cannot load the directory admin UI or bundle.');
 assert.ok(browserE2E.includes('directoryAdminRequests'), 'Directory admin E2E must inspect the actual request payload and bearer authorization contract.');
 assert.ok(directoryListingsEdge.includes('TAXONOMY_GROUP_MISMATCH'), 'The directory Edge Function must reject category/group mismatches.');
 assert.ok(directoryListingsEdge.includes('PHONE_REQUIRED_FOR_PUBLICATION'), 'The directory Edge Function must keep the phone requirement for published listings.');
