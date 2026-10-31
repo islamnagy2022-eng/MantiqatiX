@@ -1486,3 +1486,16 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — Smart Geo Discovery frontend implementation (Issue #604)
+
+- Created isolated branch feature/smart-geo-discovery-20261031; existing public catalog views and filtering remain additive.
+- Added first-visit Arabic location-consent dialog. The visitor can approve GPS, continue with manual location, or open Egypt-wide discovery. The browser's native permission prompt is invoked only after the explicit consent action.
+- Returning visitors only get silent GPS refresh if the Permissions API reports a prior granted state; no prompt is auto-triggered from a previously prompt/denied state.
+- GPS coordinates remain in component memory only. No watchPosition, no coordinate persistence, and no third-party reverse-geocoding request. Distance ranking is applied only to records with explicit valid coordinates; verification priority remains stronger than distance.
+- Added selector catalogue from the existing project seeds: 27 governorates and 165 centers. Villages/areas are populated from actual directory records; administrative prefixes normalize so values like مركز شبين الكوم match شبين الكوم.
+- Added scripts/validate-smart-geo-discovery.mjs and wired it into .github/workflows/pages.yml.
+- Important blocker remains: platform_geo_areas currently has 27 governorates and 165 centers but no village rows, no center coordinates, and no Polygon boundaries. Thus precise GPS-to-village/center/governorate matching is NOT IMPLEMENTED; do not claim it. A trusted boundary layer with explicit source/licence/version must be integrated before this requirement is closed.
+- Production database, schema, RLS, grants, Edge Functions, and live records were not changed. CI/Browser E2E/deployment status is pending exact-head PR validation.
+- Canonical tracking: Issue #604; source branch: feature/smart-geo-discovery-20261031.
