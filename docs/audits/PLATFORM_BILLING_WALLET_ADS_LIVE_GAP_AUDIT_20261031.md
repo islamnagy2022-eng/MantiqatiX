@@ -116,3 +116,17 @@ This addendum supersedes the earlier paragraph in Section 5 that characterized t
 - No direct frontend or Edge Function caller for `public.ad_spaces` was found in the current code search. The public ad-delivery path uses the targeted-ad RPC; global ad inventory is separately protected behind service-role access.
 
 **Corrected disposition:** the earlier P0 broad-permissive-policy characterization is not supported by the current live policy catalog. No broad authenticated DML path is established. Track this as **P1 least-privilege ACL hardening and runtime verification**: after the current-schema restore, verify the grant provenance/default privileges, test a narrowly scoped revoke of unnecessary authenticated INSERT/UPDATE/DELETE/MAINTAIN and anon MAINTAIN, preserve authenticated SELECT and service-role backend operations, and prove the intended outcomes with isolated SQL/API tests. Do not change Production grants or policies in this audit. Ad booking/pricing remains unimplemented and disabled.
+
+## Addendum — 2026-10-31 advertisements tenant/business scope review (read-only)
+
+Fresh live inspection of `public.advertisements` found:
+
+- The table currently has **0 rows**; no existing ad records are affected.
+- RLS + FORCE RLS are enabled. `authenticated` has table SELECT/INSERT/UPDATE/DELETE; `anon` has none; `service_role` retains backend access.
+- Required `tenant_id` has an FK to `tenants(id)`. Required `business_id` is UUID but has no FK to `businesses(id)` and no composite tenant/business constraint.
+- Authenticated SELECT permits any ACTIVE membership in the same tenant.
+- Authenticated INSERT/UPDATE/DELETE permits ACTIVE tenant membership with role OWNER, ADMIN or MANAGER. The write predicates check tenant and role, not the row's business_id or membership branch_id.
+- Live membership inventory contains business/branch-scoped BUSINESS_OWNER memberships, tenant-wide OWNER/ADMIN/MANAGER memberships, and tenant-wide manager memberships; BUSINESS_OWNER is not included in the current policy role list. OWNER is accepted without checking whether that particular membership is business/branch-scoped.
+- No direct browser `.from('advertisements')` consumer was found in the canonical source search; public delivery uses `get_mnty_targeted_advertisements`. The app has historically guarded against direct browser mutation of protected tables.
+
+**Disposition:** no exploit is established: there are no rows and no authenticated write attempt was made. Tenant-wide ad management may be intended for tenant admins/managers. However, the current schema/policies do not prove business/branch isolation for business-scoped membership, and the missing business FK permits an invalid business/tenant pair unless a trusted write path validates it. Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) tracks authority-matrix confirmation and isolated tests. Do not enable owner-facing ad mutations or booking until scope is confirmed and negative tests pass.
