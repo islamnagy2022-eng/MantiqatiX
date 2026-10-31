@@ -11,6 +11,7 @@ on:
     branches: [main]
     paths:
       - "supabase/tests/trigger_only_security_definer_acl_integration.sql"
+      - "supabase/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql"
       - ".github/workflows/trigger-only-security-definer-acl.yml"
 
 permissions:
