@@ -1508,3 +1508,10 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Do not run the current live bootstrap function: its default tenant ID is wrong for the canonical tenant and its insert is unconditional.
 - [ ] Do not query registry rows or attempt bootstrap until the owner explicitly authorizes a controlled identity-verification step and rollback plan.
 - Production DDL/DML, grants, RLS/Auth settings, Edge deployments and registry-row reads were not performed. Overall release remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — PR #207 duplicate-source coordination
+
+- PR #207 already contained the three RC42 source paths with an extra trailing newline. To preserve the cross-PR collision guard, updated only those three files on the PR #207 draft branch to the exact canonical ledger bytes now used by PR #598. Contents now compare byte-for-byte equal; all other PR #207 files were left untouched.
+- PR #598 is the single candidate release path for the recovered files and exact SHA-256 parity check. PR #207 remains draft/unmerged; its other release work is not approved by this source-only coordination.
+- Fresh exact-head CI on PR #598 is required after this coordination. Do not merge while the cross-PR collision check or full forward replay is pending.
