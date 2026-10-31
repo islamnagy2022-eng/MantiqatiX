@@ -1081,3 +1081,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Existing production constraints remain: RC453 campaign tables/RPCs absent; RC452 manager-read policies not verified tenant/business scoped; RC102 provider-service owner write grants absent. Do not wire campaign/provider mutations until these production contracts are reconciled and authorized. SMM remains deferred.
 - Current exact-head PR #608 validation is running for source/test commit `fdf81ef42ec68eacb42f9cebe76c97b45a7e2881`; run IDs: catalog `41196188567`, Pages validation `41196188571`, module professionalization `41196188606`, and additional repository security workflows `41196188583`, `41196188595`, `41196188562`, `41196188647`. At this checkpoint, TypeScript/build/taxonomy/geographic/browser results are not yet final on this new registry head.
 - No production database/schema/data/grant/RLS/Auth/Edge deployment, campaign mutation, ad spend, payment, or financial operation occurred. PR #608 remains Draft; `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — Activity module registry exact-head validation PASS
+
+- Code/test head validated: `5ea3a4d4226ed43abc7addf91525607d558afe1e`.
+- Catalog validation run [41196288654](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288654): TypeScript, primary catalog build, canonical taxonomy, geographic/GPS consent contract, employee RBAC PostgreSQL, and full Playwright browser E2E all **PASS**. Browser E2E includes direct module route/refresh/back, specialty filtering, mobile/tablet/desktop overflow, and restaurant-specific marketing/operations profile.
+- Pages validation [41196288663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288663) passed; Pages deployment was **SKIPPED** because this is a PR event.
+- Module professionalization [41196288659], backend-only boundary [41196288717], privacy [41196288694], RC425 [41196288797], and flexible commission [41196288767] all passed.
+- PR #608 remains Draft/unmerged. No deployed-origin activity module test or production deployment is claimed.
+- Registry now provides 10 domain templates; all domain operations remain visibly planned until server contracts are implemented. RC453 campaigns remain absent in production; RC452 tenant/business scope and RC102 write grants remain unresolved. Do not enable campaign mutations or SMM.
