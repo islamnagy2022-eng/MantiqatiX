@@ -6,10 +6,6 @@ const makeGroup = (
 ): FunctionalGroup => ({ id, name, shortName, englishName, icon, badgeColor, description, futureFeatures: [] });
 
 /**
- * Canonical 18-group directory taxonomy. This is classification data only:
- * adding a category does not enable or activate any operational module.
- */
-/**
  * Canonical 10-group taxonomy. Group IDs are stable compatibility keys;
  * legacy sectors are mapped into these groups and are not exposed as duplicates.
  */
