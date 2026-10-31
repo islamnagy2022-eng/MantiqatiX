@@ -1538,3 +1538,12 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] After merge, verify main-commit checks and only then retire/supersede PR #619. No Pages deployment or Production mutation is implied by CI success.
 - [ ] Recheck PR #618 subscriber portal against current main after PR #621 is resolved; its previously validated head predates subsequent main changes and merge is not authorized by old CI.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-01 — Eight activity cards per row on mobile
+
+- [x] User explicitly requested eight activity cards side-by-side on the phone layout after reviewing the two-column screenshot.
+- [x] Update the homepage activity grid to eight columns at all viewport sizes; compact mobile cards (small icon, two-line activity label, total-count badge) and retain confirmed/unconfirmed detail on wider screens.
+- [x] Update browser E2E and canonical taxonomy validator to require eight mobile columns.
+- [ ] Run all exact-head CI checks; verify the eight-column grid at 390px viewport and ensure labels remain readable/tappable before merge.
+- [ ] Merge and publish only after checks pass; this frontend change does not authorize Production database, Auth/RLS, Edge Function, or payment mutations.
