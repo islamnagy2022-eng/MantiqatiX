@@ -212,6 +212,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       action: 'CATALOG_READ',
       tenantId: mode.tenantId,
       businessId: mode.businessId,
+      membershipId: mode.membershipId,
       ...(mode.branchId ? { branchId: mode.branchId } : {}),
     });
     if (authUserIdRef.current !== userId || authSession.userId !== userId) return false;
