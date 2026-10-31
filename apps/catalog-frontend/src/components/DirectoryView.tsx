@@ -649,7 +649,7 @@ export const DirectoryView: React.FC = () => {
         confirmedCount={confirmedCount}
         unconfirmedCount={unconfirmedCount}
         onBack={closeActivityModule}
-        parentGroupName={availableGroups.find((group) => group.id === activityCategory.functionalGroupId)?.name}
+        parentGroupName={selectedGroupFilter !== 'all' ? availableGroups.find((group) => group.id === activityCategory.functionalGroupId)?.name : undefined}
         onSelectSpecialty={(specialty) => {
           setSelectedCategoryId(activityCategory.id);
           setSelectedSpecialty(specialty);
