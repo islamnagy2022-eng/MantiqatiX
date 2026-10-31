@@ -15,7 +15,7 @@
 | # | Group | Scope |
 |---|---|---|
 | 1 | الطب والصحة | medical practices, pharmacies, diagnostics, hospitals, rehabilitation |
-| 2 | الأغذية والضيافة | restaurants, cafes, bakeries, sweets, food retail |
+| 2 | الأغذية والضيافة | restaurants, cafes, bakeries and sweets, food retail, hospitality/events/travel |
 | 3 | التجارة والتجزئة والعناية الشخصية | general retail, clothing, footwear, beauty products, salons |
 | 4 | المنزل والبناء والصيانة | furniture, contracting, finishing, building supplies, home services |
 | 5 | السيارات والنقل واللوجستيات | vehicle sales, maintenance, parts, shipping, delivery |
@@ -49,3 +49,13 @@ Taxonomy classification alone must never grant a role, enable a workflow, create
 - Before merge, run build/typecheck and tests for mapping, per-group cap, no duplicate profession/activity concepts, existing activity lookup, admin editing, search and detail pages.
 - Any later persistent data migration must be forward-only, additive where possible, rehearsed against a restorable isolated database, and must not rewrite historical migrations or fabricate migration-ledger rows.
 - Do not claim production readiness until deployed-origin and authenticated role-scoped E2E pass.
+
+## Existing-record compatibility audit (2026-10-31)
+
+- Read-only inventory of `public.public_directory_listings` found 156 existing rows using legacy category IDs across the former group set. No rows were updated or deleted.
+- Added client read-boundary normalization for public listings, detail pages, and admin bundles: legacy group IDs resolve to the canonical 10, and every currently inventoried legacy category ID maps to one of the new category IDs.
+- Medical legacy IDs for doctors, dentists, dental centers, and clinics converge on the single `medical_practices` activity; the individual listing type and specialty remain intact as profile data.
+- Legacy tourism/event entries map to the new hospitality/events activity; bakeries and sweets are consolidated to preserve the five-category ceiling in the food group.
+- Read-only inventory of business settings found legacy group/category codes including `construction_decor`, `marketing_media`, `industry_workshops`, `interior_design`, `sanitary_ware`, `homewares`, and `plastic_factories`. The business mapper now resolves these codes to canonical group/category IDs.
+- New directory writes on the feature branch accept only the canonical 10 group IDs. Existing database rows and the database's legacy-compatible check constraint are intentionally left unchanged until a separate, rehearsed migration is approved.
+- Validation still required on the latest commit: run CI, exercise group/category/specialty filtering for each mapped legacy ID, verify admin edit-save round trips, and inspect unmapped IDs after the next read-only production inventory.
