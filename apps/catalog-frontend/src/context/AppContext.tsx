@@ -212,7 +212,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       catalog.prices || [],
     );
 
-    let applied = false;
     setAuthSession((previous) => {
       if (previous.userId !== userId || !previous.isAuthenticated) return previous;
       const authorizedMode = previous.availableMemberships?.find((candidate) =>
@@ -223,7 +222,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         String(candidate.branchId || '') === String(mode.branchId || '')
       );
       if (!authorizedMode) return previous;
-      applied = true;
       return {
         ...previous,
         role: 'subscriber',
@@ -235,7 +233,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeMembershipId: authorizedMode.membershipId,
       };
     });
-    if (!applied) return false;
 
     setBusinesses((previous) => previous.map((business) =>
       business.id === mappedBusiness.id ? mappedBusiness : business
