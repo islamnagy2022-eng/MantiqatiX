@@ -1049,3 +1049,16 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Remaining risk: server check-then-insert is not atomic across simultaneous requests. Test concurrent submissions and network-response-loss retry behavior before claiming database-level idempotency. Draft PR #477 is stale and should not be merged as-is because main already contains a more precise client/server guard.
 - Current main `b7b35378bbf5c1fd5ff54afb6be79e316e33624c`: Health Monitor #41162036080, backend boundary #41162036117, MantiGO privacy #41162036099, module professionalization #41162036130, and Pages #41162036127 all passed. Deployed-origin browser E2E passed for the tested scope.
 - Full Production Gate remains BLOCKED / NOT CERTIFIED; the latest verifier artifact reports 24 PASS, 0 FAIL, 1 BLOCKED and does not certify the live migration/payment/backup blockers.
+
+
+## 2026-10-31 — Direct activity module foundation (CAT-ACTIVITY-MODULES-20261031-01)
+
+- User decision: visitor taxonomy must be **activity → specialty**, not functional groups/domains → activities → specialties. Every activity is to open its own module page and become the domain workspace for its relevant marketing and operating workflows.
+- Request registered in master issue [#599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599) and canonical `docs/MASTER_PRODUCTION_TODO.md`; full architecture is in `docs/specifications/ACTIVITY_MODULES_ARCHITECTURE_20261031.md`.
+- Feature branch: `feat/direct-activity-specialty-directory-v2-20261031`; this branch was created from the then-current `main` and is additive. Do not use the earlier stale-base branch `feat/direct-activity-specialty-directory-20261031`; the v2 branch supersedes it.
+- Implemented source foundation: flat activity cards, stable `?activity=<category-id>` module route, direct specialties, domain-aware marketing planning guidance, and domain-operations section shell. Public functional-group labels/navigation are removed; internal taxonomy group identifiers remain for backward compatibility.
+- Updated browser E2E and canonical taxonomy validator for direct activity route, refresh/back behavior, specialty selection and reversible filters.
+- Marketing note: current activity module marketing panel is planning guidance only, not the full campaign execution system. Existing campaign production dependencies and RC453 backend contracts must be checked before enabling create/publish/budget actions. SMM remains a separate deferred module.
+- No production schema/data/grant/RLS/Auth/Edge Function/payment/advertising/financial changes were made.
+- **Current status:** source and TODO changes are in progress; exact-head TypeScript/lint/build/taxonomy/browser checks and deployed-origin verification are NOT VERIFIED. Full production gate stays BLOCKED / NOT CERTIFIED.
+- Next action: finish static-contract reconciliation, open a Draft PR, inspect exact-head CI, fix failures without weakening security checks, then complete the module configuration registry and real marketing/operations integrations as dependency-ordered TODOs.
