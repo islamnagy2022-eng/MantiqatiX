@@ -204,6 +204,9 @@ const LEGACY_DIRECTORY_CATEGORY_MAP: Record<string, string> = {
   cat_home_maintenance_homewares: 'cat_home_maintenance_furniture',
   cat_home_maintenance_pest_control: 'cat_home_maintenance_home_services',
   cat_construction_decor_building_materials: 'cat_home_maintenance_building_supplies',
+  cat_construction_decor_interior_design: 'cat_home_maintenance_finishing_companies',
+  cat_construction_decor_sanitary_ware: 'cat_home_maintenance_building_supplies',
+  cat_industry_workshops_plastic_factories: 'cat_agriculture_animals_factories',
   cat_construction_decor_aluminum_glass: 'cat_home_maintenance_building_supplies',
   cat_construction_decor_contractors: 'cat_home_maintenance_contractors',
   cat_construction_decor_finishing_companies: 'cat_home_maintenance_finishing_companies',
@@ -235,6 +238,17 @@ const LEGACY_DIRECTORY_CATEGORY_MAP: Record<string, string> = {
   cat_industry_workshops_garment_factories: 'cat_agriculture_animals_factories',
   cat_industry_workshops_metal_workshops: 'cat_agriculture_animals_workshops',
 };
+
+export function resolveCanonicalActivityCategoryId(legacyGroupId: string, categoryCode: string): string {
+  const rawCode = String(categoryCode || '').trim();
+  if (!rawCode) return '';
+  const legacyGroup = String(legacyGroupId || '').trim().toLowerCase();
+  const legacyId = legacyGroup ? `cat_${legacyGroup}_${rawCode}` : '';
+  if (legacyId && LEGACY_DIRECTORY_CATEGORY_MAP[legacyId]) return LEGACY_DIRECTORY_CATEGORY_MAP[legacyId];
+  const canonicalGroupId = resolveCanonicalGroupId('', legacyGroupId);
+  const canonicalId = `cat_${canonicalGroupId}_${rawCode}`;
+  return DEFAULT_CATEGORIES.some((category) => category.id === canonicalId) ? canonicalId : '';
+}
 
 export function resolveCanonicalDirectoryCategoryId(categoryId: string, legacyGroupId?: string): string {
   const raw = String(categoryId || '').trim();
