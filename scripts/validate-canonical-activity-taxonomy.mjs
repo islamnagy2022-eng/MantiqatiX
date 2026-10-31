@@ -137,6 +137,7 @@ assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Di
 assert.ok(directoryListingsView.includes('resolveCanonicalSpecialty'), 'Legacy specialty labels must match canonical specialty filters through the shared resolver.');
 assert.ok(browserE2E.includes("name: 'ممارسات وعيادات طبية', exact: true"), 'Browser taxonomy navigation must assert the canonical medical activity label.');
 assert.ok(browserE2E.includes("getByRole('button', { name: /باطنة/ })"), 'Browser taxonomy navigation must assert a canonical medical specialty.');
+assert.ok(browserE2E.includes('homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels'), 'Browser E2E must prove that canonical activity codes control homepage category counts when legacy labels conflict.');
 assert.ok(!browserE2E.includes("getByText('عيادات عامة', { exact: true })"), 'Legacy clinic category labels must not remain in browser assertions.');
 for (const legacySpecialty of ['طبيب اطفال', 'طبيب نساء وتوليد', 'طبيب باطنه', 'مراكز وعيادات اسنان', 'معامل تحاليل', 'علاج طبيعي']) {
   assert.ok(defaults.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
