@@ -23,6 +23,17 @@
 - [ ] External browser/device tests. Deployed-origin browser CI passed for tested routes; real-device, accessibility, offline/PWA and full authenticated role journeys remain NOT VERIFIED.
 - [ ] Release approval موثق. **Overall Production Gate: BLOCKED / NOT CERTIFIED.**
 
+
+
+## P1 — Smart Geo Discovery (طلب 2026-10-31)
+- [ ] **GEO-DISC-001 — الموقع الجغرافي الافتراضي للموقع العام:** عند أول زيارة، تقديم سبب طلب الموقع واستدعاء إذن المتصفح بعد موافقة واضحة؛ تحديد النطاق الإداري الموثوق (قرية/منطقة ← مركز ← محافظة) وجعل نتائجه الافتراضية، مع حفظ الاختيار وعدم طلب الإذن في كل زيارة.
+- [ ] **GEO-DISC-002 — الاختيار اليدوي الشامل:** مصر بالكامل، محافظة، مركز، قرية/منطقة؛ تغيير النطاق يحدّث نتائج الدليل والبحث والتصنيفات دون تغيير الواجهات القائمة.
+- [ ] **GEO-DISC-003 — حالات الخصوصية والرجوع الآمن:** رفض الإذن/عدم الدعم/timeout/موقع غير متاح؛ استمرار الموقع بنطاق محفوظ أو مصر بالكامل، دون تتبع مستمر أو تخزين غير لازم للإحداثيات.
+- [ ] **GEO-DISC-004 — صحة المطابقة الإدارية:** لا تعتمد على أقرب centroid كأنه حدود إدارية؛ جدول platform_geo_areas الحالي لا يحتوي Polygon/boundary. يلزم مصدر حدود موثوق أو mapping إداري معتمد واختباره قبل تفعيل village/markaz auto-selection.
+- [ ] **GEO-DISC-005 — التغطية والاختبارات:** تطبيق النطاق على الأنشطة المسجلة وغير المؤكدة مع بقاء الموثق أولًا؛ اختبارات permission, fallback, manual scope, hierarchy, mobile, E2E, CI والنشر.
+- [ ] Tracking: https://github.com/islamnagy2022-eng/MantiqatiX/issues/604
+- [ ] لا يتم إغلاق أي بند قبل التحقق الفعلي من CI وE2E والنشر.
+
 ## P1 — Website / Platform
 - [x] Website baseline/PWA/brand.
 - [x] Google OAuth sign-in path; authenticated browser/session lifecycle remains NOT VERIFIED.
