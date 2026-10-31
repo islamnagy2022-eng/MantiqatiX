@@ -203,9 +203,6 @@ export const DirectoryView: React.FC = () => {
           try {
             const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
             if (match) {
-              const levelLabel = match.level === 'SHIYAKHA'
-                ? 'أقرب قرية/شياخة'
-                : match.level === 'DISTRICT' ? 'أقرب مركز/قسم' : 'أقرب محافظة';
               const matchedName = match.shiyakha?.name || match.district?.name || match.governorate.name;
               setLocationMessage('تم تحديد موقعك. تظهر الأنشطة الموثقة في مصر بالكامل مرتبة من الأقرب إلى الأبعد. أقرب نطاق إداري تقديري: ' + matchedName +
                 ' (نحو ' + match.distanceKm.toFixed(1) + ' كم)، دون تقييد النتائج به. يمكنك تضييق النطاق يدويًا.');
