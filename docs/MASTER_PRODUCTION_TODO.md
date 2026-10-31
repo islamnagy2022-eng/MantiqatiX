@@ -2852,3 +2852,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - أُضيف رد GET مضبوط في Supabase mock حتى لا يختلط تحميل الدليل العام باختبار صلاحيات لوحة الإدارة.
 - **Exact-head CI — PASS** على `668497d65b9087cd1db087cb74473ab11bab3c3d`: Primary Catalog Frontend Validation `41172621738` (build/typecheck + taxonomy + browser E2E + employee RBAC) PASS؛ Deploy MantiqatiX Web validation `41172621714` PASS وdeploy SKIPPED؛ Flexible Commission `41172621777`, RC425 `41172621736`, Module Professionalization `41172621773`, Backend-only Module Boundary `41172621756`, MantiGO Privacy `41172621768` كلها PASS.
 - لم يتم دمج PR أو نشر Pages أو Edge Functions. لا توجد كتابة إنتاجية أو migration أو تعديل RLS. اختبار CRUD بهوية SUPER_ADMIN إنتاجية حقيقية ما زال بندًا منفصلًا قبل الإطلاق.
+
+
+### CAT-TAX-05 — مراجعة قيود قاعدة الإنتاج وRLS (read-only)
+
+- `public.public_directory_listings` عليها `relrowsecurity=true` و`relforcerowsecurity=true`؛ لا توجد سياسات RLS مباشرة على الجدول، وامتيازات الجدول المباشرة في `information_schema.role_table_grants` محصورة في `postgres` و`service_role`. لذلك تظل عمليات القراءة/الكتابة عبر Edge Functions فقط، ولا يفتح الكتالوج مسار REST مباشرًا للجدول.
+- دالة `directory-listings` المنشورة `verify_jwt=false` لكنها تتحقق يدويًا من Bearer token عبر `service.auth.getUser(token)` وترفض المستخدم المجهول، ثم تتطلب عضوية `SUPER_ADMIN` نشطة بصلاحيات `scope=PLATFORM` و`full_control=true` قبل `ADMIN_LIST` و`UPSERT_LISTING`. عمليات المالك لها تحقق ملكية منفصل.
+- قيد `functional_group_id` في قاعدة الإنتاج ما زال يسمح بمعرفات المجموعات التاريخية الـ18، والمجموعات العشر الجديدة مجموعة فرعية منها. تم الإبقاء على القيد دون تعديل حتى لا تُكسر السجلات التاريخية؛ Edge Function هي التي تقصر الكتابات الجديدة على العشر.
+- القيود الفعلية التي تمت مراجعتها تشمل: أنواع السجلات المسموح بها، حالات النشر والمطالبة والمتابعة، unique slug، وشرط وجود 7 أرقام هاتف على الأقل قبل النشر. لم تُنفذ أي DDL/DML أو تغيير RLS/GRANT.
+- نتيجة الفحص: **لا حاجة إلى Migration لتغيير قيد المجموعة ضمن هذا الإصدار**. تبقى أي عملية تنظيف تاريخية مستقبلية منفصلة وبعد rehearsal واستعادة قابلة للاختبار.
