@@ -52,7 +52,7 @@ Taxonomy classification alone must never grant a role, enable a workflow, create
 
 ## Existing-record compatibility audit (2026-10-31)
 
-- Read-only inventory of `public.public_directory_listings` found 454 existing rows across 156 distinct legacy group/category/type/specialty combinations. No rows were updated or deleted.
+- Read-only inventory of `public.public_directory_listings` found 454 existing rows across 156 distinct legacy group/category/type combinations. No rows were updated or deleted.
 - Added client read-boundary normalization for public listings, detail pages, and admin bundles: legacy group IDs resolve to the canonical 10, and every currently inventoried legacy category ID maps to one of the new category IDs. A read-only SQL reconciliation returned zero unmapped category IDs.
 - Medical legacy IDs for doctors, dentists, dental centers, and clinics converge on the single `medical_practices` activity; the individual listing type and specialty remain intact as profile data.
 - Legacy tourism/event entries map to the new hospitality/events activity; bakeries and sweets are consolidated to preserve the five-category ceiling in the food group.
