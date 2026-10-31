@@ -304,11 +304,11 @@ export function resolveActivityModuleConfig(category: ActivityCategory): Activit
     operationalFocus: override?.operationalFocus || 'تُحدد الوظائف التشغيلية التفصيلية بعد مراجعة دورة العمل ومصدر البيانات والصلاحيات الخاصة بهذا النشاط.',
     marketing: {
       ...profile.marketing,
-      ...override && {
+      ...(override ? {
         audience: override.audience,
         campaignIdeas: override.campaignIdeas,
         requiredAssets: override.requiredAssets,
-      },
+      } : {}),
       objective: `${profile.marketing.objective} ${override?.focus || ''} يركز هذا المركز على نشاط: ${name}.`.trim(),
       positioning: override ? `${profile.marketing.positioning} ${override.focus}` : profile.marketing.positioning,
     },
