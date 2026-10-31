@@ -190,6 +190,10 @@ Deno.serve(async (req: Request) => {
   const tenantId = String(body.tenantId || "").trim();
   const businessId = String(body.businessId || "").trim();
   const branchId = body.branchId == null || body.branchId === "" ? null : String(body.branchId).trim();
+  // Optional exact membership binding is used by the account mode switcher.
+  // It prevents a second, wider membership on the same account from broadening
+  // the requested employee/branch scope.
+  const membershipId = body.membershipId == null || body.membershipId === "" ? null : String(body.membershipId).trim();
 
   try {
     const { data: memberships, error: membershipError } = await service
@@ -252,8 +256,10 @@ Deno.serve(async (req: Request) => {
     if (!tenantId || tenantId.length > 80) return out(origin, { error: "TENANT_REQUIRED" }, 400);
     if (!isUuid(businessId)) return out(origin, { error: "INVALID_BUSINESS_ID" }, 400);
     if (branchId && !safeBranch(branchId)) return out(origin, { error: "INVALID_BRANCH_ID" }, 400);
+    if (membershipId && !isUuid(membershipId)) return out(origin, { error: "INVALID_MEMBERSHIP_ID" }, 400);
 
     const businessMemberships = activeMemberships.filter((m: any) =>
+      (!membershipId || String(m.id) === membershipId) &&
       String(m.tenant_id) === tenantId &&
       businessRole(m) &&
       (
@@ -262,7 +268,7 @@ Deno.serve(async (req: Request) => {
       ) &&
       (!m.branch_id || String(m.branch_id) === String(branchId || ""))
     );
-    const scopedPlatformMembership = activeMemberships.some((m: any) =>
+    const scopedPlatformMembership = !membershipId && activeMemberships.some((m: any) =>
       String(m.tenant_id) === tenantId && isPlatformAdmin(m)
     );
     const hasBusinessScope = businessMemberships.length > 0 || scopedPlatformMembership;
