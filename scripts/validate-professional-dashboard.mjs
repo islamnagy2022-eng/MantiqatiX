@@ -95,15 +95,14 @@ assert.match(browserE2E, /catalogReadRequests\.every\(\(request\) => !request\.b
 assert.match(production, /membershipPermissions: chosenMembership\?\.permissions/);
 assert.match(production, /businesses\.find\(\(b\) => roleMemberships\.some\(\(m: any\) => String\(m\.business_id \|\| ''\) === b\.id\)\)/);
 
-assert.match(app, /import \{ ProfessionalDashboard \} from '\.\/modules\/dashboard\/ProfessionalDashboard'/);
+assert.match(app, /const ProfessionalDashboard = lazy\(\(\) => import\('\.\/modules\/dashboard\/ProfessionalDashboard'\)/, 'Professional dashboard must be lazy-loaded outside the public directory bundle');
 assert.match(app, /import \{ canAccessMerchantDashboard, canAccessProfessionalDashboard \} from '\.\/utils\/dashboardAccess'/);
-assert.match(app, /visibleView === 'professional_dashboard' && <ProfessionalDashboard \/>/);
+assert.match(app, /visibleView === 'professional_dashboard' && \([\s\S]*?<Suspense fallback=\{<ScreenFallback \/>\}>[\s\S]*?<ProfessionalDashboard \/>/, 'professional dashboard must render behind a lazy screen boundary');
 assert.match(app, /!canAccessProfessionalDashboard\(authSession\)/);
 assert.match(app, /!canAccessMerchantDashboard\(authSession\)/);
 
-assert.match(navbar, /canAccessMerchantDashboard\(authSession\)/);
-assert.match(navbar, /canAccessProfessionalDashboard\(authSession\)/);
-assert.match(navbar, /setCurrentView\('professional_dashboard'\)/);
+assert.match(navbar, /setCurrentView\('account_portal'\)/, 'all authenticated dashboard modes must enter from the account portal');
+assert.doesNotMatch(navbar, /setCurrentView\('(merchant_admin|professional_dashboard|super_admin)'\)/, 'public navbar must not link directly to dashboard routes');
 
 assert.match(employeeManager, /readOnly\?: boolean/);
 assert.match(employeeManager, /readOnly && <p className="rounded-xl border border-sky-200/);
