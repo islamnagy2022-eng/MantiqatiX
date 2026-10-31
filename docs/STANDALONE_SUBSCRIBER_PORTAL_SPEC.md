@@ -91,4 +91,4 @@ Only after Phase C is complete and approved:
 
 ## Current status
 
-**SPECIFIED / IMPLEMENTATION NOT STARTED.** This document corrects the scope of the earlier embedded-dashboard interpretation. No UI, route, permissions, database, or production deployment has been changed by this specification alone.
+**PARTIALLY IMPLEMENTED ON FEATURE BRANCH / NOT VERIFIED OR DEPLOYED.** Added the standalone `account_portal` route, authenticated `حسابي / اشتراكي` entry point, independent account shell, subscription summary, membership permission display, activity summary, visitor-mode switch, and reuse of existing merchant/professional tools inside the portal. Existing main-navigation dashboard controls remain untouched. Browser coverage was added; exact-head CI and deployed-origin checks are pending. This implementation is additive and does not modify database, RLS, grants, or production services.
