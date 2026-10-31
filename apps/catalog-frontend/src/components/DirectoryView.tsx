@@ -573,7 +573,37 @@ export const DirectoryView: React.FC = () => {
   ]).values()).sort((a, b) => a.localeCompare(b, 'ar'));
   const uniqueAreas = Array.from(new Set(locationRecords.filter((record) => (selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeAdministrativeName(record.markaz) === normalizeAdministrativeName(selectedMarkazFilter)) && (selectedVillageFilter === 'all' || normalizeSearch(record.village) === normalizeSearch(selectedVillageFilter))).map((record) => String(record.address || '').trim()).filter((address) => address.length >= 3))).sort((a, b) => a.localeCompare(b, 'ar'));
 
-  if (listingSlug) return <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />;
+  const locationWelcomeDialog = showLocationWelcome ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="geo-discovery-title">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 text-right shadow-2xl" dir="rtl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <Navigation className="h-6 w-6" />
+            </div>
+            <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل قائمة شياخات المركز الأقرب باستخدام كود المركز فقط.
+            </p>
+            <div className="mt-5 grid gap-2">
+              <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
+                <Navigation className="h-4 w-4" /> {locationBusy ? 'جارٍ طلب إذن الموقع…' : 'السماح باستخدام موقعي'}
+              </button>
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setLocationMessage('يمكنك اختيار مصر بالكامل أو المحافظة والمركز والقرية من أدوات تحديد النطاق.'); }} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
+                اختيار الموقع يدويًا
+              </button>
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض الأنشطة والخدمات المنشورة في مصر بالكامل.'); }} className="min-h-10 text-xs font-bold text-emerald-800 underline">
+                عرض مصر بالكامل
+              </button>
+            </div>
+            <p className="mt-4 text-[11px] leading-5 text-slate-500">سيظهر طلب المتصفح الأصلي بعد اختيار السماح. يمكنك الرفض ومتابعة الموقع يدويًا في أي وقت.</p>
+          </div>
+        </div>
+
+  ) : null;
+
+  if (listingSlug) return <>
+    <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />
+    {locationWelcomeDialog}
+  </>;
 
   if (taxonomyBrowserOpen) {
     const activeGroup = functionalGroups.find((group) => group.id === selectedGroupFilter);
@@ -594,6 +624,7 @@ export const DirectoryView: React.FC = () => {
     };
     return (
       <main className="mx-auto min-h-[70vh] max-w-7xl space-y-5 px-3 py-5 sm:px-6 sm:py-8" dir="rtl">
+        {locationWelcomeDialog}
         <header className="rounded-3xl bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 p-5 text-white shadow-lg sm:p-8">
           <button type="button" onClick={goTaxonomyBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-bold hover:bg-white/15">
             <ChevronLeft className="h-4 w-4" />
@@ -666,31 +697,8 @@ export const DirectoryView: React.FC = () => {
   return (
     <div className="space-y-8 pb-20">
       {/* 1. Full-Width Horizontal Title Bar right under header */}
-      {showLocationWelcome && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="geo-discovery-title">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 text-right shadow-2xl" dir="rtl">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-              <Navigation className="h-6 w-6" />
-            </div>
-            <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل قائمة شياخات المركز الأقرب باستخدام كود المركز فقط.
-            </p>
-            <div className="mt-5 grid gap-2">
-              <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
-                <Navigation className="h-4 w-4" /> {locationBusy ? 'جارٍ طلب إذن الموقع…' : 'السماح باستخدام موقعي'}
-              </button>
-              <button type="button" onClick={() => { completeGeoSetup('manual'); setLocationMessage('يمكنك اختيار مصر بالكامل أو المحافظة والمركز والقرية من أدوات تحديد النطاق.'); }} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
-                اختيار الموقع يدويًا
-              </button>
-              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض الأنشطة والخدمات المنشورة في مصر بالكامل.'); }} className="min-h-10 text-xs font-bold text-emerald-800 underline">
-                عرض مصر بالكامل
-              </button>
-            </div>
-            <p className="mt-4 text-[11px] leading-5 text-slate-500">سيظهر طلب المتصفح الأصلي بعد اختيار السماح. يمكنك الرفض ومتابعة الموقع يدويًا في أي وقت.</p>
-          </div>
-        </div>
-      )}
+      {locationWelcomeDialog}
+
       <div className="w-full bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white py-6 px-4 sm:px-8 shadow-md border-y border-emerald-500/20">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-right">
           <div className="space-y-1">
