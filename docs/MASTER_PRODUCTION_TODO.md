@@ -2679,3 +2679,21 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Current-main Pages run #41160201369 completed validate, public-only validation, and deploy jobs successfully. Deployed-root and deployed-origin browser E2E passed (job `124416013202`).
 - The latest verifier still reports the scoped catalog pilot PASS while the platform-wide gate remains BLOCKED. This does not change the live migration, Edge, journal, payment, backup/restore, or owner-evidence blockers listed above.
 - Notification delivery, backup/restore, RPO/RTO, and real provider/auth/device E2E remain open. No Production mutation occurred.
+
+
+## CAT-DUPLICATE-GUARD-20261031 — منع تكرار إنشاء النشاط
+
+- [x] الواجهة تستخدم Map داخل AppContext لطلبات إنشاء النشاط قيد التنفيذ، ومفتاح الطلب هو JSON.stringify للـ canonical payload الفعلي؛ الطلبات المتطابقة أثناء التنفيذ تشترك في Promise واحدة، والبيانات المختلفة لا تُدمج.
+- [x] Edge Function على الخادم تنفذ duplicate lookup داخل tenant المحدد، وتقارن الاسم والتصنيف ورقم الهاتف أو الموقع، وترجع DUPLICATE_BUSINESS مع HTTP 409 وbusinessId قبل بدء أي insert. لا تُفعّل ولا تنشر ولا تغيّر حالة السداد أو ملكية السجل الموجود.
+- [x] Validator مخصص موجود في scripts/validate-business-create-inflight-guard.mjs، واجتاز على main في Pages validation run [41162036127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036127)، وسجل CATALOG_BUSINESS_CREATE_INFLIGHT_GUARD=PASS.
+- [ ] **NOT VERIFIED:** اختبار متصفح/خادم حقيقي للنقر المتكرر، تبويبين، إعادة المحاولة بعد انقطاع الشبكة، وطلبات متزامنة. فحص الخادم الحالي check-then-insert وليس قفلًا/قيدًا ذريًا في قاعدة البيانات؛ قد تتسابق طلبات متزامنة جدًا. لا تدّعِ ضمان idempotency على مستوى قاعدة البيانات حتى يثبت ذلك باختبار تنافسي ووسيلة ذرية مناسبة.
+- [ ] تحقق من أن الواجهة تتعامل بوضوح مع HTTP 409 عند نجاح الإدخال الأول وفقدان الاستجابة، ولا تعرض للمشغل رسالة توحي بفشل الإنشاء دون توضيح أن النشاط الموجود لم يُنشأ مرة أخرى.
+- PR [#477](https://github.com/islamnagy2022-eng/MantiqatiX/pull/477) ما زال Draft بفرع أقدم. لا تدمجه كما هو: main يحتوي بالفعل على حارس client أدق بمفتاح payload، وحارس server يعيد 409 بدل إعادة استخدام سجل بالاعتماد على heuristic. احتفظ بالفرع للمراجعة/الإغلاق بعد تأكيد عدم الحاجة لأي جزء فريد منه.
+- لا توجد تغييرات بيانات إنتاجية ضمن هذا الفحص.
+
+## Current-main verification after PR #578 — 2026-10-31
+
+- Main commit: `b7b35378bbf5c1fd5ff54afb6be79e316e33624c`.
+- Health Monitor [41162036080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036080) passed; job `124421481814` confirmed `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS` and primary catalog root/assets PASS.
+- Backend-only Module Boundary [41162036117](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036117), MantiGO Privacy [41162036099](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036099), Module Professionalization [41162036130](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036130), and Pages [41162036127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036127) all completed successfully.
+- Pages deploy job `124421551588` confirmed deployed primary root and `PRIMARY_CATALOG_BROWSER_E2E=PASS` for the tested scoped catalog/role/QR/GPS/taxonomy journeys. The verifier artifact still reports `production_gate=BLOCKED` with 24 PASS, 0 FAIL, 1 BLOCKED; this source-contract report does not certify live production migrations or payment flows.
