@@ -120,7 +120,7 @@ const legacyGroupMapStart = defaults.indexOf('const LEGACY_GROUP_MAP: Record<str
 const legacyGroupMapEnd = defaults.indexOf('\\n};', legacyGroupMapStart);
 assert.ok(legacyGroupMapStart >= 0 && legacyGroupMapEnd > legacyGroupMapStart, 'Legacy group map must be explicit.');
 const legacyGroupMappings = new Map(
-  Array.from(defaults.slice(legacyGroupMapStart, legacyGroupMapEnd).matchAll(/^\\s*([a-z0-9_]+):\\s*'([a-z0-9_]+)'/gm),
+  Array.from(defaults.slice(legacyGroupMapStart, legacyGroupMapEnd).matchAll(/([a-z0-9_]+):\\s*'([a-z0-9_]+)'/g),
     (match) => [match[1], match[2]]),
 );
 const legacyGroupsInInventory = [...new Set(observedLegacyCategoryIds.map((legacyId) => {
