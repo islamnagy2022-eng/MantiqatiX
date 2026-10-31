@@ -138,10 +138,11 @@ export const DirectoryView: React.FC = () => {
     products,
   } = useApp();
   const businesses = directoryBusinesses;
-  const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
-  const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
-  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
-  const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
+  // Every new visit starts with the complete Egypt-wide directory. Saved GPS or
+  // administrative choices must never silently narrow the visitor's initial results.
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(true);
+  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>('manual');
+  const [showLocationWelcome, setShowLocationWelcome] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -261,21 +262,8 @@ export const DirectoryView: React.FC = () => {
     }
   };
 
-  // First visits keep the in-page explanation visible until the visitor explicitly consents.
-  // Declined or manually selected visits are saved and will not trigger repeated prompts.
-  // Returning visitors get a silent refresh only after a previous explicit grant.
-  useEffect(() => {
-    if (!initialGeoPreference?.completed || initialGeoPreference.mode !== 'auto') return;
-    if (!navigator.permissions?.query) return;
-    let cancelled = false;
-    navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
-      if (!cancelled && permission.state === 'granted') requestUserLocation();
-    }).catch(() => {
-      // Permission API is optional; the manual "use my location" action remains available.
-    });
-    return () => { cancelled = true; };
-  }, []);
-
+  // GPS is never requested automatically. The visitor may choose a geographic
+  // scope manually or explicitly use the location button after opening the directory.
   useEffect(() => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
@@ -319,10 +307,10 @@ export const DirectoryView: React.FC = () => {
     window.addEventListener('popstate', syncActivityModuleRoute);
     return () => window.removeEventListener('popstate', syncActivityModuleRoute);
   }, []);
-  const [selectedGovFilter, setSelectedGovFilter] = useState<string>(initialGeoPreference?.governorate || 'all');
-  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
-  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
-  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>('all');
+  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>('all');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
