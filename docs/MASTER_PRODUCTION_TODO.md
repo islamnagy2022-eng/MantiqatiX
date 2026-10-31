@@ -2631,13 +2631,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 
 ## 2026-10-31 — P0 operational continuity addendum (Supabase Free)
 
-35. **Database inactivity/availability monitoring — PARTIAL**
-    - Existing hourly monitor previously checked GitHub Pages, a static Edge Function health response, and web assets; it did not query PostgreSQL.
-    - Added a read-only PostgREST probe on branch `ops/supabase-free-tier-db-monitor-20261031`, using the public anon key and `marketing_provider_profiles?select=business_id&limit=1`; response body is discarded.
-    - No schema/RLS/Auth/Edge Function/UI changes and no service-role credential are involved.
-    - WAIT: merge only after review; then verify the first main-branch monitor run and confirm a failed database probe generates the expected GitHub workflow failure notification.
-    - This probe may reduce inactivity-pause risk but does not guarantee uptime or prevent Supabase from pausing a Free project.
-
+35. **Database inactivity/availability monitoring — MERGED / CONTRACT PREFLIGHT PASS / LIVE RUN PENDING**
+    - PR [#567](https://github.com/islamnagy2022-eng/MantiqatiX/pull/567) merged as `c8c65e7b4d8cf70e83753e9d194b25f18e5395cb`; PR #568 merged the corrected continuity record as `46a27d9009a092a907b9e5f26ec0dffdcc5b1db3`.
+    - The hourly workflow performs a read-only PostgREST GET of `marketing_provider_profiles?select=business_id&limit=1` with the public anon key and discards the response body.
+    - Read-only Production catalog preflight confirms the target relation exists, RLS and FORCE RLS are enabled, anon has SELECT, and an explicit public SELECT policy is present. No application row data was read. Evidence: `docs/audits/DB_MONITOR_READ_PATH_PREFLIGHT_20261031.md`.
+    - **NOT VERIFIED:** actual post-merge HTTP probe response from GitHub Actions and GitHub failure-notification delivery. The GitHub connector available here lists PR-triggered runs, not the push-triggered health run.
+    - The hourly probe is intended to provide recurring database API activity; Supabase states that a few user API/database requests each day typically suffice to avoid inactivity pausing, but the platform does not guarantee a project will never pause.
 36. **Free-tier backup and restore — WAIT / NOT VERIFIED**
     - Run the local Supabase CLI logical backup procedure in `docs/operations/FREE_TIER_DATABASE_CONTINUITY.md` from an authorized device with the database connection string.
     - Store encrypted roles/schema/data dumps outside this public repository; never upload production dumps to public GitHub artifacts.
