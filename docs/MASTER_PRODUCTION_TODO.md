@@ -36,7 +36,10 @@
 - [x] Module UI now renders the resolved domain-specific plan and capability cards.
 - [x] Unintegrated operating capabilities are explicitly labelled **قيد التجهيز**; no unverified workflow is presented as active.
 - [x] Add explicit reviewed per-activity marketing overrides for all 50 canonical activity IDs: activity focus, audience, campaign ideas, required assets, and operating scope.
-- [ ] Expand capability cards from domain-level templates to reviewed per-activity operational capabilities.
+- [x] Define three reviewed operational capabilities for every canonical activity ID (150 activity-specific capabilities across 50 activities), each with a distinct ID, title, and description.
+- [x] Make the resolver prefer activity-specific capability definitions over domain templates; unknown/custom IDs retain the safe domain fallback.
+- [x] Force all unintegrated activity capabilities to `planned` and render their state with accessible, state-aware labels; no workflow is falsely presented as available.
+- [ ] Implement per-activity capability execution only after each API/RPC, tenant/business/branch authorization, and negative security tests are verified.
 
 ### Implementation and validation
 - [x] Added `ActivityModuleView.tsx` and the typed activity module registry.
