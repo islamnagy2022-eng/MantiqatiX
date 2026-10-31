@@ -1575,3 +1575,5 @@ A separate source review found a second platform-root authorization model: the n
 ## 2026-11-01 — إعادة تحقق بعد تصحيح taxonomy validator
 
 - [ ] إعادة تشغيل TypeScript/build وtaxonomy validator وbrowser E2E على آخر main الذي يحافظ على المجموعة الأم في URL ومنشئ الحملة المتقدم.
+
+- [ ] تشغيل `Deploy MantiqatiX Web` على head الحالي لفرع التحقق بعد تصحيح assertion الثاني، ومراجعة `validate` كاملًا؛ يجب أن يظل `deploy` متخطيًا في PR. لا يُعتمد نجاح التشغيل الأقدم على commit `771d073` كتحقق للإصلاح الأخير.
