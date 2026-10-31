@@ -1252,3 +1252,16 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Release scope:** the workflow's production verifier still enforces that the global platform gate is BLOCKED while the catalog pilot may proceed. A successful catalog deployment does not certify payment, finance, full Auth/tenant E2E, backup/DR, Android signing or all platform modules.
 - **Current main at test:** `adf0680a3c151330656b9712a03849c796aa4c09`.
 - **Overall Production Gate:** **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-31 — latest-main release verifier deep read (run #41159666222)
+
+- **Source commit:** `adf0680a3c151330656b9712a03849c796aa4c09`.
+- **Production deployment:** catalog pilot deployed successfully; Pages browser E2E passed. This does not certify the full platform.
+- **Verifier:** `PRODUCTION_GATE=BLOCKED`, `CATALOG_PILOT_GATE=PASS`.
+- **Database release reconciliation:** 0/41 exact required release migration IDs in live ledger; 60-object manifest reports 32 non-PASS states. RC424 statement alias exact match was verified and historical ledger version preserved. Two other aliases remain pending controlled repair.
+- **Missing/blocked objects:** release verifier enumerates absent payment/failure/settlement RPCs and indexes (RC425–RC430), SMM wallet reference index (RC432), purchasing RPCs (RC434/RC438), RC117 default image fields/functions/triggers and RC113 membership index; RC431 and RC438 also contain blocked-present objects needing semantic review.
+- **Edge parity:** six live entrypoints differ from main: `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, `financial-journal v3`.
+- **Journal blocker:** RC449A/RC450 fields missing: `journal_entries.entry_number`, `total_debit`, `total_credit`, `posted_at`, `journal_entry_lines.line_number`; expected service-role EXECUTE contract absent. Do not deploy the current finance Edge source against this schema.
+- **Other unresolved:** Paymob/finance E2E NOT VERIFIED; backup/restore NOT VERIFIED; Auth managed settings require owner evidence; SMM gateway parity partial and negative runtime tests unverified.
+- **No Production mutation:** no migrations, grants, Auth/RLS changes, Edge deployment, payment provider call or ledger mutation performed.
+- **Production Gate:** **BLOCKED / NOT CERTIFIED**.
