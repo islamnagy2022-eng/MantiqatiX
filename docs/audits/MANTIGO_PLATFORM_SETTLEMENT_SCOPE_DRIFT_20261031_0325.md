@@ -268,3 +268,11 @@ The existing isolated full-chain replay evidence [41178333682](https://github.co
 - A cross-database routine scan found no other SQL function that writes/deletes `private.platform_admins`; bootstrap is the only SQL writer found. No dedicated audited revocation routine exists in the inspected database routine set. External privileged service operations may exist and must be inventoried before concluding no revocation path exists.
 - No root identity or registry row contents were queried; only aggregate registry count and tenant metadata were read.
 - [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks P2 correction of bootstrap defaults and design of audited deprovision/revocation. Do not patch or call Production bootstrap; first restore current schema and test atomically in isolation.
+
+ 
+### Root-registry row provenance — aggregate-only check (2026-10-31)
+
+- The sole `private.platform_admins` row has `created_at=2026-09-27 13:23:43 UTC` (aggregate min/max only; no row identity/content read).
+- No `PLATFORM_BOOTSTRAP` audit event exists in `public.audit_logs`.
+- Live migration ledger search found only the `INSERT INTO private.platform_admins` inside the `private.bootstrap_platform_admin` function definition; no direct migration seed, UPDATE or DELETE statement exists for the registry.
+- Therefore the historical provisioning path for the current root registry row is not established. Do not claim the one-time bootstrap function was used, and do not invent an audit record. Issue #614 tracks recovery/provenance and lifecycle correction.
