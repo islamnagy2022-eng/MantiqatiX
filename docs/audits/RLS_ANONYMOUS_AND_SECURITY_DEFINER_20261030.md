@@ -129,3 +129,18 @@ The current inventory did not prove an anonymous data leak. It did identify a br
 ### Table-level cross-check
 
 A second catalog query found 126 public tables with at least one policy targeting `authenticated`. Of these, 71 have a RESTRICTIVE policy that explicitly checks `is_anonymous`; 55 do not have that particular table-wide restrictive guard. This is not a count of vulnerable tables: a number of the latter tables have explicit anonymous checks in their own permissive policy predicates, while others bind access to `auth.uid()` or active tenant membership. For example, payment and ledger read policies require an active membership with a finance-capable role; owner-read policies bind the row to the session UID; public catalog/read policies intentionally expose only active/published content. These still require isolated JWT tests, especially because policy composition and helper functions affect the final decision.
+
+
+### 2026-10-31 refresh — current Advisor counts and repository conflict status
+
+Read-only live snapshot at 2026-10-31 04:13:52 UTC:
+
+- Migration ledger: 308 rows; latest `20261029083845`.
+- RLS enabled without policies: 8 INFO findings. These remain deny-by-default candidates; verify grants before changing policies.
+- Anon-executable SECURITY DEFINER: 3 findings. Two are trigger-returning functions attached to tables, not ordinary RPC endpoints; the public targeted-ad RPC is intentional and needs projection/rate-limit review.
+- Authenticated-executable SECURITY DEFINER: 67 findings. This count is an inventory, not proof of exploitability. Perform function-by-function authorization and output review; avoid blanket revocation.
+- Auth leaked-password protection remains disabled and needs a controlled user-impact rollout.
+
+Repository checkpoint: PR #508, #535 and #551 each show successful completed runs in the returned head workflow list, but merge attempts fail because their branches conflict with current main. They are 136, 80 and 65 commits behind main. PR #540 remains draft and 77 commits behind. Reconcile changes onto current main and rerun exact-head CI; no merge or production rollout is implied by prior test success.
+
+No Production mutation was performed. Release remains **BLOCKED / NOT CERTIFIED**.

@@ -1402,3 +1402,13 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - [ ] Obtain a full schema-only, credential-scrubbed current Production capture using the pinned Supabase CLI in an authorized environment; restore in disposable PostgreSQL/Supabase; reconcile actual live drift; run adversarial integrations and backup/restore rehearsal.
 - [ ] Supabase branch creation remains unapproved/not requested due potential usage charges; current branch listing contains only Production `main`. Do not create a paid branch without user-provided organization ID, cost quote, and explicit approval.
 - **Production effect: NONE.** Read-only inspection only. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Security Advisor refresh and PR conflict checkpoint
+
+- [x] Refreshed live Production migration ledger: 308 records; latest remains `20261029083845` (`require_phone_for_published_directory_listings`).
+- [x] Refreshed Security Advisor at 2026-10-31 04:13:52 UTC: 8 RLS-enabled/no-policy INFO findings; 3 anon-executable SECURITY DEFINER findings; 67 authenticated-executable SECURITY DEFINER findings; leaked-password protection remains disabled. Anonymous-policy WARN findings are policy-target inventories and require effective-access tests, not blanket revocation.
+- [x] Rechecked PR #508, #535, #551 and #540 head workflows: all returned completed-success runs for the listed workflows. This is not evidence of production database rollout.
+- [ ] GitHub merge attempts for #508, #535 and #551 were rejected because the branches conflict with current main. Compare shows #508 is 136 commits behind, #535 80 behind, #551 65 behind. Rebase/reconcile each change onto current main and rerun exact-head CI before merging; do not force-push or overwrite current main.
+- [ ] PR #540 remains draft and 77 commits behind main; its RC459–RC461 migration chain and Edge Function changes remain unmerged and absent from Production. Require fresh review/rebase, complete current-schema restore rehearsal, backup/rollback evidence and explicit production gate before rollout.
+- No Production DDL/DML, grants, RLS/Auth setting, Edge deployment, payment or financial mutation occurred. Production remains **BLOCKED / NOT CERTIFIED**.
