@@ -190,3 +190,6 @@ Stop and leave the rehearsal **BLOCKED** when any of the following occurs:
 
 ### Additional integrity check — trigger/constraint compensation
 A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+ 
+- [ ] Reproduce `public.bookings` in the local restore and establish its historical/dynamic callers, row provenance and retention requirements. Verify ordinary authenticated and anon sessions remain denied under its restrictive-only policy set; test any proposed ACL reduction without deleting the existing row. Do not retire the table until dependencies are proven absent.
