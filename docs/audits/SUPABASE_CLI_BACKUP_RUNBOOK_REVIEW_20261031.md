@@ -31,7 +31,7 @@ Read-only documentation review of `docs/operations/FREE_TIER_DATABASE_CONTINUITY
 
 ## Status
 
-Documentation reference correction: **implemented on review branch; awaiting PR validation/review**.
+Documentation reference correction: **included in PR #571; documentation-only change**.
 
 Production backup: **NOT CREATED**.
 Restore rehearsal: **NOT PERFORMED**.
