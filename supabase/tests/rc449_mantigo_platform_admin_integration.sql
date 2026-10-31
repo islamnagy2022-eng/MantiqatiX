@@ -368,8 +368,12 @@ reset role;
 -- Removing the registry entry revokes platform authority immediately.
 delete from private.platform_admins where user_id='10000000-0000-4000-8000-000000000047';
 select pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000047',false);
-if public.mnty_can_platform_admin() then
-  raise exception 'removed platform registry entry retained platform authority';
-end if;
+do $revocation$
+begin
+  if public.mnty_can_platform_admin() then
+    raise exception 'removed platform registry entry retained platform authority';
+  end if;
+end;
+$revocation$;
 
 select 'RC462 canonical platform registry integration: PASS' as result;
