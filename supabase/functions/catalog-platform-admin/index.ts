@@ -24,6 +24,58 @@ const isUuid = (value: unknown) => typeof value === "string" && /^[0-9a-f]{8}-[0
 const isPlatformAdmin = (m: any) => String(m.role || "").toUpperCase() === "SUPER_ADMIN"
   && !m.business_id && !m.branch_id
   && m.permissions?.scope === "PLATFORM" && m.permissions?.full_control === true;
+
+const sanitizeActivityModuleOverrides = (value: unknown): Record<string, unknown> => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length > 50) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+  const safe: Record<string, unknown> = {};
+  const cleanText = (input: unknown, max: number): string => {
+    if (typeof input !== "string") throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+    const text = input.trim();
+    if (!text || text.length > max) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+    return text;
+  };
+  const cleanList = (input: unknown): string[] => {
+    if (!Array.isArray(input) || input.length > 10) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+    return input.map((item) => cleanText(item, 180));
+  };
+  for (const [activityId, raw] of entries) {
+    if (!/^cat_[a-z0-9_]{3,120}$/.test(activityId) || !raw || typeof raw !== "object" || Array.isArray(raw)) {
+      throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+    }
+    const record = raw as Record<string, unknown>;
+    const normalized: Record<string, unknown> = {};
+    if (record.marketing !== undefined) {
+      if (!record.marketing || typeof record.marketing !== "object" || Array.isArray(record.marketing)) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+      const marketing = record.marketing as Record<string, unknown>;
+      const cleanMarketing: Record<string, unknown> = {};
+      for (const field of ["objective", "audience", "positioning"]) {
+        if (marketing[field] !== undefined) cleanMarketing[field] = cleanText(marketing[field], 500);
+      }
+      for (const field of ["contentPillars", "campaignIdeas", "requiredAssets"]) {
+        if (marketing[field] !== undefined) cleanMarketing[field] = cleanList(marketing[field]);
+      }
+      if (!Object.keys(cleanMarketing).length) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+      normalized.marketing = cleanMarketing;
+    }
+    if (record.capabilities !== undefined) {
+      if (!Array.isArray(record.capabilities) || record.capabilities.length !== 3) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+      const seen = new Set<string>();
+      normalized.capabilities = record.capabilities.map((item: any) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+        const id = cleanText(item.id, 120);
+        if (!/^[a-z0-9][a-z0-9_-]{1,119}$/.test(id) || seen.has(id)) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+        seen.add(id);
+        return { id, title: cleanText(item.title, 120), description: cleanText(item.description, 300) };
+      });
+    }
+    if (!Object.keys(normalized).length) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+    safe[activityId] = normalized;
+  }
+  if (new TextEncoder().encode(JSON.stringify(safe)).length > 120000) throw new Error("INVALID_ACTIVITY_MODULE_OVERRIDES");
+  return safe;
+};
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 Deno.serve(async (req: Request) => {
@@ -132,8 +184,15 @@ Deno.serve(async (req: Request) => {
     if (action === "SAVE_SETTINGS") {
       const input = body.settings && typeof body.settings === "object" ? body.settings : {};
       const safe: Record<string, unknown> = {};
-      const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed"];
+      const keys = ["adminWhatsApp", "defaultCategories", "categories", "functionalGroups", "currency", "platformName", "platformEmail", "maxAllowedProductsPerBusiness", "defaultCommissionPerOrder", "overdueGracePeriodDays", "defaultPaymobFeePercentage", "defaultPaymobFeeFixed", "activityModuleOverrides"];
       for (const k of keys) if (Object.prototype.hasOwnProperty.call(input, k)) safe[k] = input[k];
+      if (Object.prototype.hasOwnProperty.call(input, "activityModuleOverrides")) {
+        try {
+          safe.activityModuleOverrides = sanitizeActivityModuleOverrides(input.activityModuleOverrides);
+        } catch {
+          return response(origin, { error: "INVALID_ACTIVITY_MODULE_OVERRIDES", message: "بيانات إعدادات وحدات الأنشطة غير صالحة أو تجاوزت الحدود المسموح بها." }, 400);
+        }
+      }
       if (Object.prototype.hasOwnProperty.call(input, "adminWhatsApp")) {
         const phone = String(input.adminWhatsApp || "").trim();
         const digits = phone.replace(/\D/g, "");
@@ -154,7 +213,40 @@ Deno.serve(async (req: Request) => {
         settings_key: "bizcatalog", settings: merged, updated_by: user.id, updated_at: new Date().toISOString(),
       }, { onConflict: "settings_key" });
       if (error) throw error;
-      return response(origin, { success: true, settings: merged });
+
+      let auditLogged: boolean | undefined;
+      if (Object.prototype.hasOwnProperty.call(input, "activityModuleOverrides")) {
+        const previousOverrides = current.activityModuleOverrides && typeof current.activityModuleOverrides === "object" && !Array.isArray(current.activityModuleOverrides)
+          ? current.activityModuleOverrides as Record<string, unknown> : {};
+        const nextOverrides = safe.activityModuleOverrides as Record<string, unknown>;
+        const activityIds = [...new Set([...Object.keys(previousOverrides), ...Object.keys(nextOverrides)])];
+        const changedActivities = activityIds.flatMap((activityId) => {
+          const before = previousOverrides[activityId] && typeof previousOverrides[activityId] === "object" ? previousOverrides[activityId] as Record<string, unknown> : {};
+          const after = nextOverrides[activityId] && typeof nextOverrides[activityId] === "object" ? nextOverrides[activityId] as Record<string, unknown> : {};
+          const fields = ["marketing", "capabilities"].filter((field) => JSON.stringify(before[field] ?? null) !== JSON.stringify(after[field] ?? null));
+          return fields.length ? [{ activityId, fields }] : [];
+        });
+        const auditError = await writeAuditLog({
+          tenantId: productionTenantIds[0],
+          action: "PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED",
+          entityType: "activity_module_settings",
+          entityId: "bizcatalog",
+          oldValues: { changedActivities },
+          newValues: { changedActivities, configuredActivityCount: Object.keys(nextOverrides).length },
+        });
+        auditLogged = !auditError;
+        if (auditError) console.error("activity module settings saved but audit logging failed", {
+          code: auditError.code, message: auditError.message, actorUserId: user.id,
+        });
+      }
+      return response(origin, {
+        success: true,
+        settings: merged,
+        ...(auditLogged === undefined ? {} : {
+          auditLogged,
+          ...(auditLogged ? {} : { warning: "PLATFORM_AUDIT_WRITE_FAILED", message: "تم حفظ الإعدادات لكن تعذر تأكيد تسجيل التعديل في سجل العمليات." }),
+        }),
+      });
     }
 
     if (action === "LIST_BUSINESSES") {
