@@ -11,7 +11,7 @@ The public directory remains the visitor-facing home. Subscriber management is a
 1. A signed-in subscriber opens **حسابي** from the public site's account menu.
 2. The app navigates to the standalone subscriber portal (proposed stable route: `?view=account_portal`, with a future clean `/account` route only if compatible with the current Pages/base-path deployment).
 3. The portal loads the authenticated identity, active membership(s), subscription/billing status, assigned businesses/branches, roles, and effective permissions from authoritative server-backed session/bootstrap data.
-4. The subscriber can choose **لوحة التحكم** or **وضع الزائر**:
+4. The subscriber can choose **لوحة التحكم** or **وضع العميل**:
    - Dashboard mode opens the standalone portal and exposes only authorized actions.
    - Visitor mode returns to the public directory/catalog experience. It changes presentation/navigation only; it does not grant, revoke, or widen server permissions.
 5. The account menu provides a clear return path from visitor mode to the account portal.
