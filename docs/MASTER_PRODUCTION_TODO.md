@@ -24,7 +24,7 @@
 
 **بوابة الإغلاق:** لا يُغلق PORTAL-01 ولا يُسمح بمرحلة إزالة الشاشات القديمة قبل اجتياز جميع بنود P0 أعلاه وتوثيق نتيجة الاختبار والمراجعة.  
 **الحالة الحالية:** PARTIALLY IMPLEMENTED / NOT VERIFIED / NOT DEPLOYED.  
-**التنفيذ الحالي:** PR #595 — https://github.com/islamnagy2022-eng/MantiqatiX/pull/595.  
+**التنفيذ الحالي:** PR #601 — https://github.com/islamnagy2022-eng/MantiqatiX/pull/601 (الفرع المتزامن مع main). PR #595 محفوظ كمرجع تاريخي للنسخة ذات القاعدة القديمة.  
 **مرجع التفاصيل:** `docs/STANDALONE_SUBSCRIBER_PORTAL_SPEC.md`.
 
 
@@ -2908,7 +2908,7 @@ A separate source review found a second platform-root authorization model: the n
 
 ## PORTAL-01 — بوابة حساب المشترك المستقلة (تصحيح نطاق الداشبورد) — 2026-10-31
 
-- **P0 — أولوية قصوى / PARTIALLY IMPLEMENTED ON FEATURE BRANCH / NOT VERIFIED OR DEPLOYED** — branch: `feat/standalone-subscriber-portal-main-20261031`; tracked in the P0 execution block above.
+- **P0 — أولوية قصوى / PARTIALLY IMPLEMENTED ON FEATURE BRANCH / NOT VERIFIED OR DEPLOYED** — branch: `feat/standalone-subscriber-portal-main-sync-20261031`; tracked in the P0 execution block above.
 - التصحيح المعتمد: الداشبورد الاحترافية صفحة مستقلة بالكامل عن الشاشة الرئيسية والدليل العام، وتُفتح من «حسابي / اشتراكي» بمسار مستقل `?view=account_portal`.
 - أضيفت بوابة حساب مستقلة تشمل ملخص الحساب، الاشتراك وحالة السداد، الصلاحيات، الأنشطة، وقسمًا لإعادة استخدام أدوات إدارة النشاط الحالية وفق قواعد الوصول.
 - أضيف زر التحويل إلى «وضع الزائر» والعودة إلى البوابة من مدخل الحساب. التحويل يغير العرض فقط ولا يمنح أو يلغي صلاحية.
@@ -2931,7 +2931,7 @@ A separate source review found a second platform-root authorization model: the n
 - [x] إصلاح مشغل Playwright لقبول `initialRoute` بدل فرض `?view=professional_dashboard` على كل السيناريوهات؛ هذا كان سبب timeout في اختبار البوابة.
 - [x] إضافة اختبار هوية Google موثقة دون عضوية نشاط: يجب أن تعرض حالة الحساب فقط، دون إدارة نشاط أو صلاحيات مالك منصة.
 - [x] إصلاح عقد فحص Google Auth ليتعرف على مسار `account_portal` المحمي بجلسة مصادق عليها.
-- [ ] تسوية فرع PR #595 مع آخر تغييرات `main`؛ تم إنشاء فرع متزامن من checkpoint أحدث مع نقل التغييرات دون استبدال ملفات الاختبارات والتوثيق الأحدث.
+- [ ] [x] تسوية القاعدة: إنشاء فرع متزامن من `main` الحالي `6040c54f1d308e9e1e80913ae8526e0a1555a5d2` ونقل تغييرات البوابة مع الحفاظ على تحديثات الاختبارات والتوثيق الأحدث؛ PR #601.
 - [ ] تشغيل exact-head CI على الفرع المتزامن ومراجعة النتائج؛ لا يوجد بعد دليل نجاح بعد هذه الإصلاحات.
 - [ ] استكمال مصفوفة تعدد العضويات/الأنشطة؛ لا يتم تمكين تبديل نشاط آخر في الواجهة قبل ربط كل نشاط بعضويته الفعلية وصلاحياته المحددة، منعًا لخلط الصلاحيات.
 - **الحالة:** IN PROGRESS / NOT VERIFIED / NOT DEPLOYED.
