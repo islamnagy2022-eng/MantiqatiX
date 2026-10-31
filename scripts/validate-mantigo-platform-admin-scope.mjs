@@ -35,6 +35,18 @@ check("integration enforces SECURITY DEFINER empty search_path across all four g
   integration.includes("MANTIGO_DEFINER_CONFIG_FAILED") &&
   integration.includes("array['search_path=\"\"']") &&
   integration.includes("expected four SECURITY DEFINER RPCs with empty search_path"));
+check("fixture reproduces digital_pages platform-admin RLS policy and authenticated table grants",
+  fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8").includes("create policy digital_pages_admin_manage") &&
+  fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8").includes("enable row level security") &&
+  fs.readFileSync("supabase/tests/rc449_mantigo_platform_admin_fixture.sql", "utf8").includes("grant select,insert,update,delete on public.digital_pages to authenticated"));
+check("integration denies tenant OWNER global digital_pages CRUD and permits explicit platform SUPER_ADMIN",
+  integration.includes("tenant OWNER read global digital_pages rows") &&
+  integration.includes("tenant OWNER updated global digital_pages") &&
+  integration.includes("tenant OWNER deleted global digital_pages") &&
+  integration.includes("tenant OWNER inserted global digital_pages") &&
+  integration.includes("platform SUPER_ADMIN could not read global digital_pages") &&
+  integration.includes("platform SUPER_ADMIN could not update global digital_pages") &&
+  integration.includes("platform SUPER_ADMIN could not delete global digital_pages"));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
