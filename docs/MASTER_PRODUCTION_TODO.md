@@ -12,7 +12,21 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
-# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #575)
+
+
+# CURRENT VERIFIED BASELINE — 2026-10-31 02:30 UTC (PR #576 / main)
+
+- Current main commit at this checkpoint: `0236118cd93d6e8330296da4442c2b07c93df211`.
+- Latest main push workflows all completed successfully: Production Health Monitor [41160201368](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201368), Backend-only Module Boundary [41160201356](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201356), MantiGO Open Ride Privacy Boundary [41160201391](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201391), Module Professionalization Validation [41160201354](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201354), and Deploy MantiqatiX Web [41160201369](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201369).
+- Health Monitor job `124415873930` logged `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`; its GET to `marketing_provider_profiles?select=business_id&limit=1` returned HTTP 200. It also confirmed `PRIMARY_CATALOG_ROOT_AND_ASSETS=PASS` and Edge health status `ok` at the run timestamp.
+- Pages run #41160201369 completed all three jobs successfully. Deploy job `124416013202` confirmed `MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS` at `https://islamnagy2022-eng.github.io/MantiqatiX/` and `PRIMARY_CATALOG_BROWSER_E2E=PASS` for the scoped owner/employee/branch-owner/QR/GPS/external-logo-cover/taxonomy journeys. axe reported no critical or serious WCAG 2.1 violations in the tested dashboard and QR views only; this is not a full accessibility certification.
+- The same Pages validation log explicitly reports `CATALOG_PILOT_GATE=PASS` and `FULL_PLATFORM_GATE=BLOCKED`; only the scoped catalog frontend and paid-subscription guard are authorized. No payment-intent, webhook, order, finance, SMM, or MantiGO backend deployment was authorized by that pilot gate.
+- The detailed live production evidence snapshot remains the one documented in `docs/audits/PRODUCTION_GATE_EVIDENCE_20261031.md`: 308 migration ledger rows through `20261029083845`, 0/41 exact required release migration IDs, 32/60 physical-object checks non-PASS, six live Edge entrypoints with source drift, and RC449A/RC450 journal schema/ACL blockers. The latest Pages run re-ran the verifier and still emitted `FULL_PLATFORM_GATE=BLOCKED`; its structural contract checks passing do not override external live-evidence blockers.
+- Backup/restore rehearsal, measured RPO/RTO, signed Android/real-device regression, real Google-account multi-tenant E2E, Paymob sandbox E2E, failure-notification delivery, and owner-side Auth hardening evidence remain NOT VERIFIED / WAIT.
+- No Production migration, schema/data write, grant, RLS/Auth change, Edge Function replacement, provider call, payment, refund, settlement, or journal mutation was performed by this checkpoint. No paid resources were created; cost target remains 0 EGP.
+- **Overall Production Gate: BLOCKED / NOT CERTIFIED. Catalog pilot: DEPLOYED / BROWSER VERIFIED for the tested scope.**
+
+# P0 — حواجز الإطلاق (detailed live-evidence snapshot — 2026-10-31; see current baseline above)
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
    - PR #543 moved the full `LIST_SUBSCRIBERS` directory read out of the blocking Google session bootstrap; PR #546 preserves last-good subscriber data on failed refresh and discards stale responses after logout/account switching.
@@ -2655,3 +2669,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - All five PR workflow runs passed: [41156511347](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511347), [41156511393](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511393), [41156511313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511313), [41156511407](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511407), [41156511364](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41156511364). Pages deployment was skipped on the PR event as designed.
 - Replace the earlier “WAIT: merge” note in item 35 with: **merged; first post-merge live database probe and failure-notification delivery still NOT VERIFIED**.
 - Item 36 remains WAIT: no local backup files or restore-rehearsal evidence exist yet.
+
+
+### Current-main evidence refresh — 2026-10-31 02:30 UTC (PR #576)
+
+- The previous PR #575 checkpoint references are historical; the current main commit is `0236118cd93d6e8330296da4442c2b07c93df211`.
+- Current-main monitor #41160201368 passed the live read-only PostgREST HTTP 200 probe; job log ID `124415873930` explicitly emitted `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`.
+- Current-main Pages run #41160201369 completed validate, public-only validation, and deploy jobs successfully. Deployed-root and deployed-origin browser E2E passed (job `124416013202`).
+- The latest verifier still reports the scoped catalog pilot PASS while the platform-wide gate remains BLOCKED. This does not change the live migration, Edge, journal, payment, backup/restore, or owner-evidence blockers listed above.
+- Notification delivery, backup/restore, RPO/RTO, and real provider/auth/device E2E remain open. No Production mutation occurred.
