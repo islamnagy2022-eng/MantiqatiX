@@ -3071,3 +3071,10 @@ A separate source review found a second platform-root authorization model: the n
 - Both doctor/pharmacy listing cards and detail pages use the same helper. Claimed pages and other listing types do not receive the default.
 - The two defaults are stored once in `utils/defaultImages.ts`; pharmacy and doctor consumers import from this common registry.
 - Exact-head validation is still pending.
+
+
+### Owner-controlled replacement for unclaimed doctor/pharmacy fallback images
+- Added an HTTPS image URL field to the existing owner page editor. A valid saved `metadata.profileImageUrl` takes precedence over the shared default in listing cards and detail pages.
+- Clearing the URL returns an unclaimed doctor/pharmacy page to its category default. The server's existing UPDATE_OWNED_LISTING allowlist already includes `profileImageUrl`; the frontend now passes that field through.
+- The field remains behind the existing claimed-page owner authorization; no ownership or access policy changed.
+- Validation and CI must pass on the final PR head before merge/deployment.
