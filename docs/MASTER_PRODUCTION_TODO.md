@@ -3014,3 +3014,22 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Exact-head CI on code/test commit `43483d855bb08a63a37f78be564f5eb670f8a465`: RC463 integration on PostgreSQL 17.11 (matching the Production PostgreSQL 17 major), 75-migration disposable forward replay, build, RBAC PostgreSQL, Playwright E2E, migration immutability/uniqueness/collision guards and supporting backend/privacy/payment workflows all passed. Pages validation passed; PR deploy was skipped by design. See `docs/audits/RC463_TRIGGER_ONLY_SECURITY_DEFINER_ACL.md` for run IDs.
 - [ ] Current-Oct-31 schema-faithful restore, backup/restore and rollback rehearsal are not covered by the older checkpoint replay and remain required before Production rollout.
 - [ ] **No Production migration, function, trigger, ACL, database data, Edge Function, Auth or RLS change was performed. RC463 is not approved for Production.**
+
+
+## CAT-PHARMACY-DEFAULT-IMAGE-20261101 — صورة افتراضية للصيدليات غير الموثقة
+
+- **Request ledger:** GitHub master issue #599 (comment 6550632491).
+- **Priority:** P2 — catalog presentation consistency.
+- **Status:** SOURCE IMPLEMENTED ON BRANCH; exact-head tests and deployed-origin verification OPEN.
+- **Branch:** `fix/unverified-pharmacy-default-image-20261101`.
+- **Requested fallback:** `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10`.
+- **Acceptance criteria:**
+  - Apply only to pharmacy listings that are not verified and have no owner/admin-selected logo.
+  - Preserve owner/admin and AI-selected images; a newly saved replacement must take precedence.
+  - Verified pharmacies and all non-pharmacy activities remain unchanged.
+  - Do not modify listing records, verification state, database schema, or production data.
+  - Regression checks cover unverified pharmacy fallback, custom image precedence, verified pharmacy, and non-pharmacy isolation.
+- **Implementation:** frontend production mapper only; no migration or Edge Function change.
+- **Tests/evidence:** static regression assertions added; execution pending exact-head CI.
+- **Deployment:** NOT CLAIMED. Deploy only through reviewed merge-to-main workflow after CI.
+- **Next action:** run exact-head catalog validation and browser E2E; verify deployed-origin fallback and replacement-image behavior after merge.
