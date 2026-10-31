@@ -1,65 +1,54 @@
 # RC463 — Trigger-only SECURITY DEFINER ACL hardening
 
-**Status:** implementation candidate; isolated PostgreSQL CI required before merge.  
+**Status:** implementation candidate; exact-head isolated PostgreSQL CI required before merge.  
 **Production rollout:** not authorized by this change.
 
 ## Scope
 
-The live trigger functions were present in Production but absent from tracked migration source and the captured Oct-08 schema checkpoint. RC463A (`20261031090000`) restores their observed definitions and creates either expected trigger only when absent. RC463 (`20261031100000`) then applies the ACL/search-path hardening. Both run in timestamp order.
+RC463 targets two trigger-only SECURITY DEFINER functions observed in live Production:
 
-RC463 hardens only these two existing trigger entrypoints:
+- `public.assign_default_owner_to_unowned_business()` — deferred AFTER INSERT trigger on `public.businesses`.
+- `public.capture_commission_rule_audit()` — AFTER INSERT/UPDATE/DELETE trigger on `public.commission_rules`.
 
-- `public.assign_default_owner_to_unowned_business()`
-- `public.capture_commission_rule_audit()`
+These are trigger entrypoints, not client RPC endpoints. The intentionally public read-only `get_mnty_targeted_advertisements(...)` RPC is explicitly out of scope.
 
-Both functions are SECURITY DEFINER trigger functions, not client RPC endpoints. Their enabled triggers are attached to:
+The older captured schema-only checkpoint (2026-10-17, through `20261008222845`) does not contain the default-owner function/trigger. RC463 therefore:
+- Hardens a function only when its matching expected trigger exists and is enabled.
+- Skips a function/trigger pair only when both are fully absent from the older checkpoint.
+- Fails closed on partial, disabled, or mismatched function/trigger state.
 
-- `public.businesses` — deferred AFTER INSERT default-owner assignment.
-- `public.commission_rules` — AFTER INSERT/UPDATE/DELETE audit capture.
+No function source, default-owner behavior, trigger definition, or business data is created or replaced by RC463.
 
 ## Change
 
-The migration:
+For each present function, the migration:
 
-**RC463**
-- Fails closed on partial/mismatched function/trigger state.
-- Skips a fully absent function/trigger pair in an older captured checkpoint.
-
-1. Fails closed if either function is missing, is not a SECURITY DEFINER trigger function, or its expected trigger is absent/disabled.
-2. Pins both function search paths to the empty path. Function bodies use schema-qualified application objects.
-3. Revokes EXECUTE from PUBLIC, anon, authenticated and service_role.
-4. Verifies no effective API-role/PUBLIC EXECUTE remains and both functions retain an empty search path.
-
-The public read-only `get_mnty_targeted_advertisements(...)` RPC is explicitly out of scope and remains untouched.
+1. Verifies it is a SECURITY DEFINER trigger function.
+2. Verifies the expected trigger is attached to the expected table and enabled.
+3. Pins `search_path` to the empty path. The live function bodies use schema-qualified application objects.
+4. Revokes direct EXECUTE from PUBLIC, anon, authenticated and service_role.
+5. Verifies no effective API-role/PUBLIC EXECUTE remains and the empty search_path is active.
 
 ## Verification
 
-The disposable PostgreSQL 16 integration fixture creates synthetic trigger functions and triggers, applies the exact migration file, then verifies:
+The disposable PostgreSQL 16 integration fixture creates synthetic trigger functions and triggers using a synthetic `.example.test` owner identity, applies the exact RC463 migration, then verifies:
 
 - PUBLIC/anon/authenticated/service_role cannot directly EXECUTE either trigger function.
 - Both functions remain SECURITY DEFINER with empty search_path.
 - Both expected triggers remain enabled.
-- A service_role business insert still creates the default owner membership.
+- A service_role business insert still creates the fixture default-owner membership.
 - A service_role commission-rule insert still writes the audit row.
 
-The integration runs inside a transaction and rolls back its fixture data.
+The integration runs inside a transaction and rolls back its fixture data. The synthetic functions exist only in the disposable test fixture; they are not production migration source.
+
+## Replay checkpoint limitation
+
+The captured schema-only checkpoint is older than the live Production catalog and is not a current Production restore. The first strict RC463 replay exposed the missing default-owner function in that checkpoint. The current migration handles this bounded difference without creating or replacing the live-only function. Even a passing replay does not certify a current-Oct-31 Production backup/restore rehearsal.
 
 ## Release boundary
 
 - Do not apply RC463 to Production from this PR.
 - Require exact-head CI PASS and current-main reconciliation.
-- Include RC463 in the restorable current-schema migration rehearsal.
+- Include RC463 in a restorable current-schema migration rehearsal.
 - Before any Production rollout, confirm backup/restore, migration ordering, live trigger definitions, role ACLs and rollback.
 - This change does not certify payment, finance, Auth, RLS or platform-wide Production readiness.
-
-
-## Replay checkpoint limitation discovered
-
-The repository's captured schema-only checkpoint was captured 2026-10-17 at migration `20261008222845`, while the live Production catalog now contains a default-owner trigger function that is absent from that checkpoint. The first RC463 forward replay therefore failed preflight at the expected missing-function guard. This demonstrates that the old checkpoint is not a current Production schema restore.
-
-A disposable-only overlay fixture is being added to reproduce this known live-only trigger immediately before RC463 during CI. It uses a synthetic `.example.test` identity and is not a migration, is not production data, and must never be deployed. Passing replay with this overlay will prove the tracked migration chain plus this explicitly modeled object; it will **not** certify a fresh current-Production backup/restore. That gate remains NOT VERIFIED until an authorized current schema/data backup is independently restored and checked.
-
-
-## Privacy and migration-source boundary
-
-A proposed RC463A migration that copied the live default-owner function verbatim was rejected because it would publish a hard-coded personal owner identifier in the public repository. It has been removed from the candidate. The live-only trigger is represented in CI by a disposable overlay using a synthetic `.example.test` identity. The overlay is test-only and is not a production migration. RC463 remains the only proposed production change and only hardens the already-existing live functions.
