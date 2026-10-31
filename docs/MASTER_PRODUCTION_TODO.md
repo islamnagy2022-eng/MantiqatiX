@@ -3053,3 +3053,13 @@ A separate source review found a second platform-root authorization model: the n
 - **Tests/evidence:** static regression assertions added; exact-head CI pending.
 - **Deployment:** NOT CLAIMED. Deploy only through reviewed merge-to-main workflow after CI.
 - **Next action:** run exact-head catalog validation and browser E2E; verify deployed-origin doctor fallback and replacement-image behavior after merge.
+
+
+## CAT-DIRECTORY-8COL-20261101 — استعادة عرض الأنشطة في 8 أعمدة
+
+- **Status:** SOURCE UPDATE ON PR #628; CI verification pending.
+- **Context:** Prior owner requirement requested eight activity cards beside each other. Exact-head taxonomy validation failed because the current activity grid no longer contained the required eight-column layout.
+- **Implementation:** selected-group activity cards now use `grid grid-cols-8 gap-1` with compact icon, name, total count, verified count, and unverified count indicators. Group folders and search-result business cards are not changed.
+- **Regression:** existing canonical taxonomy validator requires the eight-column grid marker twice and should now pass against the activity-grid source.
+- **Safety:** UI change is limited to the existing activity-card grid; no route, data, backend, schema, or production mutation.
+- **Next:** exact-head build, taxonomy validator, browser E2E and deployed-origin checks.
