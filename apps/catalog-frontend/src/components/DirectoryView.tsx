@@ -1047,7 +1047,7 @@ export const DirectoryView: React.FC = () => {
               <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض مصر بالكامل.'); }} className="text-xs font-bold text-slate-600 underline">مصر بالكامل</button>
             </div>
             {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
-            <p className="text-[10px] leading-4 text-slate-400">أسماء الوحدات الإدارية وإحداثيات نقاطها: Open Admin Data، إصدار 2026.09، رخصة CC BY 4.0. اختيار أقرب نقطة تقديري وليس حدودًا قانونية.</p>
+            <p className="text-[10px] leading-4 text-slate-400">مصدر بيانات التقسيم الإداري وإحداثياته: <a href="https://github.com/open-admin-data/egypt-administrative-divisions" target="_blank" rel="noreferrer" className="underline">Open Admin Data Egypt 2026.09</a>، تم تكييفها داخل MantiqatiX. الترخيص: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY 4.0</a>. اختيار أقرب نقطة تقديري وليس إثباتًا بحدود قانونية.</p>
             {hasNoSearchResults && canWidenGeographicSearch && (
               <button type="button" onClick={widenGeographicSearch} className="inline-flex min-h-9 items-center justify-center self-start rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100">
                 لا توجد نتائج — توسيع النطاق الجغرافي
