@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, Clipboa
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
-import { UNVERIFIED_DOCTOR_IMAGE_URL } from "../utils/defaultImages";
+import { UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -17,9 +17,11 @@ function phoneHref(value: string | null | undefined) {
 function listingProfileImage(listing: PublicDirectoryListing): string {
   const selected = String(listing.metadata?.profileImageUrl || "").trim();
   if (/^https:\/\//i.test(selected)) return selected;
-  return String(listing.listing_type || "").toLowerCase() === "doctor" && listing.claim_status !== "CLAIMED"
-    ? UNVERIFIED_DOCTOR_IMAGE_URL
-    : "";
+  if (listing.claim_status === "CLAIMED") return "";
+  const listingType = String(listing.listing_type || "").toLowerCase();
+  if (listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;
+  if (listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;
+  return "";
 }
 
 export const DirectoryListingsView: React.FC<{
