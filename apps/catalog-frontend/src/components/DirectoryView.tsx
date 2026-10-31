@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Business } from '../types';
 import {
@@ -144,7 +144,6 @@ export const DirectoryView: React.FC = () => {
   const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
   const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
   const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
-  const firstVisitGeoPromptStarted = useRef(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -198,7 +197,7 @@ export const DirectoryView: React.FC = () => {
           }
           setUserCoordinates({ latitude, longitude });
           completeGeoSetup('auto');
-          setLocationMessage('تم تحديد إحداثيات جهازك. جارٍ مطابقة أقرب نطاق إداري…');
+          setLocationMessage('تم تحديد موقعك، جارٍ مطابقة أقرب نطاق إداري…');
           try {
             const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
             if (match) {
@@ -254,15 +253,8 @@ export const DirectoryView: React.FC = () => {
     }
   };
 
-  // On a first visit, request the browser's native permission immediately.
-  // If the visitor declines, completeGeoSetup('manual') is called by the error callback
-  // and this automatic prompt is not repeated on later visits.
-  useEffect(() => {
-    if (initialGeoPreference?.completed || firstVisitGeoPromptStarted.current) return;
-    firstVisitGeoPromptStarted.current = true;
-    requestUserLocation();
-  }, []);
-
+  // First visits keep the in-page explanation visible until the visitor explicitly consents.
+  // Declined or manually selected visits are saved and will not trigger repeated prompts.
   // Returning visitors get a silent refresh only after a previous explicit grant.
   useEffect(() => {
     if (!initialGeoPreference?.completed || initialGeoPreference.mode !== 'auto') return;
