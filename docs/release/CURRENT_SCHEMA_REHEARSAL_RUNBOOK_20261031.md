@@ -215,3 +215,10 @@ The source chain RC441 -> RC449 -> RC462 is merged in main but absent from the c
 ## Historical baseline limitation and current capture requirement
 
 The tracked `production_schema_snapshot.manifest.json` is a historical 2026-10-17 02:10:22 UTC checkpoint at migration `20261008222845` (283 records), not a current Production image. Current Production is at 308 records through `20261029083845`. A replay from the old baseline is useful chronological evidence, but it cannot establish current physical-schema parity. Create a fresh authorized credential-scrubbed schema/roles capture, restore locally, compare the live structural inventory, then replay the full required sequence. Do not put database credentials in chat or production dumps in public GitHub. The previously queried GitHub runs #41178333682 and #38993809648 currently expose no downloadable artifacts.
+
+ 
+## Platform-admin bootstrap/revocation rehearsal
+
+- Include `private.bootstrap_platform_admin` in the isolated current-schema test matrix. Its current defaults (`MNTY_PLATFORM`, `MNTY-PLATFORM`) do not match canonical tenant ID/code (`MNTY-PLATFORM`, `MNTY`), and its current body unconditionally inserts a tenant. Test default-argument rejection, explicit canonical-tenant reuse, duplicate invocation, concurrent bootstrap, empty/existing registry states and atomic rollback.
+- Design/test a distinct audited revocation/deprovision path; verify authority removal immediately affects the shared helper, delegated global RPCs, digital_pages RLS, memberships and outstanding sessions/tokens. Do not infer that no external revocation path exists until service-side operations are inventoried.
+- Issue [#614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks this P2 work. Do not invoke bootstrap or mutate registry in Production.
