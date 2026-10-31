@@ -2976,7 +2976,7 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Added typed `ActivityModuleOverrides` to `AdminSettings`, persisted through the existing `SAVE_SETTINGS` server-authoritative action.
 - [x] Updated `resolveActivityModuleConfig` and `ActivityModuleView` so saved admin overrides are reflected on public activity module pages.
 - [x] Added server-side allowlist and validation for activity override IDs, fields, lengths, array counts, exactly three capabilities, and total payload size. The browser does not write to `bizcatalog_platform_settings` directly.
-- [x] Added a server-side audit event `PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED` containing the changed activity IDs and changed sections, attributed to the authenticated platform admin and a production tenant scope.
+- [x] Added a server-side audit event `PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED` containing changed activity IDs, changed sections, and the before/after values for those fields, attributed to the authenticated platform admin and a production tenant scope.
 - [x] The Edge response exposes `auditLogged`; the frontend updates local state only after server-confirmed persistence and warns explicitly if persistence succeeded but audit insertion failed.
 - [x] Added `scripts/validate-activity-module-admin.mjs`, `scripts/test-activity-module-overrides.mjs`, and wired the static contract and Node sanitizer tests into catalog validation workflows.
 - [x] Added a sanitized public projection of only `activityModuleOverrides` to `public-catalog-directory`; the complete platform settings object is never returned. Public directory bootstrap now hydrates visitors' activity-module settings only when the public settings read is authoritative.
