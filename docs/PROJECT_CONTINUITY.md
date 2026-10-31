@@ -1148,3 +1148,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Branch `fix/unverified-pharmacy-default-image-20261101`: frontend mapper selects the requested shared image only for unverified pharmacy records without a selected custom image. Existing owner/admin/AI images and verified/non-pharmacy records are intended to remain unchanged.
 - Static regression assertions added; exact-head CI and deployed-origin checks are still pending. No production data, schema, or Edge Function was changed; no deployment is claimed.
 - Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## Request continuation — CAT-DOCTOR-DEFAULT-IMAGE-20261101
+
+- Added to master TODO and PR #628 alongside the unverified-pharmacy fallback.
+- The exact supplied Google Play image is selected only for unverified doctor listings without a saved owner/admin/AI-selected image; pharmacy fallback logic is preserved.
+- Exact-head CI and deployed-origin verification remain pending. No production data/schema/Edge Function changes or deployment are claimed.
+- Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
