@@ -6,6 +6,7 @@ import { CatalogSection } from './components/storefront/CatalogSection';
 import { MerchantDashboard } from './components/merchant/MerchantDashboard';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
+import { SubscriberAccountPortal } from './modules/account/SubscriberAccountPortal';
 import { DirectoryView } from './components/DirectoryView';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
@@ -30,6 +31,8 @@ const MainContent: React.FC = () => {
         : currentView === 'professional_dashboard' &&
           !canAccessProfessionalDashboard(authSession)
         ? 'directory'
+        : currentView === 'account_portal' && !authSession.isAuthenticated
+          ? 'directory'
         : currentView === 'public_storefront' &&
             authSession.role === 'guest' && !hasDirectPublicCatalogLink
           ? 'directory'
@@ -61,6 +64,8 @@ const MainContent: React.FC = () => {
         {visibleView === 'super_admin' && <AdminDashboard />}
 
         {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
+
+        {visibleView === 'account_portal' && <SubscriberAccountPortal />}
       </main>
 
       <CartDrawer />
