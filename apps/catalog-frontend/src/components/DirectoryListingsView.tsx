@@ -50,7 +50,7 @@ export const DirectoryListingsView: React.FC<{
   const [ownerEditOpen, setOwnerEditOpen] = useState(false);
   const [ownerBusy, setOwnerBusy] = useState(false);
   const [ownerForm, setOwnerForm] = useState({
-    displayName: "", specialty: "", phone: "", secondaryPhone: "", address: "",
+    displayName: "", specialty: "", phone: "", secondaryPhone: "", address: "", profileImageUrl: "",
     governorate: "المنوفية", district: "بركة السبع", village: "",
     bio: "", workingHours: "", websiteUrl: "", bookingUrl: "", services: "", socialLinks: "",
   });
@@ -116,6 +116,7 @@ export const DirectoryListingsView: React.FC<{
       governorate: detail.governorate || "المنوفية", district: detail.district || "بركة السبع", village: detail.village || "",
       bio: asText(meta.bio), workingHours: asText(meta.workingHours), websiteUrl: asText(meta.websiteUrl),
       bookingUrl: asText(meta.bookingUrl), services: asList(meta.services), socialLinks: asList(meta.socialLinks),
+      profileImageUrl: asText(meta.profileImageUrl),
     });
   }, [detail?.id, detail?.display_name, detail?.specialty, detail?.phone, detail?.secondary_phone, detail?.address, detail?.governorate, detail?.district, detail?.village, detail?.metadata]);
 
@@ -211,6 +212,7 @@ export const DirectoryListingsView: React.FC<{
                 <label className="block text-xs font-bold text-slate-700">التخصص<input value={ownerForm.specialty} onChange={(e) => setOwnerForm({ ...ownerForm, specialty: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><label className="block text-xs font-bold text-slate-700">رقم التواصل الأساسي<input type="tel" value={ownerForm.phone} onChange={(e) => setOwnerForm({ ...ownerForm, phone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-left" /></label><label className="block text-xs font-bold text-slate-700">رقم إضافي<input type="tel" value={ownerForm.secondaryPhone} onChange={(e) => setOwnerForm({ ...ownerForm, secondaryPhone: e.target.value })} dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-left" /></label></div>
                 <label className="block text-xs font-bold text-slate-700">العنوان<input value={ownerForm.address} onChange={(e) => setOwnerForm({ ...ownerForm, address: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label>
+                <label className="block text-xs font-bold text-slate-700">رابط صورة الصفحة (اختياري — رابط HTTPS)<input type="url" pattern="https://.*" value={ownerForm.profileImageUrl} onChange={(e) => setOwnerForm({ ...ownerForm, profileImageUrl: e.target.value })} placeholder="https://..." dir="ltr" className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-left" /><span className="mt-1 block text-[10px] font-medium text-slate-500">إضافة صورة معتمدة هنا تستبدل الصورة الافتراضية فور الحفظ. اترك الحقل فارغًا للعودة إلى الصورة الافتراضية قبل استلام الصفحة.</span></label>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><label className="block text-xs font-bold text-slate-700">المحافظة<input value={ownerForm.governorate} onChange={(e) => setOwnerForm({ ...ownerForm, governorate: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label><label className="block text-xs font-bold text-slate-700">المركز<input value={ownerForm.district} onChange={(e) => setOwnerForm({ ...ownerForm, district: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label><label className="block text-xs font-bold text-slate-700">القرية / الحي<input value={ownerForm.village} onChange={(e) => setOwnerForm({ ...ownerForm, village: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label></div>
                 <label className="block text-xs font-bold text-slate-700">نبذة عن العيادة / الخدمات<textarea rows={3} value={ownerForm.bio} onChange={(e) => setOwnerForm({ ...ownerForm, bio: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label>
                 <label className="block text-xs font-bold text-slate-700">مواعيد العمل<textarea rows={2} value={ownerForm.workingHours} onChange={(e) => setOwnerForm({ ...ownerForm, workingHours: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm" /></label>
