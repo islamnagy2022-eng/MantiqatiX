@@ -177,69 +177,10 @@ execute function public.capture_commission_rule_audit();
 grant usage on schema public, auth to service_role;
 grant insert on public.businesses, public.commission_rules to service_role;
 
--- These are trigger-only functions, not client/server RPC entrypoints.
--- Reproduce the narrow forward-only migration DDL: pin both SECURITY DEFINER
--- functions to an empty search_path, then revoke direct execution from all
--- external API roles. PostgreSQL checks EXECUTE when creating/replacing a
--- trigger; existing triggers must continue working after this change.
-alter function public.assign_default_owner_to_unowned_business()
-  set search_path = '';
-alter function public.capture_commission_rule_audit()
-  set search_path = '';
+-- Apply the exact forward-only production migration under test.
+-- This disposable PostgreSQL fixture is the only execution target for RC463 CI.
+\ir ../migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql
 
--- Explicitly remove inherited PUBLIC and direct API-role EXECUTE.
-revoke all on function public.assign_default_owner_to_unowned_business()
-  from public, anon, authenticated, service_role;
-revoke all on function public.capture_commission_rule_audit()
-  from public, anon, authenticated, service_role;
-
-do $acl$
-declare
-  v_function oid;
-begin
-  foreach v_function in array array[
-    'public.assign_default_owner_to_unowned_business()'::regprocedure::oid,
-    'public.capture_commission_rule_audit()'::regprocedure::oid
-  ] loop
-    if has_function_privilege('anon', v_function, 'EXECUTE')
-       or has_function_privilege('authenticated', v_function, 'EXECUTE')
-       or has_function_privilege('service_role', v_function, 'EXECUTE') then
-      raise exception 'TRIGGER_ONLY_FUNCTION_STILL_EXECUTABLE_BY_API_ROLE: %',v_function::regprocedure;
-    end if;
-
-    if exists (
-      select 1
-      from pg_catalog.aclexplode((select p.proacl from pg_catalog.pg_proc p where p.oid=v_function)) a
-      where a.grantee=0 and a.privilege_type='EXECUTE'
-    ) then
-      raise exception 'TRIGGER_ONLY_FUNCTION_STILL_EXECUTABLE_BY_PUBLIC: %',v_function::regprocedure;
-    end if;
-
-    if not exists (
-      select 1 from pg_catalog.pg_proc p
-      where p.oid=v_function
-        and p.prosecdef
-        and p.proconfig @> array['search_path=""']
-    ) then
-      raise exception 'TRIGGER_ONLY_FUNCTION_SEARCH_PATH_NOT_EMPTY: %',v_function::regprocedure;
-    end if;
-  end loop;
-
-  if not exists (
-    select 1 from pg_catalog.pg_trigger
-    where tgname='trg_assign_default_owner_to_unowned_business'
-      and tgrelid='public.businesses'::regclass
-      and not tgisinternal and tgenabled='O'
-  ) then raise exception 'DEFAULT_OWNER_TRIGGER_NOT_ENABLED'; end if;
-
-  if not exists (
-    select 1 from pg_catalog.pg_trigger
-    where tgname='trg_commission_rules_audit'
-      and tgrelid='public.commission_rules'::regclass
-      and not tgisinternal and tgenabled='O'
-  ) then raise exception 'COMMISSION_AUDIT_TRIGGER_NOT_ENABLED'; end if;
-end;
-$acl$;
 
 -- Execute actual backend DML as service_role after all direct EXECUTE grants
 -- have been removed. Production grants service_role table writes on these
