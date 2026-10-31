@@ -2910,3 +2910,13 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] التحقق من زمن تحميل الدليل العام من المصدر المنشور، وCore Web Vitals وLCP/INP/CLS على هاتف حقيقي واتصال متوسط/ضعيف.
 - **قيد أمني:** لا تخفيف لـ RLS أو صلاحيات الجلسة، لا تجاهل أخطاء العضويات، لا تخزين بيانات خاصة في cache عام، ولا تفعيل لوحة قبل اكتمال التحقق من الصلاحيات.
 - **النشر:** لم يحدث نشر أو تغيير Supabase/Auth/Edge/Production. لا تعتبر التعديلات جاهزة للإنتاج قبل CI والقياس وdeployed-origin verification.
+
+
+## PERF-01 continuation — 2026-10-31 exact-head validator correction
+
+- [x] Reviewed the failed validation job for PR #609. Build and browser E2E passed; the failing check was a stale assertion in `scripts/validate-professional-dashboard.mjs` that required a static `ProfessionalDashboard` import after the dashboard had intentionally moved to a lazy-loaded chunk.
+- [x] Updated the validator to accept either the current lazy import or the compatible static import, while retaining assertions that the professional dashboard route renders and remains guarded by the centralized membership authorization checks.
+- [x] New exact-head commit: `c60df77d9530e4d93491be90423a42017afb86c5`. Static validation passed on the new head.
+- [ ] Supporting PostgreSQL/privacy/security workflows are still running; do not mark the PR fully validated until every required check completes successfully.
+- [ ] PR #609 is one commit behind current main and must be reconciled before merge. Deployed-origin LCP/INP/CLS and real Google account timing remain NOT VERIFIED; no measured performance claim is made.
+- Safety: no Auth/OAuth configuration, role, membership, RLS, grant, schema, Edge Function, billing, payment or Production data change.
