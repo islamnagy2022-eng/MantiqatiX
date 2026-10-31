@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, BarChart3, BriefcaseBusiness, CalendarDays, Megaphone, Package, Search, ShieldCheck, Store, Target, Users } from 'lucide-react';
 import type { ActivityCategory } from '../../types';
+import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
@@ -25,8 +26,9 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
 
 export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, onSelectSpecialty }) => {
   const [activeSection, setActiveSection] = useState<Section>('overview');
+  const { adminSettings } = useApp();
   const specialties = useMemo(() => category.specialties || [], [category.specialties]);
-  const moduleConfig = useMemo(() => resolveActivityModuleConfig(category), [category]);
+  const moduleConfig = useMemo(() => resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides), [category, adminSettings.activityModuleOverrides]);
   const marketing = moduleConfig.marketing;
 
   return (
