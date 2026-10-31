@@ -519,7 +519,17 @@ Account → Own Business → Menu Plan → Order → Payment → Fulfillment →
 ---
 
 # 22) SEARCH / DISCOVERY / LOCATION
-### الحالة: PARTIAL
+### الحالة: PARTIAL — Smart Geo Discovery implementation in progress
+### Current owner request — 2026-10-31
+- [x] First-visit location explanation and explicit consent action before the browser's native geolocation permission prompt.
+- [x] Silent location reacquisition only when a previous browser permission is already granted.
+- [x] Persist manual geographic scope (Egypt / governorate / center / listed village / listed area) without persisting precise GPS coordinates.
+- [x] Manual selector catalogue includes Open Admin Data Egypt 2026.09: 27 governorates, 365 districts/centers, 5,716 shiyakhas; child shiyakhas load lazily for the selected district, plus actual villages/areas from public directory records.
+- [x] GPS proximity ranking for records with explicit valid coordinates; verified businesses remain first.
+- [🟡] GPS nearest administrative point suggestion: nearest shiyakha <=8 km, nearest district <=35 km, governorate fallback <=100 km; representative points are approximate only, not legal boundary proof.
+- [ ] Accurate GPS-to-village/center/governorate matching requires authoritative polygons or a validated reverse-geocoding data source. Current platform_geo_areas has no boundary geometry or center coordinates; do not guess from the nearest centroid.
+- [ ] Verify CI, browser permission flows, mobile behavior, deployment, and live smoke test before closing.
+- Tracking: https://github.com/islamnagy2022-eng/MantiqatiX/issues/604
 ### Prompt
 أكمل البحث:
 - service.

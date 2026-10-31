@@ -137,10 +137,26 @@ function makeSession(scenario) {
 async function newScenario(browser, scenario = null, publicDirectoryBusinesses = [], options = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const session = scenario ? makeSession(scenario) : null;
-  await context.addInitScript(({ key, value }) => {
+  await context.addInitScript(({ key, value, geoKey, geoPreference }) => {
     localStorage.removeItem(key);
     if (value) localStorage.setItem(key, value);
-  }, { key: storageKey, value: session ? JSON.stringify(session) : null });
+    // Initialize geographic test state once per browser context, not on every
+    // navigation/reload; the GPS test must verify the app's own persisted choice.
+    if (!sessionStorage.getItem('__mantiqatix_e2e_geo_initialized')) {
+      localStorage.removeItem(geoKey);
+      if (geoPreference) localStorage.setItem(geoKey, JSON.stringify(geoPreference));
+      sessionStorage.setItem('__mantiqatix_e2e_geo_initialized', '1');
+    }
+  }, {
+    key: storageKey,
+    value: session ? JSON.stringify(session) : null,
+    geoKey: 'mantiqatix.geo-discovery.v1',
+    // Non-GPS scenarios begin with the Egypt-wide manual fallback. GPS scenarios
+    // opt out so they can verify the first-visit consent flow independently.
+    geoPreference: options.geoFirstVisit ? null : {
+      completed: true, mode: 'manual', governorate: 'all', markaz: 'all', village: 'all', area: 'all',
+    },
+  });
 
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
@@ -511,19 +527,32 @@ try {
 
   // 8. Catalog GPS asks only after click, handles granted/denied permissions, and never persists visitor coordinates.
   {
-    const { context, page } = await newScenario(browser);
+    const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
     try {
       await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
       await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const gpsButton = page.getByRole('button', { name: /حدد موقعي/ });
-      await gpsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await gpsButton.click();
+      const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
+      await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
       await page.getByText(/تم تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      const savedGeoPreference = await page.evaluate(() => JSON.parse(localStorage.getItem('mantiqatix.geo-discovery.v1') || 'null'));
+      assert.equal(savedGeoPreference?.completed, true, 'explicit consent must be persisted before the dialog closes');
+      assert.equal(savedGeoPreference?.mode, 'auto', 'accepted GPS consent must be remembered as automatic location mode');
+      const gpsButton = page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ });
+      await gpsButton.waitFor({ state: 'visible', timeout: 5000 });
       const leakedCoordinates = await page.evaluate(() =>
         Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
       );
       assert.equal(leakedCoordinates, false, 'visitor GPS coordinates must not be persisted to local storage');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).waitFor({ state: 'detached', timeout: 5000 });
+      await page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
+      const leakedCoordinatesAfterReload = await page.evaluate(() =>
+        Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
+      );
+      assert.equal(leakedCoordinatesAfterReload, false, 'silent returning-visitor location refresh must not persist coordinates');
       await assertNoHorizontalOverflow(page, '390px mobile catalog GPS');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px desktop catalog GPS');
@@ -532,14 +561,16 @@ try {
   }
 
   {
-    const { context, page } = await newScenario(browser);
+    const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
     try {
       await context.grantPermissions([], { origin: new URL(baseUrl).origin });
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const gpsButton = page.getByRole('button', { name: /حدد موقعي/ });
-      await gpsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await gpsButton.click();
+      const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
+      await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
       await page.getByText(/لم تسمح بالوصول إلى الموقع|تعذر تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      await page.getByRole('button', { name: /حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
       results.push('catalog-gps-permission-denial-keeps-manual-search-available');
     } finally { await context.close(); }
   }
@@ -711,7 +742,7 @@ try {
       await govSelect.selectOption({ label: 'الغربية' });
       await markazSelect.selectOption({ label: 'زفتى' });
       assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
-      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: /^زفتى$/ }).count(), 0, 'markaz name must not be misrepresented as a village');
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
       results.push('zefta-markaz-search-retains-business-with-empty-village');
@@ -748,7 +779,7 @@ try {
       await govSelect.selectOption({ label: 'الغربية' });
       await markazSelect.selectOption({ label: 'زفتى' });
       assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
-      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: /^زفتى$/ }).count(), 0, 'markaz name must not be misrepresented as a village');
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
       results.push('zefta-markaz-search-retains-business-with-empty-village');
@@ -785,7 +816,7 @@ try {
       await govSelect.selectOption({ label: 'الغربية' });
       await markazSelect.selectOption({ label: 'زفتى' });
       assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
-      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: /^زفتى$/ }).count(), 0, 'markaz name must not be misrepresented as a village');
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
       results.push('zefta-markaz-search-retains-business-with-empty-village');
@@ -798,6 +829,11 @@ try {
     const { context, page } = await newScenario(browser);
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
       await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
       const taxonomyMain = page.locator('main[dir="rtl"]');
       await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });

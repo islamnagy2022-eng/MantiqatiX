@@ -1486,3 +1486,37 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — Smart Geo Discovery frontend implementation (Issue #604)
+
+- Created isolated branch feature/smart-geo-discovery-20261031; existing public catalog views and filtering remain additive.
+- Added first-visit Arabic location-consent dialog. The visitor can approve GPS, continue with manual location, or open Egypt-wide discovery. The browser's native permission prompt is invoked only after the explicit consent action.
+- Returning visitors only get silent GPS refresh if the Permissions API reports a prior granted state; no prompt is auto-triggered from a previously prompt/denied state.
+- GPS coordinates remain in component memory only. No watchPosition, no coordinate persistence, and no third-party reverse-geocoding request. Distance ranking is applied only to records with explicit valid coordinates; verification priority remains stronger than distance.
+- Added selector catalogue from the existing project seeds: 27 governorates and 165 centers. Villages/areas are populated from actual directory records; administrative prefixes normalize so values like مركز شبين الكوم match شبين الكوم.
+- Added scripts/validate-smart-geo-discovery.mjs and wired it into .github/workflows/pages.yml.
+- Important blocker remains: platform_geo_areas currently has 27 governorates and 165 centers but no village rows, no center coordinates, and no Polygon boundaries. Thus precise GPS-to-village/center/governorate matching is NOT IMPLEMENTED; do not claim it. A trusted boundary layer with explicit source/licence/version must be integrated before this requirement is closed.
+- Production database, schema, RLS, grants, Edge Functions, and live records were not changed. CI/Browser E2E/deployment status is pending exact-head PR validation.
+- Canonical tracking: Issue #604; source branch: feature/smart-geo-discovery-20261031.
+
+
+## 2026-10-31 — Smart Geo Discovery expanded to Egypt's national hierarchy
+
+- Added Open Admin Data Egypt dataset release 2026.09 (published 2026-09-08), CC BY 4.0: 27 governorates, 365 districts/centers, 5,716 shiyakhas, representative coordinates for every level. Attribution is included in the frontend source/data module.
+- Replaced the incomplete legacy 27/165 selection source in the directory component with the new 27/365 geographic hierarchy. Added the district governorate slugs so the app can fetch only the selected/candidate district's public shiyakha JSON file from the attributed raw dataset repository.
+- Automatic location flow now resolves the nearest representative shiyakha when within 8 km, otherwise the nearest district within 35 km, otherwise a broad governorate fallback within 100 km; out-of-Egypt coordinates are excluded from Egypt-local sorting. The message explicitly says the result is an approximate representative-point suggestion, not a legal boundary.
+- The five nearest candidate districts are checked in parallel and each locality file has an 8-second abort limit; the raw-data request includes only a district slug, with credentials omitted and no referrer. Visitor latitude/longitude remains browser memory only.
+- Manual selection now includes all seeded governorates/districts and lazy-loads child shiyakhas for the selected district; no bulk download of the 5,716 locality records.
+- First-visit consent modal was also added to direct listing-detail and taxonomy routes, not only the directory root.
+- Contract validator expanded to check 27/365/5716 counts, coordinate validity, parent references, Birkat Al-Sab, permission/privacy behavior, no continuous tracking, source attribution/license/version, bounded locality fetching, and approximate-match thresholds.
+- Remaining NOT DONE: official ADM2/ADM3 polygon-boundary point-in-polygon proof. Representative points are proximity suggestions only. Exact-head CI/browser/device validation and production deployment are not yet confirmed.
+- No Production database/schema/RLS/grant/Edge Function/business data changes.
+
+
+## 2026-10-31 — First-visit automatic browser permission request
+
+- Adjusted the first-visit flow so the browser's native geolocation request is triggered automatically on initial DirectoryView mount; the visitor does not need to press the manual 'حدد موقعي' button first.
+- The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
+- On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
+- This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
