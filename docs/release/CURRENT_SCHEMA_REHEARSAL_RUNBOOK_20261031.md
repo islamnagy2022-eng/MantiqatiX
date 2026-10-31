@@ -52,9 +52,9 @@ Read-only row counts at the same snapshot: `wallet_accounts=0`, `wallet_transact
 
 ### Advertising authorization — P0 review item
 
-The live `public.ad_spaces` table has RLS and FORCE RLS enabled. Direct privilege inspection shows `authenticated` has SELECT, INSERT, UPDATE and DELETE privileges; `anon` has none. Its policy inventory includes an authenticated SELECT policy plus multiple permissive authenticated ALL policies whose predicates only exclude anonymous sessions (including `authenticated_sessions_only`, `deny_anonymous_users`, `mnt_non_anonymous_boundary` and `non_anonymous_authenticated_guard`).
+The live `public.ad_spaces` table has RLS and FORCE RLS enabled. A fresh policy snapshot shows one permissive authenticated SELECT policy and four generic ALL guards that are RESTRICTIVE; there are zero authenticated permissive write policies. ACL inspection still shows authenticated SELECT/INSERT/UPDATE/DELETE/MAINTAIN, anon MAINTAIN only, and service_role table privileges. The current RLS policy set denies authenticated DML by default; no real-user write probe has been run.
 
-**Disposition:** treat direct authenticated write access to `ad_spaces` as an unresolved high-priority authorization risk. The combination of table DML grants and permissive ALL policies appears to permit a signed-in non-anonymous user to write rows without a platform-admin or tenant/slot ownership predicate. A dedicated real authenticated request test has not been run. Do not expose or enable ad-slot create/update/delete UI, booking, or pricing writes until the policy model is repaired and tested on the isolated rehearsal database. Do not make an improvised Production policy change.
+**Disposition (corrected 2026-10-31):** the earlier broad-permissive-policy characterization is superseded by the fresh catalog evidence. No authenticated permissive DML policy exists, so no broad write path is established. The remaining issue is excess direct ACLs: verify their provenance and test revoking unnecessary authenticated INSERT/UPDATE/DELETE/MAINTAIN and anon MAINTAIN on the isolated restored schema, while preserving authenticated SELECT and service_role backend operations. A real authenticated write test has not been run. Keep slot booking/pricing writes disabled until the data model and authorization tests are complete; do not change Production grants or policies.
 
 ### Fresh Supabase Advisor inventory
 
@@ -155,7 +155,7 @@ After restore, collect evidence for each item:
 - [ ] RLS policy definitions, target roles, USING/WITH CHECK predicates and direct table/function grants are compared; no broadening is accepted.
 - [ ] Custom auth/storage objects are compared separately; Supabase-managed objects are not replaced wholesale.
 - [ ] Finance gaps listed in Section 2 reproduce exactly; RC449A/RC450 prerequisite migrations are rehearsed in their documented order only after object-level reconciliation.
-- [ ] `ad_spaces` broad authenticated DML behavior is reproduced in a disposable database, then a least-privilege candidate is tested against platform-admin, tenant-admin, ordinary authenticated and anonymous actors.
+- [ ] Reproduce the observed `ad_spaces` state in the disposable restore: RLS + FORCE RLS, no authenticated permissive write policy, but excess direct DML/MAINTAIN ACLs. Test a narrow ACL-revoke candidate against anon, ordinary authenticated, platform-admin and service_role actors; preserve authenticated SELECT and service_role backend operations.
 - [ ] Wallet and journal tests verify no posting, credit, debit or settlement occurs without the correct backend actor, grants, idempotency and balanced journal contract.
 - [ ] Subscription claim/recovery tests fail closed until the expected claim-token and encrypted-checkout schema/RPC contract is present.
 - [ ] Migration replay and rollback are exercised only against the disposable target; every failure is recorded and explained.
@@ -180,6 +180,6 @@ Stop and leave the rehearsal **BLOCKED** when any of the following occurs:
 1. An authorized operator creates the credential-scrubbed local dump and verifies its hashes.
 2. Restore into a local disposable Supabase stack and compare the structural inventory.
 3. Reconcile the 41 exact required migration IDs against later-dated migrations and physical object effects; preserve historical migrations and aliases.
-4. Reproduce and repair the `ad_spaces` authorization issue in isolation; add real role-scoped SQL/API tests.
+4. Verify `ad_spaces` ACL provenance and test least-privilege grant reduction in isolation; add real role-scoped SQL/API tests. Do not characterize it as a permissive RLS write bypass unless new evidence establishes one.
 5. Rehearse RC449A → RC450 and subscription claim/recovery contracts against the current-schema restore.
 6. Only after independent security review, provider sandbox tests, rollback evidence and explicit approval may a separate Production rollout plan be considered.
