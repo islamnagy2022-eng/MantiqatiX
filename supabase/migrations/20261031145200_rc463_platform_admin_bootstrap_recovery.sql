@@ -4,6 +4,97 @@
 
 begin;
 
+-- RC463 must run after RC462 has converged every global platform entrypoint
+-- on the canonical private registry. Do not enable grant/revoke APIs on a weak helper.
+do $rc463_preflight$
+declare
+  v_helper_security_definer boolean;
+  v_helper_source text;
+  v_helper_config text[];
+  v_global_guard_count integer;
+  v_policy_count integer;
+  v_digital_pages_rls boolean;
+begin
+  if pg_catalog.to_regclass('private.platform_admins') is null then
+    raise exception 'RC463_PLATFORM_ADMIN_REGISTRY_MISSING';
+  end if;
+
+  select p.prosecdef, p.prosrc, coalesce(p.proconfig,array[]::text[])
+    into v_helper_security_definer, v_helper_source, v_helper_config
+    from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public' and p.proname='mnty_can_platform_admin' and p.pronargs=0;
+
+  if not found
+     or not v_helper_security_definer
+     or v_helper_source not ilike '%from private.platform_admins%'
+     or v_helper_source not ilike '%auth.uid()%'
+     or v_helper_source ilike '%mnty_can(%'
+     or not (v_helper_config @> array['search_path=""']::text[]) then
+    raise exception 'RC463_REQUIRES_RC462_CANONICAL_REGISTRY_HELPER';
+  end if;
+
+  if has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE')
+     or not has_function_privilege('authenticated','public.mnty_can_platform_admin()','EXECUTE') then
+    raise exception 'RC463_PLATFORM_ADMIN_HELPER_GRANT_BOUNDARY_INVALID';
+  end if;
+
+  select count(*) into v_global_guard_count
+    from pg_catalog.pg_proc p
+    join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public'
+     and p.proname in (
+       'get_mantigo_admin_dashboard_backend',
+       'get_mantigo_admin_financial_report_backend',
+       'settle_mantigo_captain_backend',
+       'expire_stale_mantigo_rides_backend',
+       'admin_create_global_ad',
+       'fulfill_digital_page_publish',
+       'review_mantigo_captain_application',
+       'set_mantigo_financial_config_backend'
+     )
+     and p.prosecdef
+     and p.prosrc ilike '%mnty_can_platform_admin%';
+
+  if v_global_guard_count <> 8 then
+    raise exception 'RC463_REQUIRES_RC462_ALL_EIGHT_GLOBAL_CALLERS: found %',v_global_guard_count;
+  end if;
+
+  select c.relrowsecurity into v_digital_pages_rls
+    from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+   where n.nspname='public' and c.relname='digital_pages';
+
+  if not coalesce(v_digital_pages_rls,false) then
+    raise exception 'RC463_DIGITAL_PAGES_RLS_REQUIRED';
+  end if;
+
+  select count(*) into v_policy_count
+    from pg_catalog.pg_policies p
+   where p.schemaname='public'
+     and p.tablename='digital_pages'
+     and p.policyname='digital_pages_admin_manage'
+     and p.cmd='ALL'
+     and coalesce(p.qual,'') ilike '%mnty_can_platform_admin%'
+     and coalesce(p.with_check,'') ilike '%mnty_can_platform_admin%';
+
+  if v_policy_count <> 1 then
+    raise exception 'RC463_DIGITAL_PAGES_CANONICAL_POLICY_REQUIRED';
+  end if;
+
+  if has_table_privilege('anon','private.platform_admins','SELECT')
+     or has_table_privilege('authenticated','private.platform_admins','SELECT')
+     or has_table_privilege('anon','private.platform_admins','INSERT')
+     or has_table_privilege('authenticated','private.platform_admins','INSERT')
+     or has_table_privilege('anon','private.platform_admins','UPDATE')
+     or has_table_privilege('authenticated','private.platform_admins','UPDATE')
+     or has_table_privilege('anon','private.platform_admins','DELETE')
+     or has_table_privilege('authenticated','private.platform_admins','DELETE') then
+    raise exception 'RC463_PLATFORM_ADMIN_REGISTRY_CLIENT_GRANTS_PRESENT';
+  end if;
+end;
+$rc463_preflight$;
+
 grant usage on schema private to service_role;
 
 create table if not exists private.platform_admin_lifecycle_events (
