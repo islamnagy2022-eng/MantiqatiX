@@ -274,8 +274,11 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
         provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
         profile: { ...fixture.profile, category: fixture.category },
-        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
-        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+        branches: fixture.branches || [], selectedBranchId: fixture.selectedBranchId || null,
+        // The on-demand public-catalog endpoint must return the same public item/price
+        // rows used by the public-directory fixture; empty arrays hide valid products.
+        items: fixture.items || [], prices: fixture.prices || [], options: fixture.options || [],
+        contactPhone: fixture.contactPhone || '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
       });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
