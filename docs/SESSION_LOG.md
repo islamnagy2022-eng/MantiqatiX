@@ -1231,7 +1231,7 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Latest main:** `adf0680a3c151330656b9712a03849c796aa4c09` (PR #573 merge).
 - **Health Monitor:** [41159666007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666007) completed successfully. Job log confirms read-only PostgREST GET to `marketing_provider_profiles?select=business_id&limit=1` emitted `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`.
 - **Security/privacy CI:** MantiGO Privacy Boundary [41159666176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666176) passed; Backend-only Module Boundary [41159666031](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666031) passed; Module Professionalization [41159666122](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666122) passed.
-- **Pages run:** [41159666222](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666222): source build/validation passed, GitHub Pages deploy step passed, deployed catalog root verification passed. Playwright deployed-origin browser test for dashboard routes, mobile layout, membership scopes and permanent QR links was still in progress at the last check. Do not call the entire run green until it completes.
+- **Pages run:** [41159666222](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666222): source build/validation passed, GitHub Pages deploy step passed, deployed catalog root verification passed. Playwright deployed-origin browser E2E completed successfully. It covered guest route denial; owner dashboard mobile/desktop; employee view-only/read-only roster; branch-owner route denial/RPC scope; unsupported manager grant denial; merchant QR tab/modal; permanent store link and QR encoding; GPS consent/manual-search fallback; explicit external logo/cover links; taxonomy folder/category/back-navigation/mobile flows. axe reported no critical or serious WCAG 2.1 violations in tested dashboard/QR views.
 - **Fresh Supabase Advisor snapshot (2026-10-31 02:23 UTC):**
   - Security: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; 90 anonymous-sign-in-related findings; leaked-password protection warning remains.
   - Clarification: the 90 anonymous-sign-in findings are not 90 direct anon grants; they are advisor findings associated with anonymous sign-in mode and policies mentioning anon/authenticated roles.
@@ -1240,3 +1240,15 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Backup/restore:** PR #571 remains documentation-only; no Production backup or restore rehearsal has occurred. RPO/RTO remain unmeasured.
 - **Safety:** no Production schema/data/Auth/RLS/Edge Function/payment mutation; no paid service/resource created.
 - **Overall:** Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-31 — Pages run #41159666222 completed successfully
+
+- **Commit:** `adf0680a3c151330656b9712a03849c796aa4c09`.
+- **Workflow:** [Deploy MantiqatiX Web #41159666222](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666222) completed with conclusion `success`; all three jobs passed.
+- **Deployment:** GitHub Pages deployment step and deployed primary catalog root check passed.
+- **Deployed-origin browser E2E:** `PRIMARY_CATALOG_BROWSER_E2E=PASS`.
+- **Coverage:** guest direct-route denial; owner dashboard desktop/mobile; owner route refresh and membership-scope restoration; employee view-only and read-only roster; branch-owner route/RPC scope; unsupported manager grant denial; merchant QR tab/modal; permanent store link and QR encoding with deployed base path/stable business ID; GPS consent and manual-search fallback; explicit external logo/cover URLs; taxonomy group/category/back navigation/mobile.
+- **Accessibility:** axe reported no critical or serious WCAG 2.1 violations in the tested owner dashboard and merchant QR views. This is scoped evidence, not a full accessibility certification.
+- **Release scope:** the workflow's production verifier still enforces that the global platform gate is BLOCKED while the catalog pilot may proceed. A successful catalog deployment does not certify payment, finance, full Auth/tenant E2E, backup/DR, Android signing or all platform modules.
+- **Current main at test:** `adf0680a3c151330656b9712a03849c796aa4c09`.
+- **Overall Production Gate:** **BLOCKED / NOT CERTIFIED**.
