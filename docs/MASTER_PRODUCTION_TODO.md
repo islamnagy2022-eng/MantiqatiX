@@ -2958,14 +2958,14 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Canonical activity/profession taxonomy validator: PASS (admin/backend compatibility retained; public UX direct activity).
 - [x] Geographic search/GPS/consent contract: PASS; current-main geo-discovery source retained.
 - [x] Employee RBAC PostgreSQL job: PASS.
-- [ ] Playwright browser E2E: run `41192816382` was still IN PROGRESS at the latest status read. Earlier E2E attempts exposed and fixed two stale test locators (removed all-activities group button; exact specialty-tab selector). Do not mark E2E PASS until this exact-head job finishes.
+- [x] Playwright browser E2E: latest exact-head run `41200971827`, job `124536544832`, PASS. Includes dedicated activity-module routing and Super Admin activity-module edit/save round-trip.
 - [ ] Deployed-origin verification: NOT RUN / NOT CLAIMED. Pages deployment jobs are skipped on pull-request events by design.
 
 
 ## CAT-ACTIVITY-MODULE-ADMIN-20261031-02 — Super Admin activity module configuration
 
 **Date:** 2026-10-31  
-**Status:** IN PROGRESS — additive editor and server validation implemented in source; exact-head CI and audit durability verification are pending.  
+**Status:** SOURCE IMPLEMENTED; exact-head CI VALIDATED on `7e0d8caa79a0b768c8320049c718d5ba581a1895`; production deployment and atomic audit durability remain open.  
 **Request ledger:** Issue #599.  
 **Branch / PR:** `feat/activity-modules-current-main-20261031` / Draft PR #608.
 
@@ -2985,7 +2985,12 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Confirmed deployed `catalog-platform-admin` and `public-catalog-directory` are still older versions (23 and 10 respectively); this PR's source changes have not been deployed.
 
 ### Safety boundary and open verification
-- [ ] Exact-head TypeScript/build, validator, backend boundary and browser E2E must pass before this increment is considered verified.
+- [x] Exact-head TypeScript check, canonical taxonomy validator, activity admin static contract, Node sanitizer tests, production catalog build, employee RBAC PostgreSQL, Browser Playwright E2E, backend-only boundary, SMM deferred contract, RC425 Paymob atomicity, flexible commissions, Open Ride privacy, Module Professionalization, and Pages validation all passed on `7e0d8caa79a0b768c8320049c718d5ba581a1895`.
+- [x] Browser E2E includes `super-admin-activity-module-edit-and-save-round-trip`: a platform-admin browser fixture selects the pharmacy activity, changes its marketing objective, verifies the three capabilities remain `planned`, and verifies the authenticated `SAVE_SETTINGS` request and payload. This is a mocked browser contract, not a production database write.
+- [ ] Add a real deployed-origin round-trip test after the reviewed Edge Function deployment; the current live functions are still older versions `catalog-platform-admin v23` and `public-catalog-directory v10`.
+- [ ] Public visitor E2E must verify that a newly saved override is rendered after reload from the public settings projection; current E2E covers the Super Admin save request, while the public settings projection is guarded by static contracts and backend source checks.
+- [ ] Make settings persistence and audit insertion atomic in one reviewed database transaction/RPC before treating the save-and-audit path as fully durable. Current behavior surfaces `auditLogged=false` if the second write fails after the settings upsert.
+- [ ] Add isolated negative tests for unknown capability IDs, unauthorized platform memberships, and forced audit-write failure. Existing Node tests cover malformed IDs, length/array/payload bounds, duplicate capability IDs, and rejected capability-state elevation.
 - [ ] Audit insertion currently follows the settings upsert and is not a single database transaction. A failed audit insert is surfaced as `auditLogged=false`, but the settings may already be persisted. Do not claim atomic save+audit until a reviewed transactional server contract exists.
 - [ ] Verify live deployed Edge Function and real authenticated Super Admin save/read/reset behavior only after an explicitly authorized deployment. No deployment was performed by this source change.
 - [ ] Verify role × platform-admin authorization, malformed payload rejection, oversized payload rejection, unknown capability IDs, and audit failure handling with isolated tests.
