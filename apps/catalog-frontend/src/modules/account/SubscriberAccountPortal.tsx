@@ -11,6 +11,11 @@ type Section = 'overview' | 'subscription' | 'permissions' | 'activities' | 'man
 const dateText = (value?: string) => value ? (Number.isNaN(new Date(value).getTime()) ? value : new Intl.DateTimeFormat('ar-EG',{dateStyle:'medium'}).format(new Date(value))) : 'غير مسجل';
 const amountText = (value: unknown, currency: string) => Number.isFinite(Number(value)) ? new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(Number(value))+' '+currency : 'غير محدد';
 
+// The live catalog-admin Edge Function is v20 and does not yet enforce
+// membershipId. Keep cross-membership switching disabled until the exact
+// membership-scoped backend contract is deployed and verified.
+const ACCOUNT_MEMBERSHIP_SWITCH_ENABLED = false;
+
 export const SubscriberAccountPortal: React.FC = () => {
   const { authSession, authLoading, currentBusiness, businesses, businessProducts, adminSettings, setCurrentView, logout, switchAccountMembership, switchToPlatformAdminMode } = useApp();
   const [section,setSection] = useState<Section>('overview');
@@ -71,13 +76,14 @@ export const SubscriberAccountPortal: React.FC = () => {
       </header>
       {(authSession.isPlatformAdmin || (authSession.availableMemberships?.length || 0) > 1) && <section aria-label="أوضاع الحساب المتاحة" className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-black text-slate-900">أوضاع الحساب المتاحة</h2><p className="mt-1 text-xs text-slate-500">تظهر هنا الأدوار والعضويات النشطة التي أعادها التحقق من الحساب. تبديل الوضع لا ينشئ صلاحية جديدة.</p></div><span className="text-[11px] font-bold text-slate-500">{(authSession.availableMemberships || []).length} عضوية متاحة</span></div>
+        {!ACCOUNT_MEMBERSHIP_SWITCH_ENABLED && (authSession.availableMemberships?.length || 0) > 1 && <p role="status" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold leading-6 text-amber-950">تبديل العضويات متوقف مؤقتًا حتى تحديث خدمة الكتالوج للتحقق من معرف العضوية المحددة على الخادم. ستظل العضوية الحالية وصلاحياتها كما هي، ولن يتم توسيع نطاق الوصول.</p>}
         <div className="mt-3 flex flex-wrap gap-2">
           {authSession.isPlatformAdmin && <button type="button" disabled={isAdmin || Boolean(switchingModeId)} onClick={()=>{if(switchToPlatformAdminMode()){setModeSwitchError('');setSection('manage');}}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${isAdmin?'cursor-default border-amber-300 bg-amber-50 text-amber-900':'border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50'}`} aria-pressed={isAdmin}>إدارة المنصة</button>}
           {(authSession.availableMemberships || []).map(mode=>{
             const active=authSession.role==='subscriber' && authSession.activeMembershipId===mode.membershipId && authSession.businessId===mode.businessId;
             const label=`${membershipRoleLabel(mode.role)} · ${mode.businessName}${mode.branchId?' · نطاق فرع':''}`;
             const modeKey=mode.membershipId+':'+mode.businessId;
-            return <button key={modeKey} type="button" disabled={active || Boolean(switchingModeId)} onClick={async()=>{setSwitchingModeId(modeKey);setModeSwitchError('');try{const switched=await switchAccountMembership(mode.membershipId,mode.businessId);if(switched)setSection('manage');else setModeSwitchError('تعذر التبديل؛ قد تكون العضوية تغيرت. حدّث الصفحة لإعادة تحميل الصلاحيات.');}catch(error){setModeSwitchError(error instanceof Error?error.message:'تعذر تحميل بيانات العضوية.');}finally{setSwitchingModeId('');}}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{switchingModeId===modeKey?'جارٍ تحميل النطاق…':label}</button>;
+            return <button key={modeKey} type="button" disabled={!ACCOUNT_MEMBERSHIP_SWITCH_ENABLED || active || Boolean(switchingModeId)} onClick={async()=>{setSwitchingModeId(modeKey);setModeSwitchError('');try{const switched=await switchAccountMembership(mode.membershipId,mode.businessId);if(switched)setSection('manage');else setModeSwitchError('تعذر التبديل؛ قد تكون العضوية تغيرت. حدّث الصفحة لإعادة تحميل الصلاحيات.');}catch(error){setModeSwitchError(error instanceof Error?error.message:'تعذر تحميل بيانات العضوية.');}finally{setSwitchingModeId('');}}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{switchingModeId===modeKey?'جارٍ تحميل النطاق…':label}</button>;
           })}
         </div>
         {modeSwitchError && <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800">{modeSwitchError}</p>}
