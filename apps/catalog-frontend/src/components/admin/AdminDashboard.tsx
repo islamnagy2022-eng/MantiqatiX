@@ -218,7 +218,6 @@ export const AdminDashboard: React.FC = () => {
   const [isNewCatModalOpen, setIsNewCatModalOpen] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatGroup, setNewCatGroup] = useState<FunctionalGroupId>('medical_health');
-  const [newCatType, setNewCatType] = useState<'activity' | 'profession'>('activity');
   const [newCatSpecialties, setNewCatSpecialties] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
 
@@ -403,13 +402,12 @@ export const AdminDashboard: React.FC = () => {
       await addCategory({
         name: newCatName.trim(),
         functionalGroupId: newCatGroup,
-        classificationType: newCatType,
+        classificationType: 'activity',
         specialties,
         description: newCatDesc.trim() || undefined,
       });
       setNewCatName('');
       setNewCatDesc('');
-      setNewCatType('activity');
       setNewCatSpecialties('');
       setNewCatGroup('medical_health');
       setIsNewCatModalOpen(false);
@@ -2167,7 +2165,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] font-black text-slate-700 mb-1">
-                    التصنيف — النشاط أو المهنة
+                    النشاط الرئيسي
                   </label>
                   <select
                     value={newBizCategory}
@@ -2176,7 +2174,7 @@ export const AdminDashboard: React.FC = () => {
                   >
                     {categories.filter((c) => c.functionalGroupId === newBizFunctionalGroup).map((c) => (
                       <option key={c.id} value={c.name}>
-                        {(c.classificationType === 'profession' ? 'مهنة: ' : 'نشاط: ') + c.name}
+                        {c.name}
                       </option>
                     ))}
                   </select>
@@ -2368,7 +2366,7 @@ export const AdminDashboard: React.FC = () => {
             <form onSubmit={handleCreateCategory} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  اسم النشاط أو المهنة <span className="text-rose-500">*</span>
+                  اسم النشاط <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
