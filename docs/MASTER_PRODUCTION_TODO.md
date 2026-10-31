@@ -2997,3 +2997,16 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Obtain complete current-production schema-only restore in disposable environment and Egypt-specific legal/accounting review before any stored-value wallet activation.
 - [x] Detailed read-only findings documented in `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
 - **Status:** commission draft UI exists; subscription pricing remains fixed-tier/per-business settings; wallet posting, top-up, auto-debit and ad booking are NOT implemented/activated. Production financial gate remains BLOCKED.
+
+
+## 2026-10-31 — PR #610 exact-head verification and security review continuation
+
+- Exact PR head: `6c048a65946a3ef5b9e4262b276161795a4ac1cd`.
+- Primary Catalog Frontend Validation run [41205224994](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41205224994) completed successfully. Build/TypeScript and static catalog/auth/dashboard contracts passed; isolated employee RBAC PostgreSQL job passed; Playwright browser job passed.
+- Browser log explicitly reports `PRIMARY_CATALOG_BROWSER_E2E=PASS`, including guest direct-route denial, owner route/refresh and membership-scope restore, employee read-only and roster read-only, branch-owner route denial and scoped RPC, unsupported-manager grant denial, account portal only-entry, exact owner/branch-employee membership switching, platform-admin/business-membership separation, and authenticated account without membership remaining read-only.
+- Related exact-head workflows completed successfully: RC425 MantiGo Paymob Atomicity, SMM Deferred Storefront Contract, MantiGO Open Ride Privacy Boundary, Legacy Catalog Module Validation, Flexible Commission Drafts, Backend-only Module Boundary, Module Professionalization Validation, and Catalog Admin CORS Boundary.
+- Pages workflow validation passed; deploy job was skipped as expected for a pull-request event. No production deployment occurred.
+- Source-level review of account portal, route guards, session switching and `catalog-admin` exact-membership filter found no confirmed new authorization bypass in the reviewed paths. This is not a complete security sign-off: browser fixtures mock the Edge Function responses for the membership scenarios, and the dedicated live Edge Function/PostgreSQL multi-membership isolation test, real Google-account cross-account E2E, subscription-state role matrix, and independent security review remain open.
+- PR #610 remains Draft. Do not merge or mark ready until the outstanding live/runtime security evidence and independent review are complete.
+- No Supabase schema, RLS, GRANT, Auth, Edge Function, payment, wallet, journal, or production deployment mutation was performed.
+- Next dependency-ordered action remains the current-schema isolated rehearsal: obtain an authorized credential-scrubbed schema capture, restore it into a disposable environment, and prove rollback. Production migrations remain prohibited until this rehearsal and reconciliation are complete.
