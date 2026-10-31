@@ -1660,3 +1660,13 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
 - Scanned non-system database catalog definitions for SQL functions/procedures, views, materialized views, triggers, rules, FKs, RLS policy expressions and publication membership. No dependency on `public.bookings` was found; the table is not in either publication.
 - This does not rule out dynamic SQL or external jobs/services. No row content was queried; one row remains untouched. Updated Issue #613 and preserved the table pending historical schema and retention evidence.
+
+ 
+## 2026-10-31 — Fresh live recheck of P0 platform-root authorization after RC462 merge
+
+- Rechecked Supabase Production read-only: 308 migration records, latest `20261029083845`; RC441, RC449 and RC462 exact IDs absent.
+- Live helper remains `mnty_can('admin',NULL,NULL,NULL)`; active-membership helper still accepts all active memberships at null scope, and built-in `OWNER` grants admin permission. All eight global SECDEF functions remain authenticated-executable and anon-denied.
+- Confirmed `digital_pages_admin_manage` remains permissive FOR ALL using weak helper; digital_pages has RLS true, FORCE false, and authenticated SELECT/INSERT/UPDATE/DELETE privileges. P0 remains live, no RPC was invoked and no rows were changed.
+- Aggregate-only check: private.platform_admins has one row; one registered user has active MNTY-PLATFORM SUPER_ADMIN with PLATFORM/full_control membership. No identity/row content read. Client roles have no direct registry grants. Private one-time bootstrap remains service_role-only EXECUTE, empty search_path.
+- Revalidated source merge/test evidence: PR #592 merged with RC462; exact candidate registry test [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) and chronological isolated replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) passed. Production migration is still absent.
+- Next: credential-scrubbed local schema/roles capture, zero-cost disposable restore, complete timestamp-ordered replay including RC441 → RC449 → RC462, adversarial/RLS tests and rollback. No Production mutation.
