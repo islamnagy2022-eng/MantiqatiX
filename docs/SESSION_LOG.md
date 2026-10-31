@@ -1161,3 +1161,16 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Action not performed:** no Production DDL/DML, migration, grant, RLS/Auth, Edge Function, secret, payment, wallet or journal mutation. No paid Supabase branch was created.
 - **Next action:** obtain user approval for cost estimation of an isolated environment; obtain a credential-scrubbed current schema-only capture in an authorized Supabase CLI environment; restore it in a disposable DB and rehearse reconciliation, adversarial tests, backup and rollback before proposing any Production release.
 - **Release:** BLOCKED / NOT CERTIFIED.
+
+
+## 2026-10-31 — Supabase Free-tier database continuity monitoring
+
+- **User decision:** continue with an additional recurring cost target of 0 EGP; do not create a paid Supabase branch/project or subscribe to paid services.
+- **Repository state verified:** `main` ref was `27c77a70bc57ad3529acb9f445c018b1b335f6b6`.
+- **Finding:** `.github/workflows/production-health-monitor.yml` already ran hourly, but `supabase/functions/health/index.ts` returned static JSON only and never queried the database. Thus the previous `/health` check could pass while PostgreSQL was unavailable.
+- **Action on branch `ops/supabase-free-tier-db-monitor-20261031`:** added a read-only PostgREST probe to the existing hourly monitor. It fetches the public client config, authenticates with the public anon key only, requests at most one `business_id` from the already-public `marketing_provider_profiles` relation, discards the response body, and requires HTTP 200. No customer rows/PII are logged by this step.
+- **Safety boundary:** no service-role key, DB password, secret, data mutation, migration, schema/grant/RLS/Auth change, Edge Function deployment, UI change, payment, or paid resource was used.
+- **Documentation:** added the free-tier continuity/backup/restore runbook; appended TODO and continuity records. Backup commands are instructions only; no actual backup has been run because the session has no authorized DB connection string.
+- **Not yet verified:** first live database probe on main after merge; GitHub failure-notification delivery; actual local backup files; restore rehearsal; measured RPO/RTO. The workflow source remains on a PR branch and is not active in Production until merged.
+- **Limitation:** hourly DB reads may reduce inactivity-pause risk but cannot guarantee that Supabase Free will never pause; GitHub cron may be delayed, and a paused project may reject the probe.
+- **Next:** inspect the exact diff, open PR, wait for all checks, then merge only if the workflow and docs are correct; verify the post-merge scheduled/manual run. Keep the global Production Gate **BLOCKED / NOT CERTIFIED**.
