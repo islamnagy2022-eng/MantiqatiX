@@ -81,9 +81,12 @@ Do not create demo records or fabricated metrics to make a module appear operati
 - [x] Keep unknown/custom activity IDs compatible through a safe generic profile.
 - [x] Add explicit reviewed per-activity marketing overrides for all 50 canonical activity IDs: audience, focus, campaign ideas, required assets, and operating scope.
 - [x] Keep unknown/custom activity IDs compatible through the safe generic domain profile.
-- [ ] Expand capability cards from domain-level templates to reviewed per-activity operational capabilities.
+- [x] Define three reviewed operational capabilities for each of the 50 canonical activity IDs (150 capabilities total), with activity-specific IDs, titles, and descriptions.
+- [x] Resolve activity-specific capabilities before domain-level fallbacks and keep every unintegrated capability in `planned` state.
+- [x] Render capability state with state-aware accessible labels and badges.
+- [ ] Implement backend actions only after per-capability API/RPC, tenant/business/branch authorization, audit, and negative security tests are verified.
 - [ ] Define an additive admin editing experience and persisted configuration contract; no client-only settings may be treated as authoritative.
-- [ ] Run exact-head TypeScript/build/taxonomy/browser validation after the 50-activity override changes.
+- [ ] Run exact-head TypeScript/build/taxonomy/browser validation after the 150 activity-specific capability definitions.
 
 ### Phase C — working marketing workspace per activity
 - [ ] Port/reuse the existing reviewed marketing workspace into the current catalog app; do not revive the retired legacy app as the primary UI.
