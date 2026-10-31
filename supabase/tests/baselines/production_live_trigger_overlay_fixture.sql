@@ -8,17 +8,10 @@
 begin;
 
 insert into auth.users
-  (id, aud, role, email, encrypted_password, email_confirmed_at,
-   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
-   is_sso_user, is_anonymous)
+  (id, email, email_confirmed_at, created_at)
 values
   ('10000000-0000-4000-8000-00000000a001',
-   'authenticated', 'authenticated',
-   'fixture-owner@example.test', '',
-   now(),
-   '{"provider":"email","providers":["email"]}'::jsonb,
-   '{"test_fixture":true,"source":"LIVE_TRIGGER_OVERLAY_FIXTURE"}'::jsonb,
-   now(), now(), false, false)
+   'fixture-owner@example.test', now(), now())
 on conflict (id) do nothing;
 
 create or replace function public.assign_default_owner_to_unowned_business()
