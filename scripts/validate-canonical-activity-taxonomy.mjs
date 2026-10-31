@@ -202,6 +202,12 @@ assert.ok(production.includes('raw.activitySpecialty'), 'Production mapping must
 assert.ok(production.includes('raw.settings?.activity_category_code'), 'Production mapping must read the canonical activity category code.');
 assert.ok(production.includes('canonicalCategoryId'), 'Production mapping must resolve the stable canonical category ID.');
 assert.ok(production.includes('resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode)'), 'Business mapping must resolve legacy activity codes to canonical category IDs.');
+const mappedCategoryIdExpression = production.match(/categoryId:\s*([\\s\\S]*?),\\n\\s*functionalGroupId:/)?.[1] || '';
+assert.ok(mappedCategoryIdExpression.includes('canonicalCategoryId'), 'Business mapping must prefer the stable canonical activity ID.');
+assert.ok(
+  mappedCategoryIdExpression.indexOf('canonicalCategoryId') < mappedCategoryIdExpression.indexOf('x.name === category'),
+  'Legacy display/category labels must only be a fallback when no canonical activity code resolves.',
+);
 assert.ok(production.includes('activityGroupCode: body.business?.activityGroupCode'), 'Direct storefront hydration must pass the safe canonical group code into business mapping.');
 assert.ok(production.includes('activityCategoryCode: body.business?.activityCategoryCode'), 'Direct storefront hydration must pass the safe canonical category code into business mapping.');
 assert.ok(production.includes('meta.activity_group_code') && production.includes('meta.activity_category_code'), 'Business mapping must read taxonomy metadata from the safe bizcatalog profile where present.');
