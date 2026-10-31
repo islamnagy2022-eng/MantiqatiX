@@ -1,4 +1,4 @@
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 
 -- Test-only schema overlay for a known live Production object that is absent
 -- from the 2026-10-17 schema-only checkpoint: the deferred default-owner
