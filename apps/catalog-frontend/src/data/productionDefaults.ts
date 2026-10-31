@@ -163,6 +163,7 @@ export function resolveCanonicalSpecialty(value: string, categoryId?: string): s
   const directAlias = LEGACY_SPECIALTY_ALIAS_MAP.get(normalized);
   if (directAlias) return directAlias;
   const withoutProfessionPrefix = normalized.replace(/^(طبيب|دكتور|دكتوره|طبيبه|طب)\s+/, '');
+  if (!withoutProfessionPrefix) return normalized;
   const prefixAlias = LEGACY_SPECIALTY_ALIAS_MAP.get(withoutProfessionPrefix);
   if (prefixAlias) return prefixAlias;
   const category = DEFAULT_CATEGORIES.find((item) => item.id === categoryId);
