@@ -153,6 +153,16 @@ export const DirectoryView: React.FC = () => {
   const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
 
   const completeGeoSetup = (mode: 'auto' | 'manual') => {
+    // Persist completion synchronously before hiding the first-visit dialog,
+    // so an immediate navigation/reload cannot cause the consent screen to repeat.
+    writeStoredGeoPreference({
+      completed: true,
+      mode,
+      governorate: selectedGovFilter,
+      markaz: selectedMarkazFilter,
+      village: selectedVillageFilter,
+      area: selectedAreaFilter,
+    });
     setGeoSetupCompleted(true);
     setGeoPreferenceMode(mode);
     setShowLocationWelcome(false);
@@ -614,7 +624,7 @@ export const DirectoryView: React.FC = () => {
                 عرض مصر بالكامل
               </button>
             </div>
-            <p className="mt-4 text-[11px] leading-5 text-slate-500">سيطلب المتصفح إذن الموقع تلقائيًا عند فتح الدليل لأول مرة. يمكنك الرفض ومتابعة الموقع يدويًا في أي وقت.</p>
+            <p className="mt-4 text-[11px] leading-5 text-slate-500">بعد الضغط على «السماح باستخدام موقعي» سيظهر طلب الإذن الأصلي من المتصفح. يمكنك الرفض ومتابعة التصفح اليدوي في أي وقت.</p>
           </div>
         </div>
 
