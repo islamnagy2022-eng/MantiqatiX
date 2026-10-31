@@ -63,6 +63,8 @@ assert.match(productionMapper, /isDoctor && !isVerified && !hasOwnerSelectedLogo
 assert.match(productionMapper, /functionalGroupId === 'medical_health' && classificationType === 'profession'/, 'legacy individual medical professionals normalized under the medical-practices activity must receive the doctor fallback');
 assert.match(productionMapper, /logoUrl: doctorFallbackLogo \\|\\| pharmacyFallbackLogo/, 'custom doctor logos and all pharmacy fallback behavior must be preserved');
 assert.ok(directoryListingsView.includes('String(listing.listing_type || "").toLowerCase() === "doctor" && listing.claim_status !== "CLAIMED"'), 'unclaimed public doctor directory records must receive the default photo while claimed records do not');
+assert.ok(directoryListingsView.includes('if (listingType === "doctor") return UNVERIFIED_DOCTOR_IMAGE_URL;'), 'unclaimed doctor listing cards and details must use the shared doctor photo');
+assert.ok(directoryListingsView.includes('if (listingType === "pharmacy") return UNVERIFIED_PHARMACY_IMAGE_URL;'), 'unclaimed pharmacy listing cards and details must use the shared pharmacy photo');
 assert.ok(directoryListingsView.includes('listing.metadata?.profileImageUrl'), 'an owner-selected directory profile image must take precedence over the doctor default photo');
 assert.ok(directoryListingsView.includes('listingProfileImage(detail)'), 'unclaimed doctor detail pages must display the default photo');
 assert.ok(directoryListingsView.includes('listingProfileImage(listing)'), 'unclaimed doctor directory cards must display the default photo');
