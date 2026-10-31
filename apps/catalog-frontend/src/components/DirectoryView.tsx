@@ -641,13 +641,15 @@ export const DirectoryView: React.FC = () => {
   if (activityModuleId) {
     const activityCategory = availableCategories.find((category) => category.id === activityModuleId);
     if (activityCategory) {
-      const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activityCategory.id).length;
-      const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+      const eligibleActivityBusinesses = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activityCategory.id);
+      const confirmedCount = eligibleActivityBusinesses.filter((business) => business.isVerified).length;
+      const unconfirmedCount = eligibleActivityBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
       return <ActivityModuleView
         category={activityCategory}
         confirmedCount={confirmedCount}
         unconfirmedCount={unconfirmedCount}
         onBack={closeActivityModule}
+        parentGroupName={availableGroups.find((group) => group.id === activityCategory.functionalGroupId)?.name}
         onSelectSpecialty={(specialty) => {
           setSelectedCategoryId(activityCategory.id);
           setSelectedSpecialty(specialty);
