@@ -31,6 +31,10 @@ import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../u
 
 export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'login' | 'directory';
 
+// Do not switch membership contexts until the live catalog-admin Edge Function
+// enforces the exact membershipId passed by the account portal (currently v20).
+const ACCOUNT_MEMBERSHIP_SWITCH_ENABLED = false;
+
 interface AppContextType {
   currentView: ViewMode;
   setCurrentView: (view: ViewMode) => void;
@@ -203,6 +207,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Reload the catalog with that membership's branch scope before exposing its workspace.
   // This prevents a tenant-wide owner dataset from leaking into a weaker employee view.
   const switchAccountMembership = async (membershipId: string, businessId: string): Promise<boolean> => {
+    if (!ACCOUNT_MEMBERSHIP_SWITCH_ENABLED) return false;
     const initialSession = authSessionRef.current;
     const userId = initialSession.userId;
     if (!initialSession.isAuthenticated || !userId || !membershipId || !businessId || authUserIdRef.current !== userId) return false;
