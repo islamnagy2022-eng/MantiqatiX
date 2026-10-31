@@ -136,3 +136,12 @@ Fresh live inspection of `public.advertisements` found:
 
 ### Additional integrity check — trigger/constraint compensation
 A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+## Addendum — 2026-10-31 secondary table ACL review: `public.bookings`
+
+- A targeted scan of all public tables with authenticated INSERT/UPDATE/DELETE grants but zero permissive authenticated write policies found exactly two matches: `ad_spaces` and `bookings`.
+- `public.bookings` has RLS + FORCE RLS; its only four authenticated ALL policies are RESTRICTIVE session guards. It has no permissive authenticated SELECT or DML policy, so the current table is deny-by-default for those sessions.
+- ACL: authenticated has SELECT/INSERT/UPDATE/DELETE/MAINTAIN; anon has MAINTAIN only; service_role retains backend DML.
+- The table has only `id uuid NOT NULL` and nullable `created_at timestamp without time zone`, with one existing row. No row content was read.
+- Focused source search found no direct browser `.from('bookings')` consumer, public Edge Function reference or matching migration source. This is limited source-search evidence, not proof that no dynamic/legacy dependency exists.
+- [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) tracks P3 lifecycle and least-privilege review. Preserve the table and row until provenance, dynamic callers and retention/dependency requirements are established. No exploit is claimed; no Production mutation was made.
