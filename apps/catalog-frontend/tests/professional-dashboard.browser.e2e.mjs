@@ -104,6 +104,14 @@ const roles = {
     businessId: null,
     branchId: null,
     permissions: { scope: 'PLATFORM', full_control: true },
+    extraMemberships: [{
+      id: 'membership-platform-admin-business-owner',
+      role: 'OWNER',
+      businessId,
+      branchId: null,
+      permissions: {},
+      created_at: '2026-03-01T00:00:00.000Z',
+    }],
   },
 };
 
@@ -1028,6 +1036,33 @@ try {
       await page.getByRole('button', { name: 'إدارة النشاط' }).click();
       await waitForDashboard(page);
       results.push('unified-dashboard-entry-only-through-account-portal');
+    } finally { await context.close(); }
+  }
+
+  // Account mode switching must use the exact active membership context, including branch scope.
+  {
+    const { context, page } = await newScenario(browser, roles.owner, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: /موظف · نشاط اختبار الداشبورد/ }).click();
+      await page.getByText('وضع الموظف', { exact: true }).waitFor({ state: 'visible' });
+      await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
+      await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
+      results.push('account-switch-owner-and-branch-scoped-employee-memberships');
+    } finally { await context.close(); }
+  }
+
+  // Platform authority remains separate; switching to a real business role and back never copies roles.
+  {
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
+      await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'إدارة المنصة', exact: true }).click();
+      await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
+      results.push('platform-admin-and-business-membership-modes-remain-separate');
     } finally { await context.close(); }
   }
 
