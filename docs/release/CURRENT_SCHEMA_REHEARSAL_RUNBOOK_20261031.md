@@ -199,3 +199,6 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
  
 - [ ] For `public.bookings`, the live migration ledger has no creation statement; only a later RLS-enable reference was found. Recover original table definition from an authoritative schema snapshot/backup, inspect dynamic/external callers and retention needs, and preserve the one existing row until proven safe to retire.
+
+ 
+- [ ] Reconcile historical ACL provenance before drafting any grant migration: current `pg_default_acl` is not a historical snapshot; compare archived Supabase/PostgreSQL defaults and original table-creation time, inspect table ACL grantors, owner, role inheritance and all available migration/backup artifacts. Do not assume the `ad_spaces` authenticated DML entries are explicit grants merely because the present-day default ACL differs.
