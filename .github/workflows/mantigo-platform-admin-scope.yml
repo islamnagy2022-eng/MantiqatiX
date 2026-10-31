@@ -5,7 +5,7 @@ on:
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
-      - "supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql"
+      - "supabase/migrations/20261031145200_rc463_platform_admin_bootstrap_recovery.sql"
       - "supabase/tests/rc463_platform_admin_lifecycle_*.sql"
       - "supabase/functions/platform-admin-lifecycle/**"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
@@ -72,7 +72,7 @@ jobs:
           test -n "$pg_container"
           docker exec "$pg_container" createdb -U postgres platform_admin_lifecycle_test
           docker cp supabase/tests/rc463_platform_admin_lifecycle_fixture.sql "$pg_container:/tmp/rc463-fixture.sql"
-          docker cp supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql "$pg_container:/tmp/rc463.sql"
+          docker cp supabase/migrations/20261031145200_rc463_platform_admin_bootstrap_recovery.sql "$pg_container:/tmp/rc463.sql"
           docker cp supabase/tests/rc463_platform_admin_lifecycle_integration.sql "$pg_container:/tmp/rc463-test.sql"
           docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc463-fixture.sql
           docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc463.sql
