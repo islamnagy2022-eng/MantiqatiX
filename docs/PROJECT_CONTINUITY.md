@@ -1140,3 +1140,15 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — Superseding checkpoint: Activity Modules merged and web deployed
+
+- Current main: `cd9929e337fce58d4c20dfbb94febfd7e4f36291`.
+- PR [#608](https://github.com/islamnagy2022-eng/MantiqatiX/pull/608) is **MERGED**. Earlier entries describing PR #608 as Draft/unmerged are historical and superseded by this checkpoint.
+- Main web deployment [41213620494](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41213620494) and catalog validation [41213620452](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41213620452) passed. Exact-main Backend-only Module Boundary [41214036657](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41214036657), Module Professionalization [41214036446](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41214036446), and MantiGO privacy [41214036075](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41214036075) passed.
+- Public hierarchy is activity → specialty → actual listings; each canonical activity has a dedicated refreshable module. Existing geo-consent behavior, verified-first ordering, unverified visibility, and legacy data compatibility were retained in source.
+- Activity module operational capabilities remain planned; Marketing remains guidance, not campaign execution. SMM is deferred. No new live campaign/operations capability is claimed.
+- The web frontend deployment succeeded. The updated Edge Function sources were not deployed; production Super Admin persistence, audit durability, and public override hydration remain unverified. Source currently writes settings and then attempts audit logging, not one atomic transaction. Add a reviewed transactional contract and isolated negative tests before any explicitly authorized Edge rollout.
+- No Production schema/data/grant/RLS/Auth/Edge deployment/payment/financial changes were made by PR #608. Global `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- Next execution order: (1) reconcile P0 production release blockers from fresh read-only evidence; (2) continue the atomic activity-module settings/audit contract and isolated tests; (3) only after review and explicit authorization, deploy Edge Functions and run real deployed-origin Super Admin/public visitor round trips.
