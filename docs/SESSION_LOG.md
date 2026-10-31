@@ -1396,3 +1396,20 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Next: recreate the small documentation/CI deltas on a fresh main-based branch or safely rebase with conflict review, then rerun exact-head CI. Keep #540 draft pending current-schema rehearsal and explicit rollout gate.
 - No Production DDL/DML, grants, RLS/Auth changes, Edge deployments, payment or finance mutations.
 - Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Continued P0 platform-admin audit; RC441/RC449 comparison
+
+- Re-read the current-main RC441 and RC449 migration files. A line-by-line comparison found the SQL is substantively identical; only the leading RC comment, helper comment string, and final newline differ. Both recreate the same strict `mnty_can_platform_admin()` guard and four global MantiGO RPCs with the same ACLs.
+- Re-read RC258 centralized RBAC: `mnty_active_membership(NULL,NULL,NULL)` includes all active memberships; `mnty_can('admin')` includes tenant OWNER. This explains the original cross-tenant/global admin-scope defect.
+- Confirmed four additional global SECURITY DEFINER callers use the same helper: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`. The helper fix protects them, but direct caller-level isolated tests remain desirable.
+- Confirmed RC449's fixture/integration test covers the global `digital_pages_admin_manage` policy: tenant OWNER is denied CRUD; explicit platform SUPER_ADMIN is allowed CRUD. Four MantiGO RPCs also have negative-role tests and authorized settlement/expiration idempotency tests.
+- Fresh live read-only check: Production migration ledger still 308 rows, latest `20261029083845`; RC441 and RC449 absent. Advisor timestamp 04:39:16 UTC: 8 no-policy RLS, 3 anon SECURITY DEFINER, 67 authenticated SECURITY DEFINER, 90 anonymous-policy findings, leaked-password protection disabled.
+- PR #583 was merged after six exact-head workflows succeeded; merge commit `526fd5308bb2017f2b4a83b33c8b029b9fbbc275`. This was documentation-only.
+- Both historical migration files must remain unchanged. Replay both chronologically in disposable full-schema rehearsal; their duplicate `CREATE OR REPLACE` statements are idempotent, but both exact migration IDs remain separate ledger requirements.
+- No Production DDL/DML, grants, RLS/Auth changes, Edge deployments, payment, settlement or journal mutations. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Governance alignment item — platform authority registries
+
+A separate source review found a second platform-root authorization model: the newer Super Admin Control Center RPCs (`mnty_platform_admin_*`) authorize against `private.platform_admins`, while the RC441/RC449 MantiGO/global-digital-page helper authorizes against an active `user_memberships` row in `MNTY-PLATFORM` with `SUPER_ADMIN`, `scope=PLATFORM`, and `full_control=true`. These are distinct authority sources, not the same predicate. The platform-control-center design explicitly describes `private.platform_admins` as the protected root registry; an earlier documented production checkpoint (2026-09-27) recorded zero rows, but that count has not been re-read in this session. Do not infer the current registry contents. Before rollout, decide and test whether both sources must agree, whether one is the canonical root, and how bootstrap/revocation keeps them synchronized. This is a governance consistency gap to resolve, not proof of a privilege escalation. No sensitive registry rows were queried.
