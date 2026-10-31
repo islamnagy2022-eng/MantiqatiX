@@ -1165,3 +1165,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
 - The live migration ledger has no CREATE TABLE/DROP TABLE/shape migration for `public.bookings`; the only recorded reference is RLS enablement in `20260919233425_production_security_hardening_v1`. No public SQL function body references the relation in the focused scan, and no direct browser/Edge consumer was found in focused source search.
 - The table has only `id` and `created_at`, with one row whose contents were not read. Its creation provenance remains unresolved/outside current migration creation history. Do not drop or mutate it based on search absence; Issue #613 requires authoritative schema history and dependency/retention review.
+
+ 
+## Latest continuation — 2026-10-31 (qualification of historical ACL provenance)
+
+- Current `ad_spaces` effective ACL entries give authenticated INSERT/UPDATE/DELETE/MAINTAIN and anon MAINTAIN. The current `pg_default_acl` snapshot for postgres-created public tables does not include API-role DML, but that is not a historical snapshot of defaults at table creation. ACL entries with grantor postgres may be explicit or may have been inherited from historical defaults that later changed.
+- Recorded migration history contains no table-level GRANT/REVOKE or table-level ALTER DEFAULT PRIVILEGES statement for ad_spaces; it only includes function EXECUTE-default hardening. Exact ACL provenance remains unresolved. Do not label entries explicit GRANTs or mutate global/managed defaults based on current snapshot alone.
+- The migration ledger contains historical advertisements CREATE TABLE IF NOT EXISTS SQL that declared a business FK, while current physical schema lacks it and no later recorded DROP exists; cause unresolved. bookings has no migration CREATE statement and no function/browser/Edge caller found in focused searches; keep table and row pending provenance/retention review.
