@@ -80,6 +80,15 @@ begin
     raise exception 'RC463_BOOTSTRAP_AUDIT_FAILED';
   end if;
 
+  perform pg_catalog.set_config('request.jwt.claim.sub',root_one::text,false);
+  if not public.mnty_can_platform_admin() then
+    raise exception 'RC463_CANONICAL_REGISTRY_HELPER_DENIED_BOOTSTRAPPED_ROOT';
+  end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',tenant_owner::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'RC463_CANONICAL_REGISTRY_HELPER_GRANTED_TENANT_OWNER';
+  end if;
+
   -- A different tenant ID/code tuple must be rejected; no alternate platform tenant is created.
   rejected := false;
   begin
@@ -124,6 +133,11 @@ begin
      or not exists(select 1 from private.platform_admins where user_id=root_two) then
     raise exception 'RC463_GRANT_REGISTRY_ROW_MISSING';
   end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',root_two::text,false);
+  if not public.mnty_can_platform_admin() then
+    raise exception 'RC463_CANONICAL_REGISTRY_HELPER_DENIED_GRANTED_ROOT';
+  end if;
+
   if not exists(
     select 1 from public.user_memberships
     where user_id=root_two and tenant_id='MNTY-PLATFORM'
@@ -165,6 +179,15 @@ begin
     raise exception 'RC463_REVOKE_AUDIT_MISSING';
   end if;
 
+  perform pg_catalog.set_config('request.jwt.claim.sub',root_two::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'RC463_CANONICAL_REGISTRY_HELPER_RETAINED_REVOKED_ROOT';
+  end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',root_one::text,false);
+  if not public.mnty_can_platform_admin() then
+    raise exception 'RC463_CANONICAL_REGISTRY_HELPER_REVOKED_REMAINING_ROOT';
+  end if;
+
   -- Platform membership is also deactivated so the pre-RC462 guard cannot retain authority.
   if exists(
     select 1 from public.user_memberships
@@ -184,6 +207,14 @@ begin
   if exists(select 1 from private.platform_admins where user_id=root_one)
      or not exists(select 1 from private.platform_admins where user_id=root_two) then
     raise exception 'RC463_ROOT_TRANSFER_STATE_FAILED';
+  end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',root_one::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'RC463_ROOT_TRANSFER_DID_NOT_REVOKE_HELPER_AUTHORITY';
+  end if;
+  perform pg_catalog.set_config('request.jwt.claim.sub',root_two::text,false);
+  if not public.mnty_can_platform_admin() then
+    raise exception 'RC463_ROOT_TRANSFER_REVOKED_NEW_ROOT';
   end if;
 
   rejected := false;
