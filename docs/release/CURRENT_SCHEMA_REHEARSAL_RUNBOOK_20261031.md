@@ -202,3 +202,6 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
  
 - [ ] Reconcile historical ACL provenance before drafting any grant migration: current `pg_default_acl` is not a historical snapshot; compare archived Supabase/PostgreSQL defaults and original table-creation time, inspect table ACL grantors, owner, role inheritance and all available migration/backup artifacts. Do not assume the `ad_spaces` authenticated DML entries are explicit grants merely because the present-day default ACL differs.
+
+ 
+- [ ] Extend `bookings` dependency proof beyond GitHub source: inspect external schedulers, dynamic SQL, API consumers and retention requirements. Current live catalog scan found no SQL routine/view/trigger/rule/FK/policy/publication dependency; preserve the one row until external dependencies and authoritative creation history are reviewed.
