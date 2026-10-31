@@ -1194,3 +1194,12 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Not verified:** actual HTTP request from the post-merge scheduled/push-triggered GitHub Actions monitor; GitHub notification delivery.
 - Supabase current Free project pausing guide states that a few user DB/API requests daily typically suffice and API calls can generate activity. Hourly request is an activity mitigation, not a no-pause guarantee.
 - PR #567/#568 are merged. Evidence is recorded in `docs/audits/DB_MONITOR_READ_PATH_PREFLIGHT_20261031.md`.
+
+
+## 2026-10-31 — Direct live database connection probe
+
+- Project health: `ACTIVE_HEALTHY`.
+- Read-only SQL `SELECT 1` returned successfully at `2026-10-31 01:57:01.957862+00 UTC`.
+- This is an actual database connection probe and provides a small amount of database activity. It does not verify the GitHub Actions PostgREST request or GitHub notification delivery.
+- No business rows were read and no production mutation was performed.
+- Remaining: inspect scheduled/manual monitor run; verify failure notification; create encrypted local backup and complete disposable restore rehearsal.
