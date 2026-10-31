@@ -17,6 +17,7 @@ const todo = read('docs/MASTER_PRODUCTION_TODO.md');
 assert.match(adminDashboard, /'activity_modules'/, 'The activity module editor must be reachable from the existing admin navigation.');
 assert.match(adminDashboard, /<ActivityModulesAdmin \/>/, 'The admin navigation must render the activity module editor.');
 assert.match(adminUi, /updateAdminSettings\(\{ activityModuleOverrides: nextOverrides \}\)/, 'Activity overrides must use the existing server-authoritative settings action.');
+assert.match(read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs'), /super-admin-activity-module-edit-and-save-round-trip/, 'Browser E2E must cover editing and saving a Super Admin activity module.');
 assert.match(adminUi, /ACTIVITY_SPECIFIC_OVERRIDES\[category\.id\]/, 'The admin editor must be limited to the 50 canonical activity IDs.');
 assert.doesNotMatch(adminUi, /\.from\(['"]bizcatalog_platform_settings['"]\)/, 'The browser must never write platform settings directly.');
 assert.match(adminUi, /draft\.capabilities\.length !== 3/, 'The editor must preserve exactly three reviewed capabilities per canonical activity.');
