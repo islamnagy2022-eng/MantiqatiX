@@ -5,9 +5,13 @@ on:
     paths:
       - "supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql"
       - "supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql"
+      - "supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql"
+      - "supabase/tests/rc463_platform_admin_lifecycle_*.sql"
+      - "supabase/functions/platform-admin-lifecycle/**"
       - "supabase/tests/rc449_mantigo_platform_admin_fixture.sql"
       - "supabase/tests/rc449_mantigo_platform_admin_integration.sql"
       - "scripts/validate-mantigo-platform-admin-scope.mjs"
+      - "scripts/validate-platform-admin-lifecycle.mjs"
       - ".github/workflows/mantigo-platform-admin-scope.yml"
   push:
     branches: [main]
@@ -41,8 +45,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
-      - name: Static platform-admin contract
-        run: node scripts/validate-mantigo-platform-admin-scope.mjs
+      - name: Static platform-admin contracts
+        run: |
+          node scripts/validate-mantigo-platform-admin-scope.mjs
+          node scripts/validate-platform-admin-lifecycle.mjs
       - name: Apply disposable fixture, migration, and behavioral tests
         shell: bash
         run: |
@@ -57,3 +63,17 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc462.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_platform_admin_test -v ON_ERROR_STOP=1 -f /tmp/rc449-test.sql
+
+      - name: Apply disposable RC463 lifecycle fixture and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
+          test -n "$pg_container"
+          docker exec "$pg_container" createdb -U postgres platform_admin_lifecycle_test
+          docker cp supabase/tests/rc463_platform_admin_lifecycle_fixture.sql "$pg_container:/tmp/rc463-fixture.sql"
+          docker cp supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql "$pg_container:/tmp/rc463.sql"
+          docker cp supabase/tests/rc463_platform_admin_lifecycle_integration.sql "$pg_container:/tmp/rc463-test.sql"
+          docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc463-fixture.sql
+          docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc463.sql
+          docker exec "$pg_container" psql -U postgres -d platform_admin_lifecycle_test -v ON_ERROR_STOP=1 -f /tmp/rc463-test.sql
