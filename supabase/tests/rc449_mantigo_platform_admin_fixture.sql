@@ -9,6 +9,20 @@ end;
 $roles$;
 
 create schema if not exists auth;
+create schema if not exists private;
+
+-- Model the authoritative RC113/RC115 platform-root registry in this disposable fixture.
+create table auth.users (
+  id uuid primary key
+);
+create table private.platform_admins (
+  user_id uuid primary key references auth.users(id)
+);
+alter table private.platform_admins enable row level security;
+alter table private.platform_admins force row level security;
+revoke all on schema private from public,anon,authenticated;
+revoke all on table private.platform_admins from public,anon,authenticated;
+
 create or replace function auth.uid()
 returns uuid
 language sql
