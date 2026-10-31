@@ -11,7 +11,7 @@ const dateText = (value?: string) => value ? (Number.isNaN(new Date(value).getTi
 const amountText = (value: unknown, currency: string) => Number.isFinite(Number(value)) ? new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(Number(value))+' '+currency : 'غير محدد';
 
 export const SubscriberAccountPortal: React.FC = () => {
-  const { authSession, authLoading, currentBusiness, businesses, businessProducts, adminSettings, setCurrentView, logout } = useApp();
+  const { authSession, authLoading, currentBusiness, businesses, businessProducts, adminSettings, setCurrentView, logout, switchAccountMembership, switchToPlatformAdminMode } = useApp();
   const [section,setSection] = useState<Section>('overview');
   const isAdmin = authSession.role === 'admin';
   const business = isAdmin ? undefined : currentBusiness;
@@ -19,6 +19,21 @@ export const SubscriberAccountPortal: React.FC = () => {
   const currency = adminSettings.currency || 'ج.م';
   const canMerchant = !isAdmin && canAccessMerchantDashboard(authSession);
   const canProfessional = !isAdmin && canAccessProfessionalDashboard(authSession);
+  const activeMembershipRole = String(authSession.membershipRole || '').toUpperCase();
+  const currentModeLabel = isAdmin
+    ? 'وضع إدارة المنصة'
+    : ['OWNER', 'BUSINESS_OWNER', 'ADMIN'].includes(activeMembershipRole)
+      ? authSession.membershipBranchId ? 'وضع صاحب الفرع' : 'وضع صاحب النشاط'
+      : ['EMPLOYEE', 'STAFF'].includes(activeMembershipRole)
+        ? 'وضع الموظف'
+        : 'وضع العميل';
+  const membershipRoleLabel = (role: string) => ({
+    OWNER: 'صاحب النشاط',
+    BUSINESS_OWNER: 'صاحب النشاط',
+    ADMIN: 'مدير النشاط',
+    EMPLOYEE: 'موظف',
+    STAFF: 'موظف',
+  }[role] || 'عضوية نشاط');
   const getSubscriptionStatus = (item: NonNullable<typeof business>) =>
     item.isFrozen || item.paymentStatus === 'frozen' ? 'مجمّد' :
     item.paymentStatus === 'paid' && item.paymentConfirmedByAdmin ? 'مدفوع ومؤكد' :
@@ -47,9 +62,20 @@ export const SubscriberAccountPortal: React.FC = () => {
       <header className="rounded-3xl bg-slate-950 p-5 text-white shadow-xl sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div><p className="flex items-center gap-2 text-xs font-black text-emerald-300"><UserRound className="h-4 w-4"/> مساحة الحساب والاشتراك</p><h1 className="mt-2 text-2xl font-black sm:text-3xl">حسابي واشتراكاتي</h1><p className="mt-2 text-sm text-slate-300">{authSession.subscriberName || authSession.email}</p><p className="mt-1 text-xs text-slate-400">{authSession.email} {authSession.membershipRole ? ' • '+authSession.membershipRole : ''}</p></div>
-          <div className="flex flex-wrap gap-2"><span className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-black text-white">{isAdmin ? 'وضع إدارة المنصة' : canMerchant ? 'وضع صاحب النشاط' : canProfessional ? 'وضع الموظف' : 'وضع المشترك'}</span><button onClick={()=>setCurrentView('directory')} className="rounded-xl border border-white/20 px-4 py-3 text-sm font-bold hover:bg-white/10"><Eye className="ml-1 inline h-4 w-4"/> وضع الزائر</button><button onClick={logout} className="rounded-xl border border-white/20 px-3 py-3 text-sm font-bold hover:bg-white/10"><LogOut className="ml-1 inline h-4 w-4"/> خروج</button></div>
+          <div className="flex flex-wrap gap-2"><span className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-black text-white">{currentModeLabel}</span><button onClick={()=>setCurrentView('directory')} className="rounded-xl border border-white/20 px-4 py-3 text-sm font-bold hover:bg-white/10"><Eye className="ml-1 inline h-4 w-4"/> وضع الزائر</button><button onClick={logout} className="rounded-xl border border-white/20 px-3 py-3 text-sm font-bold hover:bg-white/10"><LogOut className="ml-1 inline h-4 w-4"/> خروج</button></div>
         </div>
       </header>
+      {(authSession.isPlatformAdmin || (authSession.availableMemberships?.length || 0) > 1) && <section aria-label="أوضاع الحساب المتاحة" className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-black text-slate-900">أوضاع الحساب المتاحة</h2><p className="mt-1 text-xs text-slate-500">تظهر هنا الأدوار والعضويات النشطة التي أعادها التحقق من الحساب. تبديل الوضع لا ينشئ صلاحية جديدة.</p></div><span className="text-[11px] font-bold text-slate-500">{(authSession.availableMemberships || []).length} عضوية متاحة</span></div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {authSession.isPlatformAdmin && <button type="button" disabled={isAdmin} onClick={()=>{if(switchToPlatformAdminMode())setSection('manage');}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${isAdmin?'cursor-default border-amber-300 bg-amber-50 text-amber-900':'border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50'}`} aria-pressed={isAdmin}>إدارة المنصة</button>}
+          {(authSession.availableMemberships || []).map(mode=>{
+            const active=authSession.role==='subscriber' && authSession.activeMembershipId===mode.membershipId && authSession.businessId===mode.businessId;
+            const label=`${membershipRoleLabel(mode.role)} · ${mode.businessName}${mode.branchId?' · نطاق فرع':''}`;
+            return <button key={mode.membershipId+':'+mode.businessId} type="button" disabled={active} onClick={()=>{if(switchAccountMembership(mode.membershipId))setSection('manage');}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{label}</button>;
+          })}
+        </div>
+      </section>}
       {isAdmin && <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"><b>حساب إدارة المنصة — صلاحيات المنصة مستقلة عن عضويات التجار ولا تنتحل دور المالك.</b><button onClick={()=>setSection('manage')} className="rounded-lg bg-amber-800 px-4 py-2 font-bold text-white">فتح مركز تحكم المنصة</button></div>}
       <div className="mt-5 grid gap-5 lg:grid-cols-[235px_minmax(0,1fr)]">
         <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"><p className="px-3 py-2 text-xs font-black text-slate-400">أقسام حسابي</p><nav aria-label="أقسام حساب المشترك" className="space-y-1">{nav.map(item=><button key={item.id} onClick={()=>setSection(item.id)} aria-current={section===item.id?'page':undefined} className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right text-sm font-bold ${section===item.id?'bg-emerald-50 text-emerald-800':'text-slate-600 hover:bg-slate-50'}`}>{item.icon}{item.label}</button>)}</nav></aside>
