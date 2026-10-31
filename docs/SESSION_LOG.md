@@ -1581,3 +1581,15 @@ A separate source review found a second platform-root authorization model: the n
 - Reviewed route guards, exact membership switching, platform-admin separation and the `catalog-admin` exact membership filter. No confirmed new authorization bypass found in those source paths. Security sign-off remains OPEN because membership browser fixtures mock Edge responses and live Edge/PostgreSQL multi-membership isolation, real Google-account cross-account E2E, subscription-state role matrix and independent security review remain unverified.
 - PR #610 stays Draft. No production schema/RLS/GRANT/Auth/Edge/payment/wallet/journal mutation was performed.
 - Next: current-schema isolated rehearsal using an authorized credential-scrubbed schema capture in a disposable environment, followed by restore/rollback proof. Production migrations remain prohibited until reconciliation and approval.
+
+
+## 2026-10-31 — Production schema and ACL preflight (read-only)
+
+- Queried the live Supabase project `moyhiluyhjsujhwlyeuu` with read-only project, branch, migration, catalog, ACL and Advisor calls.
+- Reconfirmed Free plan, PostgreSQL 17.6.1.155, 308 migrations through `20261029083845`, and only the default `main` branch record (`with_data=false`). No separate disposable branch/current-schema clone is established.
+- Latest schema counts: 136 public tables, 136 with RLS, 112 FORCE RLS, 8 RLS-enabled/no-policy tables. Security Advisor lists 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions, plus leaked-password protection disabled. Performance Advisor lists 129 unindexed FKs, 375 auth/RLS init-plan findings, 73 unused indexes and 28 multiple-permissive-policy groups.
+- Reconfirmed missing RC449A/RC450 journal header/line columns, missing subscription payment-intent claim-token/encrypted checkout fields, and no service_role EXECUTE on `create_wallet_transaction_backend` / `post_financial_journal`; both inspected functions pin `search_path=public`.
+- **New P0 finding:** `public.ad_spaces` has RLS+FORCE RLS and authenticated DML table grants, plus four permissive authenticated ALL policies that only exclude anonymous sessions. This appears to expose broad signed-in DML. No real authenticated write test was run. Keep ad slot writes and booking/pricing UI blocked until a least-privilege repair passes isolated SQL/API tests.
+- Supabase organization plan is Free. Current Supabase docs state that Free projects do not receive automatic daily backups. No manual backup artifact or restore was available or created.
+- Created `docs/release/CURRENT_SCHEMA_REHEARSAL_RUNBOOK_20261031.md` on the work branch with CLI dump, credential scrubbing, local disposable restore, structural parity checks, stop conditions and cost guardrails.
+- No Production mutation, secret retrieval, schema capture, restore, project/branch/add-on creation or financial transaction occurred. Next action requires an authorized local operator to run the protected capture/restore flow; keep the global gate BLOCKED.
