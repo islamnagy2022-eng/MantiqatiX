@@ -1,4 +1,4 @@
-import type { ActivityCategory, FunctionalGroupId } from '../../types';
+import type { ActivityCategory, ActivityModuleOverrides, FunctionalGroupId } from '../../types';
 
 export interface ActivityMarketingPlan {
   objective: string;
@@ -351,24 +351,36 @@ const defaultProfile: DomainProfile = {
  * The activity ID is the durable key; group metadata is used only internally
  * to choose a safe domain template and is never shown as visitor navigation.
  */
-export function resolveActivityModuleConfig(category: ActivityCategory): ActivityModuleConfig {
+export function resolveActivityModuleConfig(category: ActivityCategory, persistedOverrides?: ActivityModuleOverrides): ActivityModuleConfig {
   const profile = domainProfiles[category.functionalGroupId] || defaultProfile;
   const name = category.name.trim();
   const override = ACTIVITY_SPECIFIC_OVERRIDES[category.id];
+  const persisted = persistedOverrides?.[category.id];
+  const marketing: ActivityMarketingPlan = {
+    ...profile.marketing,
+    ...(override ? {
+      audience: override.audience,
+      campaignIdeas: override.campaignIdeas,
+      requiredAssets: override.requiredAssets,
+    } : {}),
+    objective: `${profile.marketing.objective} ${override?.focus || ''} يركز هذا المركز على نشاط: ${name}.`.trim(),
+    positioning: override ? `${profile.marketing.positioning} ${override.focus}` : profile.marketing.positioning,
+    ...(persisted?.marketing || {}),
+  };
+  const persistedCapabilities = new Map((persisted?.capabilities || []).map((item) => [item.id, item]));
   return {
     activityId: category.id,
     activityName: name,
     operationalFocus: override?.operationalFocus || 'تُحدد الوظائف التشغيلية التفصيلية بعد مراجعة دورة العمل ومصدر البيانات والصلاحيات الخاصة بهذا النشاط.',
-    marketing: {
-      ...profile.marketing,
-      ...(override ? {
-        audience: override.audience,
-        campaignIdeas: override.campaignIdeas,
-        requiredAssets: override.requiredAssets,
-      } : {}),
-      objective: `${profile.marketing.objective} ${override?.focus || ''} يركز هذا المركز على نشاط: ${name}.`.trim(),
-      positioning: override ? `${profile.marketing.positioning} ${override.focus}` : profile.marketing.positioning,
-    },
-    capabilities: (ACTIVITY_CAPABILITY_OVERRIDES[category.id] || profile.capabilities).map((capability) => ({ ...capability, state: 'planned' as const })),
+    marketing,
+    capabilities: (ACTIVITY_CAPABILITY_OVERRIDES[category.id] || profile.capabilities).map((capability) => {
+      const saved = persistedCapabilities.get(capability.id);
+      return {
+        ...capability,
+        title: saved?.title || capability.title,
+        description: saved?.description || capability.description,
+        state: 'planned' as const,
+      };
+    }),
   };
 }
