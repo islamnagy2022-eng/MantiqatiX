@@ -1610,3 +1610,14 @@ A separate source review found a second platform-root authorization model: the n
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — SESSION UPDATE — Activity Modules merged and main web deployment verified
+
+- Rechecked GitHub after the earlier Draft checkpoint: PR [#608](https://github.com/islamnagy2022-eng/MantiqatiX/pull/608) is **MERGED** at `cd9929e337fce58d4c20dfbb94febfd7e4f36291`; current main points to the same commit.
+- Main web deployment [41213620494](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41213620494) completed SUCCESS. Primary Catalog Frontend Validation [41213620452](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41213620452), Backend-only Module Boundary [41214036657](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41214036657), Module Professionalization [41214036446](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41214036446), and MantiGO privacy [41214036075](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41214036075) completed SUCCESS.
+- Public navigation now resolves activity → specialty → real directory listings; each canonical activity opens a dedicated refreshable module. Verified-first ordering, unverified markers/counts, legacy compatibility, and the latest consent-first geographic discovery code were retained.
+- Marketing profiles are planning guidance; all unintegrated operational capabilities remain planned. No campaign execution or SMM enablement.
+- Edge Function source changes are merged but not deployed. Production Super Admin save/read/reset and public visitor override reload remain NOT VERIFIED. The settings upsert and audit insert are not atomic; transactional redesign and isolated negative tests remain open.
+- No production migration, data/grant/RLS/Auth mutation, Edge deployment, payment, advertising spend, or financial action was performed. Global Production Gate remains BLOCKED / NOT CERTIFIED.
+- Next: refresh P0 production blocker evidence; then address atomic activity-module settings/audit with isolated tests, followed by deployment only under explicit authorization and successful safety review.
