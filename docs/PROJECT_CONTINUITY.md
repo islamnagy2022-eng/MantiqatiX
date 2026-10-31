@@ -1157,3 +1157,9 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - The exact supplied Google Play image is selected only for unverified doctor listings without a saved owner/admin/AI-selected image; pharmacy fallback logic is preserved.
 - Exact-head CI and deployed-origin verification remain pending. No production data/schema/Edge Function changes or deployment are claimed.
 - Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
+
+
+## Request continuation — CAT-DIRECTORY-8COL-20261101
+
+- Restored the requested compact eight-column layout for activity cards inside a selected group, with total/verified/unverified counts retained.
+- Group-folder layout and unified search result cards are unchanged. Exact-head CI and deployed-origin checks pending; included in PR #628.
