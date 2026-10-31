@@ -1548,3 +1548,12 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Exact-head CI and 390px browser validation must pass before merge.
 - [ ] No Production deployment or database/Auth/RLS/Edge/payment mutation is authorized by this frontend change.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-11-01 — استكمال استعادة المجموعات ومراجعة صفحة النشاط
+
+- [x] إعادة فحص `main` الحالي: يحتوي `DirectoryView.tsx` على طبقة المجموعات العشر، وزر الرجوع إلى كل المجموعات، ثم الأنشطة التابعة للمجموعة، وعدادات إجمالي/موثق/غير موثق. الاستعادة موجودة في المصدر الحالي ولا تتطلب إعادة تنفيذها من الصفر.
+- [x] مراجعة PR #624: اختبارات exact-head نجحت (TypeScript، canonical taxonomy، بناء الكتالوج، isolated RBAC PostgreSQL، browser E2E). لم يحدث نشر من حدث PR؛ وظيفة deploy كانت SKIPPED.
+- [!] لا تدمج PR #624 قبل إعادة تأسيسه فوق أحدث `main`؛ نسخة `DirectoryView.tsx` على head الخاص به لا تحتوي `selectedGroupFilter` أو بطاقات المجموعات، وبالتالي لا تحقق طلب المستخدم الحالي بالحفاظ على المجموعات. المطلوب نقل إصلاح محتوى صفحة النشاط واختباراته فقط مع إبقاء تسلسل المجموعة → النشاط → التخصص.
+- [ ] إعادة تأسيس إصلاح صفحة النشاط فوق `main` الحالي، ثم إعادة تشغيل exact-head CI وE2E على 390/768/1440px.
+- [ ] بعد الدمج فقط: تشغيل مسار Pages المعتمد، والتأكد من أن النشر الفعلي اكتمل، ثم اختبار الموقع المنشور للمجموعات والأنشطة والتخصصات. لا تعتبر نجاح CI على PR دليلاً على النشر.
+- [ ] لا تغييرات قاعدة بيانات أو Auth/RLS أو Edge Functions أو مدفوعات ضمن هذا العمل.
