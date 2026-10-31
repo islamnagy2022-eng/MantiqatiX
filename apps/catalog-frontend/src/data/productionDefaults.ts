@@ -192,8 +192,6 @@ export function resolveCanonicalGroupId(categoryName: string, legacyGroupId?: st
 
 /** Keep historical/custom records intact, but expose only the curated 10x5 directory taxonomy. */
 export function normalizeCanonicalTaxonomySettings(saved?: Partial<AdminSettings> | null): Pick<AdminSettings, 'functionalGroups' | 'categories' | 'defaultCategories'> {
-  const curatedById = new Map(DEFAULT_CATEGORIES.map((category) => [category.id, category]));
-  const curatedByName = new Map(DEFAULT_CATEGORIES.map((category) => [normalizeTaxonomyName(category.name), category]));
   const customByGroup = new Map<string, ActivityCategory[]>();
   const savedCategories = Array.isArray(saved?.categories) ? saved.categories as ActivityCategory[] : [];
   savedCategories.forEach((entry) => {
