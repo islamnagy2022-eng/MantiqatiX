@@ -14,6 +14,7 @@ const publicDirectory = read('supabase/functions/public-catalog-directory/index.
 const publicCatalog = read('supabase/functions/public-catalog/index.ts');
 const directoryListings = read('apps/catalog-frontend/src/lib/directoryListings.ts');
 const directoryListingsAdmin = read('apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx');
+const directoryListingsView = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
 const directoryListingsEdge = read('supabase/functions/directory-listings/index.ts');
 
 const expectedGroups = [
@@ -91,6 +92,11 @@ for (const legacyId of observedLegacyCategoryIds) {
 }
 assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
 assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
+assert.ok(directoryListingsView.includes('normalizeSpecialty'), 'Legacy specialty labels must match canonical specialty filters.');
+for (const legacySpecialty of ['طبيب اطفال', 'طبيب نساء وتوليد', 'طبيب باطنه', 'مراكز وعيادات اسنان', 'معامل تحاليل', 'علاج طبيعي']) {
+  assert.ok(directoryListingsView.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
+}
+assert.ok(defaults.includes('غدد صماء وسكر') && defaults.includes('جراحة تجميل') && defaults.includes('صدر وحساسية'), 'Medical specialty coverage must include observed live specializations without creating peer activity categories.');
 assert.ok(directoryListingsAdmin.includes('cat_medical_health_medical_practices'), 'New directory entries must default to the canonical medical activity category.');
 assert.ok(directoryListingsEdge.includes('const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","auto_transport","real_estate","education_training","technology_communications","professional_services","agriculture_animals"])'), 'Directory listing writes must accept only canonical group IDs.');
 
