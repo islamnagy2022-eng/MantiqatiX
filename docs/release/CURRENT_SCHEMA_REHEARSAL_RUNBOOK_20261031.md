@@ -50,7 +50,7 @@ No automatic backup, manual dump artifact, or successful restore artifact was es
 
 Read-only row counts at the same snapshot: `wallet_accounts=0`, `wallet_transactions=0`, `journal_entries=0`, `journal_entry_lines=0`, `subscription_payment_intents=0`, `ad_spaces=2`. These counts do not authorize test transactions or prove functional readiness.
 
-### Advertising authorization — P0 review item
+### Advertising authorization — P2 least-privilege ACL review item
 
 The live `public.ad_spaces` table has RLS and FORCE RLS enabled. A fresh policy snapshot shows one permissive authenticated SELECT policy and four generic ALL guards that are RESTRICTIVE; there are zero authenticated permissive write policies. ACL inspection still shows authenticated SELECT/INSERT/UPDATE/DELETE/MAINTAIN, anon MAINTAIN only, and service_role table privileges. The current RLS policy set denies authenticated DML by default; no real-user write probe has been run.
 
