@@ -16,6 +16,8 @@ import {
   ExternalLink,
   Layers,
   Megaphone,
+  House,
+  Search,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -271,7 +273,21 @@ export const Navbar: React.FC = () => {
           {/* Bottom Line: Accessible View Mode Tabs */}
           <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
             <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
-              {/* Directory Home Tab */}
+              {/* Marketplace home */}
+              <button
+                onClick={() => setCurrentView('home')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  currentView === 'home'
+                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                aria-current={currentView === 'home' ? 'page' : undefined}
+              >
+                <House className="w-3.5 h-3.5" />
+                <span>الرئيسية</span>
+              </button>
+
+              {/* Dedicated search directory */}
               <button
                 onClick={() => setCurrentView('directory')}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
@@ -279,9 +295,10 @@ export const Navbar: React.FC = () => {
                     ? 'bg-white text-emerald-700 font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
+                aria-current={currentView === 'directory' ? 'page' : undefined}
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>الرئيسية والدليل الشامل</span>
+                <Search className="w-3.5 h-3.5" />
+                <span>بحث الأنشطة والخدمات</span>
               </button>
 
               {/* Public storefront preview is a subscriber/admin navigation item.
