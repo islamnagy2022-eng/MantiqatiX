@@ -2790,3 +2790,16 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] PR #508/#535/#551 have successful listed head workflow runs but GitHub merge rejects due conflicts with main. Reconcile onto current main and rerun exact-head CI.
 - [ ] PR #540 remains draft, 77 commits behind main; no RC459–RC461 Production rollout.
 - No Production mutation. Overall gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — RC441/RC449 source equivalence and dependent-caller review
+
+- [x] Compared the two current-main migration files line-by-line. RC441 and RC449 are substantively identical (same strict platform-admin helper, same four MantiGO RPC definitions and grants); only the RC label in comments and terminal newline differ.
+- [x] Confirmed the original RC258 helper defect: nullable tenant/business/branch arguments allow all active memberships into `mnty_active_membership`, while `mnty_can('admin')` grants tenant OWNER the admin permission. New helper requires active platform SUPER_ADMIN + `MNTY-PLATFORM` + `scope=PLATFORM` + `full_control=true`.
+- [x] Identified the four other helper-dependent SECURITY DEFINER functions: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, `set_mantigo_financial_config_backend`. Their authorization semantics are corrected through the shared helper; direct isolated invocation tests remain a follow-up for stronger end-to-end evidence.
+- [x] RC449 integration test also reproduces `digital_pages_admin_manage` and verifies tenant OWNER cannot SELECT/INSERT/UPDATE/DELETE while platform SUPER_ADMIN can.
+- [ ] Preserve both historical migration files. During release rehearsal, execute both in timestamp order and prove the repeated idempotent definitions produce no schema/ACL drift. Do not rewrite historical migrations or infer live state from source.
+- [x] Fresh Production migration ledger remains 308 records, latest `20261029083845`; RC441 and RC449 exact IDs remain absent.
+- [x] Security Advisor refresh 2026-10-31 04:39:16 UTC: 8 no-policy RLS tables; 3 anon SECURITY DEFINER; 67 authenticated SECURITY DEFINER; 90 anonymous-policy findings; leaked-password protection disabled.
+- [x] PR #583 merged as `526fd5308bb2017f2b4a83b33c8b029b9fbbc275` after exact-head CI success; docs-only.
+- [ ] P0 release gate remains BLOCKED pending full current-schema rehearsal, backup/restore, adversarial authorization and explicit rollout approval. No Production changes were made.
