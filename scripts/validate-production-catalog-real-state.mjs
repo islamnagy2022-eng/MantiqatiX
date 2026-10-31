@@ -57,6 +57,9 @@ assert.match(productionMapper, /isNeutralPlaceholderUrl/, 'neutral placeholder i
 assert.ok(productionMapper.includes('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSe8i4AsKE3GHO82zlHDPbKEE4HLFtfcZ-jhNqF9eHI6w&s=10'), 'unverified pharmacies must use the exact owner-provided shared fallback image');
 assert.match(productionMapper, /isPharmacy && !isVerified && !hasOwnerSelectedLogo/, 'pharmacy fallback must be limited to unverified pharmacies without an owner-selected logo');
 assert.match(productionMapper, /logoUrl: pharmacyFallbackLogo \\|\\|/, 'owner/admin-selected pharmacy logos must take precedence over the fallback');
+assert.ok(productionMapper.includes('https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI'), 'unverified doctors must use the exact owner-provided shared fallback image');
+assert.match(productionMapper, /isDoctor && !isVerified && !hasOwnerSelectedLogo/, 'doctor fallback must be limited to unverified doctors without an owner-selected logo');
+assert.match(productionMapper, /logoUrl: doctorFallbackLogo \\|\\| pharmacyFallbackLogo/, 'custom doctor logos and all pharmacy fallback behavior must be preserved');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
