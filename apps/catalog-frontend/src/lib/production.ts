@@ -1,6 +1,6 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
-import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId } from '../data/productionDefaults';
+import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
@@ -180,9 +180,17 @@ export function mapBusiness(raw: any, provider: any): Business {
   const created = raw.createdAt || raw.created_at || new Date().toISOString();
   const id = String(raw.id || raw.businessId || '');
   const name = String(raw.name || provider?.name || provider?.name_ar || 'نشاط تجاري');
-  const functionalGroupId = groupFromCategory(category, String(raw.activityGroupCode || raw.activity_group_code || raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || ''));
-  const activityCategoryCode = String(raw.activityCategoryCode || raw.activity_category_code || raw.settings?.activity_category_code || '').trim();
-  const canonicalCategoryId = activityCategoryCode ? `cat_${functionalGroupId}_${activityCategoryCode}` : '';
+  const activityGroupCode = String(
+    raw.activityGroupCode || raw.activity_group_code || raw.functionalGroupId || raw.functional_group_id ||
+    raw.settings?.activity_group_code || raw.settings?.functional_group_id || raw.settings?.functionalGroupId ||
+    raw.settings?.taxonomy_group_code || raw.settings?.bizcatalog?.activity_group_code || '',
+  ).trim();
+  const functionalGroupId = groupFromCategory(category, activityGroupCode);
+  const activityCategoryCode = String(
+    raw.activityCategoryCode || raw.activity_category_code || raw.settings?.activity_category_code ||
+    raw.settings?.activityCategoryCode || raw.settings?.bizcatalog?.activity_category_code || '',
+  ).trim();
+  const canonicalCategoryId = resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode);
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
   const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
@@ -192,8 +200,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id || DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id,
     functionalGroupId,
-    categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
-    activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || '') || undefined,
+    categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || raw.settings?.bizcatalog?.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
+    activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || raw.settings?.bizcatalog?.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
