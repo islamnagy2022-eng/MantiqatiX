@@ -14,6 +14,42 @@
 
 
 
+## CAT-ACTIVITY-MODULES-20261031-01 — Direct activity pages and specialized activity modules
+**Date:** 2026-10-31  
+**Status:** IN PROGRESS — frontend foundation implemented on `feat/direct-activity-specialty-directory-v2-20261031`; exact-head CI and deployed-origin verification NOT VERIFIED.  
+**Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599).  
+**Architecture:** [ACTIVITY_MODULES_ARCHITECTURE_20261031.md](docs/specifications/ACTIVITY_MODULES_ARCHITECTURE_20261031.md).
+
+### Agreed visitor model
+- [x] Customer-facing hierarchy changed to **activity → specialty → business/service**. No functional-group or standalone-profession navigation layer in the public directory.
+- [x] Each canonical activity opens its own dedicated, refreshable module page through `?activity=<activity-category-id>`.
+- [x] The activity module foundation includes overview, specialty, domain-aware marketing guidance, and domain-operations sections.
+- [x] Specialty selection returns to the directory with a visible and reversible activity/specialty filter.
+- [x] Existing confirmed/unconfirmed counters, verified-first ordering, geography filters, and legacy internal group identifiers are preserved in source.
+- [x] Public activity cards no longer show functional-group labels. Functional-group IDs remain internal compatibility metadata; do not remove/migrate them without a separate reviewed schema/API compatibility plan.
+
+### Implementation and evidence
+- [x] Added `apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx`.
+- [x] Updated `apps/catalog-frontend/src/components/DirectoryView.tsx` for flat activity discovery and dedicated module routes.
+- [x] Updated `apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs` for route refresh, back-navigation, specialty filtering and clear-filter behavior.
+- [x] Updated `scripts/validate-canonical-activity-taxonomy.mjs` to enforce the new visitor-facing contract while retaining internal taxonomy compatibility checks.
+- [ ] Run exact-head TypeScript/lint, build, canonical taxonomy validation, and browser E2E.
+- [ ] Verify public deployed-origin navigation and responsive behavior after merge/deploy; source presence is not deployment evidence.
+
+### Remaining module work
+- [ ] Build the typed activity-module configuration registry keyed by canonical activity ID, including domain identity, capabilities, templates, and enabled routes.
+- [ ] Complete the working Marketing & Advertising workspace per activity: profile/service scope, content calendar, campaigns, approval/publish, channel integration, budgets, leads and reporting, backed only by reviewed server-side APIs/RPCs and tenant/business permissions.
+- [ ] Existing foundation marketing panel is **planning guidance only**. It does not create/publish campaigns, spend ad budgets, or show measured campaign analytics.
+- [ ] Keep SMM separate and deferred. Do not reactivate its retired customer UI or bypass its production/deferred gates.
+- [ ] Implement domain-specific operational workflows only after each activity's source-of-truth API, RLS, RBAC, audit, idempotency and negative cross-tenant tests are verified.
+- [ ] Ensure analytics use authoritative records only; no placeholder/fabricated metrics.
+- [ ] Add admin controls to configure activity modules without changing existing business/category identities or breaking legacy records.
+- [ ] Test role × tenant × business × branch permissions, mobile/tablet/desktop, accessibility, loading/empty/error states and regression.
+
+### Safety / release boundary
+- Frontend and test/documentation source only. No production DB migration, schema/data write, grant, RLS/Auth change, Edge deployment, payment, wallet, commission, financial operation, or advertising spend is authorized by this request.
+- Preserve `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; catalog UI delivery does not close any independent production blocker.
+
 # CURRENT VERIFIED BASELINE — 2026-10-31 02:30 UTC (PR #576 / main)
 
 - Current main commit at this checkpoint: `0236118cd93d6e8330296da4442c2b07c93df211`.
