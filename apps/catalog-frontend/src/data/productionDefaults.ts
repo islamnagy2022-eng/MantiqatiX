@@ -94,7 +94,7 @@ const CATEGORY_SEEDS: CategorySeed[] = [
   s('agriculture_animals','farms_agriculture','activity','زراعة ومزارع','الإنتاج الزراعي ومستلزماته.',['محاصيل','مشاتل','بذور وأسمدة','ري زراعي']),
   s('agriculture_animals','veterinary','activity','خدمات بيطرية','رعاية وعلاج الحيوانات.',['عيادة بيطرية','صيدلية بيطرية','تحصينات']),
   s('agriculture_animals','animal_production','activity','ثروة حيوانية وإنتاج غذائي','تربية وإنتاج الحيوانات والدواجن.',['مزارع دواجن','مزارع مواشي','أعلاف']),
-  s('agriculture_animals','factories','activity','مصانع وإنتاج','منشآت التصنيع والإنتاج.',['صناعات غذائية','تصنيع معدني','تعبئة وتغليف']),
+  s('agriculture_animals','factories','activity','مصانع وإنتاج','منشآت التصنيع والإنتاج.',['صناعات غذائية','صناعات بلاستيكية','تصنيع معدني','تعبئة وتغليف']),
   s('agriculture_animals','workshops','activity','ورش وحرف إنتاجية','الورش والحرف والصناعات الصغيرة.',['حدادة ولحام','خراطة','نجارة إنتاجية','صيانة صناعية']),
 ];
 
@@ -109,6 +109,67 @@ export const DEFAULT_CATEGORIES: ActivityCategory[] = CATEGORY_SEEDS.map((seed) 
 
 const normalizeTaxonomyName = (value: unknown) =>
   String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ar');
+
+function normalizeSpecialtyKey(value: string): string {
+  return String(value || '').toLocaleLowerCase('ar')
+    .normalize('NFKC')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/[ً-ْـ]/g, '')
+    .split(/\\s+/)
+    .map((word) => word.startsWith('ال') && word.length > 3 ? word.slice(2) : word)
+    .join(' ')
+    .trim();
+}
+
+const LEGACY_SPECIALTY_ALIASES: Record<string, string> = {
+  'طبيب اطفال': 'أطفال', 'طب الاطفال': 'أطفال',
+  'طبيب نساء وتوليد': 'نساء وتوليد',
+  'طبيب جراحه عامه': 'جراحة عامة', 'طبيب باطنه': 'باطنة',
+  'امراض باطنه': 'باطنة', 'باطنه ومناظير وغدد وسكر': 'باطنة',
+  'طبيب عظام': 'عظام', 'طبيب صدر': 'صدر وحساسية',
+  'صدر وحساسيه ومناعه': 'صدر وحساسية', 'طبيب عيون': 'عيون',
+  'طب وجراحه العيون': 'عيون', 'طبيب مسالك بوليه': 'مسالك بولية',
+  'طبيب مخ واعصاب': 'مخ وأعصاب', 'مخ واعصاب وعمود فقري': 'مخ وأعصاب',
+  'طبيب انف واذن وحنجره': 'أنف وأذن', 'انف واذن وحنجره': 'أنف وأذن',
+  'طبيب جراحه تجميل': 'جراحة تجميل', 'طبيب اورام': 'أورام',
+  'اورام وعلاج كيميائي': 'أورام', 'غدد صماء وسكر': 'غدد صماء وسكر',
+  'سكر وغدد صماء': 'غدد صماء وسكر', 'اسنان عام': 'أسنان',
+  'طب الاسنان': 'أسنان', 'مراكز وعيادات اسنان': 'أسنان',
+  'معامل تحاليل': 'تحاليل طبية', 'اشعه تشخيصيه': 'أشعة',
+  'اشعه وتحاليل': 'أشعة', 'صيدليات عامه': 'صيدلية عامة',
+  'صيدليات': 'صيدلية عامة', 'صيدليه': 'صيدلية عامة',
+  'مستشفيات': 'مستشفى عام', 'مستشفى': 'مستشفى عام',
+  'مركز طبي': 'مركز طبي متعدد التخصصات', 'مستوصف طبي': 'مركز طبي متعدد التخصصات',
+  'مراكز علاج طبيعي وتأهيل': 'علاج طبيعي وتأهيل',
+  'علاج طبيعي': 'علاج طبيعي وتأهيل', 'علاج طبيعي وتخسيس': 'علاج طبيعي وتأهيل',
+  'اكلات شرقيه': 'مأكولات شرقية', 'برجر': 'وجبات سريعة',
+  'تصنيع ادوات بلاستيكيه منزليه': 'صناعات بلاستيكية',
+};
+
+const LEGACY_SPECIALTY_ALIAS_MAP = new Map(
+  Object.entries(LEGACY_SPECIALTY_ALIASES).map(([key, value]) => [normalizeSpecialtyKey(key), normalizeSpecialtyKey(value)]),
+);
+
+export function resolveCanonicalSpecialty(value: string, categoryId?: string): string {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const normalized = normalizeSpecialtyKey(raw);
+  const directAlias = LEGACY_SPECIALTY_ALIAS_MAP.get(normalized);
+  if (directAlias) return directAlias;
+  const withoutProfessionPrefix = normalized.replace(/^(طبيب|دكتور|دكتوره|طبيبه|طب)\\s+/, '');
+  const prefixAlias = LEGACY_SPECIALTY_ALIAS_MAP.get(withoutProfessionPrefix);
+  if (prefixAlias) return prefixAlias;
+  const category = DEFAULT_CATEGORIES.find((item) => item.id === categoryId);
+  const candidates = category?.specialties || [];
+  const match = candidates.find((candidate) => {
+    const candidateKey = normalizeSpecialtyKey(candidate);
+    return candidateKey === withoutProfessionPrefix ||
+      (candidateKey.length >= 4 && withoutProfessionPrefix.includes(candidateKey)) ||
+      (withoutProfessionPrefix.length >= 5 && candidateKey.includes(withoutProfessionPrefix));
+  });
+  return match ? normalizeSpecialtyKey(match) : withoutProfessionPrefix;
+}
 
 const LEGACY_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
   dining: 'food_grocery', food_grocery: 'food_grocery',
