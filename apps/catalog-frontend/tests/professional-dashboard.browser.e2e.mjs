@@ -407,6 +407,11 @@ const results = [];
     await page.getByTestId('home-search-button').click();
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'search action must open the dedicated directory route');
+    const locationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+    if (await locationDialog.isVisible().catch(() => false)) {
+      await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+      await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+    }
     await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 10000 });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'home navigation must return to the canonical root route');
