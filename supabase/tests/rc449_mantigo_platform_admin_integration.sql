@@ -246,4 +246,81 @@ begin
 end;
 $contract$;
 
+
+-- Verify the same guard protects the live digital_pages_admin_manage RLS policy.
+-- The table is granted to authenticated; only the policy should separate tenant
+-- owners from the platform administrator.
+insert into public.digital_pages(id,created_by,title)
+values ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000041','tenant owner page');
+
+select pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000041',false);
+set role authenticated;
+do $tenant_rls$
+declare
+  v_count integer;
+  v_rows integer;
+  v_rejected boolean:=false;
+begin
+  select count(*) into v_count from public.digital_pages;
+  if v_count<>0 then
+    raise exception 'tenant OWNER read global digital_pages rows through platform-admin RLS';
+  end if;
+
+  update public.digital_pages set title='unauthorized update';
+  get diagnostics v_rows=row_count;
+  if v_rows<>0 then
+    raise exception 'tenant OWNER updated global digital_pages through platform-admin RLS';
+  end if;
+
+  delete from public.digital_pages;
+  get diagnostics v_rows=row_count;
+  if v_rows<>0 then
+    raise exception 'tenant OWNER deleted global digital_pages through platform-admin RLS';
+  end if;
+
+  begin
+    insert into public.digital_pages(id,created_by,title)
+    values ('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000041','unauthorized page');
+  exception when insufficient_privilege then
+    v_rejected:=true;
+  end;
+  if not v_rejected then
+    raise exception 'tenant OWNER inserted global digital_pages through platform-admin RLS';
+  end if;
+end;
+$tenant_rls$;
+reset role;
+
+select pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000044',false);
+set role authenticated;
+do $platform_rls$
+declare
+  v_count integer;
+  v_rows integer;
+begin
+  select count(*) into v_count from public.digital_pages;
+  if v_count<>1 then
+    raise exception 'platform SUPER_ADMIN could not read global digital_pages';
+  end if;
+
+  update public.digital_pages set title='platform admin update';
+  get diagnostics v_rows=row_count;
+  if v_rows<>1 then
+    raise exception 'platform SUPER_ADMIN could not update global digital_pages';
+  end if;
+
+  insert into public.digital_pages(id,created_by,title)
+  values ('20000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000044','platform page');
+
+  delete from public.digital_pages
+  where id='20000000-0000-4000-8000-000000000003';
+  get diagnostics v_rows=row_count;
+  if v_rows<>1 then
+    raise exception 'platform SUPER_ADMIN could not delete global digital_pages';
+  end if;
+end;
+$platform_rls$;
+reset role;
+
+
 select 'RC449 platform-admin scope integration: PASS' as result;
