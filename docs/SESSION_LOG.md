@@ -1639,3 +1639,11 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Confirmed all 136 public tables are owned by postgres. The postgres default ACL for new public tables includes MAINTAIN/REFERENCES/TRIGGER/TRUNCATE for anon/authenticated/service_role but not SELECT/INSERT/UPDATE/DELETE.
 - ad_spaces authenticated INSERT/UPDATE/DELETE are direct grants beyond that default; source grant statement not found. supabase_admin has separate broad default ACLs for future objects, but no current public table is owned by supabase_admin. No defaults changed.
 - The only two public relations found with authenticated DML ACLs but no permissive authenticated DML policy are ad_spaces and bookings. Both are RLS + FORCE RLS and deny ordinary authenticated writes by current policies. See #611 (P2) and #613 (P3).
+
+ 
+## 2026-10-31 — Historical advertisements FK provenance check
+
+- Read live `supabase_migrations.schema_migrations` statements for all versions mentioning `advertisements`.
+- The ledger's `20260808000000_phase04_enterprise_schema_and_rls` SQL includes a `CREATE TABLE IF NOT EXISTS advertisements` with `business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE`. The original SQL file is absent from the tracked GitHub migration tree (also noted in `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`).
+- No explicit later DROP CONSTRAINT or ADD CONSTRAINT statement was found in the recorded migration set, but the current live physical table has no business_id FK. Since CREATE TABLE IF NOT EXISTS skips all definition changes when a table already exists, the cause may be a pre-existing table at migration time or an out-of-band schema divergence. Cause is not proven.
+- Updated Issue #612 with this reconciliation caveat. Do not reconstruct historical migration or patch Production until an authoritative schema baseline/current-schema isolated restore resolves the discrepancy.
