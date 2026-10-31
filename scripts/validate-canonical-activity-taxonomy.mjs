@@ -183,7 +183,6 @@ for (const activityId of canonicalActivityIds) {
   assert.ok(capabilityLine, 'Missing activity-specific capability definitions for ' + activityId + '.');
   assert.equal(capabilityLine.split('{ id:').length - 1, 3, 'Each activity must define exactly three reviewed operational capabilities: ' + activityId + '.');
 }
-}
 assert.ok(activityModuleRegistry.includes("state: 'planned' as const"), 'Activity-specific capabilities must default to planned until backed by authorized workflows.');
 assert.ok(activityModuleRegistry.includes("ACTIVITY_CAPABILITY_OVERRIDES[category.id] || profile.capabilities"), 'Activity resolver must prefer activity-specific capability definitions.');
 assert.ok(activityModuleRegistry.includes('operationalFocus: override?.operationalFocus'), 'Activity modules must expose an activity-specific operating scope.');
