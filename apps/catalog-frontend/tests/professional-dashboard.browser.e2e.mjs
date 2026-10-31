@@ -140,8 +140,13 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
   await context.addInitScript(({ key, value, geoKey, geoPreference }) => {
     localStorage.removeItem(key);
     if (value) localStorage.setItem(key, value);
-    localStorage.removeItem(geoKey);
-    if (geoPreference) localStorage.setItem(geoKey, JSON.stringify(geoPreference));
+    // Initialize geographic test state once per browser context, not on every
+    // navigation/reload; the GPS test must verify the app's own persisted choice.
+    if (!sessionStorage.getItem('__mantiqatix_e2e_geo_initialized')) {
+      localStorage.removeItem(geoKey);
+      if (geoPreference) localStorage.setItem(geoKey, JSON.stringify(geoPreference));
+      sessionStorage.setItem('__mantiqatix_e2e_geo_initialized', '1');
+    }
   }, {
     key: storageKey,
     value: session ? JSON.stringify(session) : null,
