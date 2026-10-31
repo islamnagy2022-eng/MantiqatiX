@@ -55,13 +55,39 @@ assert.ok(defaults.includes('BACKEND_CODE_GROUP_MAP'), 'Existing backend categor
 assert.ok(defaults.includes('LEGACY_DIRECTORY_CATEGORY_MAP'), 'Legacy directory category IDs must resolve to canonical category IDs.');
 assert.ok(defaults.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing category IDs must normalize at the read boundary.');
 assert.ok(defaults.includes('resolveCanonicalActivityCategoryId'), 'Legacy business activity codes must resolve to canonical category IDs.');
-for (const legacyId of [
-  'cat_medical_health_doctor', 'cat_medical_health_dentist', 'cat_medical_health_labs',
-  'cat_construction_decor_building_materials', 'cat_tourism_events_travel_agencies',
-  'cat_sports_fitness_gyms', 'cat_finance_insurance_banks',
-  'cat_industry_workshops_plastic_factories', 'cat_public_community_office_services',
-]) {
-  assert.ok(defaults.includes(legacyId), `Missing compatibility mapping for ${legacyId}.`);
+const observedLegacyGroups = [
+  'agriculture_animals','auto_transport','construction_decor','education_training',
+  'fashion_beauty','finance_insurance','food_grocery','home_maintenance',
+  'industry_workshops','marketing_media','medical_health','professional_services',
+  'public_community','real_estate','sports_fitness','technology_communications',
+  'tourism_events','trade_ecommerce',
+];
+for (const legacyGroupId of observedLegacyGroups) {
+  assert.ok(defaults.includes(`${legacyGroupId}:`), `Missing legacy group compatibility for ${legacyGroupId}.`);
+}
+
+const observedLegacyCategoryIds = [
+  'cat_agriculture_animals_agri_supplies','cat_agriculture_animals_animal_feed','cat_agriculture_animals_veterinary_clinics',
+  'cat_auto_transport_auto_maintenance','cat_auto_transport_auto_parts',
+  'cat_construction_decor_aluminum_glass','cat_construction_decor_building_materials','cat_construction_decor_contractors','cat_construction_decor_finishing_companies',
+  'cat_education_training_nurseries','cat_education_training_schools','cat_education_training_tutoring_centers','cat_education_training_vocational_training',
+  'cat_fashion_beauty_beauty_centers','cat_fashion_beauty_beauty_products','cat_fashion_beauty_clothing_stores','cat_fashion_beauty_jewelry_stores','cat_fashion_beauty_salons','cat_fashion_beauty_shoes_bags',
+  'cat_finance_insurance_banks','cat_finance_insurance_insurance_companies',
+  'cat_food_grocery_bakeries','cat_food_grocery_cafes','cat_food_grocery_food_suppliers','cat_food_grocery_fresh_food','cat_food_grocery_restaurants','cat_food_grocery_specialty_food','cat_food_grocery_supermarkets','cat_food_grocery_sweets',
+  'cat_home_maintenance_furniture','cat_home_maintenance_home_appliances','cat_home_maintenance_home_textiles','cat_home_maintenance_homewares','cat_home_maintenance_pest_control',
+  'cat_industry_workshops_food_factories','cat_industry_workshops_garment_factories','cat_industry_workshops_metal_workshops',
+  'cat_marketing_media_ad_services','cat_marketing_media_marketing_agencies','cat_marketing_media_photo_video',
+  'cat_medical_health_clinics','cat_medical_health_dental_centers','cat_medical_health_dentist','cat_medical_health_doctor','cat_medical_health_hospitals','cat_medical_health_labs','cat_medical_health_medical_centers','cat_medical_health_pharmacies','cat_medical_health_physio_centers','cat_medical_health_physiotherapist','cat_medical_health_radiology_specialist',
+  'cat_professional_services_accounting_offices','cat_professional_services_law_offices',
+  'cat_public_community_government_services','cat_public_community_office_services','cat_public_community_social_organizations',
+  'cat_real_estate_real_estate_agent','cat_sports_fitness_gyms','cat_sports_fitness_sports_fields',
+  'cat_technology_communications_computer_repair','cat_technology_communications_telecom_retail',
+  'cat_tourism_events_event_halls','cat_tourism_events_travel_agencies','cat_trade_ecommerce_stationery_books',
+  'cat_construction_decor_interior_design','cat_construction_decor_sanitary_ware','cat_industry_workshops_plastic_factories',
+];
+assert.equal(observedLegacyCategoryIds.length, 67, 'The live legacy inventory contract must cover all 67 distinct category/activity IDs.');
+for (const legacyId of observedLegacyCategoryIds) {
+  assert.ok(defaults.includes(`${legacyId}:`), `Missing compatibility mapping for ${legacyId}.`);
 }
 assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
 assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
