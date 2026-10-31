@@ -153,9 +153,9 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     geoKey: 'mantiqatix.geo-discovery.v1',
     // Non-GPS scenarios begin with the Egypt-wide manual fallback. GPS scenarios
     // opt out so they can verify the first-visit consent flow independently.
-    geoPreference: options.geoFirstVisit ? null : {
+    geoPreference: options.geoFirstVisit ? null : (options.geoPreference || {
       completed: true, mode: 'manual', governorate: 'all', markaz: 'all', village: 'all', area: 'all',
-    },
+    }),
   });
 
   const rpcObservation = { scopedBranchId: undefined };
@@ -849,8 +849,21 @@ try {
       phone: null,
       secondary_phone: null,
     };
+    const outsideGeo = {
+      ...withPhone,
+      id: 'listing-module-outside-geo-0003',
+      slug: 'clinic-module-outside-geo',
+      display_name: 'عيادة خارج النطاق الجغرافي',
+      governorate: 'القاهرة',
+      district: 'مدينة نصر',
+      village: 'الحي السابع',
+    };
     const { context, page } = await newScenario(browser, null, [], {
-      directoryListingsState: { listings: [withPhone, withoutPhone] },
+      geoPreference: {
+        completed: true, mode: 'manual', governorate: 'المنوفية',
+        markaz: 'بركة السبع', village: 'قرية الاختبار', area: 'all',
+      },
+      directoryListingsState: { listings: [withPhone, withoutPhone, outsideGeo] },
     });
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
@@ -865,6 +878,7 @@ try {
       await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
       assert.equal(await modulePage.getByText('غير موثق', { exact: true }).count(), 1, 'the published unclaimed entity must carry the red unverified badge');
       assert.equal(await modulePage.getByText('عيادة اختبار بدون رقم', { exact: true }).count(), 0, 'entities without a phone number must not render inside activity module cards');
+      assert.equal(await modulePage.getByText('عيادة خارج النطاق الجغرافي', { exact: true }).count(), 0, 'activity module must preserve the selected governorate, markaz and village scope');
       await modulePage.getByRole('button', { name: /باطنة/ }).click();
       await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
