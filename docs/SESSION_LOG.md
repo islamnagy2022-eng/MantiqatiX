@@ -1184,3 +1184,13 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Not performed:** no Production backup/restore, DB mutation, schema/policy/Auth change, secret operation, Edge deployment, or paid service creation.
 - **Next:** inspect the first main-branch Production Health Monitor run and verify GitHub failure notifications; then execute the local CLI backup and disposable restore rehearsal using authorized credentials.
 - Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — Production database probe access preflight
+
+- **Read-only verification:** queried PostgreSQL catalogs only for relation metadata, privileges, RLS flags and policy definitions for `public.marketing_provider_profiles`.
+- **PASS:** relation exists; RLS=true; FORCE RLS=true; anon SELECT privilege=true; explicit public SELECT policy for anon/authenticated exists.
+- **No row data was read.** No database, application, schema, policy, grant, Auth, Edge Function, secret, or payment changes were made.
+- **Not verified:** actual HTTP request from the post-merge scheduled/push-triggered GitHub Actions monitor; GitHub notification delivery.
+- Supabase current Free project pausing guide states that a few user DB/API requests daily typically suffice and API calls can generate activity. Hourly request is an activity mitigation, not a no-pause guarantee.
+- PR #567/#568 are merged. Evidence is recorded in `docs/audits/DB_MONITOR_READ_PATH_PREFLIGHT_20261031.md`.
