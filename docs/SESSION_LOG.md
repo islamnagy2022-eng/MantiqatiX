@@ -1520,3 +1520,175 @@ A separate source review found a second platform-root authorization model: the n
 - The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
 - On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
 - This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
+
+
+## 2026-10-31 — Continue unified dashboard implementation
+
+- New current-main branch: `feat/unified-dashboard-finance-wallet-ads-20261031`. Old PR #601 remains draft and was not force-rebased.
+- Lazy-loaded secondary screens and retained the directory as the initial eager page; added static pre-React loading shell; removed duplicated public-directory fetch from signed-out auth bootstrap.
+- Added protected account_portal route and account entry button. Removed dashboard links from public navigation and moved the admin business selector into authenticated dashboard context.
+- Embedded platform AdminDashboard in the admin section of SubscriberAccountPortal. Owner/employee dashboards are still rendered only from current session permissions. Legacy routes/screens are retained, not deleted.
+- Added Playwright E2E coverage for dashboard tab removal, account entry, owner management, portal mode return, and account-only Google identity.
+- Carried forward the detailed wallet/commission/subscription/ad specification and current FIN-ADS-01 TODO. Existing finance inventory shows reusable subscription/commission tables but incomplete activation/journal contracts; no payment or database write was performed.
+- No Production or Supabase changes and no deployment. Next is exact-head CI/build/browser E2E and triage of test failures.
+
+
+## 2026-10-31 — Continue work on unified dashboard and finance reuse
+
+- Implemented Account Portal modes from active authenticated memberships with exact membershipId/businessId/tenantId matching, scoped CATALOG_READ reload including branch ID, selected-business products replacement and cart reset.
+- Kept platform administrator authority distinct from actual business membership; selected-business tools open without owner impersonation.
+- Admin/merchant/professional dashboard modules lazy-load only when opened. Public navbar retains directory/catalog navigation and account entry only.
+- Existing CommissionRulesManager reused as draft-only engine: fixed, percentage and combined; tenant/business/category/product/service/plan/agreement scopes; effective dates, priority, bounds, exemption, audit and preview. No activation or order/settlement impact.
+- Latest observed CI on head 2eac69122b4fa4b67bdf122c3db3db27527bf7d2: TypeScript/build and static contracts PASS; employee/branch PostgreSQL tests PASS; Browser E2E still in progress. Other workflows completed successfully; PR deployment job skipped.
+- No Production deployment, schema/RLS/Auth/Edge mutation, wallet movement, provider payment or ad reservation occurred.
+- Next: inspect exact-head Browser E2E result and continue subscription pricing rules and finance schema review without enabling a wallet.
+
+
+## 2026-10-31 — Exact membership boundary hardening
+
+- Fixed a scope-combination risk when one account has both a tenant-wide owner membership and a branch-limited employee membership for the same business.
+- `catalog-admin` now accepts an optional `membershipId`; membership-bound requests authorize only that exact active membership row and cannot use the platform-admin bypass.
+- Account switching sends the exact membership ID and branch scope, reloads catalog data before changing mode, clears cart state, and replaces the selected business product cache.
+- E2E asserts that switching into the employee mode sends `membership-employee-business-row`, not the tenant-wide owner membership.
+- Exact-head CI for the latest commit is pending; no production Edge Function deployment or Supabase changes.
+
+
+### Exact-head Browser E2E failure triage — 2026-10-31
+- Latest observed PR #610 head before the fix: `923d8c5bfb5203da9325efea8f6a4daed7ed2f94`.
+- Primary Catalog Frontend Validation: build, TypeScript, taxonomy/geographic/Google OAuth/unified-dashboard contracts and PostgreSQL employee RBAC passed.
+- Browser E2E failed at the business-owner entry scenario because the test expected the employee/professional dashboard navigation landmark after opening the owner MerchantDashboard. The owner MerchantDashboard is currently a form workspace headed `إدارة منتجات وكتالوج نشاطك`, not the professional dashboard navigation shell. This was an assertion/fixture mismatch, not evidence of a permission denial.
+- Corrected the browser assertion to wait for the actual owner workspace heading. Owner/employee routes remain separately asserted; no production code authorization was weakened.
+- A new exact-head CI run must verify the correction. Do not mark E2E passed until that run concludes successfully.
+
+
+## 2026-10-31 — Live platform billing/wallet/ad inventory audit
+
+- Read-only Supabase catalog inspection: 308 migrations, latest observed `20261029083845`.
+- Wallet tables exist but are empty; `create_wallet_transaction_backend` lacks service_role EXECUTE and calls a journal RPC that also lacks service_role EXECUTE. Live journal columns remain behind RC449A/RC450.
+- Subscription tiers are fixed monthly/annual only; live payment intents lack RC435/RC439 claim/encrypted checkout contract; subscription callback does not debit wallet.
+- Commission draft engine supports fixed, percentage and combined, but remains inactive and preview-only.
+- Existing ad slots: HOME_HERO and HOME_SPONSORED. No monthly/quarterly/half-yearly/yearly/custom booking/pricing reservation model. `ad_spaces` has permissive authenticated ALL policies; flag for P0 authorization repair before UI write exposure.
+- Added detailed report `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
+- No production database/function/ACL/RLS/payment/wallet/ad mutation.
+
+
+## 2026-10-31 — PR #610 exact-head verification and source security review
+
+- Exact head `6c048a65946a3ef5b9e4262b276161795a4ac1cd`: Primary Catalog Frontend Validation run [41205224994](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41205224994) completed successfully.
+- TypeScript/build/static contracts, isolated employee RBAC PostgreSQL job, and Chromium browser E2E all passed. Browser output includes `PRIMARY_CATALOG_BROWSER_E2E=PASS` and the owner/employee/branch-owner/account-portal/platform-admin/no-membership scenarios.
+- Related checks passed: RC425 MantiGo Paymob Atomicity, SMM Deferred Storefront Contract, MantiGO Open Ride Privacy Boundary, Legacy Catalog Module Validation, Flexible Commission Drafts, Backend-only Module Boundary, Module Professionalization Validation, and Catalog Admin CORS Boundary.
+- Pages validation passed; PR deployment was skipped by design. No production deployment occurred.
+- Reviewed route guards, exact membership switching, platform-admin separation and the `catalog-admin` exact membership filter. No confirmed new authorization bypass found in those source paths. Security sign-off remains OPEN because membership browser fixtures mock Edge responses and live Edge/PostgreSQL multi-membership isolation, real Google-account cross-account E2E, subscription-state role matrix and independent security review remain unverified.
+- PR #610 stays Draft. No production schema/RLS/GRANT/Auth/Edge/payment/wallet/journal mutation was performed.
+- Next: current-schema isolated rehearsal using an authorized credential-scrubbed schema capture in a disposable environment, followed by restore/rollback proof. Production migrations remain prohibited until reconciliation and approval.
+
+
+## 2026-10-31 — Production schema and ACL preflight (read-only)
+
+- Queried the live Supabase project `moyhiluyhjsujhwlyeuu` with read-only project, branch, migration, catalog, ACL and Advisor calls.
+- Reconfirmed Free plan, PostgreSQL 17.6.1.155, 308 migrations through `20261029083845`, and only the default `main` branch record (`with_data=false`). No separate disposable branch/current-schema clone is established.
+- Latest schema counts: 136 public tables, 136 with RLS, 112 FORCE RLS, 8 RLS-enabled/no-policy tables. Security Advisor lists 3 anon-executable and 67 authenticated-executable SECURITY DEFINER functions, plus leaked-password protection disabled. Performance Advisor lists 129 unindexed FKs, 375 auth/RLS init-plan findings, 73 unused indexes and 28 multiple-permissive-policy groups.
+- Reconfirmed missing RC449A/RC450 journal header/line columns, missing subscription payment-intent claim-token/encrypted checkout fields, and no service_role EXECUTE on `create_wallet_transaction_backend` / `post_financial_journal`; both inspected functions pin `search_path=public`.
+- **New P0 finding:** `public.ad_spaces` has RLS+FORCE RLS and authenticated DML table grants, plus four permissive authenticated ALL policies that only exclude anonymous sessions. This appears to expose broad signed-in DML. No real authenticated write test was run. Keep ad slot writes and booking/pricing UI blocked until a least-privilege repair passes isolated SQL/API tests.
+- Supabase organization plan is Free. Current Supabase docs state that Free projects do not receive automatic daily backups. No manual backup artifact or restore was available or created.
+- Created `docs/release/CURRENT_SCHEMA_REHEARSAL_RUNBOOK_20261031.md` on the work branch with CLI dump, credential scrubbing, local disposable restore, structural parity checks, stop conditions and cost guardrails.
+- No Production mutation, secret retrieval, schema capture, restore, project/branch/add-on creation or financial transaction occurred. Next action requires an authorized local operator to run the protected capture/restore flow; keep the global gate BLOCKED.
+
+
+## 2026-10-31 — P0 ad_spaces authorization issue registered
+
+- Opened dedicated security work item **Issue #611**: https://github.com/islamnagy2022-eng/MantiqatiX/issues/611.
+- Scope: reproduce the current authenticated DML grants and permissive ALL policy combination in the isolated current-schema rehearsal, define the canonical platform-admin/tenant-slot authority model, implement least-privilege controls only in isolation, and test anonymous/ordinary-authenticated/tenant-owner/platform-admin/backend actors.
+- Production remains unchanged. Slot writes, booking and pricing activation remain blocked; no blanket revoke or speculative policy migration is approved.
+
+
+## 2026-10-31 — ad_spaces policy/ACL correction and PR #610 exact-head verification
+
+- Re-ran read-only live PostgreSQL policy/ACL inspection for `public.ad_spaces`.
+- Confirmed RLS + FORCE RLS. `ad_spaces_authenticated_read` is the only permissive authenticated policy and is SELECT-only. The four generic ALL guards are RESTRICTIVE. There are zero authenticated permissive write policies. The policy set therefore denies authenticated DML by default; no real authenticated write test was attempted and no exploit is claimed.
+- Direct ACLs are still excessive: `authenticated` can SELECT/INSERT/UPDATE/DELETE/MAINTAIN; `anon` has MAINTAIN only; `service_role` has backend table privileges. Reframed Issue #611 as P2 least-privilege ACL hardening and isolated role/API verification, rather than a confirmed P0 write bypass.
+- Code search found no direct frontend/Edge caller for `public.ad_spaces`; ad delivery uses the targeted-ad RPC and global ad inventory remains behind service-role access.
+- Updated the advertising gap audit, canonical TODO and schema rehearsal runbook with a dated correction; prior observations were preserved as historical evidence.
+- PR #610 current head `186fbb23e0aa4f799e4328a9753203f73945972a` passed Primary Catalog Frontend Validation [41206467742](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467742): build/TypeScript, employee RBAC PostgreSQL and browser E2E all succeeded. The nine commits after tested code head `6c048a65946a3ef5b9e4262b276161795a4ac1cd` changed documentation only.
+- Pages validation [41206467695](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467695) succeeded; `validate_public_only` and `deploy` were skipped because the run was a pull request. No production deployment or database mutation occurred. PR #610 remains Draft.
+- Next: complete the zero-cost credential-scrubbed local schema capture/restore; then test the narrowly scoped ACL reduction and role behaviors on the restored disposable schema. Production stays BLOCKED / NOT CERTIFIED.
+
+ 
+## 2026-10-31 — advertisements tenant/business/branch authorization review
+
+- Read-only Production query found `public.advertisements` has 0 rows, RLS + FORCE RLS, required tenant_id FK to tenants, but no business_id FK or composite tenant/business constraint.
+- SELECT policy authorizes any active membership in row tenant. INSERT/UPDATE/DELETE policies authorize active tenant OWNER/ADMIN/MANAGER memberships and do not test membership business_id or branch_id against ad row. Active BUSINESS_OWNER memberships are business/branch scoped but this role is not accepted by the current write policy; OWNER is accepted with no scope predicate.
+- No authenticated write attempt or exploit test performed. Tenant-wide advertising scope may be intentional; classify as P2 authority-contract verification rather than confirmed bypass.
+- Opened [Issue #612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) for authority matrix, business/tenant relationship, synthetic isolated negative tests, and decision on FK/policy hardening. No Production mutation.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+ 
+## 2026-10-31 — secondary public ACL scan: `bookings`
+
+- Read-only targeted SQL found exactly two public tables with authenticated DML privileges but no permissive authenticated DML policy: `ad_spaces` and `bookings`.
+- `bookings` has RLS + FORCE RLS, four RESTRICTIVE-only authenticated session guards, zero permissive authenticated SELECT/write policies, authenticated DML/MAINTAIN ACLs, anon MAINTAIN only, and service_role table privileges.
+- The table contains only `id uuid NOT NULL` and nullable `created_at`; row count is one. No row contents were queried. Focused GitHub source search found no direct browser caller, Edge Function reference or migration definition.
+- Registered [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) as P3 lifecycle/least-privilege review. Preserve the row and table; no exploit claim and no Production mutation.
+
+ 
+## 2026-10-31 — public default ACL provenance
+
+- Confirmed all 136 public tables are owned by postgres. The **current** postgres default ACL for new public tables includes MAINTAIN/REFERENCES/TRIGGER/TRUNCATE for anon/authenticated/service_role but not SELECT/INSERT/UPDATE/DELETE; it does not prove historical defaults at creation time.
+- ad_spaces authenticated INSERT/UPDATE/DELETE ACL entries have grantor postgres, but may be explicit or inherited from historical defaults that have since changed. No table-level GRANT/REVOKE or ALTER DEFAULT PRIVILEGES statement was found in the recorded migration ledger; provenance remains unresolved. supabase_admin has separate broad defaults for future objects, but no current public table is owned by supabase_admin. No defaults changed.
+- The only two public relations found with authenticated DML ACLs but no permissive authenticated DML policy are ad_spaces and bookings. Both are RLS + FORCE RLS and deny ordinary authenticated writes by current policies. See #611 (P2) and #613 (P3).
+
+ 
+## 2026-10-31 — Historical advertisements FK provenance check
+
+- Read live `supabase_migrations.schema_migrations` statements for all versions mentioning `advertisements`.
+- The ledger's `20260808000000_phase04_enterprise_schema_and_rls` SQL includes a `CREATE TABLE IF NOT EXISTS advertisements` with `business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE`. The original SQL file is absent from the tracked GitHub migration tree (also noted in `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`).
+- No explicit later DROP CONSTRAINT or ADD CONSTRAINT statement was found in the recorded migration set, but the current live physical table has no business_id FK. Since CREATE TABLE IF NOT EXISTS skips all definition changes when a table already exists, the cause may be a pre-existing table at migration time or an out-of-band schema divergence. Cause is not proven.
+- Updated Issue #612 with this reconciliation caveat. Do not reconstruct historical migration or patch Production until an authoritative schema baseline/current-schema isolated restore resolves the discrepancy.
+
+ 
+## 2026-10-31 — `bookings` migration provenance follow-up
+
+- Read all live migration statements referencing `bookings`: none creates or drops the table. The only recorded reference is `ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY` in `20260919233425_production_security_hardening_v1`.
+- A scan of public SQL function bodies found no `bookings` reference. Focused GitHub search found no direct browser/Edge consumer. This does not exclude dynamic or external dependencies.
+- Creation provenance appears outside current migration creation history; issue #613 updated to require authoritative backup/schema evidence. Preserve the one existing row and table. No mutation or row content read.
+
+ 
+## 2026-10-31 — expanded live dependency scan for `bookings`
+
+- Scanned non-system database catalog definitions for SQL functions/procedures, views, materialized views, triggers, rules, FKs, RLS policy expressions and publication membership. No dependency on `public.bookings` was found; the table is not in either publication.
+- This does not rule out dynamic SQL or external jobs/services. No row content was queried; one row remains untouched. Updated Issue #613 and preserved the table pending historical schema and retention evidence.
+
+ 
+## 2026-10-31 — Fresh live recheck of P0 platform-root authorization after RC462 merge
+
+- Rechecked Supabase Production read-only: 308 migration records, latest `20261029083845`; RC441, RC449 and RC462 exact IDs absent.
+- Live helper remains `mnty_can('admin',NULL,NULL,NULL)`; active-membership helper still accepts all active memberships at null scope, and built-in `OWNER` grants admin permission. All eight global SECDEF functions remain authenticated-executable and anon-denied.
+- Confirmed `digital_pages_admin_manage` remains permissive FOR ALL using weak helper; digital_pages has RLS true, FORCE false, and authenticated SELECT/INSERT/UPDATE/DELETE privileges. P0 remains live, no RPC was invoked and no rows were changed.
+- Aggregate-only check: private.platform_admins has one row; one registered user has active MNTY-PLATFORM SUPER_ADMIN with PLATFORM/full_control membership. No identity/row content read. Client roles have no direct registry grants. Private one-time bootstrap remains service_role-only EXECUTE, empty search_path.
+- Revalidated source merge/test evidence: PR #592 merged with RC462; exact candidate registry test [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) and chronological isolated replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) passed. Production migration is still absent.
+- Next: credential-scrubbed local schema/roles capture, zero-cost disposable restore, complete timestamp-ordered replay including RC441 → RC449 → RC462, adversarial/RLS tests and rollback. No Production mutation.
+
+ 
+## 2026-10-31 — Current-schema restore dependency revalidated
+
+- Inspected tracked baseline manifest: captured 2026-10-17 02:10:22 UTC, PostgreSQL 17, schema-only, 283 migration versions through `20261008222845`, no rows/custom roles, review_status=PENDING_REVIEW.
+- Live Production currently has 308 records through `20261029083845`; the old checkpoint is stale by 25 recorded migrations. RC462 replay run #41178333682 begins from that historical checkpoint and must not be described as a current-Production schema restore.
+- Checked workflow artifacts for #41178333682 and original capture #38993809648; neither exposes a downloadable artifact now. No refreshed current schema dump found in repository.
+- No backup, restore or Production mutation performed. Next remains authorized local capture/restore with credential scrubbing, then complete ordered migration replay and rollback rehearsal. User credentials must never be pasted into chat.
+
+ 
+## 2026-10-31 — platform-admin bootstrap defaults and revocation review
+
+- Read-only metadata check: canonical platform tenant is ID `MNTY-PLATFORM`, code `MNTY`. The live service_role-only `private.bootstrap_platform_admin` defaults to ID `MNTY_PLATFORM`, code `MNTY-PLATFORM`, and unconditionally inserts the tenant before registry/membership writes. A future invocation with defaults would create a parallel tenant; using canonical ID would duplicate-key fail.
+- The routine's one-time registry guard currently blocks it (aggregate registry count 1); no invocation or registry identity read performed. A cross-schema SQL routine scan found no other root registry writer and no dedicated audited revocation routine; external service maintenance still needs inventory.
+- Registered [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) as P2 recovery/revocation hardening. No Production mutation.
+
+ 
+## 2026-10-31 — Root registry creation-provenance check
+
+- Read aggregate created_at only for the sole `private.platform_admins` row: 2026-09-27 13:23:43 UTC. No user ID or row values read.
+- No `PLATFORM_BOOTSTRAP` audit event was found. The only migration-ledger INSERT reference is within the definition of `private.bootstrap_platform_admin`; no direct registry seed/update/delete statement exists. Catalog scan found it as the only SQL routine writer.
+- Provisioning provenance is unresolved; do not assert the bootstrap function was used. Issue #614 updated. No Production mutation.

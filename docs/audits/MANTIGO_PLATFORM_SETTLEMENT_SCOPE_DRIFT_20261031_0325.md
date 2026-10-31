@@ -226,3 +226,53 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Security Advisor refreshed at 2026-10-31 06:54:55 UTC: 8 RLS-enabled/no-policy INFO findings; 3 anon SECURITY DEFINER warnings; 67 authenticated SECURITY DEFINER warnings; 90 anonymous-policy warnings; 1 leaked-password protection warning. This is an inventory; do not blanket-revoke or add broad policies.
 - [ ] Before any Production rollout: recover authoritative historical bootstrap SQL for `private.platform_admins`; verify the legitimate server-side provisioning/removal path without exposing registry rows; rehearse the exact ordered RC441 → RC449 → RC462 effects against a restorable current Production schema; obtain off-site backup + successful restore/rollback evidence; inspect final live ACL/search_path/function bodies; complete auth/payment/finance and tenant-isolation E2E; and obtain explicit rollout authorization.
 - No Production DDL/DML, grants, RLS/Auth settings, registry-row reads, Edge deployments, payments, refunds, settlements or journal mutations occurred. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## Fresh live Production recheck — 2026-10-31 (read-only, after RC462 merge)
+
+### Migration/source status
+- Live migration ledger: **308** records, latest `20261029083845`.
+- Exact IDs are all absent: RC441 `20261010030000`, RC449 `20261010170000`, RC462 `20261031064300`.
+- PR #592 is merged; current main contains its merge commit `911f91f7f7e0f2d70bd290467ac33b53dc4f5b30`. RC462 source is therefore in main, but none of RC441/RC449/RC462 is active in Production.
+- Exact-head isolated tests on RC462 candidate passed: [MantiGO Platform Admin Scope Hardening #41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) and [Forward Migration Chain Replay #41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682). These are fixture/replay evidence, not live deployment.
+
+### Current live authorization state
+- `public.mnty_can_platform_admin()` remains SECURITY DEFINER with `search_path=public, pg_temp` and returns `public.mnty_can('admin',NULL,NULL,NULL)`.
+- `mnty_active_membership(NULL,NULL,NULL)` still enumerates all ACTIVE memberships without tenant/business/branch restriction. `mnty_can('admin')` includes the OWNER role in its built-in admin permission list. Therefore the old helper still does not establish platform-root authority.
+- All eight global SECURITY DEFINER entrypoints remain authenticated-executable and anon-denied. The four MantiGO global RPCs retain their broad role predicates; the other four call the weak helper: `admin_create_global_ad`, `fulfill_digital_page_publish`, `review_mantigo_captain_application`, and `set_mantigo_financial_config_backend`.
+- `public.digital_pages_admin_manage` remains a permissive `FOR ALL TO authenticated` policy using the weak helper for both USING and WITH CHECK. `digital_pages` has RLS enabled (FORCE RLS false) and authenticated SELECT/INSERT/UPDATE/DELETE privileges. Owner-scoped policies also exist, but permissive policies combine by OR; the weak global admin policy remains a cross-tenant path for a tenant OWNER accepted by the helper.
+- No live RPC was invoked and no digital-page, MantiGO, financial or registry row content was read or changed.
+
+### Canonical root registry readiness — aggregate only
+- `private.platform_admins` exists, RLS enabled, no direct anon/authenticated table grants, and a restrictive client-deny policy. service_role has the backend table privileges.
+- Aggregate count only: the registry contains **1** row. No user ID or row contents were queried.
+- Aggregate alignment only: one registry user has an ACTIVE `MNTY-PLATFORM` `SUPER_ADMIN` membership with `scope=PLATFORM` and `full_control=true`. No identity was exposed.
+- `private.bootstrap_platform_admin(...)` exists as SECURITY DEFINER with empty search_path and service_role-only EXECUTE; anon and authenticated EXECUTE are false. This is a server-side one-time path, not a public caller. Focused GitHub search found no tracked source caller for this private bootstrap routine.
+
+### Current decision / required next actions
+- **P0 remains CONFIRMED / NOT REMEDIATED IN PRODUCTION.** RC462's canonical registry predicate is source-merged and isolated-tested, but Production still runs the weak helper and global RLS path.
+- Preserve migration files. Required chronological replay order is RC441 → RC449 → RC462, but this subset must be embedded in the complete required migration-chain reconciliation, not applied ad hoc.
+- Next dependency remains an authorized credential-scrubbed current-Production schema/roles capture, disposable restore, complete ordered migration replay, and rollback rehearsal. Only then can the controlled Production rollout be separately reviewed and explicitly authorized.
+- No Production DDL/DML, GRANT/REVOKE, RLS/Auth change, Edge deployment, payment, settlement, wallet or journal action was performed. Overall gate remains **BLOCKED / NOT CERTIFIED**.
+
+ 
+## Current-schema baseline gap — 2026-10-31
+
+The existing isolated full-chain replay evidence [41178333682](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41178333682) uses the repository's committed schema-only baseline from 2026-10-17 02:10:22 UTC at version `20261008222845` (283 migration records, `PENDING_REVIEW`). Live Production is now at 308 records through `20261029083845`. This 25-record delta means the successful replay is not a current-Production restore/parity result. Artifact lookups for replay #41178333682 and original capture #38993809648 returned no downloadable artifacts. Fresh authorized capture/restore is still required before RC441 → RC449 → RC462 can be considered for live rollout.
+
+ 
+## Platform-admin bootstrap/revocation lifecycle — 2026-10-31 (read-only)
+
+- The canonical tenant currently has ID `MNTY-PLATFORM`, code `MNTY`, ACTIVE. No tenant exists with ID `MNTY_PLATFORM`; no tenant currently uses code `MNTY-PLATFORM`.
+- Live `private.bootstrap_platform_admin(uuid,varchar,varchar,varchar)` defaults to tenant ID `MNTY_PLATFORM` and tenant code `MNTY-PLATFORM`. It unconditionally inserts the tenant before its one-time registry/membership insertion; it has no path to reuse/validate the existing canonical tenant. A call with defaults during future empty-registry recovery would create a second platform tenant; passing the current canonical ID explicitly would fail on duplicate ID. The routine is service_role-only, empty search_path, and its one-time registry guard currently prevents invocation because registry count is one. No call was made.
+- A cross-database routine scan found no other SQL function that writes/deletes `private.platform_admins`; bootstrap is the only SQL writer found. No dedicated audited revocation routine exists in the inspected database routine set. External privileged service operations may exist and must be inventoried before concluding no revocation path exists.
+- No root identity or registry row contents were queried; only aggregate registry count and tenant metadata were read.
+- [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks P2 correction of bootstrap defaults and design of audited deprovision/revocation. Do not patch or call Production bootstrap; first restore current schema and test atomically in isolation.
+
+ 
+### Root-registry row provenance — aggregate-only check (2026-10-31)
+
+- The sole `private.platform_admins` row has `created_at=2026-09-27 13:23:43 UTC` (aggregate min/max only; no row identity/content read).
+- No `PLATFORM_BOOTSTRAP` audit event exists in `public.audit_logs`.
+- Live migration ledger search found only the `INSERT INTO private.platform_admins` inside the `private.bootstrap_platform_admin` function definition; no direct migration seed, UPDATE or DELETE statement exists for the registry.
+- Therefore the historical provisioning path for the current root registry row is not established. Do not claim the one-time bootstrap function was used, and do not invent an audit record. Issue #614 tracks recovery/provenance and lifecycle correction.

@@ -1,0 +1,177 @@
+# MantiqaTix — Live Platform Billing, Wallet & Advertising Gap Audit
+
+**Captured:** 2026-10-31  
+**Supabase project:** `moyhiluyhjsujhwlyeuu`  
+**Method:** Read-only Supabase table/migration/function/ACL/RLS/constraint inspection. No financial row content was retrieved.  
+**Production mutation:** NONE.
+
+## Executive decision
+
+The platform already contains reusable finance primitives. Do not create a second wallet or commission engine. However, the current live database is **not ready** to operate a subscriber-facing service wallet or automatic platform billing.
+
+The current commission-rule draft workflow is present and tested, but remains preview/draft only. Subscription prices are fixed monthly/annual tier values. Wallet tables exist but contain no rows and their current journal-posting execution path is not usable by the service role. Advertising tables exist but do not provide duration-based inventory reservations or pricing.
+
+## 1. Current live inventory
+
+| Relation | Rows observed | Relevant shape |
+|---|---:|---|
+| `wallet_accounts` | 0 | tenant, owner_type, owner_id, currency, status, allow_negative, GL account |
+| `wallet_transactions` | 0 | transaction type, amount, balance_after, idempotency key, status, reference, journal entry |
+| `commission_rules` | 0 | legacy rule fields plus RC452 flexible draft metadata |
+| `commission_transactions` | 0 | business/order/rule, gross, commission, status |
+| `business_subscriptions` | 0 | tier, MONTHLY/ANNUAL/TRIAL cycle, status, dates, provider reference |
+| `subscription_tier_prices` | 4 | fixed monthly_price / annual_price / currency / active |
+| `subscription_payment_intents` | 0 | provider intent and idempotency fields; RC435/439 fields absent |
+| `advertisements` | 0 | tenant/business/ad-space, creative, approval, start/end |
+| `ad_spaces` | 2 | HOME_HERO and HOME_SPONSORED; code/name/placement/status |
+| `platform_global_advertisements` | 4 | platform-managed creative, slot, status, approval, start/end |
+
+The live migration ledger returned 308 recorded migrations; latest observed version is `20261029083845`. This audit does not reconcile the entire migration history.
+
+## 2. Commission rules — partial foundation is reusable
+
+- `commission_rules` already supports percentage, fixed, and combined calculation modes; tenant/business/category/product/service/plan/agreement scope; eligibility event; priority; effective period; bounds; exemption; approval status; and version number.
+- `mnty_commission_rule_drafts` is authenticated-only and checks platform-admin or tenant-management authority. New rules are persisted as `DRAFT` and `active=false`.
+- `preview_commission_rule_draft` and `preview_commission_rule_resolution` return preview-only results and explicitly set `applies_to_orders=false`.
+- `commission_rule_audit` has RLS + FORCE RLS and no direct client table privileges; the audit trigger is attached.
+- The current draft manager supports fixed, percentage, combined, min/max, priority, scopes, effective dates, exemptions, audit and previews.
+
+**Limitations:** No active rule-resolution/charge-posting integration is certified. The preview engine does not prove a charge can be posted. Percentage basis/source is not yet an immutable versioned field in the current rule contract. Subscription-only versus commission-only versus both still needs a first-class pricing composition contract.
+
+## 3. Subscription pricing and checkout — fixed-tier model only
+
+- `subscription_tier_prices` stores only `monthly_price`, `annual_price`, `currency`, and `active`; it has no pricing-rule version, percentage, fixed-plus-percentage composition, effective period, or billing-basis fields.
+- Existing subscription cycles are MONTHLY, ANNUAL, TRIAL.
+- Live `subscription_payment_intents` lacks `provider_creation_state`, `provider_creation_claimed_at`, `client_secret_ciphertext`, `client_secret_iv`, and `client_secret_key_version`.
+- The live database has only the legacy `create_subscription_payment_intent_backend` among the inspected creation/claim RPCs. The RC435 claimable-intent and provider-creation-claim RPCs are absent.
+- The live `process_verified_subscription_payment` verifies provider signature/amount/currency and creates/activates a subscription, but it does not post a platform-wallet debit or canonical financial journal charge.
+
+**Decision:** Do not enable subscription auto-debit or treat current Paymob subscription checkout as a ready wallet funding/billing path. Reconcile the exact live schema and Edge Function versions first.
+
+## 4. Wallet — existing tables, blocked posting contract
+
+### Schema and controls
+- `wallet_accounts` supports owner types CUSTOMER, MERCHANT, PARTNER, SYSTEM; unique tenant + owner type + owner ID; status ACTIVE/FROZEN/CLOSED; `allow_negative=false` by default.
+- `wallet_transactions` supports CREDIT, DEBIT, REFUND, ADJUSTMENT, COMMISSION_SETTLEMENT; amount must be positive; idempotency key is unique; status supports PENDING/CONFIRMED/REVERSED/FAILED.
+- Both tables have RLS and FORCE RLS. No anon table access. Authenticated reads are policy-limited to tenant roles OWNER/ADMIN/MANAGER/FINANCE/ACCOUNTANT/FINANCE_MANAGER. Direct client writes are not granted. Service role has table DML privileges.
+- Wallet rows and transaction rows were both zero at capture time.
+
+### Blocking execution path
+- `create_wallet_transaction_backend(...)` exists but effective EXECUTE is false for anon, authenticated, and service_role.
+- Its body calls `assert_financial_membership`, locks the wallet row, checks idempotency and balance, then calls `post_financial_journal` before inserting the wallet transaction.
+- `post_financial_journal(jsonb,jsonb)` and `post_financial_journal_backend(uuid,jsonb,jsonb)` currently have EXECUTE false for service_role.
+- Live journal header/line columns required by the reviewed RC449A/RC450 contract are absent; see `PRODUCTION_FINANCE_LIVE_CONTRACT_RECHECK_20261031.md`.
+- Therefore the current wallet RPC path cannot be assumed operational. Do not bypass it with direct wallet table writes or broad GRANTs.
+- The current transaction function inserts CONFIRMED transactions; no subscriber top-up intent/approval workflow was identified. A PENDING transaction status alone is not a verified top-up workflow.
+- Current wallet calculation recognizes CREDIT/REFUND as positive and DEBIT/COMMISSION_SETTLEMENT as negative; ADJUSTMENT is not included in the balance expression. This requires explicit semantic reconciliation before any use.
+
+## 5. Advertising inventory — existing display records, no booking engine
+
+> Historical first-pass ACL/policy interpretation below is superseded by the dated live recheck addendum near the end of this document. The current disposition is P2 least-privilege ACL verification; no permissive authenticated write policy is present.
+
+- `ad_spaces` currently has two rows: HOME_HERO and HOME_SPONSORED.
+- `advertisements` is tenant/business scoped and has creative, approval, status and start/end timestamps, but no price snapshot, duration contract, reservation status, payment status, renewal or exclusive-slot conflict model.
+- `platform_global_advertisements` has four rows and direct authenticated access is denied; platform-managed reads/writes must remain behind the intended trusted backend.
+- No `advertising_reservations`, ad-space price-version, or month-duration booking relation was found in the inspected public schema.
+- The live `ad_spaces` table has RLS + FORCE RLS, but multiple permissive policies grant ALL to any non-anonymous authenticated session; effective authenticated INSERT and UPDATE table privileges are true. This is a high-priority authorization gap. Do not expose slot administration in the UI until it is corrected in a reviewed forward-only migration and tested. No live policy was changed in this audit.
+- Existing `advertisements` policies bind managers to tenant membership but not to a specific business/branch. Review this separately before allowing owner-facing advertisement mutations.
+
+## 6. Requested capabilities still missing
+
+1. Versioned pricing composition: subscription only, commission only, or both.
+2. Subscription charge: fixed, percentage, or fixed + percentage with explicit basis and effective period.
+3. Automatic monthly/quarterly/custom recurring platform charge creation and immutable snapshots.
+4. Wallet account lifecycle for verified account users (visitor must establish/verify an account before persistent value is stored).
+5. Direct/card top-up, Vodafone Cash verification, and cash-outside-platform receipt + maker/checker approval.
+6. Pending/confirmed top-up state, webhook replay protection, idempotency, and reconciliation.
+7. Automatic platform fee/subscription debit from available wallet balance only; insufficient balance stays due without negative balance.
+8. Admin exemption/discount/defer/gift workflows with reason, actor, audit, maker-checker where needed. Existing due-date edit and initial free activation do not implement the full requested adjustment model.
+9. Advertising cover inventory with monthly, quarterly, half-yearly, annual, and custom-month reservations, pricing snapshots, conflict prevention, creative approval, payment/waiver, pause, expiry and renewal.
+10. A clear boundary preventing merchant-to-customer sale proceeds from ever entering MantiqaTix wallet/settlement.
+
+## 7. Required next engineering sequence
+
+1. Restore a complete schema-only current-production capture into an isolated disposable PostgreSQL/Supabase environment. Existing October 17 baseline and targeted fixtures are not a current-schema restore.
+2. Reconcile 308 migrations, physical schema drift, journal columns/RPCs, service-role ACLs, Edge Function source parity and payment provider contracts.
+3. Design a single platform-charge ledger contract that reuses canonical journal and wallet primitives; do not duplicate wallet tables or write balances directly.
+4. Add versioned subscription pricing composition and immutable charge snapshots only after the schema baseline is restored and migration tooling is available.
+5. Add top-up intent/provider adapters and external-cash approval; verify Paymob/card/Vodafone Cash channel capabilities against actual provider contracts.
+6. Build advertising slot pricing/reservations and fix `ad_spaces` authorization before allowing booking mutations.
+7. Run adversarial RLS, ledger balance, concurrency, idempotency/replay, webhook, due-date scheduler, insufficient-balance, maker-checker, ad overlap, backup/restore and sandbox E2E tests.
+8. Obtain Egypt-specific legal/accounting review before enabling stored-value balance or cash collection.
+9. Keep all new wallet/automatic billing/ad-booking actions disabled until exact-head CI, isolated rehearsal and explicit release approval pass.
+
+**Production effect:** NONE. This document records read-only metadata and function/ACL inspection only. No DDL, DML, grants, RLS, Auth, Edge Function deployment, wallet movement, payment, or advertising reservation was performed.
+
+**Release decision:** FIN-ADS-01 remains BLOCKED / NOT CERTIFIED for production activation.
+
+
+## Addendum — 2026-10-31 current-policy / ACL recheck (read-only)
+
+This addendum supersedes the earlier paragraph in Section 5 that characterized the four generic `ad_spaces` guard policies as permissive. A fresh live catalog query shows:
+
+- `public.ad_spaces` has RLS and FORCE RLS enabled.
+- Its only permissive policy for `authenticated` is `ad_spaces_authenticated_read` (SELECT).
+- The four generic ALL policies — `authenticated_sessions_only`, `deny_anonymous_users`, `mnt_non_anonymous_boundary`, and `non_anonymous_authenticated_guard` — are all **RESTRICTIVE**, not permissive.
+- The live catalog reports **zero authenticated permissive INSERT/UPDATE/DELETE/ALL policies** and one permissive SELECT policy. With RLS + FORCE RLS, the current policy set is deny-by-default for authenticated DML. No authenticated write attempt was made; this is catalog evidence, not a real-user API exploit test.
+- Effective ACLs remain broader than necessary: `authenticated` has SELECT/INSERT/UPDATE/DELETE/MAINTAIN; `anon` has MAINTAIN only; `service_role` retains SELECT/INSERT/UPDATE/DELETE/MAINTAIN.
+- No direct frontend or Edge Function caller for `public.ad_spaces` was found in the current code search. The public ad-delivery path uses the targeted-ad RPC; global ad inventory is separately protected behind service-role access.
+
+**Corrected disposition:** the earlier P0 broad-permissive-policy characterization is not supported by the current live policy catalog. No broad authenticated DML path is established. Track this as **P2 least-privilege ACL hardening and runtime verification**: after the current-schema restore, verify the grant provenance/default privileges, test a narrowly scoped revoke of unnecessary authenticated INSERT/UPDATE/DELETE/MAINTAIN and anon MAINTAIN, preserve authenticated SELECT and service-role backend operations, and prove the intended outcomes with isolated SQL/API tests. Do not change Production grants or policies in this audit. Ad booking/pricing remains unimplemented and disabled.
+
+## Addendum — 2026-10-31 advertisements tenant/business scope review (read-only)
+
+Fresh live inspection of `public.advertisements` found:
+
+- The table currently has **0 rows**; no existing ad records are affected.
+- RLS + FORCE RLS are enabled. `authenticated` has table SELECT/INSERT/UPDATE/DELETE; `anon` has none; `service_role` retains backend access.
+- Required `tenant_id` has an FK to `tenants(id)`. Required `business_id` is UUID but has no FK to `businesses(id)` and no composite tenant/business constraint.
+- Authenticated SELECT permits any ACTIVE membership in the same tenant.
+- Authenticated INSERT/UPDATE/DELETE permits ACTIVE tenant membership with role OWNER, ADMIN or MANAGER. The write predicates check tenant and role, not the row's business_id or membership branch_id.
+- Live membership inventory contains business/branch-scoped BUSINESS_OWNER memberships, tenant-wide OWNER/ADMIN/MANAGER memberships, and tenant-wide manager memberships; BUSINESS_OWNER is not included in the current policy role list. OWNER is accepted without checking whether that particular membership is business/branch-scoped.
+- No direct browser `.from('advertisements')` consumer was found in the canonical source search; public delivery uses `get_mnty_targeted_advertisements`. The app has historically guarded against direct browser mutation of protected tables.
+
+**Disposition:** no exploit is established: there are no rows and no authenticated write attempt was made. Tenant-wide ad management may be intended for tenant admins/managers. However, the current schema/policies do not prove business/branch isolation for business-scoped membership, and the missing business FK permits an invalid business/tenant pair unless a trusted write path validates it. Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) tracks authority-matrix confirmation and isolated tests. Do not enable owner-facing ad mutations or booking until scope is confirmed and negative tests pass.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+## Addendum — 2026-10-31 secondary table ACL review: `public.bookings`
+
+- A targeted scan of all public tables with authenticated INSERT/UPDATE/DELETE grants but zero permissive authenticated write policies found exactly two matches: `ad_spaces` and `bookings`.
+- `public.bookings` has RLS + FORCE RLS; its only four authenticated ALL policies are RESTRICTIVE session guards. It has no permissive authenticated SELECT or DML policy, so the current table is deny-by-default for those sessions.
+- ACL: authenticated has SELECT/INSERT/UPDATE/DELETE/MAINTAIN; anon has MAINTAIN only; service_role retains backend DML.
+- The table has only `id uuid NOT NULL` and nullable `created_at timestamp without time zone`, with one existing row. No row content was read.
+- Focused source search found no direct browser `.from('bookings')` consumer, public Edge Function reference or matching migration source. This is limited source-search evidence, not proof that no dynamic/legacy dependency exists.
+- [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) tracks P3 lifecycle and least-privilege review. Preserve the table and row until provenance, dynamic callers and retention/dependency requirements are established. No exploit is claimed; no Production mutation was made.
+
+## Addendum — 2026-10-31 public-schema default ACL provenance
+
+A read-only `pg_default_acl` / ownership check found:
+
+- All **136** current public tables are owned by `postgres`.
+- The **current** `postgres` default ACL for new tables in schema `public` grants `MAINTAIN/REFERENCES/TRIGGER/TRUNCATE` to `anon`, `authenticated` and `service_role`, but does not grant `SELECT/INSERT/UPDATE/DELETE` to those API roles. This is only the current snapshot; it does not prove what defaults were in force when an existing table was created.
+- The current `ad_spaces` ACL contains `authenticated` INSERT/UPDATE/DELETE entries with grantor `postgres`. The current `pg_default_acl` snapshot does not explain them, but that does not prove they were explicit grants: they may have been inherited from a historical default ACL that has since changed. Focused source search and migration-ledger review found no matching table GRANT/REVOKE statement or recorded table-level `ALTER DEFAULT PRIVILEGES`; provenance remains unresolved.
+- Separate `supabase_admin` default ACL entries for future `public` tables grant broad privileges to API roles, but no current public table is owned by `supabase_admin` in this snapshot. Do not alter managed/default privileges globally without a separate owner/object inventory and impact review.
+- A targeted scan of 136 public tables found only `ad_spaces` and `bookings` with authenticated DML privileges and zero permissive authenticated DML policies. Both are RLS + FORCE RLS and currently deny ordinary authenticated DML by policy. See Issues [#611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611) and [#613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613).
+
+**No Production grants, default ACLs, RLS policies, rows or schema were modified.**
+
+## Addendum — 2026-10-31 historical migration versus live advertisements FK
+
+A read-only query of `supabase_migrations.schema_migrations` found the live ledger entry `20260808000000_phase04_enterprise_schema_and_rls`. Its recorded SQL includes `CREATE TABLE IF NOT EXISTS advertisements (... business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE ...)`. This migration artifact is listed as absent from the tracked GitHub migration tree in `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`.
+
+Across all currently recorded migration statements inspected for `advertisements`, there is no explicit `DROP CONSTRAINT` statement and no later `ADD CONSTRAINT` statement. The current live catalog still has no business_id FK. Since `CREATE TABLE IF NOT EXISTS` does not retrofit constraints when the relation already exists, we cannot distinguish from present evidence between (a) a pre-existing table causing the original CREATE to be skipped and (b) a schema change outside the recorded migration chain. **Cause unresolved; do not claim a confirmed manual drop or fabricate a historical migration.**
+
+Next required evidence is an authoritative original migration artifact / historical schema snapshot or a current-schema isolated restore that demonstrates the migration effect gap. Any repair must be a new forward-only migration after backup/restore, exact tenant/business relationship validation, negative cross-tenant tests and rollback rehearsal. Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix) tracks it.
+
+## Addendum — 2026-10-31 `public.bookings` migration provenance
+
+A read-only query of all live migration statements found no `CREATE TABLE`, `DROP TABLE`, or `ALTER TABLE` creation/shape migration for `public.bookings`. The only recorded statement referencing the relation was `ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY` inside `20260919233425_production_security_hardening_v1`. A catalog search of public SQL function bodies found no function definition referencing `bookings`. Focused GitHub search found no direct browser or Edge Function consumer. The current schema is only `id uuid NOT NULL` and nullable `created_at timestamp without time zone`, with one row (row contents not read).
+
+**Provenance is unresolved and appears outside the currently recorded migration creation history.** This does not prove the table is unused or safe to drop; dynamic code, external integrations and pre-ledger schema history remain possible. Issue [#613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) tracks recovery from an authoritative backup/schema snapshot and dependency/retention review. Preserve the table and row; no production changes.
+
+## Addendum — 2026-10-31 expanded live dependency scan for `public.bookings`
+
+A broader catalog scan across non-system schemas found no SQL function/procedure, view, materialized view, trigger, rule, FK, RLS-policy expression or publication membership referencing `public.bookings`. The two publication definitions in the database do not include this table. This is stronger evidence than the earlier public-function-only scan, but it still cannot exclude dynamic SQL, external jobs/services or application code outside the repository. Preserve the table and its one existing row until an authoritative historical schema snapshot, external dependency check and retention review are complete. No row content was queried and no Production mutation occurred.

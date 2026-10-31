@@ -55,7 +55,7 @@ const roles = {
     businessId: null,
     permissions: {},
     extraMemberships: [{
-      id: 'membership-employee-business-row',
+      id: '00000000-0000-0000-0000-000000000011',
       role: 'EMPLOYEE',
       businessId,
       branchId,
@@ -89,6 +89,14 @@ const roles = {
     role: 'MANAGER',
     permissions: { modules: { CATALOG: ['view'], EMPLOYEES: ['manage'] } },
   },
+  accountOnly: {
+    id: '00000000-0000-0000-0000-000000000100',
+    email: 'e2e-account-only@example.test',
+    role: 'GUEST',
+    businessId: null,
+    branchId: null,
+    permissions: {},
+  },
   platformAdmin: {
     id: '00000000-0000-0000-0000-000000000099',
     email: 'e2e-platform-admin@example.test',
@@ -96,6 +104,14 @@ const roles = {
     businessId: null,
     branchId: null,
     permissions: { scope: 'PLATFORM', full_control: true },
+    extraMemberships: [{
+      id: '00000000-0000-0000-0000-000000000012',
+      role: 'OWNER',
+      businessId,
+      branchId: null,
+      permissions: {},
+      created_at: '2026-03-01T00:00:00.000Z',
+    }],
   },
 };
 
@@ -258,15 +274,18 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
         provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
         profile: { ...fixture.profile, category: fixture.category },
-        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
-        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+        branches: fixture.branches || [], selectedBranchId: fixture.selectedBranchId || null,
+        // The on-demand public-catalog endpoint must return the same public item/price
+        // rows used by the public-directory fixture; empty arrays hide valid products.
+        items: fixture.items || [], prices: fixture.prices || [], options: fixture.options || [],
+        contactPhone: fixture.contactPhone || '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
       });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
       let body = {};
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
       if (body.action === 'CATALOG_READ') {
-        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
+        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId, membershipId: body.membershipId });
         return json({
           business: fakeBusiness,
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
@@ -1004,6 +1023,92 @@ try {
 
         await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       }
+    } finally { await context.close(); }
+  }
+
+// Unified navigation: public directory must not expose dashboard tabs; signed-in accounts enter via Account.
+  {
+    const { context, page } = await newScenario(browser, roles.businessOwner, [], { initialRoute: '?view=directory' });
+    try {
+      await page.getByRole('button', { name: 'حسابي / اشتراكي' }).waitFor({ state: 'visible', timeout: 15000 });
+      for (const label of ['لوحة تحكم نشاطي', 'لوحة صاحب النشاط', 'الداشبورد الاحترافية', 'لوحة الإدارة والعمولات']) {
+        assert.equal(await page.getByRole('button', { name: label, exact: true }).count(), 0, 'dashboard entry must not appear in public navigation: ' + label);
+      }
+      await page.getByRole('button', { name: 'حسابي / اشتراكي' }).click();
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'إدارة النشاط' }).click();
+      // Business owners currently reuse the existing MerchantDashboard form;
+      // employee memberships reuse the professional dashboard with scoped navigation.
+      await page.getByRole('heading', { name: 'إدارة منتجات وكتالوج نشاطك' }).waitFor({ state: 'visible', timeout: 15000 });
+      results.push('unified-dashboard-entry-only-through-account-portal');
+    } finally { await context.close(); }
+  }
+
+  // Cross-membership switching stays disabled until the live catalog-admin v20 is upgraded
+  // to enforce the exact membershipId supplied by the account portal.
+  {
+    const { context, page, catalogReadRequests } = await newScenario(browser, roles.owner, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      const readsBefore = catalogReadRequests.length;
+      const employeeMode = page.getByRole('button', { name: /موظف · نشاط اختبار الداشبورد/ });
+      assert.equal(await employeeMode.isDisabled(), true, 'branch employee membership must remain unavailable until exact backend scope is deployed');
+      await page.getByRole('status').getByText(
+        'تبديل العضويات متوقف مؤقتًا حتى تحديث خدمة الكتالوج للتحقق من معرف العضوية المحددة على الخادم. ستظل العضوية الحالية وصلاحياتها كما هي، ولن يتم توسيع نطاق الوصول.',
+        { exact: true },
+      ).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(catalogReadRequests.length, readsBefore, 'a disabled membership switch must not issue a wider catalog read');
+      results.push('account-membership-switch-disabled-until-live-exact-membership-edge');
+    } finally { await context.close(); }
+  }
+
+  // Platform authority remains separate; business membership switching is gated until
+  // the deployed catalog-admin function enforces exact membership identity.
+  {
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      const ownerMode = page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ });
+      assert.equal(await ownerMode.isDisabled(), true, 'platform admins must not switch into a business membership before backend exact-scope support is live');
+      await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'أدوات النشاط المحدد', exact: true }).click();
+      await page.getByRole('heading', { name: 'إدارة منتجات وكتالوج نشاطك' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
+      results.push('platform-admin-remains-separate-while-business-membership-switch-is-gated');
+    } finally { await context.close(); }
+  }
+
+  // Standalone subscriber account portal: direct route and visitor-mode round trip.
+  {
+    const { context, page } = await newScenario(browser, roles.businessOwner, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByRole('navigation', { name: 'أقسام حساب المشترك' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'اشتراكاتي' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'صلاحياتي' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'وضع العميل' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'لوحة تحكم نشاطي' }).count(), 0);
+      await page.getByRole('button', { name: 'وضع العميل' }).click();
+      await page.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === null);
+      await page.getByRole('button', { name: 'حسابي / اشتراكي' }).click();
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'اشتراكاتي' }).click();
+      await page.getByRole('heading', { name: 'اشتراكاتي', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px mobile subscriber account portal');
+      results.push('subscriber-account-portal-route-sections-and-visitor-mode-switch');
+    } finally { await context.close(); }
+  }
+
+  // Authenticated Google identity without a business membership must stay read-only.
+  {
+    const { context, page } = await newScenario(browser, roles.accountOnly, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'أنشطتي' }).click();
+      assert.equal(await page.getByText('لا يوجد نشاط مرتبط بحسابك حاليًا.').count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'إدارة النشاط' }).count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'مركز تحكم المنصة' }).count(), 0);
+      results.push('authenticated-account-without-membership-is-read-only');
     } finally { await context.close(); }
   }
 

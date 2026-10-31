@@ -105,14 +105,24 @@ check("react_privileged_views_require_authorized_session", () => {
   includes(reactApp, "!canAccessProfessionalDashboard(authSession)");
   includes(reactApp, "currentView === 'public_storefront' &&");
   includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink");
-  includes(reactApp, "{visibleView === 'merchant_admin' && <MerchantDashboard />}");
-  includes(reactApp, "{visibleView === 'super_admin' && <AdminDashboard />}");
+  includes(reactApp, "const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard')");
+  includes(reactApp, "visibleView === 'merchant_admin' && (");
+  includes(reactApp, "<Suspense fallback={<ScreenFallback />}><MerchantDashboard /></Suspense>");
+  includes(reactApp, "<Suspense fallback={<ScreenFallback />}><AdminDashboard /></Suspense>");
+  includes(reactApp, "currentView === 'account_portal' && !authSession.isAuthenticated");
   includes(appContext, "return businesses.find((b) => b.id === authSession.businessId);");
 });
 check("guest_catalog_navigation_is_not_an_owner_entrypoint", () => {
   const navbar = read("apps/catalog-frontend/src/components/Navbar.tsx");
-  includes(navbar, "authSession.role !== 'guest' && (");
-  includes(navbar, "Guests still access a public catalog through its direct shared link.");
+  includes(navbar, "setCurrentView('account_portal')",
+    "authenticated account and dashboard entry must route through the account portal");
+  includes(navbar, "setCurrentView('directory')",
+    "customer directory navigation must remain available");
+  for (const route of ["setCurrentView('merchant_admin')", "setCurrentView('professional_dashboard')", "setCurrentView('super_admin')"]) {
+    assert.ok(!navbar.includes(route), "public navbar must not link directly to dashboard route: " + route);
+  }
+  includes(reactApp, "authSession.role === 'guest' && !hasDirectPublicCatalogLink",
+    "guest storefront access must remain limited to explicit direct public catalog links");
 });
 check("edge_function_auth_and_tenant_selection", () => {
   includes(adminFn, 'auth.getUser(token)');
