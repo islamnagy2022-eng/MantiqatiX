@@ -2895,3 +2895,52 @@ A separate source review found a second platform-root authorization model: the n
 - Validation must include 10 groups / 50 activities / 5 per group, all 67 legacy category mappings, folder navigation, specialty filtering, geographic search, owner/admin edit-create round trip, non-platform role denial, and mobile/tablet/desktop overflow checks.
 - No database migration is required for this read-compatible taxonomy change. The existing database constraint accepting historical group IDs is intentionally retained. Edge Functions require a separately reviewed deployment step after exact-head CI and live admin-path verification.
 - Status: implementation carried forward onto current main for validation; NOT DONE until exact-head workflows pass. Pages deployment is permitted only after the merged main workflow passes. Edge Function rollout and real SUPER_ADMIN CRUD verification remain separately tracked release gates.
+
+
+## DASH-UNIFIED-02 — الداشبورد الموحدة ومدخل حسابي — 2026-10-31
+
+- **P0 / IN PROGRESS / NOT DEPLOYED.** فرع التنفيذ: `feat/unified-dashboard-finance-wallet-ads-20261031`، مبني من أحدث `main` بعد اكتشاف تباعد PR #601 القديم.
+- الهدف: فصل الدليل العام عن لوحة التحكم؛ تصبح `حسابي / اشتراكي` مدخل كل الأدوار، وتظهر وظائف الإدارة والتاجر والموظف كأقسام داخل مساحة تحكم موحدة وفق الدور والعضوية الفعلية.
+- [x] نقل تحميل الشاشات الثانوية إلى lazy chunks وإبقاء الدليل العام في الحزمة الأولية.
+- [x] نقل غلاف التحميل الأولي إلى `index.html` لمنع شاشة بيضاء أثناء تنزيل React.
+- [x] إضافة مسار `account_portal` إلى `ViewMode` ومسار الاستعادة من URL؛ المسار محمي بجلسة مصادق عليها في App.
+- [x] جعل مدخل `حسابي / اشتراكي` يظهر بعد تسجيل الدخول بدل زر تسجيل الدخول.
+- [x] إزالة تبويبات لوحات التاجر والموظف والإدارة من شريط تنقل الدليل العام؛ شريط الموقع العام يحتفظ بالدليل ومعاينة الكتالوج العامة فقط.
+- [x] نقل محدد النشاط العام للإدارة من واجهة الدليل ليظهر ضمن سياق بوابة الحساب/مركز الإدارة فقط.
+- [x] دمج واجهة AdminDashboard داخل مساحة الحساب الموحدة للإدارة، مع الإبقاء على المسار القديم محميًا مؤقتًا للتوافق وعدم حذف الشاشات.
+- [x] إبقاء لوحات المالك والموظف المعاد استخدامها داخل قسم إدارة النشاط وفق صلاحيات الجلسة الحالية.
+- [ ] بناء resolver خادمي لتعدد عضويات المستخدم، يعيد membershipId + tenantId + businessId + branchId + role + permissions لكل سياق مسموح، دون تعديل role أو businessId من العميل.
+- [ ] تمكين التبديل الآمن بين أدوار/أنشطة الحساب فقط بعد تحقق الخادم من العضوية، وإبطال السياق السابق، وتصفير السلة/البيانات المؤقتة عند الانتقال.
+- [ ] إتمام لوحات الإدارة والتاجر والموظف كمديولات داخل shell مشترك بدل الاعتماد النهائي على تضمين الشاشات القديمة.
+- [ ] إخفاء/تحويل كل مدخلات الإدارة القديمة إلى مسارات داخل البوابة بعد اكتمال مصفوفة الشاشات والإجراءات والاختبارات؛ لا حذف لأي شاشة قديمة حاليًا.
+- [ ] اختبارات unauthorized direct URLs، حساب Google بلا عضوية، مالك، موظف، مالك فرع، تعدد العضويات، تجميد/انتهاء الاشتراك، وSUPER_ADMIN.
+- [ ] exact-head CI وdeployed-origin mobile/desktop E2E وقياس الأداء بعد المزامنة.
+- **ضابط:** UI hiding ليس Authorization. جميع العمليات تظل محمية في Edge/RPC/API وRLS. لا يتم جعل SUPER_ADMIN مالك نشاط افتراضيًا ولا نسخ صلاحيات المالك إلى جلسة الإدارة.
+- **الحالة:** تغييرات واجهة ومدخل أولية على فرع جديد؛ اختبارات exact-head لم تنفذ بعد، ولا يوجد نشر إنتاجي.
+
+## FIN-ADS-01 — الاشتراكات والعمولات ومحفظة المنصة والإعلانات — 2026-10-31
+
+- **P0 dashboard architecture / P1 production activation — SPECIFICATION + INVENTORY / IMPLEMENTATION PENDING.** المواصفات في `docs/PLATFORM_BILLING_WALLET_ADVERTISING_SPEC.md`.
+- [x] تسجيل النطاق في قائمة TODO ونقل مواصفات نظام الحساب إلى فرع العمل الحديث.
+- [x] إثبات وجود الأسس التالية من التدقيق السابق: `commission_rules`, `commission_transactions`, `business_subscriptions`, `subscription_tier_prices`, `subscription_payment_intents`.
+- [x] توثيق أن نموذج العمولات الحالي لا يغطي كامل نطاق الأولويات/السريان/الأساس/الإعفاءات/الحدود/الإصدارات/العكس، وأن تفعيل احتسابها ما زال محظورًا حتى استكمال محرك الدفع.
+- [x] مراجعة لقطة مالية Production بتاريخ 2026-10-31 التي سجلت فجوات RC435/RC439/RC449A/RC450 في سجل migrations وعقود الاشتراك/دفتر الأستاذ. يلزم reconciliation من checkpoint حديث قابل للاستعادة.
+- [ ] مطابقة المخطط الحي الحالي مع مصدر main وجرد جميع الجداول والسياسات والقيود وRPC وEdge Functions ومزود الدفع قبل أي تصميم تنفيذي.
+- [ ] تصميم قاعدة تسعير بإصدارات: اشتراك فقط / عمولة فقط / كلاهما؛ ثابت / نسبة / ثابت + نسبة؛ تحديد أساس النسبة صراحةً ودورية التحصيل ونطاق القاعدة وتاريخ السريان والحدود وفترة السماح.
+- [ ] لا يُحتسب رسم على مبيعات التاجر للعميل ولا تدخل قيم المبيعات إلى المحفظة افتراضيًا؛ المنصة ليست وسيطًا بيعيًا ولا تسوي حسابات التاجر مع العميل.
+- [ ] بناء محفظة خدمات المنصة فقط، بحساب موثق ودفتر قيود append-only وidempotency ومنع الرصيد السالب والتكرار، بعد حسم المحاسبة والامتثال وعدم إنشاء دفتر موازٍ.
+- [ ] الشحن من بوابة الدفع/البطاقات (كريدت)/Vodafone Cash/الكاش خارج المنصة بإثبات واعتماد؛ الرصيد المعلق غير قابل للإنفاق حتى تحقق المزود أو اعتماد الموظف المخول.
+- [ ] تحصيل الاشتراكات ورسوم المنصة تلقائيًا من الرصيد المتاح فقط، مع due/grace/retries/notifications وتعامل آمن مع نقص الرصيد.
+- [ ] صلاحيات الإعفاء والخصم والتأجيل والهدايا/الرصيد الترويجي مع maker-checker وسجل تدقيق وحركات عكسية غير مدمرة.
+- [ ] حجز أغلفة إعلانية شهرية/ربع سنوية/نصف سنوية/سنوية/مدة مخصصة، مع تقويم المخزون وتعارض الفترات والأسعار والمراجعة والنشر والانتهاء والتجديد.
+- [ ] اختبارات محاسبية وتزامن وعزل RLS وwebhook/replay/idempotency والجدولة والتسوية وتعارضات الحجوزات، وتجربة مزود الدفع في sandbox.
+- [ ] مراجعة قانونية/محاسبية مصرية قبل تفعيل محفظة ذات قيمة مخزنة أو أي التزام بحفظ أموال/أرصدة.
+- [ ] isolated migration replay وbackup/restore/rollback وexact-head CI وdeployed-origin E2E وموافقة إصدار صريحة.
+- **الحالة:** مواصفات وجرد أولي فقط؛ لم تُنشأ محفظة، ولم تُنفذ migration أو حركة مالية أو شحن أو خصم أو إعلان فعلي.
+
+## PERF-01 — سرعة أول ظهور واستعادة Google
+
+- [x] تقسيم الشاشات الثانوية إلى lazy chunks في `App.tsx`.
+- [x] إضافة غلاف تحميل HTML أولي.
+- [x] إزالة طلب دليل الزوار المكرر من guest auth bootstrap.
+- [ ] إثبات exact-head build/E2E وقياس bundle/LCP/INP/CLS ووقت Google OAuth الفعلي قبل ادعاء تحسن مقاس.
