@@ -768,7 +768,7 @@ export const DirectoryView: React.FC = () => {
               <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل الأنشطة</button>
             </div>
           )}
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8">
+          <div className="grid grid-cols-8 gap-1">
             {availableCategories.map((category) => {
               const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
               const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
@@ -778,20 +778,20 @@ export const DirectoryView: React.FC = () => {
                 type="button"
                 onClick={() => openActivityModule(category.id)}
                 aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`}
-                className="group relative flex min-h-36 min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-2 py-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:min-h-40 sm:gap-2.5 sm:px-3"
+                className="group relative flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-0 py-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:min-h-28 sm:gap-1.5 sm:rounded-xl sm:px-1 sm:py-3"
               >
-                <span className="absolute left-2 top-2 inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1.5 text-[11px] font-black tabular-nums text-emerald-800 shadow-sm" title={`إجمالي الأنشطة: ${totalCount}`}>
+                <span className="absolute left-0.5 top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-0.5 text-[8px] font-black tabular-nums text-emerald-800 shadow-sm sm:left-1 sm:top-1 sm:h-5 sm:min-w-5 sm:text-[10px]" title={`إجمالي الأنشطة: ${totalCount}`}>
                   {totalCount.toLocaleString('ar-EG')}
                 </span>
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700 transition group-hover:bg-emerald-100 group-hover:text-emerald-800 sm:h-14 sm:w-14">
-                  {ICONS_MAP[category.functionalGroupId] || <Store className="h-7 w-7" />}
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-700 transition group-hover:bg-emerald-100 group-hover:text-emerald-800 sm:h-9 sm:w-9 sm:rounded-xl">
+                  {ICONS_MAP[category.functionalGroupId] || <Store className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </span>
-                <span className="line-clamp-2 min-h-9 w-full break-words text-xs font-black leading-5 text-slate-900 sm:text-sm">{category.name}</span>
-                <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[9px] font-bold sm:text-[10px]">
+                <span className="line-clamp-2 min-h-0 w-full break-words text-[7px] font-black leading-[9px] text-slate-900 sm:min-h-8 sm:text-[10px] sm:leading-4">{category.name}</span>
+                <span className="hidden flex-wrap items-center justify-center gap-x-1 gap-y-0.5 text-[8px] font-bold sm:flex sm:text-[9px]">
                   <span className="text-emerald-800">موثق {confirmedCount.toLocaleString('ar-EG')}</span>
                   <span className="text-red-700">غير موثق {unconfirmedCount.toLocaleString('ar-EG')}</span>
                 </span>
-                <ChevronLeft className="absolute bottom-2 right-2 h-3.5 w-3.5 text-slate-300 transition group-hover:text-emerald-700" />
+                <ChevronLeft className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 text-slate-300 transition group-hover:text-emerald-700 sm:bottom-1 sm:right-1 sm:h-3 sm:w-3" />
               </button>;
             })}
             {availableCategories.length === 0 && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد أنشطة مسجلة حاليًا.</p>}
