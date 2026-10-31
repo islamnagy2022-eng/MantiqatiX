@@ -3041,3 +3041,11 @@ A separate source review found a second platform-root authorization model: the n
 - Correct Issue #611 from P0 broad-policy exposure to **P1 least-privilege ACL hardening + runtime verification**. Keep ad-slot booking/pricing writes unavailable until the data model and authorization tests are complete.
 - Next after the current-schema local restore: inspect grant provenance/default privileges; test removing unnecessary `authenticated` INSERT/UPDATE/DELETE/MAINTAIN and `anon` MAINTAIN while preserving authenticated SELECT and service_role operations; add role/API regression tests. No Production grant, RLS, DDL or DML change is authorized by this correction.
 - Latest PR #610 head `186fbb23e0aa4f799e4328a9753203f73945972a`: Primary Catalog Frontend Validation run [41206467742](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467742) passed build/TypeScript, isolated employee RBAC PostgreSQL and browser E2E. Pages run [41206467695](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467695) passed validation but skipped deploy for the PR event. No production deployment occurred; PR #610 remains Draft.
+
+ 
+## 2026-10-31 — P2 advertisements business/branch scope verification registered
+
+- Opened [Issue #612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) after a read-only live schema/policy review.
+- `advertisements` currently has 0 rows, RLS + FORCE RLS, tenant FK but no business FK. Authenticated policies authorize active OWNER/ADMIN/MANAGER membership at tenant scope and do not evaluate the row's business_id or membership branch_id. Business/branch-scoped BUSINESS_OWNER memberships exist; BUSINESS_OWNER is not in the current write-policy role list; OWNER is included without checking membership scope.
+- This is **not a confirmed exploit**; tenant-wide advertising control may be intentional and there was no live write test. Keep owner-facing ad create/edit/delete/approval/booking blocked pending authority-matrix confirmation and isolated cross-business/cross-tenant tests.
+- Related [Issue #611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611) covers the separate `ad_spaces` excess ACL item. Do not merge the two scopes.
