@@ -1670,3 +1670,11 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Aggregate-only check: private.platform_admins has one row; one registered user has active MNTY-PLATFORM SUPER_ADMIN with PLATFORM/full_control membership. No identity/row content read. Client roles have no direct registry grants. Private one-time bootstrap remains service_role-only EXECUTE, empty search_path.
 - Revalidated source merge/test evidence: PR #592 merged with RC462; exact candidate registry test [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) and chronological isolated replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) passed. Production migration is still absent.
 - Next: credential-scrubbed local schema/roles capture, zero-cost disposable restore, complete timestamp-ordered replay including RC441 → RC449 → RC462, adversarial/RLS tests and rollback. No Production mutation.
+
+ 
+## 2026-10-31 — Current-schema restore dependency revalidated
+
+- Inspected tracked baseline manifest: captured 2026-10-17 02:10:22 UTC, PostgreSQL 17, schema-only, 283 migration versions through `20261008222845`, no rows/custom roles, review_status=PENDING_REVIEW.
+- Live Production currently has 308 records through `20261029083845`; the old checkpoint is stale by 25 recorded migrations. RC462 replay run #41178333682 begins from that historical checkpoint and must not be described as a current-Production schema restore.
+- Checked workflow artifacts for #41178333682 and original capture #38993809648; neither exposes a downloadable artifact now. No refreshed current schema dump found in repository.
+- No backup, restore or Production mutation performed. Next remains authorized local capture/restore with credential scrubbing, then complete ordered migration replay and rollback rehearsal. User credentials must never be pasted into chat.
