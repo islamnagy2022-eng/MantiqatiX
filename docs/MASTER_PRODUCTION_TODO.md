@@ -3000,3 +3000,15 @@ A separate source review found a second platform-root authorization model: the n
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — RC463 current-main security continuation
+
+- [x] Superseding branch `security/rc463-current-main-rehearsal-20261031` was created from current main commit `cd9929e337fce58d4c20dfbb94febfd7e4f36291`; the older draft PR #602 is stale by five main commits and is not the merge target.
+- [x] Ported RC463 migration, disposable test overlay, exact-migration trigger integration and the three relevant CI workflow changes onto the current-main branch.
+- [x] Updated the release contract and migration-chain validator to include the 42nd required source version `20261031100000`; exact version list is now 42.
+- [x] Fresh read-only Supabase migration inventory: 308 rows through `20261029083845`; **0/42** required exact version IDs are recorded. The manifest now distinguishes the older 0/41 snapshot from this 2026-10-31 0/42 check.
+- [x] Fresh read-only PostgreSQL catalog check: both expected SECURITY DEFINER trigger functions and enabled triggers exist. `assign_default_owner_to_unowned_business` uses `search_path=public, auth`; both functions remain directly executable by PUBLIC, anon, authenticated and service_role. `capture_commission_rule_audit` already has an empty search_path but still has broad EXECUTE.
+- [x] The candidate changes only search_path and EXECUTE ACLs; it does not replace the live function bodies or trigger definitions. The test overlay uses synthetic `.example.test` identity and is CI-only.
+- [ ] Exact-head validation, PostgreSQL integration, forward-chain replay and current-schema rehearsal remain required on the new branch.
+- [ ] **No Production migration, function, trigger, ACL, database data, Edge Function, Auth or RLS change was performed. RC463 is not approved for Production.**
