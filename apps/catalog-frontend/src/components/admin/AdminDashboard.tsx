@@ -2373,24 +2373,12 @@ export const AdminDashboard: React.FC = () => {
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="مثال: صيدلية أو طبيب أو مطعم"
+                  placeholder="مثال: عيادات طبية أو صيدلية أو مطعم"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  نوع التصنيف <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={newCatType}
-                  onChange={(e) => setNewCatType(e.target.value as 'activity' | 'profession')}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
-                >
-                  <option value="activity">نشاط</option>
-                  <option value="profession">مهنة</option>
-                </select>
-              </div>
+
 
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
