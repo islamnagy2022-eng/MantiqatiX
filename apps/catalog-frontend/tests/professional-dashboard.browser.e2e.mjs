@@ -706,7 +706,12 @@ try {
       { initialRoute: '?view=super_admin&tab=directory_listings' },
     );
     try {
-      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().waitFor({ state: 'visible', timeout: 15000 });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
       assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
       results.push('non-platform-role-denied-directory-admin-route');
