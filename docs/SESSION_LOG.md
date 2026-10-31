@@ -1542,3 +1542,12 @@ A separate source review found a second platform-root authorization model: the n
 - Latest observed CI on head 2eac69122b4fa4b67bdf122c3db3db27527bf7d2: TypeScript/build and static contracts PASS; employee/branch PostgreSQL tests PASS; Browser E2E still in progress. Other workflows completed successfully; PR deployment job skipped.
 - No Production deployment, schema/RLS/Auth/Edge mutation, wallet movement, provider payment or ad reservation occurred.
 - Next: inspect exact-head Browser E2E result and continue subscription pricing rules and finance schema review without enabling a wallet.
+
+
+## 2026-10-31 — Exact membership boundary hardening
+
+- Fixed a scope-combination risk when one account has both a tenant-wide owner membership and a branch-limited employee membership for the same business.
+- `catalog-admin` now accepts an optional `membershipId`; membership-bound requests authorize only that exact active membership row and cannot use the platform-admin bypass.
+- Account switching sends the exact membership ID and branch scope, reloads catalog data before changing mode, clears cart state, and replaces the selected business product cache.
+- E2E asserts that switching into the employee mode sends `membership-employee-business-row`, not the tenant-wide owner membership.
+- Exact-head CI for the latest commit is pending; no production Edge Function deployment or Supabase changes.
