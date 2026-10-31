@@ -3092,3 +3092,14 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Live catalog scan across non-system schemas found no SQL function/procedure, view/materialized view, trigger, rule, FK, RLS policy expression or publication membership referencing `public.bookings`.
 - The two database publications do not include `bookings`. This does not exclude dynamic SQL, external jobs/services or code outside the repository.
 - Preserve the table and its one row until creation provenance, external dependencies and retention requirements are proven. Issue #613 remains P3.
+
+ 
+## 2026-10-31 — Fresh live P0 recheck after RC462 source merge
+
+- Live ledger is still 308 records through `20261029083845`; RC441 `20261010030000`, RC449 `20261010170000`, and RC462 `20261031064300` are all absent. RC462 is in main through PR #592 merge `911f91f7f7e0f2d70bd290467ac33b53dc4f5b30`, but is not active in Production.
+- Live `mnty_can_platform_admin()` is still SECURITY DEFINER, `search_path=public, pg_temp`, and returns `mnty_can('admin',NULL,NULL,NULL)`. Its membership helper enumerates all active memberships when scope arguments are NULL, and OWNER receives built-in admin permission. The helper is still weak in Production.
+- The four MantiGO global RPCs and four additional helper-dependent global functions remain authenticated-executable SECURITY DEFINER entrypoints; anon is denied. `digital_pages_admin_manage` remains global permissive FOR ALL, using the weak helper; `digital_pages` retains authenticated SELECT/INSERT/UPDATE/DELETE grants (RLS enabled, FORCE RLS false). P0 remains live.
+- Aggregate-only registry verification: `private.platform_admins` exists with one row; one registry user has an active MNTY-PLATFORM SUPER_ADMIN membership with scope=PLATFORM/full_control=true. No identity or registry row content was read. Table has RLS enabled, client roles have no direct grants, service_role retains backend access. One-time bootstrap function is SECURITY DEFINER/empty search_path/service_role-only.
+- Source/test evidence: PR #592 merged RC462; exact candidate run [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) passed disposable PostgreSQL registry/authorization tests; replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) passed a full isolated checkpoint restore and ordered replay. Neither is Production remediation.
+- [ ] Obtain an authorized, credential-scrubbed current-Production schema/roles dump; restore into a zero-cost disposable local Supabase instance; replay the complete required migration chain in timestamp order, including RC441 → RC449 → RC462; verify all 8 global SECDEF callers, digital_pages policy, canonical registry bootstrap/revocation, and rollback.
+- No Production mutation or deployment. Global gate remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
