@@ -1552,3 +1552,13 @@ A separate source review found a second platform-root authorization model: the n
 - Do not implement campaign create/publish/budget/channel writes yet: production reconciliation explicitly says RC453 campaign tables/RPCs are absent, RC452 manager-read scoping is not verified, and RC102 provider-service owner write grants are absent. SMM remains deferred.
 - Latest code/test commit: `fdf81ef42ec68eacb42f9cebe76c97b45a7e2881`; PR #608 still Draft. Exact-head CI is running: catalog `41196188567`, Pages validation `41196188571`, module professionalization `41196188606`, plus security workflows `41196188583`, `41196188595`, `41196188562`, `41196188647`. Final exact-head results pending.
 - No production migrations, schema/data/grants/RLS/Auth changes, Edge deployments, marketing mutations, advertising spend, payments, or financial writes.
+
+
+## 2026-10-31 — Activity module registry validation completed
+
+- Registry code/test commit `5ea3a4d4226ed43abc7addf91525607d558afe1e` passed exact-head CI.
+- Catalog run [41196288654](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288654): TypeScript/build/taxonomy/geographic consent/employee RBAC/full browser E2E all **PASS**.
+- Browser E2E verifies the activity module route, refresh/back navigation, specialties and reversible filters, responsive overflow, and restaurant-specific marketing plus menu/orders operations capabilities.
+- Pages validation [41196288663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288663) passed; deploy job was skipped on PR events. No production deployment is claimed.
+- Other relevant workflows passed: Module Professionalization #41196288659, Backend-only Boundary #41196288717, Privacy #41196288694, RC425 #41196288797, Flexible Commission #41196288767.
+- PR #608 remains Draft. Production marketing backend dependencies RC453/RC452/RC102 remain unresolved; campaign creation/publishing/budgets and SMM must remain disabled. No production DB, Edge, ads, payment, wallet or finance mutation occurred.
