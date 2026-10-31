@@ -639,15 +639,17 @@ export const DirectoryView: React.FC = () => {
   if (activityModuleId) {
     const activityCategory = availableCategories.find((category) => category.id === activityModuleId);
     if (activityCategory) {
-      const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activityCategory.id).length;
-      const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+      const activityBusinesses = filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === activityCategory.id && Boolean(business.phone || business.ownerWhatsApp));
+      const activityListings = filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && Boolean(listing.phone || listing.secondary_phone));
+      const confirmedCount = activityBusinesses.filter((business) => business.isVerified).length;
+      const unconfirmedCount = activityBusinesses.filter((business) => !business.isVerified).length + activityListings.length;
       return <ActivityModuleView
         category={activityCategory}
         confirmedCount={confirmedCount}
         unconfirmedCount={unconfirmedCount}
         onBack={closeActivityModule}
-        businesses={filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === activityCategory.id && Boolean(business.phone || business.ownerWhatsApp))}
-        listings={filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && Boolean(listing.phone || listing.secondary_phone))}
+        businesses={activityBusinesses}
+        listings={activityListings}
         onOpenListing={openDirectoryListing}
         onOpenBusiness={(businessId) => { setSelectedBusinessId(businessId); setCurrentView('public_storefront'); }}
       />;
