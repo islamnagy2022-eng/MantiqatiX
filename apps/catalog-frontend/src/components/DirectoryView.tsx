@@ -223,18 +223,6 @@ export const DirectoryView: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!geoSetupCompleted) return;
-    writeStoredGeoPreference({
-      completed: true,
-      mode: geoPreferenceMode,
-      governorate: selectedGovFilter,
-      markaz: selectedMarkazFilter,
-      village: selectedVillageFilter,
-      area: selectedAreaFilter,
-    });
-  }, [geoSetupCompleted, geoPreferenceMode, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter]);
-
-  useEffect(() => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
       if (!cancelled && Array.isArray(rows)) setUnconfirmedListings(rows.filter((row) => row.listing_status === 'PUBLISHED' && row.claim_status !== 'CLAIMED'));
@@ -256,6 +244,19 @@ export const DirectoryView: React.FC = () => {
   const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
   const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+
+  useEffect(() => {
+    if (!geoSetupCompleted) return;
+    writeStoredGeoPreference({
+      completed: true,
+      mode: geoPreferenceMode,
+      governorate: selectedGovFilter,
+      markaz: selectedMarkazFilter,
+      village: selectedVillageFilter,
+      area: selectedAreaFilter,
+    });
+  }, [geoSetupCompleted, geoPreferenceMode, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter]);
+
   const [listingSlug, setListingSlug] = useState<string>(() => new URLSearchParams(window.location.search).get('listing') || '');
   const openDirectoryListing = (slug: string) => {
     const url = new URL(window.location.href);
