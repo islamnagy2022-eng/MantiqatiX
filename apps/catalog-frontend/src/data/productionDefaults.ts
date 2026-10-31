@@ -49,9 +49,9 @@ const CATEGORY_SEEDS: CategorySeed[] = [
   // 2. الأغذية والضيافة
   s('food_grocery','restaurants','activity','مطاعم','إعداد وتقديم الوجبات.',['مشويات','وجبات سريعة','مأكولات شرقية','أسماك','وجبات صحية']),
   s('food_grocery','cafes','activity','مقاهي وكافيهات','تقديم القهوة والمشروبات.',['قهوة مختصة','مقهى عائلي','عصائر ومشروبات']),
-  s('food_grocery','bakeries','activity','مخابز ومخبوزات','إنتاج وبيع المخبوزات.',['مخبز بلدي','معجنات','فطائر']),
-  s('food_grocery','sweets','activity','حلويات ومناسبات','إنتاج وبيع الحلويات والكيك.',['حلويات شرقية','حلويات غربية','كيك مناسبات']),
+  s('food_grocery','bakeries_sweets','activity','مخابز وحلويات','إنتاج وبيع المخبوزات والحلويات والكيك.',['مخبز بلدي','معجنات وفطائر','حلويات شرقية','حلويات غربية','كيك مناسبات']),
   s('food_grocery','food_retail','activity','متاجر الأغذية والمواد التموينية','بيع المواد الغذائية والمنتجات الطازجة والمتخصصة.',['سوبر ماركت','بقالة','جزارة','دواجن وأسماك','بن وعطارة']),
+  s('food_grocery','hospitality_events','activity','ضيافة وسياحة ومناسبات','خدمات الضيافة والسياحة وتنظيم واستضافة المناسبات.',['فنادق وإقامة','قاعات أفراح ومناسبات','وكالات سياحة وسفر','تنظيم مناسبات']),
   // 3. التجارة والتجزئة والعناية الشخصية
   s('fashion_beauty','general_retail','activity','متاجر ومحلات تجزئة','متاجر بيع المنتجات والسلع للمستهلك.',['أدوات منزلية','أجهزة منزلية','مستلزمات مكتبية','مستلزمات أطفال','مستعمل']),
   s('fashion_beauty','clothing_stores','activity','ملابس وأزياء','بيع الملابس والمنتجات المرتبطة بها.',['ملابس رجالي','ملابس حريمي','ملابس أطفال','ملابس محجبات']),
@@ -115,12 +115,20 @@ const normalizeTaxonomyName = (value: unknown) =>
   String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ar');
 
 const LEGACY_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
-  dining: 'food_grocery', retail: 'fashion_beauty', services: 'professional_services',
-  healthcare: 'medical_health', crafts_maintenance: 'home_maintenance',
-  construction_decor: 'home_maintenance', marketing_media: 'technology_communications',
-  trade_ecommerce: 'fashion_beauty', sports_fitness: 'education_training',
-  tourism_events: 'food_grocery', finance_insurance: 'professional_services',
-  industry_workshops: 'agriculture_animals', public_community: 'professional_services',
+  dining: 'food_grocery', food_grocery: 'food_grocery',
+  retail: 'fashion_beauty', trade_ecommerce: 'fashion_beauty',
+  services: 'professional_services', public_community: 'professional_services',
+  healthcare: 'medical_health', medical_health: 'medical_health',
+  crafts_maintenance: 'home_maintenance', construction_decor: 'home_maintenance',
+  home_maintenance: 'home_maintenance',
+  marketing_media: 'technology_communications',
+  sports_fitness: 'education_training', education_training: 'education_training',
+  tourism_events: 'food_grocery',
+  finance_insurance: 'professional_services',
+  industry_workshops: 'agriculture_animals', agriculture_animals: 'agriculture_animals',
+  auto_transport: 'auto_transport', real_estate: 'real_estate',
+  technology_communications: 'technology_communications',
+  professional_services: 'professional_services', fashion_beauty: 'fashion_beauty',
 };
 
 const BACKEND_CODE_GROUP_MAP: Record<string, FunctionalGroup['id']> = {
@@ -141,21 +149,102 @@ export function resolveCanonicalGroupId(categoryName: string, legacyGroupId?: st
   const groupHint = String(legacyGroupId || '').trim().toLowerCase();
   const direct = DEFAULT_FUNCTIONAL_GROUPS.find((group) => group.id === groupHint);
   if (direct) return direct.id;
+  // Prefer the explicit legacy group over a category-name guess. This prevents
+  // ambiguous labels (e.g. travel/events) from being routed to the wrong group.
+  if (LEGACY_GROUP_MAP[groupHint]) return LEGACY_GROUP_MAP[groupHint];
   const raw = String(categoryName || '').trim();
   const code = raw.split(/[|—–]/)[0].trim().toUpperCase().replace(/[\\s-]+/g, '_');
   if (BACKEND_CODE_GROUP_MAP[code]) return BACKEND_CODE_GROUP_MAP[code];
   const value = raw.toLocaleLowerCase('ar');
   if (/طبيب|طبي|صحة|عياد|صيدل|تحاليل|أشعة|مستشفى|أسنان|تمريض|تغذية|علاج طبيعي|مختبر/.test(value)) return 'medical_health';
   if (/مطعم|مقهى|كافيه|أغذية|غذاء|حلويات|مخبز|بقالة|سوبر ماركت|جزارة|لحوم|دواجن|أسماك|قهوة|ضيافة|فندق|سياحة|سفر|رحلات|مناسبات/.test(value)) return 'food_grocery';
-  if (/ملابس|أزياء|أحذية|حقائب|مجوهرات|عطور|تجميل|كوافير|حلاق|خياطة|تجارة|متجر|بيع|شراء|جملة|مستعمل/.test(value)) return 'fashion_beauty';
+  if (/ملابس|أزياء|أحذية|حقائب|مجوهرات|عطور|تجميل|كوافير|حلاق|خياطة|تجارة|متجر|بيع|شراء|جملة|مستعمل|قرطاسية|كتب/.test(value)) return 'fashion_beauty';
   if (/مقاولات|بناء|تشطيب|ديكور|مواد بناء|رخام|جرانيت|سيراميك|ألوميتال|دهانات|عزل|صيانة|ورش منزلية|نجار|سباك|كهربائي|تكييف|أثاث|موبيليا/.test(value)) return 'home_maintenance';
   if (/سيارات|مركبات|ميكانيك|إطارات|بطاريات|شحن|توصيل|لوجستي|سائق|نقل بضائع/.test(value)) return 'auto_transport';
   if (/عقار|أراض|وسيط عقاري|إيجار شقق|تطوير عقاري|إدارة عقارات/.test(value)) return 'real_estate';
   if (/مدرس|تعليم|مدرسة|حضان|جامعة|معهد|تدريب|محاضر|مدرب|رياضة|لياقة|جيم|سباحة/.test(value)) return 'education_training';
   if (/برمج|مواقع|تطبيقات|كمبيوتر|شبكات|اتصالات|إنترنت|أمن سيبراني|إلكترونيات|هواتف|تقنية|ذكاء اصطناعي|تسويق|إعلان|تصميم|تصوير|محتوى|إعلام/.test(value)) return 'technology_communications';
-  if (/تأمين|تمويل|مدفوعات|خدمات مالية|محام|قانون|محاسب|محاسبة|ترجمة|موارد بشرية|استشارات|خدمات مكتبية|وظائف/.test(value)) return 'professional_services';
+  if (/تأمين|تمويل|مدفوعات|خدمات مالية|محام|قانون|محاسب|محاسبة|ترجمة|موارد بشرية|استشارات|خدمات مكتبية|وظائف|بريد|خدمات حكومية/.test(value)) return 'professional_services';
   if (/زراع|مزرعة|مشاتل|بذور|أسمدة|حيوانات|بيطري|أعلاف|مصانع|تصنيع|حدادة|حداد|خراطة|لحام|إنتاج صناعي/.test(value)) return 'agriculture_animals';
-  return LEGACY_GROUP_MAP[groupHint] || 'fashion_beauty';
+  return 'fashion_beauty';
+}
+
+const LEGACY_DIRECTORY_CATEGORY_MAP: Record<string, string> = {
+  cat_medical_health_clinics: 'cat_medical_health_medical_practices',
+  cat_medical_health_doctor: 'cat_medical_health_medical_practices',
+  cat_medical_health_dentist: 'cat_medical_health_medical_practices',
+  cat_medical_health_dental_centers: 'cat_medical_health_medical_practices',
+  cat_medical_health_pharmacies: 'cat_medical_health_pharmacies',
+  cat_medical_health_labs: 'cat_medical_health_diagnostic_labs',
+  cat_medical_health_radiology_specialist: 'cat_medical_health_diagnostic_labs',
+  cat_medical_health_hospitals: 'cat_medical_health_hospitals',
+  cat_medical_health_medical_centers: 'cat_medical_health_hospitals',
+  cat_medical_health_physio_centers: 'cat_medical_health_rehabilitation',
+  cat_medical_health_physiotherapist: 'cat_medical_health_rehabilitation',
+  cat_food_grocery_restaurants: 'cat_food_grocery_restaurants',
+  cat_food_grocery_cafes: 'cat_food_grocery_cafes',
+  cat_food_grocery_bakeries: 'cat_food_grocery_bakeries_sweets',
+  cat_food_grocery_sweets: 'cat_food_grocery_bakeries_sweets',
+  cat_food_grocery_food_suppliers: 'cat_food_grocery_food_retail',
+  cat_food_grocery_fresh_food: 'cat_food_grocery_food_retail',
+  cat_food_grocery_specialty_food: 'cat_food_grocery_food_retail',
+  cat_food_grocery_supermarkets: 'cat_food_grocery_food_retail',
+  cat_tourism_events_travel_agencies: 'cat_food_grocery_hospitality_events',
+  cat_tourism_events_event_halls: 'cat_food_grocery_hospitality_events',
+  cat_fashion_beauty_clothing_stores: 'cat_fashion_beauty_clothing_stores',
+  cat_fashion_beauty_beauty_products: 'cat_fashion_beauty_beauty_products',
+  cat_fashion_beauty_beauty_centers: 'cat_fashion_beauty_salons',
+  cat_fashion_beauty_salons: 'cat_fashion_beauty_salons',
+  cat_fashion_beauty_shoes_bags: 'cat_fashion_beauty_shoes_bags',
+  cat_fashion_beauty_jewelry_stores: 'cat_fashion_beauty_general_retail',
+  cat_trade_ecommerce_stationery_books: 'cat_fashion_beauty_general_retail',
+  cat_home_maintenance_furniture: 'cat_home_maintenance_furniture',
+  cat_home_maintenance_home_appliances: 'cat_home_maintenance_furniture',
+  cat_home_maintenance_home_textiles: 'cat_home_maintenance_furniture',
+  cat_home_maintenance_homewares: 'cat_home_maintenance_furniture',
+  cat_home_maintenance_pest_control: 'cat_home_maintenance_home_services',
+  cat_construction_decor_building_materials: 'cat_home_maintenance_building_supplies',
+  cat_construction_decor_aluminum_glass: 'cat_home_maintenance_building_supplies',
+  cat_construction_decor_contractors: 'cat_home_maintenance_contractors',
+  cat_construction_decor_finishing_companies: 'cat_home_maintenance_finishing_companies',
+  cat_auto_transport_auto_maintenance: 'cat_auto_transport_auto_maintenance',
+  cat_auto_transport_auto_parts: 'cat_auto_transport_auto_parts',
+  cat_real_estate_real_estate_agent: 'cat_real_estate_residential_property',
+  cat_education_training_schools: 'cat_education_training_schools',
+  cat_education_training_nurseries: 'cat_education_training_nurseries',
+  cat_education_training_tutoring_centers: 'cat_education_training_tutoring',
+  cat_education_training_vocational_training: 'cat_education_training_training_centers',
+  cat_sports_fitness_gyms: 'cat_education_training_sports_centers',
+  cat_sports_fitness_sports_fields: 'cat_education_training_sports_centers',
+  cat_technology_communications_computer_repair: 'cat_technology_communications_it_networks',
+  cat_technology_communications_telecom_retail: 'cat_technology_communications_it_networks',
+  cat_marketing_media_ad_services: 'cat_technology_communications_digital_marketing',
+  cat_marketing_media_marketing_agencies: 'cat_technology_communications_digital_marketing',
+  cat_marketing_media_photo_video: 'cat_technology_communications_digital_marketing',
+  cat_professional_services_law_offices: 'cat_professional_services_legal_services',
+  cat_professional_services_accounting_offices: 'cat_professional_services_accounting_services',
+  cat_finance_insurance_banks: 'cat_professional_services_financial_services',
+  cat_finance_insurance_insurance_companies: 'cat_professional_services_financial_services',
+  cat_public_community_government_services: 'cat_professional_services_office_services',
+  cat_public_community_office_services: 'cat_professional_services_office_services',
+  cat_public_community_social_organizations: 'cat_professional_services_office_services',
+  cat_agriculture_animals_agri_supplies: 'cat_agriculture_animals_farms_agriculture',
+  cat_agriculture_animals_animal_feed: 'cat_agriculture_animals_animal_production',
+  cat_agriculture_animals_veterinary_clinics: 'cat_agriculture_animals_veterinary',
+  cat_industry_workshops_food_factories: 'cat_agriculture_animals_factories',
+  cat_industry_workshops_garment_factories: 'cat_agriculture_animals_factories',
+  cat_industry_workshops_metal_workshops: 'cat_agriculture_animals_workshops',
+};
+
+export function resolveCanonicalDirectoryCategoryId(categoryId: string, legacyGroupId?: string): string {
+  const raw = String(categoryId || '').trim();
+  if (!raw) return '';
+  const direct = DEFAULT_CATEGORIES.find((category) => category.id === raw);
+  if (direct) return direct.id;
+  if (raw.startsWith('cat_custom_')) return raw;
+  if (LEGACY_DIRECTORY_CATEGORY_MAP[raw]) return LEGACY_DIRECTORY_CATEGORY_MAP[raw];
+  const canonicalGroupId = resolveCanonicalGroupId('', legacyGroupId);
+  return raw.startsWith('cat_' + canonicalGroupId + '_') ? raw : '';
 }
 
 /** Keep historical/custom records intact, but expose only the curated 10x5 directory taxonomy. */
