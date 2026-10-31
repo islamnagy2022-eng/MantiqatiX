@@ -1,6 +1,6 @@
 # RC463 — Trigger-only SECURITY DEFINER ACL hardening
 
-**Status:** implementation candidate; exact-head isolated PostgreSQL and forward-chain CI passed on the current PR head.  \
+**Status:** implementation candidate; exact-head isolated PostgreSQL 17.11 and forward-chain CI passed on code/test head `43483d855bb08a63a37f78be564f5eb670f8a465`.  \
 **Production rollout:** not authorized by this change.
 
 ## Scope
@@ -31,9 +31,9 @@ For each present function, the migration:
 
 ## Verification
 
-Current PR head: `7b109df1d4c250c9178aa9afd0adedbaabf6f99c`.
+Current code/test PR head: `43483d855bb08a63a37f78be564f5eb670f8a465`.
 
-The disposable PostgreSQL 16 integration fixture creates synthetic trigger functions and triggers using a synthetic `.example.test` owner identity, applies the exact RC463 migration, then verifies:
+The disposable PostgreSQL 17.11 integration fixture (same PostgreSQL major as Production, currently 17.6.1.155) creates synthetic trigger functions and triggers using a synthetic `.example.test` owner identity, applies the exact RC463 migration, then verifies:
 
 - PUBLIC/anon/authenticated/service_role no longer have effective EXECUTE on either trigger function.
 - Both functions remain SECURITY DEFINER with empty search_path.
@@ -42,20 +42,20 @@ The disposable PostgreSQL 16 integration fixture creates synthetic trigger funct
 - A service_role commission-rule INSERT, UPDATE and DELETE each write an audit row with the expected action and old/new payloads.
 - Service-role fixture table privileges mirror the read/write privileges observed in the live Production catalog.
 
-The integration passed in [Trigger-only SECURITY DEFINER ACL Integration run 41233206112](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206112). The commission audit test initially exposed an incomplete fixture grant: live Production grants service_role SELECT as well as INSERT/UPDATE/DELETE on commission_rules. The fixture was corrected to match those observed privileges, and the exact-head rerun passed all three operations.
+The integration passed on PostgreSQL 17.11 in [Trigger-only SECURITY DEFINER ACL Integration run 41233877757](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877757). The Production project reports PostgreSQL 17.6.1.155 (major 17). The commission audit test initially exposed an incomplete fixture grant: live Production grants service_role SELECT as well as INSERT/UPDATE/DELETE on commission_rules. The fixture was corrected to match those observed privileges, and the exact-head rerun passed all three operations.
 
 The integration runs inside a transaction and rolls back its fixture data. The synthetic functions and identities exist only in the disposable test fixture; they are not production migration source.
 
 ### Exact-head supporting validation
 
-- Forward migration chain replay from the older schema checkpoint: PASS, [run 41233206156](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206156). The run applied 75 later migrations in timestamp order, including RC463, and passed the owner-profile, RC455/RC456 commission-preview, and synthetic two-tenant checks.
-- Primary Catalog Frontend build, RBAC PostgreSQL and Playwright browser E2E: PASS, [run 41233206140](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206140).
-- Backend-only boundary, RC449A/RC450 financial-journal integration and approval-audit atomicity: PASS, [run 41233206155](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206155).
-- Migration history immutability: PASS, [run 41233206192](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206192).
-- Migration version uniqueness: PASS, [run 41233206107](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206107).
-- Open-PR migration collision guard: PASS, [run 41233206121](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233206121).
-- Module professionalization, MantiGO privacy, RC425 Paymob atomicity and other exact-head supporting workflows: PASS.
-- Pages validation succeeded, but deployment was skipped because this was a pull-request run. No production deployment occurred.
+- Forward migration chain replay from the older schema checkpoint: PASS, [run 41233877762](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877762). The run applied 75 later migrations in timestamp order, including RC463, and passed the owner-profile, RC455/RC456 commission-preview, and synthetic two-tenant checks.
+- Primary Catalog Frontend build, RBAC PostgreSQL and Playwright browser E2E: PASS, [run 41233877751](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877751).
+- Backend-only boundary, RC449A/RC450 financial-journal integration and approval-audit atomicity: PASS, [run 41233877770](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877770), with [approval audit run 41233877897](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877897).
+- Migration history immutability: PASS, [run 41233877808](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877808).
+- Migration version uniqueness: PASS, [run 41233877807](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877807).
+- Open-PR migration collision guard: PASS, [run 41233877759](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877759).
+- Module professionalization [41233877755](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877755), MantiGO privacy [41233877969](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877969), RC425 Paymob atomicity [41233877855](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877855), and approval audit [41233877897](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877897): PASS.
+- Pages validation succeeded in [run 41233877753](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41233877753), but the deployment job was skipped because this was a pull-request run. No production deployment occurred.
 
 ## Live Production evidence and boundary
 
