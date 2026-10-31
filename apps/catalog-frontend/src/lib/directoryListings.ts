@@ -1,4 +1,5 @@
 import { productionRuntime, supabase } from "./production";
+import { resolveCanonicalDirectoryCategoryId, resolveCanonicalGroupId } from "../data/productionDefaults";
 
 export type PublicDirectoryListing = {
   id: string;
@@ -31,6 +32,24 @@ export type PublicDirectoryListing = {
   metadata?: Record<string, unknown>;
   created_at?: string;
 };
+
+function normalizeDirectoryListingTaxonomy(listing: PublicDirectoryListing): PublicDirectoryListing {
+  const functionalGroupId = resolveCanonicalGroupId(
+    [listing.taxonomy_category_id, listing.taxonomy_specialty, listing.specialty, listing.display_name].filter(Boolean).join(" "),
+    listing.functional_group_id,
+  );
+  const canonicalCategoryId = resolveCanonicalDirectoryCategoryId(
+    listing.taxonomy_category_id,
+    listing.functional_group_id,
+  );
+  return {
+    ...listing,
+    functional_group_id: functionalGroupId,
+    // Keep an unknown legacy ID visible at group level rather than dropping the record.
+    // All currently inventoried production IDs are covered by the explicit alias map.
+    taxonomy_category_id: canonicalCategoryId || listing.taxonomy_category_id,
+  };
+}
 
 export type DirectoryClaimRequest = {
   id: string;
@@ -72,8 +91,8 @@ export async function fetchPublicDirectoryListings(slug?: string): Promise<Publi
     cache: "no-store",
   });
   const body = await readBody(response);
-  if (slug) return (body.listing || null) as PublicDirectoryListing | null;
-  return (Array.isArray(body.listings) ? body.listings : []) as PublicDirectoryListing[];
+  if (slug) return body.listing ? normalizeDirectoryListingTaxonomy(body.listing as PublicDirectoryListing) : null;
+  return (Array.isArray(body.listings) ? body.listings : []).map((row: PublicDirectoryListing) => normalizeDirectoryListingTaxonomy(row));
 }
 
 async function callDirectoryAdmin(body: Record<string, unknown>): Promise<any> {
@@ -110,12 +129,16 @@ export async function submitDirectoryListingClaim(input: {
 }
 
 export async function fetchDirectoryAdminBundle(): Promise<DirectoryAdminBundle> {
-  return callDirectoryAdmin({ action: "ADMIN_LIST" }) as Promise<DirectoryAdminBundle>;
+  const body = await callDirectoryAdmin({ action: "ADMIN_LIST" }) as DirectoryAdminBundle;
+  return {
+    ...body,
+    listings: (Array.isArray(body.listings) ? body.listings : []).map(normalizeDirectoryListingTaxonomy),
+  };
 }
 
 export async function saveDirectoryListing(input: Record<string, unknown>): Promise<PublicDirectoryListing> {
   const body = await callDirectoryAdmin({ action: "UPSERT_LISTING", ...input });
-  return body.listing as PublicDirectoryListing;
+  return normalizeDirectoryListingTaxonomy(body.listing as PublicDirectoryListing);
 }
 
 export async function reviewDirectoryClaim(input: {

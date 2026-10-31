@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, MapPin, Phone, Search, ShieldAlert, UserRoundCheck } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
+import { resolveCanonicalSpecialty } from "../data/productionDefaults";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -67,13 +68,13 @@ export const DirectoryListingsView: React.FC<{
 
   useEffect(() => { setSpecialtyFilter("all"); }, [functionalGroupId, taxonomyCategoryId, taxonomySpecialty]);
 
-  const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/\s+/g, " ").trim();
+  const normalize = (value: string) => value.toLocaleLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/\s+/g, " ").trim();
   const taxonomyMatches = (listing: PublicDirectoryListing) => {
     if (functionalGroupId && listing.functional_group_id !== functionalGroupId) return false;
     if (taxonomyCategoryId && listing.taxonomy_category_id !== taxonomyCategoryId) return false;
     if (taxonomySpecialty) {
-      const requested = normalize(taxonomySpecialty);
-      const assigned = normalize(String(listing.taxonomy_specialty || ""));
+      const requested = resolveCanonicalSpecialty(taxonomySpecialty, listing.taxonomy_category_id);
+      const assigned = resolveCanonicalSpecialty(String(listing.taxonomy_specialty || listing.specialty || ""), listing.taxonomy_category_id);
       if (assigned !== requested) return false;
     }
     const query = normalize(searchQuery);

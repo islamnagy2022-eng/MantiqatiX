@@ -536,11 +536,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const name = data.name.trim();
     if (name.length < 2 || name.length > 120) throw new Error('اسم النشاط أو المهنة يجب أن يكون من حرفين إلى 120 حرفًا.');
     const normalized = normalizeCanonicalTaxonomySettings(adminSettings);
-    const classificationType = data.classificationType || 'activity';
+    if (data.classificationType === 'profession') {
+      throw new Error('لا تُنشأ المهن كتصنيفات مستقلة؛ أضف المهنة كتخصص داخل النشاط المناسب.');
+    }
+    const classificationType = 'activity';
+    const groupCategories = normalized.categories.filter((category) => category.functionalGroupId === data.functionalGroupId);
+    if (groupCategories.length >= 5) {
+      throw new Error('وصلت هذه المجموعة إلى الحد الأقصى: 5 أنشطة. أضف التخصص المناسب داخل أحد الأنشطة الحالية بدلاً من إنشاء تصنيف جديد.');
+    }
     const duplicate = normalized.categories.some((category) =>
-      category.classificationType === classificationType &&
+      category.classificationType === 'activity' &&
       category.name.trim().toLocaleLowerCase('ar') === name.toLocaleLowerCase('ar'));
-    if (duplicate) throw new Error('هذا النشاط أو المهنة موجود بالفعل ضمن التصنيف المختار.');
+    if (duplicate) throw new Error('هذا النشاط موجود بالفعل ضمن التصنيف المختار.');
     const newCat: ActivityCategory = {
       id: `cat_custom_${crypto.randomUUID()}`,
       name,

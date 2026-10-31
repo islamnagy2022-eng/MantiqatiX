@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Clock,
   Settings,
-  Plus,
   Trash2,
   Copy,
   Check,
@@ -41,7 +40,6 @@ import {
   Wrench,
   Filter,
   ArrowRight,
-  FolderPlus,
   UserCog,
 } from 'lucide-react';
 import {
@@ -67,20 +65,12 @@ const ICONS_MAP: Record<string, React.ReactNode> = {
   food_grocery: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
   fashion_beauty: <ShoppingBag className="w-4 h-4 text-pink-500" />,
   home_maintenance: <Wrench className="w-4 h-4 text-orange-500" />,
-  construction_decor: <Building2 className="w-4 h-4 text-stone-500" />,
   auto_transport: <Store className="w-4 h-4 text-sky-500" />,
   real_estate: <Store className="w-4 h-4 text-teal-500" />,
   education_training: <CalendarCheck2 className="w-4 h-4 text-indigo-500" />,
   technology_communications: <Layers className="w-4 h-4 text-cyan-500" />,
   professional_services: <CalendarCheck2 className="w-4 h-4 text-violet-500" />,
-  marketing_media: <Store className="w-4 h-4 text-fuchsia-500" />,
-  trade_ecommerce: <ShoppingBag className="w-4 h-4 text-blue-500" />,
   agriculture_animals: <Store className="w-4 h-4 text-lime-600" />,
-  sports_fitness: <HeartPulse className="w-4 h-4 text-red-500" />,
-  tourism_events: <CalendarCheck2 className="w-4 h-4 text-purple-500" />,
-  finance_insurance: <Layers className="w-4 h-4 text-emerald-600" />,
-  industry_workshops: <Wrench className="w-4 h-4 text-slate-500" />,
-  public_community: <CalendarCheck2 className="w-4 h-4 text-rose-500" />,
 };
 
 export const AdminDashboard: React.FC = () => {
@@ -218,7 +208,6 @@ export const AdminDashboard: React.FC = () => {
   const [isNewCatModalOpen, setIsNewCatModalOpen] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [newCatGroup, setNewCatGroup] = useState<FunctionalGroupId>('medical_health');
-  const [newCatType, setNewCatType] = useState<'activity' | 'profession'>('activity');
   const [newCatSpecialties, setNewCatSpecialties] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
 
@@ -403,13 +392,12 @@ export const AdminDashboard: React.FC = () => {
       await addCategory({
         name: newCatName.trim(),
         functionalGroupId: newCatGroup,
-        classificationType: newCatType,
+        classificationType: 'activity',
         specialties,
         description: newCatDesc.trim() || undefined,
       });
       setNewCatName('');
       setNewCatDesc('');
-      setNewCatType('activity');
       setNewCatSpecialties('');
       setNewCatGroup('medical_health');
       setIsNewCatModalOpen(false);
@@ -1047,13 +1035,9 @@ export const AdminDashboard: React.FC = () => {
               </p>
             </div>
 
-            <button
-              onClick={() => setIsNewCatModalOpen(true)}
-              className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer self-start md:self-auto"
-            >
-              <FolderPlus className="w-4 h-4" />
-              <span>إضافة تصنيف جديد</span>
-            </button>
+            <div className="rounded-xl border border-indigo-300/30 bg-indigo-800/70 px-4 py-3 text-xs font-bold text-indigo-100 self-start md:self-auto">
+              اكتمل التقسيم المعتمد: 10 مجموعات، وبحد أقصى 5 أنشطة رئيسية لكل مجموعة. التخصصات تُحدد داخل النشاط المناسب ولا تُنشأ كمجموعات أو تصنيفات موازية.
+            </div>
           </div>
 
           {/* Functional Groups Grid with Capabilities */}
@@ -1089,7 +1073,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
 
                         <span className="bg-slate-900 text-white font-black text-xs px-2.5 py-1 rounded-xl">
-                          {groupBizList.length} أنشطة
+                          {groupBizList.length} نشاط مسجل
                         </span>
                       </div>
 
@@ -1101,7 +1085,7 @@ export const AdminDashboard: React.FC = () => {
                       {/* Associated Categories Pills */}
                       <div className="space-y-1.5 mb-4">
                         <span className="text-[11px] font-bold text-slate-400 block">
-                          التصنيفات المندرجة تحت هذا القطاع ({groupCats.length}):
+                          الأنشطة الرئيسية في هذه المجموعة ({groupCats.length}/5):
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {groupCats.map((c) => (
@@ -1152,7 +1136,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                       <span className="text-slate-500 font-medium">الأنشطة المسجلة:</span>
                       <span className="font-extrabold text-emerald-700">
-                        {groupBizList.length} مشترك
+                        {groupBizList.length} نشاط مسجل
                       </span>
                     </div>
                   </div>
@@ -1166,27 +1150,21 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-black text-base text-slate-900">
-                  دليل الأنشطة والمهن ومجموعاتها الرئيسية
+                  دليل الأنشطة الرئيسية وتخصصاتها
                 </h3>
                 <p className="text-xs text-slate-500">
-                  يمكنك مراجعة الأنشطة والمهن وتخصصاتها، أو إضافة تصنيف جديد وربطه بإحدى المجموعات الرئيسية الـ18.
+                  يمكنك مراجعة الأنشطة وتخصصاتها داخل المجموعات العشر المعتمدة. الحد الأقصى خمسة أنشطة رئيسية لكل مجموعة، وتُدار التفاصيل كتخصصات داخل النشاط المناسب.
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsNewCatModalOpen(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-xs cursor-pointer self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                <span>إضافة تصنيف جديد</span>
-              </button>
+
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-right text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
-                    <th className="py-3 px-4">اسم التصنيف</th>
+                    <th className="py-3 px-4">النشاط الرئيسي</th>
                     <th className="py-3 px-4">المجموعة الرئيسية</th>
                     <th className="py-3 px-4">الوصف</th>
                     <th className="py-3 px-4">الأنشطة المرتبطة</th>
@@ -1204,8 +1182,8 @@ export const AdminDashboard: React.FC = () => {
                       <tr key={cat.id} className="hover:bg-slate-50/70">
                         <td className="py-3 px-4 font-bold text-slate-900">
                           <div>{cat.name}</div>
-                          <span className={`inline-flex mt-1 rounded-md px-2 py-0.5 text-[10px] font-black ${cat.classificationType === 'profession' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>
-                            {cat.classificationType === 'profession' ? 'مهنة' : 'نشاط'}
+                          <span className="inline-flex mt-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700">
+                            نشاط رئيسي
                           </span>
                           {cat.specialties?.length ? <small className="block mt-1 text-slate-400 font-normal">{cat.specialties.length} تخصصات دقيقة</small> : null}
                         </td>
@@ -2167,7 +2145,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[11px] font-black text-slate-700 mb-1">
-                    التصنيف — النشاط أو المهنة
+                    النشاط الرئيسي
                   </label>
                   <select
                     value={newBizCategory}
@@ -2176,7 +2154,7 @@ export const AdminDashboard: React.FC = () => {
                   >
                     {categories.filter((c) => c.functionalGroupId === newBizFunctionalGroup).map((c) => (
                       <option key={c.id} value={c.name}>
-                        {(c.classificationType === 'profession' ? 'مهنة: ' : 'نشاط: ') + c.name}
+                        {c.name}
                       </option>
                     ))}
                   </select>
@@ -2368,31 +2346,19 @@ export const AdminDashboard: React.FC = () => {
             <form onSubmit={handleCreateCategory} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  اسم النشاط أو المهنة <span className="text-rose-500">*</span>
+                  اسم النشاط <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="مثال: صيدلية أو طبيب أو مطعم"
+                  placeholder="مثال: عيادات طبية أو صيدلية أو مطعم"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-black text-slate-700 mb-1">
-                  نوع التصنيف <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={newCatType}
-                  onChange={(e) => setNewCatType(e.target.value as 'activity' | 'profession')}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold cursor-pointer"
-                >
-                  <option value="activity">نشاط</option>
-                  <option value="profession">مهنة</option>
-                </select>
-              </div>
+
 
               <div>
                 <label className="block text-[11px] font-black text-slate-700 mb-1">
