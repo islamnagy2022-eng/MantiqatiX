@@ -43,6 +43,8 @@ jobs:
         run: npx tsx ../../scripts/test-professional-dashboard-access.ts
       - name: Validate Smart Geo Discovery consent, privacy, and administrative selectors
         run: node scripts/validate-smart-geo-discovery.mjs
+      - name: Validate unified dashboard account-entry boundary
+        run: node scripts/validate-unified-dashboard-entry.mjs
       - name: Validate Facebook page import ownership and token handling
         run: node scripts/validate-facebook-page-import.mjs
       - name: Validate activity social links and click-to-call
