@@ -49,6 +49,7 @@ for (const groupId of expectedGroups) {
 }
 assert.ok(!rows.some((row) => row.name === 'طبيب' || row.code === 'doctor'), 'Doctor must not be a separate category beside medical practices/clinics.');
 assert.ok(defaults.includes('normalizeCanonicalTaxonomySettings'), 'Saved taxonomy settings must be merged with canonical defaults.');
+assert.ok(defaults.includes('seenNames.has(normalizedName)'), 'Custom taxonomy labels must not duplicate canonical activity names.');
 assert.ok(defaults.includes('LEGACY_GROUP_MAP'), 'Old group IDs must remain readable during migration.');
 assert.ok(defaults.includes('BACKEND_CODE_GROUP_MAP'), 'Existing backend category codes must map to canonical groups.');
 assert.ok(defaults.includes('LEGACY_DIRECTORY_CATEGORY_MAP'), 'Legacy directory category IDs must resolve to canonical category IDs.');
