@@ -1644,3 +1644,10 @@ A separate source review found a second platform-root authorization model: the n
 - Supporting exact-head workflows PASS: Backend-only Module Boundary [41240092718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092718), Module Professionalization [41240092669](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092669), MantiGO Privacy [41240092672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092672), RC425 Paymob Atomicity [41240092667](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092667), Flexible Commission [41240092670](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092670), Pages validation [41240092668](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092668).
 - Pages validation passed but its deployment job was SKIPPED for the PR event. PR #619 remains Draft/unmerged; the code is not live on the production site. Independent review and an authorized merge/deployment are still required.
 - No Production DB/schema/data/ACL/Auth/RLS/Edge/payment/finance mutation or deployment occurred. Live `public-catalog-directory` v10 parity issue (missing sanitized `activityModuleOverrides`) remains separate and open. Overall platform remains `BLOCKED / NOT CERTIFIED`.
+
+
+### Production directory listing coverage audit (read-only)
+
+- `public_directory_listings` snapshot: 357 `PUBLISHED / UNCLAIMED`, one `PUBLISHED / CLAIM_PENDING`, 87 `DRAFT / UNCLAIMED` (all 87 had no phone number), and 9 `HIDDEN / UNCLAIMED` (4 had phone numbers).
+- All 64 distinct stored taxonomy category IDs resolve directly or through the explicit legacy alias map to the canonical 50 categories; no orphan category IDs were found in this inventory.
+- This supports the conclusion that published listing records exist and are covered by the compatibility map; the UI fix remains about stable canonical mapping for business cards and the mobile activity grid. No Production record was changed.
