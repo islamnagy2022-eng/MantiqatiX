@@ -1196,3 +1196,11 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Current live Production is at 308 migration records through `20261029083845`; therefore the baseline is 25 recorded migrations behind and cannot certify the physical schema on 2026-10-31.
 - RC462 full replay passed from this older checkpoint, not from the current Production schema. GitHub artifact lookup for both replay run #41178333682 and original capture run #38993809648 returned no downloadable artifacts.
 - Next hard dependency: authorized operator creates a fresh credential-scrubbed roles/schema capture and restores it locally before full ordered migration replay. Keep Production unchanged until restore parity, adversarial tests, rollback and approval are complete.
+
+ 
+## Latest continuation — 2026-10-31 (platform-admin bootstrap/revocation)
+
+- Canonical platform tenant is `MNTY-PLATFORM` / code `MNTY`, ACTIVE. The live service_role-only bootstrap routine defaults to tenant ID `MNTY_PLATFORM` and code `MNTY-PLATFORM`; it inserts a new tenant unconditionally. During future empty-registry recovery this default would fork platform membership into another tenant; passing the existing ID explicitly would fail on duplicate key.
+- Current root registry count is one (aggregate only); one-time guard means bootstrap is not currently callable successfully. No identity or registry row contents were read and no invocation attempted.
+- Read-only scan found no other SQL registry writer and no dedicated audited deprovision routine; external privileged service operation remains a question.
+- Issue [#614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks P2 idempotent bootstrap correction and audited revocation/session invalidation. No Production change.
