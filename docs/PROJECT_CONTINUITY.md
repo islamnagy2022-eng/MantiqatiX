@@ -1064,3 +1064,14 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Existing finance audit foundations remain incomplete: commission/subscription/payment tables are present, but commission activation and some subscription/journal migration contracts remain blocked. No new finance schema/migrations or live financial action has been activated.
 - No Supabase/Production schema, RLS, GRANT, Auth, Edge Function, payment, wallet, advertising booking or deployment was changed.
 - Next: exact-head CI/build/E2E; inspect and fix issues; then finish multi-membership server-side context and financial schema reconciliation before any production rollout.
+
+
+## 2026-10-31 — Unified account modes and current CI evidence
+
+- Account modes are derived from active authenticated user_memberships and exact membershipId + businessId + tenantId mappings.
+- Switching reloads CATALOG_READ through the server-authorized Edge Function using the selected membership branch scope, replaces selected-business products and clears the cart. Client mode changes do not replace server-side membership/RLS authorization.
+- Platform-admin mode remains distinct. An admin can open selected-business tools while retaining platform identity; no owner-role impersonation.
+- Dashboard modules load only when opened inside Account Portal. Public navbar dashboard links remain removed.
+- PR #610 head 2eac69122b4fa4b67bdf122c3db3db27527bf7d2: TypeScript/build/static catalog and unified-dashboard contracts PASS; PostgreSQL employee/branch RBAC PASS. Browser E2E was still running at last check. Legacy catalog validator, flexible-commission drafts, module professionalization, backend boundary, SMM deferred and MantiGO privacy workflows passed. Deploy workflow validation succeeded, but deploy job was SKIPPED because this was a PR event.
+- No production deployment, finance schema change, wallet/provider activation or advertising booking occurred. Existing CommissionRulesManager remains draft-only pending payment-engine integration.
+- Next: retrieve exact-head browser E2E conclusion, fix any failures, then run deployed-origin role matrix and performance measurements. Continue FIN-ADS-01 with flexible subscription pricing and canonical-ledger review; wallet and ad bookings remain unimplemented.
