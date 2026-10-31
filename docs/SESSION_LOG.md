@@ -1214,3 +1214,14 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - **Workflow evidence:** no PR-triggered workflow runs or status checks were returned for the docs-only merge commit. Do not infer a Pages deployment or Production Health Monitor run from this documentation merge.
 - **Current main:** `5ab774656ba0e7a635ce992eee88feb2ff5bc929`.
 - **Next executable action:** authorized owner/operator creates protected local backup exports, then performs a disposable local restore rehearsal. Production remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-31 — current-main Production Health Monitor verified
+
+- **Current main:** `d61baeccd5444248e8d778117ab3ab4a09f2b45f` (PR #572 merge).
+- **Workflow:** Production Health Monitor [run 41159588678](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159588678) completed successfully.
+- **Job:** `health`, job ID `124413939822`; all seven steps completed successfully.
+- **Database probe evidence:** the job log shows the GET to `/rest/v1/marketing_provider_profiles?select=business_id&limit=1`, and emits `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`. The workflow only logs the HTTP code if it is not 200, so this pass confirms HTTP 200 for this request at the run timestamp.
+- **Other checks:** GitHub Pages root, Edge Function runtime health endpoint, primary catalog root, and referenced assets all passed in the same job.
+- **Limitations:** one successful probe does not guarantee ongoing uptime or prevent every inactivity pause. GitHub failure-notification delivery remains NOT VERIFIED. The Pages deployment and other CI workflows for this current main commit were still pending/in progress when checked.
+- **Safety:** GET-only, response body discarded; no Production data/schema/Auth/RLS/Edge Function/payment mutation.
+- **Next:** confirm the current-main Pages deployment result, then verify GitHub failure notifications, and proceed to owner-operated protected backup plus disposable restore rehearsal. Production remains **BLOCKED / NOT CERTIFIED**.
