@@ -846,6 +846,52 @@ try {
     } finally { await context.close(); }
   }
 
+// 13. Canonical activity codes override conflicting legacy homepage labels, with a three-column phone grid.
+{
+  const conflictingLegacyBusiness = {
+    id: '10000000-0000-0000-0000-000000000777',
+    tenantId: 'tenant-taxonomy-e2e',
+    organizationId: 'org-taxonomy-e2e',
+    name: 'صيدلية اختبار التصنيف',
+    category: 'مطاعم — برجر',
+    activityGroupCode: 'medical_health',
+    activityCategoryCode: 'pharmacies',
+    activityClassificationType: 'activity',
+    activitySpecialty: 'صيدلية عامة',
+    status: 'ACTIVE',
+    operationalStatus: 'ACTIVE',
+    publicEnabled: true,
+    isOfficialShowcase: false,
+    provider: { kind: 'OFFICIAL', verified: true, featured: false },
+    profile: { governorate: 'المنوفية', markaz: 'بركة السبع', village: '' },
+    branches: [{ id: 'branch-taxonomy-e2e', tenantId: 'tenant-taxonomy-e2e', name: 'الفرع الرئيسي', status: 'ACTIVE' }],
+    selectedBranchId: 'branch-taxonomy-e2e',
+    catalogPublished: true,
+    bizcatalog: { operationalStatus: 'ACTIVE' },
+  };
+  const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
+  try {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    const locationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+    if (await locationDialog.isVisible().catch(() => false)) {
+      await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+      await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+    }
+    const grid = page.locator('section[aria-label="الأنشطة"] .grid').first();
+    const columns = await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+    assert.equal(columns, 3, 'homepage must display three activity cards per mobile row');
+    const pharmacy = page.getByRole('button', { name: /صيدليات/ }).first();
+    const restaurant = page.getByRole('button', { name: /مطاعم/ }).first();
+    await pharmacy.waitFor({ state: 'visible' });
+    await restaurant.waitFor({ state: 'visible' });
+    assert.match(await pharmacy.innerText(), /موثق\s*[٠-٩0-9]/);
+    assert.match(await restaurant.innerText(), /موثق\s*[٠-٩0-9]/);
+    await pharmacy.click();
+    await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
+    results.push('homepage-canonical-activity-precedence-and-three-column-mobile-grid');
+  } finally { await context.close(); }
+}
+
 // 13. Domain profiles must expose different marketing plans and operating capabilities.
   {
     const { context, page } = await newScenario(browser);
