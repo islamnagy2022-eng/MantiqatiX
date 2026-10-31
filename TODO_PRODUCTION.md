@@ -31,7 +31,7 @@
 - [x] **GEO-DISC-003 — الخصوصية والرجوع الآمن:** موافقة صريحة داخل الموقع قبل إذن المتصفح، وعدم إعادة الطلب تلقائيًا بعد الرفض/الاختيار اليدوي؛ الزيارات اللاحقة تعيد GPS صامتًا فقط إذا كان الإذن السابق granted. حالات عدم الدعم/HTTPS/timeout/outside-Egypt، لا watchPosition، لا حفظ أو إرسال إحداثيات GPS، والطلب الخارجي يحمل كود المركز فقط مع credentials/referrer مستبعدين ومهلة 8 ثوانٍ.
 - [ ] **GEO-DISC-004 — دقة الحدود:** nearest representative-point matching ليس point-in-polygon. ما زال مطلوبًا مصدر حدود رسمية ADM2/ADM3 بترخيص واضح وتاريخ مرجعي لإثبات أن الموقع داخل القرية/المركز بدل أقرب نقطة فقط.
 - [🟡 PARTIAL] **GEO-DISC-005 — الاختبارات والنشر:** validator ثابت موسع يغطي 27/365/5,716 وسلوك الموافقة والخصوصية ومصدر البيانات، ومربوط في Pages CI. exact-head CI وBrowser E2E والنشر ما زالت بانتظار إثبات.
-- **Data source:** Open Admin Data Egypt 2026.09, published 2026-09-08, CC-BY-4.0; source attribution is included in the application.
+- **Data source:** Open Admin Data Egypt 2026.09, published 2026-09-08, CC-BY-4.0; immutable source commit 76b47b22872288c0d8b0c757975980e6986945e8; source attribution is included in the application.
 - **Source branch:** feature/smart-geo-discovery-20261031
 - **Tracking:** https://github.com/islamnagy2022-eng/MantiqatiX/issues/604
 - لا يتم إغلاق GEO-DISC-001/004/005 قبل اختبارات المتصفح والموبايل والتحقق من النشر، ولا يتم وصف أقرب نقطة بأنها حدود رسمية.
