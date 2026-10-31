@@ -912,6 +912,10 @@ try {
       await pharmacyModule.getByText('إعلان ساعات العمل والمناوبة', { exact: true }).waitFor({ state: 'visible' });
       await pharmacyModule.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
       await pharmacyModule.getByText('إدارة ملف الصيدلية وساعات المناوبة', { exact: false }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('heading', { name: 'الأدوية والمستلزمات', exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('heading', { name: 'المناوبات وساعات العمل', exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('heading', { name: 'طلبات التوصيل', exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await pharmacyModule.getByText('قيد التجهيز', { exact: true }).count(), 3, 'All pharmacy operations must remain disabled until verified backend workflows exist.');
       results.push('activity-module-registry-renders-domain-specific-marketing-and-operations');
       results.push('activity-module-registry-renders-pharmacy-specific-override');
     } finally { await context.close(); }
