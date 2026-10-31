@@ -80,6 +80,11 @@ interface CoverSlide {
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
 const GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
 
+const normalizeGeoName = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
+  .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
+  .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim()
+  .replace(/^(?:محافظة|مركز|مدينة|قسم)\s*/, '').trim();
+
 type StoredGeoPreference = {
   completed: true;
   mode: 'auto' | 'manual';
@@ -323,7 +328,7 @@ export const DirectoryView: React.FC = () => {
   // Filter slides based on selected governorate
   const activeCoverSlides = selectedGovFilter === 'all'
     ? coverSlides
-    : coverSlides.filter((slide) => slide.governorates.includes(selectedGovFilter));
+    : coverSlides.filter((slide) => normalizeAdministrativeName(slide.governorates[0]) === normalizeAdministrativeName(selectedGovFilter));
 
   useEffect(() => {
     setCurrentCoverIndex(0);
@@ -339,7 +344,7 @@ export const DirectoryView: React.FC = () => {
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
-  const normalizeAdministrativeName = (value: unknown) => normalizeSearch(value).replace(/^(?:محافظة|مركز|مدينة|قسم)\s*/, '').trim();
+  const normalizeAdministrativeName = normalizeGeoName;
 
   // Only use explicit, valid coordinates. Never infer a distance from a text address or map URL.
   const getCoordinates = (value: unknown): { latitude: number; longitude: number } | null => {
