@@ -541,56 +541,47 @@ try {
     } finally { await context.close(); }
   }
 
-  // 8. Catalog GPS asks only after click, handles granted/denied permissions, and never persists visitor coordinates.
+  // 8. Every visit starts Egypt-wide, ignores stale saved geo scope, and never requests GPS automatically.
   {
-    const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
+    const { context, page } = await newScenario(browser);
     try {
-      await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
-      await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
+      await page.addInitScript(() => {
+        localStorage.setItem('mantiqatix.geo-discovery.v1', JSON.stringify({
+          completed: true,
+          mode: 'auto',
+          governorate: 'المنوفية',
+          markaz: 'بركة السبع',
+          village: 'قرية اختبار قديمة',
+          area: 'شارع اختبار قديم',
+        }));
+        let calls = 0;
+        Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
+          configurable: true,
+          value: () => { calls += 1; window.__mantiqatixGeoCalls = calls; },
+        });
+        window.__mantiqatixGeoCalls = calls;
+      });
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
-      await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
-      await page.getByText(/تم تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
-      await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      const savedGeoPreference = await page.evaluate(() => JSON.parse(localStorage.getItem('mantiqatix.geo-discovery.v1') || 'null'));
-      assert.equal(savedGeoPreference?.completed, true, 'explicit consent must be persisted before the dialog closes');
-      assert.equal(savedGeoPreference?.mode, 'auto', 'accepted GPS consent must be remembered as automatic location mode');
-      const gpsButton = page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ });
-      await gpsButton.waitFor({ state: 'visible', timeout: 5000 });
-      const leakedCoordinates = await page.evaluate(() =>
-        Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
-      );
-      assert.equal(leakedCoordinates, false, 'visitor GPS coordinates must not be persisted to local storage');
+      await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible' });
+      assert.equal(await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).count(), 0, 'first visit must not be blocked by a location consent dialog');
+      assert.equal(await page.getByLabel('المحافظة').inputValue(), 'all', 'default governorate must be Egypt-wide even when an old location is stored');
+      assert.equal(await page.getByLabel('المركز / المدينة').inputValue(), 'all', 'default markaz must include all centers');
+      assert.equal(await page.getByLabel('القرية / الحي').inputValue(), 'all', 'default village must include all villages and neighborhoods');
+      assert.equal(await page.getByLabel('المنطقة / العنوان').inputValue(), 'all', 'default area must include all areas');
+      assert.equal(await page.evaluate(() => window.__mantiqatixGeoCalls || 0), 0, 'GPS must not be requested automatically on page load');
+      await page.getByLabel('المحافظة').selectOption({ label: 'المنوفية' });
+      assert.notEqual(await page.getByLabel('المحافظة').inputValue(), 'all', 'manual governorate narrowing must remain available');
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).waitFor({ state: 'detached', timeout: 5000 });
-      await page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
-      const leakedCoordinatesAfterReload = await page.evaluate(() =>
-        Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
-      );
-      assert.equal(leakedCoordinatesAfterReload, false, 'silent returning-visitor location refresh must not persist coordinates');
-      await assertNoHorizontalOverflow(page, '390px mobile catalog GPS');
+      assert.equal(await page.getByLabel('المحافظة').inputValue(), 'all', 'a new visit must reset the directory to all Egypt');
+      assert.equal(await page.getByLabel('المركز / المدينة').inputValue(), 'all');
+      assert.equal(await page.getByLabel('القرية / الحي').inputValue(), 'all');
+      assert.equal(await page.getByLabel('المنطقة / العنوان').inputValue(), 'all');
+      await assertNoHorizontalOverflow(page, '390px Egypt-wide directory');
       await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px desktop catalog GPS');
-      results.push('catalog-gps-consent-distance-state-not-persisted-responsive');
+      await assertNoHorizontalOverflow(page, '1440px Egypt-wide directory');
+      results.push('egypt-wide-default-no-auto-gps-manual-filters-reset-on-new-visit-responsive');
     } finally { await context.close(); }
   }
-
-  {
-    const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
-    try {
-      await context.grantPermissions([], { origin: new URL(baseUrl).origin });
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
-      await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
-      await page.getByText(/لم تسمح بالوصول إلى الموقع|تعذر تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
-      await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      await page.getByRole('button', { name: /حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
-      results.push('catalog-gps-permission-denial-keeps-manual-search-available');
-    } finally { await context.close(); }
-  }
-
 
   // 9. Verified activities expose only explicitly configured external brand URLs.
   {
