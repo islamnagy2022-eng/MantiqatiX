@@ -392,11 +392,13 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 }> {
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
-    const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
+    // AppContext owns the independent public-directory request. Fetching it again
+    // here duplicated the largest public request and held auth bootstrap open
+    // even though a guest has no membership data to resolve.
     return {
       authSession: { role: 'guest', isAuthenticated: false },
-      businesses: directory.businesses,
-      products: directory.products,
+      businesses: [],
+      products: [],
       subscribers: [],
       adminSettings,
     };
