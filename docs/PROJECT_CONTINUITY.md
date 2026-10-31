@@ -2,13 +2,12 @@
 
 > **MANDATORY START HERE FOR EVERY FUTURE SESSION**
 
- > **LATEST SESSION STATE — 2026-10-31:** Production remains **BLOCKED / NOT CERTIFIED**. Latest main handoff commit at this checkpoint: `ed6bad03feab6cc6b358534e07f27246f76c2ca7`. The Production migration ledger has 308 rows through `20261029083845`; 0/41 exact required release IDs are present. This does not mean all 41 effects are physically absent: use the new read-only checkpoint `docs/audits/PRODUCTION_FINANCE_SCHEMA_CHECKPOINT_20261031.md` and the reconciliation manifest. RC435/RC439 subscription claim/encrypted-recovery contracts and RC449A/RC450 journal columns/service-role RPC boundary remain absent or incompatible. Six live order/payment/finance Edge entrypoints still differ from main. PRs #559 and #561 added passing PostgreSQL 16 test coverage only; no Production migration/grant/function deploy occurred. PR #563 saved the fresh schema checkpoint. No current-schema restorable Production clone or restore rehearsal exists.
-
+ > **LATEST SESSION STATE — 2026-10-31 (post-PR #565):** Production remains **BLOCKED / NOT CERTIFIED**. Current main is `3247f53c561e8161075024e0436668460f55d779`. PR #565 merged as documentation-only; exact-head checks and the subsequent main push validation/deployment/health workflows succeeded. The latest read-only finance audit confirms RC435/RC439 subscription claim/encrypted-recovery contracts and RC449A/RC450 journal schema/service-role contracts are still missing or incompatible. Current live ledger: 308 rows through `20261029083845`; 0/41 exact required release IDs are recorded, which is not proof that all effects are absent. Six critical live payment/order/finance Edge entrypoints still differ from main. No current-schema restorable Production clone or restore rehearsal exists. Auth code improvements are deployed, but real Google-account timing/cross-account and controlled subscriber-refresh retry remain NOT VERIFIED.
 >
 > Before changing code, database, Edge Functions, deployment, security, or release configuration, read this file first and then read `docs/MASTER_PRODUCTION_TODO.md`.
 > Do not repeat completed work. Continue from the first still-open gate, and append every material development to both this file and the Master TODO.
 
-## Latest session update — 2026-10-21
+## Historical session update — 2026-10-21 (superseded by Current baseline)
 
 - Current active work is PR #316 on branch `fix/preview-starts-at-public-home-20261021`; inspected head before this documentation-only commit: `011834e5e9e2d8f8b0b189bd22976c7cc2e64b39`.
 - Preview/navigation contract validator is present and invoked by `.github/workflows/pages.yml`. The production Pages deploy job is intentionally restricted to `main` push or manual dispatch on `main`; PR runs should skip deploy.
@@ -16,14 +15,14 @@
 - No live site HTTP/browser test was performed in this session. Authenticated browser flow, PWA offline behavior, tenant isolation, and production E2E remain NOT VERIFIED. Global release gate stays BLOCKED / NOT CERTIFIED.
 - No merge, main push, production deployment, or production data/configuration mutation was performed. See the append-only details in `docs/SESSION_LOG.md`.
 
-## Latest verification update — 2026-10-21
+## Historical verification update — 2026-10-21 (superseded by Current baseline)
 
 - PR #316 source CI completed successfully on head `57d9c20c71dab78a01c8ff50ccf69acb1b3c7818`; Pages `validate` passed and the related targeted privacy/financial/security integration checks passed. Run: https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39616640682
 - Pages deploy was skipped on the PR event by design; post-deploy HTTP smoke checks were not executed for this PR. A direct fetch attempt for the public preview URLs returned cache-miss errors, which are inconclusive.
 - `docs/MASTER_PRODUCTION_TODO.md` item 10 now distinguishes passing CI from unverified deployed preview/browser E2E.
 - No merge or production deploy occurred. Authenticated browser flow, tenant isolation E2E, PWA offline behavior, and the overall production release remain NOT VERIFIED / BLOCKED.
 
-## Latest dashboard development note — 2026-10-28
+## Historical dashboard development note — 2026-10-28 (superseded by subsequent main releases)
 
 - An additive professional dashboard implementation has started on branch `feat/professional-dashboard-additive-20261028`.
 - New component: `apps/catalog-frontend/src/modules/dashboard/ProfessionalDashboard.tsx`.
@@ -35,20 +34,23 @@
 
 ## Current baseline — refreshed 2026-10-31
 
-- Repository: `islamnagy2022-eng/MantiqatiX`
+- Repository: `islamnagy2022-eng/MantiqaTiX`
 - Branch: `main`
-- Latest main checkpoint: `ed6bad03feab6cc6b358534e07f27246f76c2ca7`
+- Latest main checkpoint: `3247f53c561e8161075024e0436668460f55d779` (PR #565 merge).
 - Supabase Production project: `moyhiluyhjsujhwlyeuu`
-- Public site: `https://islamnagy2022-eng.github.io/MantiqaTiX/`
-- Live migration ledger: **308 rows**, latest `20261029083845 require_phone_for_published_directory_listings`; **0/41** exact required release version IDs are recorded. Never infer physical absence solely from missing version IDs; reconcile physical object effects and aliases.
-- Confirmed critical gaps: RC435/RC439 subscription claim/encrypted-checkout columns and RPCs absent; RC449A/RC450 journal columns and service_role EXECUTE contract absent/incompatible; six critical live order/payment/finance Edge entrypoints differ from main.
-- Current schema checkpoint: `docs/audits/PRODUCTION_FINANCE_SCHEMA_CHECKPOINT_20261031.md` (read-only, 2026-10-31T00:20:42Z). Nine selected finance/scope tables had both RLS and FORCE RLS enabled. Aggregate capture: 10 businesses, 10 branches, 33 memberships, 4 subscription tiers, 0 subscription intents, 0 journal entries/lines/general-ledger rows.
-- Historical migration replay from checkpoint `20261008222845` passed 72 forward migrations in an isolated disposable environment, but it does **not** equal a clone/restore of the current Production schema through `20261029083845`.
-- No isolated Supabase development branch currently exists. Branch/project creation requires cost estimation using an organization ID supplied by the user and explicit cost approval.
-- The Pages workflow publishes `apps/catalog-frontend/dist`; it does not publish the legacy `web/` tree and does not deploy Supabase Edge Functions. PR validation with a skipped deploy is not a Production deployment.
+- Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
+- Main push workflows on the latest checkpoint passed: Web deployment [41155204293](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204293), Production Health Monitor [41155204266](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204266), Backend-only Module Boundary [41155204267](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204267), Module Professionalization [41155204271](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204271), MantiGO Privacy [41155204224](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204224), and SMM Deferred Storefront Contract [41155204313](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204313). These runs validate the tested main snapshot; they do not close the global Production Gate.
+- Live migration ledger: **308 rows**, latest `20261029083845`; **0/41** exact required release version IDs are recorded. This is a ledger-identity finding, not proof that every migration effect is absent. Reconcile the physical object manifest and known aliases; never fabricate ledger rows or rewrite historical migrations.
+- Current finance contracts: RC435/RC439 subscription provider-creation claim/encrypted-recovery columns and RPCs remain absent. RC449A/RC450 journal header/line fields remain absent, and live journal `SECURITY DEFINER` / `search_path` / `service_role EXECUTE` does not match the current Edge Function contract. The fresh read-only report is `docs/audits/PRODUCTION_FINANCE_LIVE_CONTRACT_RECHECK_20261031.md`.
+- Six live critical Edge entrypoints still differ from main: `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, and `financial-journal v3`. Do not batch-deploy or replace them without schema/ACL reconciliation and isolated provider E2E.
+- Latest Security Advisor snapshot (2026-10-31 01:24:38 UTC): 8 RLS-enabled/no-policy tables, 3 anon-executable and 67 authenticated-executable `SECURITY DEFINER` functions; leaked-password protection remains disabled. Performance findings: 129 unindexed FKs, 375 auth/RLS init-plan findings, 73 unused indexes, 28 multiple-permissive-policy groups. Review individually; do not bulk-rewrite policies, grants, or indexes.
+- Auth/subscriber path: PR #543 moved `LIST_SUBSCRIBERS` out of blocking Google session bootstrap; PR #546 preserves last-good subscriber data on refresh failures and rejects stale responses after logout/account switching. PR #547 records passing build, OAuth/session contract, role/membership tests, browser checks, Pages deployment and health-monitor evidence. Real Google-account timing/cross-account checks and a controlled failed `LIST_SUBSCRIBERS` → manual-retry browser test remain **NOT VERIFIED**. Supabase Leaked Password Protection is still disabled.
+- Historical checkpoint `20261008222845` and targeted PostgreSQL fixtures are not a full restore of current Production through `20261029083845`. There is no isolated development branch. A complete credential-scrubbed current schema capture, disposable restore, rollback rehearsal and measured RPO/RTO are still required.
+- The Pages workflow publishes `apps/catalog-frontend/dist`; it does not publish the legacy `web/` tree and does not deploy Supabase Edge Functions.
+- Android remains a separate open release gate: the uploaded RC40 archive is a reference source, not the current main Android release baseline; no signed artifact/device evidence is verified.
 - Production Gate: **BLOCKED / NOT CERTIFIED**.
 
-## Latest verified web execution batch — 2026-10-18
+## Historical verified web execution batch — 2026-10-18 (superseded by Current baseline)
 
 - Marketing/agency workspace is merged to main in PR #292, commit `bd08e8436ba16a5a84c0c0cfd5e346591b364bb7`. It provides tabbed leads, partner directory, projects, ads, and RC453-dependent campaign actions; missing RC453 schema triggers an explicit fallback to the existing workspace. Campaign reads are scoped to the active business.
 - Exact tested PR head `7b6757830907c6843eadbcec5425bbd1da8b67b4`: marketing contract, Pages validation, backend-only boundary, MantiGO privacy, and module professionalization workflows passed. The Pages deploy job was skipped on the PR event; verify main push deployment separately.
@@ -145,21 +147,17 @@ Live production source was revalidated for all of these. A GitHub source write a
 
 ## Open release gates — work from here
 
-Priority order:
+Priority order, based on the latest verified Production state:
 
-1. **Safe Edge Function source convergence** for the 15 remaining live functions.
-2. **Enable leaked-password protection** in Supabase Auth, then rerun Security Advisor.
-3. **Per-function SECURITY DEFINER authorization review**; only change grants when the caller contract proves it is safe.
-4. **Real two-user/two-tenant authorization E2E**.
-5. **Real Paymob payment E2E**.
-6. **Refund contract + refund E2E**, only after authoritative provider refund contract is established.
-7. **Settlement/finance E2E**.
-8. **Notification E2E** for onboarding review.
-9. **Digital page public renderer + fulfillment/editor workflow + browser E2E**.
-10. **Monitoring incident drill**.
-11. **Backup/restore rehearsal and RPO/RTO evidence**.
-12. **Android signed release + device verification**.
-13. **Final regression and release evidence package**.
+1. **Current-schema isolated rehearsal:** obtain an authorized, credential-scrubbed schema-only capture of current Production; restore it into a disposable environment and prove restore/rollback. Do not substitute the October 17 checkpoint or targeted fixtures.
+2. **Migration/physical-object reconciliation:** reconcile the 308-row live ledger, the 41 required release IDs, the 60-object manifest, and known aliases without fabricating ledger rows or replaying historical migrations out of order.
+3. **Subscription and finance contracts:** rehearse RC435/RC439 and RC449A/RC450 against the current-schema restore, including actor binding, service-role ACL, tenant/business/branch isolation, idempotency, duplicate journal protection and balanced ledger posting.
+4. **Live Edge Function parity:** complete semantic diffs and dependency tests for the six critical order/payment/finance entrypoints; no blind batch deploy.
+5. **Auth and subscriber runtime:** verify real Google-account sign-in, session refresh/logout, account switching, tenant/membership scopes, and controlled failed `LIST_SUBSCRIBERS` followed by authorized manual retry. Enable Leaked Password Protection only through an authorized Supabase Auth action and rerun Advisor/regression.
+6. **Customer/provider/payment E2E:** verify two independent tenants, customer→provider→order→notification, Paymob sandbox/webhook replay, refunds only against a verified provider contract, settlement and journal posting.
+7. **Operations and recovery:** test notification delivery, incident/alert response, backup restore, measured RPO/RTO, and rollback.
+8. **Android release:** reconcile RC40 concepts with current contracts, produce a signed Android artifact, and verify install/update/auth/role/offline/device flows.
+9. **Final regression and release evidence:** close every mandatory web/app/API/database/security/finance/CRM/monitoring/backup gate before any Production Ready claim.
 
 ## Continuation protocol
 
@@ -968,3 +966,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - PR #534 browser E2E passed both public directory cards and direct storefront hydration, including both URLs / logo-only / cover-only / no URLs / unverified cases.
 - The external logo/cover feature is now deployed in the frontend and both public read APIs. Existing default images remain for display only and are not presented as external links.
 - Preserve the existing UI and verified-first ranking. Overall platform Production Gate remains BLOCKED / NOT CERTIFIED for unrelated P0 security, migration, Edge/payment/finance and backup/restore gates.
+
+
+## 2026-10-31 — Current continuation after PR #565
+
+- [x] PR #565 merged to `main` as `3247f53c561e8161075024e0436668460f55d779`; it records the fresh read-only subscription/journal contract audit. No Production database, Auth, RLS, grants, Edge Functions, secrets, payment, or financial records changed.
+- [x] Main push workflows on that exact commit passed, including Pages deployment [41155204293](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/41155204293) and Production Health Monitor [41155204266](https://github.com/islamnagy2022-eng/MantiQatiX/actions/runs/41155204266).
+- [x] PR #543/#546 auth path changes are merged; PR #547 documents the current CI/deployed-origin evidence. Real Google-account timing/cross-account and failed-subscriber-request/manual-retry verification remain open.
+- [x] Supabase state rechecked read-only: only `main` branch exists; 308 migration rows through `20261029083845`; latest Security Advisor is 8 RLS/no-policy, 3 anon SECDEF, 67 authenticated SECDEF; no current-schema isolated restore exists.
+- [ ] Next prerequisite: user-approved, cost-reviewed isolated current-schema rehearsal environment. Do not create a paid Supabase branch or mutate Production without explicit approval and recovery plan.
+- **Final Production Gate remains BLOCKED / NOT CERTIFIED.**
