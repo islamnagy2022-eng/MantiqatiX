@@ -1629,3 +1629,8 @@ A separate source review found a second platform-root authorization model: the n
 - The current homepage activity taxonomy grid was using two columns on mobile (`grid-cols-2`), contrary to the accepted three-activities-per-row requirement. Updated it to three columns on phones, four at large screens, and five at extra-large screens; mobile card contents stack compactly while desktop card treatment remains horizontal.
 - Added Playwright coverage at the 390px viewport to assert exactly three activity columns, and extended the canonical taxonomy validator to require this responsive contract.
 - This is included in PR #619. Exact-head validation is pending; no deployed UI change is claimed.
+
+
+### Regression assertion correction
+
+- The first exact-head Playwright run reached the new taxonomy fixture and failed only because the test expected Arabic-Indic digits, while the actual rendered `toLocaleString('ar-EG')` count in the browser was `1` / `0`. The production UI output is unchanged; the test matcher now follows the observed DOM text. The earlier mobile three-column assertion had already passed in that run. Re-run exact-head CI on the corrected test commit before treating the regression as verified.
