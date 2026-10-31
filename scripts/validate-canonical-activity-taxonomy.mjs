@@ -83,6 +83,10 @@ assert.ok(production.includes('raw.activityClassificationType'), 'Production map
 assert.ok(production.includes('raw.activitySpecialty'), 'Production mapping must preserve specialty from the public directory response.');
 assert.ok(production.includes('raw.settings?.activity_category_code'), 'Production mapping must read the canonical activity category code.');
 assert.ok(production.includes('canonicalCategoryId'), 'Production mapping must resolve the stable canonical category ID.');
+assert.ok(production.includes('resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode)'), 'Business mapping must resolve legacy activity codes to canonical category IDs.');
+assert.ok(production.includes('activityGroupCode: body.business?.activityGroupCode'), 'Direct storefront hydration must pass the safe canonical group code into business mapping.');
+assert.ok(production.includes('activityCategoryCode: body.business?.activityCategoryCode'), 'Direct storefront hydration must pass the safe canonical category code into business mapping.');
+assert.ok(production.includes('meta.activity_group_code') && production.includes('meta.activity_category_code'), 'Business mapping must read taxonomy metadata from the safe bizcatalog profile where present.');
 assert.ok(directory.includes('business.categoryId === category.id'), 'Directory filtering must prefer the canonical category ID.');
 assert.ok(directory.includes('المجالات الرئيسية') && directory.includes('تصفح حسب النشاط والتخصص'), 'Public taxonomy navigation must use customer-readable domain/activity labels.');
 for (const code of ['medical_practices', 'food_retail', 'home_services', 'digital_marketing', 'animal_production']) {
