@@ -765,17 +765,17 @@ export const DirectoryView: React.FC = () => {
           ) : (
             <>
               {selectedActivityCategory && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3"><p className="text-xs font-bold text-emerald-950">تصفية النتائج حسب: {selectedActivityCategory.name}{selectedSpecialty !== 'all' ? ` — ${selectedSpecialty}` : ''}</p><button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل أنشطة المجموعة</button></div>}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-1 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8">
                 {availableCategories.map((category) => {
                   const eligibleCategoryBusinesses = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id);
                   const confirmedCount = eligibleCategoryBusinesses.filter((business) => business.isVerified).length;
                   const unconfirmedCount = eligibleCategoryBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
                   const totalCount = confirmedCount + unconfirmedCount;
-                  return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`} className="group relative flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                    <span className="absolute left-2 top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[9px] font-black text-emerald-800">{totalCount.toLocaleString('ar-EG')}</span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">{ICONS_MAP[category.functionalGroupId] || <Store className="h-5 w-5" />}</span>
-                    <span className="text-xs font-black text-slate-900">{category.name}</span>
-                    <span className="flex flex-wrap justify-center gap-2 text-[10px] font-bold"><span className="text-emerald-800">موثق {confirmedCount}</span><span className="text-red-700">غير موثق {unconfirmedCount}</span></span>
+                  return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`} className="group relative flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white p-1.5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:min-h-24 sm:gap-1.5 sm:p-2">
+                    <span className="absolute left-1 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-0.5 text-[8px] font-black text-emerald-800 sm:left-1.5 sm:top-1.5 sm:h-5 sm:min-w-5 sm:px-1 sm:text-[9px]">{totalCount.toLocaleString('ar-EG')}</span>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700 sm:h-9 sm:w-9 sm:rounded-xl">{ICONS_MAP[category.functionalGroupId] || <Store className="h-5 w-5" />}</span>
+                    <span className="line-clamp-2 text-[9px] font-black leading-tight text-slate-900 sm:text-[11px]">{category.name}</span>
+                    <span className="flex flex-wrap justify-center gap-x-1 text-[8px] font-bold sm:gap-2 sm:text-[10px]"><span className="text-emerald-800">موثق {confirmedCount}</span><span className="text-red-700">غير موثق {unconfirmedCount}</span></span>
                     <ChevronLeft className="absolute bottom-2 right-2 h-3 w-3 text-slate-300 group-hover:text-emerald-700" />
                   </button>;
                 })}
