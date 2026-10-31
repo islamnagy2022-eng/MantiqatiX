@@ -1612,3 +1612,11 @@ A separate source review found a second platform-root authorization model: the n
 - PR #610 current head `186fbb23e0aa4f799e4328a9753203f73945972a` passed Primary Catalog Frontend Validation [41206467742](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467742): build/TypeScript, employee RBAC PostgreSQL and browser E2E all succeeded. The nine commits after tested code head `6c048a65946a3ef5b9e4262b276161795a4ac1cd` changed documentation only.
 - Pages validation [41206467695](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467695) succeeded; `validate_public_only` and `deploy` were skipped because the run was a pull request. No production deployment or database mutation occurred. PR #610 remains Draft.
 - Next: complete the zero-cost credential-scrubbed local schema capture/restore; then test the narrowly scoped ACL reduction and role behaviors on the restored disposable schema. Production stays BLOCKED / NOT CERTIFIED.
+
+ 
+## 2026-10-31 — advertisements tenant/business/branch authorization review
+
+- Read-only Production query found `public.advertisements` has 0 rows, RLS + FORCE RLS, required tenant_id FK to tenants, but no business_id FK or composite tenant/business constraint.
+- SELECT policy authorizes any active membership in row tenant. INSERT/UPDATE/DELETE policies authorize active tenant OWNER/ADMIN/MANAGER memberships and do not test membership business_id or branch_id against ad row. Active BUSINESS_OWNER memberships are business/branch scoped but this role is not accepted by the current write policy; OWNER is accepted with no scope predicate.
+- No authenticated write attempt or exploit test performed. Tenant-wide advertising scope may be intentional; classify as P2 authority-contract verification rather than confirmed bypass.
+- Opened [Issue #612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) for authority matrix, business/tenant relationship, synthetic isolated negative tests, and decision on FK/policy hardening. No Production mutation.
