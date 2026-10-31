@@ -414,6 +414,9 @@ const results = [];
     await page.getByTestId('home-search-button').click();
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'search action must open the dedicated directory route');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'the search screen must remain directly refreshable');
     const locationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
     if (await locationDialog.isVisible().catch(() => false)) {
       await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
