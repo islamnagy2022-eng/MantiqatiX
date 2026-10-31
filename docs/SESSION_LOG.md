@@ -1678,3 +1678,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Live Production currently has 308 records through `20261029083845`; the old checkpoint is stale by 25 recorded migrations. RC462 replay run #41178333682 begins from that historical checkpoint and must not be described as a current-Production schema restore.
 - Checked workflow artifacts for #41178333682 and original capture #38993809648; neither exposes a downloadable artifact now. No refreshed current schema dump found in repository.
 - No backup, restore or Production mutation performed. Next remains authorized local capture/restore with credential scrubbing, then complete ordered migration replay and rollback rehearsal. User credentials must never be pasted into chat.
+
+ 
+## 2026-10-31 — platform-admin bootstrap defaults and revocation review
+
+- Read-only metadata check: canonical platform tenant is ID `MNTY-PLATFORM`, code `MNTY`. The live service_role-only `private.bootstrap_platform_admin` defaults to ID `MNTY_PLATFORM`, code `MNTY-PLATFORM`, and unconditionally inserts the tenant before registry/membership writes. A future invocation with defaults would create a parallel tenant; using canonical ID would duplicate-key fail.
+- The routine's one-time registry guard currently blocks it (aggregate registry count 1); no invocation or registry identity read performed. A cross-schema SQL routine scan found no other root registry writer and no dedicated audited revocation routine; external service maintenance still needs inventory.
+- Registered [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) as P2 recovery/revocation hardening. No Production mutation.
