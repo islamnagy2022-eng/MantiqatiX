@@ -1140,3 +1140,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## Request continuation — CAT-PHARMACY-DEFAULT-IMAGE-20261101
+
+- Master request #599 comment 6550632491; detailed record in `docs/MASTER_PRODUCTION_TODO.md`.
+- Branch `fix/unverified-pharmacy-default-image-20261101`: frontend mapper selects the requested shared image only for unverified pharmacy records without a selected custom image. Existing owner/admin/AI images and verified/non-pharmacy records are intended to remain unchanged.
+- Static regression assertions added; exact-head CI and deployed-origin checks are still pending. No production data, schema, or Edge Function was changed; no deployment is claimed.
+- Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
