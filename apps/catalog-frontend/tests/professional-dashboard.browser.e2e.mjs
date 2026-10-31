@@ -137,10 +137,21 @@ function makeSession(scenario) {
 async function newScenario(browser, scenario = null, publicDirectoryBusinesses = [], options = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const session = scenario ? makeSession(scenario) : null;
-  await context.addInitScript(({ key, value }) => {
+  await context.addInitScript(({ key, value, geoKey, geoPreference }) => {
     localStorage.removeItem(key);
     if (value) localStorage.setItem(key, value);
-  }, { key: storageKey, value: session ? JSON.stringify(session) : null });
+    localStorage.removeItem(geoKey);
+    if (geoPreference) localStorage.setItem(geoKey, JSON.stringify(geoPreference));
+  }, {
+    key: storageKey,
+    value: session ? JSON.stringify(session) : null,
+    geoKey: 'mantiqatix.geo-discovery.v1',
+    // Non-GPS scenarios begin with the Egypt-wide manual fallback. GPS scenarios
+    // opt out so they can verify the first-visit consent flow independently.
+    geoPreference: options.geoFirstVisit ? null : {
+      completed: true, mode: 'manual', governorate: 'all', markaz: 'all', village: 'all', area: 'all',
+    },
+  });
 
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
@@ -511,7 +522,7 @@ try {
 
   // 8. Catalog GPS asks only after click, handles granted/denied permissions, and never persists visitor coordinates.
   {
-    const { context, page } = await newScenario(browser);
+    const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
     try {
       await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
       await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
@@ -542,7 +553,7 @@ try {
   }
 
   {
-    const { context, page } = await newScenario(browser);
+    const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
     try {
       await context.grantPermissions([], { origin: new URL(baseUrl).origin });
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
