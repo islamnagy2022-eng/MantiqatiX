@@ -2815,3 +2815,5 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] اختبار فتح السجل القديم من الدليل، وتعديله من لوحة الإدارة، ثم حفظه وإعادة قراءته دون فقد نوع الصفحة أو التخصص أو بيانات الملكية.
 - [ ] إعادة inventory read-only بعد النشر لاستخراج أي معرفات جديدة غير موجودة في خريطة التوافق.
 - [ ] إعداد migration مستقلة مستقبلًا لتوحيد قيم قاعدة البيانات فقط بعد rehearsal قابل للاستعادة، ومراجعة RLS وrollback؛ لا تنفذها ضمن هذا التغيير.
+
+- **Current validation caveat (latest branch head after CAT-TAX-02):** the latest commits are not covered by the earlier PASS run recorded above. GitHub returned no workflow runs or commit status checks for the latest branch head `3cdd28a85a3e349ac3f9044a72533f1fca1665ee`; the earlier CI PASS belongs to the prior code head only. Re-run full CI on the current head before marking this work ready. The feature branch is also one commit behind `main`; reconcile that base drift before merge. PR #584 remains Draft and production deployment is not authorized by this change.
