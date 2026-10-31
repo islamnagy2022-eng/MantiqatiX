@@ -185,6 +185,17 @@ export const DirectoryView: React.FC = () => {
             setLocationBusy(false);
             return;
           }
+          if (latitude < 21.5 || latitude > 32.2 || longitude < 24 || longitude > 37.5) {
+            setUserCoordinates(null);
+            setSelectedGovFilter('all');
+            setSelectedMarkazFilter('all');
+            setSelectedVillageFilter('all');
+            setSelectedAreaFilter('all');
+            completeGeoSetup('manual');
+            setLocationMessage('الكتالوج يغطي مصر حاليًا فقط. تم تجاهل إحداثيات خارج النطاق المصري، ويمكنك تصفح مصر بالكامل أو اختيار محافظة يدويًا.');
+            setLocationBusy(false);
+            return;
+          }
           setUserCoordinates({ latitude, longitude });
           completeGeoSetup('auto');
           setLocationMessage('تم تحديد إحداثيات جهازك. جارٍ مطابقة أقرب نطاق إداري…');
