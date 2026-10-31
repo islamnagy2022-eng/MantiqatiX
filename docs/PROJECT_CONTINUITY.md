@@ -1049,3 +1049,16 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Remaining risk: server check-then-insert is not atomic across simultaneous requests. Test concurrent submissions and network-response-loss retry behavior before claiming database-level idempotency. Draft PR #477 is stale and should not be merged as-is because main already contains a more precise client/server guard.
 - Current main `b7b35378bbf5c1fd5ff54afb6be79e316e33624c`: Health Monitor #41162036080, backend boundary #41162036117, MantiGO privacy #41162036099, module professionalization #41162036130, and Pages #41162036127 all passed. Deployed-origin browser E2E passed for the tested scope.
 - Full Production Gate remains BLOCKED / NOT CERTIFIED; the latest verifier artifact reports 24 PASS, 0 FAIL, 1 BLOCKED and does not certify the live migration/payment/backup blockers.
+
+
+## 2026-10-31 — Direct activity modules (CAT-ACTIVITY-MODULES-20261031-01)
+
+- User decision: visitor discovery must be **activity → specialty**, not functional groups/domains → activities → specialties. Each activity must open its own page/module with its domain-specific marketing and operating workflows.
+- Request is registered in master request ledger [#599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599) and canonical `docs/MASTER_PRODUCTION_TODO.md`; architecture is documented in `docs/specifications/ACTIVITY_MODULES_ARCHITECTURE_20261031.md`.
+- Current feature branch: `feat/activity-modules-current-main-20261031`, branched from latest main after the consent-first Egypt geo-discovery change. The first PR #607 was superseded because main advanced with important geographic discovery changes and the initial PR CI found a TypeScript symbol-reference failure. Do not merge the superseded PR/branch.
+- Current implementation adds direct activity cards, a durable `?activity=<category-id>` route, specialty selection, reversible filters, and a module page with Overview, Specialties, Marketing guidance, and Operations capability sections.
+- The current-main port preserves the latest geo-discovery dialog/consent flow, manual Egypt selectors and privacy safeguards; existing business verified-first ordering and unverified listing markers remain.
+- Marketing is planning guidance only. Full campaign execution needs the reviewed current marketing workspace/RPCs, RC453 prerequisites, and tenant/business authorization. Browser direct campaign table writes are prohibited. SMM remains deferred.
+- No production schema/data/grant/RLS/Auth/Edge Function/payment/advertising/financial changes were made.
+- **Current status:** feature source and TODO are in progress; TypeScript/build, taxonomy + geo validators, browser E2E, and deployed-origin behavior are NOT VERIFIED on the new exact head. Production gate remains BLOCKED / NOT CERTIFIED.
+- Next: run exact-head CI, fix failures without weakening checks, then implement the activity capability registry and secure Marketing & Advertising / domain operations in dependency order.
