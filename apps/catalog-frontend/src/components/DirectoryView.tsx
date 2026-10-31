@@ -667,8 +667,8 @@ export const DirectoryView: React.FC = () => {
         {selectedCategoryId === 'all' && selectedGroupFilter === 'all' ? (
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {functionalGroups.map((group) => {
-              const confirmedCount = businesses.filter((business) => business.functionalGroupId === group.id && Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen).length;
-              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.functional_group_id === group.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              const confirmedCount = filteredBusinesses.filter((business) => business.functionalGroupId === group.id).length;
+              const unconfirmedCount = filteredUnconfirmedListings.filter((listing) => listing.functional_group_id === group.id).length;
               return (
                 <button key={group.id} type="button" onClick={() => { selectGroup(group.id); setTaxonomyBrowserOpen(true); }} className="group flex min-h-36 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md">
                   <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">{ICONS_MAP[group.id] || <Folder className="h-7 w-7" />}</span>
@@ -681,8 +681,8 @@ export const DirectoryView: React.FC = () => {
         ) : selectedCategoryId === 'all' ? (
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {folderCategories.map((category) => {
-              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
-              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              const confirmedCount = filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === category.id).length;
+              const unconfirmedCount = filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
               return (
                 <button key={category.id} type="button" onClick={() => { setSelectedCategoryId(category.id); setSelectedSpecialty('all'); }} className="group flex min-h-32 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md">
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-800"><Folder className="h-6 w-6" /></span>
@@ -699,8 +699,8 @@ export const DirectoryView: React.FC = () => {
               <Folder className="h-7 w-7 shrink-0 text-emerald-800" /><span><span className="block font-black text-emerald-950">كل {activeCategory?.classificationType === 'profession' ? 'المجالات' : 'الأنواع'}</span><span className="mt-1 block text-xs text-emerald-800">عرض كل الجهات في هذا التصنيف</span></span>
             </button>
             {(activeCategory?.specialties || []).map((specialty) => {
-              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activeCategory?.id && resolveCanonicalSpecialty(business.activitySpecialty || business.category, activeCategory?.id) === resolveCanonicalSpecialty(specialty, activeCategory?.id)).length;
-              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activeCategory?.id && resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', activeCategory?.id) === resolveCanonicalSpecialty(specialty, activeCategory?.id) && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              const confirmedCount = filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === activeCategory?.id && resolveCanonicalSpecialty(business.activitySpecialty || business.category, activeCategory?.id) === resolveCanonicalSpecialty(specialty, activeCategory?.id)).length;
+              const unconfirmedCount = filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === activeCategory?.id && resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', activeCategory?.id) === resolveCanonicalSpecialty(specialty, activeCategory?.id)).length;
               return (
                 <button key={specialty} type="button" onClick={() => { setSelectedSpecialty(specialty); setTaxonomyBrowserOpen(false); }} className="group flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50/50">
                   <Folder className="h-7 w-7 shrink-0 text-amber-600" /><span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{specialty}</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span><ChevronLeft className="h-4 w-4 shrink-0 text-slate-400" />
@@ -841,12 +841,12 @@ export const DirectoryView: React.FC = () => {
                 <span className="block text-[10px] sm:text-sm font-black leading-tight text-slate-900">كافة الأنشطة</span>
                 <span className="block text-[8px] sm:text-[11px] leading-tight text-slate-500 line-clamp-2">جميع القطاعات والمهن</span>
               </span>
-              <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{businesses.filter((b) => Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length}</span><span title="صفحات دليل غير موثقة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-[10px] font-bold text-red-700">{unconfirmedListings.length}</span></span>
+              <span className="absolute right-2 top-2 flex items-center gap-1.5" dir="ltr"><span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-100 px-2 text-[10px] font-bold text-emerald-800">{filteredBusinesses.length}</span><span title="صفحات دليل غير موثقة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-[10px] font-bold text-red-700">{filteredUnconfirmedListings.length}</span></span>
             </button>
 
             {functionalGroups.map((group) => {
-              const count = businesses.filter((b) => b.functionalGroupId === group.id && Boolean(b.publicEnabled || b.isOfficialShowcase) && b.operationalStatus === 'ACTIVE' && !b.isFrozen).length;
-              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.functional_group_id === group.id).length;
+              const count = filteredBusinesses.filter((business) => business.functionalGroupId === group.id).length;
+              const unconfirmedCount = filteredUnconfirmedListings.filter((listing) => listing.functional_group_id === group.id).length;
               const isSelected = selectedGroupFilter === group.id;
               return (
                 <button
@@ -913,11 +913,8 @@ export const DirectoryView: React.FC = () => {
                 .filter((category) => selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter)
                 .filter((category) => (selectedCategoryKind === 'all' || category.classificationType === selectedCategoryKind))
                 .map((category) => {
-                  const count = businesses.filter((business) => {
-                    if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
-                    return categoryForBusiness(business)?.id === category.id;
-                  }).length;
-                  const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
+                  const count = filteredBusinesses.filter((business) => categoryForBusiness(business)?.id === category.id).length;
+                  const unconfirmedCount = filteredUnconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
                   return (
                     <button key={category.id} type="button" onClick={() => { setSelectedCategoryId(category.id); setSelectedSpecialty('all'); }} className="flex min-h-20 items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-right transition hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
                       <span className="min-w-0">
@@ -943,15 +940,14 @@ export const DirectoryView: React.FC = () => {
                   كل {selectedTaxonomyCategory?.classificationType === 'profession' ? 'التخصصات' : 'الأنواع'}
                 </button>
                 {(selectedTaxonomyCategory?.specialties || []).map((specialty) => {
-                  const confirmedSpecialtyCount = businesses.filter((business) => {
-                    if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
+                  const confirmedSpecialtyCount = filteredBusinesses.filter((business) => {
                     if (categoryForBusiness(business)?.id !== selectedTaxonomyCategory?.id) return false;
                     const suffix = business.category.slice(categoryForBusiness(business)?.name.length || 0).replace(/^\s*—\s*/, '');
                     const requested = resolveCanonicalSpecialty(specialty, selectedTaxonomyCategory?.id);
                     return resolveCanonicalSpecialty(business.activitySpecialty || '', selectedTaxonomyCategory?.id) === requested ||
                       resolveCanonicalSpecialty(suffix, selectedTaxonomyCategory?.id) === requested;
                   }).length;
-                  const unconfirmedSpecialtyCount = unconfirmedListings.filter((listing) =>
+                  const unconfirmedSpecialtyCount = filteredUnconfirmedListings.filter((listing) =>
                     listing.taxonomy_category_id === selectedTaxonomyCategory?.id &&
                     resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', selectedTaxonomyCategory?.id) === resolveCanonicalSpecialty(specialty, selectedTaxonomyCategory?.id)
                   ).length;
