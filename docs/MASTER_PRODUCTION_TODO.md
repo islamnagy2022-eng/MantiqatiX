@@ -2718,3 +2718,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Confirmed the affected surface: global dashboard aggregates; global financial report; captain settlement/journal mutation; stale ride expiration/audit/notification mutation. The live role predicates accept broad tenant-scoped roles and are not constrained to `MNTY-PLATFORM` with explicit `scope=PLATFORM` and `full_control=true`.
 - [ ] Keep the P0 release blocker applied to the full four-RPC surface, not only settlement. Do not invoke these global RPCs with non-platform roles against Production to demonstrate the defect.
 - The RC449 source migration already adds the explicit platform guard to all four functions; live RC441/RC449 versions remain absent. See the audit document linked above.
+
+
+## CAT-DUPLICATE-GUARD — stale PR cleanup (2026-10-31)
+
+- [x] Compared Draft PR #477 against current main implementation in `AppContext.tsx` and `catalog-platform-admin/index.ts`.
+- [x] Confirmed the old single global in-flight Promise incorrectly collapses different payloads; current main uses a payload-keyed Map and preserves independent requests.
+- [x] Confirmed the old server heuristic reuses an existing business record; current main returns tenant-scoped HTTP 409 with the existing business ID and does not transfer ownership or alter billing/publication state.
+- [x] Closed PR #477 unmerged as fully superseded; explanatory review comment added. No production data was changed.
+- [ ] The current main duplicate guard still needs true browser/server concurrency, multi-tab, and lost-response retry tests; its check-then-insert remains non-atomic at the database layer.
