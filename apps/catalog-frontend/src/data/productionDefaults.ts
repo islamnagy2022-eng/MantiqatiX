@@ -271,8 +271,14 @@ export function normalizeCanonicalTaxonomySettings(saved?: Partial<AdminSettings
   const categories: ActivityCategory[] = [];
   for (const group of DEFAULT_FUNCTIONAL_GROUPS) {
     const defaults = DEFAULT_CATEGORIES.filter((category) => category.functionalGroupId === group.id);
-    const custom = customByGroup.get(group.id) || [];
-    categories.push(...defaults.slice(0, Math.max(0, 5 - custom.length)), ...custom.slice(0, 5));
+    const seenNames = new Set(defaults.map((category) => normalizeTaxonomyName(category.name)));
+    const custom = (customByGroup.get(group.id) || []).filter((category) => {
+      const normalizedName = normalizeTaxonomyName(category.name);
+      if (!normalizedName || seenNames.has(normalizedName)) return false;
+      seenNames.add(normalizedName);
+      return true;
+    }).slice(0, 5);
+    categories.push(...defaults.slice(0, Math.max(0, 5 - custom.length)), ...custom);
   }
   const defaultCategories = categories.map((category) => category.name);
   return { functionalGroups: DEFAULT_FUNCTIONAL_GROUPS, categories, defaultCategories };
