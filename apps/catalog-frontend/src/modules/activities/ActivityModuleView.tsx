@@ -87,7 +87,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
       {activeSection === 'operations' && <section className="space-y-4">
         <div><h2 className="text-lg font-black text-slate-900">إدارة {category.name}</h2><p className="mt-1 text-xs leading-6 text-slate-500">ستُفعّل أدوات التشغيل بحسب طبيعة المجال ومصدر البيانات وصلاحيات المستخدم.</p></div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {moduleConfig.capabilities.map((item) => <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+          {moduleConfig.capabilities.map((item) => <article key={item.id} aria-label={`${item.title}: قيد التجهيز`} className="rounded-2xl border border-slate-200 bg-white p-4">
             <div className="flex items-start justify-between gap-2"><div className="flex items-center gap-2 text-emerald-700"><BriefcaseBusiness className="h-5 w-5" /><h3 className="font-black text-slate-900">{item.title}</h3></div><span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-800">قيد التجهيز</span></div>
             <p className="mt-2 text-xs leading-6 text-slate-500">{item.description}</p>
           </article>)}
