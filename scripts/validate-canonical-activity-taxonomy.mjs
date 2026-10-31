@@ -254,6 +254,8 @@ for (const [groupId, iconName] of Object.entries(expectedIcons)) {
 }
 assert.ok(!directory.includes('FUNCTIONAL_GROUP_COVERS'), 'Functional group cards must not regress to background cover images.');
 assert.ok(directory.includes('xl:grid-cols-5'), 'Direct activity cards must use a responsive multi-column layout.');
+assert.ok(directory.includes('grid grid-cols-3 gap-2 lg:grid-cols-4 xl:grid-cols-5'), 'Homepage activity cards must show three columns on mobile and expand on larger screens.');
+assert.ok(browserE2E.includes('mobileActivityColumns, 3'), 'Browser E2E must verify the three-column mobile activity grid.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Activity cards must navigate to the activity module route.');
 assert.ok(directory.includes('تصفية النتائج حسب:') && directory.includes('عرض كل الأنشطة'), 'Specialty filters must remain visible and reversible after returning to the directory.');
 assert.ok(!directory.includes('functionalGroups'), 'Functional groups must not be displayed or filtered in the public directory.');
