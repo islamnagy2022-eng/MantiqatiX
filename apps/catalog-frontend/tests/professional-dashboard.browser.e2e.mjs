@@ -1041,25 +1041,28 @@ try {
 
   // Account mode switching must use the exact active membership context, including branch scope.
   {
-    const { context, page } = await newScenario(browser, roles.owner, [], { initialRoute: '?view=account_portal' });
+    const { context, page, catalogReadRequests } = await newScenario(browser, roles.owner, [], { initialRoute: '?view=account_portal' });
     try {
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: /موظف · نشاط اختبار الداشبورد/ }).click();
       await page.getByText('وضع الموظف', { exact: true }).waitFor({ state: 'visible' });
       await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(catalogReadRequests.at(-1)?.branchId, branchId, 'employee mode must reload only its assigned branch');
       await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
       await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
+      assert.ok(!catalogReadRequests.at(-1)?.branchId, 'owner mode must reload its authorized business-wide catalog after leaving branch scope');
       results.push('account-switch-owner-and-branch-scoped-employee-memberships');
     } finally { await context.close(); }
   }
 
   // Platform authority remains separate; switching to a real business role and back never copies roles.
   {
-    const { context, page } = await newScenario(browser, roles.platformAdmin, [], { initialRoute: '?view=account_portal' });
+    const { context, page, catalogReadRequests } = await newScenario(browser, roles.platformAdmin, [], { initialRoute: '?view=account_portal' });
     try {
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
       await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
+      assert.ok(!catalogReadRequests.at(-1)?.branchId, 'platform-to-business mode must load only the verified business membership scope');
       await page.getByRole('button', { name: 'إدارة المنصة', exact: true }).click();
       await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
       results.push('platform-admin-and-business-membership-modes-remain-separate');
