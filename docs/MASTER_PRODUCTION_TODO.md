@@ -2736,4 +2736,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Pages deploy job in PR validation was skipped; this documentation merge did not deploy the website or change Production.
 - [x] PR #477 stale duplicate-create draft closed unmerged; no unique source change was needed.
 - [ ] **P0 remains BLOCKED:** live RC441/RC449 migrations are absent and all four global MantiGO RPCs still require the explicit platform-admin boundary in Production. Do not invoke or mutate live financial/ride RPCs to prove the defect.
-- [ ] PR #581 adds expanded disposable PostgreSQL negative tests for tenant ADMIN, OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN across all four RPCs, plus SECURITY DEFINER empty-search_path assertions. Merge only after its dedicated workflow passes.
+- [x] PR [#581](https://github.com/islamnagy2022-eng/MantiqatiX/pull/581) merged to main as `1cd13f868fc845598964e5c8daac4d7e8b6b9a7d` after the dedicated MantiGO Platform Admin Scope Hardening workflow passed, including disposable PostgreSQL 16 fixture + RC449 migration + behavioral integration test. The expanded matrix rejects tenant ADMIN, OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN across all four global RPCs and checks SECURITY DEFINER empty search_path plus anon/authenticated grants.
+
+
+### PR #581 exact-head validation evidence
+
+- [x] Dedicated MantiGO Platform Admin Scope Hardening [41164835173] passed: static contract and disposable PostgreSQL 16 fixture + RC449 migration + expanded behavioral tests.
+- [x] Module Professionalization [41164835103], Backend-only Module Boundary [41164835132], MantiGO Open Ride Privacy [41164835111], RC425 Paymob Atomicity [41164835212], and Deploy MantiqatiX Web validation [41164835104] passed on the PR head.
+- [x] PR #581 merged with tests only. No migration, Production database, payment, settlement, wallet, or Edge Function was changed. PR deploy job did not run a production deployment.
+- [ ] Live Production remains unremediated until RC441/RC449 are applied through an approved, rehearsed migration release. Do not treat disposable CI success as proof of live migration application.
