@@ -1083,3 +1083,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Account mode switching now sends `membershipId` with tenant/business/branch IDs, reloads the scoped catalog before switching, and replaces the selected business's previous product cache.
 - Browser E2E records and asserts the exact employee membership ID after switching from a tenant-wide owner membership to a branch-scoped employee membership.
 - This is code-only on the PR branch. No Supabase function deployment, database migration, RLS change, or production mutation was performed. A dedicated real Edge Function/PostgreSQL multi-membership isolation test remains required.
+
+
+### Exact-head Browser E2E failure triage — 2026-10-31
+- Latest observed PR #610 head before the fix: `923d8c5bfb5203da9325efea8f6a4daed7ed2f94`.
+- Primary Catalog Frontend Validation: build, TypeScript, taxonomy/geographic/Google OAuth/unified-dashboard contracts and PostgreSQL employee RBAC passed.
+- Browser E2E failed at the business-owner entry scenario because the test expected the employee/professional dashboard navigation landmark after opening the owner MerchantDashboard. The owner MerchantDashboard is currently a form workspace headed `إدارة منتجات وكتالوج نشاطك`, not the professional dashboard navigation shell. This was an assertion/fixture mismatch, not evidence of a permission denial.
+- Corrected the browser assertion to wait for the actual owner workspace heading. Owner/employee routes remain separately asserted; no production code authorization was weakened.
+- A new exact-head CI run must verify the correction. Do not mark E2E passed until that run concludes successfully.
