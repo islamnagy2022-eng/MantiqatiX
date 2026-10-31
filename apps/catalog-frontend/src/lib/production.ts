@@ -213,13 +213,21 @@ export function mapBusiness(raw: any, provider: any): Business {
   const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
     ? UNVERIFIED_PHARMACY_IMAGE
     : '';
+  const isDoctor = /طبيب|دكتور|doctor|physician/i.test([
+    name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code,
+    raw.activitySpecialty, raw.activity_specialty, profile.activity_specialty,
+  ].join(' '));
+  const UNVERIFIED_DOCTOR_IMAGE = 'https://play-lh.googleusercontent.com/0V8K7Jgj4E0DP0dsn2tnkaipdrUG1tbkslu7ajn6kADRRUL4e1lcFKBFU1W0971GMwV-IYW09XuI-E0n_7F9roI';
+  const doctorFallbackLogo = isDoctor && !isVerified && !hasOwnerSelectedLogo
+    ? UNVERIFIED_DOCTOR_IMAGE
+    : '';
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id || DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
     functionalGroupId,
     categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || meta.activity_classification_type || profile.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
-    logoUrl: pharmacyFallbackLogo || (isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo),
+    logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo),
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
