@@ -1570,3 +1570,14 @@ A separate source review found a second platform-root authorization model: the n
 - Existing ad slots: HOME_HERO and HOME_SPONSORED. No monthly/quarterly/half-yearly/yearly/custom booking/pricing reservation model. `ad_spaces` has permissive authenticated ALL policies; flag for P0 authorization repair before UI write exposure.
 - Added detailed report `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
 - No production database/function/ACL/RLS/payment/wallet/ad mutation.
+
+
+## 2026-10-31 — PR #610 exact-head verification and source security review
+
+- Exact head `6c048a65946a3ef5b9e4262b276161795a4ac1cd`: Primary Catalog Frontend Validation run [41205224994](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41205224994) completed successfully.
+- TypeScript/build/static contracts, isolated employee RBAC PostgreSQL job, and Chromium browser E2E all passed. Browser output includes `PRIMARY_CATALOG_BROWSER_E2E=PASS` and the owner/employee/branch-owner/account-portal/platform-admin/no-membership scenarios.
+- Related checks passed: RC425 MantiGo Paymob Atomicity, SMM Deferred Storefront Contract, MantiGO Open Ride Privacy Boundary, Legacy Catalog Module Validation, Flexible Commission Drafts, Backend-only Module Boundary, Module Professionalization Validation, and Catalog Admin CORS Boundary.
+- Pages validation passed; PR deployment was skipped by design. No production deployment occurred.
+- Reviewed route guards, exact membership switching, platform-admin separation and the `catalog-admin` exact membership filter. No confirmed new authorization bypass found in those source paths. Security sign-off remains OPEN because membership browser fixtures mock Edge responses and live Edge/PostgreSQL multi-membership isolation, real Google-account cross-account E2E, subscription-state role matrix and independent security review remain unverified.
+- PR #610 stays Draft. No production schema/RLS/GRANT/Auth/Edge/payment/wallet/journal mutation was performed.
+- Next: current-schema isolated rehearsal using an authorized credential-scrubbed schema capture in a disposable environment, followed by restore/rollback proof. Production migrations remain prohibited until reconciliation and approval.
