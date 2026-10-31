@@ -44,7 +44,7 @@ export const loadEgyptDistrictShiyakhas = (district: EgyptGeoDistrict): Promise<
   const cached = shiyakhaCache.get(district.id);
   if (cached) return cached;
 
-  const request = fetch(`https://openadmindata.org/api/v1/eg/district/${encodeURIComponent(district.slug)}.json`, {
+  const request = fetch(`https://raw.githubusercontent.com/open-admin-data/egypt-administrative-divisions/master/divisions/${encodeURIComponent(district.governorateSlug)}/${encodeURIComponent(district.slug)}/shiyakha.json`, {
     headers: { Accept: 'application/json' },
     credentials: 'omit',
     referrerPolicy: 'no-referrer',
