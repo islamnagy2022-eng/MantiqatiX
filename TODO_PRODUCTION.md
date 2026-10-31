@@ -1431,3 +1431,39 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 ### Governance alignment item — platform authority registries
 
 A separate source review found a second platform-root authorization model: the newer Super Admin Control Center RPCs (`mnty_platform_admin_*`) authorize against `private.platform_admins`, while the RC441/RC449 MantiGO/global-digital-page helper authorizes against an active `user_memberships` row in `MNTY-PLATFORM` with `SUPER_ADMIN`, `scope=PLATFORM`, and `full_control=true`. These are distinct authority sources, not the same predicate. The platform-control-center design explicitly describes `private.platform_admins` as the protected root registry; an earlier documented production checkpoint (2026-09-27) recorded zero rows, but that count has not been re-read in this session. Do not infer the current registry contents. Before rollout, decide and test whether both sources must agree, whether one is the canonical root, and how bootstrap/revocation keeps them synchronized. This is a governance consistency gap to resolve, not proof of a privilege escalation. No sensitive registry rows were queried.
+
+
+## 2026-10-31 — P0 platform-admin authority-source convergence review
+
+### Confirmed source-level distinction
+
+- RC113 explicitly states that platform authority remains anchored to `private.platform_admins`. Its Super Admin Control Center RPCs check `private.platform_admins.user_id = auth.uid()` and reject anonymous sessions before reading/managing platform users, memberships, businesses, custom roles and role assignments.
+- RC115's `mnty_platform_has_permission` also grants platform-owner authority only from `private.platform_admins`; tenant/business/branch delegated permissions are evaluated separately from scoped employee memberships and `platform_role_assignments`.
+- By contrast, RC441/RC449's `mnty_can_platform_admin()` checks only an active `user_memberships` row for `tenant_id='MNTY-PLATFORM'`, role `SUPER_ADMIN`, `scope=PLATFORM`, and `full_control=true`. It does not consult `private.platform_admins`.
+- Therefore two distinct authorization sources currently define platform-admin authority. The source does not establish whether this is intentional dual authorization or an incomplete convergence. Do not silently select one model or claim a proven exploit from this observation alone.
+
+### Test coverage gap
+
+- The existing RC449 test fixture defines `user_memberships` and tests tenant OWNER/ADMIN/OPERATIONS_MANAGER/tenant-scoped SUPER_ADMIN against the global RPCs and `digital_pages` RLS.
+- It does not define `private.platform_admins` or seed the explicit platform test user in that registry. As a result, its positive case proves only the membership-based model; it does not verify alignment with the registry-based Control Center model.
+- Required new isolated cases, after the canonical policy is approved:
+  1. Membership-only `MNTY-PLATFORM` SUPER_ADMIN with `scope=PLATFORM/full_control=true` but absent from `private.platform_admins` must be rejected if the registry is canonical.
+  2. Registry-only platform admin without an active platform membership must have an explicitly documented expected result.
+  3. A registered platform admin with active platform membership must pass the selected policy.
+  4. Tenant OWNER, tenant ADMIN, OPERATIONS_MANAGER, and tenant-scoped SUPER_ADMIN remain denied across all eight helper-dependent global operations.
+  5. Verify revocation/removal behavior and audit attribution in the isolated fixture.
+
+### Historical bootstrap source limitation
+
+- The historical RC42 manifest records production migration identifiers for platform authority, atomic registration review, bootstrap authority and the MNTY owner bootstrap. The corresponding exact candidate SQL paths `20260927065218`, `20260927065247`, `20260927065347`, and `20260927131555` were not found on current `main`; do not reconstruct their SQL from names. The later `20260927140202_lock_platform_admins_rls.sql` is present, while the manifest also records a live version alias `20260927140200`.
+- The existing test fixture describes `private.platform_admins(user_id)` as a primary key referencing `auth.users(id)`, but that fixture is not proof of the complete live DDL or bootstrap semantics.
+- No current production rows or identities from `private.platform_admins` were queried in this review. A 2026-09-27 documentation snapshot had recorded zero rows then; that historical count must not be presented as the current count.
+
+### Next required decision and controls
+
+- [ ] Recover authoritative historical SQL/history for registry creation, service-role bootstrap and MNTY owner bootstrap; compare with current live objects and grants.
+- [ ] Define one canonical platform-root authority contract and explicitly document whether MNTY platform membership is an additional operational constraint or a redundant second root source.
+- [ ] Align the forward-only helper migration and the RC449 disposable fixture/integration tests with that contract. Preserve RC441/RC449 historical files unchanged.
+- [ ] Add adversarial tests for registry-only, membership-only, synchronized, suspended/revoked, and non-platform tenant identities before any production rollout.
+- Production migration ledger was freshly rechecked at 308 records through `20261029083845`; RC441 and RC449 remain absent. Security Advisor at 2026-10-31 06:39:56 UTC: 8 RLS/no-policy findings, 3 anon-executable SECURITY DEFINER findings, 67 authenticated-executable SECURITY DEFINER findings, 90 anonymous-policy findings, and leaked-password protection disabled.
+- No Production DDL/DML, grant, RLS/Auth change, registry-row read, Edge deployment, payment, settlement or journal mutation occurred. Overall gate remains **BLOCKED / NOT CERTIFIED**.
