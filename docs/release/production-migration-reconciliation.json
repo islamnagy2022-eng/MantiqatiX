@@ -1884,6 +1884,6 @@
         "service_role_execute": true
       }
     ],
-    "interpretation": "Both expected triggers are present and enabled. The default-owner function is SECURITY DEFINER with a non-empty search_path; both trigger functions remain directly executable by PUBLIC and the external API roles. RC463 is designed to change only function search_path and EXECUTE ACLs, preserving the live function and trigger definitions. The exact migration has not been applied to Production; deployment remains unauthorized pending current-schema rehearsal, exact-head CI, trigger-runtime regression verification and an approved rollback/backup boundary."
+    "interpretation": "Both expected triggers are present and enabled. Both functions return PostgreSQL `trigger` and are not ordinary callable RPC endpoints; their default ACL (`proacl IS NULL`) nevertheless gives PUBLIC and effective anon/authenticated/service_role EXECUTE. The default-owner function is SECURITY DEFINER with non-empty `search_path=public, auth`; the commission audit function already has an empty search_path. This is a least-privilege/search_path hardening concern, not proof of an anonymous RPC exploit. Exact-head RC463 trigger integration and older-checkpoint forward replay passed in PR #617, but the exact migration version is not in the live ledger and no Production change was applied. Deployment remains unauthorized pending a current-schema rehearsal, backup/restore, rollback boundary and independent review."
   }
 }
