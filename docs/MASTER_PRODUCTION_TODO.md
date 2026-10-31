@@ -2881,3 +2881,17 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified/Professional Dashboard:** source PR #483 is merged; current main reports `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; deployment and tested deployed-origin owner/employee/branch/QR journeys pass. Remaining scope is the full Super Admin Control Center, module-specific permission enforcement, real-data coverage, complete screen/action matrix and full dashboard E2E. See master issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release state:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Current verifier still reports 0/41 required release migration IDs, 32/60 non-PASS object checks, six critical Edge Function drifts, RC449A/RC450 journal schema/ACL blockers, and payment/finance, Auth hardening and backup/restore evidence outstanding. Catalog pilot PASS does not certify the platform.
 - Open workstreams and PR triage are indexed in master issue #599. Do not treat historical TODO snapshots as current without checking exact main and live evidence.
+
+
+## CAT-TAX-01 — Canonical 10 functional groups and 50 primary activities (2026-10-31)
+
+- Scope: replace the former 18-group public taxonomy with 10 canonical functional groups and exactly 5 primary activities per group (50 total); specialties remain child values of an activity, not peer categories.
+- Preserve all existing activity/listing records. Read-boundary compatibility maps the inventoried legacy group IDs, 67 legacy directory category IDs, and legacy business activity codes into the canonical taxonomy; no production DDL/DML or destructive data rewrite is included.
+- Public navigation is folder-style: functional group → activity → specialty, with back navigation and responsive mobile/tablet/desktop layout.
+- Medical legacy types (doctor, dentist, clinic, dental center) resolve under the single medical-practices activity while preserving listing type, source specialty, phone, and publication/claim state.
+- New taxonomy writes are limited to the ten canonical group IDs; standalone profession categories are rejected. Existing legacy rows remain readable and are not deleted.
+- Directory filtering uses the shared canonical specialty resolver across registered businesses and public directory listings. The admin directory editor resolves legacy specialties to selectable canonical values while preserving original record metadata.
+- Production inventory previously observed 454 public directory rows across 156 legacy group/category/type combinations; compatibility map coverage was audited read-only. Re-run the live inventory after deployment and verify no row is lost or hidden.
+- Validation must include 10 groups / 50 activities / 5 per group, all 67 legacy category mappings, folder navigation, specialty filtering, geographic search, owner/admin edit-create round trip, non-platform role denial, and mobile/tablet/desktop overflow checks.
+- No database migration is required for this read-compatible taxonomy change. The existing database constraint accepting historical group IDs is intentionally retained. Edge Functions require a separately reviewed deployment step after exact-head CI and live admin-path verification.
+- Status: implementation carried forward onto current main for validation; NOT DONE until exact-head workflows pass. Pages deployment is permitted only after the merged main workflow passes. Edge Function rollout and real SUPER_ADMIN CRUD verification remain separately tracked release gates.

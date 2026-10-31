@@ -198,7 +198,7 @@ Deno.serve(async (req: Request) => {
     const taxonomyCategoryId = clean(body.taxonomyCategoryId, 180);
     const taxonomySpecialty = clean(body.taxonomySpecialty, 160) || null;
     const slug = slugify(body.slug || displayName);
-    const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","construction_decor","auto_transport","real_estate","education_training","technology_communications","professional_services","marketing_media","trade_ecommerce","agriculture_animals","sports_fitness","tourism_events","finance_insurance","industry_workshops","public_community"]);
+    const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","auto_transport","real_estate","education_training","technology_communications","professional_services","agriculture_animals"]);
     if (displayName.length < 2 || !listingTypes.has(listingType) || !listingStatuses.has(listingStatus) || !validGroups.has(functionalGroupId) || taxonomyCategoryId.length < 4) {
       return out(origin, { error: "INVALID_LISTING", message: "راجع اسم الصفحة والمجموعة الوظيفية والتصنيف وحالة النشر." }, 400);
     }

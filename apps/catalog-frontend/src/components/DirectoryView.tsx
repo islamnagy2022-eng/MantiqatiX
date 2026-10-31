@@ -37,6 +37,7 @@ import { formatEgyptianLocation } from '../utils/rules';
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { fetchPublicDirectoryListings, type PublicDirectoryListing } from '../lib/directoryListings';
+import { resolveCanonicalSpecialty } from '../data/productionDefaults';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -309,8 +310,10 @@ export const DirectoryView: React.FC = () => {
       Boolean(matchedCategory && selectedTaxonomyCategory && matchedCategory.name === selectedTaxonomyCategory.name);
     const storedSpecialty = String(biz.activitySpecialty || '');
     const categorySuffix = matchedCategory ? biz.category.slice(matchedCategory.name.length).replace(/^\s*—\s*/, '') : '';
+    const requestedSpecialty = resolveCanonicalSpecialty(selectedSpecialty, matchedCategory?.id);
     const matchesSpecialty = selectedSpecialty === 'all' ||
-      storedSpecialty === selectedSpecialty || categorySuffix === selectedSpecialty;
+      resolveCanonicalSpecialty(storedSpecialty, matchedCategory?.id) === requestedSpecialty ||
+      resolveCanonicalSpecialty(categorySuffix, matchedCategory?.id) === requestedSpecialty;
     const matchesGov = selectedGovFilter === 'all' || normalizeSearch(biz.governorate) === normalizeSearch(selectedGovFilter);
     const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeSearch(biz.markaz) === normalizeSearch(selectedMarkazFilter);
     const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(biz.village) === normalizeSearch(selectedVillageFilter);
@@ -344,7 +347,9 @@ export const DirectoryView: React.FC = () => {
     const matchesSearch = queryTokens.every((token) => haystack.includes(token));
     const matchesGroup = selectedGroupFilter === 'all' || listing.functional_group_id === selectedGroupFilter;
     const matchesCategory = selectedCategoryId === 'all' || listing.taxonomy_category_id === selectedCategoryId;
-    const matchesSpecialty = selectedSpecialty === 'all' || normalizeSearch(listing.taxonomy_specialty) === normalizeSearch(selectedSpecialty);
+    const matchesSpecialty = selectedSpecialty === 'all' ||
+      resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', listing.taxonomy_category_id) ===
+      resolveCanonicalSpecialty(selectedSpecialty, listing.taxonomy_category_id);
     const matchesGov = selectedGovFilter === 'all' || normalizeSearch(listing.governorate) === normalizeSearch(selectedGovFilter);
     const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeSearch(listing.district) === normalizeSearch(selectedMarkazFilter);
     const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(listing.village) === normalizeSearch(selectedVillageFilter);
@@ -470,8 +475,8 @@ export const DirectoryView: React.FC = () => {
               <Folder className="h-7 w-7 shrink-0 text-emerald-800" /><span><span className="block font-black text-emerald-950">كل {activeCategory?.classificationType === 'profession' ? 'المجالات' : 'الأنواع'}</span><span className="mt-1 block text-xs text-emerald-800">عرض كل الجهات في هذا التصنيف</span></span>
             </button>
             {(activeCategory?.specialties || []).map((specialty) => {
-              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activeCategory?.id && (business.activitySpecialty === specialty || business.category.endsWith(specialty))).length;
-              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activeCategory?.id && listing.taxonomy_specialty === specialty && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+              const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activeCategory?.id && resolveCanonicalSpecialty(business.activitySpecialty || business.category, activeCategory?.id) === resolveCanonicalSpecialty(specialty, activeCategory?.id)).length;
+              const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activeCategory?.id && resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', activeCategory?.id) === resolveCanonicalSpecialty(specialty, activeCategory?.id) && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
               return (
                 <button key={specialty} type="button" onClick={() => { setSelectedSpecialty(specialty); setTaxonomyBrowserOpen(false); }} className="group flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50/50">
                   <Folder className="h-7 w-7 shrink-0 text-amber-600" /><span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{specialty}</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثّق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span><ChevronLeft className="h-4 w-4 shrink-0 text-slate-400" />
@@ -716,10 +721,13 @@ export const DirectoryView: React.FC = () => {
                     if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
                     if (categoryForBusiness(business)?.id !== selectedTaxonomyCategory?.id) return false;
                     const suffix = business.category.slice(categoryForBusiness(business)?.name.length || 0).replace(/^\s*—\s*/, '');
-                    return String(business.activitySpecialty || '') === specialty || suffix === specialty;
+                    const requested = resolveCanonicalSpecialty(specialty, selectedTaxonomyCategory?.id);
+                    return resolveCanonicalSpecialty(business.activitySpecialty || '', selectedTaxonomyCategory?.id) === requested ||
+                      resolveCanonicalSpecialty(suffix, selectedTaxonomyCategory?.id) === requested;
                   }).length;
                   const unconfirmedSpecialtyCount = unconfirmedListings.filter((listing) =>
-                    listing.taxonomy_category_id === selectedTaxonomyCategory?.id && listing.taxonomy_specialty === specialty
+                    listing.taxonomy_category_id === selectedTaxonomyCategory?.id &&
+                    resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', selectedTaxonomyCategory?.id) === resolveCanonicalSpecialty(specialty, selectedTaxonomyCategory?.id)
                   ).length;
                   return (
                     <button key={specialty} type="button" onClick={() => setSelectedSpecialty(specialty)} aria-pressed={selectedSpecialty === specialty} className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-right text-sm font-bold transition ${selectedSpecialty === specialty ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>

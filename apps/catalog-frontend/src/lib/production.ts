@@ -1,6 +1,6 @@
 import { createClient, type User } from '@supabase/supabase-js';
 import type { AdminSettings, AuthSession, Business, FunctionalGroupId, Product, Subscriber } from '../types';
-import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId } from '../data/productionDefaults';
+import { DEFAULT_CATEGORIES, DEFAULT_FUNCTIONAL_GROUPS, DEFAULT_PAYMOB_CONFIG, INITIAL_ADMIN_SETTINGS, normalizeCanonicalTaxonomySettings, resolveCanonicalGroupId, resolveCanonicalActivityCategoryId } from '../data/productionDefaults';
 import { resolveDefaultImage } from '../utils/defaultImages';
 
 const runtime = (window as any).MANTIQATIX_CONFIG || (window as any).MNTY_CONFIG;
@@ -137,6 +137,10 @@ export async function fetchPublicCatalog(businessId: string, branchId?: string):
     tenantId: body.business?.tenantId || body.business?.tenant_id,
     name: body.business?.name,
     category: body.profile?.category || body.provider?.kind,
+    activityGroupCode: body.business?.activityGroupCode,
+    activityCategoryCode: body.business?.activityCategoryCode,
+    activityClassificationType: body.business?.activityClassificationType,
+    activitySpecialty: body.business?.activitySpecialty,
     slug: body.provider?.slug,
     bio: body.profile?.bio || body.provider?.description,
     branches: body.branches,
@@ -180,9 +184,18 @@ export function mapBusiness(raw: any, provider: any): Business {
   const created = raw.createdAt || raw.created_at || new Date().toISOString();
   const id = String(raw.id || raw.businessId || '');
   const name = String(raw.name || provider?.name || provider?.name_ar || 'نشاط تجاري');
-  const functionalGroupId = groupFromCategory(category, String(raw.activityGroupCode || raw.activity_group_code || raw.settings?.activity_group_code || raw.settings?.taxonomy_group_code || ''));
-  const activityCategoryCode = String(raw.activityCategoryCode || raw.activity_category_code || raw.settings?.activity_category_code || '').trim();
-  const canonicalCategoryId = activityCategoryCode ? `cat_${functionalGroupId}_${activityCategoryCode}` : '';
+  const activityGroupCode = String(
+    raw.activityGroupCode || raw.activity_group_code || raw.functionalGroupId || raw.functional_group_id ||
+    raw.settings?.activity_group_code || raw.settings?.functional_group_id || raw.settings?.functionalGroupId ||
+    raw.settings?.taxonomy_group_code || meta.activity_group_code || meta.functional_group_id ||
+    profile.activity_group_code || profile.functional_group_id || '',
+  ).trim();
+  const functionalGroupId = groupFromCategory(category, activityGroupCode);
+  const activityCategoryCode = String(
+    raw.activityCategoryCode || raw.activity_category_code || raw.settings?.activity_category_code ||
+    raw.settings?.activityCategoryCode || meta.activity_category_code || profile.activity_category_code || '',
+  ).trim();
+  const canonicalCategoryId = resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode);
   const officialShowcase = Boolean(raw.isOfficialShowcase || raw.settings?.source === 'OFFICIAL_PLATFORM_SHOWCASE' || raw.settings?.managed_by === 'SUPER_ADMIN');
   const savedLogo = String(profile.logoUrl || profile.logo_url || raw.logoUrl || '');
   const savedCover = String(profile.coverUrl || profile.cover_url || raw.coverUrl || '');
@@ -192,8 +205,8 @@ export function mapBusiness(raw: any, provider: any): Business {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id || DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id,
     functionalGroupId,
-    categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
-    activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || '') || undefined,
+    categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || meta.activity_classification_type || profile.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
+    activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
     logoUrl: isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo,
     coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',

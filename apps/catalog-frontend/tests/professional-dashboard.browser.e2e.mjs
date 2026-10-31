@@ -33,6 +33,7 @@ for (const target of verifiedBusinessTargets) {
     assert.ok(business.items.length > 0, target.label + ' must expose active public products');
   }
 }
+const supabaseOrigin = new URL(supabaseUrl).origin;
 const storageKey = 'mantiqatix.production.auth';
 const tenantId = 'tenant-e2e';
 const businessId = '10000000-0000-0000-0000-000000000001';
@@ -89,6 +90,14 @@ const roles = {
     role: 'MANAGER',
     permissions: { modules: { CATALOG: ['view'], EMPLOYEES: ['manage'] } },
   },
+  platformAdmin: {
+    id: '00000000-0000-0000-0000-000000000099',
+    email: 'e2e-platform-admin@example.test',
+    role: 'SUPER_ADMIN',
+    businessId: null,
+    branchId: null,
+    permissions: { scope: 'PLATFORM', full_control: true },
+  },
 };
 
 const fakeBusiness = {
@@ -126,7 +135,7 @@ function makeSession(scenario) {
   };
 }
 
-async function newScenario(browser, scenario = null, publicDirectoryBusinesses = []) {
+async function newScenario(browser, scenario = null, publicDirectoryBusinesses = [], options = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const session = scenario ? makeSession(scenario) : null;
   await context.addInitScript(({ key, value }) => {
@@ -136,6 +145,8 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
 
   const rpcObservation = { scopedBranchId: undefined };
   const catalogReadRequests = [];
+  const directoryAdminRequests = [];
+  const directoryListingsState = options.directoryListingsState || { listings: [] };
   const page = await context.newPage();
   await page.route(supabaseOrigin + '/**', async (route) => {
     const request = route.request();
@@ -232,10 +243,8 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
         provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
         profile: { ...fixture.profile, category: fixture.category },
-        branches: fixture.branches || [],
-        selectedBranchId: fixture.selectedBranchId || fixture.branches?.[0]?.id || null,
-        items: fixture.items || [], prices: fixture.prices || [], options: [],
-        contactPhone: fixture.contactPhone || '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
+        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
       });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
@@ -258,14 +267,58 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     if (url.pathname.endsWith('/functions/v1/catalog-platform-admin')) {
       return json({ subscribers: [], settings: {} });
     }
+    if (url.pathname.endsWith('/functions/v1/directory-listings')) {
+      let body = {};
+      try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
+      if (request.method() === 'GET') return json({ listings: directoryListingsState.listings });
+      if (body.action === 'ADMIN_LIST') {
+        directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
+        return json({ listings: directoryListingsState.listings, claims: [], businesses: [] });
+      }
+      if (body.action === 'UPSERT_LISTING') {
+        directoryAdminRequests.push({ action: body.action, payload: body, authorization: request.headers().authorization || '' });
+        const existing = directoryListingsState.listings.find((listing) => listing.id === body.id);
+        const saved = {
+          ...(existing || {}),
+          id: body.id || 'listing-e2e-created-0001',
+          slug: body.slug || 'directory-e2e-' + String(body.displayName || 'listing').replace(/\\s+/g, '-').toLowerCase(),
+          display_name: body.displayName,
+          listing_type: body.listingType,
+          functional_group_id: body.functionalGroupId,
+          taxonomy_category_id: body.taxonomyCategoryId,
+          taxonomy_specialty: body.taxonomySpecialty || null,
+          specialty: body.specialty || body.taxonomySpecialty || null,
+          phone: body.phone || null,
+          secondary_phone: body.secondaryPhone || null,
+          address: body.address || null,
+          governorate: body.governorate || 'المنوفية',
+          district: body.district || 'بركة السبع',
+          village: body.village || null,
+          source_name: body.sourceName || 'إدخال إدارة المنصة',
+          source_url: body.sourceUrl || null,
+          listing_status: body.listingStatus || 'DRAFT',
+          claim_status: existing?.claim_status || 'UNCLAIMED',
+          outreach_status: body.outreachStatus || 'NEW',
+          outreach_notes: body.outreachNotes || null,
+          last_contacted_at: body.lastContactedAt || null,
+          subscription_offer_at: body.subscriptionOfferAt || null,
+          next_follow_up_at: body.nextFollowUpAt || null,
+          completeness: body.completeness || {},
+          updated_at: new Date().toISOString(),
+        };
+        directoryListingsState.listings = [saved, ...directoryListingsState.listings.filter((listing) => listing.id !== saved.id)];
+        return json({ listing: saved }, existing ? 200 : 201);
+      }
+      return json({ error: 'UNSUPPORTED_DIRECTORY_ACTION' }, 400);
+    }
     if (url.pathname.startsWith('/rest/v1/')) {
       return json([]);
     }
     return json({});
   });
 
-  await page.goto(baseUrl + '?view=professional_dashboard', { waitUntil: 'domcontentloaded' });
-  return { context, page, rpcObservation, catalogReadRequests };
+  await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
+  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState };
 }
 
 async function waitForDashboard(page) {
@@ -530,7 +583,107 @@ try {
     } finally { await context.close(); }
   }
 
-  // 10. A verified business in a markaz with no village remains discoverable when village is left unselected.
+  // 9. Platform-admin directory edit/create round-trip normalizes legacy category and specialty values.
+  {
+    const legacyListing = {
+      id: 'listing-e2e-legacy-medical-0001',
+      slug: 'legacy-medical-e2e',
+      display_name: 'عيادة اختبار قديمة',
+      listing_type: 'doctor',
+      functional_group_id: 'medical_health',
+      taxonomy_category_id: 'cat_medical_health_doctor',
+      taxonomy_specialty: 'طبيب اطفال',
+      specialty: 'طبيب أطفال',
+      phone: '01012345678',
+      secondary_phone: null,
+      address: 'شارع الاختبار',
+      governorate: 'المنوفية',
+      district: 'بركة السبع',
+      village: 'قرية الاختبار',
+      source_name: 'Browser E2E fixture',
+      source_url: null,
+      listing_status: 'PUBLISHED',
+      claim_status: 'UNCLAIMED',
+      outreach_status: 'CONTACTED',
+      outreach_notes: 'ملاحظة سابقة',
+      last_contacted_at: '2026-10-30T00:00:00.000Z',
+      subscription_offer_at: null,
+      next_follow_up_at: null,
+      completeness: { name: true, phone: true, specialty: true, address: true },
+    };
+    const directoryListingsState = { listings: [legacyListing] };
+    const { context, page, directoryAdminRequests } = await newScenario(
+      browser,
+      roles.platformAdmin,
+      [],
+      { initialRoute: '?view=super_admin&tab=directory_listings', directoryListingsState },
+    );
+    try {
+      await page.getByText('عيادة اختبار قديمة', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: /استكمال \/ تعديل/ }).click();
+      const groupSelect = page.getByLabel('المجموعة الوظيفية *');
+      const categorySelect = page.getByLabel('النشاط الرئيسي داخل المجموعة *');
+      const specialtySelect = page.getByLabel('التخصص \/ النوع الدقيق داخل التصنيف');
+      assert.equal(await groupSelect.inputValue(), 'medical_health', 'legacy listing must load into its canonical group');
+      assert.equal(await categorySelect.inputValue(), 'cat_medical_health_medical_practices', 'legacy doctor category must normalize to the canonical medical activity');
+      assert.equal(await specialtySelect.inputValue(), 'أطفال', 'legacy doctor specialty must load as a selectable canonical specialty');
+      await page.getByLabel('اسم النشاط أو الجهة *').fill('عيادة اختبار بعد التعديل');
+      await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
+      await specialtySelect.selectOption('أطفال');
+      await page.getByRole('button', { name: 'حفظ البيانات' }).click();
+      await page.getByText('تم تحديث الصفحة.', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByText('عيادة اختبار بعد التعديل', { exact: true }).waitFor({ state: 'visible' });
+      const updateRequest = directoryAdminRequests.find((request) => request.action === 'UPSERT_LISTING');
+      assert.ok(updateRequest, 'editing a legacy listing must call the directory UPSERT_LISTING action');
+      assert.equal(updateRequest.authorization, 'Bearer e2e-access-token-not-a-real-credential', 'directory admin writes must carry the signed-in bearer token');
+      assert.equal(updateRequest.payload.id, legacyListing.id, 'editing must update the existing listing rather than create a duplicate');
+      assert.equal(updateRequest.payload.listingType, 'doctor', 'editing must preserve the underlying listing type');
+      assert.equal(updateRequest.payload.functionalGroupId, 'medical_health');
+      assert.equal(updateRequest.payload.taxonomyCategoryId, 'cat_medical_health_medical_practices');
+      assert.equal(updateRequest.payload.taxonomySpecialty, 'أطفال');
+      assert.equal(updateRequest.payload.phone, legacyListing.phone, 'editing taxonomy must preserve the existing contact number');
+      assert.equal(updateRequest.payload.listingStatus, 'PUBLISHED', 'editing taxonomy must preserve publication status');
+
+      await page.getByLabel('اسم الطبيب \/ النشاط *').fill('مركز اختبار جديد');
+      await page.getByLabel('نوع الجهة').selectOption('clinic');
+      await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
+      await specialtySelect.selectOption('أطفال');
+      await page.getByRole('button', { name: 'حفظ البيانات' }).click();
+      await page.getByText('تم إنشاء الصفحة.', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByText('مركز اختبار جديد', { exact: true }).waitFor({ state: 'visible' });
+      const createRequest = directoryAdminRequests.filter((request) => request.action === 'UPSERT_LISTING').at(-1);
+      assert.ok(createRequest);
+      assert.equal(createRequest.payload.id, undefined, 'creating a new listing must not reuse the prior listing ID');
+      assert.equal(createRequest.payload.listingType, 'clinic');
+      assert.equal(createRequest.payload.functionalGroupId, 'medical_health');
+      assert.equal(createRequest.payload.taxonomyCategoryId, 'cat_medical_health_medical_practices');
+      assert.equal(createRequest.payload.taxonomySpecialty, 'أطفال');
+      await groupSelect.selectOption('food_grocery');
+      assert.equal(await page.getByLabel('نوع الجهة').inputValue(), 'business', 'non-medical groups must default to a general business record type');
+      assert.equal(await page.getByLabel('نوع الجهة').locator('option').count(), 1, 'non-medical groups must not expose medical-only record types');
+      assert.ok(directoryListingsState.listings.some((listing) => listing.id === legacyListing.id && listing.display_name === 'عيادة اختبار بعد التعديل'));
+      assert.ok(directoryListingsState.listings.some((listing) => listing.display_name === 'مركز اختبار جديد'));
+      results.push('platform-admin-directory-legacy-specialty-edit-and-new-listing-save-round-trip');
+    } finally { await context.close(); }
+  }
+
+  // 10. A non-platform role cannot open the platform-admin directory route or load its admin bundle.
+  {
+    const { context, page, directoryAdminRequests } = await newScenario(
+      browser,
+      roles.unsupportedManager,
+      [],
+      { initialRoute: '?view=super_admin&tab=directory_listings' },
+    );
+    try {
+      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
+      assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
+      results.push('non-platform-role-denied-directory-admin-route');
+    } finally { await context.close(); }
+  }
+
+  // Geographic regression: verified business in a markaz with no village remains discoverable when village is left unselected.
   {
     const zeftaFixture = {
       id: '92d4455a-31ef-4a77-acbf-71134ca98e9e',
@@ -566,7 +719,8 @@ try {
     } finally { await context.close(); }
   }
 
-  // 9. Folder-style taxonomy navigation follows the current production labels.
+
+  // 11. Folder-style taxonomy navigation follows the current production labels.
   {
     const { context, page } = await newScenario(browser);
     try {
@@ -576,12 +730,12 @@ try {
       await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
       await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /صيدليات/ }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px taxonomy group/category browser');
-      await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'عيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).click();
+      await taxonomyMain.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await taxonomyMain.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /رجوع للمجالات والأنشطة/ }).click();
       await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
       await taxonomyMain.getByRole('button', { name: /رجوع للمجالات/ }).click();
@@ -593,7 +747,7 @@ try {
     } finally { await context.close(); }
   }
 
-  // 10. Selecting a specialty applies the specialty filter and returns to the catalog.
+  // 12. Selecting a specialty applies the specialty filter and returns to the catalog.
   {
     const { context, page } = await newScenario(browser);
     try {
@@ -601,11 +755,11 @@ try {
       await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
       const taxonomyMain = page.locator('main[dir="rtl"]');
       await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await taxonomyMain.getByRole('button', { name: /عيادات طبية/ }).click();
-      await taxonomyMain.getByRole('button', { name: /عيادات عامة/ }).click();
+      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).click();
+      await taxonomyMain.getByRole('button', { name: /باطنة/ }).click();
       const taxonomyBreadcrumb = page.getByRole('navigation', { name: 'مسار المجال والنشاط' });
-      await taxonomyBreadcrumb.getByText('عيادات طبية', { exact: true }).waitFor({ state: 'visible' });
-      await taxonomyBreadcrumb.getByText('عيادات عامة', { exact: true }).waitFor({ state: 'visible' });
+      await taxonomyBreadcrumb.getByText('ممارسات وعيادات طبية', { exact: true }).waitFor({ state: 'visible' });
+      await taxonomyBreadcrumb.getByText('باطنة', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
       await page.setViewportSize({ width: 768, height: 1024 });
       await assertNoHorizontalOverflow(page, '768px selected taxonomy specialty');
@@ -614,7 +768,6 @@ try {
       results.push('taxonomy-specialty-selection-returns-to-catalog-and-filters');
     } finally { await context.close(); }
   }
-
 
   // Live verified activities must render badges and open their corresponding catalogues.
   {
