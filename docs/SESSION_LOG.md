@@ -1502,3 +1502,11 @@ A separate source review found a second platform-root authorization model: the n
 - Scope: subscription only / commission only / both; fixed / percentage / fixed + percentage; account wallet funded by verified direct/card/Vodafone Cash top-ups or approved external cash; automatic settlement of platform charges only; admin exemption/discount/defer/gift; ad cover reservations monthly, quarterly, half-yearly, yearly or custom.
 - Explicit exclusion: merchant-to-customer sales are outside MantiqaTix payment flow; platform is not a sales intermediary and does not receive or settle those sale proceeds.
 - Status: specification and TODO recorded. Financial schema inventory, implementation, migrations, provider verification, compliance review, tests and deployment remain pending. No production financial or database mutation occurred.
+
+
+## 2026-10-31 — FIN-ADS-01 initial finance inventory
+
+- Read-only review of the existing platform evolution audit and Production finance schema checkpoint found reusable commission/subscription/payment foundations, but no verified unified spendable platform wallet.
+- Existing commission activation remains blocked pending explicit calculation basis, scope/effective dates, priority, bounds, exemptions, reversals and payment-engine support. Production journal/subscription contract gaps at the 2026-10-31 checkpoint remain release blockers.
+- Registered findings and prerequisites in Master TODO. No database, wallet, payment, or Production state changed.
+- PR #601 is currently 4 commits behind main and must be reconciled before implementation/CI sign-off; it remains Draft.
