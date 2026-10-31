@@ -175,6 +175,18 @@ assert.equal(canonicalActivityIds.length, 50, 'The canonical activity seed must 
 for (const activityId of canonicalActivityIds) {
   assert.ok(activityModuleRegistry.includes(activityId + ':'), 'Missing explicit activity module override for ' + activityId + '.');
 }
+assert.ok(activityModuleRegistry.includes('ACTIVITY_CAPABILITY_OVERRIDES'), 'Every activity must resolve an activity-specific operational capability set.');
+for (const activityId of canonicalActivityIds) {
+  const escapedId = activityId.replace(/[.*+?^${}()|[\]\\]/g, '\\for (const activityId of canonicalActivityIds) {
+  assert.ok(activityModuleRegistry.includes(activityId + ':'), 'Missing explicit activity module override for ' + activityId + '.');
+}
+assert.ok(activityModuleRegistry.includes('operationalFocus: override?.operationalFocus'), 'Activity modules must expose an activity-specific operating scope.');');
+  const match = activityModuleRegistry.match(new RegExp('  ' + escapedId + ': \\[([\\s\\S]*?)\\n  \\],'));
+  assert.ok(match, 'Missing activity-specific capability definitions for ' + activityId + '.');
+  assert.equal((match[1].match(/\\{ id:/g) || []).length, 3, 'Each activity must define exactly three reviewed operational capabilities: ' + activityId + '.');
+}
+assert.ok(activityModuleRegistry.includes("state: 'planned' as const"), 'Activity-specific capabilities must default to planned until backed by authorized workflows.');
+assert.ok(activityModuleRegistry.includes("ACTIVITY_CAPABILITY_OVERRIDES[category.id] || profile.capabilities"), 'Activity resolver must prefer activity-specific capability definitions.');
 assert.ok(activityModuleRegistry.includes('operationalFocus: override?.operationalFocus'), 'Activity modules must expose an activity-specific operating scope.');
 
 assert.ok(activityModuleRegistry.includes('type DomainProfile') && activityModuleRegistry.includes('domainProfiles:'), 'Module registry must provide typed domain profiles.');
