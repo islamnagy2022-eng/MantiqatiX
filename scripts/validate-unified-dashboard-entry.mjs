@@ -31,7 +31,9 @@ assert.match(types, /availableMemberships\?: AccountMembershipContext\[\]/, 'onl
 assert.match(production, /switchableMembershipRoles = new Set\(\['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'EMPLOYEE', 'STAFF'\]\)/, 'only supported active business membership roles may be exposed');
 assert.match(production, /businesses\.filter\(\(business\) => business\.id === String\(membership\.business_id\) && String\(business\.tenantId \|\| ''\) === tenantId\)/, 'membership mode must match both business and tenant');
 assert.match(production, /activeMembershipId: platform \? undefined : \(chosenMembership\?\.id \|\| own\?\.id\)/, 'platform admin mode must remain distinct from business membership mode');
-assert.match(contextSource, /switchAccountMembership: \(membershipId: string, businessId: string\) => boolean/, 'switching must bind the membership ID to its exact business ID');
+assert.match(contextSource, /switchAccountMembership: \(membershipId: string, businessId: string\) => Promise<boolean>/, 'switching must bind the membership ID to its exact business ID');
+assert.match(contextSource, /action: 'CATALOG_READ',[\s\S]{0,180}\.\.\.\(mode\.branchId \? \{ branchId: mode\.branchId \} : \{\}\)/, 'each mode switch must reload catalog data using the exact membership branch scope');
+assert.match(contextSource, /...previous\.filter\(\(product\) => product\.businessId !== mode\.businessId\)/, 'the previous business catalog data must be replaced when the selected membership scope changes');
 assert.match(contextSource, /authUserIdRef\.current !== userId/, 'mode switching must bind to the current authenticated identity');
 assert.match(contextSource, /currentView === 'account_portal' \|\| currentView === 'merchant_admin'/, 'account portal must use the active authorized business context');
 assert.match(contextSource, /requestedView === 'account_portal' && boot\.authSession\.isAuthenticated/, 'account portal deep links must restore only after authenticated bootstrap');
