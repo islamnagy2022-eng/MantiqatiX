@@ -1624,3 +1624,11 @@ A separate source review found a second platform-root authorization model: the n
 
 ### Additional integrity check — trigger/constraint compensation
 A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+ 
+## 2026-10-31 — secondary public ACL scan: `bookings`
+
+- Read-only targeted SQL found exactly two public tables with authenticated DML privileges but no permissive authenticated DML policy: `ad_spaces` and `bookings`.
+- `bookings` has RLS + FORCE RLS, four RESTRICTIVE-only authenticated session guards, zero permissive authenticated SELECT/write policies, authenticated DML/MAINTAIN ACLs, anon MAINTAIN only, and service_role table privileges.
+- The table contains only `id uuid NOT NULL` and nullable `created_at`; row count is one. No row contents were queried. Focused GitHub source search found no direct browser caller, Edge Function reference or migration definition.
+- Registered [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) as P3 lifecycle/least-privilege review. Preserve the row and table; no exploit claim and no Production mutation.
