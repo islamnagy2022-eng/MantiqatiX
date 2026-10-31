@@ -238,7 +238,7 @@ export const Navbar: React.FC = () => {
                 )}
               </button>
 
-              {!authLoading && (authSession.isAuthenticated ? (
+              {authSession.isAuthenticated ? (
                 <button
                   onClick={() => setCurrentView('account_portal')}
                   aria-current={currentView === 'account_portal' ? 'page' : undefined}
@@ -247,7 +247,7 @@ export const Navbar: React.FC = () => {
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>حسابي / اشتراكي</span>
                 </button>
-              ) : (
+              ) : authSession.role === 'guest' && !authSession.isAuthenticated && !authLoading ? (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer"
@@ -255,7 +255,7 @@ export const Navbar: React.FC = () => {
                   <LogIn className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">دخول / إنشاء حساب</span>
                 </button>
-              ))}
+              ) : null}
             </div>
           </div>
 
