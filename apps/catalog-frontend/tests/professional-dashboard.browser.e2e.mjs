@@ -89,6 +89,14 @@ const roles = {
     role: 'MANAGER',
     permissions: { modules: { CATALOG: ['view'], EMPLOYEES: ['manage'] } },
   },
+  accountOnly: {
+    id: '00000000-0000-0000-0000-000000000100',
+    email: 'e2e-account-only@example.test',
+    role: 'GUEST',
+    businessId: null,
+    branchId: null,
+    permissions: {},
+  },
   platformAdmin: {
     id: '00000000-0000-0000-0000-000000000099',
     email: 'e2e-platform-admin@example.test',
@@ -1004,6 +1012,56 @@ try {
 
         await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       }
+    } finally { await context.close(); }
+  }
+
+// Unified navigation: public directory must not expose dashboard tabs; signed-in accounts enter via Account.
+  {
+    const { context, page } = await newScenario(browser, roles.businessOwner, [], { initialRoute: '?view=directory' });
+    try {
+      await page.getByRole('button', { name: 'حسابي / اشتراكي' }).waitFor({ state: 'visible', timeout: 15000 });
+      for (const label of ['لوحة تحكم نشاطي', 'لوحة صاحب النشاط', 'الداشبورد الاحترافية', 'لوحة الإدارة والعمولات']) {
+        assert.equal(await page.getByRole('button', { name: label, exact: true }).count(), 0, 'dashboard entry must not appear in public navigation: ' + label);
+      }
+      await page.getByRole('button', { name: 'حسابي / اشتراكي' }).click();
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'إدارة النشاط' }).click();
+      await waitForDashboard(page);
+      results.push('unified-dashboard-entry-only-through-account-portal');
+    } finally { await context.close(); }
+  }
+
+  // Standalone subscriber account portal: direct route and visitor-mode round trip.
+  {
+    const { context, page } = await newScenario(browser, roles.businessOwner, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByRole('navigation', { name: 'أقسام حساب المشترك' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'اشتراكاتي' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'صلاحياتي' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'وضع الزائر' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'لوحة تحكم نشاطي' }).count(), 0);
+      await page.getByRole('button', { name: 'وضع الزائر' }).click();
+      await page.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === null);
+      await page.getByRole('button', { name: 'حسابي / اشتراكي' }).click();
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'اشتراكاتي' }).click();
+      await page.getByRole('heading', { name: 'اشتراكاتي', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px mobile subscriber account portal');
+      results.push('subscriber-account-portal-route-sections-and-visitor-mode-switch');
+    } finally { await context.close(); }
+  }
+
+  // Authenticated Google identity without a business membership must stay read-only.
+  {
+    const { context, page } = await newScenario(browser, roles.accountOnly, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'أنشطتي' }).click();
+      assert.equal(await page.getByText('لا يوجد نشاط مرتبط بحسابك حاليًا.').count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'إدارة النشاط' }).count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'مركز تحكم المنصة' }).count(), 0);
+      results.push('authenticated-account-without-membership-is-read-only');
     } finally { await context.close(); }
   }
 
