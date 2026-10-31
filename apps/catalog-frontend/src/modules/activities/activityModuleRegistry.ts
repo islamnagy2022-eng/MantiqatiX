@@ -367,7 +367,7 @@ export function resolveActivityModuleConfig(category: ActivityCategory, persiste
     positioning: override ? `${profile.marketing.positioning} ${override.focus}` : profile.marketing.positioning,
     ...(persisted?.marketing || {}),
   };
-  const persistedCapabilities = new Map((persisted?.capabilities || []).map((item) => [item.id, item]));
+  const persistedCapabilities = new Map((persisted?.capabilities || []).map((item) => [item.id, item] as const));
   return {
     activityId: category.id,
     activityName: name,
