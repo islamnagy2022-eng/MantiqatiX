@@ -5,6 +5,29 @@
 القاعدة: DONE ≠ VERIFIED.
 المسار الإلزامي: Analysis → Impact Analysis → Implementation → Integration → Testing → Security Review → Verification → Release → Monitoring → New Baseline.
 
+# P0 — أولوية قصوى: بوابة حساب المشترك المستقلة (PORTAL-01)
+
+**الأولوية:** حرجة / ضمن أولويات التنفيذ التالية مباشرة.  
+**سبب الأولوية:** فصل تجربة المشترك واشتراكاته وصلاحياته عن الشاشة الرئيسية شرط معماري وتجربة استخدام أساسي، وليس تحسينًا شكليًا اختياريًا.  
+**قاعدة إلزامية:** لا تُزال أو تُخفى أو تُعطّل شاشات التحكم الحالية قبل اكتمال البوابة الجديدة، ونجاح اختبارات الأدوار والصلاحيات، واعتماد الانتقال صراحةً.
+
+- [ ] **P0-PORTAL-01:** إكمال بوابة مستقلة بعنوان «حسابي / اشتراكي» بمسار وصفحة منفصلين عن الدليل والشاشة الرئيسية.
+- [ ] **P0-PORTAL-02:** مطابقة جميع الاشتراكات وحالات السداد وتواريخ الاستحقاق وبيانات النشاط مع مصادر الخادم الفعلية؛ لا تعرض قيمًا افتراضية على أنها بيانات مؤكدة.
+- [ ] **P0-PORTAL-03:** إظهار الصلاحيات الفعلية لكل عضوية ونطاقها (منصة/مستأجر/نشاط/فرع)، مع رفض الوصول عند غياب العضوية أو غموضها.
+- [ ] **P0-PORTAL-04:** دعم تعدد الأنشطة والاشتراكات والعضويات، مع اختيار العضوية المصرح بها دون خلط بيانات أنشطة مختلفة.
+- [ ] **P0-PORTAL-05:** استكمال مفتاح التحويل بين «وضع لوحة التحكم» و«وضع الزائر» والرجوع منهما، دون تعديل الأدوار أو الصلاحيات أو تجاوز قيود الخادم.
+- [ ] **P0-PORTAL-06:** نقل وظائف المشترك الحالية تدريجيًا إلى أقسام البوابة وإعادة استخدام واجهاتها وخدماتها الآمنة دون تكرار منطق الأعمال.
+- [ ] **P0-PORTAL-07:** اختبار الحسابات: زائر، حساب Google بلا عضوية، مشترك نشط، اشتراك معلّق/منتهي/موقوف، موظف، مالك فرع، مالك نشاط، ومالك المنصة.
+- [ ] **P0-PORTAL-08:** اختبارات E2E للمسار المباشر والتحديث والرجوع والتنقل بين الوضعين وروابط `?store=` العامة، والتحقق من عدم وجود استدعاءات API غير مخولة.
+- [ ] **P0-PORTAL-09:** إكمال مراجعة الأمان وعزل المستأجرين والأنشطة والفروع، ثم اجتياز TypeScript/build وCI على exact head واختبارات deployed-origin المصرح بها.
+- [ ] **P0-PORTAL-10:** بعد اعتماد جميع ما سبق فقط، إزالة تبويبات/شاشات تحكم المشترك من الشاشة الرئيسية وتحويل الروابط القديمة بأمان. يبقى مركز تحكم SUPER_ADMIN منفصلًا ولا يُنقل لبوابة المشترك.
+
+**بوابة الإغلاق:** لا يُغلق PORTAL-01 ولا يُسمح بمرحلة إزالة الشاشات القديمة قبل اجتياز جميع بنود P0 أعلاه وتوثيق نتيجة الاختبار والمراجعة.  
+**الحالة الحالية:** PARTIALLY IMPLEMENTED / NOT VERIFIED / NOT DEPLOYED.  
+**التنفيذ الحالي:** PR #595 — https://github.com/islamnagy2022-eng/MantiqatiX/pull/595.  
+**مرجع التفاصيل:** `docs/STANDALONE_SUBSCRIBER_PORTAL_SPEC.md`.
+
+
 ## حالات التنفيذ
 - DONE: التنفيذ/المراجعة البرمجية مكتملة بالأدلة المتاحة.
 - PARTIAL: جزء مكتمل وباقي أجزاء مفتوحة.
@@ -2881,3 +2904,34 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified/Professional Dashboard:** source PR #483 is merged; current main reports `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; deployment and tested deployed-origin owner/employee/branch/QR journeys pass. Remaining scope is the full Super Admin Control Center, module-specific permission enforcement, real-data coverage, complete screen/action matrix and full dashboard E2E. See master issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release state:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Current verifier still reports 0/41 required release migration IDs, 32/60 non-PASS object checks, six critical Edge Function drifts, RC449A/RC450 journal schema/ACL blockers, and payment/finance, Auth hardening and backup/restore evidence outstanding. Catalog pilot PASS does not certify the platform.
 - Open workstreams and PR triage are indexed in master issue #599. Do not treat historical TODO snapshots as current without checking exact main and live evidence.
+
+
+## PORTAL-01 — بوابة حساب المشترك المستقلة (تصحيح نطاق الداشبورد) — 2026-10-31
+
+- **P0 — أولوية قصوى / PARTIALLY IMPLEMENTED ON FEATURE BRANCH / NOT VERIFIED OR DEPLOYED** — branch: `feat/standalone-subscriber-portal-main-20261031`; tracked in the P0 execution block above.
+- التصحيح المعتمد: الداشبورد الاحترافية صفحة مستقلة بالكامل عن الشاشة الرئيسية والدليل العام، وتُفتح من «حسابي / اشتراكي» بمسار مستقل `?view=account_portal`.
+- أضيفت بوابة حساب مستقلة تشمل ملخص الحساب، الاشتراك وحالة السداد، الصلاحيات، الأنشطة، وقسمًا لإعادة استخدام أدوات إدارة النشاط الحالية وفق قواعد الوصول.
+- أضيف زر التحويل إلى «وضع الزائر» والعودة إلى البوابة من مدخل الحساب. التحويل يغير العرض فقط ولا يمنح أو يلغي صلاحية.
+- أُخفي شريط تبويبات الداشبورد القديمة داخل صفحة البوابة فقط؛ لم تُحذف ولا تُخفَ من الشاشة الرئيسية. تبقى متاحة حتى اعتماد الانتقال.
+- أدوات SUPER_ADMIN تظل خارج بوابة المشترك وبمسارها المستقل.
+- [x] route مستقل، مدخل حساب، Portal shell، عرض الاشتراك/الصلاحيات/النشاط، وضع الزائر.
+- [x] إعادة استخدام MerchantDashboard/ProfessionalDashboard داخل قسم إدارة النشاط حسب صلاحيات الجلسة الحالية.
+- [x] Browser E2E مبدئي لمسار البوابة والأقسام والتحويل ذهابًا وإيابًا.
+- [ ] **P0 blocker:** exact-head TypeScript/build وBrowser E2E وCI؛ لا تُعتبر البوابة مكتملة قبل نجاحها.
+- [ ] **P0 blocker:** استكمال اختبارات تعدد العضويات/الأنشطة والاشتراكات، وحالات عدم وجود عضوية والإيقاف/الانتهاء، وأدوار الموظف ومالك الفرع.
+- [ ] **P0 blocker:** deployed-origin role-scoped E2E ومراجعة أمنية قبل نقل وظائف المشترك أو إزالة أي شاشة قديمة.
+- [ ] توسيع E2E لحساب بلا عضوية، عضوية موقوفة/منتهية، موظف، مالك فرع، وتعدد العضويات.
+- [ ] اختبار deployed-origin بهويات حقيقية مصرح بها قبل أي نقل/حذف للشاشات القديمة.
+- **No production mutation/deployment:** لا تعديل قاعدة بيانات أو RLS أو GRANT أو Edge Function أو نشر.
+- المرجع التنفيذي: `docs/STANDALONE_SUBSCRIBER_PORTAL_SPEC.md`.
+
+
+### متابعة 2026-10-31 — استكمال إصلاحات المسار والاختبارات
+
+- [x] إصلاح مشغل Playwright لقبول `initialRoute` بدل فرض `?view=professional_dashboard` على كل السيناريوهات؛ هذا كان سبب timeout في اختبار البوابة.
+- [x] إضافة اختبار هوية Google موثقة دون عضوية نشاط: يجب أن تعرض حالة الحساب فقط، دون إدارة نشاط أو صلاحيات مالك منصة.
+- [x] إصلاح عقد فحص Google Auth ليتعرف على مسار `account_portal` المحمي بجلسة مصادق عليها.
+- [ ] تسوية فرع PR #595 مع آخر تغييرات `main`؛ تم إنشاء فرع متزامن من checkpoint أحدث مع نقل التغييرات دون استبدال ملفات الاختبارات والتوثيق الأحدث.
+- [ ] تشغيل exact-head CI على الفرع المتزامن ومراجعة النتائج؛ لا يوجد بعد دليل نجاح بعد هذه الإصلاحات.
+- [ ] استكمال مصفوفة تعدد العضويات/الأنشطة؛ لا يتم تمكين تبديل نشاط آخر في الواجهة قبل ربط كل نشاط بعضويته الفعلية وصلاحياته المحددة، منعًا لخلط الصلاحيات.
+- **الحالة:** IN PROGRESS / NOT VERIFIED / NOT DEPLOYED.
