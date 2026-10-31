@@ -1044,37 +1044,37 @@ try {
     } finally { await context.close(); }
   }
 
-  // Account mode switching must use the exact active membership context, including branch scope.
+  // Cross-membership switching stays disabled until the live catalog-admin v20 is upgraded
+  // to enforce the exact membershipId supplied by the account portal.
   {
     const { context, page, catalogReadRequests } = await newScenario(browser, roles.owner, [], { initialRoute: '?view=account_portal' });
     try {
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
-      await page.getByRole('button', { name: /موظف · نشاط اختبار الداشبورد/ }).click();
-      await page.getByText('وضع الموظف', { exact: true }).waitFor({ state: 'visible' });
-      await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
-      assert.equal(catalogReadRequests.at(-1)?.branchId, branchId, 'employee mode must reload only its assigned branch');
-      assert.equal(catalogReadRequests.at(-1)?.membershipId, '00000000-0000-0000-0000-000000000011', 'employee mode must bind the catalog read to its own membership, not the wider owner membership');
-      await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
-      await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
-      assert.ok(!catalogReadRequests.at(-1)?.branchId, 'owner mode must reload its authorized business-wide catalog after leaving branch scope');
-      results.push('account-switch-owner-and-branch-scoped-employee-memberships');
+      const readsBefore = catalogReadRequests.length;
+      const employeeMode = page.getByRole('button', { name: /موظف · نشاط اختبار الداشبورد/ });
+      assert.equal(await employeeMode.isDisabled(), true, 'branch employee membership must remain unavailable until exact backend scope is deployed');
+      await page.getByRole('status').getByText(
+        'تبديل العضويات متوقف مؤقتًا حتى تحديث خدمة الكتالوج للتحقق من معرف العضوية المحددة على الخادم. ستظل العضوية الحالية وصلاحياتها كما هي، ولن يتم توسيع نطاق الوصول.',
+        { exact: true },
+      ).waitFor({ state: 'visible', timeout: 10000 });
+      assert.equal(catalogReadRequests.length, readsBefore, 'a disabled membership switch must not issue a wider catalog read');
+      results.push('account-membership-switch-disabled-until-live-exact-membership-edge');
     } finally { await context.close(); }
   }
 
-  // Platform authority remains separate; switching to a real business role and back never copies roles.
+  // Platform authority remains separate; business membership switching is gated until
+  // the deployed catalog-admin function enforces exact membership identity.
   {
-    const { context, page, catalogReadRequests } = await newScenario(browser, roles.platformAdmin, [], { initialRoute: '?view=account_portal' });
+    const { context, page } = await newScenario(browser, roles.platformAdmin, [], { initialRoute: '?view=account_portal' });
     try {
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
-      await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
-      await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
-      assert.ok(!catalogReadRequests.at(-1)?.branchId, 'platform-to-business mode must load only the verified business membership scope');
-      await page.getByRole('button', { name: 'إدارة المنصة', exact: true }).click();
+      const ownerMode = page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ });
+      assert.equal(await ownerMode.isDisabled(), true, 'platform admins must not switch into a business membership before backend exact-scope support is live');
       await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
       await page.getByRole('button', { name: 'أدوات النشاط المحدد', exact: true }).click();
       await page.getByRole('heading', { name: 'إدارة منتجات وكتالوج نشاطك' }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByText('وضع إدارة المنصة', { exact: true }).waitFor({ state: 'visible' });
-      results.push('platform-admin-and-business-membership-modes-remain-separate');
+      results.push('platform-admin-remains-separate-while-business-membership-switch-is-gated');
     } finally { await context.close(); }
   }
 
