@@ -2780,3 +2780,17 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] P0 remains unchanged: RC441/RC449 absent from live Production; platform-admin helper/RLS authorization drift is not remediated. No production mutation occurred.
 
 - [x] Follow-up on the default-owner trigger: confirmed it is attached to `businesses`; authenticated and anon currently have no direct INSERT table privilege on `businesses`. This reduces the direct client-trigger surface, but the service/RPC creation paths that can insert businesses still need an ownership-attribution and abuse-rate review. No unauthorized assignment was demonstrated.
+
+
+
+## CAT-TAX-01 — توحيد التصنيف إلى 10 مجموعات وظيفية (2026-10-31)
+
+- **IMPLEMENTED ON FEATURE BRANCH / NOT YET MERGED OR DEPLOYED** — branch: `feat/canonical-10-groups-taxonomy-20261031`.
+- تم تقليص دليل التصنيف الافتراضي إلى 10 مجموعات وظيفية ثابتة، وبحد أقصى 5 أنشطة رئيسية ظاهرة داخل كل مجموعة.
+- التخصصات أصبحت خصائص تابعة للنشاط (specialties) وليست أنشطة/مجموعات مستقلة؛ مثال: «طبيب» ليس مجموعة موازية لـ«عيادات»، والتخصص الطبي يحدد داخل نشاط الممارسة/العيادة.
+- المجموعات العشر: الطب والصحة؛ الأغذية والضيافة؛ التجارة والتجزئة والعناية الشخصية؛ المنزل والبناء والصيانة؛ السيارات والنقل واللوجستيات؛ العقارات وإدارة الأملاك؛ التعليم والتدريب والرياضة؛ التكنولوجيا والتسويق الرقمي؛ الخدمات المهنية والمالية؛ الزراعة والإنتاج والورش.
+- تم وضع خريطة توافق للمجموعات القديمة (18 مجموعة) وأكواد القطاعات القديمة إلى المجموعات العشر الجديدة، دون حذف سجلات الأنشطة أو تعديل قاعدة الإنتاج.
+- تم الحفاظ على التصنيفات المخصصة المحفوظة، مع حد أقصى إجمالي قدره 5 عناصر ظاهرة لكل مجموعة؛ التصنيفات القديمة غير المختارة لا تُحذف من المصدر، وتظل بحاجة إلى مراجعة ترحيل/أرشفة آمنة قبل أي تغيير دائم في البيانات.
+- **TODO قبل الدمج:** TypeScript/build + taxonomy unit/contract tests؛ اختبار mapping لكل legacy group/backend code؛ فحص أن كل مجموعة تعرض ≤5 أنشطة؛ اختبار عدم ظهور «طبيب» و«عيادات» كتصنيفين متوازيين؛ اختبار الأنشطة القديمة والبحث الجغرافي وصفحات التفاصيل ولوحة الإدارة.
+- **TODO معماري:** تعريف module manifest لكل مجموعة (route, permissions, data ownership, workflows, events, settings, feature flags) دون تفعيل موديولات تشغيلية تلقائياً. فصل التنفيذ إلى موديولات مستقلة لاحقاً عبر حدود API/RPC معتمدة.
+- **Production status:** لا توجد migration أو كتابة على Supabase أو تغيير RLS أو نشر Pages في هذا التغيير. لا تعتمد النسخة للإنتاج قبل اكتمال الاختبارات ومراجعة توافق البيانات.
