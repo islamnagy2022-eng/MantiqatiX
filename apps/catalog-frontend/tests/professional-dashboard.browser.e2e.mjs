@@ -810,6 +810,11 @@ try {
     const { context, page } = await newScenario(browser);
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
       await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
       const taxonomyMain = page.locator('main[dir="rtl"]');
       await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
