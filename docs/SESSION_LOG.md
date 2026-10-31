@@ -1600,3 +1600,15 @@ A separate source review found a second platform-root authorization model: the n
 - Opened dedicated security work item **Issue #611**: https://github.com/islamnagy2022-eng/MantiqatiX/issues/611.
 - Scope: reproduce the current authenticated DML grants and permissive ALL policy combination in the isolated current-schema rehearsal, define the canonical platform-admin/tenant-slot authority model, implement least-privilege controls only in isolation, and test anonymous/ordinary-authenticated/tenant-owner/platform-admin/backend actors.
 - Production remains unchanged. Slot writes, booking and pricing activation remain blocked; no blanket revoke or speculative policy migration is approved.
+
+
+## 2026-10-31 — ad_spaces policy/ACL correction and PR #610 exact-head verification
+
+- Re-ran read-only live PostgreSQL policy/ACL inspection for `public.ad_spaces`.
+- Confirmed RLS + FORCE RLS. `ad_spaces_authenticated_read` is the only permissive authenticated policy and is SELECT-only. The four generic ALL guards are RESTRICTIVE. There are zero authenticated permissive write policies. The policy set therefore denies authenticated DML by default; no real authenticated write test was attempted and no exploit is claimed.
+- Direct ACLs are still excessive: `authenticated` can SELECT/INSERT/UPDATE/DELETE/MAINTAIN; `anon` has MAINTAIN only; `service_role` has backend table privileges. Reframed Issue #611 as P1 least-privilege ACL hardening and isolated role/API verification, rather than a confirmed P0 write bypass.
+- Code search found no direct frontend/Edge caller for `public.ad_spaces`; ad delivery uses the targeted-ad RPC and global ad inventory remains behind service-role access.
+- Updated the advertising gap audit, canonical TODO and schema rehearsal runbook with a dated correction; prior observations were preserved as historical evidence.
+- PR #610 current head `186fbb23e0aa4f799e4328a9753203f73945972a` passed Primary Catalog Frontend Validation [41206467742](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467742): build/TypeScript, employee RBAC PostgreSQL and browser E2E all succeeded. The nine commits after tested code head `6c048a65946a3ef5b9e4262b276161795a4ac1cd` changed documentation only.
+- Pages validation [41206467695](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467695) succeeded; `validate_public_only` and `deploy` were skipped because the run was a pull request. No production deployment or database mutation occurred. PR #610 remains Draft.
+- Next: complete the zero-cost credential-scrubbed local schema capture/restore; then test the narrowly scoped ACL reduction and role behaviors on the restored disposable schema. Production stays BLOCKED / NOT CERTIFIED.
