@@ -879,7 +879,7 @@ try {
       assert.equal(await modulePage.getByText('غير موثق', { exact: true }).count(), 1, 'the published unclaimed entity must carry the red unverified badge');
       assert.equal(await modulePage.getByText('عيادة اختبار بدون رقم', { exact: true }).count(), 0, 'entities without a phone number must not render inside activity module cards');
       assert.equal(await modulePage.getByText('عيادة خارج النطاق الجغرافي', { exact: true }).count(), 0, 'activity module must preserve the selected governorate, markaz and village scope');
-      await modulePage.getByRole('button', { name: /باطنة/ }).click();
+      await modulePage.getByRole('button', { name: 'باطنة', exact: true }).click();
       await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px activity module entity list');
