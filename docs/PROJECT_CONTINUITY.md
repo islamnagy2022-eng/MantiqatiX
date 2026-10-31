@@ -1163,3 +1163,21 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Security Advisor observed at `2026-10-31T15:18:20Z`: 8 RLS-enabled/no-policy INFO findings; 3 anon-executable SECURITY DEFINER warnings; 67 authenticated-executable SECURITY DEFINER warnings; and an Auth leaked-password-protection warning. Findings must be reviewed function/table by function/table; no blanket grants or policy changes.
 - This was a read-only inventory. No SQL writes, migrations, Auth setting changes, grant/RLS changes, Edge deployments, payments, or financial mutations were performed.
 - Production remains **BLOCKED / NOT CERTIFIED**. Next safe action is source-to-live reconciliation of the missing release migrations and critical Edge Function drift, followed by isolated rehearsal and explicit approval gates. Do not deploy or apply migrations directly to Production.
+
+
+## Critical Edge Function source-to-live comparison — 2026-10-31
+
+Read-only comparison of each deployed `index.ts` against the exact `main` source confirmed all six tracked critical functions differ. This is a source mismatch inventory, not proof that a specific exploit exists and not authorization to deploy.
+
+| Function | Live version | Live lines | Main lines | First differing line |
+|---|---:|---:|---:|---:|
+| `order-create` | 8 | 227 | 309 | 41 |
+| `payment-intent` | 8 | 132 | 174 | 3 |
+| `paymob-webhook` | 10 | 80 | 83 | 17 |
+| `digital-page-payment-intent` | 5 | 65 | 82 | 3 |
+| `subscription-payment-intent` | 4 | 29 | 76 | 3 |
+| `financial-journal` | 3 | 21 | 78 | 2 |
+
+- Main source SHA values: `order-create` `3a6777683e537dcff1ad30cbd1c89e431f77d926`; `payment-intent` `c88f62db0d3781f949ca5da77590a04590e8ae7d`; `paymob-webhook` `b7a386d4b4fd7aa74187df7186e9235046ad660f`; `digital-page-payment-intent` `0d0476b0120996d83fff1299e06ea2c037e62e8e`; `subscription-payment-intent` `c702d7a70ea85727ec5e14695ebf8fb26158514e`; `financial-journal` `49706589cc6d77af713ae44bcc0818066de72243`.
+- Notable source deltas include bounded request parsing in `order-create`, shared Paymob amount/correlation validation imported by the three payment-intent functions, stricter webhook event validation, and updated runtime import / larger authorization logic in `financial-journal`. Full per-function review and E2E remain required.
+- Next safe step: review each full diff against its SQL/RPC contracts, idempotency semantics, tenant/actor authorization, Paymob signature validation, and retry behavior; test on an isolated Supabase branch/rehearsal. No function deployment until the complete six-function set passes and an explicit rollout is authorized.
