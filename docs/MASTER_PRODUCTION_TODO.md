@@ -2931,3 +2931,12 @@ A separate source review found a second platform-root authorization model: the n
 - Validation must include 10 groups / 50 activities / 5 per group, all 67 legacy category mappings, folder navigation, specialty filtering, geographic search, owner/admin edit-create round trip, non-platform role denial, and mobile/tablet/desktop overflow checks.
 - No database migration is required for this read-compatible taxonomy change. The existing database constraint accepting historical group IDs is intentionally retained. Edge Functions require a separately reviewed deployment step after exact-head CI and live admin-path verification.
 - Status: implementation carried forward onto current main for validation; NOT DONE until exact-head workflows pass. Pages deployment is permitted only after the merged main workflow passes. Edge Function rollout and real SUPER_ADMIN CRUD verification remain separately tracked release gates.
+
+### Exact-head CI checkpoint — commit `182bd1a48d4b9e43e8842eb356f12f1449e8d963`
+- [x] TypeScript check: PASS.
+- [x] Primary catalog build: PASS.
+- [x] Canonical activity/profession taxonomy validator: PASS (admin/backend compatibility retained; public UX direct activity).
+- [x] Geographic search/GPS/consent contract: PASS; current-main geo-discovery source retained.
+- [x] Employee RBAC PostgreSQL job: PASS.
+- [ ] Playwright browser E2E: run `41192816382` was still IN PROGRESS at the latest status read. Earlier E2E attempts exposed and fixed two stale test locators (removed all-activities group button; exact specialty-tab selector). Do not mark E2E PASS until this exact-head job finishes.
+- [ ] Deployed-origin verification: NOT RUN / NOT CLAIMED. Pages deployment jobs are skipped on pull-request events by design.
