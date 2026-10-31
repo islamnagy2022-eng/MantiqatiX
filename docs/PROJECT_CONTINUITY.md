@@ -1159,3 +1159,9 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - The live migration ledger stores SQL for `20260808000000_phase04_enterprise_schema_and_rls`, which originally declares `advertisements.business_id` as FK to `businesses(id)` with ON DELETE CASCADE. The artifact is not in the currently tracked GitHub migration tree; the RC42 manifest lists it as missing from GitHub.
 - No later explicit DROP CONSTRAINT or ADD CONSTRAINT for advertisements was found in recorded migration statements. The live physical table has no business FK. Since the historical DDL is CREATE TABLE IF NOT EXISTS, it may simply have skipped the constraint if the table already existed; alternatively the live schema may have diverged outside the ledger. Keep cause **unresolved**.
 - Do not infer a manual drop, fabricate historical SQL, or patch Production. Issue #612 now tracks migration provenance and isolated reconciliation before any new forward repair.
+
+ 
+## Latest continuation — 2026-10-31 (`bookings` provenance)
+
+- The live migration ledger has no CREATE TABLE/DROP TABLE/shape migration for `public.bookings`; the only recorded reference is RLS enablement in `20260919233425_production_security_hardening_v1`. No public SQL function body references the relation in the focused scan, and no direct browser/Edge consumer was found in focused source search.
+- The table has only `id` and `created_at`, with one row whose contents were not read. Its creation provenance remains unresolved/outside current migration creation history. Do not drop or mutate it based on search absence; Issue #613 requires authoritative schema history and dependency/retention review.
