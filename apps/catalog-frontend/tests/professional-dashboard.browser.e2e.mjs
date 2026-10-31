@@ -723,7 +723,7 @@ try {
       await govSelect.selectOption({ label: 'الغربية' });
       await markazSelect.selectOption({ label: 'زفتى' });
       assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
-      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: /^زفتى$/ }).count(), 0, 'markaz name must not be misrepresented as a village');
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
       results.push('zefta-markaz-search-retains-business-with-empty-village');
@@ -760,7 +760,7 @@ try {
       await govSelect.selectOption({ label: 'الغربية' });
       await markazSelect.selectOption({ label: 'زفتى' });
       assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
-      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: /^زفتى$/ }).count(), 0, 'markaz name must not be misrepresented as a village');
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
       results.push('zefta-markaz-search-retains-business-with-empty-village');
@@ -797,7 +797,7 @@ try {
       await govSelect.selectOption({ label: 'الغربية' });
       await markazSelect.selectOption({ label: 'زفتى' });
       assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
-      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: /^زفتى$/ }).count(), 0, 'markaz name must not be misrepresented as a village');
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
       assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
       results.push('zefta-markaz-search-retains-business-with-empty-village');
