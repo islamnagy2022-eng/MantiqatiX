@@ -19,11 +19,12 @@ export interface ActivityCapability {
 export interface ActivityModuleConfig {
   activityId: string;
   activityName: string;
+  operationalFocus: string;
   marketing: ActivityMarketingPlan;
   capabilities: ActivityCapability[];
 }
 
-type DomainProfile = Omit<ActivityModuleConfig, 'activityId' | 'activityName'>;
+type DomainProfile = Omit<ActivityModuleConfig, 'activityId' | 'activityName' | 'operationalFocus'>;
 
 const domainProfiles: Partial<Record<FunctionalGroupId, DomainProfile>> = {
   medical_health: {
