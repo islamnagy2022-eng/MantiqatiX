@@ -1620,3 +1620,7 @@ A separate source review found a second platform-root authorization model: the n
 - SELECT policy authorizes any active membership in row tenant. INSERT/UPDATE/DELETE policies authorize active tenant OWNER/ADMIN/MANAGER memberships and do not test membership business_id or branch_id against ad row. Active BUSINESS_OWNER memberships are business/branch scoped but this role is not accepted by the current write policy; OWNER is accepted with no scope predicate.
 - No authenticated write attempt or exploit test performed. Tenant-wide advertising scope may be intentional; classify as P2 authority-contract verification rather than confirmed bypass.
 - Opened [Issue #612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) for authority matrix, business/tenant relationship, synthetic isolated negative tests, and decision on FK/policy hardening. No Production mutation.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
