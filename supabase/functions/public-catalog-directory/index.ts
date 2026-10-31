@@ -90,11 +90,12 @@ Deno.serve(async (req: Request) => {
       return !testIdentity && !purpose.includes("test") && !purpose.includes("isolation")
         && !name.includes("isolation test") && !name.includes("اختبار العزل");
     }).map((t: any) => String(t.id)).filter(Boolean);
-    if (!productionTenantIds.length) return response(origin, { businesses: [], activityModuleOverrides: {}, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    if (!productionTenantIds.length) return response(origin, { businesses: [], activityModuleOverrides: {}, activityModuleOverridesAvailable: false, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
 
     // Publish only the explicitly public activity-module copy. Never return the
     // complete platform settings object or private contact/payment configuration.
     let activityModuleOverrides: Record<string, unknown> = {};
+    let activityModuleOverridesAvailable = false;
     const { data: platformSettings, error: platformSettingsError } = await db.from("bizcatalog_platform_settings")
       .select("settings").eq("settings_key", "bizcatalog").maybeSingle();
     if (platformSettingsError) {
@@ -102,6 +103,7 @@ Deno.serve(async (req: Request) => {
     } else {
       try {
         activityModuleOverrides = sanitizeActivityModuleOverrides(platformSettings?.settings?.activityModuleOverrides || {});
+        activityModuleOverridesAvailable = true;
       } catch {
         console.warn("public activity module settings failed validation");
       }
@@ -118,7 +120,7 @@ Deno.serve(async (req: Request) => {
     const directoryBusinesses = (businesses || []).filter((b: any) =>
       b.settings?.catalog_public_enabled === true || isOfficialShowcase(b)
     );
-    if (!directoryBusinesses.length) return response(origin, { businesses: [], activityModuleOverrides, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    if (!directoryBusinesses.length) return response(origin, { businesses: [], activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
     const ids = directoryBusinesses.map((b: any) => b.id);
     const { data: providers, error: providerError } = await db.from("marketing_provider_profiles")
       .select("business_id,name_ar,name_en,provider_kind,description,slug,status,is_verified,is_featured")
@@ -216,7 +218,7 @@ Deno.serve(async (req: Request) => {
       const built = await Promise.all(batch.map((business: any) => buildPublicBusiness(business)));
       results.push(...built.filter((business: any) => business !== null));
     }
-    return response(origin, { businesses: results, activityModuleOverrides, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
+    return response(origin, { businesses: results, activityModuleOverrides, activityModuleOverridesAvailable, accessMode: "PUBLIC_DIRECTORY_READ_ONLY" });
   } catch (error) {
     console.error("public-catalog-directory failed", error instanceof Error ? error.message : "UNKNOWN");
     return response(origin, { error: "PUBLIC_DIRECTORY_UNAVAILABLE" }, 500);
