@@ -205,3 +205,8 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
  
 - [ ] Extend `bookings` dependency proof beyond GitHub source: inspect external schedulers, dynamic SQL, API consumers and retention requirements. Current live catalog scan found no SQL routine/view/trigger/rule/FK/policy/publication dependency; preserve the one row until external dependencies and authoritative creation history are reviewed.
+
+
+## Platform-admin release gate
+
+The source chain RC441 -> RC449 -> RC462 is merged in main but absent from the current Production ledger. Rehearse the complete required migration set on the credential-scrubbed current-schema restore; do not apply this subset directly. Before/after replay, inventory the shared platform-admin helper, all eight global SECURITY DEFINER entrypoints, the digital-pages RLS policy and effective grants. Test registry-only, membership-only, synchronized platform admin, tenant owner/admin/operations manager, tenant-scoped super admin and revoked registry actors. Verify immediate revocation, digital-pages cross-tenant denial and intended backend bootstrap path. Keep production unchanged until full restore, ordered replay, all tests, rollback evidence and separate rollout approval pass.
