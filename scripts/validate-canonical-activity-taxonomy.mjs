@@ -162,7 +162,13 @@ const activityModuleView = read('apps/catalog-frontend/src/modules/activities/Ac
 assert.ok(directory.includes("new URLSearchParams(window.location.search).get('activity')"), 'Each activity module must have a refreshable direct URL.');
 assert.ok(directory.includes("const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');"), 'Visitor discovery must expose activities directly and omit standalone profession categories.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an activity must open its dedicated module page.');
-assert.ok(directory.includes('setSelectedCategoryId(activityCategory.id)') && directory.includes('setSelectedSpecialty(specialty)'), 'Choosing a specialty must return to the directory with the activity/specialty filter.');
+assert.ok(directory.includes('businesses={activityBusinesses}') && directory.includes('listings={activityListings}'), 'Activity module must receive the current geo/search-filtered entity records.');
+assert.ok(directory.includes('activityBusinesses.filter((business) => business.isVerified).length'), 'Activity module verified counts must use the same visible records as its cards.');
+assert.ok(activityModuleView.includes("useState<Section>('specialties')"), 'Opening an activity must show its entities and specialties immediately.');
+assert.ok(activityModuleView.includes('setSelectedSpecialty(specialty)'), 'Specialty selection must filter within the activity module.');
+assert.ok(activityModuleView.includes('verifiedBusinesses, ...unverifiedBusinesses') && activityModuleView.includes('visibleListings.map'), 'Activity module must render verified and unverified directory entities.');
+assert.ok(activityModuleView.includes("Boolean(listing.phone || listing.secondary_phone)"), 'Public unverified cards must require a contact phone.');
+assert.ok(browserE2E.includes('activity-module-renders-geo-filtered-entities'), 'Browser E2E must verify entity cards, specialty filtering and phone requirements inside the module.');
 assert.ok(!directory.includes('functionalGroups') && !directory.includes('selectedGroupFilter') && !directory.includes('matchesCategoryKind'), 'Functional-group navigation/filtering must not appear in public directory UI logic.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
 assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
