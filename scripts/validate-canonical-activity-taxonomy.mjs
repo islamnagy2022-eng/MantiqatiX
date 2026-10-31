@@ -16,6 +16,7 @@ const directoryListings = read('apps/catalog-frontend/src/lib/directoryListings.
 const directoryListingsAdmin = read('apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx');
 const directoryListingsView = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
 const browserE2E = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
+const directoryView = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
 const directoryListingsEdge = read('supabase/functions/directory-listings/index.ts');
 
 const expectedGroups = [
@@ -57,6 +58,12 @@ assert.ok(defaults.includes('BACKEND_CODE_GROUP_MAP'), 'Existing backend categor
 assert.ok(defaults.includes('LEGACY_DIRECTORY_CATEGORY_MAP'), 'Legacy directory category IDs must resolve to canonical category IDs.');
 assert.ok(defaults.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing category IDs must normalize at the read boundary.');
 assert.ok(defaults.includes('resolveCanonicalActivityCategoryId'), 'Legacy business activity codes must resolve to canonical category IDs.');
+assert.ok(defaults.includes('export function resolveCanonicalSpecialty'), 'Legacy specialty values must resolve to canonical specialty keys.');
+assert.ok(directoryView.includes('resolveCanonicalSpecialty'), 'Registered businesses and unconfirmed directory listings must share canonical specialty matching.');
+assert.ok(directoryListingsView.includes('resolveCanonicalSpecialty'), 'Directory detail filtering must use the shared canonical specialty resolver.');
+for (const legacySpecialty of ['الانشطه المعماريه والتصميم الداخلي والديكورات', 'بيع وتركيب وصيانه الادوات الصحيه والفلاتر وانظمه تنقيه المياه', 'مستحضرات التجميل والعنايه بالشعر والبشره', 'التسويق الرقمي واداره الحملات والمحتوى والتصميم']) {
+  assert.ok(defaults.includes(legacySpecialty), `Missing legacy business specialty mapping for ${legacySpecialty}.`);
+}
 const observedLegacyGroups = [
   'agriculture_animals','auto_transport','construction_decor','education_training',
   'fashion_beauty','finance_insurance','food_grocery','home_maintenance',
