@@ -2790,3 +2790,38 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] PR #508/#535/#551 have successful listed head workflow runs but GitHub merge rejects due conflicts with main. Reconcile onto current main and rerun exact-head CI.
 - [ ] PR #540 remains draft, 77 commits behind main; no RC459–RC461 Production rollout.
 - No Production mutation. Overall gate remains **BLOCKED / NOT CERTIFIED**.
+
+## CAT-TAX-01 — توحيد التصنيف إلى 10 مجموعات وظيفية (2026-10-31)
+
+- **IMPLEMENTED ON FEATURE BRANCH / NOT YET MERGED OR DEPLOYED** — branch: `feat/canonical-10-groups-taxonomy-20261031`.
+- تم تقليص دليل التصنيف الافتراضي إلى 10 مجموعات وظيفية ثابتة، وبحد أقصى 5 أنشطة رئيسية ظاهرة داخل كل مجموعة.
+- التخصصات أصبحت خصائص تابعة للنشاط (specialties) وليست أنشطة/مجموعات مستقلة؛ مثال: «طبيب» ليس مجموعة موازية لـ«عيادات»، والتخصص الطبي يحدد داخل نشاط الممارسة/العيادة.
+- المجموعات العشر: الطب والصحة؛ الأغذية والضيافة؛ التجارة والتجزئة والعناية الشخصية؛ المنزل والبناء والصيانة؛ السيارات والنقل واللوجستيات؛ العقارات وإدارة الأملاك؛ التعليم والتدريب والرياضة؛ التكنولوجيا والتسويق الرقمي؛ الخدمات المهنية والمالية؛ الزراعة والإنتاج والورش.
+- تم وضع خريطة توافق للمجموعات القديمة (18 مجموعة) وأكواد القطاعات القديمة إلى المجموعات العشر الجديدة، دون حذف سجلات الأنشطة أو تعديل قاعدة الإنتاج.
+- تم الحفاظ على التصنيفات المخصصة المحفوظة، مع حد أقصى إجمالي قدره 5 عناصر ظاهرة لكل مجموعة؛ التصنيفات القديمة غير المختارة لا تُحذف من المصدر، وتظل بحاجة إلى مراجعة ترحيل/أرشفة آمنة قبل أي تغيير دائم في البيانات.
+- **TODO قبل الدمج:** TypeScript/build + taxonomy unit/contract tests؛ اختبار mapping لكل legacy group/backend code؛ فحص أن كل مجموعة تعرض ≤5 أنشطة؛ اختبار عدم ظهور «طبيب» و«عيادات» كتصنيفين متوازيين؛ اختبار الأنشطة القديمة والبحث الجغرافي وصفحات التفاصيل ولوحة الإدارة.
+- **TODO معماري:** تعريف module manifest لكل مجموعة (route, permissions, data ownership, workflows, events, settings, feature flags) دون تفعيل موديولات تشغيلية تلقائياً. فصل التنفيذ إلى موديولات مستقلة لاحقاً عبر حدود API/RPC معتمدة.
+- **Production status:** لا توجد migration أو كتابة على Supabase أو تغيير RLS أو نشر Pages في هذا التغيير. لا تعتمد النسخة للإنتاج قبل اكتمال الاختبارات ومراجعة توافق البيانات.
+
+- استُكمل قيد الإنشاء: لوحة الإدارة تعرض النشاط الرئيسي والتخصص فقط؛ لا تعرض اختيار «مهنة» كتصنيف مستقل. واجهة إضافة التصنيفات ترفض إنشاء profession منفصل وتمنع تجاوز 5 عناصر بالمجموعة. حدّثت دالة `catalog-platform-admin` بقائمة السماح ذات المجموعات العشر وترفض الكتابات الجديدة بنوع `profession`؛ السجلات التاريخية لا تُعدّل تلقائياً.
+- **PASS — exact tested head `3a5dc0f3eb4dd938f727aeb5f1b5a2353f7021d5`:** Primary Catalog Frontend Validation run [41168726262](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726262) passed, including the canonical taxonomy contract (`10 groups`, `50 activities`, `5 per group`), build/typecheck, OAuth smoke, public catalog/Qadam smoke, source syntax checks, and production gate contract. Flexible commission TypeScript/build [41168726281](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726281), Backend-only Module Boundary [41168726278](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726278), Module Professionalization [41168726238](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726238), MantiGO Privacy [41168726314](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726314), and RC425 atomicity [41168726237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41168726237) passed. PR #584 remains Draft; deployment job was skipped on PR, so no production publication occurred.
+
+
+### CAT-TAX-02 — توافق سجلات دليل الأنشطة القديمة (2026-10-31)
+
+- **IMPLEMENTED ON FEATURE BRANCH / NOT YET MERGED OR DEPLOYED.**
+- جرى فحص قراءة فقط لجدول `public_directory_listings`: 454 سجلًا قائمًا موزعًا على 156 تركيبة مميزة من المجموعة/التصنيف/نوع الصفحة/التخصص. لم تُنفذ أي كتابة أو حذف أو ترحيل على قاعدة الإنتاج.
+- تمت إضافة تحويل توافق وقت القراءة لصفحات الدليل والتفاصيل وحزمة لوحة الإدارة، بحيث تتحول معرفات المجموعات والتصنيفات القديمة إلى المعرفات العشر الجديدة دون تغيير نوع الصفحة أو التخصص. أعادت مراجعة SQL للمعرفات القديمة صفر تصنيفات غير مغطاة بخريطة التحويل.
+- تم توحيد معرفات الطبيب وطبيب الأسنان والعيادات ومراكز الأسنان داخل نشاط `medical_practices`، مع الاحتفاظ بنوع السجل والتخصص في حقولهما.
+- تم دمج المخابز والحلويات في نشاط واحد، وإضافة «ضيافة وسياحة ومناسبات» لاستيعاب سجلات السياحة وقاعات المناسبات ضمن حد 5 أنشطة لمجموعة الأغذية والضيافة.
+- تمت إضافة توافق أكواد أنشطة الأعمال القديمة مثل `interior_design`, `sanitary_ware`, `homewares`, `plastic_factories`, و`marketing_agencies`.
+- تم تضييق تحقق الكتابات الجديدة في Edge Function الخاص بالدليل إلى المجموعات العشر.
+- **Read-only reconciliation result:** 454 rows mapped into the canonical ten: medical 134; food/hospitality 69; commerce/retail 49; home/building 37; auto/logistics 21; real estate 3; education/sports 16; technology/marketing 45; professional/financial/public services 52; agriculture/production/workshops 28. The legacy inventory had 156 distinct group/category/type/specialty combinations and zero category IDs outside the compatibility map.
+ لم يتم نشر الدالة على Supabase؛ يلزم نشرها ضمن إصدار معتمد بعد نجاح الاختبارات.
+- [ ] CI على آخر commit والتحقق من عدم وجود كسر TypeScript أو build.
+- [ ] اختبار جميع معرفات التصنيف القديمة المستخرجة من الإنتاج واحدًا واحدًا، والتحقق من ظهور كل سجل في المجموعة والتصنيف الصحيحين.
+- [ ] اختبار فتح السجل القديم من الدليل، وتعديله من لوحة الإدارة، ثم حفظه وإعادة قراءته دون فقد نوع الصفحة أو التخصص أو بيانات الملكية.
+- [ ] إعادة inventory read-only بعد النشر لاستخراج أي معرفات جديدة غير موجودة في خريطة التوافق.
+- [ ] إعداد migration مستقلة مستقبلًا لتوحيد قيم قاعدة البيانات فقط بعد rehearsal قابل للاستعادة، ومراجعة RLS وrollback؛ لا تنفذها ضمن هذا التغيير.
+
+- **Current validation caveat (latest branch head after CAT-TAX-02):** the latest commits are not covered by the earlier PASS run recorded above. GitHub returned no workflow runs or commit status checks for the latest branch head `3cdd28a85a3e349ac3f9044a72533f1fca1665ee`; the earlier CI PASS belongs to the prior code head only. Re-run full CI on the current head before marking this work ready. The feature branch is also one commit behind `main`; reconcile that base drift before merge. PR #584 remains Draft and production deployment is not authorized by this change.
