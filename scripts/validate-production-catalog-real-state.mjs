@@ -54,6 +54,9 @@ assert.ok(
   'Stock images and neutral placeholders must be rejected before preserving persisted AI-generated image metadata.'
 );
 assert.match(productionMapper, /isNeutralPlaceholderUrl/, 'neutral placeholder images must not be treated as owner uploads');
+assert.match(productionMapper, /UNVERIFIED_PHARMACY_IMAGE = 'https:\\/\\/encrypted-tbn0\\.gstatic\\.com\\/images/, 'unverified pharmacies must use the configured shared fallback image');
+assert.match(productionMapper, /isPharmacy && !isVerified && !hasOwnerSelectedLogo/, 'pharmacy fallback must be limited to unverified pharmacies without an owner-selected logo');
+assert.match(productionMapper, /logoUrl: pharmacyFallbackLogo \\|\\|/, 'owner/admin-selected pharmacy logos must take precedence over the fallback');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
