@@ -113,6 +113,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subscribersLoading, setSubscribersLoading] = useState(false);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({ ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' });
   const [authSession, setAuthSession] = useState<AuthSession>({ role: 'guest', isAuthenticated: false });
+  const authSessionRef = useRef(authSession);
+  useEffect(() => { authSessionRef.current = authSession; }, [authSession]);
   const [authLoading, setAuthLoading] = useState(true);
   const [authBootstrapError, setAuthBootstrapError] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -201,9 +203,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Reload the catalog with that membership's branch scope before exposing its workspace.
   // This prevents a tenant-wide owner dataset from leaking into a weaker employee view.
   const switchAccountMembership = async (membershipId: string, businessId: string): Promise<boolean> => {
-    const userId = authSession.userId;
-    if (!authSession.isAuthenticated || !userId || !membershipId || !businessId || authUserIdRef.current !== userId) return false;
-    const mode = authSession.availableMemberships?.find((candidate) =>
+    const initialSession = authSessionRef.current;
+    const userId = initialSession.userId;
+    if (!initialSession.isAuthenticated || !userId || !membershipId || !businessId || authUserIdRef.current !== userId) return false;
+    const mode = initialSession.availableMemberships?.find((candidate) =>
       candidate.membershipId === membershipId && candidate.businessId === businessId
     );
     if (!mode) return false;
@@ -219,8 +222,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       membershipId: mode.membershipId,
       ...(mode.branchId ? { branchId: mode.branchId } : {}),
     });
-    if (authUserIdRef.current !== userId || authSession.userId !== userId) return false;
+    const latestSession = authSessionRef.current;
+    if (authUserIdRef.current !== userId || latestSession.userId !== userId || !latestSession.isAuthenticated) return false;
     if (!catalog?.business) throw new Error('تعذر تحميل بيانات النشاط بالنطاق المحدد؛ لم يتم تغيير وضع الحساب.');
+
+    const authorizedMode = latestSession.availableMemberships?.find((candidate) =>
+      candidate.membershipId === membershipId &&
+      candidate.businessId === mode.businessId &&
+      candidate.tenantId === mode.tenantId &&
+      String(candidate.role).toUpperCase() === String(mode.role).toUpperCase() &&
+      String(candidate.branchId || '') === String(mode.branchId || '')
+    );
+    if (!authorizedMode) return false;
 
     const mappedBusiness = mapBusiness({
       ...existingBusiness,
@@ -239,27 +252,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       catalog.prices || [],
     );
 
-    setAuthSession((previous) => {
-      if (previous.userId !== userId || !previous.isAuthenticated) return previous;
-      const authorizedMode = previous.availableMemberships?.find((candidate) =>
-        candidate.membershipId === membershipId &&
-        candidate.businessId === mode.businessId &&
-        candidate.tenantId === mode.tenantId &&
-        String(candidate.role).toUpperCase() === String(mode.role).toUpperCase() &&
-        String(candidate.branchId || '') === String(mode.branchId || '')
-      );
-      if (!authorizedMode) return previous;
-      return {
-        ...previous,
-        role: 'subscriber',
-        businessId: authorizedMode.businessId,
-        subscriberId: authorizedMode.membershipId,
-        membershipRole: authorizedMode.role,
-        membershipBranchId: authorizedMode.branchId,
-        membershipPermissions: authorizedMode.permissions,
-        activeMembershipId: authorizedMode.membershipId,
-      };
-    });
+    const nextSession: AuthSession = {
+      ...latestSession,
+      role: 'subscriber',
+      businessId: authorizedMode.businessId,
+      subscriberId: authorizedMode.membershipId,
+      membershipRole: authorizedMode.role,
+      membershipBranchId: authorizedMode.branchId,
+      membershipPermissions: authorizedMode.permissions,
+      activeMembershipId: authorizedMode.membershipId,
+    };
+    authSessionRef.current = nextSession;
+    setAuthSession(nextSession);
 
     setBusinesses((previous) => {
       if (authUserIdRef.current !== userId) return previous;
@@ -282,21 +286,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const switchToPlatformAdminMode = (): boolean => {
-    const userId = authSession.userId;
-    if (!authSession.isAuthenticated || !authSession.isPlatformAdmin || !userId || authUserIdRef.current !== userId) return false;
-    setAuthSession((previous) => {
-      if (previous.userId !== userId || !previous.isAuthenticated || !previous.isPlatformAdmin) return previous;
-      return {
-        ...previous,
-        role: 'admin',
-        businessId: undefined,
-        subscriberId: undefined,
-        membershipRole: undefined,
-        membershipBranchId: undefined,
-        membershipPermissions: undefined,
-        activeMembershipId: undefined,
-      };
-    });
+    const previous = authSessionRef.current;
+    const userId = previous.userId;
+    if (!previous.isAuthenticated || !previous.isPlatformAdmin || !userId || authUserIdRef.current !== userId) return false;
+    const nextSession: AuthSession = {
+      ...previous,
+      role: 'admin',
+      businessId: undefined,
+      subscriberId: undefined,
+      membershipRole: undefined,
+      membershipBranchId: undefined,
+      membershipPermissions: undefined,
+      activeMembershipId: undefined,
+    };
+    authSessionRef.current = nextSession;
+    setAuthSession(nextSession);
     setCartItems([]);
     setIsCartOpen(false);
     return true;
