@@ -1029,3 +1029,10 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Pages validation explicitly reported `CATALOG_PILOT_GATE=PASS` and `FULL_PLATFORM_GATE=BLOCKED`. The catalog pilot does not authorize payment, webhook, order, finance, SMM, or MantiGO backend deployment.
 - Detailed live release blockers remain as in `docs/audits/PRODUCTION_GATE_EVIDENCE_20261031.md`; structural CI success does not supersede live evidence. Backup/restore, RPO/RTO, provider E2E, owner-side Auth evidence, notifications, and Android/device checks remain open.
 - No Production mutation or paid-resource creation occurred. Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+## 2026-10-31 — Live Supabase security recheck (read-only)
+
+- Fresh Security/Performance Advisor observed at 02:51:13 UTC: 8 RLS/no-policy tables, 3 anon-executable SECURITY DEFINER, 67 authenticated-executable SECURITY DEFINER, 90 anonymous-sign-in-related findings, leaked-password warning; performance 129 unindexed FKs, 375 init-plan, 73 unused indexes, 28 permissive-policy groups.
+- Direct privilege checks found no anon/authenticated SELECT/INSERT/UPDATE/DELETE on the eight no-policy tables. Seven have FORCE RLS; digital_page_payment_events does not. directory_listing_claim_requests and public_directory_listings are service_role DML-accessible; the other six are not (service_role TRUNCATE privilege was present on all eight).
+- Three anon-executable SECURITY DEFINER functions were inspected. Two are trigger-returning functions with one trigger binding each. assign_default_owner_to_unowned_business() retains search_path=public, auth; the other two use empty search_path. No ACL or function changes were made.
+- Evidence: docs/audits/LIVE_SUPABASE_SECURITY_RECHECK_20261031_0251.md. No business rows were read. Production Gate remains BLOCKED / NOT CERTIFIED.
