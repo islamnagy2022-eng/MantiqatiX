@@ -1165,4 +1165,4 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Group-folder layout and unified search result cards are unchanged. Exact-head CI and deployed-origin checks pending; included in PR #628.
 
 
-- Coverage refinement: the unverified-doctor image now applies to standalone public directory doctor listings as well as registered business records. Directory cards/detail show `metadata.profileImageUrl` when a valid HTTPS owner image exists, otherwise the default applies only to `listing_type=doctor` and non-CLAIMED records. Pharmacy behavior is retained. Both URLs moved to the common `defaultImages.ts` registry. CI/deployed-origin verification pending.
+- Coverage refinement: the unverified-doctor and unverified-pharmacy images now apply to standalone public directory doctor/pharmacy listings as well as registered business records. Directory cards/detail show `metadata.profileImageUrl` when a valid HTTPS owner image exists, otherwise the matching default applies only to the relevant listing type and non-CLAIMED records. Both URLs moved to the common `defaultImages.ts` registry. CI/deployed-origin verification pending.
