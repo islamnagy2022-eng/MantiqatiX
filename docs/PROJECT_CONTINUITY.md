@@ -1169,3 +1169,9 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 
 
 - Owner change path completed for standalone directory pages: the existing owner-only editor now exposes an optional HTTPS profile-image URL and persists it as metadata.profileImageUrl through the already-allowlisted UPDATE_OWNED_LISTING route. Existing owner image is shown first; clearing the field restores the doctor/pharmacy default for unclaimed records. No permission or backend policy changed.
+
+
+## PR #628 browser E2E correction — 2026-11-01
+- Browser E2E exposed a stale expectation for a heading named `الأنشطة` after an unsupported admin route. The current public directory is exposed as `section[aria-label="المجموعات والأنشطة"]`.
+- Updated only the test selector to wait for that real public directory section; kept assertions that the admin tab is hidden and no `ADMIN_LIST` request is sent for unsupported roles.
+- Rerun exact-head browser E2E. Do not merge or claim deployment until it passes. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
