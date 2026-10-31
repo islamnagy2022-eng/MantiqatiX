@@ -22,7 +22,7 @@ A read-only catalog query against the existing Production database confirmed:
 - `anon` has SELECT privilege.
 - An explicit `SELECT` policy applies to `anon, authenticated` for public active provider profiles.
 
-No table rows were read during this preflight. This verifies the database-side permission contract for the probe, but it does **not** substitute for an actual HTTP 200 from the deployed workflow. The post-merge live workflow request remains NOT VERIFIED.
+No table rows were read during this preflight. This verifies the database-side permission contract for the probe. The deployed Production Health Monitor has since completed successful read-only PostgREST requests: run [41159666007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666007) on main commit `adf0680a3c151330656b9712a03849c796aa4c09` and run [41160088237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160088237) on current main commit `b41c3c312e713f1975bafef6a617ad7159e1b4f8`. Both job logs emitted `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`, confirming HTTP 200 for the GET at those run timestamps.
 
 Supabase's current inactivity guidance says a few API/database requests each day typically suffice to avoid pausing, and explicitly lists API calls as a way to generate activity. The hourly request is designed to provide that activity; it is not a guarantee against pausing or service interruptions. See [Supabase Free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing).
 
@@ -94,4 +94,4 @@ Do not restore over Production. Use a disposable local PostgreSQL/Supabase envir
 - [Supabase backup and restore with the CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore)
 - [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
 
-**Current status (2026-10-31):** Supabase reports the project `ACTIVE_HEALTHY`, and a direct read-only SQL `SELECT 1` succeeded at `2026-10-31 01:57:01.957862+00 UTC` (evidence: `docs/audits/DB_CONNECTION_PROBE_20261031.md`). This confirms database connectivity at that instant, not the scheduled GitHub Actions PostgREST probe. The latter and failure-notification delivery remain NOT VERIFIED. No Production backup or restore rehearsal has yet been evidenced. Production remains **BLOCKED / NOT CERTIFIED**.
+**Current status (2026-10-31):** Supabase reports the project `ACTIVE_HEALTHY`, and a direct read-only SQL `SELECT 1` succeeded at `2026-10-31 01:57:01.957862+00 UTC` (evidence: `docs/audits/DB_CONNECTION_PROBE_20261031.md`). This confirms database connectivity at that instant, not the scheduled GitHub Actions PostgREST probe. The latest run [41160088237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160088237) verified the PostgREST probe. Failure-notification delivery remains NOT VERIFIED. No Production backup or restore rehearsal has yet been evidenced. Production remains **BLOCKED / NOT CERTIFIED**.
