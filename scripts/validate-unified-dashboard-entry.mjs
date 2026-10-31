@@ -41,7 +41,7 @@ assert.match(contextSource, /authUserIdRef\.current !== userId/, 'mode switching
 assert.match(contextSource, /currentView === 'account_portal' \|\| currentView === 'merchant_admin'/, 'account portal must use the active authorized business context');
 assert.match(contextSource, /requestedView === 'account_portal' && boot\.authSession\.isAuthenticated/, 'account portal deep links must restore only after authenticated bootstrap');
 assert.match(contextSource, /const switchToPlatformAdminMode = \(\): boolean/, 'platform admin mode must have a separate server-derived grant');
-assert.match(portal, /switchAccountMembership\(mode\.membershipId, mode\.businessId\)/, 'UI must switch by the exact business-membership pair');
+assert.match(portal, /switchAccountMembership\(mode\.membershipId,\s*mode\.businessId\)/, 'UI must switch by the exact business-membership pair');
 assert.match(e2e, /account-switch-owner-and-branch-scoped-employee-memberships/, 'browser coverage must switch between owner and branch employee modes');
 assert.match(e2e, /platform-admin-and-business-membership-modes-remain-separate/, 'browser coverage must prove platform and business authority remain separate');
 
