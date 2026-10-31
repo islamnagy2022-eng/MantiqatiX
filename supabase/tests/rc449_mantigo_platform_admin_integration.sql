@@ -155,4 +155,95 @@ begin
 end;
 $test$;
 
+
+-- Expand negative authorization coverage: every non-platform role must be rejected
+-- by every global MantiGO RPC, not only by the shared guard helper.
+create or replace function pg_temp.assert_mantigo_global_rpcs_denied(p_user uuid, p_role_label text)
+returns void
+language plpgsql
+as $function$
+declare
+  v_rejected boolean;
+begin
+  perform pg_catalog.set_config('request.jwt.claim.sub',p_user::text,false);
+
+  v_rejected:=false;
+  begin
+    perform public.get_mantigo_admin_dashboard_backend(p_user);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then v_rejected:=true; else raise; end if;
+  end;
+  if not v_rejected then raise exception '% accessed global MantiGO dashboard',p_role_label; end if;
+
+  v_rejected:=false;
+  begin
+    perform public.get_mantigo_admin_financial_report_backend(p_user,null,null);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then v_rejected:=true; else raise; end if;
+  end;
+  if not v_rejected then raise exception '% accessed global MantiGO financial report',p_role_label; end if;
+
+  v_rejected:=false;
+  begin
+    perform public.settle_mantigo_captain_backend(p_user,'ride-rc449','BANK_TRANSFER');
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then v_rejected:=true; else raise; end if;
+  end;
+  if not v_rejected then raise exception '% reached global MantiGO settlement',p_role_label; end if;
+
+  v_rejected:=false;
+  begin
+    perform public.expire_stale_mantigo_rides_backend(p_user,30);
+  exception when others then
+    if sqlerrm='PLATFORM_ADMIN_REQUIRED' then v_rejected:=true; else raise; end if;
+  end;
+  if not v_rejected then raise exception '% reached global MantiGO ride expiration',p_role_label; end if;
+end;
+$function$;
+
+select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000042','tenant ADMIN');
+select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000043','tenant OPERATIONS_MANAGER');
+select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000045','tenant-scoped SUPER_ADMIN');
+
+-- SECURITY DEFINER hardening must be consistent across all four global RPCs.
+do $contract$
+declare
+  v_count integer;
+begin
+  select count(*) into v_count
+  from pg_catalog.pg_proc p
+  join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public'
+    and p.proname in (
+      'get_mantigo_admin_dashboard_backend',
+      'get_mantigo_admin_financial_report_backend',
+      'settle_mantigo_captain_backend',
+      'expire_stale_mantigo_rides_backend'
+    )
+    and p.prosecdef
+    and coalesce(p.proconfig,array[]::text[]) @> array['search_path=""']::text[];
+  if v_count<>4 then
+    raise exception 'MANTIGO_DEFINER_CONFIG_FAILED: expected four SECURITY DEFINER RPCs with empty search_path, got %',v_count;
+  end if;
+
+  if not (
+    has_function_privilege('authenticated','public.get_mantigo_admin_dashboard_backend(uuid)','EXECUTE')
+    and has_function_privilege('authenticated','public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)','EXECUTE')
+    and has_function_privilege('authenticated','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE')
+    and has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')
+  ) then
+    raise exception 'MANTIGO_AUTHENTICATED_GRANTS_FAILED: intended authenticated entrypoints missing';
+  end if;
+
+  if (
+    has_function_privilege('anon','public.get_mantigo_admin_dashboard_backend(uuid)','EXECUTE')
+    or has_function_privilege('anon','public.get_mantigo_admin_financial_report_backend(uuid,timestamp with time zone,timestamp with time zone)','EXECUTE')
+    or has_function_privilege('anon','public.settle_mantigo_captain_backend(uuid,text,text)','EXECUTE')
+    or has_function_privilege('anon','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')
+  ) then
+    raise exception 'MANTIGO_ANON_GRANTS_FAILED: anon must not execute global RPCs';
+  end if;
+end;
+$contract$;
+
 select 'RC449 platform-admin scope integration: PASS' as result;

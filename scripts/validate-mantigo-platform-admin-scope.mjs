@@ -22,6 +22,19 @@ check("integration denies anon on ride expiration and preserves authenticated en
   integration.includes("authenticated role must retain intended RPC entrypoint grants") &&
   integration.includes("has_function_privilege('authenticated','public.expire_stale_mantigo_rides_backend(uuid,integer)','EXECUTE')"));
 check("integration verifies authorized settlement persistence and replay safety", integration.includes("authorized platform admin settlement failed") && integration.includes("settlement replay did not return idempotent success") && integration.includes("settlement replay duplicated audit or notification"));
+check("integration rejects tenant ADMIN, OPERATIONS_MANAGER, and tenant-scoped SUPER_ADMIN on every global RPC",
+  integration.includes("assert_mantigo_global_rpcs_denied") &&
+  integration.includes("'tenant ADMIN'") &&
+  integration.includes("'tenant OPERATIONS_MANAGER'") &&
+  integration.includes("'tenant-scoped SUPER_ADMIN'") &&
+  integration.includes("accessed global MantiGO dashboard") &&
+  integration.includes("accessed global MantiGO financial report") &&
+  integration.includes("reached global MantiGO settlement") &&
+  integration.includes("reached global MantiGO ride expiration"));
+check("integration enforces SECURITY DEFINER empty search_path across all four global RPCs",
+  integration.includes("MANTIGO_DEFINER_CONFIG_FAILED") &&
+  integration.includes("array['search_path=\"\"']") &&
+  integration.includes("expected four SECURITY DEFINER RPCs with empty search_path"));
 const failed = checks.filter(x => !x.ok);
 if (failed.length) process.exit(1);
 console.log("MantiGO platform-admin scope contract PASS: " + checks.length + "/" + checks.length + " checks.");
