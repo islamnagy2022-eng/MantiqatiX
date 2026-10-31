@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 
-const migration = fs.readFileSync("supabase/migrations/20261031150000_rc463_platform_admin_bootstrap_recovery.sql", "utf8");
+const migration = fs.readFileSync("supabase/migrations/20261031145200_rc463_platform_admin_bootstrap_recovery.sql", "utf8");
 const edge = fs.readFileSync("supabase/functions/platform-admin-lifecycle/index.ts", "utf8");
 const integration = fs.readFileSync("supabase/tests/rc463_platform_admin_lifecycle_integration.sql", "utf8");
 
