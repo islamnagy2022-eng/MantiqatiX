@@ -11,6 +11,7 @@ import {
   LogIn,
   LogOut,
   UserCheck,
+  UserRound,
   Crown,
   FileText,
   ExternalLink,
@@ -212,6 +213,10 @@ export const Navbar: React.FC = () => {
             <div className="flex items-center gap-1 sm:gap-2 min-w-0">
               {/* Mandatory Requirement:
                   "زر طلب كتالوج النشاط يكون بالاعلي على الشمال بجوار السلة" */}
+              {authSession.isAuthenticated && (
+                <button onClick={() => setCurrentView('account_portal')} aria-current={currentView === 'account_portal' ? 'page' : undefined} className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-black transition cursor-pointer ${currentView === 'account_portal' ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}><UserRound className="h-4 w-4" /><span>حسابي / اشتراكي</span></button>
+              )}
+
               {catalogRequestUrl && (
                 <a
                   href={catalogRequestUrl}
@@ -269,7 +274,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Bottom Line: Accessible View Mode Tabs */}
-          <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
+          {currentView !== 'account_portal' && <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
             <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
               {/* Directory Home Tab */}
               <button
@@ -356,7 +361,7 @@ export const Navbar: React.FC = () => {
 
 
             </nav>
-          </div>
+          </div>}
         </div>
       </div>
     </header>
