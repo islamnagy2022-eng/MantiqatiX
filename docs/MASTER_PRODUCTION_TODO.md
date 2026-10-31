@@ -22,6 +22,7 @@
 
 ### Read-only production findings
 - [x] Confirmed 10 currently public-eligible businesses in the inspected production snapshot. All 10 have an ACTIVE provider profile, an ACTIVE branch, and non-empty activity group/category/specialty codes. This sample does not support missing provider/branch records as the reason those 10 fail to display.
+- [x] Audited `public_directory_listings`: 357 rows are `PUBLISHED / UNCLAIMED`, one is `PUBLISHED / CLAIM_PENDING`, 87 are `DRAFT / UNCLAIMED` (all 87 lack a phone number in the inspected snapshot), and 9 are `HIDDEN / UNCLAIMED` (4 have a phone). All 64 distinct stored taxonomy category IDs in the inventory resolve directly or through the legacy alias map to the canonical 50 categories; no orphan category IDs were found.
 - [x] Confirmed the live public directory Edge Function is v10 and differs from `main`: deployed source does not return the sanitized `activityModuleOverrides` payload present in current `main`. This is a separate activity-module configuration parity item; no Edge deployment is included here.
 - [x] Identified a deterministic client mapping defect in `mapBusiness`: the legacy display/category string was preferred over the stable `activityGroupCode + activityCategoryCode` mapping when choosing `categoryId`. Since homepage counts, activity-module counts and result filtering depend on `categoryId`, a stale label could put a business under the wrong activity.
 - [x] No Production data, database schema, ACL, RLS, Auth, Edge Function, payment or finance mutation was performed.
