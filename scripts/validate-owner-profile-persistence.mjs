@@ -29,6 +29,11 @@ if (saveStart < 0 || saveEnd <= saveStart) {
   throw new Error('FAIL: merchant profile save handler missing or malformed.');
 }
 const saveHandler = merchant.slice(saveStart, saveEnd);
+if (/\[bizGov, bizMarkaz, bizVillage\]\.every/.test(saveHandler) ||
+    !/\[bizGov, bizMarkaz\]\.every/.test(saveHandler) ||
+    !merchant.includes('القرية / الحي / البلدة (اختياري)')) {
+  throw new Error('FAIL: village/district must remain optional; governorate and markaz are the required location fields.');
+}
 if (!/await updateBusiness\(\{/.test(saveHandler) ||
     saveHandler.indexOf('await updateBusiness({') > saveHandler.indexOf('setSaveSuccess(true)') ||
     !/catch \(error\)/.test(saveHandler) ||
