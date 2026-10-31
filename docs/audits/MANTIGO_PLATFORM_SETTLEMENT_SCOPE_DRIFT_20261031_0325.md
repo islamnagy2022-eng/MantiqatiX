@@ -62,3 +62,42 @@ The same read-only catalog query inspected all four platform-wide MantiGO RPCs c
 This expands the finding beyond settlement alone: the current live contract exposes platform-wide dashboard and financial reporting to tenant-scoped roles and permits tenant-scoped operational roles to invoke global ride expiration. The source RC449 migration already hardens all four RPCs with the same explicit platform-admin guard; the migration is still absent from Production.
 
 **Risk remains P0 / BLOCKING.** No evidence of unauthorized access or mutation was established, and no live RPC was invoked as part of this audit.
+
+
+## Expanded authorization boundary — legacy platform-admin helper and digital-pages RLS
+
+A second read-only inspection found the root cause extends beyond the eight SECURITY DEFINER RPCs already recorded.
+
+### Live helper defect
+
+- Live `public.mnty_can_platform_admin()` is SECURITY DEFINER with `search_path=public, pg_temp` and returns `public.mnty_can('admin', NULL, NULL, NULL)`.
+- Live `public.mnty_active_membership(NULL,NULL,NULL)` returns every active membership for the authenticated user without requiring `tenant_id='MNTY-PLATFORM'`.
+- Live `public.mnty_can('admin',...)` explicitly treats an active `OWNER` role as having the `admin` permission. Therefore a tenant OWNER can satisfy the current platform-admin helper without being a platform SUPER_ADMIN.
+- The helper itself is authenticated-executable and anon-denied. The defect is its authorization semantics, not anonymous execution.
+
+### Additional SECURITY DEFINER callers
+
+Four more live SECURITY DEFINER functions rely on this weak helper:
+
+| Function | Global effect guarded by the weak helper |
+|---|---|
+| `admin_create_global_ad` | Creates a platform-wide advertisement |
+| `fulfill_digital_page_publish` | Publishes a paid digital-page order/page |
+| `review_mantigo_captain_application` | Approves, rejects, or suspends a MantiGO captain profile |
+| `set_mantigo_financial_config_backend` | Changes the global MantiGO commission rate and currency |
+
+Combined with the four directly broad-role-gated MantiGO RPCs already listed, this is at least eight live global SECURITY DEFINER entrypoints relying on an inadequate tenant/platform boundary.
+
+### Direct RLS exposure
+
+- Live policy `public.digital_pages_admin_manage` is `FOR ALL TO authenticated` and uses `mnty_can_platform_admin()` in both `USING` and `WITH CHECK`.
+- `public.digital_pages` has RLS enabled; authenticated has SELECT, INSERT, UPDATE, and DELETE table privileges. The policy does not add a tenant/page ownership predicate.
+- Because the live helper accepts tenant OWNER as platform admin, a tenant OWNER can satisfy this global RLS policy and may read or mutate digital pages across the platform. This is a confirmed policy/privilege path from catalog definitions and grants; no digital-page rows were read or changed to demonstrate it.
+- The policies on `mantigo_financial_config` and `mantigo_rate_limit_config` also call the weak helper, but the authenticated role currently has no direct table grants on those two tables. The separate `set_mantigo_financial_config_backend` SECURITY DEFINER RPC is nevertheless a global write path through the weak helper.
+
+### Existing source remediation and new regression gap
+
+- RC441/RC449 source replaces the weak helper with an active `SUPER_ADMIN` membership specifically in `MNTY-PLATFORM`, explicit `scope=PLATFORM`, and `full_control=true`. That corrected helper also protects its SECURITY DEFINER callers and the RLS policies that call it.
+- Existing RC449 disposable tests cover four MantiGO RPCs, but previously did not reproduce the live `digital_pages_admin_manage` RLS policy.
+- New test-only work adds a disposable `digital_pages` table/policy and verifies tenant OWNER cannot SELECT/INSERT/UPDATE/DELETE while the explicit platform SUPER_ADMIN can. This must pass in the dedicated PostgreSQL workflow before merge.
+- **Risk remains P0 / BLOCKING.** No live RPC was invoked, no business rows were read, and no Production data, DDL, grants, migration, payment, settlement, or RLS policy was changed.

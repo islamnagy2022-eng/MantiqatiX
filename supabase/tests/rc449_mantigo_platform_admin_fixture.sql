@@ -106,3 +106,31 @@ as $function$
     'test_fixture', true
   )
 $function$;
+
+-- Reproduce the live digital_pages global-admin RLS policy. RC449 replaces this
+-- placeholder guard with the strict platform-membership check before the test runs.
+create table public.digital_pages (
+  id uuid primary key,
+  created_by uuid not null,
+  title text not null
+);
+alter table public.digital_pages enable row level security;
+grant select,insert,update,delete on public.digital_pages to authenticated;
+
+create or replace function public.mnty_can_platform_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select false
+$function$;
+revoke all on function public.mnty_can_platform_admin() from public,anon;
+grant execute on function public.mnty_can_platform_admin() to authenticated;
+
+create policy digital_pages_admin_manage
+on public.digital_pages
+for all to authenticated
+using (public.mnty_can_platform_admin())
+with check (public.mnty_can_platform_admin());
