@@ -126,7 +126,7 @@ function makeSession(scenario) {
   };
 }
 
-async function newScenario(browser, scenario = null, publicDirectoryBusinesses = []) {
+async function newScenario(browser, scenario = null, publicDirectoryBusinesses = [], options = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
   const session = scenario ? makeSession(scenario) : null;
   await context.addInitScript(({ key, value }) => {
@@ -264,7 +264,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     return json({});
   });
 
-  await page.goto(baseUrl + '?view=professional_dashboard', { waitUntil: 'domcontentloaded' });
+  await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
   return { context, page, rpcObservation, catalogReadRequests };
 }
 
