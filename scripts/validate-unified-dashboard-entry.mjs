@@ -7,6 +7,8 @@ const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const navbar = read('apps/catalog-frontend/src/components/Navbar.tsx');
 const portal = read('apps/catalog-frontend/src/modules/account/SubscriberAccountPortal.tsx');
 const production = read('apps/catalog-frontend/src/lib/production.ts');
+const contextSource = read('apps/catalog-frontend/src/context/AppContext.tsx');
+const types = read('apps/catalog-frontend/src/types/index.ts');
 const e2e = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 
 assert.match(context, /export type ViewMode[^;]*'account_portal'/, 'account_portal must be part of the route type');
@@ -24,6 +26,19 @@ assert.match(portal, /!isAdmin && canAccessMerchantDashboard\(authSession\)/, 'm
 assert.match(portal, /!isAdmin && canAccessProfessionalDashboard\(authSession\)/, 'employee/professional workspace must use existing session permissions');
 assert.match(portal, /isAdmin\s*\?\s*<AdminDashboard\s*\/>/, 'platform admin workspace must remain a distinct admin component');
 assert.match(portal, /hasBusinessModulePermission\(authSession/, 'displayed business permissions must use the centralized permission helper');
+assert.match(types, /export interface AccountMembershipContext/, 'account switcher context must have an explicit safe type');
+assert.match(types, /availableMemberships\?: AccountMembershipContext\[\]/, 'only bootstrap-returned membership contexts may be switched');
+assert.match(production, /switchableMembershipRoles = new Set\(\['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'EMPLOYEE', 'STAFF'\]\)/, 'only supported active business membership roles may be exposed');
+assert.match(production, /businesses\.filter\(\(business\) => business\.id === String\(membership\.business_id\) && String\(business\.tenantId \|\| ''\) === tenantId\)/, 'membership mode must match both business and tenant');
+assert.match(production, /activeMembershipId: platform \? undefined : \(chosenMembership\?\.id \|\| own\?\.id\)/, 'platform admin mode must remain distinct from business membership mode');
+assert.match(contextSource, /switchAccountMembership: \(membershipId: string, businessId: string\) => boolean/, 'switching must bind the membership ID to its exact business ID');
+assert.match(contextSource, /authUserIdRef\.current !== userId/, 'mode switching must bind to the current authenticated identity');
+assert.match(contextSource, /currentView === 'account_portal' \|\| currentView === 'merchant_admin'/, 'account portal must use the active authorized business context');
+assert.match(contextSource, /requestedView === 'account_portal' && boot\.authSession\.isAuthenticated/, 'account portal deep links must restore only after authenticated bootstrap');
+assert.match(contextSource, /const switchToPlatformAdminMode = \(\): boolean/, 'platform admin mode must have a separate server-derived grant');
+assert.match(portal, /switchAccountMembership\(mode\.membershipId, mode\.businessId\)/, 'UI must switch by the exact business-membership pair');
+assert.match(e2e, /account-switch-owner-and-branch-scoped-employee-memberships/, 'browser coverage must switch between owner and branch employee modes');
+assert.match(e2e, /platform-admin-and-business-membership-modes-remain-separate/, 'browser coverage must prove platform and business authority remain separate');
 
 const guestBootstrap = production.slice(production.indexOf('export async function bootstrapProductionUser'));
 const guestBlock = guestBootstrap.slice(guestBootstrap.indexOf('if (!user) {'), guestBootstrap.indexOf('\n  }', guestBootstrap.indexOf('if (!user) {')) + 4);
