@@ -3113,3 +3113,12 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Artifact lookup for the replay run [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) and original capture run [38993809648](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38993809648) returned no downloadable workflow artifacts in the connected GitHub record. No fresh current-schema dump exists in the repository.
 - [ ] Authorized operator must create a credential-scrubbed current schema/roles dump from Production, preserve secure hashes, restore to a disposable local Supabase/PostgreSQL environment, validate structural parity against the live inventory, then replay the entire required chain and test RC441 → RC449 → RC462 plus RC449A/RC450. Do not expose DB passwords in chat or place Production dumps in public GitHub.
 - No current Production migration, grant or policy change is authorized. Overall gate remains BLOCKED / NOT CERTIFIED.
+
+ 
+## 2026-10-31 — P2 platform-admin bootstrap/revocation lifecycle gap registered
+
+- Opened [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614).
+- Canonical tenant metadata: ID `MNTY-PLATFORM`, code `MNTY`, ACTIVE. Live `private.bootstrap_platform_admin` defaults to ID `MNTY_PLATFORM` and code `MNTY-PLATFORM`; no tenant currently has either of those default values. It unconditionally inserts a tenant rather than validating/reusing the canonical one.
+- If called with defaults during a future empty-registry recovery, it would create a parallel tenant. If called with canonical ID, duplicate-key insert fails. The routine is service_role-only with empty search_path and currently blocked by its one-time guard (registry aggregate count=1); no call made.
+- A read-only routine scan found no other SQL writer to the root registry and no dedicated audited revoke/deprovision routine. External service operations remain to be inventoried.
+- P2 task: repair/bootstrap idempotently against canonical tenant, add separate audited revocation with session/token impact review, test in current-schema disposable restore. No Production bootstrap or registry mutation.
