@@ -3011,3 +3011,14 @@ A separate source review found a second platform-root authorization model: the n
 - Activity module marketing remains planning guidance; operations remain `planned`. Campaign creation/publishing, budgets, channel integrations, leads, orders, appointments, inventory, bookings, and analytics are not activated.
 - Open activity-module follow-up: design/review an atomic settings+audit transaction (current source upserts settings then attempts audit, so audit failure can follow a successful settings write); add isolated negative authorization/unknown-capability/audit-failure tests; only after review and explicit rollout authorization deploy the two Edge Functions and verify real Super Admin save/read/reset plus public visitor reload.
 - Global `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Continue P0 production safety/release blockers before unrelated feature expansion. No Production migrations, grants/RLS/Auth changes, Edge deployment, payments, advertising spend, or financial mutations were performed by PR #608.
+
+
+## Fresh read-only Production evidence — 2026-10-31 15:18–15:20 UTC
+
+- Supabase project `moyhiluyhjsujhwlyeuu` is ACTIVE_HEALTHY on PostgreSQL 17.6.1.155.
+- Migration ledger read returned **308** rows; latest applied version is `20261029083845` (`require_phone_for_published_directory_listings`). Required release version `20261031064300` is absent. Do not infer that all required migrations are present from the count.
+- Public schema inventory returned **136 tables**. `public_directory_listings` remains **454** rows; `bizcatalog_platform_settings` has one row; `audit_logs` has 96 rows. The employee/job-position and custom-role assignment tables currently report zero rows; this is inventory only, not a reason to assume feature completion.
+- Supabase Edge inventory returned **42 active functions**. Relevant deployed versions: `catalog-platform-admin v23`, `public-catalog-directory v10`, `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, `financial-journal v3`. The two activity-module Edge source changes in PR #608 are not deployed.
+- Security Advisor observed at `2026-10-31T15:18:20Z`: 8 RLS-enabled/no-policy INFO findings; 3 anon-executable SECURITY DEFINER warnings; 67 authenticated-executable SECURITY DEFINER warnings; and an Auth leaked-password-protection warning. Findings must be reviewed function/table by function/table; no blanket grants or policy changes.
+- This was a read-only inventory. No SQL writes, migrations, Auth setting changes, grant/RLS changes, Edge deployments, payments, or financial mutations were performed.
+- Production remains **BLOCKED / NOT CERTIFIED**. Next safe action is source-to-live reconciliation of the missing release migrations and critical Edge Function drift, followed by isolated rehearsal and explicit approval gates. Do not deploy or apply migrations directly to Production.
