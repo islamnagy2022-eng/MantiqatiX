@@ -1685,3 +1685,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Read-only metadata check: canonical platform tenant is ID `MNTY-PLATFORM`, code `MNTY`. The live service_role-only `private.bootstrap_platform_admin` defaults to ID `MNTY_PLATFORM`, code `MNTY-PLATFORM`, and unconditionally inserts the tenant before registry/membership writes. A future invocation with defaults would create a parallel tenant; using canonical ID would duplicate-key fail.
 - The routine's one-time registry guard currently blocks it (aggregate registry count 1); no invocation or registry identity read performed. A cross-schema SQL routine scan found no other root registry writer and no dedicated audited revocation routine; external service maintenance still needs inventory.
 - Registered [Issue #614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) as P2 recovery/revocation hardening. No Production mutation.
+
+ 
+## 2026-10-31 — Root registry creation-provenance check
+
+- Read aggregate created_at only for the sole `private.platform_admins` row: 2026-09-27 13:23:43 UTC. No user ID or row values read.
+- No `PLATFORM_BOOTSTRAP` audit event was found. The only migration-ledger INSERT reference is within the definition of `private.bootstrap_platform_admin`; no direct registry seed/update/delete statement exists. Catalog scan found it as the only SQL routine writer.
+- Provisioning provenance is unresolved; do not assert the bootstrap function was used. Issue #614 updated. No Production mutation.
