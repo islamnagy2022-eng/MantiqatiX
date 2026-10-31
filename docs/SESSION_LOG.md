@@ -1593,3 +1593,10 @@ A separate source review found a second platform-root authorization model: the n
 - Supabase organization plan is Free. Current Supabase docs state that Free projects do not receive automatic daily backups. No manual backup artifact or restore was available or created.
 - Created `docs/release/CURRENT_SCHEMA_REHEARSAL_RUNBOOK_20261031.md` on the work branch with CLI dump, credential scrubbing, local disposable restore, structural parity checks, stop conditions and cost guardrails.
 - No Production mutation, secret retrieval, schema capture, restore, project/branch/add-on creation or financial transaction occurred. Next action requires an authorized local operator to run the protected capture/restore flow; keep the global gate BLOCKED.
+
+
+## 2026-10-31 — P0 ad_spaces authorization issue registered
+
+- Opened dedicated security work item **Issue #611**: https://github.com/islamnagy2022-eng/MantiqatiX/issues/611.
+- Scope: reproduce the current authenticated DML grants and permissive ALL policy combination in the isolated current-schema rehearsal, define the canonical platform-admin/tenant-slot authority model, implement least-privilege controls only in isolation, and test anonymous/ordinary-authenticated/tenant-owner/platform-admin/backend actors.
+- Production remains unchanged. Slot writes, booking and pricing activation remain blocked; no blanket revoke or speculative policy migration is approved.
