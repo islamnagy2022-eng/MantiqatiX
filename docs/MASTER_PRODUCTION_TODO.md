@@ -16,35 +16,45 @@
 
 ## CAT-ACTIVITY-MODULES-20261031-01 — Direct activity pages and specialized activity modules
 **Date:** 2026-10-31  
-**Status:** IN PROGRESS — frontend foundation implemented on `feat/activity-modules-current-main-20261031`; exact-head CI and deployed-origin verification NOT VERIFIED.  
+**Status:** IN PROGRESS — activity-specific configuration registry implemented; exact-head validation is running for the latest registry changes.  
 **Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599).  
+**Active branch / PR:** `feat/activity-modules-current-main-20261031` / [Draft PR #608](https://github.com/islamnagy2022-eng/MantiqatiX/pull/608).  
 **Architecture:** [ACTIVITY_MODULES_ARCHITECTURE_20261031.md](docs/specifications/ACTIVITY_MODULES_ARCHITECTURE_20261031.md).
 
 ### Agreed visitor model
 - [x] Customer-facing hierarchy is **activity → specialty → business/service**. No functional-group or standalone-profession navigation layer in the public directory.
 - [x] Each canonical activity opens its own dedicated module page via `?activity=<activity-category-id>`, suitable for a shareable route and direct refresh.
-- [x] Activity module foundation includes overview, specialties, domain-aware marketing guidance, and domain-operations capability sections.
 - [x] Specialty selection returns to the directory with a visible and reversible activity/specialty filter.
-- [x] Existing verified/unverified counts, verified-first ranking, geographic discovery/manual selectors, and legacy internal group identifiers are preserved in the current-main implementation.
+- [x] Existing verified/unverified counts, verified-first ranking, geographic discovery/manual selectors, and legacy internal group identifiers are preserved.
 - [x] Public business cards no longer display functional-group labels; internal identifiers remain compatibility metadata pending a separate reviewed migration/API plan.
 
-### Implementation and validation
-- [x] Added `apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx`.
-- [x] Updated `apps/catalog-frontend/src/components/DirectoryView.tsx` on top of the latest consent-first Egypt geographic discovery source; preserved its consent, manual selector, privacy, and approximate-locality logic.
-- [x] Updated browser E2E for direct activity module routing, initial geo-consent handling, refresh, specialty selection, filter clearing, and mobile/tablet/desktop overflow.
-- [x] Updated canonical taxonomy contract for visitor-facing direct activity modules while retaining server/admin legacy compatibility checks.
-- [ ] Run exact-head TypeScript/lint, production build, taxonomy validator, geo-discovery validator, and browser E2E.
-- [ ] Verify deployed-origin behavior after merge/deployment. Feature branch source does not prove deployment.
+### Module configuration foundation
+- [x] Added `apps/catalog-frontend/src/modules/activities/activityModuleRegistry.ts`, keyed by the canonical activity ID.
+- [x] Added typed marketing plans for the 10 supported domain profiles: objective, audience, positioning, content pillars, campaign ideas, and required launch assets.
+- [x] Added domain-specific operating capability definitions (e.g. appointments/clinical services, menu/orders, property/leads/viewings, project/quotes, inventory/service booking, enrollment/programs).
+- [x] Each activity resolves its own module config using its canonical ID and domain metadata; custom/unmapped activities receive a safe generic profile.
+- [x] Module UI now renders the resolved domain-specific plan and capability cards.
+- [x] Unintegrated operating capabilities are explicitly labelled **قيد التجهيز**; no unverified workflow is presented as active.
+- [ ] Expand from domain-level profiles to explicit reviewed per-activity overrides for all canonical activity IDs, including content/asset requirements and operational workflows.
 
-### Remaining module work
-- [ ] Build a typed activity-module configuration/capability registry keyed by canonical activity ID, defining domain identity, modules, templates, data needs, and enabled routes.
-- [ ] Finish the Marketing & Advertising workspace per activity: content calendar, campaign lifecycle, draft/approval/publish, channel integration, budget controls, leads, and reporting, using only verified server-side campaign APIs/RPCs and tenant/business/branch authorization.
-- [ ] Current activity marketing panel is **planning guidance only**. It does not create/publish campaigns, spend budgets, or claim measured analytics.
+### Implementation and validation
+- [x] Added `ActivityModuleView.tsx` and the typed activity module registry.
+- [x] Updated `DirectoryView.tsx` on top of the consent-first Egypt geographic discovery source; preserved consent, manual selector, privacy, and approximate-locality logic.
+- [x] Updated browser E2E for direct activity routing, geo-consent handling, refresh, specialty selection, filter clearing, and responsive overflow.
+- [x] Updated canonical taxonomy contract to validate module registry fields and fail-closed capability states.
+- [x] Previous exact-head PR validation passed TypeScript, production build, canonical taxonomy, geographic/GPS consent contract, employee RBAC PostgreSQL, and browser E2E before registry additions.
+- [ ] Re-run exact-head TypeScript, production build, canonical taxonomy, geo-discovery contract, employee RBAC, and browser E2E for the registry commits.
+- [ ] Verify deployed-origin behavior after merge/deployment. PR validation's Pages deploy step is skipped by design; no production deployment is claimed.
+
+### Remaining marketing and operating integrations
+- [ ] Finish the working Marketing & Advertising workspace per activity: content calendar, campaign lifecycle, draft/approval/publish, channel integration, budget controls, leads, and reporting, using only verified server-side campaign APIs/RPCs and tenant/business/branch authorization.
+- [ ] Current marketing panel is **planning guidance only**. It does not create/publish campaigns, spend budgets, or claim measured analytics.
+- [ ] Verify whether the production campaign backend contracts exist and are authorized before integration. Current production reconciliation has not certified the RC453 campaign objects/RPCs; do not guess schema names or issue browser-side table writes.
 - [ ] Keep SMM separate and deferred; do not reactivate the retired customer-facing SMM flow.
 - [ ] Implement domain-specific operating workflows only after each source-of-truth API, RLS/RBAC, audit, idempotency, and negative cross-tenant tests pass.
 - [ ] Show operational analytics from authoritative persisted records only; never fabricate data.
-- [ ] Add safe admin controls for module configuration without changing existing business/category IDs or breaking existing records.
-- [ ] Verify role × tenant × business × branch permissions, responsive layouts, RTL, accessibility, loading/empty/error states, and regression coverage.
+- [ ] Add safe admin controls to configure activity modules without changing existing business/category IDs or breaking legacy records.
+- [ ] Verify role × tenant × business × branch permissions, RTL/accessibility, responsive layouts, loading/empty/error states, and regression coverage.
 
 ### Safety / release boundary
 - Frontend, tests, and documentation only. No production migrations, schema/data writes, grants, RLS/Auth changes, Edge Function deployments, campaign writes, ad spend, payment, wallet, commission, or accounting mutations are authorized by this request.
