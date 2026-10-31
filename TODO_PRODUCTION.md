@@ -1333,3 +1333,15 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - [x] These results reconfirm the existing RC435/RC439 and RC449A/RC450 blockers; they do not authorize a production migration, grant, RPC invocation, function deployment, or financial test transaction.
 - [ ] Next executable step remains an **isolated, restorable, schema-faithful rehearsal** of the current production state and a forward-only reconciliation plan. No isolated Supabase branch/project was created because cost/organization confirmation is still pending; no production mutation occurred.
 - **Release remains BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-31 — Supabase baseline freshness and finance fixture compatibility
+
+- [x] PR #555 merged as `169a8271f14ef99e83b2bea8046f0f5cb6b9d0c5`. Exact-head checks passed for `validate`, `contract`, `financial-journal-rc450-integration`, `targeted-ads-search-path-integration`, `approval-action-audit-postgres`, `rc425-mantigo-paymob-atomicity`, `matrimony-privacy-postgres`, and `mantigo-open-ride-privacy-integration`; Pages deploy was skipped as expected for documentation-only changes.
+- [x] Rechecked Supabase development branches: only the default `main` branch exists; no isolated development branch is available yet.
+- [x] Fresh verbose table inventory confirms current Production journal row counts are zero (`journal_entries=0`, `journal_entry_lines=0`, `general_ledger=0`) and `subscription_payment_intents=0`; `subscription_tier_prices` has four active seeded tiers. Current counts are a snapshot, not restore evidence.
+- [x] Fresh schema inventory shows why the existing minimal PostgreSQL fixtures cannot be applied unchanged to a production-schema clone: live `businesses` requires `name` and `code`; `user_memberships` requires `id` and `tenant_id`; `chart_of_accounts` requires `account_code`, `account_name`, and `account_type`; `branches` requires `name` and `code`. Any full-schema rehearsal fixture must satisfy the real constraints and use unique deterministic test tenants/businesses/tiers.
+- [x] Confirmed the tracked baseline manifest is still `review_status=PENDING_REVIEW`, captured `2026-10-17T02:10:22Z`, and represents checkpoint `20261008222845`; Production's latest ledger is `20261029083845` with 308 records. Existing full forward replay proves ordered migration replay from that historical checkpoint, but does **not** prove exact compatibility with the current later-dated Production physical schema.
+- [ ] New P0 blocker: create/approve a schema-faithful isolated branch or refreshed schema-only baseline from the current Production state, preserve a restorable recovery path, then run RC435/RC439 and RC449A/RC450 against real table constraints and a controlled disposable dataset. Do not copy Production rows into CI or execute test writes on Production.
+- [ ] No development branch/project was created because branch creation can incur charges and a cost quote requires the user's confirmation of the Supabase organization ID. Current Production remains unchanged.
+- **Overall Production Gate remains BLOCKED / NOT CERTIFIED.**
