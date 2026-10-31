@@ -1622,3 +1622,10 @@ A separate source review found a second platform-root authorization model: the n
 - Extended `scripts/validate-canonical-activity-taxonomy.mjs` to enforce canonical-code precedence and require the regression E2E. Current code/test commits include `c1c85f7b8607477f567eccb7eddd623ebcb206e7`, `1cd8bc6da112d2e723d5acb107e3427221bc1746`, `70f288ba7ec0e5db20f609af0a699024dc96faf5`, and `5ed2d8d6c4b7f98d0992546be055099d6e123426`.
 - Branch: `fix/homepage-activity-taxonomy-display-20261031`. Exact-head CI is pending; do not mark the correction verified or deployed until all required checks complete.
 - No Production database/schema/data/ACL/RLS/Auth/Edge Function/payment/finance mutation or deployment was performed. Full platform gate remains `BLOCKED / NOT CERTIFIED`.
+
+
+### Homepage mobile activity grid follow-up
+
+- The current homepage activity taxonomy grid was using two columns on mobile (`grid-cols-2`), contrary to the accepted three-activities-per-row requirement. Updated it to three columns on phones, four at large screens, and five at extra-large screens; mobile card contents stack compactly while desktop card treatment remains horizontal.
+- Added Playwright coverage at the 390px viewport to assert exactly three activity columns, and extended the canonical taxonomy validator to require this responsive contract.
+- This is included in PR #619. Exact-head validation is pending; no deployed UI change is claimed.
