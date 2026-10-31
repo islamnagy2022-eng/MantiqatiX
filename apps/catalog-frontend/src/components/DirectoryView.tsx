@@ -164,9 +164,7 @@ export const DirectoryView: React.FC = () => {
     });
     return () => { cancelled = true; };
   }, []);
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [taxonomyBrowserOpen, setTaxonomyBrowserOpen] = useState(false);
-  const [selectedCategoryKind, setSelectedCategoryKind] = useState<'all' | 'activity' | 'profession'>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
@@ -215,12 +213,6 @@ export const DirectoryView: React.FC = () => {
     }));
 
   // The directory uses the same canonical taxonomy as the administration forms.
-  const selectGroup = (groupId: string) => {
-    setSelectedGroupFilter(groupId);
-    setSelectedCategoryKind('all');
-    setSelectedCategoryId('all');
-    setSelectedSpecialty('all');
-  };
   // Visitor-facing taxonomy is activity -> specialty; groups/professions are not navigation layers.
   const availableCategories = categories.filter((category) => (category.classificationType || 'activity') === 'activity');
   const selectedTaxonomyCategory = categories.find((category) => category.id === selectedCategoryId);
@@ -546,170 +538,6 @@ export const DirectoryView: React.FC = () => {
             })}
           </div>
         </section>
-
-        {/* Hierarchical taxonomy navigation:        {/* Hierarchical taxonomy navigation: group -> activity/profession -> specialty -> matching businesses */}
-        <section aria-label="تصفح الأنشطة والتخصصات" className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-black text-slate-900">تصفح حسب النشاط والتخصص</h2>
-              <p className="mt-1 text-xs text-slate-500">اختر المجال، ثم النشاط، ثم التخصص أو الخدمة لعرض النتائج المطابقة فقط.</p>
-            </div>
-            {(selectedGroupFilter !== 'all' || selectedCategoryId !== 'all' || selectedSpecialty !== 'all') && (
-              <button type="button" onClick={() => { selectGroup('all'); setSelectedGovFilter('all'); }} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
-                عرض كل الأنشطة
-              </button>
-            )}
-          </div>
-
-          <nav aria-label="مسار المجال والنشاط" className="flex flex-wrap items-center gap-2 text-xs font-bold">
-            <button type="button" onClick={() => selectGroup('all')} className={`rounded-lg px-3 py-2 ${selectedGroupFilter === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>كل المجالات</button>
-            {selectedGroupFilter !== 'all' && (
-              <>
-                <ArrowRight className="h-3.5 w-3.5 rotate-180 text-slate-400" />
-                <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className={`rounded-lg px-3 py-2 ${selectedCategoryId === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>
-                  {functionalGroups.find((group) => group.id === selectedGroupFilter)?.name || 'المجموعة'}
-                </button>
-              </>
-            )}
-            {selectedTaxonomyCategory && (
-              <>
-                <ArrowRight className="h-3.5 w-3.5 rotate-180 text-slate-400" />
-                <button type="button" onClick={() => setSelectedSpecialty('all')} className={`rounded-lg px-3 py-2 ${selectedSpecialty === 'all' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}`}>{selectedTaxonomyCategory.name}</button>
-              </>
-            )}
-            {selectedSpecialty !== 'all' && (
-              <>
-                <ArrowRight className="h-3.5 w-3.5 rotate-180 text-slate-400" />
-                <span className="rounded-lg bg-emerald-100 px-3 py-2 text-emerald-800">{selectedSpecialty}</span>
-              </>
-            )}
-          </nav>
-
-          {selectedCategoryId === 'all' ? (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-              {availableCategories
-                .filter((category) => selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter)
-                .filter((category) => (selectedCategoryKind === 'all' || category.classificationType === selectedCategoryKind))
-                .map((category) => {
-                  const count = businesses.filter((business) => {
-                    if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
-                    return categoryForBusiness(business)?.id === category.id;
-                  }).length;
-                  const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id).length;
-                  return (
-                    <button key={category.id} type="button" onClick={() => { setSelectedCategoryId(category.id); setSelectedSpecialty('all'); }} className="flex min-h-20 items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-right transition hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                      <span className="min-w-0">
-                        <span className="block text-sm font-black text-slate-900">{category.name}</span>
-                        <span className="mt-1 block text-[11px] text-slate-500">{category.classificationType === 'profession' ? 'مهنة' : 'نشاط'}</span>
-                      </span>
-                      <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
-                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{count}</span>
-                        <span title="صفحات دليل غير موثقة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{unconfirmedCount}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-black text-slate-900">{selectedTaxonomyCategory?.classificationType === 'profession' ? 'تخصصات المهنة' : 'أنواع النشاط'}: {selectedTaxonomyCategory?.name}</h3>
-                <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="text-xs font-bold text-emerald-800 underline">رجوع لقائمة الأنشطة</button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                <button type="button" onClick={() => setSelectedSpecialty('all')} aria-pressed={selectedSpecialty === 'all'} className={`rounded-xl border p-3 text-right text-sm font-black transition ${selectedSpecialty === 'all' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
-                  كل {selectedTaxonomyCategory?.classificationType === 'profession' ? 'التخصصات' : 'الأنواع'}
-                </button>
-                {(selectedTaxonomyCategory?.specialties || []).map((specialty) => {
-                  const confirmedSpecialtyCount = businesses.filter((business) => {
-                    if ((!business.publicEnabled && !business.isOfficialShowcase) || business.operationalStatus !== 'ACTIVE' || business.isFrozen) return false;
-                    if (categoryForBusiness(business)?.id !== selectedTaxonomyCategory?.id) return false;
-                    const suffix = business.category.slice(categoryForBusiness(business)?.name.length || 0).replace(/^\s*—\s*/, '');
-                    const requested = resolveCanonicalSpecialty(specialty, selectedTaxonomyCategory?.id);
-                    return resolveCanonicalSpecialty(business.activitySpecialty || '', selectedTaxonomyCategory?.id) === requested ||
-                      resolveCanonicalSpecialty(suffix, selectedTaxonomyCategory?.id) === requested;
-                  }).length;
-                  const unconfirmedSpecialtyCount = unconfirmedListings.filter((listing) =>
-                    listing.taxonomy_category_id === selectedTaxonomyCategory?.id &&
-                    resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', selectedTaxonomyCategory?.id) === resolveCanonicalSpecialty(specialty, selectedTaxonomyCategory?.id)
-                  ).length;
-                  return (
-                    <button key={specialty} type="button" onClick={() => setSelectedSpecialty(specialty)} aria-pressed={selectedSpecialty === specialty} className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-right text-sm font-bold transition ${selectedSpecialty === specialty ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-emerald-300'}`}>
-                      <span>{specialty}</span>
-                      <span className="flex shrink-0 items-center gap-1.5" dir="ltr">
-                        <span title="أنشطة مؤكدة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{confirmedSpecialtyCount}</span>
-                        <span title="صفحات دليل غير موثقة" className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-50 px-2 text-xs font-black text-red-700">{unconfirmedSpecialtyCount}</span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-slate-500">عدد الجهات المطابقة للاختيار الحالي: <strong className="text-slate-900">{filteredBusinesses.length}</strong></p>
-            </div>
-          )}
-        </section>
-
-        {/* Activity / profession / specialty filters driven by the canonical taxonomy */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-3">
-          <label className="block text-xs font-bold text-slate-700">
-            نوع التصنيف
-            <select
-              value={selectedCategoryKind}
-              onChange={(e) => {
-                setSelectedCategoryKind(e.target.value as 'all' | 'activity' | 'profession');
-                setSelectedCategoryId('all');
-                setSelectedSpecialty('all');
-              }}
-              className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-bold"
-            >
-              <option value="all">الأنشطة والمهن</option>
-              <option value="activity">الأنشطة</option>
-              <option value="profession">المهن</option>
-            </select>
-          </label>
-          <label className="block text-xs font-bold text-slate-700">
-            النشاط أو المهنة
-            <select
-              value={selectedCategoryId}
-              onChange={(e) => {
-                setSelectedCategoryId(e.target.value);
-                setSelectedSpecialty('all');
-              }}
-              className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-bold"
-            >
-              <option value="all">كل الأنشطة والمهن</option>
-              {functionalGroups
-                .filter((group) => selectedGroupFilter === 'all' || group.id === selectedGroupFilter)
-                .map((group) => {
-                  const groupCategories = availableCategories.filter((category) => category.functionalGroupId === group.id);
-                  if (!groupCategories.length) return null;
-                  return (
-                    <optgroup key={group.id} label={group.name}>
-                      {groupCategories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {(category.classificationType === 'profession' ? 'مهنة: ' : 'نشاط: ') + category.name}
-                        </option>
-                      ))}
-                    </optgroup>
-                  );
-                })}
-            </select>
-          </label>
-          <label className="block text-xs font-bold text-slate-700">
-            التخصص الدقيق
-            <select
-              value={selectedSpecialty}
-              disabled={!selectedTaxonomyCategory?.specialties?.length}
-              onChange={(e) => setSelectedSpecialty(e.target.value)}
-              className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-bold disabled:opacity-50"
-            >
-              <option value="all">كل التخصصات</option>
-              {(selectedTaxonomyCategory?.specialties || []).map((specialty) => (
-                <option key={specialty} value={specialty}>{specialty}</option>
-              ))}
-            </select>
-          </label>
-        </div>
 
         {/* Search & Location Filter Bar */}
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
