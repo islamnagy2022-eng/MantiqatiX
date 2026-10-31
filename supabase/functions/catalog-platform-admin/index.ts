@@ -174,15 +174,23 @@ Deno.serve(async (req: Request) => {
           const before = previousOverrides[activityId] && typeof previousOverrides[activityId] === "object" ? previousOverrides[activityId] as Record<string, unknown> : {};
           const after = nextOverrides[activityId] && typeof nextOverrides[activityId] === "object" ? nextOverrides[activityId] as Record<string, unknown> : {};
           const fields = ["marketing", "capabilities"].filter((field) => JSON.stringify(before[field] ?? null) !== JSON.stringify(after[field] ?? null));
-          return fields.length ? [{ activityId, fields }] : [];
+          return fields.length ? [{
+            activityId,
+            fields,
+            oldValues: Object.fromEntries(fields.map((field) => [field, before[field] ?? null])),
+            newValues: Object.fromEntries(fields.map((field) => [field, after[field] ?? null])),
+          }] : [];
         });
         const auditError = await writeAuditLog({
           tenantId: productionTenantIds[0],
           action: "PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED",
           entityType: "activity_module_settings",
           entityId: "bizcatalog",
-          oldValues: { changedActivities },
-          newValues: { changedActivities, configuredActivityCount: Object.keys(nextOverrides).length },
+          oldValues: { changedActivities: changedActivities.map(({ activityId, fields, oldValues }) => ({ activityId, fields, ...oldValues })) },
+          newValues: {
+            changedActivities: changedActivities.map(({ activityId, fields, newValues }) => ({ activityId, fields, ...newValues })),
+            configuredActivityCount: Object.keys(nextOverrides).length,
+          },
         });
         auditLogged = !auditError;
         if (auditError) console.error("activity module settings saved but audit logging failed", {
