@@ -35,7 +35,8 @@
 - [x] Each activity resolves its own module config using its canonical ID and domain metadata; custom/unmapped activities receive a safe generic profile.
 - [x] Module UI now renders the resolved domain-specific plan and capability cards.
 - [x] Unintegrated operating capabilities are explicitly labelled **قيد التجهيز**; no unverified workflow is presented as active.
-- [ ] Expand from domain-level profiles to explicit reviewed per-activity overrides for all canonical activity IDs, including content/asset requirements and operational workflows.
+- [x] Add explicit reviewed per-activity marketing overrides for all 50 canonical activity IDs: activity focus, audience, campaign ideas, required assets, and operating scope.
+- [ ] Expand capability cards from domain-level templates to reviewed per-activity operational capabilities.
 
 ### Implementation and validation
 - [x] Added `ActivityModuleView.tsx` and the typed activity module registry.
