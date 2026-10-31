@@ -2697,3 +2697,33 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Health Monitor [41162036080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036080) passed; job `124421481814` confirmed `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS` and primary catalog root/assets PASS.
 - Backend-only Module Boundary [41162036117](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036117), MantiGO Privacy [41162036099](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036099), Module Professionalization [41162036130](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036130), and Pages [41162036127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036127) all completed successfully.
 - Pages deploy job `124421551588` confirmed deployed primary root and `PRIMARY_CATALOG_BROWSER_E2E=PASS` for the tested scoped catalog/role/QR/GPS/taxonomy journeys. The verifier artifact still reports `production_gate=BLOCKED` with 24 PASS, 0 FAIL, 1 BLOCKED; this source-contract report does not certify live production migrations or payment flows.
+
+
+## 2026-10-31 — P0 live MantiGO settlement authorization drift (read-only recheck 03:25 UTC)
+
+- [x] Rechecked the live Supabase function definition and effective EXECUTE grants read-only. `public.settle_mantigo_captain_backend(uuid,text,text)` is SECURITY DEFINER, has `search_path=public`, and is executable by `authenticated` (not `anon`).
+- [x] Confirmed the live body checks `p_admin_user_id = auth.uid()` but then accepts any active membership with role ADMIN, SUPER_ADMIN, OWNER, BUSINESS_OWNER, ACCOUNTANT, FINANCE_MANAGER, or FINANCE. The membership check is not restricted to tenant `MNTY-PLATFORM`, does not require explicit PLATFORM scope/full_control, and does not call `mnty_can_platform_admin()`.
+- [x] Confirmed the RPC proceeds to platform-wide MantiGO financial-ledger settlement and journal posting for eligible completed/paid rides. This is a confirmed authorization-contract defect; no evidence of abuse or unauthorized settlement was established.
+- [x] Confirmed live migration ledger remains 308 entries through `20261029083845`; RC441 `20261010030000` and RC449 `20261010170000` are absent.
+- [x] Source remediation already exists in RC441/RC449 and the isolated RC449 integration test explicitly rejects tenant OWNER, tenant ADMIN, OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN, while accepting the explicit platform SUPER_ADMIN and testing settlement replay safety.
+- [ ] **P0 / BLOCKED:** obtain an approved, cost-reviewed, restorable, schema-faithful isolated environment plus credential-scrubbed current-Production schema capture; rehearse the chronological migration chain and payment/journal dependencies before any Production release.
+- [ ] After approved release only: apply RC441/RC449 through the controlled migration process; verify live function body, empty search_path, platform-admin guard and grants; run post-release read-only checks. Never test by settling a live ride.
+- Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
+- **Production impact:** no DDL, grants, Auth/RLS, Edge Function, data, payment, wallet, settlement, or journal mutation was performed. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### P0 scope expansion — four live MantiGO platform RPCs
+
+- [x] Expanded the same read-only catalog inspection to all four RC449 platform-wide RPCs. All four are SECURITY DEFINER, `search_path=public`, authenticated-executable, anon-denied, and none calls `mnty_can_platform_admin()`.
+- [x] Confirmed the affected surface: global dashboard aggregates; global financial report; captain settlement/journal mutation; stale ride expiration/audit/notification mutation. The live role predicates accept broad tenant-scoped roles and are not constrained to `MNTY-PLATFORM` with explicit `scope=PLATFORM` and `full_control=true`.
+- [ ] Keep the P0 release blocker applied to the full four-RPC surface, not only settlement. Do not invoke these global RPCs with non-platform roles against Production to demonstrate the defect.
+- The RC449 source migration already adds the explicit platform guard to all four functions; live RC441/RC449 versions remain absent. See the audit document linked above.
+
+
+## CAT-DUPLICATE-GUARD — stale PR cleanup (2026-10-31)
+
+- [x] Compared Draft PR #477 against current main implementation in `AppContext.tsx` and `catalog-platform-admin/index.ts`.
+- [x] Confirmed the old single global in-flight Promise incorrectly collapses different payloads; current main uses a payload-keyed Map and preserves independent requests.
+- [x] Confirmed the old server heuristic reuses an existing business record; current main returns tenant-scoped HTTP 409 with the existing business ID and does not transfer ownership or alter billing/publication state.
+- [x] Closed PR #477 unmerged as fully superseded; explanatory review comment added. No production data was changed.
+- [ ] The current main duplicate guard still needs true browser/server concurrency, multi-tab, and lost-response retry tests; its check-then-insert remains non-atomic at the database layer.
