@@ -222,3 +222,6 @@ The tracked `production_schema_snapshot.manifest.json` is a historical 2026-10-1
 - Include `private.bootstrap_platform_admin` in the isolated current-schema test matrix. Its current defaults (`MNTY_PLATFORM`, `MNTY-PLATFORM`) do not match canonical tenant ID/code (`MNTY-PLATFORM`, `MNTY`), and its current body unconditionally inserts a tenant. Test default-argument rejection, explicit canonical-tenant reuse, duplicate invocation, concurrent bootstrap, empty/existing registry states and atomic rollback.
 - Design/test a distinct audited revocation/deprovision path; verify authority removal immediately affects the shared helper, delegated global RPCs, digital_pages RLS, memberships and outstanding sessions/tokens. Do not infer that no external revocation path exists until service-side operations are inventoried.
 - Issue [#614](https://github.com/islamnagy2022-eng/MantiqaTix/issues/614) tracks this P2 work. Do not invoke bootstrap or mutate registry in Production.
+
+ 
+- [ ] Resolve root registry creation provenance: the single row's aggregate created_at is 2026-09-27 13:23:43 UTC; no PLATFORM_BOOTSTRAP audit event or direct registry seed migration was found. Verify original privileged service operation/deployment audit before changing bootstrap or revocation behavior. No identity row may be exposed.
