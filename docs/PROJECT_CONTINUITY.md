@@ -1091,3 +1091,12 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Module professionalization [41196288659], backend-only boundary [41196288717], privacy [41196288694], RC425 [41196288797], and flexible commission [41196288767] all passed.
 - PR #608 remains Draft/unmerged. No deployed-origin activity module test or production deployment is claimed.
 - Registry now provides 10 domain templates; all domain operations remain visibly planned until server contracts are implemented. RC453 campaigns remain absent in production; RC452 tenant/business scope and RC102 write grants remain unresolved. Do not enable campaign mutations or SMM.
+
+## 2026-10-31 — Per-activity operational capability registry
+
+- Added 150 reviewed operational capability definitions: exactly three for each of the 50 canonical activity IDs, covering each activity's actual catalogue, booking, stock, project, service, or request lifecycle as appropriate.
+- Activity resolver now prioritizes its canonical-ID capability set; custom/unmapped activities retain a safe domain fallback.
+- Every capability is forced to planned until an authorized server workflow is implemented and verified. UI state labels and accessible names reflect the actual state.
+- Taxonomy validation now asserts all 50 IDs have exactly three activity-specific capability definitions. Pharmacy browser E2E checks its medicines/supplies, duty-hours, and delivery capabilities remain planned.
+- Latest changes are on branch feat/activity-modules-current-main-20261031, PR #608. Exact-head CI for this capability increment must pass before merge; PR remains Draft.
+- Admin-managed persistence/editor and backend actions remain open. No production schema, grants, RLS, Edge deployment, campaign execution, ad spend, or financial mutation was performed.
