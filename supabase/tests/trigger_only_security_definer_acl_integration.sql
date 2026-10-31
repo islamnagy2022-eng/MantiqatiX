@@ -114,7 +114,7 @@ for each row execute function public.capture_commission_rule_audit();
 
 grant usage on schema public, auth to service_role;
 grant insert on public.businesses to service_role;
-grant insert, update, delete on public.commission_rules to service_role;
+grant select, insert, update, delete on public.commission_rules to service_role;
 
 -- Minimal synthetic trigger implementations model the two live trigger contracts.
 -- The migration under test, not this fixture, applies the ACL/search_path hardening.
