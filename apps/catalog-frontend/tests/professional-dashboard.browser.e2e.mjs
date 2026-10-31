@@ -875,262 +875,363 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
-      await activityCard.waitFor({ state: 'visible' });
-      await activityCard.click();
-      const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
-      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
-      await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px direct activity module');
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await page.getByRole('button', { name: /العودة إلى الأنشطة/ }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px direct activity return');
-      results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
-    } finally { await context.close(); }
-  }
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
-  // 12. Selecting a specialty returns to the directory with a visible, reversible filter.
-  {
-    const { context, page } = await newScenario(browser);
-    try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
-        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      }
-      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
-      await activityCard.click();
-      const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('button', { name: 'التخصصات', exact: true }).click();
-      await modulePage.getByRole('button', { name: /باطنة/ }).click();
-      await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px selected activity specialty');
-      await page.setViewportSize({ width: 768, height: 1024 });
-      await assertNoHorizontalOverflow(page, '768px selected activity specialty');
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
-      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
-      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
-      results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
-    } finally { await context.close(); }
+const playwrightSpecifier = process.env.PLAYWRIGHT_MODULE || 'playwright';
+const { chromium } = await import(playwrightSpecifier);
+const baseUrl = process.env.MANTIQUATIX_E2E_BASE_URL || 'http://127.0.0.1:4173/MantiqatiX/';
+const config = readFileSync(new URL('../public/config.js', import.meta.url), 'utf8');
+const supabaseUrl = config.match(/supabaseUrl:\s*'([^']+)'/)?.[1];
+const supabaseAnonKey = config.match(/supabaseKey:\s*'([^']+)'/)?.[1];
+assert.ok(supabaseUrl, 'public config must expose the configured Supabase URL');
+assert.ok(supabaseAnonKey, 'public config must expose the public Supabase key');
+const supabaseOrigin = new URL(supabaseUrl).origin;
+const liveDirectoryResponse = await fetch(`${supabaseUrl}/functions/v1/public-catalog-directory`, {
+  headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
+});
+assert.equal(liveDirectoryResponse.status, 200, 'live public directory must respond HTTP 200');
+const liveDirectory = await liveDirectoryResponse.json();
+assert.equal(liveDirectory.accessMode, 'PUBLIC_DIRECTORY_READ_ONLY');
+assert.ok(Array.isArray(liveDirectory.businesses), 'live public directory must return businesses');
+const verifiedBusinessTargets = [
+  { id: 'c9d9d2a6-32b1-4f7d-b7c9-43ae48525281', label: 'Sameh Market', expectProducts: true },
+  { id: '703f4526-3292-43b4-b83b-3e0d9355704c', label: 'Burger Fakher', expectProducts: true },
+  { id: '92d4455a-31ef-4a77-acbf-71134ca98e9e', label: 'Shaeir Sanitary Ware', expectProducts: false },
+  { id: '5f02dbe8-7bb3-477b-a8e6-688f75ceaece', label: 'AMMAN COFFEE', expectProducts: false },
+];
+for (const target of verifiedBusinessTargets) {
+  const business = liveDirectory.businesses.find((row) => row.id === target.id);
+  assert.ok(business, 'live public directory must include ' + target.label);
+  assert.equal(business.provider?.verified, true, target.label + ' must be marked verified by the public API');
+  assert.equal(business.status, 'ACTIVE', target.label + ' must be active');
+  assert.ok(Array.isArray(business.items), target.label + ' must expose a catalog item array');
+  if (target.expectProducts) {
+    assert.ok(business.items.length > 0, target.label + ' must expose active public products');
   }
+}
+const storageKey = 'mantiqatix.production.auth';
+const tenantId = 'tenant-e2e';
+const businessId = '10000000-0000-0000-0000-000000000001';
+const branchId = 'branch-e2e';
+const employeePositionId = '20000000-0000-0000-0000-000000000001';
+const targetEmployeeId = '30000000-0000-0000-0000-000000000001';
 
-// 13. Canonical activity codes must outrank conflicting legacy category labels in homepage counts.
-{
-  const conflictingLegacyBusiness = {
-    id: '10000000-0000-0000-0000-000000000777',
-    tenantId: 'tenant-taxonomy-e2e',
-    organizationId: 'org-taxonomy-e2e',
-    name: 'صيدلية اختبار التصنيف',
-    // Deliberately stale legacy label: the stable activity codes below are authoritative.
-    category: 'مطاعم — برجر',
-    activityGroupCode: 'medical_health',
-    activityCategoryCode: 'pharmacies',
-    activityClassificationType: 'activity',
-    activitySpecialty: 'صيدلية عامة',
-    status: 'ACTIVE',
-    operationalStatus: 'ACTIVE',
-    publicEnabled: true,
-    isOfficialShowcase: false,
-    provider: { kind: 'OFFICIAL', verified: true, featured: false },
-    profile: { governorate: 'المنوفية', markaz: 'بركة السبع', village: '' },
-    branches: [{ id: 'branch-taxonomy-e2e', tenantId: 'tenant-taxonomy-e2e', name: 'الفرع الرئيسي', status: 'ACTIVE' }],
-    selectedBranchId: 'branch-taxonomy-e2e',
-    catalogPublished: true,
-    bizcatalog: { operationalStatus: 'ACTIVE' },
+const roles = {
+  businessOwner: {
+    id: '00000000-0000-0000-0000-000000000012',
+    email: 'e2e-business-owner@example.test',
+    role: 'OWNER',
+    businessId,
+    permissions: {},
+  },
+  owner: {
+    id: '00000000-0000-0000-0000-000000000001',
+    email: 'e2e-owner@example.test',
+    role: 'OWNER',
+    businessId: null,
+    permissions: {},
+    extraMemberships: [{
+      id: 'membership-employee-business-row',
+      role: 'EMPLOYEE',
+      businessId,
+      branchId,
+      permissions: { modules: { CATALOG: ['view'] } },
+      created_at: '2026-02-02T00:00:00.000Z',
+    }],
+  },
+  employeeCatalogViewer: {
+    id: '00000000-0000-0000-0000-000000000002',
+    email: 'e2e-catalog-viewer@example.test',
+    role: 'EMPLOYEE',
+    permissions: { modules: { CATALOG: ['view'] } },
+  },
+  employeeRosterViewer: {
+    id: '00000000-0000-0000-0000-000000000003',
+    email: 'e2e-roster-viewer@example.test',
+    role: 'EMPLOYEE',
+    permissions: { modules: { EMPLOYEES: ['view'] } },
+  },
+  branchOwner: {
+    id: '00000000-0000-0000-0000-000000000008',
+    email: 'e2e-branch-owner@example.test',
+    role: 'OWNER',
+    businessId,
+    branchId,
+    permissions: {},
+  },
+  unsupportedManager: {
+    id: '00000000-0000-0000-0000-000000000004',
+    email: 'e2e-manager@example.test',
+    role: 'MANAGER',
+    permissions: { modules: { CATALOG: ['view'], EMPLOYEES: ['manage'] } },
+  },
+  platformAdmin: {
+    id: '00000000-0000-0000-0000-000000000099',
+    email: 'e2e-platform-admin@example.test',
+    role: 'SUPER_ADMIN',
+    businessId: null,
+    branchId: null,
+    permissions: { scope: 'PLATFORM', full_control: true },
+  },
+};
+
+const fakeBusiness = {
+  id: businessId,
+  tenantId,
+  organizationId: 'org-e2e',
+  name: 'نشاط اختبار الداشبورد',
+  category: 'أنشطة تجارية',
+  status: 'ACTIVE',
+  operationalStatus: 'ACTIVE',
+  publicEnabled: false,
+  createdAt: '2026-01-15T12:00:00.000Z',
+  branches: [{ id: branchId, tenantId, businessId, name: 'الفرع الرئيسي' }],
+};
+
+function makeSession(scenario) {
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    access_token: 'e2e-access-token-not-a-real-credential',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: now + 3600,
+    refresh_token: 'e2e-refresh-token-not-a-real-credential',
+    user: {
+      id: scenario.id,
+      aud: 'authenticated',
+      role: 'authenticated',
+      email: scenario.email,
+      email_confirmed_at: '2026-01-01T00:00:00.000Z',
+      app_metadata: { provider: 'google', providers: ['google'] },
+      user_metadata: { full_name: 'Dashboard E2E' },
+      created_at: '2026-01-01T00:00:00.000Z',
+      identities: [],
+    },
   };
-  const { context, page } = await newScenario(browser, null, [conflictingLegacyBusiness]);
-  try {
-    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-    const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-    if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
-      await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-      await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+}
+
+async function newScenario(browser, scenario = null, publicDirectoryBusinesses = [], options = {}) {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const session = scenario ? makeSession(scenario) : null;
+  await context.addInitScript(({ key, value, geoKey, geoPreference }) => {
+    localStorage.removeItem(key);
+    if (value) localStorage.setItem(key, value);
+    // Initialize geographic test state once per browser context, not on every
+    // navigation/reload; the GPS test must verify the app's own persisted choice.
+    if (!sessionStorage.getItem('__mantiqatix_e2e_geo_initialized')) {
+      localStorage.removeItem(geoKey);
+      if (geoPreference) localStorage.setItem(geoKey, JSON.stringify(geoPreference));
+      sessionStorage.setItem('__mantiqatix_e2e_geo_initialized', '1');
     }
-    const pharmacyActivity = page.getByRole('button', { name: /صيدليات/ }).first();
-    const restaurantActivity = page.getByRole('button', { name: /مطاعم/ }).first();
-    await pharmacyActivity.waitFor({ state: 'visible' });
-    await restaurantActivity.waitFor({ state: 'visible' });
-    assert.match(await pharmacyActivity.innerText(), /موثق\s*1/, 'canonical pharmacy activity must receive the verified count');
-    assert.match(await restaurantActivity.innerText(), /موثق\s*0/, 'stale restaurant label must not steal the pharmacy count');
-    await pharmacyActivity.click();
-    await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
-    results.push('homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels');
-  } finally { await context.close(); }
+  }, {
+    key: storageKey,
+    value: session ? JSON.stringify(session) : null,
+    geoKey: 'mantiqatix.geo-discovery.v1',
+    // Non-GPS scenarios begin with the Egypt-wide manual fallback. GPS scenarios
+    // opt out so they can verify the first-visit consent flow independently.
+    geoPreference: options.geoFirstVisit ? null : {
+      completed: true, mode: 'manual', governorate: 'all', markaz: 'all', village: 'all', area: 'all',
+    },
+  });
+
+  const rpcObservation = { scopedBranchId: undefined };
+  const catalogReadRequests = [];
+  const directoryAdminRequests = [];
+  const platformAdminRequests = [];
+  const platformSettingsState = { settings: options.platformSettings || {} };
+  const directoryListingsState = options.directoryListingsState || { listings: [] };
+  const page = await context.newPage();
+  await page.route(supabaseOrigin + '/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const corsHeaders = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+      'access-control-allow-headers': 'authorization,apikey,content-type,x-client-info,prefer,accept-profile,content-profile,range',
+      'access-control-max-age': '86400',
+    };
+    const json = (body, status = 200) => route.fulfill({
+      status,
+      headers: corsHeaders,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    });
+
+    if (request.method() === 'OPTIONS') {
+      return route.fulfill({ status: 204, headers: corsHeaders, body: '' });
+    }
+    if (url.pathname.endsWith('/auth/v1/user')) {
+      return json(session?.user || {});
+    }
+    if (url.pathname.endsWith('/auth/v1/token')) {
+      return session ? json(session) : json({ error: 'invalid_grant' }, 400);
+    }
+    if (url.pathname.endsWith('/rest/v1/user_memberships')) {
+      if (!scenario) return json([]);
+      const baseMembership = {
+        id: 'membership-' + scenario.role.toLowerCase(),
+        user_id: scenario.id,
+        tenant_id: tenantId,
+        organization_id: 'org-e2e',
+        business_id: scenario.businessId !== undefined ? scenario.businessId : businessId,
+        branch_id: scenario.branchId || null,
+        role: scenario.role,
+        permissions: scenario.permissions,
+        status: 'ACTIVE',
+        created_at: '2026-01-01T00:00:00.000Z',
+      };
+      const additionalMemberships = (scenario.extraMemberships || []).map((extra) => ({
+        id: extra.id || 'membership-extra-' + String(extra.role).toLowerCase(),
+        user_id: scenario.id,
+        tenant_id: tenantId,
+        organization_id: 'org-e2e',
+        business_id: extra.businessId !== undefined ? extra.businessId : businessId,
+        branch_id: extra.branchId || null,
+        role: extra.role,
+        permissions: extra.permissions || {},
+        status: 'ACTIVE',
+        created_at: extra.created_at || '2026-02-01T00:00:00.000Z',
+      }));
+      // Return the business-scoped employee row first to guard against assuming
+      // the first membership is the strongest role. OWNER is tenant-wide here.
+      return json([...additionalMemberships, baseMembership]);
+    }
+    if (url.pathname.endsWith('/rest/v1/rpc/mnty_business_employee_list_scoped') || url.pathname.endsWith('/rest/v1/rpc/mnty_business_employee_list')) {
+      if (url.pathname.endsWith('/rest/v1/rpc/mnty_business_employee_list_scoped')) {
+        let body = {};
+        try { body = request.postDataJSON() || {}; } catch { /* no JSON body */ }
+        rpcObservation.scopedBranchId = body.p_branch_id ?? null;
+      }
+      return json({
+        positions: [{
+          id: employeePositionId,
+          title: 'موظف عرض فقط',
+          department: 'الكتالوج',
+          description: '',
+          employment_type: 'FULL_TIME',
+          permission_template: { modules: { EMPLOYEES: ['view'] } },
+          is_hiring: false,
+          is_active: true,
+        }],
+        employees: [{
+          id: targetEmployeeId,
+          job_position_id: employeePositionId,
+          position_title: 'موظف عرض فقط',
+          full_name: 'موظف اختبار',
+          email: 'e2e-listed-employee@example.test',
+          phone: '',
+          status: 'ACTIVE',
+          user_id: '00000000-0000-0000-0000-000000000005',
+        }],
+      });
+    }
+    if (url.pathname.endsWith('/functions/v1/public-catalog-directory')) {
+      return json({ accessMode: 'PUBLIC_DIRECTORY_READ_ONLY', businesses: publicDirectoryBusinesses });
+    }
+    if (url.pathname.endsWith('/functions/v1/public-catalog')) {
+      const businessId = url.searchParams.get('businessId');
+      const fixture = publicDirectoryBusinesses.find((business) => business.id === businessId);
+      if (!fixture) return json({ error: 'BUSINESS_NOT_PUBLIC' }, 404);
+      return json({
+        business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
+        provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
+        profile: { ...fixture.profile, category: fixture.category },
+        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
+        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+      });
+    }
+    if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
+      let body = {};
+      try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
+      if (body.action === 'CATALOG_READ') {
+        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
+        return json({
+          business: fakeBusiness,
+          provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
+          branches: fakeBusiness.branches,
+          selectedBranchId: body.branchId || null,
+          items: [],
+          prices: [],
+        });
+      }
+      if (body.action === 'BUSINESS_LIST') return json({ businesses: [fakeBusiness] });
+      return json({ businesses: [], items: [], prices: [], branches: [] });
+    }
+    if (url.pathname.endsWith('/functions/v1/catalog-platform-admin')) {
+      let body = {};
+      try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
+      const action = String(body.action || '').toUpperCase();
+      platformAdminRequests.push({
+        action,
+        settings: body.settings || null,
+        authorization: request.headers().authorization || '',
+      });
+      if (action === 'GET_SETTINGS') return json({ settings: platformSettingsState.settings });
+      if (action === 'SAVE_SETTINGS') {
+        platformSettingsState.settings = { ...platformSettingsState.settings, ...(body.settings || {}) };
+        return json({ success: true, settings: platformSettingsState.settings, auditLogged: true });
+      }
+      if (action === 'LIST_SUBSCRIBERS') return json({ subscribers: [] });
+      return json({ subscribers: [], settings: platformSettingsState.settings });
+    }
+    if (url.pathname.endsWith('/functions/v1/directory-listings')) {
+      let body = {};
+      try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
+      if (request.method() === 'GET') return json({ listings: directoryListingsState.listings });
+      if (body.action === 'ADMIN_LIST') {
+        directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
+        return json({ listings: directoryListingsState.listings, claims: [], businesses: [] });
+      }
+      if (body.action === 'UPSERT_LISTING') {
+        directoryAdminRequests.push({ action: body.action, payload: body, authorization: request.headers().authorization || '' });
+        const existing = directoryListingsState.listings.find((listing) => listing.id === body.id);
+        const saved = {
+          ...(existing || {}),
+          id: body.id || 'listing-e2e-created-0001',
+          slug: body.slug || 'directory-e2e-' + String(body.displayName || 'listing').replace(/\\s+/g, '-').toLowerCase(),
+          display_name: body.displayName,
+          listing_type: body.listingType,
+          functional_group_id: body.functionalGroupId,
+          taxonomy_category_id: body.taxonomyCategoryId,
+          taxonomy_specialty: body.taxonomySpecialty || null,
+          specialty: body.specialty || body.taxonomySpecialty || null,
+          phone: body.phone || null,
+          secondary_phone: body.secondaryPhone || null,
+          address: body.address || null,
+          governorate: body.governorate || 'المنوفية',
+          district: body.district || 'بركة السبع',
+          village: body.village || null,
+          source_name: body.sourceName || 'إدخال إدارة المنصة',
+          source_url: body.sourceUrl || null,
+          listing_status: body.listingStatus || 'DRAFT',
+          claim_status: existing?.claim_status || 'UNCLAIMED',
+          outreach_status: body.outreachStatus || 'NEW',
+          outreach_notes: body.outreachNotes || null,
+          last_contacted_at: body.lastContactedAt || null,
+          subscription_offer_at: body.subscriptionOfferAt || null,
+          next_follow_up_at: body.nextFollowUpAt || null,
+          completeness: body.completeness || {},
+          updated_at: new Date().toISOString(),
+        };
+        directoryListingsState.listings = [saved, ...directoryListingsState.listings.filter((listing) => listing.id !== saved.id)];
+        return json({ listing: saved }, existing ? 200 : 201);
+      }
+      return json({ error: 'UNSUPPORTED_DIRECTORY_ACTION' }, 400);
+    }
+    if (url.pathname.startsWith('/rest/v1/')) {
+      return json([]);
+    }
+    return json({});
+  });
+
+  await page.goto(baseUrl + (options.initialRoute || '?view=professional_dashboard'), { waitUntil: 'domcontentloaded' });
+  return { context, page, rpcObservation, catalogReadRequests, directoryAdminRequests, directoryListingsState, platformAdminRequests, platformSettingsState };
 }
 
-// 14. Domain profiles must expose different marketing plans and operating capabilities.
-  {
-    const { context, page } = await newScenario(browser);
-    try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
-      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
-        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
-        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
-      }
-      await page.getByRole('button', { name: /مطاعم/ }).first().click();
-      const modulePage = page.locator('main[dir="rtl"]');
-      await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
-      await modulePage.getByText('السكان القريبون', { exact: false }).waitFor({ state: 'visible' });
-      await modulePage.getByText('صور أصلية للمنتجات والأطباق', { exact: false }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
-      await modulePage.getByRole('heading', { name: 'القائمة والمنتجات', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByLabel('القائمة والمنتجات: قيد التجهيز', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px restaurant activity operations');
-      await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies', { waitUntil: 'domcontentloaded' });
-      const pharmacyModule = page.locator('main[dir="rtl"]');
-      await pharmacyModule.getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
-      await pharmacyModule.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
-      await pharmacyModule.getByText('إعلان ساعات العمل والمناوبة', { exact: true }).waitFor({ state: 'visible' });
-      await pharmacyModule.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
-      await pharmacyModule.getByText('إدارة ملف الصيدلية وساعات المناوبة', { exact: false }).waitFor({ state: 'visible' });
-      await pharmacyModule.getByRole('heading', { name: 'الأدوية والمستلزمات', exact: true }).waitFor({ state: 'visible' });
-      await pharmacyModule.getByRole('heading', { name: 'المناوبات وساعات العمل', exact: true }).waitFor({ state: 'visible' });
-      await pharmacyModule.getByRole('heading', { name: 'طلبات التوصيل', exact: true }).waitFor({ state: 'visible' });
-      assert.equal(await pharmacyModule.getByText('قيد التجهيز', { exact: true }).count(), 3, 'All pharmacy operations must remain disabled until verified backend workflows exist.');
-      results.push('activity-module-registry-renders-domain-specific-marketing-and-operations');
-      results.push('activity-module-registry-renders-pharmacy-specific-override');
-    } finally { await context.close(); }
-  }
-
-  // Live verified activities must render badges and open their corresponding catalogues.
-  {
-    const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
-    try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-
-      const findVerifiedCard = async (target) => {
-        const heading = page.getByRole('heading', { name: target.name, exact: true }).first();
-        await heading.waitFor({ state: 'visible', timeout: 15000 });
-        const card = heading.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " group ")][1]');
-        await card.getByText('موثّق', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-        assert.equal(await card.getByText('غير موثق', { exact: true }).count(), 0, target.name + ' must not show an unverified badge');
-        return card;
-      };
-
-      for (const target of verifiedBusinessTargets) {
-        const liveBusiness = liveDirectory.businesses.find((row) => row.id === target.id);
-        const card = await findVerifiedCard(liveBusiness);
-        await card.getByRole('button', { name: /الكتالوج/ }).click();
-
-        await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + liveBusiness.name, exact: true })
-          .waitFor({ state: 'visible', timeout: 15000 });
-        await page.getByText('موثّق رسمياً', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-
-        if (target.expectProducts) {
-          const firstPublicItem = liveBusiness.items[0];
-          const firstItemName = String(firstPublicItem.name_ar || firstPublicItem.name_en || '').trim();
-          assert.ok(firstItemName, target.label + ' public item must have a display name');
-          await page.getByRole('heading', { name: firstItemName, exact: true }).first()
-            .waitFor({ state: 'visible', timeout: 15000 });
-          assert.ok(await page.getByText(/المعروض:/).count() > 0, target.label + ' catalogue must display a product count');
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
-        } else {
-          await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
-            .waitFor({ state: 'visible', timeout: 10000 });
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
-        }
-
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      }
-    } finally { await context.close(); }
-  }
-
-  // Live verified activities must render badges and open their corresponding catalogues.
-  {
-    const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
-    try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-
-      const findVerifiedCard = async (target) => {
-        const heading = page.getByRole('heading', { name: target.name, exact: true }).first();
-        await heading.waitFor({ state: 'visible', timeout: 15000 });
-        const card = heading.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " group ")][1]');
-        await card.getByText('موثّق', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-        assert.equal(await card.getByText('غير موثق', { exact: true }).count(), 0, target.name + ' must not show an unverified badge');
-        return card;
-      };
-
-      for (const target of verifiedBusinessTargets) {
-        const liveBusiness = liveDirectory.businesses.find((row) => row.id === target.id);
-        const card = await findVerifiedCard(liveBusiness);
-        await card.getByRole('button', { name: /الكتالوج/ }).click();
-
-        await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + liveBusiness.name, exact: true })
-          .waitFor({ state: 'visible', timeout: 15000 });
-        await page.getByText('موثّق رسمياً', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-
-        if (target.expectProducts) {
-          const firstPublicItem = liveBusiness.items[0];
-          const firstItemName = String(firstPublicItem.name_ar || firstPublicItem.name_en || '').trim();
-          assert.ok(firstItemName, target.label + ' public item must have a display name');
-          await page.getByRole('heading', { name: firstItemName, exact: true }).first()
-            .waitFor({ state: 'visible', timeout: 15000 });
-          assert.ok(await page.getByText(/المعروض:/).count() > 0, target.label + ' catalogue must display a product count');
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
-        } else {
-          await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
-            .waitFor({ state: 'visible', timeout: 10000 });
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
-        }
-
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      }
-    } finally { await context.close(); }
-  }
-
-  // Live verified activities must render badges and open their corresponding catalogues.
-  {
-    const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
-    try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-
-      const findVerifiedCard = async (target) => {
-        const heading = page.getByRole('heading', { name: target.name, exact: true }).first();
-        await heading.waitFor({ state: 'visible', timeout: 15000 });
-        const card = heading.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " group ")][1]');
-        await card.getByText('موثّق', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-        assert.equal(await card.getByText('غير موثق', { exact: true }).count(), 0, target.name + ' must not show an unverified badge');
-        return card;
-      };
-
-      for (const target of verifiedBusinessTargets) {
-        const liveBusiness = liveDirectory.businesses.find((row) => row.id === target.id);
-        const card = await findVerifiedCard(liveBusiness);
-        await card.getByRole('button', { name: /الكتالوج/ }).click();
-
-        await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + liveBusiness.name, exact: true })
-          .waitFor({ state: 'visible', timeout: 15000 });
-        await page.getByText('موثّق رسمياً', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
-
-        if (target.expectProducts) {
-          const firstPublicItem = liveBusiness.items[0];
-          const firstItemName = String(firstPublicItem.name_ar || firstPublicItem.name_en || '').trim();
-          assert.ok(firstItemName, target.label + ' public item must have a display name');
-          await page.getByRole('heading', { name: firstItemName, exact: true }).first()
-            .waitFor({ state: 'visible', timeout: 15000 });
-          assert.ok(await page.getByText(/المعروض:/).count() > 0, target.label + ' catalogue must display a product count');
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
-        } else {
-          await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
-            .waitFor({ state: 'visible', timeout: 10000 });
-          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
-        }
-
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      }
-    } finally { await context.close(); }
-  }
-
-} finally {
-  await browser.close();
+async function waitForDashboard(page) {
+  await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
 }
-console.log('PRIMARY_CATALOG_BROWSER_E2E=PASS (' + results.join(', ') + ')');
+async function waitForDeniedDashboard(page) {
+  await page.waitForFunction(() => !new URLSearchParams(window.location.search).has('view'), null, { timeout: 15000 });
+  assert.equal(await page.loca
