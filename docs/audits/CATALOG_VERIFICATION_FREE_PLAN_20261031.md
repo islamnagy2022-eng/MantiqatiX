@@ -61,3 +61,18 @@ These UI checks are only complete after the corresponding GitHub Actions run rep
 - No Production schema migration, DDL, DML beyond the four verification and six plan metadata updates, RLS/Auth/grant change, payment, or Edge Function deployment was performed.
 - No publication, operational status, freeze state, owner membership, role, item status, or price was changed.
 - Overall MantiqaTiX Production Gate remains BLOCKED / NOT CERTIFIED; this scoped catalog operation does not certify the full platform.
+
+## Final production-site verification — 2026-10-31
+
+- Main commit: `2bccd5d5464406dff090038256df63c59adcd360` (PR #590 merged).
+- GitHub Actions run #41177980566 completed the scoped Pages deployment. The deployed root check emitted `MANTIQATIX_CATALOG_PRIMARY_ROOT_DEPLOY=PASS` for `https://islamnagy2022-eng.github.io/MantiqatiX/`; retired demo/SMM routes remained unpublished.
+- The same main-branch deployed-origin browser job emitted `PRIMARY_CATALOG_BROWSER_E2E=PASS`, including:
+  - `sameh-market-verified-badge-and-live-product-rendered`
+  - `burger-fakher-verified-badge-and-live-product-rendered`
+  - `shaeir-sanitary-ware-verified-badge-and-empty-catalog-state-rendered`
+  - `amman-coffee-verified-badge-and-empty-catalog-state-rendered`
+- The main-branch live Supabase directory smoke test returned `VERIFIED_BUSINESS_PUBLIC_DIRECTORY_SMOKE=PASS` with public item counts: Sameh Market 2, Burger Fakher 14, Shaeir 0, AMMAN COFFEE 0.
+- Final read-only billing reconciliation: 10 verified provider profiles, 10 attached ACTIVE businesses on FREE/0 with admin approval, 0 exceptions.
+- AMMAN COFFEE location values are Faqous / El-Khattara / Sharqia. Shaeir's saved values currently show governorate=Monufia together with markaz/village=Zefta; this is an internal geographic-data inconsistency and was not silently modified. Follow-up is recorded separately.
+
+The scoped catalog deployment and UI verification are complete. The full platform production gate remains `BLOCKED / NOT CERTIFIED`; the workflow confirmed `CATALOG_PILOT_GATE=PASS` and `FULL_PLATFORM_GATE=BLOCKED`.
