@@ -100,21 +100,12 @@ type StoredGeoPreference = {
 const readStoredGeoPreference = (): StoredGeoPreference | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY);
-    if (!raw) return null;
-    const value = JSON.parse(raw) as Partial<StoredGeoPreference>;
-    if (value.completed !== true || (value.mode !== 'auto' && value.mode !== 'manual')) return null;
-    return {
-      completed: true,
-      mode: value.mode,
-      governorate: typeof value.governorate === 'string' ? value.governorate : 'all',
-      markaz: typeof value.markaz === 'string' ? value.markaz : 'all',
-      village: typeof value.village === 'string' ? value.village : 'all',
-      area: typeof value.area === 'string' ? value.area : 'all',
-    };
+    const parsed = JSON.parse(window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY) || 'null');
+    if (parsed?.completed === true && (parsed.mode === 'auto' || parsed.mode === 'manual')) return parsed as StoredGeoPreference;
   } catch {
-    return null;
+    // Ignore malformed or unavailable browser storage.
   }
+  return null;
 };
 
 const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
@@ -138,10 +129,10 @@ export const DirectoryView: React.FC = () => {
     products,
   } = useApp();
   const businesses = directoryBusinesses;
-  const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
-  const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
-  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
-  const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
+  // Restore consent status only; every visit begins with the full Egypt-wide directory.
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(() => Boolean(readStoredGeoPreference()?.completed));
+  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(() => readStoredGeoPreference()?.mode || 'manual');
+  const [showLocationWelcome, setShowLocationWelcome] = useState(() => !readStoredGeoPreference()?.completed);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -205,34 +196,18 @@ export const DirectoryView: React.FC = () => {
           }
           setUserCoordinates({ latitude, longitude });
           completeGeoSetup('auto');
-          setLocationMessage('تم تحديد موقعك، جارٍ مطابقة أقرب نطاق إداري…');
+          setLocationMessage('تم تحديد موقعك، جارٍ ترتيب نتائج مصر بالكامل من الأقرب إلى الأبعد…');
           try {
             const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
             if (match) {
-              setSelectedGovFilter(match.governorate.name);
-              setSelectedMarkazFilter(match.district?.name || 'all');
-              setSelectedVillageFilter(match.shiyakha?.name || 'all');
-              setSelectedAreaFilter('all');
-              const levelLabel = match.level === 'SHIYAKHA'
-                ? 'أقرب قرية/شياخة'
-                : match.level === 'DISTRICT' ? 'أقرب مركز/قسم' : 'أقرب محافظة';
               const matchedName = match.shiyakha?.name || match.district?.name || match.governorate.name;
-              setLocationMessage('تم تقدير ' + levelLabel + ': ' + matchedName +
-                ' (أقرب نقطة بيانات تبعد نحو ' + match.distanceKm.toFixed(1) +
-                ' كم). هذا ترشيح تقريبي من نقاط إدارية وليس إثباتًا بحدود القرية؛ يمكنك تعديله يدويًا.');
+              setLocationMessage('تم تحديد موقعك. تظهر الأنشطة الموثقة في مصر بالكامل مرتبة من الأقرب إلى الأبعد. أقرب نطاق إداري تقديري: ' + matchedName +
+                ' (نحو ' + match.distanceKm.toFixed(1) + ' كم)، دون تقييد النتائج به. يمكنك تضييق النطاق يدويًا.');
             } else {
-              setSelectedGovFilter('all');
-              setSelectedMarkazFilter('all');
-              setSelectedVillageFilter('all');
-              setSelectedAreaFilter('all');
-              setLocationMessage('تم تحديد موقعك، لكن لم تتوفر نقطة إدارية قريبة بدرجة كافية. يعرض الموقع مصر بالكامل؛ اختر نطاقك يدويًا.');
+              setLocationMessage('تم تحديد موقعك وترتيب النتائج ذات الإحداثيات من الأقرب إلى الأبعد على مستوى مصر بالكامل.');
             }
           } catch {
-            setSelectedGovFilter('all');
-            setSelectedMarkazFilter('all');
-            setSelectedVillageFilter('all');
-            setSelectedAreaFilter('all');
-            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة ذات الإحداثيات، لكن تعذر تحميل أسماء المناطق الإدارية. يمكنك اختيار النطاق يدويًا.');
+            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة التي لها إحداثيات موثوقة، مع استمرار عرض مصر بالكامل. يمكنك تضييق النطاق يدويًا.');
           } finally {
             if (Number.isFinite(accuracy) && accuracy > 1000) {
               setLocationMessage((current) => current + ' دقة GPS منخفضة نسبيًا؛ أعد المحاولة في مكان مفتوح لتحسين الترشيح.');
@@ -261,19 +236,19 @@ export const DirectoryView: React.FC = () => {
     }
   };
 
-  // First visits keep the in-page explanation visible until the visitor explicitly consents.
-  // Declined or manually selected visits are saved and will not trigger repeated prompts.
-  // Returning visitors get a silent refresh only after a previous explicit grant.
+  // A previously granted automatic-location preference permits a fresh browser
+  // position read on return; saved administrative filters are never restored.
   useEffect(() => {
-    if (!initialGeoPreference?.completed || initialGeoPreference.mode !== 'auto') return;
-    if (!navigator.permissions?.query) return;
+    if (!geoSetupCompleted || geoPreferenceMode !== 'auto' || !navigator.permissions?.query) return;
     let cancelled = false;
     navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
       if (!cancelled && permission.state === 'granted') requestUserLocation();
     }).catch(() => {
-      // Permission API is optional; the manual "use my location" action remains available.
+      // If permission state cannot be checked, do not silently trigger a browser prompt.
     });
     return () => { cancelled = true; };
+    // Intentionally run once on mount using the persisted consent decision.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -319,10 +294,10 @@ export const DirectoryView: React.FC = () => {
     window.addEventListener('popstate', syncActivityModuleRoute);
     return () => window.removeEventListener('popstate', syncActivityModuleRoute);
   }, []);
-  const [selectedGovFilter, setSelectedGovFilter] = useState<string>(initialGeoPreference?.governorate || 'all');
-  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
-  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
-  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>('all');
+  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>('all');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
@@ -797,17 +772,17 @@ export const DirectoryView: React.FC = () => {
           ) : (
             <>
               {selectedActivityCategory && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3"><p className="text-xs font-bold text-emerald-950">تصفية النتائج حسب: {selectedActivityCategory.name}{selectedSpecialty !== 'all' ? ` — ${selectedSpecialty}` : ''}</p><button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل أنشطة المجموعة</button></div>}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-1 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8">
                 {availableCategories.map((category) => {
                   const eligibleCategoryBusinesses = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id);
                   const confirmedCount = eligibleCategoryBusinesses.filter((business) => business.isVerified).length;
                   const unconfirmedCount = eligibleCategoryBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
                   const totalCount = confirmedCount + unconfirmedCount;
-                  return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`} className="group relative flex min-h-24 min-w-0 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                    <span className="absolute left-2 top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[9px] font-black text-emerald-800">{totalCount.toLocaleString('ar-EG')}</span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700">{ICONS_MAP[category.functionalGroupId] || <Store className="h-5 w-5" />}</span>
-                    <span className="text-xs font-black text-slate-900">{category.name}</span>
-                    <span className="flex flex-wrap justify-center gap-2 text-[10px] font-bold"><span className="text-emerald-800">موثق {confirmedCount}</span><span className="text-red-700">غير موثق {unconfirmedCount}</span></span>
+                  return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} aria-label={`فتح نشاط ${category.name} — إجمالي ${totalCount}، موثق ${confirmedCount}، غير موثق ${unconfirmedCount}`} className="group relative flex min-h-20 min-w-0 flex-col items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white p-1.5 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:min-h-24 sm:gap-1.5 sm:p-2">
+                    <span className="absolute left-1 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-0.5 text-[8px] font-black text-emerald-800 sm:left-1.5 sm:top-1.5 sm:h-5 sm:min-w-5 sm:px-1 sm:text-[9px]">{totalCount.toLocaleString('ar-EG')}</span>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-700 sm:h-9 sm:w-9 sm:rounded-xl">{ICONS_MAP[category.functionalGroupId] || <Store className="h-5 w-5" />}</span>
+                    <span className="line-clamp-2 text-[9px] font-black leading-tight text-slate-900 sm:text-[11px]">{category.name}</span>
+                    <span className="flex flex-wrap justify-center gap-x-1 text-[8px] font-bold sm:gap-2 sm:text-[10px]"><span className="text-emerald-800">موثق {confirmedCount}</span><span className="text-red-700">غير موثق {unconfirmedCount}</span></span>
                     <ChevronLeft className="absolute bottom-2 right-2 h-3 w-3 text-slate-300 group-hover:text-emerald-700" />
                   </button>;
                 })}

@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'home' | 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -126,9 +126,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    if (params.has('activity') || params.has('listing') || params.has('group')) return 'directory';
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory' || requestedView === 'home'
       ? requestedView
-      : 'directory';
+      : 'home';
   });
 
   // Keep the SPA's visible view in the URL so refreshes and copied links reopen
@@ -138,6 +139,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     url.searchParams.delete('store');
     url.searchParams.delete('businessId');
     url.searchParams.delete('manage');
+    if (view !== 'directory') {
+      url.searchParams.delete('activity');
+      url.searchParams.delete('listing');
+      url.searchParams.delete('group');
+    }
     if (view !== 'merchant_admin') url.searchParams.delete('merchantTab');
     if (view !== 'super_admin') url.searchParams.delete('controlTab');
     if (view === 'public_storefront') {
@@ -147,7 +153,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       url.searchParams.delete('view');
       if (view !== 'super_admin') url.searchParams.delete('tab');
-      if (view !== 'directory' && view !== 'login') url.searchParams.set('view', view);
+      if (view !== 'home' && view !== 'login') url.searchParams.set('view', view);
       if ((view === 'super_admin' || view === 'merchant_admin') && businessId) {
         url.searchParams.set('manage', businessId);
       }
@@ -249,9 +255,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('store') || params.get('businessId') || '';
     const requestedView = params.get('view');
-    // A newly signed-in account always lands on the public home directory.
-    // Explicit, role-authorized dashboard routes are still restorable on refresh.
-    const defaultView: ViewMode = 'directory';
+    // A newly signed-in account always lands on the marketplace home.
+    // The directory is a separate explicit route, and authorized dashboards remain restorable.
+    const defaultView: ViewMode = 'home';
 
     // A share URL must continue to open its public catalog for signed-in and guest
     // users alike, but it must never bypass the public-catalog API's publication gate.
@@ -282,7 +288,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    const safeRequestedView: ViewMode = requestedView === 'directory'
+    const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
+    const safeRequestedView: ViewMode = requestedView === 'directory' || isDirectoryDeepLink
       ? 'directory'
       : requestedView === 'super_admin' && boot.authSession.role === 'admin'
         ? 'super_admin'
@@ -290,7 +297,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? 'merchant_admin'
           : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
             ? 'professional_dashboard'
-            : 'directory';
+            : 'home';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -435,9 +442,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       routeBusinessIdRef.current = requestedManagedId;
       setSelectedBusinessIdState(requestedManagedId);
       setCurrentViewState(
-        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory' || requestedView === 'home'
           ? requestedView
-          : 'directory'
+          : (params.has('activity') || params.has('listing') || params.has('group') ? 'directory' : 'home')
       );
     };
     window.addEventListener('popstate', restoreRouteFromLocation);
