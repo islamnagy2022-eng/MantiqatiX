@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'account_portal' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -126,7 +126,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'account_portal' || requestedView === 'directory'
       ? requestedView
       : 'directory';
   });
@@ -205,7 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const functionalGroups = adminSettings.functionalGroups || DEFAULT_FUNCTIONAL_GROUPS;
   const categories = adminSettings.categories || DEFAULT_CATEGORIES;
   const currentBusiness = (() => {
-    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard')) {
+    if (authSession.role === 'subscriber' && (currentView === 'merchant_admin' || currentView === 'professional_dashboard' || currentView === 'account_portal')) {
       // Never fall back to another public business if the subscriber's authorized
       // business is missing from the current production bootstrap.
       return businesses.find((b) => b.id === authSession.businessId);
@@ -290,7 +290,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? 'merchant_admin'
           : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
             ? 'professional_dashboard'
-            : 'directory';
+            : requestedView === 'account_portal' && boot.authSession.isAuthenticated
+              ? 'account_portal'
+              : 'directory';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
