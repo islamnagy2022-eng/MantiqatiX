@@ -2782,6 +2782,14 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Follow-up on the default-owner trigger: confirmed it is attached to `businesses`; authenticated and anon currently have no direct INSERT table privilege on `businesses`. This reduces the direct client-trigger surface, but the service/RPC creation paths that can insert businesses still need an ownership-attribution and abuse-rate review. No unauthorized assignment was demonstrated.
 
 
+## 2026-10-31 — Refreshed Security Advisor and merge-conflict follow-up
+
+- [x] Current live migration ledger: 308 records; latest `20261029083845`.
+- [x] Security Advisor snapshot 2026-10-31 04:13:52 UTC: 8 RLS/no-policy INFO, 3 anon SECURITY DEFINER WARN, 67 authenticated SECURITY DEFINER WARN, leaked-password protection disabled.
+- [ ] Risk-based review of 67 functions remains open; do not blanket revoke authenticated EXECUTE. Classify by function body, caller, authorization predicate, returned data and intended client workflow.
+- [ ] PR #508/#535/#551 have successful listed head workflow runs but GitHub merge rejects due conflicts with main. Reconcile onto current main and rerun exact-head CI.
+- [ ] PR #540 remains draft, 77 commits behind main; no RC459–RC461 Production rollout.
+- No Production mutation. Overall gate remains **BLOCKED / NOT CERTIFIED**.
 
 ## CAT-TAX-01 — توحيد التصنيف إلى 10 مجموعات وظيفية (2026-10-31)
 
