@@ -2710,3 +2710,11 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] After approved release only: apply RC441/RC449 through the controlled migration process; verify live function body, empty search_path, platform-admin guard and grants; run post-release read-only checks. Never test by settling a live ride.
 - Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
 - **Production impact:** no DDL, grants, Auth/RLS, Edge Function, data, payment, wallet, settlement, or journal mutation was performed. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### P0 scope expansion — four live MantiGO platform RPCs
+
+- [x] Expanded the same read-only catalog inspection to all four RC449 platform-wide RPCs. All four are SECURITY DEFINER, `search_path=public`, authenticated-executable, anon-denied, and none calls `mnty_can_platform_admin()`.
+- [x] Confirmed the affected surface: global dashboard aggregates; global financial report; captain settlement/journal mutation; stale ride expiration/audit/notification mutation. The live role predicates accept broad tenant-scoped roles and are not constrained to `MNTY-PLATFORM` with explicit `scope=PLATFORM` and `full_control=true`.
+- [ ] Keep the P0 release blocker applied to the full four-RPC surface, not only settlement. Do not invoke these global RPCs with non-platform roles against Production to demonstrate the defect.
+- The RC449 source migration already adds the explicit platform guard to all four functions; live RC441/RC449 versions remain absent. See the audit document linked above.
