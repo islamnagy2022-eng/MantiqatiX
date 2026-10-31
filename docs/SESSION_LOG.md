@@ -1520,3 +1520,14 @@ A separate source review found a second platform-root authorization model: the n
 - The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
 - On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
 - This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
+
+
+## 2026-10-31 — Continue unified dashboard implementation
+
+- New current-main branch: `feat/unified-dashboard-finance-wallet-ads-20261031`. Old PR #601 remains draft and was not force-rebased.
+- Lazy-loaded secondary screens and retained the directory as the initial eager page; added static pre-React loading shell; removed duplicated public-directory fetch from signed-out auth bootstrap.
+- Added protected account_portal route and account entry button. Removed dashboard links from public navigation and moved the admin business selector into authenticated dashboard context.
+- Embedded platform AdminDashboard in the admin section of SubscriberAccountPortal. Owner/employee dashboards are still rendered only from current session permissions. Legacy routes/screens are retained, not deleted.
+- Added Playwright E2E coverage for dashboard tab removal, account entry, owner management, portal mode return, and account-only Google identity.
+- Carried forward the detailed wallet/commission/subscription/ad specification and current FIN-ADS-01 TODO. Existing finance inventory shows reusable subscription/commission tables but incomplete activation/journal contracts; no payment or database write was performed.
+- No Production or Supabase changes and no deployment. Next is exact-head CI/build/browser E2E and triage of test failures.
