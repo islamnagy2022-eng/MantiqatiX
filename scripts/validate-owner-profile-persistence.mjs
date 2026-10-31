@@ -29,6 +29,17 @@ if (saveStart < 0 || saveEnd <= saveStart) {
   throw new Error('FAIL: merchant profile save handler missing or malformed.');
 }
 const saveHandler = merchant.slice(saveStart, saveEnd);
+const villageFieldStart = merchant.indexOf('القرية / الحي / البلدة (اختياري)');
+const villageFieldEnd = merchant.indexOf('</div>', villageFieldStart);
+const villageField = villageFieldStart >= 0 && villageFieldEnd > villageFieldStart
+  ? merchant.slice(villageFieldStart, villageFieldEnd)
+  : '';
+if (/\[bizGov, bizMarkaz, bizVillage\]\.every/.test(saveHandler) ||
+    !/\[bizGov, bizMarkaz\]\.every/.test(saveHandler) ||
+    !villageField ||
+    /\brequired\b/.test(villageField)) {
+  throw new Error('FAIL: village/district must remain optional in both validation and HTML; governorate and markaz are the required location fields.');
+}
 if (!/await updateBusiness\(\{/.test(saveHandler) ||
     saveHandler.indexOf('await updateBusiness({') > saveHandler.indexOf('setSaveSuccess(true)') ||
     !/catch \(error\)/.test(saveHandler) ||

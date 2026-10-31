@@ -401,8 +401,8 @@ export const MerchantDashboard: React.FC = () => {
       setProfileSaveError('أدخل رقم واتساب صحيحًا لصاحب النشاط من 10 إلى 15 رقمًا.');
       return;
     }
-    if (![bizGov, bizMarkaz, bizVillage].every((value) => value.trim())) {
-      setProfileSaveError('أدخل المحافظة والمركز أو القسم والقرية أو الحي الفعلي للنشاط.');
+    if (![bizGov, bizMarkaz].every((value) => value.trim())) {
+      setProfileSaveError('أدخل المحافظة والمركز أو القسم الفعلي للنشاط. القرية أو الحي حقل اختياري.');
       return;
     }
     if (bizName.trim().length < 2) {
@@ -1162,10 +1162,9 @@ export const MerchantDashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">القرية / الحي / البلدة</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">القرية / الحي / البلدة (اختياري)</label>
                     <input
                       type="text"
-                      required
                       value={bizVillage}
                       onChange={(e) => setBizVillage(e.target.value)}
                       placeholder="مثال: حي الجامعة أو ميت علي أو دجلة"
