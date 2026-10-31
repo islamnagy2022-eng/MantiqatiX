@@ -991,6 +991,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const result: any = await callPlatformAdmin({ action: 'SAVE_SETTINGS', settings: safe });
     if (result?.success !== true) throw new Error('لم يؤكد الخادم حفظ إعدادات المنصة.');
     setAdminSettings((prev) => ({ ...prev, ...safe, adminPassword: '' }));
+    if (result?.auditLogged === false) throw new Error('تم حفظ إعدادات النشاط، لكن تعذر تسجيل التعديل في سجل التدقيق. لا تكرر الحفظ؛ راجع سجل العمليات قبل إجراء تعديل جديد.');
   };
   const addBusinessCategory = (category: string) => { const name = category.trim(); if (!name || adminSettings.defaultCategories.includes(name)) return; setAdminSettings((prev) => ({ ...prev, defaultCategories: [...prev.defaultCategories, name] })); };
 
