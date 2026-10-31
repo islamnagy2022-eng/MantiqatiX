@@ -108,15 +108,15 @@ create table public.journal_entries (
   posted_at timestamptz not null,
   updated_at timestamptz not null default current_timestamp,
   reversed_by_entry_id varchar references public.journal_entries(id),
-  created_by uuid not null
+  created_by uuid
 );
 create table public.journal_entry_lines (
   id varchar primary key,
   journal_entry_id varchar not null references public.journal_entries(id) on delete cascade,
   account_id varchar not null references public.chart_of_accounts(id) on delete restrict,
   line_number integer not null,
-  debit numeric not null default 0,
-  credit numeric not null default 0,
+  debit numeric not null default 0 check (debit >= 0),
+  credit numeric not null default 0 check (credit >= 0),
   description text
 );
 create table public.general_ledger (
@@ -126,8 +126,8 @@ create table public.general_ledger (
   journal_entry_id varchar not null references public.journal_entries(id) on delete restrict,
   journal_line_id varchar not null references public.journal_entry_lines(id) on delete restrict,
   account_id varchar not null references public.chart_of_accounts(id) on delete restrict,
-  debit numeric not null,
-  credit numeric not null,
+  debit numeric not null check (debit >= 0),
+  credit numeric not null check (credit >= 0),
   running_balance numeric not null,
   entry_date date not null,
   posted_at timestamptz not null
