@@ -38,6 +38,8 @@ jobs:
           grep -q '/MantiqatiX/assets/' dist/index.html
       - name: Validate additive professional dashboard contract
         run: node scripts/validate-professional-dashboard.mjs
+      - name: Validate per-activity admin settings and audit contract
+        run: node scripts/validate-activity-module-admin.mjs
       - name: Test professional dashboard permission matrix
         working-directory: apps/catalog-frontend
         run: npx tsx ../../scripts/test-professional-dashboard-access.ts
