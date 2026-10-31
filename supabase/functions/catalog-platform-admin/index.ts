@@ -361,10 +361,8 @@ Deno.serve(async (req: Request) => {
       const activitySpecialty = String(input.activitySpecialty || "").trim();
       const canonicalActivityGroups = new Set([
         "medical_health", "food_grocery", "fashion_beauty", "home_maintenance",
-        "construction_decor", "auto_transport", "real_estate", "education_training",
-        "technology_communications", "professional_services", "marketing_media",
-        "trade_ecommerce", "agriculture_animals", "sports_fitness", "tourism_events",
-        "finance_insurance", "industry_workshops", "public_community",
+        "auto_transport", "real_estate", "education_training",
+        "technology_communications", "professional_services", "agriculture_animals",
       ]);
       const phone = String(input.phone || "").trim();
       const phoneDigits = phone.replace(/\D/g, "");
@@ -383,7 +381,7 @@ Deno.serve(async (req: Request) => {
       if (name.length < 2 || name.length > 200) return response(origin, { error: "INVALID_BUSINESS_NAME" }, 400);
       if (category.length < 2 || category.length > 100) return response(origin, { error: "INVALID_BUSINESS_CATEGORY" }, 400);
       if (activityGroupCode && !canonicalActivityGroups.has(activityGroupCode)) return response(origin, { error: "INVALID_ACTIVITY_GROUP" }, 400);
-      if (!["activity", "profession"].includes(activityClassificationType)) return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
+      if (activityClassificationType !== "activity") return response(origin, { error: "INVALID_ACTIVITY_CLASSIFICATION_TYPE" }, 400);
       if (activitySpecialty.length > 120) return response(origin, { error: "INVALID_ACTIVITY_SPECIALTY" }, 400);
       if (phoneDigits.length > 0 && (phoneDigits.length < 10 || phoneDigits.length > 15)) return response(origin, { error: "INVALID_BUSINESS_WHATSAPP", message: "If provided, the owner WhatsApp number must contain 10 to 15 digits." }, 400);
       if ([governorate, markaz].some((value) => value.length > 100 || (value.length > 0 && value.length < 2)) || village.length > 100) return response(origin, { error: "INVALID_BUSINESS_LOCATION" }, 400);
