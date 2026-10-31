@@ -1486,3 +1486,17 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — SESSION — Direct activity modules (CAT-ACTIVITY-MODULES-20261031-01)
+
+- **User request:** Replace visitor-facing functional-group/domain navigation with direct activity cards; open each activity in its own module page with specialties and its own domain marketing/operations area; continue previously requested geographic filtering, verified-first results and red unverified markers.
+- **Request registration:** Added to master request ledger issue #599 and the canonical Master Production TODO before source implementation.
+- **Branch:** `feat/direct-activity-specialty-directory-v2-20261031` (created from current `main`; the first stale-base branch `feat/direct-activity-specialty-directory-20261031` was superseded and not used for the PR).
+- **Source changes:** Added `ActivityModuleView.tsx`; updated `DirectoryView.tsx` with flat activity cards, `?activity=` route, activity module page, specialty selection, visible/reversible filters, and removed public functional-group labels/navigation.
+- **Marketing scope:** activity-aware audience/content/campaign guidance is present as an initial planning panel only. Full campaign lifecycle, budgets, channel integrations, leads and analytics remain open until verified server-side campaign contracts and tenant/business RBAC are integrated. Do not claim campaign execution is complete.
+- **Test changes:** updated professional dashboard browser E2E for direct activity module refresh/back/specialty behavior; updated canonical taxonomy contract for public activity-only navigation while retaining legacy internal compatibility checks.
+- **Documentation:** added `docs/specifications/ACTIVITY_MODULES_ARCHITECTURE_20261031.md` and updated the canonical Master Production TODO / Project Continuity.
+- **Production impact:** source/docs/tests only; no production database or live application changes. No migrations, grants, RLS/Auth changes, Edge deployment, campaign writes, ad spend, payment, wallet or finance operations.
+- **Status:** implementation foundation IN PROGRESS; exact-head CI and deployed-origin behavior NOT VERIFIED; global `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- **Next:** reconcile all static validators, open a Draft PR, wait for and inspect exact-head CI, fix any failures, and then proceed with the activity capability registry and secure Marketing & Advertising/operations integrations.
