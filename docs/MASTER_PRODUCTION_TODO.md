@@ -12,7 +12,7 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
-# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #565)
+# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #571)
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
    - PR #543 moved the full `LIST_SUBSCRIBERS` directory read out of the blocking Google session bootstrap; PR #546 preserves last-good subscriber data on failed refresh and discards stale responses after logout/account switching.
@@ -51,14 +51,16 @@
 
 8. Backup/restore/DR — NOT VERIFIED
    - No successful restore rehearsal, measured RPO/RTO or tested recovery evidence.
+   - PR #571 corrected the official `supabase db dump` CLI reference and recorded the official restore-scope review. This is documentation only: no Production backup was created, no restore was rehearsed, and RPO/RTO remain unmeasured.
 
 9. Release build/signing and real-device regression — WAIT
    - Signed Android artifact, protected signing material, install/update, auth/session, role journeys, push, network-loss/retry and device regression remain open.
 
-10. Public web deployment smoke — VERIFIED FOR CURRENT MAIN SNAPSHOT
+10. Public web deployment smoke — VERIFIED FOR LAST TESTED APP SNAPSHOT (PR #565)
     - After PR #565, main commit `3247f53c561e8161075024e0436668460f55d779` passed Pages deploy and deployed-root checks [41155204293](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204293); Production Health Monitor passed [41155204266](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204266).
     - The same main commit passed Backend-only Module Boundary [41155204267](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204267), Module Professionalization [41155204271](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204271), MantiGO Privacy [41155204224](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204224), and SMM Deferred Storefront Contract [41155204313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204313).
     - This verifies the tested web deployment snapshot only. Real authenticated Google-account journeys, full customer/admin E2E, manual device/accessibility and offline/PWA recovery remain NOT VERIFIED.
+    - PR #567–#571 followed this application snapshot with monitoring/documentation changes. No post-PR #571 Pages deployment or updated monitor workflow run is evidenced here; do not label the current main commit freshly deployed from these older run IDs.
 
 **Overall Production Gate: BLOCKED / NOT CERTIFIED.** No production migrations, grants, Auth/RLS changes, Edge Function deployments, provider calls or financial mutations were performed in this checkpoint.
 

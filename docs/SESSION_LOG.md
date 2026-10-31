@@ -1203,3 +1203,14 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - This is an actual database connection probe and provides a small amount of database activity. It does not verify the GitHub Actions PostgREST request or GitHub notification delivery.
 - No business rows were read and no production mutation was performed.
 - Remaining: inspect scheduled/manual monitor run; verify failure notification; create encrypted local backup and complete disposable restore rehearsal.
+
+## 2026-10-31 — PR #571 — verify Supabase CLI backup runbook and synchronize handoff
+
+- **Base main:** `a53ff8416240aa7dc7ded26674765de956ee7e1b`.
+- **Merged PR:** [#571](https://github.com/islamnagy2022-eng/MantiqatiX/pull/571), merge commit `5ab774656ba0e7a635ce992eee88feb2ff5bc929`.
+- **Documentation change:** corrected the `supabase db dump` reference to the current official CLI page and added `docs/audits/SUPABASE_CLI_BACKUP_RUNBOOK_REVIEW_20261031.md`.
+- **Official-doc verification:** the documented roles/schema/data dump command pattern matches Supabase's current CLI backup guide. The CLI uses Docker and filters managed schemas; Storage object files, Edge Functions, OAuth/SMTP settings, JWT/API secrets, and custom domains require separate recovery work.
+- **Safety:** documentation-only. No Production database/schema/data/Auth/RLS/Edge Function/billing changes. No connection string or database password was requested or exposed. No Production backup was created; no restore rehearsal was performed; RPO/RTO remain unmeasured.
+- **Workflow evidence:** no PR-triggered workflow runs or status checks were returned for the docs-only merge commit. Do not infer a Pages deployment or Production Health Monitor run from this documentation merge.
+- **Current main:** `5ab774656ba0e7a635ce992eee88feb2ff5bc929`.
+- **Next executable action:** authorized owner/operator creates protected local backup exports, then performs a disposable local restore rehearsal. Production remains **BLOCKED / NOT CERTIFIED**.
