@@ -1166,3 +1166,6 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 
 
 - Coverage refinement: the unverified-doctor and unverified-pharmacy images now apply to standalone public directory doctor/pharmacy listings as well as registered business records. Directory cards/detail show `metadata.profileImageUrl` when a valid HTTPS owner image exists, otherwise the matching default applies only to the relevant listing type and non-CLAIMED records. Both URLs moved to the common `defaultImages.ts` registry. CI/deployed-origin verification pending.
+
+
+- Owner change path completed for standalone directory pages: the existing owner-only editor now exposes an optional HTTPS profile-image URL and persists it as metadata.profileImageUrl through the already-allowlisted UPDATE_OWNED_LISTING route. Existing owner image is shown first; clearing the field restores the doctor/pharmacy default for unclaimed records. No permission or backend policy changed.
