@@ -1286,3 +1286,10 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Latest verifier still returned `FULL_PLATFORM_GATE=BLOCKED` and `CATALOG_PILOT_GATE=PASS`; catalog-only deployment remains deliberately scoped. No payment/finance/SMM/MantiGO Edge deployments were included.
 - Live migration/physical object/Edge/journal blockers, missing backup/restore rehearsal and measured RPO/RTO, owner-side Auth settings, real Paymob/auth/device E2E and notification delivery remain open.
 - No Production DDL/data/ACL/Auth/RLS/Edge/payment/ledger mutation and no paid resource was created.
+
+## 2026-10-31 — live Supabase security recheck at 02:51 UTC
+
+- Advisor counts unchanged from the earlier snapshot: 8 RLS/no-policy, 3 anon SECURITY DEFINER, 67 authenticated SECURITY DEFINER, 90 anonymous-sign-in-related findings, leaked-password protection warning; performance 129 unindexed FKs, 375 init-plan, 73 unused indexes, 28 multiple-permissive groups.
+- Read-only ACL review of all eight no-policy tables found no anon/authenticated SELECT/INSERT/UPDATE/DELETE. Seven have FORCE RLS; digital_page_payment_events does not. Service-role DML exists only on directory_listing_claim_requests and public_directory_listings; service_role TRUNCATE is present on all eight.
+- Function metadata: two trigger-returning SECURITY DEFINER functions each have one trigger binding. assign_default_owner_to_unowned_business() still has search_path=public, auth; the other two anon-executable SECURITY DEFINER functions use empty search_path. No production ACL/function/Auth/policy change made.
+- Detailed evidence: docs/audits/LIVE_SUPABASE_SECURITY_RECHECK_20261031_0251.md.
