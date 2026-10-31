@@ -1101,3 +1101,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Ad schema currently has HOME_HERO/HOME_SPONSORED, 0 tenant ads, 4 platform global ads, and no duration-based booking/pricing reservation model. Read-only ACL/policy check found permissive non-anonymous authenticated ALL policies on `ad_spaces`; slot writes must be blocked from UI pending a reviewed authorization migration.
 - Full details: `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
 - No production DDL/DML, grants, RLS, Edge Function deployment, wallet movement, payment, or ad reservation was performed. FIN-ADS-01 remains BLOCKED.
+
+
+## Latest continuation — 2026-10-31 (PR #610 exact-head result)
+
+- PR #610 exact head `6c048a65946a3ef5b9e4262b276161795a4ac1cd` passed Primary Catalog Frontend Validation run [41205224994](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41205224994), including TypeScript/build, isolated employee RBAC PostgreSQL and Playwright browser E2E.
+- The browser E2E explicitly covered account portal entry, exact owner/branch-employee membership switching, platform-admin/business-membership separation, and read-only behavior for an authenticated account without a business membership.
+- Related backend boundary, privacy, CORS, commission draft, SMM deferred-contract, RC425 atomicity and legacy catalog checks passed. Pages validation passed, but PR deploy was skipped by design; no production deployment occurred.
+- Source review found no confirmed new authorization bypass in the reviewed route/session/Edge membership paths. Full security sign-off is still OPEN: dedicated live Edge/PostgreSQL multi-membership isolation, real Google-account cross-account E2E, subscription-state role matrix, and independent review remain pending. PR #610 stays Draft.
+- Global production gate remains BLOCKED / NOT CERTIFIED. Do not apply production migrations or activate wallet/payment/advertising writes.
+- First dependency-ordered next task: authorized credential-scrubbed current Production schema capture → disposable isolated restore → rollback rehearsal and measured RPO/RTO. No suitable current-schema restore artifact was established in this session.
