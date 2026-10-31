@@ -6,6 +6,8 @@ declare
   tenant_ops uuid := '10000000-0000-4000-8000-000000000043';
   platform_admin uuid := '10000000-0000-4000-8000-000000000044';
   tenant_scoped_super_admin uuid := '10000000-0000-4000-8000-000000000045';
+  platform_membership_only uuid := '10000000-0000-4000-8000-000000000046';
+  registry_only_admin uuid := '10000000-0000-4000-8000-000000000047';
   rejected boolean;
   result jsonb;
 begin
@@ -14,7 +16,11 @@ begin
     ('admin',tenant_admin,'TENANT-B','ADMIN','ACTIVE','{"admin":true}'::jsonb),
     ('ops',tenant_ops,'TENANT-C','OPERATIONS_MANAGER','ACTIVE','{"admin":true}'::jsonb),
     ('tenant-super',tenant_scoped_super_admin,'TENANT-D','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
-    ('platform',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
+    ('platform',platform_admin,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb),
+    ('membership-only-platform',platform_membership_only,'MNTY-PLATFORM','SUPER_ADMIN','ACTIVE','{"scope":"PLATFORM","full_control":true}'::jsonb);
+
+  insert into auth.users(id) values (platform_admin),(registry_only_admin);
+  insert into private.platform_admins(user_id) values (platform_admin),(registry_only_admin);
 
   insert into public.mantigo_rides(id,customer_id,status,updated_at) values
     ('ride-stale-open',tenant_owner,'OPEN',pg_catalog.now()-interval '90 minutes'),
@@ -76,7 +82,28 @@ begin
 
   perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
   if not public.mnty_can_platform_admin() then
-    raise exception 'explicit platform SUPER_ADMIN with full_control should pass';
+    raise exception 'explicitly registered platform admin should pass';
+  end if;
+
+  -- A platform-scoped membership alone is not the platform-root authority.
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_membership_only::text,false);
+  if public.mnty_can_platform_admin() then
+    raise exception 'MNTY-PLATFORM membership without private registry entry must be denied';
+  end if;
+
+  -- The canonical registry is sufficient even when no MNTY-PLATFORM membership exists.
+  perform pg_catalog.set_config('request.jwt.claim.sub',registry_only_admin::text,false);
+  if not public.mnty_can_platform_admin() then
+    raise exception 'private registry platform admin without tenant membership should pass';
+  end if;
+  result := public.get_mantigo_admin_dashboard_backend(registry_only_admin);
+  if result is null then
+    raise exception 'registry-only platform admin could not read MantiGO dashboard';
+  end if;
+
+  if has_table_privilege('anon','private.platform_admins','SELECT')
+     or has_table_privilege('authenticated','private.platform_admins','SELECT') then
+    raise exception 'platform admin registry must not be directly readable by client roles';
   end if;
 
   if has_function_privilege('anon','public.mnty_can_platform_admin()','EXECUTE') then
@@ -204,6 +231,7 @@ $function$;
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000042','tenant ADMIN');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000043','tenant OPERATIONS_MANAGER');
 select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000045','tenant-scoped SUPER_ADMIN');
+select pg_temp.assert_mantigo_global_rpcs_denied('10000000-0000-4000-8000-000000000046','MNTY-PLATFORM membership without registry');
 
 -- SECURITY DEFINER hardening must be consistent across all four global RPCs.
 do $contract$
@@ -322,5 +350,30 @@ end;
 $platform_rls$;
 reset role;
 
+-- The global digital_pages policy follows the canonical registry, not a tenant membership.
+select pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000047',false);
+set role authenticated;
+do $registry_only_rls$
+declare
+  v_count integer;
+begin
+  select count(*) into v_count from public.digital_pages;
+  if v_count<>1 then
+    raise exception 'registry-only platform admin could not read global digital_pages';
+  end if;
+end;
+$registry_only_rls$;
+reset role;
 
-select 'RC449 platform-admin scope integration: PASS' as result;
+-- Removing the registry entry revokes platform authority immediately.
+delete from private.platform_admins where user_id='10000000-0000-4000-8000-000000000047';
+select pg_catalog.set_config('request.jwt.claim.sub','10000000-0000-4000-8000-000000000047',false);
+do $revocation$
+begin
+  if public.mnty_can_platform_admin() then
+    raise exception 'removed platform registry entry retained platform authority';
+  end if;
+end;
+$revocation$;
+
+select 'RC462 canonical platform registry integration: PASS' as result;
