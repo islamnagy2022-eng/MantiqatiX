@@ -28,6 +28,12 @@ assert.match(registry, /persistedOverrides\?: ActivityModuleOverrides/, 'The act
 assert.match(registry, /state: 'planned' as const/, 'Persisted configuration must never promote a planned capability to available.');
 assert.match(moduleView, /resolveActivityModuleConfig\(category, adminSettings\.activityModuleOverrides\)/, 'Public activity pages must consume saved admin configuration.');
 assert.match(backend, /sanitizeActivityModuleOverrides/, 'The Edge Function must validate activity settings server-side.');
+assert.match(backend, /const isPlatformAdmin = \(m: any\) => String\(m\.role \|\| ""\)\.toUpperCase\(\) === "SUPER_ADMIN"/, 'The settings endpoint must retain its explicit Super Admin identity check.');
+assert.match(backend, /platformMemberships = \(memberships \|\| \[\]\)\.filter\(isPlatformAdmin\)/, 'Every platform settings action must run behind the authenticated platform membership gate.');
+assert.match(backend, /PLATFORM_ADMIN_REQUIRED/, 'Non-platform users must be denied by the Edge Function.');
+assert.match(backend, /oldValues: Object\.fromEntries/, 'The audit record must capture previous activity field values.');
+assert.match(backend, /newValues: Object\.fromEntries/, 'The audit record must capture new activity field values.');
+
 assert.match(backend, /_shared\/activity-module-overrides\.mjs/, 'The Edge Function must use the independently tested shared validator.');
 assert.match(sanitizer, /entries\.length > 50/, 'The shared validator must enforce the 50-activity limit.');
 assert.match(sanitizer, /120000/, 'The shared validator must enforce a bounded settings payload.');
