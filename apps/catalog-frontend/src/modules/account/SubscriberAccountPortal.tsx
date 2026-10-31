@@ -33,7 +33,7 @@ export const SubscriberAccountPortal: React.FC = () => {
     ADMIN: 'مدير النشاط',
     EMPLOYEE: 'موظف',
     STAFF: 'موظف',
-  }[role] || 'عضوية نشاط');
+  } as Record<string, string>)[role] || 'عضوية نشاط';
   const getSubscriptionStatus = (item: NonNullable<typeof business>) =>
     item.isFrozen || item.paymentStatus === 'frozen' ? 'مجمّد' :
     item.paymentStatus === 'paid' && item.paymentConfirmedByAdmin ? 'مدفوع ومؤكد' :
@@ -72,7 +72,7 @@ export const SubscriberAccountPortal: React.FC = () => {
           {(authSession.availableMemberships || []).map(mode=>{
             const active=authSession.role==='subscriber' && authSession.activeMembershipId===mode.membershipId && authSession.businessId===mode.businessId;
             const label=`${membershipRoleLabel(mode.role)} · ${mode.businessName}${mode.branchId?' · نطاق فرع':''}`;
-            return <button key={mode.membershipId+':'+mode.businessId} type="button" disabled={active} onClick={()=>{if(switchAccountMembership(mode.membershipId))setSection('manage');}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{label}</button>;
+            return <button key={mode.membershipId+':'+mode.businessId} type="button" disabled={active} onClick={()=>{if(switchAccountMembership(mode.membershipId, mode.businessId))setSection('manage');}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{label}</button>;
           })}
         </div>
       </section>}
