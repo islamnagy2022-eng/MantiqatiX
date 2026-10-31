@@ -60,7 +60,6 @@ export const ActivityModulesAdmin: React.FC = () => {
       return;
     }
     setDraft(toDraft(selectedCategory, overrides));
-    setFeedback(null);
   }, [selectedActivityId, selectedCategory?.name, adminSettings.activityModuleOverrides]);
 
   const updateMarketing = (field: keyof Omit<EditorDraft, 'capabilities'>, value: string) => {
@@ -157,7 +156,7 @@ export const ActivityModulesAdmin: React.FC = () => {
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <label className={labelClass} htmlFor="activity-module-select">اختر النشاط</label>
-        <select id="activity-module-select" value={selectedActivityId} onChange={(event) => setSelectedActivityId(event.target.value)} className={inputClass}>
+        <select id="activity-module-select" value={selectedActivityId} onChange={(event) => { setFeedback(null); setSelectedActivityId(event.target.value); }} className={inputClass}>
           {activityCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
         </select>
         {selectedCategory && <p className="mt-2 break-all text-[11px] text-slate-400">المعرف الثابت: {selectedCategory.id}</p>}
