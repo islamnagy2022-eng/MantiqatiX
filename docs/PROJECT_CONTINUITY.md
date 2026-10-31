@@ -1091,3 +1091,13 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Browser E2E failed at the business-owner entry scenario because the test expected the employee/professional dashboard navigation landmark after opening the owner MerchantDashboard. The owner MerchantDashboard is currently a form workspace headed `إدارة منتجات وكتالوج نشاطك`, not the professional dashboard navigation shell. This was an assertion/fixture mismatch, not evidence of a permission denial.
 - Corrected the browser assertion to wait for the actual owner workspace heading. Owner/employee routes remain separately asserted; no production code authorization was weakened.
 - A new exact-head CI run must verify the correction. Do not mark E2E passed until that run concludes successfully.
+
+
+## 2026-10-31 — FIN-ADS-01 live wallet/subscription/advertising audit
+- Read-only Supabase inspection confirmed 308 recorded migrations (latest `20261029083845`), current wallet/subscription/commission/ad schema, RLS/FORCE RLS, policies, constraints, function bodies and effective ACLs. No financial row data was read.
+- Existing `wallet_accounts` and `wallet_transactions` are empty. Both have RLS + FORCE RLS; authenticated finance-role reads only; no direct client writes. Service role has table DML, but `create_wallet_transaction_backend` and `post_financial_journal` have no service_role EXECUTE. Required RC449A/RC450 journal columns are absent, so wallet posting is blocked.
+- Subscription tiers remain fixed monthly/annual. Subscription payment intents lack RC435/RC439 provider-claim/encrypted recovery fields and claim RPCs; live subscription payment callback does not debit a platform wallet.
+- Commission drafts support fixed/percentage/combined and scope/priority/effective dates, but stay inactive and preview-only; no order/settlement impact.
+- Ad schema currently has HOME_HERO/HOME_SPONSORED, 0 tenant ads, 4 platform global ads, and no duration-based booking/pricing reservation model. Read-only ACL/policy check found permissive non-anonymous authenticated ALL policies on `ad_spaces`; slot writes must be blocked from UI pending a reviewed authorization migration.
+- Full details: `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
+- No production DDL/DML, grants, RLS, Edge Function deployment, wallet movement, payment, or ad reservation was performed. FIN-ADS-01 remains BLOCKED.
