@@ -239,7 +239,14 @@ export const DirectoryView: React.FC = () => {
   // A previously granted automatic-location preference permits a fresh browser
   // position read on return; saved administrative filters are never restored.
   useEffect(() => {
-    if (geoSetupCompleted && geoPreferenceMode === 'auto') requestUserLocation();
+    if (!geoSetupCompleted || geoPreferenceMode !== 'auto' || !navigator.permissions?.query) return;
+    let cancelled = false;
+    navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
+      if (!cancelled && permission.state === 'granted') requestUserLocation();
+    }).catch(() => {
+      // If permission state cannot be checked, do not silently trigger a browser prompt.
+    });
+    return () => { cancelled = true; };
     // Intentionally run once on mount using the persisted consent decision.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
