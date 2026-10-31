@@ -169,6 +169,14 @@ assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category)'), 
 assert.ok(activityModuleView.includes('marketing.contentPillars') && activityModuleView.includes('marketing.campaignIdeas') && activityModuleView.includes('marketing.requiredAssets'), 'Activity marketing page must render domain-specific content pillars, campaign ideas and required assets.');
 assert.ok(activityModuleView.includes('moduleConfig.capabilities.map'), 'Activity operations page must render capabilities from its activity module configuration.');
 assert.ok(activityModuleRegistry.includes('activityId: category.id') && activityModuleRegistry.includes('activityName: name'), 'Module registry must key each resolved module by the stable canonical activity ID.');
+assert.ok(activityModuleRegistry.includes('ACTIVITY_SPECIFIC_OVERRIDES'), 'Activity registry must include explicit reviewed per-activity overrides.');
+const canonicalActivityIds = Array.from(defaults.matchAll(/s\('([^']+)','([^']+)'/g), (match) => 'cat_' + match[1] + '_' + match[2]);
+assert.equal(canonicalActivityIds.length, 50, 'The canonical activity seed must contain the expected 50 activity categories.');
+for (const activityId of canonicalActivityIds) {
+  assert.ok(activityModuleRegistry.includes(activityId + ':'), 'Missing explicit activity module override for ' + activityId + '.');
+}
+assert.ok(activityModuleRegistry.includes('operationalFocus: override?.operationalFocus'), 'Activity modules must expose an activity-specific operating scope.');
+
 assert.ok(activityModuleRegistry.includes('type DomainProfile') && activityModuleRegistry.includes('domainProfiles:'), 'Module registry must provide typed domain profiles.');
 assert.ok(activityModuleRegistry.includes('campaignIdeas:') && activityModuleRegistry.includes('requiredAssets:') && activityModuleRegistry.includes('contentPillars:'), 'Each domain profile must define campaign ideas, required assets and content pillars.');
 assert.ok(activityModuleRegistry.includes("state: 'planned'"), 'Unintegrated operating capabilities must be visibly marked planned rather than falsely active.');
