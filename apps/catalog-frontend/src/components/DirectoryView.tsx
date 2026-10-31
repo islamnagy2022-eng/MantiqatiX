@@ -123,9 +123,9 @@ export const DirectoryView: React.FC = () => {
   const businesses = directoryBusinesses;
   // Every new visit starts with the complete Egypt-wide directory. Saved GPS or
   // administrative choices must never silently narrow the visitor's initial results.
-  const [geoSetupCompleted, setGeoSetupCompleted] = useState(true);
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(false);
   const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>('manual');
-  const [showLocationWelcome, setShowLocationWelcome] = useState(false);
+  const [showLocationWelcome, setShowLocationWelcome] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -189,34 +189,21 @@ export const DirectoryView: React.FC = () => {
           }
           setUserCoordinates({ latitude, longitude });
           completeGeoSetup('auto');
-          setLocationMessage('تم تحديد موقعك، جارٍ مطابقة أقرب نطاق إداري…');
+          setLocationMessage('تم تحديد موقعك، جارٍ ترتيب نتائج مصر بالكامل من الأقرب إلى الأبعد…');
           try {
             const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
             if (match) {
-              setSelectedGovFilter(match.governorate.name);
-              setSelectedMarkazFilter(match.district?.name || 'all');
-              setSelectedVillageFilter(match.shiyakha?.name || 'all');
-              setSelectedAreaFilter('all');
               const levelLabel = match.level === 'SHIYAKHA'
                 ? 'أقرب قرية/شياخة'
                 : match.level === 'DISTRICT' ? 'أقرب مركز/قسم' : 'أقرب محافظة';
               const matchedName = match.shiyakha?.name || match.district?.name || match.governorate.name;
-              setLocationMessage('تم تقدير ' + levelLabel + ': ' + matchedName +
-                ' (أقرب نقطة بيانات تبعد نحو ' + match.distanceKm.toFixed(1) +
-                ' كم). هذا ترشيح تقريبي من نقاط إدارية وليس إثباتًا بحدود القرية؛ يمكنك تعديله يدويًا.');
+              setLocationMessage('تم تحديد موقعك. تظهر الأنشطة الموثقة في مصر بالكامل مرتبة من الأقرب إلى الأبعد. أقرب نطاق إداري تقديري: ' + matchedName +
+                ' (نحو ' + match.distanceKm.toFixed(1) + ' كم)، دون تقييد النتائج به. يمكنك تضييق النطاق يدويًا.');
             } else {
-              setSelectedGovFilter('all');
-              setSelectedMarkazFilter('all');
-              setSelectedVillageFilter('all');
-              setSelectedAreaFilter('all');
-              setLocationMessage('تم تحديد موقعك، لكن لم تتوفر نقطة إدارية قريبة بدرجة كافية. يعرض الموقع مصر بالكامل؛ اختر نطاقك يدويًا.');
+              setLocationMessage('تم تحديد موقعك وترتيب النتائج ذات الإحداثيات من الأقرب إلى الأبعد على مستوى مصر بالكامل.');
             }
           } catch {
-            setSelectedGovFilter('all');
-            setSelectedMarkazFilter('all');
-            setSelectedVillageFilter('all');
-            setSelectedAreaFilter('all');
-            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة ذات الإحداثيات، لكن تعذر تحميل أسماء المناطق الإدارية. يمكنك اختيار النطاق يدويًا.');
+            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة التي لها إحداثيات موثوقة، مع استمرار عرض مصر بالكامل. يمكنك تضييق النطاق يدويًا.');
           } finally {
             if (Number.isFinite(accuracy) && accuracy > 1000) {
               setLocationMessage((current) => current + ' دقة GPS منخفضة نسبيًا؛ أعد المحاولة في مكان مفتوح لتحسين الترشيح.');
@@ -245,8 +232,8 @@ export const DirectoryView: React.FC = () => {
     }
   };
 
-  // GPS is never requested automatically. The visitor may choose a geographic
-  // scope manually or explicitly use the location button after opening the directory.
+  // GPS consent is requested on first visit. Coordinates rank Egypt-wide results;
+  // they never silently narrow the directory to one administrative area.
   useEffect(() => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
@@ -591,13 +578,13 @@ export const DirectoryView: React.FC = () => {
             </div>
             <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل أسماء الشياخات لعدد محدود من المراكز الأقرب باستخدام أكوادها الإدارية فقط.
+              اسمح للموقع باستخدام إحداثيات جهازك لترتيب الأنشطة الموثقة في مصر بالكامل من الأقرب إليك إلى الأبعد. لن نحصر النتائج في قريتك أو محافظتك؛ يمكنك اختيار نطاق إداري يدويًا إذا أردت. لا نرسل إحداثيات GPS نفسها ولا نحفظها.
             </p>
             <div className="mt-5 grid gap-2">
               <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
                 <Navigation className="h-4 w-4" /> {locationBusy ? 'جارٍ طلب إذن الموقع…' : 'السماح باستخدام موقعي'}
               </button>
-              <button type="button" onClick={() => { completeGeoSetup('manual'); setLocationMessage('يمكنك اختيار مصر بالكامل أو المحافظة والمركز والقرية من أدوات تحديد النطاق.'); }} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setLocationMessage('سيتم عرض مصر بالكامل دون ترتيب جغرافي دقيق؛ ويمكنك اختيار المحافظة والمركز والقرية يدويًا.'); }} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
                 اختيار الموقع يدويًا
               </button>
               <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض الأنشطة والخدمات المنشورة في مصر بالكامل.'); }} className="min-h-10 text-xs font-bold text-emerald-800 underline">
