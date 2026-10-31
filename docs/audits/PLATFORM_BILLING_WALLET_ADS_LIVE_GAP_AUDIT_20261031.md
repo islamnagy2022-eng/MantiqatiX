@@ -67,6 +67,8 @@ The live migration ledger returned 308 recorded migrations; latest observed vers
 
 ## 5. Advertising inventory — existing display records, no booking engine
 
+> Historical first-pass ACL/policy interpretation below is superseded by the dated live recheck addendum near the end of this document. The current disposition is P2 least-privilege ACL verification; no permissive authenticated write policy is present.
+
 - `ad_spaces` currently has two rows: HOME_HERO and HOME_SPONSORED.
 - `advertisements` is tenant/business scoped and has creative, approval, status and start/end timestamps, but no price snapshot, duration contract, reservation status, payment status, renewal or exclusive-slot conflict model.
 - `platform_global_advertisements` has four rows and direct authenticated access is denied; platform-managed reads/writes must remain behind the intended trusted backend.
