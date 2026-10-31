@@ -85,6 +85,10 @@ const normalizeGeoName = (value: unknown) => String(value || '').toLocaleLowerCa
   .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim()
   .replace(/^(?:محافظة|مركز|مدينة|قسم|قرية|شياخة|حي|نجع)\s*/, '').trim();
 
+const normalizeGeoExactName = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
+  .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
+  .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+
 type StoredGeoPreference = {
   completed: true;
   mode: 'auto' | 'manual';
@@ -188,13 +192,13 @@ export const DirectoryView: React.FC = () => {
             const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
             if (match) {
               setSelectedGovFilter(match.governorate.name);
-              setSelectedMarkazFilter(match.district.name);
+              setSelectedMarkazFilter(match.district?.name || 'all');
               setSelectedVillageFilter(match.shiyakha?.name || 'all');
               setSelectedAreaFilter('all');
               const levelLabel = match.level === 'SHIYAKHA'
                 ? 'أقرب قرية/شياخة'
                 : match.level === 'DISTRICT' ? 'أقرب مركز/قسم' : 'أقرب محافظة';
-              const matchedName = match.shiyakha?.name || match.district.name || match.governorate.name;
+              const matchedName = match.shiyakha?.name || match.district?.name || match.governorate.name;
               setLocationMessage('تم تقدير ' + levelLabel + ': ' + matchedName +
                 ' (أقرب نقطة بيانات تبعد نحو ' + match.distanceKm.toFixed(1) +
                 ' كم). هذا ترشيح تقريبي من نقاط إدارية وليس إثباتًا بحدود القرية؛ يمكنك تعديله يدويًا.');
@@ -290,10 +294,15 @@ export const DirectoryView: React.FC = () => {
     });
   }, [geoSetupCompleted, geoPreferenceMode, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter]);
 
-  const selectedAdministrativeDistrict = EGYPT_GEO_DISTRICTS.find((district) =>
-    normalizeGeoName(district.name) === normalizeGeoName(selectedMarkazFilter) &&
-    (selectedGovFilter === 'all' || normalizeGeoName(district.governorateName) === normalizeGeoName(selectedGovFilter))
-  );
+  const selectedAdministrativeDistrict =
+    EGYPT_GEO_DISTRICTS.find((district) =>
+      normalizeGeoExactName(district.name) === normalizeGeoExactName(selectedMarkazFilter) &&
+      (selectedGovFilter === 'all' || normalizeGeoName(district.governorateName) === normalizeGeoName(selectedGovFilter))
+    ) ||
+    EGYPT_GEO_DISTRICTS.find((district) =>
+      normalizeGeoName(district.name) === normalizeGeoName(selectedMarkazFilter) &&
+      (selectedGovFilter === 'all' || normalizeGeoName(district.governorateName) === normalizeGeoName(selectedGovFilter))
+    );
 
   useEffect(() => {
     let cancelled = false;
@@ -549,8 +558,12 @@ export const DirectoryView: React.FC = () => {
   const listedCenters = locationRecords
     .filter((record) => selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter))
     .map((record) => String(record.markaz || '').trim()).filter(Boolean);
-  const uniqueMarkaz = Array.from(new Map([...knownCenters, ...listedCenters]
-    .map((name) => [normalizeAdministrativeName(name), name])).values()).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueMarkaz = Array.from(new Map([
+    ...knownCenters.map((name) => [normalizeGeoExactName(name), name] as const),
+    ...listedCenters
+      .filter((name) => !knownCenters.some((known) => normalizeAdministrativeName(known) === normalizeAdministrativeName(name)))
+      .map((name) => [normalizeGeoExactName(name), name] as const),
+  ]).values()).sort((a, b) => a.localeCompare(b, 'ar'));
   const uniqueVillages = Array.from(new Map([
     ...administrativeShiyakhas.map((row) => [normalizeAdministrativeName(row.name), row.name] as const),
     ...locationRecords.filter((record) =>
