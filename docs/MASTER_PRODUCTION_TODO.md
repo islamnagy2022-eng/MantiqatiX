@@ -2764,3 +2764,17 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Module Professionalization [41165149540], Backend-only Module Boundary [41165149552], MantiGO Open Ride Privacy [41165149604], RC425 Paymob Atomicity [41165149544], and Deploy MantiqatiX Web validation [41165149619] passed.
 - [x] PR #582 merged with tests and audit documentation only. The Pages production deploy job was skipped on the PR event; no Production database, migration, payment, settlement, wallet, or Edge Function changed.
 - [ ] Production remains **BLOCKED** until the helper fix in RC441/RC449 is applied through an approved, fully rehearsed migration release. The isolated RLS test is evidence for the source contract, not a live Production remediation.
+
+
+## 2026-10-31 — Supabase Security Advisor triage and exposed-schema audit
+
+- [x] Ran the live Supabase Security Advisor (read-only) and inspected all eight RLS-enabled/no-policy findings at the catalog/grant level.
+- [x] Confirmed all eight tables currently deny SELECT/INSERT/UPDATE/DELETE to both anon and authenticated through table privileges; seven have FORCE RLS and `digital_page_payment_events` does not. No direct API grant is present, so the advisor's no-policy warning is not currently an exposed-table bypass. Keep them closed by default; if an API/RPC use case is required, design least-privilege policies and grants first.
+- [x] Triaged the three anon-executable SECURITY DEFINER advisor findings: `assign_default_owner_to_unowned_business()` and `capture_commission_rule_audit()` are trigger-returning functions attached only to table triggers (businesses and commission_rules respectively), not ordinary callable RPCs; `get_mnty_targeted_advertisements(...)` is a bounded public advertisement-read function (limit clamped to 1–50) and is intentionally anon-executable. Reassess its public projection/targeting inputs, but do not blindly revoke public access.
+- [x] Confirmed the advisor reports 67 authenticated-executable SECURITY DEFINER functions. This is an inventory warning, not proof that all 67 are vulnerable; each endpoint needs grouped review for caller identity binding, tenant/business/branch scope, idempotency, search_path, and grants.
+- [x] Identified Supabase Auth leaked-password protection as disabled; add it to the Auth hardening release checklist and verify user-impact/rollout before enabling.
+- [ ] P1: produce a complete reviewed inventory of the 67 authenticated SECURITY DEFINER functions, prioritize money, global admin, identity, catalog ownership, and cross-tenant operations; add static/behavioral tests and tighten grants only where client compatibility is verified.
+- [ ] P1: document intended no-policy/private-table contract for the eight tables; maintain zero anon/authenticated grants unless an explicitly tested API requirement is approved.
+- [ ] P1: review public ad RPC output fields and abuse/rate-limit controls; preserve public listing functionality while minimizing returned data.
+- [ ] P1: plan Auth leaked-password protection activation with a user-facing rollout note and verification.
+- [ ] P0 remains unchanged: RC441/RC449 absent from live Production; platform-admin helper/RLS authorization drift is not remediated. No production mutation occurred.
