@@ -884,6 +884,30 @@ try {
     } finally { await context.close(); }
   }
 
+// 13. Domain profiles must expose different marketing plans and operating capabilities.
+  {
+    const { context, page } = await newScenario(browser);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      await page.getByRole('button', { name: /مطاعم/ }).first().click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('heading', { name: 'مطاعم', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
+      await modulePage.getByText('العملاء القريبون', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByText('صور أصلية للمنتجات الفعلية', { exact: false }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
+      await modulePage.getByRole('heading', { name: 'القائمة والمنتجات', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px restaurant activity operations');
+      results.push('activity-module-registry-renders-domain-specific-marketing-and-operations');
+    } finally { await context.close(); }
+  }
+
   // Live verified activities must render badges and open their corresponding catalogues.
   {
     const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
