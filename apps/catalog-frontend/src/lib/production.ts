@@ -395,11 +395,12 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 }> {
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
-    const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
+    // AppContext loads the public directory independently. Avoid fetching the
+    // same large public payload again during signed-out auth bootstrap.
     return {
       authSession: { role: 'guest', isAuthenticated: false },
-      businesses: directory.businesses,
-      products: directory.products,
+      businesses: [],
+      products: [],
       subscribers: [],
       adminSettings,
     };
@@ -503,6 +504,30 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 
   const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest';
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
+  const switchableMembershipRoles = new Set(['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'EMPLOYEE', 'STAFF']);
+  const availableMembershipModes = roleMemberships.flatMap((membership: any) => {
+    const membershipRole = String(membership.role || '').toUpperCase();
+    const tenantId = String(membership.tenant_id || '');
+    const membershipId = String(membership.id || '');
+    if (!membershipId || !tenantId || !switchableMembershipRoles.has(membershipRole)) return [];
+    const authorizedBusinesses = membership.business_id
+      ? businesses.filter((business) => business.id === String(membership.business_id) && String(business.tenantId || '') === tenantId)
+      : membershipRole === 'OWNER' && !membership.branch_id
+        ? businesses.filter((business) => String(business.tenantId || '') === tenantId)
+        : [];
+    return authorizedBusinesses.map((business) => ({
+      membershipId,
+      tenantId,
+      businessId: business.id,
+      businessName: business.name,
+      branchId: String(membership.branch_id || '') || undefined,
+      role: membershipRole,
+      permissions: membership.permissions && typeof membership.permissions === 'object' ? membership.permissions : undefined,
+    }));
+  });
+  const availableMemberships = availableMembershipModes.filter((mode: any, index: number, all: any[]) =>
+    all.findIndex((candidate: any) => candidate.membershipId === mode.membershipId && candidate.businessId === mode.businessId) === index
+  );
   const managementRoles = ['OWNER', 'BUSINESS_OWNER', 'ADMIN'];
   const chosen = businesses.find((b) => roleMemberships.some((m: any) =>
     String(m.business_id || '') === b.id &&
@@ -536,6 +561,9 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       membershipPermissions: chosenMembership?.permissions && typeof chosenMembership.permissions === 'object'
         ? chosenMembership.permissions
         : undefined,
+      isPlatformAdmin: platform,
+      availableMemberships,
+      activeMembershipId: platform ? undefined : (chosenMembership?.id || own?.id),
     },
     businesses, products, subscribers, adminSettings,
   };
