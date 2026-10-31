@@ -9,6 +9,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
+      - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -24,6 +25,7 @@ on:
       - "supabase/tests/baselines/production_schema_snapshot.manifest.json"
       - "supabase/tests/baselines/production_schema_migration_versions.txt"
       - "supabase/tests/baselines/production_data_prerequisites_fixture.sql"
+      - "supabase/tests/baselines/production_live_trigger_overlay_fixture.sql"
       - "supabase/tests/baselines/tenant_isolation_two_tenant_fixture.sql"
       - "scripts/verify-tenant-isolation.sql"
       - "supabase/tests/rc117_default_images_and_activity_admin_contract.sql"
@@ -90,6 +92,10 @@ jobs:
             version="${filename%%_*}"
             [[ "$version" =~ ^[0-9]{14}$ ]] || { echo "Invalid migration version: $filename" >&2; exit 1; }
             if [[ "$version" > "$checkpoint" ]]; then
+              if [[ "$filename" == "20261031100000_rc463_trigger_only_security_definer_acl.sql" ]]; then
+                echo "RESTORE_TEST_ONLY_KNOWN_LIVE_TRIGGER_OVERLAY"
+                psql "$db_url" -v ON_ERROR_STOP=1 -f supabase/tests/baselines/production_live_trigger_overlay_fixture.sql
+              fi
               echo "REPLAY_MIGRATION=$filename"
               psql "$db_url" -v ON_ERROR_STOP=1 -f "$migration"
               migration_count=$((migration_count + 1))
