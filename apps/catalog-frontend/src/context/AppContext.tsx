@@ -201,8 +201,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       organizationId: existingBusiness.organizationId || catalog.business?.organizationId,
       branchId: catalog.selectedBranchId || mode.branchId || '',
       branches: Array.isArray(catalog.branches) ? catalog.branches : [],
-      profile: catalog.business?.profile || existingBusiness.profile || {},
-      bizcatalog: catalog.business?.bizcatalog || existingBusiness.bizcatalog || {},
     }, catalog.provider);
     const mappedProducts = mapProducts(
       mode.businessId,
