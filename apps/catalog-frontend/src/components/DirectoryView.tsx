@@ -328,7 +328,7 @@ export const DirectoryView: React.FC = () => {
   // Filter slides based on selected governorate
   const activeCoverSlides = selectedGovFilter === 'all'
     ? coverSlides
-    : coverSlides.filter((slide) => normalizeAdministrativeName(slide.governorates[0]) === normalizeAdministrativeName(selectedGovFilter));
+    : coverSlides.filter((slide) => normalizeGeoName(slide.governorates[0]) === normalizeGeoName(selectedGovFilter));
 
   useEffect(() => {
     setCurrentCoverIndex(0);
