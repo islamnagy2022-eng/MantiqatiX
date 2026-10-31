@@ -191,7 +191,6 @@ for each row
 execute function public.capture_commission_rule_audit();
 
 -- Recover the observed live function and trigger definitions, then apply RC463 ACL hardening.
--- Apply the exact forward-only production migration under test.
 -- This disposable PostgreSQL fixture is the only execution target for RC463 CI.
 \ir ../migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql
 
