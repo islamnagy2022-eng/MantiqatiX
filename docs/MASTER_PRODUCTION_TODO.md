@@ -12,11 +12,13 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
-# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-30)
+# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #565)
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
-   - Google OAuth browser lifecycle, session refresh/expiry/logout, membership approval, customer/provider/owner/admin and tenant/business/branch isolation remain open.
-   - Leaked Password Protection is disabled and requires authorized Supabase Auth dashboard action plus Advisor recheck.
+   - PR #543 moved the full `LIST_SUBSCRIBERS` directory read out of the blocking Google session bootstrap; PR #546 preserves last-good subscriber data on failed refresh and discards stale responses after logout/account switching.
+   - PR #547 records passing TypeScript/build, Google OAuth/session/role and membership contracts, dashboard browser E2E, employee RBAC PostgreSQL, Pages deployment, deployed-origin checks and Production Health Monitor.
+   - Still open: real Google-account sign-in timing/cross-account verification; controlled failed `LIST_SUBSCRIBERS` followed by authorized manual retry; full real customer/provider/owner/admin and multi-tenant/business/branch isolation E2E.
+   - Leaked Password Protection remains disabled and requires an authorized Supabase Auth action plus Advisor recheck.
 
 2. Customer/provider/order/notification E2E — NOT VERIFIED
    - CI source/contract and isolated database tests do not prove a real customer→correct provider→status→notification journey across separate tenants.
@@ -26,15 +28,16 @@
    - Live RC426 still exposes the legacy four-argument finalizer; the required five-argument order-bound contract is absent.
 
 4. Finance/settlement/journal E2E — NOT VERIFIED
-   - RC435–RC439 and RC450 isolated PostgreSQL tests pass; AES-GCM rotation tests pass on source.
-   - Live RC435 claim RPCs/columns and RC439 encrypted-secret columns are absent. Live RC450 journal schema columns and service_role EXECUTE boundary remain absent/mismatched.
-   - No real payment, refund, settlement or ledger posting was created during this audit.
+   - RC435–RC439 and RC450 targeted PostgreSQL tests pass; AES-GCM rotation tests pass on source. These fixtures are not a full current-Production schema restore.
+   - Fresh read-only recheck (2026-10-31 01:21 UTC) confirms live RC435/RC439 claim/recovery columns and RPCs are absent; RC449A journal header/line columns are absent; both inspected journal SECURITY DEFINER RPCs use `search_path=public`, lack `service_role EXECUTE`, and the backend actor check requires `auth.uid()`, incompatible with the current service-role Edge call.
+   - No real payment, refund, settlement or ledger posting was created during this audit. Do not grant the legacy RPC or deploy the Edge Function as a shortcut.
 
 5. Supabase Security Advisor — OPEN / CLASSIFIED
-   - Latest live counts: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; leaked-password protection disabled.
-   - The 8 no-policy tables deny direct anon/authenticated access; 6 also deny service_role direct access and 2 are service_role-only. Preserve deny-by-default/RPC-only behavior; do not add broad policies.
-   - The 3 anon SECDEF findings are two trigger-returning functions plus the intended public targeted-ad RPC with empty search_path.
-   - Of the 67 authenticated SECDEF functions: 30 have exact search_path=public, 17 public,pg_temp, 19 empty, and 1 public,auth trigger function. RC440 is the reviewed migration for the 30 exact-public functions; its dedicated PostgreSQL 16 integration passed on main run 41003030610, but RC440 is NOT applied live.
+   - Fresh live snapshot at 2026-10-31 01:24:38 UTC: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; anonymous-sign-in findings; leaked-password protection disabled.
+   - The 8 no-policy tables remain fail-closed by observed direct privileges; preserve deny-by-default/RPC-only behavior and do not add broad policies.
+   - The 3 anon SECDEF findings include two trigger-returning functions and the intended public targeted-ad RPC; review each caller/trigger contract individually.
+   - Latest Performance Advisor snapshot: 129 unindexed FKs, 375 auth/RLS init-plan findings, 73 unused indexes and 28 multiple-permissive-policy groups. Require query-plan/workload and policy-caller evidence; no bulk grant, policy or index rewrites.
+   - RC440's targeted PostgreSQL integration evidence does not mean RC440 or any unapproved security migration has been applied live.
 
 6. Production migration and physical-object reconciliation — BLOCKED
    - Live migration ledger: 308 records through 20261029083845.
@@ -52,10 +55,10 @@
 9. Release build/signing and real-device regression — WAIT
    - Signed Android artifact, protected signing material, install/update, auth/session, role journeys, push, network-loss/retry and device regression remain open.
 
-10. Public web deployment smoke — VERIFIED FOR TESTED MAIN SNAPSHOT
-    - Main web deploy [41003030838](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003030838) passed after PR #521, including deployed-origin browser route checks.
-    - Production Health Monitor [41003213146](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41003213146) passed after PR #522. The follow-up web deploy for documentation-only main commit 1d80c771e89a7b2693be7c62d0c8bba9d815f678 was in progress at this snapshot.
-    - Full authenticated customer/admin journeys, accessibility/manual device testing and offline/PWA recovery remain NOT VERIFIED.
+10. Public web deployment smoke — VERIFIED FOR CURRENT MAIN SNAPSHOT
+    - After PR #565, main commit `3247f53c561e8161075024e0436668460f55d779` passed Pages deploy and deployed-root checks [41155204293](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204293); Production Health Monitor passed [41155204266](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204266).
+    - The same main commit passed Backend-only Module Boundary [41155204267](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204267), Module Professionalization [41155204271](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204271), MantiGO Privacy [41155204224](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204224), and SMM Deferred Storefront Contract [41155204313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204313).
+    - This verifies the tested web deployment snapshot only. Real authenticated Google-account journeys, full customer/admin E2E, manual device/accessibility and offline/PWA recovery remain NOT VERIFIED.
 
 **Overall Production Gate: BLOCKED / NOT CERTIFIED.** No production migrations, grants, Auth/RLS changes, Edge Function deployments, provider calls or financial mutations were performed in this checkpoint.
 
@@ -2614,3 +2617,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Test-only PRs and documentation commits did not alter Production. No migration, grant, Auth, RLS, Edge Function, payment, wallet, or journal mutation was performed.
 - Supabase CLI stable `v2.122.0` could not be installed in this runtime: binary download failed and npm bootstrap timed out due external DNS/network access. Do not hand-create migration filenames; create the future migration with `supabase migration new <name>` in an environment with the pinned CLI.
 - First remaining executable gate: obtain an approved, restorable, schema-faithful isolated database for the current Production schema; then rehearse the payment/journal forward-only reconciliation and trigger-only security migration.
+
+
+## 2026-10-31 — Current continuation checkpoint after PR #565
+
+- [x] PR #565 merged to `main` as `3247f53c561e8161075024e0436668460f55d779`; its read-only audit records the current subscription checkout and financial-journal contract gaps. No Production mutation occurred.
+- [x] Exact PR-head CI completed successfully before merge; the subsequent main push workflows passed on the merge commit, including Pages deployment [41155204293](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204293) and Production Health Monitor [41155204266](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204266).
+- [x] PR #543/#546 auth and subscriber-loading fixes remain merged; PR #547 documents their code/build/browser/deployed-origin checks. Real Google-account timing/cross-account and controlled failed-request/manual-retry tests remain NOT VERIFIED.
+- [x] Live Supabase was rechecked read-only: 308 migration records through `20261029083845`, one branch (`main`), and Advisor snapshot 8 RLS/no-policy, 3 anon SECURITY DEFINER, 67 authenticated SECURITY DEFINER; performance snapshot 129 unindexed FKs, 375 init-plan findings, 73 unused indexes, 28 permissive-policy groups.
+- [ ] Next blocker: obtain explicit user approval for a cost-reviewed isolated environment and a complete credential-scrubbed current-Production schema capture; restore and rehearse before authoring/applying any forward-only reconciliation.
+- **Overall Production Gate remains BLOCKED / NOT CERTIFIED.** No production DDL, grants, Auth/RLS changes, Edge Function deployment, secrets, payment, or financial mutation occurred.
