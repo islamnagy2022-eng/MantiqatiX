@@ -9,6 +9,7 @@ const registry = read('apps/catalog-frontend/src/modules/activities/activityModu
 const moduleView = read('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx');
 const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const backend = read('supabase/functions/catalog-platform-admin/index.ts');
+const sanitizer = read('supabase/functions/_shared/activity-module-overrides.mjs');
 
 assert.match(adminDashboard, /'activity_modules'/, 'The activity module editor must be reachable from the existing admin navigation.');
 assert.match(adminDashboard, /<ActivityModulesAdmin \/>/, 'The admin navigation must render the activity module editor.');
@@ -24,6 +25,9 @@ assert.match(registry, /persistedOverrides\?: ActivityModuleOverrides/, 'The act
 assert.match(registry, /state: 'planned' as const/, 'Persisted configuration must never promote a planned capability to available.');
 assert.match(moduleView, /resolveActivityModuleConfig\(category, adminSettings\.activityModuleOverrides\)/, 'Public activity pages must consume saved admin configuration.');
 assert.match(backend, /sanitizeActivityModuleOverrides/, 'The Edge Function must validate activity settings server-side.');
+assert.match(backend, /_shared\/activity-module-overrides\.mjs/, 'The Edge Function must use the independently tested shared validator.');
+assert.match(sanitizer, /entries\.length > 50/, 'The shared validator must enforce the 50-activity limit.');
+assert.match(sanitizer, /120000/, 'The shared validator must enforce a bounded settings payload.');
 assert.match(backend, /"activityModuleOverrides"/, 'The existing settings allowlist must explicitly permit only the new settings key.');
 assert.match(backend, /PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED/, 'Activity module settings changes must be audited server-side.');
 assert.match(backend, /auditLogged/, 'The server response must disclose audit logging status.');
