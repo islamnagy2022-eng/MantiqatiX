@@ -196,3 +196,6 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
  
 - [ ] Reconcile `advertisements.business_id` live constraint state against the recorded `20260808000000_phase04_enterprise_schema_and_rls` SQL (historical `CREATE TABLE IF NOT EXISTS` declared REFERENCES businesses(id) ON DELETE CASCADE). The artifact is missing from tracked GitHub migration files and no later recorded DROP CONSTRAINT was found. Determine whether the relation predated that create or the live schema diverged; require authoritative history or snapshot, never invent a historical migration.
+
+ 
+- [ ] For `public.bookings`, the live migration ledger has no creation statement; only a later RLS-enable reference was found. Recover original table definition from an authoritative schema snapshot/backup, inspect dynamic/external callers and retention needs, and preserve the one existing row until proven safe to retire.
