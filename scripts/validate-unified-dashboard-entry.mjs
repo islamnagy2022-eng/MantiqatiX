@@ -9,6 +9,7 @@ const portal = read('apps/catalog-frontend/src/modules/account/SubscriberAccount
 const production = read('apps/catalog-frontend/src/lib/production.ts');
 const contextSource = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const types = read('apps/catalog-frontend/src/types/index.ts');
+const catalogAdmin = read('supabase/functions/catalog-admin/index.ts');
 const e2e = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 
 assert.match(context, /export type ViewMode[^;]*'account_portal'/, 'account_portal must be part of the route type');
@@ -35,7 +36,11 @@ assert.match(production, /switchableMembershipRoles = new Set\(\['OWNER', 'BUSIN
 assert.match(production, /businesses\.filter\(\(business\) => business\.id === String\(membership\.business_id\) && String\(business\.tenantId \|\| ''\) === tenantId\)/, 'membership mode must match both business and tenant');
 assert.match(production, /activeMembershipId: platform \? undefined : \(chosenMembership\?\.id \|\| own\?\.id\)/, 'platform admin mode must remain distinct from business membership mode');
 assert.match(contextSource, /switchAccountMembership: \(membershipId: string, businessId: string\) => Promise<boolean>/, 'switching must bind the membership ID to its exact business ID');
-assert.match(contextSource, /action: 'CATALOG_READ',[\s\S]{0,180}\.\.\.\(mode\.branchId \? \{ branchId: mode\.branchId \} : \{\}\)/, 'each mode switch must reload catalog data using the exact membership branch scope');
+assert.match(contextSource, /action: 'CATALOG_READ',[\s\S]{0,220}membershipId: mode\.membershipId,[\s\S]{0,100}\.\.\.\(mode\.branchId \? \{ branchId: mode\.branchId \} : \{\}\)/, 'each mode switch must send the exact membership ID and branch scope');
+assert.match(catalogAdmin, /const membershipId = body\.membershipId == null \|\| body\.membershipId === "" \? null : String\(body\.membershipId\)\.trim\(\)/, 'catalog-admin must accept an optional exact membership identity');
+assert.match(catalogAdmin, /\(!membershipId \|\| String\(m\.id\) === membershipId\)/, 'catalog-admin must filter business scope to the selected membership when supplied');
+assert.match(catalogAdmin, /const scopedPlatformMembership = !membershipId && activeMemberships\.some/, 'platform admin bypass must not override an explicitly selected business membership');
+
 assert.match(contextSource, /...previous\.filter\(\(product\) => product\.businessId !== mode\.businessId\)/, 'the previous business catalog data must be replaced when the selected membership scope changes');
 assert.match(contextSource, /authUserIdRef\.current !== userId/, 'mode switching must bind to the current authenticated identity');
 assert.match(contextSource, /currentView === 'account_portal' \|\| currentView === 'merchant_admin'/, 'account portal must use the active authorized business context');
