@@ -1634,3 +1634,13 @@ A separate source review found a second platform-root authorization model: the n
 ### Regression assertion correction
 
 - The first exact-head Playwright run reached the new taxonomy fixture and failed only because the test expected Arabic-Indic digits, while the actual rendered `toLocaleString('ar-EG')` count in the browser was `1` / `0`. The production UI output is unchanged; the test matcher now follows the observed DOM text. The earlier mobile three-column assertion had already passed in that run. Re-run exact-head CI on the corrected test commit before treating the regression as verified.
+
+
+### Exact-head validation result — PR #619
+
+- Final code/test head: `f7d56ccfafea6cf1b04d5a5827d8c76a4e471af0`.
+- Primary Catalog Frontend Validation [41240092695](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092695): TypeScript, production build, canonical taxonomy validator (10 groups / 50 activities), geographic/GPS contract, and other catalog validators PASS; employee RBAC PostgreSQL PASS; Playwright browser E2E PASS.
+- Playwright output explicitly includes `homepage-activity-counts-follow-canonical-codes-over-conflicting-legacy-labels` and `direct-activity-module-route-refresh-specialty-and-back-navigation`; the three-column mobile assertion passed in the same E2E job.
+- Supporting exact-head workflows PASS: Backend-only Module Boundary [41240092718](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092718), Module Professionalization [41240092669](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092669), MantiGO Privacy [41240092672](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092672), RC425 Paymob Atomicity [41240092667](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092667), Flexible Commission [41240092670](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092670), Pages validation [41240092668](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41240092668).
+- Pages validation passed but its deployment job was SKIPPED for the PR event. PR #619 remains Draft/unmerged; the code is not live on the production site. Independent review and an authorized merge/deployment are still required.
+- No Production DB/schema/data/ACL/Auth/RLS/Edge/payment/finance mutation or deployment occurred. Live `public-catalog-directory` v10 parity issue (missing sanitized `activityModuleOverrides`) remains separate and open. Overall platform remains `BLOCKED / NOT CERTIFIED`.
