@@ -197,7 +197,7 @@ assert.ok(activityModuleRegistry.includes('type DomainProfile') && activityModul
 assert.ok(activityModuleRegistry.includes('campaignIdeas:') && activityModuleRegistry.includes('requiredAssets:') && activityModuleRegistry.includes('contentPillars:'), 'Each domain profile must define campaign ideas, required assets and content pillars.');
 assert.ok(activityModuleRegistry.includes("state: 'planned'"), 'Unintegrated operating capabilities must be visibly marked planned rather than falsely active.');
 assert.ok(!activityModuleRegistry.includes("state: 'available'"), 'No domain operation may be marked available before its server contract and authorization are implemented.');
-assert.ok(activityModuleView.includes('onSelectSpecialty(specialty)'), 'Activity module specialty selection must connect back to the directory.');
+assert.ok(activityModuleView.includes('setSelectedSpecialty(specialty)'), 'Activity module specialty selection must filter records inside the module.');
 assert.ok(directory.includes('matchesSpecialty'), 'Directory results must still filter real business records by the selected specialty.');
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
 assert.ok(context.includes('activityClassificationType: data.categoryClassificationType'), 'The client must send activity/profession type to the server.');
