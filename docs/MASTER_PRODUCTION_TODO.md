@@ -14,6 +14,42 @@
 
 
 
+## CAT-ACTIVITY-MODULES-20261031-01 — Direct activity pages and specialized activity modules
+**Date:** 2026-10-31  
+**Status:** IN PROGRESS — frontend foundation implemented on `feat/activity-modules-current-main-20261031`; exact-head CI and deployed-origin verification NOT VERIFIED.  
+**Request ledger:** [Issue #599](https://github.com/islamnagy2022-eng/MantiqatiX/issues/599).  
+**Architecture:** [ACTIVITY_MODULES_ARCHITECTURE_20261031.md](docs/specifications/ACTIVITY_MODULES_ARCHITECTURE_20261031.md).
+
+### Agreed visitor model
+- [x] Customer-facing hierarchy is **activity → specialty → business/service**. No functional-group or standalone-profession navigation layer in the public directory.
+- [x] Each canonical activity opens its own dedicated module page via `?activity=<activity-category-id>`, suitable for a shareable route and direct refresh.
+- [x] Activity module foundation includes overview, specialties, domain-aware marketing guidance, and domain-operations capability sections.
+- [x] Specialty selection returns to the directory with a visible and reversible activity/specialty filter.
+- [x] Existing verified/unverified counts, verified-first ranking, geographic discovery/manual selectors, and legacy internal group identifiers are preserved in the current-main implementation.
+- [x] Public business cards no longer display functional-group labels; internal identifiers remain compatibility metadata pending a separate reviewed migration/API plan.
+
+### Implementation and validation
+- [x] Added `apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx`.
+- [x] Updated `apps/catalog-frontend/src/components/DirectoryView.tsx` on top of the latest consent-first Egypt geographic discovery source; preserved its consent, manual selector, privacy, and approximate-locality logic.
+- [x] Updated browser E2E for direct activity module routing, initial geo-consent handling, refresh, specialty selection, filter clearing, and mobile/tablet/desktop overflow.
+- [x] Updated canonical taxonomy contract for visitor-facing direct activity modules while retaining server/admin legacy compatibility checks.
+- [ ] Run exact-head TypeScript/lint, production build, taxonomy validator, geo-discovery validator, and browser E2E.
+- [ ] Verify deployed-origin behavior after merge/deployment. Feature branch source does not prove deployment.
+
+### Remaining module work
+- [ ] Build a typed activity-module configuration/capability registry keyed by canonical activity ID, defining domain identity, modules, templates, data needs, and enabled routes.
+- [ ] Finish the Marketing & Advertising workspace per activity: content calendar, campaign lifecycle, draft/approval/publish, channel integration, budget controls, leads, and reporting, using only verified server-side campaign APIs/RPCs and tenant/business/branch authorization.
+- [ ] Current activity marketing panel is **planning guidance only**. It does not create/publish campaigns, spend budgets, or claim measured analytics.
+- [ ] Keep SMM separate and deferred; do not reactivate the retired customer-facing SMM flow.
+- [ ] Implement domain-specific operating workflows only after each source-of-truth API, RLS/RBAC, audit, idempotency, and negative cross-tenant tests pass.
+- [ ] Show operational analytics from authoritative persisted records only; never fabricate data.
+- [ ] Add safe admin controls for module configuration without changing existing business/category IDs or breaking existing records.
+- [ ] Verify role × tenant × business × branch permissions, responsive layouts, RTL, accessibility, loading/empty/error states, and regression coverage.
+
+### Safety / release boundary
+- Frontend, tests, and documentation only. No production migrations, schema/data writes, grants, RLS/Auth changes, Edge Function deployments, campaign writes, ad spend, payment, wallet, commission, or accounting mutations are authorized by this request.
+- Preserve `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; this catalog feature does not close independent production blockers.
+
 # CURRENT VERIFIED BASELINE — 2026-10-31 02:30 UTC (PR #576 / main)
 
 - Current main commit at this checkpoint: `0236118cd93d6e8330296da4442c2b07c93df211`.
