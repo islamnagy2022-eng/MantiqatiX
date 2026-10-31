@@ -25,6 +25,8 @@ assert.match(portal, /const isAdmin = authSession\.role === 'admin'/, 'platform 
 assert.match(portal, /!isAdmin && canAccessMerchantDashboard\(authSession\)/, 'merchant workspace must not be inferred from platform admin mode');
 assert.match(portal, /!isAdmin && canAccessProfessionalDashboard\(authSession\)/, 'employee/professional workspace must use existing session permissions');
 assert.match(portal, /isAdmin\s*\?\s*<AdminDashboard\s*\/>/, 'platform admin workspace must remain a distinct admin component');
+assert.match(portal, /section==='manage_business' && isAdmin && currentBusiness/, 'platform admins may open the selected business tools under platform authority');
+assert.match(portal, /صلاحية المنصة/, 'platform-admin selected business view must disclose that it does not impersonate the owner');
 assert.match(portal, /hasBusinessModulePermission\(authSession/, 'displayed business permissions must use the centralized permission helper');
 assert.match(types, /export interface AccountMembershipContext/, 'account switcher context must have an explicit safe type');
 assert.match(types, /availableMemberships\?: AccountMembershipContext\[\]/, 'only bootstrap-returned membership contexts may be switched');
