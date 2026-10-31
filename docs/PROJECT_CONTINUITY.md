@@ -34,12 +34,12 @@
 
 ## Current baseline — refreshed 2026-10-31
 
-- Repository: `islamnagy2022-eng/MantiqaTiX`
+- Repository: `islamnagy2022-eng/MantiqatiX`
 - Branch: `main`
 - Latest main checkpoint: `3247f53c561e8161075024e0436668460f55d779` (PR #565 merge).
 - Supabase Production project: `moyhiluyhjsujhwlyeuu`
 - Public site: `https://islamnagy2022-eng.github.io/MantiqatiX/`
-- Main push workflows on the latest checkpoint passed: Web deployment [41155204293](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204293), Production Health Monitor [41155204266](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204266), Backend-only Module Boundary [41155204267](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204267), Module Professionalization [41155204271](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204271), MantiGO Privacy [41155204224](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204224), and SMM Deferred Storefront Contract [41155204313](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/41155204313). These runs validate the tested main snapshot; they do not close the global Production Gate.
+- Main push workflows on the latest checkpoint passed: Web deployment [41155204293](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204293), Production Health Monitor [41155204266](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204266), Backend-only Module Boundary [41155204267](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204267), Module Professionalization [41155204271](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204271), MantiGO Privacy [41155204224](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204224), and SMM Deferred Storefront Contract [41155204313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204313). These runs validate the tested main snapshot; they do not close the global Production Gate.
 - Live migration ledger: **308 rows**, latest `20261029083845`; **0/41** exact required release version IDs are recorded. This is a ledger-identity finding, not proof that every migration effect is absent. Reconcile the physical object manifest and known aliases; never fabricate ledger rows or rewrite historical migrations.
 - Current finance contracts: RC435/RC439 subscription provider-creation claim/encrypted-recovery columns and RPCs remain absent. RC449A/RC450 journal header/line fields remain absent, and live journal `SECURITY DEFINER` / `search_path` / `service_role EXECUTE` does not match the current Edge Function contract. The fresh read-only report is `docs/audits/PRODUCTION_FINANCE_LIVE_CONTRACT_RECHECK_20261031.md`.
 - Six live critical Edge entrypoints still differ from main: `order-create v8`, `payment-intent v8`, `paymob-webhook v10`, `digital-page-payment-intent v5`, `subscription-payment-intent v4`, and `financial-journal v3`. Do not batch-deploy or replace them without schema/ACL reconciliation and isolated provider E2E.
@@ -596,13 +596,13 @@ This status is intentional and must remain until the open gates above are indepe
 
 ## 2026-10-18 — guarded marketing workspace port on current main
 
-- Working branch: `feat/marketing-workspace-current-main-20261018`; Draft PR [#292](https://github.com/islamnagy2022-eng/MantiqaTiX/pull/292).
+- Working branch: `feat/marketing-workspace-current-main-20261018`; Draft PR [#292](https://github.com/islamnagy2022-eng/MantiqatiX/pull/292).
 - Added the tabbed marketing/agency workspace for leads, provider agencies, projects, and platform ads; campaign create/invite/respond/status actions call only the RC453 backend RPCs.
 - Added SMM quick access to marketing-role and enterprise dashboards. The separate SMM storefront remains deferred by the server-side launch gate.
 - Added a fail-safe for the known production/source gap: if the RC453 campaign tables are missing, the UI shows a clear notice and falls back to the existing marketing workspace instead of presenting a campaign form that cannot work.
 - Browser mutations to `marketing_campaigns` and `marketing_campaign_participants` remain prohibited; no direct INSERT/UPDATE/DELETE calls were added.
-- Dedicated Marketing Workspace Contract run [39091349054](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349054) **PASS**: JavaScript syntax and 22 static contract assertions passed on the PR head at that run.
-- Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqaTiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
+- Dedicated Marketing Workspace Contract run [39091349054](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39091349054) **PASS**: JavaScript syntax and 22 static contract assertions passed on the PR head at that run.
+- Full Pages workflow [39091349019](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/39091349019) was still running when this note was written; do not mark it PASS until the final job conclusion is fetched.
 - The UI is staged only in a Draft PR. RC453 has not been applied to production, no Edge Function deployment occurred, and no external ad network was contacted. No production DDL/DML, grants/RLS/Auth settings, payment, wallet, or deployment was changed.
 - Next: verify final exact-head Pages and relevant security/module workflows, review campaign RPC behavior against the migration tests, and keep the release gate **BLOCKED / NOT CERTIFIED** until the migration chain, production parity, and external E2E gates are approved.
 
