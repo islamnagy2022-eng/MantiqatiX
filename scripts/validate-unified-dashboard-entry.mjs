@@ -39,6 +39,7 @@ assert.match(contextSource, /switchAccountMembership: \(membershipId: string, bu
 assert.match(contextSource, /action: 'CATALOG_READ',[\s\S]{0,220}membershipId: mode\.membershipId,[\s\S]{0,100}\.\.\.\(mode\.branchId \? \{ branchId: mode\.branchId \} : \{\}\)/, 'each mode switch must send the exact membership ID and branch scope');
 assert.match(catalogAdmin, /const membershipId = body\.membershipId == null \|\| body\.membershipId === "" \? null : String\(body\.membershipId\)\.trim\(\)/, 'catalog-admin must accept an optional exact membership identity');
 assert.match(catalogAdmin, /\(!membershipId \|\| String\(m\.id\) === membershipId\)/, 'catalog-admin must filter business scope to the selected membership when supplied');
+assert.match(catalogAdmin, /membershipId\s*\?\s*String\(m\.branch_id \|\| ""\) === String\(branchId \|\| ""\)\s*:\s*\(!m\.branch_id \|\| String\(m\.branch_id\) === String\(branchId \|\| ""\)\)/, 'an explicit membership ID must match its exact branch scope, including null-vs-branch mismatch');
 assert.match(catalogAdmin, /const scopedPlatformMembership = !membershipId && activeMemberships\.some/, 'platform admin bypass must not override an explicitly selected business membership');
 
 assert.match(contextSource, /...previous\.filter\(\(product\) => product\.businessId !== mode\.businessId\)/, 'the previous business catalog data must be replaced when the selected membership scope changes');
