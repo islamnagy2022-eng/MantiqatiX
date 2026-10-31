@@ -1486,3 +1486,13 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — RC463 trigger-only SECURITY DEFINER hardening
+
+- User requested execution of the ordered production-safety work.
+- Added draft PR #602 with RC463 forward-only ACL/search_path migration and exact-migration PostgreSQL 16 integration.
+- Fixed the CI container mount after the first attempt exposed a missing migration file in the test container; corrected exact-head integration passed.
+- CI evidence: trigger-only integration PASS, migration history immutability PASS, migration version uniqueness PASS, open-PR migration collision guard PASS. Forward migration chain replay remains pending.
+- No Production changes were performed. The global production gate remains BLOCKED / NOT CERTIFIED.
+- Next: finish exact-head CI/replay, then proceed only with an isolated/restorable current-schema rehearsal; do not apply RC449A/RC450/RC463 or deploy Edge Functions to Production without approved evidence and rollout gates.
