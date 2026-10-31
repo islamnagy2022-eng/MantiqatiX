@@ -92,3 +92,8 @@ jobs:
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_migration.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_triggers.sql
           docker exec "$pg_container" psql -U postgres -d mantiqatix_rc450_test -v ON_ERROR_STOP=1 -f /tmp/rc450_test.sql
+          docker exec "$pg_container" createdb -U postgres mantiqatix_trigger_acl_test
+          docker cp supabase/tests/trigger_only_security_definer_acl_integration.sql "$pg_container:/tmp/trigger_acl_integration.sql"
+          docker exec "$pg_container" mkdir -p /migrations
+          docker cp supabase/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql "$pg_container:/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_trigger_acl_test -v ON_ERROR_STOP=1 -f /tmp/trigger_acl_integration.sql

@@ -2881,3 +2881,34 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified/Professional Dashboard:** source PR #483 is merged; current main reports `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; deployment and tested deployed-origin owner/employee/branch/QR journeys pass. Remaining scope is the full Super Admin Control Center, module-specific permission enforcement, real-data coverage, complete screen/action matrix and full dashboard E2E. See master issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release state:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`. Current verifier still reports 0/41 required release migration IDs, 32/60 non-PASS object checks, six critical Edge Function drifts, RC449A/RC450 journal schema/ACL blockers, and payment/finance, Auth hardening and backup/restore evidence outstanding. Catalog pilot PASS does not certify the platform.
 - Open workstreams and PR triage are indexed in master issue #599. Do not treat historical TODO snapshots as current without checking exact main and live evidence.
+
+
+## 2026-10-31 execution update — RC463 trigger-only SECURITY DEFINER ACL
+
+- [ ] **IN PROGRESS — PR #602:** add forward-only RC463 migration for `assign_default_owner_to_unowned_business()` and `capture_commission_rule_audit()`.
+- Exact disposable PostgreSQL 16 integration now applies the migration file itself and verifies PUBLIC/anon/authenticated/service_role cannot execute either trigger function directly while the existing triggers continue to work.
+- Exact-head trigger-only integration PASS: [41184167702](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41184167702).
+- Migration version uniqueness PASS: [41184167782](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41184167782).
+- Migration history immutability PASS: [41184167703](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41184167703).
+- Open PR migration collision guard PASS: [41184167835](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41184167835).
+- Forward migration chain replay is still running on the exact candidate head; do not mark RC463 fully verified until it completes.
+- No Production migration/ACL/function/trigger/data change was made. RC463 is not approved for Production by this PR.
+- Remaining global work: restorable current Production schema rehearsal, RC449A/RC450 journal contract reconciliation, six deployed Edge Function parity gaps, backup/restore, Auth hardening, role-scoped deployed-origin tests, and full Super Admin Control Center.
+- Direct merchant-to-customer transfer remains **DEFERRED / NOT IN CURRENT SPRINT** per user instruction.
+
+
+### RC463 replay failure and bounded fixture overlay — 2026-10-31
+
+- [x] Exact-head isolated forward replay reached RC463 but failed its preflight because the 2026-10-17 schema-only checkpoint does not contain the known live default-owner trigger function. The checkpoint is older than the live catalog and has `review_status=PENDING_REVIEW`; it must not be described as a current Production restore.
+- [x] Added a disposable-only integration fixture with a synthetic `.example.test` owner identity and test-only trigger definitions. It is not a migration and is never applied to Production.
+- [ ] Re-run the complete chronological replay and dependent tenant-isolation/commission tests. Keep the current-schema restore and backup/restore gate NOT VERIFIED until an owner-authorized current snapshot and separate data backup restore exist.
+
+
+### RC463A source recovery privacy review — 2026-10-31
+
+- [x] Rejected the proposed RC463A production migration that copied the live default-owner function's hard-coded personal owner identifier into the public repository. That migration is removed from PR #602 and is not part of the release chain.
+- [x] Kept the live-only default-owner trigger reconstruction in a disposable CI overlay with synthetic `.example.test` identity only. The overlay is not a migration and is never applied to Production.
+- [x] Re-ran dedicated trigger ACL integration using the synthetic overlay; exact-head result is pending after the latest change.
+- [x] RC463 now skips only a fully absent function/trigger pair in the older checkpoint, while failing closed on partial/mismatched state; live Production has both functions/triggers and will harden both.
+
+

@@ -1486,3 +1486,37 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — RC463 trigger-only SECURITY DEFINER hardening
+
+- User requested execution of the ordered production-safety work.
+- Added draft PR #602 with RC463 forward-only ACL/search_path migration and exact-migration PostgreSQL 16 integration.
+- Fixed the CI container mount after the first attempt exposed a missing migration file in the test container; corrected exact-head integration passed.
+- CI evidence: trigger-only integration PASS, migration history immutability PASS, migration version uniqueness PASS, open-PR migration collision guard PASS. Forward migration chain replay remains pending.
+- No Production changes were performed. The global production gate remains BLOCKED / NOT CERTIFIED.
+- Next: finish exact-head CI/replay, then proceed only with an isolated/restorable current-schema rehearsal; do not apply RC449A/RC450/RC463 or deploy Edge Functions to Production without approved evidence and rollout gates.
+
+
+### RC463 replay investigation — 2026-10-31
+
+- The exact-head forward replay from the captured schema-only checkpoint (captured 2026-10-17 at migration `20261008222845`) failed when RC463 preflight found `assign_default_owner_to_unowned_business()` missing. The live Production catalog had confirmed the function and trigger exist; the captured checkpoint predates this manually provisioned object.
+- This is a checkpoint freshness gap, not a reason to weaken the migration preflight or mark replay PASS. Add a narrowly scoped disposable overlay with a synthetic fixture identity immediately before RC463, then rerun. The overlay must not be applied to Production or treated as a current full schema restore.
+- Trigger-only ACL integration passed separately. Production remains read-only and the full gate remains BLOCKED.
+
+
+### RC463A privacy correction — 2026-10-31
+
+- A proposed source-recovery migration attempted to copy the live default-owner trigger function verbatim, including a hard-coded personal owner identifier. This is not acceptable in the public repository and is unnecessary for the Production forward migration because the function already exists live.
+- Removed the RC463A production migration from the candidate. Replaced it with a disposable test overlay that uses only a synthetic `.example.test` identity and is applied only in isolated CI immediately before RC463.
+- The production migration remains limited to hardening the already-existing functions; no personal owner identifier is added to source history.
+
+
+### RC463 privacy-safe replay correction — 2026-10-31
+
+- The first full replay exposed that the 2026-10-17 schema-only checkpoint (through 20261008222845, review_status=PENDING_REVIEW) lacks the live-only default-owner trigger function.
+- A proposed migration that copied the live function source and hard-coded owner identity into repository history was removed after privacy review; do not restore it.
+- Final RC463 is conditional: harden only complete matching function+enabled-trigger pairs; skip a fully absent pair in the older checkpoint; fail closed on partial/mismatched state.
+- The isolated PostgreSQL fixture uses synthetic example.test identity and test-only trigger functions to verify both behaviors without publishing the live owner identifier.
+- The exact RC463 test is included in the existing Backend-only Module Boundary workflow and the dedicated PostgreSQL workflow.
+- The exact-head CI and chronological replay are pending. No Production change was made.
