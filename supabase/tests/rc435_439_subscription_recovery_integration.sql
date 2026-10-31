@@ -34,11 +34,13 @@ begin
     raise exception 'RC435 provider-creation claim ACL contract failed';
   end if;
 
-  insert into public.businesses(id,tenant_id) values
-    (business_a,'tenant-rc435-a'),(business_b,'tenant-rc435-b');
-  insert into public.user_memberships(user_id,business_id,status,role) values
-    (owner_a,business_a,'ACTIVE','BUSINESS_OWNER'),
-    (owner_b,business_b,'ACTIVE','OWNER');
+  insert into public.tenants(id) values ('tenant-rc435-a'),('tenant-rc435-b');
+  insert into public.businesses(id,tenant_id,name,code) values
+    (business_a,'tenant-rc435-a','Recovery Business A','RECOVERY-A'),
+    (business_b,'tenant-rc435-b','Recovery Business B','RECOVERY-B');
+  insert into public.user_memberships(id,user_id,tenant_id,business_id,status,role) values
+    ('membership-recovery-a',owner_a,'tenant-rc435-a',business_a,'ACTIVE','BUSINESS_OWNER'),
+    ('membership-recovery-b',owner_b,'tenant-rc435-b',business_b,'ACTIVE','OWNER');
   insert into public.subscription_tier_prices(tier_code,monthly_price,annual_price,currency,active) values
     ('BASIC',100,1000,'EGP',true),
     ('GOLD',250,2500,'EGP',true),
@@ -143,10 +145,10 @@ begin
   -- A legacy PENDING intent with no provider IDs is marked outcome-unknown and never retried.
   insert into public.subscription_payment_intents(
     id,business_id,tier_code,billing_cycle,amount,currency,status,provider,
-    idempotency_key,created_by,provider_creation_state
+    idempotency_key,pricing_hash,created_by,provider_creation_state
   ) values(
     intent_legacy,business_a,'BASIC','MONTHLY',100,'EGP','PENDING','PAYMOB',
-    'rc435-legacy',owner_a,'LEGACY_UNRECONCILED'
+    'rc435-legacy','fixture-pricing-legacy',owner_a,'LEGACY_UNRECONCILED'
   );
   result := public.claim_subscription_provider_intent_creation_backend(intent_legacy,owner_a);
   if result->>'claimed' <> 'false' or result->>'outcome_unknown' <> 'true' then
@@ -156,10 +158,10 @@ begin
   -- Once provider IDs are correlated, a repeated claim returns the existing intent safely.
   insert into public.subscription_payment_intents(
     id,business_id,tier_code,billing_cycle,amount,currency,status,provider,
-    idempotency_key,created_by,provider_creation_state,provider_intent_id,provider_order_id
+    idempotency_key,pricing_hash,created_by,provider_creation_state,provider_intent_id,provider_order_id
   ) values(
     intent_correlated,business_a,'GOLD','MONTHLY',250,'EGP','PENDING','PAYMOB',
-    'rc435-correlated',owner_a,'CORRELATED','provider-intent-1','provider-order-1'
+    'rc435-correlated','fixture-pricing-correlated',owner_a,'CORRELATED','provider-intent-1','provider-order-1'
   );
   result := public.claim_subscription_provider_intent_creation_backend(intent_correlated,owner_a);
   if result->>'claimed' <> 'false' or result->>'outcome_unknown' <> 'false'

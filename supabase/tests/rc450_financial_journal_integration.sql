@@ -24,13 +24,17 @@ begin
     raise exception 'service_role must be able to execute the backend journal RPC';
   end if;
 
-  insert into public.user_memberships(user_id,tenant_id,organization_id,business_id,branch_id,role,status)
-  values (actor,'tenant-a','org-a',business,null,'ACCOUNTANT','ACTIVE'),
-         (other_actor,'tenant-b','org-b',other_tenant_business,null,'ACCOUNTANT','ACTIVE'),
-         (same_tenant_other_business_actor,'tenant-a','org-a',other_business,null,'ACCOUNTANT','ACTIVE'),
-         (branch_actor,'tenant-a','org-a',business,'branch-a','ACCOUNTANT','ACTIVE');
-  insert into public.chart_of_accounts(id,tenant_id,is_active)
-  values ('cash','tenant-a',true),('revenue','tenant-a',true),('inactive','tenant-a',false);
+  insert into public.user_memberships(id,user_id,tenant_id,organization_id,business_id,branch_id,role,status)
+  values ('membership-actor',actor,'tenant-a','org-a',business,null,'ACCOUNTANT','ACTIVE'),
+         ('membership-other-tenant',other_actor,'tenant-b','org-b',other_tenant_business,null,'ACCOUNTANT','ACTIVE'),
+         ('membership-other-business',same_tenant_other_business_actor,'tenant-a','org-a',other_business,null,'ACCOUNTANT','ACTIVE'),
+         ('membership-branch-actor',branch_actor,'tenant-a','org-a',business,'branch-a','ACCOUNTANT','ACTIVE');
+
+  update public.chart_of_accounts set is_active=true where id in ('cash','revenue');
+  update public.chart_of_accounts set is_active=false where id='inactive';
+  if (select count(*) from public.chart_of_accounts where id in ('cash','revenue','inactive')) <> 3 then
+    raise exception 'fixture is missing required chart-of-accounts seed rows';
+  end if;
 
   entry := jsonb_build_object(
     'id','rc450-journal-001','tenant_id','tenant-a','business_id',business,
