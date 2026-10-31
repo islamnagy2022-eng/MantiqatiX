@@ -129,3 +129,34 @@ No DDL, grants, policies, Auth settings, business rows, RPC mutations, payments,
 ### Follow-up: default-owner trigger invocation surface
 
 The trigger catalog confirms `assign_default_owner_to_unowned_business()` is attached to `businesses`. The current live table grants show neither anon nor authenticated has direct INSERT privilege on `businesses`; business creation therefore depends on privileged backend/RPC paths rather than direct client table inserts. The trigger's hard-coded default-owner fallback still deserves review against every privileged business-creation path (actor attribution, rate limits, ownership expectation, and auditability), but this inspection did not establish an unauthorized assignment or a direct anonymous RPC path.
+
+
+## 2026-10-31 — RC441/RC449 source equivalence and full helper dependency map
+
+### Source comparison
+
+A line-by-line comparison of current `main` versions of:
+- `supabase/migrations/20261010030000_rc441_platform_admin_scope_hardening.sql`
+- `supabase/migrations/20261010170000_rc449_mantigo_platform_admin_scope_hardening.sql`
+
+found substantive SQL equivalence. RC441 is 245 lines / 11,534 characters; RC449 is 244 lines / 11,533 characters. Differences are the migration comment label, the comment text stored on `mnty_can_platform_admin()`, and the final newline. Both define the same strict helper, replace the same four MantiGO global RPCs, and apply the same `PUBLIC/anon` revokes plus `authenticated` grants. Do not edit/delete historical migrations. Full chronological replay should apply both exact IDs and confirm the second idempotent replacement causes no schema/ACL drift.
+
+### Shared-helper dependency map
+
+The original RC258 helper delegates platform-admin authorization to `mnty_can('admin', NULL, NULL, NULL)`. Because the null scope admits any active membership and the permission matrix treats tenant OWNER as admin, this is not a platform boundary.
+
+In addition to the four MantiGO RPCs recreated by RC441/RC449, the same helper is called by:
+- `admin_create_global_ad` — creates a platform-wide advertisement.
+- `fulfill_digital_page_publish` — publishes a paid digital-page order/page.
+- `review_mantigo_captain_application` — approves/rejects/suspends captain profiles.
+- `set_mantigo_financial_config_backend` — changes global MantiGO commission/currency configuration.
+
+The helper replacement is therefore the common authorization fix for all eight global SECURITY DEFINER entrypoints. The four additional functions were inspected in source and each invokes `mnty_can_platform_admin()`; they are not separately redefined in RC441/RC449. Add direct caller-level adversarial tests to the full isolated suite before production certification.
+
+### Existing test evidence
+
+`rc449_mantigo_platform_admin_integration.sql` tests tenant OWNER, tenant ADMIN, OPERATIONS_MANAGER, tenant-scoped SUPER_ADMIN and explicit platform SUPER_ADMIN. It exercises the four global MantiGO RPCs, settlement/expiration replay behavior, ACL checks, empty search_path checks, and the `digital_pages_admin_manage` RLS CRUD boundary. The fixture is disposable and does not touch Production. This is source-level/isolated PostgreSQL evidence only.
+
+### Current Production status
+
+Read-only refresh at 2026-10-31 04:39:16 UTC: migration ledger 308 rows through `20261029083845`; exact RC441 and RC449 identifiers are both absent. Security Advisor: 8 RLS-enabled/no-policy tables, 3 anon-executable SECURITY DEFINER functions, 67 authenticated-executable SECURITY DEFINER functions, 90 anonymous-policy findings, and leaked-password protection disabled. No Production mutation occurred. Gate remains **BLOCKED / NOT CERTIFIED**.
