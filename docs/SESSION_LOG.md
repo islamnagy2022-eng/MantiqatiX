@@ -1559,3 +1559,14 @@ A separate source review found a second platform-root authorization model: the n
 - Browser E2E failed at the business-owner entry scenario because the test expected the employee/professional dashboard navigation landmark after opening the owner MerchantDashboard. The owner MerchantDashboard is currently a form workspace headed `إدارة منتجات وكتالوج نشاطك`, not the professional dashboard navigation shell. This was an assertion/fixture mismatch, not evidence of a permission denial.
 - Corrected the browser assertion to wait for the actual owner workspace heading. Owner/employee routes remain separately asserted; no production code authorization was weakened.
 - A new exact-head CI run must verify the correction. Do not mark E2E passed until that run concludes successfully.
+
+
+## 2026-10-31 — Live platform billing/wallet/ad inventory audit
+
+- Read-only Supabase catalog inspection: 308 migrations, latest observed `20261029083845`.
+- Wallet tables exist but are empty; `create_wallet_transaction_backend` lacks service_role EXECUTE and calls a journal RPC that also lacks service_role EXECUTE. Live journal columns remain behind RC449A/RC450.
+- Subscription tiers are fixed monthly/annual only; live payment intents lack RC435/RC439 claim/encrypted checkout contract; subscription callback does not debit wallet.
+- Commission draft engine supports fixed, percentage and combined, but remains inactive and preview-only.
+- Existing ad slots: HOME_HERO and HOME_SPONSORED. No monthly/quarterly/half-yearly/yearly/custom booking/pricing reservation model. `ad_spaces` has permissive authenticated ALL policies; flag for P0 authorization repair before UI write exposure.
+- Added detailed report `docs/audits/PLATFORM_BILLING_WALLET_ADS_LIVE_GAP_AUDIT_20261031.md`.
+- No production database/function/ACL/RLS/payment/wallet/ad mutation.
