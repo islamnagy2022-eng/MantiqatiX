@@ -905,7 +905,15 @@ try {
       await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByLabel('القائمة والمنتجات: قيد التجهيز', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px restaurant activity operations');
+      await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies', { waitUntil: 'domcontentloaded' });
+      const pharmacyModule = page.locator('main[dir="rtl"]');
+      await pharmacyModule.getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('button', { name: 'التسويق والإعلان', exact: true }).click();
+      await pharmacyModule.getByText('إعلان ساعات العمل والمناوبة', { exact: true }).waitFor({ state: 'visible' });
+      await pharmacyModule.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
+      await pharmacyModule.getByText('إدارة ملف الصيدلية وساعات المناوبة', { exact: false }).waitFor({ state: 'visible' });
       results.push('activity-module-registry-renders-domain-specific-marketing-and-operations');
+      results.push('activity-module-registry-renders-pharmacy-specific-override');
     } finally { await context.close(); }
   }
 
