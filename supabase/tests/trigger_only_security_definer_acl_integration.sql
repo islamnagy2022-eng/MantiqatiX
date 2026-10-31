@@ -3,7 +3,7 @@
 -- from API roles, and that both trigger-only SECURITY DEFINER functions use
 -- a pinned empty search_path. Never run against Production.
 
-\\set ON_ERROR_STOP on
+\set ON_ERROR_STOP on
 
 do $roles$
 begin create role anon nologin; exception when duplicate_object then null; end
