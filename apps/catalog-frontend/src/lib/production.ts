@@ -502,7 +502,7 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
   const role = platform ? 'admin' : roleMemberships.length ? 'subscriber' : 'guest';
   const own = roleMemberships.find((m: any) => m.business_id && businesses.some((b) => b.id === String(m.business_id))) || roleMemberships[0];
   const switchableMembershipRoles = new Set(['OWNER', 'BUSINESS_OWNER', 'ADMIN', 'EMPLOYEE', 'STAFF']);
-  const availableMemberships = [...new Map(roleMemberships.flatMap((membership: any) => {
+  const availableMembershipModes = roleMemberships.flatMap((membership: any) => {
     const membershipRole = String(membership.role || '').toUpperCase();
     const tenantId = String(membership.tenant_id || '');
     const membershipId = String(membership.id || '');
@@ -521,7 +521,10 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
       role: membershipRole,
       permissions: membership.permissions && typeof membership.permissions === 'object' ? membership.permissions : undefined,
     }));
-  })).map((mode) => [mode.membershipId + ':' + mode.businessId, mode])).values()];
+  });
+  const availableMemberships = availableMembershipModes.filter((mode: any, index: number, all: any[]) =>
+    all.findIndex((candidate: any) => candidate.membershipId === mode.membershipId && candidate.businessId === mode.businessId) === index
+  );
   const managementRoles = ['OWNER', 'BUSINESS_OWNER', 'ADMIN'];
   const chosen = businesses.find((b) => roleMemberships.some((m: any) =>
     String(m.business_id || '') === b.id &&
