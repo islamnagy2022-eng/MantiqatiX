@@ -1331,3 +1331,15 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Current main's server guard returns a tenant-scoped HTTP 409 and business ID; the draft's heuristic reuse/merge response could silently attach a new submission to an existing business record.
 - No unique code from the draft was required. Added an explanatory comment and closed PR #477 unmerged.
 - Remaining duplicate-creation work is unchanged: real browser/server concurrency, multi-tab and lost-response retry tests; the check-then-insert remains non-atomic at DB level.
+
+
+## 2026-10-31 — PR #580 merged and RC449 regression coverage expanded
+
+- Merged documentation-only PR [#580](https://github.com/islamnagy2022-eng/MantiqatiX/pull/580) to main: `e141aa6208f4f94001ab40447cb1c4c4df47bee4`.
+- The PR records the read-only Production finding across four MantiGO platform-wide RPCs: global dashboard, global financial report, captain settlement, and stale ride expiration. All four live functions were SECURITY DEFINER, used `search_path=public`, were authenticated-executable/anon-denied, and lacked `mnty_can_platform_admin()`; their role predicates accepted broad tenant roles.
+- Live migration ledger at inspection: 308 records through `20261029083845`; RC441 `20261010030000` and RC449 `20261010170000` absent. No Production mutation, live RPC invocation, financial transaction, settlement, or business-row read was performed.
+- Exact PR #580 validation passed: Module Professionalization [41164494328], Backend-only Module Boundary [41164494345], MantiGO Open Ride Privacy [41164494317], RC425 Paymob Atomicity [41164494277], and Deploy MantiqatiX Web validation [41164494296]. Pages deploy job was skipped because the PR was documentation-only.
+- PR [#477](https://github.com/islamnagy2022-eng/MantiqatiX/pull/477) was closed unmerged after comparison with current main; its older global in-flight Promise and heuristic server merge were superseded. Runtime concurrency and lost-response tests remain open.
+- Opened PR [#581](https://github.com/islamnagy2022-eng/MantiqatiX/pull/581) to strengthen the RC449 disposable PostgreSQL integration matrix: tenant ADMIN, tenant OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN must be denied by all four global RPCs; all four SECURITY DEFINER RPCs must retain empty `search_path`, authenticated grants and anon denial.
+- PR #581 dedicated workflow `MantiGO Platform Admin Scope Hardening` run [41164835173] is executing against disposable PostgreSQL 16. Do not merge until the run and the remaining required PR CI jobs finish successfully.
+- Overall Production remains **BLOCKED / NOT CERTIFIED**. RC441/RC449 source exists and is being regression-tested, but the live Production ledger has not recorded those migrations. A cost-reviewed isolated restore/schema clone and full chronological replay remain mandatory before controlled Production remediation.
