@@ -429,6 +429,24 @@ const results = [];
   } finally { await context.close(); }
 }
 
+// Leaving a deep activity route for the marketplace home clears stale activity/group query state.
+{
+  const { context, page } = await newScenario(browser);
+  try {
+    await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies&group=medical_health', { waitUntil: 'domcontentloaded' });
+    await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    const route = new URL(page.url());
+    assert.equal(route.searchParams.has('activity'), false, 'home navigation must clear the previous activity route');
+    assert.equal(route.searchParams.has('group'), false, 'home navigation must clear the previous group route');
+    assert.equal(route.searchParams.has('view'), false, 'home navigation must return to the canonical root URL');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    results.push('activity-to-marketplace-home-clears-deep-route-on-refresh');
+  } finally { await context.close(); }
+}
+
 async function auditAccessibility(page, label) {
   const axePath = process.env.AXE_CORE_SCRIPT;
   if (!axePath) return;
