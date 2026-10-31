@@ -160,3 +160,8 @@ The helper replacement is therefore the common authorization fix for all eight g
 ### Current Production status
 
 Read-only refresh at 2026-10-31 04:39:16 UTC: migration ledger 308 rows through `20261029083845`; exact RC441 and RC449 identifiers are both absent. Security Advisor: 8 RLS-enabled/no-policy tables, 3 anon-executable SECURITY DEFINER functions, 67 authenticated-executable SECURITY DEFINER functions, 90 anonymous-policy findings, and leaked-password protection disabled. No Production mutation occurred. Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+### Governance alignment item — platform authority registries
+
+A separate source review found a second platform-root authorization model: the newer Super Admin Control Center RPCs (`mnty_platform_admin_*`) authorize against `private.platform_admins`, while the RC441/RC449 MantiGO/global-digital-page helper authorizes against an active `user_memberships` row in `MNTY-PLATFORM` with `SUPER_ADMIN`, `scope=PLATFORM`, and `full_control=true`. These are distinct authority sources, not the same predicate. The platform-control-center design explicitly describes `private.platform_admins` as the protected root registry; an earlier documented production checkpoint (2026-09-27) recorded zero rows, but that count has not been re-read in this session. Do not infer the current registry contents. Before rollout, decide and test whether both sources must agree, whether one is the canonical root, and how bootstrap/revocation keeps them synchronized. This is a governance consistency gap to resolve, not proof of a privilege escalation. No sensitive registry rows were queried.
