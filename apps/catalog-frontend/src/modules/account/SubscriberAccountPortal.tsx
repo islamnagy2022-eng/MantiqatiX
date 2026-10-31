@@ -12,11 +12,11 @@ const amountText = (value: unknown, currency: string) => Number.isFinite(Number(
 export const SubscriberAccountPortal: React.FC = () => {
   const { authSession, authLoading, currentBusiness, businessProducts, adminSettings, setCurrentView, logout } = useApp();
   const [section,setSection] = useState<Section>('overview');
-  const business = currentBusiness;
+  const business = isAdmin ? undefined : currentBusiness;
   const currency = adminSettings.currency || 'ج.م';
   const isAdmin = authSession.role === 'admin';
-  const canMerchant = canAccessMerchantDashboard(authSession);
-  const canProfessional = canAccessProfessionalDashboard(authSession);
+  const canMerchant = !isAdmin && canAccessMerchantDashboard(authSession);
+  const canProfessional = !isAdmin && canAccessProfessionalDashboard(authSession);
   const subscriptionStatus = !business ? 'لا يوجد نشاط مرتبط' :
     business.isFrozen || business.paymentStatus === 'frozen' ? 'مجمّد' :
     business.paymentStatus === 'paid' && business.paymentConfirmedByAdmin ? 'مدفوع ومؤكد' :
@@ -28,7 +28,7 @@ export const SubscriberAccountPortal: React.FC = () => {
     ['HOME','الرئيسية وملخص النشاط'],['CATALOG','المنتجات والخدمات والكتالوج'],['ORDERS','الطلبات'],
     ['CUSTOMERS','العملاء'],['EMPLOYEES','الفريق والموظفون'],['SETTINGS','إعدادات النشاط'],
     ['REPORTS','التقارير'],['ANALYTICS','التحليلات'],['FINANCE','المالية'],
-  ].map(([key,label])=>({key,label,allowed:isAdmin || hasBusinessModulePermission(authSession,key,['view','manage'])})),[authSession,isAdmin]);
+  ].map(([key,label])=>({key,label,allowed:!isAdmin && hasBusinessModulePermission(authSession,key,['view','manage'])})),[authSession,isAdmin]);
   const nav: {id:Section;label:string;icon:React.ReactNode}[] = [
     {id:'overview',label:'نظرة عامة',icon:<LayoutDashboard className="h-4 w-4"/>},
     {id:'subscription',label:'اشتراكاتي',icon:<CreditCard className="h-4 w-4"/>},
