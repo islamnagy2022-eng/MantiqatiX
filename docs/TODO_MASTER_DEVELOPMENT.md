@@ -519,7 +519,16 @@ Account → Own Business → Menu Plan → Order → Payment → Fulfillment →
 ---
 
 # 22) SEARCH / DISCOVERY / LOCATION
-### الحالة: PARTIAL
+### الحالة: PARTIAL — Smart Geo Discovery implementation in progress
+### Current owner request — 2026-10-31
+- [x] First-visit location explanation and explicit consent action before the browser's native geolocation permission prompt.
+- [x] Silent location reacquisition only when a previous browser permission is already granted.
+- [x] Persist manual geographic scope (Egypt / governorate / center / listed village / listed area) without persisting precise GPS coordinates.
+- [x] Manual selector catalogue includes the project's seeded 27 governorates and 165 centers; listed villages/areas come from actual public directory records.
+- [x] GPS proximity ranking for records with explicit valid coordinates; verified businesses remain first.
+- [ ] Accurate GPS-to-village/center/governorate matching requires authoritative polygons or a validated reverse-geocoding data source. Current platform_geo_areas has no boundary geometry or center coordinates; do not guess from the nearest centroid.
+- [ ] Verify CI, browser permission flows, mobile behavior, deployment, and live smoke test before closing.
+- Tracking: https://github.com/islamnagy2022-eng/MantiqatiX/issues/604
 ### Prompt
 أكمل البحث:
 - service.
