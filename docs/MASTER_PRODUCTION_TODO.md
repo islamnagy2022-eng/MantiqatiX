@@ -3000,3 +3000,17 @@ A separate source review found a second platform-root authorization model: the n
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — RC463 current-main security continuation
+
+- [x] Superseding branch `security/rc463-current-main-rehearsal-20261031` was created from current main commit `cd9929e337fce58d4c20dfbb94febfd7e4f36291`; the older draft PR #602 is stale by five main commits and is not the merge target.
+- [x] Ported RC463 migration, disposable test overlay, exact-migration trigger integration and the three relevant CI workflow changes onto the current-main branch.
+- [x] Updated the release contract and migration-chain validator to include the 42nd required source version `20261031100000`; exact version list is now 42.
+- [x] Fresh read-only Supabase migration inventory: 308 rows through `20261029083845`; **0/42** required exact version IDs are recorded. The manifest now distinguishes the older 0/41 snapshot from this 2026-10-31 0/42 check.
+- [x] Fresh read-only PostgreSQL catalog check: both expected SECURITY DEFINER trigger functions and enabled triggers exist. `assign_default_owner_to_unowned_business` uses `search_path=public, auth`; `capture_commission_rule_audit` already has an empty search_path. Both functions return PostgreSQL `trigger` and have default ACL (`proacl IS NULL`) giving PUBLIC and effective anon/authenticated/service_role EXECUTE. They are trigger-only, not ordinary RPC endpoints; do not label this as a confirmed anonymous RPC exploit.
+- [x] Production read-only privilege check confirmed service_role has SELECT/INSERT/UPDATE/DELETE on `commission_rules`; the isolated test fixture now mirrors those actual privileges. The exact-head test verifies commission INSERT/UPDATE/DELETE audit rows and owner-assignment trigger behavior after hardening.
+- [x] The candidate changes only search_path and function EXECUTE ACLs; it does not replace live function bodies or trigger definitions. The test overlay uses synthetic `.example.test` identity and is CI-only.
+- [x] Exact-head CI on code/test commit `43483d855bb08a63a37f78be564f5eb670f8a465`: RC463 integration on PostgreSQL 17.11 (matching the Production PostgreSQL 17 major), 75-migration disposable forward replay, build, RBAC PostgreSQL, Playwright E2E, migration immutability/uniqueness/collision guards and supporting backend/privacy/payment workflows all passed. Pages validation passed; PR deploy was skipped by design. See `docs/audits/RC463_TRIGGER_ONLY_SECURITY_DEFINER_ACL.md` for run IDs.
+- [ ] Current-Oct-31 schema-faithful restore, backup/restore and rollback rehearsal are not covered by the older checkpoint replay and remain required before Production rollout.
+- [ ] **No Production migration, function, trigger, ACL, database data, Edge Function, Auth or RLS change was performed. RC463 is not approved for Production.**
