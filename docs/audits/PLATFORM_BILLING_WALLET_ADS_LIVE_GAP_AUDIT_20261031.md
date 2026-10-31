@@ -157,3 +157,11 @@ A read-only `pg_default_acl` / ownership check found:
 - A targeted scan of 136 public tables found only `ad_spaces` and `bookings` with authenticated DML privileges and zero permissive authenticated DML policies. Both are RLS + FORCE RLS and currently deny ordinary authenticated DML by policy. See Issues [#611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611) and [#613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613).
 
 **No Production grants, default ACLs, RLS policies, rows or schema were modified.**
+
+## Addendum — 2026-10-31 historical migration versus live advertisements FK
+
+A read-only query of `supabase_migrations.schema_migrations` found the live ledger entry `20260808000000_phase04_enterprise_schema_and_rls`. Its recorded SQL includes `CREATE TABLE IF NOT EXISTS advertisements (... business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE ...)`. This migration artifact is listed as absent from the tracked GitHub migration tree in `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`.
+
+Across all currently recorded migration statements inspected for `advertisements`, there is no explicit `DROP CONSTRAINT` statement and no later `ADD CONSTRAINT` statement. The current live catalog still has no business_id FK. Since `CREATE TABLE IF NOT EXISTS` does not retrofit constraints when the relation already exists, we cannot distinguish from present evidence between (a) a pre-existing table causing the original CREATE to be skipped and (b) a schema change outside the recorded migration chain. **Cause unresolved; do not claim a confirmed manual drop or fabricate a historical migration.**
+
+Next required evidence is an authoritative original migration artifact / historical schema snapshot or a current-schema isolated restore that demonstrates the migration effect gap. Any repair must be a new forward-only migration after backup/restore, exact tenant/business relationship validation, negative cross-tenant tests and rollback rehearsal. Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix) tracks it.
