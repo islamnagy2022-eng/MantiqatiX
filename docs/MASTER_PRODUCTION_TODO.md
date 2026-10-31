@@ -29,6 +29,8 @@
 ### Implementation
 - [x] Updated `apps/catalog-frontend/src/lib/production.ts` so the resolved canonical activity ID is authoritative; legacy display-name matching is now fallback-only.
 - [x] Added a browser regression fixture with a deliberately conflicting legacy label (`مطاعم — برجر`) and canonical codes for `medical_health / pharmacies`. The test requires the homepage verified count to appear under `صيدليات`, not `مطاعم`, and verifies navigation to the correct activity module.
+- [x] Restored the requested mobile activity-card layout: three columns at phone widths, expanding to four/five columns on larger screens; cards use a compact stacked mobile layout and retain the existing horizontal desktop treatment.
+- [x] Added Playwright assertion for exactly three homepage activity columns at the 390px mobile viewport; the canonical taxonomy validator now enforces both the responsive grid and the regression test.
 - [x] Added a canonical taxonomy validator assertion requiring the homepage regression E2E.
 - [ ] Exact-head TypeScript/build, canonical taxonomy validator, RBAC PostgreSQL, Playwright browser E2E and supporting workflow checks.
 - [ ] Review deployed-origin result after authorized merge/deployment. Do not claim a Production fix before deployed-origin verification.
