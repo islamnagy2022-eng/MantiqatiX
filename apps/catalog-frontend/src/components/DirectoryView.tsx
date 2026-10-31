@@ -38,6 +38,7 @@ import { resolveDefaultImage } from '../utils/defaultImages';
 import { DirectoryListingsView } from './DirectoryListingsView';
 import { fetchPublicDirectoryListings, type PublicDirectoryListing } from '../lib/directoryListings';
 import { resolveCanonicalSpecialty } from '../data/productionDefaults';
+import { EGYPT_CENTERS, EGYPT_GOVERNORATES } from '../data/egyptAdministrativeAreas';
 
 const whatsappDigits = (value: unknown): string => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -77,8 +78,46 @@ interface CoverSlide {
   businessId?: string;
 }
 const BUSINESS_PLACEHOLDER = `${import.meta.env.BASE_URL || '/'}business-placeholder.svg`;
+const GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
 
+type StoredGeoPreference = {
+  completed: true;
+  mode: 'auto' | 'manual';
+  governorate: string;
+  markaz: string;
+  village: string;
+  area: string;
+};
 
+const readStoredGeoPreference = (): StoredGeoPreference | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<StoredGeoPreference>;
+    if (value.completed !== true || (value.mode !== 'auto' && value.mode !== 'manual')) return null;
+    return {
+      completed: true,
+      mode: value.mode,
+      governorate: typeof value.governorate === 'string' ? value.governorate : 'all',
+      markaz: typeof value.markaz === 'string' ? value.markaz : 'all',
+      village: typeof value.village === 'string' ? value.village : 'all',
+      area: typeof value.area === 'string' ? value.area : 'all',
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
+  if (typeof window === 'undefined') return;
+  try {
+    // Deliberately persist administrative choices only. Precise GPS coordinates stay in memory.
+    window.localStorage.setItem(GEO_DISCOVERY_STORAGE_KEY, JSON.stringify(preference));
+  } catch {
+    // Storage may be disabled by browser privacy settings; the directory remains usable.
+  }
+};
 
 export const DirectoryView: React.FC = () => {
   const {
@@ -92,6 +131,10 @@ export const DirectoryView: React.FC = () => {
     products,
   } = useApp();
   const businesses = directoryBusinesses;
+  const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
+  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
+  const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -100,12 +143,21 @@ export const DirectoryView: React.FC = () => {
   const [unconfirmedListings, setUnconfirmedListings] = useState<PublicDirectoryListing[]>([]);
   const [directoryListingsLoaded, setDirectoryListingsLoaded] = useState(false);
 
+  const completeGeoSetup = (mode: 'auto' | 'manual') => {
+    setGeoSetupCompleted(true);
+    setGeoPreferenceMode(mode);
+    setShowLocationWelcome(false);
+  };
+
   const requestUserLocation = () => {
+    completeGeoSetup('auto');
     if (!('geolocation' in navigator)) {
+      completeGeoSetup('manual');
       setLocationMessage('تحديد الموقع غير مدعوم على هذا المتصفح؛ يمكنك متابعة البحث بالموقع اليدوي.');
       return;
     }
     if (!window.isSecureContext) {
+      completeGeoSetup('manual');
       setLocationMessage('تحديد الموقع يحتاج إلى اتصال آمن HTTPS؛ افتح الكتالوج من رابط آمن ثم أعد المحاولة.');
       return;
     }
@@ -119,11 +171,13 @@ export const DirectoryView: React.FC = () => {
           const accuracy = Number(coords.accuracy);
           if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
               Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
+            completeGeoSetup('manual');
             setLocationMessage('أعاد الجهاز إحداثيات غير صالحة؛ جرّب تحديد الموقع مرة أخرى.');
             setLocationBusy(false);
             return;
           }
           setUserCoordinates({ latitude, longitude });
+          completeGeoSetup('auto');
           setSelectedGovFilter('all');
           setSelectedMarkazFilter('all');
           setSelectedVillageFilter('all');
@@ -141,16 +195,45 @@ export const DirectoryView: React.FC = () => {
               : error.code === error.POSITION_UNAVAILABLE
                 ? 'الموقع الحالي غير متاح من الجهاز الآن؛ تحقق من تشغيل GPS ثم أعد المحاولة.'
                 : 'تعذر تحديد موقعك؛ يمكنك متابعة البحث بالموقع اليدوي.';
+          completeGeoSetup('manual');
           setLocationMessage(message);
           setLocationBusy(false);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
       );
     } catch {
+      completeGeoSetup('manual');
       setLocationMessage('تعذر بدء طلب تحديد الموقع؛ تحقق من إعدادات المتصفح ثم أعد المحاولة.');
       setLocationBusy(false);
     }
   };
+
+  // Restore location silently only when the visitor previously granted browser permission.
+  // A fresh browser prompt is never triggered on page load.
+  useEffect(() => {
+    if (!initialGeoPreference?.completed || initialGeoPreference.mode !== 'auto') return;
+    if (!navigator.permissions?.query) return;
+    let cancelled = false;
+    navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
+      if (!cancelled && permission.state === 'granted') requestUserLocation();
+    }).catch(() => {
+      // Permission API is optional; the manual "use my location" action remains available.
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!geoSetupCompleted) return;
+    writeStoredGeoPreference({
+      completed: true,
+      mode: geoPreferenceMode,
+      governorate: selectedGovFilter,
+      markaz: selectedMarkazFilter,
+      village: selectedVillageFilter,
+      area: selectedAreaFilter,
+    });
+  }, [geoSetupCompleted, geoPreferenceMode, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter]);
+
   useEffect(() => {
     let cancelled = false;
     fetchPublicDirectoryListings().then((rows) => {
@@ -169,10 +252,10 @@ export const DirectoryView: React.FC = () => {
   const [selectedCategoryKind, setSelectedCategoryKind] = useState<'all' | 'activity' | 'profession'>('all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
-  const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
-  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>('all');
-  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>('all');
-  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
+  const [selectedGovFilter, setSelectedGovFilter] = useState<string>(initialGeoPreference?.governorate || 'all');
+  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
+  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
   const [listingSlug, setListingSlug] = useState<string>(() => new URLSearchParams(window.location.search).get('listing') || '');
   const openDirectoryListing = (slug: string) => {
     const url = new URL(window.location.href);
@@ -255,6 +338,7 @@ export const DirectoryView: React.FC = () => {
 
   const normalizeSearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
     .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+  const normalizeAdministrativeName = (value: unknown) => normalizeSearch(value).replace(/^(?:محافظة|مركز|مدينة|قسم)\s*/, '').trim();
 
   // Only use explicit, valid coordinates. Never infer a distance from a text address or map URL.
   const getCoordinates = (value: unknown): { latitude: number; longitude: number } | null => {
@@ -314,16 +398,14 @@ export const DirectoryView: React.FC = () => {
     const matchesSpecialty = selectedSpecialty === 'all' ||
       resolveCanonicalSpecialty(storedSpecialty, matchedCategory?.id) === requestedSpecialty ||
       resolveCanonicalSpecialty(categorySuffix, matchedCategory?.id) === requestedSpecialty;
-    const matchesGov = selectedGovFilter === 'all' || normalizeSearch(biz.governorate) === normalizeSearch(selectedGovFilter);
-    const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeSearch(biz.markaz) === normalizeSearch(selectedMarkazFilter);
+    const matchesGov = selectedGovFilter === 'all' || normalizeAdministrativeName(biz.governorate) === normalizeAdministrativeName(selectedGovFilter);
+    const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeAdministrativeName(biz.markaz) === normalizeAdministrativeName(selectedMarkazFilter);
     const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(biz.village) === normalizeSearch(selectedVillageFilter);
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(biz.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategoryKind && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
   }).sort((a, b) => {
     // Verified activities always lead; visual completeness breaks ties within each tier.
     if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
-    const completenessDifference = completenessScore(b) - completenessScore(a);
-    if (completenessDifference !== 0) return completenessDifference;
     if (userCoordinates) {
       const aDistance = distanceKm(userCoordinates, getCoordinates(a));
       const bDistance = distanceKm(userCoordinates, getCoordinates(b));
@@ -331,9 +413,11 @@ export const DirectoryView: React.FC = () => {
       if (aDistance !== null && bDistance === null) return -1;
       if (aDistance === null && bDistance !== null) return 1;
     }
-    const targetGov = selectedGovFilter === 'all' ? '' : normalizeSearch(selectedGovFilter);
-    return Number(Boolean(targetGov) && normalizeSearch(b.governorate) === targetGov) -
-      Number(Boolean(targetGov) && normalizeSearch(a.governorate) === targetGov);
+    const completenessDifference = completenessScore(b) - completenessScore(a);
+    if (completenessDifference !== 0) return completenessDifference;
+    const targetGov = selectedGovFilter === 'all' ? '' : normalizeAdministrativeName(selectedGovFilter);
+    return Number(Boolean(targetGov) && normalizeAdministrativeName(b.governorate) === targetGov) -
+      Number(Boolean(targetGov) && normalizeAdministrativeName(a.governorate) === targetGov);
   });
 
   // Public-directory entries and registered businesses share one result stream.
@@ -350,8 +434,8 @@ export const DirectoryView: React.FC = () => {
     const matchesSpecialty = selectedSpecialty === 'all' ||
       resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', listing.taxonomy_category_id) ===
       resolveCanonicalSpecialty(selectedSpecialty, listing.taxonomy_category_id);
-    const matchesGov = selectedGovFilter === 'all' || normalizeSearch(listing.governorate) === normalizeSearch(selectedGovFilter);
-    const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeSearch(listing.district) === normalizeSearch(selectedMarkazFilter);
+    const matchesGov = selectedGovFilter === 'all' || normalizeAdministrativeName(listing.governorate) === normalizeAdministrativeName(selectedGovFilter);
+    const matchesMarkaz = selectedMarkazFilter === 'all' || normalizeAdministrativeName(listing.district) === normalizeAdministrativeName(selectedMarkazFilter);
     const matchesVillage = selectedVillageFilter === 'all' || normalizeSearch(listing.village) === normalizeSearch(selectedVillageFilter);
     const matchesArea = selectedAreaFilter === 'all' || normalizeSearch(listing.address).includes(normalizeSearch(selectedAreaFilter));
     return matchesSearch && matchesGroup && matchesCategory && matchesSpecialty && matchesGov && matchesMarkaz && matchesVillage && matchesArea;
@@ -395,10 +479,13 @@ export const DirectoryView: React.FC = () => {
     ...unconfirmedListings.filter((l) => l.listing_status === 'PUBLISHED' && l.claim_status !== 'CLAIMED')
       .map((l) => ({ governorate: l.governorate, markaz: l.district, village: l.village || '', address: l.address || '' })),
   ];
-  const uniqueGovernorships = Array.from(new Set(locationRecords.map((b) => b.governorate).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
-  const uniqueMarkaz = Array.from(new Set(locationRecords.filter((r) => selectedGovFilter === 'all' || normalizeSearch(r.governorate) === normalizeSearch(selectedGovFilter)).map((r) => r.markaz).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
-  const uniqueVillages = Array.from(new Set(locationRecords.filter((r) => (selectedGovFilter === 'all' || normalizeSearch(r.governorate) === normalizeSearch(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeSearch(r.markaz) === normalizeSearch(selectedMarkazFilter))).map((r) => r.village).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
-  const uniqueAreas = Array.from(new Set(locationRecords.filter((r) => (selectedGovFilter === 'all' || normalizeSearch(r.governorate) === normalizeSearch(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeSearch(r.markaz) === normalizeSearch(selectedMarkazFilter)) && (selectedVillageFilter === 'all' || normalizeSearch(r.village) === normalizeSearch(selectedVillageFilter))).map((r) => String(r.address || '').trim()).filter((address) => address.length >= 3))).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueGovernorships = Array.from(new Set([...EGYPT_GOVERNORATES.map((area) => area.name), ...locationRecords.map((record) => record.governorate).filter(Boolean)])).sort((a, b) => a.localeCompare(b, 'ar'));
+  const selectedGovernorateCode = EGYPT_GOVERNORATES.find((area) => normalizeAdministrativeName(area.name) === normalizeAdministrativeName(selectedGovFilter))?.code;
+  const knownCenters = EGYPT_CENTERS.filter((center) => !selectedGovernorateCode || center.governorateCode === selectedGovernorateCode).map((center) => center.name);
+  const listedCenters = locationRecords.filter((record) => selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)).map((record) => String(record.markaz || '').replace(/^مركز\s*/, '').trim()).filter(Boolean);
+  const uniqueMarkaz = Array.from(new Map([...knownCenters, ...listedCenters].map((name) => [normalizeAdministrativeName(name), name])).values()).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueVillages = Array.from(new Set(locationRecords.filter((record) => (selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeAdministrativeName(record.markaz) === normalizeAdministrativeName(selectedMarkazFilter))).map((record) => record.village).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'ar'));
+  const uniqueAreas = Array.from(new Set(locationRecords.filter((record) => (selectedGovFilter === 'all' || normalizeAdministrativeName(record.governorate) === normalizeAdministrativeName(selectedGovFilter)) && (selectedMarkazFilter === 'all' || normalizeAdministrativeName(record.markaz) === normalizeAdministrativeName(selectedMarkazFilter)) && (selectedVillageFilter === 'all' || normalizeSearch(record.village) === normalizeSearch(selectedVillageFilter))).map((record) => String(record.address || '').trim()).filter((address) => address.length >= 3))).sort((a, b) => a.localeCompare(b, 'ar'));
 
   if (listingSlug) return <DirectoryListingsView detailSlug={listingSlug} onOpen={openDirectoryListing} onBack={closeDirectoryListing} />;
 
@@ -493,6 +580,31 @@ export const DirectoryView: React.FC = () => {
   return (
     <div className="space-y-8 pb-20">
       {/* 1. Full-Width Horizontal Title Bar right under header */}
+      {showLocationWelcome && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="geo-discovery-title">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 text-right shadow-2xl" dir="rtl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <Navigation className="h-6 w-6" />
+            </div>
+            <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              اسمح للموقع باستخدام موقع جهازك لترتيب الأنشطة والخدمات التي لها إحداثيات موثوقة من الأقرب إليك. لن نحفظ إحداثياتك الدقيقة أو نرسلها إلى خدمة خرائط خارجية.
+            </p>
+            <div className="mt-5 grid gap-2">
+              <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
+                <Navigation className="h-4 w-4" /> {locationBusy ? 'جارٍ طلب إذن الموقع…' : 'السماح باستخدام موقعي'}
+              </button>
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setLocationMessage('يمكنك اختيار مصر بالكامل أو المحافظة والمركز والقرية من أدوات تحديد النطاق.'); }} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
+                اختيار الموقع يدويًا
+              </button>
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض الأنشطة والخدمات المنشورة في مصر بالكامل.'); }} className="min-h-10 text-xs font-bold text-emerald-800 underline">
+                عرض مصر بالكامل
+              </button>
+            </div>
+            <p className="mt-4 text-[11px] leading-5 text-slate-500">سيظهر طلب المتصفح الأصلي بعد اختيار السماح. يمكنك الرفض ومتابعة الموقع يدويًا في أي وقت.</p>
+          </div>
+        </div>
+      )}
       <div className="w-full bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white py-6 px-4 sm:px-8 shadow-md border-y border-emerald-500/20">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-right">
           <div className="space-y-1">
@@ -825,6 +937,10 @@ export const DirectoryView: React.FC = () => {
               <Navigation className="h-4 w-4" />
               {locationBusy ? 'جارٍ تحديد الموقع…' : userCoordinates ? 'تحديث موقعي' : 'حدد موقعي'}
             </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => setShowLocationWelcome(true)} className="text-xs font-bold text-emerald-800 underline">إعدادات الموقع</button>
+              <button type="button" onClick={() => { completeGeoSetup('manual'); setSelectedGovFilter('all'); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); setUserCoordinates(null); setLocationMessage('يتم الآن عرض مصر بالكامل.'); }} className="text-xs font-bold text-slate-600 underline">مصر بالكامل</button>
+            </div>
             {locationMessage && <p role="status" aria-live="polite" className="max-w-xl text-xs leading-5 text-slate-600">{locationMessage}</p>}
             {hasNoSearchResults && canWidenGeographicSearch && (
               <button type="button" onClick={widenGeographicSearch} className="inline-flex min-h-9 items-center justify-center self-start rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100">
@@ -833,25 +949,25 @@ export const DirectoryView: React.FC = () => {
             )}
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المحافظة
-              <select value={selectedGovFilter} onChange={(e) => { setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
-                <option value="all">كل المحافظات</option>
+              <select value={selectedGovFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedGovFilter(e.target.value); setSelectedMarkazFilter('all'); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+                <option value="all">مصر بالكامل — كل المحافظات</option>
                 {uniqueGovernorships.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المركز / المدينة
-              <select value={selectedMarkazFilter} onChange={(e) => { setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedMarkazFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedMarkazFilter(e.target.value); setSelectedVillageFilter('all'); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل المراكز</option>
                 {uniqueMarkaz.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">القرية / الحي
-              <select value={selectedVillageFilter} onChange={(e) => { setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedVillageFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedVillageFilter(e.target.value); setSelectedAreaFilter('all'); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل القرى والأحياء</option>
                 {uniqueVillages.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
             <label className="text-[10px] font-bold text-slate-600 sm:text-xs">المنطقة / العنوان
-              <select value={selectedAreaFilter} onChange={(e) => setSelectedAreaFilter(e.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
+              <select value={selectedAreaFilter} onChange={(e) => { completeGeoSetup('manual'); setSelectedAreaFilter(e.target.value); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-xs font-bold text-slate-800">
                 <option value="all">كل المناطق</option>
                 {uniqueAreas.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
