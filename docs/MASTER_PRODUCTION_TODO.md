@@ -2909,3 +2909,13 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Rejected the proposed RC463A production migration that copied the live default-owner function's hard-coded personal owner identifier into the public repository. That migration is removed from PR #602 and is not part of the release chain.
 - [x] Kept the live-only default-owner trigger reconstruction in a disposable CI overlay with synthetic `.example.test` identity only. The overlay is not a migration and is never applied to Production.
 - [ ] Re-run dedicated trigger ACL integration and chronological replay using the synthetic overlay; retain the migration's fail-closed preflight.
+
+
+### RC463 source-recovery finding — 2026-10-31
+
+- Initial chronological replay failed at RC463 because the captured Oct-08 schema checkpoint lacked two trigger-only SECURITY DEFINER functions/triggers that were observed in live Production.
+- Repository code search confirmed their original creation DDL was absent from tracked migrations. This is a migration-source history gap, not a reason to weaken the ACL migration preflight.
+- PR #602 now adds RC463A `20261031090000_rc463a_restore_trigger_only_function_sources.sql` to recover the observed function bodies and expected triggers without changing business/audit rows, followed by RC463 `20261031100000_rc463_trigger_only_security_definer_acl.sql`.
+- The PostgreSQL integration fixture now executes both exact migrations in timestamp order and verifies trigger behavior after ACL hardening.
+- Corrected exact-head integration and full forward-chain replay are pending. Keep PR #602 Draft until they pass.
+- Even a passing replay from the Oct-08 checkpoint is not a current-Oct-31 Production backup/restore rehearsal. Current schema-faithful rehearsal and rollback evidence remain P0.
