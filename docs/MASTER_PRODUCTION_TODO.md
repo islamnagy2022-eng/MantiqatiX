@@ -2688,7 +2688,7 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Validator مخصص موجود في scripts/validate-business-create-inflight-guard.mjs، واجتاز على main في Pages validation run [41162036127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036127)، وسجل CATALOG_BUSINESS_CREATE_INFLIGHT_GUARD=PASS.
 - [ ] **NOT VERIFIED:** اختبار متصفح/خادم حقيقي للنقر المتكرر، تبويبين، إعادة المحاولة بعد انقطاع الشبكة، وطلبات متزامنة. فحص الخادم الحالي check-then-insert وليس قفلًا/قيدًا ذريًا في قاعدة البيانات؛ قد تتسابق طلبات متزامنة جدًا. لا تدّعِ ضمان idempotency على مستوى قاعدة البيانات حتى يثبت ذلك باختبار تنافسي ووسيلة ذرية مناسبة.
 - [ ] تحقق من أن الواجهة تتعامل بوضوح مع HTTP 409 عند نجاح الإدخال الأول وفقدان الاستجابة، ولا تعرض للمشغل رسالة توحي بفشل الإنشاء دون توضيح أن النشاط الموجود لم يُنشأ مرة أخرى.
-- PR [#477](https://github.com/islamnagy2022-eng/MantiqatiX/pull/477) ما زال Draft بفرع أقدم. لا تدمجه كما هو: main يحتوي بالفعل على حارس client أدق بمفتاح payload، وحارس server يعيد 409 بدل إعادة استخدام سجل بالاعتماد على heuristic. احتفظ بالفرع للمراجعة/الإغلاق بعد تأكيد عدم الحاجة لأي جزء فريد منه.
+- PR [#477](https://github.com/islamnagy2022-eng/MantiqatiX/pull/477) أُغلق دون دمج في 2026-10-31 بعد تأكيد أن main يحتوي بالفعل على حارس client أدق بمفتاح payload، وحارس server يعيد 409 بدل إعادة استخدام سجل بالاعتماد على heuristic. لا يوجد كود فريد مطلوب من الفرع المغلق.
 - لا توجد تغييرات بيانات إنتاجية ضمن هذا الفحص.
 
 ## Current-main verification after PR #578 — 2026-10-31
@@ -2727,3 +2727,13 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Confirmed the old server heuristic reuses an existing business record; current main returns tenant-scoped HTTP 409 with the existing business ID and does not transfer ownership or alter billing/publication state.
 - [x] Closed PR #477 unmerged as fully superseded; explanatory review comment added. No production data was changed.
 - [ ] The current main duplicate guard still needs true browser/server concurrency, multi-tab, and lost-response retry tests; its check-then-insert remains non-atomic at the database layer.
+
+
+## 2026-10-31 — PR #580 merged; security finding recorded
+
+- [x] Merged PR [#580](https://github.com/islamnagy2022-eng/MantiqatiX/pull/580) to main as `e141aa6208f4f94001ab40447cb1c4c4df47bee4`; added the live P0 MantiGO platform-RPC authorization drift report and updated continuity/TODO.
+- [x] Exact PR-head validation passed: Module Professionalization [41164494328], Backend-only Module Boundary [41164494345], MantiGO Open Ride Privacy [41164494317], RC425 Paymob Atomicity [41164494277], and Deploy MantiqatiX Web validation [41164494296].
+- [x] Pages deploy job in PR validation was skipped; this documentation merge did not deploy the website or change Production.
+- [x] PR #477 stale duplicate-create draft closed unmerged; no unique source change was needed.
+- [ ] **P0 remains BLOCKED:** live RC441/RC449 migrations are absent and all four global MantiGO RPCs still require the explicit platform-admin boundary in Production. Do not invoke or mutate live financial/ride RPCs to prove the defect.
+- [ ] PR #581 adds expanded disposable PostgreSQL negative tests for tenant ADMIN, OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN across all four RPCs, plus SECURITY DEFINER empty-search_path assertions. Merge only after its dedicated workflow passes.
