@@ -95,3 +95,10 @@ Do not restore over Production. Use a disposable local PostgreSQL/Supabase envir
 - [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
 
 **Current status (2026-10-31):** Supabase reports the project `ACTIVE_HEALTHY`, and a direct read-only SQL `SELECT 1` succeeded at `2026-10-31 01:57:01.957862+00 UTC` (evidence: `docs/audits/DB_CONNECTION_PROBE_20261031.md`). This confirms database connectivity at that instant, not the scheduled GitHub Actions PostgREST probe. The latest run [41160088237](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160088237) verified the PostgREST probe. Failure-notification delivery remains NOT VERIFIED. No Production backup or restore rehearsal has yet been evidenced. Production remains **BLOCKED / NOT CERTIFIED**.
+
+
+## Current-main verification update — 2026-10-31 02:30 UTC
+
+The latest current-main Production Health Monitor run [41160201368](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201368) completed successfully. Job `124415873930` logged `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`; the PostgREST GET returned HTTP 200. The same run verified the primary catalog root/assets and Edge health endpoint. This is point-in-time evidence, not an uptime guarantee and not proof that failure notifications are delivered.
+
+The latest Pages deployment [41160201369](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41160201369) also completed successfully, including deployed-origin browser E2E. Its full-platform verifier still returned `FULL_PLATFORM_GATE=BLOCKED` while the scoped catalog pilot returned PASS. These results do not replace the required local Production backup and disposable restore rehearsal. No Production mutation was performed; no paid resources were created.
