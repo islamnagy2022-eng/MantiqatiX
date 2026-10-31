@@ -2778,3 +2778,5 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [ ] P1: review public ad RPC output fields and abuse/rate-limit controls; preserve public listing functionality while minimizing returned data.
 - [ ] P1: plan Auth leaked-password protection activation with a user-facing rollout note and verification.
 - [ ] P0 remains unchanged: RC441/RC449 absent from live Production; platform-admin helper/RLS authorization drift is not remediated. No production mutation occurred.
+
+- [x] Follow-up on the default-owner trigger: confirmed it is attached to `businesses`; authenticated and anon currently have no direct INSERT table privilege on `businesses`. This reduces the direct client-trigger surface, but the service/RPC creation paths that can insert businesses still need an ownership-attribution and abuse-rate review. No unauthorized assignment was demonstrated.
