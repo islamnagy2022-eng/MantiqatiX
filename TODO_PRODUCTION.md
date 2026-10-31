@@ -1570,3 +1570,7 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] تشغيل exact-head TypeScript/build وcanonical taxonomy وbrowser E2E على أحدث commits، وإصلاح أي إخفاق.
 - [ ] اختبار فتح المجموعة، ظهور الأنشطة، فتح النشاط، العودة إلى المجموعة، وتفاعل منشئ الحملة على 390/768/1440px.
 - [ ] بعد اجتياز الاختبارات، مراجعة PR/دمج التعديلات وفق سياسة الفرع، ثم التحقق من نشر Pages الفعلي. لا نشر أو تفعيل تكاملات إعلانية ضمن التغيير الحالي.
+
+## 2026-11-01 — طلب تحقق آلي لمركز التسويق المتقدم
+
+- [ ] تحقق PR للنسخة الحالية: TypeScript/build، taxonomy validator، browser E2E لاختبار المجموعات ومنشئ الحملات، واختبارات RBAC المعتمدة. لا يعتبر هذا الفرع نشرًا إنتاجيًا.
