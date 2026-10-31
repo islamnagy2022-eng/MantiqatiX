@@ -3,6 +3,7 @@ import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, Clipboa
 import { useApp } from "../context/AppContext";
 import { fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
+import { UNVERIFIED_DOCTOR_IMAGE_URL } from "../utils/defaultImages";
 
 function specialtyLabel(value: string | null | undefined) {
   const specialty = String(value || "").trim();
@@ -12,6 +13,13 @@ function phoneHref(value: string | null | undefined) {
   const raw = String(value || "").trim();
   const dial = raw.replace(/[^0-9+]/g, "");
   return dial.length >= 7 ? "tel:" + dial : "";
+}
+function listingProfileImage(listing: PublicDirectoryListing): string {
+  const selected = String(listing.metadata?.profileImageUrl || "").trim();
+  if (/^https:\/\//i.test(selected)) return selected;
+  return String(listing.listing_type || "").toLowerCase() === "doctor" && listing.claim_status !== "CLAIMED"
+    ? UNVERIFIED_DOCTOR_IMAGE_URL
+    : "";
 }
 
 export const DirectoryListingsView: React.FC<{
@@ -172,7 +180,7 @@ export const DirectoryListingsView: React.FC<{
         <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"><ArrowRight className="h-4 w-4" /> العودة إلى دليل مقدمي الخدمة</button>
         <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
           <div className="bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 px-5 py-8 text-white sm:px-8">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10"><Building2 className="h-7 w-7 text-emerald-300" /></div>
+            {listingProfileImage(detail) ? <img src={listingProfileImage(detail)} alt={"صورة " + detail.display_name} className="mb-4 h-16 w-16 rounded-2xl border border-white/20 bg-white/10 object-cover" loading="lazy" decoding="async" /> : <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10"><Building2 className="h-7 w-7 text-emerald-300" /></div>}
             <div className={`mb-2 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-black ${claimed ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" : pending ? "border-sky-300/30 bg-sky-400/10 text-sky-200" : "border-amber-300/30 bg-amber-400/10 text-amber-200"}`}>{claimed ? <BadgeCheck className="h-3.5 w-3.5" /> : pending ? <CalendarClock className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />} {claimed ? "صفحة مستلمة بعد المراجعة" : pending ? "طلب الاستلام قيد المراجعة" : "صفحة دليل أولية — غير مستلمة"}</div>
             <h1 className="text-2xl font-black sm:text-3xl">{detail.display_name}</h1>
             <p className="mt-2 text-sm font-semibold text-emerald-100">{specialtyLabel(detail.specialty)}</p>
@@ -257,7 +265,7 @@ export const DirectoryListingsView: React.FC<{
         filtered.length ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((listing) => (
             <article key={listing.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:shadow-sm">
-              <div className="flex items-start justify-between gap-2"><div><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs font-semibold text-emerald-800">{specialtyLabel(listing.specialty)}</p></div><span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-900">غير معتمدة</span></div>
+              <div className="flex items-start justify-between gap-2"><div className="flex min-w-0 items-start gap-3">{listingProfileImage(listing) && <img src={listingProfileImage(listing)} alt={"صورة " + listing.display_name} className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 bg-slate-50 object-cover" loading="lazy" decoding="async" />}<div className="min-w-0"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs font-semibold text-emerald-800">{specialtyLabel(listing.specialty)}</p></div></div><span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-900">غير معتمدة</span></div>
               <p className="mt-3 line-clamp-2 text-xs leading-6 text-slate-600"><MapPin className="ml-1 inline h-3.5 w-3.5 text-slate-400" />{listing.address || listing.district}</p>
               {listing.phone && <p className="mt-2 text-sm font-bold text-slate-800" dir="ltr">{listing.phone}</p>}
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
