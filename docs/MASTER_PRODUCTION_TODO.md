@@ -3103,3 +3103,13 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Source/test evidence: PR #592 merged RC462; exact candidate run [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719) passed disposable PostgreSQL registry/authorization tests; replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) passed a full isolated checkpoint restore and ordered replay. Neither is Production remediation.
 - [ ] Obtain an authorized, credential-scrubbed current-Production schema/roles dump; restore into a zero-cost disposable local Supabase instance; replay the complete required migration chain in timestamp order, including RC441 → RC449 → RC462; verify all 8 global SECDEF callers, digital_pages policy, canonical registry bootstrap/revocation, and rollback.
 - No Production mutation or deployment. Global gate remains BLOCKED / NOT CERTIFIED. Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
+
+ 
+## 2026-10-31 — RC462 release blocker: historical schema baseline is stale
+
+- The only tracked production schema baseline manifest is captured at `2026-10-17T02:10:22.329Z`, PostgreSQL 17, 283 migration versions through `20261008222845`, with `review_status=PENDING_REVIEW`. It contains no production rows and no custom roles.
+- Current live Production is 308 migration records through `20261029083845`: 25 migration records newer than the baseline checkpoint are not represented in that historical capture.
+- The successful RC462 full-chain replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) starts from the October 17 schema-only checkpoint. It does not establish schema parity with current Production as of October 31.
+- Artifact lookup for the replay run [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682) and original capture run [38993809648](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/38993809648) returned no downloadable workflow artifacts in the connected GitHub record. No fresh current-schema dump exists in the repository.
+- [ ] Authorized operator must create a credential-scrubbed current schema/roles dump from Production, preserve secure hashes, restore to a disposable local Supabase/PostgreSQL environment, validate structural parity against the live inventory, then replay the entire required chain and test RC441 → RC449 → RC462 plus RC449A/RC450. Do not expose DB passwords in chat or place Production dumps in public GitHub.
+- No current Production migration, grant or policy change is authorized. Overall gate remains BLOCKED / NOT CERTIFIED.
