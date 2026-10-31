@@ -11,7 +11,7 @@ const makeGroup = (
  */
 export const DEFAULT_FUNCTIONAL_GROUPS: FunctionalGroup[] = [
   makeGroup('medical_health','الطب والصحة','الطب والصحة','Health & Medical','HeartPulse','bg-emerald-100 text-emerald-800 border-emerald-300','الخدمات الطبية والتشخيص والعلاج والرعاية الصحية.'),
-  makeGroup('food_grocery','الأغذية والضيافة','الأغذية والضيافة','Food & Hospitality','UtensilsCrossed','bg-amber-100 text-amber-800 border-amber-300','المطاعم والمقاهي والمخبوزات والأغذية والضيافة.'),
+  makeGroup('food_grocery','الأغذية والضيافة','الأغذية والضيافة','Food & Hospitality','UtensilsCrossed','bg-amber-100 text-amber-800 border-amber-300','المطاعم والمقاهي والمخبوزات والحلويات ومتاجر الأغذية والضيافة والسياحة والمناسبات.'),
   makeGroup('fashion_beauty','التجارة والتجزئة والعناية الشخصية','التجارة والتجزئة','Commerce & Lifestyle','ShoppingBag','bg-pink-100 text-pink-800 border-pink-300','المتاجر والملابس والمنتجات الشخصية والتجارة العامة.'),
   makeGroup('home_maintenance','المنزل والبناء والصيانة','المنزل والبناء','Home, Building & Maintenance','Wrench','bg-orange-100 text-orange-800 border-orange-300','الأثاث والمقاولات والتشطيبات والصيانة والخدمات المنزلية.'),
   makeGroup('auto_transport','السيارات والنقل واللوجستيات','السيارات والنقل','Mobility & Logistics','Truck','bg-sky-100 text-sky-800 border-sky-300','المركبات والصيانة والشحن والتوصيل والخدمات اللوجستية.'),
