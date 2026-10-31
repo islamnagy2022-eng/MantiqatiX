@@ -183,10 +183,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setCurrentView = (view: ViewMode) => {
     setCurrentViewState(view);
     updateBrowserRoute(view);
-    if (view === 'public_storefront') {
-      loadPublicCatalogForRoute(routeBusinessIdRef.current);
-    }
   };
+
+  // Direct shared catalogue links and in-app selection use the same single-item loader.
+  // The full public directory remains a separate, single request owned by AppContext.
+  useEffect(() => {
+    if (currentView !== 'public_storefront') return;
+    loadPublicCatalogForRoute(routeBusinessIdRef.current || selectedBusinessId);
+  }, [currentView, selectedBusinessId, businesses]);
 
   const commitSelectedBusinessId = (id: string) => {
     routeBusinessIdRef.current = id;
