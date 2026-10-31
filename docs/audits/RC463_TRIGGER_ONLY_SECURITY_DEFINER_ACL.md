@@ -5,6 +5,8 @@
 
 ## Scope
 
+The live trigger functions were present in Production but absent from tracked migration source and the captured Oct-08 schema checkpoint. RC463A (`20261031090000`) restores their observed definitions and creates either expected trigger only when absent. RC463 (`20261031100000`) then applies the ACL/search-path hardening. Both run in timestamp order.
+
 RC463 hardens only these two existing trigger entrypoints:
 
 - `public.assign_default_owner_to_unowned_business()`
@@ -17,7 +19,14 @@ Both functions are SECURITY DEFINER trigger functions, not client RPC endpoints.
 
 ## Change
 
-The migration:
+The migrations:
+
+**RC463A**
+- Fails closed unless the exact required relations/columns are present.
+- Recovers the observed live function bodies and expected trigger definitions without changing business or audit rows.
+- Preserves existing trigger objects/enablement and creates them only when absent.
+
+**RC463**
 
 1. Fails closed if either function is missing, is not a SECURITY DEFINER trigger function, or its expected trigger is absent/disabled.
 2. Pins both function search paths to the empty path. Function bodies use schema-qualified application objects.
