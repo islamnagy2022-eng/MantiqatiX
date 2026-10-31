@@ -1467,3 +1467,15 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Add adversarial tests for registry-only, membership-only, synchronized, suspended/revoked, and non-platform tenant identities before any production rollout.
 - Production migration ledger was freshly rechecked at 308 records through `20261029083845`; RC441 and RC449 remain absent. Security Advisor at 2026-10-31 06:39:56 UTC: 8 RLS/no-policy findings, 3 anon-executable SECURITY DEFINER findings, 67 authenticated-executable SECURITY DEFINER findings, 90 anonymous-policy findings, and leaked-password protection disabled.
 - No Production DDL/DML, grant, RLS/Auth change, registry-row read, Edge deployment, payment, settlement or journal mutation occurred. Overall gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — RC462 proposed forward convergence (source PR; not production)
+
+- [x] Added forward-only migration `supabase/migrations/20261031064300_rc462_platform_admin_registry_authority_convergence.sql` on an isolated feature branch. It aligns `mnty_can_platform_admin()` with the authoritative `private.platform_admins` registry used by RC113/RC115; it does not modify RC441/RC449 historical files.
+- [x] Added a migration preflight requiring the private registry and all four RC449 MantiGO global RPCs to exist and call the shared guard. This prevents applying RC462 before RC449's function replacements.
+- [x] Expanded disposable PostgreSQL fixture to model the private registry with RLS + FORCE RLS and no direct client grants.
+- [x] Expanded integration coverage: membership-only MNTY-PLATFORM SUPER_ADMIN is denied; registry-only platform admin is permitted; registry deletion immediately revokes platform authority; the existing four global MantiGO RPC tests and digital_pages RLS tests remain in the suite.
+- [x] Updated the dedicated CI workflow to apply RC449, then RC462, then the behavioral integration test; updated the static validator to inspect all eight shared-helper-dependent source functions.
+- [ ] Exact-head PostgreSQL CI and full repository checks are pending. Do not merge until all checks pass and the final diff is reviewed.
+- [ ] Production rollout requires full current-schema restore/replay, reconciliation of both historical RC441 and RC449 IDs in order, backup/restore and rollback rehearsal, verification that the real service-role bootstrap correctly provisions/removes `private.platform_admins` entries, and explicit release authorization.
+- No production registry rows were read or changed. No Production DDL/DML, grants, RLS/Auth setting, Edge deployment, payment, settlement or journal mutation occurred. Overall gate remains **BLOCKED / NOT CERTIFIED**.
