@@ -309,7 +309,7 @@ export const DirectoryView: React.FC = () => {
     const matchesSearch = queryTokens.every((token) => haystack.includes(token));
     const matchedCategory = categoryForBusiness(biz);
     const matchesCategory = selectedCategoryId === 'all' ||
-      Boolean(matchedCategory && selectedTaxonomyCategory && matchedCategory.name === selectedTaxonomyCategory.name);
+      Boolean(matchedCategory && selectedActivityCategory && matchedCategory.id === selectedActivityCategory.id);
     const storedSpecialty = String(biz.activitySpecialty || '');
     const categorySuffix = matchedCategory ? biz.category.slice(matchedCategory.name.length).replace(/^\s*—\s*/, '') : '';
     const requestedSpecialty = resolveCanonicalSpecialty(selectedSpecialty, matchedCategory?.id);
