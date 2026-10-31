@@ -643,7 +643,7 @@ try {
       assert.equal(updateRequest.payload.phone, legacyListing.phone, 'editing taxonomy must preserve the existing contact number');
       assert.equal(updateRequest.payload.listingStatus, 'PUBLISHED', 'editing taxonomy must preserve publication status');
 
-      await page.getByLabel('اسم الطبيب \/ النشاط *').fill('مركز اختبار جديد');
+      await page.getByLabel('اسم النشاط أو الجهة *').fill('مركز اختبار جديد');
       await page.getByLabel('نوع الجهة').selectOption('clinic');
       await page.getByLabel('التخصص', { exact: true }).fill('أطفال');
       await specialtySelect.selectOption('أطفال');
