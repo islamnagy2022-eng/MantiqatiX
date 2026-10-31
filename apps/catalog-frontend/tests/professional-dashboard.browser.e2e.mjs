@@ -6,8 +6,33 @@ const { chromium } = await import(playwrightSpecifier);
 const baseUrl = process.env.MANTIQUATIX_E2E_BASE_URL || 'http://127.0.0.1:4173/MantiqatiX/';
 const config = readFileSync(new URL('../public/config.js', import.meta.url), 'utf8');
 const supabaseUrl = config.match(/supabaseUrl:\s*'([^']+)'/)?.[1];
+const supabaseAnonKey = config.match(/supabaseKey:\s*'([^']+)'/)?.[1];
 assert.ok(supabaseUrl, 'public config must expose the configured Supabase URL');
+assert.ok(supabaseAnonKey, 'public config must expose the public Supabase key');
 const supabaseOrigin = new URL(supabaseUrl).origin;
+const liveDirectoryResponse = await fetch(`${supabaseUrl}/functions/v1/public-catalog-directory`, {
+  headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
+});
+assert.equal(liveDirectoryResponse.status, 200, 'live public directory must respond HTTP 200');
+const liveDirectory = await liveDirectoryResponse.json();
+assert.equal(liveDirectory.accessMode, 'PUBLIC_DIRECTORY_READ_ONLY');
+assert.ok(Array.isArray(liveDirectory.businesses), 'live public directory must return businesses');
+const verifiedBusinessTargets = [
+  { id: 'c9d9d2a6-32b1-4f7d-b7c9-43ae48525281', label: 'Sameh Market', expectProducts: true },
+  { id: '703f4526-3292-43b4-b83b-3e0d9355704c', label: 'Burger Fakher', expectProducts: true },
+  { id: '92d4455a-31ef-4a77-acbf-71134ca98e9e', label: 'Shaeir Sanitary Ware', expectProducts: false },
+  { id: '5f02dbe8-7bb3-477b-a8e6-688f75ceaece', label: 'AMMAN COFFEE', expectProducts: false },
+];
+for (const target of verifiedBusinessTargets) {
+  const business = liveDirectory.businesses.find((row) => row.id === target.id);
+  assert.ok(business, 'live public directory must include ' + target.label);
+  assert.equal(business.provider?.verified, true, target.label + ' must be marked verified by the public API');
+  assert.equal(business.status, 'ACTIVE', target.label + ' must be active');
+  assert.ok(Array.isArray(business.items), target.label + ' must expose a catalog item array');
+  if (target.expectProducts) {
+    assert.ok(business.items.length > 0, target.label + ' must expose active public products');
+  }
+}
 const storageKey = 'mantiqatix.production.auth';
 const tenantId = 'tenant-e2e';
 const businessId = '10000000-0000-0000-0000-000000000001';
@@ -207,8 +232,10 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         business: { id: fixture.id, name: fixture.name, code: fixture.id, operationalStatus: 'ACTIVE', isOperationallyAvailable: true },
         provider: { name: fixture.name, kind: fixture.category, description: fixture.profile?.bio || '', slug: fixture.id, verified: Boolean(fixture.provider?.verified) },
         profile: { ...fixture.profile, category: fixture.category },
-        branches: [], selectedBranchId: null, items: [], prices: [], options: [],
-        contactPhone: '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
+        branches: fixture.branches || [],
+        selectedBranchId: fixture.selectedBranchId || fixture.branches?.[0]?.id || null,
+        items: fixture.items || [], prices: fixture.prices || [], options: [],
+        contactPhone: fixture.contactPhone || '', paymentsEnabled: false, accessMode: 'PUBLIC_READ_ONLY',
       });
     }
     if (url.pathname.endsWith('/functions/v1/catalog-admin')) {
@@ -549,6 +576,50 @@ try {
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px selected taxonomy specialty');
       results.push('taxonomy-specialty-selection-returns-to-catalog-and-filters');
+    } finally { await context.close(); }
+  }
+
+
+  // Live verified activities must render badges and open their corresponding catalogues.
+  {
+    const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
+    try {
+      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+
+      const findVerifiedCard = async (target) => {
+        const heading = page.getByRole('heading', { name: target.name, exact: true }).first();
+        await heading.waitFor({ state: 'visible', timeout: 15000 });
+        const card = heading.locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " group ")][1]');
+        await card.getByText('موثّق', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+        assert.equal(await card.getByText('غير موثق', { exact: true }).count(), 0, target.name + ' must not show an unverified badge');
+        return card;
+      };
+
+      for (const target of verifiedBusinessTargets) {
+        const liveBusiness = liveDirectory.businesses.find((row) => row.id === target.id);
+        const card = await findVerifiedCard(liveBusiness);
+        await card.getByRole('button', { name: /الكتالوج/ }).click();
+
+        await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + liveBusiness.name, exact: true })
+          .waitFor({ state: 'visible', timeout: 15000 });
+        await page.getByText('موثّق رسمياً', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+
+        if (target.expectProducts) {
+          const firstPublicItem = liveBusiness.items[0];
+          const firstItemName = String(firstPublicItem.name_ar || firstPublicItem.name_en || '').trim();
+          assert.ok(firstItemName, target.label + ' public item must have a display name');
+          await page.getByRole('heading', { name: firstItemName, exact: true }).first()
+            .waitFor({ state: 'visible', timeout: 15000 });
+          assert.ok(await page.getByText(/المعروض:/).count() > 0, target.label + ' catalogue must display a product count');
+          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
+        } else {
+          await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
+            .waitFor({ state: 'visible', timeout: 10000 });
+          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
+        }
+
+        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      }
     } finally { await context.close(); }
   }
 
