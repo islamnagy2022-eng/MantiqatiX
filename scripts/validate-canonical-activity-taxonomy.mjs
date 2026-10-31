@@ -108,6 +108,7 @@ for (const legacySpecialty of ['طبيب اطفال', 'طبيب نساء وتو�
   assert.ok(defaults.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
 }
 assert.ok(defaults.includes('غدد صماء وسكر') && defaults.includes('جراحة تجميل') && defaults.includes('صدر وحساسية'), 'Medical specialty coverage must include observed live specializations without creating peer activity categories.');
+assert.ok(defaults.includes('أثاث وتجهيزات المنزل') && defaults.includes('أجهزة منزلية') && defaults.includes('أدوات منزلية'), 'Homeware and appliance legacy records must resolve to selectable home-equipment specialties.');
 assert.ok(directoryListingsAdmin.includes('cat_medical_health_medical_practices'), 'New directory entries must default to the canonical medical activity category.');
 assert.ok(directoryListingsEdge.includes('const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","auto_transport","real_estate","education_training","technology_communications","professional_services","agriculture_animals"])'), 'Directory listing writes must accept only canonical group IDs.');
 
