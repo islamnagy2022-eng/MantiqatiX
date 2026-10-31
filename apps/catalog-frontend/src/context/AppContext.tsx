@@ -47,7 +47,7 @@ interface AppContextType {
   selectedCategoryFilter: string;
   setSelectedCategoryFilter: (id: string) => void;
   authSession: AuthSession;
-  switchAccountMembership: (membershipId: string) => boolean;
+  switchAccountMembership: (membershipId: string, businessId: string) => boolean;
   switchToPlatformAdminMode: () => boolean;
   loginAsSubscriber: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAsAdmin: (password?: string) => Promise<{ success: boolean; error?: string }>;
@@ -172,10 +172,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Switch only to an exact active membership returned by authenticated bootstrap.
   // The state change is for UI context; every server mutation still authorizes the
   // signed-in actor against the database membership and tenant/branch scope.
-  const switchAccountMembership = (membershipId: string): boolean => {
+  const switchAccountMembership = (membershipId: string, businessId: string): boolean => {
     const userId = authSession.userId;
     if (!authSession.isAuthenticated || !userId || !membershipId || authUserIdRef.current !== userId) return false;
-    const mode = authSession.availableMemberships?.find((candidate) => candidate.membershipId === membershipId);
+    const mode = authSession.availableMemberships?.find((candidate) => candidate.membershipId === membershipId && candidate.businessId === businessId);
     if (!mode) return false;
     const business = businesses.find((candidate) =>
       candidate.id === mode.businessId && String(candidate.tenantId || '') === mode.tenantId
@@ -346,7 +346,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const safeRequestedView: ViewMode = requestedView === 'directory'
       ? 'directory'
-      : requestedView === 'super_admin' && boot.authSession.role === 'admin'
+      : requestedView === 'account_portal' && boot.authSession.isAuthenticated
+        ? 'account_portal'
+        : requestedView === 'super_admin' && boot.authSession.role === 'admin'
         ? 'super_admin'
         : requestedView === 'merchant_admin' && canAccessMerchantDashboard(boot.authSession)
           ? 'merchant_admin'
