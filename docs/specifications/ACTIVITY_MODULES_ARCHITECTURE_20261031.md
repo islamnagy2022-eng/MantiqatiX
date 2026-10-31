@@ -39,7 +39,7 @@ The first additive page foundation exposes four sections:
 3. Marketing & Advertising — domain-aware audience, content pillars and campaign-planning guidance.
 4. Domain Operations — a capability map for domain files, goods/services, customer requests, reports, geographic discovery, and approval.
 
-The marketing section in this foundation is **planning guidance only**. It does not create or publish a campaign, spend an advertising budget, promise analytics, or write marketing records. The operations cards are a navigation/capability shell, not proof that each listed workflow is already connected.
+The marketing section is **planning guidance only**. It now resolves a typed profile for each canonical activity ID using `activityModuleRegistry.ts`, including a domain objective, audience, positioning, content pillars, campaign ideas, and required launch assets. The operations cards are rendered from the same registry and are explicitly labelled **قيد التجهيز** until their source-of-truth APIs and authorization tests exist. It does not create or publish campaigns, spend advertising budgets, promise analytics, or write marketing records.
 
 ## Marketing module target
 
@@ -75,9 +75,13 @@ Do not create demo records or fabricated metrics to make a module appear operati
 - [ ] Verify deployed-origin behavior after merge/deploy; not claimed by source presence.
 
 ### Phase B — activity configuration registry
-- [ ] Add a typed activity-module configuration registry keyed by canonical activity ID.
-- [ ] Configure domain identity, capabilities, marketing templates, content requirements, and enabled routes per activity.
-- [ ] Keep custom activity compatibility and define an additive admin editing experience.
+- [x] Add a typed activity-module configuration registry resolved by canonical activity ID.
+- [x] Add domain-level marketing plans and operation capability profiles for the ten supported domain profiles.
+- [x] Render each activity's objective, audience, positioning, content pillars, campaign ideas, required assets, and domain operations from the registry.
+- [x] Keep unknown/custom activity IDs compatible through a safe generic profile.
+- [ ] Add explicit reviewed per-activity overrides for every canonical activity ID.
+- [ ] Define an additive admin editing experience and persistence contract for module configuration.
+- [ ] Run exact-head TypeScript/build/taxonomy/browser validation after registry changes.
 
 ### Phase C — working marketing workspace per activity
 - [ ] Port/reuse the existing reviewed marketing workspace into the current catalog app; do not revive the retired legacy app as the primary UI.
