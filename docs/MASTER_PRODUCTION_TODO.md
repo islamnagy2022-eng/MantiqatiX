@@ -3078,3 +3078,11 @@ A separate source review found a second platform-root authorization model: the n
 - Clearing the URL returns an unclaimed doctor/pharmacy page to its category default. The server's existing UPDATE_OWNED_LISTING allowlist already includes `profileImageUrl`; the frontend now passes that field through.
 - The field remains behind the existing claimed-page owner authorization; no ownership or access policy changed.
 - Validation and CI must pass on the final PR head before merge/deployment.
+
+
+## CAT-PR628-BROWSER-ROUTE-ASSERTION-20261101 — تصحيح اختبار رفض مسار الإدارة
+- **Status:** FIXED IN PR #628; rerun required.
+- The browser E2E timed out because it expected a standalone heading `الأنشطة` after an unsupported role was redirected to the public directory. The current public homepage exposes the directory as the labeled section `المجموعات والأنشطة`, not that obsolete heading.
+- Updated the test to wait for the real public directory section, while retaining the security assertions that the admin tab is absent and no `ADMIN_LIST` request is made.
+- This is a test-selector correction only; no application behavior or authorization logic is weakened.
+- **Next:** rerun full browser E2E on the exact updated PR head before merge/deployment.
