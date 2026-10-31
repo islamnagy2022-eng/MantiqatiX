@@ -12,9 +12,9 @@ const amountText = (value: unknown, currency: string) => Number.isFinite(Number(
 export const SubscriberAccountPortal: React.FC = () => {
   const { authSession, authLoading, currentBusiness, businessProducts, adminSettings, setCurrentView, logout } = useApp();
   const [section,setSection] = useState<Section>('overview');
+  const isAdmin = authSession.role === 'admin';
   const business = isAdmin ? undefined : currentBusiness;
   const currency = adminSettings.currency || 'ج.م';
-  const isAdmin = authSession.role === 'admin';
   const canMerchant = !isAdmin && canAccessMerchantDashboard(authSession);
   const canProfessional = !isAdmin && canAccessProfessionalDashboard(authSession);
   const subscriptionStatus = !business ? 'لا يوجد نشاط مرتبط' :
