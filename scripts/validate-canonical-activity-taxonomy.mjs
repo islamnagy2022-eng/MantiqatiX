@@ -202,7 +202,7 @@ assert.ok(production.includes('raw.activitySpecialty'), 'Production mapping must
 assert.ok(production.includes('raw.settings?.activity_category_code'), 'Production mapping must read the canonical activity category code.');
 assert.ok(production.includes('canonicalCategoryId'), 'Production mapping must resolve the stable canonical category ID.');
 assert.ok(production.includes('resolveCanonicalActivityCategoryId(activityGroupCode, activityCategoryCode)'), 'Business mapping must resolve legacy activity codes to canonical category IDs.');
-const mappedCategoryIdExpression = production.match(/categoryId:\s*([\\s\\S]*?),\\n\\s*functionalGroupId:/)?.[1] || '';
+const mappedCategoryIdExpression = production.match(/categoryId:\s*([\s\S]*?),\n\s*functionalGroupId:/)?.[1] || '';
 assert.ok(mappedCategoryIdExpression.includes('canonicalCategoryId'), 'Business mapping must prefer the stable canonical activity ID.');
 assert.ok(
   mappedCategoryIdExpression.indexOf('canonicalCategoryId') < mappedCategoryIdExpression.indexOf('x.name === category'),
