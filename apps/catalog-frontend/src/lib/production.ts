@@ -109,7 +109,7 @@ export async function fetchPlatformSubscribers(): Promise<{ subscribers: Subscri
   }
 }
 
-export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[]; activityModuleOverrides: ActivityModuleOverrides }> {
+export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[]; activityModuleOverrides: ActivityModuleOverrides; activityModuleOverridesAvailable: boolean }> {
   const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
   if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
   const rows = Array.isArray(data?.businesses) ? data.businesses : [];
@@ -123,7 +123,7 @@ export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; 
   const activityModuleOverrides = data?.activityModuleOverrides && typeof data.activityModuleOverrides === 'object' && !Array.isArray(data.activityModuleOverrides)
     ? data.activityModuleOverrides as ActivityModuleOverrides
     : {};
-  return { businesses, products, activityModuleOverrides };
+  return { businesses, products, activityModuleOverrides, activityModuleOverridesAvailable: data?.activityModuleOverridesAvailable === true };
 }
 
 export async function fetchPublicCatalog(businessId: string, branchId?: string): Promise<{ business: Business; products: Product[] } | null> {
