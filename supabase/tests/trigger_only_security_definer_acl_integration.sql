@@ -1,3 +1,5 @@
+-- Exact-head regression: apply the checked-in RC463 migration file, then verify
+-- direct EXECUTE is denied while the attached triggers still execute on service_role DML.
 -- Disposable PostgreSQL 16 integration only.
 -- Proves that existing triggers continue firing after direct EXECUTE is revoked
 -- from API roles, and that both trigger-only SECURITY DEFINER functions use
