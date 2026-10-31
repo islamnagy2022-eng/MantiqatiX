@@ -85,7 +85,6 @@ export const DirectoryView: React.FC = () => {
   const {
     directoryBusinesses,
     directoryLoading,
-    functionalGroups,
     categories,
     setSelectedBusinessId,
     setCurrentView,
@@ -647,8 +646,6 @@ export const DirectoryView: React.FC = () => {
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
               {filteredBusinesses.map((biz) => {
-                const group = functionalGroups.find((g) => g.id === biz.functionalGroupId);
-
                 return (
                   <div
                     key={biz.id}
@@ -693,11 +690,6 @@ export const DirectoryView: React.FC = () => {
                           {!biz.isVerified && (
                             <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
                               <span>غير موثق</span>
-                            </span>
-                          )}
-                          {group && (
-                            <span className={`hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${group.badgeColor}`}>
-                              {group.shortName}
                             </span>
                           )}
                         </div>
