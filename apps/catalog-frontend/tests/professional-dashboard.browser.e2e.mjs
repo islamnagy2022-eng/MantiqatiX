@@ -244,6 +244,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     if (url.pathname.endsWith('/functions/v1/directory-listings')) {
       let body = {};
       try { body = request.method() === 'POST' ? request.postDataJSON() || {} : {}; } catch { /* no JSON body */ }
+      if (request.method() === 'GET') return json({ listings: directoryListingsState.listings });
       if (body.action === 'ADMIN_LIST') {
         directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
         return json({ listings: directoryListingsState.listings, claims: [], businesses: [] });
@@ -637,7 +638,23 @@ try {
     } finally { await context.close(); }
   }
 
-  // 10. Folder-style taxonomy navigation follows the current production labels.
+  // 10. A non-platform role cannot open the platform-admin directory route or load its admin bundle.
+  {
+    const { context, page, directoryAdminRequests } = await newScenario(
+      browser,
+      roles.unsupportedManager,
+      [],
+      { initialRoute: '?view=super_admin&tab=directory_listings' },
+    );
+    try {
+      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await page.getByText('دليل الأنشطة والمطالبات', { exact: true }).count(), 0, 'non-platform roles must not render the directory admin tab');
+      assert.equal(directoryAdminRequests.some((request) => request.action === 'ADMIN_LIST'), false, 'non-platform roles must not request the admin directory bundle');
+      results.push('non-platform-role-denied-directory-admin-route');
+    } finally { await context.close(); }
+  }
+
+  // 11. Folder-style taxonomy navigation follows the current production labels.
   {
     const { context, page } = await newScenario(browser);
     try {
@@ -664,7 +681,7 @@ try {
     } finally { await context.close(); }
   }
 
-  // 11. Selecting a specialty applies the specialty filter and returns to the catalog.
+  // 12. Selecting a specialty applies the specialty filter and returns to the catalog.
   {
     const { context, page } = await newScenario(browser);
     try {
