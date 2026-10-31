@@ -1153,6 +1153,7 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 ## Request continuation — CAT-DOCTOR-DEFAULT-IMAGE-20261101
 
 - Added to master TODO and PR #628 alongside the unverified-pharmacy fallback.
+- Refinement: doctor detection also recognizes normalized individual medical professionals (`functionalGroupId === 'medical_health'` and `classificationType === 'profession'`), in addition to explicit doctor type/name markers. This is needed because historical doctor category IDs are read-compatible-mapped into the canonical medical-practices activity while profession-vs-activity remains a preserved distinction.
 - The exact supplied Google Play image is selected only for unverified doctor listings without a saved owner/admin/AI-selected image; pharmacy fallback logic is preserved.
 - Exact-head CI and deployed-origin verification remain pending. No production data/schema/Edge Function changes or deployment are claimed.
 - Overall `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` remains unchanged.
