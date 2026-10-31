@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Clock,
   Settings,
-  Plus,
   Trash2,
   Copy,
   Check,
@@ -41,7 +40,6 @@ import {
   Wrench,
   Filter,
   ArrowRight,
-  FolderPlus,
   UserCog,
 } from 'lucide-react';
 import {
@@ -67,20 +65,12 @@ const ICONS_MAP: Record<string, React.ReactNode> = {
   food_grocery: <UtensilsCrossed className="w-4 h-4 text-amber-500" />,
   fashion_beauty: <ShoppingBag className="w-4 h-4 text-pink-500" />,
   home_maintenance: <Wrench className="w-4 h-4 text-orange-500" />,
-  construction_decor: <Building2 className="w-4 h-4 text-stone-500" />,
   auto_transport: <Store className="w-4 h-4 text-sky-500" />,
   real_estate: <Store className="w-4 h-4 text-teal-500" />,
   education_training: <CalendarCheck2 className="w-4 h-4 text-indigo-500" />,
   technology_communications: <Layers className="w-4 h-4 text-cyan-500" />,
   professional_services: <CalendarCheck2 className="w-4 h-4 text-violet-500" />,
-  marketing_media: <Store className="w-4 h-4 text-fuchsia-500" />,
-  trade_ecommerce: <ShoppingBag className="w-4 h-4 text-blue-500" />,
   agriculture_animals: <Store className="w-4 h-4 text-lime-600" />,
-  sports_fitness: <HeartPulse className="w-4 h-4 text-red-500" />,
-  tourism_events: <CalendarCheck2 className="w-4 h-4 text-purple-500" />,
-  finance_insurance: <Layers className="w-4 h-4 text-emerald-600" />,
-  industry_workshops: <Wrench className="w-4 h-4 text-slate-500" />,
-  public_community: <CalendarCheck2 className="w-4 h-4 text-rose-500" />,
 };
 
 export const AdminDashboard: React.FC = () => {
@@ -1046,7 +1036,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="rounded-xl border border-indigo-300/30 bg-indigo-800/70 px-4 py-3 text-xs font-bold text-indigo-100 self-start md:self-auto">
-              اكتمل التقسيم المعتمد: 10 مجموعات، وبحد أقصى 5 أنشطة رئيسية لكل مجموعة. التخصصات تندرج داخل النشاط ولا تُنشأ كمجموعات أو تصنيفات موازية.
+              اكتمل التقسيم المعتمد: 10 مجموعات، وبحد أقصى 5 أنشطة رئيسية لكل مجموعة. التخصصات تُحدد داخل النشاط المناسب ولا تُنشأ كمجموعات أو تصنيفات موازية.
             </div>
           </div>
 
@@ -1083,7 +1073,7 @@ export const AdminDashboard: React.FC = () => {
                         </div>
 
                         <span className="bg-slate-900 text-white font-black text-xs px-2.5 py-1 rounded-xl">
-                          {groupBizList.length} أنشطة
+                          {groupBizList.length} نشاط مسجل
                         </span>
                       </div>
 
@@ -1146,7 +1136,7 @@ export const AdminDashboard: React.FC = () => {
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                       <span className="text-slate-500 font-medium">الأنشطة المسجلة:</span>
                       <span className="font-extrabold text-emerald-700">
-                        {groupBizList.length} مشترك
+                        {groupBizList.length} نشاط مسجل
                       </span>
                     </div>
                   </div>
