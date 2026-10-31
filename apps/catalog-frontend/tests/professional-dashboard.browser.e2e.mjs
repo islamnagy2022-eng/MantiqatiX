@@ -435,7 +435,7 @@ const results = [];
   try {
     await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies&group=medical_health', { waitUntil: 'domcontentloaded' });
     await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).last().click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
     const route = new URL(page.url());
     assert.equal(route.searchParams.has('activity'), false, 'home navigation must clear the previous activity route');
