@@ -206,7 +206,7 @@ export function mapBusiness(raw: any, provider: any): Business {
   const externalCoverUrl = String(profile.externalCoverUrl ?? profile.external_cover_url ?? profile.cover_url ?? raw.externalCoverUrl ?? '');
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
-    categoryId: DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id || DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id,
+    categoryId: DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id || DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
     functionalGroupId,
     categoryClassificationType: String(raw.activityClassificationType || raw.activity_classification_type || raw.settings?.activity_classification_type || meta.activity_classification_type || profile.activity_classification_type || 'activity').toLowerCase() === 'profession' ? 'profession' : 'activity',
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
