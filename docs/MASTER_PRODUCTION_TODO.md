@@ -3070,3 +3070,11 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - The `ad_spaces` authenticated INSERT/UPDATE/DELETE ACL is a direct grant by postgres beyond that default; exact historical grant source remains unresolved. Do not infer its origin or alter default ACL globally.
 - Separate `supabase_admin` defaults include broad API-role grants for future objects created by that role, but no current public table is owned by it. Review separately; do not mutate managed defaults.
 - A scan of all 136 public tables found exactly two with authenticated DML grants but zero permissive authenticated DML policies: `ad_spaces` (P2, Issue #611) and `bookings` (P3, Issue #613). Both have RLS + FORCE RLS and deny authenticated DML under current policies.
+
+ 
+## 2026-10-31 — Historical/live advertisements FK discrepancy
+
+- Live migration ledger retains `20260808000000_phase04_enterprise_schema_and_rls`; its recorded statement defines `CREATE TABLE IF NOT EXISTS advertisements` with `business_id UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE`.
+- This initial migration artifact is absent from the tracked GitHub migration tree per `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`. A query of all recorded migration statements found no explicit later DROP CONSTRAINT or ADD CONSTRAINT for advertisements, while the live physical table currently has no business_id FK.
+- `CREATE TABLE IF NOT EXISTS` does not retrofit the FK on an already-existing table. Cause remains unresolved: pre-existing table at migration time versus unrecorded schema divergence. Do not assume a manual drop, invent a historical migration, or patch Production.
+- Update Issue #612: recover authoritative migration/schema provenance, restore current schema locally, then determine whether a new forward-only FK/policy repair is appropriate.
