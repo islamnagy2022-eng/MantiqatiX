@@ -1570,3 +1570,4 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] تشغيل exact-head TypeScript/build وcanonical taxonomy وbrowser E2E على أحدث commits، وإصلاح أي إخفاق.
 - [ ] اختبار فتح المجموعة، ظهور الأنشطة، فتح النشاط، العودة إلى المجموعة، وتفاعل منشئ الحملة على 390/768/1440px.
 - [ ] بعد اجتياز الاختبارات، مراجعة PR/دمج التعديلات وفق سياسة الفرع، ثم التحقق من نشر Pages الفعلي. لا نشر أو تفعيل تكاملات إعلانية ضمن التغيير الحالي.
+- [!] تحقق آلي سابق كشف assertion قديمًا في `validate-canonical-activity-taxonomy.mjs` كان يمنع وجود مجلدات المجموعات. تم تحديثه ليتحقق من المجموعة ← النشاط بدل فرض عرض الأنشطة مباشرة. Commit: `234f6d2e36705eadd70c0b1d871311026717eeb3`. يجب إعادة تشغيل exact-head CI قبل اعتماد الإصلاح.
