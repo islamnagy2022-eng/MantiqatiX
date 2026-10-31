@@ -1535,3 +1535,12 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Reimplemented the minimal functional changes on current main in PR [#621](https://github.com/islamnagy2022-eng/MantiqatiX/pull/621): canonical activity-code precedence over legacy category labels; three columns on mobile while preserving the latest 4/6/8 wider breakpoints; Playwright regression and static validator coverage.
 - [ ] PR #621 exact-head CI and review pending. Do not merge or claim deployed until the latest build, browser E2E, taxonomy and RBAC checks pass.
 - [ ] Retire/supersede stale PR #619 only after PR #621 passes and is merged; no production deployment or Edge Function update is included.
+
+
+## 2026-11-01 — Eight-column mobile activity grid (current-main rebase)
+
+- [x] User explicitly requested eight activity cards side-by-side on mobile; implemented compact eight-column cards and updated browser E2E/taxonomy validator.
+- [x] Reapplied the change on latest main in a clean branch to avoid the prior PR #621 TODO conflict; canonical activity codes now outrank legacy labels.
+- [ ] Exact-head CI and 390px browser validation must pass before merge.
+- [ ] No Production deployment or database/Auth/RLS/Edge/payment mutation is authorized by this frontend change.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
