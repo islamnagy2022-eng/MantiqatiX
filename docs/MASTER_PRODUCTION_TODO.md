@@ -3053,3 +3053,12 @@ A separate source review found a second platform-root authorization model: the n
 
 ### Additional integrity check — trigger/constraint compensation
 A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
+
+ 
+## 2026-10-31 — P3 legacy `public.bookings` ACL/lifecycle review registered
+
+- Opened [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613).
+- Read-only scan: table has RLS + FORCE RLS, four RESTRICTIVE-only authenticated guards, no permissive authenticated SELECT/DML policies, but authenticated SELECT/INSERT/UPDATE/DELETE/MAINTAIN privileges and anon MAINTAIN only.
+- Shape: `id uuid NOT NULL`, nullable `created_at timestamp without time zone`; one row exists, and no row content was read.
+- No direct browser/Edge/migration source reference was found in focused search. No exploit is established; do not delete the row/table.
+- Inspect historic/dynamic dependencies and provenance in the disposable current-schema restore, then decide whether to preserve, migrate or retire. No Production change.
