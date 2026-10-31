@@ -532,6 +532,9 @@ try {
       await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
       await page.getByText(/تم تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
       await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      const savedGeoPreference = await page.evaluate(() => JSON.parse(localStorage.getItem('mantiqatix.geo-discovery.v1') || 'null'));
+      assert.equal(savedGeoPreference?.completed, true, 'explicit consent must be persisted before the dialog closes');
+      assert.equal(savedGeoPreference?.mode, 'auto', 'accepted GPS consent must be remembered as automatic location mode');
       const gpsButton = page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ });
       await gpsButton.waitFor({ state: 'visible', timeout: 5000 });
       const leakedCoordinates = await page.evaluate(() =>
