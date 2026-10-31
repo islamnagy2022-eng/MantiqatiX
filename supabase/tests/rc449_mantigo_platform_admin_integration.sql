@@ -131,6 +131,9 @@ begin
     raise exception 'authenticated role must retain intended RPC entrypoint grants; authorization is enforced inside each RPC';
   end if;
 
+  -- Restore the actor context to the registered platform admin with the expected actor UUID.
+  perform pg_catalog.set_config('request.jwt.claim.sub',platform_admin::text,false);
+
   -- Authorized platform-admin settlement is persisted and replay-safe.
   result := public.settle_mantigo_captain_backend(platform_admin,'ride-rc449','BANK_TRANSFER');
   if result->>'settlement_status' <> 'SETTLED' or coalesce((result->>'idempotent')::boolean,true) then
