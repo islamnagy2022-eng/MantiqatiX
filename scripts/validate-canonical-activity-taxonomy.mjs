@@ -167,7 +167,7 @@ assert.ok(directory.includes('activityBusinesses.filter((business) => business.i
 assert.ok(activityModuleView.includes("useState<Section>('specialties')"), 'Opening an activity must show its entities and specialties immediately.');
 assert.ok(activityModuleView.includes('setSelectedSpecialty(specialty)'), 'Specialty selection must filter within the activity module.');
 assert.ok(activityModuleView.includes('verifiedBusinesses, ...unverifiedBusinesses') && activityModuleView.includes('visibleListings.map'), 'Activity module must render verified and unverified directory entities.');
-assert.ok(activityModuleView.includes("Boolean(listing.phone || listing.secondary_phone)"), 'Public unverified cards must require a contact phone.');
+assert.ok(directory.includes("Boolean(listing.phone || listing.secondary_phone)"), 'Activity module records must require a contact phone before being passed into public entity cards.');
 assert.ok(browserE2E.includes('activity-module-renders-geo-filtered-entities'), 'Browser E2E must verify entity cards, specialty filtering and phone requirements inside the module.');
 assert.ok(!directory.includes('functionalGroups') && !directory.includes('selectedGroupFilter') && !directory.includes('matchesCategoryKind'), 'Functional-group navigation/filtering must not appear in public directory UI logic.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
