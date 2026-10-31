@@ -102,3 +102,17 @@ The live migration ledger returned 308 recorded migrations; latest observed vers
 **Production effect:** NONE. This document records read-only metadata and function/ACL inspection only. No DDL, DML, grants, RLS, Auth, Edge Function deployment, wallet movement, payment, or advertising reservation was performed.
 
 **Release decision:** FIN-ADS-01 remains BLOCKED / NOT CERTIFIED for production activation.
+
+
+## Addendum — 2026-10-31 current-policy / ACL recheck (read-only)
+
+This addendum supersedes the earlier paragraph in Section 5 that characterized the four generic `ad_spaces` guard policies as permissive. A fresh live catalog query shows:
+
+- `public.ad_spaces` has RLS and FORCE RLS enabled.
+- Its only permissive policy for `authenticated` is `ad_spaces_authenticated_read` (SELECT).
+- The four generic ALL policies — `authenticated_sessions_only`, `deny_anonymous_users`, `mnt_non_anonymous_boundary`, and `non_anonymous_authenticated_guard` — are all **RESTRICTIVE**, not permissive.
+- The live catalog reports **zero authenticated permissive INSERT/UPDATE/DELETE/ALL policies** and one permissive SELECT policy. With RLS + FORCE RLS, the current policy set is deny-by-default for authenticated DML. No authenticated write attempt was made; this is catalog evidence, not a real-user API exploit test.
+- Effective ACLs remain broader than necessary: `authenticated` has SELECT/INSERT/UPDATE/DELETE/MAINTAIN; `anon` has MAINTAIN only; `service_role` retains SELECT/INSERT/UPDATE/DELETE/MAINTAIN.
+- No direct frontend or Edge Function caller for `public.ad_spaces` was found in the current code search. The public ad-delivery path uses the targeted-ad RPC; global ad inventory is separately protected behind service-role access.
+
+**Corrected disposition:** the earlier P0 broad-permissive-policy characterization is not supported by the current live policy catalog. No broad authenticated DML path is established. Track this as **P1 least-privilege ACL hardening and runtime verification**: after the current-schema restore, verify the grant provenance/default privileges, test a narrowly scoped revoke of unnecessary authenticated INSERT/UPDATE/DELETE/MAINTAIN and anon MAINTAIN, preserve authenticated SELECT and service-role backend operations, and prove the intended outcomes with isolated SQL/API tests. Do not change Production grants or policies in this audit. Ad booking/pricing remains unimplemented and disabled.
