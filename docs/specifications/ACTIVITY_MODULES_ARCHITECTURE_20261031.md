@@ -71,7 +71,7 @@ Do not create demo records or fabricated metrics to make a module appear operati
 - [x] Add direct specialty selection and a visible, reversible directory filter.
 - [x] Preserve verified/unverified counts and existing geography/result filtering.
 - [x] Remove public group labels from business cards.
-- [ ] Run TypeScript/lint, production build, taxonomy contract, and browser E2E on the exact PR head.
+- [x] Run TypeScript/lint, production build, taxonomy contract, and browser E2E on exact PR head `7e0d8caa79a0b768c8320049c718d5ba581a1895` (all passed).
 - [ ] Verify deployed-origin behavior after merge/deploy; not claimed by source presence.
 
 ### Phase B — activity configuration registry
@@ -85,8 +85,11 @@ Do not create demo records or fabricated metrics to make a module appear operati
 - [x] Resolve activity-specific capabilities before domain-level fallbacks and keep every unintegrated capability in `planned` state.
 - [x] Render capability state with state-aware accessible labels and badges.
 - [ ] Implement backend actions only after per-capability API/RPC, tenant/business/branch authorization, audit, and negative security tests are verified.
-- [ ] Define an additive admin editing experience and persisted configuration contract; no client-only settings may be treated as authoritative.
-- [ ] Run exact-head TypeScript/build/taxonomy/browser validation after the 150 activity-specific capability definitions.
+- [x] Add an additive Super Admin editing experience for the marketing profile and three descriptive capabilities per activity, persisted through the guarded platform settings endpoint; browser does not write settings directly.
+- [x] Add server-side payload sanitizer, Node boundary tests, before/after audit payloads, a sanitized public settings projection, and a browser E2E mock round-trip for authenticated Super Admin editing.
+- [x] Validate exact-head TypeScript/build/taxonomy/browser validation after the 150 activity-specific capability definitions on `7e0d8caa79a0b768c8320049c718d5ba581a1895`.
+- [ ] Make settings upsert and audit insertion one database transaction before treating persistence plus audit as atomic; current API reports a partial-success warning if audit insertion fails.
+- [x] Run exact-head TypeScript/build/taxonomy/browser validation after the 150 activity-specific capability definitions.
 
 ### Phase C — working marketing workspace per activity
 - [ ] Port/reuse the existing reviewed marketing workspace into the current catalog app; do not revive the retired legacy app as the primary UI.
@@ -104,6 +107,16 @@ Do not create demo records or fabricated metrics to make a module appear operati
 - [ ] Exact-head CI pass and deployed-origin E2E.
 - [ ] Production backend rollout only through the existing migration, backup, approval, reconciliation, and rollback gates.
 - [ ] Keep `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED` until all independent release blockers close.
+
+## Super Admin activity settings — 2026-10-31
+
+The additive editor is implemented in `apps/catalog-frontend/src/components/admin/ActivityModulesAdmin.tsx` and is linked as a new tab inside the existing Super Admin dashboard. It edits each of the 50 canonical activities independently. Marketing text and three capability titles/descriptions are saved using the existing `catalog-platform-admin` `SAVE_SETTINGS` action. The server validates IDs, fields, lengths, arrays, capability count, and payload size; the public directory API returns only a sanitized `activityModuleOverrides` projection, never the full private platform settings object.
+
+A Super Admin browser E2E scenario verifies the editor selection, a pharmacy marketing objective change, the authenticated save request, and preservation of all three capabilities in the `planned` state. This scenario uses a mocked Edge Function response and does not constitute a production database write or deployed-origin proof.
+
+Exact-head validation `7e0d8caa79a0b768c8320049c718d5ba581a1895` passed TypeScript, production build, taxonomy contract, activity-admin contract, Node sanitizer tests, employee RBAC PostgreSQL, browser E2E, backend boundary and supporting workflows. Pages validation passed; deployment was skipped on the PR event. PR #608 remains Draft and unmerged.
+
+Open: transactionally couple the settings upsert and audit insert; add negative tests for unknown capability IDs and audit failure; deploy only after approval; verify live authenticated save/read/reset and public visitor rendering from the deployed Edge Functions. The currently deployed Edge Functions were observed at older versions 23 and 10, so no live functionality claim is made. Global `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 
 ## Safety boundaries
 
