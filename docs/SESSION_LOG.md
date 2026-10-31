@@ -1531,3 +1531,14 @@ A separate source review found a second platform-root authorization model: the n
 - Added Playwright E2E coverage for dashboard tab removal, account entry, owner management, portal mode return, and account-only Google identity.
 - Carried forward the detailed wallet/commission/subscription/ad specification and current FIN-ADS-01 TODO. Existing finance inventory shows reusable subscription/commission tables but incomplete activation/journal contracts; no payment or database write was performed.
 - No Production or Supabase changes and no deployment. Next is exact-head CI/build/browser E2E and triage of test failures.
+
+
+## 2026-10-31 — Continue work on unified dashboard and finance reuse
+
+- Implemented Account Portal modes from active authenticated memberships with exact membershipId/businessId/tenantId matching, scoped CATALOG_READ reload including branch ID, selected-business products replacement and cart reset.
+- Kept platform administrator authority distinct from actual business membership; selected-business tools open without owner impersonation.
+- Admin/merchant/professional dashboard modules lazy-load only when opened. Public navbar retains directory/catalog navigation and account entry only.
+- Existing CommissionRulesManager reused as draft-only engine: fixed, percentage and combined; tenant/business/category/product/service/plan/agreement scopes; effective dates, priority, bounds, exemption, audit and preview. No activation or order/settlement impact.
+- Latest observed CI on head 2eac69122b4fa4b67bdf122c3db3db27527bf7d2: TypeScript/build and static contracts PASS; employee/branch PostgreSQL tests PASS; Browser E2E still in progress. Other workflows completed successfully; PR deployment job skipped.
+- No Production deployment, schema/RLS/Auth/Edge mutation, wallet movement, provider payment or ad reservation occurred.
+- Next: inspect exact-head Browser E2E result and continue subscription pricing rules and finance schema review without enabling a wallet.
