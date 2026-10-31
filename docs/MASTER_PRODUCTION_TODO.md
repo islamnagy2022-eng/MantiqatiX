@@ -3066,8 +3066,8 @@ A second read-only query checked non-internal triggers on `public.advertisements
  
 ## 2026-10-31 — public default ACL provenance and exact two-table scan
 
-- All 136 public tables are owned by `postgres`. Its current `public` default table ACL gives API roles MAINTAIN/REFERENCES/TRIGGER/TRUNCATE but not SELECT/INSERT/UPDATE/DELETE.
-- The `ad_spaces` authenticated INSERT/UPDATE/DELETE ACL is a direct grant by postgres beyond that default; exact historical grant source remains unresolved. Do not infer its origin or alter default ACL globally.
+- All 136 public tables are owned by `postgres`. Its **current** `public` default table ACL gives API roles MAINTAIN/REFERENCES/TRIGGER/TRUNCATE but not SELECT/INSERT/UPDATE/DELETE; this does not establish historical defaults at each table's creation time.
+- `ad_spaces` currently has authenticated INSERT/UPDATE/DELETE ACL entries with grantor postgres. These may be explicit grants or inherited from an earlier default ACL that has since changed. Search of the recorded migration ledger found no table GRANT/REVOKE or table-level ALTER DEFAULT PRIVILEGES statement; exact provenance is unresolved. Do not label them explicit grants or change defaults globally.
 - Separate `supabase_admin` defaults include broad API-role grants for future objects created by that role, but no current public table is owned by it. Review separately; do not mutate managed defaults.
 - A scan of all 136 public tables found exactly two with authenticated DML grants but zero permissive authenticated DML policies: `ad_spaces` (P2, Issue #611) and `bookings` (P3, Issue #613). Both have RLS + FORCE RLS and deny authenticated DML under current policies.
 
