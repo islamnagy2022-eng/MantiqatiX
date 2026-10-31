@@ -2912,3 +2912,11 @@ A separate source review found a second platform-root authorization model: the n
 - [x] RC463 now skips only a fully absent function/trigger pair in the older checkpoint, while failing closed on partial/mismatched state; live Production has both functions/triggers and will harden both.
 
 
+
+
+
+### RC463 exact release-validator correction — 2026-10-31
+
+- [x] Updated `scripts/validate-production-migration-chain-gate.mjs` to include the new RC463 version `20261031100000` and assert 42 required source migration IDs, matching `REQUIRED_RELEASE_MIGRATION_VERSIONS`.
+- [ ] Exact-head rerun of Deploy MantiqatiX Web validation and the full PR check suite remains pending; the earlier validator failure was observed on the previous PR head and is not reclassified as a pass.
+- [ ] RC463 remains a source candidate only. No Production migration, ACL change, or trigger modification was executed.
