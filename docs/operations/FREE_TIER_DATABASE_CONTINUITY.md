@@ -90,7 +90,7 @@ Do not restore over Production. Use a disposable local PostgreSQL/Supabase envir
 
 ## 5. Official references
 
-- [Supabase CLI — db dump](https://supabase.com/docs/reference/cli/supabase-inspect-db-blocking)
+- [Supabase CLI — db dump](https://supabase.com/docs/reference/cli/supabase-db-dump)
 - [Supabase backup and restore with the CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore)
 - [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
 
