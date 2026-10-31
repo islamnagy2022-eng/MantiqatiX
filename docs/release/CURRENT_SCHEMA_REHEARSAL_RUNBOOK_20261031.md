@@ -210,3 +210,8 @@ A second read-only query checked non-internal triggers on `public.advertisements
 ## Platform-admin release gate
 
 The source chain RC441 -> RC449 -> RC462 is merged in main but absent from the current Production ledger. Rehearse the complete required migration set on the credential-scrubbed current-schema restore; do not apply this subset directly. Before/after replay, inventory the shared platform-admin helper, all eight global SECURITY DEFINER entrypoints, the digital-pages RLS policy and effective grants. Test registry-only, membership-only, synchronized platform admin, tenant owner/admin/operations manager, tenant-scoped super admin and revoked registry actors. Verify immediate revocation, digital-pages cross-tenant denial and intended backend bootstrap path. Keep production unchanged until full restore, ordered replay, all tests, rollback evidence and separate rollout approval pass.
+
+ 
+## Historical baseline limitation and current capture requirement
+
+The tracked `production_schema_snapshot.manifest.json` is a historical 2026-10-17 02:10:22 UTC checkpoint at migration `20261008222845` (283 records), not a current Production image. Current Production is at 308 records through `20261029083845`. A replay from the old baseline is useful chronological evidence, but it cannot establish current physical-schema parity. Create a fresh authorized credential-scrubbed schema/roles capture, restore locally, compare the live structural inventory, then replay the full required sequence. Do not put database credentials in chat or production dumps in public GitHub. The previously queried GitHub runs #41178333682 and #38993809648 currently expose no downloadable artifacts.
