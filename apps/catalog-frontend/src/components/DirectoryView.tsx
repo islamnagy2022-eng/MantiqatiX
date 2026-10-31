@@ -290,14 +290,16 @@ export const DirectoryView: React.FC = () => {
     return () => { cancelled = true; };
   }, []);
   const [activityModuleId, setActivityModuleId] = useState<string>(() => new URLSearchParams(window.location.search).get('activity') || '');
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>(() => new URLSearchParams(window.location.search).get('group') || 'all');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const openActivityModule = (activityId: string) => {
     const url = new URL(window.location.href);
     url.searchParams.delete('listing');
     url.searchParams.set('activity', activityId);
-    window.history.pushState({ mantiqatixActivityModule: activityId }, '', url.pathname + url.search + url.hash);
+    if (selectedGroupFilter !== 'all') url.searchParams.set('group', selectedGroupFilter);
+    else url.searchParams.delete('group');
+    window.history.pushState({ mantiqatixActivityModule: activityId, mantiqatixGroupFolder: selectedGroupFilter }, '', url.pathname + url.search + url.hash);
     setActivityModuleId(activityId);
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
@@ -309,7 +311,11 @@ export const DirectoryView: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
   useEffect(() => {
-    const syncActivityModuleRoute = () => setActivityModuleId(new URLSearchParams(window.location.search).get('activity') || '');
+    const syncActivityModuleRoute = () => {
+      const params = new URLSearchParams(window.location.search);
+      setActivityModuleId(params.get('activity') || '');
+      setSelectedGroupFilter(params.get('group') || 'all');
+    };
     window.addEventListener('popstate', syncActivityModuleRoute);
     return () => window.removeEventListener('popstate', syncActivityModuleRoute);
   }, []);
@@ -768,7 +774,7 @@ export const DirectoryView: React.FC = () => {
               <p className="mt-1 text-xs text-slate-500">{selectedGroupFilter === 'all' ? 'اختر مجموعة لعرض الأنشطة التابعة لها، ثم افتح النشاط لعرض تخصصاته.' : 'اختر النشاط لعرض التخصصات والخدمات التابعة له.'}</p>
             </div>
             <div className="flex items-center gap-2">
-              {selectedGroupFilter !== 'all' && <button type="button" onClick={() => { setSelectedGroupFilter('all'); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">كل المجموعات</button>}
+              {selectedGroupFilter !== 'all' && <button type="button" onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('group'); window.history.pushState({ mantiqatixGroupFolder: null }, '', url.pathname + url.search + url.hash); setSelectedGroupFilter('all'); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 hover:bg-slate-50">كل المجموعات</button>}
               <span className="text-xs font-bold text-slate-500">{selectedGroupFilter === 'all' ? availableGroups.length.toLocaleString('ar-EG') + ' مجموعة' : availableCategories.length.toLocaleString('ar-EG') + ' نشاط'}</span>
             </div>
           </div>
@@ -780,7 +786,7 @@ export const DirectoryView: React.FC = () => {
                 const confirmedCount = eligibleGroupBusinesses.filter((business) => business.isVerified).length;
                 const unconfirmedCount = eligibleGroupBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.functional_group_id === group.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
                 const totalCount = confirmedCount + unconfirmedCount;
-                return <button key={group.id} type="button" onClick={() => { setSelectedGroupFilter(group.id); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="group relative flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:min-h-36 sm:p-4">
+                return <button key={group.id} type="button" onClick={() => { const url = new URL(window.location.href); url.searchParams.delete('activity'); url.searchParams.set('group', group.id); window.history.pushState({ mantiqatixGroupFolder: group.id }, '', url.pathname + url.search + url.hash); setActivityModuleId(''); setSelectedGroupFilter(group.id); setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="group relative flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:min-h-36 sm:p-4">
                   <span className="absolute left-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-1 text-[10px] font-black text-emerald-800">{totalCount.toLocaleString('ar-EG')}</span>
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 sm:h-14 sm:w-14 sm:rounded-2xl">{ICONS_MAP[group.id] || <Store className="h-7 w-7" />}</span>
                   <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{group.name}</span><span className="mt-1 block text-[11px] text-slate-500">{groupCategories.length} نشاط</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
