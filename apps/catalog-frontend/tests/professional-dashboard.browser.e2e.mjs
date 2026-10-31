@@ -10,7 +10,7 @@ const supabaseAnonKey = config.match(/supabaseKey:\s*'([^']+)'/)?.[1];
 assert.ok(supabaseUrl, 'public config must expose the configured Supabase URL');
 assert.ok(supabaseAnonKey, 'public config must expose the public Supabase key');
 const supabaseOrigin = new URL(supabaseUrl).origin;
-const liveDirectoryResponse = await fetch(`${supabaseUrl.replace(/\\/+$/, '')}/functions/v1/public-catalog-directory`, {
+const liveDirectoryResponse = await fetch(`${supabaseUrl}/functions/v1/public-catalog-directory`, {
   headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
 });
 assert.equal(liveDirectoryResponse.status, 200, 'live public directory must respond HTTP 200');
@@ -612,11 +612,11 @@ try {
             .waitFor({ state: 'visible', timeout: 15000 });
           const displayedCount = await page.getByText(/المعروض:/).count();
           assert.ok(displayedCount > 0, target.label + ' catalog must display the product count');
-          results.push(target.label.toLowerCase().replace(/\\s+/g, '-') + '-verified-badge-and-live-product-rendered');
+          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-live-product-rendered');
         } else {
           await page.getByRole('heading', { name: 'لا توجد منتجات أو خدمات مطابقة', exact: true })
             .waitFor({ state: 'visible', timeout: 10000 });
-          results.push(target.label.toLowerCase().replace(/\\s+/g, '-') + '-verified-badge-and-empty-catalog-state-rendered');
+          results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
         }
 
         await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
