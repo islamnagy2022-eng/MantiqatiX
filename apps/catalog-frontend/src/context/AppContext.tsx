@@ -47,7 +47,7 @@ interface AppContextType {
   selectedCategoryFilter: string;
   setSelectedCategoryFilter: (id: string) => void;
   authSession: AuthSession;
-  switchAccountMembership: (membershipId: string, businessId: string) => boolean;
+  switchAccountMembership: (membershipId: string, businessId: string) => Promise<boolean>;
   switchToPlatformAdminMode: () => boolean;
   loginAsSubscriber: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAsAdmin: (password?: string) => Promise<{ success: boolean; error?: string }>;
@@ -170,37 +170,80 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Switch only to an exact active membership returned by authenticated bootstrap.
-  // The state change is for UI context; every server mutation still authorizes the
-  // signed-in actor against the database membership and tenant/branch scope.
-  const switchAccountMembership = (membershipId: string, businessId: string): boolean => {
+  // Reload the catalog with that membership's branch scope before exposing its workspace.
+  // This prevents a tenant-wide owner dataset from leaking into a weaker employee view.
+  const switchAccountMembership = async (membershipId: string, businessId: string): Promise<boolean> => {
     const userId = authSession.userId;
-    if (!authSession.isAuthenticated || !userId || !membershipId || authUserIdRef.current !== userId) return false;
-    const mode = authSession.availableMemberships?.find((candidate) => candidate.membershipId === membershipId && candidate.businessId === businessId);
+    if (!authSession.isAuthenticated || !userId || !membershipId || !businessId || authUserIdRef.current !== userId) return false;
+    const mode = authSession.availableMemberships?.find((candidate) =>
+      candidate.membershipId === membershipId && candidate.businessId === businessId
+    );
     if (!mode) return false;
-    const business = businesses.find((candidate) =>
+    const existingBusiness = businesses.find((candidate) =>
       candidate.id === mode.businessId && String(candidate.tenantId || '') === mode.tenantId
     );
-    if (!business) return false;
+    if (!existingBusiness) return false;
 
+    const catalog: any = await callCatalogAdmin({
+      action: 'CATALOG_READ',
+      tenantId: mode.tenantId,
+      businessId: mode.businessId,
+      ...(mode.branchId ? { branchId: mode.branchId } : {}),
+    });
+    if (authUserIdRef.current !== userId || authSession.userId !== userId) return false;
+    if (!catalog?.business) throw new Error('تعذر تحميل بيانات النشاط بالنطاق المحدد؛ لم يتم تغيير وضع الحساب.');
+
+    const mappedBusiness = mapBusiness({
+      ...existingBusiness,
+      ...catalog.business,
+      id: mode.businessId,
+      tenantId: mode.tenantId,
+      organizationId: existingBusiness.organizationId || catalog.business?.organizationId,
+      branchId: catalog.selectedBranchId || mode.branchId || '',
+      branches: Array.isArray(catalog.branches) ? catalog.branches : [],
+      profile: catalog.business?.profile || existingBusiness.profile || {},
+      bizcatalog: catalog.business?.bizcatalog || existingBusiness.bizcatalog || {},
+    }, catalog.provider);
+    const mappedProducts = mapProducts(
+      mode.businessId,
+      mode.tenantId,
+      catalog.selectedBranchId || mode.branchId || '',
+      catalog.items || [],
+      catalog.prices || [],
+    );
+
+    let applied = false;
     setAuthSession((previous) => {
       if (previous.userId !== userId || !previous.isAuthenticated) return previous;
-      const currentAuthorizedMode = previous.availableMemberships?.find((candidate) =>
+      const authorizedMode = previous.availableMemberships?.find((candidate) =>
         candidate.membershipId === membershipId &&
         candidate.businessId === mode.businessId &&
-        candidate.tenantId === mode.tenantId
+        candidate.tenantId === mode.tenantId &&
+        String(candidate.role).toUpperCase() === String(mode.role).toUpperCase() &&
+        String(candidate.branchId || '') === String(mode.branchId || '')
       );
-      if (!currentAuthorizedMode) return previous;
+      if (!authorizedMode) return previous;
+      applied = true;
       return {
         ...previous,
         role: 'subscriber',
-        businessId: currentAuthorizedMode.businessId,
-        subscriberId: currentAuthorizedMode.membershipId,
-        membershipRole: currentAuthorizedMode.role,
-        membershipBranchId: currentAuthorizedMode.branchId,
-        membershipPermissions: currentAuthorizedMode.permissions,
-        activeMembershipId: currentAuthorizedMode.membershipId,
+        businessId: authorizedMode.businessId,
+        subscriberId: authorizedMode.membershipId,
+        membershipRole: authorizedMode.role,
+        membershipBranchId: authorizedMode.branchId,
+        membershipPermissions: authorizedMode.permissions,
+        activeMembershipId: authorizedMode.membershipId,
       };
     });
+    if (!applied) return false;
+
+    setBusinesses((previous) => previous.map((business) =>
+      business.id === mappedBusiness.id ? mappedBusiness : business
+    ));
+    setProducts((previous) => [
+      ...previous.filter((product) => product.businessId !== mode.businessId),
+      ...mappedProducts,
+    ]);
     commitSelectedBusinessId(mode.businessId);
     setCartItems([]);
     setIsCartOpen(false);
