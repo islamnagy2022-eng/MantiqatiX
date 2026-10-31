@@ -1610,3 +1610,12 @@ A separate source review found a second platform-root authorization model: the n
 - Source-only changes on the PR branch: frontend, Edge Function source, static validator and workflow configuration.
 - No production migration, schema/data mutation, grant/RLS/Auth change, Edge deployment, campaign execution, advertising spend, payment or financial operation.
 - `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## 2026-10-31 — RC463 current-main port and live ACL confirmation
+
+- Created `security/rc463-current-main-rehearsal-20261031` from main `cd9929e337fce58d4c20dfbb94febfd7e4f36291` rather than merging stale draft PR #602.
+- Ported RC463 migration, synthetic disposable replay overlay, exact-migration PostgreSQL test and targeted workflows.
+- Release-required source migration list now contains 42 versions. A fresh read-only Supabase `list_migrations` inventory shows 308 rows through `20261029083845` and 0/42 required exact versions present.
+- Read-only PostgreSQL catalog inspection confirms both trigger functions are SECURITY DEFINER, their expected triggers are enabled, and broad PUBLIC/anon/authenticated/service_role EXECUTE remains. The default-owner function also retains a non-empty `public, auth` search_path; commission audit already has an empty path.
+- No production writes or deployments were performed. Current exact-head CI and isolated replay are pending; current Production schema restore and backup evidence remain separate gates.
