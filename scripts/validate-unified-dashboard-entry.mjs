@@ -43,6 +43,9 @@ assert.match(catalogAdmin, /const scopedPlatformMembership = !membershipId && ac
 
 assert.match(contextSource, /...previous\.filter\(\(product\) => product\.businessId !== mode\.businessId\)/, 'the previous business catalog data must be replaced when the selected membership scope changes');
 assert.match(contextSource, /authUserIdRef\.current !== userId/, 'mode switching must bind to the current authenticated identity');
+assert.match(contextSource, /const authSessionRef = useRef\(authSession\)/, 'mode switching must retain a latest-session reference across async reads');
+assert.match(contextSource, /const latestSession = authSessionRef\.current[\s\S]{0,500}if \(!authorizedMode\) return false/, 'membership switch must revalidate the exact membership against the latest session before committing state');
+assert.match(contextSource, /authSessionRef\.current = nextSession;[\s\S]{0,80}setAuthSession\(nextSession\)/, 'session reference and React state must be committed together after validation');
 assert.match(contextSource, /currentView === 'account_portal' \|\| currentView === 'merchant_admin'/, 'account portal must use the active authorized business context');
 assert.match(contextSource, /requestedView === 'account_portal' && boot\.authSession\.isAuthenticated/, 'account portal deep links must restore only after authenticated bootstrap');
 assert.match(contextSource, /const loadPublicCatalogForRoute = \(businessId: string\)/, 'public storefront selection must load only the selected catalogue for signed-out visitors');
