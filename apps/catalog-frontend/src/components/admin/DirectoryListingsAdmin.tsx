@@ -62,7 +62,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const editListing = (listing: PublicDirectoryListing) => {
     setForm({
       id: listing.id, displayName: listing.display_name, slug: listing.slug, listingType: listing.listing_type,
-      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_doctor", taxonomySpecialty: listing.taxonomy_specialty || "",
+      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_medical_practices", taxonomySpecialty: listing.taxonomy_specialty || "",
       specialty: listing.specialty || "", phone: listing.phone || "", secondaryPhone: listing.secondary_phone || "",
       address: listing.address || "", governorate: listing.governorate || "المنوفية", district: listing.district || "بركة السبع",
       village: listing.village || "", sourceName: listing.source_name || "", sourceUrl: listing.source_url || "",
