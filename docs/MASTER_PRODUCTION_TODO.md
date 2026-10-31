@@ -3049,3 +3049,7 @@ A separate source review found a second platform-root authorization model: the n
 - `advertisements` currently has 0 rows, RLS + FORCE RLS, tenant FK but no business FK. Authenticated policies authorize active OWNER/ADMIN/MANAGER membership at tenant scope and do not evaluate the row's business_id or membership branch_id. Business/branch-scoped BUSINESS_OWNER memberships exist; BUSINESS_OWNER is not in the current write-policy role list; OWNER is included without checking membership scope.
 - This is **not a confirmed exploit**; tenant-wide advertising control may be intentional and there was no live write test. Keep owner-facing ad create/edit/delete/approval/booking blocked pending authority-matrix confirmation and isolated cross-business/cross-tenant tests.
 - Related [Issue #611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611) covers the separate `ad_spaces` excess ACL item. Do not merge the two scopes.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
