@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ClipboardList, Edit, ExternalLink, Plus, RefreshCw, Save, Search, UserRoundCheck } from "lucide-react";
 import type { ActivityCategory, Business, FunctionalGroup } from "../../types";
+import { resolveCanonicalSpecialty } from "../../data/productionDefaults";
 import {
   fetchDirectoryAdminBundle,
   reviewDirectoryClaim,
@@ -20,6 +21,14 @@ type FormState = {
 };
 const outreachStatusLabels: Record<string, string> = { NEW: "لم يتم التواصل", CONTACTED: "تم التواصل", INTERESTED: "مهتم", OFFER_SENT: "تم عرض الاشتراك", FOLLOW_UP: "متابعة مطلوبة", SUBSCRIPTION_PENDING: "في انتظار الاشتراك", SUBSCRIBED: "مشترك", NOT_INTERESTED: "غير مهتم", CORRECTION_REQUESTED: "طلب تصحيح البيانات" };
 const dateField = (value: string | null | undefined) => value ? value.slice(0, 10) : "";
+const canonicalSpecialtyLabel = (value: string | null | undefined, categoryId: string, categories: ActivityCategory[]) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const category = categories.find((item) => item.id === categoryId);
+  return category?.specialties?.find((candidate) =>
+    resolveCanonicalSpecialty(candidate, categoryId) === resolveCanonicalSpecialty(raw, categoryId)
+  ) || raw;
+};
 
 const emptyForm: FormState = {
   id: "", displayName: "", slug: "", listingType: "doctor", specialty: "",
@@ -62,7 +71,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const editListing = (listing: PublicDirectoryListing) => {
     setForm({
       id: listing.id, displayName: listing.display_name, slug: listing.slug, listingType: listing.listing_type,
-      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_medical_practices", taxonomySpecialty: listing.taxonomy_specialty || "",
+      functionalGroupId: listing.functional_group_id || "medical_health", taxonomyCategoryId: listing.taxonomy_category_id || "cat_medical_health_medical_practices", taxonomySpecialty: canonicalSpecialtyLabel(listing.taxonomy_specialty || listing.specialty, listing.taxonomy_category_id || "cat_medical_health_medical_practices", categories),
       specialty: listing.specialty || "", phone: listing.phone || "", secondaryPhone: listing.secondary_phone || "",
       address: listing.address || "", governorate: listing.governorate || "المنوفية", district: listing.district || "بركة السبع",
       village: listing.village || "", sourceName: listing.source_name || "", sourceUrl: listing.source_url || "",
