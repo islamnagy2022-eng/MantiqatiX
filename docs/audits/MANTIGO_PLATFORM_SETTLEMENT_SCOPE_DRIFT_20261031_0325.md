@@ -125,3 +125,7 @@ Catalog inspection confirms all eight have RLS enabled and zero policies. It als
 - Supabase Auth leaked-password protection is currently disabled. Add a controlled Auth hardening action with compatibility/user-impact review and post-change verification.
 
 No DDL, grants, policies, Auth settings, business rows, RPC mutations, payments, settlements, or production deployments were changed during this review. The P0 platform-admin helper/RLS drift documented above remains unresolved; Production stays BLOCKED / NOT CERTIFIED.
+
+### Follow-up: default-owner trigger invocation surface
+
+The trigger catalog confirms `assign_default_owner_to_unowned_business()` is attached to `businesses`. The current live table grants show neither anon nor authenticated has direct INSERT privilege on `businesses`; business creation therefore depends on privileged backend/RPC paths rather than direct client table inserts. The trigger's hard-coded default-owner fallback still deserves review against every privileged business-creation path (actor attribution, rate limits, ownership expectation, and auditability), but this inspection did not establish an unauthorized assignment or a direct anonymous RPC path.
