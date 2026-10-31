@@ -121,3 +121,12 @@ alter table public.general_ledger
 alter table public.general_ledger
   add constraint general_ledger_account_id_fkey
   foreign key (account_id) references public.chart_of_accounts(id) on delete restrict;
+
+alter table public.journal_entry_lines
+  add constraint journal_entry_lines_debit_check check (debit >= 0);
+alter table public.journal_entry_lines
+  add constraint journal_entry_lines_credit_check check (credit >= 0);
+alter table public.general_ledger
+  add constraint general_ledger_debit_check check (debit >= 0);
+alter table public.general_ledger
+  add constraint general_ledger_credit_check check (credit >= 0);
