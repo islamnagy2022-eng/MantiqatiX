@@ -41,6 +41,8 @@ jobs:
       - name: Test professional dashboard permission matrix
         working-directory: apps/catalog-frontend
         run: npx tsx ../../scripts/test-professional-dashboard-access.ts
+      - name: Validate Smart Geo Discovery consent, privacy, and administrative selectors
+        run: node scripts/validate-smart-geo-discovery.mjs
       - name: Validate Facebook page import ownership and token handling
         run: node scripts/validate-facebook-page-import.mjs
       - name: Validate activity social links and click-to-call
