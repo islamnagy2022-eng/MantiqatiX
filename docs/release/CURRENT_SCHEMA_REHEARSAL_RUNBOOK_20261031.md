@@ -186,3 +186,7 @@ Stop and leave the rehearsal **BLOCKED** when any of the following occurs:
 
  
 - [ ] Reproduce `advertisements` schema/policies and confirm the intended tenant-vs-business-vs-branch authorization matrix. Add synthetic businesses across two tenants and multiple businesses/branches within one tenant; test SELECT/INSERT/UPDATE/DELETE, including attempted tenant_id/business_id reassignment. Verify whether the business FK/composite relationship is needed; preserve the public targeted-ad RPC and trusted backend path.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
