@@ -5,6 +5,7 @@ on:
     branches: ["**"]
     paths:
       - "supabase/tests/trigger_only_security_definer_acl_integration.sql"
+      - "supabase/migrations/20261031100000_rc463_trigger_only_security_definer_acl.sql"
       - ".github/workflows/trigger-only-security-definer-acl.yml"
   pull_request:
     branches: [main]
@@ -40,5 +41,5 @@ jobs:
           set -euo pipefail
           pg_container="$(docker ps --filter 'ancestor=postgres:16' --format '{{.ID}}' | head -n 1)"
           test -n "$pg_container"
-          docker cp supabase/tests/trigger_only_security_definer_acl_integration.sql "$pg_container:/tmp/integration.sql"
-          docker exec "$pg_container" psql -U postgres -d mantiqatix_trigger_acl_test -v ON_ERROR_STOP=1 -f /tmp/integration.sql
+          docker cp supabase "$pg_container:/tmp/supabase"
+          docker exec "$pg_container" psql -U postgres -d mantiqatix_trigger_acl_test -v ON_ERROR_STOP=1 -f /tmp/supabase/tests/trigger_only_security_definer_acl_integration.sql
