@@ -43,8 +43,14 @@
 - [x] Updated browser E2E for direct activity routing, geo-consent handling, refresh, specialty selection, filter clearing, and responsive overflow.
 - [x] Updated canonical taxonomy contract to validate module registry fields and fail-closed capability states.
 - [x] Previous exact-head PR validation passed TypeScript, production build, canonical taxonomy, geographic/GPS consent contract, employee RBAC PostgreSQL, and browser E2E before registry additions.
-- [ ] Re-run exact-head TypeScript, production build, canonical taxonomy, geo-discovery contract, employee RBAC, and browser E2E for the registry commits.
-- [ ] Verify deployed-origin behavior after merge/deployment. PR validation's Pages deploy step is skipped by design; no production deployment is claimed.
+- [x] Exact-head TypeScript, production build, canonical taxonomy, geo-discovery contract, employee RBAC PostgreSQL, and browser E2E passed on code/test commit `5ea3a4d4226ed43abc7addf91525607d558afe1e` (catalog run [41196288654](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288654)).
+- [ ] Verify deployed-origin behavior after merge/deployment. Pages validation [41196288663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288663) passed, but the deploy job was SKIPPED on the PR event; no production deployment is claimed.
+
+### Exact-head CI evidence — code/test commit `5ea3a4d4226ed43abc7addf91525607d558afe1e`
+- [x] Catalog validation run [41196288654](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288654): TypeScript, production build, canonical taxonomy validator, geographic/GPS consent contract, employee RBAC PostgreSQL, and full Playwright browser E2E all PASS.
+- [x] Pages validation run [41196288663](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288663): validation PASS; public-only and deployment jobs SKIPPED because this is a pull-request event.
+- [x] Module professionalization [41196288659](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288659), backend-only boundary [41196288717](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288717), privacy [41196288694](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288694), RC425 [41196288797](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288797), and flexible commission [41196288767](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41196288767) all PASS.
+- [ ] Production deployment, deployed-origin module E2E, and live authenticated marketing actions remain NOT VERIFIED / NOT AUTHORIZED.
 
 ### Remaining marketing and operating integrations
 - [ ] Finish the working Marketing & Advertising workspace per activity: content calendar, campaign lifecycle, draft/approval/publish, channel integration, budget controls, leads, and reporting, using only verified server-side campaign APIs/RPCs and tenant/business/branch authorization.
