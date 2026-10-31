@@ -100,21 +100,12 @@ type StoredGeoPreference = {
 const readStoredGeoPreference = (): StoredGeoPreference | null => {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY);
-    if (!raw) return null;
-    const value = JSON.parse(raw) as Partial<StoredGeoPreference>;
-    if (value.completed !== true || (value.mode !== 'auto' && value.mode !== 'manual')) return null;
-    return {
-      completed: true,
-      mode: value.mode,
-      governorate: typeof value.governorate === 'string' ? value.governorate : 'all',
-      markaz: typeof value.markaz === 'string' ? value.markaz : 'all',
-      village: typeof value.village === 'string' ? value.village : 'all',
-      area: typeof value.area === 'string' ? value.area : 'all',
-    };
+    const parsed = JSON.parse(window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY) || 'null');
+    if (parsed?.completed === true && (parsed.mode === 'auto' || parsed.mode === 'manual')) return parsed as StoredGeoPreference;
   } catch {
-    return null;
+    // Ignore malformed or unavailable browser storage.
   }
+  return null;
 };
 
 const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
@@ -138,10 +129,10 @@ export const DirectoryView: React.FC = () => {
     products,
   } = useApp();
   const businesses = directoryBusinesses;
-  const [initialGeoPreference] = useState<StoredGeoPreference | null>(() => readStoredGeoPreference());
-  const [geoSetupCompleted, setGeoSetupCompleted] = useState(Boolean(initialGeoPreference?.completed));
-  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(initialGeoPreference?.mode || 'manual');
-  const [showLocationWelcome, setShowLocationWelcome] = useState(!initialGeoPreference?.completed);
+  // Restore consent status only; every visit begins with the full Egypt-wide directory.
+  const [geoSetupCompleted, setGeoSetupCompleted] = useState(() => Boolean(readStoredGeoPreference()?.completed));
+  const [geoPreferenceMode, setGeoPreferenceMode] = useState<'auto' | 'manual'>(() => readStoredGeoPreference()?.mode || 'manual');
+  const [showLocationWelcome, setShowLocationWelcome] = useState(() => !readStoredGeoPreference()?.completed);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [userCoordinates, setUserCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -205,34 +196,18 @@ export const DirectoryView: React.FC = () => {
           }
           setUserCoordinates({ latitude, longitude });
           completeGeoSetup('auto');
-          setLocationMessage('تم تحديد موقعك، جارٍ مطابقة أقرب نطاق إداري…');
+          setLocationMessage('تم تحديد موقعك، جارٍ ترتيب نتائج مصر بالكامل من الأقرب إلى الأبعد…');
           try {
             const match = await resolveEgyptAdministrativeLocation(latitude, longitude);
             if (match) {
-              setSelectedGovFilter(match.governorate.name);
-              setSelectedMarkazFilter(match.district?.name || 'all');
-              setSelectedVillageFilter(match.shiyakha?.name || 'all');
-              setSelectedAreaFilter('all');
-              const levelLabel = match.level === 'SHIYAKHA'
-                ? 'أقرب قرية/شياخة'
-                : match.level === 'DISTRICT' ? 'أقرب مركز/قسم' : 'أقرب محافظة';
               const matchedName = match.shiyakha?.name || match.district?.name || match.governorate.name;
-              setLocationMessage('تم تقدير ' + levelLabel + ': ' + matchedName +
-                ' (أقرب نقطة بيانات تبعد نحو ' + match.distanceKm.toFixed(1) +
-                ' كم). هذا ترشيح تقريبي من نقاط إدارية وليس إثباتًا بحدود القرية؛ يمكنك تعديله يدويًا.');
+              setLocationMessage('تم تحديد موقعك. تظهر الأنشطة الموثقة في مصر بالكامل مرتبة من الأقرب إلى الأبعد. أقرب نطاق إداري تقديري: ' + matchedName +
+                ' (نحو ' + match.distanceKm.toFixed(1) + ' كم)، دون تقييد النتائج به. يمكنك تضييق النطاق يدويًا.');
             } else {
-              setSelectedGovFilter('all');
-              setSelectedMarkazFilter('all');
-              setSelectedVillageFilter('all');
-              setSelectedAreaFilter('all');
-              setLocationMessage('تم تحديد موقعك، لكن لم تتوفر نقطة إدارية قريبة بدرجة كافية. يعرض الموقع مصر بالكامل؛ اختر نطاقك يدويًا.');
+              setLocationMessage('تم تحديد موقعك وترتيب النتائج ذات الإحداثيات من الأقرب إلى الأبعد على مستوى مصر بالكامل.');
             }
           } catch {
-            setSelectedGovFilter('all');
-            setSelectedMarkazFilter('all');
-            setSelectedVillageFilter('all');
-            setSelectedAreaFilter('all');
-            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة ذات الإحداثيات، لكن تعذر تحميل أسماء المناطق الإدارية. يمكنك اختيار النطاق يدويًا.');
+            setLocationMessage('تم تحديد موقعك وترتيب الأنشطة التي لها إحداثيات موثوقة، مع استمرار عرض مصر بالكامل. يمكنك تضييق النطاق يدويًا.');
           } finally {
             if (Number.isFinite(accuracy) && accuracy > 1000) {
               setLocationMessage((current) => current + ' دقة GPS منخفضة نسبيًا؛ أعد المحاولة في مكان مفتوح لتحسين الترشيح.');
@@ -261,19 +236,12 @@ export const DirectoryView: React.FC = () => {
     }
   };
 
-  // First visits keep the in-page explanation visible until the visitor explicitly consents.
-  // Declined or manually selected visits are saved and will not trigger repeated prompts.
-  // Returning visitors get a silent refresh only after a previous explicit grant.
+  // A previously granted automatic-location preference permits a fresh browser
+  // position read on return; saved administrative filters are never restored.
   useEffect(() => {
-    if (!initialGeoPreference?.completed || initialGeoPreference.mode !== 'auto') return;
-    if (!navigator.permissions?.query) return;
-    let cancelled = false;
-    navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
-      if (!cancelled && permission.state === 'granted') requestUserLocation();
-    }).catch(() => {
-      // Permission API is optional; the manual "use my location" action remains available.
-    });
-    return () => { cancelled = true; };
+    if (geoSetupCompleted && geoPreferenceMode === 'auto') requestUserLocation();
+    // Intentionally run once on mount using the persisted consent decision.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -319,10 +287,10 @@ export const DirectoryView: React.FC = () => {
     window.addEventListener('popstate', syncActivityModuleRoute);
     return () => window.removeEventListener('popstate', syncActivityModuleRoute);
   }, []);
-  const [selectedGovFilter, setSelectedGovFilter] = useState<string>(initialGeoPreference?.governorate || 'all');
-  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>(initialGeoPreference?.markaz || 'all');
-  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>(initialGeoPreference?.village || 'all');
-  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>(initialGeoPreference?.area || 'all');
+  const [selectedGovFilter, setSelectedGovFilter] = useState<string>('all');
+  const [selectedMarkazFilter, setSelectedMarkazFilter] = useState<string>('all');
+  const [selectedVillageFilter, setSelectedVillageFilter] = useState<string>('all');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('all');
   const [administrativeShiyakhas, setAdministrativeShiyakhas] = useState<EgyptGeoShiyakha[]>([]);
   const [shiyakhaLoadStatus, setShiyakhaLoadStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
