@@ -15,14 +15,12 @@ const publicCatalog = read('supabase/functions/public-catalog/index.ts');
 
 const expectedGroups = [
   'medical_health', 'food_grocery', 'fashion_beauty', 'home_maintenance',
-  'construction_decor', 'auto_transport', 'real_estate', 'education_training',
-  'technology_communications', 'professional_services', 'marketing_media',
-  'trade_ecommerce', 'agriculture_animals', 'sports_fitness', 'tourism_events',
-  'finance_insurance', 'industry_workshops', 'public_community',
+  'auto_transport', 'real_estate', 'education_training',
+  'technology_communications', 'professional_services', 'agriculture_animals',
 ];
 
 const groups = Array.from(defaults.matchAll(/makeGroup\('([^']+)'/g), (match) => match[1]);
-assert.equal(groups.length, 18, 'Taxonomy must contain exactly 18 canonical groups.');
+assert.equal(groups.length, 10, 'Taxonomy must contain exactly 10 canonical groups.');
 assert.deepEqual(groups, expectedGroups, 'Canonical group IDs and display order must not drift.');
 assert.ok(types.includes("classificationType?: 'activity' | 'profession'"), 'Taxonomy categories must explicitly distinguish activities from professions.');
 assert.ok(types.includes('specialties?: string[]'), 'Taxonomy categories must support third-level specialties.');
@@ -31,7 +29,8 @@ const rows = Array.from(
   defaults.matchAll(/^\s*s\('([^']+)','([^']+)','(activity|profession)','([^']+)'/gm),
   (match) => ({ groupId: match[1], code: match[2], kind: match[3], name: match[4] }),
 );
-assert.ok(rows.length >= 180, `Expected a broad activity/profession directory, found only ${rows.length} entries.`);
+assert.equal(rows.length, 50, `Expected exactly 50 primary activity categories (5 per group), found ${rows.length}.`);
+assert.ok(rows.every((row) => row.kind === 'activity'), 'Professions must be represented as specialties, not peer categories.');
 
 const idSet = new Set(groups);
 for (const row of rows) {
@@ -42,17 +41,17 @@ const uniqueCodes = new Set(rows.map((row) => row.groupId + ':' + row.code));
 assert.equal(uniqueCodes.size, rows.length, 'Category codes must be unique within each group.');
 
 for (const groupId of expectedGroups) {
-  for (const kind of ['activity', 'profession']) {
-    assert.ok(rows.some((row) => row.groupId === groupId && row.kind === kind),
-      `Group ${groupId} must include at least one ${kind} category.`);
-  }
+  assert.equal(rows.filter((row) => row.groupId === groupId).length, 5,
+    `Group ${groupId} must contain exactly five primary activities.`);
 }
+assert.ok(!rows.some((row) => row.name === 'طبيب' || row.code === 'doctor'), 'Doctor must not be a separate category beside medical practices/clinics.');
 assert.ok(defaults.includes('normalizeCanonicalTaxonomySettings'), 'Saved taxonomy settings must be merged with canonical defaults.');
 assert.ok(defaults.includes('LEGACY_GROUP_MAP'), 'Old group IDs must remain readable during migration.');
 assert.ok(defaults.includes('BACKEND_CODE_GROUP_MAP'), 'Existing backend category codes must map to canonical groups.');
 
-assert.ok(admin.includes('التصنيف — النشاط أو المهنة'), 'Admin activity form must expose the activity/profession selector.');
+assert.ok(admin.includes('النشاط الرئيسي'), 'Admin business form must select a primary activity.');
 assert.ok(admin.includes('التخصص الدقيق (اختياري)'), 'Admin activity form must expose an optional specialty selector.');
+assert.ok(!admin.includes('option value="profession">مهنة'), 'Admin must not offer standalone profession categories.');
 assert.ok(admin.includes('categoryClassificationType: matchedCat?.classificationType'), 'Admin-created businesses must retain category classification.');
 assert.ok(directory.includes("const [selectedCategoryKind"), 'Public directory must allow activity/profession filtering.');
 assert.ok(directory.includes('const availableCategories = categories.filter'), 'Public directory category options must respect selected main group and classification kind.');
@@ -68,7 +67,7 @@ assert.ok(production.includes('raw.settings?.activity_category_code'), 'Producti
 assert.ok(production.includes('canonicalCategoryId'), 'Production mapping must resolve the stable canonical category ID.');
 assert.ok(directory.includes('business.categoryId === category.id'), 'Directory filtering must prefer the canonical category ID.');
 assert.ok(directory.includes('المجالات الرئيسية') && directory.includes('تصفح حسب النشاط والتخصص'), 'Public taxonomy navigation must use customer-readable domain/activity labels.');
-for (const code of ['sanitary_ware', 'medical_centers', 'animal_feed', 'government_services']) {
+for (const code of ['medical_practices', 'food_retail', 'home_services', 'digital_marketing', 'animal_production']) {
   assert.ok(defaults.includes(`'${code}'`), `Canonical taxonomy must include the audited activity code ${code}.`);
 }
 
@@ -96,20 +95,12 @@ const expectedIcons = {
   food_grocery: 'Utensils',
   fashion_beauty: 'Shirt',
   home_maintenance: 'Wrench',
-  construction_decor: 'Palette',
   auto_transport: 'Car',
   real_estate: 'Building2',
   education_training: 'GraduationCap',
   technology_communications: 'Cpu',
   professional_services: 'BriefcaseBusiness',
-  marketing_media: 'Megaphone',
-  trade_ecommerce: 'ShoppingCart',
   agriculture_animals: 'Sprout',
-  sports_fitness: 'Dumbbell',
-  tourism_events: 'Plane',
-  finance_insurance: 'Landmark',
-  industry_workshops: 'Factory',
-  public_community: 'Users',
 };
 for (const [groupId, iconName] of Object.entries(expectedIcons)) {
   assert.ok(iconMap.includes(`${groupId}: <${iconName} `), `Group ${groupId} must use its designated icon (${iconName}).`);
@@ -119,4 +110,4 @@ assert.ok(directory.includes('xl:grid-cols-10'), 'Functional group cards should 
 assert.ok(/bg-white p-(?:1\.5 sm:p-3|3) text-center/.test(directory), 'Functional group cards should use the consistent responsive light icon-card treatment at mobile and larger breakpoints.');
 assert.ok(directory.includes('aria-pressed={isSelected}'), 'Functional group selection must remain accessible to assistive technology.');
 
-console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} category entries, activity/profession separation, legacy mapping, admin UI, and server persistence.`);
+console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} activities (5 per group), specialties, legacy mapping, admin UI, and server persistence.`);
