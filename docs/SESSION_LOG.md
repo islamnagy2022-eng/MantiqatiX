@@ -1542,3 +1542,13 @@ A separate source review found a second platform-root authorization model: the n
 - TypeScript check, primary catalog build, canonical taxonomy validator, geographic discovery/GPS contract, and employee RBAC PostgreSQL test pass.
 - Browser E2E run `41192816382` remains IN PROGRESS. Previous E2E failures were traced to stale selectors: the retired `كافة الأنشطة` functional-group control and a non-exact `التخصصات` button selector. Both were updated; do not claim E2E success until the current run concludes.
 - PR #608 remains Draft/unmerged. No production deployment, schema/data migration, grant/RLS/Auth change, Edge deployment, campaign mutation, advertising spend or financial operation occurred.
+
+
+## 2026-10-31 — SESSION — Activity-specific registry continuation
+
+- Added typed `activityModuleRegistry.ts` keyed by canonical activity ID. Domain profiles now cover medical/health, food/grocery, fashion/beauty, home maintenance, construction/decor, transport, real estate, education/training, technology/communications, professional services, and agriculture/animals.
+- Activity module Marketing section now shows domain-specific objective, audience, positioning, content pillars, campaign ideas, and required launch assets. Operations section is data-driven and all not-yet-integrated capabilities are visibly marked **قيد التجهيز**.
+- Added taxonomy static assertions and a browser E2E check for the restaurant profile (local audience/content requirements plus menu and order capabilities).
+- Do not implement campaign create/publish/budget/channel writes yet: production reconciliation explicitly says RC453 campaign tables/RPCs are absent, RC452 manager-read scoping is not verified, and RC102 provider-service owner write grants are absent. SMM remains deferred.
+- Latest code/test commit: `fdf81ef42ec68eacb42f9cebe76c97b45a7e2881`; PR #608 still Draft. Exact-head CI is running: catalog `41196188567`, Pages validation `41196188571`, module professionalization `41196188606`, plus security workflows `41196188583`, `41196188595`, `41196188562`, `41196188647`. Final exact-head results pending.
+- No production migrations, schema/data/grants/RLS/Auth changes, Edge deployments, marketing mutations, advertising spend, payments, or financial writes.
