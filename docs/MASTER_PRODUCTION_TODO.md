@@ -23,7 +23,7 @@
 - [ ] **P0-PORTAL-10:** بعد اعتماد جميع ما سبق فقط، إزالة تبويبات/شاشات تحكم المشترك من الشاشة الرئيسية وتحويل الروابط القديمة بأمان. يبقى مركز تحكم SUPER_ADMIN منفصلًا ولا يُنقل لبوابة المشترك.
 
 **بوابة الإغلاق:** لا يُغلق PORTAL-01 ولا يُسمح بمرحلة إزالة الشاشات القديمة قبل اجتياز جميع بنود P0 أعلاه وتوثيق نتيجة الاختبار والمراجعة.  
-**الحالة الحالية:** PARTIALLY IMPLEMENTED / NOT VERIFIED / NOT DEPLOYED.  
+**الحالة الحالية:** PARTIALLY IMPLEMENTED / EXACT-HEAD CI VERIFIED / NOT DEPLOYED.  
 **التنفيذ الحالي:** PR #601 — https://github.com/islamnagy2022-eng/MantiqatiX/pull/601 (الفرع المتزامن مع main). PR #595 محفوظ كمرجع تاريخي للنسخة ذات القاعدة القديمة.  
 **مرجع التفاصيل:** `docs/STANDALONE_SUBSCRIBER_PORTAL_SPEC.md`.
 
@@ -2916,8 +2916,8 @@ A separate source review found a second platform-root authorization model: the n
 - أدوات SUPER_ADMIN تظل خارج بوابة المشترك وبمسارها المستقل.
 - [x] route مستقل، مدخل حساب، Portal shell، عرض الاشتراك/الصلاحيات/النشاط، وضع الزائر.
 - [x] إعادة استخدام MerchantDashboard/ProfessionalDashboard داخل قسم إدارة النشاط حسب صلاحيات الجلسة الحالية.
-- [x] Browser E2E مبدئي لمسار البوابة والأقسام والتحويل ذهابًا وإيابًا.
-- [ ] **P0 blocker:** exact-head TypeScript/build وBrowser E2E وCI؛ لا تُعتبر البوابة مكتملة قبل نجاحها.
+- [x] Browser E2E لمسار البوابة والأقسام والتحويل ذهابًا وإيابًا، واختبار حساب Google موثق دون عضوية (قراءة فقط)؛ النتيجة ضمن `PRIMARY_CATALOG_BROWSER_E2E=PASS`.
+- [x] **Exact-head CI:** PR #601 head `7edb7c29b3d99085e3ec6c83444552eb3b81dd09` — TypeScript/build وGoogle Auth contract وPrimary Catalog Browser E2E وemployee RBAC PostgreSQL وبقية 7 workflows المطلوبة: PASS. Run IDs: `41180711275`, `41180711209`, `41180711215`, `41180711230`, `41180711232`, `41180711287`, `41180711292`.
 - [ ] **P0 blocker:** استكمال اختبارات تعدد العضويات/الأنشطة والاشتراكات، وحالات عدم وجود عضوية والإيقاف/الانتهاء، وأدوار الموظف ومالك الفرع.
 - [ ] **P0 blocker:** deployed-origin role-scoped E2E ومراجعة أمنية قبل نقل وظائف المشترك أو إزالة أي شاشة قديمة.
 - [ ] توسيع E2E لحساب بلا عضوية، عضوية موقوفة/منتهية، موظف، مالك فرع، وتعدد العضويات.
@@ -2931,7 +2931,7 @@ A separate source review found a second platform-root authorization model: the n
 - [x] إصلاح مشغل Playwright لقبول `initialRoute` بدل فرض `?view=professional_dashboard` على كل السيناريوهات؛ هذا كان سبب timeout في اختبار البوابة.
 - [x] إضافة اختبار هوية Google موثقة دون عضوية نشاط: يجب أن تعرض حالة الحساب فقط، دون إدارة نشاط أو صلاحيات مالك منصة.
 - [x] إصلاح عقد فحص Google Auth ليتعرف على مسار `account_portal` المحمي بجلسة مصادق عليها.
-- [ ] [x] تسوية القاعدة: إنشاء فرع متزامن من `main` الحالي `6040c54f1d308e9e1e80913ae8526e0a1555a5d2` ونقل تغييرات البوابة مع الحفاظ على تحديثات الاختبارات والتوثيق الأحدث؛ PR #601.
-- [ ] تشغيل exact-head CI على الفرع المتزامن ومراجعة النتائج؛ لا يوجد بعد دليل نجاح بعد هذه الإصلاحات.
+- [x] تسوية القاعدة: إنشاء فرع متزامن من `main` الحالي `6040c54f1d308e9e1e80913ae8526e0a1555a5d2` ونقل تغييرات البوابة مع الحفاظ على تحديثات الاختبارات والتوثيق الأحدث؛ PR #601.
+- [x] تشغيل exact-head CI على الفرع المتزامن ومراجعة النتائج؛ جميع 7 workflows انتهت PASS. وظيفة Deploy workflow انتهت SUCCESS لكن deploy job SKIPPED، ولم يحدث نشر.
 - [ ] استكمال مصفوفة تعدد العضويات/الأنشطة؛ لا يتم تمكين تبديل نشاط آخر في الواجهة قبل ربط كل نشاط بعضويته الفعلية وصلاحياته المحددة، منعًا لخلط الصلاحيات.
-- **الحالة:** IN PROGRESS / NOT VERIFIED / NOT DEPLOYED.
+- **الحالة:** IN PROGRESS / EXACT-HEAD CI VERIFIED / DEPLOYED-ORIGIN NOT VERIFIED / NOT DEPLOYED.
