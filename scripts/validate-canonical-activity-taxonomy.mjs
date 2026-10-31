@@ -18,6 +18,7 @@ const directoryListingsView = read('apps/catalog-frontend/src/components/Directo
 const browserE2E = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 const directoryView = read('apps/catalog-frontend/src/components/DirectoryView.tsx');
 const directoryListingsEdge = read('supabase/functions/directory-listings/index.ts');
+const activityModuleRegistry = read('apps/catalog-frontend/src/modules/activities/activityModuleRegistry.ts');
 
 const expectedGroups = [
   'medical_health', 'food_grocery', 'fashion_beauty', 'home_maintenance',
@@ -164,7 +165,14 @@ assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an ac
 assert.ok(directory.includes('setSelectedCategoryId(activityCategory.id)') && directory.includes('setSelectedSpecialty(specialty)'), 'Choosing a specialty must return to the directory with the activity/specialty filter.');
 assert.ok(!directory.includes('functionalGroups') && !directory.includes('selectedGroupFilter') && !directory.includes('matchesCategoryKind'), 'Functional-group navigation/filtering must not appear in public directory UI logic.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
-assert.ok(activityModuleView.includes('function marketingProfile(name: string)'), 'Activity module must generate domain-aware marketing guidance.');
+assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category)'), 'Every activity page must resolve its dedicated module configuration by canonical activity identity.');
+assert.ok(activityModuleView.includes('marketing.contentPillars') && activityModuleView.includes('marketing.campaignIdeas') && activityModuleView.includes('marketing.requiredAssets'), 'Activity marketing page must render domain-specific content pillars, campaign ideas and required assets.');
+assert.ok(activityModuleView.includes('moduleConfig.capabilities.map'), 'Activity operations page must render capabilities from its activity module configuration.');
+assert.ok(activityModuleRegistry.includes('activityId: category.id') && activityModuleRegistry.includes('activityName: name'), 'Module registry must key each resolved module by the stable canonical activity ID.');
+assert.ok(activityModuleRegistry.includes('type DomainProfile') && activityModuleRegistry.includes('domainProfiles:'), 'Module registry must provide typed domain profiles.');
+assert.ok(activityModuleRegistry.includes('campaignIdeas:') && activityModuleRegistry.includes('requiredAssets:') && activityModuleRegistry.includes('contentPillars:'), 'Each domain profile must define campaign ideas, required assets and content pillars.');
+assert.ok(activityModuleRegistry.includes("state: 'planned'"), 'Unintegrated operating capabilities must be visibly marked planned rather than falsely active.');
+assert.ok(!activityModuleRegistry.includes("state: 'available'"), 'No domain operation may be marked available before its server contract and authorization are implemented.');
 assert.ok(activityModuleView.includes('onSelectSpecialty(specialty)'), 'Activity module specialty selection must connect back to the directory.');
 assert.ok(directory.includes('matchesSpecialty'), 'Directory results must still filter real business records by the selected specialty.');
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
