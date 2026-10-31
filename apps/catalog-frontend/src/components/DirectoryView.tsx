@@ -600,7 +600,7 @@ export const DirectoryView: React.FC = () => {
             </div>
             <h2 id="geo-discovery-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل قائمة شياخات المركز الأقرب باستخدام كود المركز فقط.
+              اسمح للموقع باستخدام إحداثيات جهازك داخل المتصفح لاختيار أقرب نطاق إداري وترتيب الأنشطة التي لها إحداثيات موثوقة. لا نرسل إحداثيات GPS نفسها ولا نحفظها؛ نحمّل أسماء الشياخات لعدد محدود من المراكز الأقرب باستخدام أكوادها الإدارية فقط.
             </p>
             <div className="mt-5 grid gap-2">
               <button type="button" onClick={requestUserLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
