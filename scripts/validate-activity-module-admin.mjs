@@ -10,6 +10,8 @@ const moduleView = read('apps/catalog-frontend/src/modules/activities/ActivityMo
 const context = read('apps/catalog-frontend/src/context/AppContext.tsx');
 const backend = read('supabase/functions/catalog-platform-admin/index.ts');
 const sanitizer = read('supabase/functions/_shared/activity-module-overrides.mjs');
+const publicDirectory = read('supabase/functions/public-catalog-directory/index.ts');
+const production = read('apps/catalog-frontend/src/lib/production.ts');
 
 assert.match(adminDashboard, /'activity_modules'/, 'The activity module editor must be reachable from the existing admin navigation.');
 assert.match(adminDashboard, /<ActivityModulesAdmin \/>/, 'The admin navigation must render the activity module editor.');
@@ -33,5 +35,10 @@ assert.match(backend, /PLATFORM_ACTIVITY_MODULE_SETTINGS_UPDATED/, 'Activity mod
 assert.match(backend, /auditLogged/, 'The server response must disclose audit logging status.');
 assert.match(backend, /productionTenantIds\[0\]/, 'The audit entry must use a verified production tenant from the authenticated platform-admin scope.');
 assert.match(context, /result\?\.auditLogged === false/, 'The client must surface a persisted-but-unaudited result instead of claiming full success.');
+assert.match(publicDirectory, /sanitizeActivityModuleOverrides\(platformSettings\?\.settings\?\.activityModuleOverrides/, 'The public directory must sanitize the public activity settings projection.');
+assert.match(publicDirectory, /activityModuleOverridesAvailable/, 'The public endpoint must distinguish a valid empty settings object from an unavailable settings read.');
+assert.doesNotMatch(publicDirectory, /settings: platformSettings\?\.settings/, 'The public endpoint must not expose the complete private platform settings object.');
+assert.match(production, /activityModuleOverridesAvailable: data\?\.activityModuleOverridesAvailable === true/, 'The frontend must preserve whether the public settings read was authoritative.');
+assert.match(context, /if \(directory\.activityModuleOverridesAvailable\)/, 'Public pages must only replace settings after a verified public settings read.');
 
 console.log('Activity module admin contract: PASS');
