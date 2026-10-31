@@ -1572,3 +1572,7 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] بعد اجتياز الاختبارات، مراجعة PR/دمج التعديلات وفق سياسة الفرع، ثم التحقق من نشر Pages الفعلي. لا نشر أو تفعيل تكاملات إعلانية ضمن التغيير الحالي.
 - [!] تحقق آلي سابق كشف assertion قديمًا في `validate-canonical-activity-taxonomy.mjs` كان يمنع وجود مجلدات المجموعات. تم تحديثه ليتحقق من المجموعة ← النشاط بدل فرض عرض الأنشطة مباشرة. Commit: `234f6d2e36705eadd70c0b1d871311026717eeb3`. يجب إعادة تشغيل exact-head CI قبل اعتماد الإصلاح.
 - [!] إعادة التشغيل كشفت assertion قديمًا ثانيًا يطلب `aria-label="الأنشطة"` بدل تسمية قسم المجموعات والأنشطة. تم تحديثه ليتحقق من `aria-label="المجموعات والأنشطة"` ومن وحدة النشاط. Commit: `2e9546d1cf1bc864d19bc6b8e5f1c7132f466909`. يلزم إعادة exact-head CI.
+
+## 2026-11-01 — exact-head validation after all group-first validator corrections
+
+- [ ] Re-run the complete PR validation set, especially TypeScript/build and taxonomy validator, against group-first navigation and advanced activity marketing planner.
