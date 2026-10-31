@@ -130,3 +130,7 @@ Fresh live inspection of `public.advertisements` found:
 - No direct browser `.from('advertisements')` consumer was found in the canonical source search; public delivery uses `get_mnty_targeted_advertisements`. The app has historically guarded against direct browser mutation of protected tables.
 
 **Disposition:** no exploit is established: there are no rows and no authenticated write attempt was made. Tenant-wide ad management may be intended for tenant admins/managers. However, the current schema/policies do not prove business/branch isolation for business-scoped membership, and the missing business FK permits an invalid business/tenant pair unless a trusted write path validates it. Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) tracks authority-matrix confirmation and isolated tests. Do not enable owner-facing ad mutations or booking until scope is confirmed and negative tests pass.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
