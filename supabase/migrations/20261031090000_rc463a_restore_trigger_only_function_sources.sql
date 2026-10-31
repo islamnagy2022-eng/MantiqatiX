@@ -20,9 +20,31 @@ begin
     where table_schema='public' and table_name='user_memberships'
       and column_name in ('user_id','tenant_id','organization_id','business_id','role','permissions','status')
     group by table_schema,table_name
-    having count(*)=8
+    having count(*)=7
   ) then
     raise exception 'RC463A_USER_MEMBERSHIP_SCHEMA_MISMATCH';
+  end if;
+
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='businesses'
+      and column_name in ('id','tenant_id','organization_id','name')
+    group by table_schema,table_name
+    having count(*)=4
+  ) or not exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='commission_rules'
+      and column_name in ('id','tenant_id','created_by','updated_by')
+    group by table_schema,table_name
+    having count(*)=4
+  ) or not exists (
+    select 1 from information_schema.columns
+    where table_schema='auth' and table_name='users'
+      and column_name in ('id','email','email_confirmed_at','created_at')
+    group by table_schema,table_name
+    having count(*)=4
+  ) then
+    raise exception 'RC463A_FUNCTION_SOURCE_SCHEMA_MISMATCH';
   end if;
 
   if not exists (
