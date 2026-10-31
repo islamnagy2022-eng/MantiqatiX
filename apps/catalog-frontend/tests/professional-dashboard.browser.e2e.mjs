@@ -824,7 +824,7 @@ try {
   }
 
 
-  // 11. Folder-style taxonomy navigation follows the current production labels.
+  // 11. Direct activity cards open a dedicated, refreshable activity module page.
   {
     const { context, page } = await newScenario(browser);
     try {
@@ -834,47 +834,48 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
-      const taxonomyMain = page.locator('main[dir="rtl"]');
-      await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /صيدليات/ }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px taxonomy group/category browser');
-      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /رجوع للمجالات والأنشطة/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'الطب والصحة', exact: true }).waitFor({ state: 'visible' });
-      await taxonomyMain.getByRole('button', { name: /رجوع للمجالات/ }).click();
-      await taxonomyMain.getByRole('heading', { name: 'المجالات الرئيسية', exact: true }).waitFor({ state: 'visible' });
-      // Let the folder cards finish their enter/hover layout before measuring document overflow.
-      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      await assertNoHorizontalOverflow(page, '390px taxonomy return to groups');
-      results.push('taxonomy-folder-group-category-back-navigation-and-mobile-layout');
+      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
+      await activityCard.waitFor({ state: 'visible' });
+      await activityCard.click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      assert.equal(new URL(page.url()).searchParams.get('activity'), 'cat_medical_health_medical_practices', 'activity module route must be shareable and refreshable');
+      await modulePage.getByRole('button', { name: /التخصصات/ }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px direct activity module');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: /العودة إلى الأنشطة/ }).click();
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px direct activity return');
+      results.push('direct-activity-module-route-refresh-specialty-and-back-navigation');
     } finally { await context.close(); }
   }
 
-  // 12. Selecting a specialty applies the specialty filter and returns to the catalog.
+  // 12. Selecting a specialty returns to the directory with a visible, reversible filter.
   {
     const { context, page } = await newScenario(browser);
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      await page.getByRole('button', { name: /كافة الأنشطة/ }).first().click();
-      const taxonomyMain = page.locator('main[dir="rtl"]');
-      await taxonomyMain.getByRole('button', { name: /الطب والصحة/ }).first().click();
-      await taxonomyMain.getByRole('button', { name: /ممارسات وعيادات طبية/ }).click();
-      await taxonomyMain.getByRole('button', { name: /باطنة/ }).click();
-      const taxonomyBreadcrumb = page.getByRole('navigation', { name: 'مسار المجال والنشاط' });
-      await taxonomyBreadcrumb.getByText('ممارسات وعيادات طبية', { exact: true }).waitFor({ state: 'visible' });
-      await taxonomyBreadcrumb.getByText('باطنة', { exact: true }).waitFor({ state: 'visible' });
-      await assertNoHorizontalOverflow(page, '390px selected taxonomy specialty');
+      const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
+        await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
+      await activityCard.click();
+      const modulePage = page.locator('main[dir="rtl"]');
+      await modulePage.getByRole('button', { name: /التخصصات/ }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).click();
+      await page.getByText('تصفية النتائج حسب: ممارسات وعيادات طبية — باطنة', { exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px selected activity specialty');
       await page.setViewportSize({ width: 768, height: 1024 });
-      await assertNoHorizontalOverflow(page, '768px selected taxonomy specialty');
+      await assertNoHorizontalOverflow(page, '768px selected activity specialty');
       await page.setViewportSize({ width: 1440, height: 900 });
-      await assertNoHorizontalOverflow(page, '1440px selected taxonomy specialty');
-      results.push('taxonomy-specialty-selection-returns-to-catalog-and-filters');
+      await assertNoHorizontalOverflow(page, '1440px selected activity specialty');
+      await page.getByRole('button', { name: 'عرض كل الأنشطة', exact: true }).click();
+      await page.getByRole('heading', { name: 'الأنشطة', exact: true }).waitFor({ state: 'visible' });
+      results.push('direct-activity-specialty-filter-returns-to-directory-and-clears');
     } finally { await context.close(); }
   }
 
