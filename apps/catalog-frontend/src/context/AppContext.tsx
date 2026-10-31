@@ -305,7 +305,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let active = true;
     fetchPublicDirectory()
-      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
+      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
       .catch((error) => { console.warn('[MantiqatiX public directory]', error); })
       .finally(() => { if (active) setDirectoryLoading(false); });
     return () => { active = false; };
