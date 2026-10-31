@@ -62,10 +62,10 @@ assert.ok(defaultImages.includes('https://play-lh.googleusercontent.com/0V8K7Jgj
 assert.match(productionMapper, /isDoctor && !isVerified && !hasOwnerSelectedLogo/, 'doctor fallback must be limited to unverified doctors without an owner-selected logo');
 assert.match(productionMapper, /functionalGroupId === 'medical_health' && classificationType === 'profession'/, 'legacy individual medical professionals normalized under the medical-practices activity must receive the doctor fallback');
 assert.match(productionMapper, /logoUrl: doctorFallbackLogo \\|\\| pharmacyFallbackLogo/, 'custom doctor logos and all pharmacy fallback behavior must be preserved');
-assert.match(directoryListingsView, /listing_type \\|\\| ""\\)\\.toLowerCase\\(\\) === "doctor" && listing\\.claim_status !== "CLAIMED"/, 'unclaimed public doctor directory records must receive the default photo while claimed records do not');
-assert.match(directoryListingsView, /metadata\\?\\.profileImageUrl/, 'an owner-selected directory profile image must take precedence over the doctor default photo');
-assert.match(directoryListingsView, /listingProfileImage\\(detail\\)/, 'unclaimed doctor detail pages must display the default photo');
-assert.match(directoryListingsView, /listingProfileImage\\(listing\\)/, 'unclaimed doctor directory cards must display the default photo');
+assert.ok(directoryListingsView.includes('String(listing.listing_type || "").toLowerCase() === "doctor" && listing.claim_status !== "CLAIMED"'), 'unclaimed public doctor directory records must receive the default photo while claimed records do not');
+assert.ok(directoryListingsView.includes('listing.metadata?.profileImageUrl'), 'an owner-selected directory profile image must take precedence over the doctor default photo');
+assert.ok(directoryListingsView.includes('listingProfileImage(detail)'), 'unclaimed doctor detail pages must display the default photo');
+assert.ok(directoryListingsView.includes('listingProfileImage(listing)'), 'unclaimed doctor directory cards must display the default photo');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
