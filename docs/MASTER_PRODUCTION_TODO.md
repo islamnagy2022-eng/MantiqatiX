@@ -12,7 +12,7 @@
 - TODO: لم يُنفذ.
 - NOT VERIFIED: موجود أو مراجع، لكن لم يثبت باختبار E2E/إنتاج.
 
-# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #571)
+# P0 — حواجز الإطلاق (current evidence snapshot — 2026-10-31 after PR #573)
 
 1. Auth and multi-tenant E2E — NOT VERIFIED
    - PR #543 moved the full `LIST_SUBSCRIBERS` directory read out of the blocking Google session bootstrap; PR #546 preserves last-good subscriber data on failed refresh and discards stale responses after logout/account switching.
@@ -33,7 +33,7 @@
    - No real payment, refund, settlement or ledger posting was created during this audit. Do not grant the legacy RPC or deploy the Edge Function as a shortcut.
 
 5. Supabase Security Advisor — OPEN / CLASSIFIED
-   - Fresh live snapshot at 2026-10-31 01:24:38 UTC: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; anonymous-sign-in findings; leaked-password protection disabled.
+   - Fresh live snapshot at 2026-10-31 02:23 UTC: 8 RLS-enabled/no-policy tables; 3 anon-executable SECURITY DEFINER functions; 67 authenticated-executable SECURITY DEFINER functions; 90 anonymous-sign-in-related Advisor findings; leaked-password protection disabled. These 90 findings are not 90 direct anon table grants; classify against anonymous sign-in mode and policy roles.
    - The 8 no-policy tables remain fail-closed by observed direct privileges; preserve deny-by-default/RPC-only behavior and do not add broad policies.
    - The 3 anon SECDEF findings include two trigger-returning functions and the intended public targeted-ad RPC; review each caller/trigger contract individually.
    - Latest Performance Advisor snapshot: 129 unindexed FKs, 375 auth/RLS init-plan findings, 73 unused indexes and 28 multiple-permissive-policy groups. Require query-plan/workload and policy-caller evidence; no bulk grant, policy or index rewrites.
@@ -61,6 +61,7 @@
     - The same main commit passed Backend-only Module Boundary [41155204267](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204267), Module Professionalization [41155204271](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204271), MantiGO Privacy [41155204224](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204224), and SMM Deferred Storefront Contract [41155204313](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41155204313).
     - This verifies the tested web deployment snapshot only. Real authenticated Google-account journeys, full customer/admin E2E, manual device/accessibility and offline/PWA recovery remain NOT VERIFIED.
     - Current main commit `d61baeccd5444248e8d778117ab3ab4a09f2b45f` Production Health Monitor run [41159588678](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159588678) completed successfully. Its job log confirms the read-only PostgREST GET to `marketing_provider_profiles` returned HTTP 200 (`SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`). This verifies that one scheduled/push-triggered probe execution only; it does not guarantee continuous availability or prove failure-notification delivery. The Pages deployment for this commit is still pending at this checkpoint.
+    - After PR #573, latest main is `adf0680a3c151330656b9712a03849c796aa4c09`. Current-main Production Health Monitor run [41159666007](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666007) completed successfully; its job log confirms `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS`. Privacy Boundary [41159666176](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666176), Backend-only Module Boundary [41159666031](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666031), and Module Professionalization [41159666122](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666122) all completed successfully. Pages deployment run [41159666222](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41159666222) completed successfully. The deployed-origin Playwright suite passed: guest route denial; owner mobile/desktop dashboards; employee view-only and read-only roster; branch-owner route denial/RPC scope; unsupported manager grant denial; merchant QR tab/modal accessibility; permanent store link and QR encoding; GPS consent/manual-search fallback; explicit external logo/cover links; taxonomy folder/category/back-navigation/mobile flows. axe checks reported no critical or serious WCAG 2.1 violations in the tested dashboard/QR views. The prior run on `d61ba...` was cancelled by the subsequent main push; its deploy job had completed all checks, but use the latest-main run as the release evidence.
 
 **Overall Production Gate: BLOCKED / NOT CERTIFIED.** No production migrations, grants, Auth/RLS changes, Edge Function deployments, provider calls or financial mutations were performed in this checkpoint.
 
