@@ -1534,3 +1534,11 @@ A separate source review found a second platform-root authorization model: the n
 - **Production impact:** frontend/tests/docs only. No production migrations, grants, RLS/Auth, Edge deployments, live campaign writes, advertising spend, payments or financial operations.
 - **Status:** IN PROGRESS / NOT VERIFIED. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
 - **Next action:** open a replacement Draft PR from this latest-main branch, inspect exact-head checks, resolve build/E2E/validator failures, and continue the module capability registry and integrations.
+
+
+## 2026-10-31 — Activity Modules CI checkpoint
+
+- Current-main branch `feat/activity-modules-current-main-20261031`, PR #608, head `182bd1a48d4b9e43e8842eb356f12f1449e8d963`.
+- TypeScript check, primary catalog build, canonical taxonomy validator, geographic discovery/GPS contract, and employee RBAC PostgreSQL test pass.
+- Browser E2E run `41192816382` remains IN PROGRESS. Previous E2E failures were traced to stale selectors: the retired `كافة الأنشطة` functional-group control and a non-exact `التخصصات` button selector. Both were updated; do not claim E2E success until the current run concludes.
+- PR #608 remains Draft/unmerged. No production deployment, schema/data migration, grant/RLS/Auth change, Edge deployment, campaign mutation, advertising spend or financial operation occurred.
