@@ -1,23 +1,15 @@
 -- Disposable PostgreSQL fixture for RC450 financial journal integration tests only.
+-- Models current mandatory tenant/business/branch/membership/account fields.
 create extension if not exists pgcrypto;
 create schema if not exists auth;
 do $roles$
-begin
-  create role anon;
-exception when duplicate_object then null;
-end
+begin create role anon; exception when duplicate_object then null; end
 $roles$;
 do $roles$
-begin
-  create role authenticated;
-exception when duplicate_object then null;
-end
+begin create role authenticated; exception when duplicate_object then null; end
 $roles$;
 do $roles$
-begin
-  create role service_role;
-exception when duplicate_object then null;
-end
+begin create role service_role; exception when duplicate_object then null; end
 $roles$;
 
 create or replace function auth.uid()
@@ -31,46 +23,80 @@ as $function$
   select nullif(current_setting('request.jwt.claim.role', true), '')
 $function$;
 
-create table public.user_memberships (
-  user_id uuid not null,
-  tenant_id varchar not null,
-  organization_id varchar,
-  business_id uuid,
-  branch_id varchar,
-  role varchar not null,
-  status varchar not null
-);
+create table public.tenants (id varchar primary key);
+insert into public.tenants(id) values ('tenant-a'),('tenant-b');
+create table public.organizations (id varchar primary key);
+insert into public.organizations(id) values ('org-a'),('org-b');
+
 create table public.businesses (
   id uuid primary key,
-  tenant_id varchar not null,
-  organization_id varchar,
-  status varchar not null
+  tenant_id varchar not null references public.tenants(id),
+  organization_id varchar references public.organizations(id),
+  name varchar not null,
+  code varchar not null,
+  status varchar not null default 'ACTIVE'
+    check (status in ('ACTIVE','INACTIVE','SUSPENDED')),
+  settings jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default current_timestamp,
+  updated_at timestamptz not null default current_timestamp
 );
+insert into public.businesses(id,tenant_id,organization_id,name,code,status) values
+ ('20000000-0000-4000-8000-000000000564','tenant-a','org-a','Finance Test Business A','FIN-A','ACTIVE'),
+ ('20000000-0000-4000-8000-000000000566','tenant-a','org-a','Finance Test Business A2','FIN-A2','ACTIVE'),
+ ('20000000-0000-4000-8000-000000000565','tenant-b','org-b','Finance Test Business B','FIN-B','ACTIVE');
+
 create table public.branches (
   id varchar primary key,
-  tenant_id varchar not null,
-  organization_id varchar,
-  business_id uuid not null,
-  status varchar not null
+  tenant_id varchar not null references public.tenants(id) on delete restrict,
+  organization_id varchar references public.organizations(id) on delete restrict,
+  business_id uuid not null references public.businesses(id),
+  name varchar not null,
+  code varchar not null,
+  status varchar not null default 'ACTIVE',
+  settings jsonb default '{}'::jsonb,
+  created_at timestamptz not null default current_timestamp,
+  updated_at timestamptz not null default current_timestamp,
+  constraint uk_branch_biz_code unique (business_id,code)
 );
-insert into public.businesses(id,tenant_id,organization_id,status) values
- ('20000000-0000-4000-8000-000000000564','tenant-a','org-a','ACTIVE'),
- ('20000000-0000-4000-8000-000000000566','tenant-a','org-a','ACTIVE'),
- ('20000000-0000-4000-8000-000000000565','tenant-b','org-b','ACTIVE');
-insert into public.branches(id,tenant_id,organization_id,business_id,status) values
- ('branch-a','tenant-a',null,'20000000-0000-4000-8000-000000000564','ACTIVE'),
- ('branch-b','tenant-a',null,'20000000-0000-4000-8000-000000000564','ACTIVE');
+insert into public.branches(id,tenant_id,organization_id,business_id,name,code,status) values
+ ('branch-a','tenant-a',null,'20000000-0000-4000-8000-000000000564','Branch A','BR-A','ACTIVE'),
+ ('branch-b','tenant-a',null,'20000000-0000-4000-8000-000000000564','Branch B','BR-B','ACTIVE');
+
+create table public.user_memberships (
+  id varchar primary key,
+  user_id uuid not null,
+  tenant_id varchar not null references public.tenants(id) on delete restrict,
+  organization_id varchar references public.organizations(id) on delete set null,
+  business_id uuid references public.businesses(id),
+  branch_id varchar references public.branches(id) on delete cascade,
+  role varchar not null,
+  permissions jsonb default '[]'::jsonb,
+  status varchar not null default 'ACTIVE',
+  created_at timestamptz not null default current_timestamp,
+  constraint uk_user_biz_branch unique (user_id,business_id,branch_id)
+);
+
 create table public.chart_of_accounts (
   id varchar primary key,
-  tenant_id varchar not null,
-  is_active boolean not null default true
+  tenant_id varchar not null references public.tenants(id) on delete restrict,
+  account_code varchar not null,
+  account_name varchar not null,
+  account_type varchar not null,
+  is_active boolean not null default true,
+  created_at timestamptz not null default current_timestamp,
+  constraint uk_tenant_account_code unique (tenant_id,account_code)
 );
+insert into public.chart_of_accounts(id,tenant_id,account_code,account_name,account_type,is_active) values
+ ('cash','tenant-a','1000','Cash','ASSET',true),
+ ('revenue','tenant-a','4000','Revenue','REVENUE',true),
+ ('inactive','tenant-a','1999','Inactive Test Account','ASSET',false);
+
 create table public.journal_entries (
   id varchar primary key,
-  tenant_id varchar not null,
-  organization_id varchar,
+  tenant_id varchar not null references public.tenants(id) on delete restrict,
+  organization_id varchar references public.organizations(id) on delete restrict,
   business_id uuid,
-  branch_id varchar,
+  branch_id varchar references public.branches(id) on delete restrict,
   entry_number varchar not null,
   reference_type varchar,
   reference_id varchar,
@@ -80,12 +106,14 @@ create table public.journal_entries (
   total_credit numeric not null,
   entry_date date not null,
   posted_at timestamptz not null,
+  updated_at timestamptz not null default current_timestamp,
+  reversed_by_entry_id varchar references public.journal_entries(id),
   created_by uuid not null
 );
 create table public.journal_entry_lines (
   id varchar primary key,
-  journal_entry_id varchar not null,
-  account_id varchar not null,
+  journal_entry_id varchar not null references public.journal_entries(id) on delete cascade,
+  account_id varchar not null references public.chart_of_accounts(id) on delete restrict,
   line_number integer not null,
   debit numeric not null default 0,
   credit numeric not null default 0,
@@ -93,11 +121,11 @@ create table public.journal_entry_lines (
 );
 create table public.general_ledger (
   id varchar primary key,
-  tenant_id varchar not null,
+  tenant_id varchar not null references public.tenants(id) on delete restrict,
   business_id uuid,
-  journal_entry_id varchar not null,
-  journal_line_id varchar not null,
-  account_id varchar not null,
+  journal_entry_id varchar not null references public.journal_entries(id) on delete restrict,
+  journal_line_id varchar not null references public.journal_entry_lines(id) on delete restrict,
+  account_id varchar not null references public.chart_of_accounts(id) on delete restrict,
   debit numeric not null,
   credit numeric not null,
   running_balance numeric not null,
