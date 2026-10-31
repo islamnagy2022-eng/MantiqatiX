@@ -1131,3 +1131,11 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Do not remove authenticated SELECT or service_role backend access. After the credential-scrubbed local schema restore, verify grant provenance and test only the required ACL reduction plus ordinary-user denial/backend preservation. No Production grant/RLS change.
 - PR #610 head `186fbb23e0aa4f799e4328a9753203f73945972a` passed Primary Catalog Frontend Validation run [41206467742](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467742), including build/TypeScript, isolated RBAC PostgreSQL and browser E2E. Nine intervening commits after the prior tested code head changed docs only.
 - Pages validation [41206467695](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41206467695) passed; deploy skipped on the PR event. PR #610 remains Draft, and the global Production Gate remains BLOCKED / NOT CERTIFIED.
+
+ 
+## Latest continuation — 2026-10-31 (advertisements scope review)
+
+- Fresh read-only review: `public.advertisements` has no rows, RLS + FORCE RLS, tenant FK but no business FK. SELECT/write RLS policies are tenant-scoped; write policies check tenant and OWNER/ADMIN/MANAGER role but not business_id/branch_id membership scope.
+- Business/branch-scoped BUSINESS_OWNER memberships exist, but this role is not included in current write policy; OWNER is included without membership-scope comparison. Tenant-wide MANAGER/ADMIN scope may be intentional. No exploit or affected row is established.
+- Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) tracks authority-model confirmation and synthetic multi-tenant/multi-business tests in isolated schema. Keep owner-facing advertising mutations blocked pending proof.
+- Separate ad_spaces excess ACL issue: [#611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611). Global Production Gate stays BLOCKED / NOT CERTIFIED.
