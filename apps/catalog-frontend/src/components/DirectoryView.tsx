@@ -768,13 +768,13 @@ export const DirectoryView: React.FC = () => {
               <button type="button" onClick={() => { setSelectedCategoryId('all'); setSelectedSpecialty('all'); }} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">عرض كل الأنشطة</button>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-3 gap-2 lg:grid-cols-4 xl:grid-cols-5">
             {availableCategories.map((category) => {
               const confirmedCount = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === category.id).length;
               const unconfirmedCount = unconfirmedListings.filter((listing) => listing.taxonomy_category_id === category.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
-              return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} className="group flex min-h-28 items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:p-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-800">{ICONS_MAP[category.functionalGroupId] || <Store className="h-6 w-6" />}</span>
-                <span className="min-w-0 flex-1"><span className="block font-black text-slate-900">{category.name}</span><span className="mt-2 flex flex-wrap gap-1 text-[10px] font-bold"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
+              return <button key={category.id} type="button" onClick={() => openActivityModule(category.id)} className="group flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:bg-emerald-50/50 hover:shadow-md sm:min-h-28 sm:flex-row sm:items-center sm:justify-start sm:gap-3 sm:p-4 sm:text-right">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-100 group-hover:text-emerald-800 sm:h-11 sm:w-11">{ICONS_MAP[category.functionalGroupId] || <Store className="h-6 w-6" />}</span>
+                <span className="min-w-0 flex-1"><span className="block text-xs font-black leading-snug text-slate-900 sm:text-base">{category.name}</span><span className="mt-1 flex flex-wrap justify-center gap-1 text-[9px] font-bold sm:mt-2 sm:justify-start sm:text-[10px]"><span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">موثق {confirmedCount}</span><span className="rounded-full bg-red-50 px-2 py-1 text-red-700">غير موثق {unconfirmedCount}</span></span></span>
                 <ChevronLeft className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-emerald-700" />
               </button>;
             })}
