@@ -1632,3 +1632,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - `bookings` has RLS + FORCE RLS, four RESTRICTIVE-only authenticated session guards, zero permissive authenticated SELECT/write policies, authenticated DML/MAINTAIN ACLs, anon MAINTAIN only, and service_role table privileges.
 - The table contains only `id uuid NOT NULL` and nullable `created_at`; row count is one. No row contents were queried. Focused GitHub source search found no direct browser caller, Edge Function reference or migration definition.
 - Registered [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) as P3 lifecycle/least-privilege review. Preserve the row and table; no exploit claim and no Production mutation.
+
+ 
+## 2026-10-31 — public default ACL provenance
+
+- Confirmed all 136 public tables are owned by postgres. The postgres default ACL for new public tables includes MAINTAIN/REFERENCES/TRIGGER/TRUNCATE for anon/authenticated/service_role but not SELECT/INSERT/UPDATE/DELETE.
+- ad_spaces authenticated INSERT/UPDATE/DELETE are direct grants beyond that default; source grant statement not found. supabase_admin has separate broad default ACLs for future objects, but no current public table is owned by supabase_admin. No defaults changed.
+- The only two public relations found with authenticated DML ACLs but no permissive authenticated DML policy are ad_spaces and bookings. Both are RLS + FORCE RLS and deny ordinary authenticated writes by current policies. See #611 (P2) and #613 (P3).
