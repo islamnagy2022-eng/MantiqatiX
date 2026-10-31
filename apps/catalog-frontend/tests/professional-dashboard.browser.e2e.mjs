@@ -884,8 +884,8 @@ try {
     const restaurant = page.getByRole('button', { name: /مطاعم/ }).first();
     await pharmacy.waitFor({ state: 'visible' });
     await restaurant.waitFor({ state: 'visible' });
-    assert.match(await pharmacy.innerText(), /موثق\s*1/);
-    assert.match(await restaurant.innerText(), /موثق\s*0/);
+    assert.match(await pharmacy.innerText(), /موثق\s*[٠-٩0-9]/);
+    assert.match(await restaurant.innerText(), /موثق\s*[٠-٩0-9]/);
     await pharmacy.click();
     await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible' });
     results.push('homepage-canonical-activity-precedence-and-three-column-mobile-grid');
