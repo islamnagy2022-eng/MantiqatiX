@@ -79,9 +79,11 @@ Do not create demo records or fabricated metrics to make a module appear operati
 - [x] Add domain-level marketing plans and operation capability profiles for the ten supported domain profiles.
 - [x] Render each activity's objective, audience, positioning, content pillars, campaign ideas, required assets, and domain operations from the registry.
 - [x] Keep unknown/custom activity IDs compatible through a safe generic profile.
-- [ ] Add explicit reviewed per-activity overrides for every canonical activity ID.
-- [ ] Define an additive admin editing experience and persistence contract for module configuration.
-- [ ] Run exact-head TypeScript/build/taxonomy/browser validation after registry changes.
+- [x] Add explicit reviewed per-activity marketing overrides for all 50 canonical activity IDs: audience, focus, campaign ideas, required assets, and operating scope.
+- [x] Keep unknown/custom activity IDs compatible through the safe generic domain profile.
+- [ ] Expand capability cards from domain-level templates to reviewed per-activity operational capabilities.
+- [ ] Define an additive admin editing experience and persisted configuration contract; no client-only settings may be treated as authoritative.
+- [ ] Run exact-head TypeScript/build/taxonomy/browser validation after the 50-activity override changes.
 
 ### Phase C — working marketing workspace per activity
 - [ ] Port/reuse the existing reviewed marketing workspace into the current catalog app; do not revive the retired legacy app as the primary UI.
