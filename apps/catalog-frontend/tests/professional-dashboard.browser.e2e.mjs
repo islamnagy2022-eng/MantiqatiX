@@ -530,6 +530,42 @@ try {
     } finally { await context.close(); }
   }
 
+  // 10. A verified business in a markaz with no village remains discoverable when village is left unselected.
+  {
+    const zeftaFixture = {
+      id: '92d4455a-31ef-4a77-acbf-71134ca98e9e',
+      tenantId: 'tenant-zefta-e2e',
+      organizationId: 'org-zefta-e2e',
+      name: 'شعير للأدوات الصحية',
+      category: 'أدوات صحية وفلاتر مياه',
+      status: 'ACTIVE',
+      operationalStatus: 'ACTIVE',
+      publicEnabled: true,
+      isVerified: true,
+      governorate: 'الغربية',
+      markaz: 'زفتى',
+      village: '',
+      profile: { governorate: 'الغربية', markaz: 'زفتى', village: '', bio: 'نشاط اختبار جغرافي' },
+      provider: { verified: true },
+      branches: [],
+      items: [],
+    };
+    const { context, page } = await newScenario(browser, null, [zeftaFixture]);
+    try {
+      await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const govSelect = page.locator('label').filter({ hasText: 'المحافظة' }).locator('select');
+      const markazSelect = page.locator('label').filter({ hasText: 'المركز / المدينة' }).locator('select');
+      const villageSelect = page.locator('label').filter({ hasText: 'القرية / الحي' }).locator('select');
+      await govSelect.selectOption({ label: 'الغربية' });
+      await markazSelect.selectOption({ label: 'زفتى' });
+      assert.equal(await villageSelect.inputValue(), 'all', 'village must remain unselected when the business has no village');
+      assert.equal(await villageSelect.locator('option').filter({ hasText: 'زفتى' }).count(), 0, 'markaz name must not be misrepresented as a village');
+      await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible' });
+      assert.equal(await page.getByText('نتائج البحث الموحدة (1)', { exact: true }).count(), 1, 'Zefta markaz search with no village filter must retain Shaeir');
+      results.push('zefta-markaz-search-retains-business-with-empty-village');
+    } finally { await context.close(); }
+  }
+
   // 9. Folder-style taxonomy navigation follows the current production labels.
   {
     const { context, page } = await newScenario(browser);
