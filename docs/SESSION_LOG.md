@@ -1322,3 +1322,12 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - The role predicates permit broad active tenant roles without requiring `MNTY-PLATFORM` plus explicit platform scope/full_control. Effects include global ride/financial aggregates, global financial report reads, settlement/journal mutation, and global ride expiration/audit/notifications.
 - This confirms the P0 finding is a four-RPC platform authorization boundary defect, not only a settlement-specific issue. No live RPC was invoked and no Production mutation or business-row read occurred.
 - RC449 source remediation already guards all four RPCs; it remains unapplied in Production. Full scope and exact closure are recorded in `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
+
+
+## 2026-10-31 — closed superseded duplicate-creation PR #477
+
+- Compared the two changed files in Draft PR #477 against current main.
+- Current main's payload-keyed in-flight Map is safer than the PR's single global Promise because different business payloads remain independent.
+- Current main's server guard returns a tenant-scoped HTTP 409 and business ID; the draft's heuristic reuse/merge response could silently attach a new submission to an existing business record.
+- No unique code from the draft was required. Added an explanatory comment and closed PR #477 unmerged.
+- Remaining duplicate-creation work is unchanged: real browser/server concurrency, multi-tab and lost-response retry tests; the check-then-insert remains non-atomic at DB level.
