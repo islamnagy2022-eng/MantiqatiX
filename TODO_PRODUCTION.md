@@ -1513,4 +1513,5 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] اعتماد 8 أعمدة على الشاشات الواسعة مع تخطيط متجاوب للأجهزة الأصغر، ثم اجتياز TypeScript والبناء واختبارات واجهة الدليل قبل الدمج.
 - [x] Updated the canonical taxonomy validator to assert the new 2/4/6/8 responsive grid instead of the retired five-column layout; the previous CI failure was a stale test expectation, not a TypeScript error.
 - [x] Exact-head rerun: frontend TypeScript/build and isolated employee RBAC PostgreSQL tests passed; taxonomy contract passed; Pages validation and the other triggered SMM, commission, RC450 journal/audit, Paymob atomicity, Open Ride privacy, and module-professionalization workflows passed. Pages deploy job was skipped by the production dependency gate.
-- [ ] Browser E2E on the built catalog remains in progress; inspect its final result before merging PR #620. Do not bypass the production deployment gate.
+- [x] Removed duplicated geographic-regression and live-directory browser E2E blocks (the same scenarios appeared three times each), reducing repeated live API/browser work without weakening assertions.
+- [ ] Exact-head browser E2E rerun after the test cleanup is pending; merge PR #620 only after the browser job passes. Do not bypass the production deployment gate.
