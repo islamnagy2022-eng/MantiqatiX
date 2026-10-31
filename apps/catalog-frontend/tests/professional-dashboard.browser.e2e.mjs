@@ -1084,9 +1084,9 @@ try {
       assert.equal(await page.getByRole('navigation', { name: 'أقسام حساب المشترك' }).count(), 1);
       assert.equal(await page.getByRole('button', { name: 'اشتراكاتي' }).count(), 1);
       assert.equal(await page.getByRole('button', { name: 'صلاحياتي' }).count(), 1);
-      assert.equal(await page.getByRole('button', { name: 'وضع الزائر' }).count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'وضع العميل' }).count(), 1);
       assert.equal(await page.getByRole('button', { name: 'لوحة تحكم نشاطي' }).count(), 0);
-      await page.getByRole('button', { name: 'وضع الزائر' }).click();
+      await page.getByRole('button', { name: 'وضع العميل' }).click();
       await page.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === null);
       await page.getByRole('button', { name: 'حسابي / اشتراكي' }).click();
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible' });
