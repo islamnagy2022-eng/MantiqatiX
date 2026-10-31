@@ -527,6 +527,13 @@ try {
         Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
       );
       assert.equal(leakedCoordinates, false, 'visitor GPS coordinates must not be persisted to local storage');
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).waitFor({ state: 'detached', timeout: 5000 });
+      await page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
+      const leakedCoordinatesAfterReload = await page.evaluate(() =>
+        Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
+      );
+      assert.equal(leakedCoordinatesAfterReload, false, 'silent returning-visitor location refresh must not persist coordinates');
       await assertNoHorizontalOverflow(page, '390px mobile catalog GPS');
       await page.setViewportSize({ width: 1440, height: 900 });
       await assertNoHorizontalOverflow(page, '1440px desktop catalog GPS');
