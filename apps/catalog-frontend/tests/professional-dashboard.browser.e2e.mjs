@@ -1037,7 +1037,9 @@ try {
       await page.getByRole('button', { name: 'حسابي / اشتراكي' }).click();
       await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
       await page.getByRole('button', { name: 'إدارة النشاط' }).click();
-      await waitForDashboard(page);
+      // Business owners currently reuse the existing MerchantDashboard form;
+      // employee memberships reuse the professional dashboard with scoped navigation.
+      await page.getByRole('heading', { name: 'إدارة منتجات وكتالوج نشاطك' }).waitFor({ state: 'visible', timeout: 15000 });
       results.push('unified-dashboard-entry-only-through-account-portal');
     } finally { await context.close(); }
   }
