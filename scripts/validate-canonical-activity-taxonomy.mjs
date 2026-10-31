@@ -177,11 +177,7 @@ for (const activityId of canonicalActivityIds) {
 }
 assert.ok(activityModuleRegistry.includes('ACTIVITY_CAPABILITY_OVERRIDES'), 'Every activity must resolve an activity-specific operational capability set.');
 for (const activityId of canonicalActivityIds) {
-  const escapedId = activityId.replace(/[.*+?^${}()|[\]\\]/g, '\\for (const activityId of canonicalActivityIds) {
-  assert.ok(activityModuleRegistry.includes(activityId + ':'), 'Missing explicit activity module override for ' + activityId + '.');
-}
-assert.ok(activityModuleRegistry.includes('operationalFocus: override?.operationalFocus'), 'Activity modules must expose an activity-specific operating scope.');');
-  const match = activityModuleRegistry.match(new RegExp('  ' + escapedId + ': \\[([\\s\\S]*?)\\n  \\],'));
+  const match = activityModuleRegistry.match(new RegExp('  ' + activityId + ': \\[([\\s\\S]*?)\\n  \\],'));
   assert.ok(match, 'Missing activity-specific capability definitions for ' + activityId + '.');
   assert.equal((match[1].match(/\\{ id:/g) || []).length, 3, 'Each activity must define exactly three reviewed operational capabilities: ' + activityId + '.');
 }
