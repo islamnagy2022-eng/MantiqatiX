@@ -1503,3 +1503,10 @@ A separate source review found a second platform-root authorization model: the n
 - The exact-head forward replay from the captured schema-only checkpoint (captured 2026-10-17 at migration `20261008222845`) failed when RC463 preflight found `assign_default_owner_to_unowned_business()` missing. The live Production catalog had confirmed the function and trigger exist; the captured checkpoint predates this manually provisioned object.
 - This is a checkpoint freshness gap, not a reason to weaken the migration preflight or mark replay PASS. Add a narrowly scoped disposable overlay with a synthetic fixture identity immediately before RC463, then rerun. The overlay must not be applied to Production or treated as a current full schema restore.
 - Trigger-only ACL integration passed separately. Production remains read-only and the full gate remains BLOCKED.
+
+
+### RC463A privacy correction — 2026-10-31
+
+- A proposed source-recovery migration attempted to copy the live default-owner trigger function verbatim, including a hard-coded personal owner identifier. This is not acceptable in the public repository and is unnecessary for the Production forward migration because the function already exists live.
+- Removed the RC463A production migration from the candidate. Replaced it with a disposable test overlay that uses only a synthetic `.example.test` identity and is applied only in isolated CI immediately before RC463.
+- The production migration remains limited to hardening the already-existing functions; no personal owner identifier is added to source history.
