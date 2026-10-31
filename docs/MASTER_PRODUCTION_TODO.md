@@ -2902,3 +2902,10 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Exact-head isolated forward replay reached RC463 but failed its preflight because the 2026-10-17 schema-only checkpoint does not contain the known live default-owner trigger function. The checkpoint is older than the live catalog and has `review_status=PENDING_REVIEW`; it must not be described as a current Production restore.
 - [ ] Add a disposable-only overlay fixture using synthetic identity data to recreate the known live default-owner trigger immediately before RC463 in the replay. This overlay is test scaffolding only, not a migration and not a replacement for a fresh Production schema dump.
 - [ ] Re-run the complete chronological replay and dependent tenant-isolation/commission tests. Keep the current-schema restore and backup/restore gate NOT VERIFIED until an owner-authorized current snapshot and separate data backup restore exist.
+
+
+### RC463A source recovery privacy review — 2026-10-31
+
+- [x] Rejected the proposed RC463A production migration that copied the live default-owner function's hard-coded personal owner identifier into the public repository. That migration is removed from PR #602 and is not part of the release chain.
+- [x] Kept the live-only default-owner trigger reconstruction in a disposable CI overlay with synthetic `.example.test` identity only. The overlay is not a migration and is never applied to Production.
+- [ ] Re-run dedicated trigger ACL integration and chronological replay using the synthetic overlay; retain the migration's fail-closed preflight.
