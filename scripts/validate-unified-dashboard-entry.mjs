@@ -40,6 +40,9 @@ assert.match(contextSource, /...previous\.filter\(\(product\) => product\.busine
 assert.match(contextSource, /authUserIdRef\.current !== userId/, 'mode switching must bind to the current authenticated identity');
 assert.match(contextSource, /currentView === 'account_portal' \|\| currentView === 'merchant_admin'/, 'account portal must use the active authorized business context');
 assert.match(contextSource, /requestedView === 'account_portal' && boot\.authSession\.isAuthenticated/, 'account portal deep links must restore only after authenticated bootstrap');
+assert.match(contextSource, /const loadPublicCatalogForRoute = \(businessId: string\)/, 'public storefront selection must load only the selected catalogue for signed-out visitors');
+assert.match(contextSource, /if \(view === 'public_storefront'\) \{\s*loadPublicCatalogForRoute\(routeBusinessIdRef\.current\);/, 'opening a public storefront must trigger on-demand catalogue loading');
+assert.match(contextSource, /requestedView === 'account_portal' && authSession\.isAuthenticated/, 'browser back/forward may restore the account portal only for an authenticated account');
 assert.match(contextSource, /const switchToPlatformAdminMode = \(\): boolean/, 'platform admin mode must have a separate server-derived grant');
 assert.match(portal, /switchAccountMembership\(mode\.membershipId,\s*mode\.businessId\)/, 'UI must switch by the exact business-membership pair');
 assert.match(e2e, /account-switch-owner-and-branch-scoped-employee-memberships/, 'browser coverage must switch between owner and branch employee modes');
