@@ -97,25 +97,8 @@ type StoredGeoPreference = {
   area: string;
 };
 
-const readStoredGeoPreference = (): StoredGeoPreference | null => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY);
-    if (!raw) return null;
-    const value = JSON.parse(raw) as Partial<StoredGeoPreference>;
-    if (value.completed !== true || (value.mode !== 'auto' && value.mode !== 'manual')) return null;
-    return {
-      completed: true,
-      mode: value.mode,
-      governorate: typeof value.governorate === 'string' ? value.governorate : 'all',
-      markaz: typeof value.markaz === 'string' ? value.markaz : 'all',
-      village: typeof value.village === 'string' ? value.village : 'all',
-      area: typeof value.area === 'string' ? value.area : 'all',
-    };
-  } catch {
-    return null;
-  }
-};
+// Stored preferences are written only to preserve an explicitly selected scope
+// during the current visit; initial state is intentionally always Egypt-wide.
 
 const writeStoredGeoPreference = (preference: StoredGeoPreference) => {
   if (typeof window === 'undefined') return;
