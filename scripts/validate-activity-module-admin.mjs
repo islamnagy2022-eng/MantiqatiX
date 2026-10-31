@@ -12,6 +12,7 @@ const backend = read('supabase/functions/catalog-platform-admin/index.ts');
 const sanitizer = read('supabase/functions/_shared/activity-module-overrides.mjs');
 const publicDirectory = read('supabase/functions/public-catalog-directory/index.ts');
 const production = read('apps/catalog-frontend/src/lib/production.ts');
+const todo = read('docs/MASTER_PRODUCTION_TODO.md');
 
 assert.match(adminDashboard, /'activity_modules'/, 'The activity module editor must be reachable from the existing admin navigation.');
 assert.match(adminDashboard, /<ActivityModulesAdmin \/>/, 'The admin navigation must render the activity module editor.');
@@ -40,5 +41,6 @@ assert.match(publicDirectory, /activityModuleOverridesAvailable/, 'The public en
 assert.doesNotMatch(publicDirectory, /settings: platformSettings\?\.settings/, 'The public endpoint must not expose the complete private platform settings object.');
 assert.match(production, /activityModuleOverridesAvailable: data\?\.activityModuleOverridesAvailable === true/, 'The frontend must preserve whether the public settings read was authoritative.');
 assert.match(context, /if \(directory\.activityModuleOverridesAvailable\)/, 'Public pages must only replace settings after a verified public settings read.');
+assert.match(todo, /CAT-ACTIVITY-MODULE-ADMIN-20261031-02/, 'The implementation must remain registered in the master TODO.');
 
 console.log('Activity module admin contract: PASS');
