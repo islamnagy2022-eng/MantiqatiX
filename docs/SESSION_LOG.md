@@ -1520,3 +1520,17 @@ A separate source review found a second platform-root authorization model: the n
 - The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
 - On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
 - This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
+
+
+## 2026-10-31 — SESSION — Direct activity modules (CAT-ACTIVITY-MODULES-20261031-01)
+
+- **User request:** Flatten public discovery to activity → specialty; open every activity in its own page/module with specialized marketing and operations, preserving all prior catalog requirements.
+- **Request registration:** Added to master ledger issue #599 and canonical Master Production TODO.
+- **Branch:** `feat/activity-modules-current-main-20261031`, created from latest main after the consent-first Egypt geographic discovery update. PR #607 on the earlier base/branch is superseded; it failed TypeScript due to a stale reference and did not preserve the latest main geographic changes. Do not merge PR #607.
+- **Source:** Added `ActivityModuleView.tsx`; ported direct activity grid and `?activity=` route onto current geo-enabled DirectoryView; removed public group navigation/labels but preserved internal group IDs for compatibility.
+- **Module page:** Overview, specialties, domain-aware marketing planning guidance and operations capability map. Marketing guidance is not campaign execution; campaign lifecycle, budgets, channels, leads and analytics remain open pending verified backend contracts and scope authorization.
+- **Tests:** Updated Playwright E2E to handle first-visit Egypt location consent and verify activity route refresh/back, specialty filter clear, and responsive layout. Updated canonical taxonomy static contract. Exact-head tests are still pending on this branch.
+- **Documentation:** Added activity-module architecture spec, canonical TODO entry, continuity and session-log entries.
+- **Production impact:** frontend/tests/docs only. No production migrations, grants, RLS/Auth, Edge deployments, live campaign writes, advertising spend, payments or financial operations.
+- **Status:** IN PROGRESS / NOT VERIFIED. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+- **Next action:** open a replacement Draft PR from this latest-main branch, inspect exact-head checks, resolve build/E2E/validator failures, and continue the module capability registry and integrations.
