@@ -1049,3 +1049,18 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Remaining risk: server check-then-insert is not atomic across simultaneous requests. Test concurrent submissions and network-response-loss retry behavior before claiming database-level idempotency. Draft PR #477 is stale and should not be merged as-is because main already contains a more precise client/server guard.
 - Current main `b7b35378bbf5c1fd5ff54afb6be79e316e33624c`: Health Monitor #41162036080, backend boundary #41162036117, MantiGO privacy #41162036099, module professionalization #41162036130, and Pages #41162036127 all passed. Deployed-origin browser E2E passed for the tested scope.
 - Full Production Gate remains BLOCKED / NOT CERTIFIED; the latest verifier artifact reports 24 PASS, 0 FAIL, 1 BLOCKED and does not certify the live migration/payment/backup blockers.
+
+
+## 2026-10-31 — Unified dashboard and FIN-ADS-01 carried forward on current main
+
+- Created branch `feat/unified-dashboard-finance-wallet-ads-20261031` from current `main` after PR #601 was found 4 commits behind and divergent. The old PR branch was not force-rebased or overwritten.
+- Ported the lazy-loaded secondary screens, initial HTML loading shell, and guest duplicate-directory-fetch removal onto current main without replacing the latest geographic/catalog/AdminDashboard/context work.
+- Added protected `account_portal` to the current AppContext route model and App rendering. Added signed-in `حسابي / اشتراكي` as the dashboard entry point; public navigation no longer offers direct merchant/professional/Super Admin dashboard tabs.
+- Restricted the platform-admin business selector to the account/admin dashboard context rather than the public directory.
+- Unified the initial account workspace: platform AdminDashboard is embedded as an admin-only section; owner/employee dashboards remain displayed only through the current session's authorized scope. Existing direct admin routes remain guarded for backwards compatibility. No legacy screen was deleted.
+- Added E2E scenarios for account-only Google identity, portal route/visitor round trip, and absence of dashboard tabs on public navigation. Exact-head checks are pending.
+- Carried forward `docs/STANDALONE_SUBSCRIBER_PORTAL_SPEC.md` and `docs/PLATFORM_BILLING_WALLET_ADVERTISING_SPEC.md`; Master TODO records DASH-UNIFIED-02, FIN-ADS-01 and PERF-01.
+- Finance boundary retained: platform wallet charges only approved MantiqaTix services; merchant-to-customer sales and their settlements remain outside the platform.
+- Existing finance audit foundations remain incomplete: commission/subscription/payment tables are present, but commission activation and some subscription/journal migration contracts remain blocked. No new finance schema/migrations or live financial action has been activated.
+- No Supabase/Production schema, RLS, GRANT, Auth, Edge Function, payment, wallet, advertising booking or deployment was changed.
+- Next: exact-head CI/build/E2E; inspect and fix issues; then finish multi-membership server-side context and financial schema reconciliation before any production rollout.
