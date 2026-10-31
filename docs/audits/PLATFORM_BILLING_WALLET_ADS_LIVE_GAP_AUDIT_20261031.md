@@ -145,3 +145,15 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - The table has only `id uuid NOT NULL` and nullable `created_at timestamp without time zone`, with one existing row. No row content was read.
 - Focused source search found no direct browser `.from('bookings')` consumer, public Edge Function reference or matching migration source. This is limited source-search evidence, not proof that no dynamic/legacy dependency exists.
 - [Issue #613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613) tracks P3 lifecycle and least-privilege review. Preserve the table and row until provenance, dynamic callers and retention/dependency requirements are established. No exploit is claimed; no Production mutation was made.
+
+## Addendum — 2026-10-31 public-schema default ACL provenance
+
+A read-only `pg_default_acl` / ownership check found:
+
+- All **136** current public tables are owned by `postgres`.
+- The `postgres` default ACL for new tables in schema `public` grants `MAINTAIN/REFERENCES/TRIGGER/TRUNCATE` to `anon`, `authenticated` and `service_role`, but does not grant `SELECT/INSERT/UPDATE/DELETE` to those API roles.
+- The current `ad_spaces` `authenticated` INSERT/UPDATE/DELETE grants are recorded as direct grants by `postgres`, beyond that creator-default ACL. Focused source search did not locate the historical explicit grant statement; its origin remains unresolved.
+- Separate `supabase_admin` default ACL entries for future `public` tables grant broad privileges to API roles, but no current public table is owned by `supabase_admin` in this snapshot. Do not alter managed/default privileges globally without a separate owner/object inventory and impact review.
+- A targeted scan of 136 public tables found only `ad_spaces` and `bookings` with authenticated DML privileges and zero permissive authenticated DML policies. Both are RLS + FORCE RLS and currently deny ordinary authenticated DML by policy. See Issues [#611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611) and [#613](https://github.com/islamnagy2022-eng/MantiqaTix/issues/613).
+
+**No Production grants, default ACLs, RLS policies, rows or schema were modified.**
