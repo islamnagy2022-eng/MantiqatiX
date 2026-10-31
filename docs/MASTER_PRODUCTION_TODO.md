@@ -2844,3 +2844,11 @@ Use the following hierarchy; these files are complementary, not competing copies
   - Deploy MantiqatiX Web `41172465201`: validation PASS؛ deploy job SKIPPED لأن PR ما زال Draft.
   - Flexible Commission `41172465173`, RC425 atomicity `41172465174`, Module Professionalization `41172465259`, Backend-only Module Boundary `41172465184`, MantiGO Privacy `41172465242`: PASS.
 - **Release remains BLOCKED:** لا توجد كتابة إنتاجية، migration، RLS change، Edge Function deployment أو Pages deployment. المتبقي اختبار CRUD بهوية SUPER_ADMIN إنتاجية معتمدة ثم مراجعة/دمج ونشر مصرح به.
+
+
+### CAT-TAX-04 — عزل صلاحيات لوحة دليل الأنشطة (2026-10-31)
+
+- أُضيف سيناريو Browser E2E لمحاولة فتح `?view=super_admin&tab=directory_listings` بحساب دور MANAGER غير مخول؛ يتحقق الاختبار من رجوعه إلى الدليل العام وعدم ظهور تبويب الإدارة وعدم استدعاء `ADMIN_LIST`.
+- أُضيف رد GET مضبوط في Supabase mock حتى لا يختلط تحميل الدليل العام باختبار صلاحيات لوحة الإدارة.
+- **Exact-head CI — PASS** على `668497d65b9087cd1db087cb74473ab11bab3c3d`: Primary Catalog Frontend Validation `41172621738` (build/typecheck + taxonomy + browser E2E + employee RBAC) PASS؛ Deploy MantiqatiX Web validation `41172621714` PASS وdeploy SKIPPED؛ Flexible Commission `41172621777`, RC425 `41172621736`, Module Professionalization `41172621773`, Backend-only Module Boundary `41172621756`, MantiGO Privacy `41172621768` كلها PASS.
+- لم يتم دمج PR أو نشر Pages أو Edge Functions. لا توجد كتابة إنتاجية أو migration أو تعديل RLS. اختبار CRUD بهوية SUPER_ADMIN إنتاجية حقيقية ما زال بندًا منفصلًا قبل الإطلاق.
