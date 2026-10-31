@@ -55,7 +55,7 @@ const roles = {
     businessId: null,
     permissions: {},
     extraMemberships: [{
-      id: 'membership-employee-business-row',
+      id: '00000000-0000-0000-0000-000000000011',
       role: 'EMPLOYEE',
       businessId,
       branchId,
@@ -105,7 +105,7 @@ const roles = {
     branchId: null,
     permissions: { scope: 'PLATFORM', full_control: true },
     extraMemberships: [{
-      id: 'membership-platform-admin-business-owner',
+      id: '00000000-0000-0000-0000-000000000012',
       role: 'OWNER',
       businessId,
       branchId: null,
@@ -1051,7 +1051,7 @@ try {
       await page.getByText('وضع الموظف', { exact: true }).waitFor({ state: 'visible' });
       await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(catalogReadRequests.at(-1)?.branchId, branchId, 'employee mode must reload only its assigned branch');
-      assert.equal(catalogReadRequests.at(-1)?.membershipId, 'membership-employee-business-row', 'employee mode must bind the catalog read to its own membership, not the wider owner membership');
+      assert.equal(catalogReadRequests.at(-1)?.membershipId, '00000000-0000-0000-0000-000000000011', 'employee mode must bind the catalog read to its own membership, not the wider owner membership');
       await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
       await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
       assert.ok(!catalogReadRequests.at(-1)?.branchId, 'owner mode must reload its authorized business-wide catalog after leaving branch scope');
