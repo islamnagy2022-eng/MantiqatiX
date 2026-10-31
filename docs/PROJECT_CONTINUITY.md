@@ -1139,3 +1139,7 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Business/branch-scoped BUSINESS_OWNER memberships exist, but this role is not included in current write policy; OWNER is included without membership-scope comparison. Tenant-wide MANAGER/ADMIN scope may be intentional. No exploit or affected row is established.
 - Issue [#612](https://github.com/islamnagy2022-eng/MantiqaTix/issues/612) tracks authority-model confirmation and synthetic multi-tenant/multi-business tests in isolated schema. Keep owner-facing advertising mutations blocked pending proof.
 - Separate ad_spaces excess ACL issue: [#611](https://github.com/islamnagy2022-eng/MantiqaTix/issues/611). Global Production Gate stays BLOCKED / NOT CERTIFIED.
+
+
+### Additional integrity check — trigger/constraint compensation
+A second read-only query checked non-internal triggers on `public.advertisements`: **none are defined**. `businesses` has a global UUID primary key and a unique `(tenant_id, code)` index, but no unique `(id, tenant_id)` key for a composite FK target. The only deferred trigger found is on `businesses` itself and does not establish an advertisement-to-business check. Thus no trigger-based tenant/business validation was identified. This remains a design/verification concern only: no rows exist and no write attempt was made.
