@@ -12,6 +12,9 @@ const production = read('apps/catalog-frontend/src/lib/production.ts');
 const backend = read('supabase/functions/catalog-platform-admin/index.ts');
 const publicDirectory = read('supabase/functions/public-catalog-directory/index.ts');
 const publicCatalog = read('supabase/functions/public-catalog/index.ts');
+const directoryListings = read('apps/catalog-frontend/src/lib/directoryListings.ts');
+const directoryListingsAdmin = read('apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx');
+const directoryListingsEdge = read('supabase/functions/directory-listings/index.ts');
 
 const expectedGroups = [
   'medical_health', 'food_grocery', 'fashion_beauty', 'home_maintenance',
@@ -48,6 +51,21 @@ assert.ok(!rows.some((row) => row.name === 'طبيب' || row.code === 'doctor'),
 assert.ok(defaults.includes('normalizeCanonicalTaxonomySettings'), 'Saved taxonomy settings must be merged with canonical defaults.');
 assert.ok(defaults.includes('LEGACY_GROUP_MAP'), 'Old group IDs must remain readable during migration.');
 assert.ok(defaults.includes('BACKEND_CODE_GROUP_MAP'), 'Existing backend category codes must map to canonical groups.');
+assert.ok(defaults.includes('LEGACY_DIRECTORY_CATEGORY_MAP'), 'Legacy directory category IDs must resolve to canonical category IDs.');
+assert.ok(defaults.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing category IDs must normalize at the read boundary.');
+assert.ok(defaults.includes('resolveCanonicalActivityCategoryId'), 'Legacy business activity codes must resolve to canonical category IDs.');
+for (const legacyId of [
+  'cat_medical_health_doctor', 'cat_medical_health_dentist', 'cat_medical_health_labs',
+  'cat_construction_decor_building_materials', 'cat_tourism_events_travel_agencies',
+  'cat_sports_fitness_gyms', 'cat_finance_insurance_banks',
+  'cat_industry_workshops_plastic_factories', 'cat_public_community_office_services',
+]) {
+  assert.ok(defaults.includes(legacyId), `Missing compatibility mapping for ${legacyId}.`);
+}
+assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
+assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
+assert.ok(directoryListingsAdmin.includes('cat_medical_health_medical_practices'), 'New directory entries must default to the canonical medical activity category.');
+assert.ok(directoryListingsEdge.includes('const validGroups = new Set(["medical_health","food_grocery","fashion_beauty","home_maintenance","auto_transport","real_estate","education_training","technology_communications","professional_services","agriculture_animals"])'), 'Directory listing writes must accept only canonical group IDs.');
 
 assert.ok(admin.includes('النشاط الرئيسي'), 'Admin business form must select a primary activity.');
 assert.ok(admin.includes('التخصص الدقيق (اختياري)'), 'Admin activity form must expose an optional specialty selector.');
