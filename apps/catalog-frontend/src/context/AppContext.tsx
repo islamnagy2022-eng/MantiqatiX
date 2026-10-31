@@ -261,13 +261,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     });
 
-    setBusinesses((previous) => previous.map((business) =>
-      business.id === mappedBusiness.id ? mappedBusiness : business
-    ));
-    setProducts((previous) => [
-      ...previous.filter((product) => product.businessId !== mode.businessId),
-      ...mappedProducts,
-    ]);
+    setBusinesses((previous) => {
+      if (authUserIdRef.current !== userId) return previous;
+      return previous.map((business) =>
+        business.id === mappedBusiness.id ? mappedBusiness : business
+      );
+    });
+    setProducts((previous) => {
+      if (authUserIdRef.current !== userId) return previous;
+      return [
+        ...previous.filter((product) => product.businessId !== mode.businessId),
+        ...mappedProducts,
+      ];
+    });
+    if (authUserIdRef.current !== userId) return false;
     commitSelectedBusinessId(mode.businessId);
     setCartItems([]);
     setIsCartOpen(false);
