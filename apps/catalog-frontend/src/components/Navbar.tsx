@@ -1,15 +1,11 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { FloatingAppInstallButton } from './common/FloatingAppInstallButton';
-import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 import {
   Store,
-  LayoutDashboard,
-  ShieldCheck,
   ShoppingBag,
   Sparkles,
   LogIn,
-  LogOut,
   UserCheck,
   Crown,
   FileText,
@@ -32,7 +28,6 @@ export const Navbar: React.FC = () => {
     authLoading,
     authBootstrapError,
     adminSettings,
-    logout,
     setIsLoginModalOpen,
     requestCatalogViaAdminWhatsApp,
   } = useApp();
@@ -99,7 +94,7 @@ export const Navbar: React.FC = () => {
               <span className="text-slate-300 text-[11px] font-bold">جارٍ التحقق من جلسة Google...</span>
             ) : authSession.isAuthenticated ? (
               <div className="flex items-center gap-2 text-[11px]">
-                {authSession.role === 'admin' ? (
+                {authSession.role === 'admin' && (currentView === 'account_portal' || currentView === 'super_admin') ? (
                   <span className="text-amber-300 font-bold flex items-center gap-1">
                     <Crown className="w-3 h-3" />
                     جلسة إدارة MantiqatiX
@@ -114,14 +109,7 @@ export const Navbar: React.FC = () => {
                     حساب Google: {authSession.email || 'تم تسجيل الدخول'}
                   </span>
                 )}
-                <button
-                  onClick={logout}
-                  className="text-slate-400 hover:text-rose-400 flex items-center gap-0.5 transition-colors cursor-pointer"
-                  title="تسجيل الخروج"
-                >
-                  <LogOut className="w-3 h-3" />
-                  <span>خروج</span>
-                </button>
+
               </div>
             ) : null}
           </div>
@@ -158,15 +146,9 @@ export const Navbar: React.FC = () => {
           {/* Top Line: Logo, Context, Cart */}
           <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
             <div
-              onClick={() => {
-                if (authSession.role === 'subscriber') {
-                  setCurrentView('merchant_admin');
-                } else {
-                  setCurrentView('directory');
-                }
-              }}
+              onClick={() => setCurrentView('directory')}
               className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
-              title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
+              title="الرئيسية والدليل الشامل"
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-black text-sm">
                 MX
@@ -256,7 +238,16 @@ export const Navbar: React.FC = () => {
                 )}
               </button>
 
-              {authSession.role === 'guest' && !authSession.isAuthenticated && !authLoading && (
+              {!authLoading && (authSession.isAuthenticated ? (
+                <button
+                  onClick={() => setCurrentView('account_portal')}
+                  aria-current={currentView === 'account_portal' ? 'page' : undefined}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-100 cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>حسابي / اشتراكي</span>
+                </button>
+              ) : (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer"
@@ -264,97 +255,35 @@ export const Navbar: React.FC = () => {
                   <LogIn className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">دخول / إنشاء حساب</span>
                 </button>
-              )}
+              ))}
             </div>
           </div>
 
           {/* Bottom Line: Accessible View Mode Tabs */}
           <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
             <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
-              {/* Directory Home Tab */}
               <button
                 onClick={() => setCurrentView('directory')}
+                aria-current={currentView === 'directory' ? 'page' : undefined}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                  currentView === 'directory'
-                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                  currentView === 'directory' ? 'bg-white text-emerald-700 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>الرئيسية والدليل الشامل</span>
               </button>
-
-              {/* Public storefront preview is a subscriber/admin navigation item.
-                  Guests still access a public catalog through its direct shared link. */}
               {authSession.role !== 'guest' && (
                 <button
                   onClick={() => setCurrentView('public_storefront')}
+                  aria-current={currentView === 'public_storefront' ? 'page' : undefined}
                   className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'public_storefront'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                    currentView === 'public_storefront' ? 'bg-white text-emerald-700 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <Store className="w-3.5 h-3.5" />
-                  <span>
-                    {authSession.role === 'subscriber'
-                      ? 'معاينة صفحة نشاطي'
-                      : 'صفحة النشاط والكتالوج'}
-                  </span>
+                  <span>{authSession.role === 'subscriber' ? 'معاينة صفحة نشاطي' : 'صفحة النشاط والكتالوج'}</span>
                 </button>
               )}
-
-              {/* Merchant Dashboard Tab */}
-              {canAccessMerchantDashboard(authSession) && (
-                <button
-                  onClick={() => setCurrentView('merchant_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'merchant_admin'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>
-                    {authSession.role === 'subscriber'
-                      ? 'لوحة تحكم نشاطي'
-                      : 'لوحة صاحب النشاط'}
-                  </span>
-                </button>
-              )}
-
-              {/* Additive Professional Dashboard: keep all existing dashboard links intact. */}
-              {canAccessProfessionalDashboard(authSession) && (
-                <button
-                  onClick={() => setCurrentView('professional_dashboard')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'professional_dashboard'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  aria-current={currentView === 'professional_dashboard' ? 'page' : undefined}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>الداشبورد الاحترافية</span>
-                </button>
-              )}
-
-              {/* Super Admin Dashboard Tab */}
-              {authSession.role === 'admin' && (
-                <button
-                  onClick={() => setCurrentView('super_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'super_admin'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-                  <span>لوحة الإدارة والعمولات</span>
-                </button>
-              )}
-
-
             </nav>
           </div>
         </div>
