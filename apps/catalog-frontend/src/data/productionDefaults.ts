@@ -116,7 +116,7 @@ function normalizeSpecialtyKey(value: string): string {
     .replace(/[أإآ]/g, 'ا')
     .replace(/ة/g, 'ه')
     .replace(/[ً-ْـ]/g, '')
-    .split(/\\s+/)
+    .split(/\s+/)
     .map((word) => word.startsWith('ال') && word.length > 3 ? word.slice(2) : word)
     .join(' ')
     .trim();
@@ -157,7 +157,7 @@ export function resolveCanonicalSpecialty(value: string, categoryId?: string): s
   const normalized = normalizeSpecialtyKey(raw);
   const directAlias = LEGACY_SPECIALTY_ALIAS_MAP.get(normalized);
   if (directAlias) return directAlias;
-  const withoutProfessionPrefix = normalized.replace(/^(طبيب|دكتور|دكتوره|طبيبه|طب)\\s+/, '');
+  const withoutProfessionPrefix = normalized.replace(/^(طبيب|دكتور|دكتوره|طبيبه|طب)\s+/, '');
   const prefixAlias = LEGACY_SPECIALTY_ALIAS_MAP.get(withoutProfessionPrefix);
   if (prefixAlias) return prefixAlias;
   const category = DEFAULT_CATEGORIES.find((item) => item.id === categoryId);
