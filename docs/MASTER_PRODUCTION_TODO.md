@@ -2794,3 +2794,6 @@ Use the following hierarchy; these files are complementary, not competing copies
 - **TODO قبل الدمج:** TypeScript/build + taxonomy unit/contract tests؛ اختبار mapping لكل legacy group/backend code؛ فحص أن كل مجموعة تعرض ≤5 أنشطة؛ اختبار عدم ظهور «طبيب» و«عيادات» كتصنيفين متوازيين؛ اختبار الأنشطة القديمة والبحث الجغرافي وصفحات التفاصيل ولوحة الإدارة.
 - **TODO معماري:** تعريف module manifest لكل مجموعة (route, permissions, data ownership, workflows, events, settings, feature flags) دون تفعيل موديولات تشغيلية تلقائياً. فصل التنفيذ إلى موديولات مستقلة لاحقاً عبر حدود API/RPC معتمدة.
 - **Production status:** لا توجد migration أو كتابة على Supabase أو تغيير RLS أو نشر Pages في هذا التغيير. لا تعتمد النسخة للإنتاج قبل اكتمال الاختبارات ومراجعة توافق البيانات.
+
+- استُكمل قيد الإنشاء: لوحة الإدارة تعرض النشاط الرئيسي والتخصص فقط؛ لا تعرض اختيار «مهنة» كتصنيف مستقل. واجهة إضافة التصنيفات ترفض إنشاء profession منفصل وتمنع تجاوز 5 عناصر بالمجموعة. حدّثت دالة `catalog-platform-admin` بقائمة السماح ذات المجموعات العشر وترفض الكتابات الجديدة بنوع `profession`؛ السجلات التاريخية لا تُعدّل تلقائياً.
+- أُضيف تحديث لعقد التحقق `scripts/validate-canonical-activity-taxonomy.mjs` ليتحقق من 10 مجموعات و50 نشاطاً (5 لكل مجموعة) وتوافق الواجهة والخادم. يلزم انتظار نجاح هذا الفحص على PR قبل الدمج.
