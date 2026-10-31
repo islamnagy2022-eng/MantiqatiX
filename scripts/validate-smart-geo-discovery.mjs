@@ -33,7 +33,8 @@ assert.ok(directory.includes('role="dialog"') && directory.includes('aria-modal=
 assert.ok(directory.includes('السماح باستخدام موقعي'), 'Consent action must be explicit and visible');
 assert.ok(directory.includes('navigator.geolocation.getCurrentPosition'), 'The browser location API must be used');
 assert.ok(directory.includes("permission.state === 'granted'"), 'Silent location refresh is allowed only after prior browser grant');
-assert.ok(directory.includes('firstVisitGeoPromptStarted.current = true') && directory.includes('requestUserLocation();'), 'First-visit GPS permission must be requested automatically');
+assert.ok(directory.includes('onClick={requestUserLocation}') && directory.includes('السماح باستخدام موقعي'), 'Browser geolocation must be gated by the explicit in-page consent action');
+assert.ok(!directory.includes('firstVisitGeoPromptStarted'), 'First-visit GPS must not be requested automatically before consent');
 assert.ok(!directory.includes('watchPosition('), 'Continuous location tracking is forbidden');
 assert.ok(directory.includes('mantiqatix.geo-discovery.v1'), 'The geographic preference key must be versioned');
 assert.ok(directory.includes('Precise GPS coordinates stay in memory'), 'Precise coordinates must not be persisted');
