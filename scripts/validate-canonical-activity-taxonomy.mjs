@@ -173,6 +173,7 @@ assert.ok(activityModuleView.includes('campaignGoal') && activityModuleView.incl
 assert.ok(activityModuleView.includes('selectedChannels') && activityModuleView.includes('getChannelShare'), 'Campaign planner must support channel selection and normalized budget allocation.');
 assert.ok(activityModuleView.includes('campaignPeriodCount') && activityModuleView.includes('قمع التحويل ومؤشرات الأداء'), 'Campaign planner must generate a duration-aware content calendar and conversion measurement funnel.');
 assert.ok(activityModuleView.includes('parentGroupName'), 'Activity page must provide a return path to its parent functional group when opened from that folder.');
+assert.ok(directory.includes("get('group') || 'all'") && directory.includes("url.searchParams.set('group', selectedGroupFilter)"), 'Activity URLs must retain the selected parent group across refresh and browser navigation.');
 
 assert.ok(activityModuleView.includes('moduleConfig.capabilities.map'), 'Activity operations page must render capabilities from its activity module configuration.');
 assert.ok(activityModuleRegistry.includes('activityId: category.id') && activityModuleRegistry.includes('activityName: name'), 'Module registry must key each resolved module by the stable canonical activity ID.');
