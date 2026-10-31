@@ -101,3 +101,27 @@ Combined with the four directly broad-role-gated MantiGO RPCs already listed, th
 - Existing RC449 disposable tests cover four MantiGO RPCs, but previously did not reproduce the live `digital_pages_admin_manage` RLS policy.
 - New test-only work adds a disposable `digital_pages` table/policy and verifies tenant OWNER cannot SELECT/INSERT/UPDATE/DELETE while the explicit platform SUPER_ADMIN can. This must pass in the dedicated PostgreSQL workflow before merge.
 - **Risk remains P0 / BLOCKING.** No live RPC was invoked, no business rows were read, and no Production data, DDL, grants, migration, payment, settlement, or RLS policy was changed.
+
+
+## Supabase Security Advisor triage — 2026-10-31
+
+A separate read-only Security Advisor review was performed to distinguish genuine API exposure from linter findings that are currently closed by grants or function type.
+
+### RLS-enabled tables with no policies
+
+The advisor lists eight tables: `business_employees`, `business_job_positions`, `commission_rule_audit`, `digital_page_payment_events`, `directory_listing_claim_requests`, `platform_custom_roles`, `platform_role_assignments`, and `public_directory_listings`.
+
+Catalog inspection confirms all eight have RLS enabled and zero policies. It also confirms anon and authenticated currently lack SELECT/INSERT/UPDATE/DELETE table privileges on all eight. Seven have FORCE RLS; `digital_page_payment_events` has FORCE RLS disabled. Therefore the no-policy warnings do not currently establish a direct PostgREST table exposure because the API roles have no table grants. Preserve the deny-by-default state; if any client/API path needs access, add narrowly scoped grants and policies only after ownership/tenant requirements and tests are explicit.
+
+### Anonymous SECURITY DEFINER advisor findings
+
+- `assign_default_owner_to_unowned_business()` returns `trigger` and is attached to the `businesses` table. It is not an ordinary RPC callable directly by a client.
+- `capture_commission_rule_audit()` returns `trigger` and is attached to `commission_rules`. It is not an ordinary RPC callable directly by a client.
+- `get_mnty_targeted_advertisements(...)` is an anon-executable public read endpoint. It returns approved active ad creative, target URL, placement, geographic match level and distance; the result limit is clamped to 1–50. This appears consistent with public advertisement rendering, but the projection, targeting inputs, and abuse/rate limiting remain review items. Do not revoke anon access without a replacement public-read design.
+
+### Authenticated SECURITY DEFINER inventory and Auth setting
+
+- The advisor reports 67 authenticated-executable SECURITY DEFINER functions. This is an inventory warning, not proof that every function is vulnerable. Perform risk-based review of actor binding, tenant/business/branch scope, role checks, idempotency, fixed search_path, and least-privilege EXECUTE grants. Prioritize global admin, payment/ledger/wallet, identity, and ownership mutation functions.
+- Supabase Auth leaked-password protection is currently disabled. Add a controlled Auth hardening action with compatibility/user-impact review and post-change verification.
+
+No DDL, grants, policies, Auth settings, business rows, RPC mutations, payments, settlements, or production deployments were changed during this review. The P0 platform-admin helper/RLS drift documented above remains unresolved; Production stays BLOCKED / NOT CERTIFIED.
