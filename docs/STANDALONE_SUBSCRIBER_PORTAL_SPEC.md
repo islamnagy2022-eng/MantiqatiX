@@ -45,7 +45,9 @@ The portal must be role-aware and subscription-aware. A Google-authenticated acc
 - Enforce tenant, business, and branch ownership for every read/write; fail closed for missing or ambiguous membership.
 - Never trust local storage, URL parameters, hidden buttons, or client-side role values as authorization.
 - Prevent cross-account stale bootstrap responses and cross-business leakage when switching identity/membership.
-- Keep platform SUPER_ADMIN controls separate from subscriber self-service. Subscriber portal must never expose global subscriber administration, global settings, backup/restore, commission administration, or platform-wide directory moderation.
+- Treat the Account Portal as a role-aware gateway, not a privilege union. The platform-admin mode exposes global control-center tools only when the authenticated bootstrap proves an active platform-admin membership; owner/employee modes never inherit those controls.
+- Show business modes only from exact active memberships mapped to a business in the same tenant. Switch by membership ID + business ID, reload catalog data under that membership's branch scope, clear cart state, and keep server/RLS authorization authoritative.
+- A platform administrator selecting a business retains the distinct platform-admin identity; never copy or impersonate the trader's membership role. A real business mode is available only when the same account also has an actual active business membership.
 - Audit sensitive subscription, role, ownership, and billing actions. No direct production DDL/DML, grants, RLS changes, or Edge deployment as part of UI-only work.
 
 ## Safe migration plan (strictly staged)
