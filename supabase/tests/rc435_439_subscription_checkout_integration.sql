@@ -31,12 +31,17 @@ begin
     raise exception 'RC435 claim-intent service-role ACL contract failed';
   end if;
 
+  insert into public.tenants(id) values ('tenant-a'),('tenant-b');
+  insert into public.businesses(id,tenant_id,name,code) values
+    (business_one,'tenant-a','Fixture Business One','FIX-BIZ-ONE'),
+    (business_two,'tenant-b','Fixture Business Two','FIX-BIZ-TWO');
+
   insert into public.subscription_tier_prices(tier_code,monthly_price,annual_price,currency,active)
   values ('GOLD',200,2000,'EGP',true),('INACTIVE',100,1000,'EGP',false);
-  insert into public.user_memberships(user_id,business_id,status,role) values
-    (owner_one,business_one,'ACTIVE','OWNER'),
-    (owner_two,business_two,'ACTIVE','BUSINESS_OWNER'),
-    (staff_user,business_one,'ACTIVE','EMPLOYEE');
+  insert into public.user_memberships(id,user_id,tenant_id,business_id,status,role) values
+    ('member-owner-one',owner_one,'tenant-a',business_one,'ACTIVE','OWNER'),
+    ('member-owner-two',owner_two,'tenant-b',business_two,'ACTIVE','BUSINESS_OWNER'),
+    ('member-staff-one',staff_user,'tenant-a',business_one,'ACTIVE','EMPLOYEE');
 
   -- Non-owner cannot create a subscription payment intent.
   rejected := false;
