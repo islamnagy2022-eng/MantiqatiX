@@ -10,6 +10,8 @@ const publicConfig = fs.readFileSync('apps/catalog-frontend/public/config.js', '
 const webConfig = fs.readFileSync('web/config.js', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
 const directoryListingsView = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryListingsView.tsx', 'utf8');
+const directoryListingsLib = fs.readFileSync('apps/catalog-frontend/src/lib/directoryListings.ts', 'utf8');
+const directoryListingsFunction = fs.readFileSync('supabase/functions/directory-listings/index.ts', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
 const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
@@ -68,6 +70,10 @@ assert.ok(directoryListingsView.includes('if (listingType === "pharmacy") return
 assert.ok(directoryListingsView.includes('listing.metadata?.profileImageUrl'), 'an owner-selected directory profile image must take precedence over the doctor default photo');
 assert.ok(directoryListingsView.includes('listingProfileImage(detail)'), 'unclaimed doctor detail pages must display the default photo');
 assert.ok(directoryListingsView.includes('listingProfileImage(listing)'), 'unclaimed doctor directory cards must display the default photo');
+assert.ok(directoryListingsView.includes('رابط صورة الصفحة (اختياري — رابط HTTPS)') && directoryListingsView.includes('pattern="https://.*"'), 'the claimed page owner editor must expose an HTTPS-only replacement image URL field');
+assert.ok(directoryListingsView.includes('profileImageUrl: asText(meta.profileImageUrl)'), 'the owner image URL must be loaded into the edit form');
+assert.ok(directoryListingsLib.includes('profileImageUrl: input.profileImageUrl.trim()'), 'the owner image URL must be persisted through the existing owned listing update request');
+assert.ok(directoryListingsFunction.includes('"profileImageUrl"'), 'the existing owned-listing server allowlist must continue accepting the owner image URL metadata field');
 assert.match(productionMapper, /isStockImageUrl\(savedLogo\) && !officialShowcase/, 'legacy stock image URLs must only be restored for platform-owned showcase activities');
 assert.match(productionMapper, /metadata\.image_url \|\| i\.imageUrl \|\| i\.image_url/, 'normalized public catalog responses must preserve actual owner-uploaded product images');
 assert.match(productionMapper, /catalogPublished: Boolean\(raw\.catalogPublished/, 'public directory presence must stay separate from the enabled public catalogue flag');
