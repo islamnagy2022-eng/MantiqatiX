@@ -1293,3 +1293,12 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Read-only ACL review of all eight no-policy tables found no anon/authenticated SELECT/INSERT/UPDATE/DELETE. Seven have FORCE RLS; digital_page_payment_events does not. Service-role DML exists only on directory_listing_claim_requests and public_directory_listings; service_role TRUNCATE is present on all eight.
 - Function metadata: two trigger-returning SECURITY DEFINER functions each have one trigger binding. assign_default_owner_to_unowned_business() still has search_path=public, auth; the other two anon-executable SECURITY DEFINER functions use empty search_path. No production ACL/function/Auth/policy change made.
 - Detailed evidence: docs/audits/LIVE_SUPABASE_SECURITY_RECHECK_20261031_0251.md.
+
+
+## 2026-10-31 — catalog duplicate-creation guard and latest main validation
+
+- Current main `b7b35378bbf5c1fd5ff54afb6be79e316e33624c` includes payload-keyed client in-flight deduplication and a tenant-scoped server duplicate check returning HTTP 409 before insert.
+- CI validator `scripts/validate-business-create-inflight-guard.mjs` passed in Pages validation run #41162036127: `CATALOG_BUSINESS_CREATE_INFLIGHT_GUARD=PASS`.
+- Runtime concurrency, multi-tab, and lost-response retry behavior remain NOT VERIFIED. The server check-then-insert is not an atomic DB idempotency guarantee. Draft PR #477 is stale and not safe to merge as-is.
+- Current-main Health Monitor #41162036080 passed the HTTP 200 read-only DB probe. Backend boundary #41162036117, MantiGO privacy #41162036099, Module Professionalization #41162036130, and Pages #41162036127 passed. Deployed-origin browser E2E passed for the tested scope.
+- Full Production Gate remains BLOCKED / NOT CERTIFIED.
