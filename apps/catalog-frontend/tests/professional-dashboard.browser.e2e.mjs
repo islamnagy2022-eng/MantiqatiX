@@ -83,6 +83,13 @@ const roles = {
     branchId,
     permissions: {},
   },
+  accountOnly: {
+    id: '00000000-0000-0000-0000-000000000099',
+    email: 'e2e-account-only@example.test',
+    role: 'GUEST',
+    businessId: null,
+    permissions: {},
+  },
   unsupportedManager: {
     id: '00000000-0000-0000-0000-000000000004',
     email: 'e2e-manager@example.test',
@@ -363,6 +370,19 @@ try {
       await page.getByRole('heading', { name: 'اشتراكاتي', exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px mobile subscriber account portal');
       results.push('subscriber-account-portal-route-sections-and-visitor-mode-switch');
+    } finally { await context.close(); }
+  }
+
+  // 2. An authenticated Google identity without a business membership gets account status only.
+  {
+    const { context, page } = await newScenario(browser, roles.accountOnly, [], { initialRoute: '?view=account_portal' });
+    try {
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      await page.getByRole('button', { name: 'أنشطتي' }).click();
+      assert.equal(await page.getByText('لا يوجد نشاط مرتبط بحسابك حاليًا.').count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'إدارة النشاط' }).count(), 0, 'Google identity without membership must not receive management tools');
+      assert.equal(await page.getByRole('button', { name: 'مركز تحكم المنصة' }).count(), 0, 'Account-only identity must not receive platform-admin controls');
+      results.push('authenticated-account-without-membership-is-read-only');
     } finally { await context.close(); }
   }
 
