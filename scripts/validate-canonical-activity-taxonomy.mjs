@@ -15,6 +15,7 @@ const publicCatalog = read('supabase/functions/public-catalog/index.ts');
 const directoryListings = read('apps/catalog-frontend/src/lib/directoryListings.ts');
 const directoryListingsAdmin = read('apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx');
 const directoryListingsView = read('apps/catalog-frontend/src/components/DirectoryListingsView.tsx');
+const browserE2E = read('apps/catalog-frontend/tests/professional-dashboard.browser.e2e.mjs');
 const directoryListingsEdge = read('supabase/functions/directory-listings/index.ts');
 
 const expectedGroups = [
@@ -93,6 +94,9 @@ for (const legacyId of observedLegacyCategoryIds) {
 assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
 assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
 assert.ok(directoryListingsView.includes('normalizeSpecialty'), 'Legacy specialty labels must match canonical specialty filters.');
+assert.ok(browserE2E.includes("name: 'ممارسات وعيادات طبية', exact: true"), 'Browser taxonomy navigation must assert the canonical medical activity label.');
+assert.ok(browserE2E.includes("getByRole('button', { name: /باطنة/ })"), 'Browser taxonomy navigation must assert a canonical medical specialty.');
+assert.ok(!browserE2E.includes("getByText('عيادات عامة', { exact: true })"), 'Legacy clinic category labels must not remain in browser assertions.');
 for (const legacySpecialty of ['طبيب اطفال', 'طبيب نساء وتوليد', 'طبيب باطنه', 'مراكز وعيادات اسنان', 'معامل تحاليل', 'علاج طبيعي']) {
   assert.ok(directoryListingsView.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
 }
