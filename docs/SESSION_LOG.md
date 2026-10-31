@@ -1499,3 +1499,16 @@ A separate source review found a second platform-root authorization model: the n
 - Important blocker remains: platform_geo_areas currently has 27 governorates and 165 centers but no village rows, no center coordinates, and no Polygon boundaries. Thus precise GPS-to-village/center/governorate matching is NOT IMPLEMENTED; do not claim it. A trusted boundary layer with explicit source/licence/version must be integrated before this requirement is closed.
 - Production database, schema, RLS, grants, Edge Functions, and live records were not changed. CI/Browser E2E/deployment status is pending exact-head PR validation.
 - Canonical tracking: Issue #604; source branch: feature/smart-geo-discovery-20261031.
+
+
+## 2026-10-31 — Smart Geo Discovery expanded to Egypt's national hierarchy
+
+- Added Open Admin Data Egypt dataset release 2026.09 (published 2026-09-08), CC BY 4.0: 27 governorates, 365 districts/centers, 5,716 shiyakhas, representative coordinates for every level. Attribution is included in the frontend source/data module.
+- Replaced the incomplete legacy 27/165 selection source in the directory component with the new 27/365 geographic hierarchy. Added the district governorate slugs so the app can fetch only the selected/candidate district's public shiyakha JSON file from the attributed raw dataset repository.
+- Automatic location flow now resolves the nearest representative shiyakha when within 8 km, otherwise the nearest district within 35 km, otherwise a broad governorate fallback within 100 km; out-of-Egypt coordinates are excluded from Egypt-local sorting. The message explicitly says the result is an approximate representative-point suggestion, not a legal boundary.
+- The five nearest candidate districts are checked in parallel and each locality file has an 8-second abort limit; the raw-data request includes only a district slug, with credentials omitted and no referrer. Visitor latitude/longitude remains browser memory only.
+- Manual selection now includes all seeded governorates/districts and lazy-loads child shiyakhas for the selected district; no bulk download of the 5,716 locality records.
+- First-visit consent modal was also added to direct listing-detail and taxonomy routes, not only the directory root.
+- Contract validator expanded to check 27/365/5716 counts, coordinate validity, parent references, Birkat Al-Sab, permission/privacy behavior, no continuous tracking, source attribution/license/version, bounded locality fetching, and approximate-match thresholds.
+- Remaining NOT DONE: official ADM2/ADM3 polygon-boundary point-in-polygon proof. Representative points are proximity suggestions only. Exact-head CI/browser/device validation and production deployment are not yet confirmed.
+- No Production database/schema/RLS/grant/Edge Function/business data changes.
