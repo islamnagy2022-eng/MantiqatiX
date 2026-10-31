@@ -1504,3 +1504,14 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Security Advisor refreshed at 2026-10-31 06:54:55 UTC: 8 RLS-enabled/no-policy INFO findings; 3 anon SECURITY DEFINER warnings; 67 authenticated SECURITY DEFINER warnings; 90 anonymous-policy warnings; 1 leaked-password protection warning. This is an inventory; do not blanket-revoke or add broad policies.
 - [ ] Before any Production rollout: recover authoritative historical bootstrap SQL for `private.platform_admins`; verify the legitimate server-side provisioning/removal path without exposing registry rows; rehearse the exact ordered RC441 → RC449 → RC462 effects against a restorable current Production schema; obtain off-site backup + successful restore/rollback evidence; inspect final live ACL/search_path/function bodies; complete auth/payment/finance and tenant-isolation E2E; and obtain explicit rollout authorization.
 - No Production DDL/DML, grants, RLS/Auth settings, registry-row reads, Edge deployments, payments, refunds, settlements or journal mutations occurred. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-10-31 — تحسين بطاقات الأنشطة
+
+- [ ] توحيد بطاقات الأنشطة مع أسلوب بطاقات المجموعات: أيقونة SVG واضحة، اسم أسفل الرمز، وحالة تحديد/تحويم متناسقة.
+- [ ] إظهار دائرة عدد إجمالي الأنشطة لكل نشاط، مع استمرار عرض تفصيل الموثق وغير الموثق وعدم تغيير ترتيب النتائج أو منطق التوثيق.
+- [ ] اعتماد 8 أعمدة على الشاشات الواسعة مع تخطيط متجاوب للأجهزة الأصغر، ثم اجتياز TypeScript والبناء واختبارات واجهة الدليل قبل الدمج.
+- [x] Updated the canonical taxonomy validator to assert the new 2/4/6/8 responsive grid instead of the retired five-column layout; the previous CI failure was a stale test expectation, not a TypeScript error.
+- [x] Exact-head rerun: frontend TypeScript/build and isolated employee RBAC PostgreSQL tests passed; taxonomy contract passed; Pages validation and the other triggered SMM, commission, RC450 journal/audit, Paymob atomicity, Open Ride privacy, and module-professionalization workflows passed. Pages deploy job was skipped by the production dependency gate.
+- [x] Removed duplicated geographic-regression and live-directory browser E2E blocks (the same scenarios appeared three times each), reducing repeated live API/browser work without weakening assertions.
+- [ ] Exact-head browser E2E rerun after the test cleanup is pending; merge PR #620 only after the browser job passes. Do not bypass the production deployment gate.
