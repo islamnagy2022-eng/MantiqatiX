@@ -1387,3 +1387,18 @@ Observed advisor timestamp: `2026-10-30T23:39:47Z`. No database writes were perf
 - [x] Reconfirmed the two trigger-only SECURITY DEFINER functions still have default EXECUTE ACL and the owner-assignment function still has `search_path=public, auth` in Production. PR #561 is test-only evidence; no production ACL or function alteration occurred.
 - [ ] The historical Oct 17 schema baseline is not current-schema restore evidence. Full current Production schema-faithful disposable rehearsal, backup/restore and RPO/RTO remain open.
 - **No Production mutation. Overall release remains BLOCKED / NOT CERTIFIED.**
+
+
+## 2026-10-31 — Fresh live finance contract recheck (01:21 UTC)
+
+- [x] Re-read current Production subscription/journal table definitions and aggregate row counts using read-only metadata/catalog access. No row-level payment or journal data was queried.
+- [x] Confirmed RC435/RC439 fields remain absent from `subscription_payment_intents`: `provider_creation_state`, `provider_creation_claimed_at`, `client_secret_ciphertext`, `client_secret_iv`, `client_secret_key_version`. The only inspected creation RPC is the legacy `create_subscription_payment_intent_backend(...)`; both claim/recovery RPCs remain absent.
+- [x] Confirmed RC449A fields remain absent from `journal_entries` (`entry_number`, `total_debit`, `total_credit`, `posted_at`, `updated_at`, `reversed_by_entry_id`) and `journal_entry_lines.line_number` remains absent.
+- [x] Re-read live journal RPC definitions and effective ACLs: both `post_financial_journal(...)` and `post_financial_journal_backend(...)` are SECURITY DEFINER with `search_path=public`; neither grants EXECUTE to `service_role`. The backend body requires `p_user_id=auth.uid()`, so the current Edge service-role call contract is not satisfied. No grant was added.
+- [x] Current aggregate counts: businesses 10, branches 10, memberships 33, subscription tiers 4, subscription intents 0, journal entries 0, journal lines 0, general-ledger rows 0.
+- [x] Fresh Advisor at 2026-10-31 01:21:26 UTC: Security — 8 RLS-enabled/no-policy INFO, 3 anon SECURITY DEFINER WARN, 67 authenticated SECURITY DEFINER WARN, anonymous sign-in findings, and leaked-password protection disabled. Performance — 129 unindexed FKs, 375 auth/RLS init-plan findings, 73 unused indexes, 28 multiple-permissive-policy groups.
+- [x] Added `docs/audits/PRODUCTION_FINANCE_LIVE_CONTRACT_RECHECK_20261031.md` with live evidence and ordered next steps.
+- [ ] Do not run old RC435/439/449A/450 migrations out of order or fabricate migration ledger rows. The targeted CI fixtures passing in PR #559 do not prove compatibility with the full current Production schema.
+- [ ] Obtain a full schema-only, credential-scrubbed current Production capture using the pinned Supabase CLI in an authorized environment; restore in disposable PostgreSQL/Supabase; reconcile actual live drift; run adversarial integrations and backup/restore rehearsal.
+- [ ] Supabase branch creation remains unapproved/not requested due potential usage charges; current branch listing contains only Production `main`. Do not create a paid branch without user-provided organization ID, cost quote, and explicit approval.
+- **Production effect: NONE.** Read-only inspection only. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
