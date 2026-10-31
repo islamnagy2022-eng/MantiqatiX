@@ -23,7 +23,7 @@ const dateField = (value: string | null | undefined) => value ? value.slice(0, 1
 
 const emptyForm: FormState = {
   id: "", displayName: "", slug: "", listingType: "doctor", specialty: "",
-  functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_doctor", taxonomySpecialty: "", phone: "",
+  functionalGroupId: "medical_health", taxonomyCategoryId: "cat_medical_health_medical_practices", taxonomySpecialty: "", phone: "",
   secondaryPhone: "", address: "", governorate: "المنوفية", district: "بركة السبع",
   village: "", sourceName: "إدخال إدارة المنصة", sourceUrl: "", listingStatus: "DRAFT",
   outreachStatus: "NEW", outreachNotes: "", lastContactedAt: "", subscriptionOfferAt: "", nextFollowUpAt: "",
