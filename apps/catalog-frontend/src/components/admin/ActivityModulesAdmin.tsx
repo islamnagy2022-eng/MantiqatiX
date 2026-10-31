@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Save, RotateCcw, ShieldCheck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { ActivityCategory } from '../../types';
-import { resolveActivityModuleConfig } from '../../modules/activities/activityModuleRegistry';
+import { ACTIVITY_SPECIFIC_OVERRIDES, resolveActivityModuleConfig } from '../../modules/activities/activityModuleRegistry';
 
 type CapabilityDraft = { id: string; title: string; description: string };
 type EditorDraft = {
@@ -36,7 +36,7 @@ const toDraft = (category: ActivityCategory, overrides: ReturnType<typeof useApp
 export const ActivityModulesAdmin: React.FC = () => {
   const { categories, adminSettings, updateAdminSettings } = useApp();
   const activityCategories = useMemo(
-    () => categories.filter((category) => category.id.startsWith('cat_') && category.classificationType !== 'profession')
+    () => categories.filter((category) => Boolean(ACTIVITY_SPECIFIC_OVERRIDES[category.id]) && category.classificationType !== 'profession')
       .sort((a, b) => a.name.localeCompare(b.name, 'ar')),
     [categories],
   );
