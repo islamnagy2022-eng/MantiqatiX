@@ -1,19 +1,31 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
-import { BusinessProfileHeader } from './components/storefront/BusinessProfileHeader';
-import { CatalogSection } from './components/storefront/CatalogSection';
-import { MerchantDashboard } from './components/merchant/MerchantDashboard';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard';
 import { DirectoryView } from './components/DirectoryView';
-import { CartDrawer } from './components/cart/CartDrawer';
-import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
 
+// The public directory remains in the first-load path. Other screens are split
+// into independent chunks and are downloaded only when the user needs them.
+const BusinessProfileHeader = lazy(() => import('./components/storefront/BusinessProfileHeader').then((module) => ({ default: module.BusinessProfileHeader })));
+const CatalogSection = lazy(() => import('./components/storefront/CatalogSection').then((module) => ({ default: module.CatalogSection })));
+const MerchantDashboard = lazy(() => import('./components/merchant/MerchantDashboard').then((module) => ({ default: module.MerchantDashboard })));
+const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then((module) => ({ default: module.AdminDashboard })));
+const ProfessionalDashboard = lazy(() => import('./modules/dashboard/ProfessionalDashboard').then((module) => ({ default: module.ProfessionalDashboard })));
+const CartDrawer = lazy(() => import('./components/cart/CartDrawer').then((module) => ({ default: module.CartDrawer })));
+const LoginModal = lazy(() => import('./components/auth/LoginModal').then((module) => ({ default: module.LoginModal })));
+
+const ScreenFallback = () => (
+  <div role="status" aria-live="polite" className="mx-auto mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+    جارٍ تجهيز الشاشة…
+  </div>
+);
+
 const MainContent: React.FC = () => {
-  const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
+  const {
+    currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp,
+    authSession, authLoading, isCartOpen, isLoginModalOpen,
+  } = useApp();
   const params = new URLSearchParams(window.location.search);
   const hasDirectPublicCatalogLink = params.has('store') || params.has('businessId');
   const catalogRequestUrl = requestCatalogViaAdminWhatsApp(currentBusiness);
@@ -46,34 +58,38 @@ const MainContent: React.FC = () => {
       )}
 
       <main className="flex-1">
-        {/* Isolated Business Storefront: Opens directly for the specific business without seeing other businesses or external taxonomy bars */}
         {visibleView === 'directory' && <DirectoryView />}
 
         {visibleView === 'public_storefront' && (
-          <div>
-            <BusinessProfileHeader />
-            <CatalogSection />
-          </div>
+          <Suspense fallback={<ScreenFallback />}>
+            <div>
+              <BusinessProfileHeader />
+              <CatalogSection />
+            </div>
+          </Suspense>
         )}
 
-        {visibleView === 'merchant_admin' && <MerchantDashboard />}
+        {visibleView === 'merchant_admin' && (
+          <Suspense fallback={<ScreenFallback />}><MerchantDashboard /></Suspense>
+        )}
 
-        {visibleView === 'super_admin' && <AdminDashboard />}
+        {visibleView === 'super_admin' && (
+          <Suspense fallback={<ScreenFallback />}><AdminDashboard /></Suspense>
+        )}
 
-        {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
+        {visibleView === 'professional_dashboard' && (
+          <Suspense fallback={<ScreenFallback />}><ProfessionalDashboard /></Suspense>
+        )}
       </main>
 
-      <CartDrawer />
-      <LoginModal />
+      {isCartOpen && <Suspense fallback={null}><CartDrawer /></Suspense>}
+      {isLoginModalOpen && <Suspense fallback={null}><LoginModal /></Suspense>}
 
-      {/* Modern MantiqatiX Footer */}
       <footer className="bg-white border-t border-slate-200 mt-auto py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div className="flex items-center gap-2">
-              <span className="font-black text-slate-900 text-sm">
-                منصة MantiqatiX
-              </span>
+              <span className="font-black text-slate-900 text-sm">منصة MantiqatiX</span>
               <span>•</span>
               <span>كتالوج إلكتروني متصل بالواتساب ومستقل لكل نشاط</span>
             </div>
@@ -96,9 +112,7 @@ const MainContent: React.FC = () => {
               )}
             </div>
 
-            <div className="text-slate-400">
-              جميع الحقوق محفوظة © {new Date().getFullYear()} MantiqatiX
-            </div>
+            <div className="text-slate-400">جميع الحقوق محفوظة © {new Date().getFullYear()} MantiqatiX</div>
           </div>
         </div>
       </footer>
