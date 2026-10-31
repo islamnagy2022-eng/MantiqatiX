@@ -1496,3 +1496,10 @@ A separate source review found a second platform-root authorization model: the n
 - CI evidence: trigger-only integration PASS, migration history immutability PASS, migration version uniqueness PASS, open-PR migration collision guard PASS. Forward migration chain replay remains pending.
 - No Production changes were performed. The global production gate remains BLOCKED / NOT CERTIFIED.
 - Next: finish exact-head CI/replay, then proceed only with an isolated/restorable current-schema rehearsal; do not apply RC449A/RC450/RC463 or deploy Edge Functions to Production without approved evidence and rollout gates.
+
+
+### RC463 replay investigation — 2026-10-31
+
+- The exact-head forward replay from the captured schema-only checkpoint (captured 2026-10-17 at migration `20261008222845`) failed when RC463 preflight found `assign_default_owner_to_unowned_business()` missing. The live Production catalog had confirmed the function and trigger exist; the captured checkpoint predates this manually provisioned object.
+- This is a checkpoint freshness gap, not a reason to weaken the migration preflight or mark replay PASS. Add a narrowly scoped disposable overlay with a synthetic fixture identity immediately before RC463, then rerun. The overlay must not be applied to Production or treated as a current full schema restore.
+- Trigger-only ACL integration passed separately. Production remains read-only and the full gate remains BLOCKED.
