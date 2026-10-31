@@ -95,9 +95,9 @@ assert.match(browserE2E, /catalogReadRequests\.every\(\(request\) => !request\.b
 assert.match(production, /membershipPermissions: chosenMembership\?\.permissions/);
 assert.match(production, /businesses\.find\(\(b\) => roleMemberships\.some\(\(m: any\) => String\(m\.business_id \|\| ''\) === b\.id\)\)/);
 
-assert.ok(app.includes("import('./modules/dashboard/ProfessionalDashboard')") || /import \\{ ProfessionalDashboard \\} from '\\.\\/modules\\/dashboard\\/ProfessionalDashboard'/.test(app), 'Professional dashboard must be included in the application bundle graph, statically or as a lazy chunk.');
+assert.ok(app.includes("import('./modules/dashboard/ProfessionalDashboard')") || app.includes("import { ProfessionalDashboard } from './modules/dashboard/ProfessionalDashboard'"), 'Professional dashboard must be included in the application bundle graph, statically or as a lazy chunk.');
 assert.match(app, /import \{ canAccessMerchantDashboard, canAccessProfessionalDashboard \} from '\.\/utils\/dashboardAccess'/);
-assert.ok(/visibleView === 'professional_dashboard' && (?:<ProfessionalDashboard \/>|\\([\\s\\S]*?<ProfessionalDashboard \/>[\\s\\S]*?<\\/Suspense>[\\s\\S]*?\\))/.test(app), 'Professional dashboard route must render the dashboard, including when wrapped in Suspense.');
+assert.ok(app.includes("visibleView === 'professional_dashboard'") && app.includes('<ProfessionalDashboard />') && (app.includes('</Suspense>') || app.includes("visibleView === 'professional_dashboard' && <ProfessionalDashboard />")), 'Professional dashboard route must render the dashboard, including when wrapped in Suspense.');
 assert.match(app, /!canAccessProfessionalDashboard\(authSession\)/);
 assert.match(app, /!canAccessMerchantDashboard\(authSession\)/);
 
