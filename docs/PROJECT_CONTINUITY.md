@@ -1178,3 +1178,13 @@ A second read-only query checked non-internal triggers on `public.advertisements
 
 - Expanded the live scan across non-system catalog definitions. No SQL function/procedure, view, materialized view, trigger, rule, FK, RLS-policy expression or publication membership references `public.bookings`; it is absent from the two publication definitions.
 - This still cannot exclude dynamic SQL, external schedulers/services or code outside the repository. The table has one row, never read or changed. Keep it pending original schema, dependency and retention review under Issue #613 (P3).
+
+ 
+## Latest continuation — 2026-10-31 (P0 platform-root live recheck after RC462)
+
+- Main already contains RC462 via merged PR #592, but the live ledger is still 308 records through `20261029083845`; RC441, RC449 and RC462 remain absent from Production.
+- Live `mnty_can_platform_admin()` still delegates to `mnty_can('admin',NULL,NULL,NULL)`; null scope includes all active memberships and tenant OWNER gets built-in admin permission. The global digital-pages FOR ALL authenticated policy and all eight global SECURITY DEFINER entrypoints remain exposed through the weak authorization helper or broad tenant role predicates.
+- `digital_pages`: RLS enabled, FORCE RLS false, authenticated SELECT/INSERT/UPDATE/DELETE privileges, global permissive admin policy still present.
+- Aggregate only: private.platform_admins has one row; one registry user is aligned with active MNTY-PLATFORM SUPER_ADMIN scope=PLATFORM/full_control membership. No identity/row content was queried. Registry table is RLS-protected and has no anon/authenticated grants; service_role-only bootstrap EXECUTE remains server-side.
+- Candidate CI for RC462 passed: [41178333719](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333719); full isolated migration replay [41178333682](https://github.com/islamnagy2022-eng/MantiqaTix/actions/runs/41178333682). These do not establish Production rollout.
+- P0 next dependency: credential-scrubbed current schema/roles dump → local disposable restore → complete timestamp-ordered replay including RC441 → RC449 → RC462 → adversarial verification → rollback rehearsal → separately approved Production deployment. Global gate remains BLOCKED / NOT CERTIFIED.
