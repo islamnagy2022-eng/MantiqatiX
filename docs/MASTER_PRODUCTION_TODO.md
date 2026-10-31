@@ -2627,3 +2627,19 @@ Use the following hierarchy; these files are complementary, not competing copies
 - [x] Live Supabase was rechecked read-only: 308 migration records through `20261029083845`, one branch (`main`), and Advisor snapshot 8 RLS/no-policy, 3 anon SECURITY DEFINER, 67 authenticated SECURITY DEFINER; performance snapshot 129 unindexed FKs, 375 init-plan findings, 73 unused indexes, 28 permissive-policy groups.
 - [ ] Next blocker: obtain explicit user approval for a cost-reviewed isolated environment and a complete credential-scrubbed current-Production schema capture; restore and rehearse before authoring/applying any forward-only reconciliation.
 - **Overall Production Gate remains BLOCKED / NOT CERTIFIED.** No production DDL, grants, Auth/RLS changes, Edge Function deployment, secrets, payment, or financial mutation occurred.
+
+
+## 2026-10-31 — P0 operational continuity addendum (Supabase Free)
+
+35. **Database inactivity/availability monitoring — PARTIAL**
+    - Existing hourly monitor previously checked GitHub Pages, a static Edge Function health response, and web assets; it did not query PostgreSQL.
+    - Added a read-only PostgREST probe on branch `ops/supabase-free-tier-db-monitor-20261031`, using the public anon key and `marketing_provider_profiles?select=business_id&limit=1`; response body is discarded.
+    - No schema/RLS/Auth/Edge Function/UI changes and no service-role credential are involved.
+    - WAIT: merge only after review; then verify the first main-branch monitor run and confirm a failed database probe generates the expected GitHub workflow failure notification.
+    - This probe may reduce inactivity-pause risk but does not guarantee uptime or prevent Supabase from pausing a Free project.
+
+36. **Free-tier backup and restore — WAIT / NOT VERIFIED**
+    - Run the local Supabase CLI logical backup procedure in `docs/operations/FREE_TIER_DATABASE_CONTINUITY.md` from an authorized device with the database connection string.
+    - Store encrypted roles/schema/data dumps outside this public repository; never upload production dumps to public GitHub artifacts.
+    - Restore only into a disposable local PostgreSQL/Supabase environment, then verify schema, RLS, grants, critical RPCs, Edge dependencies, and a documented recovery checklist.
+    - No backup, restore, rollback, RPO, or RTO claim is complete until actual files and a successful rehearsal are evidenced.
