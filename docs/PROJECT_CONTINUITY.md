@@ -1111,3 +1111,14 @@ Directory discovery has begun for **Berket El Sabaa city and its administrativel
 - Source review found no confirmed new authorization bypass in the reviewed route/session/Edge membership paths. Full security sign-off is still OPEN: dedicated live Edge/PostgreSQL multi-membership isolation, real Google-account cross-account E2E, subscription-state role matrix, and independent review remain pending. PR #610 stays Draft.
 - Global production gate remains BLOCKED / NOT CERTIFIED. Do not apply production migrations or activate wallet/payment/advertising writes.
 - First dependency-ordered next task: authorized credential-scrubbed current Production schema capture → disposable isolated restore → rollback rehearsal and measured RPO/RTO. No suitable current-schema restore artifact was established in this session.
+
+
+## Latest continuation — 2026-10-31 (live schema preflight)
+
+- Fresh read-only Supabase snapshot: Free plan, PostgreSQL 17.6.1.155, 308 migration rows through `20261029083845`, only the default `main` branch record (`with_data=false`); no disposable current-Production clone is established.
+- 136/136 public tables have RLS; 112 FORCE RLS; 8 RLS-enabled/no-policy. Latest Advisor inventory: 3 anon and 67 authenticated SECURITY DEFINER execution warnings; leaked-password protection disabled; performance counts 129 unindexed FKs, 375 init-plan findings, 73 unused indexes, 28 multiple permissive-policy groups.
+- Finance contract remains blocked: journal columns required by RC449A/RC450 absent; subscription claim/encrypted-checkout fields absent; two wallet/journal RPCs remain `search_path=public` and not executable by service_role.
+- P0 review: `ad_spaces` has authenticated SELECT/INSERT/UPDATE/DELETE privileges and four permissive authenticated ALL policies with non-anonymous-only predicates. Treat as broad signed-in DML risk; no exploit test or Production policy change was performed. Keep all slot writes/booking/pricing blocked until isolated repair/testing.
+- Free-plan automatic daily backup is unavailable according to current Supabase documentation. No manual dump/restore evidence exists.
+- Runbook: `docs/release/CURRENT_SCHEMA_REHEARSAL_RUNBOOK_20261031.md`. Capture/restore remains BLOCKED pending operator-run credential-scrubbed local dump and isolated restore. No paid resource or Production mutation was created.
+- Global Production Gate remains **BLOCKED / NOT CERTIFIED**.
