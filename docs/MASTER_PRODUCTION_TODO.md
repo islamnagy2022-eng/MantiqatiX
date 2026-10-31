@@ -2869,3 +2869,21 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Security Advisor refreshed at 2026-10-31 06:54:55 UTC: 8 RLS-enabled/no-policy INFO findings; 3 anon SECURITY DEFINER warnings; 67 authenticated SECURITY DEFINER warnings; 90 anonymous-policy warnings; 1 leaked-password protection warning. This is an inventory; do not blanket-revoke or add broad policies.
 - [ ] Before any Production rollout: recover authoritative historical bootstrap SQL for `private.platform_admins`; verify the legitimate server-side provisioning/removal path without exposing registry rows; rehearse the exact ordered RC441 → RC449 → RC462 effects against a restorable current Production schema; obtain off-site backup + successful restore/rollback evidence; inspect final live ACL/search_path/function bodies; complete auth/payment/finance and tenant-isolation E2E; and obtain explicit rollout authorization.
 - No Production DDL/DML, grants, RLS/Auth settings, registry-row reads, Edge deployments, payments, refunds, settlements or journal mutations occurred. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## PORTAL-01 — بوابة حساب المشترك المستقلة (تصحيح نطاق الداشبورد) — 2026-10-31
+
+- **PARTIALLY IMPLEMENTED ON FEATURE BRANCH / NOT VERIFIED OR DEPLOYED** — branch: `feat/standalone-subscriber-portal-main-20261031`.
+- التصحيح المعتمد: الداشبورد الاحترافية صفحة مستقلة بالكامل عن الشاشة الرئيسية والدليل العام، وتُفتح من «حسابي / اشتراكي» بمسار مستقل `?view=account_portal`.
+- أضيفت بوابة حساب مستقلة تشمل ملخص الحساب، الاشتراك وحالة السداد، الصلاحيات، الأنشطة، وقسمًا لإعادة استخدام أدوات إدارة النشاط الحالية وفق قواعد الوصول.
+- أضيف زر التحويل إلى «وضع الزائر» والعودة إلى البوابة من مدخل الحساب. التحويل يغير العرض فقط ولا يمنح أو يلغي صلاحية.
+- أُخفي شريط تبويبات الداشبورد القديمة داخل صفحة البوابة فقط؛ لم تُحذف ولا تُخفَ من الشاشة الرئيسية. تبقى متاحة حتى اعتماد الانتقال.
+- أدوات SUPER_ADMIN تظل خارج بوابة المشترك وبمسارها المستقل.
+- [x] route مستقل، مدخل حساب، Portal shell، عرض الاشتراك/الصلاحيات/النشاط، وضع الزائر.
+- [x] إعادة استخدام MerchantDashboard/ProfessionalDashboard داخل قسم إدارة النشاط حسب صلاحيات الجلسة الحالية.
+- [x] Browser E2E مبدئي لمسار البوابة والأقسام والتحويل ذهابًا وإيابًا.
+- [ ] exact-head TypeScript/build وBrowser E2E وCI.
+- [ ] توسيع E2E لحساب بلا عضوية، عضوية موقوفة/منتهية، موظف، مالك فرع، وتعدد العضويات.
+- [ ] اختبار deployed-origin بهويات حقيقية مصرح بها قبل أي نقل/حذف للشاشات القديمة.
+- **No production mutation/deployment:** لا تعديل قاعدة بيانات أو RLS أو GRANT أو Edge Function أو نشر.
+- المرجع التنفيذي: `docs/STANDALONE_SUBSCRIBER_PORTAL_SPEC.md`.
