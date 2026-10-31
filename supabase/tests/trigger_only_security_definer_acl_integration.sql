@@ -75,7 +75,7 @@ create or replace function public.assign_default_owner_to_unowned_business()
 returns trigger
 language plpgsql
 security definer
-set search_path = ''
+set search_path = public, auth
 as $function$
 declare
   v_owner_id uuid;
@@ -178,6 +178,15 @@ grant usage on schema public, auth to service_role;
 grant insert on public.businesses, public.commission_rules to service_role;
 
 -- These are trigger-only functions, not client/server RPC entrypoints.
+-- Reproduce the narrow forward-only migration DDL: pin both SECURITY DEFINER
+-- functions to an empty search_path, then revoke direct execution from all
+-- external API roles. PostgreSQL checks EXECUTE when creating/replacing a
+-- trigger; existing triggers must continue working after this change.
+alter function public.assign_default_owner_to_unowned_business()
+  set search_path = '';
+alter function public.capture_commission_rule_audit()
+  set search_path = '';
+
 -- Explicitly remove inherited PUBLIC and direct API-role EXECUTE.
 revoke all on function public.assign_default_owner_to_unowned_business()
   from public, anon, authenticated, service_role;
