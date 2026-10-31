@@ -1527,3 +1527,14 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Post-merge main-commit validation is pending. Runs [41246745255](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246745255) and [41246745364](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246745364) were queued at checkpoint time; record their final conclusions before closing this gate.
 - [ ] Production rollout remains NOT AUTHORIZED: live migration ledger previously showed 308 rows through `20261029083845` and 0/42 required exact migration IDs; no RC463 production migration, grant, function, trigger, data, Auth/RLS or Edge change was performed. Current-schema restore rehearsal, verified backup/rollback and explicit approval remain mandatory.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-01 — PR #621 canonical taxonomy and mobile grid regression
+
+- [x] Reapplied the conflicted PR #619 intent on current main in PR [#621](https://github.com/islamnagy2022-eng/MantiqatiX/pull/621): canonical activity codes take precedence over stale legacy labels; mobile activity cards use three columns, with 4/6/8 at larger breakpoints.
+- [x] Exact-head CI on initial candidate b6b3ec1c8dec3fa170e788aa0f906829f7319c3d: TypeScript/build, canonical taxonomy validator, isolated employee RBAC PostgreSQL and supporting backend/privacy/payment workflows passed. Browser E2E exposed a test-only locale mismatch: UI renders Arabic-Indic digits while the assertion expected Western digits.
+- [x] Corrected the browser assertions to accept both Arabic-Indic and Western numerals in commit f4575c87f778376a98a73be00f70175f81720730; no UI behavior or production data changed.
+- [ ] Rerun every required exact-head workflow on f4575c87f778376a98a73be00f70175f81720730; do not merge until all required checks pass.
+- [ ] After merge, verify main-commit checks and only then retire/supersede PR #619. No Pages deployment or Production mutation is implied by CI success.
+- [ ] Recheck PR #618 subscriber portal against current main after PR #621 is resolved; its previously validated head predates subsequent main changes and merge is not authorized by old CI.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
