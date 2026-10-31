@@ -1486,3 +1486,13 @@ A separate source review found a second platform-root authorization model: the n
 - **Unified dashboard status:** Professional Dashboard PR #483 is merged. Current main dependency verifier logged `PROFESSIONAL_DASHBOARD_PRODUCTION_DEPENDENCIES=PASS`; Pages deployment and deployed-origin owner/employee/branch/QR E2E passed. This is limited-scope confirmation, not completion of the full Super Admin Control Center or every module-specific permission workflow. Remaining scope is indexed in issue #599 and `docs/RC113_RC115_SUPER_ADMIN_CONTROL_CENTER.md`.
 - **Global release:** `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`; the deployment verifier still reports missing required release migrations/object effects, critical Edge Function source drift, journal schema/ACL blockers, and outstanding payment/finance, Auth and backup/restore evidence. No production schema/data write or backend function deployment was performed in this task.
 - **Next action:** Merge the documentation-only protocol PR after exact-head CI; then reconcile the full dashboard scope and resume the highest-priority actionable P0 item from current evidence.
+
+
+## 2026-10-31 — RC463 trigger-only SECURITY DEFINER ACL hardening started
+
+- User authorized implementation of the previously listed remediation sequence.
+- Created branch `fix/rc463-trigger-only-security-definer-acl-20261031` from main `6040c54f1d308e9e1e80913ae8526e0a1555a5d2`.
+- Started a forward-only RC463 candidate to pin trigger-only `assign_default_owner_to_unowned_business()` and `capture_commission_rule_audit()` to empty search_path and revoke direct EXECUTE from PUBLIC/anon/authenticated/service_role. Public targeted-ad discovery remains unchanged.
+- Existing PostgreSQL 16 fixture is being wired to apply the exact migration source (rather than duplicate its SQL) and then verify both triggers continue to work under service_role DML.
+- Production remains read-only. No production migration, grant, Edge deployment, payment or financial mutation was made.
+- Other phases remain pending: priced isolated Supabase branch approval; ordered migration replay; finance schema/RPC rehearsal; six Edge Function parity and sandbox tests; deployed-origin account role journeys; unified dashboard completion.
