@@ -100,12 +100,12 @@ for (const legacyId of observedLegacyCategoryIds) {
 }
 assert.ok(directoryListings.includes('normalizeDirectoryListingTaxonomy'), 'Public and admin directory listing reads must normalize legacy taxonomy IDs.');
 assert.ok(directoryListings.includes('resolveCanonicalDirectoryCategoryId'), 'Directory listing normalization must map legacy category IDs.');
-assert.ok(directoryListingsView.includes('normalizeSpecialty'), 'Legacy specialty labels must match canonical specialty filters.');
+assert.ok(directoryListingsView.includes('resolveCanonicalSpecialty'), 'Legacy specialty labels must match canonical specialty filters through the shared resolver.');
 assert.ok(browserE2E.includes("name: 'ممارسات وعيادات طبية', exact: true"), 'Browser taxonomy navigation must assert the canonical medical activity label.');
 assert.ok(browserE2E.includes("getByRole('button', { name: /باطنة/ })"), 'Browser taxonomy navigation must assert a canonical medical specialty.');
 assert.ok(!browserE2E.includes("getByText('عيادات عامة', { exact: true })"), 'Legacy clinic category labels must not remain in browser assertions.');
 for (const legacySpecialty of ['طبيب اطفال', 'طبيب نساء وتوليد', 'طبيب باطنه', 'مراكز وعيادات اسنان', 'معامل تحاليل', 'علاج طبيعي']) {
-  assert.ok(directoryListingsView.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
+  assert.ok(defaults.includes(legacySpecialty), `Missing specialty compatibility alias for ${legacySpecialty}.`);
 }
 assert.ok(defaults.includes('غدد صماء وسكر') && defaults.includes('جراحة تجميل') && defaults.includes('صدر وحساسية'), 'Medical specialty coverage must include observed live specializations without creating peer activity categories.');
 assert.ok(directoryListingsAdmin.includes('cat_medical_health_medical_practices'), 'New directory entries must default to the canonical medical activity category.');
