@@ -392,11 +392,12 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 }> {
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
-    const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
+    // AppContext loads the public directory independently. Avoid fetching the
+    // same large public payload again during signed-out auth bootstrap.
     return {
       authSession: { role: 'guest', isAuthenticated: false },
-      businesses: directory.businesses,
-      products: directory.products,
+      businesses: [],
+      products: [],
       subscribers: [],
       adminSettings,
     };
