@@ -2816,11 +2816,12 @@ Use the following hierarchy; these files are complementary, not competing copies
 - تم دمج المخابز والحلويات في نشاط واحد، وإضافة «ضيافة وسياحة ومناسبات» لاستيعاب سجلات السياحة وقاعات المناسبات ضمن حد 5 أنشطة لمجموعة الأغذية والضيافة.
 - تمت إضافة توافق أكواد أنشطة الأعمال القديمة مثل `interior_design`, `sanitary_ware`, `homewares`, `plastic_factories`, و`marketing_agencies`.
 - تم تضييق تحقق الكتابات الجديدة في Edge Function الخاص بالدليل إلى المجموعات العشر.
-- **Read-only reconciliation result:** 454 rows mapped into the canonical ten: medical 134; food/hospitality 69; commerce/retail 49; home/building 37; auto/logistics 21; real estate 3; education/sports 16; technology/marketing 45; professional/financial/public services 52; agriculture/production/workshops 28. The legacy inventory had 156 distinct group/category/type/specialty combinations and zero category IDs outside the compatibility map.
+- **Read-only reconciliation result:** 454 rows mapped into the canonical ten: medical 134; food/hospitality 69; commerce/retail 49; home/building 37; auto/logistics 21; real estate 3; education/sports 16; technology/marketing 45; professional/financial/public services 52; agriculture/production/workshops 28. The legacy inventory had 156 distinct group/category/type combinations and zero category IDs outside the compatibility map.
  لم يتم نشر الدالة على Supabase؛ يلزم نشرها ضمن إصدار معتمد بعد نجاح الاختبارات.
-- [ ] CI على آخر commit والتحقق من عدم وجود كسر TypeScript أو build.
+- [x] CI على آخر commit `3b3b344493202f2af2e2f4a4b2d4fde9c1f460db`؛ TypeScript/build واختبارات العقد والمتصفح والـRBAC والتكاملات كلها PASS.
 - [ ] اختبار جميع معرفات التصنيف القديمة المستخرجة من الإنتاج واحدًا واحدًا، والتحقق من ظهور كل سجل في المجموعة والتصنيف الصحيحين.
-- [ ] اختبار فتح السجل القديم من الدليل، وتعديله من لوحة الإدارة، ثم حفظه وإعادة قراءته دون فقد نوع الصفحة أو التخصص أو بيانات الملكية.
+- [x] اختبار Browser E2E مع Supabase mock: فتح سجل قديم بمعرف طبيب وتخصص قديم، تحميل المجموعة والتصنيف والتخصص المعتمدين، تعديل نفس ID وحفظه دون فقد نوع السجل أو الهاتف أو حالة النشر، ثم إنشاء صفحة جديدة والتحقق من read-after-save في fixture.
+- [ ] اختبار نفس دورة التعديل/الإنشاء على Supabase production بهوية SUPER_ADMIN فعلية معتمدة؛ لم يتم تنفيذ كتابة إنتاجية أو استخدام رمز دخول إنتاجي.
 - [ ] إعادة inventory read-only بعد النشر لاستخراج أي معرفات جديدة غير موجودة في خريطة التوافق.
 - [ ] إعداد migration مستقلة مستقبلًا لتوحيد قيم قاعدة البيانات فقط بعد rehearsal قابل للاستعادة، ومراجعة RLS وrollback؛ لا تنفذها ضمن هذا التغيير.
 
@@ -2828,3 +2829,18 @@ Use the following hierarchy; these files are complementary, not competing copies
 - **Other exact-head workflows:** Deploy MantiqatiX Web validation `41170672812` passed (deploy job skipped for Draft PR); Flexible Commission `41170672777` passed; Module Professionalization `41170672863` passed; Backend-only Module Boundary `41170672946` passed; MantiGO Privacy `41170672881` passed; RC425 atomicity `41170672872` passed.
 - The feature branch is based on current `main` (zero commits behind); PR #588 is Draft and mergeable. No production deployment, Supabase migration, production data write, or Edge Function deployment occurred.
 - **Still blocking production release:** admin edit/save round-trip against the deployed Supabase Edge Function, role-scoped deployed-origin E2E for the directory admin, and explicit release approval.
+
+
+### CAT-TAX-03 — اختبار دورة الإدارة ومطابقة Edge Functions (2026-10-31)
+
+- **Browser E2E implemented and PASS:** أُضيف سيناريو SUPER_ADMIN في `professional-dashboard.browser.e2e.mjs` يغطي `ADMIN_LIST` و`UPSERT_LISTING`؛ يفتح سجلًا قديمًا `cat_medical_health_doctor` مع `طبيب اطفال`، ويتحقق من تحميل `medical_practices` و«أطفال»، ثم يعدّل السجل نفسه ويحافظ على listing type والهاتف وحالة النشر، وبعدها ينشئ صفحة عيادة جديدة. الاختبار يتحقق من Bearer header ومن payload الفعلي الذي ترسله الواجهة، ويعيد قراءة السجلات من fixture بعد الحفظ.
+- عولجت مشكلة واجهة التعديل: `DirectoryListingsAdmin` يستخدم `resolveCanonicalSpecialty` لتحويل التخصص القديم إلى label موجود فعلًا في خيارات التصنيف، مع إبقاء حقل specialty الأصلي كما هو إلى أن يغيره المسؤول.
+- **Production Edge source parity audit (read-only):**
+  - `directory-listings` المنشورة v8؛ كود الفرع مطابق لمصدر الإنتاج حرفيًا باستثناء سطر allowlist الذي يستبدل 18 مجموعة بالمجموعات العشر.
+  - `catalog-platform-admin` المنشورة v22؛ مصدر الإنتاج مطابق لـ`main`. أُعيد بناء ملف الفرع من مصدر `main` الحالي ثم أُضيفت تغييرات taxonomy فقط: allowlist للمجموعات العشر ورفض `profession` كتصنيف مستقل. بعد استبدال هذين التغييرين عكسيًا، تطابق ملف الفرع مع `main` حرفيًا.
+  - لا يتم نشر أي Edge Function ضمن هذا PR تلقائيًا؛ يلزم إصدار منفصل معتمد بعد اكتمال اختبار الهوية الفعلية.
+- **Exact-head CI — PASS** على `3b3b344493202f2af2e2f4a4b2d4fde9c1f460db`:
+  - Primary Catalog Frontend Validation `41172465208`: build/typecheck + taxonomy contract + browser E2E + employee RBAC جميعها PASS.
+  - Deploy MantiqatiX Web `41172465201`: validation PASS؛ deploy job SKIPPED لأن PR ما زال Draft.
+  - Flexible Commission `41172465173`, RC425 atomicity `41172465174`, Module Professionalization `41172465259`, Backend-only Module Boundary `41172465184`, MantiGO Privacy `41172465242`: PASS.
+- **Release remains BLOCKED:** لا توجد كتابة إنتاجية، migration، RLS change، Edge Function deployment أو Pages deployment. المتبقي اختبار CRUD بهوية SUPER_ADMIN إنتاجية معتمدة ثم مراجعة/دمج ونشر مصرح به.
