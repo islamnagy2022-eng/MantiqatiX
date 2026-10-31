@@ -1520,3 +1520,11 @@ A separate source review found a second platform-root authorization model: the n
 - The explanatory dialog stays visible while the browser permission request is pending and closes on success or on refusal/error fallback. A first-visit ref guard prevents duplicate requests during React effect replay.
 - On a declined or failed request, the user enters manual scope, the first-visit completion is persisted, and the automatic prompt is not repeated on later visits. Returning visitors only get silent refresh when prior browser permission is already granted.
 - This meets the automatic first-open request while retaining explicit native browser consent; web pages cannot bypass the browser's own Allow/Deny decision.
+
+
+## 2026-10-31 — PERF-01 page speed and Google account loading
+
+- User explicitly prioritized page first-paint speed and Google-account loading as the first development task.
+- Created a performance-only branch from current main checkpoint cb46f811b7ae93e9bf3bef1c769eab295df8c918: apps/catalog-frontend/src/App.tsx now lazy-loads secondary screens and on-demand modal/drawer chunks; apps/catalog-frontend/index.html renders an immediate loading shell; apps/catalog-frontend/src/lib/production.ts no longer fetches the public directory a second time for signed-out bootstrap because AppContext already owns that request.
+- Branch: perf/fast-first-paint-google-session-main-20261031. Code commits: b3949128f1683404d090b651e0db82f917aa61f6, 4326f655ba550ecf27daefda3ae665c1fe63b211, e465d46c4f2161a4277abc6ab1343848a7cb4c48.
+- Status: IN PROGRESS / CI PENDING / NOT DEPLOYED. Need exact-head build/TypeScript/E2E, initial bundle/chunk size comparison, real Google OAuth timing and mobile deployed-origin measurement. No production changes occurred.
