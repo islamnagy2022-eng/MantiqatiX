@@ -2697,3 +2697,16 @@ Use the following hierarchy; these files are complementary, not competing copies
 - Health Monitor [41162036080](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036080) passed; job `124421481814` confirmed `SUPABASE_DATABASE_READ_ONLY_PROBE=PASS` and primary catalog root/assets PASS.
 - Backend-only Module Boundary [41162036117](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036117), MantiGO Privacy [41162036099](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036099), Module Professionalization [41162036130](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036130), and Pages [41162036127](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41162036127) all completed successfully.
 - Pages deploy job `124421551588` confirmed deployed primary root and `PRIMARY_CATALOG_BROWSER_E2E=PASS` for the tested scoped catalog/role/QR/GPS/taxonomy journeys. The verifier artifact still reports `production_gate=BLOCKED` with 24 PASS, 0 FAIL, 1 BLOCKED; this source-contract report does not certify live production migrations or payment flows.
+
+
+## 2026-10-31 — P0 live MantiGO settlement authorization drift (read-only recheck 03:25 UTC)
+
+- [x] Rechecked the live Supabase function definition and effective EXECUTE grants read-only. `public.settle_mantigo_captain_backend(uuid,text,text)` is SECURITY DEFINER, has `search_path=public`, and is executable by `authenticated` (not `anon`).
+- [x] Confirmed the live body checks `p_admin_user_id = auth.uid()` but then accepts any active membership with role ADMIN, SUPER_ADMIN, OWNER, BUSINESS_OWNER, ACCOUNTANT, FINANCE_MANAGER, or FINANCE. The membership check is not restricted to tenant `MNTY-PLATFORM`, does not require explicit PLATFORM scope/full_control, and does not call `mnty_can_platform_admin()`.
+- [x] Confirmed the RPC proceeds to platform-wide MantiGO financial-ledger settlement and journal posting for eligible completed/paid rides. This is a confirmed authorization-contract defect; no evidence of abuse or unauthorized settlement was established.
+- [x] Confirmed live migration ledger remains 308 entries through `20261029083845`; RC441 `20261010030000` and RC449 `20261010170000` are absent.
+- [x] Source remediation already exists in RC441/RC449 and the isolated RC449 integration test explicitly rejects tenant OWNER, tenant ADMIN, OPERATIONS_MANAGER and tenant-scoped SUPER_ADMIN, while accepting the explicit platform SUPER_ADMIN and testing settlement replay safety.
+- [ ] **P0 / BLOCKED:** obtain an approved, cost-reviewed, restorable, schema-faithful isolated environment plus credential-scrubbed current-Production schema capture; rehearse the chronological migration chain and payment/journal dependencies before any Production release.
+- [ ] After approved release only: apply RC441/RC449 through the controlled migration process; verify live function body, empty search_path, platform-admin guard and grants; run post-release read-only checks. Never test by settling a live ride.
+- Evidence: `docs/audits/MANTIGO_PLATFORM_SETTLEMENT_SCOPE_DRIFT_20261031_0325.md`.
+- **Production impact:** no DDL, grants, Auth/RLS, Edge Function, data, payment, wallet, settlement, or journal mutation was performed. Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
