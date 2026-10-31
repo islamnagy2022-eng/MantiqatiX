@@ -67,7 +67,38 @@ jobs:
           SUPABASE_ANON_KEY="$(node -e "const s=require('fs').readFileSync('apps/catalog-frontend/public/config.js','utf8');const m=s.match(/supabaseKey:\\s*'([^']+)'/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           HTTP_CODE="$(curl --silent --show-error --output /tmp/catalog-directory-smoke.json --write-out '%{http_code}' --header "apikey: ${SUPABASE_ANON_KEY}" --header 'Accept: application/json' "${SUPABASE_URL}/functions/v1/public-catalog-directory")"
           test "${HTTP_CODE}" = "200"
-          node -e "const d=JSON.parse(require('fs').readFileSync('/tmp/catalog-directory-smoke.json','utf8'));if(!Array.isArray(d.businesses)||d.accessMode!=='PUBLIC_DIRECTORY_READ_ONLY')process.exit(1);const q=d.businesses.find(b=>b.slug==='qadam-alsaad-homewares');if(!q||!Array.isArray(q.items)||q.items.length===0||q.accessMode!=='PUBLIC_READ_ONLY'||q.paymentsEnabled!==false)process.exit(3);const s=JSON.stringify(d).toUpperCase();if(s.includes('MNTY-TEST-B')||s.includes('ISOLATION TEST'))process.exit(2);console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses='+d.businesses.length+'; qadam_items='+q.items.length)"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const d = JSON.parse(fs.readFileSync('/tmp/catalog-directory-smoke.json', 'utf8'));
+          if (!Array.isArray(d.businesses) || d.accessMode !== 'PUBLIC_DIRECTORY_READ_ONLY') {
+            throw new Error('Public directory response contract failed');
+          }
+          const q = d.businesses.find((b) => b.slug === 'qadam-alsaad-homewares');
+          if (!q || !Array.isArray(q.items) || q.items.length === 0 || q.accessMode !== 'PUBLIC_READ_ONLY' || q.paymentsEnabled !== false) {
+            throw new Error('Qadam public storefront smoke failed');
+          }
+          const expected = [
+            { id: 'c9d9d2a6-32b1-4f7d-b7c9-43ae48525281', label: 'Sameh Market', minimumItems: 1 },
+            { id: '703f4526-3292-43b4-b83b-3e0d9355704c', label: 'Burger Fakher', minimumItems: 1 },
+            { id: '92d4455a-31ef-4a77-acbf-71134ca98e9e', label: 'Shaeir Sanitary Ware', minimumItems: 0 },
+            { id: '5f02dbe8-7bb3-477b-a8e6-688f75ceaece', label: 'AMMAN COFFEE', minimumItems: 0 },
+          ];
+          for (const target of expected) {
+            const business = d.businesses.find((row) => row.id === target.id);
+            if (!business) throw new Error('Missing public directory activity: ' + target.label);
+            if (business.provider?.verified !== true) throw new Error('Verification flag is not exposed for: ' + target.label);
+            if (business.status !== 'ACTIVE') throw new Error('Activity is not ACTIVE in public directory: ' + target.label);
+            if (!Array.isArray(business.items)) throw new Error('Catalog items are missing for: ' + target.label);
+            if (business.items.length < target.minimumItems) throw new Error('Expected public products are missing for: ' + target.label);
+            console.log('[PASS] ' + target.label + ': verified=true; public_items=' + business.items.length);
+          }
+          const serialized = JSON.stringify(d).toUpperCase();
+          if (serialized.includes('MNTY-TEST-B') || serialized.includes('ISOLATION TEST')) {
+            throw new Error('An isolation/test tenant leaked into the public directory');
+          }
+          console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses=' + d.businesses.length + '; qadam_items=' + q.items.length);
+          console.log('VERIFIED_BUSINESS_PUBLIC_DIRECTORY_SMOKE=PASS');
+          NODE
       - name: Install web runtime dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
