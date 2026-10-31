@@ -266,11 +266,7 @@ Deno.serve(async (req: Request) => {
         String(m.business_id || "") === businessId ||
         (String(m.role || "").toUpperCase() === "OWNER" && !m.business_id && !m.branch_id)
       ) &&
-      (
-        membershipId
-          ? String(m.branch_id || "") === String(branchId || "")
-          : (!m.branch_id || String(m.branch_id) === String(branchId || ""))
-      )
+      (!m.branch_id || String(m.branch_id) === String(branchId || ""))
     );
     const scopedPlatformMembership = !membershipId && activeMemberships.some((m: any) =>
       String(m.tenant_id) === tenantId && isPlatformAdmin(m)
