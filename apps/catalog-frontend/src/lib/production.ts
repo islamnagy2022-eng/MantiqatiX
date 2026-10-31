@@ -109,18 +109,34 @@ export async function fetchPlatformSubscribers(): Promise<{ subscribers: Subscri
   }
 }
 
-export async function fetchPublicDirectory(): Promise<{ businesses: Business[]; products: Product[] }> {
-  const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
-  if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
-  const rows = Array.isArray(data?.businesses) ? data.businesses : [];
-  const businesses: Business[] = [];
-  const products: Product[] = [];
-  for (const row of rows) {
-    const mapped = mapBusiness({ ...row, branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
-    businesses.push(mapped);
-    products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
-  }
-  return { businesses, products };
+type PublicDirectoryResult = { businesses: Business[]; products: Product[] };
+let publicDirectoryInFlight: Promise<PublicDirectoryResult> | null = null;
+
+export function fetchPublicDirectory(): Promise<PublicDirectoryResult> {
+  // AppContext and the guest auth bootstrap can start together. Share the same
+  // in-flight Edge Function request instead of downloading the full directory twice.
+  if (publicDirectoryInFlight) return publicDirectoryInFlight;
+
+  const request = (async (): Promise<PublicDirectoryResult> => {
+    const { data, error } = await supabase.functions.invoke('public-catalog-directory', { method: 'GET' } as any);
+    if (error) throw new Error(error.message || 'تعذر تحميل دليل الأنشطة المنشورة');
+    const rows = Array.isArray(data?.businesses) ? data.businesses : [];
+    const businesses: Business[] = [];
+    const products: Product[] = [];
+    for (const row of rows) {
+      const mapped = mapBusiness({ ...row, branches: row.branches || [], branchId: row.selectedBranchId || row.branchId }, row.provider);
+      businesses.push(mapped);
+      products.push(...mapProducts(mapped.id, mapped.tenantId || '', mapped.branchId, row.items || [], row.prices || []));
+    }
+    return { businesses, products };
+  })();
+
+  publicDirectoryInFlight = request;
+  const clearInFlight = () => {
+    if (publicDirectoryInFlight === request) publicDirectoryInFlight = null;
+  };
+  void request.then(clearInFlight, clearInFlight);
+  return request;
 }
 
 export async function fetchPublicCatalog(businessId: string, branchId?: string): Promise<{ business: Business; products: Product[] } | null> {
@@ -392,13 +408,14 @@ export async function bootstrapProductionUser(user: User | null): Promise<{
 }> {
   const adminSettings: AdminSettings = { ...INITIAL_ADMIN_SETTINGS, adminPassword: '', platformName: 'MantiqatiX', currency: 'ج.م' };
   if (!user) {
-    // AppContext owns the independent public-directory request. Fetching it again
-    // here duplicated the largest public request and held auth bootstrap open
-    // even though a guest has no membership data to resolve.
+    // Keep the public business/product data in bootstrap for direct public
+    // storefront routes (including slug URLs). fetchPublicDirectory coalesces
+    // this with AppContext's concurrent request so the payload is fetched once.
+    const directory = await fetchPublicDirectory().catch(() => ({ businesses: [], products: [] }));
     return {
       authSession: { role: 'guest', isAuthenticated: false },
-      businesses: [],
-      products: [],
+      businesses: directory.businesses,
+      products: directory.products,
       subscribers: [],
       adminSettings,
     };
