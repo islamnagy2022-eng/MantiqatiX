@@ -516,10 +516,13 @@ try {
       await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
       await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const gpsButton = page.getByRole('button', { name: /حدد موقعي/ });
-      await gpsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await gpsButton.click();
+      const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
+      await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
       await page.getByText(/تم تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      const gpsButton = page.getByRole('button', { name: /تحديث موقعي|حدد موقعي/ });
+      await gpsButton.waitFor({ state: 'visible', timeout: 5000 });
       const leakedCoordinates = await page.evaluate(() =>
         Object.entries(localStorage).some(([key, value]) => /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01'))
       );
@@ -536,10 +539,12 @@ try {
     try {
       await context.grantPermissions([], { origin: new URL(baseUrl).origin });
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const gpsButton = page.getByRole('button', { name: /حدد موقعي/ });
-      await gpsButton.waitFor({ state: 'visible', timeout: 15000 });
-      await gpsButton.click();
+      const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
+      await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
       await page.getByText(/لم تسمح بالوصول إلى الموقع|تعذر تحديد موقعك/, { exact: false }).waitFor({ state: 'visible', timeout: 10000 });
+      await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      await page.getByRole('button', { name: /حدد موقعي/ }).waitFor({ state: 'visible', timeout: 5000 });
       results.push('catalog-gps-permission-denial-keeps-manual-search-available');
     } finally { await context.close(); }
   }
