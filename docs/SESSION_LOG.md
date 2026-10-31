@@ -1365,3 +1365,14 @@ The read-only audit report is [`docs/audits/READ_ONLY_SECURITY_EDGE_PARITY_20261
 - Existing RC441/RC449 source replaces the helper with explicit active platform SUPER_ADMIN + MNTY-PLATFORM + PLATFORM scope + full_control; this should protect all helper callers and the digital_pages RLS policy. Live Production still lacks RC441 and RC449.
 - Opened test-only branch `test/mantigo-platform-admin-rls-boundary-20261031` to reproduce the digital_pages policy in disposable PostgreSQL and test tenant OWNER denial for SELECT/INSERT/UPDATE/DELETE while allowing explicit platform SUPER_ADMIN. This is a test fixture only; no live table or row was read or changed.
 - Expanded risk classification to **P0 / BLOCKING** across at least eight global SECURITY DEFINER entrypoints plus the global digital_pages RLS policy. No live RPC invocation, business-row read, DDL, grant, RLS, migration, payment, settlement, or Production mutation was performed.
+
+
+## 2026-10-31 — PR #582 merged: digital-pages global RLS regression
+
+- PR [#582](https://github.com/islamnagy2022-eng/MantiqatiX/pull/582) merged to main as `061f7a4c3cd2dae22186a1f7f5880aa366e49db9`.
+- The RC449 disposable fixture now creates a minimal `digital_pages` table with RLS enabled, authenticated SELECT/INSERT/UPDATE/DELETE grants, and a representative `digital_pages_admin_manage FOR ALL` policy using `mnty_can_platform_admin()`.
+- Behavioral test verifies a tenant OWNER sees zero global digital pages, cannot update/delete any row, and cannot insert; explicit platform SUPER_ADMIN can read/update/insert/delete. This proves the intended source guard protects the RLS path when RC449 replaces the weak helper.
+- Dedicated MantiGO Platform Admin Scope Hardening [41165149574] passed; the static contract and disposable PostgreSQL 16 fixture + RC449 migration + behavioral integration steps all succeeded.
+- Exact-head supporting CI passed: Module Professionalization [41165149540], Backend-only Module Boundary [41165149552], MantiGO Open Ride Privacy [41165149604], RC425 Paymob Atomicity [41165149544], and Deploy MantiqatiX Web validation [41165149619]. Actual Pages production deploy job was skipped on the PR event.
+- This was test and audit documentation only. No Production data, RLS policy, grant, migration, payment, settlement, wallet, or Edge Function was changed.
+- Live Production still uses the weak helper `mnty_can('admin',NULL,NULL,NULL)`; RC441/RC449 are absent from the live ledger at last read-only check. P0 remains **BLOCKED / NOT CERTIFIED** pending approved isolated restore, full chronological migration replay, rollback rehearsal and controlled release.
