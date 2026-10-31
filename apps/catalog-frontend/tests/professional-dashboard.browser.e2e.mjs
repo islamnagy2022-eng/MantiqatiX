@@ -285,7 +285,7 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
       let body = {};
       try { body = request.postDataJSON() || {}; } catch { /* GET/no JSON body */ }
       if (body.action === 'CATALOG_READ') {
-        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId });
+        catalogReadRequests.push({ businessId: body.businessId, branchId: body.branchId, membershipId: body.membershipId });
         return json({
           business: fakeBusiness,
           provider: { name: fakeBusiness.name, kind: fakeBusiness.category, verified: false },
@@ -1051,6 +1051,7 @@ try {
       await page.getByText('وضع الموظف', { exact: true }).waitFor({ state: 'visible' });
       await page.locator('nav[aria-label="أقسام الداشبورد"]').waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(catalogReadRequests.at(-1)?.branchId, branchId, 'employee mode must reload only its assigned branch');
+      assert.equal(catalogReadRequests.at(-1)?.membershipId, 'membership-employee-business-row', 'employee mode must bind the catalog read to its own membership, not the wider owner membership');
       await page.getByRole('button', { name: /صاحب النشاط · نشاط اختبار الداشبورد/ }).click();
       await page.getByText('وضع صاحب النشاط', { exact: true }).waitFor({ state: 'visible' });
       assert.ok(!catalogReadRequests.at(-1)?.branchId, 'owner mode must reload its authorized business-wide catalog after leaving branch scope');
