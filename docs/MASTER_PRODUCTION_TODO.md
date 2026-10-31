@@ -3078,3 +3078,10 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - This initial migration artifact is absent from the tracked GitHub migration tree per `docs/RC42_PRODUCTION_MIGRATION_MANIFEST.md`. A query of all recorded migration statements found no explicit later DROP CONSTRAINT or ADD CONSTRAINT for advertisements, while the live physical table currently has no business_id FK.
 - `CREATE TABLE IF NOT EXISTS` does not retrofit the FK on an already-existing table. Cause remains unresolved: pre-existing table at migration time versus unrecorded schema divergence. Do not assume a manual drop, invent a historical migration, or patch Production.
 - Update Issue #612: recover authoritative migration/schema provenance, restore current schema locally, then determine whether a new forward-only FK/policy repair is appropriate.
+
+ 
+## 2026-10-31 — `bookings` creation-provenance check
+
+- Read-only scan of the live migration ledger found no CREATE TABLE, DROP TABLE or table-shape migration for `public.bookings`. Its only recorded mention is RLS enablement in `20260919233425_production_security_hardening_v1`.
+- Search of public SQL function bodies found no booking reference. Focused GitHub search found no direct browser/Edge source consumer. Current table is only `id` and `created_at`, with one row (contents not read).
+- Creation provenance is therefore unresolved/outside the current recorded migration creation history. This does not prove safe retirement. Issue #613 requires an authoritative schema snapshot/backup, external/dynamic dependency search and retention review. Keep the table and row unchanged.
