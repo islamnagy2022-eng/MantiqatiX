@@ -1172,3 +1172,9 @@ A second read-only query checked non-internal triggers on `public.advertisements
 - Current `ad_spaces` effective ACL entries give authenticated INSERT/UPDATE/DELETE/MAINTAIN and anon MAINTAIN. The current `pg_default_acl` snapshot for postgres-created public tables does not include API-role DML, but that is not a historical snapshot of defaults at table creation. ACL entries with grantor postgres may be explicit or may have been inherited from historical defaults that later changed.
 - Recorded migration history contains no table-level GRANT/REVOKE or table-level ALTER DEFAULT PRIVILEGES statement for ad_spaces; it only includes function EXECUTE-default hardening. Exact ACL provenance remains unresolved. Do not label entries explicit GRANTs or mutate global/managed defaults based on current snapshot alone.
 - The migration ledger contains historical advertisements CREATE TABLE IF NOT EXISTS SQL that declared a business FK, while current physical schema lacks it and no later recorded DROP exists; cause unresolved. bookings has no migration CREATE statement and no function/browser/Edge caller found in focused searches; keep table and row pending provenance/retention review.
+
+ 
+## Latest continuation — 2026-10-31 (expanded `bookings` dependency scan)
+
+- Expanded the live scan across non-system catalog definitions. No SQL function/procedure, view, materialized view, trigger, rule, FK, RLS-policy expression or publication membership references `public.bookings`; it is absent from the two publication definitions.
+- This still cannot exclude dynamic SQL, external schedulers/services or code outside the repository. The table has one row, never read or changed. Keep it pending original schema, dependency and retention review under Issue #613 (P3).
