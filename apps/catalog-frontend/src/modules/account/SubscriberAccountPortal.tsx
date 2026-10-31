@@ -13,6 +13,8 @@ const amountText = (value: unknown, currency: string) => Number.isFinite(Number(
 export const SubscriberAccountPortal: React.FC = () => {
   const { authSession, authLoading, currentBusiness, businesses, businessProducts, adminSettings, setCurrentView, logout, switchAccountMembership, switchToPlatformAdminMode } = useApp();
   const [section,setSection] = useState<Section>('overview');
+  const [switchingModeId,setSwitchingModeId] = useState('');
+  const [modeSwitchError,setModeSwitchError] = useState('');
   const isAdmin = authSession.role === 'admin';
   const business = isAdmin ? undefined : currentBusiness;
   const accountBusinesses = isAdmin ? [] : businesses;
@@ -68,13 +70,15 @@ export const SubscriberAccountPortal: React.FC = () => {
       {(authSession.isPlatformAdmin || (authSession.availableMemberships?.length || 0) > 1) && <section aria-label="أوضاع الحساب المتاحة" className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-black text-slate-900">أوضاع الحساب المتاحة</h2><p className="mt-1 text-xs text-slate-500">تظهر هنا الأدوار والعضويات النشطة التي أعادها التحقق من الحساب. تبديل الوضع لا ينشئ صلاحية جديدة.</p></div><span className="text-[11px] font-bold text-slate-500">{(authSession.availableMemberships || []).length} عضوية متاحة</span></div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {authSession.isPlatformAdmin && <button type="button" disabled={isAdmin} onClick={()=>{if(switchToPlatformAdminMode())setSection('manage');}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${isAdmin?'cursor-default border-amber-300 bg-amber-50 text-amber-900':'border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50'}`} aria-pressed={isAdmin}>إدارة المنصة</button>}
+          {authSession.isPlatformAdmin && <button type="button" disabled={isAdmin || Boolean(switchingModeId)} onClick={()=>{if(switchToPlatformAdminMode()){setModeSwitchError('');setSection('manage');}}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${isAdmin?'cursor-default border-amber-300 bg-amber-50 text-amber-900':'border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50'}`} aria-pressed={isAdmin}>إدارة المنصة</button>}
           {(authSession.availableMemberships || []).map(mode=>{
             const active=authSession.role==='subscriber' && authSession.activeMembershipId===mode.membershipId && authSession.businessId===mode.businessId;
             const label=`${membershipRoleLabel(mode.role)} · ${mode.businessName}${mode.branchId?' · نطاق فرع':''}`;
-            return <button key={mode.membershipId+':'+mode.businessId} type="button" disabled={active} onClick={()=>{if(switchAccountMembership(mode.membershipId, mode.businessId))setSection('manage');}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{label}</button>;
+            const modeKey=mode.membershipId+':'+mode.businessId;
+            return <button key={modeKey} type="button" disabled={active || Boolean(switchingModeId)} onClick={async()=>{setSwitchingModeId(modeKey);setModeSwitchError('');try{const switched=await switchAccountMembership(mode.membershipId,mode.businessId);if(switched)setSection('manage');else setModeSwitchError('تعذر التبديل؛ قد تكون العضوية تغيرت. حدّث الصفحة لإعادة تحميل الصلاحيات.');}catch(error){setModeSwitchError(error instanceof Error?error.message:'تعذر تحميل بيانات العضوية.');}finally{setSwitchingModeId('');}}} className={`rounded-xl border px-3 py-2 text-xs font-black transition-colors ${active?'cursor-default border-emerald-300 bg-emerald-50 text-emerald-900':'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'}`} aria-pressed={active}>{switchingModeId===modeKey?'جارٍ تحميل النطاق…':label}</button>;
           })}
         </div>
+        {modeSwitchError && <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800">{modeSwitchError}</p>}
       </section>}
       {isAdmin && <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"><b>حساب إدارة المنصة — صلاحيات المنصة مستقلة عن عضويات التجار ولا تنتحل دور المالك.</b><button onClick={()=>setSection('manage')} className="rounded-lg bg-amber-800 px-4 py-2 font-bold text-white">فتح مركز تحكم المنصة</button></div>}
       <div className="mt-5 grid gap-5 lg:grid-cols-[235px_minmax(0,1fr)]">
