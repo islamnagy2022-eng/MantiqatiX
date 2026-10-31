@@ -903,6 +903,7 @@ try {
       await modulePage.getByRole('button', { name: 'إدارة المجال', exact: true }).click();
       await modulePage.getByRole('heading', { name: 'القائمة والمنتجات', exact: true }).waitFor({ state: 'visible' });
       await modulePage.getByRole('heading', { name: 'الطلبات والتوصيل', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByLabel('القائمة والمنتجات: قيد التجهيز', { exact: true }).waitFor({ state: 'visible' });
       await assertNoHorizontalOverflow(page, '390px restaurant activity operations');
       results.push('activity-module-registry-renders-domain-specific-marketing-and-operations');
     } finally { await context.close(); }
