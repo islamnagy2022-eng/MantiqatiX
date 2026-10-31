@@ -1527,3 +1527,11 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Post-merge main-commit validation is pending. Runs [41246745255](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246745255) and [41246745364](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246745364) were queued at checkpoint time; record their final conclusions before closing this gate.
 - [ ] Production rollout remains NOT AUTHORIZED: live migration ledger previously showed 308 rows through `20261029083845` and 0/42 required exact migration IDs; no RC463 production migration, grant, function, trigger, data, Auth/RLS or Edge change was performed. Current-schema restore rehearsal, verified backup/rollback and explicit approval remain mandatory.
 - Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
+
+
+## 2026-11-01 — Homepage activity correction rebased onto current main
+
+- [x] Reviewed PR #619 exact diff and confirmed its direct merge was rejected by GitHub with HTTP 405 due to merge conflicts after intervening main changes. No force merge or overwrite was attempted.
+- [x] Reimplemented the minimal functional changes on current main in PR [#621](https://github.com/islamnagy2022-eng/MantiqatiX/pull/621): canonical activity-code precedence over legacy category labels; three columns on mobile while preserving the latest 4/6/8 wider breakpoints; Playwright regression and static validator coverage.
+- [ ] PR #621 exact-head CI and review pending. Do not merge or claim deployed until the latest build, browser E2E, taxonomy and RBAC checks pass.
+- [ ] Retire/supersede stale PR #619 only after PR #621 passes and is merged; no production deployment or Edge Function update is included.
