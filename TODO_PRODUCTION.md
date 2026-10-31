@@ -1519,3 +1519,11 @@ A separate source review found a second platform-root authorization model: the n
 - [x] Post-merge verification: main-branch workflow [run 41246450674](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246450674) completed SUCCESS on merge commit `ba5ee18fd212fdbbf6a553a9aed1ab652ed9b344`; build/TypeScript, taxonomy and geographic/OAuth/Facebook/social/subscription contracts, isolated employee RBAC PostgreSQL, and browser E2E against the deduplicated suite all passed. This closes the post-merge test rerun.
 
 - [ ] Production deployment remains separate and BLOCKED: Pages workflow [run 41246450497](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246450497) was cancelled before validation/deploy; no deployment occurred. Do not bypass the production dependency/release gate.
+
+## 2026-11-01 — RC463 merge checkpoint
+
+- [x] PR [#617](https://github.com/islamnagy2022-eng/MantiqatiX/pull/617) merged to `main` as `503befb80216225f42725506c73b4dd862b5ea96`. The change adds forward-only RC463 source for trigger-only SECURITY DEFINER ACL hardening; it does not execute against Production as part of the merge.
+- [x] Exact PR-head CI before merge passed: trigger-only ACL PostgreSQL integration, forward migration replay, migration immutability/uniqueness/collision checks, build, browser E2E, employee RBAC and supporting backend/payment/privacy checks.
+- [ ] Post-merge main-commit validation is pending. Runs [41246745255](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246745255) and [41246745364](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41246745364) were queued at checkpoint time; record their final conclusions before closing this gate.
+- [ ] Production rollout remains NOT AUTHORIZED: live migration ledger previously showed 308 rows through `20261029083845` and 0/42 required exact migration IDs; no RC463 production migration, grant, function, trigger, data, Auth/RLS or Edge change was performed. Current-schema restore rehearsal, verified backup/rollback and explicit approval remain mandatory.
+- Overall Production Gate remains **BLOCKED / NOT CERTIFIED**.
