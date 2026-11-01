@@ -3117,3 +3117,15 @@ A separate source review found a second platform-root authorization model: the n
 - **Constraints:** preserve current visual identity; no schema/RLS/Edge Function/production data changes unless separately justified and reviewed.
 - **Acceptance tests:** pharmacy and non-medical activity search; specialty and geographic filters; verified-first ordering; public/unclaimed visibility; detail navigation; direct activity URL and browser back/forward; lint/typecheck/build and deployed-origin smoke.
 - **Deployment:** NOT CLAIMED. Do not mark complete until exact-head CI and deployed-origin verification pass.
+
+
+## DIR-ACTIVITY-SEARCH-20261101 — إغلاق الدمج والنشر
+- **Status:** COMPLETE — merged and deployed to GitHub Pages.
+- **PR:** #631 — https://github.com/islamnagy2022-eng/MantiqatiX/pull/631
+- **Merge commit:** `7bf77ba1d07df59034371c4f869e8de584f99336`.
+- **Post-merge catalog validation:** run [41266169625](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169625) — build/TypeScript/taxonomy, isolated employee RBAC PostgreSQL, and browser E2E all passed.
+- **Production deployment:** run [41266169617](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169617) — Pages deploy, production root verification, and deployed-origin browser checks for dashboard routes, mobile layout, membership scopes, and permanent QR links all passed.
+- **Additional post-merge checks:** Module Professionalization, MantiGO privacy, Backend-only Module Boundary, and Production Health Monitor passed.
+- **Production URL:** https://islamnagy2022-eng.github.io/MantiqatiX/.
+- **Scope:** frontend routing/search, tests and documentation only; no production schema/RLS/Auth/Edge Function/payment/finance/data changes.
+- **Boundary:** this closes only the activity/specialty directory task. It does not certify or clear the separate full-platform production gate; its existing open migration, finance/payment, backup/restore and security evidence items remain independently tracked.
