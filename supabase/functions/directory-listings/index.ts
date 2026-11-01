@@ -28,6 +28,11 @@ const out = (origin: string | null, body: unknown, status = 200) =>
 const publicFields = "id,slug,display_name,listing_type,functional_group_id,taxonomy_category_id,taxonomy_specialty,specialty,phone,secondary_phone,address,governorate,district,village,source_name,source_url,source_checked_at,listing_status,claim_status,completeness,metadata,created_at,updated_at";
 const listingTypes = new Set(["doctor","clinic","pharmacy","medical_center","hospital","laboratory","health_provider","business"]);
 const listingStatuses = new Set(["DRAFT","PUBLISHED","HIDDEN"]);
+type DirectoryListingWithClaim = Record<string, unknown> & {
+  claim_status: string;
+  claimed_user_id: string | null;
+  claimed_business_id: string | null;
+};
 const outreachStatuses = new Set(["NEW","CONTACTED","INTERESTED","OFFER_SENT","FOLLOW_UP","SUBSCRIPTION_PENDING","SUBSCRIBED","NOT_INTERESTED","CORRECTION_REQUESTED"]);
 const dateOrNull = (value: unknown): string | null => { if (!value) return null; const date = new Date(String(value)); return Number.isNaN(date.getTime()) ? null : date.toISOString(); };
 const slugify = (value: unknown) => {
@@ -57,10 +62,11 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const slug = clean(url.searchParams.get("slug"), 140);
     if (slug) {
-      const { data, error } = await service.from("public_directory_listings")
+      const { data: rawData, error } = await service.from("public_directory_listings")
         .select(publicFields + ",claimed_user_id,claimed_business_id")
         .eq("slug", slug).eq("listing_status", "PUBLISHED").maybeSingle();
       if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+      const data = rawData as unknown as DirectoryListingWithClaim | null;
       if (!data) return out(origin, { error: "LISTING_NOT_FOUND" }, 404);
       let canEdit = false;
       const authHeader = req.headers.get("Authorization") || "";
