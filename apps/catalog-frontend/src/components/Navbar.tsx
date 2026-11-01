@@ -159,10 +159,10 @@ export const Navbar: React.FC = () => {
           <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
             <button
               type="button"
-              onClick={() => setCurrentView('home')}
+              onClick={() => setCurrentView(authSession.role === 'subscriber' ? 'merchant_admin' : 'home')}
               className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0 text-right"
-              title="الصفحة الرئيسية لمنطقتي X"
-              aria-label="العودة إلى الصفحة الرئيسية"
+              title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الصفحة الرئيسية لمنطقتي X'}
+              aria-label={authSession.role === 'subscriber' ? 'فتح لوحة نشاطي' : 'العودة إلى الصفحة الرئيسية'}
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-black text-sm">
                 MX
