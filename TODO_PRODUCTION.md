@@ -3,6 +3,12 @@
 حالات العمل: TODO / IN PROGRESS / WAIT / BLOCKED / DONE / VERIFIED / NOT VERIFIED.  
 قاعدة الإغلاق: DONE لا تعني VERIFIED.
 
+## UX policy — Activity list progressive loading
+- [x] Main activity directory and public unverified-listing views now render an initial batch of 20 items, with an explicit «رؤية المزيد» action that appends the next 20; changing search, group, specialty, or geographic filters resets the visible batch to 20.
+- [ ] Verify the exact branch with catalog TypeScript/lint, production build, and browser regression for initial 20 / next 20 / filter reset / verified-first ordering. Until those checks pass, this item is implemented but NOT VERIFIED.
+- [ ] Follow-up architecture review: the existing public directory API still returns its bounded result set before client-side filtering; true server-side cursor pagination must preserve taxonomy, specialty, geographic filtering, and verified-first ordering before replacing the current client-side progressive rendering.
+
+
 ## P0 — بوابة الإطلاق (لقطة تحقق مجمعة 2026-10-31)
 
 - [🟢] Main source CI and web deployment: main commit `9d614e69e66145af78e92df4eb29386ba731ee93` after PR #546 passed TypeScript/build, Google OAuth/session and membership contracts, dashboard browser E2E, employee RBAC PostgreSQL, Pages deployment, deployed-root verification, and deployed-origin routes/mobile/membership/permanent-QR browser checks. Evidence: Pages/deployed-origin [run 41137037072](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41137037072), primary frontend validation [run 41137037052](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41137037052), Production Health Monitor [run 41137037064](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41137037064). This certifies the web catalog deployment path only; it does not clear the global platform Production Gate.
