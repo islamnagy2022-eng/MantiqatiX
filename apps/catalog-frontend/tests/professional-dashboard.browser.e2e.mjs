@@ -507,7 +507,7 @@ try {
         provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
       };
     });
-    const { context, page } = await newScenario(browser, null, paginationFixtures);
+    const { context, page } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
     try {
       await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
