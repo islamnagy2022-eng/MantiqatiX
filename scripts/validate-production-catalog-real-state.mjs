@@ -277,8 +277,8 @@ assert.match(directoryListingsLib, /address: filters\.address/,
   'The public directory client must pass the selected street/area filter to the paginated API.');
 assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get\("address"\)/,
   'The paginated API must support server-side street/area filtering.');
-assert.match(directoryListingsFunction, /"phone", "secondary_phone"/,
-  'Directory search must include both primary and secondary phone fields.');
+assert.match(directoryPaginationHelper, /"phone", "secondary_phone"/,
+  'Directory search helper must include both primary and secondary phone fields.');
 
 assert.match(directoryListingsFunction, /parseDirectoryPaginationLimit\(url\.searchParams\.get\("limit"\)\)/,
   'The Edge Function must validate bounded page sizes through the tested helper.');
@@ -334,8 +334,8 @@ assert.equal(buildDirectoryPaginationOrFilter('', null), null,
   'No search and no cursor must not add a logical OR filter.');
 assert.equal(sanitizeDirectoryPaginationSearch('دكتور,(x)%";drop'), 'دكتور x drop',
   'Free-text search must remove PostgREST grammar delimiters and wildcard injection characters.');
-assert.match(directoryListingsFunction, /"address", "governorate", "district", "village"/,
-  'Directory search must include address and administrative hierarchy fields.');
+assert.match(directoryPaginationHelper, /"address", "governorate", "district", "village"/,
+  'Directory search helper must include address and administrative hierarchy fields.');
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
   'The main directory must load a server-filtered first page rather than the legacy 500-row list.');
 assert.match(directory, /limit: 20/,
