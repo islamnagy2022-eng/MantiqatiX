@@ -30,7 +30,7 @@ A public webpage by itself is not proof of republication permission. Do not scra
 - `taxonomySpecialty`
 - Required provenance: `sourceName`, `sourceUrl`, and `sourcePermissionStatus` (see allowed values above).
 - `sourceCheckedAt`
-- `listingStatus` (new rows default to PUBLISHED with a valid phone, otherwise DRAFT; on existing rows, an omitted status preserves the existing state).
+- `listingStatus` (`PUBLISHED`, `DRAFT`, or `HIDDEN`; new rows default to PUBLISHED with a valid phone, otherwise DRAFT; on existing rows, an omitted status preserves the existing state).
 - `metadata`
 
 ## Persistence rules
