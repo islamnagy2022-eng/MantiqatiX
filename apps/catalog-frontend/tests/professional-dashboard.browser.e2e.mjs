@@ -508,7 +508,13 @@ try {
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
       const cursorCards = page.locator('main[dir="rtl"] h3').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
-      await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
+      try {
+        await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
+      } catch {
+        throw new Error('Server-cursor E2E did not render first-page cards. Page requests: ' +
+          JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
+          JSON.stringify((await page.locator('main[dir="rtl"]').innerText().catch(() => '')).slice(0, 1800)));
+      }
       assert.equal(await cursorCards.count(), 20, 'public directory must initially render exactly one 20-row server page');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
       await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
