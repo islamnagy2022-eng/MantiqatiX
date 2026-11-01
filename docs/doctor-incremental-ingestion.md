@@ -63,25 +63,30 @@ A public webpage by itself is not proof of republication permission. Do not scra
 }
 ```
 
-## Release gate
-This branch adds the evidence registry and ingestion action but does not deploy either the migration or Edge Function to production. Before deployment, apply the migration in an isolated database, run Deno/type/build and browser E2E, and run authenticated smoke tests with synthetic records for evidence registration, second-person approval, host/name mismatch rejection, expiry/revocation rejection, insert, update/deduplication, draft-without-phone, claim-state preservation, and unauthorized rejection. Then merge and deploy the migration and Edge Function together.
+## Release verification
+
+The evidence registry migration and the directory ingestion action have been merged and deployed. The table is already present in Production. Do not re-apply this migration or run `supabase db push` until the migration-ledger version discrepancy described below has been reconciled.
+
+CI now performs Deno type-checking, a static integration contract, and executable behavior tests for evidence validity, scope, revocation, expiry, hostname matching, listing-status rules, and protected metadata. These tests validate the pure decision helpers used by the Edge Function; they do not replace authenticated end-to-end POST tests against a disposable Supabase environment.
+
+Authenticated smoke tests with synthetic records are still required for evidence registration, second-person approval, host/name mismatch rejection, expiry/revocation rejection, insert, update/deduplication, draft-without-phone, claim-state preservation, and unauthorized rejection. No synthetic doctor row or permission evidence is created in Production by this release.
 
 
 ## Production snapshot checked 2026-11-01
 
 Read-only verification found 568 published doctor-type listings across all 27 governorates. All 568 have a source URL and a valid primary or secondary phone; a normalized cross-check of primary and secondary phone fields found no duplicates. 511 records explicitly state that coordinates were not supplied by their source; none is marked with coordinates as verified by this audit. This demonstrates one or more records in every governorate, not a complete census of doctors or verified clinic geolocation. Existing records were not modified by this verification.
 
-Current production function remains unchanged until this PR passes runtime tests and is deployed. The import endpoint and UI in this branch are not yet active in production.
+The production Edge Function and admin import/evidence UI have been deployed. The write actions have not yet been exercised through authenticated live POST smoke tests. The read-only audit did not modify any existing listing.
 
 
-## Private source-permission evidence registry (added on the feature branch)
+## Private source-permission evidence registry (deployed to Production)
 
 - Table: `public.directory_source_permission_evidence`; FORCE RLS, no direct grants to `anon` or `authenticated`, service-role-only access through the existing platform-Super-Admin-guarded Edge Function.
 - Supported actions: list evidence; register pending evidence; approve pending evidence; revoke pending/approved evidence.
 - Approval requires a second distinct platform Super Admin and an explicit confirmation that the referenced document was reviewed.
 - Import rows must carry `sourcePermissionEvidenceId`; source name and normalized hostname must match exactly; evidence must be approved, unrevoked, in date, and grant both doctor-profile and commercial republication scope.
 - Important limitation: the Edge Function validates registry state and the operator's review action, but it cannot independently decide whether a contract is legally sufficient. A human reviewer must inspect the private evidence document, and the legal/data owner must approve the intended commercial use.
-- Migration and UI are feature-branch changes only. They have not been applied to Production. An isolated migration replay and authenticated Edge Function runtime tests remain mandatory.
+- Production has the table and the deployed Edge Function actions. The evidence table currently contains zero rows. An isolated authenticated Edge Function runtime test remains outstanding.
 
 
 ## Scope controls added before publication
@@ -91,3 +96,18 @@ Current production function remains unchanged until this PR passes runtime tests
 - Phone de-duplication compares both incoming numbers against both stored phone columns, avoiding cross-column misses.
 - Explicit HIDDEN status is retained even when a row has no phone; the no-phone publication guard only converts an otherwise-PUBLISHED listing to DRAFT.
 - Row-level results distinguish PUBLISHED, DRAFT, and HIDDEN instead of reporting HIDDEN as DRAFT.
+
+## Production publication and current operational state — 2026-11-01
+
+- PR #640 merged the incremental ingestion and source-permission registry implementation into `main` (merge commit `7f30f2636afe516eacd550562efc686a232da84e`).
+- PR #642 added behavior tests and extracted the pure validation helpers used by the production Edge Function; it merged as `4153dc82edee8bd869d97049b91161817317a20c`.
+- Production Edge Function `directory-listings` is ACTIVE at version 12. The deployed `index.ts`, `doctor-import-contract.mjs`, and `pagination-filter.mjs` were each fetched from Production and compared byte-for-byte with `main`; all three matched. The pre-existing `verify_jwt=false` setting was retained; the function performs its own bearer-token and platform Super Admin checks for POST actions.
+- Production database verification: 568 published doctor listings remain present across all 27 governorates; `directory_source_permission_evidence` contains zero rows; RLS and FORCE RLS are enabled; direct SELECT is denied to `anon` and `authenticated`, while `service_role` has SELECT.
+- No doctor listings were inserted, updated, or deleted by these deployments. A source URL is still not a licence, and the existing 568 listings have not been retroactively cleared for republication rights.
+- The dedicated Doctor Incremental Import Contract workflow passed Deno type-check, static integration checks, and all seven executable Node behavior tests. This validates helper logic and integration references; authenticated Edge Function write operations have not yet been smoke-tested with a disposable synthetic record.
+
+### Migration-ledger reconciliation — outstanding
+
+Production's `supabase_migrations.schema_migrations` ledger records `20261101140105 / directory_source_permission_evidence`, while the repository migration file is named `20261101150000_directory_source_permission_evidence.sql`. Live schema introspection confirmed that the table, columns, constraints, indexes, trigger, RLS, and grants match the repository migration. This is a migration-history mismatch, not evidence that the table is missing.
+
+Do not change the historical migration file, manually edit `schema_migrations` with SQL, or run `supabase db push` until the mismatch is reconciled. Use the Supabase CLI's supported `supabase migration repair` workflow in a controlled environment, then compare `supabase migration list` local and remote output before any further push. Repairing migration history changes ledger records; it does not apply or reverse the table DDL. See the [Supabase CLI migration repair reference](https://supabase.com/docs/reference/cli/supabase-migration-repair).
