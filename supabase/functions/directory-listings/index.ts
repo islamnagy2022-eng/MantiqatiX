@@ -285,11 +285,14 @@ Deno.serve(async (req: Request) => {
       const secondaryPhone = rawSecondaryPhone.replace(/\D/g, "").length >= 7 ? rawSecondaryPhone : "";
       const taxonomyCategoryId = clean(row.taxonomyCategoryId || row.taxonomy_category_id, 180);
       const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
-      const sourceName = clean(row.sourceName || row.source_name || "Doctor directory import", 160);
+      const sourceName = clean(row.sourceName || row.source_name, 160);
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
+      const sourcePermissionStatus = clean(row.sourcePermissionStatus || row.source_permission_status, 40).toUpperCase();
+      const allowedSourcePermissionStatuses = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
       const hasPhone = Boolean(phone || secondaryPhone);
 
-      if (displayName.length < 2 || !specialty || !governorate || !district ||
+      if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !sourceUrl ||
+          !allowedSourcePermissionStatuses.has(sourcePermissionStatus) ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
         failed += 1;
         results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_MEDICAL_CATEGORY_MISSING" });
@@ -297,8 +300,10 @@ Deno.serve(async (req: Request) => {
       }
 
       const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
+      const hasRequestedStatus = Object.prototype.hasOwnProperty.call(row, "listingStatus") || Object.prototype.hasOwnProperty.call(row, "listing_status");
       const requestedStatus = clean(row.listingStatus || row.listing_status || "PUBLISHED", 20).toUpperCase();
-      const listingStatus = hasPhone && requestedStatus === "PUBLISHED" ? "PUBLISHED" : "DRAFT";
+      const allowedListingStatuses = new Set(["PUBLISHED", "DRAFT", "HIDDEN"]);
+      const listingStatus = hasPhone && allowedListingStatuses.has(requestedStatus) ? requestedStatus : "DRAFT";
       const completeness = {
         name: true,
         specialty: true,
@@ -329,7 +334,7 @@ Deno.serve(async (req: Request) => {
         listing_status: listingStatus,
         claim_status: "UNCLAIMED",
         completeness,
-        metadata: { ...metadataInput, ingestion: "incremental_doctor_batch" },
+        metadata: { ...metadataInput, ingestion: "incremental_doctor_batch", source_permission_status: sourcePermissionStatus },
         updated_by: user.id,
       };
 
@@ -337,19 +342,19 @@ Deno.serve(async (req: Request) => {
         let existing: any = null;
         if (hasPhone) {
           const byPrimaryPhone = await service.from("public_directory_listings")
-            .select("id,listing_status,metadata").eq("listing_type", "doctor").eq("phone", phone).limit(1).maybeSingle();
+            .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor").eq("phone", phone).limit(1).maybeSingle();
           if (byPrimaryPhone.error) throw byPrimaryPhone.error;
           existing = byPrimaryPhone.data;
           if (!existing && secondaryPhone) {
             const bySecondaryPhone = await service.from("public_directory_listings")
-              .select("id,listing_status,metadata").eq("listing_type", "doctor").eq("secondary_phone", secondaryPhone).limit(1).maybeSingle();
+              .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor").eq("secondary_phone", secondaryPhone).limit(1).maybeSingle();
             if (bySecondaryPhone.error) throw bySecondaryPhone.error;
             existing = bySecondaryPhone.data;
           }
         }
         if (!existing) {
           const byIdentity = await service.from("public_directory_listings")
-            .select("id,listing_status,metadata").eq("listing_type", "doctor")
+            .select("id,slug,listing_status,metadata,source_checked_at,completeness").eq("listing_type", "doctor")
             .eq("display_name", displayName).eq("governorate", governorate).eq("district", district)
             .limit(1).maybeSingle();
           if (byIdentity.error) throw byIdentity.error;
@@ -357,20 +362,25 @@ Deno.serve(async (req: Request) => {
         }
 
         if (existing) {
-          // Partial snapshots must not erase previously known contact or ownership data.
+          // Partial snapshots must not erase existing contact, slug, claim, source or review history.
           if (!phone) delete patch.phone;
           if (!secondaryPhone) delete patch.secondary_phone;
-          delete patch.claim_status;
-          patch.metadata = {
-            ...(metadataInput as Record<string, unknown>),
-            ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
-            ingestion: "incremental_doctor_batch",
-          };
+          if (!row.slug) delete patch.slug;
           if (!row.sourceName && !row.source_name) delete patch.source_name;
           if (!sourceUrl) delete patch.source_url;
-          // Never downgrade an already-public record merely because a later source
-          // snapshot omitted a phone number.
-          if (existing.listing_status === "PUBLISHED" && !hasPhone) patch.listing_status = "PUBLISHED";
+          if (!row.sourceCheckedAt && !row.source_checked_at) delete patch.source_checked_at;
+          if (!hasRequestedStatus) delete patch.listing_status;
+          delete patch.claim_status;
+          patch.completeness = {
+            ...(existing.completeness && typeof existing.completeness === "object" ? existing.completeness : {}),
+            ...Object.fromEntries(Object.entries(completeness).filter(([, value]) => value === true)),
+          };
+          patch.metadata = {
+            ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
+            ...(metadataInput as Record<string, unknown>),
+            ingestion: "incremental_doctor_batch",
+            source_permission_status: sourcePermissionStatus,
+          };
           const saved = await service.from("public_directory_listings")
             .update(patch).eq("id", existing.id).select("id,listing_status").single();
           if (saved.error) throw saved.error;
