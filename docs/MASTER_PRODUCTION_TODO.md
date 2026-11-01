@@ -3160,10 +3160,11 @@ A separate source review found a second platform-root authorization model: the n
 
 ## CAT-DEFAULT-COVERS-20261101 — استخدام الصور الافتراضية كأغلفة للأطباء والصيدليات
 - **Request ledger:** GitHub issue [#633](https://github.com/islamnagy2022-eng/MantiqatiX/issues/633).
-- **Status:** REBASED ON CURRENT MAIN; exact-head CI, merge and deployed-origin checks pending.
+- **Status:** COMPLETE — merged to `main` and deployed to GitHub Pages; deployment and deployed-origin browser verification passed.
 - **Requirement:** reuse the existing unverified doctor default image as both profile/logo and cover; apply the same rule to unverified pharmacies.
 - **Registered businesses:** production mapper supplies the doctor/pharmacy fallback cover only when unverified and without an owner/admin-selected cover. Explicit owner cover takes precedence; verified businesses and unrelated activities retain their previous behavior.
 - **Standalone public directory pages:** the detail-page hero reuses the same doctor/pharmacy fallback image as its background cover while retaining the square profile image. An explicit metadata cover URL takes precedence.
 - **Regression contracts:** verify both category fallbacks, owner-selected cover precedence, and standalone detail-page hero rendering.
 - **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data changes.
-- **Next:** exact-head TypeScript/build, production real-state validator, browser E2E, supporting checks, merge, Pages deployment and deployed-origin verification.
+- **Completed verification:** exact-head TypeScript/build, PostgreSQL checks, browser E2E and supporting workflows passed; PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`. GitHub Pages deploy job passed, including `Deploy to GitHub Pages`, primary catalog root verification, and deployed-origin Playwright checks for dashboard routes, mobile layout, membership scopes and permanent QR links.
+- **Deployment run:** [41269309153](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41269309153). **Post-merge frontend validation:** [41269309136](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41269309136).
