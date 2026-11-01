@@ -280,8 +280,12 @@ assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("functional_
   'Functional group must be applied to the database query with legacy ID compatibility before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.in\("taxonomy_category_id", expandDirectoryTaxonomyCategoryIds\(taxonomyCategoryId\)\)/,
   'Taxonomy category must be applied to the database query with legacy ID compatibility before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("taxonomy_specialty", taxonomySpecialty\)/,
-  'Taxonomy specialty must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /buildDirectoryPaginationOrFilter\(search, cursor, taxonomySpecialty \|\| specialty\)/,
+  'Selected taxonomy specialty must be applied across canonical and legacy fields inside the same search/cursor logic tree.');
+assert.match(directoryPaginationHelper, /taxonomy_specialty\.ilike\./,
+  'Specialty filter helper must match the taxonomy specialty field.');
+assert.match(directoryPaginationHelper, /specialty\.ilike\./,
+  'Specialty filter helper must match the legacy specialty field.');
 assert.match(directoryPaginationHelper, /created_at\.lt\.[\s\S]*id\.lt\./,
   'Pagination cursor helper must use a deterministic created_at/id keyset.');
 assert.match(directoryListingsLib, /fetchPublicDirectoryListingPage/,
@@ -332,14 +336,26 @@ assert.throws(() => decodeDirectoryPaginationCursor('x'.repeat(1201)), /invalid 
 
 const combinedDirectoryFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor);
 assert.ok(combinedDirectoryFilter, 'Search + cursor must produce a PostgREST filter expression.');
-assert.match(combinedDirectoryFilter, /and\(display_name\.ilike\.%طبيب%,or\(created_at\.lt\./,
-  'Search + cursor must constrain each searched field by the same keyset cursor.');
+assert.match(combinedDirectoryFilter, /and\(or\(display_name\.ilike\.%طبيب%/,
+  'Search + cursor must compose the searchable columns as a single OR clause.');
 assert.match(combinedDirectoryFilter, /secondary_phone\.ilike\.%طبيب%/,
   'Search + cursor must include secondary contact fields.');
 assert.match(combinedDirectoryFilter, /village\.ilike\.%طبيب%/,
   'Search + cursor must include administrative location fields.');
-assert.equal((combinedDirectoryFilter.match(/created_at\.lt\./g) || []).length, 9,
-  'Search + cursor must apply the cursor to all nine searchable fields.');
+assert.match(combinedDirectoryFilter, /or\(created_at\.lt\.[\s\S]*id\.lt\./,
+  'Search + cursor must constrain the entire search clause by one deterministic keyset cursor.');
+assert.equal((combinedDirectoryFilter.match(/created_at\.lt\./g) || []).length, 1,
+  'Search + cursor must not duplicate cursor predicates across the searchable columns.');
+const combinedSpecialtyFilter = buildDirectoryPaginationOrFilter('طبيب', testCursor, 'نساء وتوليد');
+assert.match(combinedSpecialtyFilter, /taxonomy_specialty\.ilike\.%نساء وتوليد%/,
+  'Selected specialty must match the public taxonomy specialty field.');
+assert.match(combinedSpecialtyFilter, /specialty\.ilike\.%نساء وتوليد%/,
+  'Selected specialty must also match legacy specialty values.');
+assert.match(combinedSpecialtyFilter, /and\(or\(display_name\.ilike/,
+  'Text search, specialty and cursor must be joined as ANDed clauses of one PostgREST logic tree.');
+const specialtyOnlyFilter = buildDirectoryPaginationOrFilter('', null, 'أطفال');
+assert.match(specialtyOnlyFilter, /taxonomy_specialty\.ilike\.%أطفال%/);
+assert.match(specialtyOnlyFilter, /specialty\.ilike\.%أطفال%/);
 const cursorOnlyFilter = buildDirectoryPaginationOrFilter('', testCursor);
 assert.equal(cursorOnlyFilter, 'created_at.lt.2026-11-01T00:00:00.000Z,and(created_at.eq.2026-11-01T00:00:00.000Z,id.lt.123e4567-e89b-42d3-a456-426614174000)',
   'Cursor-only pagination must preserve the deterministic timestamp/id continuation.');
