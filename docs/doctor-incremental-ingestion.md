@@ -8,7 +8,7 @@ Supabase Edge Function: `directory-listings`
 
 POST action: `IMPORT_DOCTOR_BATCH`
 
-The action is available only after the existing platform Super Admin authorization check. It accepts 1–20 records per request and processes them sequentially, returning per-row outcomes.
+The action is available only after the existing platform Super Admin authorization check. It accepts 1–20 records per request and processes them sequentially, returning per-row outcomes. The platform admin directory screen now includes a JSON batch-import panel that calls this action through the authenticated client helper.
 
 ## Required row fields
 - `displayName`: doctor's public name
