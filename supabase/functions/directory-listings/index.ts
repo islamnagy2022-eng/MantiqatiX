@@ -1,5 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { buildDirectoryPaginationOrFilter, sanitizeDirectoryPaginationSearch } from "./pagination-filter.mjs";
+import {
+  buildDirectoryPaginationOrFilter,
+  decodeDirectoryPaginationCursor,
+  encodeDirectoryPaginationCursor,
+  parseDirectoryPaginationLimit,
+  sanitizeDirectoryPaginationSearch,
+} from "./pagination-filter.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -85,26 +91,15 @@ Deno.serve(async (req: Request) => {
     }
 
     // Stable keyset pagination: never use offset for the growing national directory.
-    const rawLimit = Number(url.searchParams.get("limit") || "100");
-    if (!Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 100) {
+    const limit = parseDirectoryPaginationLimit(url.searchParams.get("limit"));
+    if (limit === null) {
       return out(origin, { error: "INVALID_PAGE_LIMIT", message: "حجم الصفحة يجب أن يكون بين 1 و100." }, 400);
     }
-    const limit = rawLimit;
-    const cursorRaw = clean(url.searchParams.get("cursor"), 1200);
-    let cursor: { created_at: string; id: string } | null = null;
-    if (cursorRaw) {
-      try {
-        const decoded = JSON.parse(atob(cursorRaw.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - cursorRaw.length % 4) % 4)));
-        if (!decoded || typeof decoded.created_at !== "string" ||
-          Number.isNaN(Date.parse(decoded.created_at)) ||
-          typeof decoded.id !== "string" ||
-          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decoded.id)) {
-          throw new Error("invalid cursor");
-        }
-        cursor = { created_at: new Date(decoded.created_at).toISOString(), id: decoded.id };
-      } catch {
-        return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
-      }
+    let cursor: { created_at: string; id: string } | null;
+    try {
+      cursor = decodeDirectoryPaginationCursor(clean(url.searchParams.get("cursor"), 1200));
+    } catch {
+      return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
     }
 
     let pageQuery = service.from("public_directory_listings").select(publicFields)
@@ -130,8 +125,7 @@ Deno.serve(async (req: Request) => {
     const hasMore = rows.length > limit;
     const listings = hasMore ? rows.slice(0, limit) : rows;
     const last = listings[listings.length - 1];
-    const nextCursor = hasMore && last ? btoa(JSON.stringify({ created_at: last.created_at, id: last.id }))
-      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") : null;
+    const nextCursor = hasMore && last ? encodeDirectoryPaginationCursor({ created_at: last.created_at, id: last.id }) : null;
     return out(origin, { listings, nextCursor, hasMore, pageSize: limit });
   }
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
