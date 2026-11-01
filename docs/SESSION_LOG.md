@@ -1672,3 +1672,13 @@ A separate source review found a second platform-root authorization model: the n
 - Supporting post-merge workflows passed: Module Professionalization [41266169641](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169641), MantiGO privacy [41266169622](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169622), Backend-only Module Boundary [41266169620](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169620), and Production Health Monitor [41266169610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169610).
 - **Result:** nested specialty folders and per-specialty search are merged, validated on main, deployed and verified against the deployed origin. Production URL: https://islamnagy2022-eng.github.io/MantiqatiX/.
 - **Scope/safety:** no production database/schema/RLS/Auth/Edge Function/payment/finance/data mutation. This feature closure does not change the independent full-platform release gate, which remains blocked/not certified pending its separate evidence and migration work.
+
+
+## 2026-11-01 — National doctor directory request: live baseline audit
+
+- Owner requested nationwide doctor coverage with each doctor mapped to their actual clinic location.
+- Added DIR-DOCTORS-EGYPT-NATIONAL-20261101 to the canonical Master TODO and cross-session request ledger issue #599.
+- Read-only production query against public.public_directory_listings: 57 rows with listing_type='doctor', all PUBLISHED, all located in المنوفية / بركة السبع; only one governorate is represented and zero doctor rows contain a recognized latitude+longitude pair in metadata.
+- Confirmed existing schema supports governorate/district/village/address and metadata; directory Edge Function upsert is platform-Super-Admin-only, publication requires a valid phone, and the table remains RLS/FORCE RLS protected with anon/authenticated grants revoked.
+- Source discovery identified Dalil140's Egypt-wide doctor directory and official Egyptian Medical Syndicate doctor/facility lookup. No bulk import was performed; reuse rights, source freshness, geocoding and exact branch locations must be validated before insertion.
+- No production rows, schema, grants, RLS, Auth, Edge Functions or deployments were changed. National coverage remains IN PROGRESS, not complete.
