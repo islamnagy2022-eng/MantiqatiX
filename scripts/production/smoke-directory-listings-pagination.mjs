@@ -84,3 +84,82 @@ assert.equal(invalidCursor.status, 400, "Malformed cursors must be rejected with
 assert.equal((await json(invalidCursor)).error, "INVALID_PAGE_CURSOR", "Invalid cursor error code must be stable");
 console.log("DIRECTORY_PAGINATION_INVALID_INPUTS=PASS");
 console.log("DIRECTORY_PUBLIC_ONLY_AND_CORS=PASS");
+
+const expectedGovernorates = [
+  "القاهرة",
+  "الجيزة",
+  "القليوبية",
+  "الإسكندرية",
+  "البحيرة",
+  "مطروح",
+  "كفر الشيخ",
+  "الغربية",
+  "المنوفية",
+  "الدقهلية",
+  "دمياط",
+  "بورسعيد",
+  "الإسماعيلية",
+  "السويس",
+  "الشرقية",
+  "شمال سيناء",
+  "جنوب سيناء",
+  "بني سويف",
+  "الفيوم",
+  "المنيا",
+  "أسيوط",
+  "سوهاج",
+  "قنا",
+  "الأقصر",
+  "أسوان",
+  "الوادي الجديد",
+  "البحر الأحمر",
+];
+
+// Walk every public doctor page to verify the imported national directory is
+// actually visible through the same cursor API used by the catalog UI.
+const allDoctorIds = new Set();
+const doctorsByGovernorate = new Map();
+let cursor = null;
+let pageCount = 0;
+do {
+  const pageResponse = await request({ type: "doctor", limit: 100, cursor });
+  assert.equal(pageResponse.status, 200, "Every public doctor page must return HTTP 200");
+  const page = await json(pageResponse);
+  assert.ok(Array.isArray(page.listings), "Every page must return a listings array");
+  assert.equal(page.pageSize, 100, "National directory scan must honor the 100-row limit");
+  assert.ok(page.listings.length <= 100, "No page may exceed its requested limit");
+
+  for (const row of page.listings) {
+    assert.equal(row.listing_type, "doctor", "National scan must preserve the doctor filter");
+    assert.equal(row.listing_status, "PUBLISHED", "National scan must expose published rows only");
+    assert.ok(row.id, "Every public doctor row must have an ID");
+    assert.ok(!allDoctorIds.has(row.id), "Keyset scan must not repeat an ID across pages");
+    allDoctorIds.add(row.id);
+    const governorate = String(row.governorate || "").trim();
+    assert.ok(governorate, "Every imported doctor must retain a governorate value");
+    doctorsByGovernorate.set(governorate, (doctorsByGovernorate.get(governorate) || 0) + 1);
+    assert.ok(!("claimed_user_id" in row), "Public list rows must not expose claimed_user_id");
+    assert.ok(!("claimed_business_id" in row), "Public list rows must not expose claimed_business_id");
+  }
+
+  pageCount += 1;
+  assert.ok(pageCount <= 20, "National doctor pagination exceeded the safety page cap");
+  if (page.hasMore === true) {
+    assert.ok(typeof page.nextCursor === "string" && page.nextCursor.length > 0, "A page with more rows must include a cursor");
+    cursor = page.nextCursor;
+  } else {
+    assert.equal(page.nextCursor, null, "The final page must not advertise another cursor");
+    cursor = null;
+  }
+} while (cursor);
+
+assert.ok(allDoctorIds.size >= 450, "Public directory must expose the verified 450-record baseline or more");
+const missingGovernorates = expectedGovernorates.filter((name) => !doctorsByGovernorate.has(name));
+assert.deepEqual(missingGovernorates, [], "All 27 Egyptian governorates must appear in the public doctor directory");
+console.log(
+  "DIRECTORY_NATIONAL_DOCTOR_COVERAGE=PASS; " +
+  "records=" + allDoctorIds.size +
+  "; governorates=" + doctorsByGovernorate.size +
+  "; pages=" + pageCount,
+);
+
