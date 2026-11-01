@@ -202,7 +202,7 @@ assert.ok(!activityModuleRegistry.includes("state: 'available'"), 'No domain ope
 assert.ok(activityModuleView.includes('openSpecialtyFolder(specialty)') && activityModuleView.includes('closeSpecialtyFolder'), 'Each specialty must open as a nested folder with an explicit return to its activity.');
 assert.ok(activityModuleView.includes('searchQuery') && activityModuleView.includes('البحث داخل') && activityModuleView.includes('matchesSearch'), 'Every specialty folder must provide search scoped to its own entity results.');
 assert.ok(activityModuleView.includes("get('specialty')") && activityModuleView.includes("url.searchParams.set('specialty', specialty)"), 'Specialty folders must support direct links, refresh and browser back/forward.');
-assert.ok(activityModuleView.includes('matching') === false && activityModuleView.includes('visibleListings.map'), 'Specialty view must render only its own matching public listings.');
+assert.ok(activityModuleView.includes('[...verifiedBusinesses, ...unverifiedBusinesses].map') && activityModuleView.includes('visibleListings.map'), 'Specialty view must render verified businesses first, then unverified businesses and public listings from the selected specialty.');
 assert.ok(browserE2E.includes('activity-specialty-folders-scoped-search-geography-and-refresh'), 'Browser E2E must verify specialty search, geo filtering, direct refresh and history navigation.');
 assert.ok(directory.includes('matchesSpecialty'), 'Directory results must still filter real business records by the selected specialty.');
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
