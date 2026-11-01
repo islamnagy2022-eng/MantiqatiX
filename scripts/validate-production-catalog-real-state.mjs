@@ -243,4 +243,27 @@ assert.match(aiGeminiProxy, /service\.storage\.from\(IMAGE_BUCKET\)\.upload/, 'G
 assert.match(aiGeminiProxy, /imageKind === "cover" \? "16:9" : "1:1"/, 'Generated covers and square catalogue images must use suitable aspect ratios.');
 
 
+assert.match(directoryListingsFunction, /Stable keyset pagination/,
+  'Public directory pagination must use stable keyset pagination rather than offset pagination.');
+assert.match(directoryListingsFunction, /rawLimit > 100/,
+  'Public directory page size must be bounded to protect the public Edge Function.');
+assert.match(directoryListingsFunction, /INVALID_PAGE_CURSOR/,
+  'Malformed cursors must fail closed with a clear client error.');
+assert.match(directoryListingsFunction, /\.eq\("listing_status", "PUBLISHED"\)/,
+  'Paginated public directory reads must never expose draft or hidden listings.');
+assert.match(directoryListingsFunction, /governorate[s\S]*district[s\S]*village[s\S]*taxonomyCategoryId/,
+  'Public directory pagination must support geographic and taxonomy filters.');
+assert.match(directoryListingsFunction, /created_at\.lt\.[\s\S]*id\.lt\./,
+  'Pagination cursor must use a deterministic created_at/id keyset.');
+assert.match(directoryListingsLib, /fetchPublicDirectoryListingPage/,
+  'Frontend must expose a typed paginated directory client.');
+assert.match(directoryListingsLib, /functionalGroupId[\s\S]*taxonomyCategoryId[\s\S]*taxonomySpecialty[\s\S]*nextCursor/,
+  'Typed directory pagination client must pass taxonomy filters and return its continuation cursor.');
+assert.match(directoryListingsView, /fetchPublicDirectoryListingPage/,
+  'Public directory pages must consume the paginated endpoint.');
+assert.match(directoryListingsView, /setListings\(\(current\) =>[\s\S]*seen = new Set\(current\.map\(\(row\) => row\.id\)\)/,
+  'Appending a directory page must deduplicate records by stable listing ID.');
+assert.match(directoryListingsView, /رؤية المزيد من النتائج/,
+  'Public directory must provide a user-controlled continuation action.');
+
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
