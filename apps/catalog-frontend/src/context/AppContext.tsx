@@ -29,7 +29,7 @@ import { bootstrapProductionUser, callCatalogAdmin, callPlatformAdmin, fetchPlat
 import { resolveDefaultImage } from '../utils/defaultImages';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 
-export type ViewMode = 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
+export type ViewMode = 'home' | 'public_storefront' | 'merchant_admin' | 'super_admin' | 'professional_dashboard' | 'login' | 'directory';
 
 interface AppContextType {
   currentView: ViewMode;
@@ -58,6 +58,7 @@ interface AppContextType {
   setIsLoginModalOpen: (open: boolean) => void;
   businesses: Business[];
   directoryBusinesses: Business[];
+  directoryProducts: Product[];
   directoryLoading: boolean;
   products: Product[];
   subscribers: Subscriber[];
@@ -105,6 +106,7 @@ const publicBaseUrl = () => `${window.location.origin}${baseUrl.endsWith('/') ? 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [directoryBusinesses, setDirectoryBusinesses] = useState<Business[]>([]);
+  const [directoryProducts, setDirectoryProducts] = useState<Product[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -126,9 +128,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     if (params.has('store') || params.has('businessId')) return 'public_storefront';
     const requestedView = params.get('view');
-    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory'
+    if (params.has('activity') || params.has('listing') || params.has('group')) return 'directory';
+    return requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'professional_dashboard' || requestedView === 'directory' || requestedView === 'home'
       ? requestedView
-      : 'directory';
+      : 'home';
   });
 
   // Keep the SPA's visible view in the URL so refreshes and copied links reopen
@@ -138,6 +141,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     url.searchParams.delete('store');
     url.searchParams.delete('businessId');
     url.searchParams.delete('manage');
+    if (view !== 'directory') {
+      url.searchParams.delete('activity');
+      url.searchParams.delete('listing');
+      url.searchParams.delete('group');
+    }
     if (view !== 'merchant_admin') url.searchParams.delete('merchantTab');
     if (view !== 'super_admin') url.searchParams.delete('controlTab');
     if (view === 'public_storefront') {
@@ -147,7 +155,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       url.searchParams.delete('view');
       if (view !== 'super_admin') url.searchParams.delete('tab');
-      if (view !== 'directory' && view !== 'login') url.searchParams.set('view', view);
+      if (view !== 'directory' && view !== 'login' && view !== 'home') url.searchParams.set('view', view);
       if ((view === 'super_admin' || view === 'merchant_admin') && businessId) {
         url.searchParams.set('manage', businessId);
       }
@@ -249,9 +257,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('store') || params.get('businessId') || '';
     const requestedView = params.get('view');
-    // A newly signed-in account always lands on the public home directory.
-    // Explicit, role-authorized dashboard routes are still restorable on refresh.
-    const defaultView: ViewMode = 'directory';
+    // A newly signed-in account lands on the marketplace home; search is a separate route.
+    // Explicit, role-authorized dashboard routes and directory deep links remain restorable.
+    const defaultView: ViewMode = 'home';
 
     // A share URL must continue to open its public catalog for signed-in and guest
     // users alike, but it must never bypass the public-catalog API's publication gate.
@@ -282,7 +290,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    const safeRequestedView: ViewMode = requestedView === 'directory'
+    const isDirectoryDeepLink = params.has('activity') || params.has('listing') || params.has('group');
+    const safeRequestedView: ViewMode = requestedView === 'directory' || isDirectoryDeepLink
       ? 'directory'
       : requestedView === 'super_admin' && boot.authSession.role === 'admin'
         ? 'super_admin'
@@ -290,7 +299,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           ? 'merchant_admin'
           : requestedView === 'professional_dashboard' && canAccessProfessionalDashboard(boot.authSession)
             ? 'professional_dashboard'
-            : 'directory';
+            : 'home';
 
     const requestedManagedId = params.get('manage') || '';
     const requestedManagedBusiness = boot.businesses.find((business) => business.id === requestedManagedId);
@@ -305,7 +314,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     let active = true;
     fetchPublicDirectory()
-      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
+      .then((directory) => { if (active) { setDirectoryBusinesses(directory.businesses); setDirectoryProducts(directory.products); if (directory.activityModuleOverridesAvailable) setAdminSettings((current) => ({ ...current, activityModuleOverrides: directory.activityModuleOverrides })); } })
       .catch((error) => { console.warn('[MantiqatiX public directory]', error); })
       .finally(() => { if (active) setDirectoryLoading(false); });
     return () => { active = false; };
@@ -435,9 +444,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       routeBusinessIdRef.current = requestedManagedId;
       setSelectedBusinessIdState(requestedManagedId);
       setCurrentViewState(
-        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory'
+        requestedView === 'super_admin' || requestedView === 'merchant_admin' || requestedView === 'directory' || requestedView === 'home'
           ? requestedView
-          : 'directory'
+          : (params.has('activity') || params.has('listing') || params.has('group') ? 'directory' : 'home')
       );
     };
     window.addEventListener('popstate', restoreRouteFromLocation);
@@ -1020,7 +1029,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryProducts, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
