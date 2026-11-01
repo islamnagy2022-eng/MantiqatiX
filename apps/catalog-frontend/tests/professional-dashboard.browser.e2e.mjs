@@ -1148,6 +1148,29 @@ try {
     } finally { await context.close(); }
   }
 
+
+  // Unified account portal: authenticated users enter through the account page,
+  // while privileged dashboard routes stay out of public navigation.
+  {
+    const { context, page } = await newScenario(browser, roles.owner);
+    try {
+      await page.goto(baseUrl + '?view=account_portal', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('heading', { name: 'حسابي واشتراكاتي' }).waitFor({ state: 'visible', timeout: 15000 });
+      for (const label of ['لوحة تحكم نشاطي', 'لوحة صاحب النشاط', 'الداشبورد الاحترافية', 'لوحة الإدارة والعمولات']) {
+        assert.equal(await page.getByRole('button', { name: label, exact: true }).count(), 0, 'public navigation must not expose dashboard tab: ' + label);
+      }
+      await page.getByRole('button', { name: 'اشتراكاتي', exact: true }).click();
+      await page.getByRole('heading', { name: 'اشتراكاتي', exact: true }).waitFor({ state: 'visible' });
+      await page.getByText('عرض فقط: لا تنشئ هذه الشاشة مدفوعات ولا تغير حالة الاشتراك.', { exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'صلاحياتي', exact: true }).click();
+      await page.getByRole('heading', { name: 'صلاحياتي', exact: true }).waitFor({ state: 'visible' });
+      await page.getByRole('button', { name: 'إدارة النشاط', exact: true }).click();
+      await page.getByRole('heading', { name: 'أدوات إدارة النشاط', exact: true }).waitFor({ state: 'visible' });
+      await assertNoHorizontalOverflow(page, '390px unified account portal');
+      results.push('unified-account-portal-route-subscription-permissions-and-management');
+    } finally { await context.close(); }
+  }
+
   
 } finally {
   await browser.close();
