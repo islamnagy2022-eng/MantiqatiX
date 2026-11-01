@@ -44,7 +44,7 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const marketing = moduleConfig.marketing;
   const normalizeSearch = (value: string) => value.toLocaleLowerCase('ar-EG').normalize('NFKC')
     .replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
-    .replace(/[\\u064B-\\u065F\\u0670]/g, '').replace(/\\s+/g, ' ').trim();
+    .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
   const matchesSelectedSpecialty = (value: string) => selectedSpecialty === 'all' ||
     resolveCanonicalSpecialty(value, category.id) === resolveCanonicalSpecialty(selectedSpecialty, category.id);
   const matchesQuery = (values: Array<string | null | undefined>) => {
