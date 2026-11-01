@@ -73,12 +73,66 @@ Deno.serve(async (req: Request) => {
       return out(origin, { listing: { ...publicListing, can_edit: canEdit, owned_business_id: canEdit ? String(data.claimed_business_id || "") : null } });
     }
     const type = clean(url.searchParams.get("type"), 40);
-    let query = service.from("public_directory_listings").select(publicFields)
-      .eq("listing_status", "PUBLISHED").order("specialty", { ascending: true }).order("display_name", { ascending: true }).limit(500);
-    if (type && listingTypes.has(type)) query = query.eq("listing_type", type);
-    const { data, error } = await query;
+    const pageMode = ["limit","cursor","governorate","district","village","specialty","q"].some((key) => url.searchParams.has(key));
+    if (!pageMode) {
+      let legacyQuery = service.from("public_directory_listings").select(publicFields)
+        .eq("listing_status", "PUBLISHED").order("specialty", { ascending: true }).order("display_name", { ascending: true }).limit(500);
+      if (type && listingTypes.has(type)) legacyQuery = legacyQuery.eq("listing_type", type);
+      const { data, error } = await legacyQuery;
+      if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
+      return out(origin, { listings: data || [] });
+    }
+
+    // Stable keyset pagination: never use offset for the growing national directory.
+    const rawLimit = Number(url.searchParams.get("limit") || "100");
+    if (!Number.isInteger(rawLimit) || rawLimit < 1 || rawLimit > 100) {
+      return out(origin, { error: "INVALID_PAGE_LIMIT", message: "حجم الصفحة يجب أن يكون بين 1 و100." }, 400);
+    }
+    const limit = rawLimit;
+    const cursorRaw = clean(url.searchParams.get("cursor"), 1200);
+    let cursor: { created_at: string; id: string } | null = null;
+    if (cursorRaw) {
+      try {
+        const decoded = JSON.parse(atob(cursorRaw.replace(/-/g, "+").replace(/_/g, "/")));
+        if (!decoded || typeof decoded.created_at !== "string" ||
+          Number.isNaN(Date.parse(decoded.created_at)) ||
+          typeof decoded.id !== "string" ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decoded.id)) {
+          throw new Error("invalid cursor");
+        }
+        cursor = { created_at: new Date(decoded.created_at).toISOString(), id: decoded.id };
+      } catch {
+        return out(origin, { error: "INVALID_PAGE_CURSOR", message: "مؤشر تحميل النتائج غير صالح. أعد تحميل الدليل." }, 400);
+      }
+    }
+
+    let pageQuery = service.from("public_directory_listings").select(publicFields)
+      .eq("listing_status", "PUBLISHED")
+      .order("created_at", { ascending: false }).order("id", { ascending: false })
+      .limit(limit + 1);
+    if (type && listingTypes.has(type)) pageQuery = pageQuery.eq("listing_type", type);
+    const governorate = clean(url.searchParams.get("governorate"), 100);
+    const district = clean(url.searchParams.get("district"), 100);
+    const village = clean(url.searchParams.get("village"), 100);
+    const specialty = clean(url.searchParams.get("specialty"), 160);
+    const search = clean(url.searchParams.get("q"), 100).replace(/[%,()]/g, " ").replace(/\s+/g, " ").trim();
+    if (governorate) pageQuery = pageQuery.eq("governorate", governorate);
+    if (district) pageQuery = pageQuery.eq("district", district);
+    if (village) pageQuery = pageQuery.eq("village", village);
+    if (specialty) pageQuery = pageQuery.ilike("specialty", "%" + specialty + "%");
+    if (search) pageQuery = pageQuery.or("display_name.ilike.%"+search+"%,specialty.ilike.%"+search+"%");
+    if (cursor) {
+      pageQuery = pageQuery.or("created_at.lt."+cursor.created_at+",and(created_at.eq."+cursor.created_at+",id.lt."+cursor.id+")");
+    }
+    const { data, error } = await pageQuery;
     if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
-    return out(origin, { listings: data || [] });
+    const rows = data || [];
+    const hasMore = rows.length > limit;
+    const listings = hasMore ? rows.slice(0, limit) : rows;
+    const last = listings[listings.length - 1];
+    const nextCursor = hasMore && last ? btoa(JSON.stringify({ created_at: last.created_at, id: last.id }))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "") : null;
+    return out(origin, { listings, nextCursor, hasMore, pageSize: limit });
   }
   if (req.method !== "POST") return out(origin, { error: "METHOD_NOT_ALLOWED" }, 405);
   let body: any;
