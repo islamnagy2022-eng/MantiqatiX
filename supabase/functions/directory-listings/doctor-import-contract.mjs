@@ -8,7 +8,7 @@ const PROTECTED_METADATA_KEYS = Object.freeze([
 /** Normalize a hostname, rejecting URL fragments, credentials, paths and ports. */
 export function normalizeDirectorySourceHost(value) {
   const raw = String(value ?? "").trim().slice(0, 300).toLowerCase();
-  if (!raw || raw.includes("/") || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
+  if (!raw || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
   try {
     const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
     if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
