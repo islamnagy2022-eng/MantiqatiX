@@ -63,7 +63,7 @@ assert.match(action, /rawSecondaryPhone\.replace\(\/\\D\/g, ""\)\.length >= 7/, 
 
 assert.match(action, /if \(!row\.slug\) delete patch\.slug/, "Existing slug must survive imports that omit a new slug");
 assert.match(action, /if \(!row\.sourceCheckedAt && !row\.source_checked_at\) delete patch\.source_checked_at/, "Source checked date must not be refreshed without a new observation date");
-assert.match(action, /if \(!hasRequestedStatus\) delete patch\.listing_status/, "Existing DRAFT/HIDDEN/PUBLISHED status must be preserved unless explicitly changed");
+assert.match(action, /if \(!canApplyRequestedStatus\) delete patch\.listing_status/, "Existing listing status must be preserved when the batch cannot authorize publication");
 assert.match(action, /"updated_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Update result must preserve the actual saved status label");
 assert.match(action, /"inserted_" \+ String\(saved\.data\.listing_status\)\.toLowerCase\(\)/, "Insert result must preserve the actual saved status label");
 assert.match(action, /delete patch\.claim_status/, "Import must not reset claim/ownership state");
