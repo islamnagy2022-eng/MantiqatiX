@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { buildDirectoryPaginationOrFilter, sanitizeDirectoryPaginationSearch } from "../_shared/directory-pagination-filter.mjs";
+import { buildDirectoryPaginationOrFilter, sanitizeDirectoryPaginationSearch } from "./pagination-filter.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
