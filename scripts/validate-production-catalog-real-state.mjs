@@ -266,12 +266,12 @@ assert.match(directoryListingsFunction, /INVALID_PAGE_CURSOR/,
   'Malformed cursors must fail closed with a clear client error.');
 assert.match(directoryListingsFunction, /\.eq\("listing_status", "PUBLISHED"\)/,
   'Paginated public directory reads must never expose draft or hidden listings.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("governorate", governorate\)/,
-  'Governorate must be applied to the database query before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("district", district\)/,
-  'Markaz/district must be applied to the database query before the page limit.');
-assert.match(directoryListingsFunction, /pageQuery = pageQuery\.eq\("village", village\)/,
-  'Village must be applied to the database query before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("governorate",/,
+  'Governorate must be applied with prefix-tolerant matching before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("district",/,
+  'Markaz/district must be applied with prefix-tolerant matching before the page limit.');
+assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("village",/,
+  'Village must be applied with prefix-tolerant matching before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("address",/,
   'Area/address must be applied to the database query before the page limit.');
 assert.match(directoryListingsFunction, /pageQuery = pageQuery\.ilike\("specialty",/,
