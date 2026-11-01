@@ -452,10 +452,6 @@ Deno.serve(async (req: Request) => {
           source_phone_verified: false,
           owner_confirmation_required: true,
           professional_registration_verified: false,
-          source_status: "UNVERIFIED_IMPORTED_DATA",
-          source_phone_verified: false,
-          owner_confirmation_required: true,
-          professional_registration_verified: false,
         },
         updated_by: user.id,
       };
