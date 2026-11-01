@@ -4,20 +4,31 @@ export function sanitizeDirectoryPaginationSearch(value) {
   return String(value ?? "").slice(0, 100).replace(/[^\p{L}\p{N}\s+-]/gu, " ").replace(/\s+/g, " ").trim();
 }
 
-export function buildDirectoryPaginationOrFilter(searchValue, cursor) {
+export function buildDirectoryPaginationOrFilter(searchValue, cursor, specialtyValue = "") {
   const search = sanitizeDirectoryPaginationSearch(searchValue);
-  const cursorExpression = cursor
-    ? "or(created_at.lt." + cursor.created_at + ",and(created_at.eq." + cursor.created_at + ",id.lt." + cursor.id + "))"
+  const specialty = sanitizeDirectoryPaginationSearch(specialtyValue);
+  const pattern = (value) => "%" + value + "%";
+  const searchTerms = search
+    ? SEARCH_COLUMNS.map((column) => column + ".ilike." + pattern(search)).join(",")
     : "";
-  if (search && cursorExpression) {
-    const pattern = "%" + search + "%";
-    return SEARCH_COLUMNS.map((column) => "and(" + column + ".ilike." + pattern + "," + cursorExpression + ")").join(",");
+  // The selected specialty may be stored in either legacy specialty field.
+  const specialtyTerms = specialty
+    ? "taxonomy_specialty.ilike." + pattern(specialty) + ",specialty.ilike." + pattern(specialty)
+    : "";
+  const cursorTerms = cursor
+    ? "created_at.lt." + cursor.created_at +
+      ",and(created_at.eq." + cursor.created_at + ",id.lt." + cursor.id + ")"
+    : "";
+
+  const clauses = [];
+  if (searchTerms) clauses.push("or(" + searchTerms + ")");
+  if (specialtyTerms) clauses.push("or(" + specialtyTerms + ")");
+  if (cursorTerms) clauses.push("or(" + cursorTerms + ")");
+  if (!clauses.length) return null;
+  if (clauses.length === 1) {
+    return searchTerms || specialtyTerms || cursorTerms;
   }
-  if (search) {
-    const pattern = "%" + search + "%";
-    return SEARCH_COLUMNS.map((column) => column + ".ilike." + pattern).join(",");
-  }
-  return cursorExpression ? cursorExpression.slice(3, -1) : null;
+  return "and(" + clauses.join(",") + ")";
 }
 
 /** @param {unknown} value @returns {number | null} */
