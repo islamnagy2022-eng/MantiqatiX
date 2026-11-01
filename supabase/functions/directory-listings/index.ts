@@ -429,7 +429,7 @@ Deno.serve(async (req: Request) => {
       const importStatus = resolveDoctorImportStatus(row, hasPhone);
       if (!importStatus.valid) {
         failed += 1;
-        results.push({ index, status: "failed", reason: importStatus.reason });
+        results.push({ index, status: "failed", reason: importStatus.reason || "INVALID_LISTING_STATUS" });
         continue;
       }
       const hasRequestedStatus = importStatus.hasRequestedStatus;
