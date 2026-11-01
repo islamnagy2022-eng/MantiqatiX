@@ -103,6 +103,8 @@ jobs:
           console.log('PUBLIC_DIRECTORY_SMOKE=PASS; businesses=' + d.businesses.length + '; qadam_items=' + q.items.length);
           console.log('VERIFIED_BUSINESS_PUBLIC_DIRECTORY_SMOKE=PASS');
           NODE
+      - name: Smoke test live directory keyset pagination
+        run: node scripts/production/smoke-directory-listings-pagination.mjs
       - name: Install web runtime dependency
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Vendor Supabase browser SDK
