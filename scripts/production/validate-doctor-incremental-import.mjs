@@ -43,7 +43,7 @@ assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must 
 assert.match(importContract, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a phone must be rejected when explicitly requested");
 assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
 assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
-assert.match(action, /directory_source_permission_evidence/, "Import must validate against the private evidence registry");
+assert.doesNotMatch(action, /directory_source_permission_evidence/, "Import action must remain independent from the optional private evidence registry");
 assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence registration must require explicit doctor profile republication scope");
 assert.match(edge, /allowsCommercialRepublication === true/, "Evidence registration must require explicit commercial republication scope");
 assert.match(edge, /allows_doctor_profile_republication: allowsDoctorProfileRepublication/, "Doctor profile scope must be stored from explicit input");
