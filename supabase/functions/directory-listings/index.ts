@@ -279,13 +279,15 @@ Deno.serve(async (req: Request) => {
       const governorate = clean(row.governorate, 100);
       const district = clean(row.district, 100);
       const village = clean(row.village, 100);
-      const phone = clean(row.phone, 40).replace(/[^0-9+]/g, "");
-      const secondaryPhone = clean(row.secondaryPhone || row.secondary_phone, 40).replace(/[^0-9+]/g, "");
+      const rawPhone = clean(row.phone, 40).replace(/[^0-9+]/g, "");
+      const rawSecondaryPhone = clean(row.secondaryPhone || row.secondary_phone, 40).replace(/[^0-9+]/g, "");
+      const phone = rawPhone.replace(/\D/g, "").length >= 7 ? rawPhone : "";
+      const secondaryPhone = rawSecondaryPhone.replace(/\D/g, "").length >= 7 ? rawSecondaryPhone : "";
       const taxonomyCategoryId = clean(row.taxonomyCategoryId || row.taxonomy_category_id, 180);
       const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
       const sourceName = clean(row.sourceName || row.source_name || "Doctor directory import", 160);
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
-      const hasPhone = phone.replace(/\D/g, "").length >= 7 || secondaryPhone.replace(/\D/g, "").length >= 7;
+      const hasPhone = Boolean(phone || secondaryPhone);
 
       if (displayName.length < 2 || !specialty || !governorate || !district ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
@@ -355,6 +357,11 @@ Deno.serve(async (req: Request) => {
         }
 
         if (existing) {
+          // An incomplete source snapshot must not erase previously known contact data.
+          if (!hasPhone) {
+            delete patch.phone;
+            delete patch.secondary_phone;
+          }
           // Never downgrade an already-public record merely because a later source
           // snapshot omitted a phone number.
           if (existing.listing_status === "PUBLISHED" && !hasPhone) patch.listing_status = "PUBLISHED";
