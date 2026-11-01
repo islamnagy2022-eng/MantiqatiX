@@ -1672,3 +1672,12 @@ A separate source review found a second platform-root authorization model: the n
 - Supporting post-merge workflows passed: Module Professionalization [41266169641](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169641), MantiGO privacy [41266169622](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169622), Backend-only Module Boundary [41266169620](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169620), and Production Health Monitor [41266169610](https://github.com/islamnagy2022-eng/MantiqatiX/actions/runs/41266169610).
 - **Result:** nested specialty folders and per-specialty search are merged, validated on main, deployed and verified against the deployed origin. Production URL: https://islamnagy2022-eng.github.io/MantiqatiX/.
 - **Scope/safety:** no production database/schema/RLS/Auth/Edge Function/payment/finance/data mutation. This feature closure does not change the independent full-platform release gate, which remains blocked/not certified pending its separate evidence and migration work.
+
+
+## 2026-11-01 — CAT-DEFAULT-COVERS — doctor and pharmacy default covers
+- User requested that the existing default personal image for unverified doctors also be used as the cover, and the same for pharmacies.
+- Tracked in GitHub issue #633.
+- Production mapper now sets coverUrl to the exact doctor/pharmacy default only when unverified and no owner-selected cover exists; explicit owner cover wins. Existing logo fallback and logo precedence are unchanged.
+- Standalone public directory detail pages now use the resolved profile image as the hero cover for unclaimed doctor/pharmacy pages; an explicit metadata.coverImageUrl/cover_image_url wins.
+- Static production-state assertions cover both categories, custom-cover precedence and standalone detail-page hero rendering.
+- **Verification pending:** exact-head CI, browser E2E, merge and deployed-origin checks. No production schema/data/security/payment changes.
