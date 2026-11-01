@@ -275,7 +275,7 @@ assert.match(directoryView, /limit: 20/,
   'The public directory must start with a 20-row page.');
 assert.match(directoryView, /loadMoreDirectoryListings/,
   'The public directory must expose cursor-based continuation.');
-assert.match(directoryView, /governorate: selectedGovFilter/,
+assert.match(directoryView, /governorate: selectedGovFilter !== 'all'/,
   'Directory pagination must retain the chosen governorate scope.');
 assert.match(activityModuleView, /onDirectoryListingFiltersChange/,
   'Activity and specialty folders must request server-side filters as their search changes.');
