@@ -1710,3 +1710,11 @@ A separate source review found a second platform-root authorization model: the n
 - Confirmed that geographic, taxonomy and specialty predicates are applied before SQL `LIMIT`, preventing valid results from being skipped between pages.
 - Legacy taxonomy group/category alias expansion is included and covered by executable helper assertions; keyset cursor tests preserve microsecond timestamp precision.
 - Exact-head CI, browser E2E, isolated DB-backed page-continuity tests, merge, and production Edge deployment remain separate release gates. Current production directory coverage has not changed.
+
+
+## 2026-11-01 — carry forward doctor/pharmacy default cover change
+- Preserved main commit `4796ef4736748e22f465d4fbdc1fb779ff7d8097` while continuing national directory pagination work.
+- Applied the shared default doctor/pharmacy cover fallback to the production mapper and to unclaimed directory detail-page hero covers.
+- Explicit owner/admin cover URLs retain precedence; verified businesses and other categories keep their existing behavior.
+- Added matching static regression contracts. The pagination branch will be merged with current main ancestry before final CI/review.
+- No database/schema/RLS/Auth/Edge Function or doctor-record changes.
