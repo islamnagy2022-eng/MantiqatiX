@@ -266,4 +266,11 @@ assert.ok(directory.includes('availableGroups.map') && directory.includes('avail
 assert.ok(directory.includes('{group.name}') && directory.includes('{groupCategories.length} نشاط'), 'group-folder cards must retain their names and activity counts after activity-grid layout changes.');
 
 
+assert.ok(directory.includes('useState(20)') && directory.includes('filteredBusinesses.slice(0, visibleActivityCount)'), 'Main activity directory must initially render no more than 20 registered activities.');
+assert.ok(directory.includes('visibleActivityCount - visibleBusinesses.length') && directory.includes('filteredUnconfirmedListings.slice'), 'Main activity directory must include unconfirmed listings within the same 20-item initial batch.');
+assert.ok(directory.includes('setVisibleActivityCount((current) => current + 20)') && directory.includes('رؤية المزيد من الأنشطة'), 'Main activity directory must append the next 20 items only after an explicit load-more action.');
+assert.ok(directoryListingsView.includes('useState(20)') && directoryListingsView.includes('filtered.slice(0, visibleListingCount)'), 'Public unverified directory pages must initially render no more than 20 entries.');
+assert.ok(directoryListingsView.includes('setVisibleListingCount((current) => current + 20)') && directoryListingsView.includes('رؤية المزيد'), 'Public unverified directory pages must append the next 20 entries on demand.');
+assert.ok(directory.includes('setVisibleActivityCount(20)') && directoryListingsView.includes('setVisibleListingCount(20)'), 'Changing search or taxonomy/geographic filters must reset the visible batch to 20.');
+
 console.log(`Canonical taxonomy contract: PASS — ${groups.length} groups, ${rows.length} activities (5 per group), specialties, legacy mapping, admin UI, and server persistence.`);
