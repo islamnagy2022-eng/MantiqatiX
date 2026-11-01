@@ -943,6 +943,7 @@ export const DirectoryView: React.FC = () => {
               )}
             </div>
           ) : (
+            <>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
               {visibleBusinesses.map((biz) => {
                 return (
@@ -1110,6 +1111,7 @@ export const DirectoryView: React.FC = () => {
                 </button>
               </div>
             )}
+            </>
           )}
         </div>
       </div>
