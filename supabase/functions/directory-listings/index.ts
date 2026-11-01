@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { buildDirectoryPaginationOrFilter, sanitizeDirectoryPaginationSearch } from "../_shared/directory-pagination-filter.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -119,40 +120,10 @@ Deno.serve(async (req: Request) => {
     const functionalGroupId = clean(url.searchParams.get("functionalGroupId"), 100);
     const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
     const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
-    const search = clean(url.searchParams.get("q"), 100).replace(/[%,()."\\]/g, " ").replace(/\s+/g, " ").trim();
-    // Substring matching preserves common Arabic administrative prefixes and aliases.
-    if (governorate) pageQuery = pageQuery.ilike("governorate", "%" + governorate.replace(/[%]/g, " ") + "%");
-    if (district) pageQuery = pageQuery.ilike("district", "%" + district.replace(/[%]/g, " ") + "%");
-    if (village) pageQuery = pageQuery.ilike("village", "%" + village.replace(/[%]/g, " ") + "%");
-    if (address) pageQuery = pageQuery.ilike("address", "%" + address.replace(/[%]/g, " ") + "%");
-    if (specialty) pageQuery = pageQuery.ilike("specialty", "%" + specialty.replace(/[%]/g, " ") + "%");
-    if (functionalGroupId) pageQuery = pageQuery.eq("functional_group_id", functionalGroupId);
-    if (taxonomyCategoryId) pageQuery = pageQuery.eq("taxonomy_category_id", taxonomyCategoryId);
-    if (taxonomySpecialty) pageQuery = pageQuery.ilike("taxonomy_specialty", "%" + taxonomySpecialty.replace(/[%]/g, " ") + "%");
-
-    // Keep q and keyset continuation in one PostgREST logic tree. A second
-    // .or() would append another query parameter with the same name.
-    const searchColumns = [
-      "display_name", "specialty", "taxonomy_specialty", "phone", "secondary_phone",
-      "address", "governorate", "district", "village",
-    ];
-    const cursorExpression = cursor
-      ? "or(created_at.lt." + cursor.created_at +
-        ",and(created_at.eq." + cursor.created_at + ",id.lt." + cursor.id + "))"
-      : "";
-    if (search && cursor) {
-      const pattern = "%" + search + "%";
-      pageQuery = pageQuery.or(searchColumns.map((column) =>
-        "and(" + column + ".ilike." + pattern + "," + cursorExpression + ")"
-      ).join(","));
-    } else if (search) {
-      const pattern = "%" + search + "%";
-      pageQuery = pageQuery.or(searchColumns.map((column) =>
-        column + ".ilike." + pattern
-      ).join(","));
-    } else if (cursorExpression) {
-      pageQuery = pageQuery.or(cursorExpression.slice(3, -1));
-    }
+    const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
+    // Keep q and keyset continuation in one PostgREST logic tree.
+    const logicalFilter = buildDirectoryPaginationOrFilter(search, cursor);
+    if (logicalFilter) pageQuery = pageQuery.or(logicalFilter);
     const { data, error } = await pageQuery;
     if (error) return out(origin, { error: "DIRECTORY_READ_FAILED" }, 500);
     const rows = data || [];
