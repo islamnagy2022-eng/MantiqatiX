@@ -829,7 +829,7 @@ try {
       { id: '40000000-0000-0000-0000-000000000004', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000005', name: 'نشاط غير موثق بروابط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/unverified-logo.svg', externalCoverUrl: 'https://cdn.example.test/unverified-cover.svg' }, provider: { verified: false } },
     ];
-    const { context, page } = await newScenario(browser, null, fixtures);
+    const { context, page } = await newScenario(browser, null, fixtures, { initialRoute: '?view=directory' });
     try {
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const logoLinks = page.locator('a[aria-label="فتح الرابط الخارجي للصورة التعريفية"]');
