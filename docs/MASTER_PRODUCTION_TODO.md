@@ -3097,3 +3097,19 @@ A separate source review found a second platform-root authorization model: the n
 - Latest exact-head browser run `41254516117` failed at `professional-dashboard.browser.e2e.mjs:865` because the duplicated specialty-filter scenario tried to open the “ممارسات وعيادات طبية” activity card before opening its parent “الطب والصحة” group.
 - The production UI route is intentionally group → activity → specialty. Updated only the test to open the parent group before selecting the activity; no UI or authorization assertion was relaxed.
 - Re-run all exact-head CI before merge. PR #628 remains open/unmerged and no production deployment is claimed. `FULL_PLATFORM_GATE=BLOCKED / NOT CERTIFIED`.
+
+
+## DIR-ACTIVITY-SEARCH-20261101 — صفحة نتائج وبحث متخصصة لكل نشاط
+- **Request ledger:** GitHub issue [#630](https://github.com/islamnagy2022-eng/MantiqatiX/issues/630).
+- **Status:** TODO / NOT IMPLEMENTED.
+- **Priority:** P1 — Public directory navigation and discovery.
+- **Current finding:** `DirectoryView.tsx` opens `ActivityModuleView`, but the activity module currently shows overview, specialties, marketing, and operations without listing the businesses belonging to that activity or an in-module search.
+- **Target behavior:** opening Pharmacies (or any other activity) opens its own activity page with the actual matching businesses and a search scoped to that activity.
+- **Shared filters:** specialty, verification state, governorate, markaz/section, village/area; respect the existing saved geo preference and location scope.
+- **Activity-specific filters:** show only when backed by real fields/data. Pharmacy examples such as delivery, on-duty status, services, or medicine availability must not be displayed as working filters until a trustworthy data source exists.
+- **Ordering and visibility:** verified businesses first; include only public active records and published unclaimed listings under existing directory rules; never expose drafts/hidden listings.
+- **Navigation:** selecting a result opens the existing business/listing detail route; preserve group → activity → specialty navigation and current global search.
+- **Architecture:** reuse the current directory query/filter logic and shared result-card behavior; configure activity-specific search fields through a registry/config rather than cloning a page per activity.
+- **Constraints:** preserve current visual identity; no schema/RLS/Edge Function/production data changes unless separately justified and reviewed.
+- **Acceptance tests:** pharmacy and non-medical activity search; specialty and geographic filters; verified-first ordering; public/unclaimed visibility; detail navigation; direct activity URL and browser back/forward; lint/typecheck/build and deployed-origin smoke.
+- **Deployment:** NOT CLAIMED. Do not mark complete until exact-head CI and deployed-origin verification pass.
