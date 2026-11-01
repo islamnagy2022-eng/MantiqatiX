@@ -442,6 +442,28 @@ const results = [];
   } finally { await context.close(); }
 }
 
+// First-visit location consent is also available on the marketplace root, before search is opened.
+{
+  const { context, page } = await newScenario(browser, null, liveDirectory.businesses, { geoFirstVisit: true });
+  try {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+    await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
+    await consentDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+    await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+    const preference = await page.evaluate(() => JSON.parse(localStorage.getItem('mantiqatix.geo-discovery.v1') || 'null'));
+    assert.equal(preference?.completed, true, 'root consent choice must persist before the modal closes');
+    assert.equal(preference?.mode, 'manual', 'Egypt-wide selection must preserve manual location mode');
+    const leakedCoordinates = await page.evaluate(() => Object.entries(localStorage).some(([key, value]) =>
+      /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01')));
+    assert.equal(leakedCoordinates, false, 'homepage location consent must never persist exact GPS coordinates');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).waitFor({ state: 'detached', timeout: 5000 });
+    results.push('marketplace-home-first-visit-location-consent-and-privacy');
+  } finally { await context.close(); }
+}
+
 // Leaving a shareable activity folder for home removes stale directory query state.
 {
   const { context, page } = await newScenario(browser);
