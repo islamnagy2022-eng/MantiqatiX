@@ -420,7 +420,7 @@ const results = [];
     await page.getByRole('region', { name: 'الأنشطة الموثقة' }).getByRole('button', { name: 'فتح كتالوج ' + firstVerified.name }).click();
     await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + firstVerified.name, exact: true }).waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.get('store'), firstVerified.id, 'opening a public homepage card must load the correct stable public storefront route');
-    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByRole('banner').getByRole('button', { name: 'الرئيسية', exact: true }).click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
 
     for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
@@ -435,7 +435,7 @@ const results = [];
     await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'the directory must survive direct reload');
 
-    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByRole('banner').getByRole('button', { name: 'الرئيسية', exact: true }).click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'home navigation must restore the canonical root URL');
     results.push('marketplace-home-root-live-businesses-and-separate-search-navigation');
@@ -448,7 +448,7 @@ const results = [];
   try {
     await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies&group=medical_health', { waitUntil: 'domcontentloaded' });
     await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
-    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByRole('banner').getByRole('button', { name: 'الرئيسية', exact: true }).click();
     await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
     const route = new URL(page.url());
     assert.equal(route.searchParams.has('activity'), false, 'home must clear the previous activity deep link');
