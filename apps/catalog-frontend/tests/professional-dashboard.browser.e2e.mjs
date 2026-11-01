@@ -314,6 +314,10 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
         directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
         return json({ listings: directoryListingsState.listings, claims: [], businesses: [] });
       }
+      if (body.action === 'ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE') {
+        directoryAdminRequests.push({ action: body.action, authorization: request.headers().authorization || '' });
+        return json({ evidence: [] });
+      }
       if (body.action === 'UPSERT_LISTING') {
         directoryAdminRequests.push({ action: body.action, payload: body, authorization: request.headers().authorization || '' });
         const existing = directoryListingsState.listings.find((listing) => listing.id === body.id);
@@ -809,6 +813,9 @@ try {
     );
     try {
       await page.getByText('عيادة اختبار قديمة', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const evidenceListRequest = directoryAdminRequests.find((request) => request.action === 'ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE');
+      assert.ok(evidenceListRequest, 'opening the directory admin must load the private source permission evidence registry');
+      assert.equal(evidenceListRequest.authorization, 'Bearer e2e-access-token-not-a-real-credential', 'source evidence reads must carry the signed-in bearer token');
       await page.getByRole('button', { name: /استكمال \/ تعديل/ }).click();
       const groupSelect = page.getByLabel('المجموعة الوظيفية *');
       const categorySelect = page.getByLabel('النشاط الرئيسي داخل المجموعة *');
