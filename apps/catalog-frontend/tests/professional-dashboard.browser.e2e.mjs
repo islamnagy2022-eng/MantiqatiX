@@ -416,6 +416,13 @@ const results = [];
     await page.getByRole('heading', { name: firstVerified.name, exact: true }).first().waitFor({ state: 'visible', timeout: 15000 });
     assert.equal(new URL(page.url()).searchParams.has('view'), false, 'the root URL must resolve to marketplace home');
     assert.equal(await page.locator('nav').getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'search must be exposed as its own navigation destination');
+
+    await page.getByRole('button', { name: 'فتح كتالوج ' + firstVerified.name }).click();
+    await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + firstVerified.name, exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('store'), firstVerified.id, 'opening a public homepage card must load the correct stable public storefront route');
+    await page.locator('nav').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+
     for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
       await page.setViewportSize(viewport);
       await assertNoHorizontalOverflow(page, 'marketplace home at ' + viewport.width + 'px');
