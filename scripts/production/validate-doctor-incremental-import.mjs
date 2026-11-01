@@ -40,6 +40,8 @@ assert.match(action, /source_name: sourceName/, "Imported records must retain so
 assert.match(action, /source_url: sourceUrl/, "Imported records must retain source URL");
 assert.match(action, /source_status: "UNVERIFIED_IMPORTED_DATA"/, "Imported doctors must remain explicitly unverified");
 assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must call tested publication-state validation");
+assert.match(action, /requestedStatus === "PUBLISHED" \? "DRAFT" : importStatus\.listingStatus/, "Batch ingestion must stage publication requests as drafts");
+assert.match(action, /hasRequestedStatus && requestedStatus !== "PUBLISHED"/, "Batch ingestion must not apply a public publication request to an existing listing");
 assert.match(importContract, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a phone must be rejected when explicitly requested");
 assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
 assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
