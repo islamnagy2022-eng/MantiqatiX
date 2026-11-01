@@ -446,7 +446,8 @@ try {
         await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
-      const testCards = page.locator('main[dir="rtl"] h3').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
+      await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
       await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
       assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
