@@ -5,11 +5,13 @@ const edgePath = "supabase/functions/directory-listings/index.ts";
 const frontendPath = "apps/catalog-frontend/src/lib/directoryListings.ts";
 const adminPath = "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx";
 const evidenceMigrationPath = "supabase/migrations/20261101150000_directory_source_permission_evidence.sql";
+const importContractPath = "supabase/functions/directory-listings/doctor-import-contract.mjs";
 
 const edge = readFileSync(edgePath, "utf8");
 const frontend = readFileSync(frontendPath, "utf8");
 const admin = readFileSync(adminPath, "utf8");
 const evidenceMigration = readFileSync(evidenceMigrationPath, "utf8");
+const importContract = readFileSync(importContractPath, "utf8");
 
 const actionStart = edge.indexOf('if (action === "IMPORT_DOCTOR_BATCH")');
 assert.notEqual(actionStart, -1, "IMPORT_DOCTOR_BATCH action must exist");
@@ -33,6 +35,15 @@ assert.match(action, /\.eq\("governorate", governorate\)/, "Name deduplication m
 assert.match(action, /\.eq\("district", district\)/, "Name deduplication must include district");
 
 assert.match(action, /sourcePermissionEvidenceId/, "Each import row must reference an approved permission evidence record");
+assert.match(action, /isCurrentDoctorRepublicationEvidence\(approvedEvidence, sourceUrl, sourceName\)/, "Import must call the tested source-evidence validator");
+assert.match(importContract, /evidence.status === "APPROVED"/, "Only approved evidence may be used");
+assert.match(importContract, /!evidence.revoked_at/, "Revoked evidence must be rejected");
+assert.match(importContract, /expiresAt > currentTime/, "Expired evidence must be rejected");
+assert.match(importContract, /sourceHost === evidence.source_host/, "Source host must match approved evidence");
+assert.match(importContract, /allows_doctor_profile_republication === true/, "Doctor republication scope must be true");
+assert.match(importContract, /allows_commercial_republication === true/, "Commercial republication scope must be true");
+assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must call tested publication-state validation");
+assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
 assert.match(action, /directory_source_permission_evidence/, "Import must validate against the private evidence registry");
 assert.match(edge, /allowsDoctorProfileRepublication === true/, "Evidence registration must require explicit doctor profile republication scope");
 assert.match(edge, /allowsCommercialRepublication === true/, "Evidence registration must require explicit commercial republication scope");
