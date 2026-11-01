@@ -289,6 +289,8 @@ Deno.serve(async (req: Request) => {
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
       const sourcePermissionStatus = clean(row.sourcePermissionStatus || row.source_permission_status, 40).toUpperCase();
       const allowedSourcePermissionStatuses = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
+      const sourceCheckedAtInput = row.sourceCheckedAt || row.source_checked_at;
+      const sourceCheckedAt = dateOrNull(sourceCheckedAtInput);
       let validSourceUrl = false;
       try {
         const parsedSourceUrl = new URL(String(sourceUrl || ""));
@@ -298,6 +300,11 @@ Deno.serve(async (req: Request) => {
       }
       const hasPhone = Boolean(phone || secondaryPhone);
 
+      if (sourceCheckedAtInput && !sourceCheckedAt) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "INVALID_SOURCE_CHECKED_AT" });
+        continue;
+      }
       if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !validSourceUrl ||
           !allowedSourcePermissionStatuses.has(sourcePermissionStatus) ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
@@ -352,7 +359,7 @@ Deno.serve(async (req: Request) => {
         village: village || null,
         source_name: sourceName,
         source_url: sourceUrl,
-        source_checked_at: dateOrNull(row.sourceCheckedAt || row.source_checked_at) || new Date().toISOString(),
+        source_checked_at: sourceCheckedAt || new Date().toISOString(),
         listing_status: listingStatus,
         claim_status: "UNCLAIMED",
         completeness,
