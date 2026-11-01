@@ -153,9 +153,9 @@ async function newScenario(browser, scenario = null, publicDirectoryBusinesses =
     geoKey: 'mantiqatix.geo-discovery.v1',
     // Non-GPS scenarios begin with the Egypt-wide manual fallback. GPS scenarios
     // opt out so they can verify the first-visit consent flow independently.
-    geoPreference: options.geoFirstVisit ? null : {
+    geoPreference: options.geoFirstVisit ? null : (options.geoPreference || {
       completed: true, mode: 'manual', governorate: 'all', markaz: 'all', village: 'all', area: 'all',
-    },
+    }),
   });
 
   const rpcObservation = { scopedBranchId: undefined };
