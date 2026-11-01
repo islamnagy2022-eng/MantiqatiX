@@ -507,17 +507,17 @@ try {
     });
     try {
       await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-      const cursorCards = page.locator('main[dir="rtl"] h3').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
+      const cursorCards = page.getByRole('heading').filter({ hasText: /^عيادة اختبار المؤشر \d{2}$/ });
       try {
         await cursorCards.first().waitFor({ state: 'visible', timeout: 15000 });
       } catch {
         throw new Error('Server-cursor E2E did not render first-page cards. Page requests: ' +
           JSON.stringify(directoryListingPageRequests) + '; visible page text: ' +
-          JSON.stringify((await page.locator('main[dir="rtl"]').innerText().catch(() => '')).slice(0, 1800)));
+          JSON.stringify((await page.locator('body').innerText().catch(() => '')).slice(0, 1800)));
       }
       assert.equal(await cursorCards.count(), 20, 'public directory must initially render exactly one 20-row server page');
       await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
-      await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
         .filter((node) => /^عيادة اختبار المؤشر \d{2}$/.test((node.textContent || '').trim())).length === 25);
       assert.equal(await cursorCards.count(), 25, 'cursor continuation must append the remaining five public listings without duplicates');
       assert.ok(directoryListingPageRequests.length >= 2, 'the root directory must request a second server page after load more');
