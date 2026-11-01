@@ -10,17 +10,11 @@ POST action: `IMPORT_DOCTOR_BATCH`
 
 The action is available only after the existing platform Super Admin authorization check. It accepts 1–20 records per request and processes them sequentially, returning per-row outcomes. The platform admin directory screen now includes a JSON batch-import panel that calls this action through the authenticated client helper.
 
-Every row must include a source name, an exact HTTP(S) source URL, and `sourcePermissionStatus`. Allowed values are:
-- `LICENSED`: written republication licence/permission has been obtained.
-- `OWNER_PROVIDED`: the doctor/clinic supplied the information.
-- `PUBLIC_PERMISSION_CONFIRMED`: the specific source explicitly permits republication.
+Every row must include a source name, an exact HTTP(S) source URL, and `sourcePermissionEvidenceId`. The ID must refer to an entry in the private `directory_source_permission_evidence` registry.
 
-A public webpage by itself is not proof of republication permission. Do not scrape or re-publish directories whose terms prohibit automated extraction or commercial republication without written permission.
+The registry records the exact source host, source name, permission basis, private evidence reference, optional SHA-256, scope, validity dates, reviewer, and revocation state. New evidence starts as `PENDING`; a different platform Super Admin must review the actual contract/consent/licence and approve it. Self-approval is rejected both in the Edge Function and by a database constraint. The importer accepts only evidence that is `APPROVED`, not revoked, currently valid, and explicitly covers doctor-profile plus commercial republication. Source host and source name must match the evidence record exactly (with a leading `www.` normalized).
 
-
-### Important limitation: permission status is an operator declaration
-
-The importer validates that the platform administrator selects one of the allowed permission-basis values, but it does **not** independently verify or store the underlying contract, consent, or licence document. Therefore, `LICENSED`, `OWNER_PROVIDED`, and `PUBLIC_PERMISSION_CONFIRMED` are operator declarations, not proof that republication rights have been verified. Do not use these values as a substitute for reviewing the actual evidence. Before accepting a batch, the responsible reviewer must confirm the applicable consent/licence outside the public listing record. A private, auditable evidence registry is a required hardening task before autonomous nationwide ingestion or high-volume batch operations.
+A public webpage by itself is not proof of republication permission. Do not scrape or re-publish directories whose terms prohibit automated extraction or commercial republication without written permission. The evidence reference must point to a private-storage object key or internal contract/consent reference; it must not be a public link. The current registry requires a human reviewer to inspect the referenced evidence; it does not independently authenticate the content of the file.
 
 ## Required row fields
 - `displayName`: doctor's public name
@@ -33,7 +27,7 @@ The importer validates that the platform administrator selects one of the allowe
 - `phone`, `secondaryPhone`
 - `address`, `village`
 - `taxonomySpecialty`
-- Required provenance: `sourceName`, `sourceUrl`, and `sourcePermissionStatus` (see allowed values above).
+- Required provenance: `sourceName`, `sourceUrl`, and an approved `sourcePermissionEvidenceId` whose host and source name match the row.
 - `sourceCheckedAt`
 - `listingStatus` (`PUBLISHED`, `DRAFT`, or `HIDDEN`; new rows default to PUBLISHED with a valid phone, otherwise DRAFT; on existing rows, an omitted status preserves the existing state).
 - `metadata`
@@ -63,14 +57,14 @@ The importer validates that the platform administrator selects one of the allowe
       "taxonomyCategoryId": "cat_medical_health_...",
       "sourceName": "مصدر الدليل",
       "sourceUrl": "https://example.com/profile",
-      "sourcePermissionStatus": "OWNER_PROVIDED"
+      "sourcePermissionEvidenceId": "UUID-FROM-APPROVED-EVIDENCE-REGISTRY"
     }
   ]
 }
 ```
 
 ## Release gate
-This branch adds the ingestion action but does not deploy it to production. Before deployment, run Edge Function type/lint checks and an authenticated smoke test with a disposable test listing; verify insert, update/deduplication, draft-without-phone, and unauthorized rejection. Then merge and deploy the function together with its pagination helper.
+This branch adds the evidence registry and ingestion action but does not deploy either the migration or Edge Function to production. Before deployment, apply the migration in an isolated database, run Deno/type/build and browser E2E, and run authenticated smoke tests with synthetic records for evidence registration, second-person approval, host/name mismatch rejection, expiry/revocation rejection, insert, update/deduplication, draft-without-phone, claim-state preservation, and unauthorized rejection. Then merge and deploy the migration and Edge Function together.
 
 
 ## Production snapshot checked 2026-11-01
@@ -78,3 +72,13 @@ This branch adds the ingestion action but does not deploy it to production. Befo
 Read-only verification found 568 published doctor-type listings across all 27 governorates. All 568 have a source URL and a valid primary or secondary phone; a normalized cross-check of primary and secondary phone fields found no duplicates. 511 records explicitly state that coordinates were not supplied by their source; none is marked with coordinates as verified by this audit. This demonstrates one or more records in every governorate, not a complete census of doctors or verified clinic geolocation. Existing records were not modified by this verification.
 
 Current production function remains unchanged until this PR passes runtime tests and is deployed. The import endpoint and UI in this branch are not yet active in production.
+
+
+## Private source-permission evidence registry (added on the feature branch)
+
+- Table: `public.directory_source_permission_evidence`; FORCE RLS, no direct grants to `anon` or `authenticated`, service-role-only access through the existing platform-Super-Admin-guarded Edge Function.
+- Supported actions: list evidence; register pending evidence; approve pending evidence; revoke pending/approved evidence.
+- Approval requires a second distinct platform Super Admin and an explicit confirmation that the referenced document was reviewed.
+- Import rows must carry `sourcePermissionEvidenceId`; source name and normalized hostname must match exactly; evidence must be approved, unrevoked, in date, and grant both doctor-profile and commercial republication scope.
+- Important limitation: the Edge Function validates registry state and the operator's review action, but it cannot independently decide whether a contract is legally sufficient. A human reviewer must inspect the private evidence document, and the legal/data owner must approve the intended commercial use.
+- Migration and UI are feature-branch changes only. They have not been applied to Production. An isolated migration replay and authenticated Edge Function runtime tests remain mandatory.
