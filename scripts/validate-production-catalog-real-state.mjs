@@ -11,6 +11,7 @@ const webConfig = fs.readFileSync('web/config.js', 'utf8');
 const directory = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryView.tsx', 'utf8');
 const directoryListingsView = fs.readFileSync('apps/catalog-frontend/src/components/DirectoryListingsView.tsx', 'utf8');
 const directoryListingsLib = fs.readFileSync('apps/catalog-frontend/src/lib/directoryListings.ts', 'utf8');
+const activityModuleView = fs.readFileSync('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', 'utf8');
 const directoryListingsFunction = fs.readFileSync('supabase/functions/directory-listings/index.ts', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
@@ -259,4 +260,27 @@ assert.match(directoryListingsLib, /fetchPublicDirectoryListingPage/,
   'Frontend must expose a typed paginated directory client.');
 assert.match(directoryListingsLib, /functionalGroupId[\s\S]*taxonomyCategoryId[\s\S]*taxonomySpecialty[\s\S]*nextCursor/,
   'Typed directory pagination client must pass taxonomy filters and return its continuation cursor.');
+
+assert.match(directoryListingsLib, /address: filters\.address/,
+  'The public directory client must pass the selected street/area filter to the paginated API.');
+assert.match(directoryListingsFunction, /address = clean\(url\.searchParams\.get\("address"\)/,
+  'The paginated API must support server-side street/area filtering.');
+assert.match(directoryListingsFunction, /secondary_phone\.ilike\./,
+  'Directory search must match public contact fields as well as listing names.');
+assert.match(directoryListingsFunction, /village\.ilike\./,
+  'Directory search must match address hierarchy fields.');
+assert.match(directoryView, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
+  'The main directory must load a server-filtered first page rather than the legacy 500-row list.');
+assert.match(directoryView, /limit: 20/,
+  'The public directory must start with a 20-row page.');
+assert.match(directoryView, /loadMoreDirectoryListings/,
+  'The public directory must expose cursor-based continuation.');
+assert.match(directoryView, /governorate: selectedGovFilter/,
+  'Directory pagination must retain the chosen governorate scope.');
+assert.match(activityModuleView, /onDirectoryListingFiltersChange/,
+  'Activity and specialty folders must request server-side filters as their search changes.');
+assert.match(activityModuleView, /onLoadMoreListings/,
+  'Activity and specialty folders must expose their own load-more action.');
+assert.doesNotMatch(directoryView, /fetchPublicDirectoryListings\(\)/,
+  'The main directory must not fall back to the capped legacy directory fetch.');
 console.log('PRODUCTION_CATALOG_REAL_STATE=PASS');
