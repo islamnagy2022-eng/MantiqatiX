@@ -126,6 +126,8 @@ jobs:
         run: node scripts/validate-catalog-geographic-search.mjs
       - name: Validate Google OAuth session and role contract
         run: node scripts/validate-catalog-google-auth-contract.mjs
+      - name: Validate unified subscriber account portal contract
+        run: node scripts/validate-unified-account-portal.mjs
       - name: Validate Facebook page import ownership and token handling
         run: node scripts/validate-facebook-page-import.mjs
       - name: Validate activity social links and click-to-call
