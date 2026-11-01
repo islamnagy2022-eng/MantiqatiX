@@ -8,6 +8,12 @@ import {
   parseDirectoryPaginationLimit,
   sanitizeDirectoryPaginationSearch,
 } from "./pagination-filter.mjs";
+import {
+  isCurrentDoctorRepublicationEvidence,
+  normalizeDirectorySourceHost,
+  resolveDoctorImportStatus,
+  sanitizeDoctorImportMetadata,
+} from "./doctor-import-contract.mjs";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const allowedOrigins = new Set([
@@ -43,18 +49,6 @@ const slugify = (value: unknown) => {
   return slug || ("listing-" + crypto.randomUUID().slice(0, 8));
 };
 const clean = (value: unknown, max = 500) => String(value ?? "").trim().slice(0, max);
-const normalizeDirectorySourceHost = (value: unknown): string => {
-  const raw = clean(value, 300).toLowerCase();
-  if (!raw || raw.includes("/") || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
-  try {
-    const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
-    if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
-        parsed.pathname !== "/" || parsed.search || parsed.hash) return "";
-    return parsed.hostname.replace(/^www\./, "").toLowerCase();
-  } catch {
-    return "";
-  }
-};
 const platformAdmin = (membership: any) =>
   String(membership?.role || "").toUpperCase() === "SUPER_ADMIN" &&
   !membership?.business_id && !membership?.branch_id &&
@@ -423,15 +417,8 @@ Deno.serve(async (req: Request) => {
         continue;
       }
       const approvedEvidence = sourcePermissionEvidence.data;
-      const sourceHost = normalizeDirectorySourceHost(new URL(String(sourceUrl)).hostname);
-      const evidenceIsCurrent = approvedEvidence.status === "APPROVED" &&
-        !approvedEvidence.revoked_at &&
-        new Date(approvedEvidence.valid_from).getTime() <= Date.now() &&
-        (!approvedEvidence.expires_at || new Date(approvedEvidence.expires_at).getTime() > Date.now()) &&
-        approvedEvidence.allows_doctor_profile_republication === true &&
-        approvedEvidence.allows_commercial_republication === true;
-      if (!evidenceIsCurrent || sourceHost !== approvedEvidence.source_host ||
-          sourceName.toLocaleLowerCase() !== String(approvedEvidence.source_name || "").trim().toLocaleLowerCase()) {
+      const evidenceIsCurrent = isCurrentDoctorRepublicationEvidence(approvedEvidence, sourceUrl, sourceName);
+      if (!evidenceIsCurrent) {
         failed += 1;
         results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH_OR_EXPIRED" });
         continue;
@@ -439,20 +426,15 @@ Deno.serve(async (req: Request) => {
       const sourcePermissionStatus = String(approvedEvidence.permission_basis);
 
       const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
-      const hasRequestedStatus = Object.prototype.hasOwnProperty.call(row, "listingStatus") || Object.prototype.hasOwnProperty.call(row, "listing_status");
-      const requestedStatus = clean(row.listingStatus || row.listing_status || "PUBLISHED", 20).toUpperCase();
-      const allowedListingStatuses = new Set(["PUBLISHED", "DRAFT", "HIDDEN"]);
-      if (hasRequestedStatus && !allowedListingStatuses.has(requestedStatus)) {
+      const importStatus = resolveDoctorImportStatus(row, hasPhone);
+      if (!importStatus.valid) {
         failed += 1;
-        results.push({ index, status: "failed", reason: "INVALID_LISTING_STATUS" });
+        results.push({ index, status: "failed", reason: importStatus.reason || "INVALID_LISTING_STATUS" });
         continue;
       }
-      if (hasRequestedStatus && requestedStatus === "PUBLISHED" && !hasPhone) {
-        failed += 1;
-        results.push({ index, status: "failed", reason: "PHONE_REQUIRED_FOR_PUBLICATION" });
-        continue;
-      }
-      const listingStatus = requestedStatus === "PUBLISHED" && !hasPhone ? "DRAFT" : requestedStatus;
+      const hasRequestedStatus = importStatus.hasRequestedStatus;
+      const requestedStatus = importStatus.requestedStatus;
+      const listingStatus = importStatus.listingStatus;
       const completeness = {
         name: true,
         specialty: true,
@@ -462,17 +444,7 @@ Deno.serve(async (req: Request) => {
         district: true,
         village: Boolean(village),
       };
-      const metadataInput = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
-        ? { ...row.metadata } as Record<string, unknown>
-        : {};
-      for (const protectedKey of [
-        "source_status","source_phone_verified","sourcePhoneVerified","phone_verified","phoneVerified","phone_verification_status",
-        "owner_confirmation_required","ownerConfirmationRequired","owner_confirmed","ownerConfirmed","owner_verified","ownerVerified",
-        "professional_registration_verified","professionalRegistrationVerified","registration_verified","registrationVerified",
-        "verified","is_verified","isVerified","coordinates_status","coordinatesStatus","coordinates_method","coordinatesMethod",
-      ]) {
-        delete metadataInput[protectedKey];
-      }
+      const metadataInput = sanitizeDoctorImportMetadata(row.metadata);
       const patch: Record<string, unknown> = {
         slug,
         display_name: displayName,

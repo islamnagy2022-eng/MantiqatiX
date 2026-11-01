@@ -9,6 +9,7 @@ on:
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
       - "scripts/production/validate-doctor-incremental-import.mjs"
+      - "scripts/production/test-doctor-import-contract.mjs"
       - ".github/workflows/doctor-incremental-import-contract.yml"
   push:
     branches:
@@ -18,6 +19,7 @@ on:
       - "apps/catalog-frontend/src/lib/directoryListings.ts"
       - "apps/catalog-frontend/src/components/admin/DirectoryListingsAdmin.tsx"
       - "scripts/production/validate-doctor-incremental-import.mjs"
+      - "scripts/production/test-doctor-import-contract.mjs"
       - ".github/workflows/doctor-incremental-import-contract.yml"
 
 permissions:
@@ -38,3 +40,5 @@ jobs:
         run: deno check --node-modules-dir=auto --no-lock supabase/functions/directory-listings/index.ts
       - name: Validate incremental doctor import contract
         run: node scripts/production/validate-doctor-incremental-import.mjs
+      - name: Run doctor import behavior tests
+        run: node --test scripts/production/test-doctor-import-contract.mjs
