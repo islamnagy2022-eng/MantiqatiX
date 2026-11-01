@@ -120,9 +120,14 @@ Deno.serve(async (req: Request) => {
 
     // Apply every explicit public filter in SQL before limiting the page.
     // This is essential: filtering after a 20-row fetch would silently omit valid matches.
-    if (governorate) pageQuery = pageQuery.eq("governorate", governorate);
-    if (district) pageQuery = pageQuery.eq("district", district);
-    if (village) pageQuery = pageQuery.eq("village", village);
+    // Match canonical labels against common stored prefixes such as "محافظة" / "مركز" / "قرية".
+    // Sanitization removes PostgREST wildcards and logical-filter delimiters before building ILIKE values.
+    const governorateSearch = sanitizeDirectoryPaginationSearch(governorate);
+    const districtSearch = sanitizeDirectoryPaginationSearch(district);
+    const villageSearch = sanitizeDirectoryPaginationSearch(village);
+    if (governorateSearch) pageQuery = pageQuery.ilike("governorate", "%" + governorateSearch + "%");
+    if (districtSearch) pageQuery = pageQuery.ilike("district", "%" + districtSearch + "%");
+    if (villageSearch) pageQuery = pageQuery.ilike("village", "%" + villageSearch + "%");
     if (address) {
       const addressSearch = sanitizeDirectoryPaginationSearch(address);
       if (addressSearch) pageQuery = pageQuery.ilike("address", "%" + addressSearch + "%");
