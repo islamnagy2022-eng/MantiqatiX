@@ -442,7 +442,7 @@ try {
       display_name: 'طبيب اختبار الدفعة ' + String(index).padStart(2, '0'),
       listing_type: 'doctor',
       functional_group_id: 'medical_health',
-      taxonomy_category_id: 'cat_medical_health_doctors',
+      taxonomy_category_id: 'cat_medical_health_medical_practices',
       taxonomy_specialty: 'باطنة',
       specialty: 'باطنة',
       phone: '0100000' + String(index).padStart(4, '0'),
@@ -468,7 +468,7 @@ try {
       pageSize: 20,
     };
     const { context, page, directoryListingPageRequests } = await newScenario(browser, null, [], {
-      initialRoute: '?activity=cat_medical_health_doctors&specialty=' + encodeURIComponent('باطنة'),
+      initialRoute: '?activity=cat_medical_health_medical_practices&specialty=' + encodeURIComponent('باطنة'),
       geoPreference: { completed: true, mode: 'manual', governorate: 'المنوفية', markaz: 'بركة السبع', village: 'كفر هلال', area: 'شارع التحرير' },
       directoryListingPages: { first: firstPage, 'cursor-page-2': secondPage },
     });
@@ -487,7 +487,7 @@ try {
       const continuation = directoryListingPageRequests.filter((request) => request.cursor === 'cursor-page-2');
       assert.equal(continuation.length, 1, 'the next page must be requested exactly once');
       assert.equal(continuation[0].limit, '20');
-      assert.equal(continuation[0].taxonomyCategoryId, 'cat_medical_health_doctors');
+      assert.equal(continuation[0].taxonomyCategoryId, 'cat_medical_health_medical_practices');
       assert.equal(continuation[0].taxonomySpecialty, 'باطنة');
       assert.equal(continuation[0].governorate, 'المنوفية');
       assert.equal(continuation[0].district, 'بركة السبع');
