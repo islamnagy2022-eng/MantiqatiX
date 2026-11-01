@@ -3177,4 +3177,4 @@ A separate source review found a second platform-root authorization model: the n
 - **Standalone public directory pages:** doctor/pharmacy unclaimed pages use the resolved profile default as the hero cover unless an explicit HTTPS `metadata.coverImageUrl` / `cover_image_url` is provided.
 - **Regression checks:** production mapper verifies doctor/pharmacy default cover assignment and owner-cover precedence; directory page verifies separate cover resolution and hero rendering.
 - **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data mutation.
-- **Status:** source change carried forward to the pagination branch; exact-head CI and deployed-origin checks remain required.
+- **Status:** COMPLETE on `main`; carried forward to the national-directory pagination branch. Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`; GitHub Pages deployment and deployed-origin verification passed in runs #41269309153 and #41269309136. The pagination branch still requires its own combined exact-head CI and merge.
