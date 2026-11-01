@@ -55,6 +55,8 @@ assert.ok(modal.includes("handleGoogle('login')") && modal.includes("handleGoogl
 
 console.log('Catalog Google OAuth hydration, identity-vs-membership, and role-gated UI contract: PASS');
 
-assert.match(context, /const defaultView: ViewMode = 'directory'/, 'Every freshly authenticated account must land on the public home directory by default');
-assert.match(context, /const safeRequestedView: ViewMode = requestedView === 'directory'[\s\S]{0,450}: 'directory';/, 'Role bootstrap must fall back to home, while preserving only explicit role-authorized dashboard routes');
-assert.ok(context.includes("setCurrentView('directory');"), 'Email login and session-backed registration must return to the home directory');
+assert.match(context, /const defaultView: ViewMode = 'home'/, 'Every newly authenticated account must land on the marketplace home by default');
+assert.match(context, /const safeRequestedView: ViewMode = requestedView === 'directory' \|\| isDirectoryDeepLink[\s\S]{0,650}: 'home';/, 'Directory deep links must remain refreshable while unauthorized routes fall back to marketplace home');
+assert.ok(context.includes("setCurrentView('directory');"), 'Email login and registration may still return to the dedicated directory search');
+assert.match(context, /if \(view !== 'directory'\) \{[\s\S]{0,220}url\.searchParams\.delete\('activity'\)/, 'Returning to the marketplace home must clear stale directory deep-link parameters');
+assert.ok(context.includes('setDirectoryProducts(directory.products)'), 'Public catalog products and prices must be retained for marketplace offer sections');
