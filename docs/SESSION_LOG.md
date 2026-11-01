@@ -1718,3 +1718,10 @@ A separate source review found a second platform-root authorization model: the n
 - Explicit owner/admin cover URLs retain precedence; verified businesses and other categories keep their existing behavior.
 - Added matching static regression contracts. The pagination branch will be merged with current main ancestry before final CI/review.
 - No database/schema/RLS/Auth/Edge Function or doctor-record changes.
+
+
+## 2026-11-01 — doctor/pharmacy default cover production deployment carried forward
+- Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`.
+- GitHub Pages deployment run #41269309153 and post-merge frontend validation #41269309136 passed, including deployed-origin browser checks.
+- The exact doctor/pharmacy fallback cover changes and their static assertions have been carried into the national-directory pagination branch; no production Edge or directory data change is included.
+- This does not close the separate national pagination workstream; its browser cursor test and exact-head CI must pass before PR #634 can merge.
