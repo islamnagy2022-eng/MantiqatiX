@@ -1667,3 +1667,14 @@ PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature br
 - [ ] Run exact-head Deno, contract, build, RBAC, and browser E2E checks after the evidence-registry changes. Resolve all failures.
 - [ ] Run isolated database migration replay, plus synthetic Edge Function tests for register → second-person approve → evidence scope match → insert/update; reject creator self-approval, mismatched host/name, expired/revoked evidence, no-phone publication, and non-admin access.
 - [ ] Keep production version unchanged until all release gates pass; then merge, apply migration, deploy function, verify a disposable synthetic listing, and audited-clean it.
+
+
+## Monufia doctor directory expansion — IN PROGRESS (2026-11-01)
+- [x] Read-only production inventory: 57 PUBLISHED doctor-type records in Monufia; all 57 are currently in Berket El Sabaa; all 57 have a primary phone. Other Monufia localities have zero published doctor-type records in the canonical doctor type.
+- [x] Record the ten locality workstreams: Shibin El Kom, Menouf, Ashmoun, Quesna, El Bagour, Tala, El Shohadaa, Sers El Lyan, Sadat City, and Berket El Sabaa village-level review.
+- [x] Review official acquisition paths: Menoufia University publishes academic staff/department information; EMS offers individual registration lookup and facility discovery. Neither reviewed path provides a proven open bulk export plus commercial-republication licence for doctor contact records.
+- [ ] Obtain a written source partnership/licence or collect direct doctor/clinic-owner submissions and consent; evidence must explicitly permit doctor-profile republication and commercial use in MantiqatiX.
+- [ ] Register permission evidence as PENDING and have a different Super Admin inspect and approve the private evidence. Production evidence registry currently has zero rows; do not bypass this gate.
+- [ ] Start with bounded 1–20 row batches per locality after permission approval; global normalized name and both-phone duplicate checks, exact clinic location, source URL/date, owner-unverified state, and read-after-write verification are mandatory.
+- [ ] Continue locality-by-locality until each locality has a sourced coverage report; do not claim “all doctors” from third-party directory totals or one public source.
+- [ ] No new doctor rows were inserted or modified in this inventory pass. Full detail: `docs/doctor-incremental-ingestion.md` → “Monufia governorate doctor expansion”.
