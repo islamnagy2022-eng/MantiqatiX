@@ -880,8 +880,8 @@ try {
       await page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first().click();
       const modulePage = page.locator('main[dir="rtl"]');
       await modulePage.getByRole('heading', { name: 'ممارسات وعيادات طبية', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: 'باطنة', exact: true }).waitFor({ state: 'visible' });
-      await modulePage.getByRole('button', { name: 'باطنة', exact: true }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: /باطنة/ }).click();
       assert.equal(new URL(page.url()).searchParams.get('specialty'), 'باطنة', 'specialty folder must have a dedicated, refreshable URL');
       await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
       assert.equal(await modulePage.getByText('غير موثق', { exact: true }).count(), 1, 'published unclaimed records must carry the red unverified badge');
@@ -897,9 +897,9 @@ try {
       await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
 
       await page.goBack();
-      await modulePage.getByRole('button', { name: 'باطنة', exact: true }).waitFor({ state: 'visible' });
+      await modulePage.getByRole('button', { name: /باطنة/ }).waitFor({ state: 'visible' });
       assert.equal(new URL(page.url()).searchParams.has('specialty'), false, 'browser back must return to the specialty folders');
-      await modulePage.getByRole('button', { name: 'باطنة', exact: true }).click();
+      await modulePage.getByRole('button', { name: /باطنة/ }).click();
       await modulePage.getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.locator('main[dir="rtl"]').getByText('عيادة اختبار داخل النشاط', { exact: true }).waitFor({ state: 'visible' });
