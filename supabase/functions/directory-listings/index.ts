@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
     let cursor: { created_at: string; id: string } | null = null;
     if (cursorRaw) {
       try {
-        const decoded = JSON.parse(atob(cursorRaw.replace(/-/g, "+").replace(/_/g, "/")));
+        const decoded = JSON.parse(atob(cursorRaw.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - cursorRaw.length % 4) % 4)));
         if (!decoded || typeof decoded.created_at !== "string" ||
           Number.isNaN(Date.parse(decoded.created_at)) ||
           typeof decoded.id !== "string" ||
