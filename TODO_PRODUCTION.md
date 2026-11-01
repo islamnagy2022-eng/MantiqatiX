@@ -1627,3 +1627,17 @@ Implementation notes: see `docs/doctor-incremental-ingestion.md`. Feature branch
 - [ ] Connect any future source-discovery job only to sources with a recorded republication basis and persist each finished batch before discovery continues. The present admin JSON importer does not autonomously crawl websites or discover doctors.
 
 PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the release checks above pass.
+
+
+## 2026-11-01 — Doctor ingestion exact-head verification and source-rights gate update
+
+- [x] Dedicated doctor-import contract workflow passed on head `081322fb0d80bf3a871c5770a4eb7d3061eaf03e`.
+- [x] Deno type-check, catalog build/TypeScript, isolated RBAC PostgreSQL, and dashboard browser E2E all passed on the same head. Browser job `124789206800` completed successfully.
+- [x] PR #640 release notes updated to reflect the completed browser E2E and the remaining release blockers.
+- [!] The production `directory-listings` Edge Function is still version 10. No deployment was performed.
+- [!] Authenticated isolated write smoke tests remain unverified: the connected Supabase tool surface does not expose an Edge Function invoke operation. Do not substitute direct production SQL writes or deploy first and test later.
+- [!] Source rights are still not cleared for the existing 568 published doctor rows. A URL or public visibility is not a licence. Egypt's 2025 Open Data Policy describes a future/open licensing framework for approved datasets but excludes personal data and third-party copyrighted/contracted material; it is not a blanket licence for the Syndicate's doctor registry or commercial directory datasets. Reference: https://ai.gov.eg/SynchedFiles/en/Resources/Open%20Data%20Policy.pdf.
+- [ ] Obtain a written data-sharing/republication agreement or a dataset-specific open licence from the Egyptian Medical Syndicate / data owner before bulk reuse. Official doctor lookup is available at https://ems.org.eg/ar/inquiries/doctor-specialist; facility search/lookup is described at https://www.ems.org.eg/news/cmsq68cuk00009kv2xynj9gxe. These lookup pages are useful for individual verification, not evidence of bulk-export permission.
+- [ ] Arrange an authorized isolated Edge Function invocation path and run insert, duplicate update, no-phone DRAFT, DRAFT/HIDDEN/CLAIM preservation, and unauthorized rejection tests using disposable synthetic records only.
+- [ ] Only after rights review and authenticated tests: merge PR #640, deploy the updated function, verify the public directory with a disposable record, then perform audited cleanup.
+- [ ] After source permission exists, resume discovery in persisted batches; do not resume automated scraping from terms-restricted directories.
