@@ -1608,3 +1608,22 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] Connect the actual doctor research/collection workflow to this batch action so each completed research batch is persisted before research continues; current UI accepts a collected JSON batch but does not run autonomous nationwide source discovery.
 
 Implementation notes: see `docs/doctor-incremental-ingestion.md`. Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the verification checklist above passes.
+
+
+## 2026-11-01 — Incremental doctor import and current Production audit
+
+- [x] Add platform-admin-only `IMPORT_DOCTOR_BATCH` with sequential row persistence, 1–20 records per request, row-level results, and idempotent matching by phone or exact name/location.
+- [x] Add authenticated admin JSON import panel and typed frontend helper.
+- [x] Require per-row source name, HTTP(S) source URL, and republication basis: `LICENSED`, `OWNER_PROVIDED`, or `PUBLIC_PERMISSION_CONFIRMED`. A public web page is not automatically a republication licence.
+- [x] Preserve existing slug, publication state, ownership/claim state, source-check timestamp, existing contact data, and prior metadata when an incoming snapshot omits those fields.
+- [x] Prevent imported metadata from setting owner/phone/professional-registration verification flags. New imports remain unverified until separate checks.
+- [x] Add dedicated static import-contract validator and GitHub Actions workflow.
+- [x] Fresh read-only live audit: 568 published doctor-type records across 27/27 governorates; all 568 have a source URL; zero are missing both phone fields; normalized primary/secondary phone duplicate audit returned no duplicates.
+- [!] Geolocation is not complete: 511 rows explicitly say coordinates were not supplied by source, and zero rows are marked PROVIDED_BY_SOURCE or GEOCODED by the metadata query. The other 57 require separate metadata review. Never infer coordinates from the district or governorate.
+- [!] Existing source rights are not yet audited: 497 rows are labelled Dalil140, and other rows cite mixed directories/official sources. Source URL does not establish permission to republish. Do not bulk collect/re-publish further records from a restricted directory without written permission.
+- [ ] Wait for exact-head CI, including the dedicated import contract, TypeScript/build, and browser E2E; address any failure before merge.
+- [ ] Run authenticated isolated smoke tests for new insert, phone/name duplicate update, missing-phone draft, preserved DRAFT/HIDDEN/CLAIM state, and unauthorized rejection. Do not use a real doctor row as a test fixture.
+- [ ] After successful tests and reviewed merge, deploy the updated `directory-listings` Edge Function and verify a disposable authorized test entry through the public directory, then remove the test entry with an audited cleanup.
+- [ ] Connect any future source-discovery job only to sources with a recorded republication basis and persist each finished batch before discovery continues. The present admin JSON importer does not autonomously crawl websites or discover doctors.
+
+PR: [#640](https://github.com/islamnagy2022-eng/MantiqatiX/pull/640). Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the release checks above pass.
