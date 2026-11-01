@@ -157,16 +157,12 @@ export const Navbar: React.FC = () => {
         <div className="flex flex-col gap-2.5">
           {/* Top Line: Logo, Context, Cart */}
           <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
-            <div
-              onClick={() => {
-                if (authSession.role === 'subscriber') {
-                  setCurrentView('merchant_admin');
-                } else {
-                  setCurrentView('directory');
-                }
-              }}
-              className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
-              title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
+            <button
+              type="button"
+              onClick={() => setCurrentView('home')}
+              className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0 text-right"
+              title="الصفحة الرئيسية لمنطقتي X"
+              aria-label="العودة إلى الصفحة الرئيسية"
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-black text-sm">
                 MX
@@ -181,7 +177,7 @@ export const Navbar: React.FC = () => {
                   MantiqatiX Business & Catalogs
                 </p>
               </div>
-            </div>
+            </button>
 
             {/* ONLY ADMIN sees the global switcher dropdown! */}
             {authSession.role === 'admin' ? (
@@ -271,7 +267,19 @@ export const Navbar: React.FC = () => {
           {/* Bottom Line: Accessible View Mode Tabs */}
           <div className="flex items-center justify-start overflow-x-auto pb-0.5 no-scrollbar">
             <nav className="flex min-w-max items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-medium w-full sm:w-auto">
-              {/* Directory Home Tab */}
+              {/* Marketplace home and dedicated directory search are separate public destinations. */}
+              <button
+                onClick={() => setCurrentView('home')}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                  currentView === 'home'
+                    ? 'bg-white text-emerald-700 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                aria-current={currentView === 'home' ? 'page' : undefined}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>الرئيسية</span>
+              </button>
               <button
                 onClick={() => setCurrentView('directory')}
                 className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
@@ -279,9 +287,10 @@ export const Navbar: React.FC = () => {
                     ? 'bg-white text-emerald-700 font-bold shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
+                aria-current={currentView === 'directory' ? 'page' : undefined}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>الرئيسية والدليل الشامل</span>
+                <span>بحث الأنشطة والخدمات</span>
               </button>
 
               {/* Public storefront preview is a subscriber/admin navigation item.
