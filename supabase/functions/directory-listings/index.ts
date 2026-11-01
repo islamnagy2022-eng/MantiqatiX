@@ -43,6 +43,18 @@ const slugify = (value: unknown) => {
   return slug || ("listing-" + crypto.randomUUID().slice(0, 8));
 };
 const clean = (value: unknown, max = 500) => String(value ?? "").trim().slice(0, max);
+const normalizeDirectorySourceHost = (value: unknown): string => {
+  const raw = clean(value, 300).toLowerCase();
+  if (!raw || raw.includes("/") || raw.includes("@") || raw.includes("?") || raw.includes("#")) return "";
+  try {
+    const parsed = new URL(raw.includes("://") ? raw : "https://" + raw);
+    if (!["https:", "http:"].includes(parsed.protocol) || parsed.username || parsed.password || parsed.port ||
+        parsed.pathname !== "/" || parsed.search || parsed.hash) return "";
+    return parsed.hostname.replace(/^www\\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+};
 const platformAdmin = (membership: any) =>
   String(membership?.role || "").toUpperCase() === "SUPER_ADMIN" &&
   !membership?.business_id && !membership?.branch_id &&
@@ -252,6 +264,87 @@ Deno.serve(async (req: Request) => {
   if (membershipsError) return out(origin, { error: "ADMIN_PERMISSION_LOOKUP_FAILED" }, 500);
   if (!(memberships || []).some(platformAdmin)) return out(origin, { error: "PLATFORM_ADMIN_REQUIRED" }, 403);
 
+  if (action === "ADMIN_LIST_SOURCE_PERMISSION_EVIDENCE") {
+    const { data, error } = await service.from("directory_source_permission_evidence")
+      .select("id,source_name,source_host,permission_basis,evidence_reference,evidence_sha256,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,created_by,approved_by,approved_at,revoked_by,revoked_at,revocation_reason,reviewer_note,created_at,updated_at")
+      .order("created_at", { ascending: false }).limit(250);
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_READ_FAILED" }, 500);
+    return out(origin, { evidence: data || [] });
+  }
+
+  if (action === "ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE") {
+    const sourceName = clean(body.sourceName, 160);
+    const sourceHost = normalizeDirectorySourceHost(body.sourceHost);
+    const permissionBasis = clean(body.permissionBasis, 40).toUpperCase();
+    const evidenceReference = clean(body.evidenceReference, 500);
+    const evidenceSha256 = clean(body.evidenceSha256, 64).toLowerCase();
+    const expiresAt = body.expiresAt ? dateOrNull(body.expiresAt) : null;
+    const validBases = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
+    if (sourceName.length < 2 || !sourceHost || !validBases.has(permissionBasis) ||
+        evidenceReference.length < 3 || /^https?:\\/\\//i.test(evidenceReference) ||
+        evidenceReference.includes("..") || (body.expiresAt && !expiresAt) ||
+        (evidenceSha256 && !/^[0-9a-f]{64}$/.test(evidenceSha256))) {
+      return out(origin, { error: "INVALID_SOURCE_PERMISSION_EVIDENCE", message: "أدخل اسم المصدر ونطاقه ومرجع مستند داخلي صالح وأساس الإذن." }, 400);
+    }
+    const { data, error } = await service.from("directory_source_permission_evidence").insert({
+      source_name: sourceName,
+      source_host: sourceHost,
+      permission_basis: permissionBasis,
+      evidence_reference: evidenceReference,
+      evidence_sha256: evidenceSha256 || null,
+      allows_doctor_profile_republication: true,
+      allows_commercial_republication: true,
+      expires_at: expiresAt,
+      status: "PENDING",
+      created_by: user.id,
+    }).select("id,source_name,source_host,permission_basis,status,created_at").single();
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_CREATE_FAILED", code: (error as { code?: string }).code || null }, 500);
+    return out(origin, { success: true, evidence: data }, 201);
+  }
+
+  if (action === "ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE") {
+    const evidenceId = clean(body.evidenceId, 80);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(evidenceId) || body.reviewConfirmed !== true) {
+      return out(origin, { error: "SOURCE_PERMISSION_REVIEW_CONFIRMATION_REQUIRED" }, 400);
+    }
+    const { data: evidence, error: readError } = await service.from("directory_source_permission_evidence")
+      .select("id,created_by,status,valid_from,expires_at,allows_doctor_profile_republication,allows_commercial_republication")
+      .eq("id", evidenceId).maybeSingle();
+    if (readError) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_READ_FAILED" }, 500);
+    if (!evidence || evidence.status !== "PENDING") return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_NOT_PENDING" }, 409);
+    if (String(evidence.created_by) === String(user.id)) {
+      return out(origin, { error: "TWO_PERSON_APPROVAL_REQUIRED", message: "يجب أن يعتمد مستند الإذن مسؤول آخر غير منشئ السجل." }, 403);
+    }
+    const now = new Date();
+    if (new Date(evidence.valid_from).getTime() > now.getTime() ||
+        (evidence.expires_at && new Date(evidence.expires_at).getTime() <= now.getTime()) ||
+        evidence.allows_doctor_profile_republication !== true ||
+        evidence.allows_commercial_republication !== true) {
+      return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_OUT_OF_SCOPE_OR_EXPIRED" }, 409);
+    }
+    const { data, error } = await service.from("directory_source_permission_evidence").update({
+      status: "APPROVED", approved_by: user.id, approved_at: now.toISOString(),
+      reviewer_note: clean(body.reviewerNote, 1200) || null,
+    }).eq("id", evidenceId).eq("status", "PENDING").select("id,status,approved_by,approved_at").maybeSingle();
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_APPROVE_FAILED" }, 500);
+    if (!data) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_STATE_CHANGED" }, 409);
+    return out(origin, { success: true, evidence: data });
+  }
+
+  if (action === "ADMIN_REVOKE_SOURCE_PERMISSION_EVIDENCE") {
+    const evidenceId = clean(body.evidenceId, 80);
+    const reason = clean(body.reason, 1200);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(evidenceId) || reason.length < 3) {
+      return out(origin, { error: "SOURCE_PERMISSION_REVOCATION_REASON_REQUIRED" }, 400);
+    }
+    const { data, error } = await service.from("directory_source_permission_evidence").update({
+      status: "REVOKED", revoked_by: user.id, revoked_at: new Date().toISOString(), revocation_reason: reason,
+    }).eq("id", evidenceId).in("status", ["PENDING", "APPROVED"]).select("id,status,revoked_at").maybeSingle();
+    if (error) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_REVOKE_FAILED" }, 500);
+    if (!data) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_NOT_ACTIVE" }, 409);
+    return out(origin, { success: true, evidence: data });
+  }
+
   if (action === "ADMIN_LIST") {
     const [listingsResult, claimsResult, businessesResult] = await Promise.all([
       service.from("public_directory_listings").select("*").order("created_at", { ascending: false }).limit(1000),
@@ -293,8 +386,7 @@ Deno.serve(async (req: Request) => {
       const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
       const sourceName = clean(row.sourceName || row.source_name, 160);
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
-      const sourcePermissionStatus = clean(row.sourcePermissionStatus || row.source_permission_status, 40).toUpperCase();
-      const allowedSourcePermissionStatuses = new Set(["LICENSED", "OWNER_PROVIDED", "PUBLIC_PERMISSION_CONFIRMED"]);
+      const sourcePermissionEvidenceId = clean(row.sourcePermissionEvidenceId || row.source_permission_evidence_id, 80);
       const sourceCheckedAtInput = row.sourceCheckedAt || row.source_checked_at;
       const sourceCheckedAt = dateOrNull(sourceCheckedAtInput);
       let validSourceUrl = false;
@@ -312,12 +404,36 @@ Deno.serve(async (req: Request) => {
         continue;
       }
       if (displayName.length < 2 || !specialty || !governorate || !district || !sourceName || !validSourceUrl ||
-          !allowedSourcePermissionStatuses.has(sourcePermissionStatus) ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sourcePermissionEvidenceId) ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
         failed += 1;
-        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_MEDICAL_CATEGORY_MISSING" });
+        results.push({ index, status: "failed", reason: "REQUIRED_FIELDS_OR_APPROVED_SOURCE_EVIDENCE_MISSING" });
         continue;
       }
+
+      const sourcePermissionEvidence = await service.from("directory_source_permission_evidence")
+        .select("id,source_name,source_host,permission_basis,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,revoked_at")
+        .eq("id", sourcePermissionEvidenceId).maybeSingle();
+      if (sourcePermissionEvidence.error || !sourcePermissionEvidence.data) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_NOT_FOUND" });
+        continue;
+      }
+      const approvedEvidence = sourcePermissionEvidence.data;
+      const sourceHost = normalizeDirectorySourceHost(new URL(String(sourceUrl)).hostname);
+      const evidenceIsCurrent = approvedEvidence.status === "APPROVED" &&
+        !approvedEvidence.revoked_at &&
+        new Date(approvedEvidence.valid_from).getTime() <= Date.now() &&
+        (!approvedEvidence.expires_at || new Date(approvedEvidence.expires_at).getTime() > Date.now()) &&
+        approvedEvidence.allows_doctor_profile_republication === true &&
+        approvedEvidence.allows_commercial_republication === true;
+      if (!evidenceIsCurrent || sourceHost !== approvedEvidence.source_host ||
+          sourceName.toLocaleLowerCase() !== String(approvedEvidence.source_name || "").trim().toLocaleLowerCase()) {
+        failed += 1;
+        results.push({ index, status: "failed", reason: "SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH_OR_EXPIRED" });
+        continue;
+      }
+      const sourcePermissionStatus = String(approvedEvidence.permission_basis);
 
       const slug = slugify(row.slug || [displayName, district, village].filter(Boolean).join("-"));
       const hasRequestedStatus = Object.prototype.hasOwnProperty.call(row, "listingStatus") || Object.prototype.hasOwnProperty.call(row, "listing_status");
@@ -346,7 +462,12 @@ Deno.serve(async (req: Request) => {
       const metadataInput = row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
         ? { ...row.metadata } as Record<string, unknown>
         : {};
-      for (const protectedKey of ["source_status","source_phone_verified","owner_confirmation_required","professional_registration_verified","verified","is_verified","coordinates_status","coordinates_method"]) {
+      for (const protectedKey of [
+        "source_status","source_phone_verified","sourcePhoneVerified","phone_verified","phoneVerified","phone_verification_status",
+        "owner_confirmation_required","ownerConfirmationRequired","owner_confirmed","ownerConfirmed","owner_verified","ownerVerified",
+        "professional_registration_verified","professionalRegistrationVerified","registration_verified","registrationVerified",
+        "verified","is_verified","isVerified","coordinates_status","coordinatesStatus","coordinates_method","coordinatesMethod",
+      ]) {
         delete metadataInput[protectedKey];
       }
       const patch: Record<string, unknown> = {
@@ -373,6 +494,7 @@ Deno.serve(async (req: Request) => {
           ...metadataInput,
           ingestion: "incremental_doctor_batch",
           source_permission_status: sourcePermissionStatus,
+          source_permission_evidence_id: approvedEvidence.id,
           source_status: "UNVERIFIED_IMPORTED_DATA",
           source_phone_verified: false,
           owner_confirmation_required: true,
@@ -423,6 +545,7 @@ Deno.serve(async (req: Request) => {
             ...(metadataInput as Record<string, unknown>),
             ingestion: "incremental_doctor_batch",
             source_permission_status: sourcePermissionStatus,
+            source_permission_evidence_id: approvedEvidence.id,
           };
           const saved = await service.from("public_directory_listings")
             .update(patch).eq("id", existing.id).select("id,listing_status").single();
