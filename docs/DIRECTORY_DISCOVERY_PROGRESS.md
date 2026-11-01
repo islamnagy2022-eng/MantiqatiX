@@ -226,3 +226,18 @@ Partial execution started: 34 verified insertions across the documented batches 
 - Public medical directories reviewed in this pass explicitly restrict automated extraction and/or commercial republication without written permission, including Tabeeb-EG, MasrDoctors, and DocLine. Do not scrape or republish their directory records absent written licence/permission. References: https://www.tabeeb-eg.com/ar/terms-conditions, https://www.masrdoctors.com/page?slug=terms-conditions, https://www.docline-eg.com/terms.
 - Dakatra Misr's privacy notice describes collection from already-public sources but does not itself grant MantiqatiX permission to scrape/republish. No bulk extraction was performed.
 - Next permitted acquisition path: request a formal data-access/republication agreement from EMS or facility owners; otherwise use provider-submitted/owner-confirmed records and independently source only fields whose republication terms permit. Keep syndicate registration verification distinct from clinic-address verification, and retain source URL, retrieval date, and exact clinic location evidence per record.
+
+
+## 2026-11-01 — Verified production snapshot superseding the earlier 57-doctor baseline
+
+The earlier baseline above was superseded by subsequent national import batches. A fresh read-only query against Production now confirms:
+
+- 568 PUBLISHED doctor-type listings across all 27 governorates.
+- Every current published doctor listing has a non-empty source URL.
+- No doctor listing is missing both primary and secondary phone numbers.
+- A normalized cross-check across primary and secondary phone fields found no duplicate phone numbers across different doctor records.
+- 511 records explicitly carry `coordinates_status=NOT_PROVIDED_BY_SOURCE`; zero are marked `PROVIDED_BY_SOURCE` or `GEOCODED` by the same metadata audit. The other 57 need a separate metadata/location review; this is not proof that their physical clinic coordinates are accurate.
+- Coverage means at least one listing in each governorate, not a complete census, current operational check, professional-registration verification, or verified clinic geolocation.
+- Existing source mix includes 497 Dalil140-labelled rows plus records attributed to other directories and official sources. A source URL is provenance, not a republication licence. Existing rows were not modified in this read-only audit; their source-term/republication basis remains a separate legal/data-governance audit.
+
+Incremental ingestion work is being added on PR #640. Its new batch path requires a per-row republication basis (`LICENSED`, `OWNER_PROVIDED`, or `PUBLIC_PERMISSION_CONFIRMED`), an exact HTTP(S) source URL, sequential writes of 1–20 rows, duplicate checks, and protection of existing slugs, publication states, claim state, source-check timestamps, and verification metadata. The new endpoint is not yet deployed to Production.
