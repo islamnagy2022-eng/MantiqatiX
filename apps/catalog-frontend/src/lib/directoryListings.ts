@@ -245,6 +245,8 @@ export async function registerDirectorySourcePermissionEvidence(input: {
   evidenceReference: string;
   evidenceSha256?: string;
   expiresAt?: string;
+  allowsDoctorProfileRepublication: boolean;
+  allowsCommercialRepublication: boolean;
 }): Promise<DirectorySourcePermissionEvidence> {
   const body = await callDirectoryAdmin({ action: "ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE", ...input });
   return body.evidence as DirectorySourcePermissionEvidence;
