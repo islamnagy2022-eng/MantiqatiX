@@ -88,6 +88,7 @@ assert.doesNotMatch(frontend, /sourcePermissionStatus:/, "Free-text permission d
 assert.match(frontend, /sourceUrl: string/, "Typed import row must retain source attribution");
 assert.match(admin, /importDoctorDirectoryBatch\(rows\)/, "Admin screen must call the incremental batch importer");
 assert.match(admin, /استيراد دفعة أطباء/, "Admin screen must expose the batch import panel");
+assert.match(admin, /نشر ملف الطبيب يتطلب مصدرًا واضحًا/, "Admin UI must explain the source-permission requirement for public doctor listings");
 
 assert.match(evidenceMigration, /create table if not exists public\.directory_source_permission_evidence/, "Private source permission evidence table must exist");
 assert.match(evidenceMigration, /enable row level security/i, "Evidence registry must enable RLS");
