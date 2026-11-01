@@ -1702,3 +1702,11 @@ A separate source review found a second platform-root authorization model: the n
 - Added address filtering and widened q-search across name, specialty, phone, secondary phone, address and administrative fields. Administrative labels use substring matching to tolerate prefixed Arabic names.
 - Updated production-catalog static contracts to assert UI integration and 20-row paging. TypeScript/build/browser E2E on the exact current head must still pass before review/merge.
 - Production `directory-listings` remains deployed at v8; no Edge deployment or production data/schema/permission change took place. No doctors were imported. The 27-governorate coverage target remains IN PROGRESS.
+
+
+## 2026-11-01 — Geographic filtering hardening for national directory pagination
+
+- Reviewed the current Edge Function query path and changed governorate, district/markaz and village matching from strict equality to sanitized substring `ILIKE`, matching the existing client-side administrative-name tolerance. Address and specialty filters use the same sanitized substring behavior.
+- Confirmed that geographic, taxonomy and specialty predicates are applied before SQL `LIMIT`, preventing valid results from being skipped between pages.
+- Legacy taxonomy group/category alias expansion is included and covered by executable helper assertions; keyset cursor tests preserve microsecond timestamp precision.
+- Exact-head CI, browser E2E, isolated DB-backed page-continuity tests, merge, and production Edge deployment remain separate release gates. Current production directory coverage has not changed.
