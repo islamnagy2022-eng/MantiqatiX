@@ -3147,3 +3147,12 @@ A separate source review found a second platform-root authorization model: the n
 - **Safety:** no production schema/RLS/Auth/grant/Edge Function changes, no destructive edits, and no unreviewed bulk production write. Any import must use the approved existing public-listing path, respect RLS/phone constraints, and be read-after-write verified.
 - **Acceptance:** every inserted doctor has source provenance, dedupe evidence, correct specialty and hierarchical address; map coordinates resolve to the clinic; search works by governorate/markaz/area/specialty; duplicate audit passes; record counts reconcile; deployed-origin spot checks pass. Nationwide completion must not be claimed until all 27 governorates and their relevant centers have a documented coverage result.
 - **Next action:** audit available official and licensed sources and the existing listing schema/import path; then start the first eligible governorate batch and update the coverage ledger after every batch.
+
+
+### DIR-DOCTORS-EGYPT-NATIONAL — prerequisite: scalable public directory query
+
+- **Status:** OPEN — source finding confirmed in current Edge Function source.
+- `directory-listings` GET currently returns at most 500 published rows per request and supports only a listing-type filter; it does not expose governorate/district/village filters or cursor pagination.
+- Nationwide doctor expansion cannot rely on client-side filtering of that capped response. Add backward-compatible server-side geographic/specialty filters and stable keyset/cursor pagination, with a bounded page size; keep the UI's 20-item initial display and «رؤية المزيد» progressive loading.
+- Preserve public-only PUBLISHED visibility, existing ordering, no draft/hidden leakage, and current RLS/service boundary. Add tests for cursor stability, duplicates/missing rows across pages, geographic filtering, invalid limits/cursors, and empty/error states.
+- No backend function deployment is authorized or implied by this audit. Implement source/tests first, then follow the normal reviewed Edge Function deployment and deployed-origin verification gate.
