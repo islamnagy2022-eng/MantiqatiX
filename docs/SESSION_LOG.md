@@ -1692,3 +1692,12 @@ A separate source review found a second platform-root authorization model: the n
 - Standalone public directory detail pages use the resolved profile image as the hero cover for unclaimed doctor/pharmacy pages; explicit metadata.coverImageUrl/cover_image_url wins.
 - Static assertions cover both categories, owner-selected cover precedence and standalone detail-page hero rendering.
 - **Verification pending on rebased head:** exact-head CI, browser E2E, merge and deployed-origin checks. No production schema/data/security/payment changes.
+
+
+## 2026-11-01 — CAT-DEFAULT-COVERS — merge and production deployment completed
+- Exact-head PR #635 browser E2E, TypeScript/build and PostgreSQL checks passed.
+- PR #635 was squash-merged into `main` as commit `4796ef4736748e22f465d4fbdc1fb779ff7d8097`.
+- Push-to-main frontend validation and Production Health Monitor completed successfully.
+- GitHub Pages deployment run #41269309153 completed successfully. The `Deploy to GitHub Pages` step, primary catalog root verification, and deployed-origin Playwright checks all passed.
+- Deployed-origin checks covered dashboard routes, mobile layout, membership scopes and permanent QR links.
+- No production schema, RLS, Auth, Edge Function or production data changes were made.
