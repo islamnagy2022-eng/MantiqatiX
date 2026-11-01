@@ -20,6 +20,7 @@ const directoryListingsView = fs.readFileSync('apps/catalog-frontend/src/compone
 const directoryListingsLib = fs.readFileSync('apps/catalog-frontend/src/lib/directoryListings.ts', 'utf8');
 const activityModuleView = fs.readFileSync('apps/catalog-frontend/src/modules/activities/ActivityModuleView.tsx', 'utf8');
 const directoryListingsFunction = fs.readFileSync('supabase/functions/directory-listings/index.ts', 'utf8');
+const directoryPaginationHelper = fs.readFileSync('supabase/functions/directory-listings/pagination-filter.mjs', 'utf8');
 const placeholder = fs.readFileSync('apps/catalog-frontend/public/business-placeholder.svg', 'utf8');
 const itemPlaceholder = fs.readFileSync('apps/catalog-frontend/public/catalog-item-placeholder.svg', 'utf8');
 const defaultImages = fs.readFileSync('apps/catalog-frontend/src/utils/defaultImages.ts', 'utf8');
@@ -265,8 +266,8 @@ assert.match(directoryListingsFunction, /\.eq\("listing_status", "PUBLISHED"\)/,
   'Paginated public directory reads must never expose draft or hidden listings.');
 assert.match(directoryListingsFunction, /governorate[s\S]*district[s\S]*village[s\S]*taxonomyCategoryId/,
   'Public directory pagination must support geographic and taxonomy filters.');
-assert.match(directoryListingsFunction, /created_at\.lt\.[\s\S]*id\.lt\./,
-  'Pagination cursor must use a deterministic created_at/id keyset.');
+assert.match(directoryPaginationHelper, /created_at\.lt\.[\s\S]*id\.lt\./,
+  'Pagination cursor helper must use a deterministic created_at/id keyset.');
 assert.match(directoryListingsLib, /fetchPublicDirectoryListingPage/,
   'Frontend must expose a typed paginated directory client.');
 assert.match(directoryListingsLib, /functionalGroupId[\s\S]*taxonomyCategoryId[\s\S]*taxonomySpecialty[\s\S]*nextCursor/,
