@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { BusinessProfileHeader } from './components/storefront/BusinessProfileHeader';
@@ -11,6 +11,9 @@ import { CartDrawer } from './components/cart/CartDrawer';
 import { LoginModal } from './components/auth/LoginModal';
 import { MessageCircle } from 'lucide-react';
 import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from './utils/dashboardAccess';
+
+const SubscriberAccountPortal = lazy(() => import('./modules/account/SubscriberAccountPortal').then((module) => ({ default: module.SubscriberAccountPortal })));
+const AccountPortalFallback = () => <div role="status" className="mx-auto mt-4 w-[calc(100%-2rem)] max-w-7xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">جارٍ تجهيز شاشة الحساب…</div>;
 
 const MainContent: React.FC = () => {
   const { currentView, adminSettings, currentBusiness, requestCatalogViaAdminWhatsApp, authSession, authLoading } = useApp();
@@ -29,6 +32,8 @@ const MainContent: React.FC = () => {
         ? 'directory'
         : currentView === 'professional_dashboard' &&
           !canAccessProfessionalDashboard(authSession)
+        ? 'directory'
+        : currentView === 'account_portal' && !authSession.isAuthenticated
         ? 'directory'
         : currentView === 'public_storefront' &&
             authSession.role === 'guest' && !hasDirectPublicCatalogLink
@@ -61,6 +66,10 @@ const MainContent: React.FC = () => {
         {visibleView === 'super_admin' && <AdminDashboard />}
 
         {visibleView === 'professional_dashboard' && <ProfessionalDashboard />}
+
+        {visibleView === 'account_portal' && (
+          <Suspense fallback={<AccountPortalFallback />}><SubscriberAccountPortal /></Suspense>
+        )}
       </main>
 
       <CartDrawer />

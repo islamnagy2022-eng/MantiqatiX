@@ -1725,3 +1725,17 @@ A separate source review found a second platform-root authorization model: the n
 - GitHub Pages deployment run #41269309153 and post-merge frontend validation #41269309136 passed, including deployed-origin browser checks.
 - The exact doctor/pharmacy fallback cover changes and their static assertions have been carried into the national-directory pagination branch; no production Edge or directory data change is included.
 - This does not close the separate national pagination workstream; its browser cursor test and exact-head CI must pass before PR #634 can merge.
+
+
+## 2026-11-01 — Pause doctor directory; resume non-doctor application build
+- User explicitly reprioritized: “سيب الاطباء حاليا و كمل بناء التطبيق”.
+- Paused the scheduled doctor-directory automation; it is disabled until the user requests doctor work again.
+- Recorded the reprioritization in master request ledger issue #599.
+- Began a fresh account portal implementation from current main rather than merging the stale PR #618 branch (58 commits behind main).
+- Created branch feat/account-portal-current-main-20261101 and draft PR #646.
+- Added a protected, refreshable account_portal route, authenticated account navigation, account/subscription/permission/activity summary, and access-checked reuse of existing dashboards.
+- Removed privileged dashboard route buttons from public navigation while preserving directory and public storefront access.
+- Subscription screen is read-only; membership switching is not implemented.
+- Added a static account portal contract validator to Pages and Primary Catalog CI, plus a browser E2E scenario.
+- Exact-head CI is pending. No production DB/schema/RLS/Auth/grant/Edge Function/financial mutation or deployment occurred.
+- Doctor work remains paused. Full platform release remains BLOCKED / NOT CERTIFIED.

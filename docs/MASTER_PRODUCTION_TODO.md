@@ -3178,3 +3178,17 @@ A separate source review found a second platform-root authorization model: the n
 - **Regression checks:** production mapper verifies doctor/pharmacy default cover assignment and owner-cover precedence; directory page verifies separate cover resolution and hero rendering.
 - **Safety:** frontend and validation only; no schema, RLS, Auth, Edge Function, or production data mutation.
 - **Status:** COMPLETE on `main`; carried forward to the national-directory pagination branch. Main PR #635 merged as `4796ef4736748e22f465d4fbdc1fb779ff7d8097`; GitHub Pages deployment and deployed-origin verification passed in runs #41269309153 and #41269309136. The pagination branch still requires its own combined exact-head CI and merge.
+
+
+## ACC-PORTAL-20261101 — Unified subscriber account portal (non-doctor priority)
+- **Request ledger:** GitHub issue #599, user reprioritization comment dated 2026-11-01.
+- **Exact request:** pause doctor-directory work for now and continue building the MantiqatiX application.
+- **Doctor work:** paused. Scheduled automation “استكمال دليل الأطباء” has been disabled; do not resume unless the user reprioritizes it.
+- **Scope:** protected signed-in account portal, direct route restoration, account/subscription/permission/activity overview, and access-controlled entry to existing dashboards.
+- **Implementation branch:** feat/account-portal-current-main-20261101.
+- **PR:** #646 — https://github.com/islamnagy2022-eng/MantiqatiX/pull/646.
+- **Implemented:** authenticated-only account_portal route; account entry in Navbar; privileged dashboard tabs removed from public navigation; existing public directory/storefront preserved; subscriber business context retained while in the portal; subscription display remains read-only; existing merchant/professional/platform-admin dashboards are reused behind current access checks.
+- **Safety:** no membership switching, payment/billing mutation, DB/schema/RLS/Auth/grant/Edge Function change, or production deployment.
+- **Validation:** added validate-unified-account-portal.mjs to Pages and Primary Catalog CI; added browser E2E for direct route, dashboard navigation boundary, read-only subscription, permission view and management entry.
+- **Status:** IMPLEMENTED ON FEATURE BRANCH — exact-head CI pending. Do not merge until all required checks pass and independent review is complete.
+- **Next:** inspect exact-head CI, fix any failures, review current-main compatibility, then request independent review. Production gate remains BLOCKED / NOT CERTIFIED.
