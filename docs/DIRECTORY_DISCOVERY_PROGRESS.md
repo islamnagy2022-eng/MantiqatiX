@@ -207,3 +207,11 @@ Partial execution started: 34 verified insertions across the documented batches 
 - Extended public search to match name, specialty, phone, secondary phone, address and administrative location fields; added a server-side address filter and Arabic administrative-label substring matching.
 - Public endpoint continues to constrain reads to `listing_status='PUBLISHED'`; client-side rendering excludes claimed rows from the unclaimed directory cards. No table/schema/RLS/GRANT/Auth mutation, production Edge deployment, or doctor-record import was performed.
 - Exact-head frontend validation and browser E2E are still pending on the current branch head. Isolated Edge Function tests for cursor continuation and the combined search/cursor predicates remain a release requirement. National coverage is still IN PROGRESS; the production baseline remains 57 doctors in one governorate and zero confirmed clinic coordinate pairs.
+
+
+## 2026-11-01 — Geographic prefix matching and pagination contract
+
+- Updated the paginated Edge Function so governorate, district/markaz, village, address, and specialty filters are applied in the SQL query before the bounded page limit. Geographic/address/specialty text is sanitized and matched with `ILIKE '%…%'` to tolerate common administrative prefixes such as «محافظة»، «مركز»، and «قرية».
+- Preserved legacy functional-group and taxonomy-category IDs by expanding known aliases to canonical ID sets before applying the server-side `IN` filters.
+- The keyset helper validates page size (1–100), validates UUID/timestamp cursors, preserves PostgreSQL microsecond timestamp precision, and builds one PostgREST logic tree when text search and cursor continuation are used together.
+- Exact-head CI is being rerun after the geographic-filter change. Production Edge Function remains v8; no database/permission mutation or live doctor import has occurred.
