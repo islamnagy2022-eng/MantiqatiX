@@ -80,6 +80,62 @@ async function readBody(response: Response): Promise<any> {
   return body;
 }
 
+export type PublicDirectoryListingPage = {
+  listings: PublicDirectoryListing[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  pageSize: number;
+};
+
+export type PublicDirectoryListingFilters = {
+  limit?: number;
+  cursor?: string | null;
+  type?: string;
+  governorate?: string;
+  district?: string;
+  village?: string;
+  address?: string;
+  specialty?: string;
+  functionalGroupId?: string;
+  taxonomyCategoryId?: string;
+  taxonomySpecialty?: string;
+  q?: string;
+};
+
+export async function fetchPublicDirectoryListingPage(
+  filters: PublicDirectoryListingFilters = {},
+): Promise<PublicDirectoryListingPage> {
+  const url = new URL(String(productionRuntime.supabaseUrl) + "/functions/v1/directory-listings");
+  const params: Record<string, string | number | null | undefined> = {
+    limit: filters.limit ?? 100,
+    cursor: filters.cursor,
+    type: filters.type,
+    governorate: filters.governorate,
+    district: filters.district,
+    village: filters.village,
+    address: filters.address,
+    specialty: filters.specialty,
+    functionalGroupId: filters.functionalGroupId,
+    taxonomyCategoryId: filters.taxonomyCategoryId,
+    taxonomySpecialty: filters.taxonomySpecialty,
+    q: filters.q,
+  };
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && String(value).trim()) url.searchParams.set(key, String(value));
+  }
+  const { data: authData } = await supabase.auth.getSession();
+  const requestHeaders: Record<string, string> = { apikey: String(productionRuntime.supabaseKey) };
+  if (authData.session?.access_token) requestHeaders.Authorization = "Bearer " + authData.session.access_token;
+  const response = await fetch(url.toString(), { headers: requestHeaders, cache: "no-store" });
+  const body = await readBody(response);
+  return {
+    listings: (Array.isArray(body.listings) ? body.listings : []).map((row: PublicDirectoryListing) => normalizeDirectoryListingTaxonomy(row)),
+    nextCursor: typeof body.nextCursor === "string" ? body.nextCursor : null,
+    hasMore: body.hasMore === true,
+    pageSize: Number(body.pageSize) || Number(filters.limit) || 100,
+  };
+}
+
 export async function fetchPublicDirectoryListings(slug?: string): Promise<PublicDirectoryListing[] | PublicDirectoryListing | null> {
   const url = new URL(String(productionRuntime.supabaseUrl) + "/functions/v1/directory-listings");
   if (slug) url.searchParams.set("slug", slug);
