@@ -35,12 +35,14 @@ export function decodeDirectoryPaginationCursor(value) {
     const normalized = raw.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - raw.length % 4) % 4);
     const decoded = JSON.parse(atob(normalized));
     if (!decoded || typeof decoded.created_at !== "string" ||
+      !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$/.test(decoded.created_at) ||
       Number.isNaN(Date.parse(decoded.created_at)) ||
       typeof decoded.id !== "string" ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(decoded.id)) {
       throw new Error("invalid cursor");
     }
-    return { created_at: new Date(decoded.created_at).toISOString(), id: decoded.id };
+    // Preserve the original database timestamp precision; Date#toISOString truncates PostgreSQL microseconds.
+    return { created_at: decoded.created_at, id: decoded.id };
   } catch {
     throw new Error("invalid cursor");
   }
