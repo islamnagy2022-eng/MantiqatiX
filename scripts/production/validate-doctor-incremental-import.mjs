@@ -71,7 +71,7 @@ assert.match(evidenceMigration, /force row level security/i, "Evidence registry 
 assert.match(evidenceMigration, /revoke all on table public\.directory_source_permission_evidence from anon, authenticated/i, "Evidence registry must deny direct client access");
 assert.match(evidenceMigration, /grant all on table public\.directory_source_permission_evidence to service_role/i, "Evidence registry must be service-role only");
 assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enforce two-person approval");
-assert.match(evidenceMigration, /status in \('PENDING','APPROVED','REVOKED'\)/, "Evidence status must be constrained");
+assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED'\)/, "Evidence status must be constrained");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,approved_source_evidence,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
