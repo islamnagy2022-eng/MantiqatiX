@@ -363,6 +363,83 @@ assert.ok(expandDirectoryTaxonomyCategoryIds('cat_medical_health_diagnostic_labs
 assert.ok(expandDirectoryTaxonomyCategoryIds('cat_home_maintenance_finishing_companies').includes('cat_construction_decor_interior_design'),
   'Canonical finishing-company filtering must include legacy interior-design category IDs.');
 
+// In-memory keyset continuation regression: exercise repeated timestamps, pre-limit filters,
+// public-only visibility, and every page boundary without needing a production or shared database.
+const paginationFixtures = Array.from({ length: 73 }, (_, index) => {
+  const minute = String(Math.floor(index / 15)).padStart(2, '0');
+  const second = String(index % 15).padStart(2, '0');
+  return {
+    id: '123e4567-e89b-42d3-a456-' + index.toString(16).padStart(12, '0'),
+    created_at: '2026-11-01T00:' + minute + ':' + second + '.000Z',
+    listing_status: index % 17 === 0 ? 'DRAFT' : index % 19 === 0 ? 'HIDDEN' : 'PUBLISHED',
+    governorate: index % 2 === 0 ? 'محافظة الجيزة' : 'الجيزة',
+    district: 'مركز الصف',
+    village: index % 3 === 0 ? 'قرية الأخصاص' : 'الأخصاص',
+    specialty: index % 4 === 0 ? 'طب أطفال' : 'باطنة',
+    display_name: 'طبيب اختبار ' + String(index).padStart(2, '0'),
+    phone: '0100000' + String(index).padStart(4, '0'),
+  };
+});
+const compareDirectoryOrder = (left, right) =>
+  right.created_at.localeCompare(left.created_at) || right.id.localeCompare(left.id);
+function readFixturePage({ limit, cursor = null, governorate = '', district = '', village = '', specialty = '', q = '' }) {
+  const query = sanitizeDirectoryPaginationSearch(q).toLocaleLowerCase('ar-EG');
+  const rows = paginationFixtures
+    .filter((row) => row.listing_status === 'PUBLISHED')
+    .filter((row) => !governorate || row.governorate.includes(governorate))
+    .filter((row) => !district || row.district.includes(district))
+    .filter((row) => !village || row.village.includes(village))
+    .filter((row) => !specialty || row.specialty.includes(specialty))
+    .filter((row) => !query || [row.display_name, row.specialty, row.phone, row.governorate, row.district, row.village]
+      .some((value) => value.toLocaleLowerCase('ar-EG').includes(query)))
+    .filter((row) => !cursor || row.created_at < cursor.created_at ||
+      (row.created_at === cursor.created_at && row.id < cursor.id))
+    .sort(compareDirectoryOrder);
+  const fetched = rows.slice(0, limit + 1);
+  const hasMore = fetched.length > limit;
+  const listings = hasMore ? fetched.slice(0, limit) : fetched;
+  const last = listings[listings.length - 1];
+  return {
+    listings,
+    hasMore,
+    nextCursor: hasMore && last ? { created_at: last.created_at, id: last.id } : null,
+  };
+}
+function collectFixturePages(filters) {
+  const collected = [];
+  let cursor = null;
+  let pageCount = 0;
+  do {
+    const page = readFixturePage({ ...filters, cursor });
+    collected.push(...page.listings);
+    cursor = page.nextCursor;
+    pageCount += 1;
+    assert.ok(pageCount < 20, 'Fixture pagination must terminate without cursor loops.');
+  } while (cursor);
+  return collected;
+}
+const expectedPublished = paginationFixtures
+  .filter((row) => row.listing_status === 'PUBLISHED')
+  .sort(compareDirectoryOrder);
+const allPublishedPages = collectFixturePages({ limit: 17 });
+assert.deepEqual(allPublishedPages.map((row) => row.id), expectedPublished.map((row) => row.id),
+  'Keyset continuation must neither duplicate nor omit any published fixture across repeated timestamps.');
+assert.equal(new Set(allPublishedPages.map((row) => row.id)).size, allPublishedPages.length,
+  'Keyset pages must not repeat a listing ID.');
+assert.ok(allPublishedPages.every((row) => row.listing_status === 'PUBLISHED'),
+  'Draft and hidden listings must never leak into public pages.');
+const geoSpecialtyPages = collectFixturePages({
+  limit: 7, governorate: 'الجيزة', district: 'الصف', village: 'الأخصاص', specialty: 'أطفال', q: 'طبيب اختبار',
+});
+const expectedGeoSpecialty = expectedPublished.filter((row) =>
+  row.governorate.includes('الجيزة') && row.district.includes('الصف') &&
+  row.village.includes('الأخصاص') && row.specialty.includes('أطفال') &&
+  row.display_name.includes('طبيب اختبار'));
+assert.deepEqual(geoSpecialtyPages.map((row) => row.id), expectedGeoSpecialty.map((row) => row.id),
+  'Geographic + specialty + text filters must apply before the keyset page limit.');
+assert.equal(new Set(geoSpecialtyPages.map((row) => row.id)).size, geoSpecialtyPages.length,
+  'Filtered keyset pages must not duplicate records across continuation requests.');
+
 assert.match(directoryPaginationHelper, /"address", "governorate", "district", "village"/,
   'Directory search helper must include address and administrative hierarchy fields.');
 assert.match(directory, /fetchPublicDirectoryListingPage\(directoryListingRequestFilters\)/,
