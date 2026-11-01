@@ -211,9 +211,16 @@ export function mapBusiness(raw: any, provider: any): Business {
   const isVerified = Boolean(provider?.verified ?? provider?.is_verified ?? raw.isVerified);
   const isPharmacy = /صيدل|pharmacy/i.test([name, category, activityCategoryCode, raw.activityGroupCode, raw.activity_group_code].join(' '));
   const savedLogoSource = String(profile.logo_image_source || profile.logoImageSource || '').toLowerCase();
+  const savedCoverSource = String(profile.cover_image_source || profile.coverImageSource || '').toLowerCase();
   const hasOwnerSelectedLogo = Boolean(savedLogo) && savedLogoSource !== 'auto' &&
     !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedLogo);
+  const hasOwnerSelectedCover = Boolean(savedCover) && savedCoverSource !== 'auto' &&
+    !isStockImageUrl(savedCover) &&
+    !/(?:business-placeholder|catalog-item-placeholder)\.svg|\/legacy\/(?:activity|activities)\//i.test(savedCover);
   const pharmacyFallbackLogo = isPharmacy && !isVerified && !hasOwnerSelectedLogo
+    ? UNVERIFIED_PHARMACY_IMAGE_URL
+    : '';
+  const pharmacyFallbackCover = isPharmacy && !isVerified && !hasOwnerSelectedCover
     ? UNVERIFIED_PHARMACY_IMAGE_URL
     : '';
   const isDoctor = /طبيب|طبيبة|دكتور|دكتورة|doctor|physician/i.test([
@@ -225,6 +232,9 @@ export function mapBusiness(raw: any, provider: any): Business {
   const doctorFallbackLogo = isDoctor && !isVerified && !hasOwnerSelectedLogo
     ? UNVERIFIED_DOCTOR_IMAGE_URL
     : '';
+  const doctorFallbackCover = isDoctor && !isVerified && !hasOwnerSelectedCover
+    ? UNVERIFIED_DOCTOR_IMAGE_URL
+    : '';
   return {
     id, name, slug: String(raw.slug || provider?.slug || raw.code || id), category,
     categoryId: DEFAULT_CATEGORIES.find((x) => x.id === canonicalCategoryId)?.id || DEFAULT_CATEGORIES.find((x) => x.name === category || category.startsWith(x.name + ' — '))?.id,
@@ -232,7 +242,7 @@ export function mapBusiness(raw: any, provider: any): Business {
     categoryClassificationType: classificationType,
     activitySpecialty: String(raw.activitySpecialty || raw.activity_specialty || raw.settings?.activity_specialty || meta.activity_specialty || profile.activity_specialty || '') || undefined,
     logoUrl: doctorFallbackLogo || pharmacyFallbackLogo || (isStockImageUrl(savedLogo) && !officialShowcase ? '' : savedLogo),
-    coverUrl: isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover,
+    coverUrl: doctorFallbackCover || pharmacyFallbackCover || (isStockImageUrl(savedCover) && !officialShowcase ? '' : savedCover),
     externalLogoUrl: /^https:\/\//i.test(externalLogoUrl) ? externalLogoUrl : '',
     externalCoverUrl: /^https:\/\//i.test(externalCoverUrl) ? externalCoverUrl : '',
     bio: String(profile.bio || raw.bio || provider?.description || ''),
