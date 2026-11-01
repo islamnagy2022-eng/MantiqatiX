@@ -403,6 +403,85 @@ async function assertNoHorizontalOverflow(page, label) {
 const browser = await chromium.launch({ headless: true });
 const results = [];
 
+// The canonical root is the marketplace home; directory search remains a separate route.
+{
+  const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
+  try {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByRole('heading', { name: /كل الأنشطة والخدمات والعروض/ }).waitFor({ state: 'visible' });
+    await page.getByText('جارٍ التحقق من تسجيل الدخول وتجهيز الصلاحيات… يمكنك تصفح الأنشطة المنشورة أثناء ذلك.').waitFor({ state: 'detached', timeout: 15000 });
+    const firstVerified = liveDirectory.businesses.find((business) => business.provider?.verified === true && business.status === 'ACTIVE');
+    assert.ok(firstVerified, 'marketplace E2E requires at least one verified live public business');
+    await page.getByRole('heading', { name: firstVerified.name, exact: true }).first().waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.has('view'), false, 'the root URL must resolve to marketplace home');
+    assert.equal(await page.locator('nav').getByRole('button', { name: 'بحث الأنشطة والخدمات', exact: true }).count(), 1, 'search must be exposed as its own navigation destination');
+
+    await page.getByRole('region', { name: 'الأنشطة الموثقة' }).getByRole('button', { name: 'فتح كتالوج ' + firstVerified.name }).click();
+    await page.getByRole('heading', { name: 'قائمة عروض وكتالوج ' + firstVerified.name, exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('store'), firstVerified.id, 'opening a public homepage card must load the correct stable public storefront route');
+    await page.getByRole('banner').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+
+    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      await assertNoHorizontalOverflow(page, 'marketplace home at ' + viewport.width + 'px');
+    }
+
+    await page.getByTestId('home-search-button').click();
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'home search action must open the dedicated directory route');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: /اكتشف كافة المشاريع والخدمات في/ }).waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.get('view'), 'directory', 'the directory must survive direct reload');
+
+    await page.getByRole('banner').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    assert.equal(new URL(page.url()).searchParams.has('view'), false, 'home navigation must restore the canonical root URL');
+    results.push('marketplace-home-root-live-businesses-and-separate-search-navigation');
+  } finally { await context.close(); }
+}
+
+// First-visit location consent is also available on the marketplace root, before search is opened.
+{
+  const { context, page } = await newScenario(browser, null, liveDirectory.businesses, { geoFirstVisit: true });
+  try {
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+    await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
+    await consentDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+    await consentDialog.waitFor({ state: 'hidden', timeout: 5000 });
+    const preference = await page.evaluate(() => JSON.parse(localStorage.getItem('mantiqatix.geo-discovery.v1') || 'null'));
+    assert.equal(preference?.completed, true, 'root consent choice must persist before the modal closes');
+    assert.equal(preference?.mode, 'manual', 'Egypt-wide selection must preserve manual location mode');
+    const leakedCoordinates = await page.evaluate(() => Object.entries(localStorage).some(([key, value]) =>
+      /userCoordinates|latitude|longitude/i.test(key + ' ' + value) || value.includes('30.55') || value.includes('31.01')));
+    assert.equal(leakedCoordinates, false, 'homepage location consent must never persist exact GPS coordinates');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' }).waitFor({ state: 'detached', timeout: 5000 });
+    results.push('marketplace-home-first-visit-location-consent-and-privacy');
+  } finally { await context.close(); }
+}
+
+// Leaving a shareable activity folder for home removes stale directory query state.
+{
+  const { context, page } = await newScenario(browser);
+  try {
+    await page.goto(baseUrl + '?activity=cat_medical_health_pharmacies&group=medical_health', { waitUntil: 'domcontentloaded' });
+    await page.locator('main[dir="rtl"]').getByRole('heading', { name: 'صيدليات', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+    await page.getByRole('banner').getByRole('button', { name: 'الرئيسية', exact: true }).click();
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    const route = new URL(page.url());
+    assert.equal(route.searchParams.has('activity'), false, 'home must clear the previous activity deep link');
+    assert.equal(route.searchParams.has('group'), false, 'home must clear the previous group deep link');
+    assert.equal(route.searchParams.has('view'), false, 'home must use the canonical root route');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByTestId('marketplace-home').waitFor({ state: 'visible', timeout: 15000 });
+    results.push('activity-folder-to-home-clears-deep-link-state');
+  } finally { await context.close(); }
+}
+
 async function auditAccessibility(page, label) {
   const axePath = process.env.AXE_CORE_SCRIPT;
   if (!axePath) return;
@@ -450,7 +529,7 @@ try {
         provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
       };
     });
-    const { context, page } = await newScenario(browser, null, paginationFixtures);
+    const { context, page } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
     try {
       await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
@@ -512,7 +591,7 @@ try {
       },
     });
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -694,7 +773,7 @@ try {
     try {
       await context.grantPermissions(['geolocation'], { origin: new URL(baseUrl).origin });
       await context.setGeolocation({ latitude: 30.55, longitude: 31.01 });
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
       await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
@@ -727,7 +806,7 @@ try {
     const { context, page } = await newScenario(browser, null, [], { geoFirstVisit: true });
     try {
       await context.grantPermissions([], { origin: new URL(baseUrl).origin });
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const consentDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       await consentDialog.waitFor({ state: 'visible', timeout: 15000 });
       await consentDialog.getByRole('button', { name: 'السماح باستخدام موقعي' }).click();
@@ -750,7 +829,7 @@ try {
       { id: '40000000-0000-0000-0000-000000000004', name: 'نشاط بلا روابط خارجية', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: '', externalCoverUrl: '' }, provider: { verified: true } },
       { id: '40000000-0000-0000-0000-000000000005', name: 'نشاط غير موثق بروابط', category: 'أنشطة تجارية', status: 'ACTIVE', publicEnabled: true, profile: { logoUrl: displayLogo, coverUrl: displayCover, externalLogoUrl: 'https://cdn.example.test/unverified-logo.svg', externalCoverUrl: 'https://cdn.example.test/unverified-cover.svg' }, provider: { verified: false } },
     ];
-    const { context, page } = await newScenario(browser, null, fixtures);
+    const { context, page } = await newScenario(browser, null, fixtures, { initialRoute: '?view=directory' });
     try {
       await page.getByRole('heading', { name: 'نشاط رابطين خارجيين', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const logoLinks = page.locator('a[aria-label="فتح الرابط الخارجي للصورة التعريفية"]');
@@ -925,7 +1004,7 @@ try {
       branches: [],
       items: [],
     };
-    const { context, page } = await newScenario(browser, null, [zeftaFixture]);
+    const { context, page } = await newScenario(browser, null, [zeftaFixture], { initialRoute: '?view=directory' });
     try {
       await page.getByRole('heading', { name: 'شعير للأدوات الصحية', exact: true }).waitFor({ state: 'visible', timeout: 15000 });
       const govSelect = page.locator('label').filter({ hasText: 'المحافظة' }).locator('select');
@@ -946,7 +1025,7 @@ try {
   {
     const { context, page } = await newScenario(browser);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -1021,7 +1100,7 @@ try {
       directoryListingsState: { listings: [withPhone, withoutPhone, outsideGeo] },
     });
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -1067,7 +1146,7 @@ try {
   {
     const { context, page } = await newScenario(browser);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       const firstVisitLocationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
       if (await firstVisitLocationDialog.isVisible().catch(() => false)) {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
@@ -1109,7 +1188,7 @@ try {
   {
     const { context, page } = await newScenario(browser, null, liveDirectory.businesses);
     try {
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
 
       const findVerifiedCard = async (target) => {
         const heading = page.getByRole('heading', { name: target.name, exact: true }).first();
@@ -1143,7 +1222,7 @@ try {
           results.push(target.label.toLowerCase().replaceAll(' ', '-') + '-verified-badge-and-empty-catalog-state-rendered');
         }
 
-        await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+        await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
       }
     } finally { await context.close(); }
   }

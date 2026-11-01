@@ -4,8 +4,10 @@ import path from 'node:path';
 
 const root = process.cwd();
 const directoryPath = path.join(root, 'apps/catalog-frontend/src/components/DirectoryView.tsx');
+const homePath = path.join(root, 'apps/catalog-frontend/src/components/MarketplaceHome.tsx');
 const geoPath = path.join(root, 'apps/catalog-frontend/src/data/egyptGeoDiscovery.ts');
 const directory = fs.readFileSync(directoryPath, 'utf8');
+const home = fs.readFileSync(homePath, 'utf8');
 const geo = fs.readFileSync(geoPath, 'utf8');
 
 function readExportedArray(source, exportName) {
@@ -49,6 +51,11 @@ assert.ok(directory.includes('biz.markaz'), 'Manual geographic scope must apply 
 assert.ok(directory.includes('match.district?.name'), 'Governorate-only fallback must not dereference a missing district');
 assert.ok(directory.includes('21.5 || latitude > 32.2'), 'GPS outside the supported Egypt extent must be rejected for local ranking');
 assert.ok(directory.includes('{locationWelcomeDialog}'), 'First-visit consent must also render on alternate directory routes');
+assert.ok(home.includes('role="dialog"') && home.includes('aria-modal="true"'), 'The marketplace root must request first-visit location consent before opening search');
+assert.ok(home.includes('navigator.geolocation.getCurrentPosition'), 'Homepage location consent must use the browser location API only after explicit action');
+assert.ok(home.includes('onClick={requestInitialLocation}') && home.includes('السماح باستخدام موقعي'), 'Homepage GPS permission must require an explicit user click');
+assert.ok(home.includes('mantiqatix.geo-discovery.v1') && home.includes("mode, governorate: 'all', markaz: 'all', village: 'all', area: 'all'"), 'Homepage must persist administrative preferences in the shared versioned format');
+assert.ok(home.includes('never store exact GPS coordinates') && !home.includes('localStorage.setItem(.*latitude'), 'Homepage must not persist exact GPS coordinates');
 
 assert.ok(geo.includes('EGYPT_GEO_DATASET') && geo.includes("license: 'CC-BY-4.0'"), 'Dataset attribution and license must be preserved');
 assert.ok(geo.includes('2026-09-08'), 'Dataset reference date must be preserved');
