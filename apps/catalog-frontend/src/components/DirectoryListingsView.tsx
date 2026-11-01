@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BadgeCheck, Building2, CalendarClock, CheckCircle2, ClipboardList, ExternalLink, MapPin, Phone, Search, ShieldAlert, UserRoundCheck } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
+import { fetchPublicDirectoryListingPage, fetchPublicDirectoryListings, submitDirectoryListingClaim, updateOwnedDirectoryListing, type PublicDirectoryListing } from "../lib/directoryListings";
 import { resolveCanonicalSpecialty } from "../data/productionDefaults";
 import { UNVERIFIED_DOCTOR_IMAGE_URL, UNVERIFIED_PHARMACY_IMAGE_URL } from "../utils/defaultImages";
 
@@ -37,6 +37,9 @@ export const DirectoryListingsView: React.FC<{
   const [listings, setListings] = useState<PublicDirectoryListing[]>([]);
   const [detail, setDetail] = useState<PublicDirectoryListing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("all");
@@ -59,18 +62,64 @@ export const DirectoryListingsView: React.FC<{
     let alive = true;
     setLoading(true);
     setLoadError("");
-    const load = detailSlug
-      ? fetchPublicDirectoryListings(detailSlug).then((record) => {
-          if (alive) setDetail(record && !Array.isArray(record) ? record : null);
-        })
-      : fetchPublicDirectoryListings().then((records) => {
-          if (alive) setListings(Array.isArray(records) ? records : []);
-        });
-    load.catch((error) => {
-      if (alive) setLoadError(error instanceof Error ? error.message : "تعذر تحميل الدليل الطبي.");
-    }).finally(() => { if (alive) setLoading(false); });
+    if (detailSlug) {
+      fetchPublicDirectoryListings(detailSlug).then((record) => {
+        if (alive) setDetail(record && !Array.isArray(record) ? record : null);
+      }).catch((error) => {
+        if (alive) setLoadError(error instanceof Error ? error.message : "تعذر تحميل الدليل الطبي.");
+      }).finally(() => { if (alive) setLoading(false); });
+    } else {
+      setListings([]);
+      setNextCursor(null);
+      setHasMore(false);
+      const timer = window.setTimeout(() => {
+        fetchPublicDirectoryListingPage({
+          limit: 100,
+          functionalGroupId: functionalGroupId || undefined,
+          taxonomyCategoryId: taxonomyCategoryId || undefined,
+          taxonomySpecialty: taxonomySpecialty || undefined,
+          specialty: !taxonomySpecialty && specialtyFilter !== "all" && specialtyFilter !== "التخصص يحتاج إلى تأكيد" ? specialtyFilter : undefined,
+          q: search.trim() || searchQuery.trim() || undefined,
+        }).then((page) => {
+          if (!alive) return;
+          setListings(page.listings);
+          setNextCursor(page.nextCursor);
+          setHasMore(page.hasMore);
+        }).catch((error) => {
+          if (alive) setLoadError(error instanceof Error ? error.message : "تعذر تحميل الدليل الطبي.");
+        }).finally(() => { if (alive) setLoading(false); });
+      }, search.trim() ? 250 : 0);
+      return () => { alive = false; window.clearTimeout(timer); };
+    }
     return () => { alive = false; };
-  }, [detailSlug, authSession.isAuthenticated]);
+  }, [detailSlug, authSession.isAuthenticated, functionalGroupId, taxonomyCategoryId, taxonomySpecialty, searchQuery, search, specialtyFilter]);
+
+  const handleLoadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    setLoadError("");
+    try {
+      const page = await fetchPublicDirectoryListingPage({
+        limit: 100,
+        cursor: nextCursor,
+        functionalGroupId: functionalGroupId || undefined,
+        taxonomyCategoryId: taxonomyCategoryId || undefined,
+        taxonomySpecialty: taxonomySpecialty || undefined,
+        specialty: !taxonomySpecialty && specialtyFilter !== "all" && specialtyFilter !== "التخصص يحتاج إلى تأكيد" ? specialtyFilter : undefined,
+        q: search.trim() || searchQuery.trim() || undefined,
+      });
+      setListings((current) => {
+        const seen = new Set(current.map((row) => row.id));
+        return [...current, ...page.listings.filter((row) => !seen.has(row.id))];
+      });
+      setNextCursor(page.nextCursor);
+      setHasMore(page.hasMore);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "تعذر تحميل المزيد من النتائج.");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     setClaimName(authSession.subscriberName || authSession.email || "");
@@ -259,7 +308,7 @@ export const DirectoryListingsView: React.FC<{
       </div>
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold leading-6 text-amber-950">ملاحظة: الأسماء والأرقام مأخوذة من أدلة عامة وليست تأكيدًا من الأطباء. قبل التواصل أو الاعتماد، يُرجى التأكد من أن الرقم ما زال صحيحًا وأنه يخص العيادة.</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="relative block"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث باسم الطبيب أو العنوان" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-10 pl-3 text-sm" /></label>
+        <label className="relative block"><Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث باسم الطبيب" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-10 pl-3 text-sm" /></label>
         {!taxonomySpecialty && <select value={specialtyFilter} onChange={(e) => setSpecialtyFilter(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold"><option value="all">كل التخصصات</option>{specialties.map((specialty) => <option key={specialty} value={specialty}>{specialty}</option>)}</select>}
       </div>
       {loading ? <div className="py-6 text-center text-sm font-bold text-slate-600">جارٍ تحميل صفحات الأطباء…</div> :
@@ -279,6 +328,8 @@ export const DirectoryListingsView: React.FC<{
             </article>
           ))}
         </div> : <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-700">لا توجد نتائج مطابقة للبحث.</div>}
+      {!loading && !loadError && hasMore && <div className="flex justify-center pt-2"><button type="button" onClick={handleLoadMore} disabled={loadingMore} className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-black text-slate-800 hover:bg-slate-50 disabled:opacity-50">{loadingMore ? "جارٍ تحميل المزيد…" : "رؤية المزيد من النتائج"}</button></div>}
+      {loadError && listings.length > 0 && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-800">{loadError}</div>}
       <div className="flex items-start gap-2 border-t border-slate-100 pt-4 text-xs leading-6 text-slate-500"><ClipboardList className="mt-0.5 h-4 w-4 shrink-0" /><p>كل صفحة يمكن استكمالها لاحقًا بالصور والمواعيد والخدمات ووسائل التواصل. لا يتم نقل ملكية الصفحة أو تفعيل صلاحيات المالك بمجرد إنشاء القائمة.</p></div>
     </section>
   );
