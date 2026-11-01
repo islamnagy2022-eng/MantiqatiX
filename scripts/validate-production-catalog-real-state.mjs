@@ -382,8 +382,8 @@ assert.ok(expandDirectoryTaxonomyCategoryIds('cat_home_maintenance_finishing_com
 // In-memory keyset continuation regression: exercise repeated timestamps, pre-limit filters,
 // public-only visibility, and every page boundary without needing a production or shared database.
 const paginationFixtures = Array.from({ length: 73 }, (_, index) => {
-  const minute = String(Math.floor(index / 15)).padStart(2, '0');
-  const second = String(index % 15).padStart(2, '0');
+  const minute = String(Math.floor(index / 3)).padStart(2, '0');
+  const second = '00';
   return {
     id: '123e4567-e89b-42d3-a456-' + index.toString(16).padStart(12, '0'),
     created_at: '2026-11-01T00:' + minute + ':' + second + '.000Z',
