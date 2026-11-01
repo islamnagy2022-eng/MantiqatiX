@@ -69,6 +69,7 @@ interface AppContextType {
   addBusiness: (business: Omit<Business, 'id' | 'createdAt'>) => Promise<string>;
   deleteBusiness: (id: string) => Promise<void>;
   getStorePublicLink: (business: Business) => string;
+  openPublicBusiness: (businessId: string) => Promise<boolean>;
   updateBusinessLocation: (businessId: string, loc: { governorate: string; markaz: string; village: string; address?: string }) => Promise<void>;
   confirmAdminPayment: (businessId: string) => Promise<void>;
   updateBillingSetting: (businessId: string, settings: Record<string, unknown>) => Promise<void>;
@@ -121,6 +122,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const addBusinessInFlightRef = useRef<Map<string, Promise<string>>>(new Map());
+  const publicCatalogOpenSequenceRef = useRef(0);
   const initialRouteParams = new URLSearchParams(window.location.search);
   const [selectedBusinessId, setSelectedBusinessIdState] = useState(initialRouteParams.get('manage') || '');
   const routeBusinessIdRef = useRef(initialRouteParams.get('store') || initialRouteParams.get('businessId') || initialRouteParams.get('manage') || '');
@@ -784,6 +786,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const getStorePublicLink = (business: Business) =>
     generateStorePublicUrl(window.location.origin, business.id, getCurrentAppBasePath(window.location.pathname));
+  const openPublicBusiness = async (businessId: string): Promise<boolean> => {
+    const sequence = ++publicCatalogOpenSequenceRef.current;
+    const knownBusiness = businesses.find((business) => business.id === businessId);
+    if (knownBusiness && (knownBusiness.publicEnabled || knownBusiness.isOfficialShowcase) && !knownBusiness.isFrozen) {
+      setCartItems([]);
+      commitSelectedBusinessId(knownBusiness.id);
+      setCurrentView('public_storefront');
+      return true;
+    }
+    const catalog = await fetchPublicCatalog(businessId).catch(() => null);
+    if (sequence !== publicCatalogOpenSequenceRef.current || !catalog) return false;
+    setBusinesses((previous) => [catalog.business, ...previous.filter((business) => business.id !== catalog.business.id)]);
+    setProducts((previous) => [...previous.filter((product) => product.businessId !== catalog.business.id), ...catalog.products]);
+    setCartItems([]);
+    commitSelectedBusinessId(catalog.business.id);
+    setCurrentView('public_storefront');
+    return true;
+  };
   const addProduct = async (data: Omit<Product, 'id'> & { deferAiImageGeneration?: boolean }): Promise<{ success: boolean; message?: string }> => {
     const business = businesses.find((b) => b.id === data.businessId);
     if (!business?.tenantId || !business.branchId) return { success: false, message: 'النشاط أو الفرع غير مرتبط ببيانات الإنتاج.' };
@@ -1029,7 +1049,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     currentView, setCurrentView, selectedBusinessId, setSelectedBusinessId, currentBusiness,
     functionalGroups, categories, addCategory, updateCategory, deleteCategory, selectedFunctionalGroupFilter, setSelectedFunctionalGroupFilter, selectedCategoryFilter, setSelectedCategoryFilter,
     authSession, authLoading, loginWithGoogle, registerWithEmail, loginAsSubscriber, loginAsAdmin, logout, isLoginModalOpen, setIsLoginModalOpen,
-    businesses, directoryBusinesses, directoryProducts, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, updateBusinessLocation,
+    businesses, directoryBusinesses, directoryProducts, directoryLoading, products, subscribers, subscribersLoading, refreshPlatformSubscribers, adminSettings, updateBusiness, addBusiness, deleteBusiness, getStorePublicLink, openPublicBusiness, updateBusinessLocation,
     confirmAdminPayment, updateBillingSetting, toggleBusinessFreeze,
     businessProducts, addProduct, updateProduct, deleteProduct, addSubscriber, saveSubscriberMembership, updateSubscriber, deleteSubscriber, sendGmailInvite, getSubscriberCredentialsText, updateAdminSettings, addBusinessCategory,
     cartItems, addToCart, removeFromCart, updateCartQuantity, clearCart, isCartOpen, setIsCartOpen, submitOrderViaWhatsApp, requestCatalogViaAdminWhatsApp,
