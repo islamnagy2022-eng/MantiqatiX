@@ -9,6 +9,7 @@ import {
   sanitizeDirectoryPaginationSearch,
 } from "./pagination-filter.mjs";
 import {
+  isCurrentDoctorRepublicationEvidence,
   normalizeDirectorySourceHost,
   resolveDoctorImportStatus,
   sanitizeDoctorImportMetadata,
@@ -560,10 +561,57 @@ Deno.serve(async (req: Request) => {
     }
     const phone = clean(body.phone, 40);
     const secondaryPhone = clean(body.secondaryPhone, 40);
+    const sourceName = clean(body.sourceName || "إدخال إدارة المنصة", 160);
+    const sourceUrl = clean(body.sourceUrl, 1000) || null;
     const hasPhone = phone.replace(/\D/g, "").length >= 7 || secondaryPhone.replace(/\D/g, "").length >= 7;
     if (listingStatus === "PUBLISHED" && !hasPhone) {
       return out(origin, { error: "PHONE_REQUIRED_FOR_PUBLICATION", message: "لا يمكن نشر النشاط قبل إضافة رقم هاتف صحيح من 7 أرقام على الأقل." }, 400);
     }
+
+    // A new doctor profile, or a draft changing to a public profile, needs
+    // current two-person source permission for doctor-profile and commercial
+    // republication. Existing published records may be edited without changing
+    // their source attribution; changing their source requires fresh evidence.
+    if (listingType === "doctor" && listingStatus === "PUBLISHED") {
+      let priorListing: any = null;
+      if (id) {
+        const { data: prior, error: priorError } = await service.from("public_directory_listings")
+          .select("listing_status,source_name,source_url").eq("id", id).maybeSingle();
+        if (priorError) return out(origin, { error: "LISTING_READ_FAILED" }, 500);
+        priorListing = prior;
+      }
+      const isAlreadyPublishedWithSameSource = priorListing?.listing_status === "PUBLISHED" &&
+        String(priorListing.source_name || "") === sourceName &&
+        String(priorListing.source_url || "") === String(sourceUrl || "");
+      if (!isAlreadyPublishedWithSameSource) {
+        let sourceHost = "";
+        try {
+          sourceHost = normalizeDirectorySourceHost(new URL(String(sourceUrl || "")).hostname);
+        } catch {
+          sourceHost = "";
+        }
+        if (!sourceUrl || !sourceHost) {
+          return out(origin, {
+            error: "DOCTOR_REPUBLICATION_PERMISSION_REQUIRED",
+            message: "لا يمكن نشر ملف طبيب جديد أو تحويله من مسودة دون مصدر واضح وإذن ساري لإعادة نشر ملفات الأطباء والاستخدام التجاري.",
+          }, 403);
+        }
+        const { data: evidenceRows, error: evidenceError } = await service.from("directory_source_permission_evidence")
+          .select("source_name,source_host,allows_doctor_profile_republication,allows_commercial_republication,valid_from,expires_at,status,revoked_at")
+          .eq("source_host", sourceHost).eq("status", "APPROVED").limit(250);
+        if (evidenceError) return out(origin, { error: "SOURCE_PERMISSION_EVIDENCE_READ_FAILED" }, 500);
+        const hasCurrentPermission = (evidenceRows || []).some((evidence: any) =>
+          isCurrentDoctorRepublicationEvidence(evidence, sourceUrl, sourceName)
+        );
+        if (!hasCurrentPermission) {
+          return out(origin, {
+            error: "DOCTOR_REPUBLICATION_PERMISSION_REQUIRED",
+            message: "لا يوجد إذن معتمد وساري لهذا المصدر يسمح بإعادة نشر ملفات الأطباء والاستخدام التجاري.",
+          }, 403);
+        }
+      }
+    }
+
     const patch: Record<string, unknown> = {
       slug, display_name: displayName, listing_type: listingType,
       functional_group_id: functionalGroupId,
@@ -574,8 +622,8 @@ Deno.serve(async (req: Request) => {
       address: clean(body.address, 500) || null,
       governorate: clean(body.governorate || "المنوفية", 100),
       district: clean(body.district || "بركة السبع", 100), village: clean(body.village, 100) || null,
-      source_name: clean(body.sourceName || "إدخال إدارة المنصة", 160),
-      source_url: clean(body.sourceUrl, 1000) || null,
+      source_name: sourceName,
+      source_url: sourceUrl,
       source_checked_at: body.sourceCheckedAt ? String(body.sourceCheckedAt) : new Date().toISOString(),
       listing_status: listingStatus,
       outreach_status: outreachStatuses.has(clean(body.outreachStatus || "NEW", 40).toUpperCase()) ? clean(body.outreachStatus || "NEW", 40).toUpperCase() : "NEW",
