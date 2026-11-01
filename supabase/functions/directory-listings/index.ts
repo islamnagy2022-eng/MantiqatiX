@@ -285,7 +285,7 @@ Deno.serve(async (req: Request) => {
       const taxonomySpecialty = clean(row.taxonomySpecialty || row.taxonomy_specialty || specialty, 160) || null;
       const sourceName = clean(row.sourceName || row.source_name || "Doctor directory import", 160);
       const sourceUrl = clean(row.sourceUrl || row.source_url, 1000) || null;
-      const hasPhone = phone.replace(/\\D/g, "").length >= 7 || secondaryPhone.replace(/\\D/g, "").length >= 7;
+      const hasPhone = phone.replace(/\D/g, "").length >= 7 || secondaryPhone.replace(/\D/g, "").length >= 7;
 
       if (displayName.length < 2 || !specialty || !governorate || !district ||
           !taxonomyCategoryId.startsWith("cat_medical_health_") && !taxonomyCategoryId.startsWith("cat_custom_")) {
@@ -408,7 +408,7 @@ Deno.serve(async (req: Request) => {
     }
     const phone = clean(body.phone, 40);
     const secondaryPhone = clean(body.secondaryPhone, 40);
-    const hasPhone = phone.replace(/\\D/g, "").length >= 7 || secondaryPhone.replace(/\\D/g, "").length >= 7;
+    const hasPhone = phone.replace(/\D/g, "").length >= 7 || secondaryPhone.replace(/\D/g, "").length >= 7;
     if (listingStatus === "PUBLISHED" && !hasPhone) {
       return out(origin, { error: "PHONE_REQUIRED_FOR_PUBLICATION", message: "لا يمكن نشر النشاط قبل إضافة رقم هاتف صحيح من 7 أرقام على الأقل." }, 400);
     }
