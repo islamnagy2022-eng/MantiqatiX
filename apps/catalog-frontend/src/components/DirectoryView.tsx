@@ -296,6 +296,7 @@ export const DirectoryView: React.FC = () => {
   const openActivityModule = (activityId: string) => {
     const url = new URL(window.location.href);
     url.searchParams.delete('listing');
+    url.searchParams.delete('specialty');
     url.searchParams.set('activity', activityId);
     if (selectedGroupFilter !== 'all') url.searchParams.set('group', selectedGroupFilter);
     else url.searchParams.delete('group');
@@ -306,6 +307,7 @@ export const DirectoryView: React.FC = () => {
   const closeActivityModule = () => {
     const url = new URL(window.location.href);
     url.searchParams.delete('activity');
+    url.searchParams.delete('specialty');
     window.history.pushState({ mantiqatixActivityModule: null }, '', url.pathname + url.search + url.hash);
     setActivityModuleId('');
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -647,20 +649,23 @@ export const DirectoryView: React.FC = () => {
   if (activityModuleId) {
     const activityCategory = availableCategories.find((category) => category.id === activityModuleId);
     if (activityCategory) {
-      const eligibleActivityBusinesses = businesses.filter((business) => Boolean(business.publicEnabled || business.isOfficialShowcase) && business.operationalStatus === 'ACTIVE' && !business.isFrozen && categoryForBusiness(business)?.id === activityCategory.id);
-      const confirmedCount = eligibleActivityBusinesses.filter((business) => business.isVerified).length;
-      const unconfirmedCount = eligibleActivityBusinesses.filter((business) => !business.isVerified).length + unconfirmedListings.filter((listing) => listing.taxonomy_category_id === activityCategory.id && listing.listing_status === 'PUBLISHED' && listing.claim_status !== 'CLAIMED').length;
+      // Reuse the same public, active, geographic and verified-first directory result set as the main search.
+      const activityBusinesses = filteredBusinesses.filter((business) =>
+        categoryForBusiness(business)?.id === activityCategory.id && Boolean(business.phone || business.ownerWhatsApp));
+      const activityListings = filteredUnconfirmedListings.filter((listing) =>
+        listing.taxonomy_category_id === activityCategory.id && Boolean(listing.phone || listing.secondary_phone));
+      const confirmedCount = activityBusinesses.filter((business) => business.isVerified).length;
+      const unconfirmedCount = activityBusinesses.filter((business) => !business.isVerified).length + activityListings.length;
       return <ActivityModuleView
         category={activityCategory}
         confirmedCount={confirmedCount}
         unconfirmedCount={unconfirmedCount}
+        businesses={activityBusinesses}
+        listings={activityListings}
+        onOpenListing={openDirectoryListing}
+        onOpenBusiness={(businessId) => { setSelectedBusinessId(businessId); setCurrentView('public_storefront'); }}
         onBack={closeActivityModule}
         parentGroupName={selectedGroupFilter !== 'all' ? availableGroups.find((group) => group.id === activityCategory.functionalGroupId)?.name : undefined}
-        onSelectSpecialty={(specialty) => {
-          setSelectedCategoryId(activityCategory.id);
-          setSelectedSpecialty(specialty);
-          closeActivityModule();
-        }}
       />;
     }
   }

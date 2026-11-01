@@ -3101,15 +3101,19 @@ A separate source review found a second platform-root authorization model: the n
 
 ## DIR-ACTIVITY-SEARCH-20261101 — صفحة نتائج وبحث متخصصة لكل نشاط
 - **Request ledger:** GitHub issue [#630](https://github.com/islamnagy2022-eng/MantiqatiX/issues/630).
-- **Status:** TODO / NOT IMPLEMENTED.
+- **Status:** SOURCE IMPLEMENTED ON BRANCH; exact-head CI, merge and deployed-origin checks OPEN.
 - **Priority:** P1 — Public directory navigation and discovery.
-- **Current finding:** `DirectoryView.tsx` opens `ActivityModuleView`, but the activity module currently shows overview, specialties, marketing, and operations without listing the businesses belonging to that activity or an in-module search.
+- **Current finding:** the previous module let visitors return to the global directory after choosing a specialty; it did not provide a dedicated specialty folder with its own result list and search.
 - **Target behavior:** opening Pharmacies (or any other activity) opens its own activity page with the actual matching businesses and a search scoped to that activity.
 - **Shared filters:** specialty, verification state, governorate, markaz/section, village/area; respect the existing saved geo preference and location scope.
 - **Activity-specific filters:** show only when backed by real fields/data. Pharmacy examples such as delivery, on-duty status, services, or medicine availability must not be displayed as working filters until a trustworthy data source exists.
 - **Ordering and visibility:** verified businesses first; include only public active records and published unclaimed listings under existing directory rules; never expose drafts/hidden listings.
 - **Navigation:** selecting a result opens the existing business/listing detail route; preserve group → activity → specialty navigation and current global search.
 - **Architecture:** reuse the current directory query/filter logic and shared result-card behavior; configure activity-specific search fields through a registry/config rather than cloning a page per activity.
+- **Implementation on branch `feat/activity-specialty-folders-scoped-search-20261101`:** the public hierarchy is now group → activity → specialty folder → public entities. Each specialty opens a shareable `?specialty=` route with its own search field; direct refresh and browser back/forward restore the correct folder.
+- **Data boundary:** `DirectoryView` passes only the selected activity's existing filtered business/listing results into the module. Existing public-active, published/unclaimed, contact-phone, geo-scope and verified-first rules remain in force; no new source tables or client-side database writes are introduced.
+- **Coverage added:** browser regression for specialty route, specialty-only search, no-phone exclusion, selected-geography retention, reload, browser history and 390/768/1440px overflow.
+- **Safety:** frontend, static validation, browser tests and TODO/session documentation only. No schema, RLS, Auth, Edge Function, payment or production data changes.
 - **Constraints:** preserve current visual identity; no schema/RLS/Edge Function/production data changes unless separately justified and reviewed.
 - **Acceptance tests:** pharmacy and non-medical activity search; specialty and geographic filters; verified-first ordering; public/unclaimed visibility; detail navigation; direct activity URL and browser back/forward; lint/typecheck/build and deployed-origin smoke.
 - **Deployment:** NOT CLAIMED. Do not mark complete until exact-head CI and deployed-origin verification pass.

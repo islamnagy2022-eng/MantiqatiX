@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BarChart3, BriefcaseBusiness, CalendarDays, Megaphone, Package, Search, ShieldCheck, Store, Target, Users } from 'lucide-react';
-import type { ActivityCategory } from '../../types';
+import type { ActivityCategory, Business } from '../../types';
+import type { PublicDirectoryListing } from '../../lib/directoryListings';
 import { useApp } from '../../context/AppContext';
 import { resolveActivityModuleConfig } from './activityModuleRegistry';
+import { resolveCanonicalSpecialty } from '../../data/productionDefaults';
 
 type Section = 'overview' | 'specialties' | 'marketing' | 'operations';
 interface Props {
@@ -10,7 +12,10 @@ interface Props {
   confirmedCount: number;
   unconfirmedCount: number;
   onBack: () => void;
-  onSelectSpecialty: (specialty: string) => void;
+  businesses: Business[];
+  listings: PublicDirectoryListing[];
+  onOpenListing: (slug: string) => void;
+  onOpenBusiness: (businessId: string) => void;
   parentGroupName?: string;
 }
 
@@ -25,8 +30,11 @@ const Metric: React.FC<{ label: string; value: number; color: string }> = ({ lab
   <article className={`rounded-2xl border p-4 ${color}`}><p className="text-xs font-bold">{label}</p><p className="mt-2 text-2xl font-black">{value.toLocaleString('ar-EG')}</p></article>
 );
 
-export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, onSelectSpecialty, parentGroupName }) => {
-  const [activeSection, setActiveSection] = useState<Section>('overview');
+export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, unconfirmedCount, onBack, businesses, listings, onOpenListing, onOpenBusiness, parentGroupName }) => {
+  const [activeSection, setActiveSection] = useState<Section>('specialties');
+  const specialtyFromUrl = new URLSearchParams(window.location.search).get('specialty');
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(specialtyFromUrl);
+  const [searchQuery, setSearchQuery] = useState('');
   const [campaignGoal, setCampaignGoal] = useState('زيادة الطلبات والاستفسارات');
   const [campaignBudget, setCampaignBudget] = useState('3000');
   const [campaignDuration, setCampaignDuration] = useState('30');
@@ -36,6 +44,65 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
   const specialties = useMemo(() => category.specialties || [], [category.specialties]);
   const moduleConfig = useMemo(() => resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides), [category, adminSettings.activityModuleOverrides]);
   const marketing = moduleConfig.marketing;
+  const normalizeDirectorySearch = (value: unknown) => String(value || '').toLocaleLowerCase('ar-EG')
+    .normalize('NFKC').replace(/[أإآ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه')
+    .replace(/[\u064B-\u065F\u0670]/g, '').replace(/\s+/g, ' ').trim();
+  const matchesSpecialty = (value: string) => Boolean(selectedSpecialty) &&
+    resolveCanonicalSpecialty(value, category.id) === resolveCanonicalSpecialty(selectedSpecialty || '', category.id);
+  const matchesBusinessSpecialty = (business: Business, specialty = selectedSpecialty) => {
+    if (!specialty) return true;
+    const categorySuffix = business.category.startsWith(category.name)
+      ? business.category.slice(category.name.length).replace(/^\s*—\s*/, '')
+      : business.category;
+    const target = resolveCanonicalSpecialty(specialty, category.id);
+    return resolveCanonicalSpecialty(business.activitySpecialty || '', category.id) === target ||
+      resolveCanonicalSpecialty(categorySuffix, category.id) === target;
+  };
+  const normalizedQuery = normalizeDirectorySearch(searchQuery);
+  const matchesSearch = (values: Array<string | null | undefined>) => !normalizedQuery ||
+    normalizeDirectorySearch(values.filter(Boolean).join(' ')).includes(normalizedQuery);
+  const verifiedBusinesses = businesses.filter((business) => business.isVerified &&
+    matchesBusinessSpecialty(business) &&
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
+  const unverifiedBusinesses = businesses.filter((business) => !business.isVerified &&
+    matchesBusinessSpecialty(business) &&
+    matchesSearch([business.name, business.activitySpecialty, business.category, business.phone, business.ownerWhatsApp, business.village, business.markaz, business.governorate]));
+  const visibleListings = listings.filter((listing) =>
+    (!selectedSpecialty || matchesSpecialty(listing.taxonomy_specialty || listing.specialty || '')) &&
+    matchesSearch([listing.display_name, listing.taxonomy_specialty, listing.specialty, listing.phone, listing.secondary_phone, listing.village, listing.district, listing.governorate]));
+  const countForSpecialty = (specialty: string) => businesses.filter((business) =>
+    matchesBusinessSpecialty(business, specialty)).length +
+    listings.filter((listing) => resolveCanonicalSpecialty(listing.taxonomy_specialty || listing.specialty || '', category.id) === resolveCanonicalSpecialty(specialty, category.id)).length;
+  const openSpecialtyFolder = (specialty: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('specialty', specialty);
+    window.history.pushState({ mantiqatixSpecialty: specialty }, '', url.pathname + url.search + url.hash);
+    setSelectedSpecialty(specialty);
+    setSearchQuery('');
+  };
+  const closeSpecialtyFolder = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('specialty');
+    window.history.pushState({ mantiqatixSpecialty: null }, '', url.pathname + url.search + url.hash);
+    setSelectedSpecialty(null);
+    setSearchQuery('');
+  };
+  useEffect(() => {
+    const syncSpecialtyRoute = () => {
+      const requested = new URLSearchParams(window.location.search).get('specialty');
+      setSelectedSpecialty(requested && specialties.includes(requested) ? requested : null);
+      setSearchQuery('');
+    };
+    const requested = new URLSearchParams(window.location.search).get('specialty');
+    if (requested && !specialties.includes(requested)) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('specialty');
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+      setSelectedSpecialty(null);
+    }
+    window.addEventListener('popstate', syncSpecialtyRoute);
+    return () => window.removeEventListener('popstate', syncSpecialtyRoute);
+  }, [specialties]);
   const campaignPeriodCount = Math.min(6, Math.max(1, Math.ceil(Number(campaignDuration) / 5)));
   const campaignPeriodLength = Math.ceil(Number(campaignDuration) / campaignPeriodCount);
   const getChannelShare = (index: number) => {
@@ -82,13 +149,70 @@ export const ActivityModuleView: React.FC<Props> = ({ category, confirmedCount, 
         </div>
       </section>}
 
-      {activeSection === 'specialties' && <section className="space-y-3">
-        <div><h2 className="text-lg font-black text-slate-900">تخصصات {category.name}</h2><p className="mt-1 text-xs text-slate-500">اختر تخصصًا لعرض الجهات التابعة له في الدليل.</p></div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          <button type="button" onClick={() => onSelectSpecialty('all')} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-right font-black text-emerald-900">كل التخصصات</button>
-          {specialties.map((specialty) => <button key={specialty} type="button" onClick={() => onSelectSpecialty(specialty)} className="rounded-2xl border border-slate-200 bg-white p-4 text-right font-bold text-slate-800 hover:border-emerald-300 hover:bg-emerald-50/40">{specialty}</button>)}
-          {!specialties.length && <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لم تُسجل تخصصات لهذا النشاط بعد.</p>}
+      {activeSection === 'specialties' && <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-black text-slate-900">{selectedSpecialty || `تخصصات ${category.name}`}</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            {selectedSpecialty
+              ? 'هذا مجلد مستقل يعرض الجهات التابعة لهذا التخصص فقط.'
+              : 'اختر مجلد التخصص لعرض الجهات التابعة له ومحرك البحث الخاص به.'}
+          </p>
         </div>
+
+        {selectedSpecialty && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <div className="text-xs font-bold text-emerald-950">{parentGroupName ? parentGroupName + ' / ' : ''}{category.name} / {selectedSpecialty}</div>
+          <button type="button" onClick={closeSpecialtyFolder} className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-black text-emerald-900 hover:bg-emerald-100">العودة إلى التخصصات</button>
+        </div>}
+
+        {!selectedSpecialty && specialties.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {specialties.map((specialty) => {
+            const total = countForSpecialty(specialty);
+            return <button key={specialty} type="button" onClick={() => openSpecialtyFolder(specialty)}
+              className="group flex min-h-32 flex-col items-start justify-between rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50/50">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><Package className="h-6 w-6" /></span>
+              <span className="mt-3 block w-full font-black text-slate-900">{specialty}</span>
+              <span className="mt-1 text-xs font-bold text-slate-500">{total.toLocaleString('ar-EG')} جهة</span>
+            </button>;
+          })}
+        </div>}
+
+        {(selectedSpecialty || specialties.length === 0) && <div className="space-y-4">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={`ابحث داخل ${selectedSpecialty || category.name} بالاسم أو الهاتف أو المنطقة`}
+              aria-label={`البحث داخل ${selectedSpecialty || category.name}`}
+              className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white py-3 pr-12 pl-4 text-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" />
+          </label>
+          <div className="flex flex-wrap gap-2 text-xs font-bold">
+            <span className="rounded-full bg-emerald-50 px-3 py-2 text-emerald-800">موثق: {verifiedBusinesses.length.toLocaleString('ar-EG')}</span>
+            <span className="rounded-full bg-red-50 px-3 py-2 text-red-700">غير موثق: {(unverifiedBusinesses.length + visibleListings.length).toLocaleString('ar-EG')}</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[...verifiedBusinesses, ...unverifiedBusinesses].map((business) => <article key={business.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${business.isVerified ? 'border-emerald-200' : 'border-red-200'}`}>
+              <div className="relative h-28 bg-slate-100">
+                {business.coverUrl && <img src={business.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />}
+                <span className={`absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-black text-white ${business.isVerified ? 'bg-emerald-700' : 'bg-red-700'}`}>{business.isVerified ? 'موثق' : 'غير موثق'}</span>
+              </div>
+              <div className="flex items-center gap-3 p-3">
+                {business.logoUrl ? <img src={business.logoUrl} alt="" className="h-12 w-12 rounded-xl border object-cover" /> : <Store className="h-10 w-10 text-slate-400" />}
+                <div className="min-w-0"><h3 className="font-black text-slate-900">{business.name}</h3><p className="text-xs text-slate-500">{business.activitySpecialty || business.category}</p>
+                  <p className="text-xs text-slate-500">{[business.village, business.markaz, business.governorate].filter(Boolean).join('، ')}</p></div>
+              </div>
+              <div className="flex gap-2 border-t p-3">
+                <a href={`tel:${business.phone || business.ownerWhatsApp}`} className="min-w-0 flex-1 truncate text-xs font-bold text-slate-700">{business.phone || business.ownerWhatsApp}</a>
+                {business.publicEnabled ? <button type="button" onClick={() => onOpenBusiness(business.id)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">عرض الكتالوج</button> : <span className="rounded-lg bg-slate-50 px-3 py-2 text-[10px] font-bold text-slate-500">ضمن الدليل</span>}
+              </div>
+            </article>)}
+            {visibleListings.map((listing) => <button key={listing.id} type="button" onClick={() => onOpenListing(listing.slug)} className="overflow-hidden rounded-2xl border border-red-200 bg-white text-right shadow-sm">
+              <div className="relative flex h-28 items-center justify-center bg-slate-100"><Store className="h-10 w-10 text-slate-400" /><span className="absolute right-2 top-2 rounded-full bg-red-700 px-2 py-1 text-[10px] font-black text-white">غير موثق</span></div>
+              <div className="p-3"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs text-slate-500">{listing.taxonomy_specialty || listing.specialty || category.name}</p>
+                <p className="mt-1 text-xs text-slate-500">{[listing.village, listing.district, listing.governorate].filter(Boolean).join('، ')}</p><p className="mt-2 text-xs font-bold text-red-700">{listing.phone || listing.secondary_phone}</p></div>
+            </button>)}
+            {verifiedBusinesses.length + unverifiedBusinesses.length + visibleListings.length === 0 &&
+              <p className="col-span-full rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">لا توجد نتائج مطابقة داخل هذا التخصص والنطاق الجغرافي المحدد.</p>}
+          </div>
+        </div>}
       </section>}
 
       {activeSection === 'marketing' && <section className="space-y-5">
