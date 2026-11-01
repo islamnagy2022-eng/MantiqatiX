@@ -34,6 +34,6 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check directory Edge Function
-        run: deno check --no-lock supabase/functions/directory-listings/index.ts
+        run: deno check --node-modules-dir=auto --no-lock supabase/functions/directory-listings/index.ts
       - name: Validate incremental doctor import contract
         run: node scripts/production/validate-doctor-incremental-import.mjs
