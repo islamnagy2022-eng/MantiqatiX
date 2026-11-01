@@ -34,14 +34,11 @@ assert.match(action, /\.eq\("display_name", displayName\)/, "Deduplication must 
 assert.match(action, /\.eq\("governorate", governorate\)/, "Name deduplication must include governorate");
 assert.match(action, /\.eq\("district", district\)/, "Name deduplication must include district");
 
-assert.match(action, /sourcePermissionEvidenceId/, "Each import row must reference an approved permission evidence record");
-assert.match(action, /isCurrentDoctorRepublicationEvidence\(approvedEvidence, sourceUrl, sourceName\)/, "Import must call the tested source-evidence validator");
-assert.match(importContract, /evidence.status === "APPROVED"/, "Only approved evidence may be used");
-assert.match(importContract, /!evidence.revoked_at/, "Revoked evidence must be rejected");
-assert.match(importContract, /expiresAt > currentTime/, "Expired evidence must be rejected");
-assert.match(importContract, /sourceHost === evidence.source_host/, "Source host must match approved evidence");
-assert.match(importContract, /allows_doctor_profile_republication === true/, "Doctor republication scope must be true");
-assert.match(importContract, /allows_commercial_republication === true/, "Commercial republication scope must be true");
+assert.doesNotMatch(action, /sourcePermissionEvidenceId|isCurrentDoctorRepublicationEvidence|directory_source_permission_evidence/, "Doctor batch import must not require a permission evidence registry");
+assert.doesNotMatch(action, /SOURCE_PERMISSION_EVIDENCE_NOT_FOUND|SOURCE_PERMISSION_EVIDENCE_SCOPE_MISMATCH/, "Doctor batch import must not reject records for missing permission evidence");
+assert.match(action, /source_name: sourceName/, "Imported records must retain source attribution");
+assert.match(action, /source_url: sourceUrl/, "Imported records must retain source URL");
+assert.match(action, /source_status: "UNVERIFIED_IMPORTED_DATA"/, "Imported doctors must remain explicitly unverified");
 assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must call tested publication-state validation");
 assert.match(importContract, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a phone must be rejected when explicitly requested");
 assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
@@ -76,10 +73,9 @@ assert.match(action, /owner_confirmation_required: true/, "New imports must requ
 
 assert.match(frontend, /export async function importDoctorDirectoryBatch/, "Authenticated frontend importer must exist");
 assert.match(frontend, /rows\.length > 20/, "Frontend must enforce the same batch maximum");
-assert.match(frontend, /sourcePermissionEvidenceId: string/, "Typed import row must require a permission evidence ID");
+assert.match(frontend, /sourcePermissionEvidenceId\?: string/, "Permission evidence ID must be optional for doctor imports");
 assert.doesNotMatch(frontend, /sourcePermissionStatus:/, "Free-text permission declarations must not authorize imports");
-assert.match(frontend, /ADMIN_REGISTER_SOURCE_PERMISSION_EVIDENCE/, "Admin UI must be able to register permission evidence");
-assert.match(frontend, /ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE/, "Admin UI must support second-person approval");
+assert.match(frontend, /sourceUrl: string/, "Typed import row must retain source attribution");
 assert.match(admin, /importDoctorDirectoryBatch\(rows\)/, "Admin screen must call the incremental batch importer");
 assert.match(admin, /استيراد دفعة أطباء/, "Admin screen must expose the batch import panel");
 
@@ -92,4 +88,4 @@ assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enfo
 assert.match(evidenceMigration, /status in \('PENDING',\s*'APPROVED',\s*'REVOKED'\)/, "Evidence status must be constrained");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
-console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,approved_source_evidence,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
+console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,source_attribution,unverified_status,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui");
