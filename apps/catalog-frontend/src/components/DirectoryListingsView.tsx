@@ -24,6 +24,13 @@ function listingProfileImage(listing: PublicDirectoryListing): string {
   return "";
 }
 
+function listingCoverImage(listing: PublicDirectoryListing): string {
+  const selected = String(listing.metadata?.coverImageUrl || listing.metadata?.cover_image_url || "").trim();
+  if (/^https:\/\//i.test(selected)) return selected;
+  // Reuse the category profile fallback as the cover for unclaimed doctor/pharmacy pages.
+  return listingProfileImage(listing);
+}
+
 export const DirectoryListingsView: React.FC<{
   detailSlug?: string;
   functionalGroupId?: string | null;
@@ -187,12 +194,16 @@ export const DirectoryListingsView: React.FC<{
       <section className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10" dir="rtl">
         <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"><ArrowRight className="h-4 w-4" /> العودة إلى دليل مقدمي الخدمة</button>
         <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 px-5 py-8 text-white sm:px-8">
+          <div className="relative isolate overflow-hidden bg-gradient-to-l from-slate-950 via-emerald-950 to-slate-900 px-5 py-8 text-white sm:px-8">
+            {listingCoverImage(detail) && <img src={listingCoverImage(detail)} alt="" aria-hidden="true" className="absolute inset-0 z-0 h-full w-full object-cover opacity-35" loading="lazy" decoding="async" />}
+            <div className="absolute inset-0 z-0 bg-gradient-to-l from-slate-950/90 via-emerald-950/75 to-slate-900/80" aria-hidden="true" />
+            <div className="relative z-10">
             {listingProfileImage(detail) ? <img src={listingProfileImage(detail)} alt={"صورة " + detail.display_name} className="mb-4 h-16 w-16 rounded-2xl border border-white/20 bg-white/10 object-cover" loading="lazy" decoding="async" /> : <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10"><Building2 className="h-7 w-7 text-emerald-300" /></div>}
             <div className={`mb-2 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-black ${claimed ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-200" : pending ? "border-sky-300/30 bg-sky-400/10 text-sky-200" : "border-amber-300/30 bg-amber-400/10 text-amber-200"}`}>{claimed ? <BadgeCheck className="h-3.5 w-3.5" /> : pending ? <CalendarClock className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />} {claimed ? "صفحة مستلمة بعد المراجعة" : pending ? "طلب الاستلام قيد المراجعة" : "صفحة دليل أولية — غير مستلمة"}</div>
             <h1 className="text-2xl font-black sm:text-3xl">{detail.display_name}</h1>
             <p className="mt-2 text-sm font-semibold text-emerald-100">{specialtyLabel(detail.specialty)}</p>
             <p className="mt-1 text-xs text-slate-300">{detail.district}، {detail.governorate}</p>
+            </div>
           </div>
           <div className="space-y-5 p-5 sm:p-8">
             {!claimed && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-950">
