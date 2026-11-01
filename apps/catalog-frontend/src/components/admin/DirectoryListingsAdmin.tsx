@@ -57,6 +57,19 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const [error, setError] = useState("");
   const [batchJson, setBatchJson] = useState("");
   const [batchSummary, setBatchSummary] = useState("");
+  const batchPreview = useMemo(() => {
+    if (!batchJson.trim()) return null;
+    try {
+      const parsed = JSON.parse(batchJson);
+      const rows = Array.isArray(parsed) ? parsed : parsed?.rows;
+      if (!Array.isArray(rows)) return { count: 0, missingSource: 0, error: "صيغة JSON يجب أن تحتوي على قائمة أطباء." };
+      const missingSource = rows.filter((row) => !row || typeof row !== "object" || !String(row.sourceName || row.source_name || "").trim() || !String(row.sourceUrl || row.source_url || "").trim()).length;
+      return { count: rows.length, missingSource, error: "" };
+    } catch {
+      return { count: 0, missingSource: 0, error: "JSON غير صالح. راجع التنسيق قبل الاستيراد." };
+    }
+  }, [batchJson]);
+
   const [sourceEvidence, setSourceEvidence] = useState<DirectorySourcePermissionEvidence[]>([]);
   const [sourceEvidenceForm, setSourceEvidenceForm] = useState({
     sourceName: "", sourceHost: "", permissionBasis: "LICENSED" as DirectorySourcePermissionEvidence["permission_basis"],
@@ -289,8 +302,14 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
         </details>
         <details className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4">
           <summary className="cursor-pointer text-sm font-black text-indigo-950">استيراد دفعة أطباء — حتى 20 طبيبًا</summary>
-          <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. يجب أن يتضمن كل سجل معرّف دليل إذن معتمدًا ومطابقًا لنطاق المصدر واسمه. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
-          <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_doctor","phone":"01000000000","sourceName":"مطابق تمامًا لاسم الدليل","sourceUrl":"https://example.org/doctor","sourcePermissionEvidenceId":"UUID-الدليل-المعتمد"}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
+          <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. يجب أن يتضمن كل سجل اسم المصدر ورابطه وتاريخ المراجعة لتسهيل تتبع البيانات. لا يُشترط معرّف إذن لكل سجل. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
+          <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_doctor","phone":"01000000000","sourceName":"مطابق تمامًا لاسم الدليل","sourceUrl":"https://example.org/doctor","sourceCheckedAt":"2026-11-01"}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
+          {batchPreview && (
+            <div role="status" className="mt-3 rounded-lg border border-indigo-200 bg-white p-3 text-xs leading-6 text-slate-800">
+              <strong>معاينة محلية قبل الحفظ:</strong> {batchPreview.error || `${batchPreview.count} سجل، ${batchPreview.missingSource} بدون اسم مصدر أو رابط مرجعي.`}
+              {batchPreview.missingSource > 0 && <p>استكمل اسم المصدر والرابط لكل سجل حتى يمكن مراجعة البيانات وتتبعها. لا تُعتبر هذه المعاينة نشرًا.</p>}
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button type="button" disabled={busy || !batchJson.trim()} onClick={() => void handleDoctorBatchImport()} className="rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">{busy ? "جارٍ الاستيراد…" : "استيراد وحفظ الدفعة"}</button>
             {batchSummary && <span role="status" className="text-xs font-bold text-indigo-950">{batchSummary}</span>}
@@ -314,6 +333,7 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
               <label className="block text-xs font-bold text-slate-700">نوع الجهة<select value={form.listingType} onChange={(e) => setForm({ ...form, listingType: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs">{listingTypeOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
               <label className="block text-xs font-bold text-slate-700">حالة الظهور<select value={form.listingStatus} onChange={(e) => setForm({ ...form, listingStatus: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-2 py-2.5 text-xs"><option value="DRAFT">مسودة مخفية</option><option value="PUBLISHED">منشورة للزوار</option><option value="HIDDEN">إخفاء الصفحة</option></select></label>
             </div>
+            {form.listingType === "doctor" && form.listingStatus === "PUBLISHED" && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">نشر ملف الطبيب يتطلب مصدرًا واضحًا وإذنًا معتمدًا وساريًا لإعادة نشر ملفات الأطباء والاستخدام التجاري. ملفات الاستيراد الجديدة تظل مسودات حتى استيفاء المراجعة.</p>}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="block text-xs font-bold text-slate-700">المجموعة الوظيفية *<select required value={form.functionalGroupId} onChange={(e) => { const groupId = e.target.value; const firstCategory = categories.find((item) => item.functionalGroupId === groupId); setForm({ ...form, functionalGroupId: groupId, listingType: groupId === "medical_health" ? "doctor" : "business", taxonomyCategoryId: firstCategory?.id || "", taxonomySpecialty: "", specialty: "" }); }} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{functionalGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</select></label>
               <label className="block text-xs font-bold text-slate-700">النشاط الرئيسي داخل المجموعة *<select required value={form.taxonomyCategoryId} onChange={(e) => setForm({ ...form, taxonomyCategoryId: e.target.value, taxonomySpecialty: "", specialty: "" })} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs">{categories.filter((item) => item.functionalGroupId === form.functionalGroupId).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
