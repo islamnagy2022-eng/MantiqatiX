@@ -115,6 +115,24 @@ Deno.serve(async (req: Request) => {
     const functionalGroupId = clean(url.searchParams.get("functionalGroupId"), 100);
     const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
     const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
+
+    // Apply every explicit public filter in SQL before limiting the page.
+    // This is essential: filtering after a 20-row fetch would silently omit valid matches.
+    if (governorate) pageQuery = pageQuery.eq("governorate", governorate);
+    if (district) pageQuery = pageQuery.eq("district", district);
+    if (village) pageQuery = pageQuery.eq("village", village);
+    if (address) {
+      const addressSearch = sanitizeDirectoryPaginationSearch(address);
+      if (addressSearch) pageQuery = pageQuery.ilike("address", "%" + addressSearch + "%");
+    }
+    if (specialty) {
+      const specialtySearch = sanitizeDirectoryPaginationSearch(specialty);
+      if (specialtySearch) pageQuery = pageQuery.ilike("specialty", "%" + specialtySearch + "%");
+    }
+    if (functionalGroupId) pageQuery = pageQuery.eq("functional_group_id", functionalGroupId);
+    if (taxonomyCategoryId) pageQuery = pageQuery.eq("taxonomy_category_id", taxonomyCategoryId);
+    if (taxonomySpecialty) pageQuery = pageQuery.eq("taxonomy_specialty", taxonomySpecialty);
+
     const search = sanitizeDirectoryPaginationSearch(url.searchParams.get("q"));
     // Keep q and keyset continuation in one PostgREST logic tree.
     const logicalFilter = buildDirectoryPaginationOrFilter(search, cursor);
