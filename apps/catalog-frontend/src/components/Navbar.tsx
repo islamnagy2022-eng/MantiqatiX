@@ -1,11 +1,8 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { FloatingAppInstallButton } from './common/FloatingAppInstallButton';
-import { canAccessMerchantDashboard, canAccessProfessionalDashboard } from '../utils/dashboardAccess';
 import {
   Store,
-  LayoutDashboard,
-  ShieldCheck,
   ShoppingBag,
   Sparkles,
   LogIn,
@@ -99,7 +96,7 @@ export const Navbar: React.FC = () => {
               <span className="text-slate-300 text-[11px] font-bold">جارٍ التحقق من جلسة Google...</span>
             ) : authSession.isAuthenticated ? (
               <div className="flex items-center gap-2 text-[11px]">
-                {authSession.role === 'admin' ? (
+                {authSession.role === 'admin' && (currentView === 'account_portal' || currentView === 'super_admin') ? (
                   <span className="text-amber-300 font-bold flex items-center gap-1">
                     <Crown className="w-3 h-3" />
                     جلسة إدارة MantiqatiX
@@ -158,15 +155,9 @@ export const Navbar: React.FC = () => {
           {/* Top Line: Logo, Context, Cart */}
           <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
             <div
-              onClick={() => {
-                if (authSession.role === 'subscriber') {
-                  setCurrentView('merchant_admin');
-                } else {
-                  setCurrentView('directory');
-                }
-              }}
+              onClick={() => setCurrentView('directory')}
               className="flex items-center gap-2 cursor-pointer group flex-shrink-0 min-w-0"
-              title={authSession.role === 'subscriber' ? 'الملف الشخصي التعريفي للمشترك' : 'الرئيسية والدليل الشامل'}
+              title="الرئيسية والدليل الشامل"
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform font-black text-sm">
                 MX
@@ -256,6 +247,17 @@ export const Navbar: React.FC = () => {
                 )}
               </button>
 
+              {authSession.isAuthenticated ? (
+                <button
+                  onClick={() => setCurrentView('account_portal')}
+                  aria-current={currentView === 'account_portal' ? 'page' : undefined}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-100 cursor-pointer"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>حسابي / اشتراكي</span>
+                </button>
+              ) : null}
+
               {authSession.role === 'guest' && !authSession.isAuthenticated && !authLoading && (
                 <button
                   onClick={() => setIsLoginModalOpen(true)}
@@ -304,55 +306,7 @@ export const Navbar: React.FC = () => {
                 </button>
               )}
 
-              {/* Merchant Dashboard Tab */}
-              {canAccessMerchantDashboard(authSession) && (
-                <button
-                  onClick={() => setCurrentView('merchant_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'merchant_admin'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>
-                    {authSession.role === 'subscriber'
-                      ? 'لوحة تحكم نشاطي'
-                      : 'لوحة صاحب النشاط'}
-                  </span>
-                </button>
-              )}
 
-              {/* Additive Professional Dashboard: keep all existing dashboard links intact. */}
-              {canAccessProfessionalDashboard(authSession) && (
-                <button
-                  onClick={() => setCurrentView('professional_dashboard')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'professional_dashboard'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  aria-current={currentView === 'professional_dashboard' ? 'page' : undefined}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>الداشبورد الاحترافية</span>
-                </button>
-              )}
-
-              {/* Super Admin Dashboard Tab */}
-              {authSession.role === 'admin' && (
-                <button
-                  onClick={() => setCurrentView('super_admin')}
-                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
-                    currentView === 'super_admin'
-                      ? 'bg-white text-emerald-700 font-bold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-                  <span>لوحة الإدارة والعمولات</span>
-                </button>
-              )}
 
 
             </nav>
