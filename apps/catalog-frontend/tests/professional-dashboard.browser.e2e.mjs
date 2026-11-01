@@ -421,17 +421,23 @@ async function auditAccessibility(page, label) {
 try {
   // 0. Public activity lists render 20 cards, then append 20 more per explicit action.
   {
-    const paginationFixtures = Array.from({ length: 45 }, (_, index) => ({
-      id: 'pagination-e2e-' + String(index + 1).padStart(2, '0'),
-      name: 'نشاط اختبار التصفح ' + String(index + 1).padStart(2, '0'),
-      category: 'أنشطة تجارية',
-      status: 'ACTIVE',
-      operationalStatus: 'ACTIVE',
-      publicEnabled: true,
-      provider: { name: 'نشاط اختبار التصفح', kind: 'أنشطة تجارية', verified: index < 3 },
-      profile: { bio: 'نشاط تجريبي لاختبار التحميل التدريجي' },
-      branches: [],
-    }));
+    const paginationSource = liveDirectory.businesses[0];
+    assert.ok(paginationSource, 'a real public directory activity must be available as the E2E fixture shape');
+    const paginationFixtures = Array.from({ length: 45 }, (_, index) => {
+      const name = 'نشاط اختبار التصفح ' + String(index + 1).padStart(2, '0');
+      return {
+        ...paginationSource,
+        id: 'pagination-e2e-' + String(index + 1).padStart(2, '0'),
+        slug: 'pagination-e2e-' + String(index + 1).padStart(2, '0'),
+        name,
+        status: 'ACTIVE',
+        operationalStatus: 'ACTIVE',
+        publicEnabled: true,
+        settings: { ...(paginationSource.settings || {}), catalog_public_enabled: true },
+        profile: { ...(paginationSource.profile || {}), bio: 'نشاط تجريبي لاختبار التحميل التدريجي' },
+        provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
+      };
+    });
     const { context, page } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
     try {
       await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
