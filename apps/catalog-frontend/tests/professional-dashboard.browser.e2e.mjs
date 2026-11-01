@@ -419,6 +419,42 @@ async function auditAccessibility(page, label) {
 }
 
 try {
+  // 0. Public activity lists render 20 cards, then append 20 more per explicit action.
+  {
+    const paginationFixtures = Array.from({ length: 45 }, (_, index) => ({
+      id: 'pagination-e2e-' + String(index + 1).padStart(2, '0'),
+      name: 'نشاط اختبار التصفح ' + String(index + 1).padStart(2, '0'),
+      category: 'أنشطة تجارية',
+      status: 'ACTIVE',
+      operationalStatus: 'ACTIVE',
+      publicEnabled: true,
+      provider: { name: 'نشاط اختبار التصفح', kind: 'أنشطة تجارية', verified: index < 3 },
+      profile: { bio: 'نشاط تجريبي لاختبار التحميل التدريجي' },
+      branches: [],
+    }));
+    const { context, page } = await newScenario(browser, null, paginationFixtures, { initialRoute: '?view=directory' });
+    try {
+      await page.goto(baseUrl + '?view=directory', { waitUntil: 'domcontentloaded' });
+      const locationDialog = page.getByRole('dialog', { name: 'اكتشف الأنشطة الأقرب إليك' });
+      if (await locationDialog.isVisible().catch(() => false)) {
+        await locationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
+        await locationDialog.waitFor({ state: 'hidden', timeout: 5000 });
+      }
+      const testCards = page.locator('main[dir="rtl"] h3').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
+      await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
+      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
+        .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 40);
+      assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
+      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      await page.waitForFunction(() => [...document.querySelectorAll('main[dir="rtl"] h3')]
+        .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 45);
+      assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
+      results.push('directory-progressive-pagination-20-20-remaining-five');
+    } finally { await context.close(); }
+  }
+
   // 1. Guest direct URL must not render privileged dashboard UI.
   {
     const { context, page } = await newScenario(browser);
