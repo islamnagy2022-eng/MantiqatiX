@@ -4,12 +4,17 @@ import type { ActivityCategory, Business, FunctionalGroup } from "../../types";
 import { resolveCanonicalSpecialty } from "../../data/productionDefaults";
 import {
   fetchDirectoryAdminBundle,
+  fetchDirectorySourcePermissionEvidence,
+  registerDirectorySourcePermissionEvidence,
+  approveDirectorySourcePermissionEvidence,
+  revokeDirectorySourcePermissionEvidence,
   importDoctorDirectoryBatch,
   reviewDirectoryClaim,
   saveDirectoryListing,
   type DirectoryAdminBundle,
   type PublicDirectoryListing,
   type DirectoryClaimRequest,
+  type DirectorySourcePermissionEvidence,
 } from "../../lib/directoryListings";
 
 type Props = { businesses: Business[]; categories: ActivityCategory[]; functionalGroups: FunctionalGroup[] };
@@ -52,12 +57,23 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const [error, setError] = useState("");
   const [batchJson, setBatchJson] = useState("");
   const [batchSummary, setBatchSummary] = useState("");
+  const [sourceEvidence, setSourceEvidence] = useState<DirectorySourcePermissionEvidence[]>([]);
+  const [sourceEvidenceForm, setSourceEvidenceForm] = useState({
+    sourceName: "", sourceHost: "", permissionBasis: "LICENSED" as DirectorySourcePermissionEvidence["permission_basis"],
+    evidenceReference: "", evidenceSha256: "", expiresAt: "",
+  });
+
 
   const load = async () => {
     setLoading(true);
     setError("");
     try {
-      setBundle(await fetchDirectoryAdminBundle());
+      const [adminBundle, evidenceRows] = await Promise.all([
+        fetchDirectoryAdminBundle(),
+        fetchDirectorySourcePermissionEvidence(),
+      ]);
+      setBundle(adminBundle);
+      setSourceEvidence(evidenceRows);
     } catch (e) {
       setError(e instanceof Error ? e.message : "تعذر تحميل دليل الصفحات وطلبات الاستلام.");
     } finally {
@@ -126,6 +142,54 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
       setError(e instanceof Error ? e.message : "تعذر حفظ الصفحة.");
     } finally { setBusy(false); }
   };
+  const handleRegisterSourceEvidence = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await registerDirectorySourcePermissionEvidence({
+        sourceName: sourceEvidenceForm.sourceName.trim(),
+        sourceHost: sourceEvidenceForm.sourceHost.trim(),
+        permissionBasis: sourceEvidenceForm.permissionBasis,
+        evidenceReference: sourceEvidenceForm.evidenceReference.trim(),
+        evidenceSha256: sourceEvidenceForm.evidenceSha256.trim() || undefined,
+        expiresAt: sourceEvidenceForm.expiresAt || undefined,
+      });
+      setSourceEvidenceForm({ sourceName: "", sourceHost: "", permissionBasis: "LICENSED", evidenceReference: "", evidenceSha256: "", expiresAt: "" });
+      setMessage("تم تسجيل مرجع الدليل بحالة انتظار المراجعة. لا يمكن استخدامه للاستيراد قبل اعتماد مسؤول آخر.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر تسجيل دليل الإذن.");
+    } finally { setBusy(false); }
+  };
+
+  const handleApproveSourceEvidence = async (evidence: DirectorySourcePermissionEvidence) => {
+    if (!window.confirm("هل راجعت مستند الإذن نفسه وتأكدت أنه يسمح صراحة بإعادة نشر بيانات الأطباء تجاريًا؟ الاعتماد يسجل موافقة مسؤول ثانٍ.")) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await approveDirectorySourcePermissionEvidence({
+        evidenceId: evidence.id, reviewConfirmed: true,
+        reviewerNote: window.prompt("ملاحظة المراجع (اختياري):") || "",
+      });
+      setMessage("تم اعتماد دليل المصدر. سيظل صالحًا فقط للنطاق والنطاق الإلكتروني المسجلين وحتى تاريخ الانتهاء.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر اعتماد دليل الإذن.");
+    } finally { setBusy(false); }
+  };
+
+  const handleRevokeSourceEvidence = async (evidence: DirectorySourcePermissionEvidence) => {
+    const reason = window.prompt("سبب إلغاء الإذن؟");
+    if (!reason?.trim()) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      await revokeDirectorySourcePermissionEvidence({ evidenceId: evidence.id, reason: reason.trim() });
+      setMessage("تم إلغاء دليل الإذن، ولن تقبل دفعات جديدة منه.");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر إلغاء دليل الإذن.");
+    } finally { setBusy(false); }
+  };
+
   const handleDoctorBatchImport = async () => {
     setBusy(true); setError(""); setMessage(""); setBatchSummary("");
     try {
@@ -188,10 +252,39 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
 
       {activePane === "listings" ? (
         <>
+        <details className="rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
+          <summary className="cursor-pointer text-sm font-black text-sky-950">أدلة إذن إعادة النشر — مراجعة ثنائية</summary>
+          <p className="mt-2 text-xs leading-6 text-sky-900">سجّل مرجعًا داخليًا لعقد أو موافقة محفوظة في مخزن خاص. يبدأ السجل «بانتظار المراجعة» ولا يقبل الاستيراد إلا بعد اعتماد مسؤول آخر غير منشئ السجل، وبعد مطابقة نطاق المصدر وتاريخ الصلاحية. لا تضع رابط مستند عام أو بيانات شخصية في هذا الحقل.</p>
+          <form onSubmit={handleRegisterSourceEvidence} className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label className="text-xs font-bold text-slate-700">اسم المصدر<input required minLength={2} value={sourceEvidenceForm.sourceName} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, sourceName: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2" /></label>
+            <label className="text-xs font-bold text-slate-700">النطاق الإلكتروني فقط<input required placeholder="example.org" dir="ltr" value={sourceEvidenceForm.sourceHost} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, sourceHost: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left" /></label>
+            <label className="text-xs font-bold text-slate-700">أساس الإذن<select value={sourceEvidenceForm.permissionBasis} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, permissionBasis: e.target.value as DirectorySourcePermissionEvidence["permission_basis"] })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2"><option value="LICENSED">ترخيص مكتوب</option><option value="OWNER_PROVIDED">بيانات مقدمة من صاحبها</option><option value="PUBLIC_PERMISSION_CONFIRMED">إذن نشر صريح من المصدر</option></select></label>
+            <label className="text-xs font-bold text-slate-700">مرجع المستند الخاص<input required minLength={3} placeholder="private-bucket/contracts/..." dir="ltr" value={sourceEvidenceForm.evidenceReference} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, evidenceReference: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left" /></label>
+            <label className="text-xs font-bold text-slate-700">SHA-256 للمستند (اختياري)<input pattern="[A-Fa-f0-9]{64}" dir="ltr" value={sourceEvidenceForm.evidenceSha256} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, evidenceSha256: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-left font-mono" /></label>
+            <label className="text-xs font-bold text-slate-700">تاريخ انتهاء الإذن<input type="date" value={sourceEvidenceForm.expiresAt} onChange={(e) => setSourceEvidenceForm({ ...sourceEvidenceForm, expiresAt: e.target.value })} className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2" /></label>
+            <div className="sm:col-span-2"><button type="submit" disabled={busy} className="rounded-lg bg-sky-800 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">تسجيل الدليل للمراجعة</button></div>
+          </form>
+          <div className="mt-4 space-y-2">
+            {sourceEvidence.length === 0 ? <p className="text-xs text-sky-900">لا توجد أدلة مسجلة.</p> : sourceEvidence.map((evidence) => (
+              <article key={evidence.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-200 bg-white p-3">
+                <div className="min-w-0 text-xs">
+                  <p className="font-black text-slate-900">{evidence.source_name} — {evidence.source_host}</p>
+                  <p className="mt-1 text-slate-600">الأساس: {evidence.permission_basis} • الحالة: {evidence.status} • الانتهاء: {evidence.expires_at ? dateField(evidence.expires_at) : "غير محدد"}</p>
+                  <p className="mt-1 break-all font-mono text-[10px] text-slate-500">مرجع خاص: {evidence.evidence_reference}</p>
+                  {evidence.status === "APPROVED" && <p className="mt-1 text-emerald-800">اعتمده مسؤول مختلف عن المنشئ.</p>}
+                </div>
+                <div className="flex gap-2">
+                  {evidence.status === "PENDING" && <button type="button" disabled={busy} onClick={() => void handleApproveSourceEvidence(evidence)} className="rounded-lg bg-emerald-700 px-3 py-2 text-[11px] font-black text-white disabled:opacity-50">مراجعة واعتماد</button>}
+                  {evidence.status !== "REVOKED" && <button type="button" disabled={busy} onClick={() => void handleRevokeSourceEvidence(evidence)} className="rounded-lg border border-rose-200 px-3 py-2 text-[11px] font-black text-rose-700 disabled:opacity-50">إلغاء</button>}
+                </div>
+              </article>
+            ))}
+          </div>
+        </details>
         <details className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4">
           <summary className="cursor-pointer text-sm font-black text-indigo-950">استيراد دفعة أطباء — حتى 20 طبيبًا</summary>
-          <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
-          <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_doctor","phone":"01000000000","sourceName":"المصدر","sourceUrl":"https://...","sourcePermissionStatus":"LICENSED"}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
+          <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. يجب أن يتضمن كل سجل معرّف دليل إذن معتمدًا ومطابقًا لنطاق المصدر واسمه. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
+          <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_doctor","phone":"01000000000","sourceName":"مطابق تمامًا لاسم الدليل","sourceUrl":"https://example.org/doctor","sourcePermissionEvidenceId":"UUID-الدليل-المعتمد"}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button type="button" disabled={busy || !batchJson.trim()} onClick={() => void handleDoctorBatchImport()} className="rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">{busy ? "جارٍ الاستيراد…" : "استيراد وحفظ الدفعة"}</button>
             {batchSummary && <span role="status" className="text-xs font-bold text-indigo-950">{batchSummary}</span>}
