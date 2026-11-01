@@ -495,7 +495,7 @@ try {
       geoPreference: {
         completed: true, mode: 'manual',
         governorate: 'المنوفية', markaz: 'بركة السبع',
-        village: 'all', area: 'all',
+        village: 'قرية الاختبار', area: 'all',
       },
       directoryListingsPageHandler: (params) => {
         const secondPage = params.cursor === 'e2e-cursor-page-two';
