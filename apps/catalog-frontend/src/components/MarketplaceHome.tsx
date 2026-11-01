@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, BadgeCheck, BadgePercent, Gift, HeartPulse, MapPin, Megaphone,
-  Search, ShieldCheck, Sparkles, Store, Utensils, Wallet, ChevronLeft,
+  Search, ShieldCheck, Sparkles, Store, Utensils, Wallet, ChevronLeft, Navigation,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Business, Product } from '../types';
@@ -29,6 +29,47 @@ const isSafeHttpUrl = (value?: string | null): string => {
 
 const currency = (value: number): string =>
   Number(value || 0).toLocaleString('ar-EG', { maximumFractionDigits: 2 }) + ' ج.م';
+
+type StoredGeoPreference = {
+  completed: true;
+  mode: 'auto' | 'manual';
+  governorate: string;
+  markaz: string;
+  village: string;
+  area: string;
+};
+
+const GEO_DISCOVERY_STORAGE_KEY = 'mantiqatix.geo-discovery.v1';
+
+const readStoredGeoPreference = (): StoredGeoPreference | null => {
+  try {
+    const raw = window.localStorage.getItem(GEO_DISCOVERY_STORAGE_KEY);
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<StoredGeoPreference>;
+    if (value.completed !== true || (value.mode !== 'auto' && value.mode !== 'manual')) return null;
+    return {
+      completed: true,
+      mode: value.mode,
+      governorate: typeof value.governorate === 'string' ? value.governorate : 'all',
+      markaz: typeof value.markaz === 'string' ? value.markaz : 'all',
+      village: typeof value.village === 'string' ? value.village : 'all',
+      area: typeof value.area === 'string' ? value.area : 'all',
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredGeoPreference = (mode: 'auto' | 'manual') => {
+  try {
+    // Persist only administrative preferences; never store exact GPS coordinates.
+    window.localStorage.setItem(GEO_DISCOVERY_STORAGE_KEY, JSON.stringify({
+      completed: true, mode, governorate: 'all', markaz: 'all', village: 'all', area: 'all',
+    } satisfies StoredGeoPreference));
+  } catch {
+    // Storage may be unavailable; the visitor can still continue browsing.
+  }
+};
 
 const BusinessCard: React.FC<{ business: Business; onOpen: (business: Business) => void }> = ({ business, onOpen }) => {
   const logo = business.logoUrl || resolveDefaultImage({
@@ -116,8 +157,54 @@ export const MarketplaceHome: React.FC = () => {
   } = useApp();
   const [advertisements, setAdvertisements] = useState<TargetedAdvertisement[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
+  const [showLocationWelcome, setShowLocationWelcome] = useState(() => !readStoredGeoPreference()?.completed);
+  const [locationBusy, setLocationBusy] = useState(false);
+  const [locationMessage, setLocationMessage] = useState('');
 
   const openSearch = () => setCurrentView('directory');
+  const completeLocationSetup = (mode: 'auto' | 'manual') => {
+    writeStoredGeoPreference(mode);
+    setShowLocationWelcome(false);
+  };
+  const requestInitialLocation = () => {
+    if (!('geolocation' in navigator) || !window.isSecureContext) {
+      completeLocationSetup('manual');
+      setLocationMessage('تحديد الموقع غير متاح الآن؛ يمكنك متابعة البحث وتحديد النطاق يدويًا.');
+      return;
+    }
+    setLocationBusy(true);
+    setLocationMessage('');
+    try {
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          completeLocationSetup('auto');
+          setLocationMessage('تم السماح باستخدام الموقع. لا يتم حفظ إحداثيات GPS.');
+          setLocationBusy(false);
+        },
+        (error) => {
+          const message = error.code === error.PERMISSION_DENIED
+            ? 'لم تسمح بالوصول إلى الموقع؛ يمكنك متابعة التصفح وتحديد النطاق يدويًا.'
+            : 'تعذر تحديد موقعك الآن؛ يمكنك متابعة التصفح وتحديد النطاق يدويًا.';
+          completeLocationSetup('manual');
+          setLocationMessage(message);
+          setLocationBusy(false);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+      );
+    } catch {
+      completeLocationSetup('manual');
+      setLocationMessage('تعذر بدء طلب تحديد الموقع؛ يمكنك متابعة التصفح يدويًا.');
+      setLocationBusy(false);
+    }
+  };
+  const continueWithManualLocation = () => {
+    completeLocationSetup('manual');
+    setLocationMessage('يمكنك اختيار المحافظة والمركز والقرية من أدوات البحث.');
+  };
+  const continueWithEgypt = () => {
+    completeLocationSetup('manual');
+    setLocationMessage('يتم عرض الأنشطة المنشورة في مصر بالكامل.');
+  };
   const openBusiness = async (business: Business): Promise<void> => {
     const opened = await openPublicBusiness(business.id);
     if (!opened) window.alert('تعذر فتح الكتالوج العام لهذا النشاط حاليًا. حاول مرة أخرى.');
@@ -183,6 +270,32 @@ export const MarketplaceHome: React.FC = () => {
 
   return (
     <div data-testid="marketplace-home" dir="rtl" className="min-h-screen bg-[#f5f7f6] pb-16 text-slate-800">
+      {showLocationWelcome && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="marketplace-geo-title">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 text-right shadow-2xl" dir="rtl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+              <Navigation className="h-6 w-6" />
+            </div>
+            <h2 id="marketplace-geo-title" className="text-lg font-black text-slate-950">اكتشف الأنشطة الأقرب إليك</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              استخدم موقع جهازك لاقتراح النطاق الأقرب وترتيب الأنشطة التي لديها إحداثيات موثوقة. إحداثيات GPS تبقى داخل الجلسة ولا تُحفظ؛ الذي يُحفظ هو اختيارك الإداري فقط.
+            </p>
+            <div className="mt-5 grid gap-2">
+              <button type="button" onClick={requestInitialLocation} disabled={locationBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-800 disabled:opacity-60">
+                <Navigation className="h-4 w-4" /> {locationBusy ? 'جارٍ طلب إذن الموقع…' : 'السماح باستخدام موقعي'}
+              </button>
+              <button type="button" onClick={continueWithManualLocation} className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-slate-50">
+                متابعة وتحديد موقعي يدويًا من البحث
+              </button>
+              <button type="button" onClick={continueWithEgypt} className="min-h-10 text-xs font-bold text-emerald-800 underline">
+                عرض مصر بالكامل
+              </button>
+            </div>
+            <p className="mt-4 text-[11px] leading-5 text-slate-500">لن يُطلب إذن المتصفح إلا بعد ضغطك على «السماح باستخدام موقعي». يمكنك الرفض ومتابعة التصفح اليدوي.</p>
+          </div>
+        </div>
+      )}
+      {locationMessage && <p role="status" aria-live="polite" className="mx-auto mt-3 max-w-7xl px-4 text-xs text-slate-600">{locationMessage}</p>}
       <section className="relative isolate overflow-hidden bg-slate-950 text-white">
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 15% 20%, #10b981 0, transparent 32%), radial-gradient(circle at 90% 80%, #0f766e 0, transparent 30%)' }} />
         <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:px-8">
