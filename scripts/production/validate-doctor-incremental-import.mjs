@@ -43,6 +43,14 @@ assert.match(action, /resolveDoctorImportStatus\(row, hasPhone\)/, "Import must 
 assert.match(action, /requestedStatus === "PUBLISHED" \? "DRAFT" : importStatus\.listingStatus/, "Batch ingestion must stage publication requests as drafts");
 assert.match(action, /hasRequestedStatus && requestedStatus !== "PUBLISHED"/, "Batch ingestion must not apply a public publication request to an existing listing");
 assert.match(importContract, /PHONE_REQUIRED_FOR_PUBLICATION/, "Publication without a phone must be rejected when explicitly requested");
+const publicationAction = edge.slice(upsertStart);
+assert.match(publicationAction, /if \(listingType === "doctor" && listingStatus === "PUBLISHED"\)/, "Doctor publication must use a dedicated permission gate");
+assert.match(publicationAction, /directory_source_permission_evidence/, "Doctor publication must consult the private source-permission registry");
+assert.match(publicationAction, /\.eq\("status", "APPROVED"\)/, "Only approved source evidence may authorize doctor publication");
+assert.match(publicationAction, /isCurrentDoctorRepublicationEvidence/, "Doctor publication must validate scope, source, expiry and revocation");
+assert.match(publicationAction, /DOCTOR_REPUBLICATION_PERMISSION_REQUIRED/, "Doctor publication without valid evidence must be rejected");
+assert.match(publicationAction, /isAlreadyPublishedWithSameSource/, "Legacy published profiles may be edited without changing source attribution");
+
 assert.match(importContract, /requestedStatus === "PUBLISHED" && !hasPhone \? "DRAFT" : requestedStatus/, "Explicit HIDDEN status must not be downgraded to DRAFT when phone is absent");
 assert.match(action, /sanitizeDoctorImportMetadata\(row.metadata\)/, "Import must sanitize caller metadata");
 assert.doesNotMatch(action, /directory_source_permission_evidence/, "Import action must remain independent from the optional private evidence registry");
