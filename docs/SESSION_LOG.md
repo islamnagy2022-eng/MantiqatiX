@@ -1651,3 +1651,14 @@ A separate source review found a second platform-root authorization model: the n
 - **TODO:** added `DIR-ACTIVITY-SEARCH-20261101` to `docs/MASTER_PRODUCTION_TODO.md` in commit `8d3b8f41b220cab81cc9aad405cdad98d4b4899f`.
 - **Acceptance direction:** shared activity results/search component; common specialty/verification/geographic filters; only show activity-specific filters when real source fields exist; verified-first; preserve current public visibility rules, detail routes, group → activity → specialty navigation, and visual identity.
 - **Safety:** no schema/RLS/Edge Function/production-data changes. Implementation, CI, browser E2E, and deployed-origin verification remain OPEN. No deployment is claimed.
+
+
+## 2026-11-01 — DIR-ACTIVITY-SEARCH — nested specialty folders and scoped search
+
+- Implemented on `feat/activity-specialty-folders-scoped-search-20261101`, based directly on current `main` commit `827d1bbb0071b5274df9dcb88a266dbd3f697161`.
+- Public navigation remains group → activity; opening an activity now shows specialty folders, and opening a specialty shows only its matching public businesses/listings with a dedicated search field.
+- Specialty folders use a `specialty` URL parameter and support reload and browser back/forward. Returning from a specialty preserves the activity and parent group route.
+- The activity module receives only the current public, active, geo-filtered and phone-eligible records from the existing directory result pipeline. Verified registered businesses render first; unverified registered businesses and published unclaimed listings follow.
+- Added browser coverage for specialty route/search, empty search results, phone requirement, geo scope, refresh/history and responsive layouts at 390/768/1440px. Updated the canonical taxonomy contract and Master TODO.
+- **Verification pending:** exact-head TypeScript/build, taxonomy validator, employee RBAC/PostgreSQL, Playwright browser E2E and supporting release workflows. No merge or deployment is claimed at this checkpoint.
+- **Safety:** no production database/schema/RLS/Auth/Edge Function/payment/financial mutation was performed. Global platform release gates remain independent and unchanged.
