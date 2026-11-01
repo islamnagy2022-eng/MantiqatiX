@@ -3156,3 +3156,16 @@ A separate source review found a second platform-root authorization model: the n
 - Nationwide doctor expansion cannot rely on client-side filtering of that capped response. Add backward-compatible server-side geographic/specialty filters and stable keyset/cursor pagination, with a bounded page size; keep the UI's 20-item initial display and «رؤية المزيد» progressive loading.
 - Preserve public-only PUBLISHED visibility, existing ordering, no draft/hidden leakage, and current RLS/service boundary. Add tests for cursor stability, duplicates/missing rows across pages, geographic filtering, invalid limits/cursors, and empty/error states.
 - No backend function deployment is authorized or implied by this audit. Implement source/tests first, then follow the normal reviewed Edge Function deployment and deployed-origin verification gate.
+
+
+## DIR-DOCTORS-EGYPT-NATIONAL — server-side directory pagination implementation
+
+- **Status:** SOURCE IMPLEMENTED ON FEATURE BRANCH; exact-head CI, UI integration, merge, Edge deployment and deployed-origin verification OPEN.
+- Branch: `feat/national-doctor-directory-pagination-20261101`.
+- `directory-listings` GET now has a backward-compatible paginated mode activated by `limit`/cursor/filter parameters. It uses deterministic `created_at DESC, id DESC` keyset pagination, caps pages at 100, and returns `nextCursor`, `hasMore` and `pageSize`.
+- Added server-side filters for listing type, governorate, district, village, specialty, functional group, taxonomy category, taxonomy specialty and doctor/name search. The public query always constrains `listing_status='PUBLISHED'`; drafts/hidden records remain inaccessible.
+- Added typed frontend `fetchPublicDirectoryListingPage` helper, preserving the legacy fetch API for existing callers until the root-directory UI is migrated.
+- Added static release-contract assertions for bounded page size, cursor validation, public-only visibility, geographic/taxonomy filters, stable keyset ordering and typed client behavior.
+- **Important integration note:** the root `DirectoryView` still uses its legacy list loader; the new page helper is prepared but not yet wired into root/activity folder pagination. Do not claim national search is fully paginated until this UI integration is complete.
+- Existing `directory-listings` Production Edge Function remains deployed at v8; this branch does not deploy it. No Production database, rows, RLS, grants, Auth, or Edge Function was changed.
+- Next: integrate cursor state and «رؤية المزيد» with the root/activity/specialty result pipeline, preserve the user's selected governorate/markaz/village/area and verified-first business ordering, then exact-head CI and reviewed Edge Function rollout.
