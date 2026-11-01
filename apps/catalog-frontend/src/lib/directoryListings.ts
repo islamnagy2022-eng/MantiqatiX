@@ -205,7 +205,7 @@ export type DoctorDirectoryImportRow = {
   taxonomySpecialty?: string;
   sourceName: string;
   sourceUrl: string;
-  sourcePermissionEvidenceId: string;
+  sourcePermissionEvidenceId?: string;
   sourceCheckedAt?: string;
   listingStatus?: "PUBLISHED" | "DRAFT" | "HIDDEN";
   metadata?: Record<string, unknown>;
