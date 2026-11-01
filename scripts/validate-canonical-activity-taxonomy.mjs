@@ -162,7 +162,7 @@ const activityModuleView = read('apps/catalog-frontend/src/modules/activities/Ac
 assert.ok(directory.includes("new URLSearchParams(window.location.search).get('activity')"), 'Each activity module must have a refreshable direct URL.');
 assert.ok(directory.includes('const availableCategories = categories.filter') && directory.includes("selectedGroupFilter === 'all' || category.functionalGroupId === selectedGroupFilter"), 'Visitor discovery must expose activity folders grouped by canonical functional group, without standalone profession categories.');
 assert.ok(directory.includes('openActivityModule(category.id)'), 'Clicking an activity must open its dedicated module page.');
-assert.ok(directory.includes('setSelectedCategoryId(activityCategory.id)') && directory.includes('setSelectedSpecialty(specialty)'), 'Choosing a specialty must return to the directory with the activity/specialty filter.');
+assert.ok(directory.includes('businesses={activityBusinesses}') && directory.includes('listings={activityListings}') && directory.includes('filteredBusinesses.filter'), 'Activity modules must receive the geo-filtered public entities for only their selected activity.');
 assert.ok(directory.includes('selectedGroupFilter') && directory.includes('availableGroups.map') && !directory.includes('matchesCategoryKind'), 'Public directory must retain canonical functional-group folder navigation.');
 assert.ok(activityModuleView.includes("type Section = 'overview' | 'specialties' | 'marketing' | 'operations'"), 'Activity module must provide its own domain workspace sections.');
 assert.ok(activityModuleView.includes('resolveActivityModuleConfig(category, adminSettings.activityModuleOverrides)'), 'Every activity page must resolve its dedicated module configuration with persisted Super Admin overrides keyed by canonical activity identity.');
@@ -199,7 +199,11 @@ assert.ok(activityModuleRegistry.includes('type DomainProfile') && activityModul
 assert.ok(activityModuleRegistry.includes('campaignIdeas:') && activityModuleRegistry.includes('requiredAssets:') && activityModuleRegistry.includes('contentPillars:'), 'Each domain profile must define campaign ideas, required assets and content pillars.');
 assert.ok(activityModuleRegistry.includes("state: 'planned'"), 'Unintegrated operating capabilities must be visibly marked planned rather than falsely active.');
 assert.ok(!activityModuleRegistry.includes("state: 'available'"), 'No domain operation may be marked available before its server contract and authorization are implemented.');
-assert.ok(activityModuleView.includes('onSelectSpecialty(specialty)'), 'Activity module specialty selection must connect back to the directory.');
+assert.ok(activityModuleView.includes('openSpecialtyFolder(specialty)') && activityModuleView.includes('closeSpecialtyFolder'), 'Each specialty must open as a nested folder with an explicit return to its activity.');
+assert.ok(activityModuleView.includes('searchQuery') && activityModuleView.includes('البحث داخل') && activityModuleView.includes('matchesSearch'), 'Every specialty folder must provide search scoped to its own entity results.');
+assert.ok(activityModuleView.includes("get('specialty')") && activityModuleView.includes("url.searchParams.set('specialty', specialty)"), 'Specialty folders must support direct links, refresh and browser back/forward.');
+assert.ok(activityModuleView.includes('matching') === false && activityModuleView.includes('visibleListings.map'), 'Specialty view must render only its own matching public listings.');
+assert.ok(browserE2E.includes('activity-specialty-folders-scoped-search-geography-and-refresh'), 'Browser E2E must verify specialty search, geo filtering, direct refresh and history navigation.');
 assert.ok(directory.includes('matchesSpecialty'), 'Directory results must still filter real business records by the selected specialty.');
 assert.ok(context.includes('activityGroupCode: data.functionalGroupId'), 'The client must send the canonical group to the server.');
 assert.ok(context.includes('activityClassificationType: data.categoryClassificationType'), 'The client must send activity/profession type to the server.');
