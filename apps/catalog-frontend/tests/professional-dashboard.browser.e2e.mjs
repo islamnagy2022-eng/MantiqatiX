@@ -861,6 +861,7 @@ try {
         await firstVisitLocationDialog.getByRole('button', { name: 'عرض مصر بالكامل' }).click();
         await firstVisitLocationDialog.waitFor({ state: 'hidden', timeout: 5000 });
       }
+      await page.getByRole('button', { name: /الطب والصحة/ }).first().click();
       const activityCard = page.getByRole('button', { name: /ممارسات وعيادات طبية/ }).first();
       await activityCard.click();
       const modulePage = page.locator('main[dir="rtl"]');
