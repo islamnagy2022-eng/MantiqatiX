@@ -10,7 +10,7 @@ create table if not exists public.directory_source_permission_evidence (
     check (
       char_length(trim(evidence_reference)) between 3 and 500
       and evidence_reference ~ '^(private://[A-Za-z0-9._/-]{1,480}|contract:[A-Za-z0-9._:-]{1,480})$'
-      and evidence_reference !~ '\\.\\.'
+      and evidence_reference !~ '\.\.'
     ),
   evidence_sha256 text
     check (evidence_sha256 is null or evidence_sha256 ~ '^[0-9a-f]{64}$'),
