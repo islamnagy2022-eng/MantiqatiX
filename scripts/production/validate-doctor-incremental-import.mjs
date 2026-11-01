@@ -33,11 +33,11 @@ assert.match(action, /\.eq\("district", district\)/, "Name deduplication must in
 
 assert.match(action, /sourcePermissionEvidenceId/, "Each import row must reference an approved permission evidence record");
 assert.match(action, /directory_source_permission_evidence/, "Import must validate against the private evidence registry");
-assert.match(action, /approvedEvidence\\.status === "APPROVED"/, "Only approved source permission evidence may be used");
-assert.match(action, /!approvedEvidence\\.revoked_at/, "Revoked source evidence must be rejected");
-assert.match(action, /approvedEvidence\\.expires_at/, "Expired source evidence must be rejected");
-assert.match(action, /sourceHost !== approvedEvidence\\.source_host/, "Source host must match the approved evidence scope");
-assert.match(action, /sourceName\\.toLocaleLowerCase\\(\\) !== String\\(approvedEvidence\\.source_name/, "Source name must match the approved evidence");
+assert.match(action, /approvedEvidence\.status === "APPROVED"/, "Only approved source permission evidence may be used");
+assert.match(action, /!approvedEvidence\.revoked_at/, "Revoked source evidence must be rejected");
+assert.match(action, /approvedEvidence\.expires_at/, "Expired source evidence must be rejected");
+assert.match(action, /sourceHost !== approvedEvidence\.source_host/, "Source host must match the approved evidence scope");
+assert.match(action, /sourceName\.toLocaleLowerCase\(\) !== String\(approvedEvidence\.source_name/, "Source name must match the approved evidence");
 assert.match(edge, /approved_by <> created_by/, "Evidence registry must enforce two-person approval");
 assert.match(edge, /String\\(evidence\\.created_by\\) === String\\(user\\.id\\)/, "The evidence creator cannot approve their own evidence");
 assert.match(action, /parsedSourceUrl\.protocol === "https:" \|\| parsedSourceUrl\.protocol === "http:"/, "Source URL must be HTTP or HTTPS");
@@ -65,13 +65,13 @@ assert.match(frontend, /ADMIN_APPROVE_SOURCE_PERMISSION_EVIDENCE/, "Admin UI mus
 assert.match(admin, /importDoctorDirectoryBatch\(rows\)/, "Admin screen must call the incremental batch importer");
 assert.match(admin, /استيراد دفعة أطباء/, "Admin screen must expose the batch import panel");
 
-assert.match(evidenceMigration, /create table if not exists public\\.directory_source_permission_evidence/, "Private source permission evidence table must exist");
+assert.match(evidenceMigration, /create table if not exists public\.directory_source_permission_evidence/, "Private source permission evidence table must exist");
 assert.match(evidenceMigration, /enable row level security/i, "Evidence registry must enable RLS");
 assert.match(evidenceMigration, /force row level security/i, "Evidence registry must FORCE RLS");
-assert.match(evidenceMigration, /revoke all on table public\\.directory_source_permission_evidence from anon, authenticated/i, "Evidence registry must deny direct client access");
-assert.match(evidenceMigration, /grant all on table public\\.directory_source_permission_evidence to service_role/i, "Evidence registry must be service-role only");
+assert.match(evidenceMigration, /revoke all on table public\.directory_source_permission_evidence from anon, authenticated/i, "Evidence registry must deny direct client access");
+assert.match(evidenceMigration, /grant all on table public\.directory_source_permission_evidence to service_role/i, "Evidence registry must be service-role only");
 assert.match(evidenceMigration, /approved_by <> created_by/, "Database must enforce two-person approval");
-assert.match(evidenceMigration, /status in \\('PENDING','APPROVED','REVOKED'\\)/, "Evidence status must be constrained");
+assert.match(evidenceMigration, /status in \('PENDING','APPROVED','REVOKED'\)/, "Evidence status must be constrained");
 
 console.log("DOCTOR_INCREMENTAL_IMPORT_CONTRACT=PASS");
 console.log("checks=platform_admin,20_row_cap,sequential_persistence,deduplication,approved_source_evidence,two_person_approval,source_scope,expiry_revocation,valid_source_url,phone_gate,state_preservation,ownership_preservation,verification_protection,admin_ui,private_rls_registry");
