@@ -10,11 +10,6 @@ const SEARCH_COLUMNS = [
   "village",
 ] as const;
 
-export type DirectoryPaginationCursor = {
-  created_at: string;
-  id: string;
-};
-
 /**
  * Normalize free-text before embedding it in a PostgREST logic-tree expression.
  * Reserved delimiters and SQL LIKE wildcards are replaced rather than interpreted.
