@@ -483,6 +483,11 @@ export const DirectoryView: React.FC = () => {
     (hasConfiguredImage(business.coverUrl) ? 100 : 0) +
     Math.min(productPhotoCounts.get(business.id) || 0, 10) * 10;
 
+  const [visibleActivityCount, setVisibleActivityCount] = useState(20);
+  useEffect(() => {
+    setVisibleActivityCount(20);
+  }, [searchQuery, selectedGroupFilter, selectedCategoryId, selectedSpecialty, selectedGovFilter, selectedMarkazFilter, selectedVillageFilter, selectedAreaFilter]);
+
   const filteredBusinesses = businesses.filter((biz) => {
     // Public safety: never expose unpublished, inactive, or frozen registered businesses.
     if ((!biz.publicEnabled && !biz.isOfficialShowcase) || biz.operationalStatus !== 'ACTIVE' || biz.isFrozen) return false;
@@ -550,6 +555,15 @@ export const DirectoryView: React.FC = () => {
     }
     return normalizeSearch(a.display_name).localeCompare(normalizeSearch(b.display_name), 'ar');
   });
+
+  // Render a small first batch and append more only after an explicit visitor action.
+  const visibleBusinesses = filteredBusinesses.slice(0, visibleActivityCount);
+  const visibleUnconfirmedListings = filteredUnconfirmedListings.slice(
+    0,
+    Math.max(0, visibleActivityCount - visibleBusinesses.length),
+  );
+  const totalFilteredActivities = filteredBusinesses.length + filteredUnconfirmedListings.length;
+  const visibleActivityTotal = visibleBusinesses.length + visibleUnconfirmedListings.length;
 
   // Keep the selected geographic scope stable. Widening is always an explicit visitor action.
   const hasNoSearchResults = !directoryLoading && directoryListingsLoaded &&
@@ -929,8 +943,9 @@ export const DirectoryView: React.FC = () => {
               )}
             </div>
           ) : (
+            <>
             <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
-              {filteredBusinesses.map((biz) => {
+              {visibleBusinesses.map((biz) => {
                 return (
                   <div
                     key={biz.id}
@@ -1060,7 +1075,7 @@ export const DirectoryView: React.FC = () => {
                   </div>
                 );
               })}
-              {filteredUnconfirmedListings.map((listing) => (
+              {visibleUnconfirmedListings.map((listing) => (
                 <button
                   key={`directory-${listing.id}`}
                   type="button"
@@ -1082,6 +1097,21 @@ export const DirectoryView: React.FC = () => {
                 </button>
               ))}
             </div>
+            {visibleActivityTotal < totalFilteredActivities && (
+              <div className="mt-5 flex flex-col items-center gap-2">
+                <p className="text-xs font-semibold text-slate-500">
+                  عرض {visibleActivityTotal} من {totalFilteredActivities} نشاط
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setVisibleActivityCount((current) => current + 20)}
+                  className="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-white px-6 py-3 text-sm font-black text-emerald-800 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                >
+                  رؤية المزيد من الأنشطة
+                </button>
+              </div>
+            )}
+            </>
           )}
         </div>
       </div>

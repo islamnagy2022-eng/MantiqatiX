@@ -419,6 +419,43 @@ async function auditAccessibility(page, label) {
 }
 
 try {
+  // 0. Public activity lists render 20 cards, then append 20 more per explicit action.
+  {
+    const paginationSource = liveDirectory.businesses[0];
+    assert.ok(paginationSource, 'a real public directory activity must be available as the E2E fixture shape');
+    const paginationFixtures = Array.from({ length: 45 }, (_, index) => {
+      const name = 'نشاط اختبار التصفح ' + String(index + 1).padStart(2, '0');
+      return {
+        ...paginationSource,
+        id: 'pagination-e2e-' + String(index + 1).padStart(2, '0'),
+        slug: 'pagination-e2e-' + String(index + 1).padStart(2, '0'),
+        name,
+        status: 'ACTIVE',
+        operationalStatus: 'ACTIVE',
+        publicEnabled: true,
+        settings: { ...(paginationSource.settings || {}), catalog_public_enabled: true },
+        profile: { ...(paginationSource.profile || {}), bio: 'نشاط تجريبي لاختبار التحميل التدريجي' },
+        provider: { ...(paginationSource.provider || {}), name, verified: index < 3 },
+      };
+    });
+    const { context, page } = await newScenario(browser, null, paginationFixtures);
+    try {
+      await page.getByText('نتائج البحث الموحدة (45)', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+      const testCards = page.getByRole('heading').filter({ hasText: /^نشاط اختبار التصفح \d{2}$/ });
+      await testCards.first().waitFor({ state: 'visible', timeout: 15000 });
+      assert.equal(await testCards.count(), 20, 'directory must render exactly the first 20 activity cards');
+      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 40);
+      assert.equal(await testCards.count(), 40, 'first load-more action must append exactly 20 activity cards');
+      await page.getByRole('button', { name: 'رؤية المزيد من الأنشطة', exact: true }).click();
+      await page.waitForFunction(() => [...document.querySelectorAll('h3')]
+        .filter((node) => /^نشاط اختبار التصفح \d{2}$/.test((node.textContent || '').trim())).length === 45);
+      assert.equal(await testCards.count(), 45, 'last load-more action must append the remaining activities without duplicates');
+      results.push('directory-progressive-pagination-20-20-remaining-five');
+    } finally { await context.close(); }
+  }
+
   // 1. Guest direct URL must not render privileged dashboard UI.
   {
     const { context, page } = await newScenario(browser);

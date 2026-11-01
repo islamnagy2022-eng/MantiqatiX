@@ -126,6 +126,11 @@ export const DirectoryListingsView: React.FC<{
     const matchesSpecialty = specialtyFilter === "all" || specialtyLabel(x.specialty) === specialtyFilter;
     return matchesSearch && matchesSpecialty;
   }), [inTaxonomyScope, search, specialtyFilter]);
+  const [visibleListingCount, setVisibleListingCount] = useState(20);
+  useEffect(() => {
+    setVisibleListingCount(20);
+  }, [search, specialtyFilter, functionalGroupId, taxonomyCategoryId, taxonomySpecialty]);
+  const visibleListings = filtered.slice(0, visibleListingCount);
 
   const handleClaim = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -267,7 +272,7 @@ export const DirectoryListingsView: React.FC<{
         !allReady ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-700">لم تتم إضافة صفحات بعد.</div> :
         inTaxonomyScope.length === 0 ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-700">لا توجد صفحات مسجلة في هذا التصنيف حتى الآن. يمكن لإدارة المنصة إضافتها من لوحة «دليل الأنشطة والمطالبات» قبل عرض الاشتراك على أصحابها.</div> :
         filtered.length ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((listing) => (
+          {visibleListings.map((listing) => (
             <article key={listing.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:shadow-sm">
               <div className="flex items-start justify-between gap-2"><div className="flex min-w-0 items-start gap-3">{listingProfileImage(listing) && <img src={listingProfileImage(listing)} alt={"صورة " + listing.display_name} className="h-14 w-14 shrink-0 rounded-xl border border-slate-200 bg-slate-50 object-cover" loading="lazy" decoding="async" />}<div className="min-w-0"><h3 className="font-black text-slate-900">{listing.display_name}</h3><p className="mt-1 text-xs font-semibold text-emerald-800">{specialtyLabel(listing.specialty)}</p></div></div><span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-black text-amber-900">غير معتمدة</span></div>
               <p className="mt-3 line-clamp-2 text-xs leading-6 text-slate-600"><MapPin className="ml-1 inline h-3.5 w-3.5 text-slate-400" />{listing.address || listing.district}</p>
@@ -279,6 +284,18 @@ export const DirectoryListingsView: React.FC<{
             </article>
           ))}
         </div> : <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-700">لا توجد نتائج مطابقة للبحث.</div>}
+      {filtered.length > visibleListings.length && (
+        <div className="flex flex-col items-center gap-2 pt-2">
+          <p className="text-xs font-semibold text-slate-500">عرض {visibleListings.length} من {filtered.length} صفحة</p>
+          <button
+            type="button"
+            onClick={() => setVisibleListingCount((current) => current + 20)}
+            className="rounded-xl border border-emerald-200 bg-white px-6 py-3 text-sm font-black text-emerald-800 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+          >
+            رؤية المزيد
+          </button>
+        </div>
+      )}
       <div className="flex items-start gap-2 border-t border-slate-100 pt-4 text-xs leading-6 text-slate-500"><ClipboardList className="mt-0.5 h-4 w-4 shrink-0" /><p>كل صفحة يمكن استكمالها لاحقًا بالصور والمواعيد والخدمات ووسائل التواصل. لا يتم نقل ملكية الصفحة أو تفعيل صلاحيات المالك بمجرد إنشاء القائمة.</p></div>
     </section>
   );
