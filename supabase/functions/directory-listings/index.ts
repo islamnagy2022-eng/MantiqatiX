@@ -120,9 +120,10 @@ Deno.serve(async (req: Request) => {
     const taxonomyCategoryId = clean(url.searchParams.get("taxonomyCategoryId"), 180);
     const taxonomySpecialty = clean(url.searchParams.get("taxonomySpecialty"), 160);
     const search = clean(url.searchParams.get("q"), 100).replace(/[%,().]/g, " ").replace(/\s+/g, " ").trim();
-    if (governorate) pageQuery = pageQuery.eq("governorate", governorate);
-    if (district) pageQuery = pageQuery.eq("district", district);
-    if (village) pageQuery = pageQuery.eq("village", village);
+    // Substring matching preserves the existing Arabic normalization behavior for administrative labels.
+    if (governorate) pageQuery = pageQuery.ilike("governorate", "%" + governorate.replace(/[%]/g, " ") + "%");
+    if (district) pageQuery = pageQuery.ilike("district", "%" + district.replace(/[%]/g, " ") + "%");
+    if (village) pageQuery = pageQuery.ilike("village", "%" + village.replace(/[%]/g, " ") + "%");
     if (address) pageQuery = pageQuery.ilike("address", "%" + address.replace(/[%]/g, " ") + "%");
     if (specialty) pageQuery = pageQuery.ilike("specialty", "%" + specialty + "%");
     if (functionalGroupId) pageQuery = pageQuery.eq("functional_group_id", functionalGroupId);
