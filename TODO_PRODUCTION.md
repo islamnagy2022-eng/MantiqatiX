@@ -1594,3 +1594,16 @@ A separate source review found a second platform-root authorization model: the n
 - [ ] بعد اجتياز الاختبارات، مراجعة PR/دمج التعديلات وفق سياسة الفرع، ثم التحقق من نشر Pages الفعلي. لا نشر أو تفعيل تكاملات إعلانية ضمن التغيير الحالي.
 - [!] تحقق آلي سابق كشف assertion قديمًا في `validate-canonical-activity-taxonomy.mjs` كان يمنع وجود مجلدات المجموعات. تم تحديثه ليتحقق من المجموعة ← النشاط بدل فرض عرض الأنشطة مباشرة. Commit: `234f6d2e36705eadd70c0b1d871311026717eeb3`. يجب إعادة تشغيل exact-head CI قبل اعتماد الإصلاح.
 - [!] إعادة التشغيل كشفت assertion قديمًا ثانيًا يطلب `aria-label="الأنشطة"` بدل تسمية قسم المجموعات والأنشطة. تم تحديثه ليتحقق من `aria-label="المجموعات والأنشطة"` ومن وحدة النشاط. Commit: `2e9546d1cf1bc864d19bc6b8e5f1c7132f466909`. يلزم إعادة exact-head CI.
+
+
+## 2026-11-01 — Incremental Doctor Directory Ingestion
+
+- [ ] Add and verify `IMPORT_DOCTOR_BATCH` in `directory-listings`: sequential batches of 1–50 doctors, row-level results, and immediate persistence.
+- [ ] Verify duplicate matching by phone and exact name + governorate + district; update existing rows instead of duplicating.
+- [ ] Keep the existing publication guard: records with a valid phone may publish; records without a valid phone remain DRAFT and must not receive invented contact details.
+- [ ] Preserve already-published rows when later source snapshots omit a phone number.
+- [ ] Run type/lint checks and authenticated smoke tests for insert, update/deduplication, draft-without-phone, and unauthorized rejection.
+- [ ] After tests pass, merge the feature branch and deploy the updated `directory-listings` Edge Function; verify one test record appears in the public directory.
+- [ ] Connect the actual doctor research/collection workflow to this batch action so each completed batch is persisted before research continues.
+
+Implementation notes: see `docs/doctor-incremental-ingestion.md`. Feature branch: `feat/doctor-incremental-ingestion-20261101`. Production deployment remains blocked until the verification checklist above passes.
