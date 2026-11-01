@@ -57,6 +57,19 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
   const [error, setError] = useState("");
   const [batchJson, setBatchJson] = useState("");
   const [batchSummary, setBatchSummary] = useState("");
+  const batchPreview = useMemo(() => {
+    if (!batchJson.trim()) return null;
+    try {
+      const parsed = JSON.parse(batchJson);
+      const rows = Array.isArray(parsed) ? parsed : parsed?.rows;
+      if (!Array.isArray(rows)) return { count: 0, missingEvidence: 0, error: "صيغة JSON يجب أن تحتوي على قائمة أطباء." };
+      const missingEvidence = rows.filter((row) => !row || typeof row !== "object" || !String(row.sourcePermissionEvidenceId || row.source_permission_evidence_id || "").trim()).length;
+      return { count: rows.length, missingEvidence, error: "" };
+    } catch {
+      return { count: 0, missingEvidence: 0, error: "JSON غير صالح. راجع التنسيق قبل الاستيراد." };
+    }
+  }, [batchJson]);
+
   const [sourceEvidence, setSourceEvidence] = useState<DirectorySourcePermissionEvidence[]>([]);
   const [sourceEvidenceForm, setSourceEvidenceForm] = useState({
     sourceName: "", sourceHost: "", permissionBasis: "LICENSED" as DirectorySourcePermissionEvidence["permission_basis"],
@@ -291,6 +304,12 @@ export const DirectoryListingsAdmin: React.FC<Props> = ({ businesses, categories
           <summary className="cursor-pointer text-sm font-black text-indigo-950">استيراد دفعة أطباء — حتى 20 طبيبًا</summary>
           <p className="mt-2 text-xs leading-6 text-indigo-900">الصق بيانات موثقة بصيغة JSON. كل سجل يُحفظ فور معالجته؛ التكرارات تُحدّث بدل إنشاء سجل جديد. يجب أن يتضمن كل سجل معرّف دليل إذن معتمدًا ومطابقًا لنطاق المصدر واسمه. الطبيب الذي لا يتوفر له رقم هاتف صحيح يُحفظ كمسودة للمراجعة.</p>
           <textarea value={batchJson} onChange={(e) => setBatchJson(e.target.value)} rows={8} dir="ltr" placeholder={'[{"displayName":"اسم الطبيب","specialty":"التخصص","governorate":"المحافظة","district":"المركز","taxonomyCategoryId":"cat_medical_health_doctor","phone":"01000000000","sourceName":"مطابق تمامًا لاسم الدليل","sourceUrl":"https://example.org/doctor","sourcePermissionEvidenceId":"UUID-الدليل-المعتمد"}]'} className="mt-3 w-full rounded-xl border border-indigo-200 bg-white p-3 font-mono text-xs" />
+          {batchPreview && (
+            <div role="status" className="mt-3 rounded-lg border border-indigo-200 bg-white p-3 text-xs leading-6 text-slate-800">
+              <strong>معاينة محلية قبل الحفظ:</strong> {batchPreview.error || `${batchPreview.count} سجل، ${batchPreview.missingEvidence} بدون مرجع إذن معتمد.`}
+              {batchPreview.missingEvidence > 0 && <p>يمكنك تجهيز البيانات ومراجعتها هنا، لكن لن تُرسل إلى قاعدة البيانات دون إثبات حق إعادة النشر. لا تعتبر هذه المعاينة نشرًا.</p>}
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <button type="button" disabled={busy || !batchJson.trim()} onClick={() => void handleDoctorBatchImport()} className="rounded-xl bg-indigo-700 px-4 py-2.5 text-xs font-black text-white disabled:opacity-50">{busy ? "جارٍ الاستيراد…" : "استيراد وحفظ الدفعة"}</button>
             {batchSummary && <span role="status" className="text-xs font-bold text-indigo-950">{batchSummary}</span>}
